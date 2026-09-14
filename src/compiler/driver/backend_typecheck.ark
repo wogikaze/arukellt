@@ -6,6 +6,7 @@ use driver::config_record
 use driver::debug
 use driver::errors
 use driver::result_record
+use typechecker::contract_result_state
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
 use lint::checks as lint_checks
@@ -36,6 +37,13 @@ fn typecheck_result_check_result(result: DriverTypecheckResult) -> TypeCheckResu
 
 fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {
     result.t_typecheck
+}
+
+// CoreHIR owns the typed function and monomorphization vectors after the
+// checked program is built. Clear the transient result so diagnostics and
+// typecheck-only state do not stay live through MIR lowering and emission.
+fn typecheck_result_release_check_result(result: DriverTypecheckResult) {
+    result.check_result = contract_result_state::TypeCheckResult_new()
 }
 
 // Filter lint warnings by --allow (suppress). --deny is applied after merge.

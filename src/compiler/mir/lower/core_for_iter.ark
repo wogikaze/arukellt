@@ -5,6 +5,8 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_for_values
+use mir::lower::loop_vec
+use mir::lower::method_resolve
 
 fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
@@ -15,8 +17,9 @@ fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr
     if range_local_si < 0 {
         return 0 - 1
     }
-    let si_struct_type = ctx_api_local_types::ctx_get_local_type(ctx, range_local_si)
-    if starts_with(clone(si_struct_type), "Vec") || starts_with(clone(si_struct_type), "vec:") {
+    let raw_struct_type = ctx_api_local_types::ctx_get_local_type(ctx, range_local_si)
+    let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
+    if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) {
         return core_for_values::lower_core_for_values(ctx, exprs, expr)
     }
     let si_next_callee = concat(clone(si_struct_type), "::next")

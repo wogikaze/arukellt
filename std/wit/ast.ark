@@ -340,7 +340,8 @@ fn p_word(s: String, pos: i32) -> (String, i32) {
         }
         i = i + 1
     }
-    (slice(s, start, i), i)
+    let word = slice(s, start, i)
+    return (word, i)
 }
 
 /// Read a path-like word that may include `:` and `/` and `@` and `.`.
@@ -356,7 +357,8 @@ fn p_path(s: String, pos: i32) -> (String, i32) {
         }
         i = i + 1
     }
-    (slice(s, start, i), i)
+    let path = slice(s, start, i)
+    return (path, i)
 }
 
 /// Find a matching closing brace starting at `pos` (which should be `{`).
@@ -484,7 +486,8 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (types::WitType::Resource(String_new()), i)
     }
-    (p_type_name(word), i)
+    let fallback_type = p_type_name(word)
+    return (fallback_type, i)
 }
 
 /// Parse function parameters inside `(...)`.
@@ -510,7 +513,7 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
             i = i + 1
         }
     }
-    (params, i)
+    return (params, i)
 }
 
 /// Parse a func declaration: `name: func(params) -> result;`
@@ -539,7 +542,8 @@ fn p_func(s: String, pos: i32) -> (WitNode, i32) {
             }
         }
     }
-    (WitNode::Error(String_from("expected func")), pos)
+    let error = WitNode::Error(String_from("expected func"))
+    return (error, pos)
 }
 
 /// Parse record fields inside `{ ... }`.
@@ -565,7 +569,7 @@ fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
             i = i + 1
         }
     }
-    (fields, i)
+    return (fields, i)
 }
 
 /// Parse enum variants inside `{ ... }`.
@@ -587,7 +591,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
             i = i + 1
         }
     }
-    (variants, i)
+    return (variants, i)
 }
 
 /// Parse variant cases inside `{ ... }`.
@@ -618,7 +622,7 @@ fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
             i = i + 1
         }
     }
-    (cases, i)
+    return (cases, i)
 }
 
 /// Parse a single declaration inside an interface or world body.
@@ -805,9 +809,11 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         // resource without body: `resource handle;`
         if i < n && char_at(s, i) == 59 {
             i = i + 1
-            return (WitNode::Resource(rname, Vec::new<WitField>()), i)
+            let empty_fields: Vec<WitField> = Vec::new<WitField>()
+            return (WitNode::Resource(rname, empty_fields), i)
         }
-        return (WitNode::Error(String_from("expected { or ; in resource")), i)
+        let error = WitNode::Error(String_from("expected { or ; in resource"))
+        return (error, i)
     }
     if eq(kw, "interface") {
         i = p_skip_ws_comments(s, p1)
@@ -832,7 +838,8 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         return (func_node, func_pos)
     }
     // Skip unknown token
-    (WitNode::Error(concat(String_from("unknown declaration: "), kw)), p1)
+    let error = WitNode::Error(concat(String_from("unknown declaration: "), kw))
+    return (error, p1)
 }
 
 /// Parse a body (sequence of declarations) inside `{ ... }`.
@@ -855,11 +862,11 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
             }
         }
         i = p1
-        if i <= p_skip_ws_comments(s, pos) && i >= n {
+        if i >= n {
             break
         }
     }
-    (items, i)
+    return (items, i)
 }
 
 /// Parse a world declaration.
@@ -881,7 +888,8 @@ fn p_world(s: String, pos: i32) -> (WitNode, i32) {
     }
     let body = substring(s, i + 1, close)
     let (items, _) = p_body(body, 0)
-    (WitNode::World(wname, items), close + 1)
+    let node = WitNode::World(wname, items)
+    return (node, close + 1)
 }
 
 /// Parse an interface declaration.
@@ -903,7 +911,8 @@ fn p_interface(s: String, pos: i32) -> (WitNode, i32) {
     }
     let body = substring(s, i + 1, close)
     let (items, _) = p_body(body, 0)
-    (WitNode::Interface(iname, items), close + 1)
+    let node = WitNode::Interface(iname, items)
+    return (node, close + 1)
 }
 
 /// Parse a package declaration: `package test:foo@1.0.0;`
@@ -919,7 +928,7 @@ fn p_package_decl(s: String, pos: i32) -> (String, i32) {
     if i < len(s) && char_at(s, i) == 59 {
         i = i + 1
     }
-    (path, i)
+    return (path, i)
 }
 
 /// Parse a full WIT source text into a `WitNode` tree.

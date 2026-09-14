@@ -26,6 +26,10 @@ fn lower_gc_variant_value(ctx: LowerCtx, variant_name: String, tag: i32) -> i32 
     let type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
     ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, type_slot)
+    let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(clone(variant_name))
+    if len(enum_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+    }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
     let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_tmp))

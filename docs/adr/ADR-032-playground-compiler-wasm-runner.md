@@ -1,6 +1,11 @@
 # ADR-032: Playground v2 ブラウザ Compile + Run
 
-ステータス: **ACCEPTED** — ブラウザで compile + run（`wasm32-gc` component → jco）
+ステータス: **SUPERSEDED** — [ADR-055](ADR-055-playground-compile-boundary.md) により独自 runner を削除
+
+後継: [ADR-055-playground-compile-boundary.md](ADR-055-playground-compile-boundary.md)
+
+> この ADR は browser compile + run を検討した履歴である。現行の Playground 境界は
+> ADR-055 を参照すること。
 決定日: 2026-05-17
 改訂日: 2026-07-11 — ADR-017 から再分離（v1 契約と独立に変更可能にする）
 関連 issue: [#632](../../issues/done/632-playground-compiler-wasm-build-run-loop.md)

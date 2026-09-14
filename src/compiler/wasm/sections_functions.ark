@@ -2,12 +2,48 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
 
-fn emit_function_section(out: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>, needs_wrapper: i32, wrapper_type_idx: i32) {
+fn emit_function_section(
+    out: WasmWriter,
+    fn_count: i32,
+    fn_type_map: Vec<i32>,
+    needs_wrapper: i32,
+    wrapper_type_idx: i32,
+    p2_post_type_idx: i32,
+    p2_library_post_type_map: Vec<i32>,
+    p2_library_wrapper_type_map: Vec<i32>,
+    p2_realloc_type_idx: i32,
+    p2_initialize_type_idx: i32
+) {
     let func_sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(func_sec, fn_count + needs_wrapper)
+    let p2_command_extra = if p2_post_type_idx >= 0 { 1 } else { 0 }
+    let p2_library_extra = len(p2_library_post_type_map)
+    let p2_library_wrapper_extra = len(p2_library_wrapper_type_map)
+    let p2_runtime_extra = if p2_realloc_type_idx >= 0 { 2 } else { 0 }
+    writer_core::emit_leb128_u(
+        func_sec,
+        fn_count + needs_wrapper + p2_command_extra + p2_library_extra +
+        p2_library_wrapper_extra + p2_runtime_extra
+    )
     emit_function_type_entries(func_sec, fn_count, fn_type_map)
     emit_wrapper_function_type_entry(func_sec, needs_wrapper, wrapper_type_idx)
+    if p2_command_extra == 1 {
+        writer_core::emit_leb128_u(func_sec, p2_post_type_idx)
+    }
+    emit_library_post_function_type_entries(func_sec, p2_library_post_type_map)
+    emit_library_wrapper_function_type_entries(func_sec, p2_library_wrapper_type_map)
+    if p2_runtime_extra == 2 {
+        writer_core::emit_leb128_u(func_sec, p2_realloc_type_idx)
+        writer_core::emit_leb128_u(func_sec, p2_initialize_type_idx)
+    }
     writer_sections::emit_section(out, opcodes::SEC_FUNCTION(), func_sec)
+}
+
+fn emit_library_wrapper_function_type_entries(func_sec: WasmWriter, wrapper_type_map: Vec<i32>) {
+    let mut i = 0
+    while i < len(wrapper_type_map) {
+        writer_core::emit_leb128_u(func_sec, get_unchecked(wrapper_type_map, i))
+        i = i + 1
+    }
 }
 
 fn emit_function_type_entries(func_sec: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>) {
@@ -22,5 +58,13 @@ fn emit_function_type_entries(func_sec: WasmWriter, fn_count: i32, fn_type_map: 
 fn emit_wrapper_function_type_entry(func_sec: WasmWriter, needs_wrapper: i32, wrapper_type_idx: i32) {
     if needs_wrapper == 1 {
         writer_core::emit_leb128_u(func_sec, wrapper_type_idx)
+    }
+}
+
+fn emit_library_post_function_type_entries(func_sec: WasmWriter, post_type_map: Vec<i32>) {
+    let mut i = 0
+    while i < len(post_type_map) {
+        writer_core::emit_leb128_u(func_sec, get_unchecked(post_type_map, i))
+        i = i + 1
     }
 }

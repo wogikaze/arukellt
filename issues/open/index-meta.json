@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-08-14T14:07:16Z",
+  "generated_at": "2026-09-12T19:51:33Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -41,25 +41,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "675",
-      "path": "675-host-capability-reachability-flags.md",
-      "title": "675 — Host capability user-reachability and runtime permission flags",
-      "track": "capability",
-      "status": "open",
-      "depends_on": [
-        "841"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -540,25 +521,6 @@
       }
     },
     {
-      "id": "830",
-      "path": "830-wasm-heap-grow-patcher-retirement.md",
-      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "849",
       "path": "849-native-executor-wasm32-gc-func118-validation.md",
       "title": "849 — native-executor wasm32-gc S3 validation drift (func 118)",
@@ -573,6 +535,27 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "851",
+      "path": "851-selfhost-compiler-core-rewrite.md",
+      "title": "851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "827"
+      ],
+      "blocks_issue_ids": [
+        "850"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": 827
       }
     },
     {
@@ -635,7 +618,7 @@
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "686"
+        "upstream_notes": 686
       }
     },
     {
@@ -722,7 +705,7 @@
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "715"
+        "upstream_notes": 715
       }
     },
     {
@@ -742,6 +725,25 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "850",
+      "path": "850-compiler-phase-arena.md",
+      "title": "850 — Compiler phase-arena implementation (wasm32-gc host overlay)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "851"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": 851
       }
     },
     {

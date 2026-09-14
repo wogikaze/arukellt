@@ -10,6 +10,7 @@ use wasm::intrinsic_vec_raw_grow
 use wasm::ctx_record
 use wasm::emit_target
 use mir::inst_accessors_operands
+use mir::opcodes as mir_opcodes
 
 fn try_emit_vec_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_vec_core_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -161,8 +162,19 @@ fn try_emit_vec_push_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
     false
 }
 
-fn vec_push_is_void(ctx: SelfEmitCtx, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    // `push` returns unit; always drop the vec ref after storing the element.
+fn vec_push_is_void(_ctx: SelfEmitCtx, _inst: MirInst, next_op: i32, next_arg0: i32, _next_arg1: i32, _next2_op: i32) -> bool {
+    // The language-level push is unit in statement position, but MIR keeps
+    // the receiver as the expression result for assignments and field
+    // initializers. The following consumer identifies those expression uses.
+    if next_op == mir_opcodes::MIR_STRUCT_SET() {
+        return false
+    }
+    if next_op == mir_opcodes::MIR_LOCAL_SET() && next_arg0 >= 0 {
+        return false
+    }
+    if next_op == mir_opcodes::MIR_RETURN() && next_arg0 >= 0 {
+        return false
+    }
     true
 }
 

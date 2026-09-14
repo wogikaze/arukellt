@@ -11,6 +11,7 @@ fn peek_is_fn_clause(p: Parser) -> bool {
         core_api_cursor::skip_newlines(p)
         if core_api_cursor::at(p, tokens::TK_IDENT()) {
             p.pos = p.pos + 1
+            skip_generic_params_for_clause_lookahead(p)
             core_api_cursor::skip_newlines(p)
             if core_api_cursor::at(p, tokens::TK_LPAREN()) {
                 p.pos = p.pos + 1
@@ -25,6 +26,9 @@ fn peek_is_fn_clause(p: Parser) -> bool {
                     core_api_cursor::skip_newlines(p)
                     if core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
                         is_clause = true
+                    } else {
+                        p.pos = id_pos
+                        is_clause = typed_param_clause_has_guard(p)
                     }
                     p.pos = id_pos
                 }
@@ -33,4 +37,52 @@ fn peek_is_fn_clause(p: Parser) -> bool {
     }
     p.pos = saved
     is_clause
+}
+
+fn typed_param_clause_has_guard(p: Parser) -> bool {
+    let mut depth = 1
+    while depth > 0 && !core_api_cursor::at_eof(p) {
+        let kind = core_api_cursor::peek_kind(p)
+        if kind == tokens::TK_LPAREN() {
+            depth = depth + 1
+        }
+        if kind == tokens::TK_RPAREN() {
+            depth = depth - 1
+        }
+        p.pos = p.pos + 1
+    }
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at_eof(p) {
+        let kind = core_api_cursor::peek_kind(p)
+        if kind == tokens::TK_PIPE() {
+            return true
+        }
+        if kind == tokens::TK_EQ() || kind == tokens::TK_LBRACE() {
+            return false
+        }
+        p.pos = p.pos + 1
+    }
+    false
+}
+
+fn skip_generic_params_for_clause_lookahead(p: Parser) {
+    if core_api_cursor::peek_kind(p) != tokens::TK_LT() {
+        return
+    }
+    let mut depth = 1
+    p.pos = p.pos + 1
+    while depth > 0 && !core_api_cursor::at_eof(p) {
+        let kind = core_api_cursor::peek_kind(p)
+        if kind == tokens::TK_LT() {
+            depth = depth + 1
+        } else if kind == tokens::TK_GT() {
+            depth = depth - 1
+        } else if kind == tokens::TK_SHR() {
+            depth = depth - 2
+            if depth < 0 {
+                depth = 0
+            }
+        }
+        p.pos = p.pos + 1
+    }
 }

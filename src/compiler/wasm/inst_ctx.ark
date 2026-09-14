@@ -41,6 +41,21 @@ fn strip_module_prefix(name: String) -> String {
     clone(name)
 }
 
+fn resolve_fn_index_for_call(ctx: SelfEmitCtx, name: String, func_id_raw: i32) -> i32 {
+    if func_id_raw >= 0 {
+        let mapped = ctx_record::SelfEmitCtx_mir_index_for_func_id(ctx, func_id_raw)
+        if mapped >= 0 {
+            // FunctionId is the typed identity assigned by the signature
+            // spine. Once it has been mapped to a MIR body, do not run the
+            // legacy bare-name collision heuristic: two module functions can
+            // intentionally share that bare name (for example `json::parse`
+            // and `parser::parse`).
+            return mapped
+        }
+    }
+    resolve_fn_index(ctx, name)
+}
+
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let exact_idx = resolve_fn_index_by_name(ctx, clone(name))

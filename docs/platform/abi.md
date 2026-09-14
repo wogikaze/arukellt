@@ -5,7 +5,7 @@
 
 ## 現行 reality
 
-- **primary** `wasm32-gc`: Wasm GC 表現へ移行中 + 既定 host WASI P2。component emit あり（ADR-008）
+- **primary** `wasm32-gc`: Wasm GC 表現へ移行中 + 既定 host WASI P2。component emit あり（ADR-054）
 - **supported** `wasm32`: 同一言語意味論の linear-memory lowering（AtCoder 等）
 - **stable 公開境界**: WIT / Canonical ABI（ADR-006）。raw GC layout は compiler-private
 - backend validation (`W0004`) に通らない Wasm は build failure

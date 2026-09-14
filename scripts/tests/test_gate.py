@@ -21,7 +21,7 @@ from gate_domain.checks import (  # noqa: E402
     run_repro,
 )
 
-ROOT = Path("/home/wogikaze/arukellt")
+ROOT = _REPO_ROOT
 
 
 class TestGateDryRun(unittest.TestCase):
@@ -75,14 +75,13 @@ class TestGateDryRun(unittest.TestCase):
 
 
 class TestWasiRuntimeAbiCloseGates(unittest.TestCase):
-    """Keep #076/#676/#819/#841 contracts in the existing CI harness."""
+    """Keep the active WASI filesystem and runtime lowering contracts in CI."""
 
     def test_wasi_runtime_abi_close_gates(self):
         gates = (
             "gate-076-wasi-p2-filesystem.py",
             "gate-676-std-host-fs-env-process.py",
             "gate-819-runtime-abi-core-op-lowering.py",
-            "gate-841-real-wasi-network-abi.py",
         )
         for gate in gates:
             with self.subTest(gate=gate):

@@ -19,10 +19,6 @@ examples_find_arukellt() {
         echo "$wrapper"
         return 0
     fi
-    if [[ -x "$root/target/release/arukellt" ]]; then
-        echo "$root/target/release/arukellt"
-        return 0
-    fi
     return 1
 }
 
@@ -93,19 +89,5 @@ examples_find_wasm_tools() {
         echo "${WASM_TOOLS_BIN}"
         return 0
     fi
-    if [[ -x "$HOME/.cargo/bin/wasm-tools" ]]; then
-        echo "$HOME/.cargo/bin/wasm-tools"
-        return 0
-    fi
     command -v wasm-tools 2>/dev/null || return 1
-}
-
-examples_ensure_wasi_adapter() {
-    local out="$1"
-    if [[ -f "$out" ]]; then
-        return 0
-    fi
-    mkdir -p "$(dirname "$out")"
-    curl -fsSL -o "$out" \
-        "https://github.com/bytecodealliance/wasmtime/releases/download/v39.0.1/wasi_snapshot_preview1.reactor.wasm"
 }

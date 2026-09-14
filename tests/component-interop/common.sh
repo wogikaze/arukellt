@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Shared compiler resolution for component interop gates (#667).
 #
-# Forces recompile through the current-source selfhost wasm (s2/s3), not
-# target/debug/arukellt or the pinned bootstrap reference.
+# Forces recompile through the current-source selfhost wasm (s2/s3), not an
+# external compiler binary or the pinned bootstrap reference.
 set -euo pipefail
 
 interop_repo_root() {

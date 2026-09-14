@@ -154,10 +154,10 @@ The selfhost wrapper policy provides:
 Smoke test (recorded for the #615 slice):
 
 ```text
-$ ARUKELLT_ICE_SMOKE=1 ./target/release/arukellt --help
+$ ARUKELLT_ICE_SMOKE=1 scripts/run/arukellt-selfhost.sh --help
 [BUG] internal compiler error: ARUKELLT_ICE_SMOKE hook fired (synthetic ICE for policy smoke test)
   please report this at: https://github.com/wogikaze/arukellt/issues/new
-  hint: re-run with RUST_BACKTRACE=1 for a full trace
+  hint: re-run with the selfhost launcher diagnostics enabled for a full trace
 $ echo $?
 101
 ```
@@ -183,10 +183,9 @@ compiler-core surface found nothing eligible:
   The only `assert` / `assert_eq` etc. tokens in `src/compiler/` are
   *builtin name registrations* in `resolver.ark` (so user code can call
   them), not actual call sites in the compiler.
-- The remaining Rust compiler-core crates still in the workspace
-  (`src/compiler/diagnostics.ark`) contain only:
-  - `assert!` / `assert_eq!` inside `#[cfg(test)]` modules (not user
-    paths),
+- The active selfhost compiler source contains no user-reachable raw assertion
+  path matching this criterion; its structured diagnostics are emitted from
+  Ark source modules.
 
 There is therefore no compiler-side assertion in the current tree that
 fires on valid user input and that this slice could honestly demote to
@@ -194,10 +193,8 @@ a structured diagnostic. Per the work order's `STOP_IF` clause this
 criterion is recorded as **blocked-not-applicable** and is folded into
 the broader compiler-core hygiene tracked separately.
 
-If a future change reintroduces a Rust-side compiler invariant on the
-user-input path (e.g. a new MIR validator written in Rust rather than
-selfhost), it should be added under this section as a new conversion
-candidate.
+If a future change introduces a new compiler invariant on the user-input path,
+it should be added under this section as a new conversion candidate.
 
 ## このスライスの範囲外 (将来の #615 スライス)
 

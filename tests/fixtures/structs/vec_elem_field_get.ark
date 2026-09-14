@@ -1,0 +1,11 @@
+use std::host::stdio
+
+struct Rec {
+    wit_name: String,
+}
+
+fn main() {
+    let records = Vec::new<Rec>()
+    push(records, Rec { wit_name: String_from("x") })
+    stdio::println(clone(get_unchecked(records, 0).wit_name))
+}

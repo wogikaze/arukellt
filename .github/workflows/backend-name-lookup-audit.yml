@@ -35,18 +35,6 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Build wasm-heap-grow-patcher
-        if: github.event_name != 'pull_request'
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build host-linker
-        if: github.event_name != 'pull_request'
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
-
       - name: Build and validate selfhost stages
         if: github.event_name != 'pull_request'
         run: |

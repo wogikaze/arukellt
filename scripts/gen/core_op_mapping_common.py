@@ -40,14 +40,6 @@ RUNTIME_EXACT = {
     "env_var",
     "env_get_var",
     "env_var_or_default",
-    "http_get",
-    "http_request",
-    "http_serve",
-    "sockets_connect",
-    "sockets_read",
-    "sockets_write",
-    "sockets_listen",
-    "sockets_accept",
     "process_exit",
     "process_abort",
 }
@@ -125,8 +117,6 @@ def _semantic_base(alias: str) -> str:
         "env::",
         "fs::",
         "process::",
-        "http::",
-        "sockets::",
         "text::",
         "string::",
         "math::",
@@ -166,7 +156,7 @@ def intended_core_op_id_for_aliases(aliases: list[str], owner: str) -> str:
         return f"primitive.{primary if primary in MIR_OP_KEYS else next(b for b in bases if b in MIR_OP_KEYS)}"
 
     if owner == "host" or primary in RUNTIME_EXACT or any(
-        a.startswith(("env::", "fs::", "stdio::", "process::", "http::", "sockets::", "host::"))
+        a.startswith(("env::", "fs::", "stdio::", "process::", "host::"))
         for a in aliases
     ):
         # Collapse process::exit / host::process::exit / __runtime_abi_process_exit → runtime.process.exit
@@ -178,10 +168,6 @@ def intended_core_op_id_for_aliases(aliases: list[str], owner: str) -> str:
             if primary == "panic":
                 return "panic"
             return f"runtime.{primary}"
-        if primary.startswith("http") or any("http" in a for a in aliases):
-            return f"runtime.{primary.replace('::', '.')}"
-        if primary.startswith("socket") or any("socket" in a for a in aliases):
-            return f"runtime.{primary.replace('::', '.')}"
         return f"runtime.{primary.replace('::', '.')}"
 
     if owner == "text":

@@ -64,7 +64,9 @@ fn mir_function_propagate_local_types(
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut changed = true
     let mut iterations = 0
-    let max_iterations = 8
+    // Two scans cover A←B←C. Extra passes still walk every block but did not
+    // change compiler wasm (s2=s3 vs a max=8 host) and cost ~30s on overlay.
+    let max_iterations = 2
     while changed && iterations < max_iterations {
         changed = false
         let block_count = len(f.blocks)
@@ -178,6 +180,8 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
     let source_is_string =
     eq(clone(src_type_name), "string") ||
     eq(clone(src_type_name), "String")
+    let destination_is_variant_struct =
+    post_pass_enum_normalize::is_enum_variant_struct_type_name(clone(dst_type_name))
     if !dst_is_payload_container && !src_is_payload_container {
         if destination_is_temporary && dst_variant_slot != src_variant_slot {
             local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
@@ -201,6 +205,8 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
     len(src_type_name) > 0 &&
     (len(dst_type_name) == 0 ||
         (destination_is_temporary && !eq(clone(dst_type_name), clone(src_type_name))) ||
+        (destination_is_variant_struct && src_is_payload_container &&
+            !eq(clone(dst_type_name), clone(src_type_name))) ||
         (destination_has_string_fallback &&
             !source_is_string &&
             !eq(clone(dst_type_name), clone(src_type_name))))

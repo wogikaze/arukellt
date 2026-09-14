@@ -1,9 +1,12 @@
 // Wasm emitter context data record.
 use corehir::signature_registry
+use mir::local_write_index
 use corehir::type_table
 use mir::function_identity
 use mir::lower::mono_instance_table
+use wasm::call_resolve
 use wasm::gc_layout_table
+use wasm::sections_type_plan
 use collections::name_index
 
 pub struct SelfEmitCtx {
@@ -20,9 +23,7 @@ pub struct SelfEmitCtx {
     vec_locals: Vec<i32>,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
     gc_hint_offsets: Vec<i32>,
-    needs_wasi_http_outgoing: i32,
     source_file: String,
     code_section_offsets: Vec<i32>,
     gc_type_base: i32,
@@ -36,8 +37,11 @@ pub struct SelfEmitCtx {
     gc_struct_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_name_index: NameIndex,
+    // `a::b::Name` -> gc_struct_names index, keyed by the `::`-stripped name.
+    gc_struct_module_stripped_index: NameIndex,
     current_func_idx: i32,
     fn_type_map: Vec<i32>,
+    fn_type_refs: FuncTypeRefs,
     signature_registry: SignatureRegistry,
     type_table: TypeTable,
     mono_instance_table: MonoInstanceTable,
@@ -60,11 +64,27 @@ pub struct SelfEmitCtx {
     // First defining MIR site per local (-1 = none); speeds block_scan.
     local_def_block_cache: Vec<i32>,
     local_def_inst_cache: Vec<i32>,
-    // CSR producer write index: offsets[local_count+1], entries [bi,ii,...].
-    local_producer_index_offsets: Vec<i32>,
-    local_producer_index_entries: Vec<i32>,
+    // 0/1 per local: body has only scalar i64 producers/uses (see
+    // code_ref_locals_scan::local_body_i64_stack_set_flags).
+    local_i64_stack_set_cache: Vec<i32>,
+    // 0/1 per local: a RETURN hands this local back (code_ref_locals_scan).
+    local_feeds_return_cache: Vec<i32>,
+    // First MIR_STRUCT_NEW byte size per struct name in the current body, in
+    // body order; replaces a per-local body rescan in local decl typing.
+    struct_new_size_names: Vec<String>,
+    struct_new_sizes: Vec<i32>,
+    // Per-function write sites per local (mir::local_write_index); empty
+    // outside the begin/end_function_local_gc_cache window.
+    local_write_index: LocalWriteIndex,
     // type_name → wasm ref type idx (+2 encoded; 1 = known miss).
     type_name_ref_index: NameIndex,
+    // FunctionId.raw → MirFunction index. -1 = no body (core-op alias).
+    // Reloc key for CALL; never assume raw == mir index (#823).
+    fid_to_mir: Vec<i32>,
+    // Per-body CALL slots: offset into the module code writer, FunctionId.raw.
+    call_reloc_offs: Vec<i32>,
+    call_reloc_fids: Vec<i32>,
+    call_reloc_used: i32,
 }
 
 fn SelfEmitCtx_new(
@@ -76,8 +96,6 @@ fn SelfEmitCtx_new(
     false_str_idx: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     source_file: String
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
@@ -92,6 +110,11 @@ fn SelfEmitCtx_new(
         name_index::name_index_increment(function_name_counts, fname)
         fi = fi + 1
     }
+    call_resolve::call_resolve_remap_colliding_short_names(
+        functions,
+        function_name_index,
+        function_name_counts
+    )
     let empty_i32 = Vec::new<i32>()
     let empty_string = Vec::new<String>()
     let empty_i32_b = Vec::new<i32>()
@@ -120,9 +143,7 @@ fn SelfEmitCtx_new(
         vec_locals: empty_i32,
         target: target,
         wasi_version: wasi_version,
-        needs_runtime_host: needs_runtime_host,
         gc_hint_offsets: empty_i32_b,
-        needs_wasi_http_outgoing: needs_wasi_http_outgoing,
         source_file: source_file,
         code_section_offsets: Vec::new<i32>(),
         gc_type_base: 0,
@@ -136,8 +157,10 @@ fn SelfEmitCtx_new(
         gc_struct_names: empty_string_d,
         gc_struct_sigs: empty_string_e,
         gc_struct_name_index: name_index::NameIndex_new(0),
+        gc_struct_module_stripped_index: name_index::NameIndex_new(0),
         current_func_idx: 0,
         fn_type_map: empty_i32_e,
+        fn_type_refs: sections_type_plan::FuncTypeRefs_new(),
         signature_registry: sig,
         type_table: types,
         mono_instance_table: mono,
@@ -157,9 +180,16 @@ fn SelfEmitCtx_new(
         local_has_ref_cache: Vec::new<i32>(),
         local_def_block_cache: Vec::new<i32>(),
         local_def_inst_cache: Vec::new<i32>(),
-        local_producer_index_offsets: Vec::new<i32>(),
-        local_producer_index_entries: Vec::new<i32>(),
+        local_i64_stack_set_cache: Vec::new<i32>(),
+        local_feeds_return_cache: Vec::new<i32>(),
+        struct_new_size_names: Vec::new<String>(),
+        struct_new_sizes: Vec::new<i32>(),
+        local_write_index: local_write_index::LocalWriteIndex_empty(),
         type_name_ref_index: name_index::NameIndex_new(4096),
+        fid_to_mir: Vec::new<i32>(),
+        call_reloc_offs: Vec::new<i32>(),
+        call_reloc_fids: Vec::new<i32>(),
+        call_reloc_used: 0,
     }
 }
 
@@ -207,28 +237,41 @@ fn SelfEmitCtx_set_local_def_inst_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_def_inst_cache = cache
 }
 
-fn SelfEmitCtx_local_producer_index_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
-    ctx.local_producer_index_offsets
+fn SelfEmitCtx_local_i64_stack_set_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_i64_stack_set_cache
 }
 
-fn SelfEmitCtx_set_local_producer_index_offsets(ctx: SelfEmitCtx, cache: Vec<i32>) {
-    ctx.local_producer_index_offsets = cache
+fn SelfEmitCtx_set_local_i64_stack_set_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_i64_stack_set_cache = cache
 }
 
-fn SelfEmitCtx_local_producer_index_entries(ctx: SelfEmitCtx) -> Vec<i32> {
-    ctx.local_producer_index_entries
+fn SelfEmitCtx_local_feeds_return_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_feeds_return_cache
 }
 
-fn SelfEmitCtx_set_local_producer_index_entries(ctx: SelfEmitCtx, cache: Vec<i32>) {
-    ctx.local_producer_index_entries = cache
+fn SelfEmitCtx_struct_new_size_names(ctx: SelfEmitCtx) -> Vec<String> {
+    ctx.struct_new_size_names
 }
 
-fn SelfEmitCtx_needs_runtime_host(ctx: SelfEmitCtx) -> i32 {
-    ctx.needs_runtime_host
+fn SelfEmitCtx_struct_new_sizes(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.struct_new_sizes
 }
 
-fn SelfEmitCtx_needs_wasi_http_outgoing(ctx: SelfEmitCtx) -> i32 {
-    ctx.needs_wasi_http_outgoing
+fn SelfEmitCtx_set_struct_new_size_table(ctx: SelfEmitCtx, names: Vec<String>, sizes: Vec<i32>) {
+    ctx.struct_new_size_names = names
+    ctx.struct_new_sizes = sizes
+}
+
+fn SelfEmitCtx_set_local_feeds_return_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_feeds_return_cache = cache
+}
+
+fn SelfEmitCtx_local_write_index(ctx: SelfEmitCtx) -> LocalWriteIndex {
+    ctx.local_write_index
+}
+
+fn SelfEmitCtx_set_local_write_index(ctx: SelfEmitCtx, index: LocalWriteIndex) {
+    ctx.local_write_index = index
 }
 
 fn SelfEmitCtx_target(ctx: SelfEmitCtx) -> String {
@@ -386,13 +429,37 @@ fn SelfEmitCtx_bare_suffix(name: String) -> String {
     name
 }
 
+// Name after the last `::`; the name itself when it has no module path.
+fn SelfEmitCtx_module_stripped_name(name: String) -> String {
+    let name_len = len(name)
+    let mut index = name_len - 2
+    while index >= 0 {
+        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+            return substring(name, index + 2, name_len)
+        }
+        index = index - 1
+    }
+    name
+}
+
+// First gc_struct_names entry whose `::`-stripped name equals `stripped`, or -1.
+fn SelfEmitCtx_gc_struct_index_by_module_stripped_name(ctx: SelfEmitCtx, stripped: String) -> i32 {
+    name_index::name_index_get(ctx.gc_struct_module_stripped_index, stripped)
+}
+
 fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
     let names = ctx.gc_struct_names
     let map = ctx.gc_struct_type_map
     let count = len(names)
     let index = name_index::NameIndex_new(count)
+    let stripped_index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
+        name_index::name_index_insert_first(
+            stripped_index,
+            SelfEmitCtx_module_stripped_name(clone(get_unchecked(names, i))),
+            i
+        )
         let type_idx = if i < len(map) {
             get_unchecked(map, i)
         } else {
@@ -409,6 +476,7 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
         i = i + 1
     }
     ctx.gc_struct_name_index = index
+    ctx.gc_struct_module_stripped_index = stripped_index
 }
 
 fn SelfEmitCtx_gc_struct_sigs(ctx: SelfEmitCtx) -> Vec<String> {
@@ -433,6 +501,22 @@ fn SelfEmitCtx_fn_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
 
 fn SelfEmitCtx_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx.fn_type_map = fn_type_map
+}
+
+// Type-section index of defined function `fn_idx`, or -1 when unknown.
+fn SelfEmitCtx_fn_type_index(ctx: SelfEmitCtx, fn_idx: i32) -> i32 {
+    if fn_idx < 0 || fn_idx >= len(ctx.fn_type_map) {
+        return 0 - 1
+    }
+    get_unchecked(ctx.fn_type_map, fn_idx)
+}
+
+fn SelfEmitCtx_fn_type_refs(ctx: SelfEmitCtx) -> FuncTypeRefs {
+    ctx.fn_type_refs
+}
+
+fn SelfEmitCtx_set_fn_type_refs(ctx: SelfEmitCtx, table: FuncTypeRefs) {
+    ctx.fn_type_refs = table
 }
 
 fn SelfEmitCtx_signature_registry(ctx: SelfEmitCtx) -> SignatureRegistry {
@@ -545,4 +629,19 @@ fn SelfEmitCtx_gc_layout_table(ctx: SelfEmitCtx) -> GcLayoutTable {
 
 fn SelfEmitCtx_set_gc_layout_table(ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {
     ctx.gc_layout_table = gc_layout_table
+}
+
+fn SelfEmitCtx_fid_to_mir(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.fid_to_mir
+}
+
+fn SelfEmitCtx_set_fid_to_mir(ctx: SelfEmitCtx, fid_to_mir: Vec<i32>) {
+    ctx.fid_to_mir = fid_to_mir
+}
+
+fn SelfEmitCtx_mir_index_for_func_id(ctx: SelfEmitCtx, func_id_raw: i32) -> i32 {
+    if func_id_raw < 0 || func_id_raw >= len(ctx.fid_to_mir) {
+        return 0 - 1
+    }
+    get_unchecked(ctx.fid_to_mir, func_id_raw)
 }

@@ -7,7 +7,7 @@ fn main() {
         Ordering::Equal => panic("expected Less"),
         Ordering::Greater => panic("expected Less"),
     }
-    match -5.cmp(0) {
+    match (-5).cmp(0) {
         Ordering::Less => test::assert_true(true),
         Ordering::Equal => panic("expected Less"),
         Ordering::Greater => panic("expected Less"),

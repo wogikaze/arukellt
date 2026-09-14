@@ -1,5 +1,10 @@
 package test:host;
 
 interface host {
-    set-perms: func(p: flags { read, write });
+    flags perms {
+        read,
+        write,
+    }
+
+    set-perms: func(p: perms);
 }

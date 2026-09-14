@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """No-prune invariant gate for selfhost compiler MIR reachability.
 
-The bootstrap pinned wasm and the heap-grow patcher assume the compiler's
-MIR-level reachability/prune phase does not discard functions that are
+The bootstrap pinned wasm relies on the compiler's MIR-level reachability/prune
+phase not discarding functions that are
 reachable from export roots (including through ``ref.func``/``MIR_REF_FUNC``
 edges).  This gate compiles a small set of fixtures that contain both live
 export-root chains and genuinely dead code, then asserts that:
@@ -69,8 +69,8 @@ FIXTURES = [
 def _find_compiler() -> Path | None:
     """Locate the current selfhost compiler artifact.
 
-    Prefer the runtime (heap-grow patched) stage-2 wasm, then the plain s2,
-    then bootstrap fallbacks.  ``None`` means there is nothing to test with.
+    Prefer the stage-2 runtime artifact, then plain s2 and bootstrap fallbacks.
+    ``None`` means there is nothing to test with.
     """
     env = os.environ.get("ARUKELLT_SELFHOST_WASM", "").strip()
     if env:

@@ -1,23 +1,38 @@
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i64_arith
 use wasm::intrinsics::helpers_numeric_i64_convert
+use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 
 fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
-    // i64 nsec scratch must use offset 15 (i64 slot); scratch 0 is i32 (#807 now_ms).
-    let nsec_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
-    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    // `wall-clock.now` returns datetime through the canonical result pointer:
+    // seconds at offset 0 and nanoseconds at offset 8.
+    let seconds_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
+    emit_i64_load_default(w)
+    helpers_core::emit_local_set(w, seconds_local)
+    helpers_core::emit_local_get(w, seconds_local)
     let million: i64 = 1000000
     emit_i64_const(w, million)
-    helpers_numeric_i64_arith::emit_i64_div_u(w)
-    helpers_core::emit_local_set(w, nsec_local)
     let thousand: i64 = 1000
     emit_i64_const(w, thousand)
     helpers_numeric_i64_arith::emit_i64_mul(w)
-    helpers_core::emit_local_get(w, nsec_local)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT() + 8)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    emit_i64_const(w, million)
+    helpers_numeric_i64_arith::emit_i64_div_u(w)
     helpers_numeric_i64_arith::emit_i64_add(w)
+}
+
+fn emit_i64_load_default(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_leb128_u(w, 0)
 }
 
 fn emit_i64_const(w: WasmWriter, value: i64) {

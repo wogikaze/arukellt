@@ -1,6 +1,7 @@
 use std::host::stdio
 
 struct MyStruct {
+    marker: i32,
 }
 
 impl Foo for MyStruct {
@@ -9,7 +10,7 @@ impl Foo for MyStruct {
     }
 }
 
-fn f<T: Foo>(x: T) -> T {
+fn trait_bound_identity<T: Foo>(x: T) -> T {
     x
 }
 

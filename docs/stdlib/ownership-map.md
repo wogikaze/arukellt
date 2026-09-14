@@ -74,15 +74,6 @@ These files are authored and maintained by human contributors. Changes require r
 | `recipe-manifest.toml` | Maps cookbook recipes to test fixture files | `check-docs-consistency.py` | `check_recipe_fixture_links` |
 | `modernization/511-numeric-tag-inventory.md` | Numeric tag modernization inventory | stdlib maintainers | — (manual review) |
 
-### Generated Module Pages (host modules)
-
-The following generated module pages are also tracked:
-
-| File | Generator | Source of truth | CI check |
-|------|-----------|-----------------|----------|
-| `modules/http.md` | `generate-docs.py` | `std/manifest.toml` + host badges | `check_host_badge_presence`, `check_cross_page_metadata_consistency` |
-| `modules/sockets.md` | `generate-docs.py` | `std/manifest.toml` + host badges | `check_host_badge_presence`, `check_cross_page_metadata_consistency` |
-
 ### Archive Pages
 
 | File | Superseded by | Reason kept |

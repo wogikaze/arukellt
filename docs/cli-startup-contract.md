@@ -62,7 +62,6 @@ The extension README lists the same keys, types, defaults, and descriptions.
 | `arukellt.enableCodeLens` | `boolean` | `true` | LSP (`enableCodeLens`) |
 | `arukellt.hoverDetailLevel` | `"full"` \| `"minimal"` | `"full"` | LSP (`hoverDetailLevel`) |
 | `arukellt.diagnostics.reportLevel` | `"errors"` \| `"warnings"` \| `"all"` | `"all"` | LSP (`diagnosticsReportLevel`) |
-| `arukellt.useSelfHostBackend` | `boolean` | `false` | LSP (`useSelfHostBackend`; extension warns and falls back before Stage 2 fixpoint) |
 | `arukellt.check.onSave` | `boolean` | `true` | LSP (`checkOnSave`) |
 
 LSP behaviour settings are sent on startup via `initializationOptions` and on change

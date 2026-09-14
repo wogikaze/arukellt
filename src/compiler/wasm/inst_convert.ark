@@ -6,11 +6,11 @@ use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::inst_locals
-use wasm::code_ref_locals
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::sections_type_plan
 use mir::opcodes as mir_opcodes
 
 fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -25,12 +25,12 @@ fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op
     if ret_local >= 0 {
         let already_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() && prev_arg0 == ret_local
         if !already_on_stack {
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, ret_local)
+            writer_core::emit_local_get(w, ret_local)
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, ret_local)
         } else {
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, ret_local)
         }
+        emit_declared_gc_return_cast(w, ctx)
     } else {
         emit_return_stack_gc_cast_if_needed(w, ctx)
     }
@@ -38,11 +38,19 @@ fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op
 }
 
 fn emit_return_stack_gc_cast_if_needed(w: WasmWriter, ctx: SelfEmitCtx) {
+    emit_declared_gc_return_cast(w, ctx)
+}
+
+fn emit_declared_gc_return_cast(w: WasmWriter, ctx: SelfEmitCtx) {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return
     }
-    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    if !code_ref_locals::mir_function_returns_option(f) {
+    let fn_type_idx = ctx_record::SelfEmitCtx_fn_type_index(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    let result_ref = sections_type_plan::FuncTypeRefs_result_ref_type(
+        ctx_record::SelfEmitCtx_fn_type_refs(ctx),
+        fn_type_idx
+    )
+    if result_ref != ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) {
         return
     }
     writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
@@ -104,8 +112,7 @@ fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 writer_core::emit_leb128_u(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I64_CONST())
                 writer_core::emit_leb128_s(w, 0)
-                writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-                writer_core::emit_leb128_u(w, scratch)
+                writer_core::emit_local_get(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I64_SUB())
             } else {
                 let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -113,8 +120,7 @@ fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 writer_core::emit_leb128_u(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I32_CONST())
                 writer_core::emit_leb128_s(w, 0)
-                writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-                writer_core::emit_leb128_u(w, scratch)
+                writer_core::emit_local_get(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I32_SUB())
             }
         }

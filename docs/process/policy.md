@@ -61,9 +61,9 @@ Separate **public contract** from **living implementation**:
 
 | Axis | Current statement |
 |------|-------------------|
-| Public contract (ADR-008) | `--emit component` / `--emit wit` / `--emit all` on `wasm32-gc` are in-tree compiler responsibilities |
-| Implementation state | Living path may still invoke `wasm-tools` / Python wrap helpers for some component packaging steps (see `current-state.md` ADR gaps) |
-| External requirements | Do not assume a clean environment without `wasm-tools` until the in-tree path is complete (#714 / related) |
+| Public contract (ADR-054) | compiler emits component core Wasm/WIT; official `wasm-tools` owns Component Model packaging |
+| Implementation state | `--emit component` / `--emit all` delegate packaging to the official `wasm-tools component embed/new` pipeline |
+| External requirements | `wasm-tools` is required for component packaging, inspection, and validation |
 | Default emit | `--emit core-wasm` |
 
 - Component export support covers the currently wired WIT-compatible surface; not every canonical ABI case is complete.

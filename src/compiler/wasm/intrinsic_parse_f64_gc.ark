@@ -4,7 +4,7 @@ use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::intrinsic_parse_f64_finalize
 use wasm::intrinsic_parse_f64_scan
-use wasm::runtime_abi_sockets_result
+use wasm::result_helpers
 use wasm::runtime_abi_stdio_gc
 use wasm::opcodes
 use wasm::writer_core
@@ -32,8 +32,7 @@ fn emit_parse_f64_gc_init_state(w: WasmWriter, s_str: i32, s_len_local: i32) {
     // Same layout as LM emit_parse_f64_source: data ptr on stack, length at ptr-4.
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_str)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_str)
+    writer_core::emit_local_get(w, s_str)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
@@ -76,8 +75,7 @@ fn emit_parse_f64_gc_store_i32_flag(w: WasmWriter, addr: i32, value: i32) {
 }
 
 fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_len_local)
+    writer_core::emit_local_get(w, s_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
@@ -91,8 +89,7 @@ fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_str)
+    writer_core::emit_local_get(w, s_str)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
@@ -103,8 +100,7 @@ fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i
     writer_core::emit_byte(w, 64)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_NEG(), 1)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_I(), 1)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_len_local)
+    writer_core::emit_local_get(w, s_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_LE_U())
@@ -141,7 +137,7 @@ fn emit_parse_f64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let ok_name = String_from("Result::Ok")
     let ok_suffix = String_from("_f1_f64")
-    let ok_type = runtime_abi_sockets_result::find_result_variant_type_by_suffix(ctx, ok_name, ok_suffix)
+    let ok_type = result_helpers::find_result_variant_type_by_suffix(ctx, ok_name, ok_suffix)
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     helpers_io_const::emit_i32_const(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -154,14 +150,27 @@ fn emit_parse_f64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_parse_f64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_gc: i32) {
-    // Prefer String-payload Err (_f1_ref0). Reuse the input GC string — match
-    // in finish_decimal_number ignores the Err message and emits TK_ERROR.
+    // Prefer String-payload Err (_f1_ref0) and keep its public diagnostic
+    // consistent with the linear parser.
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let err_name = String_from("Result::Err")
     let err_suffix = String_from("_f1_ref0")
-    let err_type = runtime_abi_sockets_result::find_result_variant_type_by_suffix(ctx, err_name, err_suffix)
+    let err_type = result_helpers::find_result_variant_type_by_suffix(ctx, err_name, err_suffix)
     let type_idx = if err_type >= 0 { err_type } else { open_type }
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let message = "parse error: invalid float"
+    let message_len = len(message)
+    helpers_io_const::emit_i32_const(w, message_len)
+    writer_gc::emit_gc_array_new(w, string_type)
+    helpers_core::emit_local_set(w, s_gc)
+    let mut i = 0
+    while i < message_len {
+        helpers_core::emit_local_get(w, s_gc)
+        helpers_io_const::emit_i32_const(w, i)
+        helpers_io_const::emit_i32_const(w, char_at(message, i))
+        writer_gc::emit_gc_array_set_i32(w, string_type)
+        i = i + 1
+    }
     helpers_io_const::emit_i32_const(w, 1)
     helpers_core::emit_local_get(w, s_gc)
     writer_gc::emit_gc_ref_cast(w, string_type)

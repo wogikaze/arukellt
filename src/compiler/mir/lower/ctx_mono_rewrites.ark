@@ -1,3 +1,5 @@
+use collections::name_index
+
 fn ctx_mono_span_rewrite_count(ctx: LowerCtx) -> i32 {
     len(ctx.mono_call_starts)
 }
@@ -23,6 +25,38 @@ fn ctx_mono_push_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, ta
     push(ctx.mono_call_span_sources, source)
     push(ctx.mono_call_span_targets, target)
     push(ctx.mono_call_span_used, 0)
+    ctx_mono_span_hash_insert(ctx, span_start)
+}
+
+fn ctx_mono_span_hash_insert(ctx: LowerCtx, span_start: i32) {
+    if len(ctx.mono_span_buckets) == 0 {
+        let mut i = 0
+        while i < 1024 {
+            push(ctx.mono_span_buckets, 0)
+            i = i + 1
+        }
+    }
+    let capacity = len(ctx.mono_span_buckets)
+    let mut slot = span_start
+    if slot < 0 {
+        slot = 0
+    }
+    slot = slot % capacity
+    let head = get_unchecked(ctx.mono_span_buckets, slot)
+    push(ctx.mono_span_next, head)
+    set(ctx.mono_span_buckets, slot, len(ctx.mono_call_starts))
+}
+
+fn ctx_mono_span_hash_head(ctx: LowerCtx, span_start: i32) -> i32 {
+    let capacity = len(ctx.mono_span_buckets)
+    if capacity <= 0 {
+        return 0
+    }
+    let mut slot = span_start
+    if slot < 0 {
+        slot = 0
+    }
+    get_unchecked(ctx.mono_span_buckets, slot % capacity)
 }
 
 fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {
@@ -46,7 +80,40 @@ fn ctx_mono_mark_name_rewrite_used(ctx: LowerCtx, index: i32) {
 }
 
 fn ctx_mono_push_name_rewrite(ctx: LowerCtx, source: String, target: String) {
+    let index = len(ctx.mono_call_sources)
+    let bare = mono_bare_source(clone(source))
     push(ctx.mono_call_sources, source)
     push(ctx.mono_call_name_targets, target)
     push(ctx.mono_call_used, 0)
+    push(ctx.mono_call_bare_next, 0 - 1)
+    let tail = name_index::name_index_get(ctx.mono_call_bare_tail, clone(bare))
+    if tail < 0 {
+        name_index::name_index_set(ctx.mono_call_bare_head, clone(bare), index)
+    } else {
+        set(ctx.mono_call_bare_next, tail, index)
+    }
+    name_index::name_index_set(ctx.mono_call_bare_tail, bare, index)
+}
+
+// First rewrite index whose source has the same bare name as `source`, or -1.
+fn ctx_mono_name_rewrite_first_for_source(ctx: LowerCtx, source: String) -> i32 {
+    name_index::name_index_get(ctx.mono_call_bare_head, mono_bare_source(source))
+}
+
+// Next rewrite index with the same bare source after `index`, or -1.
+fn ctx_mono_name_rewrite_next_same_source(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.mono_call_bare_next, index)
+}
+
+// Text after the last `:`; `mod:fn` and `fn` name the same mono source.
+fn mono_bare_source(source: String) -> String {
+    let source_len = len(source)
+    let mut index = source_len - 1
+    while index >= 0 {
+        if char_at(source, index) == 58 {
+            return substring(source, index + 1, source_len)
+        }
+        index = index - 1
+    }
+    source
 }

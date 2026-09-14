@@ -6,6 +6,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::block_inst_access
+use mir::local_write_index
 use mir::opcodes
 use mir::value_types
 use mir::function_locals_view
@@ -15,7 +16,10 @@ use mir::function_identity
 use mir::local_access
 use mir::post_pass_callee_lookup
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
+use wasm::call_indirect
+use wasm::code_ref_locals_fn_cache
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
@@ -102,6 +106,20 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     let mut vec_local = inst_accessors_operands::MirInst_arg0(inst)
     if vec_local < 0 || vec_local >= function_locals_view::MirFunction_local_count(f) {
         return Option::None
+    }
+    // A LOCAL_SET copy can lose the source's diagnostic type_name while the
+    // typed-MIR layout still identifies a Vec<fn>.  Recover the element's
+    // concrete funcref type from that layout before falling back to names.
+    let receiver_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, vec_local)
+    if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) {
+        let fnref_type = call_indirect::resolve_indirect_type_idx(
+            ctx,
+            0 - 1,
+            1,
+            value_types::VT_I32(),
+            value_types::VT_I32()
+        )
+        return Option::Some(fnref_type)
     }
     let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
     let mut elem = String_new()
@@ -276,27 +294,25 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
     Option::None
 }
 
-fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
+// True when two distinct enum variant slots are written into `local_idx`.
+fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    let writes = code_ref_locals_fn_cache::function_local_write_index(f, ctx)
     let mut first_variant_slot = 0 - 1
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let slot = enum_variant_slot_written_to_local(f, block, ii, inst, local_idx)
-            if slot >= 0 {
-                if first_variant_slot < 0 {
-                    first_variant_slot = slot
-                } else if slot != first_variant_slot {
-                    return true
-                }
+    let end = local_write_index::local_write_index_end(writes, local_idx)
+    let mut wi = local_write_index::local_write_index_begin(writes, local_idx)
+    while wi < end {
+        let block = get_unchecked(f.blocks, local_write_index::local_write_index_block_at(writes, wi))
+        let ii = local_write_index::local_write_index_inst_at(writes, wi)
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let slot = enum_variant_slot_written_to_local(f, block, ii, inst, local_idx, ctx)
+        if slot >= 0 {
+            if first_variant_slot < 0 {
+                first_variant_slot = slot
+            } else if slot != first_variant_slot {
+                return true
             }
-            ii = ii + 1
         }
-        bi = bi + 1
+        wi = wi + 1
     }
     false
 }
@@ -308,7 +324,8 @@ fn enum_variant_slot_written_to_local(
     block: MirBlock,
     ii: i32,
     inst: MirInst,
-    local_idx: i32
+    local_idx: i32,
+    ctx: SelfEmitCtx
 ) -> i32 {
     let op = inst_accessors_shape::MirInst_op(inst)
     if op == opcodes::MIR_GC_STRUCT_NEW() {
@@ -325,7 +342,7 @@ fn enum_variant_slot_written_to_local(
     }
     let source = inst_accessors_operands::MirInst_arg1(inst)
     if source >= 0 {
-        return gc_struct_new_variant_slot_for_local(f, source)
+        return gc_struct_new_variant_slot_for_local(f, source, ctx)
     }
     if ii <= 0 {
         return 0 - 1
@@ -334,35 +351,32 @@ fn enum_variant_slot_written_to_local(
     if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
         let prev_src = inst_accessors_operands::MirInst_arg0(prev)
         if prev_src >= 0 {
-            return gc_struct_new_variant_slot_for_local(f, prev_src)
+            return gc_struct_new_variant_slot_for_local(f, prev_src, ctx)
         }
         return 0 - 1
     }
     // Stack LOCAL_SET after a producer whose dest is the constructed variant.
     let prev_dest = inst_accessors_operands::MirInst_dest(prev)
     if prev_dest >= 0 {
-        return gc_struct_new_variant_slot_for_local(f, prev_dest)
+        return gc_struct_new_variant_slot_for_local(f, prev_dest, ctx)
     }
     0 - 1
 }
 
-fn gc_struct_new_variant_slot_for_local(f: MirFunction, local_idx: i32) -> i32 {
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
-                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                    return inst_accessors_operands::MirInst_arg0(inst)
-                }
+// Variant slot of the first GC_STRUCT_NEW whose dest is `local_idx`, or -1.
+fn gc_struct_new_variant_slot_for_local(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
+    let writes = code_ref_locals_fn_cache::function_local_write_index(f, ctx)
+    let end = local_write_index::local_write_index_end(writes, local_idx)
+    let mut wi = local_write_index::local_write_index_begin(writes, local_idx)
+    while wi < end {
+        let block = get_unchecked(f.blocks, local_write_index::local_write_index_block_at(writes, wi))
+        let inst = block_inst_access::MirBlock_inst_at(block, local_write_index::local_write_index_inst_at(writes, wi))
+        if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+            if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                return inst_accessors_operands::MirInst_arg0(inst)
             }
-            ii = ii + 1
         }
-        bi = bi + 1
+        wi = wi + 1
     }
     0 - 1
 }
@@ -373,7 +387,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     }
     if op == opcodes::MIR_GC_STRUCT_NEW() {
         let dest_local = inst_accessors_shape::MirInst_dest(inst)
-        if dest_local >= 0 && local_has_multiple_enum_variant_types(f, dest_local) {
+        if dest_local >= 0 && local_has_multiple_enum_variant_types(f, dest_local, ctx) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst)))
@@ -427,6 +441,12 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         starts_with(clone(base_tn), "enum:") {
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
+        // A named user struct may have a GC type index that also appears in
+        // the enum-variant table. Its declared field ABI is authoritative;
+        // only nameless bases need the open-enum fallback below.
+        if len(base_tn) > 0 {
+            return Option::None
+        }
         let base_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base)
         let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         if base_gc == open || ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, base_gc) {
@@ -470,9 +490,6 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 dest_tn = local_access::MirLocal_type_name(loc)
                 dest_vt = local_access::MirLocal_val_type(loc)
             }
-            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
-                return Option::None
-            }
             // Prefer the vec receiver's element type over a poisoned String dest
             // (get_unchecked__String mono / sticky type_name) (#730).
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
@@ -481,6 +498,9 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                     return from_vec
                 }
                 Option::None => {}
+            }
+            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
+                return Option::None
             }
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
             match from_use {

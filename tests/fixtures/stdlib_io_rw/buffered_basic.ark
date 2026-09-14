@@ -26,17 +26,17 @@ fn main() {
     let l1: Result<String, io::IoError> = io::buf_reader_read_line(br)
     match l1 {
         Result::Ok(s) => stdio::println(s),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let l2: Result<String, io::IoError> = io::buf_reader_read_line(br)
     match l2 {
         Result::Ok(s) => stdio::println(s),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let l3: Result<String, io::IoError> = io::buf_reader_read_line(br)
     match l3 {
         Result::Ok(s) => stdio::println(s),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let out: Vec<i32> = io::stdout()
     let bw: Vec<i32> = io::buf_writer_new(out, 8)

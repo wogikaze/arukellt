@@ -76,8 +76,7 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
     // Step 3: Create Vec struct with field 0 = array, field 1 = 0 (len)
     // struct.new takes all field values on the stack in order.
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_local_get(w, arr_tmp)
     writer_gc::emit_gc_ref_cast(w, array_type)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)

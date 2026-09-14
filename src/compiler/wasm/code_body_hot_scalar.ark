@@ -1,0 +1,481 @@
+use mir::block_inst_access
+use mir::opcodes
+use wasm::inst_compare
+use wasm::inst_control
+use wasm::inst_convert
+use wasm::inst_dispatch_gc_cast
+use wasm::inst_gc_struct
+use wasm::inst_locals
+use wasm::inst_logic
+use wasm::inst_numeric_arith
+use wasm::inst_store
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::local_opcodes
+use wasm::writer_core
+
+fn try_emit_hot_scalar_inst(
+    w: WasmWriter,
+    block: MirBlock,
+    ii: i32,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    let op = block_inst_access::MirBlock_inst_op(block, ii)
+    if op == opcodes::MIR_CONST_I32() {
+        helpers_numeric_i32_const::emit_i32_const(w, block_inst_access::MirBlock_inst_int_val(block, ii))
+        inst_store::emit_store_result_if_needed_fields(
+            w,
+            op,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_val_type(block, ii),
+            next_op,
+            next_arg0,
+            next_arg1,
+            next2_op
+        )
+        return true
+    }
+    if op == opcodes::MIR_LOCAL_GET() {
+        if next_op == opcodes::MIR_STRUCT_SET() {
+            return true
+        }
+        writer_core::emit_local_get(w, block_inst_access::MirBlock_inst_arg0(block, ii))
+        if next_op == opcodes::MIR_LOCAL_SET() {
+            inst_locals::emit_gc_ref_cast_to_dest(w, ctx, next_arg0)
+        }
+        inst_store::emit_store_result_if_needed_fields(
+            w,
+            op,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_val_type(block, ii),
+            next_op,
+            next_arg0,
+            next_arg1,
+            next2_op
+        )
+        return true
+    }
+    if op == opcodes::MIR_LOCAL_SET() {
+        emit_local_set_from_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_arg1(block, ii),
+            prev_op,
+            prev_arg0,
+            prev_arg1,
+            next_op,
+            next_arg1
+        )
+        return true
+    }
+    if try_emit_hot_scalar_control(w, block, ii, ctx, op) {
+        return true
+    }
+    if try_emit_hot_scalar_convert(w, block, ii, ctx, op, prev_op, prev_arg0) {
+        return true
+    }
+    if try_emit_hot_scalar_arith(w, block, ii, ctx, op, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_hot_scalar_gc_leftover(w, block, ii, ctx, op) {
+        return true
+    }
+    false
+}
+
+fn try_emit_hot_scalar_gc_leftover(
+    w: WasmWriter,
+    block: MirBlock,
+    ii: i32,
+    ctx: SelfEmitCtx,
+    op: i32
+) -> bool {
+    if op == opcodes::MIR_GC_HINT() {
+        return true
+    }
+    if op == opcodes::MIR_REF_TEST() {
+        inst_dispatch_gc_cast::emit_ref_test_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_arg1(block, ii)
+        )
+        return true
+    }
+    if op == opcodes::MIR_REF_CAST() {
+        inst_dispatch_gc_cast::emit_ref_cast_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_arg1(block, ii)
+        )
+        return true
+    }
+    if op == opcodes::MIR_FUTURE_NEW() || op == opcodes::MIR_AWAIT() {
+        writer_core::emit_local_get(w, block_inst_access::MirBlock_inst_arg0(block, ii))
+        writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, block_inst_access::MirBlock_inst_dest(block, ii))
+        return true
+    }
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        inst_gc_struct::emit_gc_struct_new_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii)
+        )
+        return true
+    }
+    if op == opcodes::MIR_GC_STRUCT_GET() {
+        inst_gc_struct::emit_gc_struct_get_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_arg1(block, ii),
+            block_inst_access::MirBlock_inst_int_val(block, ii),
+            block_inst_access::MirBlock_inst_val_type(block, ii)
+        )
+        return true
+    }
+    if op == opcodes::MIR_GC_STRUCT_SET() {
+        inst_gc_struct::emit_gc_struct_set_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_dest(block, ii),
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_arg1(block, ii),
+            block_inst_access::MirBlock_inst_int_val(block, ii),
+            block_inst_access::MirBlock_inst_val_type(block, ii)
+        )
+        return true
+    }
+    false
+}
+
+fn try_emit_hot_scalar_control(w: WasmWriter, block: MirBlock, ii: i32, ctx: SelfEmitCtx, op: i32) -> bool {
+    if op == opcodes::MIR_BR() {
+        inst_control::emit_br_fields(w, block_inst_access::MirBlock_inst_int_val(block, ii))
+        return true
+    }
+    if op == opcodes::MIR_BR_IF() {
+        inst_control::emit_br_if_fields(w, block_inst_access::MirBlock_inst_int_val(block, ii))
+        return true
+    }
+    if op == opcodes::MIR_BLOCK() {
+        inst_control::emit_block_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_LOOP() {
+        inst_control::emit_loop_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_IF() {
+        inst_control::emit_if_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_ELSE() {
+        inst_control::emit_else_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_END() {
+        inst_control::emit_end_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_BR_ON_CAST() {
+        inst_control::emit_br_on_cast_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_int_val(block, ii)
+        )
+        return true
+    }
+    if op == opcodes::MIR_BR_ON_CAST_FAIL() {
+        inst_control::emit_br_on_cast_fail_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            block_inst_access::MirBlock_inst_int_val(block, ii)
+        )
+        return true
+    }
+    false
+}
+
+fn try_emit_hot_scalar_convert(
+    w: WasmWriter,
+    block: MirBlock,
+    ii: i32,
+    ctx: SelfEmitCtx,
+    op: i32,
+    prev_op: i32,
+    prev_arg0: i32
+) -> bool {
+    if op == opcodes::MIR_RETURN() {
+        inst_convert::emit_return_with_prev_fields(
+            w,
+            ctx,
+            block_inst_access::MirBlock_inst_arg0(block, ii),
+            prev_op,
+            prev_arg0
+        )
+        return true
+    }
+    if op == opcodes::MIR_DROP() {
+        inst_convert::emit_drop_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_NOP() {
+        inst_convert::emit_nop_fields(w)
+        return true
+    }
+    if op == opcodes::MIR_UNREACHABLE() {
+        inst_convert::emit_unreachable_fields(w)
+        return true
+    }
+    false
+}
+
+fn try_emit_hot_scalar_arith(
+    w: WasmWriter,
+    block: MirBlock,
+    ii: i32,
+    ctx: SelfEmitCtx,
+    op: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    let val_type = block_inst_access::MirBlock_inst_val_type(block, ii)
+    if op == opcodes::MIR_ADD() {
+        if !inst_numeric_arith::emit_add_fields(w, val_type) {
+            return false
+        }
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_SUB() {
+        inst_numeric_arith::emit_sub_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_MUL() {
+        inst_numeric_arith::emit_mul_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_DIV() {
+        inst_numeric_arith::emit_div_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_MOD() {
+        inst_numeric_arith::emit_mod_fields(w, ctx, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_EQ() {
+        if !inst_compare::emit_eq_fields(w, val_type, ctx) {
+            return false
+        }
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_NEQ() {
+        if !inst_compare::emit_ne_fields(w, val_type, ctx) {
+            return false
+        }
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_LT() {
+        inst_compare::emit_lt_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_LTEQ() {
+        inst_compare::emit_le_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_GT() {
+        inst_compare::emit_gt_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_GTEQ() {
+        inst_compare::emit_ge_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_AND() {
+        inst_logic::emit_and_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_OR() {
+        inst_logic::emit_or_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_BIT_AND() {
+        inst_logic::emit_bit_and_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_BIT_OR() {
+        inst_logic::emit_bit_or_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_BIT_XOR() {
+        inst_logic::emit_bit_xor_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_SHL() {
+        inst_logic::emit_shl_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_SHR() {
+        inst_logic::emit_shr_fields(w, val_type)
+        emit_hot_arith_store(w, block, ii, op, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    false
+}
+
+fn emit_hot_arith_store(
+    w: WasmWriter,
+    block: MirBlock,
+    ii: i32,
+    op: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) {
+    inst_store::emit_store_result_if_needed_fields(
+        w,
+        op,
+        block_inst_access::MirBlock_inst_dest(block, ii),
+        block_inst_access::MirBlock_inst_arg0(block, ii),
+        block_inst_access::MirBlock_inst_val_type(block, ii),
+        next_op,
+        next_arg0,
+        next_arg1,
+        next2_op
+    )
+}
+
+fn emit_local_set_from_fields(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    arg0: i32,
+    arg1: i32,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg1: i32
+) {
+    if try_emit_local_set_peephole_fields(
+        w,
+        ctx,
+        arg0,
+        arg1,
+        prev_op,
+        prev_arg0,
+        prev_arg1,
+        next_op,
+        next_arg1
+    ) {
+        return
+    }
+    if arg1 >= 0 {
+        writer_core::emit_local_get(w, arg1)
+    }
+    inst_locals::emit_gc_ref_cast_to_dest(w, ctx, arg0)
+    writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, arg0)
+}
+
+fn try_emit_local_set_peephole_fields(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    arg0: i32,
+    arg1: i32,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg1: i32
+) -> bool {
+    if arg1 < 0 {
+        let reload = local_set_reload_base(prev_op, prev_arg0, prev_arg1)
+        if reload >= 0 {
+            writer_core::emit_local_get(w, reload)
+            inst_locals::emit_gc_ref_cast_to_dest(w, ctx, arg0)
+            if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+                writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
+            } else {
+                writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
+            }
+            writer_core::emit_leb128_u(w, arg0)
+            return true
+        }
+    }
+    if arg1 < 0 && prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 == arg0 {
+        writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, arg0)
+        return true
+    }
+    if arg1 >= 0 && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+        writer_core::emit_local_get(w, arg1)
+        inst_locals::emit_gc_ref_cast_to_dest(w, ctx, arg0)
+        writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
+        writer_core::emit_leb128_u(w, arg0)
+        return true
+    }
+    if arg1 < 0 && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+        inst_locals::emit_gc_ref_cast_to_dest(w, ctx, arg0)
+        writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
+        writer_core::emit_leb128_u(w, arg0)
+        return true
+    }
+    if arg1 >= 0 && prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 == arg1 {
+        inst_locals::emit_gc_ref_cast_to_dest(w, ctx, arg0)
+        if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+            writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
+        } else {
+            writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
+        }
+        writer_core::emit_leb128_u(w, arg0)
+        return true
+    }
+    false
+}
+
+fn local_set_reload_base(prev_op: i32, prev_arg0: i32, prev_arg1: i32) -> i32 {
+    if prev_op == opcodes::MIR_GC_STRUCT_SET() {
+        return prev_arg1
+    }
+    if prev_op == opcodes::MIR_STRUCT_SET() {
+        return prev_arg0
+    }
+    0 - 1
+}

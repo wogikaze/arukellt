@@ -49,6 +49,9 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
 // `vec_push` CoreOp path instead of mono → `__core_vec_push_i32_impl`.
 fn is_vec_push_callee(name: String) -> bool {
     eq(clone(name), String_from("push")) ||
+    eq(clone(name), String_from("vec_push")) ||
+    eq(clone(name), String_from("push_i64")) ||
+    eq(clone(name), String_from("push_f64")) ||
     eq(clone(name), String_from("Vec::push")) ||
     starts_with(clone(name), String_from("Vec::push__")) ||
     starts_with(clone(name), String_from("push__"))
@@ -159,7 +162,9 @@ fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
         return 0 - 1
     }
     let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if !eq(clone(first_arg_type), String_from("Vec")) && !starts_with(clone(first_arg_type), "vec:") {
+    if !eq(clone(first_arg_type), String_from("Vec")) &&
+    !starts_with(clone(first_arg_type), "vec:") &&
+    !starts_with(clone(first_arg_type), "array:") {
         return 0 - 1
     }
     // The receiver value is already on the stack from lower_expr.
@@ -178,7 +183,9 @@ fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(clone(arg_type_len), String_from("Vec")) || starts_with(clone(arg_type_len), "vec:") {
+        if eq(clone(arg_type_len), String_from("Vec")) ||
+        starts_with(clone(arg_type_len), "vec:") ||
+        starts_with(clone(arg_type_len), "array:") {
             // Prefer sealed raw at the call site so GC sees the concrete vec local.
             return String_from("raw_array_len")
         }

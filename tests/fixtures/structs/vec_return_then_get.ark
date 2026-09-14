@@ -1,0 +1,21 @@
+use std::host::stdio
+
+struct Item {
+    n: i32,
+}
+
+fn empty_items() -> Vec<Item> {
+    Vec::new<Item>()
+}
+
+fn make_items() -> Vec<Item> {
+    let mut items: Vec<Item> = empty_items()
+    push(items, Item { n: 7 })
+    items
+}
+
+fn main() {
+    let items = make_items()
+    let first = get_unchecked(items, 0)
+    stdio::println((first.n).to_string())
+}

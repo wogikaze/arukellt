@@ -21,11 +21,22 @@ fn try_lower_closure_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
     let synth = closure_registry::ctx_closure_synth_at(ctx, clo_ix)
     let packed = closure_registry::ctx_closure_caps_at(ctx, clo_ix)
     let extra = closure_registry::ctx_closure_extra_at(ctx, clo_ix)
+    let is_identity = closure_registry::ctx_closure_is_identity(ctx, clo_ix)
+    let mut first_arg = 0 - 1
     let mut ca = 1
     while ca < child_count {
         let carg = ast_node::node_child_at(node, ca)
-        let _ai = lower_expr(ctx, carg)
+        let arg_idx = lower_expr(ctx, carg)
+        if ca == 1 {
+            first_arg = arg_idx
+        }
         ca = ca + 1
+    }
+    if is_identity {
+        if child_count == 2 {
+            return first_arg
+        }
+        return 0 - 1
     }
     closure_capture_args::closure_emit_captured_args(ctx, packed)
     let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))

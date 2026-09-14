@@ -7,7 +7,7 @@
 
 - CLI default target remains `wasm32-gc`.
 - Canonical path for current docs is `wasm32-gc`.
-- Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `jco_transpile`=`smoke`; `component_cli`=`provisional` — P2 command path is bridged in-tree (#714). Library/other packaging may still use wasm-tools helpers. ([axes](../data/component-availability.md)).
+- Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `jco_transpile`=`smoke`; `component_cli`=`provisional` — The selfhost compiler emits the standard WASI P2 core ABI and the launcher uses the official wasm-tools component pipeline. Repository-specific bridges, post-linkers, and legacy compatibility paths are not supported. ([axes](../data/component-availability.md)).
 
 ## Documents
 

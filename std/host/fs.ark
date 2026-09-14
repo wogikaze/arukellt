@@ -1,40 +1,9 @@
-//! Host filesystem helpers backed by the versioned runtime ABI.
+//! Host filesystem helpers backed directly by WASI file-descriptor calls.
 //!
-//! Whole-file I/O, directory listing, metadata and basic mutation all lower
-//! through runtime CoreOps. On `wasm32-gc` / WASI P2 the component runtime
-//! adapter implements those operations with real WASI filesystem facilities.
-//! Runtime directory authority still comes from Wasmtime (`--dir`, `--mapdir`).
-
-use std::core::convert
-
-pub enum FsError {
-    NotFound(String),
-    PermissionDenied(String),
-    Utf8Error,
-    IoError(String),
-}
-
-pub fn fs_error_message(err: FsError) -> String {
-    match err {
-        FsError::NotFound(path) => concat("not found: ", path),
-        FsError::PermissionDenied(path) => concat("permission denied: ", path),
-        FsError::Utf8Error => "invalid utf-8",
-        FsError::IoError(msg) => msg,
-    }
-}
-
-fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
-    if contains(raw, "No such file") || contains(raw, "not found") || contains(raw, "ENOENT") {
-        return FsError::NotFound(path)
-    }
-    if contains(raw, "Permission denied") || contains(raw, "permission denied") || contains(raw, "EACCES") || contains(raw, "EPERM") || contains(raw, "not permitted") {
-        return FsError::PermissionDenied(path)
-    }
-    if contains(raw, "UTF-8") || contains(raw, "utf-8") || contains(raw, "utf8") {
-        return FsError::Utf8Error
-    }
-    FsError::IoError(concat(concat(op, ": "), raw))
-}
+//! The module exposes whole-file operations and read probes. Directory
+//! metadata, directory iteration, and mutation APIs were removed with the
+//! repository-specific host runtime; use an official WASI filesystem WIT
+//! import when those capabilities are required.
 
 pub fn read_to_string(path: String) -> Result<String, String> {
     __runtime_abi_fs_read_file(path)
@@ -48,60 +17,8 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
     __runtime_abi_fs_write_bytes(path, bytes)
 }
 
-pub struct FsMetadata {
-    len: i64,
-    is_file: bool,
-    is_dir: bool,
-}
-
-pub fn metadata(path: String) -> Result<FsMetadata, FsError> {
-    match __runtime_abi_fs_metadata(clone(path)) {
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "metadata")),
-        Result::Ok(raw) => {
-            let fields = split(raw, "\t")
-            if len(fields) < 3 {
-                return Result::Err(FsError::IoError("metadata: malformed runtime payload"))
-            }
-            match convert::parse_i64(get_unchecked(fields, 0)) {
-                Option::None => Result::Err(FsError::IoError("metadata: invalid length")),
-                Option::Some(size) => Result::Ok(FsMetadata {
-                        len: size,
-                        is_file: get_unchecked(fields, 1) == "1",
-                        is_dir: get_unchecked(fields, 2) == "1",
-                    }),
-            }
-        },
-    }
-}
-
-pub fn read_dir(path: String) -> Result<Vec<String>, FsError> {
-    match __runtime_abi_fs_read_dir(clone(path)) {
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "read_dir")),
-        Result::Ok(raw) => {
-            if len(raw) == 0 {
-                return Result::Ok(Vec::new<String>())
-            }
-            Result::Ok(split(raw, "\n"))
-        },
-    }
-}
-
-pub fn remove_file(path: String) -> Result<(), FsError> {
-    match __runtime_abi_fs_remove_file(clone(path)) {
-        Result::Ok(_) => Result::Ok(()),
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "remove_file")),
-    }
-}
-
-pub fn create_dir_all(path: String) -> Result<(), FsError> {
-    match __runtime_abi_fs_create_dir_all(clone(path)) {
-        Result::Ok(_) => Result::Ok(()),
-        Result::Err(raw) => Result::Err(classify_fs_error(raw, path, "create_dir_all")),
-    }
-}
-
 pub fn exists(path: String) -> bool {
-    match metadata(path) {
+    match __runtime_abi_fs_read_file(path) {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }
@@ -115,17 +32,11 @@ pub fn is_readable_file(path: String) -> bool {
 }
 
 pub fn is_file(path: String) -> bool {
-    match metadata(path) {
-        Result::Ok(meta) => meta.is_file,
-        Result::Err(_) => false,
-    }
+    is_readable_file(path)
 }
 
-pub fn is_dir(path: String) -> bool {
-    match metadata(path) {
-        Result::Ok(meta) => meta.is_dir,
-        Result::Err(_) => false,
-    }
+pub fn is_dir(_path: String) -> bool {
+    false
 }
 
 // Raw descriptor helpers remain experimental and are intentionally separate

@@ -32,23 +32,37 @@ pub fn NameIndex_new(expected_entries: i32) -> NameIndex {
     }
 }
 
+// A zero-capacity index that allocates its bucket array on the first insert.
+// Records that usually stay tiny can carry one without paying for buckets.
+pub fn NameIndex_empty() -> NameIndex {
+    NameIndex {
+        capacity: 0,
+        buckets: Vec::new<i32>(),
+        keys: Vec::new<String>(),
+        values: Vec::new<i32>(),
+    }
+}
+
 fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
-    // Inline FNV-1a + byte compare so `name` is not consumed by helpers and
-    // probe loops do not deep-clone once per occupied bucket (#826).
-    let fnv_offset = 216613626
-    let fnv_prime = 16777619
-    let mut hash = fnv_offset
+    if index.capacity == 0 {
+        return 0 - 1
+    }
+    // Sample the name for the probe hash. Equality below still checks every
+    // character, so collisions remain correct while short-circuiting the
+    // repeated full-string FNV walk on hot lowerer lookups.
     let name_len = len(name)
-    let mut hi = 0
-    while hi < name_len {
-        hash = hash * fnv_prime ^ char_at(name, hi)
-        if hash < 0 {
-            hash = 0 - hash
-        }
-        hi = hi + 1
+    let mut hash = name_len * 31
+    if name_len > 0 {
+        hash = hash * 16777619 ^ char_at(name, 0)
+    }
+    if name_len > 2 {
+        hash = hash * 16777619 ^ char_at(name, name_len / 2)
+    }
+    if name_len > 1 {
+        hash = hash * 16777619 ^ char_at(name, name_len - 1)
     }
     if hash < 0 {
-        hash = 0
+        hash = 0 - hash
     }
     let mut slot = hash % index.capacity
     let mut probes = 0
@@ -91,36 +105,71 @@ pub fn name_index_get(index: NameIndex, name: String) -> i32 {
     get_unchecked(index.values, bucket - 1)
 }
 
-pub fn name_index_insert_first(index: NameIndex, name: String, value: i32) {
-    let slot = name_index_find_slot(index, clone(name))
-    if slot < 0 || get_unchecked(index.buckets, slot) != 0 {
+// Keep the load factor under 1/2 so probe chains stay short and inserts never
+// fail on a full table. Keys are unique, so re-probing each one lands on an
+// empty slot of the doubled bucket array.
+fn name_index_grow_if_needed(index: NameIndex) {
+    if (len(index.keys) + 1) * 2 < index.capacity {
         return
     }
+    let capacity = if index.capacity == 0 { 16 } else { index.capacity * 2 }
+    let buckets = Vec::new<i32>()
+    let mut i = 0
+    while i < capacity {
+        push(buckets, 0)
+        i = i + 1
+    }
+    index.capacity = capacity
+    index.buckets = buckets
+    let key_count = len(index.keys)
+    let mut ki = 0
+    while ki < key_count {
+        let slot = name_index_find_slot(index, clone(get_unchecked(index.keys, ki)))
+        set(index.buckets, slot, ki + 1)
+        ki = ki + 1
+    }
+}
+
+fn name_index_push_entry(index: NameIndex, slot: i32, name: String, value: i32) {
     push(index.keys, name)
     push(index.values, value)
     set(index.buckets, slot, len(index.keys))
 }
 
+pub fn name_index_insert_first(index: NameIndex, name: String, value: i32) {
+    name_index_grow_if_needed(index)
+    let slot = name_index_find_slot(index, clone(name))
+    if slot < 0 || get_unchecked(index.buckets, slot) != 0 {
+        return
+    }
+    name_index_push_entry(index, slot, name, value)
+}
+
 pub fn name_index_set(index: NameIndex, name: String, value: i32) {
+    name_index_grow_if_needed(index)
     let slot = name_index_find_slot(index, clone(name))
     if slot < 0 {
         return
     }
     let bucket = get_unchecked(index.buckets, slot)
     if bucket == 0 {
-        push(index.keys, name)
-        push(index.values, value)
-        set(index.buckets, slot, len(index.keys))
+        name_index_push_entry(index, slot, name, value)
         return
     }
     set(index.values, bucket - 1, value)
 }
 
 pub fn name_index_increment(index: NameIndex, name: String) {
-    let current = name_index_get(index, clone(name))
-    if current < 0 {
-        name_index_set(index, name, 1)
+    name_index_grow_if_needed(index)
+    let slot = name_index_find_slot(index, clone(name))
+    if slot < 0 {
         return
     }
-    name_index_set(index, name, current + 1)
+    let bucket = get_unchecked(index.buckets, slot)
+    if bucket == 0 {
+        name_index_push_entry(index, slot, name, 1)
+        return
+    }
+    let current = get_unchecked(index.values, bucket - 1)
+    set(index.values, bucket - 1, current + 1)
 }

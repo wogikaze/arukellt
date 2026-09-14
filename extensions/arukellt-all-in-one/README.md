@@ -41,13 +41,12 @@ and can be configured in `.vscode/settings.json` or VS Code's Settings UI.
 | `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. |
 | `arukellt.hoverDetailLevel` | `"full"` \| `"minimal"` | `"full"` | Controls how much information is shown on hover. `"full"`: signature + docs + availability + examples. `"minimal"`: signature only. |
 | `arukellt.diagnostics.reportLevel` | `"errors"` \| `"warnings"` \| `"all"` | `"all"` | Controls which diagnostic severities are shown in the Problems panel. `"errors"`: errors only. `"warnings"`: errors + warnings. `"all"`: everything. |
-| `arukellt.useSelfHostBackend` | `boolean` | `false` | Use the self-hosted (ark-compiled) compiler backend instead of the Rust backend. Requires Stage 2 fixpoint (Issue 459). When `true` before Stage 2 is achieved, the extension logs a warning and continues using the Rust backend. |
 | `arukellt.check.onSave` | `boolean` | `true` | Run `arukellt check` on file save. |
 
-Six settings are forwarded to the LSP server via `initializationOptions` and
+Five settings are forwarded to the LSP server via `initializationOptions` and
 `workspace/didChangeConfiguration` (Issue #479): `enableCodeLens`, `hoverDetailLevel`,
 `target` (as `arkTarget`), `diagnostics.reportLevel` (as `diagnosticsReportLevel`),
-`useSelfHostBackend`, and `check.onSave` (as `checkOnSave`).
+and `check.onSave` (as `checkOnSave`).
 
 ## Supported Targets
 

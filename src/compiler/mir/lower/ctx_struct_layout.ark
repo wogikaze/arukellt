@@ -32,15 +32,15 @@ fn ctx_struct_field_byte_size(field_type: String) -> i32 {
 }
 
 fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut si = 0
-    while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
-            return true
-        }
-        si = si + 1
+    let layout_index = ctx_struct_storage::ctx_struct_layout_first_index(ctx, struct_name)
+    if layout_index < 0 {
+        return false
     }
-    false
+    // Enum bases share the layout registry with structs, but their single
+    // `_tag` layout must be represented as an open enum reference. Treating
+    // it as a named struct makes payload inference keep the bare enum name,
+    // which the GC local mapper can misread as a generic Vec layout.
+    !ctx_is_registered_enum_type(ctx, struct_name)
 }
 
 fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
@@ -50,12 +50,35 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if starts_with(clone(type_name), "enum:") {
         return type_name
     }
-    // Normalize angle-bracket forms so GC locals / match payload see
-    // the same prefixes as Result_ / option: / vec: (#726 json/toml).
+    // Built-in scalar and String names can also be enum-variant basenames
+    // (for example `WitType::String`). They are field types here, not a
+    // request to resolve a variant layout; resolving them would turn a
+    // String field into an open enum reference.
+    if is_builtin_type_name(clone(type_name)) {
+        return type_name
+    }
+    // Container prefixes are part of the semantic type. Resolving the whole
+    // name as a struct would strip a qualified element name (`vec:types::T`)
+    // to `T` and turn Vec<T> into the element struct itself.
     let normalized = ctx_normalize_generic_type_name(clone(type_name))
     if !eq(clone(normalized), clone(type_name)) {
         return ctx_maybe_enum_return_type_name(ctx, normalized)
     }
+    if starts_with(clone(type_name), "vec:") ||
+    starts_with(clone(type_name), "hashmap:") ||
+    starts_with(clone(type_name), "hashset:") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result_") {
+        return type_name
+    }
+    let resolved_layout = ctx_resolve_struct_layout_name(ctx, clone(type_name))
+    if !eq(clone(resolved_layout), clone(type_name)) {
+        return ctx_maybe_enum_return_type_name(ctx, resolved_layout)
+    }
+    // Normalize angle-bracket forms so GC locals / match payload see
+    // the same prefixes as Result_ / option: / vec: (#726 json/toml).
     if starts_with(clone(type_name), "vec:") {
         return type_name
     }
@@ -88,6 +111,27 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
         return concat(concat("struct:", type_name), concat(":", i32_to_string(byte_size)))
     }
     type_name
+}
+
+fn is_builtin_type_name(type_name: String) -> bool {
+    eq(clone(type_name), "String") ||
+    eq(clone(type_name), "string") ||
+    eq(clone(type_name), "bool") ||
+    eq(clone(type_name), "char") ||
+    eq(clone(type_name), "i32") ||
+    eq(clone(type_name), "i64") ||
+    eq(clone(type_name), "f32") ||
+    eq(clone(type_name), "f64") ||
+    eq(clone(type_name), "u8") ||
+    eq(clone(type_name), "u16") ||
+    eq(clone(type_name), "u32") ||
+    eq(clone(type_name), "u64") ||
+    eq(clone(type_name), "i16") ||
+    eq(clone(type_name), "unit") ||
+    eq(clone(type_name), "()") ||
+    eq(clone(type_name), "v128") ||
+    eq(clone(type_name), "fn") ||
+    eq(clone(type_name), "fnref")
 }
 
 fn ctx_normalize_generic_type_name(type_name: String) -> String {
@@ -224,10 +268,22 @@ fn ctx_find_layout_name(ctx: LowerCtx, candidate: String) -> String {
     candidate
 }
 
+// Every CALL lowering resolves its return type name here; the uncached
+// resolution walks the whole layout registry up to six times.
 fn ctx_resolve_struct_layout_name(ctx: LowerCtx, type_name: String) -> String {
     if len(type_name) == 0 {
         return type_name
     }
+    let memo_slot = ctx_struct_storage::ctx_struct_layout_name_memo_slot(ctx, clone(type_name))
+    if memo_slot >= 0 {
+        return ctx_struct_storage::ctx_struct_layout_name_memo_value_at(ctx, memo_slot)
+    }
+    let resolved = resolve_struct_layout_name_uncached(ctx, clone(type_name))
+    ctx_struct_storage::ctx_struct_layout_name_memo_put(ctx, type_name, clone(resolved))
+    resolved
+}
+
+fn resolve_struct_layout_name_uncached(ctx: LowerCtx, type_name: String) -> String {
     let candidate = ctx_struct_semantic_type_name(type_name)
     if ctx_is_registered_struct_type(ctx, clone(candidate)) || ctx_is_registered_enum_type(ctx, clone(candidate)) {
         return candidate
@@ -245,25 +301,12 @@ fn ctx_resolve_struct_layout_name(ctx: LowerCtx, type_name: String) -> String {
     candidate
 }
 
+// A registered enum is a single-field layout whose only field is `_tag`.
 fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut si = 0
-    while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(enum_name)) {
-            if ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) == 1 {
-                let mut off = 0
-                let mut li = 0
-                while li < si {
-                    off = off + ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
-                    li = li + 1
-                }
-                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag") {
-                    return true
-                }
-            }
-            return false
-        }
-        si = si + 1
+    let si = ctx_struct_storage::ctx_struct_layout_first_index(ctx, enum_name)
+    if si < 0 || ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) != 1 {
+        return false
     }
-    false
+    let off = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, si)
+    eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag")
 }

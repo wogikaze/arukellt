@@ -83,13 +83,6 @@ jobs:
           sudo apt-get install -y z3
           z3 --version
 
-      - name: Build host linker
-        if: github.event_name != 'pull_request'
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
-
       - name: Build current selfhost stage 2 runtime
         if: github.event_name != 'pull_request'
         run: |

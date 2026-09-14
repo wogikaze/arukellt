@@ -1,13 +1,19 @@
 // Wasm WIT import section entries (#654).
 
 use resolver::wit_import_bind
+use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_string
 
-fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
+fn emit_wit_import_entries(
+    import_sec: WasmWriter,
+    bindings: Vec<wit_import_bind::WitImportBinding>,
+    wit_type_map: Vec<i32>,
+    wasi_version: String
+) {
     for i in 0..len(bindings) {
         let binding = get_unchecked(bindings, i)
-        let iface = wit_import_bind::wit_import_binding_interface_id(binding)
+        let iface = wit_import_module_name(binding, clone(wasi_version))
         let func = wit_import_bind::wit_import_binding_wit_func_name(binding)
         let type_idx = get_unchecked(wit_type_map, i)
         writer_string::emit_string(import_sec, iface)
@@ -15,4 +21,11 @@ fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind
         writer_core::emit_byte(import_sec, 0)
         writer_core::emit_leb128_u(import_sec, type_idx)
     }
+}
+
+fn wit_import_module_name(binding: wit_import_bind::WitImportBinding, wasi_version: String) -> String {
+    if emit_target::is_p2_wasi(clone(wasi_version)) {
+        return concat("cm32p2|", wit_import_bind::wit_import_binding_component_interface_id(binding))
+    }
+    wit_import_bind::wit_import_binding_interface_id(binding)
 }

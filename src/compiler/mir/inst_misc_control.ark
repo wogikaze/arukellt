@@ -1,16 +1,17 @@
+use mir::inst_draft
 use mir::opcodes
 use mir::inst_factory
 use mir::types
 use mir::value_types
 
-fn MirInst_drop() -> MirInst {
+fn MirInst_drop() -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_DROP(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
 }
 
-fn MirInst_nop() -> MirInst {
+fn MirInst_nop() -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_NOP(), 0 - 1, 0 - 1, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
 }
 
-fn MirInst_eqz(dest: i32, arg: i32) -> MirInst {
+fn MirInst_eqz(dest: i32, arg: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_EQZ(), dest, arg, 0 - 1, 0, 0.0, String_new(), value_types::VT_I32())
 }

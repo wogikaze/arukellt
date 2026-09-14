@@ -284,8 +284,6 @@ def resolve_compiler(explicit: str | None) -> Path:
     if env_compiler:
         return Path(env_compiler).expanduser().resolve()
     candidates = [
-        ROOT / "target" / "release" / "arukellt",
-        ROOT / "target" / "debug" / "arukellt",
         ROOT / "scripts" / "run" / "arukellt-selfhost.sh",
     ]
     for candidate in candidates:
@@ -1561,7 +1559,7 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("## Cross-language comparison")
     lines.append("")
     lines.append(
-        "Native reference programs (C, Rust, Go) are built with each toolchain’s "
+        "Native reference programs (C and Go) are built with each toolchain’s "
         "release-style flags, timed with `hyperfine` when available (otherwise a "
         "built-in shell timer), and compared to Ark wasm. "
         "`bash scripts/compare-benchmarks.sh` prints the table to **stdout** and "

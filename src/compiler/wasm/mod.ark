@@ -1,7 +1,3 @@
-use wasm::component_p2_emit
-use wasm::component_p2_run_sections
-use wasm::component_p2_stubs
-use wasm::library_component_emit
 use wasm::wasm
 use wasm::wat
 
@@ -12,19 +8,12 @@ pub fn emit_wasm(
     opt_level: i32,
     strip_debug: bool,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
-    source_file: String
+    source_file: String,
+    report_timing: i32
 ) -> Vec<i32> {
     wasm::emit_wasm_module(
-        mir, target, wasi_version, opt_level, strip_debug, bindings, source_file
+        mir, target, wasi_version, opt_level, strip_debug, bindings, source_file, report_timing
     )
-}
-
-pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
-    component_p2_emit::emit_p2_command_component(core_wasm)
-}
-
-pub fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    library_component_emit::emit_library_component(core_wasm, mir)
 }
 
 pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {

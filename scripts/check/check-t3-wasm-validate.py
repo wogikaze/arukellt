@@ -29,6 +29,11 @@ import tempfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools as find_compatible_wasm_tools
+
 # ── Constants ────────────────────────────────────────────────────────────────
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -46,7 +51,7 @@ WASMTIME_COMPILE_FLAGS = [
 COMPILE_TIMEOUT = 60  # seconds per fixture
 VALIDATE_TIMEOUT = 30  # seconds per fixture
 T3_CACHE_DIR = REPO_ROOT / ".build" / "t3-cache"
-# Bumped for #834 host-linker compile path (invalidates wasmtime-link fail cache).
+# Bumped for the direct Wasmtime compiler path.
 T3_CACHE_SCHEMA_VERSION = "3"
 DEFAULT_JOBS = max(1, (os.cpu_count() or 4) // 2)
 
@@ -75,14 +80,8 @@ T3_COMPILE_SKIP: frozenset[str] = frozenset({
     "stdlib_host/wasi_process.ark",
     "stdlib_host/wasi_clock.ark",
     "stdlib_host/wasi_random.ark",
-    # host/http requires HTTP host capability bindings
-    "host/http/get_err_dns.ark",
-    "host/http/request_err_refused.ark",
-    "host/http/incoming_smoke.ark",
     # stdlib_fs requires filesystem host capability
     "stdlib_fs/host_capability_contract.ark",
-    # stdlib_http_compile requires HTTP host capability
-    "stdlib_http_compile.ark",
     # #730: selfhost OOM compiling recursive WitNode AST to T3 GC
     "stdlib_wit/wit_ast_parse.ark",
 })
@@ -133,25 +132,7 @@ def find_wasmtime() -> str | None:
 
 
 def find_wasm_tools() -> str | None:
-    # Prefer ~/.cargo/bin/wasm-tools (the Rust wasm-tools CLI that supports
-    # `validate --features gc`) over any other `wasm-tools` that may appear
-    # earlier in PATH (e.g. a unrelated binary in ~/.local/bin).
-    cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-    if cargo.is_file():
-        return str(cargo)
-    wt = shutil.which("wasm-tools")
-    if wt:
-        return wt
-    return None
-
-
-def _compiler_needs_host_linker(compiler_wasm: Path) -> bool:
-    """True when the compiler imports wasi-p2 surfaces that need host-linker (#834)."""
-    try:
-        data = compiler_wasm.read_bytes()
-    except OSError:
-        return False
-    return b"wasi:cli/" in data or b"wasi:filesystem/" in data
+    return find_compatible_wasm_tools()
 
 
 def _compile_cmd(
@@ -166,14 +147,6 @@ def _compile_cmd(
         "--target", T3_TARGET,
         "-o", guest_out,
     ]
-    if _compiler_needs_host_linker(compiler_wasm):
-        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
-        return [
-            "bash", str(hosted),
-            f"--dir={root}",
-            str(compiler_wasm), "--",
-            *guest,
-        ]
     return [
         wasmtime, "run",
         *WASMTIME_COMPILE_FLAGS,
@@ -193,7 +166,7 @@ def compile_fixture(
 ) -> tuple[bool, str]:
     """Compile a fixture with the selfhost compiler. Returns (ok, stderr).
 
-    The selfhost runs under wasmtime or host-linker with ``--dir=<root>`` so the
+    The selfhost runs directly under Wasmtime with ``--dir=<root>`` so the
     output path must be relative to the repo root.  We compile into a temp dir
     *inside* the repo to satisfy that constraint.
     """

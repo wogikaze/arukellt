@@ -8,6 +8,14 @@ use corehir::type_facts
 use typechecker::contract_result_state
 
 fn build_checked_program_from_bundle(bundle: FrontendBundle) -> CoreHirRawProgram {
+    build_checked_program_from_bundle_mode(bundle, true)
+}
+
+fn build_checked_program_from_bundle_without_bodies(bundle: FrontendBundle) -> CoreHirRawProgram {
+    build_checked_program_from_bundle_mode(bundle, false)
+}
+
+fn build_checked_program_from_bundle_mode(bundle: FrontendBundle, include_bodies: bool) -> CoreHirRawProgram {
     let decls = frontend_bundle::bundle_decls(bundle)
     let check_result = frontend_bundle::bundle_check_result(bundle)
     let facts = type_facts::CoreHirTypeFacts_new(
@@ -19,13 +27,24 @@ fn build_checked_program_from_bundle(bundle: FrontendBundle) -> CoreHirRawProgra
         frontend_bundle::bundle_module_decl_counts(bundle),
         len(decls)
     )
+    let resolved_calls = if include_bodies {
+        frontend_resolved_calls::scan_resolved_calls(decls)
+    } else {
+        Vec::new<CoreHirResolvedCall>()
+    }
+    let typed_locals = if include_bodies {
+        frontend_typed_locals::scan_typed_locals(decls)
+    } else {
+        Vec::new<CoreHirTypedLocal>()
+    }
     frontend::build_program_from_facts_with_dto(
         decls,
         facts,
         modules,
-        frontend_resolved_calls::scan_resolved_calls(decls),
-        frontend_typed_locals::scan_typed_locals(decls),
-        frontend_export_surface::build_export_surface(frontend_bundle::bundle_export_decls(bundle))
+        resolved_calls,
+        typed_locals,
+        frontend_export_surface::build_export_surface(frontend_bundle::bundle_export_decls(bundle)),
+        include_bodies
     )
 }
 

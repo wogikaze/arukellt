@@ -36,7 +36,7 @@ arukellt compile --target wasm32-gc --emit wit hello.ark
 arukellt compile --target wasm32-gc --emit component hello.ark
 ```
 
-Cross-language interop walkthroughs (Ark ↔ Rust ↔ JS, compose / WIT import):
+Cross-language interop walkthroughs (Ark ↔ JS, compose / WIT import):
 see [`../examples/README.md`](../examples/README.md).
 
 To bind host imports from external WIT, pass one or more `--wit` files:
@@ -160,9 +160,8 @@ fn main() {
 - `fs::read_to_string(path: String) -> Result<String, String>`
 - `fs::write_string(path: String, content: String) -> Result<(), String>`
 
-エラーは `String` で返ります。`FsError` enum は同じ module に存在しますが、
-現行の `read_to_string` / `write_string` は typed error ではなく `String` を返します。
-`FsError` は `read_dir` / `metadata` 等の将来の typed fs API で使われます。
+エラーは `String` で返ります。現行の `read_to_string` / `write_string` は
+typed error enum ではなく、WASI が返すエラー内容を `String` として返します。
 
 > API signature の正本は [stdlib/modules/fs.md](stdlib/modules/fs.md)（manifest から生成）です。
 

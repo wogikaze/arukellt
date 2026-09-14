@@ -6,15 +6,14 @@ with other languages and with other Ark modules.
 | Directory | What it demonstrates |
 |-----------|----------------------|
 | [`ark/`](ark/README.md) | Export an Ark library as a component; link a pre-built component into another Ark program |
-| [`rust/`](rust/README.md) | Rust `wit-bindgen` host/provider; invoke an Ark export from a native host |
 | [`js/`](js/README.md) | Call an Ark component from JavaScript (wasmtime today; jco path documented) |
 
 ## Prerequisites
 
-- **Arukellt**: `scripts/run/arukellt-selfhost.sh` (uses pinned bootstrap wasm) or `target/release/arukellt`
-- **Library `--emit component` / `--emit wit`**: point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` (bootstrap overlay stub omits library exports; see `docs/current-state.md`)
+- **Arukellt**: `scripts/run/arukellt-selfhost.sh` (uses pinned bootstrap wasm)
+- **Library `--emit component` / `--emit wit`**: point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm`; the launcher packages standard P2 core output with official `wasm-tools`.
 - **wasmtime** with GC + component-model support
-- **wasm-tools**, **wac**, **cargo** — only for compose / WIT-link examples (`ark/link-compiled`, `rust/host-provider`)
+- **wasm-tools**, **wac** — for official WIT/component composition examples
 - **Node.js ≥ 18** — optional, for `js/invoke-via-jco`
 
 ## Quick start
@@ -23,11 +22,10 @@ with other languages and with other Ark modules.
 # Ark → reusable component library
 bash examples/ark/export-library/run.sh
 
-# Ark consumer + Rust WIT provider → composed component (40 + 2 = 42)
+# Ark consumer + official WIT provider → composed component
 bash examples/ark/link-compiled/run.sh
 
-# Rust / JS hosts calling the same Ark calculator export
-bash examples/rust/invoke-component/run.sh
+# JavaScript host calling an Ark calculator export
 bash examples/js/invoke-component/run.sh
 ```
 
@@ -41,7 +39,7 @@ flowchart LR
   end
   P -->|compose / wac plug| C[composed.component.wasm]
   S --> C
-  C -->|wasmtime --invoke| H[Host: Rust / JS / wasmtime CLI]
+  C -->|wasmtime --invoke| H[Host: JS / wasmtime CLI]
 ```
 
 - **Export**: `pub fn` with component-compatible types → `.component.wasm` callable from any host.

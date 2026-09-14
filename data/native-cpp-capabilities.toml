@@ -790,13 +790,6 @@ phase = 2
 implementation = "native_runtime"
 
 [[core_ops]]
-id = "runtime.accept"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
-
-[[core_ops]]
 id = "runtime.arg_at"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
@@ -877,13 +870,6 @@ phase = 4
 implementation = "ark_rt_clock_now_ms"
 
 [[core_ops]]
-id = "runtime.connect"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
-
-[[core_ops]]
 id = "runtime.eprintln"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
@@ -914,13 +900,6 @@ registry_lowering = "runtime_call"
 status = "supported"
 phase = 4
 implementation = "native_runtime"
-
-[[core_ops]]
-id = "runtime.get"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "runtime.get_var"
@@ -995,13 +974,6 @@ phase = 2
 implementation = "ark_rt_is_ok"
 
 [[core_ops]]
-id = "runtime.listen"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
-
-[[core_ops]]
 id = "runtime.print"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
@@ -1041,33 +1013,12 @@ status = "unsupported"
 reason = "host random is outside the native-cpp executor runtime boundary"
 
 [[core_ops]]
-id = "runtime.read"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
-
-[[core_ops]]
 id = "runtime.read_stdin"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
 status = "supported"
 phase = 4
 implementation = "native_runtime"
-
-[[core_ops]]
-id = "runtime.request"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
-
-[[core_ops]]
-id = "runtime.serve"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "runtime.u32_to_u64"
@@ -1108,13 +1059,6 @@ registry_lowering = "runtime_call"
 status = "planned"
 phase = 4
 implementation = "native_runtime"
-
-[[core_ops]]
-id = "runtime.write"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "network runtime is outside the native-cpp MVP scope"
 
 [[core_ops]]
 id = "runtime.write_bytes"
@@ -2712,45 +2656,3 @@ registry_lowering = "legacy_emitter"
 status = "supported"
 phase = 2
 implementation = "ark_fallback"
-
-[[core_ops]]
-id = "runtime.fs_read_dir"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
-
-[[core_ops]]
-id = "runtime.fs_metadata"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
-
-[[core_ops]]
-id = "runtime.fs_remove_file"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
-
-[[core_ops]]
-id = "runtime.fs_create_dir_all"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
-
-[[core_ops]]
-id = "runtime.env_vars"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
-
-[[core_ops]]
-id = "runtime.env_current_dir"
-registry_layer = "runtime"
-registry_lowering = "runtime_call"
-status = "unsupported"
-reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"

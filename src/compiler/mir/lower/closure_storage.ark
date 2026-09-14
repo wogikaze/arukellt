@@ -2,6 +2,7 @@ fn closure_storage_clear_pending_bind(ctx: LowerCtx) {
     ctx.closure_last_synth = String_new()
     ctx.closure_last_caps = String_new()
     ctx.closure_last_extra = 0
+    ctx.closure_last_identity = false
 }
 
 fn closure_storage_next_synth_name(ctx: LowerCtx) -> String {
@@ -18,6 +19,14 @@ fn closure_storage_set_pending_bind(ctx: LowerCtx, synth: String, packed: String
     ctx.closure_last_synth = synth
     ctx.closure_last_caps = packed
     ctx.closure_last_extra = extra
+    ctx.closure_last_identity = false
+}
+
+fn closure_storage_set_pending_identity(ctx: LowerCtx) {
+    ctx.closure_last_synth = String_new()
+    ctx.closure_last_caps = String_new()
+    ctx.closure_last_extra = 0
+    ctx.closure_last_identity = true
 }
 
 fn closure_storage_push_bind(ctx: LowerCtx, bind_name: String) {
@@ -25,6 +34,7 @@ fn closure_storage_push_bind(ctx: LowerCtx, bind_name: String) {
     push(ctx.closure_bind_synth, clone(ctx.closure_last_synth))
     push(ctx.closure_bind_caps, clone(ctx.closure_last_caps))
     push(ctx.closure_bind_extra, ctx.closure_last_extra)
+    push(ctx.closure_bind_identity, ctx.closure_last_identity)
 }
 
 fn closure_storage_bind_count(ctx: LowerCtx) -> i32 {
@@ -45,4 +55,8 @@ fn closure_storage_bind_caps_at(ctx: LowerCtx, index: i32) -> String {
 
 fn closure_storage_bind_extra_at(ctx: LowerCtx, index: i32) -> i32 {
     get_unchecked(ctx.closure_bind_extra, index)
+}
+
+fn closure_storage_bind_identity_at(ctx: LowerCtx, index: i32) -> bool {
+    get_unchecked(ctx.closure_bind_identity, index)
 }

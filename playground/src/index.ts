@@ -11,10 +11,9 @@
  * ```ts
  * import { createPlayground } from "@arukellt/playground";
  *
- * const pg = await createPlayground(
- *   "/assets/playground-engine",
- *   { wasmUrl: "/assets/playground-engine" },
- * );
+ * const pg = await createPlayground({
+ *   wasmUrl: "/assets/playground-engine",
+ * });
  *
  * const result = pg.parse("fn main() {}");
  * console.log(result.ok);             // true
@@ -44,17 +43,13 @@ export { createWorkerPlayground } from "./worker-client.js";
 export {
   configureTypecheckCompilerWasm,
   compileSource,
-  runWasm,
-  runSource,
 } from "./engine.js";
-export { createCompilerClient, isRunnableT2Output } from "./compiler-client.js";
+export { createCompilerClient } from "./compiler-client.js";
 export {
   checkWithCompilerWasm,
   checkWithCompilerWasmSync,
   compileWithCompilerWasm,
 } from "./compiler-host.js";
-export { runT2Wasm, moduleImportsArukelltIo, stdinBytesToLineChunks } from "./t2-runner.js";
-
 // Re-export editor components.
 export { createEditor } from "./editor.js";
 
@@ -82,23 +77,15 @@ export { createPlaygroundApp } from "./playground-app.js";
 export {
   buildStatusMessage,
   mergeConsoleSections,
-  runStatusMessage,
   sectionsFromCompileResult,
-  sectionsFromRunResult,
-} from "./console-bridge.js";
-export type { ConsoleOutputSection } from "./console-bridge.js";
+} from "./compiler-output.js";
+export type { ConsoleOutputSection } from "./compiler-output.js";
 export {
-  createRunOutputPanel,
-  injectRunOutputStyles,
-  RUN_OUTPUT_CSS,
-} from "./run-output.js";
-export type { RunOutputPanel, RunOutputPanelOptions } from "./run-output.js";
-export {
-  createStdinPanel,
-  injectStdinPanelStyles,
-  STDIN_PANEL_CSS,
-} from "./stdin-panel.js";
-export type { StdinPanel, StdinPanelOptions } from "./stdin-panel.js";
+  createOutputPanel,
+  injectOutputStyles,
+  OUTPUT_CSS,
+} from "./output-panel.js";
+export type { OutputPanel, OutputPanelOptions } from "./output-panel.js";
 
 // Re-export capability detection.
 export {
@@ -220,9 +207,6 @@ export type {
   CompileOptions,
   CompileResult,
   CheckResult,
-  RunOptions,
-  RunResult,
-  StdinMode,
   CompilerRuntimeAvailability,
 } from "./compiler-types.js";
 

@@ -88,12 +88,16 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Build host runner
+      - name: Install wasm-tools
         if: steps.shard.outputs.count != '0'
-        env:
-          CARGO_PROFILE_DEV_DEBUG: "0"
-        run: cargo build --quiet --bin arukellt-host-run
-        working-directory: tools/host-linker
+        run: |
+          version=1.252.0
+          mkdir -p "$HOME/.local/bin"
+          curl -L --proto '=https' --tlsv1.2 -sSf \
+            "https://github.com/bytecodealliance/wasm-tools/releases/download/v${version}/wasm-tools-${version}-x86_64-linux.tar.gz" \
+            | tar -xz -O "wasm-tools-${version}-x86_64-linux/wasm-tools" > "$HOME/.local/bin/wasm-tools"
+          chmod +x "$HOME/.local/bin/wasm-tools"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Full format and bounded lint
         if: steps.shard.outputs.count != '0'
@@ -145,6 +149,9 @@ jobs:
     needs: [ark-changes, quality-shard]
     runs-on: ubuntu-latest
     timeout-minutes: 1
+    # The shard runner is the CI implementation; this remains the canonical
+    # local command for the same formatting contract.
+    # python3 scripts/manager.py fmt --check
     steps:
       - name: Aggregate formatting shards
         env:
@@ -162,6 +169,9 @@ jobs:
     needs: [ark-changes, quality-shard]
     runs-on: ubuntu-latest
     timeout-minutes: 1
+    # The shard runner is the CI implementation; this remains the canonical
+    # local command for the same lint contract.
+    # python3 scripts/manager.py lint
     steps:
       - name: Aggregate lint shards
         env:

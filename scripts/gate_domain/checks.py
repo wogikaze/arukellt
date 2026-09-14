@@ -82,7 +82,7 @@ def _git_changed_files(root: Path) -> str:
         return changed_r.stdout
 
 
-def _has_rust_changes(changed: str) -> bool:
+def _has_compiler_changes(changed: str) -> bool:
     import re
     return bool(re.search(
         r'^(src/|tests/|benches/|examples/)',
@@ -122,11 +122,11 @@ def run_pre_push(root: Path, dry_run: bool) -> tuple[int, str]:
 
     changed = _git_changed_files(root)
 
-    rust_changed = _has_rust_changes(changed) or not changed.strip()
-    doc_changed = _has_doc_changes(changed) or rust_changed
+    compiler_changed = _has_compiler_changes(changed) or not changed.strip()
+    doc_changed = _has_doc_changes(changed) or compiler_changed
 
     # 1. Selfhost checks
-    if rust_changed:
+    if compiler_changed:
         emit("\n── Selfhost quick checks ──")
         cmd = [sys.executable, "scripts/manager.py", "verify", "--quick"]
         rc, out = _run(cmd, root, env=env)
@@ -216,7 +216,7 @@ def run_repro(
     # Locate compiler binary
     arukellt_bin = os.environ.get("ARUKELLT_BIN", "")
     if not arukellt_bin:
-        for candidate in ["./target/debug/arukellt", "./target/release/arukellt", "scripts/run/arukellt-selfhost.sh"]:
+        for candidate in ["scripts/run/arukellt-selfhost.sh"]:
             if (root / candidate).is_file() and os.access(root / candidate, os.X_OK):
                 arukellt_bin = candidate
                 break
@@ -318,8 +318,6 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
         return (0, "")
 
     env = os.environ.copy()
-    env["RUSTFLAGS"] = "-D warnings"
-    env["CARGO_TERM_COLOR"] = "always"
 
     out_lines: list[str] = []
     passed = 0
@@ -423,10 +421,7 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
 
     # ── 5. Selfhost wrapper setup ──
     step(5, "Selfhost wrapper setup")
-    rc, out = _run(
-        ["bash", "-c", "mkdir -p target/release && cp scripts/run/arukellt-selfhost.sh target/release/arukellt && chmod +x target/release/arukellt"],
-        root,
-    )
+    rc, out = _run(["test", "-x", "scripts/run/arukellt-selfhost.sh"], root)
     out_lines.append(out)
     if rc != 0:
         fail_step("Selfhost wrapper setup")
@@ -438,7 +433,7 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     step(6, "Integration & Packaging")
     smoke = root / "scripts/run/smoke-test-binary.sh"
     if smoke.is_file() and os.access(smoke, os.X_OK):
-        rc, out = _run(["bash", str(smoke), "./target/release/arukellt"], root)
+        rc, out = _run(["bash", str(smoke), "./scripts/run/arukellt-selfhost.sh"], root)
         out_lines.append(out)
         if rc != 0:
             fail_step("Smoke test")
@@ -467,7 +462,7 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
              tempfile.NamedTemporaryFile(delete=False) as tb:
             tmp_a, tmp_b = ta.name, tb.name
         try:
-            bin_path = "./target/release/arukellt"
+            bin_path = "./scripts/run/arukellt-selfhost.sh"
             for tgt, label in [("wasm32-gc", "T3"), ("wasm32", "T1")]:
                 _run([bin_path, "compile", "--target", tgt, "--output", tmp_a, str(hello_ark)], root)
                 _run([bin_path, "compile", "--target", tgt, "--output", tmp_b, str(hello_ark)], root)
@@ -486,20 +481,20 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     else:
         skip_step("Determinism (hello.ark not found)")
 
-    # ── 8. Selfhost Stage 0 ──
-    step(8, "Selfhost Stage 0")
-    rc, out = _run(["bash", "scripts/run/verify-bootstrap.sh", "--stage1-only"], root)
+    # ── 8. Pinned selfhost executable ──
+    step(8, "Pinned selfhost executable")
+    rc, out = _run(["bash", "scripts/run/arukellt-selfhost.sh", "--version"], root)
     out_lines.append(out)
     if rc != 0:
         fail_step(
-            "Selfhost stage 0",
+            "Pinned selfhost executable",
             category="bootstrap",
-            command="bash scripts/run/verify-bootstrap.sh --stage1-only",
+            command="bash scripts/run/arukellt-selfhost.sh --version",
             primary_path="src/compiler/main.ark",
         )
         emit("✗ Full CI failed")
         return (rc, "".join(out_lines))
-    ok("Selfhost stage 0")
+    ok("Pinned selfhost executable")
 
     # ── 9. Component Interop + Size + WAT ──
     step(9, "Component interop + size + WAT")

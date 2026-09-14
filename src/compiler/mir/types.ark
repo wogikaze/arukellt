@@ -4,4 +4,5 @@
 
 use mir::types_block
 use mir::types_function
+use mir::inst_draft
 use mir::inst_record

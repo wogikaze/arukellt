@@ -1,6 +1,7 @@
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
+use parser::core_ast_type_ann
 
 fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
     let param_names = Vec::new<String>()
@@ -12,10 +13,34 @@ fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
     param_names
 }
 
-fn append_synthetic_params(result: AstNode, param_names: Vec<String>, fn_span: Span) {
+fn append_synthetic_params(result: AstNode, param_names: Vec<String>, clauses: Vec<AstNode>, fn_span: Span) {
     for pi in 0..len(param_names) {
         let syn_name = get_unchecked(param_names, pi)
         let param = AstNode_leaf(kinds::NK_IDENT(), clone(syn_name), fn_span)
+        copy_first_typed_clause_param_annotations(param, clauses, pi)
         core_ast_children::AstNode_push_child(result, param)
+    }
+}
+
+fn copy_first_typed_clause_param_annotations(param: AstNode, clauses: Vec<AstNode>, param_index: i32) {
+    let mut ci = 0
+    while ci < len(clauses) {
+        let clause = get_unchecked(clauses, ci)
+        if param_index < core_ast_children::AstNode_child_count(clause) {
+            let source = core_ast_children::AstNode_child_at(clause, param_index)
+            let ann_count = core_ast_type_ann::AstNode_type_ann_count(source)
+            if ann_count > 0 {
+                let mut ai = 0
+                while ai < ann_count {
+                    core_ast_type_ann::AstNode_push_type_ann(
+                        param,
+                        core_ast_type_ann::AstNode_type_ann_at(source, ai)
+                    )
+                    ai = ai + 1
+                }
+                return
+            }
+        }
+        ci = ci + 1
     }
 }

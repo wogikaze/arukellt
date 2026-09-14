@@ -14,6 +14,10 @@ fn mir_emit_comprehension_push_call(ctx: LowerCtx) {
     comprehension_emit::mir_emit_comprehension_push_call(ctx)
 }
 
+fn mir_set_comprehension_result_type(ctx: LowerCtx, state: ComprehensionState, elem_idx: i32) {
+    comprehension_emit::mir_set_comprehension_result_type(ctx, state, elem_idx)
+}
+
 fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionState) {
     comprehension_emit::mir_emit_comprehension_increment_and_end(ctx, state)
 }

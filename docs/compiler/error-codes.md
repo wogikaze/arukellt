@@ -459,9 +459,8 @@ fn main() {
 | **Message** | module contains only unimplemented host stubs |
 
 Importing a host module that is entirely composed of unimplemented stubs
-(e.g., `std::host::http` on a target that does not support WASI Preview 2)
-produces this error. The module exists in the manifest but has no callable
-implementations for the current target.
+produces this error. Removed legacy network facades are no longer manifest
+modules; callers must use a supported official component interface instead.
 
 ---
 
@@ -636,9 +635,10 @@ The exported function uses a WIT `resource` type which is not yet implemented.
 | **Phase** | resolve |
 | **Message** | module requires a different target |
 
-A stdlib module was imported that is only available on a specific target
-(e.g., `std::host::http` on a target that does not support host networking).
-Switch to a target that supports the module, or remove the import.
+A stdlib module was imported that is only available on a specific target.
+Switch to a target that supports the module, or remove the import. Legacy
+network facade names are rejected as removed APIs rather than target-gated
+compatibility aliases.
 
 ---
 

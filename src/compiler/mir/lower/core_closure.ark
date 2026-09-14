@@ -2,12 +2,36 @@ use mir::lower::closure_capture_args
 use mir::lower::closure_registry
 use mir::lower::core_closure_emit
 use mir::lower::core_closure_free
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
 
 fn lower_core_closure(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
+    if is_identity_core_closure(exprs, expr) {
+        // A single funcref type cannot serve both scalar and GC-reference
+        // instantiations of `|x| x`; inline this pure identity at each call.
+        return closure_registry::closure_register_identity(ctx)
+    }
     let caps = core_closure_free::core_closure_collect_caps(ctx, exprs, expr)
     let packed = closure_capture_args::closure_pack_caps(caps)
     let extra = len(caps)
     let synth = closure_registry::closure_next_synth_name(ctx)
     let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps)
     closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
+}
+
+fn is_identity_core_closure(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    if child_count != 2 {
+        return false
+    }
+    let param = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(param) ||
+    !core_expr_shape_atoms::mir_core_expr_is_ident(body) {
+        return false
+    }
+    eq(
+        core_expr_shape_accessors::mir_core_expr_text(param),
+        core_expr_shape_accessors::mir_core_expr_text(body)
+    )
 }

@@ -19,6 +19,8 @@ use wasm::code_ref_locals_block_scan
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::function_local_queries
+use mir::function_locals_view
+use mir::local_access
 use mir::value_types
 use wasm::sections_types_gc
 
@@ -98,6 +100,11 @@ fn gc_struct_field_sig_is_i32_scalar(field_sig: String) -> bool {
     eq(clone(field_sig), String_from("char"))
 }
 
+fn struct_get_base_is_stack_composed(inst: MirInst, prev_arg0: i32) -> bool {
+    inst_accessors_operands::MirInst_arg0(inst) < 0 &&
+    prev_arg0 == inst_accessors_operands::MirInst_arg1(inst)
+}
+
 // Prefer declared field sigs for user structs over dest-local heuristics
 // (reused i64 scratches would otherwise widen String/ref fields).
 fn memory64_gc_struct_get_uses_i32(w: WasmWriter, ctx: SelfEmitCtx, type_idx: i32, field_idx: i32, val_type: i32, dest: i32) -> bool {
@@ -142,8 +149,7 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, prev_op, prev_arg0, byte_offset, inst_accessors_operands::MirInst_arg1(inst))
         let field_idx = compute_field_idx_get(inst, byte_offset)
         if prev_op == mir::opcodes::MIR_STRUCT_SET() {
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, prev_arg0)
+            writer_core::emit_local_get(w, prev_arg0)
         } else if ((prev_op == mir::opcodes::MIR_STRUCT_GET() ||
             prev_op == mir::opcodes::MIR_GC_STRUCT_GET() ||
             prev_op == mir::opcodes::MIR_CALL() ||
@@ -152,52 +158,61 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         // Nested field / `get_unchecked(...).field`: store policy leaves the
         // previous ref on the stack. Reloading MirInst_arg0 reads an unset
         // temp (#834 node.span.start, fn_info_qualified_name_at).
-    } else if prev_op != mir::opcodes::MIR_LOCAL_GET() {
-        let base_local = inst_accessors_operands::MirInst_arg0(inst)
-        if base_local >= 0 {
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, base_local)
+    } else if prev_op != mir::opcodes::MIR_LOCAL_GET() &&
+        !struct_get_base_is_stack_composed(inst, prev_arg0) {
+            let base_local = inst_accessors_operands::MirInst_arg0(inst)
+            if base_local >= 0 {
+                writer_core::emit_local_get(w, base_local)
+            }
+        }
+        writer_gc::emit_gc_ref_cast(w, gc_type_idx)
+        let val_type = inst_accessors_shape::MirInst_val_type(inst)
+        // Prefer MirInst_dest when set (field gets / get_to). Fall back to
+        // val_type-only gating when dest is absent (true stack-leave).
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, dest) {
+            writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
+        } else {
+            writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+        }
+        return
+    }
+    // wasm32: store policy SETs get_unchecked/ARRAY_GET into dest, then
+    // STRUCT_GET reads that local (arg0 >= 0). Forgetting local.get leaves
+    // `i32.load` with an empty stack (compiler self-emit func validate).
+    let base_local = inst_accessors_operands::MirInst_arg0(inst)
+    if base_local >= 0 {
+        if prev_op != mir::opcodes::MIR_LOCAL_GET() || prev_arg0 != base_local {
+            writer_core::emit_local_get(w, base_local)
         }
     }
-    writer_gc::emit_gc_ref_cast(w, gc_type_idx)
-    let val_type = inst_accessors_shape::MirInst_val_type(inst)
-    // Prefer MirInst_dest when set (field gets / get_to). Fall back to
-    // val_type-only gating when dest is absent (true stack-leave).
-    let dest = inst_accessors_operands::MirInst_dest(inst)
-    if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, dest) {
-        writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
-    } else {
-        writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+    if inst_accessors_literals::MirInst_int_val(inst) > 0 {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     }
-    return
-}
-if inst_accessors_literals::MirInst_int_val(inst) > 0 {
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-}
-let val_type = inst_accessors_shape::MirInst_val_type(inst)
-if val_type == value_types::VT_F64() {
-    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
-    writer_core::emit_byte(w, 3)
-    writer_core::emit_byte(w, 0)
-} else {
-    if val_type == value_types::VT_F32() {
-        writer_core::emit_byte(w, opcodes::OP_F32_LOAD())
-        writer_core::emit_byte(w, 2)
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if val_type == value_types::VT_F64() {
+        writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+        writer_core::emit_byte(w, 3)
         writer_core::emit_byte(w, 0)
     } else {
-        if val_type == value_types::VT_I64() {
-            writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+        if val_type == value_types::VT_F32() {
+            writer_core::emit_byte(w, opcodes::OP_F32_LOAD())
             writer_core::emit_byte(w, 2)
             writer_core::emit_byte(w, 0)
         } else {
-            writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-            writer_core::emit_byte(w, 2)
-            writer_core::emit_byte(w, 0)
+            if val_type == value_types::VT_I64() {
+                writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+                writer_core::emit_byte(w, 2)
+                writer_core::emit_byte(w, 0)
+            } else {
+                writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+                writer_core::emit_byte(w, 2)
+                writer_core::emit_byte(w, 0)
+            }
         }
     }
-}
 }
 
 fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -206,14 +221,12 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, 0 - 1, 0 - 1, byte_offset, inst_accessors_operands::MirInst_dest(inst))
         let field_idx = compute_field_idx_set(inst, byte_offset)
         let base_local = inst_accessors_operands::MirInst_arg0(inst)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, base_local)
+        writer_core::emit_local_get(w, base_local)
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, base_local)
         let value_local = inst_accessors_operands::MirInst_arg1(inst)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, value_local)
+        writer_core::emit_local_get(w, value_local)
         let val_type = inst_accessors_shape::MirInst_val_type(inst)
         if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, value_local) {
             writer_gc::emit_gc_struct_set_i32(w, gc_type_idx, field_idx)
@@ -239,15 +252,13 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_struct_store_value(w: WasmWriter, inst: MirInst, value_local: i32, store_opcode: i32, align: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
     if inst_accessors_literals::MirInst_int_val(inst) > 0 {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
         writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     }
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, value_local)
+    writer_core::emit_local_get(w, value_local)
     writer_core::emit_byte(w, store_opcode)
     writer_core::emit_byte(w, align)
     writer_core::emit_byte(w, 0)
@@ -280,6 +291,10 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
     if base_local >= 0 {
         let f =
         ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+        let declared_gc = gc_struct_type_from_local_name(f, base_local, ctx)
+        if declared_gc >= 0 {
+            return declared_gc
+        }
         let copied_storage =
         code_ref_locals_block_scan::local_set_non_string_storage_type(f, base_local, ctx)
         match copied_storage {
@@ -306,4 +321,53 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         byte_offset + 4
     }
     ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
+}
+
+// A concrete tuple/struct name is more precise than a tag-only MVT retained
+// by a generic call.  In particular, pair<A, B> may have a concrete
+// (i32, String) return while its generic tuple MVT still points at the
+// two-i32 layout.
+fn gc_struct_type_from_local_name(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    let type_name = local_access::MirLocal_type_name(
+        function_locals_view::MirFunction_local_at(f, local_idx)
+    )
+    if !starts_with(clone(type_name), String_from("struct:")) {
+        return 0 - 1
+    }
+    let struct_name = gc_struct_name_without_size(clone(type_name))
+    if len(struct_name) == 0 || !ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+        return 0 - 1
+    }
+    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name)
+}
+
+fn gc_struct_name_without_size(type_name: String) -> String {
+    let body = substring(type_name, 7, len(type_name))
+    let n = len(body)
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(body, i) == 58 {
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if last_colon < 0 {
+        return body
+    }
+    let mut j = last_colon + 1
+    if j >= n {
+        return String_new()
+    }
+    while j < n {
+        let ch = char_at(body, j)
+        if ch < 48 || ch > 57 {
+            return body
+        }
+        j = j + 1
+    }
+    substring(body, 0, last_colon)
 }

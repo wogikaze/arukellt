@@ -78,7 +78,29 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     let table = module_spine::MirModule_type_table(m)
     let preserved_type_name = clone(mir_type_name)
-    let param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
+    let mut param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
+    // A source annotation is the authoritative identity for a concrete
+    // parameter.  The legacy spine can point at a same-shaped declaration
+    // after imported functions are flattened; accepting that MVT would make
+    // the body local scalar/ref disagree with the function signature.
+    if mir_param_type_name_is_concrete(clone(preserved_type_name)) {
+        param_mvt = type_info_to_mir_value::vt_to_mir_value(
+            table,
+            pvt,
+            clone(preserved_type_name)
+        )
+    }
+    // The legacy signature spine may still describe a user enum as a named
+    // struct because type checking predates enum registration.  The lowering
+    // context has already canonicalized this parameter to enum:<name>, so use
+    // that concrete type rather than reintroducing the stale struct TypeId.
+    if starts_with(clone(preserved_type_name), String_from("enum:")) {
+        param_mvt = type_info_to_mir_value::vt_to_mir_value(
+            table,
+            value_types::VT_GC_REF(),
+            clone(preserved_type_name)
+        )
+    }
     if !typed_mir_compat::mvt_is_invalid(param_mvt) {
         ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
         let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, param_mvt)
@@ -106,6 +128,13 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
             clone(preserved_type_name)
         )
     }
+}
+
+fn mir_param_type_name_is_concrete(type_name: String) -> bool {
+    if len(type_name) == 0 || starts_with(clone(type_name), String_from("?")) {
+        return false
+    }
+    !mir_param_name_is_type_param(clone(type_name))
 }
 
 fn mir_param_type_is_fnref(type_name: String) -> bool {

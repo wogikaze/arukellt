@@ -5,29 +5,28 @@ base = "pinned_wasm"
 artifact = "bootstrap/arukellt-selfhost.wasm"
 provenance = "bootstrap/PROVENANCE.md"
 entrypoint = "scripts/run/arukellt-selfhost.sh"
-rust_stage0 = false
 adr = "docs/adr/ADR-029-selfhost-native-verification-contract.md"
 wasm_resolution_order = [
   "$ARUKELLT_SELFHOST_WASM",
-  ".build/selfhost/arukellt-s3.wasm",
+  "bootstrap/arukellt-selfhost.wasm",
   ".build/selfhost/arukellt-s2-runtime.wasm",
+  ".build/selfhost/arukellt-s3.wasm",
   ".build/selfhost/arukellt-s2.wasm",
   ".bootstrap-build/arukellt-s2.wasm",
   ".build/selfhost/arukellt-pinned-bootstrap.wasm",
-  "bootstrap/arukellt-selfhost.wasm",
 ]
 
 [[stages]]
 id = "0"
 name = "trust_base"
-description = "Pinned selfhost wasm is the trust base (not a Rust compiler)"
+description = "Pinned direct wasm32/wasi-p1 selfhost wasm is the trust base with 16384 memory32 pages (1 GiB)"
 artifact = "bootstrap/arukellt-selfhost.wasm"
 comparison = "n/a"
 
 [[stages]]
 id = "build_s2"
 name = "current_selfhost"
-description = "Pinned compiles src/compiler/main.ark → s2 (stage-2 only; use for emitter refresh)"
+description = "Pinned compiles src/compiler/main.ark → s2 under the 16384-page memory32 contract (stage-2 only; use for emitter refresh)"
 artifact = ".build/selfhost/arukellt-s2.wasm"
 command = "python3 scripts/manager.py selfhost build-compiler"
 comparison = "build succeeds"
@@ -59,12 +58,6 @@ ci_job = "selfhost"
 id = "diag_parity"
 command = "python3 scripts/manager.py selfhost diag-parity"
 ci_job = "selfhost"
-
-[[retired]]
-id = "verify-bootstrap-rust-stage0"
-path = "scripts/run/verify-bootstrap.sh"
-reason = "Rust Stage 0 cannot parse current selfhost source surface"
-archive = "docs/history/reports/bootstrap-rust-era-verification.md"
 
 [[retired]]
 id = "ARUKELLT_USE_RUST"

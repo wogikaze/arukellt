@@ -1,8 +1,7 @@
 // Fixture: host_capability_contract.ark
 // Verifies the host filesystem capability contract:
 //   - is_readable_file (probe) vs is_file / is_dir boundary
-//   - read_dir / metadata return unsupported errors
-//   - typed FsError from read_to_string, write_string, write_bytes
+//   - whole-file reads return String errors
 use std::host::fs
 use std::host::stdio
 
@@ -24,15 +23,15 @@ fn main() {
     let d = fs::is_dir("tests/fixtures/stdlib_fs")
     stdio::println((d).to_string())
 
-    // ── read_dir returns unsupported error ──
-    match fs::read_dir("tests/fixtures/stdlib_fs") {
-        Result::Ok(_) => stdio::println("read_dir-unexpected-ok"),
-        Result::Err(e) => stdio::println(concat("read_dir:", fs::fs_error_message(e))),
+    // ── whole-file read returns the fixture contents ──
+    match fs::read_to_string("tests/fixtures/stdlib_fs/present.txt") {
+        Result::Ok(contents) => stdio::println(trim(contents)),
+        Result::Err(_) => stdio::println("read-unexpected-error"),
     }
 
-    // ── metadata returns unsupported error ──
-    match fs::metadata("tests/fixtures/stdlib_fs/present.txt") {
-        Result::Ok(_) => stdio::println("metadata-unexpected-ok"),
-        Result::Err(e) => stdio::println(concat("metadata:", fs::fs_error_message(e))),
+    // ── missing-file errors remain String-shaped ──
+    match fs::read_to_string("tests/fixtures/stdlib_fs/missing.txt") {
+        Result::Ok(_) => stdio::println("missing-unexpected-ok"),
+        Result::Err(_) => stdio::println("missing"),
     }
 }

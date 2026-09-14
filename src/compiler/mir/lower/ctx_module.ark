@@ -1,14 +1,25 @@
 use mir::module_functions
 use mir::module_strings
+use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
 use mir::reachability
 
 fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) {
-    module_functions::MirModule_push_function(ctx_current_storage::ctx_current_module_value(ctx), func)
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    module_functions::MirModule_push_function(m, func)
+    let mir_index = module_functions::MirModule_function_count(m) - 1
+    if ctx_call_edges::ctx_edge_pending_map_open(ctx) {
+        ctx_call_edges::ctx_edge_complete_pending_map(ctx, mir_index)
+    } else {
+        ctx_call_edges::ctx_edge_finish_current_map(ctx, mir_index)
+    }
 }
 
 fn ctx_push_current_function(ctx: LowerCtx) {
-    module_functions::MirModule_push_function(ctx_current_storage::ctx_current_module_value(ctx), ctx_current_storage::ctx_current_func_value(ctx))
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    module_functions::MirModule_push_function(m, ctx_current_storage::ctx_current_func_value(ctx))
+    let mir_index = module_functions::MirModule_function_count(m) - 1
+    ctx_call_edges::ctx_edge_finish_current_map(ctx, mir_index)
 }
 
 fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 {

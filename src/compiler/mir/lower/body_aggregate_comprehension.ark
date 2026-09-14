@@ -16,12 +16,14 @@ fn lower_comprehension_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let _filter_idx = lower_expr(ctx, filter_expr)
             ctx_emit(ctx, inst_structured_control::MirInst_if())
             comprehension::mir_emit_comprehension_push_prefix(ctx, comp_state)
-            let _comp_elem_idx = lower_expr(ctx, elem_expr)
+            let comp_elem_idx = lower_expr(ctx, elem_expr)
+            comprehension::mir_set_comprehension_result_type(ctx, comp_state, comp_elem_idx)
             comprehension::mir_emit_comprehension_push_call(ctx)
             ctx_emit(ctx, inst_structured_control::MirInst_end())
         } else {
             comprehension::mir_emit_comprehension_push_prefix(ctx, comp_state)
-            let _comp_elem_idx = lower_expr(ctx, elem_expr)
+            let comp_elem_idx = lower_expr(ctx, elem_expr)
+            comprehension::mir_set_comprehension_result_type(ctx, comp_state, comp_elem_idx)
             comprehension::mir_emit_comprehension_push_call(ctx)
         }
         comprehension::mir_emit_comprehension_increment_and_end(ctx, comp_state)

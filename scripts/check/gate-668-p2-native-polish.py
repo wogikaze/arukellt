@@ -4,8 +4,8 @@
 Proves:
 1. Proof path uses current s2/s3 (not bootstrap stub overlay alone)
 2. All wasi_p2_native/*.ark fixtures compile + validate + wasmtime
-3. Guest core imports get-stdout / bwaf / get-stderr (no pseudo stdout::write)
-4. Component artifact has wasi:cli/run@0.2.0 and no @0.2.6
+3. Guest core imports the canonical cm32p2 get-stdout / blocking-write-and-flush / get-stderr functions
+4. Component artifact has wasi:cli/run@0.2.0 and no legacy ABI
 5. Size / no P1 adapter markers (via gate-668-p2-size)
 6. Platform / current-state docs are not deferred-only for P2 native
 """
@@ -143,11 +143,11 @@ def _assert_guest_native_core(path: Path) -> tuple[int, str]:
         return 1, "guest still imports pseudo stdout write"
     if 'import "wasi:cli/stderr@0.2.0" "write"' in text:
         return 1, "guest still imports pseudo stderr write"
-    if 'import "wasi:cli/stdout@0.2.0" "get-stdout"' not in text:
+    if 'import "cm32p2|wasi:cli/stdout@0.2" "get-stdout"' not in text:
         return 1, "guest missing get-stdout import"
-    if 'import "wasi:io/streams@0.2.0" "blocking-write-and-flush"' not in text:
+    if 'import "cm32p2|wasi:io/streams@0.2" "blocking-write-and-flush"' not in text:
         return 1, "guest missing blocking-write-and-flush import"
-    if 'import "wasi:cli/stderr@0.2.0" "get-stderr"' not in text:
+    if 'import "cm32p2|wasi:cli/stderr@0.2" "get-stderr"' not in text:
         return 1, "guest missing get-stderr import"
     return 0, ""
 
@@ -160,6 +160,8 @@ def _assert_component_hygiene(path: Path) -> tuple[int, str]:
         return 1, "artifact missing wasi:cli/run@0.2.0"
     if b"wasi_snapshot_preview1" in data:
         return 1, "artifact contains wasi_snapshot_preview1"
+    if b"arukellt:" in data or b"runtime/host" in data:
+        return 1, "artifact contains a repository-specific host import"
     if b"wasi:cli/stdout@0.2.0::write" in data:
         return 1, "artifact contains pseudo stdout::write literal"
     return 0, ""

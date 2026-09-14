@@ -9,10 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WRAPPER = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
-HOSTED = ROOT / "scripts" / "run" / "arukellt-run-hosted.sh"
 PUBLIC = ROOT / "tests" / "fixtures" / "native_cpp_public"
 
-# Program argv is covered by native-only E2E; arukellt-host-run accepts no trailing args.
+# Program argv is covered by native-only E2E; the native-cpp runner accepts no trailing args.
 # Zero-capture HOF (`hof_named_callback.ark`) is native-covered in the public corpus;
 # classic wasi host rejects the wasm32 encoding that carries funcref/GC shapes.
 PARITY_FIXTURES = [
@@ -45,14 +44,6 @@ class NativeCppParityTest(unittest.TestCase):
         cls.s2 = next((path for path in candidates if path.is_file()), None)
         if cls.s2 is None:
             raise unittest.SkipTest("selfhost s2 wasm is required")
-        host_bins = [
-            ROOT / "target" / "release" / "arukellt-host-run",
-            ROOT / "tools" / "host-linker" / "target" / "release" / "arukellt-host-run",
-            ROOT / "target" / "debug" / "arukellt-host-run",
-            ROOT / "tools" / "host-linker" / "target" / "debug" / "arukellt-host-run",
-        ]
-        if not any(path.is_file() for path in host_bins):
-            raise unittest.SkipTest("arukellt-host-run is required for wasm parity")
 
     def _env(self) -> dict[str, str]:
         env = os.environ.copy()
@@ -85,7 +76,17 @@ class NativeCppParityTest(unittest.TestCase):
         if compile.returncode != 0:
             return compile
         return subprocess.run(
-            [str(HOSTED), "--dir", str(ROOT), str(out)],
+            [
+                "wasmtime",
+                "run",
+                "--wasm",
+                "gc",
+                "--wasm",
+                "function-references",
+                "--dir",
+                str(ROOT),
+                str(out),
+            ],
             cwd=ROOT,
             env=self._env(),
             capture_output=True,

@@ -15,8 +15,6 @@ fn emit_type_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     gc_layout: GcLayoutTable
 ) -> TypeSectionPlan {
@@ -28,8 +26,6 @@ fn emit_type_section(
         needs_wrapper,
         target,
         wasi_version,
-        needs_runtime_host,
-        needs_wasi_http_outgoing,
         bindings,
         gc_layout
     )
@@ -40,16 +36,36 @@ fn emit_import_section(
     host_type_map: Vec<i32>,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     wit_type_map: Vec<i32>
 ) {
-    sections_imports::emit_import_section(out, host_type_map, target, wasi_version, needs_runtime_host, needs_wasi_http_outgoing, bindings, wit_type_map)
+    sections_imports::emit_import_section(out, host_type_map, target, wasi_version, bindings, wit_type_map)
 }
 
-fn emit_function_section(out: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>, needs_wrapper: i32, wrapper_type_idx: i32) {
-    sections_functions::emit_function_section(out, fn_count, fn_type_map, needs_wrapper, wrapper_type_idx)
+fn emit_function_section(
+    out: WasmWriter,
+    fn_count: i32,
+    fn_type_map: Vec<i32>,
+    needs_wrapper: i32,
+    wrapper_type_idx: i32,
+    p2_post_type_idx: i32,
+    p2_library_post_type_map: Vec<i32>,
+    p2_library_wrapper_type_map: Vec<i32>,
+    p2_realloc_type_idx: i32,
+    p2_initialize_type_idx: i32
+) {
+    sections_functions::emit_function_section(
+        out,
+        fn_count,
+        fn_type_map,
+        needs_wrapper,
+        wrapper_type_idx,
+        p2_post_type_idx,
+        p2_library_post_type_map,
+        p2_library_wrapper_type_map,
+        p2_realloc_type_idx,
+        p2_initialize_type_idx
+    )
 }
 
 fn emit_table_section(out: WasmWriter, mir: MirModule) {
@@ -60,8 +76,8 @@ fn emit_memory_section(out: WasmWriter, target: String) {
     sections_memory::emit_memory_section(out, target)
 }
 
-fn emit_global_section(out: WasmWriter, data_offset: i32) {
-    sections_memory::emit_global_section(out, data_offset)
+fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal) {
+    sections_memory::emit_global_section(out, data_offset, literal_cache)
 }
 
 fn emit_export_section(
@@ -71,15 +87,13 @@ fn emit_export_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
-    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, target, wasi_version, needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, target, wasi_version, wit_import_count)
 }
 
-fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
-    sections_table::emit_element_section(out, mir, target, wasi_version, needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, wit_import_count: i32) {
+    sections_table::emit_element_section(out, mir, target, wasi_version, wit_import_count)
 }
 
 fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32, import_count: i32, strip_debug: bool, source_file: String) {
@@ -110,6 +124,10 @@ fn type_plan_fn_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     sections_type_plan::TypeSectionPlan_fn_type_map(plan)
 }
 
+fn type_plan_fn_type_refs(plan: TypeSectionPlan) -> FuncTypeRefs {
+    sections_type_plan::TypeSectionPlan_fn_type_refs(plan)
+}
+
 fn type_plan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     sections_type_plan::TypeSectionPlan_host_type_map(plan)
 }
@@ -120,4 +138,24 @@ fn type_plan_wit_type_map(plan: TypeSectionPlan) -> Vec<i32> {
 
 fn type_plan_wrapper_type_idx(plan: TypeSectionPlan) -> i32 {
     sections_type_plan::TypeSectionPlan_wrapper_type_idx(plan)
+}
+
+fn type_plan_p2_post_type_idx(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_p2_post_type_idx(plan)
+}
+
+fn type_plan_p2_library_post_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_p2_library_post_type_map(plan)
+}
+
+fn type_plan_p2_library_wrapper_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_p2_library_wrapper_type_map(plan)
+}
+
+fn type_plan_p2_realloc_type_idx(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_p2_realloc_type_idx(plan)
+}
+
+fn type_plan_p2_initialize_type_idx(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_p2_initialize_type_idx(plan)
 }

@@ -5,7 +5,8 @@ use resolver::kinds
 
 fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
     if ast_pattern_predicates::node_is_pat_ident(pat) {
-        scope_define::define(ctx, ast_access::node_text(pat), commands::SYM_LOCAL())
+        let name = ast_access::node_text(pat)
+        scope_define::define(ctx, clone(name), commands::SYM_LOCAL())
         return
     }
     if ast_pattern_predicates::node_is_pat_variant(pat) {
@@ -37,5 +38,17 @@ fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
             i = i + 1
         }
         return
+    }
+    // Pattern nodes from an imported module can cross the AST serialization
+    // boundary before their kind table is available. Their tree shape still
+    // carries the bindings, so preserve lexical resolution by walking any
+    // unclassified non-leaf pattern instead of dropping its names.
+    let child_count = ast_access::node_child_count(pat)
+    if child_count > 0 {
+        let mut i = 0
+        while i < child_count {
+            collect_pattern_bindings(ctx, ast_access::node_child_at(pat, i))
+            i = i + 1
+        }
     }
 }

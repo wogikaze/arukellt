@@ -52,12 +52,7 @@ pub fn init_template_main_ark(template: String) -> String {
     if eq(clone(template), "wasi-host") {
         let mut source = "// Build with: arukellt run --target wasm32-gc main.ark\n"
         source = text::builder_append(source, "use std::host::stdio\n\nfn main() {\n")
-        source = text::builder_append(source, "    stdio::println(String_from(\"Fetching example.com...\"))\n")
-        source = text::builder_append(source, "    // Uncomment after enabling std::host::http:\n    // use std::host::http\n")
-        source = text::builder_append(source, "    // match http::get(String_from(\"http://example.com\")) {\n")
-        source = text::builder_append(source, "    //     Ok(body) => stdio::println(concat(String_from(\"Got \"), body))\n")
-        source = text::builder_append(source, "    //     Err(e) => stdio::eprintln(concat(String_from(\"Error: \"), e))\n    // }\n")
-        source = text::builder_append(source, "    stdio::println(String_from(\"Done. Uncomment the HTTP call in main.ark to try it.\"))\n}\n")
+        source = text::builder_append(source, "    stdio::println(String_from(\"Use an explicit official WASI WIT import for network access.\"))\n}\n")
         return source
     }
     "use std::host::stdio\n\nfn main() {\n    stdio::println(String_from(\"Hello, Arukellt!\"))\n}\n"

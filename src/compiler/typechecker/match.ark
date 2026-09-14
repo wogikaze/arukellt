@@ -4,6 +4,9 @@ use typechecker::match_coverage_collect
 use typechecker::match_coverage_record
 use typechecker::match_exhaustive
 use typechecker::unify
+use typechecker::scope
+use typechecker::contract_type_access
+use typechecker::contract_enum_info
 
 fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
@@ -26,7 +29,9 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
         let pat = ast_access::node_child_at(arm, 0)
         match_coverage_collect::record_match_pattern(coverage, pat)
         let body = ast_access::node_child_at(arm, arm_child_count - 1)
-        let arm_ty = infer_expr(env, scope, fn_sigs, enum_defs, body)
+        let arm_scope = scope::scope_child(scope)
+        bind_match_pattern(arm_scope, enum_defs, scrutinee_ty, pat)
+        let arm_ty = infer_expr(env, arm_scope, fn_sigs, enum_defs, body)
         if idx == 0 {
             result_ty = arm_ty
         }
@@ -35,4 +40,47 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
     let resolved_scrutinee = unify::resolve_type(env, scrutinee_ty)
     match_exhaustive::check_match_exhaustive(env, resolved_scrutinee, enum_defs, coverage)
     result_ty
+}
+
+fn bind_match_pattern(scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_IDENT()) {
+        let name = ast_access::node_text(pat)
+        if !eq(clone(name), "_") {
+            scope::scope_define(scope, name, scrutinee_ty)
+        }
+        return
+    }
+    if !ast_access::node_kind_is(pat, kinds::NK_PAT_VARIANT()) {
+        return
+    }
+    let variant_name = ast_access::node_text(pat)
+    let enum_info = match_enum_info(enum_defs, scrutinee_ty)
+    let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, clone(variant_name))
+    let bind_count = ast_access::node_child_count(pat)
+    let mut i = 0
+    while i < bind_count {
+        let bind_pat = ast_access::node_child_at(pat, i)
+        if ast_access::node_kind_is(bind_pat, kinds::NK_PAT_IDENT()) {
+            let bind_name = ast_access::node_text(bind_pat)
+            if !eq(clone(bind_name), "_") {
+                let bind_ty = contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
+                scope::scope_define(scope, bind_name, bind_ty)
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn match_enum_info(enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo) -> EnumInfo {
+    let enum_name = contract_type_access::TypeInfo_name(scrutinee_ty)
+    let mut i = 0
+    while i < len(enum_defs) {
+        let info = get_unchecked(enum_defs, i)
+        let declared = contract_enum_info::EnumInfo_name(info)
+        if eq(clone(declared), clone(enum_name)) || ends_with(clone(declared), concat("::", clone(enum_name))) {
+            return info
+        }
+        i = i + 1
+    }
+    contract_enum_info::EnumInfo_new(String_new(), Vec::new<String>())
 }

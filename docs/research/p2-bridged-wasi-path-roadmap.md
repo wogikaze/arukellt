@@ -1,5 +1,10 @@
 # P2 Bridged WASI Path — 今後の調査・修正項目
 
+> **Superseded (2026-09-12):** This roadmap documents the retired in-tree
+> bridge/stub approach. ADR-054 replaces it with official WASI P2 WIT and
+> `wasm-tools component embed/new`; none of the bridge implementation steps
+> below should be resumed.
+
 ステータス: **Phase A（stdout bridged path）完了（2026-07-25）** — #714 close gate 緑。  
 stderr/fs/guest-native は #668 / #076。HTTP/sockets は #727。
 

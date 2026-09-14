@@ -3,9 +3,9 @@ enum Opt {
     None,
 }
 
-fn describe(Opt::Some(v)) -> String | v > 10 = "big"
-fn describe(Opt::Some(_)) -> String = "small"
-fn describe(Opt::None) -> String = "none"
+fn describe(Opt::Some(v): Opt) -> String | v > 10 = "big"
+fn describe(Opt::Some(_): Opt) -> String = "small"
+fn describe(Opt::None: Opt) -> String = "none"
 
 fn main() {
     __intrinsic_print(concat(describe(Opt::Some(42)), "\n"))

@@ -23,6 +23,9 @@ fn session_lower_mir(
     source: String
 ) -> MirModule {
     let view = mod::mir_view_from_program(program)
+    if eq(clone(target), String_from("wasm32-gc")) {
+        mod::raw_program_release_body_table(program)
+    }
     let input = mir::mir_lower_input_new(
         view,
         session_lower_mir_fallback(all_decls),
@@ -47,6 +50,9 @@ fn session_lower_mir_component(
     source: String
 ) -> MirModule {
     let view = mod::mir_view_from_program(program)
+    if eq(clone(target), String_from("wasm32-gc")) {
+        mod::raw_program_release_body_table(program)
+    }
     let input = mir::mir_lower_input_new(
         view,
         session_lower_mir_fallback(all_decls),

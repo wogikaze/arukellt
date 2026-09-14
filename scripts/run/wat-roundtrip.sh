@@ -38,10 +38,6 @@ ARUKELLT="${ARUKELLT_BIN:-}"
 if [ -z "$ARUKELLT" ]; then
     if [ -x "scripts/run/arukellt-selfhost.sh" ]; then
         ARUKELLT="scripts/run/arukellt-selfhost.sh"
-    elif [ -x "target/release/arukellt" ]; then
-        ARUKELLT="target/release/arukellt"
-    elif [ -x "target/debug/arukellt" ]; then
-        ARUKELLT="target/debug/arukellt"
     fi
 fi
 

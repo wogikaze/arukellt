@@ -75,16 +75,14 @@ Return a stable Err on WASI 0.2 because the portable process model does not expo
 ## Module `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
-- Manifest-backed functions: 7
-- Stability: stable 7
+- Manifest-backed functions: 5
+- Stability: stable 5
 
 > ⚠️ **Availability:** mixed — see individual symbols · ✅ **Status:** implemented
 
 Host environment helpers.
 
-Arguments use the existing WASI CLI path. Environment and current working
-directory use the versioned runtime ABI so WASI P2 components can run under
-stock Wasmtime without an Arukellt-specific host linker.
+Arguments and environment lookups use the direct WASI intrinsics.
 
 ### `std::host::env` — Public API
 
@@ -94,8 +92,6 @@ stock Wasmtime without an Arukellt-specific host linker.
 | `arg_count` | `() -> i32` | `stable` | ✅ functional | - |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | - |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ functional | - |
-| `vars_snapshot` | `() -> Result<String, String>` | `stable` | ✅ functional | Returns a stable snapshot encoding of the environment. |
-| `current_dir` | `() -> Result<String, String>` | `stable` | ✅ functional | Returns the runtime current directory as a UTF-8 string. |
 | `has_flag` | `(String) -> bool` | `stable` | ✅ functional | - |
 
 #### `std::host::env::args`
@@ -124,18 +120,6 @@ _Example — Read the HOME environment variable:_
 let home = env::var("HOME")
 match home { Some(p) => println(p), None => println("not set") }
 ```
-
-#### `std::host::env::vars_snapshot`
-
-Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtime ABI.
-
-**Availability:** ⚠️ Not available on `wasm32` — WASI Preview 2 runtime ABI.
-
-#### `std::host::env::current_dir`
-
-Return the runtime current directory as UTF-8 through the versioned runtime ABI.
-
-**Availability:** ⚠️ Not available on `wasm32` — WASI Preview 2 runtime ABI.
 
 #### `std::host::env::has_flag`
 

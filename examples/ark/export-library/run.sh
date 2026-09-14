@@ -17,7 +17,7 @@ WASMTIME="$(examples_find_wasmtime || true)"
 WT="$(examples_find_wasm_tools || true)"
 
 if [[ -z "$ARUKELLT" ]]; then
-    echo "SKIP: arukellt not found (need scripts/run/arukellt-selfhost.sh or target/release/arukellt)"
+    echo "SKIP: arukellt selfhost wrapper not found"
     exit 0
 fi
 if [[ -z "$WASMTIME" ]] || [[ -z "$WT" ]]; then
@@ -27,7 +27,7 @@ fi
 
 mkdir -p "$OUT"
 
-echo "[1/3] compile calculator.ark -> component (native --emit component)"
+echo "[1/3] compile calculator.ark -> component (official WASI P2 packaging)"
 examples_compile "$ARUKELLT" modern compile "$SOURCE" \
     --target wasm32-gc \
     --emit component \

@@ -1,6 +1,7 @@
 fn ctx_local_index_push(ctx: LowerCtx, name: String, index: i32) {
-    push(ctx.local_names, name)
+    push(ctx.local_names, clone(name))
     push(ctx.local_indices, index)
+    ctx_local_hash_set(ctx, name, index)
 }
 
 fn ctx_local_index_count(ctx: LowerCtx) -> i32 {
@@ -26,9 +27,130 @@ fn ctx_local_index_values(ctx: LowerCtx) -> Vec<i32> {
 fn ctx_local_index_reset_for_function(ctx: LowerCtx) {
     ctx.local_names = Vec::new<String>()
     ctx.local_indices = Vec::new<i32>()
+    ctx_local_hash_clear(ctx)
 }
 
 fn ctx_local_index_restore(ctx: LowerCtx, local_names: Vec<String>, local_indices: Vec<i32>) {
     ctx.local_names = local_names
     ctx.local_indices = local_indices
+    ctx_local_hash_rebuild(ctx)
+}
+
+fn ctx_local_hash_clear(ctx: LowerCtx) {
+    let capacity = len(ctx.local_name_buckets)
+    if capacity <= 0 {
+        ctx.local_name_buckets = ctx_local_hash_fresh_buckets(32)
+        return
+    }
+    let mut i = 0
+    while i < capacity {
+        set(ctx.local_name_buckets, i, 0)
+        i = i + 1
+    }
+}
+
+fn ctx_local_hash_rebuild(ctx: LowerCtx) {
+    let count = len(ctx.local_names)
+    let mut capacity = 32
+    let required = count * 2
+    while capacity < required {
+        capacity = capacity * 2
+    }
+    ctx.local_name_buckets = ctx_local_hash_fresh_buckets(capacity)
+    ctx_local_hash_reinsert_all(ctx)
+}
+
+fn ctx_local_hash_set(ctx: LowerCtx, name: String, _value: i32) {
+    let mut slot = ctx_local_hash_probe_slot(ctx, clone(name))
+    if slot < 0 {
+        ctx_local_hash_grow(ctx)
+        slot = ctx_local_hash_probe_slot(ctx, name)
+        if slot < 0 {
+            return
+        }
+    }
+    // Newest stack slot wins, same as scan-from-end. Leave older entries intact
+    // so frame snapshots still restore the pre-shadow index.
+    set(ctx.local_name_buckets, slot, len(ctx.local_names))
+}
+
+fn ctx_local_hash_grow(ctx: LowerCtx) {
+    let capacity = len(ctx.local_name_buckets)
+    let mut next = 64
+    if capacity > 0 {
+        next = capacity * 2
+    }
+    ctx.local_name_buckets = ctx_local_hash_fresh_buckets(next)
+    ctx_local_hash_reinsert_all(ctx)
+}
+
+fn ctx_local_hash_reinsert_all(ctx: LowerCtx) {
+    let count = len(ctx.local_names)
+    let mut i = 0
+    while i < count {
+        let slot = ctx_local_hash_probe_slot(ctx, get_unchecked(ctx.local_names, i))
+        if slot >= 0 {
+            set(ctx.local_name_buckets, slot, i + 1)
+        }
+        i = i + 1
+    }
+}
+
+fn ctx_local_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
+    let buckets = Vec::new<i32>()
+    let mut i = 0
+    while i < capacity {
+        push(buckets, 0)
+        i = i + 1
+    }
+    buckets
+}
+
+fn ctx_local_hash_probe_slot(ctx: LowerCtx, name: String) -> i32 {
+    let capacity = len(ctx.local_name_buckets)
+    if capacity <= 0 {
+        return 0 - 1
+    }
+    let fnv_offset = 216613626
+    let fnv_prime = 16777619
+    let mut hash = fnv_offset
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * fnv_prime ^ char_at(name, hi)
+        if hash < 0 {
+            hash = 0 - hash
+        }
+        hi = hi + 1
+    }
+    if hash < 0 {
+        hash = 0
+    }
+    let mut slot = hash % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let bucket = get_unchecked(ctx.local_name_buckets, slot)
+        if bucket == 0 {
+            return slot
+        }
+        let key = get_unchecked(ctx.local_names, bucket - 1)
+        let mut same = len(key) == name_len
+        if same {
+            let mut i = 0
+            while i < name_len {
+                if char_at(key, i) != char_at(name, i) {
+                    same = false
+                    i = name_len
+                } else {
+                    i = i + 1
+                }
+            }
+        }
+        if same {
+            return slot
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
+    }
+    0 - 1
 }

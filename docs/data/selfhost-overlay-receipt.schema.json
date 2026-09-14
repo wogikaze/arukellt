@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.local/selfhost-overlay-receipt.schema.json",
+  "title": "Selfhost gc-host overlay receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "host",
+    "target",
+    "wasi_version",
+    "wall_ms",
+    "rss_max_kb",
+    "s2_sha256",
+    "s3_sha256",
+    "s2_eq_s3",
+    "s3_valid",
+    "phases_ms"
+  ],
+  "properties": {
+    "schema": { "const": "arukellt-selfhost-overlay-receipt-v1" },
+    "recorded_at": { "type": "string" },
+    "host": { "type": "string" },
+    "target": { "type": "string" },
+    "wasi_version": { "type": "string" },
+    "wall_ms": { "type": "integer", "minimum": 0 },
+    "rss_max_kb": { "type": "integer", "minimum": 0 },
+    "s2_sha256": { "type": "string" },
+    "s3_sha256": { "type": "string" },
+    "s2_eq_s3": { "type": "boolean" },
+    "s3_valid": { "type": "boolean" },
+    "alloc_bytes": { "type": ["integer", "null"] },
+    "live_bytes_by_phase": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "mir_counts": {
+      "type": "object",
+      "properties": {
+        "functions": { "type": "integer" },
+        "locals": { "type": "integer" },
+        "insts": { "type": "integer" }
+      }
+    },
+    "slow_fns": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["name", "wall_ms"],
+        "properties": {
+          "name": { "type": "string" },
+          "insts": { "type": "integer" },
+          "wall_ms": { "type": "integer" }
+        }
+      }
+    },
+    "phases_ms": {
+      "type": "object",
+      "additionalProperties": { "type": "integer" }
+    },
+    "notes": { "type": "string" }
+  }
+}

@@ -46,6 +46,17 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
             return MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
         }
     }
+    // Keep qualified text queries on their exact core-op aliases.  Rewriting
+    // `text::is_empty` through the generic Vec `is_empty` path interprets the
+    // String array reference as a Vec struct and traps on GC targets.
+    if eq(clone(callee_name), String_from("text::is_empty")) ||
+    eq(clone(callee_name), String_from("std::text::is_empty")) {
+        return MirCallRewrite_new(String_from("text::is_empty"), return_local, push_i64_needs_extend)
+    }
+    if eq(clone(callee_name), String_from("text::len_bytes")) ||
+    eq(clone(callee_name), String_from("std::text::len_bytes")) {
+        return MirCallRewrite_new(String_from("text::len_bytes"), return_local, push_i64_needs_extend)
+    }
     if eq(clone(callee_name), String_from("is_empty")) {
         // Prefer String::is_empty before vec rewrite — String_from locals can
         // look like byte arrays and must not take the Vec struct.get path (#807).
@@ -103,7 +114,12 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     starts_with(clone(rewritten), String_from("write_debug_to__")) ||
     ends_with(clone(rewritten), String_from("::write_debug_to")) ||
     contains(clone(rewritten), String_from("write_debug_to__"))
-    if !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) && !skip_first_arg_mono {
+    // These qualified aliases have the same short name as scalar math
+    // operations.  Generic mono lookup must not erase the module qualifier
+    // before FunctionId binding selects the sequence operation.
+    let is_seq_extremum_alias = eq(clone(rewritten), String_from("seq::min_i32")) ||
+    eq(clone(rewritten), String_from("seq::max_i32"))
+    if !is_seq_extremum_alias && !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) && !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
     }
     // Mono lookup may return the legacy `Vec_new_T` spelling even when the

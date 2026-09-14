@@ -19,3 +19,67 @@ fn MirFunction_param_type_name(f: MirFunction, idx: i32) -> String {
     let p = MirFunction_param_at(f, idx)
     local_record::mir_local_type_name(p)
 }
+
+fn MirFunction_has_unsubstituted_generic_param(f: MirFunction) -> bool {
+    let pc = MirFunction_param_count(f)
+    let mut j = 0
+    while j < pc {
+        let tn = MirFunction_param_type_name(f, j)
+        if starts_with(clone(tn), "?") && !mir_type_name_is_concrete_option_result_wrapper(tn) {
+            return true
+        }
+        j = j + 1
+    }
+    false
+}
+
+fn mir_type_name_is_concrete_option_result_wrapper(type_name: String) -> bool {
+    if starts_with(clone(type_name), "?Option:") {
+        let inner = substring(type_name, 8, len(type_name))
+        return len(inner) > 0 && !mir_type_name_is_generic_type_var(inner)
+    }
+    if starts_with(clone(type_name), "?Result:") {
+        let inner = substring(type_name, 8, len(type_name))
+        if len(inner) == 0 {
+            return false
+        }
+        let mut i = 0
+        while i < len(inner) {
+            if char_at(inner, i) == 58 {
+                return !mir_type_name_is_generic_type_var(substring(inner, 0, i))
+            }
+            i = i + 1
+        }
+        return !mir_type_name_is_generic_type_var(inner)
+    }
+    false
+}
+
+fn mir_type_name_is_generic_type_var(name: String) -> bool {
+    if len(name) == 0 {
+        return false
+    }
+    if starts_with(clone(name), "?") {
+        return mir_type_name_is_generic_type_var(substring(name, 1, len(name)))
+    }
+    if len(name) == 1 {
+        let c = char_at(name, 0)
+        return c >= 65 && c <= 90
+    }
+    let c0 = char_at(name, 0)
+    if c0 == 116 || c0 == 84 {
+        let mut i = 1
+        let mut all_digit = i < len(name)
+        while i < len(name) {
+            let c = char_at(name, i)
+            if c < 48 || c > 57 {
+                all_digit = false
+            }
+            i = i + 1
+        }
+        if all_digit {
+            return true
+        }
+    }
+    false
+}

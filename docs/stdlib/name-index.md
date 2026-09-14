@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 763
+- **Canonical names:** 743
 - **Historical/deprecated names:** 3
-- **Total entries:** 766
+- **Total entries:** 746
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -29,7 +29,6 @@ Current public API names, sorted alphabetically.
 | `abs` | `std::simd::i64x2` | `experimental` | Simd |
 | `abs` | `std::simd::i8x16` | `experimental` | Simd |
 | `abs` | `std::simd::i16x8` | `experimental` | Simd |
-| `accept` | `std::host::sockets` | `provisional` | Host Sockets |
 | `add` | `std::simd::f32x4` | `experimental` | Simd |
 | `add` | `std::simd::i32x4` | `experimental` | Simd |
 | `add` | `std::simd::f64x2` | `experimental` | Simd |
@@ -158,7 +157,6 @@ Current public API names, sorted alphabetically.
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `components` | `std::path` | `stable` | Path |
 | `concat` | `std::text` | `stable` | Text |
-| `connect` | `std::host::sockets` | `provisional` | Host Sockets |
 | `contains` | `prelude` | `stable` | String |
 | `contains` | `std::text` | `stable` | Text |
 | `contains_i32` | `prelude` | `stable` | Collections |
@@ -175,7 +173,6 @@ Current public API names, sorted alphabetically.
 | `csv_parse_with_header` | `std::csv` | `experimental` | Csv |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
 | `csv_stringify_row` | `std::csv` | `experimental` | Csv |
-| `current_dir` | `std::host::env` | `stable` | Host Env |
 | `cursor_new` | `std::bytes` | `stable` | Bytes |
 | `cursor_pos` | `std::bytes` | `stable` | Bytes |
 | `cursor_remaining` | `std::bytes` | `stable` | Bytes |
@@ -248,7 +245,6 @@ Current public API names, sorted alphabetically.
 | `find_toml_value` | `std::toml` | `experimental` | Toml |
 | `flag` | `std::cli` | `stable` | Cli |
 | `floor` | `std::simd::f32x4` | `experimental` | Simd |
-| `flush` | `std::host::streams` | `provisional` | Host Streams |
 | `flush` | `std::io` | `stable` | Io |
 | `fold_f64_f64` | `prelude` | `stable` | Collections |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
@@ -259,7 +255,6 @@ Current public API names, sorted alphabetically.
 | `format_i32` | `std::text` | `stable` | Text |
 | `format_i64` | `std::text` | `stable` | Text |
 | `from_utf8` | `std::text` | `experimental` | Text |
-| `fs_error_message` | `std::host::fs` | `provisional` | Host Fs |
 | `functype_get_param` | `std::wasm` | `experimental` | Wasm |
 | `functype_get_result` | `std::wasm` | `experimental` | Wasm |
 | `functype_new` | `std::wasm` | `experimental` | Wasm |
@@ -268,7 +263,6 @@ Current public API names, sorted alphabetically.
 | `gcd` | `prelude` | `stable` | Math |
 | `ge` | `std::simd::f32x4` | `experimental` | Simd |
 | `get` | `prelude` | `stable` | Collections |
-| `get` | `std::host::http` | `provisional` | Host Http |
 | `get_unchecked` | `prelude` | `stable` | Collections |
 | `gt` | `std::simd::f32x4` | `experimental` | Simd |
 | `handle_drop` | `std::component::handle` | `experimental` | Component |
@@ -426,7 +420,6 @@ Current public API names, sorted alphabetically.
 | `limits_min` | `std::wasm` | `experimental` | Wasm |
 | `limits_unbounded` | `std::wasm` | `experimental` | Wasm |
 | `lines` | `std::text` | `stable` | Text |
-| `listen` | `std::host::sockets` | `provisional` | Host Sockets |
 | `lt` | `std::simd::f32x4` | `experimental` | Simd |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
@@ -443,7 +436,6 @@ Current public API names, sorted alphabetically.
 | `memory_copy` | `std::wasm` | `experimental` | Wasm |
 | `memory_fill` | `std::wasm` | `experimental` | Wasm |
 | `metadata` | `std::fs` | `provisional` | Fs |
-| `metadata` | `std::host::fs` | `provisional` | Host Fs |
 | `min` | `std::simd::f32x4` | `experimental` | Simd |
 | `min` | `std::simd::f64x2` | `experimental` | Simd |
 | `min_i32` | `std::seq` | `stable` | Seq |
@@ -537,13 +529,9 @@ Current public API names, sorted alphabetically.
 | `range_inclusive_new` | `std::core` | `stable` | Core |
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
-| `read` | `std::host::sockets` | `provisional` | Host Sockets |
-| `read` | `std::host::streams` | `provisional` | Host Streams |
-| `read_body` | `std::host::http` | `provisional` | Host Http |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_bytes` | `std::io` | `stable` | Io |
 | `read_dir` | `std::fs` | `provisional` | Fs |
-| `read_dir` | `std::host::fs` | `provisional` | Host Fs |
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_string` | `std::fs` | `stable` | Fs |
 | `read_to_string` | `std::host::fs` | `provisional` | Host Fs |
@@ -571,9 +559,6 @@ Current public API names, sorted alphabetically.
 | `replace_lane` | `std::simd::i64x2` | `experimental` | Simd |
 | `replace_lane` | `std::simd::i8x16` | `experimental` | Simd |
 | `replace_lane` | `std::simd::i16x8` | `experimental` | Simd |
-| `request` | `std::host::http` | `provisional` | Host Http |
-| `request_with_headers` | `std::host::http` | `provisional` | Host Http |
-| `response_status` | `std::host::http` | `provisional` | Host Http |
 | `reverse_i32` | `prelude` | `stable` | Collections |
 | `reverse_String` | `prelude` | `stable` | Collections |
 | `rope_delete` | `std::text::rope` | `experimental` | Text |
@@ -598,10 +583,8 @@ Current public API names, sorted alphabetically.
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
 | `seek_to` | `std::io` | `stable` | Io |
-| `send` | `std::host::udp` | `provisional` | Host Udp |
 | `seq_contains` | `std::seq` | `stable` | Seq |
 | `seq_reverse` | `std::seq` | `stable` | Seq |
-| `serve` | `std::host::http` | `provisional` | Host Http |
 | `set` | `prelude` | `stable` | Collections |
 | `shl` | `std::simd::i32x4` | `experimental` | Simd |
 | `shr_s` | `std::simd::i32x4` | `experimental` | Simd |
@@ -737,7 +720,6 @@ Current public API names, sorted alphabetically.
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
-| `vars_snapshot` | `std::host::env` | `stable` | Host Env |
 | `Vec_with_capacity_i32` | `prelude` | `stable` | Collections |
 | `Vec_with_capacity_String` | `prelude` | `stable` | Collections |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
@@ -759,8 +741,6 @@ Current public API names, sorted alphabetically.
 | `wit_type_u64` | `std::wit` | `experimental` | Wit |
 | `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
-| `write` | `std::host::sockets` | `provisional` | Host Sockets |
-| `write` | `std::host::streams` | `provisional` | Host Streams |
 | `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_bytes` | `std::io` | `stable` | Io |
@@ -813,7 +793,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abs` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| `accept` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `add` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `add` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `add` | ✅ `experimental` | `std::simd::f64x2` | Simd |
@@ -943,7 +922,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `components` | ✅ `stable` | `std::path` | Path |
 | `concat` | ✅ `stable` | `std::text` | Text |
 | ~~`concat`~~ | ⚠️ deprecated | `prelude` | → `std::text::concat` · [migration guide](migration-guidance.md) |
-| `connect` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `contains` | ✅ `stable` | `std::text` | Text |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
@@ -960,7 +938,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `csv_parse_with_header` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_stringify_row` | ✅ `experimental` | `std::csv` | Csv |
-| `current_dir` | ✅ `stable` | `std::host::env` | Host Env |
 | `cursor_new` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_pos` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_remaining` | ✅ `stable` | `std::bytes` | Bytes |
@@ -1034,7 +1011,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `find_toml_value` | ✅ `experimental` | `std::toml` | Toml |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `flush` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
@@ -1045,7 +1021,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `format_i32` | ✅ `stable` | `std::text` | Text |
 | `format_i64` | ✅ `stable` | `std::text` | Text |
 | `from_utf8` | ✅ `experimental` | `std::text` | Text |
-| `fs_error_message` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `functype_get_param` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_get_result` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_new` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1054,7 +1029,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `gcd` | ✅ `stable` | `prelude` | Math |
 | `ge` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `get` | ✅ `stable` | `prelude` | Collections |
-| `get` | ✅ `provisional` | `std::host::http` | Host Http |
 | `get_unchecked` | ✅ `stable` | `prelude` | Collections |
 | ~~`get_var`~~ | ⚠️ deprecated | `std::env` | → `var` · [migration guide](migration-guidance.md) |
 | `gt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
@@ -1213,7 +1187,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `limits_min` | ✅ `experimental` | `std::wasm` | Wasm |
 | `limits_unbounded` | ✅ `experimental` | `std::wasm` | Wasm |
 | `lines` | ✅ `stable` | `std::text` | Text |
-| `listen` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `lt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
@@ -1230,7 +1203,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
-| `metadata` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `min_i32` | ✅ `stable` | `std::seq` | Seq |
@@ -1324,13 +1296,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_inclusive_new` | ✅ `stable` | `std::core` | Core |
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
-| `read` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
-| `read` | ✅ `provisional` | `std::host::streams` | Host Streams |
-| `read_body` | ✅ `provisional` | `std::host::http` | Host Http |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_bytes` | ✅ `stable` | `std::io` | Io |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
-| `read_dir` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
@@ -1358,9 +1326,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `replace_lane` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `replace_lane` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `replace_lane` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| `request` | ✅ `provisional` | `std::host::http` | Host Http |
-| `request_with_headers` | ✅ `provisional` | `std::host::http` | Host Http |
-| `response_status` | ✅ `provisional` | `std::host::http` | Host Http |
 | `reverse_i32` | ✅ `stable` | `prelude` | Collections |
 | `reverse_String` | ✅ `stable` | `prelude` | Collections |
 | `rope_delete` | ✅ `experimental` | `std::text::rope` | Text |
@@ -1385,10 +1350,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `seeded_random` | ✅ `stable` | `std::random` | Random |
 | `seeded_range` | ✅ `stable` | `std::random` | Random |
 | `seek_to` | ✅ `stable` | `std::io` | Io |
-| `send` | ✅ `provisional` | `std::host::udp` | Host Udp |
 | `seq_contains` | ✅ `stable` | `std::seq` | Seq |
 | `seq_reverse` | ✅ `stable` | `std::seq` | Seq |
-| `serve` | ✅ `provisional` | `std::host::http` | Host Http |
 | `set` | ✅ `stable` | `prelude` | Collections |
 | `shl` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `shr_s` | ✅ `experimental` | `std::simd::i32x4` | Simd |
@@ -1524,7 +1487,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
-| `vars_snapshot` | ✅ `stable` | `std::host::env` | Host Env |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1546,8 +1508,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_u64` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
-| `write` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
-| `write` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `write_all` | ✅ `stable` | `std::io` | Io |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_bytes` | ✅ `stable` | `std::io` | Io |

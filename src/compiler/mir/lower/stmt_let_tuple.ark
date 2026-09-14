@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::ctx_struct_layout
 use mir::lower_kinds
 use mir::inst_local_get
 use mir::inst_local_set
@@ -26,7 +27,8 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
     }
     let elem_count = ast_node::node_child_count(pat)
     let total_bytes = elem_count * 4
-    let struct_name = tuple_struct_name_from_type(ctx_api_local_types::ctx_get_local_type(ctx, tuple_local))
+    let tuple_type = ctx_api_local_types::ctx_get_local_type(ctx, tuple_local)
+    let struct_name = tuple_struct_name_from_type(tuple_type)
     let mut byte_off = 0
     let mut ei = 0
     while ei < elem_count {
@@ -35,6 +37,14 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
             let bind_name = ast_node::node_text(elem)
             let field_vt = tuple_field_vt_from_struct_name(struct_name, ei)
             let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), field_vt)
+            let field_type_name = tuple_field_type_name(struct_name, ei)
+            if len(field_type_name) > 0 {
+                ctx_api_local_types::ctx_set_local_type(
+                    ctx,
+                    dest,
+                    ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, field_type_name)
+                )
+            }
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_local))
             if len(struct_name) > 0 {
                 ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(tuple_local, clone(struct_name), byte_off, ei, total_bytes, field_vt, dest))
@@ -52,6 +62,9 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
 }
 
 fn tuple_struct_name_from_type(type_name: String) -> String {
+    if starts_with(clone(type_name), "tuple:") {
+        return type_name
+    }
     if !starts_with(clone(type_name), "struct:") {
         return String_new()
     }
@@ -126,12 +139,52 @@ fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 
         }
         return value_types::VT_I32()
     }
-    let keys = substring(struct_name, 6, len(struct_name))
-    let key = tuple_key_at(keys, elem_index)
-    if eq(clone(key), "String") {
+    let key = tuple_field_type_name(struct_name, elem_index)
+    if eq(clone(key), "String") || eq(clone(key), "string") {
+        return value_types::VT_GC_REF()
+    }
+    if eq(clone(key), "f64") || eq(clone(key), "F64") {
+        return value_types::VT_F64()
+    }
+    if eq(clone(key), "f32") || eq(clone(key), "F32") {
+        return value_types::VT_F32()
+    }
+    if eq(clone(key), "i64") || eq(clone(key), "I64") || eq(clone(key), "u64") {
+        return value_types::VT_I64()
+    }
+    if eq(clone(key), "i32") || eq(clone(key), "I32") ||
+    eq(clone(key), "bool") || eq(clone(key), "char") ||
+    eq(clone(key), "u8") || eq(clone(key), "u16") ||
+    eq(clone(key), "u32") || eq(clone(key), "i16") ||
+    eq(clone(key), "unit") || eq(clone(key), "()") {
+        return value_types::VT_I32()
+    }
+    if eq(clone(key), "fnref") || eq(clone(key), "fn") || starts_with(clone(key), "fn(") {
+        return value_types::VT_FUNCREF()
+    }
+    if starts_with(clone(key), "vec:") ||
+    starts_with(clone(key), "option:") ||
+    starts_with(clone(key), "result:") ||
+    starts_with(clone(key), "hashmap:") ||
+    starts_with(clone(key), "hashset:") {
+        return value_types::VT_GC_REF()
+    }
+    // A non-primitive tuple element is a named GC value even when its layout
+    // has not been registered yet. Registration order must not change the
+    // tuple field ABI (`WitType`, `Point`, and qualified names all follow this
+    // path).
+    if len(key) > 1 {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
+}
+
+fn tuple_field_type_name(struct_name: String, elem_index: i32) -> String {
+    if len(struct_name) == 0 {
+        return String_new()
+    }
+    let keys = substring(struct_name, 6, len(struct_name))
+    tuple_key_at(keys, elem_index)
 }
 
 fn tuple_key_at(keys: String, index: i32) -> String {

@@ -12,7 +12,27 @@ use typechecker::infer_comprehension
 use typechecker::match
 
 fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_access::node_kind_is(node, kinds::NK_ASSIGN()) {
+        if ast_access::node_child_count(node) >= 2 {
+            // Infer assignment RHS expressions so generic calls in field
+            // stores are registered before MIR monomorphization.
+            infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 1))
+            return TypeInfo_simple(commands::TY_UNIT())
+        }
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
     if ast_expr_predicates::node_is_struct_lit(node) {
+        // Struct field values can contain generic calls. Visit them even
+        // though the literal's result type comes from its struct name.
+        let field_count = ast_access::node_child_count(node)
+        let mut field_idx = 0
+        while field_idx < field_count {
+            let field = ast_access::node_child_at(node, field_idx)
+            if ast_access::node_child_count(field) > 0 {
+                infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(field, 0))
+            }
+            field_idx = field_idx + 1
+        }
         let struct_name = ast_access::node_text(node)
         return contract_type_constructors::TypeInfo_named(commands::TY_STRUCT(), struct_name)
     }

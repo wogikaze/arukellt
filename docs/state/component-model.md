@@ -1,14 +1,14 @@
 # Component Model（現行詳細）
 
 ステータス: **現行詳細メモ**（要約の正本は [`../current-state.md`](../current-state.md)）  
-契約: [ADR-008](../adr/ADR-008-component-wrapping.md)。ギャップは current-state ADR gaps。
+契約: [ADR-054](../adr/ADR-054-host-linker-and-rust-runtime-retirement.md)。ギャップは current-state ADR gaps。
 
 ---
 
 ## Component Model Status
 
 1. **Component emit**: `--emit component` produces `.component.wasm` on `wasm32-gc`
-   (ADR-008: in-tree が契約。現行の一部経路は wrap helper / `wasm-tools` を併用 — ADR gaps 参照)。Library exports are routed specialized-first before the scalar generic fallback, so supported string/record/list/option/result adapters are not flattened to `s32` by the selfhost bootstrap path (#667).
+   by combining compiler-emitted core Wasm/WIT with the official `wasm-tools` packaging contract (ADR-054)。Library exports are routed specialized-first before the scalar generic fallback, so supported string/record/list/option/result adapters are not flattened to `s32` by the selfhost bootstrap path (#667).
 2. **WIT generation**: `--emit wit` generates WIT from source-level export type annotations for the supported export surface, including bool, char, string, list, option, result, tuple, record, enum, and variant shapes used by the component fixture surface.
 3. **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
   `--wit` paths are accepted, validated, and threaded through CLI → `DriverConfig` → resolver/typecheck/MIR → Wasm import section (Phase 1 slices [#652](../../issues/done/652-wit-import-parser-grammar.md)–[#654](../../issues/done/654-wit-import-component-emit.md)).
@@ -23,9 +23,9 @@
 
 ### Known Component Model limitations
 
-- The current selfhost `--emit component` path emits a Component Model wrapper around the core Wasm module. With Preview 1 host profiles it may inject a minimal WASI Preview 1 stub instance so the core module's `wasi_snapshot_preview1` imports can instantiate.
-- On `wasm32-gc` with WASI P2, the emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../../issues/done/510-t3-p2-import-table-switch.md)). Guest-native in-tree emit ([issue 714](../../issues/done/714-wasi-p2-emitter-native-component-output.md), [issue 668](../../issues/done/668-p2-native-component-polish.md)) produces a `wasi:cli/command` component without a P1 adapter: guest imports `get-stdout` / `get-stderr` + `blocking-write-and-flush`, and `gate_074` / `gate-668-p2-native-polish` prove `wasm-tools validate` + wasmtime (`hello p2`, stderr/args/env). Environment still uses a P1-shaped bridge (`gate-668-p2-args-env`). Canonical scratch limits: [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md).
-- Component output is `wasm32-gc`-oriented: use `--target wasm32-gc` for `--emit component`, `--emit wit`, and `--emit all` (legacy alias `wasm32-wasi-p2` may still appear in older fixtures).
+- The current selfhost `--emit component` path emits the component core Wasm and WIT inputs; official `wasm-tools component embed/new` owns Component Model packaging. No repository-specific bridge, post-linker, or legacy ABI compatibility layer is part of this path.
+- On `wasm32-gc` with WASI P2, the compiler imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../../issues/done/510-t3-p2-import-table-switch.md)). The launcher packages the standard core module as the `wasi:cli/command` world using the official WASI WIT definitions. `gate_074` / `gate-668-p2-native-polish` cover `wasm-tools validate` and Wasmtime execution (`hello p2`, stderr/args/env). Environment uses the official `wasi:cli/environment` P2 imports. Canonical scratch limits: [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md).
+- Component output is `wasm32-gc`-oriented: use `--target wasm32-gc` for `--emit component`, `--emit wit`, and `--emit all`. Deprecated target spellings are not used by the component packaging path.
 - Component interop の現行結果は release check [`check_component_interop_wasmtime`](../data/release-guarantees.md#check-catalogue) を参照する。本メモでは pass/fail/count を所有しない。個別 fixture 名の正本は `tests/fixtures/` の component / WIT manifest である。
 - Nested or otherwise unsupported component export shapes remain compile-time `E0401` rather than silently lowering through the scalar emitter. The authoritative per-shape Tier-2 status is [`docs/data/component-export-tier2.toml`](../data/component-export-tier2.toml): every #673 row is explicitly `supported`, `deferred`, or `rejected` with a reason. In particular `Option<String>`, `Option<Vec<i32>>`, generalized string/list result payloads, `Vec<String>`, `Vec<u8>`, `Vec<i64>`, `Vec<Option<i32>>`, string tuples, 3-element tuples, and general name-independent record/enum/variant layout planning remain deferred.
 - General string/list/option/result/enum/record/complex canonical ABI lift-lower coverage is not complete for every nested shape. This is an explicit type-tier boundary, not a scalar-emitter routing ambiguity.

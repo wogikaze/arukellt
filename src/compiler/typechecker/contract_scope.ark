@@ -1,8 +1,22 @@
 use typechecker::contract_types_record
 
+struct TypeScheme {
+    vars: Vec<String>,
+    body: TypeInfo,
+}
+
+fn TypeScheme_empty() -> TypeScheme {
+    TypeScheme {
+        vars: Vec::new<String>(),
+        body: contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
+    }
+}
+
 struct VarBinding {
     name: String,
     ty: TypeInfo,
+    scheme: TypeScheme,
+    is_generalized: bool,
 }
 
 struct LocalScope {
@@ -14,7 +28,21 @@ fn LocalScope_new_contract() -> LocalScope {
 }
 
 fn VarBinding_new(name: String, ty: TypeInfo) -> VarBinding {
-    VarBinding { name: name, ty: ty }
+    VarBinding {
+        name: name,
+        ty: ty,
+        scheme: TypeScheme_empty(),
+        is_generalized: false
+    }
+}
+
+fn VarBinding_new_scheme(name: String, scheme: TypeScheme) -> VarBinding {
+    VarBinding {
+        name: name,
+        ty: scheme.body,
+        scheme: scheme,
+        is_generalized: true
+    }
 }
 
 fn VarBinding_name(binding: VarBinding) -> String {
@@ -23,6 +51,14 @@ fn VarBinding_name(binding: VarBinding) -> String {
 
 fn VarBinding_type(binding: VarBinding) -> TypeInfo {
     binding.ty
+}
+
+fn VarBinding_scheme(binding: VarBinding) -> TypeScheme {
+    binding.scheme
+}
+
+fn VarBinding_is_generalized(binding: VarBinding) -> bool {
+    binding.is_generalized
 }
 
 fn LocalScope_binding_count(scope: LocalScope) -> i32 {

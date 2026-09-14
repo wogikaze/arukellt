@@ -1,13 +1,131 @@
+use corehir::mir_value_type
+use corehir::type_id
+use mir::block_record
+use mir::inst_draft
+use mir::inst_record
 use mir::types
 
 fn MirBlock_inst_count(block: MirBlock) -> i32 {
-    len(block.instructions)
+    block.inst_count
+}
+
+fn MirBlock_inst_op(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.ops, idx)
+}
+
+fn MirBlock_inst_dest(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.dests, idx)
+}
+
+fn MirBlock_inst_arg0(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.arg0s, idx)
+}
+
+fn MirBlock_inst_arg1(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.arg1s, idx)
+}
+
+fn MirBlock_inst_int_val(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.int_vals, idx)
+}
+
+fn MirBlock_inst_float_val(block: MirBlock, idx: i32) -> f64 {
+    block_record::mir_float_box_value(get_unchecked(block.float_vals, idx))
+}
+
+fn MirBlock_inst_val_type(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.val_types, idx)
+}
+
+fn MirBlock_inst_func_id(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.func_ids, idx)
+}
+
+fn MirBlock_inst_type_id(block: MirBlock, idx: i32) -> i32 {
+    get_unchecked(block.type_ids, idx)
+}
+
+fn MirBlock_inst_str_val(block: MirBlock, idx: i32) -> String {
+    let str_id = get_unchecked(block.str_ids, idx)
+    if str_id < 0 || str_id >= len(block.str_pool) {
+        return String_new()
+    }
+    clone(get_unchecked(block.str_pool, str_id))
 }
 
 fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {
-    get_unchecked(block.instructions, idx)
+    inst_record::MirInst_ref(block, idx)
+}
+
+fn mir_block_export_packed_result(block: MirBlock, idx: i32) -> Vec<MirValueType> {
+    let stored = get_unchecked(block.type_ids, idx)
+    if stored < 0 {
+        return Vec::new<MirValueType>()
+    }
+    let result = Vec::new<MirValueType>()
+    push(
+        result,
+        mir_value_type::MirValueType_new(
+            type_id::TypeId_new(stored),
+            get_unchecked(block.type_reprs, idx),
+            get_unchecked(block.type_nulls, idx)
+        )
+    )
+    result
+}
+
+fn mir_block_export_draft_body(block: MirBlock, idx: i32, text: String) -> MirInstDraft {
+    inst_draft::MirInstDraft_new_full(
+        MirBlock_inst_op(block, idx),
+        MirBlock_inst_dest(block, idx),
+        MirBlock_inst_arg0(block, idx),
+        MirBlock_inst_arg1(block, idx),
+        MirBlock_inst_int_val(block, idx),
+        MirBlock_inst_float_val(block, idx),
+        text,
+        MirBlock_inst_val_type(block, idx)
+    )
+}
+
+fn MirBlock_export_draft(block: MirBlock, idx: i32) -> MirInstDraft {
+    let draft = mir_block_export_draft_body(block, idx, MirBlock_inst_str_val(block, idx))
+    inst_draft::MirInstDraft_set_result_types(draft, mir_block_export_packed_result(block, idx))
+    inst_draft::MirInstDraft_with_func_id_raw(draft, MirBlock_inst_func_id(block, idx))
+}
+
+fn MirBlock_export_drafts(block: MirBlock) -> Vec<MirInstDraft> {
+    let out = Vec::new<MirInstDraft>()
+    let n = MirBlock_inst_count(block)
+    let mut i = 0
+    while i < n {
+        push(out, MirBlock_export_draft(block, i))
+        i = i + 1
+    }
+    out
 }
 
 fn MirBlock_instructions(block: MirBlock) -> Vec<MirInst> {
-    block.instructions
+    let out = Vec::new<MirInst>()
+    let n = MirBlock_inst_count(block)
+    let mut i = 0
+    while i < n {
+        push(out, inst_record::MirInst_ref(block, i))
+        i = i + 1
+    }
+    out
+}
+
+fn MirInst_as_draft(inst: MirInst) -> MirInstDraft {
+    MirBlock_export_draft(inst_record::mir_inst_home(inst), inst_record::mir_inst_index(inst))
+}
+
+fn MirBlock_drafts_from_refs(refs: Vec<MirInst>) -> Vec<MirInstDraft> {
+    let out = Vec::new<MirInstDraft>()
+    let n = len(refs)
+    let mut i = 0
+    while i < n {
+        push(out, MirInst_as_draft(get_unchecked(refs, i)))
+        i = i + 1
+    }
+    out
 }

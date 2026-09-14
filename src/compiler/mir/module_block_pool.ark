@@ -1,0 +1,54 @@
+use mir::block_dominance_mutation
+use mir::block_factory
+use mir::block_inst_mutation
+use mir::block_pred_mutation
+use mir::block_successor_mutation
+use mir::opcodes
+use mir::phi_record
+use mir::types
+
+fn mir_block_reset_for_reuse(block: MirBlock, id: i32) {
+    block.id = id
+    block_inst_mutation::mir_block_clear_insts(block)
+    block.terminator = opcodes::MIR_RETURN()
+    block_successor_mutation::MirBlock_set_successors(block, 0 - 1, 0 - 1)
+    block_dominance_mutation::MirBlock_reset_idom(block)
+    block_pred_mutation::MirBlock_reset_preds(block)
+    block_dominance_mutation::MirBlock_reset_dom_set(block)
+    block_dominance_mutation::MirBlock_reset_dom_frontier(block)
+    block.phis = Vec::new<MirPhi>()
+}
+
+fn mir_module_take_block(m: MirModule, id: i32) -> MirBlock {
+    if m.block_pool_used <= 0 {
+        return block_factory::MirBlock_new(id)
+    }
+    let idx = m.block_pool_used - 1
+    m.block_pool_used = idx
+    let block = get_unchecked(m.block_pool, idx)
+    mir_block_reset_for_reuse(block, id)
+    block
+}
+
+fn mir_module_give_block(m: MirModule, block: MirBlock) {
+    block_inst_mutation::mir_block_clear_insts(block)
+    if m.block_pool_used < len(m.block_pool) {
+        set(m.block_pool, m.block_pool_used, block)
+    } else {
+        push(m.block_pool, block)
+    }
+    m.block_pool_used = m.block_pool_used + 1
+}
+
+fn mir_function_detach_blocks(f: MirFunction, m: MirModule) {
+    let n = len(f.blocks)
+    let mut i = 0
+    while i < n {
+        mir_module_give_block(m, get_unchecked(f.blocks, i))
+        i = i + 1
+    }
+    // After wasm emit the function no longer owns the objects. Vec::new here
+    // is a new empty header, not a pop of Vec<MirBlock>. Take during a later
+    // lower of the same instance reuses the pooled SoA columns.
+    f.blocks = Vec::new<MirBlock>()
+}

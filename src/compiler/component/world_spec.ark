@@ -3,7 +3,6 @@ use component::constants_world_spec
 
 fn world_spec_kind(world: String) -> i32 {
     if eq(clone(world), "wasi:cli/command") { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
-    if eq(clone(world), "wasi:http/proxy") { return constants_world_spec::WORLD_KIND_HTTP_PROXY() }
     constants_world_spec::WORLD_KIND_NONE()
 }
 
@@ -14,45 +13,42 @@ fn world_spec_is_cli_command(world: String) -> bool {
 fn world_spec_world_name(world: String) -> String {
     let kind = world_spec_kind(clone(world))
     if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() { return "command" }
-    if kind == constants_world_spec::WORLD_KIND_HTTP_PROXY() { return "proxy" }
     "arukellt"
 }
 
 fn world_spec_parse_error(world: String) -> String {
     if len(world) == 0 { return String_new() }
     if world_spec_kind(clone(world)) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
-    concat("unknown world `", concat(clone(world), "` (supported: wasi:cli/command, wasi:http/proxy)"))
+    concat("unknown world `", concat(clone(world), "` (supported: wasi:cli/command)"))
 }
 
 fn world_spec_emit_use_block(world: String) -> String {
     let kind = world_spec_kind(clone(world))
     let mut out = String_new()
     if kind == constants_world_spec::WORLD_KIND_CLI_COMMAND() {
-        out = text::builder_append(out, "    import wasi:cli/stdin@0.2.0;\n    import wasi:cli/stdout@0.2.0;\n    import wasi:clocks/wall-clock@0.2.0;\n\n")
+        out = text::builder_append(out, world_spec_wasi_imports())
         return out
     }
-    if kind == constants_world_spec::WORLD_KIND_HTTP_PROXY() {
-        out = text::builder_append(out, "    import wasi:http/types@0.2.0;\n\n    export wasi:http/incoming-handler@0.2.0;\n\n")
-        return out
-    }
-    out
+    world_spec_wasi_imports()
 }
 
-fn world_spec_wit_export_name(func_name: String, world: String) -> String {
-    if world_spec_is_cli_command(clone(world)) {
-        if eq(clone(func_name), "main") || eq(clone(func_name), "_start") {
-            return "run"
-        }
-    }
-    func_name
-}
-
-fn world_spec_uses_p2_command_component(world: String, wasi_version: String) -> bool {
-    if eq(clone(wasi_version), "wasi-p2") {
-        if len(clone(world)) == 0 { return true }
-        return world_spec_is_cli_command(clone(world))
-    }
-    false
+fn world_spec_wasi_imports() -> String {
+    // The generated library world describes the interfaces used by the core
+    // module. Keeping these imports in the WIT world lets wasm-tools perform
+    // the official P2 lift without a repository-owned adapter.
+    let mut out = "    import wasi:cli/environment@0.2.0;\n"
+    out = text::builder_append(out, "    import wasi:cli/exit@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:io/error@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:io/streams@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:cli/stdin@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:cli/stdout@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:cli/stderr@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:clocks/monotonic-clock@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:clocks/wall-clock@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:filesystem/types@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:filesystem/preopens@0.2.0;\n")
+    out = text::builder_append(out, "    import wasi:random/random@0.2.0;\n")
+    text::builder_append(out, "\n")
 }
 
 fn world_target_error(world: String, target: String, emit_mode: String) -> String {

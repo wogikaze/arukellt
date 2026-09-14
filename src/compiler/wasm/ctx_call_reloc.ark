@@ -1,0 +1,53 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use wasm::ctx_record
+use wasm::function_indices
+use wasm::inst_ctx
+use wasm::writer_core
+
+fn SelfEmitCtx_push_call_reloc(ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
+    let used = ctx.call_reloc_used
+    if used < len(ctx.call_reloc_offs) {
+        set(ctx.call_reloc_offs, used, off)
+        set(ctx.call_reloc_fids, used, fid_raw)
+    } else {
+        push(ctx.call_reloc_offs, off)
+        push(ctx.call_reloc_fids, fid_raw)
+    }
+    ctx.call_reloc_used = used + 1
+}
+
+fn SelfEmitCtx_apply_call_relocs(
+    ctx: SelfEmitCtx,
+    w: WasmWriter,
+    wit_import_count: i32
+) {
+    let n = ctx.call_reloc_used
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    let mut i = 0
+    while i < n {
+        let off = get_unchecked(ctx.call_reloc_offs, i)
+        let fid_raw = get_unchecked(ctx.call_reloc_fids, i)
+        let signature = signature_registry::signature_registry_lookup_by_id(
+            registry,
+            function_id::FunctionId_new(fid_raw)
+        )
+        let name = signature_entry::signature_entry_base_name(signature)
+        let fn_idx = inst_ctx::resolve_fn_index_for_call(ctx, name, fid_raw)
+        if fn_idx >= 0 {
+            writer_core::patch_leb128_u_fixed(
+                w,
+                off,
+                function_indices::defined_function_index(
+                    fn_idx,
+                    ctx_record::SelfEmitCtx_target(ctx),
+                    ctx_record::SelfEmitCtx_wasi_version(ctx),
+                    wit_import_count
+                )
+            )
+        }
+        i = i + 1
+    }
+    ctx.call_reloc_used = 0
+}

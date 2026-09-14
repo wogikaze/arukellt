@@ -2,6 +2,6 @@ use std::core::convert
 use std::test
 
 fn main() {
-    test::assert_eq_string(convert::(true).to_string(), "true")
-    test::assert_eq_string(convert::(false).to_string(), "false")
+    test::assert_eq_string(true.to_string(), "true")
+    test::assert_eq_string(false.to_string(), "false")
 }

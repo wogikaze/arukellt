@@ -9,12 +9,28 @@ use resolver::wit_surface
 struct WitImportBinding {
     type_sig: String,
     interface_id: String,
+    component_interface_id: String,
+    wit_import_id: String,
     wit_func_name: String,
     qualified_name: String,
 }
 
-fn WitImportBinding_new(type_sig: String, interface_id: String, wit_func_name: String, qualified_name: String) -> WitImportBinding {
-    WitImportBinding { type_sig: type_sig, interface_id: interface_id, wit_func_name: wit_func_name, qualified_name: qualified_name }
+fn WitImportBinding_new(
+    type_sig: String,
+    interface_id: String,
+    component_interface_id: String,
+    wit_import_id: String,
+    wit_func_name: String,
+    qualified_name: String
+) -> WitImportBinding {
+    WitImportBinding {
+        type_sig: type_sig,
+        interface_id: interface_id,
+        component_interface_id: component_interface_id,
+        wit_import_id: wit_import_id,
+        wit_func_name: wit_func_name,
+        qualified_name: qualified_name,
+    }
 }
 
 fn wit_import_binding_type_sig(binding: WitImportBinding) -> String {
@@ -23,6 +39,14 @@ fn wit_import_binding_type_sig(binding: WitImportBinding) -> String {
 
 fn wit_import_binding_interface_id(binding: WitImportBinding) -> String {
     clone(binding.interface_id)
+}
+
+fn wit_import_binding_component_interface_id(binding: WitImportBinding) -> String {
+    clone(binding.component_interface_id)
+}
+
+fn wit_import_binding_wit_import_id(binding: WitImportBinding) -> String {
+    clone(binding.wit_import_id)
 }
 
 fn wit_import_binding_wit_func_name(binding: WitImportBinding) -> String {
@@ -64,31 +88,35 @@ fn wit_push_bindings_for_import(bindings: Vec<WitImportBinding>, wit_paths: Vec<
         return
     }
     if eq(clone(package_id), "test:host/math") {
-        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "add", concat(clone(alias), "::add")))
+        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", concat(clone(alias), "::add")))
         return
     }
     if eq(clone(package_id), "test:doc/parse") {
-        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "parse-markdown", concat(clone(alias), "::parse_markdown")))
+        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", concat(clone(alias), "::parse_markdown")))
         return
     }
     if eq(clone(package_id), "test:host/host") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "set-perms", concat(clone(alias), "::set_perms")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", concat(clone(alias), "::set_perms")))
         return
     }
     if eq(clone(package_id), "test:host/handles") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "take", concat(clone(alias), "::take")))
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "peek", concat(clone(alias), "::peek")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", concat(clone(alias), "::take")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", concat(clone(alias), "::peek")))
     }
 }
 
 fn wit_push_bindings_for_doc(bindings: Vec<WitImportBinding>, alias: String, doc: wit_parse_text::WitParsedInterface) {
     let interface_id = wit_surface::wit_interface_id(doc)
+    let component_interface_id = wit_surface::wit_component_interface_id(doc)
+    let wit_import_id = wit_surface::wit_import_id(doc)
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
     for fi in 0..len(funcs) {
         let func = get_unchecked(funcs, fi)
         push(bindings, WitImportBinding_new(
                 wit_register::wit_binding_type_sig(func, doc),
                 clone(interface_id),
+                clone(component_interface_id),
+                clone(wit_import_id),
                 clone(func.wit_name),
                 wit_register::wit_binding_qualified_name(clone(alias), func)
             ))

@@ -17,7 +17,6 @@ TARGET="wasm32"
 WASI_VERSION="wasi-p1"
 OUT_DIR="$REPO_ROOT/.ark-opt-equiv-tmp"
 MANIFEST="$REPO_ROOT/tests/fixtures/manifest.txt"
-HOSTED_RUN="$REPO_ROOT/scripts/run/arukellt-run-hosted.sh"
 COMPILE_TIMEOUT=30
 RUN_TIMEOUT=15
 
@@ -132,12 +131,6 @@ esac
 
 mkdir -p "$OUT_DIR"
 
-wasm_needs_host_linker() {
-    local wasm="$1"
-    # Bridged HTTP/TCP guest ABI needs host-linker (legacy arukellt_host or WIT modules).
-    grep -aqE 'arukellt_host|wasi:http/(outgoing|incoming)-handler@|wasi:sockets/tcp@|http_get|http_request|http_serve|sockets_connect|sockets_listen' "$wasm" 2>/dev/null
-}
-
 is_trap_or_invalid() {
     local code="$1"
     local out="$2"
@@ -164,11 +157,7 @@ run_wasm() {
     local wasm="$1"
     local out_file="$2"
     local code=0
-    if wasm_needs_host_linker "$wasm"; then
-        timeout "$RUN_TIMEOUT" bash "$HOSTED_RUN" --dir="$REPO_ROOT" "$wasm" >"$out_file" 2>&1 || code=$?
-    else
-        timeout "$RUN_TIMEOUT" "$WASMTIME_BIN" run --dir="$REPO_ROOT" "$wasm" >"$out_file" 2>&1 || code=$?
-    fi
+    timeout "$RUN_TIMEOUT" "$WASMTIME_BIN" run --dir="$REPO_ROOT" "$wasm" >"$out_file" 2>&1 || code=$?
     echo "$code"
 }
 

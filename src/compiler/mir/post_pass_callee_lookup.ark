@@ -151,12 +151,14 @@ fn is_generic_clone_intrinsic(name: String) -> bool {
 fn is_get_unchecked_callee(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
     eq(clone(name), "get_unchecked") ||
-    eq(clone(name), "__intrinsic_get_unchecked") {
+    eq(clone(name), "__intrinsic_get_unchecked") ||
+    eq(clone(name), "raw_array_get_unchecked") {
         return true
     }
     starts_with(clone(name), "get_unchecked__") ||
     starts_with(clone(name), "vec_get_unchecked__") ||
-    starts_with(clone(name), "__intrinsic_get_unchecked__")
+    starts_with(clone(name), "__intrinsic_get_unchecked__") ||
+    starts_with(clone(name), "raw_array_get_unchecked__")
 }
 
 fn is_vec_constructor_callee(name: String) -> bool {

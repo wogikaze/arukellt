@@ -7,6 +7,9 @@ fn lower_core_array_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExp
     let mut i = 0
     while i < child_count {
         let val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i))
+        if i == 0 {
+            aggregate::mir_set_array_type_from_value(ctx, dest, val_idx)
+        }
         aggregate::mir_emit_array_set(ctx, dest, val_idx, i)
         i = i + 1
     }
@@ -20,6 +23,7 @@ fn lower_core_array_repeat(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     let count = core_expr_shape_accessors::mir_core_expr_int_val(count_expr)
     let dest = aggregate::mir_emit_array_new(ctx, count)
     let val_idx = lower_core_expr(ctx, exprs, val_child)
+    aggregate::mir_set_array_type_from_value(ctx, dest, val_idx)
     let mut i = 0
     while i < count {
         aggregate::mir_emit_local_get_ref(ctx, val_idx)

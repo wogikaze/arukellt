@@ -52,9 +52,6 @@ def find_wasmtime() -> str | None:
 
 
 def find_wasm_tools() -> str | None:
-    cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-    if cargo.is_file():
-        return str(cargo)
     return shutil.which("wasm-tools")
 
 

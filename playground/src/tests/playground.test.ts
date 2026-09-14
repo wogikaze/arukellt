@@ -22,7 +22,7 @@ const repoRoot = resolve(here, "../../..");
 describe("createPlayground", () => {
   it("parses, tokenizes, formats, and type-checks source", async () => {
     configureTypecheckCompilerWasm(await loadCompilerBytes());
-    const pg = await createPlayground("/unused/playground-engine.js", {
+    const pg = await createPlayground({
       wasmUrl: new URL("file:///tmp/unused-playground-engine"),
     });
 

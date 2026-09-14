@@ -3,6 +3,7 @@ use mir::lower::ctx_gc_struct
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_payload_bind_types
 use mir::lower::core_match_payload_bind_emit
 use mir::lower::core_match_payload_type_extract
@@ -41,6 +42,10 @@ fn core_emit_payload_variant_binds(
     let mut bi = 0
     while bi < core_expr_shape_accessors::mir_core_expr_child_count(pat) {
         let bind_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, bi))
+        if core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(bind_pat) {
+            bi = bi + 1
+            continue
+        }
         let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), bi, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
         if bi == 0 && core_match_payload_bind_types::core_payload_type_is_fnref(clone(payload_hint)) {
             bind_vt = value_types::VT_FUNCREF()

@@ -21,6 +21,18 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
     let callee_name = ast_access::node_text(callee)
+    // `clone` is a compiler-provided polymorphic operation. The prelude keeps
+    // a String-shaped declaration for compatibility, but typechecking must
+    // preserve the argument type for structs, enums, and collection elements.
+    if eq(clone(callee_name), "clone") && child_count == 2 {
+        return infer_expr(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            ast_access::node_child_at(node, 1)
+        )
+    }
     let mut mono_fn_name = clone(callee_name)
     let mut sig = sigs::lookup_fn_sig(env, fn_sigs, clone(callee_name))
     if !contract_fn_sig::FnSig_has_name(sig) {

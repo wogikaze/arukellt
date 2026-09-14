@@ -11,12 +11,6 @@ recheck_after = "2026-08-31"
 path = "src/compiler/component/contract_allows_tuple.ark"
 sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
 [[exceptions]]
-path = "src/compiler/component/emit_resource.ark"
-sha256 = "5b1bd95f7c4f71999bd9f673d2d881be550fa38e9b57fc9cd025ac2f16afb2c8"
-[[exceptions]]
-path = "src/compiler/component/emit_tier3_roundtrip.ark"
-sha256 = "6698556fa0557a14870ff9a71c2ef561361d55853c568c5cc125d6d5e5443893"
-[[exceptions]]
 path = "src/compiler/diagnostics/codes.ark"
 sha256 = "4fcf2f36f51d1321db375c5940b73a49afd1d9cf512fd8483e69795bd901a721"
 [[exceptions]]
@@ -32,23 +26,11 @@ sha256 = "95defdf29f925549db26c04c746917768141312f79750221d3c2509e55fcf5bb"
 path = "src/compiler/mir/lower/body_match.ark"
 sha256 = "792d3438b34096515ad7e5854e085753fe67f3009dae4d93ebf0e089c5291248"
 [[exceptions]]
-path = "src/compiler/mir/lower/body_match_arm_last.ark"
-sha256 = "e8ebb50d63373d2e2a3058ad459164275804ced734b3534bad05e21ba565a644"
-[[exceptions]]
-path = "src/compiler/mir/lower/body_match_arm_nonlast.ark"
-sha256 = "5e097f3ad45dbd1908957e9edf6bb4d97c6ce47cbf4643e779efb1bbca8c14f2"
-[[exceptions]]
-path = "src/compiler/mir/lower/body_match_compare_or.ark"
-sha256 = "1067c0553f9ef9f0540e95193da9979bd00264fd78ff22a69d736944f3571f11"
-[[exceptions]]
-path = "src/compiler/mir/lower/body_match_compare_single.ark"
-sha256 = "1c2074ba7115fc7a129196612abda1b2116cea15ded3bdd21275fe8918e5b433"
-[[exceptions]]
 path = "src/compiler/mir/lower/core_if.ark"
 sha256 = "6aa07f22a117fd761e70f92bf2690fd23bb4df38eca1b7b0b2cbcda7d5d29bf9"
 [[exceptions]]
 path = "src/compiler/typechecker/infer_compound.ark"
-sha256 = "7659160d0dacde35449e41936661b8614c8275aaea70814115fe1554d077f74e"
+sha256 = "46524b6bb2281060eeedddbd32d22e92d1ca49d5d874e8127f2a76e0d2d73f06"
 [[exceptions]]
 path = "src/compiler/typechecker/returns.ark"
 sha256 = "42b8c2b3e83346f3b99baa9a26510a63344939a11456a48b661b20863e94d2c9"

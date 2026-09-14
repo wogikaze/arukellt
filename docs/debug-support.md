@@ -129,14 +129,15 @@ executable line.
 
 ## Runtime-level debugging (`wasm32` / `wasm32-gc`)
 
-For programs compiled to core Wasm modules, `tools/host-linker` post-links a
-`metadata.debug.source_map` custom section (offset → source line) and injects
-`arukellt_debug::breakpoint` imports before execution. The
-`arukellt-debug-adapter` path registers wasmtime hooks that pause at mapped
-lines and return **live** Wasm local values in DAP `variables` responses.
+For programs compiled to core Wasm modules, the selfhost emitter carries the
+`metadata.debug.source_map` custom section (offset → source line) into the
+artifact. The runtime debug path uses direct Wasmtime execution; no linker or
+repository-specific host import is inserted between compilation and execution.
+For components, the launcher uses the official `wasm-tools` component pipeline
+and preserves the same source-map metadata where the component model allows it.
 
-Smoke coverage: `tests/fixtures/selfhost/debug_smoke.ark` and
-`scripts/check/check-wasm-debug-smoke.py`.
+Smoke coverage: `tests/fixtures/selfhost/debug_smoke.ark` and the selfhost DAP
+verification gates.
 
 ## Future enhancements
 

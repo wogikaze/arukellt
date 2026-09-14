@@ -1,14 +1,83 @@
+use wasm::constants
+use wasm::opcodes
+
+// `local_ref_types` holds the declared `(ref null T)` type index per local of
+// the function body being written (-1 = not a concrete ref). `ref_top_type`
+// is the static type of the value on top of the operand stack immediately
+// after the last `local.get` / `ref.cast`; it is only meaningful while
+// `ref_top_end == len(bytes)`, i.e. nothing was emitted since.
 pub struct WasmWriter {
     bytes: Vec<i32>,
     memory64: bool,
+    local_ref_types: Vec<i32>,
+    ref_top_type: i32,
+    ref_top_end: i32,
 }
 
 fn WasmWriter_new() -> WasmWriter {
-    WasmWriter { bytes: Vec::new<i32>(), memory64: false }
+    WasmWriter_with_memory64(false)
 }
 
 fn WasmWriter_with_memory64(memory64: bool) -> WasmWriter {
-    WasmWriter { bytes: Vec::new<i32>(), memory64: memory64 }
+    WasmWriter {
+        bytes: Vec::new<i32>(),
+        memory64: memory64,
+        local_ref_types: Vec::new<i32>(),
+        ref_top_type: 0 - 1,
+        ref_top_end: 0 - 1,
+    }
+}
+
+// Install the declared ref types of the function body about to be written.
+// Pass an empty vector once the body is finished so later bodies written
+// without a declaration pass cannot see stale types.
+fn writer_begin_function_locals(w: WasmWriter, local_ref_types: Vec<i32>) {
+    w.local_ref_types = local_ref_types
+    w.ref_top_end = 0 - 1
+}
+
+fn writer_note_ref_top(w: WasmWriter, type_idx: i32) {
+    w.ref_top_type = type_idx
+    w.ref_top_end = if type_idx >= 0 { len(w.bytes) } else { 0 - 1 }
+}
+
+// True when the value on top of the stack is statically `(ref null type_idx)`,
+// so a `ref.cast` to that type can only succeed and may be omitted.
+fn writer_ref_top_is(w: WasmWriter, type_idx: i32) -> bool {
+    type_idx >= 0 && w.ref_top_end == len(w.bytes) && w.ref_top_type == type_idx
+}
+
+fn emit_local_get(w: WasmWriter, local_idx: i32) {
+    emit_byte(w, opcodes::OP_LOCAL_GET())
+    emit_leb128_u(w, local_idx)
+    let type_idx = if local_idx >= 0 && local_idx < len(w.local_ref_types) {
+        get_unchecked(w.local_ref_types, local_idx)
+    } else {
+        0 - 1
+    }
+    writer_note_ref_top(w, type_idx)
+}
+
+// Concrete type index of a `(ref null $t)` valtype starting at `pos`, or -1
+// for scalars and abstract heap types (which encode as negative s33).
+fn writer_ref_null_type_at(w: WasmWriter, pos: i32) -> i32 {
+    if pos < 0 || pos >= len(w.bytes) || get_unchecked(w.bytes, pos) != constants::WASM_REF_NULL() {
+        return 0 - 1
+    }
+    let mut value = 0
+    let mut shift = 1
+    let mut i = pos + 1
+    let mut byte = 128
+    while byte >= 128 && i < len(w.bytes) {
+        byte = get_unchecked(w.bytes, i)
+        value = value + byte % 128 * shift
+        shift = shift * 128
+        i = i + 1
+    }
+    if byte % 128 >= 64 {
+        return 0 - 1
+    }
+    value
 }
 
 fn writer_memory64(w: WasmWriter) -> bool {
@@ -46,6 +115,53 @@ fn writer_size(w: WasmWriter) -> i32 {
 
 fn writer_bytes(w: WasmWriter) -> Vec<i32> {
     w.bytes
+}
+
+fn writer_set_byte_at(w: WasmWriter, idx: i32, b: i32) {
+    if idx < 0 || idx >= len(w.bytes) {
+        return
+    }
+    set(w.bytes, idx, b % 256)
+}
+
+fn leb128_u_fixed_width() -> i32 {
+    5
+}
+
+fn emit_leb128_u_fixed(w: WasmWriter, v: i32) {
+    let width = leb128_u_fixed_width()
+    let mut val = v
+    if val < 0 {
+        val = 0
+    }
+    let mut i = 0
+    while i < width {
+        let mut b = val % 128
+        val = val / 128
+        if i < width - 1 {
+            b = b + 128
+        }
+        emit_byte(w, b)
+        i = i + 1
+    }
+}
+
+fn patch_leb128_u_fixed(w: WasmWriter, start: i32, v: i32) {
+    let width = leb128_u_fixed_width()
+    let mut val = v
+    if val < 0 {
+        val = 0
+    }
+    let mut i = 0
+    while i < width {
+        let mut b = val % 128
+        val = val / 128
+        if i < width - 1 {
+            b = b + 128
+        }
+        writer_set_byte_at(w, start + i, b)
+        i = i + 1
+    }
 }
 
 // ---- LEB128 helpers (merged from writer_leb) ----

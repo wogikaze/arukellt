@@ -34,6 +34,7 @@ struct WitParsedVariant {
 
 struct WitParsedInterface {
     package: String,
+    package_version: String,
     interface: String,
     funcs: Vec<WitParsedFunc>,
     records: Vec<WitParsedRecord>,
@@ -44,6 +45,7 @@ struct WitParsedInterface {
 fn WitParsedInterface_empty() -> WitParsedInterface {
     WitParsedInterface {
         package: String_new(),
+        package_version: String_new(),
         interface: String_new(),
         funcs: Vec::new<WitParsedFunc>(),
         records: Vec::new<WitParsedRecord>(),
@@ -57,6 +59,7 @@ fn WitParsedInterface_empty() -> WitParsedInterface {
 fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>, enums: Vec<WitParsedEnum>) -> WitParsedInterface {
     WitParsedInterface {
         package: package,
+        package_version: String_new(),
         interface: interface,
         funcs: funcs,
         records: records,
@@ -66,6 +69,7 @@ fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitPars
 }
 
 fn WitParsedInterface_funcs(doc: WitParsedInterface) -> Vec<WitParsedFunc> { doc.funcs }
+fn WitParsedInterface_package_version(doc: WitParsedInterface) -> String { clone(doc.package_version) }
 fn WitParsedInterface_records(doc: WitParsedInterface) -> Vec<WitParsedRecord> { doc.records }
 fn WitParsedInterface_enums(doc: WitParsedInterface) -> Vec<WitParsedEnum> { doc.enums }
 fn WitParsedInterface_variants(doc: WitParsedInterface) -> Vec<WitParsedVariant> { doc.variants }
@@ -244,6 +248,7 @@ fn parse_wit_import_text(text: String) -> WitParsedInterface {
     let body = wit_parse_text_scan::wit_extract_interface_body(text)
     let parsed = wit_parse_interface_body(body)
     let doc = WitParsedInterface_new(package, interface, parsed.funcs, parsed.records, parsed.enums)
+    doc.package_version = wit_parse_text_scan::wit_extract_package_version(text)
     doc.variants = parsed.variants
     doc
 }

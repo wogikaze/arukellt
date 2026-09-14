@@ -12,4 +12,4 @@ current-state の詳細メモ。要約の正本は docs/current-state.md。
 | File | Title | Summary |
 |------|-------|---------|
 | [compiler.md](compiler.md) | コンパイラ MIR / bootstrap（現行詳細） | 参照: ../compiler/optimization.md、../compiler/bootstrap.md。 |
-| [component-model.md](component-model.md) | Component Model（現行詳細） | 契約: ADR-008。ギャップは current-state ADR gaps。 |
+| [component-model.md](component-model.md) | Component Model（現行詳細） | 契約: ADR-054。ギャップは current-state ADR gaps。 |

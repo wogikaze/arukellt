@@ -2,9 +2,9 @@
 """Close gate for issue #714 — emitter-native WASI P2 component output.
 
 Proves:
-1. In-tree `--emit component` (no p2_component_wrap.py)
-2. Artifact imports wasi:cli/stdout + wasi:io/streams
-3. Artifact has no pseudo `wasi:cli/stdout@0.2.0::write` literal
+1. The compiler emits a core module and the launcher packages it with official wasm-tools
+2. The resulting component imports wasi:cli/stdout + wasi:io/streams
+3. The artifact has no repository-specific or legacy compatibility ABI
 4. wasm-tools validate + wasmtime run prints expected stdout
 5. Exit-path fixture traps/non-zero on the same emitter-native path
 """
@@ -18,7 +18,6 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-WRAP = REPO_ROOT / "scripts" / "selfhost" / "p2_component_wrap.py"
 
 
 def _compiler() -> Path | None:
@@ -80,15 +79,31 @@ def _validate(path: Path) -> tuple[int, str]:
 
 
 def _assert_import_shape(path: Path) -> tuple[int, str]:
+    wit = subprocess.run(
+        ["wasm-tools", "component", "wit", str(path)],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if wit.returncode != 0:
+        return 1, (wit.stderr or wit.stdout)[-800:]
+    text = wit.stdout
+    for marker in (
+        "import wasi:cli/stdout@0.2.0",
+        "import wasi:io/streams@0.2.0",
+        "get-stdout: func() -> output-stream",
+    ):
+        if marker not in text:
+            return 1, f"component WIT missing official stdout contract: {marker}"
     data = path.read_bytes()
-    if b"wasi:cli/stdout@0.2.0::write" in data:
-        return 1, "artifact contains pseudo import wasi:cli/stdout@0.2.0::write"
-    if b"wasi:cli/stdout@0.2.0" not in data:
-        return 1, "artifact missing wasi:cli/stdout@0.2.0"
-    if b"wasi:io/streams@0.2.0" not in data:
-        return 1, "artifact missing wasi:io/streams@0.2.0"
-    if b"get-stdout" not in data:
-        return 1, "artifact missing get-stdout"
+    for marker in (
+        b"arukellt:",
+        b"runtime/host",
+        b"wasi_snapshot_preview1",
+        b"wasi:cli/stdout@0.2.0::write",
+    ):
+        if marker in data:
+            return 1, f"artifact contains retired compatibility marker {marker!r}"
     return 0, ""
 
 
@@ -138,8 +153,6 @@ def _wasmtime_exit_path(path: Path, expect_stdout: str) -> tuple[int, str]:
 
 def main() -> int:
     failures: list[str] = []
-    if WRAP.is_file():
-        failures.append(f"product wrap still present: {WRAP.relative_to(REPO_ROOT)}")
 
     out_dir = Path(tempfile.mkdtemp(prefix="gate-714-", dir=REPO_ROOT / ".build"))
     try:

@@ -19,12 +19,11 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx: SelfEmitCtx, tid: TypeId) -> i
         return 0 - 1
     }
     let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, tid)
-    if !gc_layout_table::gc_layout_id_is_valid(lid) {
+    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
+    if !gc_layout_table::gc_layout_id_is_valid(entry.id) {
         return 0 - 1
     }
     gc_layout_table::gc_layout_table_observe_typed_lookup(layout)
-    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
     let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
     gc_layout_table::wasm_ref_type_idx(ref_type)
 }
@@ -43,6 +42,14 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirVa
 // representation may remain LINEAR_PTR for target-independent String while the
 // wasm32-gc storage binding is a GC array.
 fn SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
+    let repr = mir_value_type::mir_value_type_repr(mvt)
+    if repr != kinds::VALUE_REPR_GC_REF() &&
+    repr != kinds::VALUE_REPR_LINEAR_PTR() {
+        // Scalar TypeIds can be present in the shared layout table, but they
+        // never describe a GC local. Returning their incidental table entry
+        // makes f64/i64 temporaries become unrelated `(ref null ...)` locals.
+        return 0 - 1
+    }
     SelfEmitCtx_wasm_ref_type_idx_for_type_id(
         ctx,
         mir_value_type::mir_value_type_type_id(mvt)

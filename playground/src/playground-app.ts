@@ -42,18 +42,13 @@ import {
   capabilityWarningsToDiagnostics,
 } from "./capability-check.js";
 import type { CompilerClient } from "./compiler-client.js";
-import { isRunnableT2Output } from "./compiler-client.js";
-import type { CompileResult, RunOptions, RunResult } from "./compiler-types.js";
+import type { CompileResult } from "./compiler-types.js";
 import {
   buildStatusMessage,
-  runStatusMessage,
   sectionsFromCompileResult,
-  sectionsFromRunResult,
-} from "./console-bridge.js";
-import { createRunOutputPanel, injectRunOutputStyles } from "./run-output.js";
-import type { RunOutputPanel } from "./run-output.js";
-import { createStdinPanel, injectStdinPanelStyles } from "./stdin-panel.js";
-import type { StdinPanel } from "./stdin-panel.js";
+} from "./compiler-output.js";
+import { createOutputPanel, injectOutputStyles } from "./output-panel.js";
+import type { OutputPanel } from "./output-panel.js";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -121,8 +116,8 @@ export interface PlaygroundAppOptions {
   ) => void;
 
   /**
-   * Browser compiler worker client for T2 build/run (ADR-017 / ADR-017).
-   * When set, the app exposes build/run helpers and a stdout output panel.
+   * Browser compiler worker client for compiler-backed builds (ADR-017).
+   * When set, the app exposes a build helper and a compiler output panel.
    */
   compilerClient?: CompilerClient;
 }
@@ -135,29 +130,14 @@ export interface PlaygroundApp {
   /** The diagnostics panel instance. */
   readonly diagnosticsPanel: DiagnosticsPanel;
 
-  /** Stdout/stderr panel for build and run output (present when `compilerClient` is set). */
-  readonly runOutputPanel: RunOutputPanel | null;
-
-  /** Virtual stdin panel for Run (below the editor). */
-  readonly stdinPanel: StdinPanel;
-
-  /** Whether a prior build produced runnable wasm32 Wasm. */
-  readonly canRun: boolean;
+  /** Compiler stdout/stderr panel (present after the first build). */
+  readonly outputPanel: OutputPanel | null;
 
   /** Force an immediate re-parse of the current editor content. */
   parse(): void;
 
   /** Compile the current editor source via the compiler worker. */
   build(): Promise<CompileResult | null>;
-
-  /** Run the last successful build artifact. */
-  run(): Promise<RunResult | null>;
-
-  /** Replace stdin text used on the next Run. */
-  setStdin(text: string): void;
-
-  /** Replace stdin text used on the next Run. */
-  setStdin(text: string): void;
 
   /** Attach or replace the compiler worker client after initialisation. */
   setCompilerClient(client: CompilerClient | null): void;
@@ -185,7 +165,7 @@ export interface PlaygroundApp {
  * ```ts
  * import { createPlayground, createPlaygroundApp } from "@arukellt/playground";
  *
- * const pg = await createPlayground(wasmPath, { wasmUrl });
+ * const pg = await createPlayground({ wasmUrl });
  * const app = createPlaygroundApp(document.getElementById("app")!, {
  *   initialValue: "fn main() {\n    let x = 42\n}\n",
  *   parse: (src) => pg.parse(src),
@@ -212,8 +192,7 @@ export function createPlaygroundApp(
 
   // Inject diagnostic styles (idempotent).
   injectDiagnosticStyles();
-  injectRunOutputStyles();
-  injectStdinPanelStyles();
+  injectOutputStyles();
 
   // --- Layout ---
   const wrapper = document.createElement("div");
@@ -223,8 +202,6 @@ export function createPlaygroundApp(
   const editorContainer = document.createElement("div");
   editorContainer.className = "ark-playground-editor-container";
   wrapper.appendChild(editorContainer);
-
-  const stdinPanel = createStdinPanel(wrapper, { injectStyles: false });
 
   // --- Editor ---
   const editor = createEditor(editorContainer, {
@@ -266,36 +243,24 @@ export function createPlaygroundApp(
   });
 
   let compilerClient: CompilerClient | null = initialCompilerClient ?? null;
-  let lastCompiledWasm: Uint8Array | null = null;
-  let canRun = false;
-  let runOutputPanel: RunOutputPanel | null = null;
+  let outputPanel: OutputPanel | null = null;
 
-  function ensureRunOutputPanel(): RunOutputPanel {
-    if (!runOutputPanel) {
-      runOutputPanel = createRunOutputPanel(wrapper, { injectStyles: false });
+  function ensureOutputPanel(): OutputPanel {
+    if (!outputPanel) {
+      outputPanel = createOutputPanel(wrapper, { injectStyles: false });
     }
-    return runOutputPanel;
+    return outputPanel;
   }
 
-  function setRunStatus(message: string, isError = false): void {
+  function setBuildStatus(message: string, isError = false): void {
     if (!compilerClient) return;
-    ensureRunOutputPanel().update([], message, isError);
+    ensureOutputPanel().update([], message, isError);
   }
 
-  function showCompileOutput(result: CompileResult): boolean {
-    const runnable = isRunnableT2Output(result.wasmBytes);
-    ensureRunOutputPanel().update(
+  function showCompileOutput(result: CompileResult): void {
+    ensureOutputPanel().update(
       sectionsFromCompileResult(result),
-      buildStatusMessage(result, runnable),
-      !result.ok || !runnable,
-    );
-    return runnable;
-  }
-
-  function showRunOutput(result: RunResult): void {
-    ensureRunOutputPanel().update(
-      sectionsFromRunResult(result),
-      runStatusMessage(result),
+      buildStatusMessage(result),
       !result.ok,
     );
   }
@@ -375,13 +340,6 @@ export function createPlaygroundApp(
   // Run initial parse.
   triggerParse();
 
-  function buildRunOptions(): RunOptions {
-    return {
-      stdin: new TextEncoder().encode(stdinPanel.getValue()),
-      stdinMode: "line",
-    };
-  }
-
   // --- Public API ---
   return {
     get editor(): ArkEditor {
@@ -392,16 +350,8 @@ export function createPlaygroundApp(
       return diagnosticsPanel;
     },
 
-    get runOutputPanel(): RunOutputPanel | null {
-      return runOutputPanel;
-    },
-
-    get stdinPanel(): StdinPanel {
-      return stdinPanel;
-    },
-
-    get canRun(): boolean {
-      return canRun;
+    get outputPanel(): OutputPanel | null {
+      return outputPanel;
     },
 
     parse(): void {
@@ -415,39 +365,16 @@ export function createPlaygroundApp(
 
     async build(): Promise<CompileResult | null> {
       if (!compilerClient || destroyed) return null;
-      lastCompiledWasm = null;
-      canRun = false;
-      runOutputPanel?.clear();
-      setRunStatus("Building…");
+      ensureOutputPanel().clear();
+      setBuildStatus("Building…");
 
       try {
         const result = await compilerClient.compile(editor.getValue());
-        canRun = showCompileOutput(result);
-        if (result.ok && result.wasmBytes) {
-          lastCompiledWasm = result.wasmBytes;
-        }
+        showCompileOutput(result);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Build failed.";
-        setRunStatus(message, true);
-        return null;
-      }
-    },
-
-    async run(): Promise<RunResult | null> {
-      if (!compilerClient || destroyed || !lastCompiledWasm) return null;
-      setRunStatus("Running…");
-
-      try {
-        const result = await compilerClient.run(
-          lastCompiledWasm,
-          buildRunOptions(),
-        );
-        showRunOutput(result);
-        return result;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Run failed.";
-        setRunStatus(message, true);
+        setBuildStatus(message, true);
         return null;
       }
     },
@@ -455,14 +382,8 @@ export function createPlaygroundApp(
     setCompilerClient(client: CompilerClient | null): void {
       compilerClient = client;
       if (!client) {
-        lastCompiledWasm = null;
-        canRun = false;
-        runOutputPanel?.clear();
+        outputPanel?.clear();
       }
-    },
-
-    setStdin(text: string): void {
-      stdinPanel.setValue(text);
     },
 
     destroy(): void {
@@ -476,8 +397,7 @@ export function createPlaygroundApp(
       editor.textarea.removeEventListener("scroll", handleOverlayScroll);
       unsubChange();
       diagnosticsPanel.destroy();
-      runOutputPanel?.destroy();
-      stdinPanel.destroy();
+      outputPanel?.destroy();
       editor.destroy();
 
       if (wrapper.parentNode) {

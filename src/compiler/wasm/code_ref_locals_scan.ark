@@ -10,7 +10,14 @@ use mir::value_types
 use wasm::code_ref_locals_fn_cache
 use wasm::ctx_record
 
-fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
+// True when a RETURN hands back `local_idx`, directly or via the LOCAL_GET
+// right before it. Reads the per-function flags inside the GC local cache
+// window; otherwise scans the body.
+fn local_feeds_return(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    let flags = ctx_record::SelfEmitCtx_local_feeds_return_cache(ctx)
+    if len(flags) > 0 {
+        return local_idx >= 0 && local_idx < len(flags) && get_unchecked(flags, local_idx) != 0
+    }
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -18,24 +25,57 @@ fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
-                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
-                if ret_local == local_idx {
-                    return true
-                }
-                if ret_local < 0 && ii > 0 {
-                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
-                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_arg0(prev) == local_idx {
-                        return true
-                    }
-                }
+            if return_operand_local(block, ii) == local_idx {
+                return true
             }
             ii = ii + 1
         }
         bi = bi + 1
     }
     false
+}
+
+// Local returned by the RETURN at `ii`, or -1 when not a RETURN / no local.
+fn return_operand_local(block: MirBlock, ii: i32) -> i32 {
+    let inst = block_inst_access::MirBlock_inst_at(block, ii)
+    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_RETURN() {
+        return 0 - 1
+    }
+    let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+    if ret_local >= 0 || ii <= 0 {
+        return ret_local
+    }
+    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
+        return inst_accessors_operands::MirInst_arg0(prev)
+    }
+    0 - 1
+}
+
+// One pass over the body: 0/1 per local for `local_feeds_return`.
+fn local_feeds_return_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
+    let flags = Vec::new<i32>()
+    let mut li = 0
+    while li < local_count {
+        push(flags, 0)
+        li = li + 1
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let ret_local = return_operand_local(block, ii)
+            if ret_local >= 0 && ret_local < local_count {
+                set(flags, ret_local, 1)
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    flags
 }
 
 // Prefer the per-function cache when emit has activated it (#829).
@@ -54,7 +94,8 @@ fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfE
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() ||
+            inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 if inst_accessors_operands::MirInst_dest(inst) == local_idx {
                     return true
                 }
@@ -226,6 +267,66 @@ fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
     local_has_scalar_producer_depth(f, local_idx, 0)
 }
 
+// Return the concrete scalar value type produced for a local, or -1 when the
+// body does not provide one.  Local metadata can retain a GC type after a
+// temporary is reused, so the declaration pass needs the producer's actual
+// type before consulting names or GC layout spines.
+fn local_scalar_producer_vt(f: MirFunction, local_idx: i32) -> i32 {
+    local_scalar_producer_vt_depth(f, local_idx, 0)
+}
+
+fn local_scalar_producer_vt_depth(f: MirFunction, local_idx: i32, depth: i32) -> i32 {
+    if depth > 8 {
+        return 0 - 1
+    }
+    // A staged call argument can copy a scalar parameter into a temporary
+    // local before the call. Treat the parameter as the source of its declared
+    // scalar type; otherwise the GC layout scan sees only the temporary's
+    // stale reference metadata and declares it as a ref local.
+    let param_count = function_param_view::MirFunction_param_count(f)
+    if local_idx >= 0 && local_idx < param_count {
+        let param_vt = function_param_view::MirFunction_param_val_type(f, local_idx)
+        if param_vt == value_types::VT_I32() ||
+        param_vt == value_types::VT_I64() ||
+        param_vt == value_types::VT_F64() ||
+        param_vt == value_types::VT_F32() ||
+        param_vt == value_types::VT_V128() {
+            return param_vt
+        }
+        return 0 - 1
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                let producer_vt = inst_scalar_producer_vt(op, inst)
+                if producer_vt >= 0 {
+                    return producer_vt
+                }
+            }
+            if op == opcodes::MIR_LOCAL_SET() &&
+            inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if source >= 0 {
+                    let source_vt = local_scalar_producer_vt_depth(f, source, depth + 1)
+                    if source_vt >= 0 {
+                        return source_vt
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
 fn local_has_scalar_producer_depth(f: MirFunction, local_idx: i32, depth: i32) -> bool {
     if depth > 3 {
         return false
@@ -325,12 +426,9 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
     op == opcodes::MIR_EQZ() {
         return true
     }
-    // MIR_ARRAY_GET always produces a scalar i32 (default i32-backed arrays,
-    // widened to i64 on Memory64). The instruction val_type may be stale
-    // (VT_GC_REF from local reuse) so do not rely on it.
-    if op == opcodes::MIR_ARRAY_GET() {
-        return true
-    }
+    // MIR_ARRAY_GET is intentionally not inferred here. Its MIR value type is
+    // not reliable for GC arrays, and treating a struct element as i32 changes
+    // the local declaration before the array element type is resolved.
     // MIR_STRUCT_GET and MIR_GC_STRUCT_GET produce scalar values when the
     // result val_type is VT_I32 (i32 field, widened to i64 on Memory64).
     // Ref field results have val_type VT_GC_REF and are not scalar.
@@ -354,6 +452,46 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
         }
     }
     false
+}
+
+fn inst_scalar_producer_vt(op: i32, inst: MirInst) -> i32 {
+    if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_BOOL() {
+        return value_types::VT_I32()
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        return value_types::VT_I64()
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_F32() {
+            return vt
+        }
+        return value_types::VT_F64()
+    }
+    if op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() ||
+    op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() ||
+    op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() ||
+    op == opcodes::MIR_AND() || op == opcodes::MIR_OR() ||
+    op == opcodes::MIR_NOT() || op == opcodes::MIR_EQZ() {
+        return value_types::VT_I32()
+    }
+    if op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_GET() ||
+    op == opcodes::MIR_CALL() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+        vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+            return vt
+        }
+        return 0 - 1
+    }
+    if inst_op_is_scalar_producer(op, inst) {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+        vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+            return vt
+        }
+    }
+    0 - 1
 }
 
 // --- Open-enum → i64 local demotion (assert/loop temps with stale type_name) ---
@@ -397,7 +535,128 @@ fn inst_is_ordering_compare(op: i32) -> bool {
     op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ()
 }
 
-fn local_has_int_const_def(f: MirFunction, local_idx: i32) -> bool {
+// Prefer i64 local storage when the body only has scalar producers/uses, even
+// if the MIR local still carries an open-enum type_name from earlier reuse.
+// One body pass answers this for every local of the function at once; the
+// per-local scan (with nested compare/const scans) made local declaration
+// emission quadratic in (locals x instructions). Flags are 0/1 per local.
+fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
+    let has_int_const_def = int_const_def_flags(f, local_count)
+    let numeric_compare = numeric_compare_use_flags(f, local_count, has_int_const_def)
+    let blocked_by_ref = zero_local_flags(local_count)
+    let has_i64_evidence = zero_local_flags(local_count)
+    // `block index + 1` of a block holding a scalar i64 definition of the local;
+    // LOCAL_SET only looks for such a source inside its own block.
+    let scalar_def_block_stamp = zero_local_flags(local_count)
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        stamp_scalar_i64_defs_in_block(block, inst_count, scalar_def_block_stamp, bi + 1)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            if dest >= 0 && dest < local_count {
+                if inst_op_produces_ref_value(op) || inst_is_ref_result_call(op, inst) {
+                    set(blocked_by_ref, dest, 1)
+                }
+                if inst_defines_scalar_i64_for_local(inst, dest) {
+                    set(has_i64_evidence, dest, 1)
+                }
+                if call_dest_forwarded_to_numeric_compare(block, ii, inst_count, dest, numeric_compare) {
+                    set(has_i64_evidence, dest, 1)
+                }
+            }
+            if op == opcodes::MIR_LOCAL_SET() {
+                let set_dst = inst_accessors_operands::MirInst_arg0(inst)
+                if set_dst >= 0 && set_dst < local_count {
+                    if ii > 0 && inst_op_produces_ref_value(inst_accessors_shape::MirInst_op(
+                            block_inst_access::MirBlock_inst_at(block, ii - 1)
+                        )) {
+                        set(blocked_by_ref, set_dst, 1)
+                    }
+                    if local_set_receives_scalar_i64(
+                        block,
+                        ii,
+                        set_dst,
+                        scalar_def_block_stamp,
+                        bi + 1,
+                        numeric_compare
+                    ) {
+                        set(has_i64_evidence, set_dst, 1)
+                    }
+                }
+            }
+            mark_ref_op_base_locals(inst, blocked_by_ref, local_count)
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    let mut li = 0
+    while li < local_count {
+        if get_unchecked(blocked_by_ref, li) == 1 {
+            set(has_i64_evidence, li, 0)
+        }
+        li = li + 1
+    }
+    has_i64_evidence
+}
+
+fn zero_local_flags(local_count: i32) -> Vec<i32> {
+    let flags = Vec::new<i32>()
+    let mut i = 0
+    while i < local_count {
+        push(flags, 0)
+        i = i + 1
+    }
+    flags
+}
+
+fn mark_local_flag(flags: Vec<i32>, local_idx: i32) {
+    if local_idx >= 0 && local_idx < len(flags) {
+        set(flags, local_idx, 1)
+    }
+}
+
+// fs::write_string / read_to_string lower as MIR_CALL with VT_GC_REF; without
+// this, Result dest locals demote to i32 (#834).
+fn inst_is_ref_result_call(op: i32, inst: MirInst) -> bool {
+    if op != opcodes::MIR_CALL() {
+        return false
+    }
+    let call_vt = inst_accessors_shape::MirInst_val_type(inst)
+    call_vt == value_types::VT_GC_REF() || call_vt == value_types::VT_REF()
+}
+
+fn mark_ref_op_base_locals(inst: MirInst, blocked_by_ref: Vec<i32>, local_count: i32) {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+    if op == opcodes::MIR_ARRAY_GET() || op == opcodes::MIR_ARRAY_LEN() ||
+    op == opcodes::MIR_ARRAY_SET() {
+        mark_local_flag(blocked_by_ref, arg0)
+        mark_local_flag(blocked_by_ref, arg1)
+        return
+    }
+    if op == opcodes::MIR_GC_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_SET() ||
+    op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_STRUCT_SET() {
+        mark_local_flag(blocked_by_ref, arg0)
+        mark_local_flag(blocked_by_ref, arg1)
+        mark_local_flag(blocked_by_ref, dest)
+        return
+    }
+    if op == opcodes::MIR_REF_CAST() {
+        mark_local_flag(blocked_by_ref, dest)
+        mark_local_flag(blocked_by_ref, arg0)
+    }
+}
+
+fn int_const_def_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
+    let flags = zero_local_flags(local_count)
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -407,20 +666,20 @@ fn local_has_int_const_def(f: MirFunction, local_idx: i32) -> bool {
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
-            if (op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64()) &&
-            inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                return true
+            if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64() {
+                mark_local_flag(flags, inst_accessors_operands::MirInst_dest(inst))
             }
             ii = ii + 1
         }
         bi = bi + 1
     }
-    false
+    flags
 }
 
-// True when local_idx is an operand of a numeric compare. EQ/NEQ count only
-// against an int const — string equality also uses those opcodes.
-fn local_used_in_numeric_compare(f: MirFunction, local_idx: i32) -> bool {
+// A local is a numeric-compare operand when it feeds an ordering compare, or an
+// EQ/NEQ against an int const — string equality also uses those opcodes.
+fn numeric_compare_use_flags(f: MirFunction, local_count: i32, has_int_const_def: Vec<i32>) -> Vec<i32> {
+    let flags = zero_local_flags(local_count)
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -432,33 +691,38 @@ fn local_used_in_numeric_compare(f: MirFunction, local_idx: i32) -> bool {
             let op = inst_accessors_shape::MirInst_op(inst)
             let arg0 = inst_accessors_operands::MirInst_arg0(inst)
             let arg1 = inst_accessors_operands::MirInst_arg1(inst)
-            if arg0 != local_idx && arg1 != local_idx {
-                ii = ii + 1
-                continue
-            }
             if inst_is_ordering_compare(op) {
-                return true
-            }
-            if op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() {
-                let mut other = arg1
-                if arg1 == local_idx {
-                    other = arg0
+                mark_local_flag(flags, arg0)
+                mark_local_flag(flags, arg1)
+            } else if op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() {
+                let prev_is_int_const = ii > 0 && inst_is_int_const(block_inst_access::MirBlock_inst_at(block, ii - 1))
+                // For operand arg1 the "other" side is arg0; for arg0 it is arg1.
+                if arg1 >= 0 && eq_other_operand_is_int(arg0, has_int_const_def, prev_is_int_const) {
+                    mark_local_flag(flags, arg1)
                 }
-                if other >= 0 && local_has_int_const_def(f, other) {
-                    return true
-                }
-                if other < 0 && ii > 0 {
-                    let prev_op = inst_accessors_shape::MirInst_op(block_inst_access::MirBlock_inst_at(block, ii - 1))
-                    if prev_op == opcodes::MIR_CONST_I32() || prev_op == opcodes::MIR_CONST_I64() {
-                        return true
-                    }
+                if arg0 >= 0 && arg0 != arg1 && eq_other_operand_is_int(arg1, has_int_const_def, prev_is_int_const) {
+                    mark_local_flag(flags, arg0)
                 }
             }
             ii = ii + 1
         }
         bi = bi + 1
     }
-    false
+    flags
+}
+
+fn inst_is_int_const(inst: MirInst) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64()
+}
+
+// `other < 0` means the other compare operand is the value left on the stack
+// by the previous instruction, which counts only when that is an int const.
+fn eq_other_operand_is_int(other: i32, has_int_const_def: Vec<i32>, prev_is_int_const: bool) -> bool {
+    if other >= 0 {
+        return other < len(has_int_const_def) && get_unchecked(has_int_const_def, other) == 1
+    }
+    prev_is_int_const
 }
 
 fn inst_defines_scalar_i64_for_local(inst: MirInst, local_idx: i32) -> bool {
@@ -470,18 +734,30 @@ fn inst_defines_scalar_i64_for_local(inst: MirInst, local_idx: i32) -> bool {
     op == opcodes::MIR_EXTEND_I32_TO_I64() || inst_is_scalar_arith_op(op, inst)
 }
 
+fn stamp_scalar_i64_defs_in_block(block: MirBlock, inst_count: i32, stamp: Vec<i32>, block_stamp: i32) {
+    let mut ii = 0
+    while ii < inst_count {
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if dest >= 0 && dest < len(stamp) && inst_defines_scalar_i64_for_local(inst, dest) {
+            set(stamp, dest, block_stamp)
+        }
+        ii = ii + 1
+    }
+}
+
+// CALL dest whose next LOCAL_SET copies it into a local that is later compared
+// numerically. Wasm emit keeps the CALL result on the stack and stores only
+// set_dst; the CALL dest local can stay typed as open-enum while dead copies use it.
 fn call_dest_forwarded_to_numeric_compare(
-    f: MirFunction,
     block: MirBlock,
     ii: i32,
     inst_count: i32,
-    local_idx: i32
+    call_dest: i32,
+    numeric_compare: Vec<i32>
 ) -> bool {
     let inst = block_inst_access::MirBlock_inst_at(block, ii)
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_CALL() {
-        return false
-    }
-    if inst_accessors_operands::MirInst_dest(inst) != local_idx {
         return false
     }
     if ii + 1 >= inst_count {
@@ -493,43 +769,33 @@ fn call_dest_forwarded_to_numeric_compare(
     }
     let set_dst = inst_accessors_operands::MirInst_arg0(next)
     let set_src = inst_accessors_operands::MirInst_arg1(next)
-    if set_dst < 0 || set_dst == local_idx {
+    if set_dst < 0 || set_dst == call_dest {
         return false
     }
-    if set_src >= 0 && set_src != local_idx {
+    if set_src >= 0 && set_src != call_dest {
         return false
     }
-    // Wasm emit keeps the CALL result on the stack and stores only set_dst;
-    // the CALL dest local can stay typed as open-enum while dead copies use it.
-    local_used_in_numeric_compare(f, set_dst)
+    set_dst < len(numeric_compare) && get_unchecked(numeric_compare, set_dst) == 1
 }
 
 fn local_set_receives_scalar_i64(
-    f: MirFunction,
     block: MirBlock,
     ii: i32,
-    inst_count: i32,
-    local_idx: i32
+    set_dst: i32,
+    scalar_def_block_stamp: Vec<i32>,
+    block_stamp: i32,
+    numeric_compare: Vec<i32>
 ) -> bool {
     let inst = block_inst_access::MirBlock_inst_at(block, ii)
-    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_LOCAL_SET() {
-        return false
-    }
-    if inst_accessors_operands::MirInst_arg0(inst) != local_idx {
-        return false
-    }
-    let arg1 = inst_accessors_operands::MirInst_arg1(inst)
-    if arg1 >= 0 {
-        let mut sj = 0
-        while sj < inst_count {
-            let src_inst = block_inst_access::MirBlock_inst_at(block, sj)
-            if inst_accessors_operands::MirInst_dest(src_inst) == arg1 {
-                if inst_defines_scalar_i64_for_local(src_inst, arg1) {
-                    return true
-                }
-            }
-            sj = sj + 1
+    let set_src = inst_accessors_operands::MirInst_arg1(inst)
+    if set_src >= 0 {
+        if set_src < len(scalar_def_block_stamp) &&
+        get_unchecked(scalar_def_block_stamp, set_src) == block_stamp {
+            return true
         }
+        // An explicit source local is the value consumed by LOCAL_SET. The
+        // previous MIR instruction is unrelated stack state in this form.
+        return false
     }
     if ii <= 0 {
         return false
@@ -543,61 +809,5 @@ fn local_set_receives_scalar_i64(
         return true
     }
     // Assert temp: CALL result then compared as i64 (write_bytes == 3).
-    prev_op == opcodes::MIR_CALL() && local_used_in_numeric_compare(f, local_idx)
-}
-
-// Prefer i64 local storage when the body only has scalar producers/uses, even
-// if the MIR local still carries an open-enum type_name from earlier reuse.
-fn local_body_has_i64_stack_set(f: MirFunction, local_idx: i32) -> bool {
-    let mut blocked_by_ref = false
-    let mut has_i64_evidence = false
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            if dest == local_idx && inst_op_produces_ref_value(op) {
-                blocked_by_ref = true
-            }
-            // fs::write_string / read_to_string lower as MIR_CALL with VT_GC_REF;
-            // without this, Result dest locals demote to i32 (#834).
-            if dest == local_idx && op == opcodes::MIR_CALL() {
-                let call_vt = inst_accessors_shape::MirInst_val_type(inst)
-                if call_vt == value_types::VT_GC_REF() || call_vt == value_types::VT_REF() {
-                    blocked_by_ref = true
-                }
-            }
-            if op == opcodes::MIR_LOCAL_SET() &&
-            inst_accessors_operands::MirInst_arg0(inst) == local_idx &&
-            ii > 0 {
-                let prev_op = inst_accessors_shape::MirInst_op(block_inst_access::MirBlock_inst_at(block, ii - 1))
-                if inst_op_produces_ref_value(prev_op) {
-                    blocked_by_ref = true
-                }
-            }
-            if inst_uses_local_as_ref_op_base(inst, local_idx) {
-                blocked_by_ref = true
-            }
-            if inst_defines_scalar_i64_for_local(inst, local_idx) {
-                has_i64_evidence = true
-            }
-            if call_dest_forwarded_to_numeric_compare(f, block, ii, inst_count, local_idx) {
-                has_i64_evidence = true
-            }
-            if local_set_receives_scalar_i64(f, block, ii, inst_count, local_idx) {
-                has_i64_evidence = true
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    if blocked_by_ref {
-        return false
-    }
-    has_i64_evidence
+    prev_op == opcodes::MIR_CALL() && get_unchecked(numeric_compare, set_dst) == 1
 }

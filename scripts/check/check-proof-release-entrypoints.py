@@ -17,7 +17,6 @@ PUBLISH_TOKENS = (
     "softprops/action-gh-release",
     "actions/create-release",
     "ncipollo/release-action",
-    "cargo publish",
     "npm publish",
     "pnpm publish",
     "yarn npm publish",

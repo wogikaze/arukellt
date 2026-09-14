@@ -78,22 +78,26 @@ fn emit_component_output(
     t_mir_verify: i64
 ) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
-    let core_wasi = emit_component_core_wasi_version(config, mir_module)
+    let report_timing = if config_record::config_show_timing(config) { 1 } else { 0 }
     let core_wasm = wasm::emit_wasm(
         mir_module,
         config_record::config_target(config),
-        core_wasi,
+        config_record::config_wasi_version(config),
         config_record::config_opt_level(config),
         config_record::config_strip_debug(config),
         bindings,
-        config_record::config_source_file(config)
+        config_record::config_source_file(config),
+        report_timing
     )
     if config_record::config_dump_wasm(config) {
         stdio::eprintln(concat(String_from("core wasm size: "), concat(to_string(len(core_wasm)), String_from(" bytes"))))
     }
-    let comp_bytes = component::emit_component(core_wasm, mir_module, config_record::config_target(config), core_wasi, config_record::config_world(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
-    result_record::compile_result_set_output_bytes(result, comp_bytes)
+    // Component packaging is owned by the official wasm-tools pipeline in the
+    // launcher. The compiler deliberately returns the standard P2 core module
+    // so no in-tree adapter or compatibility ABI can become part of the
+    // compiler contract.
+    result_record::compile_result_set_output_bytes(result, core_wasm)
     emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }
@@ -105,20 +109,6 @@ fn normalize_emit_mode(emit_mode: String) -> String {
     emit_mode
 }
 
-fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule) -> String {
-    let configured = config_record::config_wasi_version(config)
-    // Explicit `--wasi-version wasi-p2` keeps the command-world bridged path for
-    // P2 fixtures such as env::var (#668). Target-inferred default wasi-p2 must
-    // not win over library-shaped worlds used by component interop (#810).
-    if config_record::config_wasi_version_explicit(config) && eq(clone(configured), String_from("wasi-p2")) {
-        return configured
-    }
-    if component::mir_has_library_exports(mir_module) {
-        return String_from("p1-component")
-    }
-    configured
-}
-
 fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
     world_spec::world_target_error(config_record::config_world(config), config_record::config_target(config), clone(emit_mode))
 }
@@ -126,6 +116,9 @@ fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
 fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
     if eq(config_record::config_wasi_version(config), String_from("wasi-p3")) {
         return String_from("host profile wasi-p3 is not yet implemented")
+    }
+    if eq(clone(emit_mode), "component") && !eq(config_record::config_wasi_version(config), String_from("wasi-p2")) {
+        return String_from("component emission requires the official wasi-p2 host profile")
     }
     if eq(clone(emit_mode), "component") && !eq(config_record::config_target(config), String_from("wasm32-gc")) {
         return String_from("component model requires --target wasm32-gc")
@@ -207,6 +200,7 @@ fn emit_wasm_output(
     t_mir_verify: i64
 ) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
+    let report_timing = if config_record::config_show_timing(config) { 1 } else { 0 }
     let wasm_bytes = wasm::emit_wasm(
         mir_module,
         config_record::config_target(config),
@@ -214,7 +208,8 @@ fn emit_wasm_output(
         config_record::config_opt_level(config),
         config_record::config_strip_debug(config),
         bindings,
-        config_record::config_source_file(config)
+        config_record::config_source_file(config),
+        report_timing
     )
     // dump_wasm eprintln left a GC string on the stack at block end and failed
     // validate (#730 emit_wasm_output). Timing/result path is enough for fixpoint.
@@ -263,7 +258,11 @@ fn emit_wit_output(
     t_mir_opt: i64,
     t_mir_verify: i64
 ) -> CompileResult {
-    let wit_output = component::emit_wit_text_from_decls_with_world(all_decls, config_record::config_world(config))
+    let wit_output = component::emit_wit_text_from_decls_with_world(
+        all_decls,
+        config_record::config_world(config),
+        config_record::config_wit_paths(config)
+    )
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, component::string_to_bytes(wit_output))
     emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)

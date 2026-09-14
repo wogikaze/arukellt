@@ -2,6 +2,5 @@ use wasm::opcodes
 use wasm::writer_core
 
 fn emit_local_get(w: WasmWriter, local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, local)
+    writer_core::emit_local_get(w, local)
 }

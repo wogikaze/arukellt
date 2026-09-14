@@ -21,7 +21,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-TMP_DIR = ROOT / "target" / "tmp" / "doc-examples"
+TMP_DIR = ROOT / ".build" / "doc-examples"
 CURRENT_SELFHOST = ROOT / ".build" / "selfhost" / "arukellt-s2.wasm"
 BOOTSTRAP_SELFHOST = ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 
@@ -59,8 +59,8 @@ def load_generated_files() -> set[Path]:
 def find_arukellt() -> str:
     """Locate the arukellt binary.
 
-    Prefer the selfhost wrapper after Rust CLI retirement (ADR-029 / #583).
-    A stale ``target/{debug,release}/arukellt`` must not shadow pinned wasm.
+    Prefer the selfhost wrapper after compiler bootstrap retirement (ADR-029).
+    A separately installed compiler must not shadow the repository wrapper.
     """
     import shutil
 
@@ -69,12 +69,6 @@ def find_arukellt() -> str:
     selfhost_wrapper = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
     if selfhost_wrapper.is_file() and selfhost_wrapper.stat().st_mode & 0o111:
         return str(selfhost_wrapper)
-    for candidate in [
-        ROOT / "target" / "debug" / "arukellt",
-        ROOT / "target" / "release" / "arukellt",
-    ]:
-        if candidate.is_file() and candidate.stat().st_mode & 0o111:
-            return str(candidate)
     if found := shutil.which("arukellt"):
         return found
     return "arukellt"  # fall back; will produce a clear error

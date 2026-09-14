@@ -15,8 +15,6 @@
  * @module
  */
 
-import type { StdinMode } from "./compiler-types.js";
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -33,10 +31,6 @@ export interface ExampleEntry {
   source: string;
   /** Tags for categorization (optional). */
   tags?: string[];
-  /** Default stdin for playground Run (one REPL line per line). */
-  stdin?: string;
-  /** How Run delivers {@link stdin}. Defaults to `line` when stdin is set. */
-  stdinMode?: StdinMode;
   /**
    * Path to the corresponding CI-verified test fixture, relative to
    * `tests/fixtures/`.  Must appear in `tests/fixtures/manifest.txt`.
@@ -192,10 +186,8 @@ fn main() {
     id: "rpn-repl",
     name: "RPN REPL",
     description:
-      "Reverse Polish notation calculator REPL. Edit stdin (e.g. \"2 7 -\") and Run.",
-    stdin: "1 2 +\n",
-    stdinMode: "line",
-    source: `// T2 RPN REPL — interactive stdin loop.
+      "Reverse Polish notation calculator REPL using the official WASI CLI stdio API.",
+    source: `// RPN REPL — interactive stdin loop.
 fn read_stdin() -> String { __intrinsic_stdin_read_to_string() }
 
 enum RpnOp { Invalid, Add, Sub, Mul }

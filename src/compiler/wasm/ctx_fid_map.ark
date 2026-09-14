@@ -1,0 +1,72 @@
+use corehir::function_id
+use corehir::signature_registry
+use mir::function_identity
+use wasm::ctx_record
+
+// MIR keeps imported top-level functions under their short declaration name,
+// while the signature registry also exposes qualified aliases.  Resolve the
+// declaration ordinal instead of looking up the short name (which points at
+// the last duplicate) so each alias reaches its own body.
+
+fn ctx_fid_map_function_ordinal(functions: Vec<MirFunction>, fname: String, fi: i32) -> i32 {
+    let mut ordinal = 0
+    let mut i = 0
+    while i < fi {
+        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), clone(fname)) {
+            ordinal = ordinal + 1
+        }
+        i = i + 1
+    }
+    ordinal
+}
+
+fn ctx_fid_map_registry_id_for_ordinal(registry: SignatureRegistry, fname: String, ordinal: i32) -> FunctionId {
+    let mut seen = 0
+    let mut i = 0
+    while i < signature_registry::signature_registry_entry_count(registry) {
+        if eq(signature_registry::signature_registry_mangled_at(registry, i), clone(fname)) {
+            if seen == ordinal {
+                return function_id::FunctionId_new(i)
+            }
+            seen = seen + 1
+        }
+        i = i + 1
+    }
+    function_id::FUNCTION_ID_INVALID()
+}
+
+fn ctx_fid_map_bind(fid_to_mir: Vec<i32>, registry: SignatureRegistry, functions: Vec<MirFunction>, fname: String, fi: i32) {
+    let ordinal = ctx_fid_map_function_ordinal(functions, clone(fname), fi)
+    let fid = ctx_fid_map_registry_id_for_ordinal(registry, clone(fname), ordinal)
+    if !function_id::function_id_is_valid(fid) {
+        return
+    }
+    let raw = function_id::FunctionId_raw(fid)
+    if raw < 0 || raw >= len(fid_to_mir) {
+        return
+    }
+    if get_unchecked(fid_to_mir, raw) >= 0 {
+        return
+    }
+    set(fid_to_mir, raw, fi)
+}
+
+fn SelfEmitCtx_build_fid_to_mir(ctx: SelfEmitCtx) {
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    let registry_count = signature_registry::signature_registry_entry_count(registry)
+    let fid_to_mir = Vec::new<i32>()
+    let mut si = 0
+    while si < registry_count {
+        push(fid_to_mir, 0 - 1)
+        si = si + 1
+    }
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
+    let fn_count = len(functions)
+    let mut fi = 0
+    while fi < fn_count {
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
+        ctx_fid_map_bind(fid_to_mir, registry, functions, fname, fi)
+        fi = fi + 1
+    }
+    ctx_record::SelfEmitCtx_set_fid_to_mir(ctx, fid_to_mir)
+}

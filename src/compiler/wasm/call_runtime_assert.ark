@@ -1,7 +1,10 @@
 use mir::opcodes
 use wasm::call_runtime_io
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::inst_store
 use wasm::intrinsic_assert
+use wasm::intrinsic_math
 use wasm::intrinsic_option_result
 use wasm::intrinsics::helpers_core
 
@@ -146,6 +149,12 @@ fn try_emit_assert_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_assert_eq_str(){
+        if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            let _eq_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+            let _result_on_stack = intrinsic_assert::emit_assert(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
         let _result_on_stack = intrinsic_assert::emit_assert_eq_str(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

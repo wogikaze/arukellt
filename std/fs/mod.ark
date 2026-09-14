@@ -1,12 +1,9 @@
-//! Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
+//! Small host-backed file helpers — a compact filesystem API.
 //!
-//! `std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
-//! intrinsics behind `std::host::fs` (`read_string` / `write_string` plus
-//! `is_readable_file` and `exists` read probes). Prefer `std::host::fs` for the
-//! full host rollout surface (`read_to_string`, `write_bytes`, `FsError` error
-//! type, experimental fd helpers, and future additions).  This namespace exists
-//! so call sites can depend on a compact API while `std::host::*` continues to
-//! evolve.
+//! `std::fs` exposes a narrow, stable-shaped subset of the same official WASI
+//! filesystem intrinsics as `std::host::fs` (`read_string` / `write_string`
+//! plus `is_readable_file` and `exists` read probes). Prefer `std::host::fs`
+//! when the whole-file byte API or experimental fd helpers are needed.
 //!
 //! There is no in-tree directory listing, metadata API, or streaming I/O yet; do
 //! not treat this as a complete POSIX-style facade. Broader

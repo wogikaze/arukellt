@@ -41,6 +41,20 @@ fn mir_payload_field_vt_for_payload(
             return value_types::VT_I32()
         }
     }
+    // A multi-field signature may contain a reference marker for a later
+    // payload.  Decide known scalar fields from the declaration first so that
+    // a recursive field does not make an earlier i32 bind look like a ref.
+    if len(payload_type_name) == 0 {
+        if eq(clone(field_type), "f64") || eq(clone(field_type), "F64") {
+            return value_types::VT_F64()
+        }
+        if eq(clone(field_type), "i64") || eq(clone(field_type), "I64") {
+            return value_types::VT_I64()
+        }
+        if mir_payload_scalar_type_name(clone(field_type)) {
+            return value_types::VT_I32()
+        }
+    }
     if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), field_idx + 1) {
         return value_types::VT_GC_REF()
     }
@@ -108,6 +122,15 @@ fn mir_variant_has_fnref_payload_field(ctx: LowerCtx, variant_name: String) -> b
 }
 
 fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
+    let declared_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    if len(declared_type) > 0 {
+        if mir_payload_scalar_type_name(clone(declared_type)) ||
+        eq(clone(declared_type), "fnref") ||
+        eq(clone(declared_type), "fn") ||
+        starts_with(clone(declared_type), "fn(") {
+            return false
+        }
+    }
     // Walk all same-named slots; the first Option::Some may be scalar while a
     // later registration holds the ref payload used by this match.
     // Prefer an explicit fnref payload over an earlier open-ref registration

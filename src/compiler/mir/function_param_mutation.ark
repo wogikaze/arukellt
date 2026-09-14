@@ -1,11 +1,11 @@
 use mir::function_core_record
+use mir::function_locals_record
 use mir::function_param_view
-use mir::local_record
 use mir::local_mutation
 use mir::types_function
 
 fn MirFunction_push_param(f: MirFunction, local: MirLocal) {
-    push(f.params, local)
+    push(f.params, function_locals_record::mir_function_attach_local(f, local))
 }
 
 fn MirFunction_set_param_type(f: MirFunction, idx: i32, vt: i32, type_name: String) {

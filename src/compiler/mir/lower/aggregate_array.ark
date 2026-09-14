@@ -16,6 +16,94 @@ fn mir_emit_array_set(ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_set(dest, val_idx, elem_index))
 }
 
+// MIR_ARRAY_NEW is deliberately untyped, so infer the raw array element from
+// the first value before the emitter chooses its GC array layout. Keep raw
+// arrays distinct from Vec headers: both carry an element name, but only Vec
+// values have the header struct around the backing array.
+fn mir_set_array_type_from_value(ctx: LowerCtx, dest: i32, val_idx: i32) {
+    let elem_type = mir_array_element_type_from_value(ctx, val_idx)
+    if len(elem_type) == 0 {
+        return
+    }
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("array:", clone(elem_type)))
+    ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+}
+
+fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
+    let type_name = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+        return "String"
+    }
+    if starts_with(clone(type_name), "vec:") ||
+    starts_with(clone(type_name), "Vec_") ||
+    starts_with(clone(type_name), "Vec<") {
+        return clone(type_name)
+    }
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") ||
+    eq(clone(type_name), "bool") || eq(clone(type_name), "char") {
+        return "i32"
+    }
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+        return "i64"
+    }
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+        return "f64"
+    }
+    if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
+        return "v128"
+    }
+    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), "fn(") {
+        return "fnref"
+    }
+    let value_type = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+    if value_type == value_types::VT_I64() {
+        return "i64"
+    }
+    if value_type == value_types::VT_F64() {
+        return "f64"
+    }
+    if value_type == value_types::VT_V128() {
+        return "v128"
+    }
+    if value_type == value_types::VT_FUNCREF() {
+        return "fnref"
+    }
+    if (value_type == value_types::VT_GC_REF() || value_type == value_types::VT_REF()) && len(type_name) > 0 {
+        return clone(type_name)
+    }
+    "i32"
+}
+
+fn mir_array_element_type_from_container(container_type: String) -> String {
+    if starts_with(clone(container_type), "vec:") {
+        return substring(container_type, 4, len(container_type))
+    }
+    if starts_with(clone(container_type), "array:") {
+        return substring(container_type, 6, len(container_type))
+    }
+    String_new()
+}
+
+fn mir_array_element_vt(element_type: String) -> i32 {
+    if eq(clone(element_type), "i64") || eq(clone(element_type), "I64") {
+        return value_types::VT_I64()
+    }
+    if eq(clone(element_type), "f64") || eq(clone(element_type), "F64") {
+        return value_types::VT_F64()
+    }
+    if eq(clone(element_type), "v128") || eq(clone(element_type), "V128") {
+        return value_types::VT_V128()
+    }
+    if eq(clone(element_type), "fnref") || eq(clone(element_type), "fn") || starts_with(clone(element_type), "fn(") {
+        return value_types::VT_FUNCREF()
+    }
+    if eq(clone(element_type), "i32") || eq(clone(element_type), "I32") ||
+    eq(clone(element_type), "bool") || eq(clone(element_type), "char") {
+        return value_types::VT_I32()
+    }
+    value_types::VT_GC_REF()
+}
+
 fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(local_idx, local_idx))
     local_idx
@@ -23,12 +111,11 @@ fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
 
 fn mir_emit_array_index(ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
     let base_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
-    let mut dest_vt = value_types::VT_I32()
-    let mut dest_type = "i32"
-    if eq(clone(base_type), "vec:v128") || eq(clone(base_type), "vec:V128") {
-        dest_vt = value_types::VT_V128()
-        dest_type = "v128"
+    let mut dest_type = mir_array_element_type_from_container(clone(base_type))
+    if len(dest_type) == 0 {
+        dest_type = "i32"
     }
+    let dest_vt = mir_array_element_vt(clone(dest_type))
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, dest, dest_type)
     ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_get(base_idx, index_idx, dest))

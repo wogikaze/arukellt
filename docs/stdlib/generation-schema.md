@@ -14,7 +14,7 @@ The role is inferred from the combination of `kind` and `module` fields:
 |------|-----------|---------|
 | **prelude** | has `kind`, no `module` (or `prelude = true`) | `concat`, `println` |
 | **module** | has `module`, no `kind` | `range_new` in `std::core` |
-| **host_stub** | `kind = "host_stub"` | `request` in `std::host::http` |
+| **host_stub** | `kind = "host_stub"` | `read_to_string` in `std::host::fs` |
 | **mixed** | has both `kind` and `module` | `memory_copy` in `std::wasm` |
 
 ---
@@ -38,7 +38,7 @@ These fields are mandatory regardless of role:
 | Field | Type | Condition / Notes |
 |-------|------|-------------------|
 | `kind` | string | See [Valid Kind Values](#valid-kind-values). Required for prelude/host entries. |
-| `module` | string | Fully-qualified module name (`std::core`, `std::host::http`, …). Required for module entries. |
+| `module` | string | Fully-qualified module name (`std::core`, `std::host::fs`, …). Required for module entries. |
 | `intrinsic` | string | Backing `__intrinsic_*` name. Expected when `kind` is `prelude_wrapper` or `intrinsic_wrapper`. |
 | `prelude` | bool | `true` if auto-imported without an explicit `import`. |
 | `target` | list of strings | **Legacy single axis.** Prefer `targets` + `host_profiles` + `requires` + `[implementation]` below. When present alone, means language targets (canonical ids: `wasm32`, `wasm32-gc`). Not a target triple. Required for `host_stub` until the multi-axis fields are mandatory. |

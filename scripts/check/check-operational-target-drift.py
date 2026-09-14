@@ -100,7 +100,7 @@ def check_drift(fix: bool) -> int:
         if any(s in str(path) for s in [
             ".git", ".worktrees", ".build", ".ark-debug", "__pycache__",
             "node_modules",
-            "/target/",  # Rust build artifacts
+            "/target/",  # generated build artifacts
         ]):
             continue
         if path.suffix not in SCAN_EXTENSIONS:

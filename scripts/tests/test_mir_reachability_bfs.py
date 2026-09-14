@@ -6,10 +6,16 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools
+
 CALL_FIXTURE = "tests/fixtures/reachability/call_export_roots.ark"
 REF_FIXTURE = "tests/fixtures/reachability/ref_func_only_target.ark"
 RECEIPT_PATH = ROOT / ".build" / "selfhost" / "reachability-bfs-receipt.json"
@@ -46,10 +52,7 @@ def _mir_has_fn(mir_text: str, name: str) -> bool:
 
 
 def _wasm_tools() -> str | None:
-    cargo_tool = Path.home() / ".cargo" / "bin" / "wasm-tools"
-    if cargo_tool.is_file():
-        return str(cargo_tool)
-    return shutil.which("wasm-tools")
+    return find_wasm_tools()
 
 
 class MirReachabilityBfsTests(unittest.TestCase):
@@ -95,37 +98,23 @@ class MirReachabilityBfsTests(unittest.TestCase):
         ]
         if dump_mir:
             args.extend(["--dump-phases", "mir"])
-        # wasi-p2 GC compilers need host-linker; plain wasmtime cannot link
-        # wasi:cli/* (#834).
-        try:
-            needs_host = b"wasi:cli/" in compiler.read_bytes()
-        except OSError:
-            needs_host = False
-        if needs_host:
-            hosted = ROOT / "scripts" / "run" / "arukellt-run-hosted.sh"
-            cmd = [
-                "bash",
-                str(hosted),
-                f"--dir={ROOT}",
-                f"--dir={out_path.parent}",
-                str(compiler),
-                "--",
-                *args,
-            ]
-        else:
-            cmd = [
-                self.wasmtime,
-                "run",
-                "-W",
-                "memory64=y",
-                "--dir",
-                str(ROOT),
-                "--dir",
-                str(out_path.parent),
-                str(compiler),
-                "--",
-                *args,
-            ]
+        cmd = [
+            self.wasmtime,
+            "run",
+            "--wasm",
+            "gc",
+            "--wasm",
+            "function-references",
+            "-W",
+            "memory64=y",
+            "--dir",
+            str(ROOT),
+            "--dir",
+            str(out_path.parent),
+            str(compiler),
+            "--",
+            *args,
+        ]
         env = {**os.environ, **(extra_env or {})}
         result = subprocess.run(
             cmd,

@@ -56,6 +56,23 @@ fn signature_registry_lookup_by_mangled(registry: SignatureRegistry, mangled: St
     FUNCTION_ID_INVALID()
 }
 
+// Bind a qualified source name to an existing declaration entry.  Imported
+// modules are lowered into one flat MIR module, so `module::f` and the emitted
+// bare declaration `f` must share the same FunctionId.  Registering a second
+// entry would break the FunctionId-to-body mapping and can turn a qualified
+// forwarding call into recursion.
+fn signature_registry_register_alias(registry: SignatureRegistry, alias: String, target: FunctionId) {
+    let raw = FunctionId_raw(target)
+    if raw < 0 || raw >= len(registry.entries) {
+        return
+    }
+    // Qualified aliases must rebind an existing short-name collision.  The
+    // source module qualifier is the disambiguating information; preserving
+    // the first entry would make `text::is_empty` resolve to the generic Vec
+    // implementation when `is_empty` was indexed earlier.
+    name_index::name_index_set(registry.mangled_to_id, alias, raw)
+}
+
 fn signature_registry_register_core_op_alias(
     registry: SignatureRegistry,
     alias: String,
@@ -79,7 +96,13 @@ fn signature_registry_register_core_op_alias(
         kinds::ABI_KIND_CORE_OP_ALIAS(),
         coid
     )
-    signature_registry_register(registry, entry, alias)
+    let id = signature_registry_register(registry, entry, clone(alias))
+    // An alias can already point at a normal entry with a different CoreOp
+    // identity (e.g. bare min_i32 versus seq::min_i32).  insert_first keeps
+    // the old mapping, so explicitly rebind this alias to the synthetic
+    // CoreOp entry.
+    name_index::name_index_set(registry.mangled_to_id, alias, FunctionId_raw(id))
+    id
 }
 
 fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) -> SignatureEntry {

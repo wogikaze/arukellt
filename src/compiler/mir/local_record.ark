@@ -1,19 +1,120 @@
+use collections::name_index
+use corehir::kinds
 use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_table
 use mir::typed_mir_compat
 
 pub struct MirLocal {
-    name: String,
+    name_id: i32,
     val_type: i32,
     value_type: MirValueType,
-    type_name: String,
-    ssa_name: String,
+    type_name_id: i32,
+    str_pool: MirStrPool,
+    ssa_name_id: i32,
     ssa_version: i32,
     variant_slot: i32,
 }
 
+// Interned name / type-name / SSA-name storage. A fresh local owns a pool of
+// at most three strings, so it stays a linear scan; once a local is attached
+// to a function it shares the function pool, which holds thousands of names
+// and is looked up through `index`. The index is built when the pool crosses
+// `str_pool_linear_limit` so short-lived private pools never allocate buckets.
+pub struct MirStrPool {
+    strings: Vec<String>,
+    index: NameIndex,
+}
+
+fn str_pool_linear_limit() -> i32 {
+    8
+}
+
+fn MirStrPool_new() -> MirStrPool {
+    MirStrPool {
+        strings: Vec::new<String>(),
+        index: name_index::NameIndex_empty(),
+    }
+}
+
+fn mir_str_pool_find(pool: MirStrPool, text: String) -> i32 {
+    let n = len(pool.strings)
+    if n >= str_pool_linear_limit() {
+        return name_index::name_index_get(pool.index, text)
+    }
+    let mut i = 0
+    while i < n {
+        if eq(clone(get_unchecked(pool.strings, i)), clone(text)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn mir_str_pool_build_index(pool: MirStrPool) {
+    let n = len(pool.strings)
+    pool.index = name_index::NameIndex_new(n * 2)
+    let mut i = 0
+    while i < n {
+        name_index::name_index_insert_first(pool.index, clone(get_unchecked(pool.strings, i)), i)
+        i = i + 1
+    }
+}
+
+fn mir_local_intern_string(pool: MirStrPool, text: String) -> i32 {
+    if len(text) == 0 {
+        return 0 - 1
+    }
+    let found = mir_str_pool_find(pool, clone(text))
+    if found >= 0 {
+        return found
+    }
+    let id = len(pool.strings)
+    push(pool.strings, clone(text))
+    if id + 1 == str_pool_linear_limit() {
+        mir_str_pool_build_index(pool)
+    } else if id + 1 > str_pool_linear_limit() {
+        name_index::name_index_insert_first(pool.index, text, id)
+    }
+    id
+}
+
+fn mir_local_pool_string(pool: MirStrPool, id: i32) -> String {
+    if id < 0 || id >= len(pool.strings) {
+        return String_new()
+    }
+    clone(get_unchecked(pool.strings, id))
+}
+
+fn mir_local_str_pool(local: MirLocal) -> MirStrPool {
+    local.str_pool
+}
+
+fn mir_local_rebind_strings(local: MirLocal, pool: MirStrPool) {
+    let name = mir_local_name(local)
+    let type_name = mir_local_type_name(local)
+    let ssa_name = mir_local_ssa_name(local)
+    local.name_id = mir_local_intern_string(pool, name)
+    local.type_name_id = mir_local_intern_string(pool, type_name)
+    local.ssa_name_id = mir_local_intern_string(pool, ssa_name)
+    local.str_pool = pool
+}
+
 fn MirLocal_new(name: String, val_type: i32, type_name: String) -> MirLocal {
     let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
-    MirLocal { name: clone(name), val_type: val_type, value_type: mvt, type_name: type_name, ssa_name: name, ssa_version: 0 - 1, variant_slot: 0 - 1 }
+    let pool = MirStrPool_new()
+    let name_id = mir_local_intern_string(pool, clone(name))
+    MirLocal {
+        name_id: name_id,
+        val_type: val_type,
+        value_type: mvt,
+        type_name_id: mir_local_intern_string(pool, type_name),
+        str_pool: pool,
+        ssa_name_id: name_id,
+        ssa_version: 0 - 1,
+        variant_slot: 0 - 1
+    }
 }
 
 fn mir_local_val_type(local: MirLocal) -> i32 {
@@ -24,12 +125,54 @@ fn mir_local_value_type(local: MirLocal) -> MirValueType {
     mir_value_type::mir_value_type_copy(local.value_type)
 }
 
+fn mir_local_type_id_raw(local: MirLocal) -> i32 {
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(local.value_type))
+}
+
+fn mir_local_repr(local: MirLocal) -> i32 {
+    mir_value_type::mir_value_type_repr(local.value_type)
+}
+
+fn mir_local_type_kind(local: MirLocal, table: TypeTable) -> i32 {
+    let raw = mir_local_type_id_raw(local)
+    if raw < 0 {
+        return 0
+    }
+    type_table::type_entry_kind(type_table::TypeTable_lookup(table, type_id::TypeId_new(raw)))
+}
+
+fn mir_local_type_name_from_table(local: MirLocal, table: TypeTable) -> String {
+    let raw = mir_local_type_id_raw(local)
+    if raw >= 0 {
+        return type_table::type_entry_name(type_table::TypeTable_lookup(table, type_id::TypeId_new(raw)))
+    }
+    mir_local_type_name(local)
+}
+
+fn mir_local_is_string_type(local: MirLocal, table: TypeTable) -> bool {
+    if mir_local_type_kind(local, table) == kinds::TYPE_KIND_STRING() {
+        return true
+    }
+    if mir_local_type_id_raw(local) >= 0 {
+        return false
+    }
+    let type_name = mir_local_type_name(local)
+    eq(clone(type_name), "String") || eq(type_name, "string")
+}
+
+fn mir_local_is_string_or_untyped(local: MirLocal, table: TypeTable) -> bool {
+    if mir_local_is_string_type(local, table) {
+        return true
+    }
+    mir_local_type_id_raw(local) < 0 && len(mir_local_type_name(local)) == 0
+}
+
 fn mir_local_type_name(local: MirLocal) -> String {
-    clone(local.type_name)
+    mir_local_pool_string(local.str_pool, local.type_name_id)
 }
 
 fn mir_local_ssa_name(local: MirLocal) -> String {
-    clone(local.ssa_name)
+    mir_local_pool_string(local.str_pool, local.ssa_name_id)
 }
 
 fn mir_local_ssa_version(local: MirLocal) -> i32 {
@@ -45,17 +188,17 @@ fn mir_local_set_variant_slot(local: MirLocal, variant_slot: i32) {
 }
 
 fn mir_local_name(local: MirLocal) -> String {
-    clone(local.name)
+    mir_local_pool_string(local.str_pool, local.name_id)
 }
 
 fn mir_local_set_ssa(local: MirLocal, ssa_name: String, ssa_version: i32) {
-    local.ssa_name = ssa_name
+    local.ssa_name_id = mir_local_intern_string(local.str_pool, ssa_name)
     local.ssa_version = ssa_version
 }
 
 fn mir_local_set_val_type(local: MirLocal, val_type: i32) {
     local.val_type = val_type
-    local.value_type = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(local.type_name))
+    local.value_type = typed_mir_compat::mvt_from_legacy_vt(val_type, mir_local_type_name(local))
 }
 
 fn mir_local_set_val_type_only(local: MirLocal, val_type: i32) {
@@ -67,30 +210,32 @@ fn mir_local_set_value_type(local: MirLocal, value_type: MirValueType) {
 }
 
 fn mir_local_set_type_name(local: MirLocal, type_name: String) {
-    local.type_name = type_name
-    local.value_type = typed_mir_compat::mvt_from_legacy_vt(local.val_type, clone(local.type_name))
+    local.type_name_id = mir_local_intern_string(local.str_pool, clone(type_name))
+    local.value_type = typed_mir_compat::mvt_from_legacy_vt(local.val_type, type_name)
 }
 
 fn mir_local_copy_with_ssa(source: MirLocal, ssa_name: String, ssa_version: i32) -> MirLocal {
     MirLocal {
-        name: clone(source.name),
+        name_id: source.name_id,
         val_type: source.val_type,
         value_type: mir_value_type::mir_value_type_copy(source.value_type),
-        type_name: clone(source.type_name),
-        ssa_name: ssa_name,
+        type_name_id: source.type_name_id,
+        str_pool: source.str_pool,
+        ssa_name_id: mir_local_intern_string(source.str_pool, ssa_name),
         ssa_version: ssa_version,
         variant_slot: source.variant_slot
     }
 }
 
 fn mir_local_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
-    let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(source.type_name))
+    let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, mir_local_type_name(source))
     MirLocal {
-        name: clone(source.name),
+        name_id: source.name_id,
         val_type: val_type,
         value_type: mvt,
-        type_name: clone(source.type_name),
-        ssa_name: clone(source.ssa_name),
+        type_name_id: source.type_name_id,
+        str_pool: source.str_pool,
+        ssa_name_id: source.ssa_name_id,
         ssa_version: source.ssa_version,
         variant_slot: source.variant_slot
     }
@@ -98,11 +243,12 @@ fn mir_local_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
 
 fn mir_local_copy_with_value_type(source: MirLocal, value_type: MirValueType) -> MirLocal {
     MirLocal {
-        name: clone(source.name),
+        name_id: source.name_id,
         val_type: source.val_type,
         value_type: mir_value_type::mir_value_type_copy(value_type),
-        type_name: clone(source.type_name),
-        ssa_name: clone(source.ssa_name),
+        type_name_id: source.type_name_id,
+        str_pool: source.str_pool,
+        ssa_name_id: source.ssa_name_id,
         ssa_version: source.ssa_version,
         variant_slot: source.variant_slot
     }
@@ -111,11 +257,12 @@ fn mir_local_copy_with_value_type(source: MirLocal, value_type: MirValueType) ->
 fn mir_local_copy_with_type_name(source: MirLocal, type_name: String) -> MirLocal {
     let mvt = typed_mir_compat::mvt_from_legacy_vt(source.val_type, clone(type_name))
     MirLocal {
-        name: clone(source.name),
+        name_id: source.name_id,
         val_type: source.val_type,
         value_type: mvt,
-        type_name: clone(type_name),
-        ssa_name: clone(source.ssa_name),
+        type_name_id: mir_local_intern_string(source.str_pool, type_name),
+        str_pool: source.str_pool,
+        ssa_name_id: source.ssa_name_id,
         ssa_version: source.ssa_version,
         variant_slot: source.variant_slot
     }

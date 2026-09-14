@@ -186,9 +186,9 @@ url = "file://./mock_reg"
 ```
 
 The mock directory must contain `<package-name>.ark` or
-`<package-name>/mod.ark`. HTTP registries use plaintext `http://` URLs
-(HTTPS deferred); the resolver fetches `{registry_url}/{package}.ark` via
-`std::host::http::get` (#639).
+`<package-name>/mod.ark`. Network registries are not part of the current
+stdlib contract; use a file-based registry until an official WASI HTTP
+component integration is specified.
 
 **Failure diagnostics** (all compile-time, per ADR-023 §2):
 

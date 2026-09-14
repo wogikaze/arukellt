@@ -1,10 +1,20 @@
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_loop_state
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_types
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::opcodes
 use mir::inst_call
 use mir::inst_local_get
 use mir::inst_structured_control
+use mir::value_types
 use mir::lower::comprehension_emit_increment
 use mir::lower::comprehension_state
 
@@ -14,6 +24,70 @@ fn mir_emit_comprehension_push_prefix(ctx: LowerCtx, state: ComprehensionState) 
 
 fn mir_emit_comprehension_push_call(ctx: LowerCtx) {
     ctx_emit(ctx, inst_call::MirInst_call("push", 2, 0 - 1))
+}
+
+fn mir_set_comprehension_result_type(ctx: LowerCtx, state: ComprehensionState, elem_idx: i32) {
+    let result_local = comprehension_state::comprehension_state_result_local(state)
+    // A comprehension grows a Vec header through `push`; it is not the raw
+    // backing array produced by an array literal. Keep the two representations
+    // distinct so local declaration emission does not type the Vec as an array.
+    let elem_type = comprehension_element_type_name(ctx, elem_idx)
+    if len(elem_type) > 0 {
+        ctx_set_local_type(ctx, result_local, concat("vec:", elem_type))
+        rewrite_comprehension_constructor(ctx, result_local, elem_type)
+    }
+}
+
+fn rewrite_comprehension_constructor(ctx: LowerCtx, result_local: i32, elem_type: String) {
+    let constructor = concat("Vec::new__", clone(elem_type))
+    let f = ctx_api_local_frame::ctx_current_function(ctx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = inst_count - 1
+        while ii >= 0 {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
+            inst_accessors_operands::MirInst_dest(inst) == result_local {
+                let callee = inst_accessors_literals::MirInst_str_val(inst)
+                if starts_with(clone(callee), "Vec::new__") {
+                    inst_record::mir_inst_with_call_target(inst, clone(constructor), 0 - 1)
+                    return
+                }
+            }
+            ii = ii - 1
+        }
+        bi = bi + 1
+    }
+}
+
+fn comprehension_element_type_name(ctx: LowerCtx, elem_idx: i32) -> String {
+    let vt = ctx_api_local_types::ctx_local_vt(ctx, elem_idx)
+    // A field projection such as `p.x` can retain the source aggregate's
+    // nominal type name while its value type is already scalar. The value
+    // type is the authoritative element type for a comprehension result.
+    if vt == value_types::VT_I32() {
+        return "i32"
+    }
+    if vt == value_types::VT_I64() {
+        return "i64"
+    }
+    if vt == value_types::VT_F64() {
+        return "f64"
+    }
+    if vt == value_types::VT_V128() {
+        return "v128"
+    }
+    if vt == value_types::VT_FUNCREF() {
+        return "fnref"
+    }
+    let type_name = ctx_api_local_types::ctx_get_local_type(ctx, elem_idx)
+    if len(type_name) > 0 {
+        return clone(type_name)
+    }
+    "i32"
 }
 
 fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionState) {

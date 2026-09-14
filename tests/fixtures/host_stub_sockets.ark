@@ -1,7 +1,0 @@
-use std::host::udp
-use std::host::stdio
-
-fn main() {
-    let sent = udp::send("localhost", 8080, "ping")
-    stdio::println("done")
-}

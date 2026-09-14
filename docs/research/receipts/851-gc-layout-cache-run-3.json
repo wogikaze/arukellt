@@ -1,0 +1,67 @@
+{
+  "schema": "arukellt-selfhost-overlay-receipt-v1",
+  "recorded_at": "2026-09-11T19:06:05Z",
+  "host": "gc-layout-cache-host-m64.wasm",
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "wall_ms": 38280,
+  "rss_max_kb": 2545780,
+  "s2_sha256": "ad2c02964e0da71b7650a13c7bb9ccbad3719d2c0af99907ef34ffd4d9688592",
+  "s3_sha256": "",
+  "s2_eq_s3": false,
+  "s3_valid": false,
+  "alloc_bytes": null,
+  "live_bytes_by_phase": {},
+  "mir_counts": {},
+  "slow_fns": [
+    {
+      "name": "try_emit_name_intrinsic_fallback",
+      "insts": 1492,
+      "wall_ms": 256
+    },
+    {
+      "name": "native_c_emit_call",
+      "insts": 1704,
+      "wall_ms": 309
+    },
+    {
+      "name": "native_c_emit_local_declarations",
+      "insts": 2197,
+      "wall_ms": 477
+    }
+  ],
+  "phases_ms": {
+    "driver.lex": 0,
+    "driver.parse": 0,
+    "driver.resolve": 1751,
+    "driver.typecheck": 417,
+    "lower.fn_index": 140,
+    "lower.ctx_prep": 296,
+    "lower.body_emit": 15604,
+    "lower.decl_emit": 16041,
+    "lower.reachability": 89,
+    "lower.sync": 96,
+    "lower.propagate": 2600,
+    "lower.total": 18828,
+    "driver.lower": 18969,
+    "driver.mir_opt": 752,
+    "driver.mir_verify": 0,
+    "driver.emit.enter": 0,
+    "driver.emit.wit_bind": 0,
+    "emit.strings": 0,
+    "emit.types": 407,
+    "emit.pre_code": 44,
+    "emit.code": 15544,
+    "emit.tail": 143,
+    "lex": 0,
+    "parse": 0,
+    "resolve": 1751,
+    "typecheck": 417,
+    "lower": 18969,
+    "mir_opt": 752,
+    "mir_verify": 0,
+    "emit": 16140,
+    "total": 38029
+  },
+  "notes": "Accepted O(1) TypeId-to-GC-layout-entry cache candidate; cacheless canonical src/compiler/main.ark compile; output validated with wasm-tools; s2/s3 fixpoint not established."
+}

@@ -10,7 +10,7 @@ use mir::function_locals_view
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
-use mir::inst_record
+use mir::inst_draft
 use mir::local_access
 use mir::module_functions
 use mir::module_spine
@@ -32,7 +32,7 @@ fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
 }
 
 fn stdlib_inline_rewrite_block(m: MirModule, caller: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec::new<MirInst>()
+    let output = Vec::new<MirInstDraft>()
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut inlined = 0
     let mut index = 0
@@ -62,7 +62,7 @@ fn stdlib_inline_rewrite_block(m: MirModule, caller: MirFunction, block: MirBloc
                 }
             }
         }
-        push(output, inst)
+        push(output, block_inst_access::MirInst_as_draft(inst))
         index = index + 1
     }
     if inlined > 0 {
@@ -186,7 +186,7 @@ fn stdlib_specialize_vec_fallback(
 }
 
 fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec::new<MirInst>()
+    let output = Vec::new<MirInstDraft>()
     let registry = module_spine::MirModule_signature_registry(m)
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut resolved = 0
@@ -210,9 +210,13 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBloc
                 if fallback_raw >= 0 {
                     // Do not shadow mut resolved (i32 count) with MirInst — shared
                     // wasm locals then mix i64 and ref under Memory64 (#730).
-                    let resolved_inst = inst_record::mir_inst_with_call_target(inst, specialized, fallback_raw)
+                    let resolved_inst = inst_draft::MirInstDraft_with_call_target(
+                        block_inst_access::MirBlock_export_draft(block, index),
+                        specialized,
+                        fallback_raw
+                    )
                     let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
-                    inst_record::mir_inst_set_result_types(
+                    inst_draft::MirInstDraft_set_result_types(
                         resolved_inst,
                         signature_entry::signature_entry_return_types(fallback_entry)
                     )
@@ -223,7 +227,7 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBloc
                 }
             }
         }
-        push(output, inst)
+        push(output, block_inst_access::MirBlock_export_draft(block, index))
         index = index + 1
     }
     if resolved > 0 {

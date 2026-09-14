@@ -64,8 +64,7 @@ fn emit_gc_local_set(w: WasmWriter, local: i32) {
 }
 
 fn emit_gc_local_get(w: WasmWriter, local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, local)
+    writer_core::emit_local_get(w, local)
 }
 
 fn emit_gc_local_tee(w: WasmWriter, local: i32) {
@@ -104,6 +103,31 @@ fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
     writer_core::emit_leb128_u(w, type_idx)
 }
 
+// Reference-element array access. The index must already be a true i32 (narrow
+// before pushing a reference value); the loaded/stored element is a ref, so no
+// scalar widen/narrow applies.
+fn emit_gc_array_get_ref(w: WasmWriter, type_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_GET())
+    writer_core::emit_leb128_u(w, type_idx)
+}
+
+fn emit_gc_array_set_ref(w: WasmWriter, type_idx: i32) {
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_SET())
+    writer_core::emit_leb128_u(w, type_idx)
+}
+
+fn emit_gc_global_get(w: WasmWriter, global_idx: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, global_idx)
+}
+
+fn emit_gc_ref_is_null(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_REF_IS_NULL())
+}
+
 fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_REF_NULL())
     // Heap types use signed LEB128 (typeidx >= 64 must not be a single 0x40..0x7f byte).
@@ -121,12 +145,6 @@ fn emit_gc_else(w: WasmWriter) {
 
 fn emit_gc_end(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
-}
-
-fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
-    writer_core::emit_byte(w, opcodes::GC_PREFIX())
-    writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
-    writer_core::emit_leb128_s(w, type_idx)
 }
 
 fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {

@@ -2,7 +2,15 @@ use corehir::fn_info
 use corehir::mir_signature_source_record
 
 fn mir_signature_fn_info_index_for_decl(source: CoreHirMirSignatureSource, decl_index: i32) -> i32 {
-    fn_info::fn_info_index_for_decl(signature_source_record::mir_signature_source_fn_infos(source), decl_index)
+    let slots = signature_source_record::mir_signature_source_fn_info_by_decl(source)
+    if decl_index < 0 || decl_index >= len(slots) {
+        return 0 - 1
+    }
+    let slot = get_unchecked(slots, decl_index)
+    if slot <= 0 {
+        return 0 - 1
+    }
+    slot - 1
 }
 
 fn mir_signature_fn_typed_index_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {

@@ -5,7 +5,7 @@
 
 ## Current Snapshot
 
-- ADR-017 defines a client-side browser execution model for playground work.
+- ADR-017 defines a client-side browser model for playground work; ADR-055 fixes the current compile-only user-program boundary.
 - Current repo proof: `playground/src/engine.ts` exports parse, format, tokenize, typecheck, and version functions.
 - Current repo proof: `playground/src/**` contains editor / diagnostics / share / examples components.
 - Current repo proof: `docs/playground/index.html` provides parse + diagnostics, a Format toolbar action, and tokenize-driven highlighting.
@@ -39,14 +39,14 @@ is produced by `playground`'s `npm run build:app`; it is **not** tracked in git.
 | Privacy / telemetry guardrail | ✅ | `playground/src/telemetry.ts` — `TELEMETRY_DISABLED=true`; `reportError`/`reportWasmLoadError`/`reportCompilerPanic` log locally only. Policy: [`privacy-telemetry-policy.md`](privacy-telemetry-policy.md) (issue 438) |
 | Type-checking (compiler-backed engine) | ✅ | [#472](../../issues/done/472-playground-type-checker-product-claim.md) — `playground/src/engine.ts` and `playground.ts` expose compiler-backed `typecheck()` |
 <!-- target-state: rows below are not yet repo-proved in the browser entrypoint -->
-| Type-checking in browser index.html parse path | ❌ repo-proof missing | `index.html` does not pass compiler wasm to `createPlayground`; parse stays parse-only until wired (Build/Run uses a separate compiler client) |
+| Type-checking in browser index.html parse path | ❌ repo-proof missing | `index.html` does not pass compiler wasm to `createPlayground`; parse stays parse-only. Compiler-backed build is compile-only; official WASI packaging/execution remains a CLI/toolchain concern (ADR-055) |
 
 ### Architecture status
 
 The current browser-side engine is the TypeScript playground engine plus
 TypeScript UI components. The browser entrypoint `docs/playground/index.html` provides an
 editor shell with parse + diagnostics, a Format toolbar action, and tokenize-driven syntax
-highlighting. The docs site navigation links to it. See
+highlighting. Compiler-backed build output is shown as compiler output only; the browser does not run user artifacts. The docs site navigation links to it. See
 [ADR-017](../adr/ADR-017-playground-execution-model.md) for the intended execution model and
 [issues/done/465-playground-false-done-audit-and-status-rollback.md](../../issues/done/465-playground-false-done-audit-and-status-rollback.md)
 for the current audit status.
@@ -79,5 +79,6 @@ the browser-side implementation work and remaining product-proof gaps.
 | ADR | Topic |
 |-----|-------|
 | [ADR-017](../adr/ADR-017-playground-execution-model.md) | Execution model and v1/v2 product contract |
+| [ADR-055](../adr/ADR-055-playground-compile-boundary.md) | Browser compile-only boundary; no custom user-program runner |
 | [ADR-021](../adr/ADR-021-playground-share-url-format.md) | Share URL format (fragment-based) |
 | [ADR-022](../adr/ADR-022-playground-deployment-and-caching.md) | Deployment strategy and asset caching |

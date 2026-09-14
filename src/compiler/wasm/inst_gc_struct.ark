@@ -49,8 +49,7 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let base_local = inst_accessors_operands::MirInst_arg1(inst)
     let field_idx = inst_accessors_literals::MirInst_int_val(inst)
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, base_local)
+    writer_core::emit_local_get(w, base_local)
     if type_slot >= 0 {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     }
@@ -76,13 +75,11 @@ fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let value_local = inst_accessors_shape::MirInst_dest(inst)
     let field_idx = inst_accessors_literals::MirInst_int_val(inst)
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, base_local)
+    writer_core::emit_local_get(w, base_local)
     if type_slot >= 0 {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     }
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, value_local)
+    writer_core::emit_local_get(w, value_local)
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if gc_variant_field_is_i32(ctx, type_slot, field_idx) ||
     memory64_struct_local_is_i32_field(w, ctx, val_type, value_local) {

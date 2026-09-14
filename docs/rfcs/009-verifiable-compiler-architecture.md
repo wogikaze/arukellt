@@ -2,7 +2,7 @@
 
 ステータス: DRAFT
 
-関連 ADR: [ADR-051](../adr/ADR-051-verifiable-compiler-architecture.md)
+関連 ADR: [ADR-051](../adr/ADR-051-formal-verification-hard-gates.md)
 
 関連 RFC: [RFC-010: Proof-Driven Development](010-proof-driven-development.md)
 

@@ -50,8 +50,6 @@ REQUIRED_BOUNDARY_MODULES = (
 ALLOWED_COMPILER_ROOT_FILES = {
     "analysis.ark",
     "ark.toml",
-    "component_emit.ark",
-    "component_emitter.ark",
     "corehir.ark",
     "dap.ark",
     "diagnostics.ark",

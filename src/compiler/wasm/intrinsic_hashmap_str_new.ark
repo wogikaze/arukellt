@@ -22,8 +22,6 @@ fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
                 fn_idx,
                 ctx_record::SelfEmitCtx_target(ctx),
                 ctx_record::SelfEmitCtx_wasi_version(ctx),
-                ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
-                ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                 wit_import_count
             )
         )
@@ -63,14 +61,11 @@ fn emit_hm_struct_new_gc_final(w: WasmWriter, hm_type: i32, keys_array_type: i32
     writer_core::emit_leb128_s(w, 16)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_keys)
+    writer_core::emit_local_get(w, s_keys)
     writer_gc::emit_gc_ref_cast(w, keys_array_type)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_vals)
+    writer_core::emit_local_get(w, s_vals)
     writer_gc::emit_gc_ref_cast(w, vals_array_type)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_flags)
+    writer_core::emit_local_get(w, s_flags)
     writer_gc::emit_gc_ref_cast(w, flags_array_type)
     writer_gc::emit_gc_struct_new(w, hm_type)
 }
@@ -87,8 +82,6 @@ fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
                 fn_idx,
                 ctx_record::SelfEmitCtx_target(ctx),
                 ctx_record::SelfEmitCtx_wasi_version(ctx),
-                ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
-                ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                 wit_import_count
             )
         )
@@ -172,8 +165,6 @@ fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
                 fn_idx,
                 ctx_record::SelfEmitCtx_target(ctx),
                 ctx_record::SelfEmitCtx_wasi_version(ctx),
-                ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
-                ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                 wit_import_count
             )
         )

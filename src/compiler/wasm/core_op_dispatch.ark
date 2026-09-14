@@ -1,4 +1,5 @@
 use corehir::core_op_id
+use corehir::core_op_binding
 use corehir::core_op_registry_generated
 use corehir::signature_entry
 use corehir::signature_registry
@@ -41,10 +42,18 @@ fn try_emit_call_via_core_op_registry(
     if fid_raw < 0 {
         return false
     }
+    let callee = inst_record::mir_inst_str_val(inst)
+    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(callee))
+    if !core_op_id::core_op_id_is_some(exact_coid) {
+        return false
+    }
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let sig = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
     let coid = signature_entry::signature_entry_core_op_id(sig)
     if !core_op_id::core_op_id_is_some(coid) {
+        return false
+    }
+    if core_op_id::CoreOpId_raw(coid) != core_op_id::CoreOpId_raw(exact_coid) {
         return false
     }
     let handler_id = core_op_id::CoreOpId_raw(coid)

@@ -1,8 +1,10 @@
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::function_param_view
+use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::local_write_index
 use mir::opcodes
 use wasm::code_ref_locals_scan
 use wasm::ctx_record
@@ -18,6 +20,8 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let has_ref = Vec::new<i32>()
     let def_block = Vec::new<i32>()
     let def_inst = Vec::new<i32>()
+    let struct_new_size_names = Vec::new<String>()
+    let struct_new_sizes = Vec::new<i32>()
     let mut i = 0
     while i < local_count {
         // Private encoding: -2 = not yet inferred (see cached_infer_*).
@@ -39,10 +43,19 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             let dest = inst_accessors_operands::MirInst_dest(inst)
-            if op == opcodes::MIR_GC_STRUCT_NEW() {
+            if op == opcodes::MIR_GC_STRUCT_NEW() ||
+            op == opcodes::MIR_STRUCT_NEW() {
                 if dest >= 0 && dest < local_count {
                     set(struct_new, dest, 1)
                 }
+            }
+            if op == opcodes::MIR_STRUCT_NEW() {
+                record_struct_new_size(
+                    struct_new_size_names,
+                    struct_new_sizes,
+                    inst_accessors_literals::MirInst_str_val(inst),
+                    inst_accessors_literals::MirInst_int_val(inst)
+                )
             }
             record_local_def_site(def_block, def_inst, local_count, dest, bi, ii, op)
             let arg0 = inst_accessors_operands::MirInst_arg0(inst)
@@ -54,148 +67,54 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
         bi = bi + 1
     }
     propagate_has_ref_assignments(f, has_ref, 4)
-    build_local_producer_index(f, ctx, local_count)
+    ctx_record::SelfEmitCtx_set_local_write_index(ctx, local_write_index::LocalWriteIndex_build(f, local_count))
+    ctx_record::SelfEmitCtx_set_local_i64_stack_set_cache(
+        ctx,
+        code_ref_locals_scan::local_body_i64_stack_set_flags(f, local_count)
+    )
+    ctx_record::SelfEmitCtx_set_local_feeds_return_cache(
+        ctx,
+        code_ref_locals_scan::local_feeds_return_flags(f, local_count)
+    )
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, infer)
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, struct_new)
     ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, has_ref)
     ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, def_block)
     ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, def_inst)
+    ctx_record::SelfEmitCtx_set_struct_new_size_table(ctx, struct_new_size_names, struct_new_sizes)
 }
 
-// One O(instructions) pass builds a CSR write list per local: offsets[n+1]
-// and entries as alternating (bi, ii). STRUCT_SET dests are skipped (#829).
-fn build_local_producer_index(f: MirFunction, ctx: SelfEmitCtx, local_count: i32) {
-    let counts = Vec::new<i32>()
-    let mut ci = 0
-    while ci < local_count {
-        push(counts, 0)
-        ci = ci + 1
+// Keeps the first size seen per name so lookups match the body-order scan
+// they replace.
+fn record_struct_new_size(names: Vec<String>, sizes: Vec<i32>, struct_name: String, byte_size: i32) {
+    if struct_new_size_index(names, clone(struct_name)) >= 0 {
+        return
     }
-    producer_index_count_writes(f, counts, local_count)
-    let offsets = Vec::new<i32>()
-    let mut running = 0
-    let mut oi = 0
-    while oi < local_count {
-        push(offsets, running)
-        running = running + get_unchecked(counts, oi)
-        oi = oi + 1
-    }
-    push(offsets, running)
-    let entries = Vec::new<i32>()
-    let mut ei = 0
-    // Each write stores two i32s: bi, ii.
-    while ei < running * 2 {
-        push(entries, 0)
-        ei = ei + 1
-    }
-    let cursors = Vec::new<i32>()
-    let mut ki = 0
-    while ki < local_count {
-        push(cursors, get_unchecked(offsets, ki))
-        ki = ki + 1
-    }
-    producer_index_fill_entries(f, entries, cursors, local_count)
-    ctx_record::SelfEmitCtx_set_local_producer_index_offsets(ctx, offsets)
-    ctx_record::SelfEmitCtx_set_local_producer_index_entries(ctx, entries)
+    push(names, struct_name)
+    push(sizes, byte_size)
 }
 
-fn producer_index_count_writes(f: MirFunction, counts: Vec<i32>, local_count: i32) {
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            let indexed_dest = producer_index_should_record_dest(op, dest, local_count)
-            if indexed_dest {
-                set(counts, dest, get_unchecked(counts, dest) + 1)
-            }
-            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-            if producer_index_should_record_local_set(op, arg0, dest, local_count, indexed_dest) {
-                set(counts, arg0, get_unchecked(counts, arg0) + 1)
-            }
-            ii = ii + 1
+fn struct_new_size_index(names: Vec<String>, struct_name: String) -> i32 {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(struct_name)) {
+            return i
         }
-        bi = bi + 1
+        i = i + 1
     }
+    0 - 1
 }
 
-fn producer_index_fill_entries(
-    f: MirFunction,
-    entries: Vec<i32>,
-    cursors: Vec<i32>,
-    local_count: i32
-) {
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            let indexed_dest = producer_index_should_record_dest(op, dest, local_count)
-            if indexed_dest {
-                producer_index_append_site(entries, cursors, dest, bi, ii)
-            }
-            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-            if producer_index_should_record_local_set(op, arg0, dest, local_count, indexed_dest) {
-                producer_index_append_site(entries, cursors, arg0, bi, ii)
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
+// Byte size of the first MIR_STRUCT_NEW for `struct_name` in the cached body;
+// 0 when the body has none. Only valid inside the begin/end window.
+fn cached_struct_new_byte_size(ctx: SelfEmitCtx, struct_name: String) -> i32 {
+    let names = ctx_record::SelfEmitCtx_struct_new_size_names(ctx)
+    let idx = struct_new_size_index(names, struct_name)
+    if idx < 0 {
+        return 0
     }
-}
-
-fn producer_index_should_record_dest(op: i32, dest: i32, local_count: i32) -> bool {
-    if dest < 0 || dest >= local_count {
-        return false
-    }
-    if op == opcodes::MIR_GC_STRUCT_SET() || op == opcodes::MIR_STRUCT_SET() {
-        return false
-    }
-    true
-}
-
-fn producer_index_should_record_local_set(
-    op: i32,
-    arg0: i32,
-    dest: i32,
-    local_count: i32,
-    indexed_dest: bool
-) -> bool {
-    if op != opcodes::MIR_LOCAL_SET() {
-        return false
-    }
-    if arg0 < 0 || arg0 >= local_count {
-        return false
-    }
-    // Same instruction already recorded via dest for this local.
-    if indexed_dest && dest == arg0 {
-        return false
-    }
-    true
-}
-
-fn producer_index_append_site(
-    entries: Vec<i32>,
-    cursors: Vec<i32>,
-    local_idx: i32,
-    bi: i32,
-    ii: i32
-) {
-    let slot = get_unchecked(cursors, local_idx)
-    let base = slot * 2
-    set(entries, base, bi)
-    set(entries, base + 1, ii)
-    set(cursors, local_idx, slot + 1)
+    get_unchecked(ctx_record::SelfEmitCtx_struct_new_sizes(ctx), idx)
 }
 
 fn seed_has_ref_from_params(f: MirFunction, has_ref: Vec<i32>) {
@@ -303,62 +222,26 @@ fn local_inst_marks_ref(f: MirFunction, inst: MirInst, has_ref: Vec<i32>) -> boo
     false
 }
 
+// Write index for `f`: the cached one inside the begin/end window, else a
+// fresh build (same O(body) cost as the scan it replaces).
+fn function_local_write_index(f: MirFunction, ctx: SelfEmitCtx) -> LocalWriteIndex {
+    let cached = ctx_record::SelfEmitCtx_local_write_index(ctx)
+    if local_write_index::local_write_index_is_active(cached) {
+        return cached
+    }
+    local_write_index::LocalWriteIndex_build(f, function_locals_view::MirFunction_local_count(f))
+}
+
 fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, Vec::new<i32>())
-    ctx_record::SelfEmitCtx_set_local_producer_index_offsets(ctx, Vec::new<i32>())
-    ctx_record::SelfEmitCtx_set_local_producer_index_entries(ctx, Vec::new<i32>())
-}
-
-fn is_local_producer_index_active(ctx: SelfEmitCtx) -> bool {
-    len(ctx_record::SelfEmitCtx_local_producer_index_offsets(ctx)) > 1
-}
-
-fn local_producer_index_count(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
-    let offsets = ctx_record::SelfEmitCtx_local_producer_index_offsets(ctx)
-    if local_idx < 0 || local_idx + 1 >= len(offsets) {
-        return 0
-    }
-    get_unchecked(offsets, local_idx + 1) - get_unchecked(offsets, local_idx)
-}
-
-fn local_producer_index_block(ctx: SelfEmitCtx, local_idx: i32, n: i32) -> i32 {
-    let offsets = ctx_record::SelfEmitCtx_local_producer_index_offsets(ctx)
-    let entries = ctx_record::SelfEmitCtx_local_producer_index_entries(ctx)
-    if local_idx < 0 || local_idx + 1 >= len(offsets) {
-        return 0 - 1
-    }
-    let start = get_unchecked(offsets, local_idx)
-    let end = get_unchecked(offsets, local_idx + 1)
-    if n < 0 || start + n >= end {
-        return 0 - 1
-    }
-    let base = (start + n) * 2
-    if base < 0 || base >= len(entries) {
-        return 0 - 1
-    }
-    get_unchecked(entries, base)
-}
-
-fn local_producer_index_inst(ctx: SelfEmitCtx, local_idx: i32, n: i32) -> i32 {
-    let offsets = ctx_record::SelfEmitCtx_local_producer_index_offsets(ctx)
-    let entries = ctx_record::SelfEmitCtx_local_producer_index_entries(ctx)
-    if local_idx < 0 || local_idx + 1 >= len(offsets) {
-        return 0 - 1
-    }
-    let start = get_unchecked(offsets, local_idx)
-    let end = get_unchecked(offsets, local_idx + 1)
-    if n < 0 || start + n >= end {
-        return 0 - 1
-    }
-    let base = (start + n) * 2 + 1
-    if base < 0 || base >= len(entries) {
-        return 0 - 1
-    }
-    get_unchecked(entries, base)
+    ctx_record::SelfEmitCtx_set_local_i64_stack_set_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_feeds_return_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_struct_new_size_table(ctx, Vec::new<String>(), Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_write_index(ctx, local_write_index::LocalWriteIndex_empty())
 }
 
 fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -375,6 +258,14 @@ fn cached_has_ref_assignment(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return 0 - 1
     }
     get_unchecked(flags, local_idx)
+}
+
+fn cached_body_has_i64_stack_set(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    let flags = ctx_record::SelfEmitCtx_local_i64_stack_set_cache(ctx)
+    if local_idx < 0 || local_idx >= len(flags) {
+        return false
+    }
+    get_unchecked(flags, local_idx) == 1
 }
 
 fn cached_def_block(ctx: SelfEmitCtx, local_idx: i32) -> i32 {

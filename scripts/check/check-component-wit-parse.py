@@ -11,7 +11,6 @@ For each ``component-wit-parse:`` manifest entry:
 
 from __future__ import annotations
 
-import fcntl
 import os
 import shutil
 import subprocess
@@ -22,6 +21,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCRIPTS_DIR = REPO_ROOT / "scripts"
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
+from lib.wit_tools import parse_wit_package
+from lib.tooling import find_wasm_tools
+
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
 _WASM_TOOLS_LOCK = REPO_ROOT / ".build" / "wasm-tools-component.lock"
 
@@ -37,9 +39,7 @@ REQUIRED_MARKERS = (
 
 def _find_tool(name: str) -> str | None:
     if name == "wasm-tools":
-        cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-        if cargo.is_file():
-            return str(cargo)
+        return find_wasm_tools()
     return shutil.which(name)
 
 
@@ -92,18 +92,7 @@ def _normalize_wit(text: str) -> str:
 
 
 def _wasm_tools_parse_wit(tool: str, wit_path: Path) -> tuple[int, str]:
-    _WASM_TOOLS_LOCK.parent.mkdir(parents=True, exist_ok=True)
-    with _WASM_TOOLS_LOCK.open("w", encoding="utf-8") as lock_file:
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
-        result = subprocess.run(
-            [tool, "component", "wit", str(wit_path)],
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
-    if result.returncode != 0:
-        return result.returncode, (result.stderr or result.stdout)[-800:]
-    return 0, result.stdout
+    return parse_wit_package(tool, wit_path, _WASM_TOOLS_LOCK)
 
 
 def _try_emit_wit(

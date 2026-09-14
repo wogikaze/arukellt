@@ -119,49 +119,73 @@ fn register_imported_enum_exports(ctx: ResolveCtx, module_name: String, enum_dec
     }
 }
 
+// `pub use` chains (a re-export of a re-export) need repeated passes; each
+// pass re-applies every pub-use edge and stops at the first pass that defines
+// nothing new, bounded by the module count as before. The edges are collected
+// once so the passes never re-walk module declarations.
 fn register_pub_use_reexports(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = len(modules)
+    let edge_targets = Vec::new<String>()
+    let edge_sources = Vec::new<String>()
+    let mut mi = 0
+    while mi < mod_count {
+        let m = get_unchecked(modules, mi)
+        collect_pub_use_edges(m, modules::module_name(m), edge_targets, edge_sources)
+        mi = mi + 1
+    }
+    let edge_count = len(edge_targets)
     let mut pass = 0
     while pass < mod_count {
-        let mut mi = 0
-        while mi < mod_count {
-            let m = get_unchecked(modules, mi)
-            let module_name = modules::module_name(m)
-            register_pub_use_reexports_for_module(ctx, m, clone(module_name))
-            mi = mi + 1
+        let mut defined_any = false
+        let mut ei = 0
+        while ei < edge_count {
+            if reexport_module_symbols(
+                ctx,
+                clone(get_unchecked(edge_targets, ei)),
+                clone(get_unchecked(edge_sources, ei))
+            ) {
+                defined_any = true
+            }
+            ei = ei + 1
+        }
+        if !defined_any {
+            return
         }
         pass = pass + 1
     }
 }
 
-fn register_pub_use_reexports_for_module(ctx: ResolveCtx, m: ModuleDecls, module_name: String) {
+fn collect_pub_use_edges(m: ModuleDecls, module_name: String, edge_targets: Vec<String>, edge_sources: Vec<String>) {
     let mdecl_count = modules::module_decl_count(m)
     let mut di = 0
     while di < mdecl_count {
         let d = modules::module_decl_at(m, di)
-        if ast_decl_predicates::node_is_use(d) && ast_access::node_is_pub(d) {
-            let use_path = ast_access::node_text(d)
-            reexport_module_symbols(ctx, clone(module_name), clone(use_path))
-            let child_count = ast_access::node_child_count(d)
-            let mut ci = 0
-            while ci < child_count {
-                let child = ast_access::node_child_at(d, ci)
-                if ast_decl_predicates::node_is_use(child) {
-                    let child_path = ast_access::node_text(child)
-                    reexport_module_symbols(ctx, clone(module_name), clone(child_path))
-                }
-                ci = ci + 1
-            }
-        }
         di = di + 1
+        if !ast_decl_predicates::node_is_use(d) || !ast_access::node_is_pub(d) {
+            continue
+        }
+        push(edge_targets, clone(module_name))
+        push(edge_sources, ast_access::node_text(d))
+        let child_count = ast_access::node_child_count(d)
+        let mut ci = 0
+        while ci < child_count {
+            let child = ast_access::node_child_at(d, ci)
+            if ast_decl_predicates::node_is_use(child) {
+                push(edge_targets, clone(module_name))
+                push(edge_sources, ast_access::node_text(child))
+            }
+            ci = ci + 1
+        }
     }
 }
 
-fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) {
+// True when at least one new qualified symbol was defined.
+fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) -> bool {
     let prefix = concat(clone(source_module), "::")
     let prefix_len = len(clone(prefix))
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
+    let mut defined_any = false
     let mut i = 0
     while i < sym_count {
         let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
@@ -174,9 +198,11 @@ fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module
                 if existing < 0 {
                     let kind = scope_stack_symbols::Symbol_kind(sym)
                     scope_define::define_with_vis(ctx, qualified, kind, true)
+                    defined_any = true
                 }
             }
         }
         i = i + 1
     }
+    defined_any
 }

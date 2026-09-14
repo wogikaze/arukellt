@@ -1,23 +1,24 @@
+use mir::inst_draft
 use mir::inst_factory
 use mir::opcodes
 use mir::types
 
-fn MirInst_struct_get(offset: i32, vt: i32) -> MirInst {
+fn MirInst_struct_get(offset: i32, vt: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), 0 - 1, 0 - 1, 0 - 1, offset, 0.0, String_new(), vt)
 }
 
-fn MirInst_struct_get_to(offset: i32, vt: i32, dest: i32) -> MirInst {
+fn MirInst_struct_get_to(offset: i32, vt: i32, dest: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, 0 - 1, 0 - 1, offset, 0.0, String_new(), vt)
 }
 
-fn MirInst_struct_get_field(base: i32, field_name: String, offset: i32, vt: i32, dest: i32) -> MirInst {
+fn MirInst_struct_get_field(base: i32, field_name: String, offset: i32, vt: i32, dest: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, base, 0 - 1, offset, 0.0, field_name, vt)
 }
 
-fn MirInst_struct_get_field_sized(base: i32, field_name: String, offset: i32, struct_byte_size: i32, vt: i32, dest: i32) -> MirInst {
+fn MirInst_struct_get_field_sized(base: i32, field_name: String, offset: i32, struct_byte_size: i32, vt: i32, dest: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, base, struct_byte_size, offset, 0.0, field_name, vt)
 }
 
-fn MirInst_struct_get_field_idx(base: i32, field_name: String, offset: i32, field_idx: i32, struct_byte_size: i32, vt: i32, dest: i32) -> MirInst {
+fn MirInst_struct_get_field_idx(base: i32, field_name: String, offset: i32, field_idx: i32, struct_byte_size: i32, vt: i32, dest: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, base, field_idx * 100000 + struct_byte_size, offset, 0.0, field_name, vt)
 }

@@ -18,7 +18,8 @@ playground/src/examples.ts   ← catalog (source + metadata + fixturePath)
 ```
 
 - **`ExampleEntry.fixturePath`** — relative path from `tests/fixtures/`
-  to the `.ark` file that CI compiles and runs.
+  to the `.ark` file that CI compiles and verifies through the official
+  CLI/WASI toolchain when an executable fixture is requested.
 - **`FIXTURE_BASE_PATH`** — constant `"tests/fixtures"`, so consumers
   can resolve the full repository-relative path as
   `${FIXTURE_BASE_PATH}/${entry.fixturePath}`.
@@ -28,11 +29,12 @@ playground/src/examples.ts   ← catalog (source + metadata + fixturePath)
 ## How to add a new example
 
 1. **Create or identify a fixture**.  Place a `.ark` file under
-   `tests/fixtures/<category>/`.  It must compile and run correctly.
+   `tests/fixtures/<category>/`.  It must compile and pass its configured
+   CLI/WASI verification.
 
 2. **Add the fixture to `tests/fixtures/manifest.txt`**.  Use the
-   `run:<category>/<file>.ark` format so the CI harness includes it.
-   Verify locally:
+   `run:<category>/<file>.ark` format when it is an executable fixture, so the
+   CI harness verifies it through the official CLI/WASI runtime.  Verify locally:
 
    ```bash
    python3 scripts/manager.py verify quick
@@ -102,7 +104,8 @@ for (const [id, path] of fixtures) {
   field uses simplified syntax (bare `println()`) for a friendlier
   first experience.  The fixture file uses full CI-compilable syntax
   (`use std::host::stdio`, `stdio::println()`).  Both exercise the
-  same language feature.
+  same language feature.  The Playground does not execute the fixture; use
+  the CLI with official WASI component tooling for program execution.
 
 - **`fixturePath` is required**.  Every catalog entry must link to a
   fixture so new examples cannot be added without a corresponding

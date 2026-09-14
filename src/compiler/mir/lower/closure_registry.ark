@@ -4,6 +4,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::function_return_view
+use mir::function_param_view
 use mir::function_identity
 use mir::inst_ref_func
 use mir::lower::closure_storage
@@ -18,7 +19,7 @@ fn closure_next_synth_name(ctx: LowerCtx) -> String {
 }
 
 fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
-    if len(closure_storage::closure_storage_pending_synth(ctx)) == 0 {
+    if len(closure_storage::closure_storage_pending_synth(ctx)) == 0 && !ctx.closure_last_identity {
         return
     }
     closure_storage::closure_storage_push_bind(ctx, bind_name)
@@ -32,9 +33,22 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     // Immediate closure values (`bench(..., || {})`) must carry a real
     // funcref. A placeholder i32 0 used to compile but crashed at the first
     // CALL_INDIRECT, and also dropped synthetic functions from reachability.
-    let dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    let dest = ctx_fresh_local(ctx, value_types::VT_FUNCREF())
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, closure_funcref_type_name(mf))
     ctx_emit(ctx, inst_ref_func::MirInst_ref_func(function_identity::MirFunction_name(mf), dest))
     dest
+}
+
+fn closure_register_identity(ctx: LowerCtx) -> i32 {
+    closure_storage::closure_storage_set_pending_identity(ctx)
+    0 - 1
+}
+
+fn closure_funcref_type_name(mf: MirFunction) -> String {
+    if function_param_view::MirFunction_param_count(mf) >= 2 {
+        return "fnref2"
+    }
+    "fnref"
 }
 
 fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
@@ -59,4 +73,8 @@ fn ctx_closure_caps_at(ctx: LowerCtx, index: i32) -> String {
 
 fn ctx_closure_extra_at(ctx: LowerCtx, index: i32) -> i32 {
     closure_storage::closure_storage_bind_extra_at(ctx, index)
+}
+
+fn ctx_closure_is_identity(ctx: LowerCtx, index: i32) -> bool {
+    closure_storage::closure_storage_bind_identity_at(ctx, index)
 }

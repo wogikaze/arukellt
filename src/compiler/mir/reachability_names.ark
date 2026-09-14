@@ -10,3 +10,12 @@ fn mir_enqueue_reachable_name(
 ) -> bool {
     reachability_index::mir_reachability_enqueue_by_name(index, functions, reachable, queue, name)
 }
+
+fn mir_enqueue_reachable_name_exact(
+    index: MirReachabilityIndex,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    name: String
+) -> bool {
+    reachability_index::mir_reachability_enqueue_by_name_exact(index, reachable, queue, name)
+}

@@ -20,6 +20,13 @@ fn lower_core_let_store_value(ctx: LowerCtx, local_idx: i32, val_idx: i32, type_
     if val_idx != local_idx {
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, val_idx))
     }
+    // Preserve the initializer's nominal storage type instead of deriving it
+    // again from a possibly ambiguous display name.
+    ctx_api_local_types::ctx_set_local_mvt(
+        ctx,
+        local_idx,
+        ctx_api_local_types::ctx_local_mvt(ctx, val_idx)
+    )
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
     if len(init_type) > 1 && len(type_name) == 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)

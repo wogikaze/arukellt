@@ -1,6 +1,8 @@
+use mir::block_inst_access
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_const_i32
+use mir::inst_draft
 use mir::inst_record
 use mir::opcodes
 
@@ -20,8 +22,8 @@ fn mir_opt_local_const_value(insts: Vec<MirInst>, end_idx: i32, local_idx: i32) 
     0 - 1
 }
 
-fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInst> {
-    let out = Vec::new<MirInst>()
+fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInstDraft> {
+    let out = Vec::new<MirInstDraft>()
     for i in 0..len(insts) {
         let inst = get_unchecked(insts, i)
         let op = inst_accessors_shape::MirInst_op(inst)
@@ -43,7 +45,7 @@ fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInst> {
                 continue
             }
         }
-        push(out, inst)
+        push(out, block_inst_access::MirInst_as_draft(inst))
     }
     out
 }

@@ -163,6 +163,16 @@
 比較的よい基準: `analysis/doc_scan.ark`、`fmt/range.ark` のように短い名前付き処理を順に追えるコード。
 明確に避けるパターン: `main/args_parse.ark` のような深い分岐、薄い転送 facade、多数の bool 引数 constructor、壊れた巨大インデントや minify 埋め込み。
 
+## Active mission: selfhost compiler core rewrite (gc-host overlay)
+
+When work touches wasm32-gc overlay latency, `s2`/`s3` on gc+p2, `#850`, `#851`,
+fat `MirInst`, or `BOOTSTRAP_EMIT_*`:
+
+- Canonical plan: `docs/plans/selfhost-compiler-core-rewrite.md`
+- Decision: ADR-053
+- Tracker: `#851` ( `#850` is Phase 5 only )
+- This is a core rewrite. Do not resume `#850` tick hops or hello-byte locks.
+
 ## Active mission: native-cpp experimental promotion
 
 When working on `native-cpp`, `selfhost native-executor`, root liveness, native GC, issue #847, or issue #848,
@@ -188,13 +198,13 @@ Continue from the first unchecked Phase 2 item through the Final Experimental Pr
 - レーン／編集ループ: `python3 scripts/manager.py verify lane`（必要なら `--gate cli-parity` 等）
 - マージ／CI ゲート: `python3 scripts/manager.py verify quick`（拡張面は `--extended`）
 - fixture: `python3 scripts/manager.py verify fixtures`
-- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~45–50s が下限**。別名 `build-s2` / `rebuild-s2`）
+- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~8–10s が下限**。別名 `build-s2` / `rebuild-s2`）
 - **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（s2==s3 確認。日常の s2 再ビルドには使わない）
 - docs 再生成: `python3 scripts/manager.py docs regenerate`
 - docs 検査: `python3 scripts/manager.py docs check`
 - 全体: `python3 scripts/manager.py verify full`
 
-`build-compiler` を 1 行修正ごとに回さない（`45s × N` で律速になる）。編集をバッチして
+`build-compiler` を 1 行修正ごとに回さない（`8s × N` で律速になる）。編集をバッチして
 1 回だけ rebuild → 多数 fixture を検証する。並列レーンは親が 1 回だけ rebuild する。
 `selfhost fixpoint --build --no-cache` を emitter 作業の再ビルドに使わない。
 コピーは `/bin/cp -f`（対話的 `cp -iv` 禁止）。詳細は `docs/compiler/bootstrap.md`。
@@ -245,8 +255,8 @@ AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツ�
 
 ### ツールチェーン（update script が用意する）
 
-- `wasmtime`（`.tool-versions` = 46.0.1）、`wasm-tools`、`cargo-binstall` は update script で導入し、`/usr/local/bin` に symlink 済み。`wasmtime` が無いと `scripts/run/arukellt-selfhost.sh` は exit 127 で全実行が失敗する。
-- Rust/cargo・Python3・Node・`clang`（18）はベースイメージに存在（追加 pip 依存なし）。
+- `wasmtime`（`.tool-versions` = 46.0.1）と `wasm-tools` は update script で導入し、`/usr/local/bin` に symlink 済み。`wasmtime` が無いと `scripts/run/arukellt-selfhost.sh` は exit 127 で全実行が失敗する。
+- Python3・Node・`clang`（18）はベースイメージに存在（追加 pip 依存なし）。
 - `wasmtime` は GC / function-references / memory64 を要求するため、旧版では動かない（wrapper が `--wasm gc --wasm function-references -W memory64=y` を付与）。
 
 ### 実行の非自明な落とし穴
@@ -255,12 +265,12 @@ AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツ�
   - `scripts/run/arukellt-selfhost.sh compile --target wasm32-gc --emit component -o out.component.wasm prog.ark`
   - `wasmtime run --wasm gc --wasm function-references --dir=. out.component.wasm`
   - `run --emit component` を wrapper 経由で使う場合は、出力パス検出のため `-o <path>` を明示すること（未指定だと "component compile produced no output path" になる）。
-- HTTP/sockets や `std::host::fs` を伴う wasm は `scripts/run/arukellt-run-hosted.sh`（host-linker, cargo build 自動）経由になる。
+- filesystem や公式 WASI HTTP/TCP WIT を伴う component は、明示した公式 WIT import と `wasmtime run` の権限（`--dir` など）で実行する。専用 host runner や Rust linker は存在しない。
 - ファイルパスは wrapper が repo root を `--dir` で preopen するため、**リポジトリルート相対**で渡す（絶対パスは "file open error" になりうる）。
 
 ### 検証ゲートの所要時間・前提
 
-- `python3 scripts/manager.py selfhost build-compiler`: コールドキャッシュだと ~5.5 分（overlay cache miss 警告が出る）、ウォームで ~45–50s。emitter 編集後に 1 回だけ実行する。
+- `python3 scripts/manager.py selfhost build-compiler`: コールドキャッシュだと overlay flatten + AOT が乗る。ウォームな wasm32 runtime では **~8–10s**。emitter 編集後に 1 回だけ実行する。
 - `python3 scripts/manager.py lint`（全 2027 `.ark` を wasm で lint）: **~70 分**かかる。編集ループでは `verify lane` を使い、全 lint は必要時のみ。
 - `python3 scripts/manager.py verify quick`: tool 未導入だと数分で fail-fast、tool 導入後は T3 fixture 検証等が実走して ~15 分。`ARUKELLT_CC=clang` を設定すること（native C99 gate は既定 `clang-16` を探すが未導入。generic `clang`=18 を使わせる）。
 - master 上では `verify quick` の `docs consistency` チェックが「generated docs are out of date」で fail することがある（生成物ドリフト、環境とは無関係）。環境セットアップの成否とは切り離して扱う。修正が必要なら `python3 scripts/gen/generate-docs.py` で再生成する（生成物の手編集はしない）。

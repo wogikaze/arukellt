@@ -2,6 +2,7 @@
 
 use component::wit_parse_import
 use component::wit_parse_text
+use component::wit_parse_text_scan
 use resolver::wit_type_map
 
 fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInterface> {
@@ -31,6 +32,24 @@ fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id:
 
 fn wit_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
     wit_interface_id_parts(clone(doc.package), clone(doc.interface))
+}
+
+fn wit_component_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
+    let interface_id = wit_interface_id(doc)
+    let version = wit_parse_text::WitParsedInterface_package_version(doc)
+    if len(version) == 0 {
+        return interface_id
+    }
+    concat(interface_id, concat("@", wit_parse_text_scan::wit_component_version_txt(version)))
+}
+
+fn wit_import_id(doc: wit_parse_text::WitParsedInterface) -> String {
+    let interface_id = wit_interface_id(doc)
+    let version = wit_parse_text::WitParsedInterface_package_version(doc)
+    if len(version) == 0 {
+        return interface_id
+    }
+    concat(interface_id, concat("@", version))
 }
 
 fn wit_interface_id_parts(package: String, interface: String) -> String {

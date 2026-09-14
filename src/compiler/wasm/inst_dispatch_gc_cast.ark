@@ -13,8 +13,7 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
         if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
             let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
             let dest = inst_accessors_shape::MirInst_dest(inst)
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, scrut_local)
+            writer_core::emit_local_get(w, scrut_local)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
             writer_core::emit_leb128_u(w, dest)
             return true
@@ -23,8 +22,7 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
         let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
         let dest = inst_accessors_shape::MirInst_dest(inst)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, scrut_local)
+        writer_core::emit_local_get(w, scrut_local)
         writer_gc::emit_gc_ref_test(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, dest)
@@ -34,8 +32,7 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
         if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
             let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
             let dest = inst_accessors_shape::MirInst_dest(inst)
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, scrut_local)
+            writer_core::emit_local_get(w, scrut_local)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
             writer_core::emit_leb128_u(w, dest)
             return true
@@ -44,8 +41,7 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
         let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
         let dest = inst_accessors_shape::MirInst_dest(inst)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, scrut_local)
+        writer_core::emit_local_get(w, scrut_local)
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, dest)

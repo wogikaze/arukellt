@@ -47,6 +47,15 @@ fn gc_enum_payload_typed_resolve_field_sigs(ctx: LowerCtx, variant_name: String,
     let mut field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, clone(type_name))
     let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(clone(normalized))
+    // For user enum variants the declaration layout describes every payload
+    // field, while the typed call site only carries a type hint for its first
+    // field.  Using `_f1_ref0` for a later GC_REF payload aliases it to the
+    // String reference type and produces invalid `struct.set` operations for
+    // recursive enums such as `List::Cons(i32, List)`.
+    if len(layout_field_sigs) > 0 &&
+    !gc_enum_payload_is_builtin_result_or_option(clone(normalized)) {
+        return layout_field_sigs
+    }
     if is_vec_container {
         if contains(clone(field_sigs), "ref14") || len(field_sigs) == 0 {
             if len(layout_field_sigs) > 0 && !contains(clone(layout_field_sigs), "ref14") {
@@ -79,6 +88,11 @@ fn gc_enum_payload_typed_resolve_field_sigs(ctx: LowerCtx, variant_name: String,
         field_sigs = layout_field_sigs
     }
     field_sigs
+}
+
+fn gc_enum_payload_is_builtin_result_or_option(variant_name: String) -> bool {
+    starts_with(clone(variant_name), "Option::") ||
+    starts_with(clone(variant_name), "Result::")
 }
 
 fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normalized: String, want_sig: String, field_sigs: String, layout_field_sigs: String, type_name: String) -> i32 {

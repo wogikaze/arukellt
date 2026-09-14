@@ -17,7 +17,8 @@ pub fn new(b0: i32, b1: i32, b2: i32, b3: i32,
 
 /// Create a v128 with all bits zeroed.
 pub fn zero() -> v128 {
-    new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    __simd_v128_const(0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0)
 }
 
 // --- Bitwise ---

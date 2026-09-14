@@ -107,17 +107,13 @@ fn emit_mod(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, scratch_a)
         // Compute trunc(a / b) * b, then subtract from a.
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, scratch_a)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, scratch_b)
+        writer_core::emit_local_get(w, scratch_a)
+        writer_core::emit_local_get(w, scratch_b)
         writer_core::emit_byte(w, opcodes::OP_F64_DIV())
         writer_core::emit_byte(w, opcodes::OP_F64_TRUNC())
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, scratch_b)
+        writer_core::emit_local_get(w, scratch_b)
         writer_core::emit_byte(w, opcodes::OP_F64_MUL())
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, scratch_a)
+        writer_core::emit_local_get(w, scratch_a)
         writer_core::emit_byte(w, opcodes::OP_F64_SUB())
     } else {
         if val_type == value_types::VT_I64() {

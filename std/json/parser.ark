@@ -11,12 +11,13 @@
 //!   `parse_content_length`, `find_key_pos`, `json_parse_string_at`,
 //!   `json_decode_escape`, `json_decode_unicode_ascii`, `json_get_str`,
 //!   `json_get_int`) provide low-level field extraction without building a
-//!   DOM.  `\uXXXX` surrogate pairs are not yet supported (#704).
+//!   DOM.  `\uXXXX` surrogate pairs and invalid string escapes are checked.
 //! - Legacy primitive stringify/parse helpers (`json_stringify_i32`,
 //!   `json_parse_i32`, etc.) are preserved for backward compatibility
 //!   with existing fixtures and are not a complete typed serializer.
-//! - Full RFC 8259 conformance (surrogate pairs, strict number grammar) is
-//!   tracked under #704.
+//! - The DOM parser enforces the RFC 8259 string and number grammar used by
+//!   the supported fixtures.  Full external JSONTestSuite coverage is tracked
+//!   under #704.
 
 use std::json
 
@@ -208,6 +209,62 @@ fn find_number_end(s: String, pos: i32) -> i32 {
     i
 }
 
+fn is_json_digit(c: i32) -> bool {
+    c >= 48 && c <= 57
+}
+
+/// Validate the JSON number grammar without converting the value.
+///
+/// `JsonValue::Number` keeps the original spelling, so using `parse_f64`
+/// here would both lose that spelling and reject valid exponent forms on
+/// runtimes whose float parser has a narrower input grammar.
+fn json_number_is_valid(s: String, start: i32, end: i32) -> bool {
+    let mut i = start
+    if i < end && char_at(s, i) == 45 {
+        i = i + 1
+    }
+    if i >= end {
+        return false
+    }
+    if char_at(s, i) == 48 {
+        i = i + 1
+        if i < end && is_json_digit(char_at(s, i)) {
+            return false
+        }
+    } else {
+        if char_at(s, i) < 49 || char_at(s, i) > 57 {
+            return false
+        }
+        while i < end && is_json_digit(char_at(s, i)) {
+            i = i + 1
+        }
+    }
+    if i < end && char_at(s, i) == 46 {
+        i = i + 1
+        let fraction_start = i
+        while i < end && is_json_digit(char_at(s, i)) {
+            i = i + 1
+        }
+        if i == fraction_start {
+            return false
+        }
+    }
+    if i < end && (char_at(s, i) == 101 || char_at(s, i) == 69) {
+        i = i + 1
+        if i < end && (char_at(s, i) == 43 || char_at(s, i) == 45) {
+            i = i + 1
+        }
+        let exponent_start = i
+        while i < end && is_json_digit(char_at(s, i)) {
+            i = i + 1
+        }
+        if i == exponent_start {
+            return false
+        }
+    }
+    i == end
+}
+
 fn find_value_end(s: String, pos: i32) -> i32 {
     let n = len(s)
     if pos >= n {
@@ -296,30 +353,56 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep_err(JsonParseError::EmptyInput, pos)
     }
     let c = char_at(s, pos)
-    if c == 110 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
-        return JsonParseStep_ok(JsonValue::Null, pos + 4)
+    if c == 110 {
+        if n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
+            return JsonParseStep_ok(JsonValue::Null, pos + 4)
+        }
+        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("null")), pos)
     }
-    if c == 116 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
-        return JsonParseStep_ok(JsonValue::Bool(true), pos + 4)
+    if c == 116 {
+        if n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
+            return JsonParseStep_ok(JsonValue::Bool(true), pos + 4)
+        }
+        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("true")), pos)
     }
-    if c == 102 && n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
-        return JsonParseStep_ok(JsonValue::Bool(false), pos + 5)
+    if c == 102 {
+        if n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
+            return JsonParseStep_ok(JsonValue::Bool(false), pos + 5)
+        }
+        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("false")), pos)
     }
     if c == 34 {
-        let end = find_string_end(s, pos + 1)
-        if end < 0 {
-            return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("unterminated string")), pos)
+        let parsed = json::json_parse_string_at(s, pos)
+        if !json::json_str_result_ok(parsed) {
+            return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("string")), pos)
         }
-        let inner = json_decode_string(slice(s, pos + 1, end - 1))
-        return JsonParseStep_ok(JsonValue::Str(inner), end)
+        return JsonParseStep_ok(
+            JsonValue::Str(json::json_str_result_value(parsed)),
+            json::json_str_result_next(parsed)
+        )
     }
     if c == 91 {
         let arr = Vec::new<JsonValue>()
         let mut i = skip_ws(s, pos + 1)
+        let mut has_value = false
+        let mut expect_value = true
         while i < n {
             i = skip_ws(s, i)
             if i < n && char_at(s, i) == 93 {
-                return JsonParseStep_ok(JsonValue::Array(arr), i + 1)
+                if !has_value || !expect_value {
+                    return JsonParseStep_ok(JsonValue::Array(arr), i + 1)
+                }
+                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(93), i)
+            }
+            if !expect_value {
+                if i >= n || char_at(s, i) != 44 {
+                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(char_at(s, i)), i)
+                }
+                i = skip_ws(s, i + 1)
+                if i >= n || char_at(s, i) == 93 {
+                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(93), i)
+                }
+                expect_value = true
             }
             let step = parse_value_at(s, i)
             match step.value {
@@ -327,29 +410,43 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 Result::Err(e) => return JsonParseStep_err(e, i),
             }
             i = skip_ws(s, step.next)
-            if i < n && char_at(s, i) == 44 {
-                i = i + 1
-            }
+            has_value = true
+            expect_value = false
         }
         return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c == 123 {
         let fields = Vec::new<JsonField>()
         let mut i = skip_ws(s, pos + 1)
+        let mut has_field = false
+        let mut expect_field = true
         while i < n {
             i = skip_ws(s, i)
             if i < n && char_at(s, i) == 125 {
-                return JsonParseStep_ok(JsonValue::Object(fields), i + 1)
+                if !has_field || !expect_field {
+                    return JsonParseStep_ok(JsonValue::Object(fields), i + 1)
+                }
+                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(125), i)
+            }
+            if !expect_field {
+                if i >= n || char_at(s, i) != 44 {
+                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(char_at(s, i)), i)
+                }
+                i = skip_ws(s, i + 1)
+                if i >= n || char_at(s, i) == 125 {
+                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(125), i)
+                }
+                expect_field = true
             }
             if char_at(s, i) != 34 {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(char_at(s, i)), i)
             }
-            let key_end = find_string_end(s, i + 1)
-            if key_end < 0 {
-                return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("unterminated string")), i)
+            let parsed_key = json::json_parse_string_at(s, i)
+            if !json::json_str_result_ok(parsed_key) {
+                return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("string")), i)
             }
-            let key = json_decode_string(slice(s, i + 1, key_end - 1))
-            i = skip_ws(s, key_end)
+            let key = json::json_str_result_value(parsed_key)
+            i = skip_ws(s, json::json_str_result_next(parsed_key))
             if i >= n || char_at(s, i) != 58 {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(58), i)
             }
@@ -359,19 +456,18 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 Result::Err(e) => return JsonParseStep_err(e, i),
             }
             i = skip_ws(s, step.next)
-            if i < n && char_at(s, i) == 44 {
-                i = i + 1
-            }
+            has_field = true
+            expect_field = false
         }
         return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c >= 48 && c <= 57 || c == 45 {
         let end = find_number_end(s, pos)
         let raw = slice(s, pos, end)
-        match parse_f64(raw) {
-            Result::Ok(_) => return JsonParseStep_ok(JsonValue::Number(raw), end),
-            Result::Err(_) => return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos),
+        if json_number_is_valid(s, pos, end) {
+            return JsonParseStep_ok(JsonValue::Number(raw), end)
         }
+        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos)
     }
     JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
 }

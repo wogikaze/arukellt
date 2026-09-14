@@ -1,0 +1,157 @@
+{
+  "schema": "arukellt-selfhost-overlay-gate-summary-v1",
+  "recorded_at": "2026-09-11T23:19:30Z",
+  "host": ".build/selfhost/flat-src/three-s3.wasm",
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "source_cacheless": true,
+  "host_aot_cache": "reused serialized module for the runner",
+  "compiler_gc_heap_pregrow_bytes": 484442112,
+  "s2_sha256": "bc74bbb25fd5d9d904f9041cd4aecf0f25d3376cba12ebd6ec482e9a64c12856",
+  "s3_sha256": "bc74bbb25fd5d9d904f9041cd4aecf0f25d3376cba12ebd6ec482e9a64c12856",
+  "s2_eq_s3": true,
+  "s3_valid": true,
+  "output_bytes": 7006424,
+  "samples": [
+    {
+      "run": 1,
+      "rc": 0,
+      "wall_ms": 8915,
+      "rss_max_kb": 987516,
+      "guest_total_ms": 7619
+    },
+    {
+      "run": 2,
+      "rc": 0,
+      "wall_ms": 9146,
+      "rss_max_kb": 989740,
+      "guest_total_ms": 7804
+    },
+    {
+      "run": 3,
+      "rc": 0,
+      "wall_ms": 8984,
+      "rss_max_kb": 989716,
+      "guest_total_ms": 7663
+    },
+    {
+      "run": 4,
+      "rc": 0,
+      "wall_ms": 9077,
+      "rss_max_kb": 989992,
+      "guest_total_ms": 7746
+    },
+    {
+      "run": 5,
+      "rc": 0,
+      "wall_ms": 8834,
+      "rss_max_kb": 989796,
+      "guest_total_ms": 7537
+    },
+    {
+      "run": 6,
+      "rc": 0,
+      "wall_ms": 8980,
+      "rss_max_kb": 989776,
+      "guest_total_ms": 7657
+    },
+    {
+      "run": 7,
+      "rc": 0,
+      "wall_ms": 9010,
+      "rss_max_kb": 989976,
+      "guest_total_ms": 7671
+    },
+    {
+      "run": 8,
+      "rc": 0,
+      "wall_ms": 8970,
+      "rss_max_kb": 986788,
+      "guest_total_ms": 7664
+    },
+    {
+      "run": 9,
+      "rc": 0,
+      "wall_ms": 9013,
+      "rss_max_kb": 988972,
+      "guest_total_ms": 7709
+    },
+    {
+      "run": 10,
+      "rc": 0,
+      "wall_ms": 8887,
+      "rss_max_kb": 989848,
+      "guest_total_ms": 7588
+    }
+  ],
+  "wall_ms": {
+    "median": 8982.0,
+    "p95": 9077,
+    "min": 8834,
+    "max": 9146
+  },
+  "guest_total_ms": {
+    "median": 7663.5,
+    "p95": 7746,
+    "min": 7537,
+    "max": 7804
+  },
+  "rss_max_kb": {
+    "median": 989758.0,
+    "p95": 989976,
+    "min": 986788,
+    "max": 989992
+  },
+  "user_goal": {
+    "wall_p95_lt_10000": true,
+    "rss_max_lt_1000000": true,
+    "all_runs_exit_zero": true
+  },
+  "canonical_plan_gate": {
+    "wall_median_le_7000": false,
+    "rss_max_le_524288": false
+  },
+  "notes": "Current-source 10-run candidate gate; latest_source_recheck is the final 3-run sample after the CoreHIR boundary and selfhost-only host-linker pregrow changes. The default pregrow is 450 MiB, leaving margin below a decimal 1 GB RSS reading. wasm-tools validate passed for every recheck output; all outputs had the same SHA-256. The stricter plan gate remains open because its 7 s median and 512 MiB RSS requirements are intentionally unchanged.",
+  "latest_source_recheck": {
+    "source_revision": "compiler-pregrow-450mib-final-2026-09-12",
+    "pregrow_bytes": 471859200,
+    "samples": [
+      {
+        "run": 1,
+        "rc": 0,
+        "wall_ms": 9076,
+        "rss_max_kb": 965208,
+        "guest_total_ms": 7691,
+        "sha256": "bc74bbb25fd5d9d904f9041cd4aecf0f25d3376cba12ebd6ec482e9a64c12856",
+        "valid": true
+      },
+      {
+        "run": 2,
+        "rc": 0,
+        "wall_ms": 9009,
+        "rss_max_kb": 964916,
+        "guest_total_ms": 7686,
+        "sha256": "bc74bbb25fd5d9d904f9041cd4aecf0f25d3376cba12ebd6ec482e9a64c12856",
+        "valid": true
+      },
+      {
+        "run": 3,
+        "rc": 0,
+        "wall_ms": 8961,
+        "rss_max_kb": 965152,
+        "guest_total_ms": 7626,
+        "sha256": "bc74bbb25fd5d9d904f9041cd4aecf0f25d3376cba12ebd6ec482e9a64c12856",
+        "valid": true
+      }
+    ],
+    "all_runs_exit_zero": true,
+    "rss_max_kb": 965208,
+    "wall_max_ms": 9076,
+    "output_sha256": [
+      "bc74bbb25fd5d9d904f9041cd4aecf0f25d3376cba12ebd6ec482e9a64c12856"
+    ],
+    "all_valid": true
+  },
+  "initial_gate_pregrow_bytes": 484442112,
+  "final_default_pregrow_bytes": 471859200
+}

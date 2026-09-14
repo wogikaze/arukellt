@@ -31,8 +31,7 @@ fn emit_hm_slot_get_gc(
 ) {
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_idx)
+    writer_core::emit_local_get(w, s_idx)
     if array_type == i32_array_type {
         writer_gc::emit_gc_array_get_i32(w, array_type)
     } else {
@@ -51,10 +50,8 @@ fn emit_hm_slot_set_gc(
 ) {
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_idx)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_val)
+    writer_core::emit_local_get(w, s_idx)
+    writer_core::emit_local_get(w, s_val)
     if array_type == i32_array_type {
         writer_gc::emit_gc_array_set_i32(w, array_type)
     } else {

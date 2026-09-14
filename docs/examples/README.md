@@ -13,7 +13,7 @@
 ## Run
 
 ```bash
-target/release/arukellt run docs/examples/hello.ark
+bash scripts/run/arukellt-selfhost.sh run docs/examples/hello.ark
 ```
 
 ## Examples

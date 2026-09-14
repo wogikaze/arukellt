@@ -7,10 +7,7 @@
  * @module
  */
 
-import type {
-  CompileOptions,
-  RunOptions,
-} from "./compiler-types.js";
+import type { CompileOptions } from "./compiler-types.js";
 import {
   engineVersion,
   formatSource,
@@ -20,8 +17,6 @@ import {
   typecheckSource,
   typecheckSourceWithCompilerBytesSync,
   compileSource,
-  runWasm,
-  runSource as runSourceWithEngine,
 } from "./engine.js";
 import type {
   Playground,
@@ -46,17 +41,13 @@ import type {
  * console.log(result.ok); // true
  * ```
  *
- * @param enginePath - Reserved for backward compatibility with the former
- *   Wasm-backed API. The browser-native engine is bundled with this package.
- * @param opts - Playground configuration. `wasmUrl` is accepted for backward
- *   compatibility and is not fetched.
+ * @param opts - Playground configuration. `wasmUrl` points to the compiler
+ *   Wasm module used for compiler-backed type checking.
  * @returns An initialised {@link Playground} instance.
  */
 export async function createPlayground(
-  enginePath: string,
   opts: PlaygroundOptions,
 ): Promise<Playground> {
-  void enginePath;
   const compilerBytes = await loadCompilerBytes(opts.wasmUrl);
   if (compilerBytes) {
     configureTypecheckCompilerWasm(compilerBytes);
@@ -105,20 +96,6 @@ export async function createPlayground(
     compile(source: string, options?: CompileOptions) {
       ensureAlive();
       return compileSource(source, options);
-    },
-
-    run(wasmBytes: Uint8Array, options?: RunOptions) {
-      ensureAlive();
-      return runWasm(wasmBytes, options);
-    },
-
-    runSource(
-      source: string,
-      compileOptions?: CompileOptions,
-      runOptions?: RunOptions,
-    ) {
-      ensureAlive();
-      return runSourceWithEngine(source, compileOptions, runOptions);
     },
 
     version(): string {

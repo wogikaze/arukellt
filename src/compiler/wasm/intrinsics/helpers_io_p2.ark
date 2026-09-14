@@ -11,8 +11,7 @@ use wasm::opcodes
 fn emit_p2_write_string_local(w: WasmWriter, string_local: i32, get_stream_import_idx: i32) {
     helpers_io_calls::emit_call(w, get_stream_import_idx)
     helpers_io_layout::emit_wasi_ptr_from_heap_local(w, string_local)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, string_local)
+    writer_core::emit_local_get(w, string_local)
     helpers_io_layout::emit_string_len_from_stack(w)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
     helpers_io_calls::emit_call(w, constants::P2_IMPORT_BWAF())

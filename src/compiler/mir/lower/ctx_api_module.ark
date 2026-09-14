@@ -1,7 +1,9 @@
 use mir::lower::ctx_module
+use mir::mono_names
 use mir::post_pass_type_propagate
-use mir::typed_mir_sync_module
 use mir::source_location_record
+use mir::type_contracts
+use mir::typed_mir_sync_module
 
 fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) { ctx_module::ctx_push_module_function(ctx, func) }
 fn ctx_push_current_function(ctx: LowerCtx) { ctx_module::ctx_push_current_function(ctx) }
@@ -15,7 +17,112 @@ fn ctx_sync_typed_value_types(ctx: LowerCtx) {
     // second full-module sync is not required.
     post_pass_type_propagate::mir_module_propagate_local_types(m)
 }
-fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) { ctx.mono_instances = instances }
+fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) {
+    ctx.mono_instances = instances
+    let count = len(instances)
+    let mut capacity = 16
+    let required = count * 2
+    while capacity < required {
+        capacity = capacity * 2
+    }
+    let buckets = Vec::new<i32>()
+    let mut bi = 0
+    while bi < capacity {
+        push(buckets, 0)
+        bi = bi + 1
+    }
+    ctx.mono_inst_keys = Vec::new<String>()
+    ctx.mono_inst_vals = Vec::new<i32>()
+    ctx.mono_inst_buckets = buckets
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(instances, i)
+        ctx_mono_inst_insert_first(
+            ctx,
+            mono_names::mono_safe_name(type_contracts::MonoInstance_mangled_name(inst)),
+            i
+        )
+        i = i + 1
+    }
+}
+
+fn ctx_mono_inst_insert_first(ctx: LowerCtx, name: String, value: i32) {
+    let slot = ctx_mono_inst_probe_slot(ctx, clone(name))
+    if slot < 0 {
+        return
+    }
+    if get_unchecked(ctx.mono_inst_buckets, slot) != 0 {
+        return
+    }
+    push(ctx.mono_inst_keys, name)
+    push(ctx.mono_inst_vals, value)
+    set(ctx.mono_inst_buckets, slot, len(ctx.mono_inst_keys))
+}
+
+fn ctx_mono_inst_probe_slot(ctx: LowerCtx, name: String) -> i32 {
+    let capacity = len(ctx.mono_inst_buckets)
+    if capacity <= 0 {
+        return 0 - 1
+    }
+    let fnv_offset = 216613626
+    let fnv_prime = 16777619
+    let mut hash = fnv_offset
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * fnv_prime ^ char_at(name, hi)
+        if hash < 0 {
+            hash = 0 - hash
+        }
+        hi = hi + 1
+    }
+    if hash < 0 {
+        hash = 0
+    }
+    let mut slot = hash % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let bucket = get_unchecked(ctx.mono_inst_buckets, slot)
+        if bucket == 0 {
+            return slot
+        }
+        let key = get_unchecked(ctx.mono_inst_keys, bucket - 1)
+        let mut same = len(key) == name_len
+        if same {
+            let mut i = 0
+            while i < name_len {
+                if char_at(key, i) != char_at(name, i) {
+                    same = false
+                    i = name_len
+                } else {
+                    i = i + 1
+                }
+            }
+        }
+        if same {
+            return slot
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
+    }
+    0 - 1
+}
+
+fn ctx_mono_instance_at(ctx: LowerCtx, mangled: String) -> MonoInstance {
+    let slot = ctx_mono_inst_probe_slot(ctx, mono_names::mono_safe_name(mangled))
+    if slot < 0 {
+        return type_contracts::MonoInstance_new(String_new(), String_new(), Vec::new<TypeInfo>())
+    }
+    let bucket = get_unchecked(ctx.mono_inst_buckets, slot)
+    if bucket == 0 {
+        return type_contracts::MonoInstance_new(String_new(), String_new(), Vec::new<TypeInfo>())
+    }
+    let inst_index = get_unchecked(ctx.mono_inst_vals, bucket - 1)
+    if inst_index < 0 || inst_index >= len(ctx.mono_instances) {
+        return type_contracts::MonoInstance_new(String_new(), String_new(), Vec::new<TypeInfo>())
+    }
+    get_unchecked(ctx.mono_instances, inst_index)
+}
 fn ctx_fn_source_location_at(ctx: LowerCtx, fn_info_index: i32) -> SourceLocation {
     if fn_info_index >= 0 && fn_info_index < len(ctx.fn_source_locations) {
         return get_unchecked(ctx.fn_source_locations, fn_info_index)

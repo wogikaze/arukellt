@@ -8,62 +8,49 @@ ROOT="$(examples_repo_root)"
 OUT_REL=".build/examples/ark-link-compiled"
 OUT="$ROOT/$OUT_REL"
 CONSUMER_ARK="examples/ark/link-compiled/consumer/client.ark"
-PROVIDER_DIR="$ROOT/examples/rust/host-provider"
+PROVIDER_WIT="examples/ark/link-compiled/provider.wit"
 SOCKET_REL="$OUT_REL/client.component.wasm"
+PROVIDER_REL="$OUT_REL/provider.component.wasm"
 COMPOSED_REL="$OUT_REL/composed.component.wasm"
 
 cd "$ROOT"
 
 ARUKELLT="$(examples_find_arukellt "$ROOT" || true)"
-WASMTIME="$(examples_find_wasmtime || true)"
 WT="$(examples_find_wasm_tools || true)"
+WAC="$(command -v wac 2>/dev/null || true)"
 
 if [[ -z "$ARUKELLT" ]]; then
-    echo "SKIP: arukellt not found"
+    echo "SKIP: arukellt selfhost wrapper not found"
     exit 0
 fi
-if [[ -z "$WT" ]] || ! command -v cargo >/dev/null; then
-    echo "SKIP: need wasm-tools and cargo"
+if [[ -z "$WT" || -z "$WAC" ]]; then
+    echo "SKIP: need wasm-tools and wac"
     exit 0
 fi
 
 mkdir -p "$OUT"
 
-echo "[1/4] build Rust host provider"
-( cd "$PROVIDER_DIR" && cargo component build --release )
-PROVIDER_WASM="$PROVIDER_DIR/target/wasm32-wasip1/release/wit_import_host_provider.wasm"
-PROVIDER_REL="examples/rust/host-provider/target/wasm32-wasip1/release/wit_import_host_provider.wasm"
-[[ -f "$PROVIDER_WASM" ]] || { echo "FAIL: missing provider wasm"; exit 1; }
+echo "[1/3] package official WIT provider"
+"$WT" component embed "$PROVIDER_WIT" --world provider \
+    --dummy-names standard32 -o "$OUT/provider.core.wasm"
+"$WT" component new "$OUT/provider.core.wasm" \
+    --reject-legacy-names --realloc-via-memory-grow \
+    -o "$OUT/provider.component.wasm"
 
-echo "[2/4] compile Ark consumer socket (WIT import)"
+echo "[2/3] compile Ark consumer socket (WIT import)"
 examples_compile "$ARUKELLT" modern compile \
     "$CONSUMER_ARK" \
     --target wasm32-gc \
-    --wasi-version p2 \
+    --wasi-version wasi-p2 \
     --emit component \
     -o "$SOCKET_REL"
 
-echo "[3/4] compose --validate (link provider into consumer socket)"
-compose_out="$(examples_compile "$ARUKELLT" modern compose --validate \
-    --plug "$PROVIDER_REL" "$SOCKET_REL" \
-    -o "$COMPOSED_REL" 2>&1)"
-echo "$compose_out" | tail -3
-echo "$compose_out" | grep -q "compose: validation ok" || {
-    echo "FAIL: compose validation did not pass"
-    exit 1
-}
+echo "[3/3] compose and validate with wac"
+examples_compile "$ARUKELLT" modern compose \
+    --validate --plug "$PROVIDER_REL" "$SOCKET_REL" \
+    -o "$COMPOSED_REL"
+wac plug --plug "$OUT/provider.component.wasm" \
+    "$OUT/client.component.wasm" -o "$OUT/composed.component.wasm"
+"$WT" validate "$OUT/composed.component.wasm"
 
-echo "[4/4] optional runtime invoke (wac plug + wasmtime)"
-if command -v wac >/dev/null && [[ -n "$WASMTIME" ]]; then
-    if wac plug --plug "$PROVIDER_WASM" "$OUT/client.component.wasm" -o "$OUT/composed.component.wasm" 2>/dev/null; then
-        got="$("$WASMTIME" run --wasm gc --wasm component-model --invoke 'run()' "$OUT/composed.component.wasm" 2>/dev/null || true)"
-        if [[ "$got" == "42" ]]; then
-            echo "      runtime invoke run() -> 42"
-            echo "PASS ark/link-compiled (validate + runtime)"
-            exit 0
-        fi
-    fi
-    echo "      note: runtime invoke skipped (P2 socket + local wac/wasmtime); validate step succeeded"
-fi
-
-echo "PASS ark/link-compiled (compose validate)"
+echo "PASS ark/link-compiled (official WIT provider + Ark consumer)"

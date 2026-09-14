@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Close gate for #819: runtime-classified CoreOps use explicit versioned payloads."""
+"""Close gate for #819: runtime lowering stays in Ark and uses official P2 imports."""
 from __future__ import annotations
 
 import sys
-import tomllib
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 compatibility
+    import tomli as tomllib  # type: ignore[no-redef]
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -43,39 +47,20 @@ def main() -> int:
                 if not str(runtime.get(field, "")).strip():
                     return fail(f"{op_id} has incomplete WIT runtime payload: {field}")
 
-    required = {
-        "runtime.fs_read_dir",
-        "runtime.fs_metadata",
-        "runtime.fs_remove_file",
-        "runtime.fs_create_dir_all",
-        "runtime.env_vars",
-        "runtime.env_current_dir",
-    }
-    ids = {op.get("id") for op in runtime_ops}
-    if not required <= ids:
-        return fail(f"missing production fs/env CoreOps: {sorted(required - ids)}")
-    by_id = {op.get("id"): op for op in runtime_ops}
-    for op_id in required:
-        runtime = by_id[op_id].get("lowering", {}).get("runtime", {})
-        if runtime.get("kind") != "internal" or runtime.get("abi_version") != "0.1":
-            return fail(f"{op_id} is not bound to internal runtime ABI 0.1")
-
     wasm = ROOT / "src/compiler/wasm"
     if list(wasm.glob("call_host*.ark")):
         return fail("legacy call_host modules remain")
-    for family in ("http", "sockets", "fs", "env", "process"):
+    for family in ("http", "sockets", "stream", "udp"):
         if list(wasm.glob(f"intrinsic_{family}*.ark")):
             return fail(f"legacy intrinsic_{family} emitter ownership remains")
-    dispatch = (wasm / "core_op_dispatch.ark").read_text(encoding="utf-8")
-    if "call_runtime::try_emit_host_call" not in dispatch:
-        return fail("CoreOp dispatch is not routed through call_runtime")
     imports = (wasm / "sections_imports.ark").read_text(encoding="utf-8")
-    if "arukellt:runtime/host@0.1.0" not in imports:
-        return fail("versioned runtime core import module missing")
-    if "runtime_fs_read_dir" not in imports or "runtime_env_current_dir" not in imports:
-        return fail("expanded runtime import surface missing")
+    if "cm32p2|wasi:" not in imports:
+        return fail("P2 lowering does not use official WASI core import names")
+    for marker in ("arukellt:runtime", "arukellt_host", "p2_component_wrap"):
+        if marker in imports:
+            return fail(f"repository-specific compatibility marker remains in imports: {marker}")
 
-    print(f"gate-819-runtime-abi-core-op-lowering: PASS ({len(runtime_ops)} runtime CoreOps)")
+    print(f"gate-819-runtime-abi-core-op-lowering: PASS ({len(runtime_ops)} Ark runtime CoreOps; official P2 imports)")
     return 0
 
 

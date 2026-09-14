@@ -1,5 +1,5 @@
 // Export a small math API as a Wasm component.
-// Hosts (Rust, JS, wasmtime CLI, another Ark socket) call these via the Component Model.
+// Hosts (JS, Wasmtime CLI, or another Ark component) call these via the Component Model.
 pub fn add(a: i32, b: i32) -> i32 {
     a + b
 }

@@ -233,6 +233,9 @@ fn is_option_string_hash_query(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "HashMap_i32_String_get") {
         return true
     }
+    if callee_eq(clone(callee_name), "HashMap_i32_String_remove") {
+        return true
+    }
     if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_get") {
         return true
     }

@@ -3,13 +3,13 @@
 Shows the **compile-once, call-from-anywhere** path:
 
 1. `calculator.ark` defines `pub fn` exports with component-compatible scalar types.
-2. `arukellt compile --target wasm32-gc --emit component` produces
-   `calculator.component.wasm` with inline WIT metadata and canonical-ABI exports.
-3. Any host with component-model support invokes exports (wasmtime, Rust, JS).
+2. `arukellt compile --target wasm32-gc --emit component` emits a standard WASI P2
+   core module, then packages it as `calculator.component.wasm` with the official
+   `wasm-tools component embed/new` pipeline and canonical-ABI exports.
+3. Any host with Component Model support invokes exports (Wasmtime or JS).
 
 The same artifact is reused by:
 
-- [`../../rust/invoke-component/`](../rust/invoke-component/README.md)
 - [`../../js/invoke-component/`](../js/invoke-component/README.md)
 
 ## Run
@@ -36,28 +36,9 @@ wasmtime run --wasm gc --wasm component-model \
 # => 7
 ```
 
-## Appendix: external WIT + wasm-tools embed
-
-When you need a hand-authored WIT package name or custom world, you can still embed WIT
-externally:
-
-```bash
-scripts/run/arukellt-selfhost.sh compile \
-  examples/ark/export-library/calculator.ark \
-  --target wasm32 --emit wasm \
-  -o .build/examples/ark-export/calculator.core.wasm
-
-wasm-tools component embed examples/ark/export-library/calculator.wit \
-  .build/examples/ark-export/calculator.core.wasm \
-  -o .build/examples/ark-export/calculator.embed.wasm
-
-wasm-tools component new .build/examples/ark-export/calculator.embed.wasm \
-  --adapt wasi_snapshot_preview1=.build/examples/ark-export/wasi_snapshot_preview1.reactor.wasm \
-  -o .build/examples/ark-export/calculator.component.wasm
-```
-
 ## Notes
 
-- String / list / record exports need canonical ABI adapters; stick to scalars for portable interop today.
+- Scalar exports are the portable library boundary currently supported by the standard
+  P2 core emitter. Unsupported aggregate signatures are rejected before packaging.
 - Core Wasm (`--emit wasm`) is a separate artifact; components add the canonical ABI boundary.
 - Library modules with both `pub fn` exports and a `main` entry compile as library components when exports are present; command-only programs use the P2 command wrapper.

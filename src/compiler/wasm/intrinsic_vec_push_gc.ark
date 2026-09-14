@@ -244,6 +244,7 @@ fn emit_gc_push_store_finish(
 
     if !is_void_push {
         helpers_core::emit_local_get(w, vec_local)
+        writer_gc::emit_gc_ref_cast(w, vec_type)
         return
     }
     if next_op == mir_opcodes::MIR_DROP() {

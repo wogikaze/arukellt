@@ -4,7 +4,7 @@ Demonstrates **Ark ↔ compiled component** interop:
 
 | Role | Artifact | Source |
 |------|----------|--------|
-| Provider (implements `test:host/math`) | `host-provider.component.wasm` | [`../../rust/host-provider/`](../../rust/host-provider/README.md) — built once from Rust |
+| Provider (implements `test:host/math`) | `provider.component.wasm` | `provider.wit` — packaged with official `wasm-tools` |
 | Consumer socket (imports `test:host/math`) | `client.ark` → `client.component.wasm` | This directory |
 
 `client.ark` uses WIT package import syntax:
@@ -18,8 +18,9 @@ pub fn run() -> i32 {
 ```
 
 `ark.toml` vendors the WIT package under `vendor/host/`. After both sides are compiled to
-components, `arukellt compose --plug` (or `wac plug`) links them; `wasmtime --invoke 'run()'`
-returns `42`.
+components, `arukellt compose --validate` and `wac plug` link them. The provider is a
+standard WIT-based component placeholder; execution belongs to the host that supplies
+the provider implementation.
 
 ## Alternative: Ark provider
 
@@ -33,6 +34,5 @@ and plug it into a **func-import** socket (`import add: func(...)`). The example
 bash examples/ark/link-compiled/run.sh
 ```
 
-Requires: `cargo`, `wasm-tools`, `wac`, `wasmtime`, and a selfhost compiler wasm with WIT
-import support (`.build/selfhost/arukellt-s2.wasm` from `python scripts/manager.py selfhost fixpoint --build`,
-or set `ARUKELLT_SELFHOST_WASM`).
+Requires: `wasm-tools`, `wac`, and a selfhost compiler wasm with WIT import support
+(`.build/selfhost/arukellt-s2.wasm`, or set `ARUKELLT_SELFHOST_WASM`).

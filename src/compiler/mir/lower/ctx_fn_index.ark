@@ -1,4 +1,6 @@
 use collections::name_index
+use corehir::frontend_decl_kind
+use corehir::frontend_ast_node
 
 fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
     len(ctx.fn_names)
@@ -72,4 +74,27 @@ fn ctx_fn_index_push(ctx: LowerCtx, name: String, return_vt: i32, return_type_na
     push(ctx.fn_names, name)
     push(ctx.fn_return_vts, return_vt)
     push(ctx.fn_return_type_names, return_type_name)
+}
+
+fn ctx_set_const_names(ctx: LowerCtx, decls: Vec<AstNode>) {
+    ctx.const_names = Vec::new<String>()
+    let mut i = 0
+    while i < len(decls) {
+        let decl = get_unchecked(decls, i)
+        if frontend_decl_kind::corehir_kind_is_decl_const(frontend_ast_node::corehir_node_kind(decl)) {
+            push(ctx.const_names, frontend_ast_node::corehir_node_text(decl))
+        }
+        i = i + 1
+    }
+}
+
+fn ctx_is_const_name(ctx: LowerCtx, name: String) -> bool {
+    let mut i = len(ctx.const_names) - 1
+    while i >= 0 {
+        if eq(get_unchecked(ctx.const_names, i), clone(name)) {
+            return true
+        }
+        i = i - 1
+    }
+    false
 }

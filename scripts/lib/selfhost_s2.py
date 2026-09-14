@@ -1,8 +1,8 @@
 """Resolve or build the current-source selfhost compiler wasm (s2/s3).
 
 Gates and component interop tests use this helper so CI exercises the latest
-selfhost compiler artifact instead of ``target/debug/arukellt`` or the pinned
-bootstrap reference wasm.
+selfhost compiler artifact instead of an external compiler binary or the
+pinned bootstrap reference wasm.
 """
 
 from __future__ import annotations

@@ -39,7 +39,7 @@ and the responsible CI job/log pointer.
 - No side effects on shared state
 
 **Naming Convention**:
-- Test files: `tests/unit/<module>_test.rs` or `<module>.test.ark`
+- Test files: `tests/unit/<module>.test.ark`
 - Test functions: `test_<function_name>` or `test_<scenario>`
 
 **CI Job**: `verification` (no separate unit-tests job in ci.yml)
@@ -89,7 +89,7 @@ and the responsible CI job/log pointer.
 - Tests are deterministic and repeatable
 
 **Naming Convention**:
-- Test files: `tests/integration/<scenario>.rs` or `<scenario>.test.ark`
+- Test files: `tests/integration/<scenario>.test.ark`
 - Test directories: `tests/integration/<scenario>/` (for multi-file tests)
 
 **CI Job**: `verification`
@@ -143,7 +143,7 @@ Retired public names (must not appear as current contracts):
 - Imported functions are correctly bound
 
 **Naming Convention**:
-- Test files: `tests/component-interop/<scenario>.rs` or `<scenario>.ark`
+- Test files: `tests/component-interop/<scenario>.ark`
 - Component outputs: `tests/component-interop/<scenario>.component.wasm`
 - WIT outputs: `tests/component-interop/<scenario>.wit`
 
@@ -171,7 +171,7 @@ Retired public names (must not appear as current contracts):
   exit-code reporting
 
 **Naming Convention**:
-- Test files: `tests/package-workspace/<scenario>.rs` or `<scenario>.test.ark`
+- Test files: `tests/package-workspace/<scenario>.test.ark`
 - Manifest files: `tests/package-workspace/<scenario>/ark.toml`
 - Shell integration tests: `scripts/run/test-package-workspace.sh`
 
@@ -221,7 +221,7 @@ Retired public names (must not appear as current contracts):
 
 **Naming Convention**:
 - Test files: `tests/editor-tooling/<feature>.test.ts` (for VS Code extension)
-- LSP tests: `tests/editor-tooling/lsp_<feature>.rs`
+- LSP tests: `tests/editor-tooling/lsp_<feature>.test.ark`
 
 **CI Job**: `extension-tests` (+ LSP/DAP checks in verification)
 
@@ -267,7 +267,7 @@ Retired public names (must not appear as current contracts):
 - No hidden sources of non-determinism
 
 **Naming Convention**:
-- Test files: `tests/determinism/<scenario>.rs`
+- Test files: `tests/determinism/<scenario>.test.ark`
 
 **CI Job**: harness / checklist — **not** a top-level ci.yml job
 

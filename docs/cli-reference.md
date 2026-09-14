@@ -26,17 +26,16 @@ arukellt doc --html -o <output.html>
 
 ```bash
 arukellt doc println
-arukellt doc --json std::host::http::get
+arukellt doc --json std::host::fs::read_to_string
 arukellt doc --html -o docs/docs/std/index.html
 ```
 
 ### `component`
 
 Build, inspect, and validate WebAssembly components.
-`component build` sets `--emit component` on the compile pipeline
-(`src/compiler/main/component_cmd.ark`). The command currently passes the
-legacy alias `wasm32-wasi-p2` (W0002); the public canonical target is
-`wasm32-gc`. Prefer the explicit form:
+`component build` sets `--emit component`, the canonical `wasm32-gc` target,
+and the official `wasi-p2` host profile on the compile pipeline
+(`src/compiler/main/component_cmd.ark`). Prefer the explicit form:
 
 `arukellt compile --target wasm32-gc --emit component`.
 
@@ -83,6 +82,6 @@ See [`current-state.md`](current-state.md) for `compile`, `run`, `check`, `build
 
 ## Host capability defaults
 
-WASI P2 host capabilities are explicit runtime authorities. Filesystem access is deny-by-default and requires a preopened directory (for example Wasmtime `--dir`). HTTP and sockets require the runtime network/HTTP grants used by the embedding runtime. Environment access sees only values supplied by the runtime. Process `exit`/`abort` are available by default on supported host targets; `--deny-process` rejects programs that use those process-control intrinsics during compilation/checking. `--deny-clock` and `--deny-random` provide the analogous compile-time deny controls for clock and host randomness.
+WASI P2 host capabilities are explicit runtime authorities. Filesystem access is deny-by-default and requires a preopened directory (for example Wasmtime `--dir`). Environment access sees only values supplied by the runtime. The repository does not provide HTTP/socket facade APIs or network permission flags; networking must be imported through an official WASI Component and granted by the embedding runtime. Process `exit`/`abort` are available by default on supported host targets; `--deny-process` rejects programs that use those process-control intrinsics during compilation/checking. `--deny-clock` and `--deny-random` provide the analogous compile-time deny controls for clock and host randomness.
 
 The compiler does not manufacture a process ID on WASI 0.2: `std::host::process::id()` returns `Err`. Runtime directory traversal outside a granted preopen is rejected by the WASI filesystem boundary.

@@ -44,12 +44,20 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
     if vt == value_types::VT_I64() { return 2 }
     if vt == value_types::VT_F64() { return 3 }
     if vt == value_types::VT_F32() { return 9 }
+    if vt == value_types::VT_V128() { return 40 }
+    if vt == value_types::VT_FUNCREF() { return 20 }
     if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() { return 5 }
     if vt == value_types::VT_VOID() { return 0 }
     1
 }
 
 fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
+    if eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fn(")) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), clone(type_name), Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NULLABLE())
+    }
     if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_LINEAR_PTR(), kinds::NULLABILITY_NULLABLE())

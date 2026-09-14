@@ -4,19 +4,19 @@ use corehir::mod
 use loader::module_state_modules
 
 struct CheckedProgram {
-    bundle: FrontendBundle,
+    all_decls: Vec<AstNode>,
     core_program: CoreHirRawProgram,
     session: CompileSession,
     main_decls: Vec<AstNode>,
 }
 
 fn CheckedProgram_new(
-    bundle: FrontendBundle,
+    all_decls: Vec<AstNode>,
     core_program: CoreHirRawProgram,
     session: CompileSession,
     main_decls: Vec<AstNode>
 ) -> CheckedProgram {
-    CheckedProgram { bundle: bundle, core_program: core_program, session: session, main_decls: main_decls }
+    CheckedProgram { all_decls: all_decls, core_program: core_program, session: session, main_decls: main_decls }
 }
 
 fn build_checked_program_bundle(
@@ -49,12 +49,18 @@ fn build_checked_program(
     all_decls: Vec<AstNode>,
     check_result: TypeCheckResult,
     modules: Vec<ModuleDecls>,
-    main_decls: Vec<AstNode>
+    main_decls: Vec<AstNode>,
+    include_body_artifact: bool
 ) -> CheckedProgram {
     let bundle = build_checked_program_bundle(all_decls, check_result, modules, main_decls)
-    let core_program = mod::build_from_frontend_bundle(bundle)
+    let retained_decls = frontend_bundle::bundle_decls(bundle)
+    let core_program = if include_body_artifact {
+        mod::build_from_frontend_bundle(bundle)
+    } else {
+        mod::build_from_frontend_bundle_without_bodies(bundle)
+    }
     let session = session::CompileSession_build(core_program)
-    CheckedProgram_new(bundle, core_program, session, main_decls)
+    CheckedProgram_new(retained_decls, core_program, session, main_decls)
 }
 
 fn checked_program_session(program: CheckedProgram) -> CompileSession {
@@ -74,5 +80,5 @@ fn checked_program_wit_decls(program: CheckedProgram) -> Vec<AstNode> {
 }
 
 fn checked_program_all_decls(program: CheckedProgram) -> Vec<AstNode> {
-    frontend_bundle::bundle_decls(program.bundle)
+    program.all_decls
 }

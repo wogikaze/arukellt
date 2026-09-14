@@ -61,15 +61,15 @@ def main() -> int:
             print("FAIL doc --json println invalid JSON", file=sys.stderr)
             failures += 1
 
-    r = _run(compiler, root, ["doc", "--target", "wasm32-gc", "std::host::http"])
+    r = _run(compiler, root, ["doc", "--target", "wasm32-gc", "std::host::fs"])
     if r.returncode != 0 or "Functions:" not in r.stdout:
-        print("FAIL doc module std::host::http", file=sys.stderr)
+        print("FAIL doc module std::host::fs", file=sys.stderr)
         failures += 1
 
-    r = _run(compiler, root, ["doc", "--target", "wasm32", "std::host::sockets::connect"])
+    r = _run(compiler, root, ["doc", "--target", "wasm32", "std::host::fs::read_to_string"])
     out = r.stdout + r.stderr
     if r.returncode != 0 or "Not available" not in out:
-        print("FAIL doc target filter sockets::connect", file=sys.stderr)
+        print("FAIL doc target filter std::host::fs::read_to_string", file=sys.stderr)
         failures += 1
 
     r = _run(compiler, root, ["doc", "std::core"])

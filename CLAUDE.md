@@ -163,6 +163,16 @@
 比較的よい基準: `analysis/doc_scan.ark`、`fmt/range.ark` のように短い名前付き処理を順に追えるコード。
 明確に避けるパターン: `main/args_parse.ark` のような深い分岐、薄い転送 facade、多数の bool 引数 constructor、壊れた巨大インデントや minify 埋め込み。
 
+## Active mission: selfhost compiler core rewrite (gc-host overlay)
+
+When work touches wasm32-gc overlay latency, `s2`/`s3` on gc+p2, `#850`, `#851`,
+fat `MirInst`, or `BOOTSTRAP_EMIT_*`:
+
+- Canonical plan: `docs/plans/selfhost-compiler-core-rewrite.md`
+- Decision: ADR-053
+- Tracker: `#851` ( `#850` is Phase 5 only )
+- This is a core rewrite. Do not resume `#850` tick hops or hello-byte locks.
+
 ## Active mission: native-cpp experimental promotion
 
 When working on `native-cpp`, `selfhost native-executor`, root liveness, native GC, issue #847, or issue #848,
@@ -188,13 +198,13 @@ Continue from the first unchecked Phase 2 item through the Final Experimental Pr
 - レーン／編集ループ: `python3 scripts/manager.py verify lane`（必要なら `--gate cli-parity` 等）
 - マージ／CI ゲート: `python3 scripts/manager.py verify quick`（拡張面は `--extended`）
 - fixture: `python3 scripts/manager.py verify fixtures`
-- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~45–50s が下限**。別名 `build-s2` / `rebuild-s2`）
+- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~8–10s が下限**。別名 `build-s2` / `rebuild-s2`）
 - **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（s2==s3 確認。日常の s2 再ビルドには使わない）
 - docs 再生成: `python3 scripts/manager.py docs regenerate`
 - docs 検査: `python3 scripts/manager.py docs check`
 - 全体: `python3 scripts/manager.py verify full`
 
-`build-compiler` を 1 行修正ごとに回さない（`45s × N` で律速になる）。編集をバッチして
+`build-compiler` を 1 行修正ごとに回さない（`8s × N` で律速になる）。編集をバッチして
 1 回だけ rebuild → 多数 fixture を検証する。並列レーンは親が 1 回だけ rebuild する。
 `selfhost fixpoint --build --no-cache` を emitter 作業の再ビルドに使わない。
 コピーは `/bin/cp -f`（対話的 `cp -iv` 禁止）。詳細は `docs/compiler/bootstrap.md`。

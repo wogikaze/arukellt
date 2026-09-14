@@ -12,13 +12,9 @@ use mir::value_types
 
 fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
     let mut depth = if_depth
-    let compare_idx = match::mir_match_payload_compare_idx(payload_info)
-    ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
-    let pat_idx = lower_expr(ctx, pat)
-    let cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, compare_idx, pat_idx))
+    let cmp_dest = lower_single_match_compare_condition(ctx, pat, payload_info)
     ctx_emit(ctx, inst_structured_control::MirInst_if())
-    ctx_api_nesting::ctx_push_nesting(ctx)
+    let _single_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
     depth = depth + 1
     match::mir_emit_payload_variant_binds_if_needed(ctx, payload_info, pat, scrut_idx)
     if has_guard {
@@ -28,4 +24,13 @@ fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstN
         depth = depth + 1
     }
     depth
+}
+
+fn lower_single_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
+    let compare_idx = match::mir_match_payload_compare_idx(payload_info)
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+    let pat_idx = lower_expr(ctx, pat)
+    let cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, compare_idx, pat_idx))
+    cmp_dest
 }

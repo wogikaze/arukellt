@@ -40,8 +40,16 @@ struct GcLayoutEntry {
     field_layouts: Vec<FieldLayout>,
 }
 
+// `entries[i].id.raw == i`: ids are handed out densely in push order, so an id
+// is an index. `head_by_type_id[type_id.raw]` is the first entry index for that
+// TypeId and `next_same_type_id[i]` chains the (few) member variants of one
+// TypeId, so a key lookup touches only entries sharing its TypeId. Every local
+// declaration on wasm32-gc resolves its storage type through this table, so a
+// linear scan here made emit quadratic in (locals x layouts).
 struct GcLayoutTable {
     entries: Vec<GcLayoutEntry>,
+    head_by_type_id: Vec<i32>,
+    next_same_type_id: Vec<i32>,
     next_id: i32,
     typed_lookup_count: i32,
     conflict_count: i32,
@@ -65,10 +73,6 @@ fn GcLayoutKey_new(type_id: TypeId, member: GcMemberKey) -> GcLayoutKey {
 
 fn gc_member_key_eq(a: GcMemberKey, b: GcMemberKey) -> bool {
     a.kind == b.kind && a.variant_id == b.variant_id
-}
-
-fn gc_layout_key_eq(a: GcLayoutKey, b: GcLayoutKey) -> bool {
-    type_id::type_id_eq(a.type_id, b.type_id) && gc_member_key_eq(a.member, b.member)
 }
 
 fn GC_LAYOUT_ID_INVALID() -> GcLayoutId {
@@ -118,10 +122,46 @@ fn wasm_value_type_ref_type(wvt: WasmValueType) -> WasmRefType {
 fn GcLayoutTable_new() -> GcLayoutTable {
     GcLayoutTable {
         entries: Vec::new<GcLayoutEntry>(),
+        head_by_type_id: Vec::new<i32>(),
+        next_same_type_id: Vec::new<i32>(),
         next_id: 0,
         typed_lookup_count: 0,
         conflict_count: 0
     }
+}
+
+fn gc_layout_table_no_entry() -> i32 {
+    0 - 1
+}
+
+// Index of the first entry whose key matches, or -1.
+fn gc_layout_table_entry_index_by_key(table: GcLayoutTable, key: GcLayoutKey) -> i32 {
+    let raw = type_id::TypeId_raw(key.type_id)
+    if raw < 0 || raw >= len(table.head_by_type_id) {
+        return gc_layout_table_no_entry()
+    }
+    let mut i = get_unchecked(table.head_by_type_id, raw)
+    while i >= 0 {
+        let entry = get_unchecked(table.entries, i)
+        if gc_member_key_eq(entry.key.member, key.member) {
+            return i
+        }
+        i = get_unchecked(table.next_same_type_id, i)
+    }
+    gc_layout_table_no_entry()
+}
+
+fn gc_layout_table_link_entry(table: GcLayoutTable, key: GcLayoutKey, entry_index: i32) {
+    let raw = type_id::TypeId_raw(key.type_id)
+    if raw < 0 {
+        push(table.next_same_type_id, gc_layout_table_no_entry())
+        return
+    }
+    while len(table.head_by_type_id) <= raw {
+        push(table.head_by_type_id, gc_layout_table_no_entry())
+    }
+    push(table.next_same_type_id, get_unchecked(table.head_by_type_id, raw))
+    set(table.head_by_type_id, raw, entry_index)
 }
 
 fn gc_layout_table_observe_typed_lookup(table: GcLayoutTable) {
@@ -153,6 +193,7 @@ fn gc_layout_table_register_key(
         }
         return existing
     }
+    let entry_index = len(table.entries)
     let id = GcLayoutId { raw: table.next_id }
     table.next_id = table.next_id + 1
     let entry = GcLayoutEntry {
@@ -163,6 +204,7 @@ fn gc_layout_table_register_key(
         field_layouts: Vec::new<FieldLayout>()
     }
     push(table.entries, entry)
+    gc_layout_table_link_entry(table, key, entry_index)
     id
 }
 
@@ -171,16 +213,11 @@ fn gc_layout_table_find_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcL
 }
 
 fn gc_layout_table_find_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLayoutId {
-    let count = len(table.entries)
-    let mut i = 0
-    while i < count {
-        let entry = get_unchecked(table.entries, i)
-        if gc_layout_key_eq(entry.key, key) {
-            return entry.id
-        }
-        i = i + 1
+    let entry_index = gc_layout_table_entry_index_by_key(table, key)
+    if entry_index < 0 {
+        return GC_LAYOUT_ID_INVALID()
     }
-    GC_LAYOUT_ID_INVALID()
+    get_unchecked(table.entries, entry_index).id
 }
 
 fn gc_layout_table_entry_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcLayoutEntry {
@@ -188,15 +225,14 @@ fn gc_layout_table_entry_by_type_id(table: GcLayoutTable, type_id: TypeId) -> Gc
 }
 
 fn gc_layout_table_entry_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLayoutEntry {
-    let count = len(table.entries)
-    let mut i = 0
-    while i < count {
-        let entry = get_unchecked(table.entries, i)
-        if gc_layout_key_eq(entry.key, key) {
-            return entry
-        }
-        i = i + 1
+    let entry_index = gc_layout_table_entry_index_by_key(table, key)
+    if entry_index < 0 {
+        return gc_layout_table_missing_entry()
     }
+    get_unchecked(table.entries, entry_index)
+}
+
+fn gc_layout_table_missing_entry() -> GcLayoutEntry {
     GcLayoutEntry {
         id: GC_LAYOUT_ID_INVALID(),
         key: GcLayoutKey_new(type_id::TYPE_ID_INVALID(), GcMemberKey_aggregate()),
@@ -207,19 +243,10 @@ fn gc_layout_table_entry_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLay
 }
 
 fn gc_layout_table_entry_by_id(table: GcLayoutTable, id: GcLayoutId) -> GcLayoutEntry {
-    let count = len(table.entries)
-    let mut i = 0
-    while i < count {
-        let entry = get_unchecked(table.entries, i)
-        if entry.id.raw == id.raw {
-            return entry
-        }
-        i = i + 1
+    if id.raw < 0 || id.raw >= len(table.entries) {
+        return gc_layout_table_missing_entry()
     }
-    gc_layout_table_entry_by_key(
-        table,
-        GcLayoutKey_new(type_id::TYPE_ID_INVALID(), GcMemberKey_aggregate())
-    )
+    get_unchecked(table.entries, id.raw)
 }
 
 fn gc_layout_entry_wasm_ref_type(entry: GcLayoutEntry) -> WasmRefType {

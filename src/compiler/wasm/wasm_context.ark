@@ -1,13 +1,13 @@
 use wasm::strings
+use wasm::ctx_fid_map
 use wasm::ctx_record
+use wasm::sections_type_plan
 
 fn emit_wasm_context_new(
     functions: Vec<MirFunction>,
     strings: EmitStringTablePlan,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     source_file: String
 ) -> SelfEmitCtx {
     let string_values = strings::EmitStringTablePlan_values(strings)
@@ -20,8 +20,6 @@ fn emit_wasm_context_new(
         strings::EmitStringTablePlan_false_idx(strings),
         target,
         wasi_version,
-        needs_runtime_host,
-        needs_wasi_http_outgoing,
         source_file
     )
 }
@@ -66,11 +64,18 @@ fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
 }
 
+fn emit_wasm_context_set_fn_type_refs(ctx: SelfEmitCtx, table: FuncTypeRefs) {
+    ctx_record::SelfEmitCtx_set_fn_type_refs(ctx, table)
+}
+
 fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRegistry, table: TypeTable, mono_table: MonoInstanceTable, spine_populated: bool) {
     ctx_record::SelfEmitCtx_set_signature_registry(ctx, registry)
     ctx_record::SelfEmitCtx_set_type_table(ctx, table)
     ctx_record::SelfEmitCtx_set_mono_instance_table(ctx, mono_table)
     ctx_record::SelfEmitCtx_set_spine_populated(ctx, spine_populated)
+    if spine_populated {
+        ctx_fid_map::SelfEmitCtx_build_fid_to_mir(ctx)
+    }
 }
 
 fn emit_wasm_context_set_gc_layout_table(ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {

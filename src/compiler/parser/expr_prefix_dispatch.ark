@@ -24,6 +24,9 @@ pub fn parse_prefix(p: Parser) -> AstNode {
     if expr_prefix_literals::is_literal_prefix(kind) {
         return expr_prefix_literals::parse_literal_prefix(p, t)
     }
+    if expr_prefix_atoms::is_keyword_path_prefix(p, kind) {
+        return expr_prefix_atoms::parse_keyword_path_prefix(p, t)
+    }
     if expr_prefix_atoms::is_atom_prefix(kind) {
         return expr_prefix_atoms::parse_atom_prefix(p, t)
     }

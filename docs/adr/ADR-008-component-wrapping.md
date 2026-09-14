@@ -1,6 +1,11 @@
 # ADR-008: Component Model ラッピング戦略
 
-ステータス: **ACCEPTED** — `--emit component` は in-tree で生成する
+ステータス: **SUPERSEDED** — [ADR-054](ADR-054-host-linker-and-rust-runtime-retirement.md) により公式 `wasm-tools` へ委譲
+
+後継: [ADR-054-host-linker-and-rust-runtime-retirement.md](ADR-054-host-linker-and-rust-runtime-retirement.md)
+
+> この ADR は in-tree component wrapping を採択した時点の履歴である。現行の
+> component packaging 契約は ADR-054 と `docs/current-state.md` を参照すること。
 
 決定日: 2026-03-28  
 改訂日: 2026-07-11 — 1 ページ scratch 上限を plan へ移す

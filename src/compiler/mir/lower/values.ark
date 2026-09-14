@@ -4,8 +4,10 @@ use mir::inst_local_get
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
+use mir::lower::ctx_fn_index
 use mir::lower::ctx_gc_enum
 use mir::lower_kinds
+use mir::inst_call
 use mir::lower::value_literals
 use mir::lower::value_patterns
 use mir::lower::value_variants
@@ -54,7 +56,33 @@ fn lower_atomic_ident(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, inst_local_get::MirInst_local_get_to(idx, idx))
             return idx
         }
+        let constant = lower_atomic_const(ctx, node)
+        if constant != 0 - 2 {
+            return constant
+        }
+        let function = value_variants::lower_atomic_function(ctx, node)
+        if function != 0 - 2 {
+            return function
+        }
         return value_variants::lower_atomic_ident_variant(ctx, node)
     }
     0 - 2
+}
+
+fn lower_atomic_const(ctx: LowerCtx, node: AstNode) -> i32 {
+    let name = ast_node::node_text(node)
+    if !ctx_fn_index::ctx_is_const_name(ctx, clone(name)) {
+        return 0 - 2
+    }
+    let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    if fn_idx < 0 {
+        return 0 - 2
+    }
+    let dest = ctx_fresh_local(ctx, ctx_fn_index::ctx_fn_index_return_vt_at(ctx, fn_idx))
+    let type_name = ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, fn_idx)
+    if len(type_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
+    }
+    ctx_emit(ctx, inst_call::MirInst_call(clone(name), 0, dest))
+    dest
 }

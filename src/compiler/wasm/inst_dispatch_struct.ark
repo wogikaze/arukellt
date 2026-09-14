@@ -25,29 +25,32 @@ fn emit_gc_ref_struct_get_store(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, 
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let vt = inst_accessors_shape::MirInst_val_type(inst)
     let is_ref = vt == value_types::VT_GC_REF() || vt == value_types::VT_REF()
-    if dest >= 0 && is_ref && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+    let is_funcref = vt == value_types::VT_FUNCREF()
+    if dest >= 0 && (is_ref || is_funcref) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // Always materialize ref field gets into dest (#807 structs/field_access).
+        if is_funcref {
+            // Struct fields are nullable so `struct.new_default` remains
+            // legal, while a function-valued local is a non-null call_ref
+            // operand.  Narrow the field read before storing it.
+            writer_gc::emit_gc_ref_as_non_null(w)
+        }
         writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, dest)
         // Stack-consuming followers still need the value on the stack.
         if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         if next_op == opcodes::MIR_RETURN() && next_arg0 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         if next_op == opcodes::MIR_STRUCT_GET() && next_arg0 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         return

@@ -19,8 +19,10 @@ Source: P2 verification / false-done prevention checklist audit 2026-06-17
 False-done infrastructure (`check-false-done-close-gates.py`, FD-01–FD-10) covers
 many done issues but audit checklist gaps remain: no verify-quick gate for stale
 target-matrix / stdlib-capability / component-support-table docs; no release
-checklist items for component interop smoke or P2 native wasmtime proof; no close
-gate enforcing user-reachable host capability claims (#675 dependency).
+checklist items for component interop smoke or P2 native wasmtime proof. The old
+#675 host-capability request is superseded and closed by ADR-054; this issue now
+covers the remaining generic audit and release-gate work, not restoration of the
+deleted network APIs.
 
 ## Acceptance
 
@@ -28,8 +30,8 @@ gate enforcing user-reachable host capability claims (#675 dependency).
       claims cannot drift silently
 - [ ] `verify quick` gate: stdlib capability docs vs `std/manifest.toml` availability
 - [ ] `verify quick` gate: component support tier table vs `export_unsupported_*` manifest
-- [ ] Close gate checker registered for user-reachable host capabilities (blocks #675
-      close until green)
+- [ ] Close gate checker keeps current user-reachable capability claims aligned with
+      the manifest (the superseded #675 network request no longer blocks this issue)
 - [ ] Issue audit rules encoded in `scripts/check/` (not only prose in
       `false-done-prevention.md`):
   - [ ] done issues must cite runnable fixture evidence

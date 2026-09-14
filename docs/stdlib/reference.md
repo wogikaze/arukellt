@@ -8,8 +8,8 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 393 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 49 | API is usable but may change in minor versions based on feedback. |
+| `stable` | 391 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `provisional` | 31 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
@@ -438,10 +438,8 @@ Expected output: `42`
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
-| `current_dir` | `() -> Result<String, String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_current_dir` | Return the runtime current directory as UTF-8 through the versioned runtime ABI. |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `functional` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
-| `vars_snapshot` | `() -> Result<String, String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_vars` | Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtim… |
 
 ### `var` — `std::host::env`
 
@@ -462,23 +460,12 @@ match home { Some(p) => println(p), None => println("not set") }
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-| `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
 | `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
 | `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
 | `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing … |
-| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
-| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Directory listing API contract. Always returns Err(IoError) on current targets because WASI director… |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
-
-### `metadata` — `std::host::fs`
-
-**Errors:** Err(FsError::IoError) with message 'metadata not yet supported: <path>'.
-
-### `read_dir` — `std::host::fs`
-
-**Errors:** Err(FsError::IoError) with message 'directory listing not yet supported: <path>'.
 
 ### `read_to_string` — `std::host::fs`
 
@@ -498,54 +485,6 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 ### `write_string` — `std::host::fs`
 
 **Errors:** Returns Err if the path is not writable or the directory does not exist.
-
-## Host Http
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
-| `read_body` | `(HttpResponse) -> String` | `std::host::http` | `provisional` | `unreachable` | `builtin (wasm32-gc)` | no | - | - |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
-| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `unreachable` | `builtin (wasm32-gc)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
-| `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `unreachable` | `builtin (wasm32-gc)` | no | - | - |
-| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to capability … |
-
-### `get` — `std::host::http`
-
-**Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
-
-_Example — Fetch a URL and print its body:_
-
-```ark
-let body = http::get("http://example.com")
-match body {
-  Ok(s) => println(s)
-  Err(e) => eprintln(e)
-}
-```
-
-### `request` — `std::host::http`
-
-**Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
-
-_Example — POST JSON to an API endpoint:_
-
-```ark
-let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
-```
-
-### `serve` — `std::host::http`
-
-**Errors:** Err on bind failure, accept timeout, or I/O error while serving the single request.
-
-_Example — Handle one GET on port 8080:_
-
-```ark
-match http::serve(8080, "hello") {
-  Ok(()) => println("served")
-  Err(e) => eprintln(e)
-}
-```
 
 ## Host Process
 
@@ -573,43 +512,6 @@ _Example — Roll a six-sided die (1–6):_
 ```ark
 let n = random::random_i32_range(1, 7)
 ```
-
-## Host Sockets
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
-| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_read` | Read up to max_len bytes from an open socket fd. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_write` | Write byte values from a Vec to an open socket fd. |
-
-### `accept` — `std::host::sockets`
-
-**Errors:** Err on invalid listener fd or accept failure.
-
-### `connect` — `std::host::sockets`
-
-**Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
-
-_Example — Connect to a local server on port 8080:_
-
-```ark
-let sock = sockets::connect("localhost", 8080)
-match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
-```
-
-### `listen` — `std::host::sockets`
-
-**Errors:** Err on bind failure or invalid port.
-
-### `read` — `std::host::sockets`
-
-**Errors:** Err on invalid fd or I/O failure.
-
-### `write` — `std::host::sockets`
-
-**Errors:** Err on invalid fd or I/O failure.
 
 ## Host Stdio
 
@@ -654,36 +556,6 @@ _Example — Read stdin as a string:_
 ```ark
 let input = read_to_string()
 ```
-
-## Host Streams
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `flush` | `(i32) -> Result<i32, String>` | `std::host::streams` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_flush` | Flush an output stream handle. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::streams` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_read` | Read up to max_len bytes from an input stream handle. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::streams` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_write` | Write byte values to an output stream handle. |
-
-### `flush` — `std::host::streams`
-
-**Errors:** Err on stream error.
-
-### `read` — `std::host::streams`
-
-**Errors:** Err on stream error or closed stream.
-
-### `write` — `std::host::streams`
-
-**Errors:** Err on stream error or closed stream.
-
-## Host Udp
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |
-
-### `send` — `std::host::udp`
-
-**Errors:** Err on DNS resolution failure, invalid port, or network unreachable.
 
 ## Io
 

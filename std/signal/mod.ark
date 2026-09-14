@@ -3,6 +3,8 @@
 //! The public surface uses two parallel `Vec<f64>` buffers: one for the real
 //! part and one for the imaginary part. Lengths must match and the transform
 //! size must be a power of two.
+use std::core::convert
+
 pub fn pi() -> f64 {
     3.141592653589793
 }
@@ -160,8 +162,8 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
     let mut size = 2
     while size <= n {
         let half = size / 2
-        let base_angle = tau() / i32_to_f64(size)
-        let step_angle = if inverse {
+        let base_angle: f64 = tau() / i32_to_f64(size)
+        let step_angle: f64 = if inverse {
             base_angle
         } else {
             0.0 - base_angle
@@ -170,17 +172,17 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
         while start < n {
             let mut j = 0
             while j < half {
-                let angle = step_angle * i32_to_f64(j)
-                let wr = cos_approx(angle)
-                let wi = sin_approx(angle)
+                let angle: f64 = step_angle * i32_to_f64(j)
+                let wr: f64 = cos_approx(angle)
+                let wi: f64 = sin_approx(angle)
                 let even = start + j
                 let odd = even + half
-                let odd_r = get_unchecked(real, odd)
-                let odd_i = get_unchecked(imag, odd)
-                let t_r = wr * odd_r - wi * odd_i
-                let t_i = wr * odd_i + wi * odd_r
-                let even_r = get_unchecked(real, even)
-                let even_i = get_unchecked(imag, even)
+                let odd_r: f64 = get_unchecked(real, odd)
+                let odd_i: f64 = get_unchecked(imag, odd)
+                let t_r: f64 = wr * odd_r - wi * odd_i
+                let t_i: f64 = wr * odd_i + wi * odd_r
+                let even_r: f64 = get_unchecked(real, even)
+                let even_i: f64 = get_unchecked(imag, even)
                 set(real, even, even_r + t_r)
                 set(imag, even, even_i + t_i)
                 set(real, odd, even_r - t_r)
@@ -192,7 +194,7 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
         size = size * 2
     }
     if inverse {
-        let scale = 1.0 / i32_to_f64(n)
+        let scale: f64 = 1.0 / i32_to_f64(n)
         let mut i = 0
         while i < n {
             set(real, i, get_unchecked(real, i) * scale)

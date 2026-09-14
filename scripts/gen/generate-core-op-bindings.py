@@ -18,12 +18,9 @@ CORE_OPS = ROOT / "data" / "core-ops.toml"
 OUT = ROOT / "src" / "compiler" / "corehir" / "core_op_binding_generated.ark"
 
 sys.path.insert(0, str(GEN_DIR))
+from ark_fnv_index import emit_lookup_fn  # noqa: E402
+from ark_table_blob import emit_bool_table, emit_string_table  # noqa: E402
 from core_op_mapping_common import normalize_key  # noqa: E402
-
-
-def _ark_string(s: str) -> str:
-    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{escaped}"'
 
 
 def collect_bindings() -> dict[str, str]:
@@ -39,6 +36,26 @@ def collect_bindings() -> dict[str, str]:
             if previous is not None and previous != core_op_id:
                 raise ValueError(f"conflicting legacy binding for {alias}: {previous} vs {core_op_id}")
             alias_map[alias] = core_op_id
+
+    # Fallback implementation symbols are compiler-visible callees too.  They
+    # must carry the same CoreOp identity as their public operation so a
+    # fallback call reaches the semantic handler instead of an empty body.
+    for operation in core_ops.get("operations", []):
+        if not isinstance(operation, dict):
+            continue
+        fallback = operation.get("fallback", {})
+        if not isinstance(fallback, dict):
+            continue
+        symbol = fallback.get("implementation_symbol")
+        core_op_id = operation.get("id")
+        if not isinstance(symbol, str) or not symbol:
+            continue
+        if not isinstance(core_op_id, str) or not core_op_id:
+            continue
+        previous = alias_map.get(symbol)
+        if previous is not None and previous != core_op_id:
+            raise ValueError(f"conflicting fallback binding for {symbol}: {previous} vs {core_op_id}")
+        alias_map[symbol] = core_op_id
 
     manifest = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
     for fn in manifest.get("functions", []):
@@ -112,7 +129,9 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
     lines = [
         "// Generated from data/core-ops.toml legacy_bindings +",
         "// legacy_binding_patterns + std/manifest.toml.",
-        "// Do not edit by hand.",
+        "// Compact table + index. Do not edit by hand.",
+        "",
+        "use corehir::table_blob",
         "",
         "fn core_op_binding_count() -> i32 {",
         f"    {len(callees)}",
@@ -124,40 +143,33 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
         "",
     ]
 
-    def emit_string_table(name: str, values: list[str]) -> None:
-        lines.append(f"fn {name}_at(index: i32) -> String {{")
-        for i, value in enumerate(values):
-            lines.append(f"    if index == {i} {{ return {_ark_string(value)} }}")
-        lines.append("    return String_new()")
-        lines.append("}")
-        lines.append("")
-
-    emit_string_table("core_op_binding_callee", callees)
-    emit_string_table("core_op_binding_core_op_id", op_ids)
-    emit_string_table("core_op_binding_pattern", [str(p["pattern"]) for p in patterns])
-    emit_string_table("core_op_binding_pattern_core_op_id", [str(p["core_op_id"]) for p in patterns])
-
-    lines.append("fn core_op_binding_pattern_requires_nonempty_suffix_at(index: i32) -> bool {")
-    for i, pattern in enumerate(patterns):
-        flag = "true" if pattern["require_nonempty_suffix"] else "false"
-        lines.append(f"    if index == {i} {{ return {flag} }}")
-    lines.append("    return true")
-    lines.append("}")
-    lines.append("")
+    lines.extend(emit_string_table("core_op_binding_callee", callees))
+    lines.extend(emit_string_table("core_op_binding_core_op_id", op_ids))
+    lines.extend(emit_string_table("core_op_binding_pattern", [str(p["pattern"]) for p in patterns]))
+    lines.extend(
+        emit_string_table(
+            "core_op_binding_pattern_core_op_id",
+            [str(p["core_op_id"]) for p in patterns],
+        )
+    )
+    lines.extend(
+        emit_bool_table(
+            "core_op_binding_pattern_requires_nonempty_suffix",
+            [bool(p["require_nonempty_suffix"]) for p in patterns],
+            default=True,
+        )
+    )
 
     lines.extend(
+        emit_lookup_fn(
+            "core_op_binding_lookup_callee",
+            "core_op_binding_callee_at",
+            "core_op_binding_bucket_at",
+            callees,
+        )
+    )
+    lines.extend(
         [
-            "fn core_op_binding_lookup_callee(callee: String) -> i32 {",
-            "    let count = core_op_binding_count()",
-            "    let mut i = 0",
-            "    while i < count {",
-            "        if eq(clone(callee), core_op_binding_callee_at(i)) {",
-            "            return i",
-            "        }",
-            "        i = i + 1",
-            "    }",
-            "    return 0 - 1",
-            "}",
             "",
             # Exact-only API: keep historical meaning for Wasm effective lowering.
             "fn core_op_binding_core_op_id_for_callee_exact(callee: String) -> String {",

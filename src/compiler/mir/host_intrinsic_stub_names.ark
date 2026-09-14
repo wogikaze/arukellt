@@ -1,7 +1,7 @@
 fn host_intrinsic_stub_count() -> i32 {
     // read_to_string / write_string / write_bytes / read_dir / metadata are
     // stdlib Ark bodies — do not treat them as GC unreachable stubs (#807).
-    19
+    11
 }
 
 fn host_intrinsic_stub_name_at(index: i32) -> String {
@@ -15,15 +15,7 @@ fn host_intrinsic_stub_name_at(index: i32) -> String {
     if index == 7 { return String_from("exists") }
     if index == 8 { return String_from("is_file") }
     if index == 9 { return String_from("is_dir") }
-    if index == 10 { return String_from("connect") }
-    if index == 11 { return String_from("read") }
-    if index == 12 { return String_from("write") }
-    if index == 13 { return String_from("listen") }
-    if index == 14 { return String_from("accept") }
-    if index == 15 { return String_from("get") }
-    if index == 16 { return String_from("request") }
-    if index == 17 { return String_from("serve") }
-    if index == 18 { return String_from("clock_now") }
+    if index == 10 { return String_from("clock_now") }
     String_new()
 }
 

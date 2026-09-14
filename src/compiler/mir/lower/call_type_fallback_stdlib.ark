@@ -37,7 +37,9 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:String:String"))
         return true
     }
-    if eq(clone(cn), "write_string") || eq(clone(cn), "fs_write_file") || eq(clone(cn), "__runtime_abi_fs_write_file") || ends_with(clone(callee_name), String_from("::write_string")) {
+    if is_host_fs_write_string_callee(clone(callee_name)) ||
+    eq(clone(cn), "fs_write_file") ||
+    eq(clone(cn), "__runtime_abi_fs_write_file") {
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
         return true
     }
@@ -64,6 +66,13 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
     false
 }
 
+fn is_host_fs_write_string_callee(callee_name: String) -> bool {
+    eq(clone(callee_name), String_from("fs::write_string")) ||
+    eq(clone(callee_name), String_from("std::fs::write_string")) ||
+    eq(clone(callee_name), String_from("host::fs::write_string")) ||
+    eq(clone(callee_name), String_from("std::host::fs::write_string"))
+}
+
 fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
     let cn = mir_strip_module_prefix(clone(callee_name))
     if eq(clone(cn), "toml_navigate_table_count") || eq(clone(cn), "toml_navigate_table") || eq(clone(cn), "toml_append_array_table") {
@@ -85,36 +94,6 @@ fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32)
     }
     if eq(clone(cn), "toml_get") {
         set_stdlib_result_type(ctx, dest, String_from("option:TomlValue"))
-        return true
-    }
-    false
-}
-
-// Host sockets return Result — override premature enum:open so match
-// binds Ok(Vec)/Err(String) with the correct GC payload slots (#726 connect_read_write).
-fn mark_host_sockets_result_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
-    let cn = mir_strip_module_prefix(clone(callee_name))
-    let is_sockets = contains(clone(callee_name), String_from("sockets")) || starts_with(clone(cn), String_from("sockets_")) || starts_with(clone(cn), String_from("__runtime_sockets"))
-    if !is_sockets {
-        return false
-    }
-    if eq(clone(cn), "read") || eq(clone(cn), "sockets_read") || eq(clone(cn), "__runtime_abi_sockets_read") {
-        set_stdlib_result_type(ctx, dest, String_from("result:vec:i32:String"))
-        return true
-    }
-    if eq(clone(cn), "connect") ||
-    eq(clone(cn), "sockets_connect") ||
-    eq(clone(cn), "__runtime_abi_sockets_connect") ||
-    eq(clone(cn), "write") ||
-    eq(clone(cn), "sockets_write") ||
-    eq(clone(cn), "__runtime_abi_sockets_write") ||
-    eq(clone(cn), "listen") ||
-    eq(clone(cn), "sockets_listen") ||
-    eq(clone(cn), "__runtime_abi_sockets_listen") ||
-    eq(clone(cn), "accept") ||
-    eq(clone(cn), "sockets_accept") ||
-    eq(clone(cn), "__runtime_abi_sockets_accept") {
-        set_stdlib_result_type(ctx, dest, String_from("result:i32:String"))
         return true
     }
     false

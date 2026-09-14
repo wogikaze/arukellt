@@ -41,42 +41,60 @@ fn wit_trim_type(t: String) -> String {
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let records = wit_parse_text::WitParsedInterface_records(doc)
     let names = Vec::new<String>()
-    for ri in 0..len(records) { push(names, clone(get_unchecked(records, ri).wit_name)) }
+    for ri in 0..len(records) {
+        let rec = get_unchecked(records, ri)
+        push(names, clone(rec.wit_name))
+    }
     names
 }
 
 fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let records = wit_parse_text::WitParsedInterface_records(doc)
     let names = Vec::new<String>()
-    for ri in 0..len(records) { push(names, clone(get_unchecked(records, ri).ark_name)) }
+    for ri in 0..len(records) {
+        let rec = get_unchecked(records, ri)
+        push(names, clone(rec.ark_name))
+    }
     names
 }
 
 fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     let names = Vec::new<String>()
-    for ei in 0..len(enums) { push(names, clone(get_unchecked(enums, ei).wit_name)) }
+    for ei in 0..len(enums) {
+        let en = get_unchecked(enums, ei)
+        push(names, clone(en.wit_name))
+    }
     names
 }
 
 fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     let names = Vec::new<String>()
-    for ei in 0..len(enums) { push(names, clone(get_unchecked(enums, ei).ark_name)) }
+    for ei in 0..len(enums) {
+        let en = get_unchecked(enums, ei)
+        push(names, clone(en.ark_name))
+    }
     names
 }
 
 fn wit_variant_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
     let names = Vec::new<String>()
-    for vi in 0..len(variants) { push(names, clone(get_unchecked(variants, vi).wit_name)) }
+    for vi in 0..len(variants) {
+        let variant = get_unchecked(variants, vi)
+        push(names, clone(variant.wit_name))
+    }
     names
 }
 
 fn wit_variant_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
     let names = Vec::new<String>()
-    for vi in 0..len(variants) { push(names, clone(get_unchecked(variants, vi).ark_name)) }
+    for vi in 0..len(variants) {
+        let variant = get_unchecked(variants, vi)
+        push(names, clone(variant.ark_name))
+    }
     names
 }
 

@@ -33,21 +33,21 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
                 if type_ann_node::type_ann_is_name(ok_ty, "f64") {
-                    return "Result_f64"
+                    return type_ann_shape_result_local_type_name(ann, "f64")
                 }
                 if type_ann_node::type_ann_is_name(ok_ty, "i64") {
-                    return "Result_i64"
+                    return type_ann_shape_result_local_type_name(ann, "i64")
                 }
                 // Nested Vec so Result<Vec<fn>, E> → Result_vec:fn… (#832).
                 if type_ann_node::type_ann_is_generic(ok_ty) {
                     let shaped = type_ann_shape_local_type_name(ok_ty, 0)
                     if len(shaped) > 0 {
-                        return concat("Result_", shaped)
+                        return type_ann_shape_result_local_type_name(ann, shaped)
                     }
                 }
                 let ok_name = type_ann_node::type_ann_name(ok_ty)
                 if len(ok_name) > 0 {
-                    return concat("Result_", ok_name)
+                    return type_ann_shape_result_local_type_name(ann, ok_name)
                 }
             }
             return "enum:Result"
@@ -83,6 +83,11 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
     if eq(clone(ann_name), "Vec") {
         return "vec"
     }
+    if eq(clone(ann_name), "String") ||
+    eq(clone(ann_name), "str") ||
+    eq(clone(ann_name), "string") {
+        return "String"
+    }
     if eq(clone(ann_name), "char") ||
     eq(clone(ann_name), "u8") ||
     eq(clone(ann_name), "u16") ||
@@ -92,11 +97,40 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
     eq(clone(ann_name), "i32") ||
     eq(clone(ann_name), "i64") ||
     eq(clone(ann_name), "bool") ||
-    eq(clone(ann_name), "f64") {
+    eq(clone(ann_name), "f64") ||
+    eq(clone(ann_name), "f32") {
         return ann_name
     }
     if known_struct_fields > 0 {
         return ann_name
     }
     String_new()
+}
+
+fn type_ann_shape_local_type_arg(ann: AstNode) -> String {
+    if type_ann_node::type_ann_is_generic(ann) {
+        let shaped = type_ann_shape_local_type_name(ann, 0)
+        if len(shaped) > 0 {
+            return shaped
+        }
+    }
+    type_ann_node::type_ann_name(ann)
+}
+
+fn type_ann_shape_result_local_type_name(ann: AstNode, ok_name: String) -> String {
+    let mut normalized_ok_name = ok_name
+    // The parser represents the unit type `()` with an empty node name.
+    // Keep it explicit in the compact Result_<ok>_<err> encoding so the
+    // separator cannot make an Ok(()) payload look like the Err type.
+    if len(normalized_ok_name) == 0 {
+        normalized_ok_name = String_from("unit")
+    }
+    if type_ann_node::type_ann_child_count(ann) >= 3 {
+        let err_ty = type_ann_node::type_ann_child_at(ann, 2)
+        let err_name = type_ann_shape_local_type_arg(err_ty)
+        if len(err_name) > 0 {
+            return concat("Result_", concat(normalized_ok_name, concat("_", err_name)))
+        }
+    }
+    concat("Result_", normalized_ok_name)
 }

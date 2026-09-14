@@ -1,7 +1,6 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
-use mir::lower::core_expr_shape_atoms
 use mir::lower::core_names
 use mir::lower::core_match_arm_branch
 use mir::lower::core_match_arm_last
@@ -15,14 +14,13 @@ fn lower_core_match(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -
     if child_count < 2 {
         return 0 - 1
     }
-    // Ident scrutinees must not go through lower_core_name_value's
-    // local_get_to(idx,idx), which leaves a stray stack value; tag extract
-    // then local_get's again (#726 toml match last / Array arm).
+    // Resolve a named scrutinee directly.  CoreHIR may wrap an identifier in
+    // a shape that is not classified as an atomic expression; falling through
+    // to lower_core_expr would emit one local.get and the identifier binding
+    // would emit a second one, leaving an unrelated value on the stack.
     let scrut_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let mut scrut_idx = 0 - 1
-    if core_expr_shape_atoms::mir_core_expr_is_ident(scrut_expr) {
-        scrut_idx = core_names::mir_core_lookup_local(ctx, scrut_expr)
-    }
+    scrut_idx = core_names::mir_core_lookup_local(ctx, scrut_expr)
     if scrut_idx < 0 {
         scrut_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     }

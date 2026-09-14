@@ -54,9 +54,10 @@ phase-resettable arena に置いてはならない。
 
 Memory64（#730）は OOM 回避であり、bump 未回収そのものの代替ではない。
 
-## Scoped prototype plan（実装は別 issue）
+## Scoped prototype plan（実装は #850）
 
-本メモの受け入れ後でも、製品コードは別 issue を切るまで書かない。計画だけ固定する。
+実装トラッカー: [`issues/open/850-compiler-phase-arena.md`](../../issues/open/850-compiler-phase-arena.md)。
+本メモは所有権の正本のまま。製品コードは #850 の下でのみ追加する。
 
 1. **Reset points（候補）**: parse→typecheck、typecheck→lower、lower→emit。各境界で「durable へ昇格済み」を検査。
 2. **Verify gates**: `verify lane`、selfhost compile smoke、`selfhost fixpoint`（pin 経路変更時）、RSS/wall receipt 比較。

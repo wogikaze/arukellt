@@ -45,7 +45,6 @@ Validation and linting scripts for code quality, documentation, and consistency.
 | `check-docs-freshness.py` | Python | Check project-state.toml fixture counts and freshness | `python3 scripts/check/check-docs-freshness.py` |
 | `check-generated-files.sh` | Shell | Validate generated file boundaries and ownership banners | `bash scripts/check/check-generated-files.sh [root]` |
 | `check-links.sh` | Shell | Broken link / missing file reference checker for docs and issues | `bash scripts/check/check-links.sh` |
-| `check-panic-audit.sh` | Shell | Detect unwrap/panic/todo/unimplemented in production code | `bash scripts/check/check-panic-audit.sh` |
 | `check-playground-size.sh` | Shell | Playground Wasm and JS bundle size gates | `bash scripts/check/check-playground-size.sh [--wasm <file>] [--bundle-dir <dir>]` |
 | `check-stdlib-manifest.sh` | Shell | Verify stdlib manifest matches resolve/typecheck/prelude.ark | `bash scripts/check/check-stdlib-manifest.sh` |
 
@@ -55,11 +54,10 @@ Test execution and verification scripts.
 
 | Script | Language | Purpose | Usage |
 |--------|----------|---------|-------|
-| `compare-outputs.sh` | Shell | Compare Rust and selfhost compiler outputs for a given phase | `scripts/run/compare-outputs.sh <phase> [fixture.ark]` |
+| `compare-outputs.sh` | Shell | Compare selfhost compiler outputs for a given phase | `scripts/run/compare-outputs.sh <phase> [fixture.ark]` |
 | `smoke-test-binary.sh` | Shell | Minimal smoke tests for a release binary | `./scripts/run/smoke-test-binary.sh [path-to-arukellt]` |
 | `test-opt-equivalence.sh` | Shell | Verify optimization passes preserve semantics | `bash scripts/run/test-opt-equivalence.sh [--quick] [--fixture X]` |
 | `test-package-workspace.sh` | Shell | Package-workspace manifest validation tests | `bash scripts/run/test-package-workspace.sh` |
-| `verify-bootstrap.sh` | Shell | Bootstrap fixpoint verification for self-hosting | `bash scripts/run/verify-bootstrap.sh [--no-build]` |
 | `wat-roundtrip.sh` | Shell | WAT roundtrip verification (compile → wasm2wat → wat2wasm) | `bash scripts/run/wat-roundtrip.sh` |
 
 ### Gen Scripts (`scripts/gen/`)
@@ -90,7 +88,7 @@ Scripts at the root of `scripts/` directory.
 
 | Script | Language | Purpose | Usage |
 |--------|----------|---------|-------|
-| `compare-benchmarks.sh` | Shell | Cross-language benchmark comparison (C/Rust/Go vs Ark wasm) | `bash scripts/compare-benchmarks.sh [--quick] [--full]` |
+| `compare-benchmarks.sh` | Shell | Cross-language benchmark comparison (C/Go vs Ark wasm) | `bash scripts/compare-benchmarks.sh [--quick] [--full]` |
 | `update-baselines.sh` | Shell | Update performance baselines (compile time, runtime, binary size) | `bash scripts/update-baselines.sh [--dry-run]` |
 | `update-target-status.sh` | Shell | Update docs/target-contract.md from CI test results | `scripts/update-target-status.sh [--dry-run] [INPUT_FILE]` |
 
@@ -125,7 +123,7 @@ Python libraries for domain-specific logic:
 
 Many scripts honor these environment variables:
 
-- `ARUKELLT_BIN` - Path to arukellt binary (overrides default target/release/arukellt)
+- `ARUKELLT_BIN` - Path to an arukellt entrypoint (overrides the selfhost wrapper)
 - `ARUKELLT_TARGET` - Target triple for compilation (e.g., wasm32)
 - `PLAYGROUND_WASM_LIMIT` - Playground Wasm size limit in bytes (default: 307200)
 - `PLAYGROUND_BUNDLE_LIMIT` - Playground JS bundle limit in bytes (default: 524288)

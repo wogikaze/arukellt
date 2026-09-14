@@ -1,5 +1,9 @@
 # #807 — Fixture parity: 367 remaining failures クローズ計画
 
+> **Superseded historical record (2026-09-12):** The execution notes below
+> predate ADR-054 and mention the retired host-linker. They are retained as
+> evidence of the old parity work, not as current verification instructions.
+
 ステータス: 完了（FAIL=0 / L21）  
 親 issue: [#807](../../issues/done/807-fixture-parity-367-remaining-failures.md)  
 担当 subagent lane: `wave/807-fixture-parity`  

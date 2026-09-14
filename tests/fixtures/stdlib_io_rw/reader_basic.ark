@@ -20,19 +20,19 @@ fn main() {
     let res: Result<Vec<i32>, io::IoError> = io::reader_read(r, 5)
     match res {
         Result::Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     // After reading "Hello", cursor sits on '\n'. First read_line consumes it
     // (empty line); second returns the remainder "World".
     let res2: Result<String, io::IoError> = io::reader_read_line(r)
     match res2 {
         Result::Ok(line) => stdio::println(line),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let res3: Result<String, io::IoError> = io::reader_read_line(r)
     match res3 {
         Result::Ok(line) => stdio::println(line),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     stdio::println((io::reader_eof(r)).to_string())
 }

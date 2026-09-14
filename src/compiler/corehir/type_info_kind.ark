@@ -20,6 +20,7 @@ fn type_info_display_name(ty: TypeInfo) -> String {
     if tag == 2 { return "i64" }
     if tag == 3 { return "f64" }
     if tag == 9 { return "f32" }
+    if tag == 40 { return "v128" }
     if tag == 4 { return "bool" }
     if tag == 6 { return "char" }
     if tag == 5 { return "String" }
@@ -29,6 +30,7 @@ fn type_info_display_name(ty: TypeInfo) -> String {
     if tag == 11 { return "Option" }
     if tag == 12 { return "Result" }
     if tag == 13 { return "HashMap" }
+    if tag == 20 { return "fnref" }
     let name = type_contracts::TypeInfo_name(ty)
     if len(name) > 0 {
         return clone(name)
@@ -41,6 +43,7 @@ fn type_info_display_name_from_tag(tag: i32) -> String {
     if tag == 2 { return "i64" }
     if tag == 3 { return "f64" }
     if tag == 9 { return "f32" }
+    if tag == 40 { return "v128" }
     if tag == 4 { return "bool" }
     if tag == 6 { return "char" }
     if tag == 5 { return "String" }
@@ -50,6 +53,7 @@ fn type_info_display_name_from_tag(tag: i32) -> String {
     if tag == 11 { return "Option" }
     if tag == 12 { return "Result" }
     if tag == 13 { return "HashMap" }
+    if tag == 20 { return "fnref" }
     if tag == 21 { return "struct" }
     if tag == 22 { return "enum" }
     if tag == 23 { return "tuple" }

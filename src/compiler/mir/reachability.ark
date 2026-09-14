@@ -13,6 +13,24 @@ fn mir_prune_unreachable_with_roots_for_target(
     reachability_entry::mir_prune_unreachable_with_roots_for_target(m, extra_roots, target)
 }
 
+fn mir_prune_unreachable_with_roots_for_target_and_edges(
+    m: MirModule,
+    extra_roots: Vec<String>,
+    target: String,
+    edges: Vec<i32>,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>
+) -> i32 {
+    reachability_entry::mir_prune_unreachable_with_roots_for_target_and_edges(
+        m,
+        extra_roots,
+        target,
+        edges,
+        fn_names,
+        edge_names
+    )
+}
+
 fn mir_prune_unreachable(m: MirModule) -> i32 {
     reachability_entry::mir_prune_unreachable_with_roots(m, Vec::new<String>())
 }

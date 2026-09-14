@@ -73,13 +73,6 @@ summary = "Same input → identical Wasm bytes"
 coverage = ["scripts/check/check-release-determinism.sh::declared-corpus"]
 
 [[guarantees]]
-id = "no_panic_user_paths"
-tier = "guaranteed"
-cadence = "every-pr"
-summary = "No panic on user-reachable CLI paths"
-coverage = ["scripts/check/check-panic-audit.sh::user-reachable-scan"]
-
-[[guarantees]]
 id = "cli_check"
 tier = "guaranteed"
 cadence = "every-pr"
@@ -277,22 +270,6 @@ stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
-id = "check_no_panic"
-guarantee_id = "no_panic_user_paths"
-command = "bash scripts/check/check-panic-audit.sh"
-ci_job = "verification"
-release_blocking = true
-included_in_full = true
-included_in_quick = false
-result = "pass"
-evidence_type = "static-scan"
-verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "a80b4181"
-verified_at = "2026-07-11"
-stale_after_days = 30
-platforms = ["linux"]
-
-[[checks]]
 id = "check_cli_check"
 guarantee_id = "cli_check"
 command = "python3 scripts/check/check-cli-guarantees.py check"
@@ -471,7 +448,7 @@ blocker_owner = "selfhost diagnostics"
 blocker_issue = "#812"
 first_seen_commit = "a80b4181"
 platforms = ["linux"]
-note = "Selfhost diagnostic parity differs from Rust host compiler"
+note = "Selfhost diagnostic parity differs from the pinned bootstrap compiler"
 
 [[checks]]
 id = "check_wat_roundtrip"

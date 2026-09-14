@@ -1,8 +1,8 @@
 ---
 Status: done
-Status note: Bridged WIT-module HTTP/sockets path closed; arukellt_host import module retired. Real WASI ABI → #841.
+Status note: Historical bridged close superseded by ADR-054; host-linker, old network APIs, and compatibility paths are deleted. Official WASI Component packaging is current.
 Created: 2026-07-10
-Updated: 2026-07-26
+Updated: 2026-09-13
 Closed: 2026-07-26
 ID: 727
 Track: wasi-feature
@@ -25,11 +25,15 @@ Canonical plan: [`docs/plans/arukellt-host-bridge-retirement.md`](../../docs/pla
 
 Locked decisions:
 
+The bridged close below is retained as historical evidence only. The final
+repository resolution is recorded in ADR-054; the old runtime and network
+facades must not be restored.
+
 1. **Sockets WIT package** = `wasi:sockets/tcp@0.2.x` (not `wasi:io/sockets`).
-2. **`wasm-heap-grow-patcher` retirement** → [`#830`](../open/830-wasm-heap-grow-patcher-retirement.md).
+2. **`wasm-heap-grow-patcher` retirement** → [`#830`](830-wasm-heap-grow-patcher-retirement.md).
 3. **Phase 0 blocker** = `#714` — resolved (bridged emitter-native P2).
 4. CoreOp path: `runtime_call` / `kind="wit"`; keep `std::host::{http,sockets}` facade.
-5. **Bridged close** (`#714` class): WIT module names + simplified guest ABI; real WASI methods → [`#841`](../open/841-wit-network-real-wasi-abi.md).
+5. **Bridged close** (`#714` class): WIT module names + simplified guest ABI; the historical real-WASI follow-up is [`#841`](841-wit-network-real-wasi-abi.md).
 
 ### Progress (2026-07-25) — all phases done (bridged)
 

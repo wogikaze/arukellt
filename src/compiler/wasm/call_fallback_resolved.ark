@@ -8,6 +8,7 @@ use corehir::signature_registry
 use mir::inst_record
 use wasm::opcodes
 use wasm::ctx_record
+use wasm::ctx_call_reloc
 use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::inst_ctx
@@ -19,6 +20,7 @@ use mir::inst_accessors_operands
 use wasm::registry_return_audit
 use wasm::registry_return_resolve
 use wasm::inst_locals
+use wasm::sections_type_plan
 
 fn try_emit_resolved_fallback_call(
     w: WasmWriter,
@@ -46,10 +48,15 @@ fn try_emit_resolved_fallback_call(
         resolved_name = signature_entry::signature_entry_base_name(signature)
         has_signature = true
     }
-    let fn_idx = inst_ctx::resolve_fn_index(
+    let fn_idx = inst_ctx::resolve_fn_index_for_call(
         ctx,
-        clone(resolved_name)
+        clone(resolved_name),
+        fid_raw
     )
+    // Bodies are emitted after every MIR function exists, so a callee with no
+    // function index here is an intrinsic (e.g. `Vec::new`), not a
+    // not-yet-lowered function. It must reach the intrinsic fallback; a blind
+    // `call 0` + FuncId reloc would never be patched and yields an invalid body.
     if fn_idx < 0 {
         return false
     }
@@ -61,8 +68,7 @@ fn try_emit_resolved_fallback_call(
         base_local = prev_arg1
     }
     if base_local >= 0 {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, base_local)
+        writer_core::emit_local_get(w, base_local)
         // Handle-based wasm32 must not emit ref.cast; type indices there are
         // often func types, which validate as "expected funcref, found i32".
         if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) &&
@@ -75,15 +81,27 @@ fn try_emit_resolved_fallback_call(
         }
     }
     writer_core::emit_byte(w, opcodes::OP_CALL())
-    writer_core::emit_leb128_u(
+    let slot = writer_core::writer_size(w)
+    writer_core::emit_leb128_u_fixed(w, 0)
+    if fid_raw >= 0 {
+        ctx_call_reloc::SelfEmitCtx_push_call_reloc(ctx, slot, fid_raw)
+    } else {
+        writer_core::patch_leb128_u_fixed(
+            w,
+            slot,
+            function_indices::defined_function_index(
+                fn_idx,
+                ctx_record::SelfEmitCtx_target(ctx),
+                ctx_record::SelfEmitCtx_wasi_version(ctx),
+                wit_import_count
+            )
+        )
+    }
+    writer_core::writer_note_ref_top(
         w,
-        function_indices::defined_function_index(
-            fn_idx,
-            ctx_record::SelfEmitCtx_target(ctx),
-            ctx_record::SelfEmitCtx_wasi_version(ctx),
-            ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
-            ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
-            wit_import_count
+        sections_type_plan::FuncTypeRefs_result_ref_type(
+            ctx_record::SelfEmitCtx_fn_type_refs(ctx),
+            ctx_record::SelfEmitCtx_fn_type_index(ctx, fn_idx)
         )
     )
     let fn_ret_vt = registry_return_resolve::resolve_call_fn_ret_vt(ctx, inst, called)
@@ -100,7 +118,7 @@ fn try_emit_resolved_fallback_call(
         )
     }
     if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, fn_ret_vt) {
-        if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0, next_arg1) {
+        if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0) {
             let dest = inst_accessors_operands::MirInst_dest(inst)
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, dest)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -156,10 +174,11 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
     false
 }
 
-fn should_force_call_dest_store(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {
-    if next_op == 11 && next_arg1 >= 0 {  // MIR_LOCAL_SET
-        return true
-    }
+fn should_force_call_dest_store(next_op: i32, next_arg0: i32) -> bool {
+    // An explicit local-to-local copy is often the staging of a later call
+    // argument.  The call result may still be the left operand of a following
+    // comparison, so let inst_store_policy choose SET versus TEE instead of
+    // consuming the stack value unconditionally.
     if next_op == 40 && next_arg0 >= 0 {  // MIR_CALL
         return true
     }

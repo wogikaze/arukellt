@@ -32,7 +32,12 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
         }
     }
     if !eq(clone(bind_name), "_") {
-        scope::scope_define(scope, bind_name, bind_ty)
+        if ast_access::node_child_count(node) > 0 &&
+        scope::is_syntactic_value(ast_access::node_child_at(node, 0)) {
+            scope::scope_define_scheme(scope, bind_name, scope::generalize(env, bind_ty))
+        } else {
+            scope::scope_define(scope, bind_name, bind_ty)
+        }
         contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }
 }
@@ -49,7 +54,7 @@ fn check_tuple_destructure_let(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnS
 }
 
 fn bind_tuple_pat_identifiers(scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
-    if !ast_access::node_kind_is(pat, kinds::NK_PAT_TUPLE()) {
+    if ast_access::node_child_count(pat) == 0 {
         return
     }
     let pat_count = ast_access::node_child_count(pat)

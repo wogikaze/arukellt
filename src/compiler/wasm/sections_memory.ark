@@ -7,9 +7,8 @@ use wasm::emit_target
 fn emit_memory_section(out: WasmWriter, target: String) {
     let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
-        // Active data for full selfhost exceeds 1 page; memory32 wasi-p2 guests
-        // must fit data at instantiate (#834). Memory64 runtimes still start at 1
-        // and grow (host patcher may raise initial pages).
+        // The selfhost compiler's active data and bootstrap working set require
+        // a 1 GiB memory32 reservation when the compiler is itself emitted.
         let pages = if writer_core::writer_memory64(out) {
             1
         } else {
@@ -22,14 +21,54 @@ fn emit_memory_section(out: WasmWriter, target: String) {
     writer_sections::emit_section(out, opcodes::SEC_MEMORY(), mem_sec)
 }
 
-fn emit_global_section(out: WasmWriter, data_offset: i32) {
+// `literal_cache` describes the GC string-literal cache global
+// (`constants::GLOBAL_GC_STRING_LITERAL_CACHE`); linear targets pass
+// `gc_string_literal_cache_none()` and emit only the heap pointer.
+fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal) {
     let global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+    let global_count = if literal_cache.array_type_idx >= 0 { 2 } else { 1 }
+    writer_core::emit_leb128_u(global_sec, global_count)
     emit_heap_global_entry(global_sec, data_offset, writer_core::writer_memory64(out))
+    if literal_cache.array_type_idx >= 0 {
+        emit_string_literal_cache_global_entry(global_sec, literal_cache)
+    }
     writer_sections::emit_section(out, opcodes::SEC_GLOBAL(), global_sec)
 }
 
+struct GcStringLiteralCacheGlobal {
+    array_type_idx: i32,
+    slot_count: i32,
+}
+
+fn gc_string_literal_cache_none() -> GcStringLiteralCacheGlobal {
+    GcStringLiteralCacheGlobal {
+        array_type_idx: 0 - 1,
+        slot_count: 0,
+    }
+}
+
+fn gc_string_literal_cache(array_type_idx: i32, slot_count: i32) -> GcStringLiteralCacheGlobal {
+    GcStringLiteralCacheGlobal {
+        array_type_idx: array_type_idx,
+        slot_count: slot_count,
+    }
+}
+
+// (global (mut (ref null $string_array)) (array.new_default $string_array (i32.const N)))
+// `array.new_default` is a GC constant expression, so no start code is needed.
+fn emit_string_literal_cache_global_entry(global_sec: WasmWriter, literal_cache: GcStringLiteralCacheGlobal) {
+    writer_core::emit_byte(global_sec, constants::WASM_REF_NULL())
+    writer_core::emit_leb128_s(global_sec, literal_cache.array_type_idx)
+    writer_core::emit_byte(global_sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(global_sec, literal_cache.slot_count)
+    writer_core::emit_byte(global_sec, opcodes::GC_PREFIX())
+    writer_core::emit_leb128_u(global_sec, opcodes::GC_ARRAY_NEW_DEFAULT())
+    writer_core::emit_leb128_u(global_sec, literal_cache.array_type_idx)
+    writer_core::emit_byte(global_sec, opcodes::OP_END())
+}
+
 fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32, memory64: bool) {
-    writer_core::emit_leb128_u(global_sec, 1)
     if memory64 {
         writer_core::emit_byte(global_sec, constants::WASM_I64())
         writer_core::emit_byte(global_sec, 1)
@@ -62,4 +101,4 @@ fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32, memory64: bool) {
     writer_core::emit_leb128_u(mem_sec, initial_pages)
 }
 
-fn initial_memory_pages() -> i32 { 8192 }
+fn initial_memory_pages() -> i32 { 16384 }

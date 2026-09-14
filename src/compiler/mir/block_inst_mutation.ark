@@ -1,9 +1,124 @@
+use corehir::mir_value_type
+use corehir::type_id
+use mir::block_factory
+use mir::block_inst_access
+use mir::block_record
+use mir::inst_draft
 use mir::types
 
-fn MirBlock_push_inst(block: MirBlock, inst: MirInst) {
-    push(block.instructions, inst)
+fn mir_block_clear_insts(block: MirBlock) {
+    // Keep column capacity. Vec::new here is a new bump and cannot move ru_maxrss.
+    // raw_array_set_len dispatch is incomplete; pop of GC struct vecs makes s2 invalid.
+    block.inst_count = 0
 }
 
-fn MirBlock_set_instructions(block: MirBlock, instructions: Vec<MirInst>) {
-    block.instructions = instructions
+fn mir_block_store_str(block: MirBlock, idx: i32, text: String, reuse: bool) {
+    if len(text) == 0 {
+        if reuse {
+            set(block.str_ids, idx, 0 - 1)
+        } else {
+            push(block.str_ids, 0 - 1)
+        }
+        return
+    }
+    if reuse {
+        let old_id = get_unchecked(block.str_ids, idx)
+        if old_id >= 0 && old_id < len(block.str_pool) {
+            set(block.str_pool, old_id, text)
+            return
+        }
+    }
+    if reuse {
+        set(block.str_ids, idx, len(block.str_pool))
+    } else {
+        push(block.str_ids, len(block.str_pool))
+    }
+    push(block.str_pool, text)
+}
+
+fn mir_block_store_result_types(block: MirBlock, reuse: bool, result_types: Vec<MirValueType>) {
+    if len(result_types) == 0 {
+        if reuse {
+            set(block.type_ids, block.inst_count, 0 - 1)
+            set(block.type_reprs, block.inst_count, 0)
+            set(block.type_nulls, block.inst_count, 0)
+        } else {
+            push(block.type_ids, 0 - 1)
+            push(block.type_reprs, 0)
+            push(block.type_nulls, 0)
+        }
+        return
+    }
+    let first = get_unchecked(result_types, 0)
+    let tid = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(first))
+    let repr = mir_value_type::mir_value_type_repr(first)
+    let nulls = mir_value_type::mir_value_type_nullability(first)
+    if reuse {
+        set(block.type_ids, block.inst_count, tid)
+        set(block.type_reprs, block.inst_count, repr)
+        set(block.type_nulls, block.inst_count, nulls)
+    } else {
+        push(block.type_ids, tid)
+        push(block.type_reprs, repr)
+        push(block.type_nulls, nulls)
+    }
+}
+
+fn mir_block_append_draft(block: MirBlock, inst: MirInstDraft) {
+    let idx = block.inst_count
+    let reuse = idx < len(block.ops)
+    let op = inst_draft::MirInstDraft_op(inst)
+    let dest = inst_draft::MirInstDraft_dest(inst)
+    let arg0 = inst_draft::MirInstDraft_arg0(inst)
+    let arg1 = inst_draft::MirInstDraft_arg1(inst)
+    let int_val = inst_draft::MirInstDraft_int_val(inst)
+    let float_val = inst_draft::MirInstDraft_float_val(inst)
+    let val_type = inst_draft::MirInstDraft_val_type(inst)
+    let func_id = inst_draft::MirInstDraft_func_id_raw(inst)
+    if reuse {
+        set(block.ops, idx, op)
+        set(block.dests, idx, dest)
+        set(block.arg0s, idx, arg0)
+        set(block.arg1s, idx, arg1)
+        set(block.int_vals, idx, int_val)
+        block_record::mir_float_box_set_value(get_unchecked(block.float_vals, idx), float_val)
+        set(block.val_types, idx, val_type)
+        set(block.func_ids, idx, func_id)
+    } else {
+        push(block.ops, op)
+        push(block.dests, dest)
+        push(block.arg0s, arg0)
+        push(block.arg1s, arg1)
+        push(block.int_vals, int_val)
+        push(block.float_vals, block_record::MirFloatBox_new(float_val))
+        push(block.val_types, val_type)
+        push(block.func_ids, func_id)
+    }
+    mir_block_store_str(block, idx, inst_draft::MirInstDraft_str_val(inst), reuse)
+    mir_block_store_result_types(block, reuse, inst_draft::MirInstDraft_result_types(inst))
+    block.inst_count = idx + 1
+}
+
+fn MirBlock_push_inst(block: MirBlock, inst: MirInstDraft) {
+    mir_block_append_draft(block, inst)
+}
+
+fn MirBlock_set_instructions(block: MirBlock, instructions: Vec<MirInstDraft>) {
+    mir_block_clear_insts(block)
+    let n = len(instructions)
+    let mut i = 0
+    while i < n {
+        mir_block_append_draft(block, get_unchecked(instructions, i))
+        i = i + 1
+    }
+}
+
+fn MirBlock_set_from_refs(block: MirBlock, refs: Vec<MirInst>) {
+    MirBlock_set_instructions(block, block_inst_access::MirBlock_drafts_from_refs(refs))
+}
+
+fn MirInst_bind_draft(inst: MirInstDraft) -> MirInst {
+    let block = block_factory::MirBlock_new(0)
+    MirBlock_push_inst(block, inst)
+    block_inst_access::MirBlock_inst_at(block, 0)
 }

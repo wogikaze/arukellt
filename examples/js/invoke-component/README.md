@@ -1,6 +1,6 @@
 # Invoke an Ark component from JavaScript
 
-`run.mjs` shells out to **wasmtime** (same as the Rust example) so you can script Ark
+`run.mjs` shells out to **wasmtime** so you can script Ark
 components from Node without writing a custom Wasm host.
 
 ## Run
