@@ -1,7 +1,7 @@
 # Pinned-reference selfhost wasm — Provenance
 
-This directory holds the **committed pinned-reference selfhost wasm** that is
-the single trusted base for the four canonical selfhost gates (see
+This directory holds the **committed pinned-reference selfhost wasm** used as
+the trusted bootstrap base for selfhost verification (see
 [ADR-029](../docs/adr/ADR-029-selfhost-native-verification-contract.md)).
 
 The pinned wasm is the source-of-truth for bootstrapping on a fresh clone.
@@ -37,25 +37,35 @@ scripts/run/arukellt-selfhost.sh compile program.ark \
 wasm-tools validate .build/program.component.wasm
 ```
 
-The `selfhost fixpoint` and fixture-parity gates are required when refreshing
-the pinned artifact. They also verify that the direct bootstrap and official
-component packaging paths remain reproducible from a fresh clone.
+Normal fixture testing is intentionally **not** pinned-vs-current parity.
+`python3 scripts/manager.py selfhost fixture-parity` now builds the current
+selfhost compiler once, compiles and validates every `run:` fixture in parallel,
+and executes only a bounded cross-domain runtime smoke set (plus explicit trap
+contracts). This keeps fixture verification on the normal development path
+without paying for two compiler generations per fixture.
+
+Pinned-vs-current fixture comparison is a bootstrap-refresh audit only:
+
+```bash
+python3 scripts/run/selfhost-fixture-test.py --reference
+```
 
 ## Refresh policy
 
 The pinned wasm is **explicitly refreshed**, never auto-bumped. Refresh is
 required when an intentional behavioural change in the selfhost compiler
-(`src/compiler/**`) makes the four gates fail against the previous pinned
-reference. Refresh procedure:
+(`src/compiler/**`) makes the bootstrap verification contract fail against the
+previous pinned reference. Refresh procedure:
 
 1. Locally bootstrap a new direct compiler wasm from the previous pinned
    reference and the new compiler source.
 2. When the stage-2 build is available, verify the Stage-3 fixpoint (`s2 ==
    s3`). If the refresh path needs an intermediate Stage-3 artifact, verify one
    more round (`s3 == s4`) and pin the stable fixpoint artifact.
-3. Run the full fixture-parity gate against the previous pinned reference and
-   review every difference. Document each behavioural drift in the refresh
-   commit message; if any drift is unintentional, **do not refresh**.
+3. Run `python3 scripts/run/selfhost-fixture-test.py --reference` against the
+   previous pinned reference and review every difference. This is deliberately
+   outside normal fixture testing. Document each behavioural drift in the
+   refresh commit message; if any drift is unintentional, **do not refresh**.
 4. Replace `bootstrap/arukellt-selfhost.wasm` with the new fixpoint binary,
    update this file's *sha256*, *size*, and *Built from commit* rows, and
    commit both changes in one commit titled
@@ -75,6 +85,8 @@ adapter in either path.
 
 ## Why this artifact is committed
 
-The four selfhost gates (`fixpoint`, `fixture-parity`, `diag-parity`,
-and CLI parity) start from this binary so a fresh clone can verify the
-selfhost compiler without a prior build. See ADR-029 for the contract.
+Fixpoint, diagnostic parity, CLI parity, and construction of the current
+selfhost compiler used by the fixture gate all start from this binary. A fresh
+clone can therefore verify the compiler without a prior local build. Pinned
+fixture-output comparison is reserved for explicit artifact refreshes instead
+of being multiplied across every normal fixture test.
