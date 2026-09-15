@@ -25,6 +25,9 @@ import time
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+from util.percentiles import percentile_linear  # noqa: E402
+
 BUILD_DIR = REPO_ROOT / ".build" / "perf-linear-vs-gc"
 
 # ADR-002 fixtures: (name, source, expected, needs_dir)
@@ -202,13 +205,14 @@ def run_wasmtime(wasm_path: Path, expected: str, iterations: int, warmups: int) 
         expected_clean = expected.strip()
         correctness = "pass" if actual == expected_clean else "fail"
 
-        n = len(timings)
+        median_ms = percentile_linear(timings, 50.0)
+        p95_ms = percentile_linear(timings, 95.0)
         return {
             "runtime": "wasmtime", "target": flavor, "status": "ok",
             "correctness": correctness, "expected": expected_clean, "actual": actual,
-            "timings_ms": timings, "median_ms": timings[n // 2],
-            "p50_ms": timings[min(n - 1, n // 2)],
-            "p95_ms": timings[min(n - 1, int(n * 0.95))],
+            "timings_ms": timings, "median_ms": median_ms,
+            "p50_ms": median_ms, "p95_ms": p95_ms,
+            "percentile_method": "linear-interpolation",
             "min_ms": timings[0], "max_ms": timings[-1],
             "iterations": iterations, "warmups": warmups, "error": None,
         }

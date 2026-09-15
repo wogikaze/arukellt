@@ -94,6 +94,11 @@ Last updated: 2026-09-12
 schema: [`docs/data/selfhost-overlay-receipt.schema.json`](../data/selfhost-overlay-receipt.schema.json)  
 writer: `python3 scripts/selfhost/write_overlay_receipt.py`
 
+10-run gate receipts must be generated from a clean commit with:
+`python3 scripts/selfhost/measure_overlay_goal.py --out docs/research/receipts/851-gc-overlay-goal-gate-10.json`.
+The runner records the pin→s2→s3 hashes, raw samples, and the explicit
+linear-interpolation percentile method; do not hand-edit aggregate p95 values.
+
 Phase 0 完了前に Phase 2 の製品 MIR 切替を始めない。
 Phase 1（generated tables）は独立なので Phase 0 と並行してよい。
 
