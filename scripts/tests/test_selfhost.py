@@ -12,9 +12,28 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 MANAGER = REPO_ROOT / "scripts" / "manager.py"
+
+
+class TestReadOnlyFixtureContract(unittest.TestCase):
+    """A missing sandbox must not silently become writable execution."""
+
+    def test_missing_bwrap_is_explicit_failure(self) -> None:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from selfhost.checks import ReadOnlyFixtureUnavailable, _wasm_run_argv
+
+        with patch("selfhost.checks._find_wasmtime", return_value="wasmtime"):
+            with patch("selfhost.checks.shutil.which", return_value=None):
+                with self.assertRaises(ReadOnlyFixtureUnavailable) as ctx:
+                    _wasm_run_argv(
+                        REPO_ROOT,
+                        REPO_ROOT / "fixture.wasm",
+                        read_only=True,
+                    )
+        self.assertIn("writable fallback", str(ctx.exception))
 
 
 def _run(*args: str) -> tuple[int, str]:

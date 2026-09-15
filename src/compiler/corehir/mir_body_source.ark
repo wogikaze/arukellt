@@ -8,26 +8,21 @@ struct CoreHirMirBodySource {
 }
 
 fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
-    // Share the frozen expr table. A deep copy here cloned every text/type_name
-    // and doubled the CoreHIR live set for the whole lower. Renderers that need
-    // a snapshot use corehir_body_table_exprs. After the view is built the
-    // program table is emptied so only the view roots the forest.
+    // Transfer the validated body forest without cloning every text/type_name.
+    // The table's body storage is empty after this call; the MIR source is its
+    // sole downstream owner.
+    let forest = body_table::corehir_body_table_take_body_forest(table)
     let source = CoreHirMirBodySource {
-        exprs: body_table::corehir_body_table_exprs_ref(table),
-        fn_body_roots: body_table::corehir_body_table_fn_body_roots_ref(table),
-        method_body_roots: body_table::corehir_body_table_method_body_roots_ref(table)
+        exprs: forest.exprs,
+        fn_body_roots: forest.fn_body_roots,
+        method_body_roots: forest.method_body_roots,
     }
-    body_table::corehir_body_table_release_bodies(table)
     source
 }
 
 pub fn mir_body_source_build_ast_body_into(table: CoreHirBodyTable, node: AstNode) -> i32 {
     body_table::corehir_body_table_reset_body(table)
     body::corehir_build_expr(table, node)
-}
-
-pub fn mir_body_source_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
-    body_table::corehir_body_table_exprs_ref(table)
 }
 
 fn mir_body_source_release(source: CoreHirMirBodySource) {

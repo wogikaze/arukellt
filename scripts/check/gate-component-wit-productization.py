@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Aggregate close gate for #667/#670/#671/#672/#673/#674/#706.
+"""Aggregate close gate for #667/#670/#671/#672/#673/#674.
 
 The aggregate verifies both implementation-specific gates and repository issue closure
 receipts so the productization PR cannot leave one of the tracked Markdown issues open.
@@ -18,7 +18,6 @@ GATES = (
     "gate-672-wit-type-binding-codegen.py",
     "gate-673-component-export-aggregate-expansion.py",
     "gate-674-component-composition-deps.py",
-    "gate-706-std-wit-full-compliance.py",
 )
 CLOSED_ISSUES = (
     "667-library-component-emit-routing-regression.md",
@@ -27,7 +26,6 @@ CLOSED_ISSUES = (
     "672-wit-type-binding-codegen.md",
     "673-component-export-aggregate-expansion.md",
     "674-component-composition-deps-interop.md",
-    "706-std-wit-full-compliance.md",
 )
 
 

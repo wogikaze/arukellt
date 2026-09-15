@@ -136,6 +136,10 @@ def _overlay_skip(label: str) -> None:
     print(f"[bootstrap-overlay] optional patch skipped: {label}")
 
 
+class ReadOnlyFixtureUnavailable(RuntimeError):
+    """Raised when a fixture's ``:ro`` execution contract cannot be enforced."""
+
+
 def _remove_tree(path: Path) -> None:
     """Remove a directory tree; retry on WSL where shutil/rm can race."""
     if not path.exists():
@@ -711,7 +715,9 @@ def _wasm_run_argv(
 
     bwrap = shutil.which("bwrap")
     if bwrap is None:
-        return run_argv
+        raise ReadOnlyFixtureUnavailable(
+            "bwrap is not installed; refusing writable fallback for a :ro fixture"
+        )
 
     # Wasmtime 46 exposes preopens but not a read-only --dir mode.  Run the
     # official component under a read-only bind mount so the fixture's
@@ -4225,35 +4231,40 @@ def _run_fixture_parity_locked(
                 continue
 
             runtime_args, read_only = _fixture_runtime_args(root, fixture)
-            if pinned_run is None:
-                p_out = ""
-                p_code = 1
-            else:
-                r_p = _run(
+            try:
+                if pinned_run is None:
+                    p_out = ""
+                    p_code = 1
+                else:
+                    r_p = _run(
+                        _wasm_run_argv(
+                            root,
+                            pinned_run,
+                            runtime_args=runtime_args,
+                            read_only=read_only,
+                        ),
+                        root,
+                        timeout=15,
+                    )
+                    p_out = (r_p.stdout + r_p.stderr).strip()
+                    p_code = r_p.returncode
+
+                r_c = _run(
                     _wasm_run_argv(
                         root,
-                        pinned_run,
+                        current_run,
                         runtime_args=runtime_args,
                         read_only=read_only,
                     ),
                     root,
                     timeout=15,
                 )
-                p_out = (r_p.stdout + r_p.stderr).strip()
-                p_code = r_p.returncode
-
-            r_c = _run(
-                _wasm_run_argv(
-                    root,
-                    current_run,
-                    runtime_args=runtime_args,
-                    read_only=read_only,
-                ),
-                root,
-                timeout=15,
-            )
-            c_out = (r_c.stdout + r_c.stderr).strip()
-            c_code = r_c.returncode
+                c_out = (r_c.stdout + r_c.stderr).strip()
+                c_code = r_c.returncode
+            except ReadOnlyFixtureUnavailable as exc:
+                lines.append(f"  FAIL: {fixture} (read-only execution unavailable: {exc})")
+                fail_count += 1
+                continue
 
             # A trap (exit 134) after successful wasm validation indicates a
             # runtime crash.  Only fixtures with an explicit process-level

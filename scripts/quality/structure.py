@@ -510,7 +510,15 @@ def quality_contract_findings(root: Path) -> list[Finding]:
                 if rule.get("type") == "required_status_checks"
                 for check in rule.get("parameters", {}).get("required_status_checks", [])
             }
-            for context in ("quality-format", "quality-lint", "verify-quick", "Final gate"):
+            for context in (
+                "quality-format",
+                "quality-lint",
+                "verify-quick",
+                "CoreHIR body boundary",
+                "MIR optimizer translation validation",
+                "Typed proof contract frontend",
+                "Final gate",
+            ):
                 if context not in contexts:
                     findings.append(_finding("CQ-STRUCT-009", str(ruleset_path.relative_to(root)), f"required ruleset context is missing: {context}", "tooling"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -524,6 +532,9 @@ def quality_contract_findings(root: Path) -> list[Finding]:
         "quality-format",
         "quality-lint",
         "verify-quick",
+        "CoreHIR body boundary",
+        "MIR optimizer translation validation",
+        "Typed proof contract frontend",
         "Final gate",
     ):
         if marker not in required_checks:

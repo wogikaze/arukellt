@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-12T19:51:33Z",
+  "generated_at": "2026-09-15T04:51:46Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -286,6 +286,25 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+      }
+    },
+    {
+      "id": "706",
+      "path": "706-std-wit-full-compliance.md",
+      "title": "706 — std::wit Full WIT 1.0 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {

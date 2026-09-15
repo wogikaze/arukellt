@@ -9,7 +9,7 @@
 | `quality-shard` | See workflow definition. |
 | `quality-format` | Canonical Ark formatter check through manager.py. |
 | `quality-lint` | Ark correctness lint and lint-contract smoke through manager.py. |
-| `verify-quick` | PR-required quick verification, including quality quick. |
+| `verify-quick` | PR-required fast repository contracts: bootstrap presence, docs, native executor, and native-cpp safety checks. |
 | `verification` | Runs `python3 scripts/manager.py verify` (and related verify lanes). |
 | `selfhost` | Selfhost fixpoint + fixture/CLI/diag parity (ADR-029). |
 | `native-executor-gates` | See workflow definition. |

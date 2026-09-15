@@ -4,19 +4,30 @@ Policy: [ADR-047](../adr/ADR-047-code-quality-tooling-and-gates.md).
 
 ## In-repo jobs
 
-Workflow: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
+Primary workflow: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 
 | Job | Command | Purpose |
 |-----|---------|---------|
-| `quality-format` | `python3 scripts/manager.py fmt --check` | Canonical Ark format |
-| `quality-lint` | `python3 scripts/manager.py lint` | Correctness lint / smoke |
-| `verify-quick` | `python3 scripts/manager.py verify quick` | PR-required quick verification |
+| `quality-format` | sharded `fmt --check` implementation; local equivalent is `python3 scripts/manager.py fmt --check` | Canonical Ark format |
+| `quality-lint` | sharded `lint --local` implementation; local equivalent is `python3 scripts/manager.py lint` | Correctness lint / smoke |
+| `verify-quick` | fast repository-contract checks in `ci.yml` | PR-required quick verification |
 | `verification` | `python3 scripts/manager.py verify` | Existing harness (includes `quality quick`) |
 | `selfhost` | selfhost fixpoint / parity | Compiler bootstrap |
 | `docs` | docs consistency | Docs hard gates |
 | `verify` | aggregator | Needs the above |
 
-Local and CI must call the same `manager.py` implementations.
+The following architecture jobs are separate workflows and are also required on
+pull requests targeting `master`:
+
+| Job | Command | Purpose |
+|-----|---------|---------|
+| `CoreHIR body boundary` | `python3 scripts/check/check-corehir-body-boundary.py` | Frozen CoreHIR body ownership contract |
+| `MIR optimizer translation validation` | `python3 scripts/check/check-gc-hint-translation-validation.py` | Fail-closed MIR restoration and translation contract |
+| `Typed proof contract frontend` | source/boundary checks and proof-adapter tests | Typed proof and architecture boundary contract |
+
+Local commands and CI implementations must enforce the same contracts. The
+sharded Ark jobs use the pinned selfhost wrapper for bounded PR feedback; the
+`manager.py` commands remain the canonical local entry points.
 EditorConfig, generated-output, SSOT, and boundary policy is reached through
 `quality quick` / `quality structure`; workflow YAML does not copy those checks.
 
@@ -27,7 +38,10 @@ The `master` ruleset must require these status checks before merge:
 1. `quality-format`
 2. `quality-lint`
 3. `verify-quick`
-4. `Final gate` (aggregator)
+4. `CoreHIR body boundary`
+5. `MIR optimizer translation validation`
+6. `Typed proof contract frontend`
+7. `Final gate` (aggregator)
 
 The canonical API payload is
 [`master-quality.json`](../../.github/rulesets/master-quality.json). Audit or

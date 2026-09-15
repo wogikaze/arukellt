@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts" / "check"))
+from _gate_open_skip import skip_if_any_open
 
 
 def require(path: str, needles: tuple[str, ...]) -> str | None:
@@ -20,6 +22,9 @@ def require(path: str, needles: tuple[str, ...]) -> str | None:
 
 
 def main() -> int:
+    skipped = skip_if_any_open(["706"], "gate-706-std-wit-full-compliance")
+    if skipped is not None:
+        return skipped
     checks = (
         ("std/wit/ast.ark", ("WitNode::Package", "WitNode::World", "WitNode::Interface", "WitNode::Record", "WitNode::Enum", "WitNode::Flags", "WitNode::Variant", "WitNode::Resource", "WitNode::TypeAlias", "WitNode::Use", "pub fn parse(source: String)")),
         ("std/wit/names.ark", ("kebab_name", "kebab_to_snake", "pascal_case")),

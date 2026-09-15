@@ -19,6 +19,9 @@
           {"context": "quality-format"},
           {"context": "quality-lint"},
           {"context": "verify-quick"},
+          {"context": "CoreHIR body boundary"},
+          {"context": "MIR optimizer translation validation"},
+          {"context": "Typed proof contract frontend"},
           {"context": "Final gate"}
         ]
       }
