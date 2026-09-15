@@ -243,12 +243,15 @@ fn wit_parse_interface_body(body: String) -> WitParsedInterface {
 }
 
 fn parse_wit_import_text(text: String) -> WitParsedInterface {
-    let package = wit_parse_text_scan::wit_extract_package(text)
-    let interface = wit_parse_text_scan::wit_extract_interface_name(text)
-    let body = wit_parse_text_scan::wit_extract_interface_body(text)
+    // Each scan receives its own source value. Bootstrap lowering can reuse a
+    // moved String slot while a parsed record is consumed, so independent
+    // values keep scalar fields from aliasing one another.
+    let package = wit_parse_text_scan::wit_extract_package(clone(text))
+    let interface = wit_parse_text_scan::wit_extract_interface_name(clone(text))
+    let body = wit_parse_text_scan::wit_extract_interface_body(clone(text))
     let parsed = wit_parse_interface_body(body)
     let doc = WitParsedInterface_new(package, interface, parsed.funcs, parsed.records, parsed.enums)
-    doc.package_version = wit_parse_text_scan::wit_extract_package_version(text)
+    doc.package_version = wit_parse_text_scan::wit_extract_package_version(clone(text))
     doc.variants = parsed.variants
     doc
 }

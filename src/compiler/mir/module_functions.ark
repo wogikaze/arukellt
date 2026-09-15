@@ -73,7 +73,7 @@ fn MirModule_local_count(m: MirModule) -> i32 {
     total
 }
 
-pub fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
+fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
     if enabled == 0 {
         return
     }

@@ -244,22 +244,6 @@ fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_set_local_write_index(ctx, local_write_index::LocalWriteIndex_empty())
 }
 
-fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
-    let flags = ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)
-    if local_idx < 0 || local_idx >= len(flags) {
-        return 0 - 1
-    }
-    get_unchecked(flags, local_idx)
-}
-
-fn cached_has_ref_assignment(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
-    let flags = ctx_record::SelfEmitCtx_local_has_ref_cache(ctx)
-    if local_idx < 0 || local_idx >= len(flags) {
-        return 0 - 1
-    }
-    get_unchecked(flags, local_idx)
-}
-
 fn cached_body_has_i64_stack_set(ctx: SelfEmitCtx, local_idx: i32) -> bool {
     let flags = ctx_record::SelfEmitCtx_local_i64_stack_set_cache(ctx)
     if local_idx < 0 || local_idx >= len(flags) {
@@ -328,8 +312,4 @@ fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
             set(cache, local_idx, infer_cache_miss())
         }
     }
-}
-
-fn is_function_local_gc_cache_active(ctx: SelfEmitCtx) -> bool {
-    len(ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)) > 0
 }

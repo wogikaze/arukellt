@@ -43,6 +43,14 @@ fn mir_fn_index_source_fn_qualified_name_at(source: MirLowerFnIndexSource, info_
     signature_fn::mir_signature_fn_qualified_name_at(source.signature_source, info_index, String_new())
 }
 
+fn mir_fn_index_source_fn_param_count_at(source: MirLowerFnIndexSource, info_index: i32) -> i32 {
+    signature_fn::mir_signature_fn_param_count_at(source.signature_source, info_index, 0)
+}
+
+fn mir_fn_index_source_fn_param_at(source: MirLowerFnIndexSource, info_index: i32, param_index: i32) -> CoreHirParam {
+    signature_fn::mir_signature_fn_param_at(source.signature_source, info_index, param_index)
+}
+
 fn mir_fn_index_source_typed_return_vt(source: MirLowerFnIndexSource, typed_index: i32) -> i32 {
     let type_source = source.type_source
     if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {

@@ -71,7 +71,7 @@ resolve_selfhost_wasm() {
 if [[ "${1:-}" == "compose" ]]; then
   for arg in "$@"; do
     if [[ "$arg" == "--manifest" ]]; then
-      exec python3 "$REPO_ROOT/scripts/component-deps.py" compose "${@:2}"
+      exec python3 "$REPO_ROOT/scripts/util/component-deps.py" compose "${@:2}"
     fi
   done
 fi

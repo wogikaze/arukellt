@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
 import re
 import shlex
 import subprocess
@@ -63,6 +64,7 @@ ALLOWED_COMPILER_ROOT_FILES = {
     "mir_dump.ark",
     "mir_lower.ark",
     "native.ark",
+    "native_c_capabilities_generated.ark",
     "parser.ark",
     "resolver.ark",
     "target.ark",
@@ -561,7 +563,9 @@ def quality_contract_findings(root: Path) -> list[Finding]:
 
 
 def _external_check(root: Path, rule_id: str, path: str, owner: str, command: tuple[str, ...]) -> list[Finding]:
-    result = subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)
+    env = dict(os.environ)
+    env.update({"LC_ALL": "C", "LANG": "C", "LC_CTYPE": "C"})
+    result = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True, check=False)
     if result.returncode == 0:
         return []
     output = (result.stdout + result.stderr).strip()

@@ -1,7 +1,6 @@
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_record
-use mir::types
 
 pub struct MirInst {
     home: MirBlock,

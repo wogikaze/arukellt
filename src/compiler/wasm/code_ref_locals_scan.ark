@@ -7,8 +7,27 @@ use mir::function_locals_view
 use mir::local_access
 use mir::opcodes
 use mir::value_types
-use wasm::code_ref_locals_fn_cache
 use wasm::ctx_record
+
+fn is_function_local_gc_cache_active(ctx: SelfEmitCtx) -> bool {
+    len(ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)) > 0
+}
+
+fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let flags = ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)
+    if local_idx < 0 || local_idx >= len(flags) {
+        return 0 - 1
+    }
+    get_unchecked(flags, local_idx)
+}
+
+fn cached_has_ref_assignment(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let flags = ctx_record::SelfEmitCtx_local_has_ref_cache(ctx)
+    if local_idx < 0 || local_idx >= len(flags) {
+        return 0 - 1
+    }
+    get_unchecked(flags, local_idx)
+}
 
 // True when a RETURN hands back `local_idx`, directly or via the LOCAL_GET
 // right before it. Reads the per-function flags inside the GC local cache
@@ -80,8 +99,8 @@ fn local_feeds_return_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
 
 // Prefer the per-function cache when emit has activated it (#829).
 fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
-        let cached = code_ref_locals_fn_cache::cached_is_direct_gc_struct_new_dest(ctx, local_idx)
+    if is_function_local_gc_cache_active(ctx) {
+        let cached = cached_is_direct_gc_struct_new_dest(ctx, local_idx)
         if cached >= 0 {
             return cached != 0
         }
@@ -157,8 +176,8 @@ fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
 // holds a ref value (direct ref-producing op, LOCAL_SET/LOCAL_GET from a ref
 // source, or a function parameter with a ref type_name).
 fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
-        let cached = code_ref_locals_fn_cache::cached_has_ref_assignment(ctx, local_idx)
+    if is_function_local_gc_cache_active(ctx) {
+        let cached = cached_has_ref_assignment(ctx, local_idx)
         if cached == 1 {
             return true
         }

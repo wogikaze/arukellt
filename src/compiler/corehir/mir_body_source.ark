@@ -20,7 +20,7 @@ fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
     source
 }
 
-pub fn mir_body_source_build_ast_body_into(table: CoreHirBodyTable, node: AstNode) -> i32 {
+fn mir_body_source_build_ast_body_into(table: CoreHirBodyTable, node: AstNode) -> i32 {
     body_table::corehir_body_table_reset_body(table)
     body::corehir_build_expr(table, node)
 }

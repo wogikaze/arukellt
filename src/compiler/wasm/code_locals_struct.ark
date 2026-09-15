@@ -192,7 +192,7 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
 // the per-function cache window this is a table lookup; the body scan remains
 // for callers outside it.
 fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx) -> i32 {
-    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+    if code_ref_locals_scan::is_function_local_gc_cache_active(ctx) {
         return code_ref_locals_fn_cache::cached_struct_new_byte_size(ctx, struct_name)
     }
     let block_count = len(f.blocks)
