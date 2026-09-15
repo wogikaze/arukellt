@@ -4,6 +4,7 @@
   "host": ".build/selfhost/flat-src/three-s3.wasm",
   "target": "wasm32-gc",
   "wasi_version": "wasi-p2",
+  "percentile_method": "linear-interpolation",
   "source_cacheless": true,
   "host_aot_cache": "reused serialized module for the runner",
   "compiler_gc_heap_pregrow_bytes": 484442112,
@@ -86,19 +87,19 @@
   ],
   "wall_ms": {
     "median": 8982.0,
-    "p95": 9077,
+    "p95": 9114.95,
     "min": 8834,
     "max": 9146
   },
   "guest_total_ms": {
     "median": 7663.5,
-    "p95": 7746,
+    "p95": 7777.9,
     "min": 7537,
     "max": 7804
   },
   "rss_max_kb": {
     "median": 989758.0,
-    "p95": 989976,
+    "p95": 989984.8,
     "min": 986788,
     "max": 989992
   },
