@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import unittest
 import sys
+import tempfile
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent
@@ -11,6 +12,7 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from util.percentiles import percentile_linear
+from selfhost.measure_overlay_goal import parse_rss_max_kb
 
 
 class PercentileTest(unittest.TestCase):
@@ -23,6 +25,12 @@ class PercentileTest(unittest.TestCase):
         self.assertIsNone(percentile_linear([], 95.0))
         with self.assertRaises(ValueError):
             percentile_linear([1.0], 100.1)
+
+    def test_rss_parser_ignores_gnu_time_failure_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_dir:
+            path = Path(raw_dir) / "rss"
+            path.write_text("Command exited with non-zero status 134\n1097924\n")
+            self.assertEqual(parse_rss_max_kb(path), 1097924)
 
 
 if __name__ == "__main__":

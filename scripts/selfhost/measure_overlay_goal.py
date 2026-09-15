@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import shutil
 import statistics
 import subprocess
@@ -18,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
+from selfhost import checks  # noqa: E402
 from selfhost.write_overlay_receipt import parse_stderr  # noqa: E402
 from util.percentiles import percentile_linear  # noqa: E402
 
@@ -25,7 +25,8 @@ SOURCE = Path("src/compiler/main.ark")
 DEFAULT_HOST = Path(".build/selfhost/arukellt-s3.wasm")
 DEFAULT_S2 = Path(".build/selfhost/arukellt-s2.wasm")
 DEFAULT_S3 = Path(".build/selfhost/arukellt-s3.wasm")
-WRAPPER = ROOT / "scripts/run/arukellt-selfhost.sh"
+DEFAULT_PINNED = Path("bootstrap/arukellt-selfhost.wasm")
+DEFAULT_WORKSPACE = Path(".build/selfhost/flat-src")
 SCHEMA = "arukellt-selfhost-overlay-gate-summary-v2"
 
 
@@ -84,6 +85,19 @@ def validate(wasm_tools: str, path: Path) -> bool:
     return result.returncode == 0
 
 
+def parse_rss_max_kb(path: Path) -> int:
+    """Parse GNU time's RSS output, including its failure-status prefix."""
+    lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines()]
+    for line in reversed(lines):
+        if not line:
+            continue
+        try:
+            return int(line)
+        except ValueError:
+            continue
+    raise RuntimeError(f"/usr/bin/time wrote no numeric RSS value: {path}")
+
+
 def summarize(samples: list[float]) -> dict[str, float | int]:
     if not samples:
         raise ValueError("cannot summarize an empty sample list")
@@ -109,44 +123,60 @@ def run_one(
     run_number: int,
     host: Path,
     wasm_tools: str,
+    wasmtime: str,
+    workspace: Path,
     work_dir: Path,
     timeout: int,
 ) -> dict[str, object]:
     output = work_dir / f"overlay-{run_number:02d}.wasm"
     rss_file = work_dir / f"overlay-{run_number:02d}.rss"
+    guest_output = f".overlay-goal-{work_dir.name}-{run_number:02d}.wasm"
+    workspace_output = workspace / guest_output
+    if host.suffix == ".cwasm":
+        precompiled_flags = ["--allow-precompiled"]
+    else:
+        precompiled_flags = []
     command = [
         "/usr/bin/time",
         "-f",
         "%M",
         "-o",
         str(rss_file),
-        str(WRAPPER),
+        wasmtime,
+        "run",
+        *precompiled_flags,
+        *checks.WASMTIME_SELFHOST_WASM_FLAGS,
+        "--wasm",
+        "max-wasm-stack=16777216",
+        "--dir",
+        str(workspace),
+        str(host),
+        "--",
         "compile",
+        str(SOURCE),
         "--target",
         "wasm32-gc",
         "--wasi-version",
         "wasi-p2",
         "--time",
         "-o",
-        relative_path(output),
-        str(SOURCE),
+        guest_output,
     ]
-    environment = os.environ.copy()
-    environment["ARUKELLT_SELFHOST_WASM"] = str(host)
     started = time.perf_counter()
     result = subprocess.run(
         command,
         cwd=ROOT,
         capture_output=True,
         text=True,
-        env=environment,
         timeout=timeout,
         check=False,
     )
     wall_ms = round((time.perf_counter() - started) * 1000)
     if not rss_file.is_file():
         raise RuntimeError(f"/usr/bin/time did not write RSS for run {run_number}")
-    rss_max_kb = int(rss_file.read_text(encoding="utf-8").strip())
+    rss_max_kb = parse_rss_max_kb(rss_file)
+    if workspace_output.is_file():
+        shutil.copyfile(workspace_output, output)
     phases, _slow_fns = parse_stderr(result.stderr)
     is_valid = output.is_file() and validate(wasm_tools, output)
     output_hash = sha256(output) if output.is_file() else ""
@@ -170,7 +200,9 @@ def run_one(
 
 def build_receipt(
     source_sha: str,
+    pinned_sha: str,
     host: Path,
+    workspace: Path,
     s2_sha: str,
     s3_sha: str,
     s3_valid: bool,
@@ -192,6 +224,12 @@ def build_receipt(
         "source_sha": source_sha,
         "source": str(SOURCE),
         "host": relative_path(host),
+        "host_sha256": sha256(host),
+        "overlay": relative_path(workspace),
+        "pinned": {
+            "path": str(DEFAULT_PINNED),
+            "sha256": pinned_sha,
+        },
         "target": "wasm32-gc",
         "wasi_version": "wasi-p2",
         "source_cacheless": True,
@@ -243,14 +281,26 @@ def main() -> int:
     host = (ROOT / args.host).resolve()
     s2 = (ROOT / args.s2).resolve()
     s3 = (ROOT / args.s3).resolve()
+    pinned = (ROOT / DEFAULT_PINNED).resolve()
+    workspace = (ROOT / DEFAULT_WORKSPACE).resolve()
     for path in (host, s2, s3):
         if not path.is_file():
             raise SystemExit(f"missing selfhost artifact: {path}")
+    if not pinned.is_file():
+        raise SystemExit(f"missing pinned selfhost artifact: {pinned}")
     wasm_tools = shutil.which("wasm-tools")
     if wasm_tools is None:
         raise SystemExit("wasm-tools is required")
+    wasmtime = shutil.which("wasmtime")
+    if wasmtime is None:
+        raise SystemExit("wasmtime is required")
+    try:
+        workspace = checks._prepare_flattened_selfhost_source(ROOT).resolve()
+    except Exception as exc:
+        raise SystemExit(f"failed to prepare selfhost overlay: {exc}") from exc
     s2_sha = sha256(s2)
     s3_sha = sha256(s3)
+    pinned_sha = sha256(pinned)
     s3_valid = validate(wasm_tools, s3)
     if not s3_valid:
         raise SystemExit(f"stage 3 artifact is invalid: {s3}")
@@ -260,12 +310,14 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="overlay-goal-", dir=build_dir) as raw_dir:
         work_dir = Path(raw_dir)
         samples = [
-            run_one(index, host, wasm_tools, work_dir, args.timeout)
+            run_one(index, host, wasm_tools, wasmtime, workspace, work_dir, args.timeout)
             for index in range(1, args.runs + 1)
         ]
     receipt = build_receipt(
         source_sha,
+        pinned_sha,
         host,
+        workspace,
         s2_sha,
         s3_sha,
         s3_valid,
