@@ -140,6 +140,69 @@ def _validate_wasm(root: Path, wasm_tools: str, wasm_path: Path) -> tuple[int, s
     return result.returncode, (result.stderr or result.stdout or "").strip()[-800:]
 
 
+def _package_current_for_execution(
+    root: Path,
+    wasm_tools: str,
+    core_path: Path,
+    package_dir: Path,
+    label: str,
+) -> tuple[Path | None, str]:
+    """Package one current P2 core without re-discovering wasm-tools."""
+    wit_dir = root / _checks.WASI_P2_WIT_REL
+    if not wit_dir.is_dir():
+        return None, f"official WASI P2 WIT directory not found: {wit_dir}"
+    package_dir.mkdir(parents=True, exist_ok=True)
+    embedded = package_dir / f"{label}.embedded.wasm"
+    component = package_dir / f"{label}.component.wasm"
+
+    embed = _checks._run(
+        [
+            wasm_tools,
+            "component",
+            "embed",
+            str(wit_dir),
+            "--world",
+            "command",
+            str(core_path.resolve()),
+            "-o",
+            str(embedded),
+        ],
+        root,
+        timeout=60,
+    )
+    if embed.returncode != 0 or not embedded.is_file():
+        detail = (embed.stderr or embed.stdout or "component embed failed").strip()
+        return None, detail[-400:]
+
+    wrap = _checks._run(
+        [
+            wasm_tools,
+            "component",
+            "new",
+            str(embedded),
+            "--reject-legacy-names",
+            "--realloc-via-memory-grow",
+            "-o",
+            str(component),
+        ],
+        root,
+        timeout=60,
+    )
+    if wrap.returncode != 0 or not component.is_file():
+        detail = (wrap.stderr or wrap.stdout or "component new failed").strip()
+        return None, detail[-400:]
+
+    valid = _checks._run(
+        [wasm_tools, "validate", str(component.resolve())],
+        root,
+        timeout=60,
+    )
+    if valid.returncode != 0:
+        detail = (valid.stderr or valid.stdout or "component validation failed").strip()
+        return None, detail[-400:]
+    return component, ""
+
+
 def _run_one_fixture(
     root: Path,
     wasmtime: str,
@@ -177,8 +240,9 @@ def _run_one_fixture(
         return FixtureResult(fixture, True, False, ())
 
     package_dir = package_root / digest
-    runnable, package_error = _checks._package_p2_core_for_execution(
+    runnable, package_error = _package_current_for_execution(
         root,
+        wasm_tools,
         out,
         package_dir,
         f"current-{digest}",
