@@ -20,8 +20,9 @@ use wasm::inst_ctx
 
 // Fallback: infer GC type from the called function's return type signature.
 fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
+    let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
     let indexed = inst_ctx::resolve_fn_index(ctx, clone(callee))
-    if indexed >= 0 {
+    if indexed >= 0 && indexed < function_count {
         let indexed_name = function_identity::MirFunction_name(
             ctx_record::SelfEmitCtx_function_at(ctx, indexed)
         )
@@ -30,7 +31,6 @@ fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
         }
     }
     let short_name = inst_ctx::strip_module_prefix(clone(callee))
-    let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
     let mut matched_index = 0 - 1
     let mut match_count = 0
     let mut function_index = 0
@@ -47,7 +47,7 @@ fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
     if match_count == 1 {
         return matched_index
     }
-    if indexed >= 0 {
+    if indexed >= 0 && indexed < function_count {
         return indexed
     }
     0 - 1
