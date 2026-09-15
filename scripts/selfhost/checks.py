@@ -3644,11 +3644,11 @@ def _run_fixpoint_locked(
         return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
 
     # Stage 2: bootstrap wasm compiles current selfhost source → s2.wasm
-    # Skip stage2 only when both the binary hash and the source fingerprint
-    # match the last successful stage2 build. A binary-only sidecar cannot
-    # prove freshness after the compiler source changes.
+    # Skip stage2 only when caching is enabled and both the binary hash and
+    # source fingerprint match the last successful build. A binary-only
+    # sidecar cannot prove freshness after the compiler source changes.
     skip_stage2 = False
-    if s2.is_file() and fingerprint is not None:
+    if not no_cache and s2.is_file() and fingerprint is not None:
         s2_hash_file = build_dir / "s2-hash.txt"
         s2_source_file = build_dir / "s2-source-hash.txt"
         if s2_hash_file.is_file() and s2_source_file.is_file():
