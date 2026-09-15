@@ -278,7 +278,11 @@ fn emit_function_export_entries(
         if start_names::is_wasm_start_function_name(clone(ef_name)) {
         } else if emit_target::is_p2_wasi(clone(wasi_version)) {
             if is_p2_library_export_function(ef) {
-                let seen = export_name_seen_bump(seen_short_names, clone(ef_name))
+                // P2 names are canonicalized to WIT kebab-case. Count after
+                // that conversion so Ark names such as `Token_kind` and
+                // `token_kind` cannot emit the same component export.
+                let wit_seen_name = wit_names::wit_export_name(clone(ef_name))
+                let seen = export_name_seen_bump(seen_short_names, wit_seen_name)
                 let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
                 emit_p2_library_function_exports(
                     export_sec,

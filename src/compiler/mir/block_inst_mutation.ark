@@ -16,9 +16,9 @@ fn mir_block_store_str(block: MirBlock, idx: i32, text: String, reuse: bool) {
     if len(text) == 0 {
         if reuse {
             set(block.str_ids, idx, 0 - 1)
-        } else {
-            push(block.str_ids, 0 - 1)
+            return
         }
+        push(block.str_ids, 0 - 1)
         return
     }
     if reuse {
@@ -30,9 +30,10 @@ fn mir_block_store_str(block: MirBlock, idx: i32, text: String, reuse: bool) {
     }
     if reuse {
         set(block.str_ids, idx, len(block.str_pool))
-    } else {
-        push(block.str_ids, len(block.str_pool))
+        push(block.str_pool, text)
+        return
     }
+    push(block.str_ids, len(block.str_pool))
     push(block.str_pool, text)
 }
 
@@ -42,11 +43,11 @@ fn mir_block_store_result_types(block: MirBlock, reuse: bool, result_types: Vec<
             set(block.type_ids, block.inst_count, 0 - 1)
             set(block.type_reprs, block.inst_count, 0)
             set(block.type_nulls, block.inst_count, 0)
-        } else {
-            push(block.type_ids, 0 - 1)
-            push(block.type_reprs, 0)
-            push(block.type_nulls, 0)
+            return
         }
+        push(block.type_ids, 0 - 1)
+        push(block.type_reprs, 0)
+        push(block.type_nulls, 0)
         return
     }
     let first = get_unchecked(result_types, 0)
@@ -57,11 +58,11 @@ fn mir_block_store_result_types(block: MirBlock, reuse: bool, result_types: Vec<
         set(block.type_ids, block.inst_count, tid)
         set(block.type_reprs, block.inst_count, repr)
         set(block.type_nulls, block.inst_count, nulls)
-    } else {
-        push(block.type_ids, tid)
-        push(block.type_reprs, repr)
-        push(block.type_nulls, nulls)
+        return
     }
+    push(block.type_ids, tid)
+    push(block.type_reprs, repr)
+    push(block.type_nulls, nulls)
 }
 
 fn mir_block_append_draft(block: MirBlock, inst: MirInstDraft) {
@@ -84,7 +85,8 @@ fn mir_block_append_draft(block: MirBlock, inst: MirInstDraft) {
         block_record::mir_float_box_set_value(get_unchecked(block.float_vals, idx), float_val)
         set(block.val_types, idx, val_type)
         set(block.func_ids, idx, func_id)
-    } else {
+    }
+    if !reuse {
         push(block.ops, op)
         push(block.dests, dest)
         push(block.arg0s, arg0)

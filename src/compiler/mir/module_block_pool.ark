@@ -34,9 +34,10 @@ fn mir_module_give_block(m: MirModule, block: MirBlock) {
     block_inst_mutation::mir_block_clear_insts(block)
     if m.block_pool_used < len(m.block_pool) {
         set(m.block_pool, m.block_pool_used, block)
-    } else {
-        push(m.block_pool, block)
+        m.block_pool_used = m.block_pool_used + 1
+        return
     }
+    push(m.block_pool, block)
     m.block_pool_used = m.block_pool_used + 1
 }
 

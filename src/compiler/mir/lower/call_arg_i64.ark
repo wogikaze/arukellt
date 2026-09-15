@@ -15,6 +15,13 @@ fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -
 }
 
 fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
+    // `Vec::with_capacity<T>` carries the element type in its monomorphized
+    // callee name, but its sole argument is always the i32 capacity.  The
+    // suffix must not make the generic fallback heuristic treat that argument
+    // as i64 (for example `Vec__with_capacity__i64(8)`).
+    if param_idx == 0 && mir_is_vec_with_capacity_callee(clone(callee_name)) {
+        return false
+    }
     // Conversion intrinsics that take i32 must keep CONST_I32 args.
     if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
         return false
@@ -30,6 +37,21 @@ fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i
     }
     // Spine miss fallback: historic name / seek heuristics.
     mir_callee_name_suggests_i64_args(callee_name)
+}
+
+fn mir_is_vec_with_capacity_callee(callee_name: String) -> bool {
+    if eq(clone(callee_name), String_from("Vec::with_capacity")) ||
+    eq(clone(callee_name), String_from("Vec__with_capacity")) {
+        return true
+    }
+    if starts_with(clone(callee_name), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(callee_name), String_from("Vec__with_capacity__")) {
+        return true
+    }
+    if starts_with(clone(callee_name), String_from("Vec_with_capacity_")) {
+        return true
+    }
+    false
 }
 
 // True when an i64 temp must truncate for a known i32 scalar param.

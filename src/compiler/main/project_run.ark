@@ -184,7 +184,8 @@ fn collect_test_name_node(node: AstNode, prefix: String) -> i32 {
         let mut i = 0
         while i < cc {
             let inner = ast::ast_node_child_at(node, i)
-            count = count + collect_test_name_node(inner, clone(new_prefix))
+            let child_count = collect_test_name_node(inner, clone(new_prefix))
+            count = count + child_count
             i = i + 1
         }
         return count

@@ -202,10 +202,11 @@ fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {
         let found = find_canon_type_index(canon_types, sig)
         if found >= 0 {
             push(type_map, found)
-        } else {
-            push(type_map, len(canon_types))
-            push(canon_types, sig)
+            tsi = tsi + 1
+            continue
         }
+        push(type_map, len(canon_types))
+        push(canon_types, sig)
         tsi = tsi + 1
     }
     TypeCanonPlan_new(canon_types, type_map)

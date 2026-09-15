@@ -35,21 +35,18 @@ fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     (local_vt < 0 || local_vt == default_vt) {
         return store_vt
     }
+    // A constructor returned directly from a function has no following store
+    // to carry its element type. The local metadata defaults to Vec<i32>, so
+    // consult the monomorphized constructor before accepting that fallback.
+    let constructor_vt = resolve_vec_type_from_constructor(ctx, dest_local)
+    if constructor_vt >= 0 && (local_vt < 0 || local_vt == default_vt) {
+        return constructor_vt
+    }
     if local_vt >= 0 {
         return local_vt
     }
     if store_vt >= 0 {
         return store_vt
-    }
-    // An unannotated constructor has no store target to provide its element
-    // type. Use the monomorphized callee name only after local/store metadata
-    // has had a chance to preserve an annotated nested container.
-    let constructor_vt = resolve_vec_type_from_constructor(ctx, dest_local)
-    if constructor_vt >= 0 {
-        return constructor_vt
-    }
-    if local_vt >= 0 {
-        return local_vt
     }
     default_vt
 }
@@ -62,11 +59,16 @@ fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     (len(local_type) == 0 || eq(clone(local_type), String_from("vec:i32"))) {
         type_name = store_type
     }
+    let constructor_array = resolve_array_type_from_constructor(ctx, dest_local)
+    if constructor_array >= 0 &&
+    (len(local_type) == 0 || eq(clone(local_type), String_from("vec:i32"))) &&
+    (len(store_type) == 0 || eq(clone(store_type), String_from("vec:i32"))) {
+        return constructor_array
+    }
     let resolved = resolve_array_type_from_type_name(ctx, clone(type_name))
     if resolved >= 0 {
         return resolved
     }
-    let constructor_array = resolve_array_type_from_constructor(ctx, dest_local)
     if constructor_array >= 0 {
         return constructor_array
     }
@@ -129,6 +131,12 @@ fn resolve_array_type_from_constructor(ctx: SelfEmitCtx, dest_local: i32) -> i32
 }
 
 fn constructor_element_name(callee: String) -> String {
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        return substring(callee, 8, len(callee))
+    }
+    if starts_with(clone(callee), String_from("Vec_with_capacity_")) {
+        return substring(callee, 18, len(callee))
+    }
     if starts_with(clone(callee), String_from("Vec::new__")) ||
     starts_with(clone(callee), String_from("Vec__new__")) ||
     starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
