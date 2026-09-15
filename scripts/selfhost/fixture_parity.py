@@ -122,9 +122,28 @@ def _compile_current_fixture(
     return result.returncode, detail
 
 
+def _validate_wasm(root: Path, wasm_tools: str, wasm_path: Path) -> tuple[int, str]:
+    """Validate with a wasm-tools path resolved once by the parent gate."""
+    result = _checks._run(
+        [
+            wasm_tools,
+            "validate",
+            "--features",
+            "gc,function-references,memory64",
+            str(wasm_path.resolve()),
+        ],
+        root,
+        timeout=60,
+    )
+    if result.returncode == 0:
+        return 0, ""
+    return result.returncode, (result.stderr or result.stdout or "").strip()[-800:]
+
+
 def _run_one_fixture(
     root: Path,
     wasmtime: str,
+    wasm_tools: str,
     compiler: Path,
     fixture: str,
     execute: bool,
@@ -133,14 +152,19 @@ def _run_one_fixture(
     digest = hashlib.sha1(fixture.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
     out_rel = str(Path(".build") / "fixture-test" / f"{digest}.wasm")
     out = root / out_rel
-    messages: list[str] = []
+    try:
+        out.unlink()
+    except FileNotFoundError:
+        pass
+    except OSError as exc:
+        return FixtureResult(fixture, False, False, (f"cannot clear stale output: {exc}",))
 
     rc, detail = _compile_current_fixture(root, wasmtime, compiler, fixture, out_rel)
     if rc != 0 or not out.is_file():
         tail = detail[-240:] if detail else f"exit {rc}"
         return FixtureResult(fixture, False, False, (f"compile failed: {tail}",))
 
-    val_rc, val_msg = _checks._wasm_tools_validate(out)
+    val_rc, val_msg = _validate_wasm(root, wasm_tools, out)
     if val_rc != 0:
         return FixtureResult(
             fixture,
@@ -240,7 +264,8 @@ def run_fixture_parity(
     wasmtime = _checks._find_wasmtime()
     if not wasmtime:
         return (1, "error: wasmtime not found\n")
-    if _checks._find_wasm_tools() is None:
+    wasm_tools = _checks._find_wasm_tools()
+    if wasm_tools is None:
         return (1, "error: bytecodealliance wasm-tools not found\n")
 
     def prepare_current() -> tuple[Path | None, str]:
@@ -286,6 +311,7 @@ def run_fixture_parity(
                     _run_one_fixture,
                     root,
                     wasmtime,
+                    wasm_tools,
                     compiler,
                     fixture,
                     fixture in smoke,
