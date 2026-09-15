@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from selfhost import checks
-from selfhost.fixture_parity import (
+SCRIPTS = Path(__file__).resolve().parents[1]
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from selfhost import checks  # noqa: E402
+from selfhost.fixture_parity import (  # noqa: E402
     _select_smoke_fixtures,
     _worker_count,
     run_fixture_parity,
