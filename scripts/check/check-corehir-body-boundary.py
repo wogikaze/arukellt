@@ -34,6 +34,10 @@ FORBIDDEN_READ_API_TOKENS = (
     "push(table.",
     "fn corehir_body_table_fn_body_roots",
     "fn corehir_body_table_method_body_roots",
+    "corehir_body_table_exprs_ref",
+    "corehir_body_table_fn_body_roots_ref",
+    "corehir_body_table_method_body_roots_ref",
+    "corehir_body_table_release_bodies",
 )
 FORBIDDEN_VECTOR_FACADE_TOKENS = (
     "fn body_exprs(",
@@ -65,6 +69,18 @@ def main() -> int:
     require(table, "fn corehir_body_table_schema_version", "schema accessor")
     require(table, "fn corehir_body_table_expr_count", "expression count accessor")
     require(table, "fn corehir_body_table_expr_at", "expression indexed accessor")
+    require(table, "struct CoreHirBodyForest", "transferred body forest")
+    require(
+        table,
+        "fn corehir_body_table_take_body_forest",
+        "destructive body ownership transfer",
+    )
+    for field in ("exprs", "fn_body_roots", "method_body_roots"):
+        require(
+            table,
+            f"{field}: table.{field}",
+            f"body forest takes {field} ownership",
+        )
     for token in FORBIDDEN_READ_API_TOKENS:
         if token in table:
             raise ValueError(f"body_table exposes mutation or storage alias: {token}")
@@ -100,11 +116,23 @@ def main() -> int:
     )
     require(validator, "root < 0 || root >= expr_count", "contract root validation")
 
-    require(mir_body_source, "fn mir_body_source_copy_expr", "detached MIR expression copy")
-    require(mir_body_source, "let exprs = Vec::new<CoreHirExpr>()", "detached MIR vector")
-    require(mir_body_source, "let children = Vec::new<i32>()", "detached MIR children")
-    require(mir_body_source, "corehir_body_expr_count(table)", "count-based snapshot")
-    require(mir_body_source, "corehir_body_expr_at(table, expr_index)", "indexed snapshot")
+    require(
+        mir_body_source,
+        "corehir_body_table_take_body_forest(table)",
+        "explicit MIR body ownership transfer",
+    )
+    for token in FORBIDDEN_READ_API_TOKENS:
+        if token in mir_body_source:
+            raise ValueError(f"mir_body_source consumes an aliased body API: {token}")
+    entry_body_source = COMPILER / "mir" / "lower" / "entry_body_source.ark"
+    entry_body_source_text = entry_body_source.read_text(encoding="utf-8")
+    require(
+        entry_body_source_text,
+        "corehir_body_table_take_body_forest(entry_source.lazy_table)",
+        "lazy body ownership transfer",
+    )
+    if "mir_body_source_table_exprs" in entry_body_source_text:
+        raise ValueError("entry_body_source consumes a body vector facade")
 
     violations: list[str] = []
     for path in sorted(COMPILER.rglob("*.ark")):
@@ -138,7 +166,7 @@ def main() -> int:
         raise ValueError("\n".join(violations))
     print(
         "corehir-body-boundary: PASS: version=1 builder -> validator -> "
-        "frozen artifact -> detached snapshots"
+        "frozen artifact -> explicit body ownership transfer"
     )
     return 0
 

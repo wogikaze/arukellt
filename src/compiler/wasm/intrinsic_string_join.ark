@@ -25,6 +25,8 @@ fn emit_join(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_sep)
     helpers_core::emit_local_set(w, s_jvec)
     emit_join_setup(w, s_sep, s_jvec, s_jlen, s_jdata, s_ji, s_jbase, s_jdst, s_sep_len)
+    emit_join_count_loop(w, s_jlen, s_jdata, s_ji, s_jdst, s_sep_len, s_str_p, s_str_l)
+    emit_join_alloc(w, s_jbase, s_jdst, s_ji)
     emit_join_loop(w, s_sep, s_jlen, s_jdata, s_ji, s_jdst, s_sep_len, s_str_p, s_str_l)
     emit_join_finish(w, s_jbase, s_jdst)
     return true
@@ -44,6 +46,72 @@ fn emit_join_setup(w: WasmWriter, s_sep: i32, s_jvec: i32, s_jlen: i32, s_jdata:
     helpers_core::emit_local_set(w, s_sep_len)
     helpers_core::emit_heap_get(w)
     helpers_core::emit_local_set(w, s_jbase)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_jdst)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_ji)
+}
+
+// Count the complete output before writing. The linear heap must be advanced
+// before the first header or payload store so a boundary allocation grows
+// memory before any write can reach the old memory end.
+fn emit_join_count_loop(w: WasmWriter, s_jlen: i32, s_jdata: i32, s_ji: i32, s_jdst: i32, s_sep_len: i32, s_str_p: i32, s_str_l: i32) {
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_ji)
+    helpers_core::emit_local_get(w, s_jlen)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_br_if(w, 1)
+    emit_joined_string_length(w, s_jdata, s_ji, s_str_p, s_str_l)
+    helpers_core::emit_local_get(w, s_jdst)
+    helpers_core::emit_local_get(w, s_str_l)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_jdst)
+    emit_join_count_separator(w, s_ji, s_jdst, s_sep_len)
+    helpers_core::emit_local_get(w, s_ji)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_ji)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
+fn emit_joined_string_length(w: WasmWriter, s_jdata: i32, s_ji: i32, s_str_p: i32, s_str_l: i32) {
+    helpers_core::emit_local_get(w, s_jdata)
+    helpers_core::emit_local_get(w, s_ji)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_str_p)
+    helpers_core::emit_local_get(w, s_str_p)
+    helpers_memory::emit_string_len_from_stack(w)
+    helpers_core::emit_local_set(w, s_str_l)
+}
+
+fn emit_join_count_separator(w: WasmWriter, s_ji: i32, s_jdst: i32, s_sep_len: i32) {
+    helpers_core::emit_local_get(w, s_ji)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, s_jdst)
+    helpers_core::emit_local_get(w, s_sep_len)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_jdst)
+    helpers_control::emit_end(w)
+}
+
+fn emit_join_alloc(w: WasmWriter, s_jbase: i32, s_jdst: i32, s_ji: i32) {
+    helpers_core::emit_local_get(w, s_jbase)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_jdst)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, -4)
+    helpers_numeric_i32::emit_i32_and(w)
+    helpers_core::emit_heap_set(w)
     helpers_core::emit_local_get(w, s_jbase)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
@@ -114,12 +182,6 @@ fn emit_join_finish(w: WasmWriter, s_jbase: i32, s_jdst: i32) {
     helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_memory::emit_i32_store_default(w)
-    helpers_core::emit_local_get(w, s_jdst)
-    helpers_numeric_i32::emit_i32_const(w, 3)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_const(w, -4)
-    helpers_numeric_i32::emit_i32_and(w)
-    helpers_core::emit_heap_set(w)
     helpers_core::emit_local_get(w, s_jbase)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)

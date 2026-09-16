@@ -1,6 +1,6 @@
 # Local Cursor Issue Agent
 
-This repository can use Cursor Agent CLI as a local GitHub Issue worker. The automation deliberately keeps reasoning/editing inside Cursor while branch, commit, push, PR, CI, and optional merge operations remain deterministic in `scripts/cursor_issue_agent.py`.
+This repository can use Cursor Agent CLI as a local GitHub Issue worker. The automation deliberately keeps reasoning/editing inside Cursor while branch, commit, push, PR, CI, and optional merge operations remain deterministic in `scripts/util/cursor_issue_agent.py`.
 
 ## Flow
 
@@ -23,27 +23,27 @@ Cursor can use an existing local login or `CURSOR_API_KEY`. No Cursor credential
 
 Inspect the queue:
 
-    python scripts/cursor_issue_agent.py list
+    python scripts/util/cursor_issue_agent.py list
 
 Process one Issue, even if it was processed before:
 
-    python scripts/cursor_issue_agent.py run --issue 123
+    python scripts/util/cursor_issue_agent.py run --issue 123
 
 Process every currently-open Issue that has not already been processed by this local state:
 
-    python scripts/cursor_issue_agent.py drain
+    python scripts/util/cursor_issue_agent.py drain
 
 Process that backlog and squash-merge each PR only after its checks pass:
 
-    python scripts/cursor_issue_agent.py drain --merge
+    python scripts/util/cursor_issue_agent.py drain --merge
 
 Watch for Issues opened after the watcher starts:
 
-    python scripts/cursor_issue_agent.py watch
+    python scripts/util/cursor_issue_agent.py watch
 
 Include the existing backlog, keep watching, and merge successful PRs:
 
-    python scripts/cursor_issue_agent.py watch --backfill --merge
+    python scripts/util/cursor_issue_agent.py watch --backfill --merge
 
 Useful options include `--model <cursor-model>`, `--interval 60`, `--check-interval 30`, `--base <branch>`, `--repo owner/name`, `--merge-method squash|merge|rebase`, and `--no-watch-ci`. `--merge` cannot be combined with `--no-watch-ci`.
 

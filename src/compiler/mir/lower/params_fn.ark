@@ -3,6 +3,7 @@ use corehir::type_info_to_mir_value
 use mir::function_identity
 use mir::legacy_vt_compat
 use mir::lower::binary_type_names
+use mir::lower::aggregate_tuple
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
@@ -152,6 +153,12 @@ fn mir_param_type_is_option_fnref(type_name: String) -> bool {
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
     let result = Vec::new<String>()
+    let tuple_type = aggregate_tuple::tuple_type_name_from_param_alias(ctx, clone(p_type_name))
+    if len(tuple_type) > 0 {
+        push(result, clone(tuple_type))
+        push(result, clone(tuple_type))
+        return result
+    }
     // Surface Option:/Result: forms must become option:/result: — never
     // "?Option:..." which makes is_generic_function emit unreachable bodies.
     let normalized = mir_param_normalize_option_result_type_name(clone(p_type_name))

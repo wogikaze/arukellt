@@ -99,7 +99,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                             out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type())
                         } else {
                             if wit_decl::wit_func_param_has_type_at(f, pi) {
-                                out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
+                                out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_func_param_type_view_at(f, pi)))
                             } else {
                                 out = text::builder_append(out, "s32")
                             }
@@ -108,7 +108,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                 }
                 out = text::builder_append(out, ")")
                 let mut ret = String_new()
-                if wit_decl::wit_func_return_has_type(f) { ret = wit_types::wit_type_from_ast(wit_decl::wit_func_return_type_view(f)) }
+                if wit_decl::wit_func_return_has_type(f) { ret = wit_types::component_wit_type_to_text(wit_decl::wit_func_return_type_view(f)) }
                 if len(ret) > 0 {
                     out = text::builder_append(out, " -> ")
                     if eq(clone(fname), "flip_read") {

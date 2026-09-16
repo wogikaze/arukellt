@@ -7,6 +7,7 @@ use mir::lower::call_emit
 use mir::lower::call_indirect_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::literals
+use corehir::type_ann_node
 
 fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     // Funcref parameter call: f(x) where f: fn(i32) -> i32
@@ -24,7 +25,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             return call_indirect_emit::mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)
         }
     }
-    let callee_name = ast_node::node_text(callee)
+    let callee_name = lower_direct_call_callee_name(callee)
     let is_println = call_args::mir_is_printlike_callee(clone(callee_name))
     let stage_call_args = !is_println && child_count > 2
     let staged_arg_locals = Vec::new<i32>()
@@ -103,6 +104,31 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         lane_immediate,
         receiver_writeback
     )
+}
+
+fn lower_direct_call_callee_name(callee: AstNode) -> String {
+    let callee_name = ast_node::node_text(callee)
+    if !eq(clone(callee_name), "Vec::new") &&
+    !eq(clone(callee_name), "Vec::with_capacity") {
+        return callee_name
+    }
+    if ast_node::node_child_count(callee) < 2 {
+        return callee_name
+    }
+    let element_type = ast_node::node_child_at(callee, 1)
+    if !type_ann_node::type_ann_is_named(element_type) {
+        return callee_name
+    }
+    let element_name = ast_node::node_text(element_type)
+    if len(element_name) == 0 || contains(clone(element_name), "::") {
+        return callee_name
+    }
+    let constructor = if eq(clone(callee_name), "Vec::new") {
+        "Vec__new__"
+    } else {
+        "Vec__with_capacity__"
+    }
+    concat(constructor, element_name)
 }
 
 fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg: AstNode, arg_idx: i32) -> i32 {

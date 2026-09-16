@@ -53,6 +53,7 @@
 | [ADR-053-selfhost-compiler-core-rewrite.md](ADR-053-selfhost-compiler-core-rewrite.md) | ADR-053: セルフホストコンパイラ中核の再構築（gc-host overlay） | 実行正本: docs/plans/selfhost-compiler-core-rewrite.md |
 | [ADR-054-host-linker-and-rust-runtime-retirement.md](ADR-054-host-linker-and-rust-runtime-retirement.md) | ADR-054: host-linker とリポジトリ内 Rust runtime の退役 | selfhost compiler の実行には、Rust 製の host-linker、heap patcher、WASI P2 adapter、 および旧来の HTTP/TCP bridge が介在している。 |
 | [ADR-055-playground-compile-boundary.md](ADR-055-playground-compile-boundary.md) | ADR-055: Playground の compile 境界 | Playground には、core Wasm の import 名 arukellt_io を直接実装する TypeScript runner が残っていた。 |
+| [ADR-056-corehir-body-ownership-transfer.md](ADR-056-corehir-body-ownership-transfer.md) | ADR-056: CoreHIR 本体 forest の所有権移譲境界 | CoreHirBodyTable は、builder が構築し validator が検査した CoreHIR 本体を freeze 境界まで運ぶ artifact である。 |
 
 ## 提案
 

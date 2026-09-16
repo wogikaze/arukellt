@@ -9,7 +9,6 @@
 //! `ast_kind`, `ast_name`, and other accessor helpers.
 
 use std::wit::types
-use std::wit::scan
 
 // ─── AST node type ───────────────────────────────────────────────
 
@@ -98,24 +97,60 @@ pub fn ast_child_at(node: WitNode, index: i32) -> WitNode {
             if index < 0 || index >= len(items) {
                 WitNode::Error(String_from("ast_child_at: index out of bounds"))
             } else {
-                clone(get_unchecked(items, index))
+                get_unchecked(items, index)
             }
         },
         WitNode::World(_, items) => {
             if index < 0 || index >= len(items) {
                 WitNode::Error(String_from("ast_child_at: index out of bounds"))
             } else {
-                clone(get_unchecked(items, index))
+                get_unchecked(items, index)
             }
         },
         WitNode::Interface(_, items) => {
             if index < 0 || index >= len(items) {
                 WitNode::Error(String_from("ast_child_at: index out of bounds"))
             } else {
-                clone(get_unchecked(items, index))
+                get_unchecked(items, index)
             }
         },
         _ => WitNode::Error(String_from("ast_child_at: not a container node")),
+    }
+}
+
+/// Return the first interface name reachable from a package or world node.
+/// This keeps traversal in the AST module without exposing a recursive enum
+/// value to callers that only need metadata.
+pub fn ast_first_interface_name(node: WitNode) -> String {
+    match node {
+        WitNode::Interface(name, _) => clone(name),
+        WitNode::Package(_, items) => {
+            for i in 0..len(items) {
+                match get_unchecked(items, i) {
+                    WitNode::Interface(name, _) => return clone(name),
+                    WitNode::World(_, world_items) => {
+                        for j in 0..len(world_items) {
+                            match get_unchecked(world_items, j) {
+                                WitNode::Interface(name, _) => return clone(name),
+                                _ => {},
+                            }
+                        }
+                    },
+                    _ => {},
+                }
+            }
+            String_new()
+        },
+        WitNode::World(_, items) => {
+            for i in 0..len(items) {
+                match get_unchecked(items, i) {
+                    WitNode::Interface(name, _) => return clone(name),
+                    _ => {},
+                }
+            }
+            String_new()
+        },
+        _ => String_new(),
     }
 }
 
@@ -147,14 +182,14 @@ pub fn ast_field_type_at(node: WitNode, index: i32) -> types::WitType {
             if index < 0 || index >= len(fields) {
                 types::wit_type_from_id(0)
             } else {
-                clone(get_unchecked(fields, index).ty)
+                get_unchecked(fields, index).ty
             }
         },
         WitNode::Resource(_, fields) => {
             if index < 0 || index >= len(fields) {
                 types::wit_type_from_id(0)
             } else {
-                clone(get_unchecked(fields, index).ty)
+                get_unchecked(fields, index).ty
             }
         },
         _ => types::wit_type_from_id(0),
@@ -189,6 +224,52 @@ pub fn ast_flags_member_at(node: WitNode, index: i32) -> String {
     }
 }
 
+/// Return the variant case name at `index`.
+pub fn ast_variant_case_name_at(node: WitNode, index: i32) -> String {
+    match node {
+        WitNode::Variant(_, cases) => {
+            if index < 0 || index >= len(cases) {
+                String_new()
+            } else {
+                clone(get_unchecked(cases, index).name)
+            }
+        },
+        _ => String_new(),
+    }
+}
+
+/// Return whether the variant case at `index` has a payload type.
+pub fn ast_variant_case_has_payload(node: WitNode, index: i32) -> bool {
+    match node {
+        WitNode::Variant(_, cases) => {
+            if index < 0 || index >= len(cases) {
+                return false
+            }
+            match get_unchecked(cases, index).ty {
+                Option::Some(_) => true,
+                Option::None => false,
+            }
+        },
+        _ => false,
+    }
+}
+
+/// Return the variant case payload type (or `Unknown(0)` if none).
+pub fn ast_variant_case_type_at(node: WitNode, index: i32) -> types::WitType {
+    match node {
+        WitNode::Variant(_, cases) => {
+            if index < 0 || index >= len(cases) {
+                return types::wit_type_from_id(0)
+            }
+            match get_unchecked(cases, index).ty {
+                Option::Some(ty) => ty,
+                Option::None => types::wit_type_from_id(0),
+            }
+        },
+        _ => types::wit_type_from_id(0),
+    }
+}
+
 /// Return the func param count.
 pub fn ast_func_param_count(node: WitNode) -> i32 {
     match node {
@@ -218,7 +299,7 @@ pub fn ast_func_param_type_at(node: WitNode, index: i32) -> types::WitType {
             if index < 0 || index >= len(params) {
                 types::wit_type_from_id(0)
             } else {
-                clone(get_unchecked(params, index).ty)
+                get_unchecked(params, index).ty
             }
         },
         _ => types::wit_type_from_id(0),
@@ -243,7 +324,7 @@ pub fn ast_func_result(node: WitNode) -> types::WitType {
     match node {
         WitNode::Func(_, _, result) => {
             match result {
-                Option::Some(ty) => clone(ty),
+                Option::Some(ty) => ty,
                 Option::None => types::wit_type_from_id(0),
             }
         },
@@ -254,7 +335,7 @@ pub fn ast_func_result(node: WitNode) -> types::WitType {
 /// Return the type alias target type.
 pub fn ast_type_alias_target(node: WitNode) -> types::WitType {
     match node {
-        WitNode::TypeAlias(_, ty) => clone(ty),
+        WitNode::TypeAlias(_, ty) => ty,
         _ => types::wit_type_from_id(0),
     }
 }
@@ -271,6 +352,195 @@ pub fn ast_use_path(node: WitNode) -> String {
 pub fn ast_use_alias(node: WitNode) -> String {
     match node {
         WitNode::Use(_, alias) => clone(alias),
+        _ => String_new(),
+    }
+}
+
+fn wit_import_package_name(package: String) -> String {
+    let at = index_of(clone(package), "@")
+    if at < 0 {
+        package
+    } else {
+        substring(package, 0, at)
+    }
+}
+
+fn wit_import_package_version(package: String) -> String {
+    let at = index_of(clone(package), "@")
+    if at < 0 {
+        String_new()
+    } else {
+        substring(package, at + 1, len(package))
+    }
+}
+
+fn wit_import_serialized_string_list(values: Vec<String>) -> String {
+    let mut out = String_new()
+    for i in 0..len(values) {
+        if i > 0 {
+            out = concat(out, String_from("~"))
+        }
+        out = concat(out, clone(get_unchecked(values, i)))
+    }
+    out
+}
+
+fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
+    let mut out = String_new()
+    for i in 0..len(params) {
+        if i > 0 {
+            out = concat(out, String_from("~"))
+        }
+        out = concat(out, types::wit_type_from_ast(get_unchecked(params, i).ty))
+    }
+    out
+}
+
+fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
+    let names = Vec::new<String>()
+    for i in 0..len(fields) {
+        push(names, clone(get_unchecked(fields, i).name))
+    }
+    wit_import_serialized_string_list(names)
+}
+
+fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
+    let mut out = String_new()
+    for i in 0..len(fields) {
+        if i > 0 {
+            out = concat(out, String_from("~"))
+        }
+        out = concat(out, types::wit_type_from_ast(get_unchecked(fields, i).ty))
+    }
+    out
+}
+
+fn wit_import_serialized_enum_variants(variants: Vec<String>) -> String {
+    wit_import_serialized_string_list(variants)
+}
+
+fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> String {
+    let names = Vec::new<String>()
+    for i in 0..len(cases) {
+        push(names, clone(get_unchecked(cases, i).name))
+    }
+    wit_import_serialized_string_list(names)
+}
+
+fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> String {
+    let mut out = String_new()
+    for i in 0..len(cases) {
+        if i > 0 {
+            out = concat(out, String_from("~"))
+        }
+        let payload = match get_unchecked(cases, i).ty {
+            Option::Some(ty) => types::wit_type_from_ast(ty),
+            Option::None => String_new(),
+        }
+        out = concat(out, payload)
+    }
+    out
+}
+
+fn wit_import_serialized_entry(kind: String, name: String, first: String, second: String) -> String {
+    let mut entry = concat(String_from(";"), concat(kind, String_from("|")))
+    entry = concat(entry, name)
+    entry = concat(entry, String_from("|"))
+    entry = concat(entry, first)
+    entry = concat(entry, String_from("|"))
+    concat(entry, concat(second, String_from(";")))
+}
+
+/// Parse a canonical WIT document and seal its import metadata inside the
+/// AST module.  Keeping the recursive `WitNode` local to this module avoids
+/// passing its GC enum representation through the parser/compiler boundary.
+pub fn parse_import_text(source: String) -> String {
+    let parsed = parse_wit_document(source)
+    ast_import_serialized(parsed)
+}
+
+fn wit_import_serialized_interface(package: String, name: String, items: Vec<WitNode>) -> String {
+    let package_name = wit_import_package_name(clone(package))
+    let package_version = wit_import_package_version(package)
+    let mut out = concat(String_from("header|"), package_name)
+    out = concat(out, String_from("|"))
+    out = concat(out, package_version)
+    out = concat(out, String_from("|"))
+    out = concat(out, concat(name, String_from(";")))
+    for i in 0..len(items) {
+        match get_unchecked(items, i) {
+            WitNode::Func(func_name, params, result) => {
+                let result_text = match result {
+                    Option::Some(ty) => types::wit_type_from_ast(ty),
+                    Option::None => String_new(),
+                }
+                out = concat(out, wit_import_serialized_entry(
+                        String_from("func"),
+                        func_name,
+                        wit_import_serialized_param_types(params),
+                        result_text
+                    ))
+            },
+            WitNode::Record(record_name, fields) => {
+                out = concat(out, wit_import_serialized_entry(
+                        String_from("record"),
+                        record_name,
+                        wit_import_serialized_field_names(fields),
+                        wit_import_serialized_field_types(fields)
+                    ))
+            },
+            WitNode::Enum(enum_name, variants) => {
+                out = concat(out, wit_import_serialized_entry(
+                        String_from("enum"),
+                        enum_name,
+                        wit_import_serialized_enum_variants(variants),
+                        String_new()
+                    ))
+            },
+            WitNode::Variant(variant_name, cases) => {
+                out = concat(out, wit_import_serialized_entry(
+                        String_from("variant"),
+                        variant_name,
+                        wit_import_serialized_variant_names(cases),
+                        wit_import_serialized_variant_payloads(cases)
+                    ))
+            },
+            _ => {},
+        }
+    }
+    out
+}
+
+fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> String {
+    for i in 0..len(items) {
+        match get_unchecked(items, i) {
+            WitNode::Interface(name, interface_items) => {
+                return wit_import_serialized_interface(package, name, interface_items)
+            },
+            WitNode::World(_, world_items) => {
+                for j in 0..len(world_items) {
+                    match get_unchecked(world_items, j) {
+                        WitNode::Interface(name, interface_items) => {
+                            return wit_import_serialized_interface(clone(package), name, interface_items)
+                        },
+                        _ => {},
+                    }
+                }
+            },
+            _ => {},
+        }
+    }
+    String_new()
+}
+
+/// Serialize canonical WIT metadata while the recursive AST remains inside
+/// `std::wit`. Compiler callers receive only String data, which is stable on
+/// both the linear-memory bootstrap host and the wasm32-gc target.
+pub fn ast_import_serialized(node: WitNode) -> String {
+    match node {
+        WitNode::Interface(name, items) => wit_import_serialized_interface(String_new(), name, items),
+        WitNode::Package(package, items) => wit_import_serialized_container(package, items),
+        WitNode::World(_, items) => wit_import_serialized_container(String_new(), items),
         _ => String_new(),
     }
 }
@@ -427,8 +697,9 @@ fn p_type_name(name: String) -> types::WitType {
     if eq(name, "string") {
         return types::wit_type_string()
     }
-    // Unknown named type (could be a resource or type alias reference)
-    types::WitType::Unknown(0)
+    // Preserve named references for the compiler metadata adapter. The
+    // compiler resolves the name after this syntax-level parse.
+    types::WitType::Resource(name)
 }
 
 /// Parse a WIT type from source starting at `pos`.  Returns the type
@@ -462,29 +733,76 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         return (types::wit_type_option(types::wit_type_from_id(0)), i)
     }
+    if eq(word, "tuple") {
+        i = p_skip_ws_comments(s, i)
+        if i >= n || char_at(s, i) != 60 {
+            return (types::WitType::Tuple(Vec::new<WitType>()), i)
+        }
+        let items = Vec::new<WitType>()
+        i = p_skip_ws_comments(s, i + 1)
+        while i < n && char_at(s, i) != 62 {
+            let (item, p6) = p_type(s, i)
+            push(items, item)
+            i = p_skip_ws_comments(s, p6)
+            if i < n && char_at(s, i) == 44 {
+                i = p_skip_ws_comments(s, i + 1)
+            } else {
+                break
+            }
+        }
+        if i < n && char_at(s, i) == 62 {
+            i = i + 1
+        }
+        return (types::WitType::Tuple(items), i)
+    }
     if eq(word, "own") {
         i = p_skip_ws_comments(s, i)
         if i < n && char_at(s, i) == 60 {
-            let (inner_name, p4) = p_word(s, i + 1)
+            let (inner, p4) = p_type(s, i + 1)
             i = p_skip_ws_comments(s, p4)
             if i < n && char_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(inner_name), i)
+            return (types::WitType::Resource(concat("own<", concat(types::wit_type_from_ast(inner), ">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
     if eq(word, "borrow") {
         i = p_skip_ws_comments(s, i)
         if i < n && char_at(s, i) == 60 {
-            let (inner_name, p5) = p_word(s, i + 1)
+            let (inner, p5) = p_type(s, i + 1)
             i = p_skip_ws_comments(s, p5)
             if i < n && char_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(inner_name), i)
+            return (types::WitType::Resource(concat("borrow<", concat(types::wit_type_from_ast(inner), ">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
+    }
+    if eq(word, "result") || eq(word, "future") || eq(word, "stream") {
+        let constructor = clone(word)
+        i = p_skip_ws_comments(s, i)
+        if i >= n || char_at(s, i) != 60 {
+            return (types::WitType::Resource(constructor), i)
+        }
+        let (first, p7) = p_type(s, i + 1)
+        i = p_skip_ws_comments(s, p7)
+        let mut rendered = concat(constructor, "<")
+        rendered = concat(rendered, types::wit_type_from_ast(first))
+        if i < n && char_at(s, i) == 44 {
+            let (second, p8) = p_type(s, i + 1)
+            rendered = concat(rendered, concat(", ", types::wit_type_from_ast(second)))
+            i = p_skip_ws_comments(s, p8)
+        }
+        if i < n && char_at(s, i) == 62 {
+            i = i + 1
+        }
+        return (types::WitType::Resource(concat(rendered, ">")), i)
+    }
+    // Preserve package-qualified type references for the resolver.
+    if i < n && char_at(s, i) == 58 {
+        let (suffix, p9) = p_path(s, i)
+        return (types::WitType::Resource(concat(word, suffix)), p9)
     }
     let fallback_type = p_type_name(word)
     return (fallback_type, i)
@@ -940,7 +1258,7 @@ fn p_package_decl(s: String, pos: i32) -> (String, i32) {
 /// Returns the top-level node.  If the source contains a package
 /// declaration followed by multiple items, returns a `Package` node
 /// containing the items.
-pub fn parse(source: String) -> WitNode {
+fn parse_wit_document(source: String) -> WitNode {
     let mut i = p_skip_ws_comments(source, 0)
     let n = len(source)
     if i >= n {
@@ -993,4 +1311,8 @@ pub fn parse(source: String) -> WitNode {
     // Try as a single declaration (record, enum, flags, variant, resource, type, use, func)
     let (node, _) = p_decl(source, i)
     node
+}
+
+pub fn parse(source: String) -> WitNode {
+    parse_wit_document(source)
 }

@@ -8,10 +8,102 @@ use wasm::host_intrinsic_adapter
 use wasm::host_intrinsic_gc_body
 use wasm::writer_core
 use wasm::code_locals
-use wasm::code_body_helpers
 use wasm::code_ref_locals_fn_cache
 use wasm::ctx_call_reloc
 use wasm::emit_target
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_record
+use wasm::inst_dispatch
+
+fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut prev_op = 0 - 1
+        let mut prev_arg0 = 0 - 1
+        let mut prev_arg1 = 0 - 1
+        let mut prev_func_id_raw = 0 - 1
+        if bi > 0 {
+            let prev_block = function_block_queries::MirFunction_block_at(f, bi - 1)
+            let prev_count = block_inst_access::MirBlock_inst_count(prev_block)
+            if prev_count > 0 {
+                let previous_idx = prev_count - 1
+                prev_op = block_inst_access::MirBlock_inst_op(prev_block, previous_idx)
+                prev_arg0 = block_inst_access::MirBlock_inst_arg0(prev_block, previous_idx)
+                prev_arg1 = block_inst_access::MirBlock_inst_arg1(prev_block, previous_idx)
+                if prev_op == opcodes::MIR_CALL() {
+                    prev_func_id_raw = block_inst_access::MirBlock_inst_func_id(prev_block, previous_idx)
+                }
+            }
+        }
+        let mut ii = 0
+        let inst = inst_record::MirInst_ref(block, 0)
+        while ii < inst_count {
+            inst_record::mir_inst_set_index(inst, ii)
+            let mut next_op = 0 - 1
+            let mut next_arg0 = 0 - 1
+            let mut next_arg1 = 0 - 1
+            if ii + 1 < inst_count {
+                let peek_idx = ii + 1
+                next_op = block_inst_access::MirBlock_inst_op(block, peek_idx)
+                next_arg0 = block_inst_access::MirBlock_inst_arg0(block, peek_idx)
+                next_arg1 = block_inst_access::MirBlock_inst_arg1(block, peek_idx)
+            } else if bi + 1 < block_count {
+                let next_block = function_block_queries::MirFunction_block_at(f, bi + 1)
+                let next_count = block_inst_access::MirBlock_inst_count(next_block)
+                if next_count > 0 {
+                    next_op = block_inst_access::MirBlock_inst_op(next_block, 0)
+                    next_arg0 = block_inst_access::MirBlock_inst_arg0(next_block, 0)
+                    next_arg1 = block_inst_access::MirBlock_inst_arg1(next_block, 0)
+                }
+            }
+            let mut next2_op = 0 - 1
+            if ii + 2 < inst_count {
+                next2_op = block_inst_access::MirBlock_inst_op(block, ii + 2)
+            } else if ii + 1 < inst_count {
+                if bi + 1 < block_count {
+                    let next_block2 = function_block_queries::MirFunction_block_at(f, bi + 1)
+                    if block_inst_access::MirBlock_inst_count(next_block2) > 0 {
+                        next2_op = block_inst_access::MirBlock_inst_op(next_block2, 0)
+                    }
+                }
+            } else if bi + 1 < block_count {
+                let next_block3 = function_block_queries::MirFunction_block_at(f, bi + 1)
+                if block_inst_access::MirBlock_inst_count(next_block3) > 1 {
+                    next2_op = block_inst_access::MirBlock_inst_op(next_block3, 1)
+                }
+            }
+            inst_dispatch::emit_mir_inst_ctx(
+                body,
+                inst,
+                ctx,
+                prev_op,
+                prev_arg0,
+                prev_arg1,
+                prev_func_id_raw,
+                next_op,
+                next_arg0,
+                next_arg1,
+                next2_op,
+                bindings
+            )
+            prev_op = inst_accessors_shape::MirInst_op(inst)
+            prev_arg0 = inst_accessors_operands::MirInst_arg0(inst)
+            prev_arg1 = inst_accessors_operands::MirInst_arg1(inst)
+            prev_func_id_raw = 0 - 1
+            if prev_op == opcodes::MIR_CALL() {
+                prev_func_id_raw = block_inst_access::MirBlock_inst_func_id(block, ii)
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+}
 use mir::module_wit_imports
 
 fn emit_function_body(
@@ -55,7 +147,7 @@ fn emit_function_body(
         emit_body_gc_local_cache_end(ctx)
         return
     }
-    code_body_helpers::emit_function_instructions(w, f, ctx, bindings)
+    emit_function_instructions(w, f, ctx, bindings)
     ctx_call_reloc::SelfEmitCtx_apply_call_relocs(
         ctx,
         w,
@@ -67,7 +159,8 @@ fn emit_function_body(
 }
 
 fn emit_body_gc_local_cache_begin(ctx: SelfEmitCtx, f: MirFunction) {
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) &&
+    function_locals_view::MirFunction_local_count(f) > 0 {
         code_ref_locals_fn_cache::begin_function_local_gc_cache(ctx, f)
     }
 }

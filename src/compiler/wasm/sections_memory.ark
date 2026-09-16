@@ -7,8 +7,8 @@ use wasm::emit_target
 fn emit_memory_section(out: WasmWriter, target: String) {
     let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
-        // The selfhost compiler's active data and bootstrap working set require
-        // a 1 GiB memory32 reservation when the compiler is itself emitted.
+        // Keep the memory32 reservation within the bootstrap RSS contract;
+        // the selfhost heap grows from this initial size when needed.
         let pages = if writer_core::writer_memory64(out) {
             1
         } else {
@@ -101,4 +101,4 @@ fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32, memory64: bool) {
     writer_core::emit_leb128_u(mem_sec, initial_pages)
 }
 
-fn initial_memory_pages() -> i32 { 16384 }
+fn initial_memory_pages() -> i32 { 8192 }

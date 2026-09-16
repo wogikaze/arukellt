@@ -1,7 +1,6 @@
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_record
-use mir::types
 
 pub struct MirInst {
     home: MirBlock,
@@ -18,6 +17,13 @@ fn mir_inst_home(inst: MirInst) -> MirBlock {
 
 fn mir_inst_index(inst: MirInst) -> i32 {
     inst.index
+}
+
+// The emitter reuses one handle while walking a block. The handle points at
+// the block's column storage, so changing only its index does not copy or
+// mutate the MIR instruction columns.
+fn mir_inst_set_index(inst: MirInst, index: i32) {
+    inst.index = index
 }
 
 fn mir_inst_val_type(inst: MirInst) -> i32 {

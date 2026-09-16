@@ -68,15 +68,27 @@ fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx
     code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx, ctx)
 }
 
-fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
+fn local_has_scalar_producer(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    let cached = code_ref_locals_scan::cached_local_has_scalar_producer(ctx, local_idx)
+    if cached >= 0 {
+        return cached != 0
+    }
     code_ref_locals_scan::local_has_scalar_producer(f, local_idx)
 }
 
-fn local_scalar_producer_vt(f: MirFunction, local_idx: i32) -> i32 {
+fn local_scalar_producer_vt(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
+    let cached = code_ref_locals_scan::cached_local_scalar_producer_vt(ctx, local_idx)
+    if cached != 0 - 2 {
+        return cached
+    }
     code_ref_locals_scan::local_scalar_producer_vt(f, local_idx)
 }
 
-fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
+fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    let cached = code_ref_locals_scan::cached_local_has_strong_ref_producer(ctx, local_idx)
+    if cached >= 0 {
+        return cached != 0
+    }
     code_ref_locals_scan::local_has_strong_ref_producer(f, local_idx)
 }
 

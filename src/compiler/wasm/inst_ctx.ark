@@ -44,7 +44,8 @@ fn strip_module_prefix(name: String) -> String {
 fn resolve_fn_index_for_call(ctx: SelfEmitCtx, name: String, func_id_raw: i32) -> i32 {
     if func_id_raw >= 0 {
         let mapped = ctx_record::SelfEmitCtx_mir_index_for_func_id(ctx, func_id_raw)
-        if mapped >= 0 {
+        let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
+        if mapped >= 0 && mapped < function_count {
             // FunctionId is the typed identity assigned by the signature
             // spine. Once it has been mapped to a MIR body, do not run the
             // legacy bare-name collision heuristic: two module functions can

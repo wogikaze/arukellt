@@ -142,11 +142,19 @@ def main() -> int:
         "if loop_unroll_translation_validation::loop_unroll_translation_valid",
         "loop-unroll guarded candidate application",
     )
-    require(
-        unroll,
-        "LoopUnrollResult_new(insts, 0, 1)",
-        "loop-unroll original restoration",
-    )
+    validation_guard = "if loop_unroll_translation_validation::loop_unroll_translation_valid"
+    guard_pos = unroll.find(validation_guard)
+    if guard_pos < 0:
+        raise ValueError(f"missing loop-unroll guarded candidate application: {validation_guard}")
+    candidate_pos = unroll.find("LoopUnrollResult_new(out, 1, 0)", guard_pos)
+    if candidate_pos < 0:
+        raise ValueError("missing loop-unroll validated candidate result")
+    restoration = "LoopUnrollResult_new(block_inst_access::MirBlock_drafts_from_refs(insts), 0, 1)"
+    if unroll.find(restoration, candidate_pos) < 0:
+        raise ValueError(
+            "missing loop-unroll original restoration after candidate validation: "
+            f"{restoration}"
+        )
     require(
         unroll,
         "OptimizationSummary_add_translation_validation_failure",
@@ -189,7 +197,7 @@ def main() -> int:
     )
     require(
         stdlib_resolve,
-        "MirBlock_set_instructions(block, before)",
+        "block_inst_mutation::MirBlock_set_from_refs(block, before)",
         "call-target original-block restoration",
     )
 

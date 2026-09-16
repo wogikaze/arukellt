@@ -1,5 +1,6 @@
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
+use mir::lower::stdlib_body_defer
 
 fn mir_index_top_level_fn(
     fn_names: Vec<String>,
@@ -22,7 +23,18 @@ fn mir_index_top_level_fn(
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
     let skip_shadow_main = eq(clone(decl_name), "main") && decl_index != entry_main_decl_index
-    if !skip_shadow_main {
+    let skip_join_vec = if fn_info_index >= 0 {
+        let param_count = fn_index_source::mir_fn_index_source_fn_param_count_at(source, fn_info_index)
+        if param_count > 0 {
+            let param0 = fn_index_source::mir_fn_index_source_fn_param_at(source, fn_info_index, 0)
+            stdlib_body_defer::mir_is_vec_join_overload(clone(decl_name), param0)
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+    if !skip_shadow_main && !skip_join_vec {
         push(fn_names, clone(decl_name))
         push(fn_return_vts, rvt)
         push(fn_return_type_names, clone(rtn))

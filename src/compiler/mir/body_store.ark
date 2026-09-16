@@ -38,7 +38,7 @@ fn MirModule_body_store_enabled(m: MirModule) -> bool {
     m.body_store_enabled
 }
 
-pub fn MirModule_enable_body_store(m: MirModule) {
+fn MirModule_enable_body_store(m: MirModule) {
     if m.body_store_enabled {
         return
     }
@@ -50,7 +50,7 @@ pub fn MirModule_enable_body_store(m: MirModule) {
 // the module as bytes while header-only metadata remains durable. Passes that
 // mutate instructions still decode and replace one body; local-only passes use
 // the header update path and keep the serialized body unchanged.
-pub fn MirModule_compact_before_emission(m: MirModule) {
+fn MirModule_compact_before_emission(m: MirModule) {
     if m.body_store_enabled {
         return
     }
@@ -58,14 +58,14 @@ pub fn MirModule_compact_before_emission(m: MirModule) {
     MirModule_reindex_body_store(m, m.functions)
 }
 
-pub fn MirModule_body_store_block_count(m: MirModule, idx: i32) -> i32 {
+fn MirModule_body_store_block_count(m: MirModule, idx: i32) -> i32 {
     if idx < 0 || idx >= len(m.body_store_block_counts) {
         return 0
     }
     get_unchecked(m.body_store_block_counts, idx)
 }
 
-pub fn MirModule_body_store_inst_count(m: MirModule, idx: i32) -> i32 {
+fn MirModule_body_store_inst_count(m: MirModule, idx: i32) -> i32 {
     if idx < 0 || idx >= len(m.body_store_inst_counts) {
         return 0
     }
@@ -101,7 +101,7 @@ fn MirModule_body_store_has_opcode(m: MirModule, idx: i32, opcode: i32) -> bool 
     false
 }
 
-pub fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool {
+fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool {
     if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
         return false
     }
@@ -140,7 +140,7 @@ pub fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool 
     false
 }
 
-pub fn MirModule_body_store_sole_call_target(m: MirModule, idx: i32) -> String {
+fn MirModule_body_store_sole_call_target(m: MirModule, idx: i32) -> String {
     if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
         return String_new()
     }
@@ -536,7 +536,7 @@ fn MirModule_function_body_at(m: MirModule, idx: i32) -> MirFunction {
     MirModule_decode_function_body(m, idx, function, header)
 }
 
-pub fn MirModule_function_body_at_reusable(
+fn MirModule_function_body_at_reusable(
     m: MirModule,
     idx: i32,
     reusable: MirFunction
@@ -548,7 +548,7 @@ pub fn MirModule_function_body_at_reusable(
 // The Wasm emitter only consumes block instruction handles. Keep the general
 // decoder above complete for MIR clients, but avoid rebuilding CFG analysis
 // vectors for the function-at-a-time emit path.
-pub fn MirModule_function_body_for_emit_at_reusable(
+fn MirModule_function_body_for_emit_at_reusable(
     m: MirModule,
     idx: i32,
     reusable: MirFunction
@@ -678,7 +678,7 @@ fn mir_body_prepare_emit_blocks(
     blocks
 }
 
-pub fn MirModule_body_store_return_variant_slot(m: MirModule, idx: i32) -> i32 {
+fn MirModule_body_store_return_variant_slot(m: MirModule, idx: i32) -> i32 {
     if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_return_variant_slots) {
         return 0 - 1
     }
@@ -1202,7 +1202,7 @@ fn mir_body_new_float_pool() -> Vec<i32> {
 // Reachability already stores function bodies as bytes. Keep only the marked
 // headers and compact serialized ranges in place without decoding bodies or
 // allocating a second full byte/float pool.
-pub fn MirModule_prune_reachable(m: MirModule, reachable: Vec<i32>) -> i32 {
+fn MirModule_prune_reachable(m: MirModule, reachable: Vec<i32>) -> i32 {
     if !m.body_store_enabled {
         return 0
     }

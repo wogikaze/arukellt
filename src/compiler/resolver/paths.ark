@@ -19,12 +19,11 @@ fn use_module_short_name(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if eq(substring(path, i, i + 2), "::") {
+        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
             last_sep = i
-            i = 0 - 1
-        } else {
-            i = i - 1
+            break
         }
+        i = i - 1
     }
     if last_sep < 0 {
         clone(path)
@@ -38,12 +37,11 @@ fn use_module_parent_path(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if eq(substring(path, i, i + 2), "::") {
+        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
             last_sep = i
-            i = 0 - 1
-        } else {
-            i = i - 1
+            break
         }
+        i = i - 1
     }
     if last_sep < 0 {
         return String_new()

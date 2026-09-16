@@ -3,7 +3,7 @@
 Status: active — Phase 0 NEXT  
 Owner: overlay / #851 / ADR-053  
 Created: 2026-09-01  
-Last updated: 2026-09-12
+Last updated: 2026-09-16
 
 決定: [`docs/adr/ADR-053-selfhost-compiler-core-rewrite.md`](../adr/ADR-053-selfhost-compiler-core-rewrite.md)  
 追跡: [`issues/open/851-selfhost-compiler-core-rewrite.md`](../../issues/open/851-selfhost-compiler-core-rewrite.md)
@@ -76,23 +76,36 @@ Last updated: 2026-09-12
       [`run-3`](../research/receipts/851-gc-layout-cache-run-3.json)。
       phase total 37.139–38.029s、wall 38.18–39.44s、RSS 2,545,780–2,709,012 KiB。
       出力 validate は通過したが、s2==s3 は未確認であり、10 秒 / 1GB の受入条件は未達）
-- [x] ユーザー目標の gc-host 候補を 3 回および 10 回測定する
+- [x] 旧 gc-host 候補を 3 回および 10 回測定する
       （2026-09-12: [`goal-run-1`](../research/receipts/851-gc-overlay-goal-run-1.json)、
       [`run-2`](../research/receipts/851-gc-overlay-goal-run-2.json)、
       [`run-3`](../research/receipts/851-gc-overlay-goal-run-3.json)、
       [`10-run summary`](../research/receipts/851-gc-overlay-goal-gate-10.json)。
-      現ソースの cacheless flat compile は wall median 8.982s / p95 9.077s、
+      旧候補の cacheless flat compile は wall median 8.982s / 線形補間 p95 9.115s、
       RSS 最大 989,992 KiB、10/10 exit 0、出力 SHA-256 は一致し validate 済み。
       10 回計測時の直接 Wasmtime 実行はセルフホスト compiler source の compile だけ 462 MiB の GC heap を先行確保した。
       その後、既定値を 450 MiB に下げた CoreHIR frontend AST 境界修正と直接実行の selfhost-only pregrow についても
       3 回再測定し、wall 8.961–9.076s、RSS 964,916–965,208 KiB、3/3 exit 0、同一 SHA-256、
       validate 通過を [`latest_source_recheck`](../research/receipts/851-gc-overlay-goal-gate-10.json) に記録した。
-      ユーザー目標の 10 秒 / 1 GB は満たすが、計画の内部 gate（median 7s / RSS 512 MiB）と
-      canonical s2 build/fixpoint は未達・未確認）
+      これは現行 clean commit の証明ではなく、旧候補の履歴 evidence である）
+- [x] 現行 clean commit の pin→s2→s3 と 10-run gate を再確認する
+      （2026-09-16: clean `8dc5ac757` で
+      `python3 scripts/manager.py selfhost fixpoint --build --no-cache` は
+      pin=`ad2801cf…`、s2==s3=`65b09902…`、validate PASS。
+      同じ clean commit の 10-run receipt は wall median 7.179s、
+      線形補間 p95 7.549s、10/10 exit 0、全出力 validate 済み・同一 SHA-256。
+      RSS 最大は 1,233,384 KiB で、ユーザー目標の wall p95 <10s は PASS。
+      ただし ADR-053 の内部 gate（median ≤7s / RSS ≤512 MiB）は未達であり、
+      receipt の `canonical_plan_gate` は false のまま保持する）
 - [ ] 208s と 239s の差を、同一 binary ノイズか負荷差か切り分ける
 
 schema: [`docs/data/selfhost-overlay-receipt.schema.json`](../data/selfhost-overlay-receipt.schema.json)  
 writer: `python3 scripts/selfhost/write_overlay_receipt.py`
+
+10-run gate receipts must be generated from a clean commit with:
+`python3 scripts/selfhost/measure_overlay_goal.py --out docs/research/receipts/851-gc-overlay-goal-gate-10.json`.
+The runner records the pin→s2→s3 hashes, raw samples, and the explicit
+linear-interpolation percentile method; do not hand-edit aggregate p95 values.
 
 Phase 0 完了前に Phase 2 の製品 MIR 切替を始めない。
 Phase 1（generated tables）は独立なので Phase 0 と並行してよい。

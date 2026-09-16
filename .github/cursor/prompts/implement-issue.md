@@ -1,4 +1,4 @@
-You are running locally through `scripts/cursor_issue_agent.py` to implement a GitHub Issue in this repository.
+You are running locally through `scripts/util/cursor_issue_agent.py` to implement a GitHub Issue in this repository.
 
 Repository instructions are authoritative. Read `AGENTS.md` and applicable `.cursor/rules/**` before editing, then follow the repository's current-state/specification documents and verification commands. Repository reality overrides stale Issue prose.
 
@@ -38,7 +38,7 @@ Operational constraints:
 
 - Do not commit, create/delete/switch branches, push, merge, rebase, tag, or otherwise mutate Git state. Read-only `git` commands are available; the harness owns mutations.
 - Do not create/edit/comment/close/merge GitHub Issues or pull requests. Read-only `gh` commands are available; the harness owns GitHub mutations.
-- Do not edit `AGENTS.md`, `CLAUDE.md`, `.cursor/**`, `.agents/**`, `.claude/**`, `.github/workflows/**`, `.github/actions/**`, `.github/cursor/**`, or `scripts/cursor_issue_agent.py`.
+- Do not edit `AGENTS.md`, `CLAUDE.md`, `.cursor/**`, `.agents/**`, `.claude/**`, `.github/workflows/**`, `.github/actions/**`, `.github/cursor/**`, or `scripts/util/cursor_issue_agent.py`.
 - Do not read or modify `.env*` files or secrets.
 - Do not weaken tests, thresholds, security checks, or CI merely to make validation pass.
 - If the task requires a protected automation/rule change, a secret, an irreversible production action, or another repository-defined genuine human blocker, leave those files unchanged and explain the blocker in the final message.

@@ -15,6 +15,6 @@ cat >"$tmp/ark.toml" <<EOF
 [dependencies]
 provider = { component = "$ARUKELLT_GO_COMPONENT" }
 EOF
-python3 "$ROOT/scripts/component-deps.py" compose --manifest "$tmp/ark.toml" --socket "$ARUKELLT_SOCKET_COMPONENT" -o "$tmp/composed.component.wasm"
+python3 "$ROOT/scripts/util/component-deps.py" compose --manifest "$tmp/ark.toml" --socket "$ARUKELLT_SOCKET_COMPONENT" -o "$tmp/composed.component.wasm"
 wasm-tools validate "$tmp/composed.component.wasm"
 echo "PASS: Arukellt socket composed with Go provider"

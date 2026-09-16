@@ -28,6 +28,18 @@ fn mir_function_attach_local(f: MirFunction, local: MirLocal) -> MirLocal {
     local
 }
 
+fn mir_function_new_local(f: MirFunction, name: String, vt: i32) -> MirLocal {
+    if len(f.locals) > 0 || len(f.params) > 0 {
+        return local_record::MirLocal_new_in_pool(
+            mir_function_str_pool(f),
+            name,
+            vt,
+            String_new()
+        )
+    }
+    local_record::MirLocal_new(name, vt, String_new())
+}
+
 fn mir_function_push_local(f: MirFunction, local: MirLocal) {
     push(f.locals, mir_function_attach_local(f, local))
 }
@@ -35,7 +47,7 @@ fn mir_function_push_local(f: MirFunction, local: MirLocal) {
 fn mir_function_alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
     let idx = f.next_local
     f.next_local = f.next_local + 1
-    push(f.locals, mir_function_attach_local(f, local_record::MirLocal_new(name, vt, String_new())))
+    push(f.locals, mir_function_new_local(f, name, vt))
     idx
 }
 

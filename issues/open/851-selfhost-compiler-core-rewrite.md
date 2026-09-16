@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-01
-Updated: 2026-09-01
+Updated: 2026-09-15
 ID: 851
 Parent: 827
 Track: selfhost-infra
@@ -47,5 +47,12 @@ Null collector は 23–26s で trap。約 24 倍が必要。
 
 ## 次の作業
 
-Phase 0 の未チェック項目から始める。
+2026-09-15 の clean-commit audit では、pin→s2→s3 の no-cache fixpoint は
+`s2 == s3` と validate まで通過したが、同じ commit の gc+p2 overlay 測定は
+`core_op_registry_canonical_id_at` の out-of-bounds trap（rc=134、RSS
+1,097,924 KiB）で 1 回目から停止した。
+旧 10-run receipt は履歴として保持し、現行 master の証明には使わない。
+
+Phase 0 の未チェック項目から始める。次はこの trap の根因を直し、clean commit から
+同じ runner で 10 回測定してから Phase 6 の判定を更新する。
 `docs/plans/selfhost-compiler-core-rewrite.md` の探索規則に従う。

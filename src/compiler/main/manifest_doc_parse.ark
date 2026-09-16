@@ -151,24 +151,24 @@ pub fn doc_parse_manifest(content: String) -> DocManifestTable {
             let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
             let line = substring(content, line_start, line_end)
             if starts_with(clone(line), String_from("[[functions]]")) {
-                doc_flush_fn(fns, clone(fn_state))
+                doc_flush_fn(fns, fn_state)
                 fn_state = DocParseFnState_new()
                 section = 1
             } else {
                 if starts_with(clone(line), String_from("[[modules]]")) {
-                    doc_flush_mod(mods, clone(mod_state))
+                    doc_flush_mod(mods, mod_state)
                     mod_state = DocParseModState_new()
                     section = 2
                 } else {
                     let key_name = toml::find_toml_value(clone(line), String_from("name"))
                     if len(key_name) > 0 && section == 1 {
-                        doc_flush_fn(fns, clone(fn_state))
+                        doc_flush_fn(fns, fn_state)
                         fn_state = DocParseFnState_new()
                         fn_state.name = key_name
                         fn_state = doc_apply_fn_fields(fn_state, line)
                     } else {
                         if len(key_name) > 0 && section == 2 {
-                            doc_flush_mod(mods, clone(mod_state))
+                            doc_flush_mod(mods, mod_state)
                             mod_state = DocParseModState_new()
                             mod_state.name = key_name
                             mod_state = doc_apply_mod_fields(mod_state, line)

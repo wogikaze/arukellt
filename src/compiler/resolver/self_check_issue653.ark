@@ -5,7 +5,7 @@ use parser::core_api_token
 use parser::decl
 use resolver::context
 use resolver::program
-use component::wit_parse_import
+use component
 use resolver::wit_type_map
 use typechecker::contract_result_state
 use typechecker::entry
@@ -17,7 +17,7 @@ fn issue653_parse_source(src: String) -> Vec<AstNode> {
 }
 
 fn issue653_parse_host_math() -> String {
-    let doc = wit_parse_import::parse_wit_import_file("tests/fixtures/wit_import/host_math.wit")
+    let doc = component::parse_wit_import_file("tests/fixtures/wit_import/host_math.wit")
     if !eq(clone(doc.package), "test:host") {
         return "issue653 fail: package"
     }

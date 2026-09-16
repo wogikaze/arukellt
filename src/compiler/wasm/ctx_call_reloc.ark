@@ -11,10 +11,11 @@ fn SelfEmitCtx_push_call_reloc(ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
     if used < len(ctx.call_reloc_offs) {
         set(ctx.call_reloc_offs, used, off)
         set(ctx.call_reloc_fids, used, fid_raw)
-    } else {
-        push(ctx.call_reloc_offs, off)
-        push(ctx.call_reloc_fids, fid_raw)
+        ctx.call_reloc_used = used + 1
+        return
     }
+    push(ctx.call_reloc_offs, off)
+    push(ctx.call_reloc_fids, fid_raw)
     ctx.call_reloc_used = used + 1
 }
 
