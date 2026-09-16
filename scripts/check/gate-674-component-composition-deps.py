@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TOOL = ROOT / "scripts/component-deps.py"
+TOOL = ROOT / "scripts/util/component-deps.py"
 WRAPPER = ROOT / "scripts/run/arukellt-selfhost.sh"
 FIXTURE = ROOT / "tests/fixtures/component-deps"
 
@@ -46,7 +46,7 @@ def main() -> int:
             print(f"gate-674: FAIL: missing {path.relative_to(ROOT)}", file=sys.stderr)
             return 1
     wrapper = WRAPPER.read_text(encoding="utf-8")
-    if '"compose"' not in wrapper or '"--manifest"' not in wrapper or "scripts/component-deps.py" not in wrapper:
+    if '"compose"' not in wrapper or '"--manifest"' not in wrapper or "scripts/util/component-deps.py" not in wrapper:
         print("gate-674: FAIL: arukellt compose does not route --manifest through component resolver", file=sys.stderr)
         return 1
     mod = load_tool()

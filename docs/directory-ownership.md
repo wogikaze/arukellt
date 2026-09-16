@@ -54,6 +54,7 @@
 | `docs/data/component-availability.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From component-availability.toml |
 | `docs/data/release-guarantees.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From release-guarantees.toml |
 | `docs/data/target-contract-summary.md` | generated | `scripts/gen/generate-docs.py` | Generated from project-state.toml |
+| `docs/board/data.json` | generated | `tools/board/scripts/build-data.mjs` | Static board snapshot; embeds issue/ADR/document text for offline browsing |
 | `docs/data/verify-full-receipt.json` | internal (receipt) | hand-maintained via parser | Machine-readable verify full receipt with exact failure/skip identity set |
 | `docs/data/798-core-op-shadow-receipt.json` | internal (receipt) | `scripts/check/check-core-op-shadow.py` | #798 T3 shadow agreement receipt |
 | `data/core-ops.toml` | product (SSOT input) | hand-maintained | Compiler-consumed CoreOpRegistry. `status = "migration"` permits only tracked `legacy_emitter` entries; production exit owner: #818. |
@@ -94,6 +95,7 @@ These files are auto-generated. Run the generator instead of editing manually:
 | `issues/open/index-meta.json` | `python3 scripts/gen/generate-issue-index.py` |
 | `issues/done/index.md` | `python3 scripts/gen/generate-issue-index.py` |
 | `issues/open/dependency-graph.md` | `python3 scripts/gen/generate-issue-index.py` |
+| `docs/board/data.json` | `npm --prefix tools/board run build:pages` (or `node tools/board/scripts/build-data.mjs`) |
 
 ## Excluded from Default Build
 

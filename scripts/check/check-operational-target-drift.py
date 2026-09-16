@@ -71,6 +71,9 @@ ALLOWED_FILES = {
     "docs/cli-reference.md",
     "docs/playground/dist/compiler-types.d.ts",
     "docs/playground/dist/t2-runner.js",
+    # The board snapshot embeds historical issue/ADR text verbatim. Its
+    # deprecated target names are documentation history, not operational IDs.
+    "docs/board/data.json",
     "docs/data/release-guarantees.toml",
     "docs/data/release-guarantees.md",
     "src/compiler/main/target_contract_generated.ark",

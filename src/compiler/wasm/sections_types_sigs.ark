@@ -84,7 +84,7 @@ fn append_p2_library_post_type_sigs(
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(functions, i)
-        if sections_exports::is_p2_library_export_function(f) {
+        if sections_exports::is_p2_library_export_function(mir, f) {
             let function_sig = sections_types_sigs_detail::build_function_type_sig(
                 f,
                 clone(target),
@@ -105,18 +105,20 @@ fn append_p2_library_wrapper_type_sigs(
     functions: Vec<MirFunction>,
     fn_count: i32,
     target: String,
-    wasi_version: String
+    wasi_version: String,
+    mir: MirModule
 ) {
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(functions, i)
-        if sections_exports::is_p2_library_export_function(f) &&
+        if sections_exports::is_p2_library_export_function(mir, f) &&
         sections_types_sigs_detail::p2_function_needs_string_wrapper(
             f,
             clone(target),
-            clone(wasi_version)
+            clone(wasi_version),
+            mir
         ) {
-            push(type_sigs, sections_types_sigs_detail::p2_canonical_function_type_sig(f))
+            push(type_sigs, sections_types_sigs_detail::p2_canonical_function_type_sig(f, mir))
         }
         i = i + 1
     }

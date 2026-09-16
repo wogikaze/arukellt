@@ -16,9 +16,9 @@ fn table_blob_hex_byte(hex: String, offset: i32) -> i32 {
 }
 
 fn table_blob_i32_from_hex8(hex: String, offset: i32) -> i32 {
-    let b0 = table_blob_hex_byte(clone(hex), offset)
-    let b1 = table_blob_hex_byte(clone(hex), offset + 2)
-    let b2 = table_blob_hex_byte(clone(hex), offset + 4)
+    let b0 = table_blob_hex_byte(hex, offset)
+    let b1 = table_blob_hex_byte(hex, offset + 2)
+    let b2 = table_blob_hex_byte(hex, offset + 4)
     let b3 = table_blob_hex_byte(hex, offset + 6)
     b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
 }

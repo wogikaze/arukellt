@@ -7,6 +7,7 @@ use mir::lower::fallback_source
 use corehir::decl_children
 use corehir::decl_member_collections
 use corehir::frontend_ast_node
+use corehir::body_table
 use corehir::mir_body_source
 
 struct MirLowerEntryBodySource {
@@ -104,8 +105,9 @@ fn mir_entry_body_source_core_from_node(
     node: AstNode
 ) -> MirLowerEntryCoreBody {
     let root = mir_body_source::mir_body_source_build_ast_body_into(entry_source.lazy_table, node)
+    let forest = body_table::corehir_body_table_take_body_forest(entry_source.lazy_table)
     entry_core_body::mir_entry_core_body_new(
-        mir_body_source::mir_body_source_table_exprs(entry_source.lazy_table),
+        forest.exprs,
         root
     )
 }

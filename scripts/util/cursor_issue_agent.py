@@ -31,7 +31,7 @@ DEFAULT_RESTRICTED_PATHS = (
     ".claude/",
     "AGENTS.md",
     "CLAUDE.md",
-    "scripts/cursor_issue_agent.py",
+    "scripts/util/cursor_issue_agent.py",
 )
 CONVENTIONAL_TITLE = re.compile(
     r"^(?:build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(?:\([^)]+\))?!?:\s+",
@@ -292,7 +292,7 @@ def write_cursor_config(directory: Path) -> Path:
                 "Write(.claude/**)",
                 "Write(AGENTS.md)",
                 "Write(CLAUDE.md)",
-                "Write(scripts/cursor_issue_agent.py)",
+                "Write(scripts/util/cursor_issue_agent.py)",
             ],
         },
         "attribution": {

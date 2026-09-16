@@ -71,7 +71,7 @@ fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
     body_builder::corehir_body_builder_finish(builder)
 }
 
-pub fn empty_body_table() -> CoreHirBodyTable {
+fn empty_body_table() -> CoreHirBodyTable {
     body::CoreHirBodyTable_new()
 }
 

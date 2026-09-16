@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -60,12 +61,16 @@ def static_gate() -> tuple[int, str]:
 
 def branch_selfhost_env() -> dict[str, str] | None:
     env = dict(os.environ)
+    env["LC_ALL"] = "C"
+    env["LANG"] = "C"
+    env["LC_CTYPE"] = "C"
     explicit = env.get("ARUKELLT_SELFHOST_WASM")
     if explicit and Path(explicit).is_file():
         return env
     for candidate in (
-        ROOT / ".build/selfhost/arukellt-s2-runtime.wasm",
         ROOT / ".build/selfhost/arukellt-s2.wasm",
+        ROOT / ".build/selfhost/arukellt-s3.wasm",
+        ROOT / ".build/selfhost/arukellt-s2-runtime.wasm",
     ):
         if candidate.is_file():
             env["ARUKELLT_SELFHOST_WASM"] = str(candidate)
@@ -91,11 +96,31 @@ def dynamic_gate() -> tuple[int, str]:
             return 1, f"{fixture.name} diagnostic mismatch: {combined[-1000:]}"
     dump_fixture = ROOT / "tests/fixtures/wit_import/check/call_add.ark"
     wit = ROOT / "tests/fixtures/wit_import/host_math.wit"
-    run = subprocess.run(
-        ["bash", str(WRAPPER), "compile", str(dump_fixture.relative_to(ROOT)), "--wit", str(wit.relative_to(ROOT)), "--dump-phases", "backend-plan", "-o", "/dev/null"],
-        cwd=ROOT, env=env, capture_output=True, text=True, timeout=180,
-    )
-    combined = run.stdout + run.stderr
+    build_dir = ROOT / ".build"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="gate-670-", dir=build_dir) as temp_dir:
+        output = Path(temp_dir) / "backend-plan.wasm"
+        output_arg = str(output.relative_to(ROOT))
+        run = subprocess.run(
+            [
+                "bash",
+                str(WRAPPER),
+                "compile",
+                str(dump_fixture.relative_to(ROOT)),
+                "--wit",
+                str(wit.relative_to(ROOT)),
+                "--dump-phases",
+                "backend-plan",
+                "-o",
+                output_arg,
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        combined = run.stdout + run.stderr
     if run.returncode != 0 or "wit-imports:" not in combined or "test:host/math" not in combined:
         return 1, f"backend-plan WIT summary missing: {combined[-1200:]}"
     return 0, ""

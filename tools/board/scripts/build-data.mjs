@@ -22,16 +22,39 @@ function getFreePort() {
     });
 }
 
-function waitForServer(port) {
+function waitForServer(port, proc) {
     return new Promise((res, rej) => {
         const url = `http://127.0.0.1:${port}/api/board`;
         let attempts = 0;
+        let settled = false;
+        let stderr = "";
+        proc.stderr?.on("data", (chunk) => {
+            stderr += String(chunk);
+        });
+        const fail = (error) => {
+            if (settled) return;
+            settled = true;
+            rej(error);
+        };
+        proc.once("error", (error) => fail(error));
+        proc.once("exit", (code, signal) => {
+            const detail = stderr.trim();
+            fail(new Error(
+                `server exited before becoming ready (code=${code}, signal=${signal})`
+                + (detail ? `: ${detail}` : ""),
+            ));
+        });
         const tryFetch = () => {
             attempts += 1;
             fetch(url)
-                .then((r) => (r.ok ? res() : Promise.reject()))
+                .then((r) => {
+                    if (!r.ok) return Promise.reject();
+                    settled = true;
+                    res();
+                })
                 .catch(() => {
-                    if (attempts > 60) return rej(new Error("server did not become ready"));
+                    if (settled) return;
+                    if (attempts > 240) return fail(new Error("server did not become ready within 60 seconds"));
                     setTimeout(tryFetch, 250);
                 });
         };
@@ -50,11 +73,12 @@ async function main() {
     const port = await getFreePort();
     const proc = spawn("node", [SERVER, "-p", String(port)], {
         cwd: REPO_ROOT,
+        env: { ...process.env, BOARD_DATA_ONLY: "1" },
         stdio: "pipe",
     });
 
     try {
-        await waitForServer(port);
+        await waitForServer(port, proc);
         const data = await getJson(`http://127.0.0.1:${port}/api/board`);
         data.files = {};
         const paths = [...data.issues.map((i) => i.path), ...data.docs.map((d) => d.path)];

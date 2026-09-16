@@ -2,40 +2,46 @@ use std::text
 use component::type_node
 use component::wit_names
 
-fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
+fn component_wit_type_to_text(ty: ComponentTypeNode) -> String {
+    let child_count = type_node::type_node_child_count(ty)
     if type_node::type_node_is_named_kind(ty) {
         return wit_named_type(type_node::type_node_text(ty))
     }
     if type_node::type_node_is_generic_kind(ty) {
         let name = type_node::type_node_text(ty)
-        if eq(clone(name), "Vec") && type_node::type_node_child_count(ty) > 1 {
-            return concat("list<", concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), ">"))
+        if eq(clone(name), "Vec") && child_count > 1 {
+            let child_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 1))
+            return concat("list<", concat(child_type, ">"))
         }
-        if eq(clone(name), "Option") && type_node::type_node_child_count(ty) > 1 {
-            return concat("option<", concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), ">"))
+        if eq(clone(name), "Option") && child_count > 1 {
+            let child_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 1))
+            return concat("option<", concat(child_type, ">"))
         }
-        if eq(clone(name), "Result") && type_node::type_node_child_count(ty) > 2 {
+        if eq(clone(name), "Result") && child_count > 2 {
+            let ok_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 1))
+            let error_type = component_wit_type_to_text(type_node::type_node_child_at(ty, 2))
             return concat(
                 "result<",
-                concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), concat(", ", concat(wit_type_from_ast(type_node::type_node_child_at(ty, 2)), ">")))
+                concat(ok_type, concat(", ", concat(error_type, ">")))
             )
         }
-        if eq(clone(name), "Future") && type_node::type_node_child_count(ty) > 1 {
-            return concat("future<", concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), ">"))
+        if eq(clone(name), "Future") && child_count > 1 {
+            return concat("future<", concat(component_wit_type_to_text(type_node::type_node_child_at(ty, 1)), ">"))
         }
-        if eq(clone(name), "Stream") && type_node::type_node_child_count(ty) > 1 {
-            return concat("stream<", concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), ">"))
+        if eq(clone(name), "Stream") && child_count > 1 {
+            return concat("stream<", concat(component_wit_type_to_text(type_node::type_node_child_at(ty, 1)), ">"))
         }
         return wit_names::wit_type_name(name)
     }
     if type_node::type_node_is_tuple_kind(ty) {
         let mut out = "tuple<"
         let mut i = 0
-        while i < type_node::type_node_child_count(ty) {
+        while i < child_count {
             if i > 0 {
                 out = text::builder_append(out, ", ")
             }
-            out = text::builder_append(out, wit_type_from_ast(type_node::type_node_child_at(ty, i)))
+            let child_type = component_wit_type_to_text(type_node::type_node_child_at(ty, i))
+            out = text::builder_append(out, child_type)
             i = i + 1
         }
         return concat(out, ">")

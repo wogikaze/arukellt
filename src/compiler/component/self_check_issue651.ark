@@ -1,5 +1,5 @@
 use component::wit_parse_flags
-use component::wit_parse_import
+use component
 
 fn issue651_flags_parse_self_check() -> bool {
     let members = wit_parse_flags::wit_flags_member_names("flags { read, write }")
@@ -12,7 +12,7 @@ fn issue651_flags_parse_self_check() -> bool {
     if !eq(get_unchecked(members, 1), "write") {
         return false
     }
-    let doc = wit_parse_import::parse_wit_import_file("tests/fixtures/component/import_flags_type.wit")
+    let doc = component::parse_wit_import_file("tests/fixtures/component/import_flags_type.wit")
     if !eq(clone(doc.package), "test:host") {
         return false
     }

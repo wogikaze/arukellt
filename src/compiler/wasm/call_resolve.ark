@@ -207,11 +207,12 @@ fn mir_resolve_self_delegate_collision(
 ) -> i32 {
     // Keep Type::method exact matches; bare-name collisions among prelude
     // `eq` forwarders must not steal Person::eq / Point::eq call sites.
-    if candidate_idx >= 0 && candidate_idx < len(functions) {
-        let candidate_name = function_identity::MirFunction_name(get_unchecked(functions, candidate_idx))
-        if eq(clone(candidate_name), clone(name)) && contains(clone(name), "::") {
-            return candidate_idx
-        }
+    if candidate_idx < 0 || candidate_idx >= len(functions) {
+        return 0 - 1
+    }
+    let candidate_name = function_identity::MirFunction_name(get_unchecked(functions, candidate_idx))
+    if eq(clone(candidate_name), clone(name)) && contains(clone(name), "::") {
+        return candidate_idx
     }
     let short_name = resolver::use_module_short_name(clone(name))
     if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {

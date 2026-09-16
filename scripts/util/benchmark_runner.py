@@ -17,6 +17,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from util.percentiles import percentile_linear
+except ModuleNotFoundError:  # Direct execution puts scripts/util on sys.path.
+    from percentiles import percentile_linear
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_TARGET = "wasm32"
 DEFAULT_CURRENT_RESULTS = ROOT / "tests" / "baselines" / "perf" / "current.json"
@@ -487,11 +492,9 @@ def compute_percentiles(samples_ms: list[float]) -> dict[str, float | None]:
     sorted_s = sorted(samples_ms)
 
     def _percentile(p: float) -> float:
-        idx = (n - 1) * p / 100.0
-        lo = int(idx)
-        hi = min(lo + 1, n - 1)
-        frac = idx - lo
-        return round(sorted_s[lo] * (1.0 - frac) + sorted_s[hi] * frac, 3)
+        value = percentile_linear(sorted_s, p)
+        assert value is not None
+        return round(value, 3)
 
     stdev_val = round(statistics.stdev(samples_ms), 3) if n >= 2 else 0.0
     mean_val = statistics.mean(samples_ms)

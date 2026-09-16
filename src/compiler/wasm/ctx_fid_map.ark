@@ -1,54 +1,32 @@
-use corehir::function_id
 use corehir::signature_registry
 use mir::function_identity
 use wasm::ctx_record
+use collections::name_index
 
-// MIR keeps imported top-level functions under their short declaration name,
-// while the signature registry also exposes qualified aliases.  Resolve the
-// declaration ordinal instead of looking up the short name (which points at
-// the last duplicate) so each alias reaches its own body.
-
-fn ctx_fid_map_function_ordinal(functions: Vec<MirFunction>, fname: String, fi: i32) -> i32 {
-    let mut ordinal = 0
-    let mut i = 0
-    while i < fi {
-        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), clone(fname)) {
-            ordinal = ordinal + 1
+// Build same-name chains once. The registry can contain duplicate short names
+// and synthetic aliases, so a plain NameIndex lookup is not enough; consuming
+// one chain entry per MIR declaration preserves the old ordinal rule without
+// rescanning either collection for every function.
+fn ctx_fid_map_build_registry_chains(
+    registry: SignatureRegistry,
+    registry_heads: NameIndex,
+    registry_tails: NameIndex,
+    registry_next: Vec<i32>
+) {
+    let registry_count = signature_registry::signature_registry_entry_count(registry)
+    let mut raw = 0
+    while raw < registry_count {
+        push(registry_next, 0 - 1)
+        let name = signature_registry::signature_registry_mangled_at(registry, raw)
+        let tail = name_index::name_index_get(registry_tails, clone(name))
+        if tail < 0 {
+            name_index::name_index_insert_first(registry_heads, clone(name), raw)
+        } else {
+            set(registry_next, tail, raw)
         }
-        i = i + 1
+        name_index::name_index_set(registry_tails, name, raw)
+        raw = raw + 1
     }
-    ordinal
-}
-
-fn ctx_fid_map_registry_id_for_ordinal(registry: SignatureRegistry, fname: String, ordinal: i32) -> FunctionId {
-    let mut seen = 0
-    let mut i = 0
-    while i < signature_registry::signature_registry_entry_count(registry) {
-        if eq(signature_registry::signature_registry_mangled_at(registry, i), clone(fname)) {
-            if seen == ordinal {
-                return function_id::FunctionId_new(i)
-            }
-            seen = seen + 1
-        }
-        i = i + 1
-    }
-    function_id::FUNCTION_ID_INVALID()
-}
-
-fn ctx_fid_map_bind(fid_to_mir: Vec<i32>, registry: SignatureRegistry, functions: Vec<MirFunction>, fname: String, fi: i32) {
-    let ordinal = ctx_fid_map_function_ordinal(functions, clone(fname), fi)
-    let fid = ctx_fid_map_registry_id_for_ordinal(registry, clone(fname), ordinal)
-    if !function_id::function_id_is_valid(fid) {
-        return
-    }
-    let raw = function_id::FunctionId_raw(fid)
-    if raw < 0 || raw >= len(fid_to_mir) {
-        return
-    }
-    if get_unchecked(fid_to_mir, raw) >= 0 {
-        return
-    }
-    set(fid_to_mir, raw, fi)
 }
 
 fn SelfEmitCtx_build_fid_to_mir(ctx: SelfEmitCtx) {
@@ -60,12 +38,26 @@ fn SelfEmitCtx_build_fid_to_mir(ctx: SelfEmitCtx) {
         push(fid_to_mir, 0 - 1)
         si = si + 1
     }
+    let registry_heads = name_index::NameIndex_new(registry_count)
+    let registry_tails = name_index::NameIndex_new(registry_count)
+    let registry_next = Vec::new<i32>()
+    ctx_fid_map_build_registry_chains(registry, registry_heads, registry_tails, registry_next)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        ctx_fid_map_bind(fid_to_mir, registry, functions, fname, fi)
+        let raw = name_index::name_index_get(registry_heads, clone(fname))
+        if raw >= 0 {
+            if get_unchecked(fid_to_mir, raw) < 0 {
+                set(fid_to_mir, raw, fi)
+            }
+            name_index::name_index_set(
+                registry_heads,
+                fname,
+                get_unchecked(registry_next, raw)
+            )
+        }
         fi = fi + 1
     }
     ctx_record::SelfEmitCtx_set_fid_to_mir(ctx, fid_to_mir)

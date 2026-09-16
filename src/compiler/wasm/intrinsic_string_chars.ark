@@ -17,9 +17,9 @@ fn emit_text_chars(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_ch_src = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_ch_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_chars_setup(w, s_ch_src, s_ch_vec)
+    emit_chars_heap_update(w, s_ch_vec)
     emit_chars_header(w, s_ch_vec)
     emit_chars_element(w, s_ch_vec, s_ch_src)
-    emit_chars_heap_update(w, s_ch_vec)
     helpers_core::emit_local_get(w, s_ch_vec)
     return true
 }

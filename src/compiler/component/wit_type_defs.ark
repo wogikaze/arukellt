@@ -35,7 +35,7 @@ fn emit_wit_record_type_def(d: ComponentWitDecl) -> String {
         out = text::builder_append(out, wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
         out = text::builder_append(out, ": ")
         if wit_decl::wit_decl_member_has_type(field) {
-            out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_decl_member_type_view(field)))
+            out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(field)))
         } else {
             out = text::builder_append(out, "s32")
         }
@@ -56,7 +56,7 @@ fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
         out = text::builder_append(out, wit_names::wit_export_name(wit_decl::wit_decl_member_name(field)))
         out = text::builder_append(out, ": ")
         if wit_decl::wit_decl_member_has_type(field) {
-            out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_decl_member_type_view(field)))
+            out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(field)))
         } else {
             out = text::builder_append(out, "s32")
         }
@@ -130,7 +130,7 @@ fn emit_wit_enum_type_def(d: ComponentWitDecl) -> String {
         out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_member_name(variant)))
         if wit_decl::wit_decl_member_has_type(variant) {
             out = text::builder_append(out, "(")
-            out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_decl_member_type_view(variant)))
+            out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_decl_member_type_view(variant)))
             out = text::builder_append(out, ")")
         }
         out = text::builder_append(out, ",\n")

@@ -68,7 +68,7 @@ my-lib = { path = "../my-lib" }
 ```
 
 For WIT imports, a path dependency still resolves `mod.wit` (or `interface.wit`) into the compiler's
-`--wit` paths automatically. For Component Model composition, `scripts/component-deps.py resolve
+`--wit` paths automatically. For Component Model composition, `scripts/util/component-deps.py resolve
 --manifest ark.toml` resolves the dependency's component `.wasm`, extracts its WIT with `wasm-tools
 component wit` when available (falling back to the WIT sidecar), checks the package/world contract,
 copies content-addressed artifacts into `.build/components/`, and writes deterministic `ark.lock`
@@ -164,4 +164,4 @@ opt_level = 2
 - `docs/cli-startup-contract.md` — CLI / LSP binary interface
 - `docs/current-state.md` — current implementation state
 - `src/compiler/main.ark` — schema implementation
-- `scripts/component-deps.py` — component artifact resolver, lockfile/cache, and host compose helper
+- `scripts/util/component-deps.py` — component artifact resolver, lockfile/cache, and host compose helper

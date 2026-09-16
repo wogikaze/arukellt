@@ -175,11 +175,12 @@ fn emit_p2_library_wrapper_bodies(
     let mut function_idx = 0
     while function_idx < fn_count {
         let f = module_functions::MirModule_function_at(mir, function_idx)
-        if sections_exports::is_p2_library_export_function(f) &&
+        if sections_exports::is_p2_library_export_function(mir, f) &&
         sections_types_sigs_detail::p2_function_needs_string_wrapper(
             f,
             clone(target),
-            clone(wasi_version)
+            clone(wasi_version),
+            mir
         ) {
             let size_off = emit_sized_code_body_begin(code_sec)
             p2_canonical::emit_library_wrapper_body(
@@ -188,7 +189,8 @@ fn emit_p2_library_wrapper_bodies(
                 function_idx,
                 realloc_idx,
                 ctx,
-                wit_import_count
+                wit_import_count,
+                mir
             )
             emit_sized_code_body_end(code_sec, size_off)
         }

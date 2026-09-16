@@ -161,8 +161,8 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         local_access::MirLocal_type_name(loc)
     )
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    let scalar_vt = code_ref_locals::local_scalar_producer_vt(f, local_idx)
-    if scalar_vt >= 0 && !code_ref_locals::local_has_strong_ref_producer(f, local_idx) {
+    let scalar_vt = code_ref_locals::local_scalar_producer_vt(f, local_idx, ctx)
+    if scalar_vt >= 0 && !code_ref_locals::local_has_strong_ref_producer(f, local_idx, ctx) {
         writer_core::emit_byte(body, code_locals_val_type::val_type_to_wasm_width(
                 scalar_vt,
                 writer_core::writer_memory64(body)
@@ -180,7 +180,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         )
         return true
     }
-    if local_is_vec_constructor_dest(f, local_idx) {
+    if local_is_vec_constructor_dest(f, local_idx, ctx) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, intrinsic_vec_type::resolve_vec_type_for_new_dest(ctx, local_idx))
         return true
@@ -383,7 +383,11 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     false
 }
 
-fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32) -> bool {
+fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    let cached = code_ref_locals_scan::cached_local_is_vec_constructor_dest(ctx, local_idx)
+    if cached >= 0 {
+        return cached != 0
+    }
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -395,7 +399,7 @@ fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32) -> bool {
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
             inst_accessors_operands::MirInst_dest(inst) == local_idx {
                 let callee = inst_accessors_literals::MirInst_str_val(inst)
-                if is_vec_constructor_name(callee) {
+                if code_ref_locals_scan::is_vec_constructor_name(callee) {
                     return true
                 }
             }
@@ -404,17 +408,6 @@ fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32) -> bool {
         bi = bi + 1
     }
     false
-}
-
-fn is_vec_constructor_name(callee: String) -> bool {
-    eq(clone(callee), String_from("Vec::new")) ||
-    eq(clone(callee), String_from("Vec__new")) ||
-    eq(clone(callee), String_from("Vec::with_capacity")) ||
-    eq(clone(callee), String_from("Vec__with_capacity")) ||
-    starts_with(clone(callee), String_from("Vec::new__")) ||
-    starts_with(clone(callee), String_from("Vec__new__")) ||
-    starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
-    starts_with(clone(callee), String_from("Vec__with_capacity__"))
 }
 
 fn vec_elem_is_nested_container_name(elem_name: String) -> bool {

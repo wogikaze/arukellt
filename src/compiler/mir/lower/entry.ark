@@ -33,6 +33,9 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let view = entry_input::mir_entry_input_view(input)
     let body_source = entry_input::mir_entry_input_body_source(input)
     let m = module_factory::MirModule_new()
+    if prune_enabled {
+        module_functions::MirModule_set_export_names(m, clone_export_roots(export_roots))
+    }
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let mono_view = mono_view::mir_lower_mono_view_from_core(view)
@@ -64,7 +67,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
         midx,
         mir_tr,
         input.decl_nodes,
-        clone(export_roots),
+        clone_export_roots(export_roots),
         prune_enabled,
         timing
     )
@@ -120,6 +123,16 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, "total", t_enter, t_after_prop)
 
     module
+}
+
+fn clone_export_roots(export_roots: Vec<String>) -> Vec<String> {
+    let mut cloned = Vec::new<String>()
+    let mut i = 0
+    while i < len(export_roots) {
+        push(cloned, clone(get_unchecked(export_roots, i)))
+        i = i + 1
+    }
+    cloned
 }
 
 fn lower_program_to_mir(input: MirLowerInput) -> MirModule {

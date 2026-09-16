@@ -14,7 +14,7 @@ Priority: 3
 
 ## Close summary
 
-`scripts/component-deps.py` resolves component `.wasm` artifacts from `ark.toml`, extracts WIT with `wasm-tools component wit` or a sidecar fallback, validates package/world metadata, stores content-addressed artifacts under `.build/components/`, and writes deterministic SHA-256-bound `ark.lock` metadata. Missing artifacts, package mismatches and incompatible worlds are hard diagnostics.
+`scripts/util/component-deps.py` resolves component `.wasm` artifacts from `ark.toml`, extracts WIT with `wasm-tools component wit` or a sidecar fallback, validates package/world metadata, stores content-addressed artifacts under `.build/components/`, and writes deterministic SHA-256-bound `ark.lock` metadata. Missing artifacts, package mismatches and incompatible worlds are hard diagnostics.
 
 `arukellt compose --manifest ... --socket ... -o ...` is routed through the same resolver and performs deterministic multi-provider `wac plug` composition. Go, C and Zig provider lanes exercise this path when an external-language component artifact is injected; the Python-host lane executes an Arukellt component through wasmtime. External toolchains remain optional test inputs rather than compiler dependencies.
 
@@ -29,6 +29,6 @@ Priority: 3
 
 ## Verification
 
-- `scripts/component-deps.py`
+- `scripts/util/component-deps.py`
 - `scripts/check/gate-674-component-composition-deps.py`
 - `scripts/check/gate-component-wit-productization.py`

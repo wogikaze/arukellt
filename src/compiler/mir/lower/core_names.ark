@@ -23,7 +23,7 @@ fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
 }
 
-pub fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
+fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
     let parameter_count = mir_function_parameter_count(ctx, clone(fn_name))
     // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
     if parameter_count >= 2 {

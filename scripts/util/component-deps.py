@@ -8,9 +8,13 @@ import json
 import shutil
 import subprocess
 import sys
-import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 uses the backport already required by the checks.
+    import tomli as tomllib  # type: ignore[no-redef]
 
 
 @dataclass(frozen=True)

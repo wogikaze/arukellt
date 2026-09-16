@@ -1,6 +1,7 @@
 // WIT -> Arukellt binding source renderer (#672).
 
 use std::text
+use component
 use component::wit_names_import
 use component::wit_parse_text
 use component::wit_parse_text_scan
@@ -109,5 +110,5 @@ fn emit_wit_bindings_from_doc(doc: wit_parse_text::WitParsedInterface) -> String
 }
 
 fn emit_wit_bindings_text(source: String) -> String {
-    emit_wit_bindings_from_doc(wit_parse_text::parse_wit_import_text(source))
+    emit_wit_bindings_from_doc(component::parse_wit_import_text(source))
 }

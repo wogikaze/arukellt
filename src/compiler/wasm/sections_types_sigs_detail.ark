@@ -3,6 +3,7 @@
 use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
+use mir::module_gc_enum
 use mir::module_gc_struct
 use mir::value_types
 use wasm::emit_target
@@ -85,6 +86,387 @@ fn p2_return_type_is_compound(type_name: String) -> bool {
     contains(clone(type_name), String_from(","))
 }
 
+fn p2_is_option_type_name(type_name: String) -> bool {
+    eq(clone(type_name), String_from("Option")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("Option<")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("option<"))
+}
+
+fn p2_is_result_type_name(type_name: String) -> bool {
+    eq(clone(type_name), String_from("Result")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("Result<")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("result<"))
+}
+
+fn p2_is_list_type_name(type_name: String) -> bool {
+    eq(clone(type_name), String_from("Vec")) ||
+    starts_with(clone(type_name), String_from("Vec:")) ||
+    starts_with(clone(type_name), String_from("Vec_")) ||
+    starts_with(clone(type_name), String_from("Vec<")) ||
+    starts_with(clone(type_name), String_from("vec:")) ||
+    starts_with(clone(type_name), String_from("vec<"))
+}
+
+fn p2_is_tuple_type_name(type_name: String) -> bool {
+    starts_with(clone(type_name), String_from("Tuple:")) ||
+    starts_with(clone(type_name), String_from("Tuple_")) ||
+    starts_with(clone(type_name), String_from("Tuple<")) ||
+    starts_with(clone(type_name), String_from("tuple:")) ||
+    starts_with(clone(type_name), String_from("tuple<"))
+}
+
+fn p2_type_argument(type_name: String, index: i32) -> String {
+    let mut body = clone(type_name)
+    let angle = index_of(clone(body), String_from("<"))
+    let underscore_form = angle < 0 && index_of(clone(body), String_from(":")) < 0 &&
+    (starts_with(clone(body), String_from("Option_")) ||
+        starts_with(clone(body), String_from("Result_")) ||
+        starts_with(clone(body), String_from("Vec_")) ||
+        starts_with(clone(body), String_from("Tuple_")))
+    if angle >= 0 {
+        let rest = substring(clone(body), angle + 1, len(body))
+        let close = index_of(clone(rest), String_from(">"))
+        if close >= 0 {
+            body = substring(rest, 0, close)
+        }
+    } else {
+        let colon = index_of(clone(body), String_from(":"))
+        if colon < 0 {
+            let underscore = index_of(clone(body), String_from("_"))
+            if underscore >= 0 && (p2_is_option_type_name(clone(type_name)) ||
+                p2_is_result_type_name(clone(type_name)) ||
+                p2_is_list_type_name(clone(type_name)) ||
+                p2_is_tuple_type_name(clone(type_name))) {
+                body = substring(body, underscore + 1, len(body))
+            } else {
+                if p2_is_option_type_name(clone(type_name)) && index == 0 {
+                    return String_from("i32")
+                }
+                if p2_is_result_type_name(clone(type_name)) {
+                    return String_from("i32")
+                }
+                return String_new()
+            }
+        } else {
+            body = substring(body, colon + 1, len(body))
+        }
+    }
+    let mut current = 0
+    let mut start = 0
+    let mut i = 0
+    let mut depth = 0
+    while i <= len(body) {
+        let at_end = i == len(body)
+        let c = if at_end { 44 } else { char_at(clone(body), i) }
+        if c == 60 {
+            depth = depth + 1
+        } else if c == 62 {
+            depth = depth - 1
+        }
+        if ((c == 44 || c == 58 || (underscore_form && c == 95)) && depth == 0) || at_end {
+            if current == index {
+                return substring(clone(body), start, i)
+            }
+            current = current + 1
+            start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn p2_enum_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return substring(type_name, 5, len(type_name))
+    }
+    type_name
+}
+
+fn p2_enum_variant_matches(enum_name: String, variant_name: String) -> bool {
+    let enum_name = p2_enum_type_name(clone(enum_name))
+    starts_with(clone(variant_name), concat(clone(enum_name), String_from("::"))) ||
+    contains(
+        clone(variant_name),
+        concat(String_from("::"), concat(clone(enum_name), String_from("::")))
+    )
+}
+
+fn p2_enum_has_variants(type_name: String, mir: MirModule) -> bool {
+    let names = module_gc_enum::MirModule_gc_enum_variant_names(mir)
+    let mut i = 0
+    while i < len(names) {
+        if p2_enum_variant_matches(clone(type_name), get_unchecked(names, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn p2_merge_enum_payload(payload: Vec<String>, field: String) {
+    if len(payload) == 0 {
+        push(payload, clone(field))
+        return
+    }
+    let current = get_unchecked(payload, 0)
+    if eq(clone(current), clone(field)) {
+        return
+    }
+    if eq(clone(field), String_from("f64")) ||
+    eq(clone(field), String_from("i64")) ||
+    eq(clone(current), String_from("i32")) {
+        set(payload, 0, clone(field))
+    }
+}
+
+fn p2_enum_payload_sigs(type_name: String, mir: MirModule) -> Vec<String> {
+    let names = module_gc_enum::MirModule_gc_enum_variant_names(mir)
+    let sigs = module_gc_enum::MirModule_gc_enum_variant_sigs(mir)
+    let payload = Vec::new<String>()
+    let mut i = 0
+    while i < len(names) {
+        if i < len(sigs) && p2_enum_variant_matches(clone(type_name), get_unchecked(names, i)) {
+            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+            let mut fi = 1
+            while fi < len(fields) {
+                let field = get_unchecked(fields, fi)
+                p2_merge_enum_payload(payload, field)
+                fi = fi + 1
+            }
+        }
+        i = i + 1
+    }
+    payload
+}
+
+fn p2_struct_name_from_type(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("struct:")) {
+        let first = index_of(clone(type_name), String_from(":"))
+        let mut last = first
+        let mut i = first + 1
+        while i < len(type_name) {
+            if char_at(clone(type_name), i) == 58 {
+                last = i
+            }
+            i = i + 1
+        }
+        if first >= 0 && last > first {
+            return substring(type_name, first + 1, last)
+        }
+    }
+    type_name
+}
+
+fn p2_struct_field_sigs(type_name: String, mir: MirModule) -> Vec<String> {
+    let name = p2_struct_name_from_type(clone(type_name))
+    let mut slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(name))
+    if slot < 0 {
+        let mut last = 0 - 1
+        let mut i = len(name) - 1
+        while i >= 0 {
+            if char_at(clone(name), i) == 58 {
+                last = i
+                i = 0 - 1
+            }
+            i = i - 1
+        }
+        if last >= 0 {
+            slot = module_gc_struct::MirModule_gc_struct_slot(
+                mir,
+                substring(clone(name), last + 1, len(name))
+            )
+        }
+    }
+    if slot < 0 {
+        return Vec::new<String>()
+    }
+    sections_types_gc::struct_field_sigs(
+        module_gc_struct::MirModule_gc_struct_sig_at(mir, slot)
+    )
+}
+
+fn p2_field_flat_count(field_sig: String) -> i32 {
+    if eq(clone(field_sig), String_from("ref0")) ||
+    eq(clone(field_sig), String_from("string")) {
+        return 2
+    }
+    1
+}
+
+fn p2_field_canonical_sig(field_sig: String) -> String {
+    if eq(clone(field_sig), String_from("i64")) {
+        return String_from("i64")
+    }
+    if eq(clone(field_sig), String_from("f64")) {
+        return String_from("f64")
+    }
+    if eq(clone(field_sig), String_from("f32")) {
+        return String_from("f32")
+    }
+    if eq(clone(field_sig), String_from("ref0")) {
+        return String_from("i32_i32")
+    }
+    String_from("i32")
+}
+
+fn p2_value_canonical_sig(type_name: String, value_type: i32, mir: MirModule) -> String {
+    if p2_is_string_type_name(clone(type_name)) {
+        return String_from("i32_i32")
+    }
+    if eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) ||
+    eq(clone(type_name), String_from("u8")) || eq(clone(type_name), String_from("u16")) ||
+    eq(clone(type_name), String_from("u32")) || eq(clone(type_name), String_from("i8")) ||
+    eq(clone(type_name), String_from("i16")) || eq(clone(type_name), String_from("i32")) {
+        return String_from("i32")
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
+        return String_from("i64")
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return String_from("f32")
+    }
+    if eq(clone(type_name), String_from("f64")) {
+        return String_from("f64")
+    }
+    if p2_is_list_type_name(clone(type_name)) || p2_is_tuple_type_name(clone(type_name)) ||
+    p2_is_option_type_name(clone(type_name)) || p2_is_result_type_name(clone(type_name)) ||
+    p2_return_type_is_compound(clone(type_name)) || p2_enum_has_variants(clone(type_name), mir) ||
+    value_type == value_types::VT_GC_REF() || value_type == value_types::VT_REF() {
+        return String_from("i32")
+    }
+    p2_scalar_type_sig(value_type)
+}
+
+fn p2_flat_value_count(type_name: String, value_type: i32, mir: MirModule) -> i32 {
+    if p2_is_string_type_name(clone(type_name)) {
+        return 2
+    }
+    if p2_is_list_type_name(clone(type_name)) || p2_is_tuple_type_name(clone(type_name)) ||
+    p2_is_option_type_name(clone(type_name)) || p2_is_result_type_name(clone(type_name)) ||
+    p2_return_type_is_compound(clone(type_name)) || p2_enum_has_variants(clone(type_name), mir) {
+        return 1
+    }
+    1
+}
+
+fn p2_type_is_aggregate(type_name: String, value_type: i32, mir: MirModule) -> bool {
+    p2_is_string_type_name(clone(type_name)) ||
+    p2_is_list_type_name(clone(type_name)) ||
+    p2_is_tuple_type_name(clone(type_name)) ||
+    p2_is_option_type_name(clone(type_name)) ||
+    p2_is_result_type_name(clone(type_name)) ||
+    p2_return_type_is_compound(clone(type_name)) ||
+    p2_enum_has_variants(clone(type_name), mir) ||
+    value_type == value_types::VT_GC_REF() || value_type == value_types::VT_REF()
+}
+
+fn p2_canonical_param_count_for_type(type_name: String, value_type: i32, mir: MirModule) -> i32 {
+    if p2_is_string_type_name(clone(type_name)) || p2_is_list_type_name(clone(type_name)) {
+        return 2
+    }
+    if p2_is_option_type_name(clone(type_name)) {
+        let inner = p2_type_argument(clone(type_name), 0)
+        if eq(clone(inner), String_from("bool")) {
+            return 1
+        }
+        return 1 + p2_flat_value_count(clone(inner), value_type, mir)
+    }
+    if p2_is_result_type_name(clone(type_name)) {
+        let ok = p2_flat_value_count(p2_type_argument(clone(type_name), 0), value_type, mir)
+        let err = p2_flat_value_count(p2_type_argument(clone(type_name), 1), value_type, mir)
+        let mut payload_count = ok
+        if err > ok {
+            payload_count = err
+        }
+        return 1 + payload_count
+    }
+    if p2_is_tuple_type_name(clone(type_name)) {
+        let mut count = 0
+        let mut i = 0
+        while len(p2_type_argument(clone(type_name), i)) > 0 {
+            count = count + p2_flat_value_count(p2_type_argument(clone(type_name), i), value_type, mir)
+            i = i + 1
+        }
+        return count
+    }
+    let fields = p2_struct_field_sigs(clone(type_name), mir)
+    if len(fields) > 0 && !p2_enum_has_variants(clone(type_name), mir) {
+        let mut count = 0
+        let mut i = 0
+        while i < len(fields) {
+            count = count + p2_field_flat_count(get_unchecked(fields, i))
+            i = i + 1
+        }
+        return count
+    }
+    let payload = p2_enum_payload_sigs(clone(type_name), mir)
+    if len(payload) > 0 {
+        return 1 + p2_field_flat_count(get_unchecked(payload, 0))
+    }
+    1
+}
+
+fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
+    let type_name = local_access::MirLocal_type_name(param)
+    let value_type = local_access::MirLocal_val_type(param)
+    if p2_is_string_type_name(clone(type_name)) || p2_is_list_type_name(clone(type_name)) {
+        return if p2_is_string_type_name(clone(type_name)) { String_from("i32_i32") } else { String_from("i32_i32") }
+    }
+    if p2_is_option_type_name(clone(type_name)) {
+        let inner = p2_type_argument(clone(type_name), 0)
+        if eq(clone(inner), String_from("bool")) {
+            return String_from("i32")
+        }
+        return concat(String_from("i32_"), p2_value_canonical_sig(clone(inner), value_type, mir))
+    }
+    if p2_is_result_type_name(clone(type_name)) {
+        let ok = p2_value_canonical_sig(p2_type_argument(clone(type_name), 0), value_type, mir)
+        let err = p2_value_canonical_sig(p2_type_argument(clone(type_name), 1), value_type, mir)
+        if eq(clone(ok), clone(err)) {
+            return concat(String_from("i32_"), ok)
+        }
+        if eq(clone(ok), String_from("i32_i32")) || eq(clone(err), String_from("i32_i32")) {
+            return String_from("i32_i32_i32")
+        }
+        return concat(String_from("i32_"), ok)
+    }
+    if p2_is_tuple_type_name(clone(type_name)) {
+        let sig = String_new()
+        let mut i = 0
+        while len(p2_type_argument(clone(type_name), i)) > 0 {
+            sig = concat(
+                clone(sig),
+                concat(p2_value_canonical_sig(p2_type_argument(clone(type_name), i), value_type, mir), "_")
+            )
+            i = i + 1
+        }
+        if len(sig) > 0 {
+            return substring(sig, 0, len(sig) - 1)
+        }
+    }
+    let fields = p2_struct_field_sigs(clone(type_name), mir)
+    if len(fields) > 0 && !p2_enum_has_variants(clone(type_name), mir) {
+        let sig = String_new()
+        let mut i = 0
+        while i < len(fields) {
+            sig = concat(clone(sig), concat(p2_field_canonical_sig(get_unchecked(fields, i)), "_"))
+            i = i + 1
+        }
+        return substring(sig, 0, len(sig) - 1)
+    }
+    let payload = p2_enum_payload_sigs(clone(type_name), mir)
+    if len(payload) > 0 {
+        return concat(String_from("i32_"), p2_field_canonical_sig(get_unchecked(payload, 0)))
+    }
+    p2_value_canonical_sig(clone(type_name), value_type, mir)
+}
+
 fn p2_scalar_type_sig(value_type: i32) -> String {
     if value_type == value_types::VT_I32() {
         return String_from("i32")
@@ -101,60 +483,224 @@ fn p2_scalar_type_sig(value_type: i32) -> String {
     String_new()
 }
 
+fn p2_is_supported_scalar_name(type_name: String) -> bool {
+    p2_is_string_type_name(clone(type_name)) ||
+    eq(clone(type_name), String_from("bool")) ||
+    eq(clone(type_name), String_from("char")) ||
+    eq(clone(type_name), String_from("u8")) ||
+    eq(clone(type_name), String_from("u16")) ||
+    eq(clone(type_name), String_from("u32")) ||
+    eq(clone(type_name), String_from("u64")) ||
+    eq(clone(type_name), String_from("i8")) ||
+    eq(clone(type_name), String_from("i16")) ||
+    eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("i64")) ||
+    eq(clone(type_name), String_from("f32")) ||
+    eq(clone(type_name), String_from("f64"))
+}
+
+fn p2_is_supported_storage_field(field_sig: String) -> bool {
+    eq(clone(field_sig), String_from("i32")) ||
+    eq(clone(field_sig), String_from("i64")) ||
+    eq(clone(field_sig), String_from("f32")) ||
+    eq(clone(field_sig), String_from("f64"))
+}
+
+fn p2_supported_list_element(type_name: String) -> bool {
+    let element = p2_type_argument(clone(type_name), 0)
+    if len(element) == 0 || !p2_is_supported_scalar_name(clone(element)) {
+        return false
+    }
+    // The current adapter copies list elements through i32 loads/stores. It
+    // must not claim support for a GC array whose element is a reference or a
+    // wider floating/integer value.
+    eq(clone(element), String_from("bool")) ||
+    eq(clone(element), String_from("char")) ||
+    eq(clone(element), String_from("u8")) ||
+    eq(clone(element), String_from("u16")) ||
+    eq(clone(element), String_from("u32")) ||
+    eq(clone(element), String_from("i8")) ||
+    eq(clone(element), String_from("i16")) ||
+    eq(clone(element), String_from("i32"))
+}
+
+fn p2_supported_record_fields(type_name: String, mir: MirModule) -> bool {
+    let fields = p2_struct_field_sigs(clone(type_name), mir)
+    if len(fields) == 0 {
+        return false
+    }
+    let mut i = 0
+    while i < len(fields) {
+        if !p2_is_supported_storage_field(get_unchecked(fields, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn p2_supported_tuple_arguments(type_name: String) -> bool {
+    let first = p2_type_argument(clone(type_name), 0)
+    if len(first) == 0 {
+        return false
+    }
+    let mut i = 0
+    while len(p2_type_argument(clone(type_name), i)) > 0 {
+        let element = p2_type_argument(clone(type_name), i)
+        if !p2_is_supported_scalar_name(clone(element)) ||
+        p2_is_string_type_name(clone(element)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn p2_supported_option_or_result(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("Option")) ||
+    eq(clone(type_name), String_from("Result")) {
+        return false
+    }
+    let first = p2_type_argument(clone(type_name), 0)
+    if len(first) == 0 {
+        return false
+    }
+    if p2_is_option_type_name(clone(type_name)) {
+        return p2_is_supported_scalar_name(clone(first))
+    }
+    let second = p2_type_argument(clone(type_name), 1)
+    if len(second) == 0 {
+        return false
+    }
+    p2_is_supported_scalar_name(clone(first)) && p2_is_supported_scalar_name(clone(second))
+}
+
+fn p2_supported_enum_payloads(type_name: String, mir: MirModule) -> bool {
+    if !p2_enum_has_variants(clone(type_name), mir) {
+        return false
+    }
+    let names = module_gc_enum::MirModule_gc_enum_variant_names(mir)
+    let sigs = module_gc_enum::MirModule_gc_enum_variant_sigs(mir)
+    let mut payload_sig = String_new()
+    let mut i = 0
+    while i < len(names) {
+        if i < len(sigs) && p2_enum_variant_matches(clone(type_name), get_unchecked(names, i)) {
+            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+            if len(fields) > 2 {
+                return false
+            }
+            if len(fields) == 2 {
+                let field = get_unchecked(fields, 1)
+                if !p2_is_supported_storage_field(clone(field)) {
+                    return false
+                }
+                if len(payload_sig) == 0 {
+                    payload_sig = clone(field)
+                } else if !eq(clone(payload_sig), clone(field)) {
+                    return false
+                }
+            }
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn p2_wrapper_type_is_supported(
+    type_name: String,
+    value_type: i32,
+    mir: MirModule
+) -> bool {
+    if p2_is_string_type_name(clone(type_name)) {
+        return true
+    }
+    if p2_is_supported_scalar_type(value_type) &&
+    (len(type_name) == 0 || p2_is_supported_scalar_name(clone(type_name))) {
+        return true
+    }
+    if p2_is_list_type_name(clone(type_name)) {
+        return p2_supported_list_element(clone(type_name))
+    }
+    if p2_is_option_type_name(clone(type_name)) ||
+    p2_is_result_type_name(clone(type_name)) {
+        return p2_supported_option_or_result(clone(type_name))
+    }
+    if p2_is_tuple_type_name(clone(type_name)) {
+        return p2_supported_tuple_arguments(clone(type_name))
+    }
+    if p2_enum_has_variants(clone(type_name), mir) {
+        return p2_supported_enum_payloads(clone(type_name), mir)
+    }
+    if p2_return_type_is_compound(clone(type_name)) {
+        return p2_supported_record_fields(clone(type_name), mir)
+    }
+    false
+}
+
 // The raw GC ABI is private to the core module. A P2 library export needs a
-// core-module wrapper when a public WIT string crosses that boundary. The
-// wrapper is deliberately limited to scalar values plus strings until each
-// compound WIT layout has a direct canonical lowering.
-fn p2_function_needs_string_wrapper(f: MirFunction, target: String, wasi_version: String) -> bool {
+// core-module wrapper whenever a public WIT value crosses that boundary in a
+// representation different from the scalar standard32 ABI.
+fn p2_function_needs_string_wrapper(
+    f: MirFunction,
+    target: String,
+    wasi_version: String,
+    mir: MirModule
+) -> bool {
     if !emit_target::is_gc_target(clone(target)) || !emit_target::is_p2_wasi(clone(wasi_version)) {
         return false
     }
-    let mut has_string = false
+    let mut needs_wrapper = false
     let param_count = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < param_count {
         let param = function_param_view::MirFunction_param_at(f, pi)
         let type_name = local_access::MirLocal_type_name(param)
-        if p2_is_string_type_name(clone(type_name)) {
-            has_string = true
-        } else if !p2_is_supported_scalar_type(local_access::MirLocal_val_type(param)) {
+        if !p2_wrapper_type_is_supported(
+            clone(type_name),
+            local_access::MirLocal_val_type(param),
+            mir
+        ) {
             return false
+        }
+        if p2_is_string_type_name(clone(type_name)) {
+            needs_wrapper = true
+        } else if !p2_is_supported_scalar_type(local_access::MirLocal_val_type(param)) {
+            if local_access::MirLocal_val_type(param) == value_types::VT_FUNCREF() {
+                return false
+            }
+            needs_wrapper = true
+        } else if p2_return_type_is_compound(clone(type_name)) {
+            needs_wrapper = true
         }
         pi = pi + 1
     }
     let return_type = function_return_view::MirFunction_return_type(f)
     let return_type_name = function_return_view::MirFunction_return_type_name(f)
     if return_type == value_types::VT_VOID() {
-        return has_string
+        return needs_wrapper
+    }
+    if !p2_wrapper_type_is_supported(clone(return_type_name), return_type, mir) {
+        return false
     }
     if p2_is_string_type_name(clone(return_type_name)) {
         return true
     }
-    // A generic return can retain a scalar MIR tag even after its concrete
-    // monomorphized GC layout is known.  Do not generate a scalar/string
-    // canonical wrapper for a compound return: it would call a GC-ref
-    // function through an i32 result signature and make the core invalid.
-    if p2_return_type_is_compound(clone(return_type_name)) {
-        return false
-    }
     if !p2_is_supported_scalar_type(return_type) {
-        return false
+        return return_type != value_types::VT_FUNCREF()
     }
-    has_string
+    p2_return_type_is_compound(clone(return_type_name)) || needs_wrapper
 }
 
-fn p2_canonical_function_type_sig(f: MirFunction) -> String {
+fn p2_canonical_function_type_sig(f: MirFunction, mir: MirModule) -> String {
     let mut sig = String_new()
     let param_count = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < param_count {
         let param = function_param_view::MirFunction_param_at(f, pi)
-        let type_name = local_access::MirLocal_type_name(param)
-        if p2_is_string_type_name(clone(type_name)) {
-            sig = concat(clone(sig), "i32_i32_")
-        } else {
-            sig = concat(clone(sig), concat(p2_scalar_type_sig(local_access::MirLocal_val_type(param)), "_"))
-        }
+        sig = concat(
+            clone(sig),
+            concat(p2_canonical_param_type_sig(param, mir), "_")
+        )
         pi = pi + 1
     }
     let return_type = function_return_view::MirFunction_return_type(f)
@@ -162,7 +708,9 @@ fn p2_canonical_function_type_sig(f: MirFunction) -> String {
         return concat(clone(sig), "0")
     }
     let return_type_name = function_return_view::MirFunction_return_type_name(f)
-    if p2_is_string_type_name(clone(return_type_name)) {
+    if p2_is_string_type_name(clone(return_type_name)) ||
+    p2_return_type_is_compound(clone(return_type_name)) ||
+    !p2_is_supported_scalar_type(return_type) {
         return concat(clone(sig), "1i32")
     }
     concat(clone(sig), concat("1", p2_scalar_type_sig(return_type)))
@@ -170,7 +718,15 @@ fn p2_canonical_function_type_sig(f: MirFunction) -> String {
 
 fn p2_post_type_sig_for_function(f: MirFunction, function_sig: String) -> String {
     let return_type_name = function_return_view::MirFunction_return_type_name(f)
+    let return_type = function_return_view::MirFunction_return_type(f)
+    if return_type == value_types::VT_VOID() {
+        return String_from("0")
+    }
     if p2_is_string_type_name(clone(return_type_name)) {
+        return String_from("i32_0")
+    }
+    if p2_return_type_is_compound(clone(return_type_name)) ||
+    !p2_is_supported_scalar_type(return_type) {
         return String_from("i32_0")
     }
     let mut result_start = 0

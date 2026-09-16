@@ -7,7 +7,7 @@ on:
       - "src/compiler/resolver/**"
       - "src/compiler/typechecker/**"
       - "std/wit/**"
-      - "scripts/component-deps.py"
+      - "scripts/util/component-deps.py"
       - "scripts/check/gate-67*.py"
       - "scripts/check/gate-706-std-wit-full-compliance.py"
       - "scripts/check/gate-component-wit-productization.py"

@@ -15,6 +15,15 @@ struct CoreHirBodyTable {
     contract_result_names: Vec<String>,
 }
 
+// The body vectors are transferred as one unit after validation. The transfer
+// is destructive: the table remains the owner of schema/contract metadata, but
+// its body vectors are empty after corehir_body_table_take_body_forest returns.
+struct CoreHirBodyForest {
+    exprs: Vec<CoreHirExpr>,
+    fn_body_roots: Vec<i32>,
+    method_body_roots: Vec<i32>,
+}
+
 fn corehir_body_table_schema_version(table: CoreHirBodyTable) -> i32 {
     table.schema_version
 }
@@ -27,22 +36,16 @@ fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExp
     get_unchecked(table.exprs, index)
 }
 
-fn corehir_body_table_exprs_ref(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
-    table.exprs
-}
-
-fn corehir_body_table_fn_body_roots_ref(table: CoreHirBodyTable) -> Vec<i32> {
-    table.fn_body_roots
-}
-
-fn corehir_body_table_method_body_roots_ref(table: CoreHirBodyTable) -> Vec<i32> {
-    table.method_body_roots
-}
-
-fn corehir_body_table_release_bodies(table: CoreHirBodyTable) {
+fn corehir_body_table_take_body_forest(table: CoreHirBodyTable) -> CoreHirBodyForest {
+    let forest = CoreHirBodyForest {
+        exprs: table.exprs,
+        fn_body_roots: table.fn_body_roots,
+        method_body_roots: table.method_body_roots,
+    }
     table.exprs = Vec::new<CoreHirExpr>()
     table.fn_body_roots = Vec::new<i32>()
     table.method_body_roots = Vec::new<i32>()
+    forest
 }
 
 fn corehir_body_table_release(table: CoreHirBodyTable) {

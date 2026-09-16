@@ -132,6 +132,28 @@ class TypedCoreHirConvertTests(unittest.TestCase):
         converted = convert_typed_document(document)
         self.assertNotIn(3, {entry["id"] for entry in converted["types"]})
 
+    def test_unreachable_integer_identity_is_not_collapsed(self) -> None:
+        document = copy.deepcopy(self.source)
+        document["types"].append(
+            {
+                "id": 3,
+                "kind": "integer",
+                "name": "char",
+                "bits": 32,
+                "signed": True,
+                "value_type": "i32",
+                "representation": {
+                    "kind": "scalar",
+                    "wasm": ["i32"],
+                    "nullable": False,
+                    "size_bytes": 4,
+                    "align_bytes": 4,
+                },
+            }
+        )
+        converted = convert_typed_document(document)
+        self.assertNotIn(3, {entry["id"] for entry in converted["types"]})
+
     def test_reachable_reference_type_fails_closed(self) -> None:
         document = copy.deepcopy(self.source)
         self.add_reference_type(document)

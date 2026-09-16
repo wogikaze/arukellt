@@ -1,7 +1,24 @@
 use component::contract
 use component::contract_preflight
 use component::wit_bindings
+use component::wit_parse_import
+use component::wit_parse_text
 use component::wit_text
+
+// Keep compiler-internal WIT entry points on the component namespace boundary.
+// The implementation modules remain private so they cannot become accidental
+// user-facing free-function APIs.
+pub fn parse_wit_import_text(source: String) -> wit_parse_text::WitParsedInterface {
+    wit_parse_import::parse_wit_import_text(source)
+}
+
+pub fn parse_wit_import_file(path: String) -> wit_parse_text::WitParsedInterface {
+    wit_parse_import::parse_wit_import_file(path)
+}
+
+pub fn wit_import_id_matches(package_id: String, doc: wit_parse_text::WitParsedInterface) -> bool {
+    wit_parse_import::wit_import_id_matches(package_id, doc)
+}
 
 pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
     wit_text::emit_wit_text_from_decls_with_world(decls, world, wit_paths)

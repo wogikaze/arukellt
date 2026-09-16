@@ -4438,8 +4438,11 @@ def cmd_verify_lane(args: argparse.Namespace) -> int:
             h.check_pass(label)
         else:
             env = {**os.environ}
+            # Keep the caller's toolchain PATH intact.  A login shell may source
+            # user startup files and replace the repository's wasm-tools with an
+            # unrelated command that has the same name.
             result = subprocess.run(
-                ["bash", "-lc", cmd_str],
+                ["bash", "-c", cmd_str],
                 cwd=str(root),
                 capture_output=True,
                 text=True,

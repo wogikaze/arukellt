@@ -29,6 +29,8 @@ pub struct SelfEmitCtx {
     gc_type_base: i32,
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
+    // O(1) membership for the wasm type indices occupied by enum variants.
+    gc_enum_variant_type_flags: Vec<i32>,
     gc_enum_variant_names: Vec<String>,
     gc_enum_variant_sigs: Vec<String>,
     gc_enum_variant_name_index: NameIndex,
@@ -69,6 +71,18 @@ pub struct SelfEmitCtx {
     local_i64_stack_set_cache: Vec<i32>,
     // 0/1 per local: a RETURN hands this local back (code_ref_locals_scan).
     local_feeds_return_cache: Vec<i32>,
+    // Scalar producer value type per local; -1 means no concrete scalar
+    // producer. Empty outside the begin/end_function_local_gc_cache window.
+    local_scalar_producer_vt_cache: Vec<i32>,
+    // 0/1 scalar-producer flags and strong-reference-producer flags. These are
+    // separate because a scalar producer may not expose a concrete value type.
+    local_has_scalar_producer_cache: Vec<i32>,
+    local_strong_ref_producer_cache: Vec<i32>,
+    // 0/1 per local: a Vec constructor call writes the local.
+    local_vec_constructor_cache: Vec<i32>,
+    // Encoded Option<i32> for direct producer storage: -2 = uncomputed,
+    // -1 = no storage type, >=0 = wasm type index.
+    local_direct_producer_storage_cache: Vec<i32>,
     // First MIR_STRUCT_NEW byte size per struct name in the current body, in
     // body order; replaces a per-local body rescan in local decl typing.
     struct_new_size_names: Vec<String>,
@@ -149,6 +163,7 @@ fn SelfEmitCtx_new(
         gc_type_base: 0,
         gc_enum_variant_base: 0 - 1,
         gc_enum_variant_type_map: empty_i32_c,
+        gc_enum_variant_type_flags: Vec::new<i32>(),
         gc_enum_variant_names: empty_string_b,
         gc_enum_variant_sigs: empty_string_c,
         gc_enum_variant_name_index: name_index::NameIndex_new(0),
@@ -182,6 +197,11 @@ fn SelfEmitCtx_new(
         local_def_inst_cache: Vec::new<i32>(),
         local_i64_stack_set_cache: Vec::new<i32>(),
         local_feeds_return_cache: Vec::new<i32>(),
+        local_scalar_producer_vt_cache: Vec::new<i32>(),
+        local_has_scalar_producer_cache: Vec::new<i32>(),
+        local_strong_ref_producer_cache: Vec::new<i32>(),
+        local_vec_constructor_cache: Vec::new<i32>(),
+        local_direct_producer_storage_cache: Vec::new<i32>(),
         struct_new_size_names: Vec::new<String>(),
         struct_new_sizes: Vec::new<i32>(),
         local_write_index: local_write_index::LocalWriteIndex_empty(),
@@ -266,6 +286,46 @@ fn SelfEmitCtx_set_local_feeds_return_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_feeds_return_cache = cache
 }
 
+fn SelfEmitCtx_local_scalar_producer_vt_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_scalar_producer_vt_cache
+}
+
+fn SelfEmitCtx_set_local_scalar_producer_vt_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_scalar_producer_vt_cache = cache
+}
+
+fn SelfEmitCtx_local_has_scalar_producer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_has_scalar_producer_cache
+}
+
+fn SelfEmitCtx_set_local_has_scalar_producer_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_has_scalar_producer_cache = cache
+}
+
+fn SelfEmitCtx_local_strong_ref_producer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_strong_ref_producer_cache
+}
+
+fn SelfEmitCtx_set_local_strong_ref_producer_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_strong_ref_producer_cache = cache
+}
+
+fn SelfEmitCtx_local_vec_constructor_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_vec_constructor_cache
+}
+
+fn SelfEmitCtx_set_local_vec_constructor_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_vec_constructor_cache = cache
+}
+
+fn SelfEmitCtx_local_direct_producer_storage_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_direct_producer_storage_cache
+}
+
+fn SelfEmitCtx_set_local_direct_producer_storage_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_direct_producer_storage_cache = cache
+}
+
 fn SelfEmitCtx_local_write_index(ctx: SelfEmitCtx) -> LocalWriteIndex {
     ctx.local_write_index
 }
@@ -336,9 +396,42 @@ fn SelfEmitCtx_gc_enum_variant_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
 
 fn SelfEmitCtx_set_gc_enum_variant_type_map(ctx: SelfEmitCtx, gc_enum_variant_type_map: Vec<i32>) {
     ctx.gc_enum_variant_type_map = gc_enum_variant_type_map
+    SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx)
     if len(ctx.gc_enum_variant_names) > 0 {
         SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx)
     }
+}
+
+fn SelfEmitCtx_gc_enum_variant_type_flags(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.gc_enum_variant_type_flags
+}
+
+fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx: SelfEmitCtx) {
+    let map = ctx.gc_enum_variant_type_map
+    let mut max_type_idx = 0 - 1
+    let mut i = 0
+    while i < len(map) {
+        let type_idx = get_unchecked(map, i)
+        if type_idx > max_type_idx {
+            max_type_idx = type_idx
+        }
+        i = i + 1
+    }
+    let flags = Vec::new<i32>()
+    let mut fi = 0
+    while fi <= max_type_idx {
+        push(flags, 0)
+        fi = fi + 1
+    }
+    i = 0
+    while i < len(map) {
+        let type_idx = get_unchecked(map, i)
+        if type_idx >= 0 && type_idx < len(flags) {
+            set(flags, type_idx, 1)
+        }
+        i = i + 1
+    }
+    ctx.gc_enum_variant_type_flags = flags
 }
 
 fn SelfEmitCtx_gc_enum_variant_names(ctx: SelfEmitCtx) -> Vec<String> {

@@ -100,7 +100,10 @@ fn tuple_struct_name_from_byte_size(byte_size_str: String) -> String {
     if byte_size <= 0 {
         return String_new()
     }
-    let field_count = byte_size / 4
+    let mut field_count: i32 = 0
+    while field_count * 4 + 4 <= byte_size {
+        field_count = field_count + 1
+    }
     if field_count <= 0 {
         return String_new()
     }

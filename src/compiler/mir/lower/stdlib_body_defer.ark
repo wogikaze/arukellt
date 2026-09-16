@@ -41,13 +41,19 @@ fn mir_should_defer_stdlib_body_with_param0(decl_name: String, param0: CoreHirPa
     // Bare `join` core_op is string.join(Vec,String). path::join(String,String)
     // must lower; otherwise call sites become drop+unreachable (#807).
     if eq(clone(decl_name), String_from("join")) {
-        let p0 = param::param_type_name(param0)
-        let is_string_join = eq(clone(p0), String_from("Vec")) ||
-        starts_with(clone(p0), String_from("Vec<")) ||
-        starts_with(clone(p0), String_from("vec"))
-        return is_string_join
+        return mir_is_vec_join_overload(clone(decl_name), param0)
     }
     mir_should_defer_stdlib_body(decl_name)
+}
+
+fn mir_is_vec_join_overload(decl_name: String, param0: CoreHirParam) -> bool {
+    if !eq(clone(decl_name), String_from("join")) {
+        return false
+    }
+    let p0 = param::param_type_name(param0)
+    eq(clone(p0), String_from("Vec")) ||
+    starts_with(clone(p0), String_from("Vec<")) ||
+    starts_with(clone(p0), String_from("vec"))
 }
 
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
