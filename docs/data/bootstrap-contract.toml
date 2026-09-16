@@ -45,9 +45,9 @@ command = "python3 scripts/manager.py selfhost fixpoint"
 ci_job = "selfhost"
 
 [[gates]]
-id = "fixture_parity"
+id = "fixture_test"
 command = "python3 scripts/manager.py selfhost fixture-parity"
-ci_job = "selfhost"
+ci_job = "verification"
 
 [[gates]]
 id = "cli_parity"

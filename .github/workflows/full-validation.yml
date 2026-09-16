@@ -82,6 +82,7 @@ jobs:
         env:
           ARUKELLT_WASM_INITIAL_PAGES: "131072"
           ARUKELLT_LINT_WORKERS: "2"
+          ARUKELLT_FIXTURE_WORKERS: "4"
         run: python3 scripts/manager.py verify
 
   selfhost:
@@ -105,8 +106,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Fixpoint
         run: python3 scripts/manager.py selfhost fixpoint
-      - name: Fixture parity
-        run: python3 scripts/manager.py selfhost fixture-parity
+      # The current-only fixture gate is already part of `manager.py verify`
+      # above. Do not duplicate hundreds of fixture compiles in this job.
       - name: CLI parity
         run: python3 scripts/manager.py selfhost parity --mode --cli
       - name: Diagnostic parity

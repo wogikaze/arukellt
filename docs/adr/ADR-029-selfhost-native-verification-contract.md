@@ -7,6 +7,10 @@ Issue: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 解除する依存: #583, #560, #561, #562, #563, #564（Phase 5 Rust 退役）
 関連: ADR-024（selfhost MIR）
 
+> Fixture ゲートの通常経路は [ADR-057](ADR-057-selfhost-current-only-fixture-gate.md) により
+> current-only 並列 fixture test へ改訂された。以下の fixture-parity 節は、ピン留め対現行の
+> 比較を通常ゲートとして採用した時点の履歴であり、現在の実行契約は ADR-057 を正とする。
+
 ## 背景
 
 `scripts/selfhost/checks.py` に実装された 4 つの正規セルフホストゲートは、歴史的にレガシー Rust コンパイラバイナリ（`target/debug/arukellt`）をすべてのパリティ比較の**信頼できるベース**として使っていた:
@@ -62,7 +66,7 @@ WASI / Memory64 / Wasm GC featureは、比較対象S2のbuild-profile manifest�
 - **Stage 0 はピン留め wasm であり Rust コンパイラではない。** Rust バイナリは参照されない。
 - **以前のベースラインとの Stage-1 バイト等価は `fixpoint` の一部としてはもはやアサートしない** — 歴史的に `s1`（Rust）と `s2`（セルフホスト）は別エンコーディングだったため、意味のあるバイト固定は `s2 == s3` のみだった。
 
-#### 2. `selfhost fixture-parity` — ピン留め対現行の実行パリティ
+#### 2. `selfhost fixture-parity` — ピン留め対現行の実行パリティ（旧契約）
 
 ```text
 for each fixture in tests/fixtures/manifest.txt (run:):

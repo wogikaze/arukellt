@@ -842,12 +842,19 @@ def _package_p2_core_for_execution(
     return component, ""
 
 
-def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
+def _run(
+    cmd: list[str],
+    root: Path,
+    capture: bool = True,
+    timeout: int | None = None,
+    stdin=None,
+) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(
             cmd,
             cwd=str(root),
             capture_output=capture,
+            stdin=stdin,
             text=True,
             encoding="utf-8",
             errors="replace",

@@ -9,17 +9,38 @@
 # Fixpoint (pinned → s2 → s3; sha256(s2)==sha256(s3))
 python3 scripts/manager.py selfhost fixpoint --build
 
-# Parity lanes
+# Normal fixture gate: one current compiler, parallel compile+validate for all
+# run fixtures, bounded cross-domain execution smoke.
 python3 scripts/manager.py selfhost fixture-parity
+# Equivalent explicit runner with worker control:
+python3 scripts/run/selfhost-fixture-test.py --workers 4
+
+# Other selfhost lanes
 python3 scripts/manager.py selfhost parity --mode --cli
 python3 scripts/manager.py selfhost diag-parity
 ```
+
+The old per-fixture `pinned compile + current compile + package + run` design is
+not a normal verification lane. Pinned-vs-current fixture comparison is only a
+bootstrap artifact refresh audit:
+
+```bash
+python3 scripts/run/selfhost-fixture-test.py --reference
+```
+
+Use `--execute-all` only when full current-runtime execution coverage is needed.
+It executes every fixture with a current WASI P2 runtime contract; native-cpp
+negative/numeric-exit fixtures remain compile/validate-only and are covered by
+the dedicated native-cpp gate. It still compiles each fixture once; it does not
+restore pinned duplication.
 
 ## Normative sources
 
 | Topic | Document |
 |-------|----------|
 | Trust base / stages | [`../adr/ADR-029-selfhost-native-verification-contract.md`](../adr/ADR-029-selfhost-native-verification-contract.md) |
+| Fixture gate semantics | [`../adr/ADR-057-selfhost-current-only-fixture-gate.md`](../adr/ADR-057-selfhost-current-only-fixture-gate.md) |
+| Pinned artifact refresh | [`../../bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md) |
 | Operator guide | [`../compiler/bootstrap.md`](../compiler/bootstrap.md) |
 | Status table | [`../state/compiler.md`](../state/compiler.md) |
 | Entrypoint | [`../../scripts/run/arukellt-selfhost.sh`](../../scripts/run/arukellt-selfhost.sh) |

@@ -28,7 +28,7 @@
 | ID | Command | CI job |
 |----|---------|--------|
 | `fixpoint` | `python3 scripts/manager.py selfhost fixpoint` | `selfhost` |
-| `fixture_parity` | `python3 scripts/manager.py selfhost fixture-parity` | `selfhost` |
+| `fixture_test` | `python3 scripts/manager.py selfhost fixture-parity` | `verification` |
 | `cli_parity` | `python3 scripts/manager.py selfhost parity --mode --cli` | `selfhost` |
 | `diag_parity` | `python3 scripts/manager.py selfhost diag-parity` | `selfhost` |
 
