@@ -102,8 +102,12 @@ fn mir_local_rebind_strings(local: MirLocal, pool: MirStrPool) {
 }
 
 fn MirLocal_new(name: String, val_type: i32, type_name: String) -> MirLocal {
-    let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
     let pool = MirStrPool_new()
+    MirLocal_new_in_pool(pool, name, val_type, type_name)
+}
+
+fn MirLocal_new_in_pool(pool: MirStrPool, name: String, val_type: i32, type_name: String) -> MirLocal {
+    let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
     let name_id = mir_local_intern_string(pool, clone(name))
     MirLocal {
         name_id: name_id,
