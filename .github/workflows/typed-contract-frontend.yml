@@ -77,8 +77,11 @@ jobs:
       - name: Install Wasmtime and Z3
         if: github.event_name != 'pull_request'
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          set -euo pipefail
+          curl --retry 5 --retry-delay 2 --retry-all-errors \
+            https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          "$HOME/.wasmtime/bin/wasmtime" --version
           sudo apt-get update
           sudo apt-get install -y z3
           z3 --version
@@ -86,13 +89,16 @@ jobs:
       - name: Install wasm-tools
         if: github.event_name != 'pull_request'
         run: |
+          set -euo pipefail
           version=1.252.0
           mkdir -p "$HOME/.local/bin"
-          curl -L --proto '=https' --tlsv1.2 -sSf \
+          curl --retry 5 --retry-delay 2 --retry-all-errors \
+            -L --proto '=https' --tlsv1.2 -sSf \
             "https://github.com/bytecodealliance/wasm-tools/releases/download/v${version}/wasm-tools-${version}-x86_64-linux.tar.gz" \
             | tar -xz -O "wasm-tools-${version}-x86_64-linux/wasm-tools" > "$HOME/.local/bin/wasm-tools"
           chmod +x "$HOME/.local/bin/wasm-tools"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/wasm-tools" --version
 
       - name: Build current selfhost stage 2 runtime
         if: github.event_name != 'pull_request'
