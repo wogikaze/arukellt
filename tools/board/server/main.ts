@@ -56,7 +56,11 @@ function parseCliOptions(): { port: number; host: string; open: boolean } {
 }
 
 function main(): void {
-    if (!existsSync(join(CLIENT_DIR, "index.html"))) {
+    // Pages data generation needs the repository API before the static client
+    // output is available; normal serving still requires the client bundle.
+    const isDataOnly = process.env.BOARD_DATA_ONLY === "1";
+    const hasClientBundle = existsSync(join(CLIENT_DIR, "index.html"));
+    if (!hasClientBundle && !isDataOnly) {
         console.error(`board: client bundle missing at ${CLIENT_DIR}. Run \`npm run build\` first.`);
         process.exitCode = 1;
         return;
@@ -67,6 +71,11 @@ function main(): void {
         const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
         if (pathname.startsWith(API_PREFIX)) {
             handleApiRequest(req, res);
+            return;
+        }
+        if (!hasClientBundle) {
+            res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+            res.end("board: static client bundle is unavailable\n");
             return;
         }
         const abs = resolveStaticFile(pathname);

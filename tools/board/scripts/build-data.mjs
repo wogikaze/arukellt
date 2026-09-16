@@ -73,6 +73,7 @@ async function main() {
     const port = await getFreePort();
     const proc = spawn("node", [SERVER, "-p", String(port)], {
         cwd: REPO_ROOT,
+        env: { ...process.env, BOARD_DATA_ONLY: "1" },
         stdio: "pipe",
     });
 

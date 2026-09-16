@@ -39,6 +39,16 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
+      - name: Install wasm-tools
+        run: |
+          version=1.252.0
+          mkdir -p "$HOME/.local/bin"
+          curl -L --proto '=https' --tlsv1.2 -sSf \
+            "https://github.com/bytecodealliance/wasm-tools/releases/download/v${version}/wasm-tools-${version}-x86_64-linux.tar.gz" \
+            | tar -xz -O "wasm-tools-${version}-x86_64-linux/wasm-tools" > "$HOME/.local/bin/wasm-tools"
+          chmod +x "$HOME/.local/bin/wasm-tools"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Selfhost fixpoint (stage-3 compiler for playground Run)
         run: python3 scripts/manager.py selfhost fixpoint --build
 
