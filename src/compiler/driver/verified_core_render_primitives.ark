@@ -4,6 +4,7 @@ use corehir::raw_bodies
 use corehir::value_types
 use typechecker::contract_type_access
 use typechecker::kinds
+use parser::kinds as parser_kinds
 
 fn vc_string_has_question(s: String) -> bool {
     let n = len(s)
@@ -257,6 +258,45 @@ fn vc_expr_kind_name(kind: i32) -> String {
     "unsupported"
 }
 
+fn vc_binary_operator_text(op: i32) -> String {
+    if op == parser_kinds::OP_ADD() { return "+" }
+    if op == parser_kinds::OP_SUB() { return "-" }
+    if op == parser_kinds::OP_MUL() { return "*" }
+    if op == parser_kinds::OP_DIV() { return "/" }
+    if op == parser_kinds::OP_MOD() { return "%" }
+    if op == parser_kinds::OP_EQ() { return "==" }
+    if op == parser_kinds::OP_NEQ() { return "!=" }
+    if op == parser_kinds::OP_LT() { return "<" }
+    if op == parser_kinds::OP_LTEQ() { return "<=" }
+    if op == parser_kinds::OP_GT() { return ">" }
+    if op == parser_kinds::OP_GTEQ() { return ">=" }
+    if op == parser_kinds::OP_AND() { return "&&" }
+    if op == parser_kinds::OP_OR() { return "||" }
+    if op == parser_kinds::OP_BIT_AND() { return "&" }
+    if op == parser_kinds::OP_BIT_OR() { return "|" }
+    if op == parser_kinds::OP_BIT_XOR() { return "^" }
+    if op == parser_kinds::OP_SHL() { return "<<" }
+    if op == parser_kinds::OP_SHR() { return ">>" }
+    String_new()
+}
+
+fn vc_unary_operator_text(op: i32) -> String {
+    if op == parser_kinds::UOP_NEG() { return "-" }
+    if op == parser_kinds::UOP_NOT() { return "!" }
+    if op == parser_kinds::UOP_BITNOT() { return "~" }
+    String_new()
+}
+
+fn vc_expression_text(kind: i32, raw_text: String, int_value: i32) -> String {
+    if kind == 11 && len(clone(raw_text)) == 0 {
+        return vc_binary_operator_text(int_value)
+    }
+    if kind == 12 && len(clone(raw_text)) == 0 {
+        return vc_unary_operator_text(int_value)
+    }
+    raw_text
+}
+
 fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
@@ -265,6 +305,8 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     let value_type = expr_raw::corehir_expr_val_type(expr)
     let type_name = expr_raw::corehir_expr_type_name(expr)
     let type_id = vc_type_id(value_type, type_name)
+    let int_value = expr_raw::corehir_expr_int_val(expr)
+    let text = vc_expression_text(kind, expr_raw::corehir_expr_text(expr), int_value)
 
     let mut out = "{\"id\":"
     out = concat(out, to_string(expr_id))
@@ -277,9 +319,9 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     out = concat(out, ",\"value_type\":")
     out = concat(out, vc_quote(vc_value_type_name(value_type)))
     out = concat(out, ",\"text\":")
-    out = concat(out, vc_quote(expr_raw::corehir_expr_text(expr)))
+    out = concat(out, vc_quote(text))
     out = concat(out, ",\"int_value\":")
-    out = concat(out, to_string(expr_raw::corehir_expr_int_val(expr)))
+    out = concat(out, to_string(int_value))
 
     let mut float_json = "0.0"
     if kind == 7 {
