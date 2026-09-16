@@ -218,8 +218,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          set -euo pipefail
+          curl --retry 5 --retry-delay 2 --retry-all-errors \
+            https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          "$HOME/.wasmtime/bin/wasmtime" --version
       - name: Validate pinned bootstrap
         run: |
           wasmtime compile \

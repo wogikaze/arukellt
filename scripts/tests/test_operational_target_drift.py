@@ -47,6 +47,7 @@ class OperationalTargetDriftTest(unittest.TestCase):
         """Allowed files should be skipped."""
         self.assertTrue(op_drift.is_allowed("scripts/tests/test_target_contract.py"))
         self.assertTrue(op_drift.is_allowed("scripts/check/check-docs-consistency.py"))
+        self.assertTrue(op_drift.is_allowed("docs/board/data.json"))
 
 
 if __name__ == "__main__":

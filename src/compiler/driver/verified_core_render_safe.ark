@@ -68,13 +68,11 @@ fn vcs_typed_param_count(program: CoreHirRawProgram, function_index: i32) -> i32
 }
 
 fn vcs_body_root(program: CoreHirRawProgram, function_index: i32) -> i32 {
-    let fn_infos = raw_decls::program_fn_infos(program)
-    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
     let table = raw_bodies::program_body_table(program)
-    if body_index < 0 || body_index >= body_table::corehir_body_table_fn_body_root_count(table) {
+    if function_index < 0 || function_index >= body_table::corehir_body_table_fn_body_root_count(table) {
         return 0 - 1
     }
-    body_table::corehir_body_table_fn_body_root_at(table, body_index)
+    body_table::corehir_body_table_fn_body_root_at(table, function_index)
 }
 
 fn vcs_body_root_is_valid(program: CoreHirRawProgram, root: i32) -> bool {

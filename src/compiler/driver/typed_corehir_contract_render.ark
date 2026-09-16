@@ -1,8 +1,6 @@
 use corehir::body_table
 use corehir::expr_raw
-use corehir::fn_info
 use corehir::raw_bodies
-use corehir::raw_decls
 use corehir::value_types
 use driver::verified_core_render_primitives
 use driver::verified_core_render_safe
@@ -18,16 +16,14 @@ fn tccr_collect_reachable(
     let stack = Vec::new<i32>()
     push(stack, root)
 
-    let fn_infos = raw_decls::program_fn_infos(program)
-    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
-    let contract_count = body_table::corehir_body_table_fn_contract_count(table, body_index)
+    let contract_count = body_table::corehir_body_table_fn_contract_count(table, function_index)
     let mut contract_index = 0
     while contract_index < contract_count {
         push(
             stack,
             body_table::corehir_body_table_fn_contract_root_at(
                 table,
-                body_index,
+                function_index,
                 contract_index
             )
         )
@@ -63,10 +59,8 @@ fn tccr_collect_reachable(
 }
 
 fn tccr_render_contracts(program: CoreHirRawProgram, function_index: i32) -> String {
-    let fn_infos = raw_decls::program_fn_infos(program)
-    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
     let table = raw_bodies::program_body_table(program)
-    let contract_count = body_table::corehir_body_table_fn_contract_count(table, body_index)
+    let contract_count = body_table::corehir_body_table_fn_contract_count(table, function_index)
     let mut out = ""
     let mut contract_index = 0
     while contract_index < contract_count {
@@ -75,17 +69,17 @@ fn tccr_render_contracts(program: CoreHirRawProgram, function_index: i32) -> Str
         }
         let kind_name = body_table::corehir_body_table_fn_contract_kind_at(
             table,
-            body_index,
+            function_index,
             contract_index
         )
         let expression_id = body_table::corehir_body_table_fn_contract_root_at(
             table,
-            body_index,
+            function_index,
             contract_index
         )
         let result_name = body_table::corehir_body_table_fn_contract_result_name_at(
             table,
-            body_index,
+            function_index,
             contract_index
         )
         out = concat(
