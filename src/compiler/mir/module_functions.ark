@@ -27,6 +27,25 @@ fn MirModule_set_function_at(m: MirModule, idx: i32, f: MirFunction) {
     set(m.functions, idx, f)
 }
 
+fn MirModule_set_export_names(m: MirModule, names: Vec<String>) {
+    m.export_names = names
+    m.export_surface_set = true
+}
+
+fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
+    if !m.export_surface_set {
+        return true
+    }
+    let mut i = 0
+    while i < len(m.export_names) {
+        if eq(clone(get_unchecked(m.export_names, i)), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
 }

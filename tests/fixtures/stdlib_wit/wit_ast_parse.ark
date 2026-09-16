@@ -1,6 +1,7 @@
 // Issue #706: WIT AST parser — parse world/interface/record/enum/flags.
 use std::host::stdio
 use std::wit::ast
+use std::wit::parser
 use std::wit::types
 
 fn main() {
@@ -38,6 +39,13 @@ fn main() {
     assert(eq(types::wit_type_from_ast(types::wit_type_bool()), String_from("bool")))
     assert(eq(types::wit_type_from_ast(types::wit_type_string()), String_from("string")))
     assert(eq(types::wit_type_from_ast(types::wit_type_u32()), String_from("u32")))
+
+    // parse_full_import_text seals the recursive AST as scalar metadata before
+    // it crosses the std::wit/compiler boundary.
+    let src6 = String_from("package test:host@0.1.0; interface math { add: func(a: s32, b: s32) -> s32; }")
+    let metadata6 = parser::parse_full_import_text(src6)
+    assert(contains(metadata6, "header|test:host|0.1.0|math"))
+    assert(contains(metadata6, "func|add|s32~s32|s32"))
 
     stdio::println(String_from("OK"))
 }

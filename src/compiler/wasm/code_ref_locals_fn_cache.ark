@@ -18,6 +18,11 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let infer = Vec::new<i32>()
     let struct_new = Vec::new<i32>()
     let has_ref = Vec::new<i32>()
+    let scalar_vts = Vec::new<i32>()
+    let scalar_flags = Vec::new<i32>()
+    let strong_ref_flags = Vec::new<i32>()
+    let vec_constructor_flags = Vec::new<i32>()
+    let direct_storage = Vec::new<i32>()
     let def_block = Vec::new<i32>()
     let def_inst = Vec::new<i32>()
     let struct_new_size_names = Vec::new<String>()
@@ -28,6 +33,8 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
         push(infer, 0 - 2)
         push(struct_new, 0)
         push(has_ref, 0)
+        push(vec_constructor_flags, 0)
+        push(direct_storage, 0 - 2)
         push(def_block, 0 - 1)
         push(def_inst, 0 - 1)
         i = i + 1
@@ -43,6 +50,12 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             let dest = inst_accessors_operands::MirInst_dest(inst)
+            if dest >= 0 && dest < local_count && op == opcodes::MIR_CALL() &&
+            code_ref_locals_scan::is_vec_constructor_name(inst_accessors_literals::MirInst_str_val(inst)) {
+                // The callee suffix may encode an element type, but the
+                // result is still the Vec header stored in this local.
+                set(vec_constructor_flags, dest, 1)
+            }
             if op == opcodes::MIR_GC_STRUCT_NEW() ||
             op == opcodes::MIR_STRUCT_NEW() {
                 if dest >= 0 && dest < local_count {
@@ -67,6 +80,13 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
         bi = bi + 1
     }
     propagate_has_ref_assignments(f, has_ref, 4)
+    code_ref_locals_scan::build_local_producer_flags(
+        f,
+        local_count,
+        scalar_vts,
+        scalar_flags,
+        strong_ref_flags
+    )
     ctx_record::SelfEmitCtx_set_local_write_index(ctx, local_write_index::LocalWriteIndex_build(f, local_count))
     ctx_record::SelfEmitCtx_set_local_i64_stack_set_cache(
         ctx,
@@ -79,6 +99,11 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, infer)
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, struct_new)
     ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, has_ref)
+    ctx_record::SelfEmitCtx_set_local_scalar_producer_vt_cache(ctx, scalar_vts)
+    ctx_record::SelfEmitCtx_set_local_has_scalar_producer_cache(ctx, scalar_flags)
+    ctx_record::SelfEmitCtx_set_local_strong_ref_producer_cache(ctx, strong_ref_flags)
+    ctx_record::SelfEmitCtx_set_local_vec_constructor_cache(ctx, vec_constructor_flags)
+    ctx_record::SelfEmitCtx_set_local_direct_producer_storage_cache(ctx, direct_storage)
     ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, def_block)
     ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, def_inst)
     ctx_record::SelfEmitCtx_set_struct_new_size_table(ctx, struct_new_size_names, struct_new_sizes)
@@ -236,6 +261,11 @@ fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_scalar_producer_vt_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_has_scalar_producer_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_strong_ref_producer_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_vec_constructor_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_direct_producer_storage_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_i64_stack_set_cache(ctx, Vec::new<i32>())
@@ -266,6 +296,27 @@ fn cached_def_inst(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return 0 - 1
     }
     get_unchecked(insts, local_idx)
+}
+
+// Encoded Option<i32> for local_direct_producer_storage_type. -3 means the
+// per-function cache is inactive or the local index is outside the cache.
+fn cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let cache = ctx_record::SelfEmitCtx_local_direct_producer_storage_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return 0 - 3
+    }
+    get_unchecked(cache, local_idx)
+}
+
+fn set_cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
+    let cache = ctx_record::SelfEmitCtx_local_direct_producer_storage_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return
+    }
+    match value {
+        Option::Some(type_idx) => set(cache, local_idx, type_idx),
+        Option::None => set(cache, local_idx, 0 - 1),
+    }
 }
 
 // Private Vec<i32> encoding: -2 uncomputed, -1 miss, >=0 hit.

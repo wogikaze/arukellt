@@ -495,6 +495,16 @@ fn local_direct_producer_storage_type(
     local_idx: i32,
     ctx: SelfEmitCtx
 ) -> Option<i32> {
+    let cached = code_ref_locals_fn_cache::cached_direct_producer_storage(ctx, local_idx)
+    if cached != 0 - 3 {
+        if cached == 0 - 2 || cached == 0 - 1 {
+            if cached == 0 - 1 {
+                return Option::None
+            }
+        } else {
+            return Option::Some(cached)
+        }
+    }
     let writes = code_ref_locals_fn_cache::function_local_write_index(f, ctx)
     let end = local_write_index::local_write_index_end(writes, local_idx)
     let mut wi = local_write_index::local_write_index_begin(writes, local_idx)
@@ -513,10 +523,14 @@ fn local_direct_producer_storage_type(
         )
         match inferred {
             Option::Some(_storage_type) => {
+                code_ref_locals_fn_cache::set_cached_direct_producer_storage(ctx, local_idx, inferred)
                 return inferred
             }
             Option::None => {}
         }
+    }
+    if cached != 0 - 3 {
+        code_ref_locals_fn_cache::set_cached_direct_producer_storage(ctx, local_idx, Option::None)
     }
     Option::None
 }

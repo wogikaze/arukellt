@@ -11,6 +11,7 @@ use wasm::sections_types_sigs
 use wasm::sections_exports
 use wasm::writer_core
 use wasm::writer_sections
+use collections::name_index
 
 struct TypeCanonPlan { canon_types: Vec<String>, type_map: Vec<i32> }
 
@@ -185,7 +186,8 @@ fn build_type_sigs(
             functions,
             fn_count,
             clone(target),
-            clone(wasi_version)
+            clone(wasi_version),
+            mir
         )
     }
     sections_types_sigs::append_p2_runtime_type_sigs(type_sigs, clone(wasi_version))
@@ -196,32 +198,23 @@ fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {
     let canon_types = Vec::new<String>()
     let mut type_map = Vec::new<i32>()
     let ts_count = len(type_sigs)
+    let canon_index = name_index::NameIndex_new(ts_count)
     let mut tsi = 0
     while tsi < ts_count {
         let sig = get_unchecked(type_sigs, tsi)
-        let found = find_canon_type_index(canon_types, sig)
+        let found = name_index::name_index_get(canon_index, clone(sig))
         if found >= 0 {
             push(type_map, found)
             tsi = tsi + 1
             continue
         }
-        push(type_map, len(canon_types))
-        push(canon_types, sig)
+        let canon_idx = len(canon_types)
+        push(type_map, canon_idx)
+        push(canon_types, clone(sig))
+        name_index::name_index_insert_first(canon_index, sig, canon_idx)
         tsi = tsi + 1
     }
     TypeCanonPlan_new(canon_types, type_map)
-}
-
-fn find_canon_type_index(canon_types: Vec<String>, sig: String) -> i32 {
-    let mut found = 0 - 1
-    let mut cti = 0
-    while cti < len(canon_types) {
-        if eq(clone(get_unchecked(canon_types, cti)), clone(sig)) {
-            found = cti
-        }
-        cti = cti + 1
-    }
-    found
 }
 
 fn first_gc_type_index(canon_types: Vec<String>) -> i32 {

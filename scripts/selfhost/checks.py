@@ -206,6 +206,27 @@ WASMTIME_SELFHOST_WASM_FLAGS = [
 # the normal copying-collector run path cannot load.
 WASMTIME_SELFHOST_AOT_FLAGS = ["-C", "collector=copying"]
 WASMTIME_SELFHOST_AOT_CACHE_TAG = "collector=copying"
+# The compiler itself needs more linear memory while it parses the canonical
+# WIT AST on top of the normal selfhost working set.  This is applied only to
+# the generated selfhost compiler artifact; the Ark emitter's user-module
+# memory contract remains controlled by src/compiler/wasm/sections_memory.ark.
+SELFHOST_COMPILER_MEMORY32_INITIAL_PAGES = 8192
+# Files copied into the deliberately small stdlib closure used by bootstrap.
+# Keep this list as the cache/freshness contract so an edit to any copied
+# dependency cannot leave a stale flat overlay in place.
+BOOTSTRAP_STD_SOURCE_FILES = (
+    "std/prelude.ark",
+    "std/toml.ark",
+    "std/json.ark",
+    "std/json/parser.ark",
+    "std/text/mod.ark",
+    "std/wit/ast.ark",
+    "std/wit/parser.ark",
+    "std/wit/types.ark",
+    "std/wit/world.ark",
+    "std/wit/scan.ark",
+    "std/core/error.ark",
+)
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
@@ -432,13 +453,25 @@ def _find_wasm_tools() -> str | None:
     which = shutil.which("wasm-tools")
     if which and which not in candidates:
         candidates.append(which)
+        # ``shutil.which`` already found an executable. Prefer it when it is
+        # the expected CLI instead of probing every PATH entry; PATH may
+        # contain an unavailable WSL/Windows mount whose stat call blocks.
+        if _wasm_tools_is_bytecodealliance(which):
+            return which
     path_env = os.environ.get("PATH", "")
     for entry in path_env.split(os.pathsep):
         if not entry:
             continue
         candidate = str(Path(entry) / "wasm-tools")
-        if candidate not in candidates and Path(candidate).is_file():
-            candidates.append(candidate)
+        if candidate in candidates:
+            continue
+        try:
+            if Path(candidate).is_file():
+                candidates.append(candidate)
+        except OSError:
+            # A stale or unavailable mounted PATH entry is not a tooling
+            # failure when an executable candidate may exist elsewhere.
+            continue
     for candidate in candidates:
         if _wasm_tools_is_bytecodealliance(candidate):
             return candidate
@@ -937,6 +970,7 @@ def _wasm_compile(
 def _compiler_source_mtime(root: Path) -> float:
     """Return newest mtime for source files that define the selfhost compiler."""
     candidates = list((root / "src" / "compiler").rglob("*.ark"))
+    candidates.extend(root / rel for rel in BOOTSTRAP_STD_SOURCE_FILES)
     candidates.append(Path(__file__))
     return max(path.stat().st_mtime for path in candidates if path.is_file())
 
@@ -2207,6 +2241,66 @@ def _write_leb_u32(value: int) -> bytes:
     return bytes(out)
 
 
+def _normalize_selfhost_memory32(wasm_path: Path) -> bool:
+    """Reserve the selfhost compiler's deterministic memory32 working set.
+
+    The compiler emits user modules with their source-level memory setting.
+    Only the just-built compiler executable is normalized here, because the
+    compiler must hold its ordinary source/HIR state and a canonical WIT AST
+    at the same time.  Rebuilding the complete module preserves every section
+    and changes only the first memory's initial page count.
+    """
+    try:
+        data = wasm_path.read_bytes()
+    except OSError:
+        return False
+    if len(data) < 8 or data[0:4] != b"\0asm":
+        return False
+
+    offset = 8
+    rebuilt = bytearray(data[0:8])
+    changed = False
+    while offset < len(data):
+        section_start = offset
+        section_id = data[offset]
+        offset += 1
+        size, payload_start = _read_leb_u32(data, offset)
+        payload_end = payload_start + size
+        if payload_end > len(data):
+            return False
+        payload = data[payload_start:payload_end]
+        if section_id == 5 and not changed:
+            memory_count, limits_start = _read_leb_u32(payload, 0)
+            if memory_count == 0 or limits_start >= len(payload):
+                return False
+            flags, initial_start = _read_leb_u32(payload, limits_start)
+            initial_end = _read_leb_u32(payload, initial_start)[1]
+            if flags & 0x04 == 0 and initial_end <= len(payload):
+                initial = _read_leb_u32(payload, initial_start)[0]
+                if initial < SELFHOST_COMPILER_MEMORY32_INITIAL_PAGES:
+                    new_initial = _write_leb_u32(
+                        SELFHOST_COMPILER_MEMORY32_INITIAL_PAGES
+                    )
+                    payload = (
+                        payload[:initial_start]
+                        + new_initial
+                        + payload[initial_end:]
+                    )
+                    changed = True
+        rebuilt.append(section_id)
+        rebuilt.extend(_write_leb_u32(len(payload)))
+        rebuilt.extend(payload)
+        offset = payload_end
+        if section_start >= offset:
+            return False
+    if changed:
+        try:
+            wasm_path.write_bytes(rebuilt)
+        except OSError:
+            return False
+    return changed
+
+
 def _dedupe_wasm_export_section_raw(wasm_path: Path) -> bool:
     """Rewrite the export section, keeping the first export for each name."""
     data = bytearray(wasm_path.read_bytes())
@@ -2284,8 +2378,9 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
 
 
 def _postprocess_selfhost_compiler_wasm(wasm_path: Path, root: Path) -> None:
-    """Normalize stage-2/3 selfhost wasm by removing duplicate exports."""
+    """Normalize stage-2/3 selfhost wasm for deterministic execution."""
     _dedupe_selfhost_wasm_exports(wasm_path, root)
+    _normalize_selfhost_memory32(wasm_path)
 
 
 def _fixpoint_stage3_compiler(
@@ -2994,8 +3089,8 @@ def _compiler_source_content_hash(root: Path) -> str:
                 file_hash = "<missing>"
             digest.update(file_hash.encode())
             digest.update(b"\0")
-    # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)
-    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):
+    # Also hash every std file that the overlay copies.
+    for std_rel in BOOTSTRAP_STD_SOURCE_FILES:
         std_path = root / std_rel
         if std_path.is_file():
             h = hashlib.sha256()
@@ -3200,6 +3295,36 @@ def _prepare_flattened_selfhost_source_locked(
     text_mod = root / "std" / "text" / "mod.ark"
     if text_mod.is_file():
         shutil.copyfile(text_mod, std_dst / "text.ark")
+    # Copy the canonical WIT parser closure into the overlay.  The compiler
+    # imports std::wit::parser during bootstrap, so silently falling back to a
+    # missing module would turn the canonical call into an empty stub.  Keep
+    # this closure explicit instead of copying all of std/: the pinned
+    # bootstrap cannot resolve the full stdlib tree.
+    wit_sources = (
+        "ast.ark",
+        "parser.ark",
+        "types.ark",
+        "world.ark",
+        "scan.ark",
+    )
+    wit_dst = std_dst / "wit"
+    wit_dst.mkdir(exist_ok=True)
+    for name in wit_sources:
+        source_path = root / "std" / "wit" / name
+        if not source_path.is_file():
+            raise BootstrapOverlayError(
+                f"bootstrap overlay missing canonical WIT source: std/wit/{name}"
+            )
+        shutil.copyfile(source_path, wit_dst / name)
+    error_src = root / "std" / "core" / "error.ark"
+    if not error_src.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing canonical WIT parser dependency: "
+            "std/core/error.ark"
+        )
+    core_dst = overlay_root / "std" / "core"
+    core_dst.mkdir(exist_ok=True)
+    shutil.copyfile(error_src, core_dst / "error.ark")
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))

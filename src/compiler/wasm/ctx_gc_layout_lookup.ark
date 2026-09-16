@@ -105,6 +105,10 @@ fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -
     if wasm_type_idx < 0 {
         return false
     }
+    let flags = ctx_record::SelfEmitCtx_gc_enum_variant_type_flags(ctx)
+    if wasm_type_idx < len(flags) {
+        return get_unchecked(flags, wasm_type_idx) == 1
+    }
     let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
     let mut i = 0
     while i < len(map) {

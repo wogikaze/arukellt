@@ -7,6 +7,8 @@ use mir::lower::mono_instance_table
 
 pub struct MirModule {
     functions: Vec<MirFunction>,
+    export_names: Vec<String>,
+    export_surface_set: bool,
     string_constants: Vec<String>,
     mono_pruned_count: i32,
     gc_enum_variant_sigs: Vec<String>,
@@ -26,6 +28,8 @@ pub struct MirModule {
 fn MirModule_new() -> MirModule {
     MirModule {
         functions: Vec::new<MirFunction>(),
+        export_names: Vec::new<String>(),
+        export_surface_set: false,
         string_constants: Vec::new<String>(),
         mono_pruned_count: 0,
         gc_enum_variant_sigs: Vec::new<String>(),

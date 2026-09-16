@@ -169,7 +169,7 @@ fn build_export_section_plan(mir: MirModule, fn_count: i32, wasi_version: String
         if start_names::is_wasm_start_function_name(clone(fname)) {
             main_idx = mi
         } else if emit_target::is_p2_wasi(clone(wasi_version)) {
-            if is_p2_library_export_function(f) {
+            if is_p2_library_export_function(mir, f) {
                 export_count = export_count + 2
             }
         } else if !is_internal_export_name(clone(fname)) {
@@ -271,19 +271,33 @@ fn emit_function_export_entries(
     let functions = module_functions::MirModule_functions(mir)
     let seen_short_names = ExportNameCounts_new(fn_count)
     let mut library_ordinal = 0
+    let mut library_wrapper_ordinal = 0
     let mut exi = 0
     while exi < fn_count {
         let ef = module_functions::MirModule_function_at(mir, exi)
         let ef_name = function_identity::MirFunction_name(ef)
         if start_names::is_wasm_start_function_name(clone(ef_name)) {
         } else if emit_target::is_p2_wasi(clone(wasi_version)) {
-            if is_p2_library_export_function(ef) {
+            if is_p2_library_export_function(mir, ef) {
                 // P2 names are canonicalized to WIT kebab-case. Count after
                 // that conversion so Ark names such as `Token_kind` and
                 // `token_kind` cannot emit the same component export.
                 let wit_seen_name = wit_names::wit_export_name(clone(ef_name))
                 let seen = export_name_seen_bump(seen_short_names, wit_seen_name)
                 let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
+                let needs_string_wrapper = sections_types_sigs_detail::p2_function_needs_string_wrapper(
+                    ef,
+                    clone(target),
+                    clone(wasi_version),
+                    mir
+                )
+                let wrapper_ordinal = if needs_string_wrapper {
+                    let current = library_wrapper_ordinal
+                    library_wrapper_ordinal = library_wrapper_ordinal + 1
+                    current
+                } else {
+                    0 - 1
+                }
                 emit_p2_library_function_exports(
                     export_sec,
                     clone(export_name),
@@ -295,13 +309,7 @@ fn emit_function_export_entries(
                     clone(wasi_version),
                     wit_import_count,
                     p2_library_post_count,
-                    p2_library_wrapper_ordinal(
-                        mir,
-                        fn_count,
-                        exi,
-                        clone(target),
-                        clone(wasi_version)
-                    )
+                    wrapper_ordinal
                 )
                 library_ordinal = library_ordinal + 1
             }
@@ -371,7 +379,7 @@ fn p2_library_export_count(mir: MirModule, fn_count: i32) -> i32 {
     let mut i = 0
     while i < fn_count {
         let f = module_functions::MirModule_function_at(mir, i)
-        if is_p2_library_export_function(f) {
+        if is_p2_library_export_function(mir, f) {
             count = count + 1
         }
         i = i + 1
@@ -384,11 +392,12 @@ fn p2_library_wrapper_count(mir: MirModule, fn_count: i32, target: String, wasi_
     let mut i = 0
     while i < fn_count {
         let f = module_functions::MirModule_function_at(mir, i)
-        if is_p2_library_export_function(f) &&
+        if is_p2_library_export_function(mir, f) &&
         sections_types_sigs_detail::p2_function_needs_string_wrapper(
             f,
             clone(target),
-            clone(wasi_version)
+            clone(wasi_version),
+            mir
         ) {
             count = count + 1
         }
@@ -397,35 +406,11 @@ fn p2_library_wrapper_count(mir: MirModule, fn_count: i32, target: String, wasi_
     count
 }
 
-fn p2_library_wrapper_ordinal(
-    mir: MirModule,
-    fn_count: i32,
-    function_idx: i32,
-    target: String,
-    wasi_version: String
-) -> i32 {
-    let mut ordinal = 0
-    let mut i = 0
-    while i < fn_count {
-        let f = module_functions::MirModule_function_at(mir, i)
-        if is_p2_library_export_function(f) &&
-        sections_types_sigs_detail::p2_function_needs_string_wrapper(
-            f,
-            clone(target),
-            clone(wasi_version)
-        ) {
-            if i == function_idx {
-                return ordinal
-            }
-            ordinal = ordinal + 1
-        }
-        i = i + 1
-    }
-    0 - 1
-}
-
-fn is_p2_library_export_function(f: MirFunction) -> bool {
+fn is_p2_library_export_function(mir: MirModule, f: MirFunction) -> bool {
     let name = function_identity::MirFunction_name(f)
+    if !module_functions::MirModule_has_export_name(mir, clone(name)) {
+        return false
+    }
     !start_names::is_wasm_start_function_name(clone(name)) &&
     !is_internal_export_name(clone(name)) &&
     !is_p2_std_helper_name(clone(name)) &&

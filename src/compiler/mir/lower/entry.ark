@@ -33,6 +33,9 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let view = entry_input::mir_entry_input_view(input)
     let body_source = entry_input::mir_entry_input_body_source(input)
     let m = module_factory::MirModule_new()
+    if prune_enabled {
+        module_functions::MirModule_set_export_names(m, clone_export_roots(export_roots))
+    }
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let mono_view = mono_view::mir_lower_mono_view_from_core(view)

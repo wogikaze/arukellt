@@ -12,6 +12,12 @@ pub fn parse_full(source: String) -> ast::WitNode {
     ast::parse(source)
 }
 
+/// Parse the canonical WIT document and return compiler-safe metadata text.
+/// Recursive AST values do not cross the std::wit/compiler boundary.
+pub fn parse_full_import_text(source: String) -> String {
+    ast::parse_import_text(source)
+}
+
 fn parse_skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos

@@ -711,7 +711,7 @@ compile_component_artifact() {
   local component_wit="$work_dir/component.wit"
   local compiler_world="wasi:cli/command"
   local wit_world="command"
-  if has_library_exports "$core_path" && ! has_p2_command_exports "$core_path"; then
+  if has_library_exports "$core_path"; then
     compiler_world=""
     wit_world="arukellt"
   fi
@@ -768,7 +768,7 @@ compile_all_artifact() {
   local component_wit="$work_dir/component.wit"
   local compiler_world="wasi:cli/command"
   local wit_world="command"
-  if has_library_exports "$component_core_path" && ! has_p2_command_exports "$component_core_path"; then
+  if has_library_exports "$component_core_path"; then
     compiler_world=""
     wit_world="arukellt"
   fi

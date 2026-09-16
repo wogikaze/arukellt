@@ -2,6 +2,7 @@
 use mir::block_inst_access
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_accessors_literals
 use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
@@ -178,8 +179,8 @@ fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
 fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if is_function_local_gc_cache_active(ctx) {
         let cached = cached_has_ref_assignment(ctx, local_idx)
-        if cached == 1 {
-            return true
+        if cached >= 0 {
+            return cached == 1
         }
     }
     local_has_any_ref_assignment_depth(f, local_idx, 0)
@@ -427,6 +428,179 @@ fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
         bi = bi + 1
     }
     false
+}
+
+// Build the producer facts used by local declaration emission in one body
+// pass. The old query functions remain below as a fallback for callers outside
+// the per-function cache window.
+fn build_local_producer_flags(
+    f: MirFunction,
+    local_count: i32,
+    scalar_vts: Vec<i32>,
+    scalar_flags: Vec<i32>,
+    strong_ref_flags: Vec<i32>
+) {
+    let mut li = 0
+    while li < local_count {
+        push(scalar_vts, 0 - 1)
+        push(scalar_flags, 0)
+        push(strong_ref_flags, 0)
+        li = li + 1
+    }
+    seed_scalar_producer_params(f, scalar_vts, scalar_flags)
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            if dest >= 0 && dest < local_count {
+                let producer_vt = inst_scalar_producer_vt(op, inst)
+                if producer_vt >= 0 {
+                    set(scalar_flags, dest, 1)
+                    if get_unchecked(scalar_vts, dest) < 0 {
+                        set(scalar_vts, dest, producer_vt)
+                    }
+                } else if inst_op_is_scalar_producer(op, inst) {
+                    set(scalar_flags, dest, 1)
+                }
+                if inst_is_strong_ref_producer(op, inst) {
+                    set(strong_ref_flags, dest, 1)
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    propagate_scalar_producer_flags(f, scalar_vts, scalar_flags, 8)
+}
+
+fn seed_scalar_producer_params(f: MirFunction, scalar_vts: Vec<i32>, scalar_flags: Vec<i32>) {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count && pi < len(scalar_vts) {
+        let param_vt = function_param_view::MirFunction_param_val_type(f, pi)
+        if is_concrete_scalar_value_type(param_vt) {
+            set(scalar_vts, pi, param_vt)
+            set(scalar_flags, pi, 1)
+        }
+        pi = pi + 1
+    }
+}
+
+fn is_concrete_scalar_value_type(vt: i32) -> bool {
+    vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+    vt == value_types::VT_F64() || vt == value_types::VT_F32() ||
+    vt == value_types::VT_V128()
+}
+
+fn inst_is_strong_ref_producer(op: i32, inst: MirInst) -> bool {
+    if op == opcodes::MIR_GC_STRUCT_NEW() ||
+    op == opcodes::MIR_STRUCT_NEW() ||
+    op == opcodes::MIR_ARRAY_NEW() ||
+    op == opcodes::MIR_CONST_STRING() ||
+    op == opcodes::MIR_REF_CAST() ||
+    op == opcodes::MIR_REF_TEST() {
+        return true
+    }
+    if op == opcodes::MIR_CALL() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        return vt == value_types::VT_GC_REF() || vt == value_types::VT_REF()
+    }
+    false
+}
+
+fn propagate_scalar_producer_flags(
+    f: MirFunction,
+    scalar_vts: Vec<i32>,
+    scalar_flags: Vec<i32>,
+    max_passes: i32
+) {
+    let mut pass = 0
+    while pass < max_passes {
+        let mut changed = 0
+        let block_count = len(f.blocks)
+        let mut bi = 0
+        while bi < block_count {
+            let block = get_unchecked(f.blocks, bi)
+            let inst_count = block_inst_access::MirBlock_inst_count(block)
+            let mut ii = 0
+            while ii < inst_count {
+                let inst = block_inst_access::MirBlock_inst_at(block, ii)
+                if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() {
+                    let target = inst_accessors_operands::MirInst_arg0(inst)
+                    let source = inst_accessors_operands::MirInst_arg1(inst)
+                    if target >= 0 && target < len(scalar_flags) &&
+                    source >= 0 && source < len(scalar_flags) &&
+                    get_unchecked(scalar_flags, source) != 0 {
+                        if get_unchecked(scalar_flags, target) == 0 {
+                            set(scalar_flags, target, 1)
+                            changed = 1
+                        }
+                        let source_vt = get_unchecked(scalar_vts, source)
+                        if source_vt >= 0 && get_unchecked(scalar_vts, target) < 0 {
+                            set(scalar_vts, target, source_vt)
+                            changed = 1
+                        }
+                    }
+                }
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+        if changed == 0 {
+            return
+        }
+        pass = pass + 1
+    }
+}
+
+fn cached_local_scalar_producer_vt(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let cache = ctx_record::SelfEmitCtx_local_scalar_producer_vt_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return 0 - 2
+    }
+    get_unchecked(cache, local_idx)
+}
+
+fn cached_local_has_scalar_producer(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let cache = ctx_record::SelfEmitCtx_local_has_scalar_producer_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return 0 - 1
+    }
+    get_unchecked(cache, local_idx)
+}
+
+fn cached_local_has_strong_ref_producer(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let cache = ctx_record::SelfEmitCtx_local_strong_ref_producer_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return 0 - 1
+    }
+    get_unchecked(cache, local_idx)
+}
+
+fn cached_local_is_vec_constructor_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let cache = ctx_record::SelfEmitCtx_local_vec_constructor_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return 0 - 1
+    }
+    get_unchecked(cache, local_idx)
+}
+
+fn is_vec_constructor_name(callee: String) -> bool {
+    eq(clone(callee), String_from("Vec::new")) ||
+    eq(clone(callee), String_from("Vec__new")) ||
+    eq(clone(callee), String_from("Vec::with_capacity")) ||
+    eq(clone(callee), String_from("Vec__with_capacity")) ||
+    starts_with(clone(callee), String_from("Vec::new__")) ||
+    starts_with(clone(callee), String_from("Vec__new__")) ||
+    starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(callee), String_from("Vec__with_capacity__")) ||
+    starts_with(clone(callee), String_from("Vec_with_capacity_"))
 }
 
 fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
