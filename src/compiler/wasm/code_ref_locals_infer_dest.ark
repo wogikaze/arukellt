@@ -545,7 +545,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             // and unresolved elems must not become GC refs here.
             return Option::None
         }
-        let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type(ctx, clone(callee))
+        let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type_for_inst(ctx, inst)
         match call_type {
             Option::Some(_opt_v) => {
                 return call_type
