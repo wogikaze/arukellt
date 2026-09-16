@@ -54,6 +54,8 @@ jobs:
 
       - name: Exercise TypeId-only runtime lookup
         if: github.event_name != 'pull_request'
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2.wasm
         run: python3 scripts/check/check-backend-name-lookup-runtime.py
 
       - name: Upload backend TypeId evidence
