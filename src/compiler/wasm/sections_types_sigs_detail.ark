@@ -209,6 +209,22 @@ fn p2_enum_has_variants(type_name: String, mir: MirModule) -> bool {
     false
 }
 
+fn p2_merge_enum_payload(payload: Vec<String>, field: String) {
+    if len(payload) == 0 {
+        push(payload, clone(field))
+        return
+    }
+    let current = get_unchecked(payload, 0)
+    if eq(clone(current), clone(field)) {
+        return
+    }
+    if eq(clone(field), String_from("f64")) ||
+    eq(clone(field), String_from("i64")) ||
+    eq(clone(current), String_from("i32")) {
+        set(payload, 0, clone(field))
+    }
+}
+
 fn p2_enum_payload_sigs(type_name: String, mir: MirModule) -> Vec<String> {
     let names = module_gc_enum::MirModule_gc_enum_variant_names(mir)
     let sigs = module_gc_enum::MirModule_gc_enum_variant_sigs(mir)
@@ -220,17 +236,7 @@ fn p2_enum_payload_sigs(type_name: String, mir: MirModule) -> Vec<String> {
             let mut fi = 1
             while fi < len(fields) {
                 let field = get_unchecked(fields, fi)
-                if len(payload) == 0 {
-                    push(payload, clone(field))
-                } else if !eq(clone(get_unchecked(payload, 0)), clone(field)) {
-                    // Current WIT variants have one payload slot. Keep the
-                    // widest scalar when a family uses different payloads.
-                    if eq(clone(field), String_from("f64")) ||
-                    eq(clone(field), String_from("i64")) ||
-                    eq(clone(get_unchecked(payload, 0)), String_from("i32")) {
-                        set(payload, 0, clone(field))
-                    }
-                }
+                p2_merge_enum_payload(payload, field)
                 fi = fi + 1
             }
         }
