@@ -2518,7 +2518,8 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     """Return a validated direct-execution compiler artifact.
 
     Memory width is selected by the Ark emitter. No post-link heap or memory
-    rewrite is performed here.
+    rewrite is performed here. Even for memory32 artifacts, callers receive the
+    stable ``arukellt-s2-runtime.wasm`` path used by CI and runtime probes.
     """
     out = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
@@ -2526,7 +2527,16 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
             return out
     if _wasm_memory_section_is_memory64(compiler_wasm):
         return _widen_compiler_wasm_to_memory64(root, compiler_wasm, out)
-    return compiler_wasm if not _reject_invalid_compiler_wasm(compiler_wasm) else None
+    if _reject_invalid_compiler_wasm(compiler_wasm):
+        return None
+    if compiler_wasm.resolve() == out.resolve():
+        return compiler_wasm
+    try:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(compiler_wasm, out)
+    except OSError:
+        return None
+    return out if not _reject_invalid_compiler_wasm(out) else None
 
 
 def _patch_monolithic_typechecker_unify(text: str) -> str:
