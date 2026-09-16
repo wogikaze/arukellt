@@ -66,10 +66,14 @@ stage-3 単独でも現状は数十分かかり得る（2026-07-20 ≈ 23.5 min�
 （`emit.code.locals` 半減）。[#824](../../issues/done/824-early-body-lowering-worklist.md) は
 `decl_emit` 非支配のため wontfix。
 
-**wasm32-gc + wasi-p2 overlay の現行床**は quiet **208s** / loaded **239s** /
-RSS **~1.77GB**（同一 binary）。公式受入は
+**wasm32-gc + wasi-p2 overlay の現行 clean 測定**（commit `07c9ecd4e`、
+stock Wasmtime、cacheless flat source）は wall median **7.171s** /
+線形補間 p95 **7.836s**、RSS 最大 **1,233,248 KiB**。
+10/10 が exit 0、出力は同一 SHA-256、validate 済みで、`s2 == s3` も確認済み。
+ユーザー目標の p95 <10s は **達成**したが、公式受入である
 [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md)
-（median ≤7s / p95 ≤10s / RSS ≤512MB / `s2 == s3`）。**未達**。
+（median ≤7s / p95 ≤10s / RSS ≤512MB / `s2 == s3`）のうち
+median と RSS は **未達**。
 実行正本は [`../plans/selfhost-compiler-core-rewrite.md`](../plans/selfhost-compiler-core-rewrite.md)
 （`#851`）。`#850` の tick 探索は 10 秒経路ではない。
 `hello` 2312B バイト一致は overlay 受入から外した。

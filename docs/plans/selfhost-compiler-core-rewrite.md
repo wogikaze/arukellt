@@ -3,7 +3,7 @@
 Status: active — Phase 0 NEXT  
 Owner: overlay / #851 / ADR-053  
 Created: 2026-09-01  
-Last updated: 2026-09-15
+Last updated: 2026-09-16
 
 決定: [`docs/adr/ADR-053-selfhost-compiler-core-rewrite.md`](../adr/ADR-053-selfhost-compiler-core-rewrite.md)  
 追跡: [`issues/open/851-selfhost-compiler-core-rewrite.md`](../../issues/open/851-selfhost-compiler-core-rewrite.md)
@@ -88,12 +88,15 @@ Last updated: 2026-09-15
       3 回再測定し、wall 8.961–9.076s、RSS 964,916–965,208 KiB、3/3 exit 0、同一 SHA-256、
       validate 通過を [`latest_source_recheck`](../research/receipts/851-gc-overlay-goal-gate-10.json) に記録した。
       これは現行 clean commit の証明ではなく、旧候補の履歴 evidence である）
-- [ ] 現行 clean commit の pin→s2→s3 と 10-run gate を再確認する
-      （2026-09-15: clean `55f38e9f2` で `ARUKELLT_FIXPOINT_NO_CACHE=1 python3 scripts/manager.py selfhost fixpoint --build --no-cache` は
-      pin=`85bfa024…`、s2==s3=`e1b1b920…`、validate PASS。
-      しかし同じ commit の `measure_overlay_goal.py --runs 1` は現行 s3 の
-      `core_op_registry_canonical_id_at` out-of-bounds trap、rc=134、RSS 1,097,924 KiB で失敗した。
-      10-run receipt は生成しておらず、現行 master の wasm32-gc + wasi-p2 ≤10s は未検証）
+- [x] 現行 clean commit の pin→s2→s3 と 10-run gate を再確認する
+      （2026-09-16: clean `07c9ecd4e` で
+      `python3 scripts/manager.py selfhost fixpoint --build --no-cache` は
+      pin=`ad2801cf…`、s2==s3=`65b09902…`、validate PASS。
+      同じ clean commit の 10-run receipt は wall median 7.171s、
+      線形補間 p95 7.836s、10/10 exit 0、全出力 validate 済み・同一 SHA-256。
+      RSS 最大は 1,233,248 KiB で、ユーザー目標の wall p95 <10s は PASS。
+      ただし ADR-053 の内部 gate（median ≤7s / RSS ≤512 MiB）は未達であり、
+      receipt の `canonical_plan_gate` は false のまま保持する）
 - [ ] 208s と 239s の差を、同一 binary ノイズか負荷差か切り分ける
 
 schema: [`docs/data/selfhost-overlay-receipt.schema.json`](../data/selfhost-overlay-receipt.schema.json)  
