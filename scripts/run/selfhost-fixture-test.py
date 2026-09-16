@@ -29,7 +29,7 @@ def main() -> int:
     parser.add_argument(
         "--execute-all",
         action="store_true",
-        help="execute every current fixture after compile+validate",
+        help="execute every current fixture with a supported runtime contract",
     )
     parser.add_argument("--filter-dir", action="append", default=[])
     parser.add_argument("--dry-run", action="store_true")

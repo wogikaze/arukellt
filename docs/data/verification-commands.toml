@@ -192,7 +192,7 @@ id = "selfhost_fixture_parity"
 canonical = "python3 scripts/manager.py selfhost fixture-parity"
 aliases = []
 alias_status = "none"
-purpose = "Run selfhost fixture parity"
+purpose = "Run the current-only selfhost fixture compile/validate gate with bounded runtime smoke"
 coverage = ["tests/fixtures/manifest.txt"]
 
 [[commands]]

@@ -29,13 +29,17 @@ python3 scripts/run/selfhost-fixture-test.py --reference
 ```
 
 Use `--execute-all` only when full current-runtime execution coverage is needed.
-It still compiles each fixture once; it does not restore pinned duplication.
+It executes every fixture with a current WASI P2 runtime contract; native-cpp
+negative/numeric-exit fixtures remain compile/validate-only and are covered by
+the dedicated native-cpp gate. It still compiles each fixture once; it does not
+restore pinned duplication.
 
 ## Normative sources
 
 | Topic | Document |
 |-------|----------|
 | Trust base / stages | [`../adr/ADR-029-selfhost-native-verification-contract.md`](../adr/ADR-029-selfhost-native-verification-contract.md) |
+| Fixture gate semantics | [`../adr/ADR-057-selfhost-current-only-fixture-gate.md`](../adr/ADR-057-selfhost-current-only-fixture-gate.md) |
 | Pinned artifact refresh | [`../../bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md) |
 | Operator guide | [`../compiler/bootstrap.md`](../compiler/bootstrap.md) |
 | Status table | [`../state/compiler.md`](../state/compiler.md) |

@@ -16,6 +16,7 @@ import concurrent.futures
 import hashlib
 import os
 import shutil
+import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,16 @@ from . import checks as _checks
 # public checks.run_fixture_parity symbol. It remains available only for pinned
 # bootstrap refreshes and explicit forensic comparisons.
 _REFERENCE_RUN_FIXTURE_PARITY = _checks.run_fixture_parity
+
+# These fixtures exercise native-cpp-specific negative and numeric-exit
+# contracts.  The current fixture gate emits wasm32-gc/wasi-p2, where the
+# official ``wasi:cli/exit`` interface carries a result discriminant rather
+# than an arbitrary process status.  Compile/validate them here, and leave
+# their runtime contract to the dedicated native-cpp coverage gate.
+RUNTIME_UNSUPPORTED_FIXTURES = frozenset({
+    "native_cpp_public/panic_message.ark",
+    "native_cpp_public/process_exit_7.ark",
+})
 
 
 @dataclass(frozen=True)
@@ -58,7 +69,7 @@ def _select_smoke_fixtures(root: Path, fixtures: list[str]) -> set[str]:
     all-current runtime coverage while preserving the current-only design.
     """
     if os.environ.get("ARUKELLT_FIXTURE_EXECUTE_ALL") == "1":
-        return set(fixtures)
+        return set(fixtures) - RUNTIME_UNSUPPORTED_FIXTURES
 
     by_domain: dict[str, list[str]] = {}
     for fixture in sorted(fixtures):
@@ -67,6 +78,9 @@ def _select_smoke_fixtures(root: Path, fixtures: list[str]) -> set[str]:
 
     selected: set[str] = set()
     for items in by_domain.values():
+        items = [item for item in items if item not in RUNTIME_UNSUPPORTED_FIXTURES]
+        if not items:
+            continue
         golden = next((item for item in items if _expected_path(root, item).is_file()), None)
         selected.add(golden or items[0])
     selected.update(f for f in _checks.FIXTURE_PARITY_EXPECTED_TRAPS if f in fixtures)
@@ -273,6 +287,7 @@ def _run_one_fixture(
         ),
         root,
         timeout=15,
+        stdin=subprocess.DEVNULL,
     )
     output = (proc.stdout + proc.stderr).strip()
 
@@ -354,17 +369,25 @@ def run_fixture_parity(
         fixtures = [fixture for fixture in fixtures if fixture.startswith(prefixes)]
         if not fixtures:
             return (1, f"error: no run fixtures matched --filter-dir ({', '.join(filter_dirs)})\n")
+    if len(fixtures) < 10 and not filter_dirs:
+        return (1, f"error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found)\n")
     if not fixtures:
         return (1, "error: no run fixtures found\n")
 
     output_dir = root / ".build" / "fixture-test"
     output_dir.mkdir(parents=True, exist_ok=True)
     smoke = _select_smoke_fixtures(root, fixtures)
+    runtime_unsupported = set(fixtures) & RUNTIME_UNSUPPORTED_FIXTURES
     workers = _worker_count()
     lines = [
         f"[fixture-test] current-only: {len(fixtures)} compile+validate, "
         f"{len(smoke)} runtime smoke, workers={workers}"
     ]
+    if runtime_unsupported:
+        lines.append(
+            f"[fixture-test] runtime unsupported by current P2 gate: "
+            f"{len(runtime_unsupported)} (native-cpp coverage owns these contracts)"
+        )
 
     with tempfile.TemporaryDirectory(prefix="arukellt-fixture-components-") as tmp:
         package_root = Path(tmp)
@@ -403,7 +426,8 @@ def run_fixture_parity(
         lines.extend(f"    {message}" for message in item.messages)
     lines.append(
         f"[fixture-test] PASS={passed} FAIL={failed} "
-        f"COMPILE_VALIDATE={len(results)} EXECUTED={executed}"
+        f"COMPILE_VALIDATE={len(results)} EXECUTED={executed} "
+        f"RUNTIME_UNSUPPORTED={len(runtime_unsupported)}"
     )
     return (0 if failed == 0 else 1, "\n".join(lines) + "\n")
 

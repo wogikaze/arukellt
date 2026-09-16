@@ -42,7 +42,7 @@ MIR に永続化済み。残作業は #724。
 
 ## Self-Hosting Bootstrap Status
 
-完了条件（ADR-029）:
+完了条件（ADR-029、fixture gate は ADR-057）:
 
 1. `python3 scripts/manager.py selfhost fixpoint` が fixpoint に到達（または CI の selfhost job 相当が緑）
 2. `python3 scripts/manager.py selfhost fixture-parity` / `parity --mode --cli` / `diag-parity` が緑
@@ -56,7 +56,7 @@ pinned selfhost wasm and `scripts/manager.py selfhost` commands.
 | **Stage 0** | Pinned wasm `bootstrap/arukellt-selfhost.wasm`（ADR-029） | ✅ Committed |
 | **Build s2** | pinned が現行 `src/compiler/main.ark` → `s2.wasm` | ✅ via `selfhost build-compiler` |
 | **Fixpoint** | `sha256(s2) == sha256(s3)` | ✅ Reached when gate is green |
-| **Fixture / CLI / diag parity** | ADR-029 gates | ✅ Reached when gates are green |
+| **Fixture test / CLI / diag parity** | ADR-057 / ADR-029 gates | ✅ Reached when gates are green |
 
 emitter / Memory64 / T3 作業で s2 を更新するときは
 `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、~50s）。
@@ -82,7 +82,7 @@ median と RSS は **未達**。
 
 信頼ベースは pinned selfhost wasm。Rust CLI フォールバックは存在しない。
 
-CI gates（いずれも selfhost-native; job id = `selfhost`）:
+CI gates（selfhost-native; fixture test は `verification`、その他は job id = `selfhost`）:
 
 - `selfhost fixpoint`
 - `selfhost fixture-parity`
