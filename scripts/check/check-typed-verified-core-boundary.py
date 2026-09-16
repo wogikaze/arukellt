@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CLI = ROOT / "scripts" / "gen" / "convert-typed-corehir.py"
 SMT_CLI = ROOT / "scripts" / "gen" / "write-smt-vcs.py"
 BOUNDARY = ROOT / "scripts" / "proof" / "typed_corehir_typed_convert.py"
+LEGACY_CONVERTER = ROOT / "scripts" / "proof" / "typed_corehir_convert.py"
 SEMANTICS = ROOT / "scripts" / "proof" / "verified_core_typed.py"
 TYPED_SMT = ROOT / "scripts" / "proof" / "smtlib_typed_v1.py"
 RECEIPT_VALIDATOR = ROOT / "scripts" / "proof" / "typed_verified_core_receipt.py"
@@ -55,6 +56,7 @@ def main() -> int:
     cli = CLI.read_text(encoding="utf-8")
     smt_cli = SMT_CLI.read_text(encoding="utf-8")
     boundary = BOUNDARY.read_text(encoding="utf-8")
+    legacy_converter = LEGACY_CONVERTER.read_text(encoding="utf-8")
     semantics = SEMANTICS.read_text(encoding="utf-8")
     typed_smt = TYPED_SMT.read_text(encoding="utf-8")
     receipt_validator = RECEIPT_VALIDATOR.read_text(encoding="utf-8")
@@ -68,11 +70,21 @@ def main() -> int:
     for token, label in (
         ('"bits"', "explicit integer bit width"),
         ('"signed"', "explicit integer signedness"),
-        ("legacy[\"name\"] = expected", "metadata-derived legacy normalization"),
         ("rendered[\"name\"] = explicit[\"name\"]", "source identity preservation"),
         ("return validate_typed_document(converted)", "semantic admission"),
     ):
         require(boundary, token, label)
+    if 'legacy["name"] = expected' in boundary:
+        raise ValueError("typed boundary rewrites source identity into representation name")
+    for token, label in (
+        ("explicit_bits = entry.get(\"bits\")", "legacy converter integer width metadata"),
+        ("explicit_signed = entry.get(\"signed\")", "legacy converter signedness metadata"),
+        (
+            "rendered.update(bits=explicit_bits, signed=explicit_signed)",
+            "legacy converter metadata-derived integer semantics",
+        ),
+    ):
+        require(legacy_converter, token, label)
 
     forbidden_name_inference = (
         'explicit["name"] == "i32"',
