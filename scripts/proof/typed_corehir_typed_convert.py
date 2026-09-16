@@ -121,9 +121,8 @@ def _normalize_source(
                 expected_wasm=[expected],
                 expected_size=bits // 8,
             )
-            # Canonical internal normalization derives from explicit metadata.
-            # The source identity name is restored after conversion.
-            legacy["name"] = expected
+            # Keep the source identity name. The compatibility converter reads
+            # the logical integer shape from explicit metadata.
 
         explicit_by_id[type_id] = explicit
         normalized_types.append(legacy)

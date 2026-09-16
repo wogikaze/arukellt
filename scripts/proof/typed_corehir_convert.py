@@ -46,7 +46,19 @@ def _verified_type(entry: dict[str, Any], path: str) -> dict[str, Any]:
         },
     }
     if kind == "integer":
-        if name == "i32":
+        explicit_bits = entry.get("bits")
+        explicit_signed = entry.get("signed")
+        if explicit_bits is not None or explicit_signed is not None:
+            if type(explicit_bits) is not int or explicit_bits not in {32, 64}:
+                raise UnsupportedTypedCoreHir(
+                    f"{path}.bits: unsupported integer width {explicit_bits!r}"
+                )
+            if explicit_signed is not True:
+                raise UnsupportedTypedCoreHir(
+                    f"{path}.signed: only signed proof integers are supported"
+                )
+            rendered.update(bits=explicit_bits, signed=explicit_signed)
+        elif name == "i32":
             rendered.update(bits=32, signed=True)
         elif name == "i64":
             rendered.update(bits=64, signed=True)
