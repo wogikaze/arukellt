@@ -89,12 +89,12 @@ Last updated: 2026-09-16
       validate 通過を [`latest_source_recheck`](../research/receipts/851-gc-overlay-goal-gate-10.json) に記録した。
       これは現行 clean commit の証明ではなく、旧候補の履歴 evidence である）
 - [x] 現行 clean commit の pin→s2→s3 と 10-run gate を再確認する
-      （2026-09-16: clean `c11a7dd12` で
+      （2026-09-16: clean `ec612f284` で
       `python3 scripts/manager.py selfhost fixpoint --build --no-cache` は
-      pin=`ad2801cf…`、s2==s3=`4db4c2fe…`、validate PASS。
-      同じ clean commit の 10-run receipt は wall median 6.606s、
-      線形補間 p95 6.867s、10/10 exit 0、全出力 validate 済み・同一 SHA-256。
-      RSS 最大は 1,233,264 KiB で、ユーザー目標の wall p95 <10s は PASS。
+      pin=`ad2801cf…`、s2==s3=`4ebd080a…`、validate PASS。
+      同じ clean commit の 10-run receipt は wall median 6.338s、
+      線形補間 p95 6.987s、10/10 exit 0、全出力 validate 済み・同一 SHA-256。
+      RSS 最大は 1,233,752 KiB で、ユーザー目標の wall p95 <10s は PASS。
       ただし ADR-053 の内部 gate（median ≤7s / RSS ≤512 MiB）は未達であり、
       receipt の `canonical_plan_gate` は false のまま保持する）
 - [ ] 208s と 239s の差を、同一 binary ノイズか負荷差か切り分ける

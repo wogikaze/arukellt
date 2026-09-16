@@ -66,9 +66,9 @@ stage-3 単独でも現状は数十分かかり得る（2026-07-20 ≈ 23.5 min�
 （`emit.code.locals` 半減）。[#824](../../issues/done/824-early-body-lowering-worklist.md) は
 `decl_emit` 非支配のため wontfix。
 
-**wasm32-gc + wasi-p2 overlay の現行 clean 測定**（commit `c11a7dd12`、
-stock Wasmtime、cacheless flat source）は wall median **6.606s** /
-線形補間 p95 **6.867s**、RSS 最大 **1,233,264 KiB**。
+**wasm32-gc + wasi-p2 overlay の現行 clean 測定**（commit `ec612f284`、
+stock Wasmtime、cacheless flat source）は wall median **6.338s** /
+線形補間 p95 **6.987s**、RSS 最大 **1,233,752 KiB**。
 10/10 が exit 0、出力は同一 SHA-256、validate 済みで、`s2 == s3` も確認済み。
 ユーザー目標の p95 <10s は **達成**したが、公式受入である
 [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md)
