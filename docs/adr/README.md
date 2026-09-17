@@ -64,6 +64,7 @@
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
 | [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | 提案日: 2026-07-30 |
+| [ADR-058-language-v2-semantics-redesign.md](ADR-058-language-v2-semantics-redesign.md) | ADR-058: 言語 v2 の意味論と仕様境界を再設計する | 提案日: 2026-09-18 |
 
 ## 却下
 
