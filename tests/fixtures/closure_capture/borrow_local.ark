@@ -1,0 +1,9 @@
+use std::host::stdio
+
+fn main() {
+    let mut source = String_from("borrow:")
+    let format = |n: i32| -> String {
+        concat(source, n.to_string())
+    }
+    stdio::println(format(3))
+}

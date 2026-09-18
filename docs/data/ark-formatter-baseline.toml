@@ -12,7 +12,7 @@ path = "src/compiler/component/contract_allows_tuple.ark"
 sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
 [[exceptions]]
 path = "src/compiler/diagnostics/codes.ark"
-sha256 = "8878242981c5a7584cd69d002da13f06428386e3d9e12ed7cb654ee74c021c94"
+sha256 = "acfb3352c1626ef1b79df32dd526d4c5f5b5a7677307557b8f67145e829180c5"
 [[exceptions]]
 path = "src/compiler/diagnostics/format.ark"
 sha256 = "d193f1c517f6ce8b93ad372f2509631b987458f9c4ac9bb236e3e218fbb4ec0a"

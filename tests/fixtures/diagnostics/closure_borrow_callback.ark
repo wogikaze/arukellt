@@ -1,0 +1,11 @@
+fn accept(format: fn(i32) -> String) -> i32 {
+    0
+}
+
+fn main() {
+    let source = String_from("callback:")
+    let format = |n: i32| -> String {
+        concat(source, n.to_string())
+    }
+    accept(format)
+}

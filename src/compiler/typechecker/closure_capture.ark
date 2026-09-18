@@ -1,0 +1,372 @@
+use typechecker::ast_access
+use typechecker::contract_env_record
+use typechecker::kinds
+use typechecker::ownership
+use typechecker::scope
+use diagnostics::codes
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
+
+fn capture_shared_borrow() -> i32 { 1 }
+fn capture_mutable_borrow() -> i32 { 2 }
+fn capture_move() -> i32 { 3 }
+
+struct ClosureCaptureSummary {
+    names: Vec<String>,
+    modes: Vec<i32>,
+    nodes: Vec<AstNode>,
+}
+
+struct CaptureEscape {
+    has_borrow: bool,
+    span_start: i32,
+    span_end: i32,
+}
+
+fn ClosureCaptureSummary_new() -> ClosureCaptureSummary {
+    ClosureCaptureSummary {
+        names: Vec::new<String>(),
+        modes: Vec::new<i32>(),
+        nodes: Vec::new<AstNode>(),
+    }
+}
+
+fn CaptureEscape_none() -> CaptureEscape {
+    CaptureEscape { has_borrow: false, span_start: -1, span_end: -1 }
+}
+
+fn closure_capture_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) -> ClosureCaptureSummary {
+    let summary = ClosureCaptureSummary_new()
+    let child_count = ast_access::node_child_count(closure)
+    if child_count == 0 {
+        return summary
+    }
+    let body = ast_access::node_child_at(closure, child_count - 1)
+    scan_capture_expr(env, scope, closure, body, summary)
+    summary
+}
+
+fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, summary: ClosureCaptureSummary) {
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        return
+    }
+    if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
+        add_capture(env, scope, closure, node, false, summary)
+        return
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_ASSIGN() {
+        if ast_access::node_child_count(node) >= 1 {
+            scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary)
+        }
+        if ast_access::node_child_count(node) >= 2 {
+            scan_capture_expr(env, scope, closure, ast_access::node_child_at(node, 1), summary)
+        }
+        return
+    }
+    if kind == kinds::NK_METHOD_CALL() && is_mutating_method(ast_access::node_text(node)) {
+        if ast_access::node_child_count(node) > 0 {
+            scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary)
+        }
+        let child_count = ast_access::node_child_count(node)
+        let mut i = 1
+        while i < child_count {
+            scan_capture_expr(env, scope, closure, ast_access::node_child_at(node, i), summary)
+            i = i + 1
+        }
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        scan_capture_expr(env, scope, closure, ast_access::node_child_at(node, i), summary)
+        i = i + 1
+    }
+}
+
+fn scan_capture_target(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, summary: ClosureCaptureSummary) {
+    if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
+        add_capture(env, scope, closure, node, true, summary)
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    if child_count > 0 {
+        scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary)
+    }
+}
+
+fn is_mutating_method(name: String) -> bool {
+    eq(clone(name), "push") || eq(clone(name), "set") ||
+    eq(clone(name), "append") || eq(clone(name), "insert") ||
+    eq(clone(name), "remove") || eq(clone(name), "clear")
+}
+
+fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, is_mutable_use: bool, summary: ClosureCaptureSummary) {
+    let name = ast_access::node_text(node)
+    if closure_name_is_local(closure, clone(name)) {
+        return
+    }
+    let binding_index = scope::scope_binding_index(scope, clone(name))
+    if binding_index < 0 || scope::scope_binding_is_copy(scope, clone(name)) {
+        return
+    }
+    let mut mode = capture_shared_borrow()
+    if ast_access::node_is_move(closure) {
+        mode = capture_move()
+    } else if is_mutable_use {
+        mode = capture_mutable_borrow()
+    }
+    let existing = capture_name_index(summary, clone(name))
+    if existing < 0 {
+        push(summary.names, clone(name))
+        push(summary.modes, mode)
+        push(summary.nodes, node)
+        return
+    }
+    let previous = get_unchecked(summary.modes, existing)
+    if mode > previous {
+        set(summary.modes, existing, mode)
+        set(summary.nodes, existing, node)
+    }
+}
+
+fn capture_name_index(summary: ClosureCaptureSummary, name: String) -> i32 {
+    let mut i = 0
+    while i < len(summary.names) {
+        if eq(get_unchecked(summary.names, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    -1
+}
+
+fn closure_name_is_local(closure: AstNode, name: String) -> bool {
+    let child_count = ast_access::node_child_count(closure)
+    if child_count == 0 {
+        return false
+    }
+    let mut i = 0
+    while i < child_count - 1 {
+        let parameter = ast_access::node_child_at(closure, i)
+        if eq(ast_access::node_text(parameter), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    closure_body_declares_name(ast_access::node_child_at(closure, child_count - 1), clone(name))
+}
+
+fn closure_body_declares_name(node: AstNode, name: String) -> bool {
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        return false
+    }
+    if ast_access::node_kind_is(node, kinds::NK_LET()) &&
+    eq(ast_access::node_text(node), clone(name)) {
+        return true
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        if closure_body_declares_name(ast_access::node_child_at(node, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn apply_closure_capture_summary(env: TypeEnv, scope: LocalScope, summary: ClosureCaptureSummary) {
+    if !env.is_ownership_tracking_enabled {
+        return
+    }
+    let mut i = 0
+    while i < len(summary.names) {
+        let name = clone(get_unchecked(summary.names, i))
+        let mode = get_unchecked(summary.modes, i)
+        let node = get_unchecked(summary.nodes, i)
+        if mode == capture_move() {
+            apply_move_capture(env, scope, name, node)
+        } else {
+            apply_borrow_capture(env, scope, name, node, mode == capture_mutable_borrow())
+        }
+        i = i + 1
+    }
+}
+
+fn apply_move_capture(env: TypeEnv, scope: LocalScope, name: String, node: AstNode) {
+    if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
+    scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+        report_capture_conflict(env, node, name, "cannot move a value while it is borrowed")
+        return
+    }
+    ownership::consume_expr(env, scope, node)
+}
+
+fn apply_borrow_capture(env: TypeEnv, scope: LocalScope, name: String, node: AstNode, is_mutable: bool) {
+    if scope::scope_binding_is_moved(scope, clone(name)) {
+        ownership::consume_expr(env, scope, node)
+        return
+    }
+    if is_mutable {
+        if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
+        scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+            report_capture_conflict(env, node, name, "cannot create a mutable capture while the value is borrowed")
+            return
+        }
+        scope::scope_mark_mutable_borrow(scope, name, true)
+        return
+    }
+    if scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+        report_capture_conflict(env, node, name, "cannot create a shared capture while the value is mutably borrowed")
+        return
+    }
+    scope::scope_mark_shared_borrow(scope, name, true)
+}
+
+fn value_borrow_mode(env: TypeEnv, scope: LocalScope, node: AstNode) -> i32 {
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        let summary = closure_capture_summary(env, scope, node)
+        let mut mode = 0
+        let mut i = 0
+        while i < len(summary.modes) {
+            let capture_mode = get_unchecked(summary.modes, i)
+            if capture_mode == capture_mutable_borrow() {
+                return capture_mutable_borrow()
+            }
+            if capture_mode == capture_shared_borrow() {
+                mode = capture_shared_borrow()
+            }
+            i = i + 1
+        }
+        return mode
+    }
+    if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
+        let name = ast_access::node_text(node)
+        if scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+            return capture_mutable_borrow()
+        }
+        if scope::scope_binding_has_shared_borrow(scope, clone(name)) {
+            return capture_shared_borrow()
+        }
+        return 0
+    }
+    let kind = ast_access::node_kind(node)
+    if kind != kinds::NK_TUPLE() && kind != kinds::NK_ARRAY_LIT() &&
+    kind != kinds::NK_ARRAY_REPEAT() && kind != kinds::NK_STRUCT_LIT() &&
+    kind != kinds::NK_BLOCK() {
+        return 0
+    }
+    let mut mode = 0
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        let child_mode = value_borrow_mode(env, scope, ast_access::node_child_at(node, i))
+        if child_mode > mode {
+            mode = child_mode
+        }
+        i = i + 1
+    }
+    mode
+}
+
+fn value_borrow_is_mutable(mode: i32) -> bool {
+    mode == capture_mutable_borrow()
+}
+
+fn reject_borrow_escape_on_store(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() ||
+    kind == kinds::NK_ARRAY_REPEAT() || kind == kinds::NK_STRUCT_LIT() {
+        closure_borrow_escape(env, scope, node)
+    }
+}
+
+fn closure_borrow_escape(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
+    let witness = borrow_escape_witness(env, scope, node)
+    if !witness.has_borrow {
+        return false
+    }
+    let span = diag_record::DiagnosticSpan_from_raw(witness.span_start, witness.span_end)
+    let message = "borrowed closure capture cannot escape its enclosing function"
+    let diag = diag_mod::Diagnostic_new(
+        codes::DIAG_TYPE_CLOSURE_BORROW_ESCAPE(),
+        diag_mod::SEV_ERROR(),
+        span,
+        message
+    )
+    env.error_count = env.error_count + 1
+    push(env.errors, message)
+    push(env.diagnostics, diag)
+    true
+}
+
+fn borrow_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> CaptureEscape {
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        let summary = closure_capture_summary(env, scope, node)
+        return summary_borrow_witness(summary)
+    }
+    if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
+        let name = ast_access::node_text(node)
+        if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
+        scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+            return CaptureEscape {
+                has_borrow: true,
+                span_start: ast_access::node_span_start(node),
+                span_end: ast_access::node_span_end(node),
+            }
+        }
+        return CaptureEscape_none()
+    }
+    let kind = ast_access::node_kind(node)
+    if kind != kinds::NK_TUPLE() && kind != kinds::NK_ARRAY_LIT() &&
+    kind != kinds::NK_ARRAY_REPEAT() && kind != kinds::NK_STRUCT_LIT() &&
+    kind != kinds::NK_BLOCK() {
+        return CaptureEscape_none()
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        let child = ast_access::node_child_at(node, i)
+        let witness = borrow_escape_witness(env, scope, child)
+        if witness.has_borrow {
+            return witness
+        }
+        i = i + 1
+    }
+    CaptureEscape_none()
+}
+
+fn summary_borrow_witness(summary: ClosureCaptureSummary) -> CaptureEscape {
+    let mut i = 0
+    while i < len(summary.modes) {
+        let mode = get_unchecked(summary.modes, i)
+        if mode == capture_shared_borrow() || mode == capture_mutable_borrow() {
+            let node = get_unchecked(summary.nodes, i)
+            return CaptureEscape {
+                has_borrow: true,
+                span_start: ast_access::node_span_start(node),
+                span_end: ast_access::node_span_end(node),
+            }
+        }
+        i = i + 1
+    }
+    CaptureEscape_none()
+}
+
+fn report_capture_conflict(env: TypeEnv, node: AstNode, name: String, reason: String) {
+    let span = diag_record::DiagnosticSpan_from_raw(
+        ast_access::node_span_start(node),
+        ast_access::node_span_end(node)
+    )
+    let message = concat(reason, concat(": `", concat(name, "`")))
+    let diag = diag_mod::Diagnostic_new(
+        codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
+        diag_mod::SEV_ERROR(),
+        span,
+        message
+    )
+    env.error_count = env.error_count + 1
+    push(env.errors, message)
+    push(env.diagnostics, diag)
+}

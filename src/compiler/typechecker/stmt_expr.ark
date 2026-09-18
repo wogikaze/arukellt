@@ -1,6 +1,7 @@
 use typechecker::ast_access
 use typechecker::kinds
 use typechecker::ownership
+use typechecker::closure_capture
 
 fn check_expr_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_access::node_child_count(node) > 0 {
@@ -18,5 +19,8 @@ fn check_return_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_
     if ast_access::node_child_count(node) > 0 {
         let child = ast_access::node_child_at(node, 0)
         let _inferred_ty = infer_expr(env, scope, fn_sigs, enum_defs, child)
+        if env.is_ownership_tracking_enabled {
+            closure_capture::closure_borrow_escape(env, scope, child)
+        }
     }
 }

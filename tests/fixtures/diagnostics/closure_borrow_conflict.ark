@@ -1,0 +1,8 @@
+fn main() {
+    let mut source = String_from("before:")
+    let format = |n: i32| -> String {
+        concat(source, n.to_string())
+    }
+    source = String_from("after:")
+    let _format = format
+}

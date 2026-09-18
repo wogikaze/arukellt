@@ -4,6 +4,7 @@ use typechecker::scope
 use typechecker::unify
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
+use typechecker::closure_capture
 
 fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let closure_scope = scope::scope_child(scope)
@@ -22,6 +23,8 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     }
     let body = ast_access::node_child_at(node, child_count - 1)
     let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
+    let capture_summary = closure_capture::closure_capture_summary(env, scope, node)
+    closure_capture::apply_closure_capture_summary(env, scope, capture_summary)
     let fn_ty = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
     let mut param_index = 0
     while param_index < len(param_types) {

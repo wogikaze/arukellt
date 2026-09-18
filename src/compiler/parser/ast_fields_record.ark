@@ -41,6 +41,14 @@ fn ast_node_set_is_async(node: AstNode, is_async: bool) {
     node.is_async = is_async
 }
 
+fn ast_node_is_move(node: AstNode) -> bool {
+    node.is_move
+}
+
+fn ast_node_set_is_move(node: AstNode, is_move: bool) {
+    node.is_move = is_move
+}
+
 fn ast_node_span(node: AstNode) -> Span {
     node.span
 }

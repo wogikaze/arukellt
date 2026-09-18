@@ -551,10 +551,24 @@ Point { x: 1, ..base }    // struct update syntax
 ```ark
 |x| x + 1
 |x: i32, y: i32| -> i32 { x + y }
+move |prefix: String| -> String { prefix }
 ```
 
 Closures capture variables from the enclosing scope. Parameter types
 may be annotated or inferred.
+
+`move` is contextual in this position: `move |...|` selects move capture,
+while an identifier named `move` outside a closure prefix keeps ordinary name
+resolution. A closure without `move` captures a non-`Copy` outer binding by
+shared borrow, or by mutable borrow when its body mutates that binding.
+`Copy` bindings are copied independently of the capture mode.
+
+Borrow captures are valid only within their enclosing function. Returning such
+a closure, storing it in an aggregate, or passing it as a callback is rejected
+with E0213. Reassigning or moving the borrowed source is rejected with E0214.
+The rules are source-level and do not depend on Wasm GC or linear-memory
+representation; escaping environment lowering remains target work tracked by
+ADR-061 and #872/#874.
 
 ### 3.17 Loop Expression
 
@@ -1510,6 +1524,8 @@ The type checker emits diagnostics with the following error codes:
 | E0202 | Undefined variable or function |
 | E0205 | Incompatible types in binary operation |
 | E0207 | Incorrect number of function arguments |
+| E0213 | Borrowed closure capture escapes its enclosing function |
+| E0214 | Closure capture conflicts with another borrow or move |
 
 Additional error codes are implementation-defined and may be added
 by the compiler without an ADR.
@@ -1603,6 +1619,7 @@ primary_expr= INT_LIT | FLOAT_LIT | STRING_LIT | CHAR_LIT
             | "match" expr "{" match_arm* "}"
             | "loop" block
             | "|" closure_params? "|" ("->" type_expr)? expr
+            | "move" "|" closure_params? "|" ("->" type_expr)? expr
             | "return" expr?
             | "break" expr?
             | "continue" ;

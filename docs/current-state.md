@@ -64,6 +64,22 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | `component/` | WIT/component validation (`contract_preflight`), emit | AST shape parsing |
 | `mir/` | Lowering from `CoreHirMirView` | Direct `parser::` imports (adapters only) |
 
+### Language v2 closure semantics (2026-09-19)
+
+ADR-061 is accepted for #855. The selfhost typechecker now records shared
+borrow, mutable borrow, and move capture state for closures. `move |...|` is a
+contextual closure prefix; borrow-capturing closures that return, enter an
+aggregate, or cross a callback boundary produce E0213, and source conflicts
+produce E0214. Positive and negative fixtures are registered for both GC and
+linear compilation paths; the positive runtime outputs are `borrow:3` and
+`move:4` on both targets.
+
+Escaping managed closure-environment lowering is still owned by #872/#874.
+The committed pinned bootstrap predates generic enum payload support, so the
+canonical pinned `selfhost build-compiler` path still needs the bootstrap
+refresh/migration work tracked by the v2 migration and final-audit issues; the
+targeted #855 receipt uses the locally generated current selfhost artifact.
+
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
@@ -114,9 +130,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2871 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1283 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2871 is tests/fixtures/manifest.txt registry size after retiring legacy host-network and typed filesystem fixtures. The 1283 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2880 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1292 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2880 entries after the v2 ownership and closure-capture fixtures were added, so the current registry remainder is 1292. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 

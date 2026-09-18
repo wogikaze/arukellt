@@ -484,6 +484,30 @@ fn main() {
 }
 ```
 
+### E0213 — borrowed closure capture escapes its enclosing function
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | borrowed closure capture cannot escape its enclosing function |
+
+A closure that borrows a non-`Copy` binding is returned, stored in an
+aggregate, or passed to a callback. Use `move` when the closure must own the
+captured value, or keep the closure local to the enclosing function.
+
+### E0214 — closure capture conflicts with another borrow or move
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | closure capture conflicts with another borrow or move |
+
+The source of a closure capture is reassigned, moved, or borrowed with an
+incompatible mode while the capture remains live. Shared and mutable capture
+are mutually exclusive under ADR-061.
+
 ---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
@@ -922,6 +946,8 @@ one, please file a bug report.
 | E0210 | error | typecheck | incompatible error type for `?` operator |
 | E0211 | error | resolve | module contains only unimplemented host stubs |
 | E0212 | error | typecheck | use of moved value |
+| E0213 | error | typecheck | borrowed closure capture escapes its enclosing function |
+| E0214 | error | typecheck | closure capture conflicts with another borrow or move |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

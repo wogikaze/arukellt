@@ -29,6 +29,8 @@ fn scope_child(parent: LocalScope) -> LocalScope {
                 contract_scope::VarBinding_is_copy(binding)
             )
             contract_scope::VarBinding_set_moved(copied, contract_scope::VarBinding_is_moved(binding))
+            contract_scope::VarBinding_set_shared_borrow(copied, contract_scope::VarBinding_has_shared_borrow(binding))
+            contract_scope::VarBinding_set_mutable_borrow(copied, contract_scope::VarBinding_has_mutable_borrow(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         } else {
             let copied = contract_scope::VarBinding_new_with_flags(
@@ -38,6 +40,8 @@ fn scope_child(parent: LocalScope) -> LocalScope {
                 contract_scope::VarBinding_is_copy(binding)
             )
             contract_scope::VarBinding_set_moved(copied, contract_scope::VarBinding_is_moved(binding))
+            contract_scope::VarBinding_set_shared_borrow(copied, contract_scope::VarBinding_has_shared_borrow(binding))
+            contract_scope::VarBinding_set_mutable_borrow(copied, contract_scope::VarBinding_has_mutable_borrow(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         }
         i = i + 1
@@ -103,12 +107,37 @@ fn scope_binding_is_copy(scope: LocalScope, name: String) -> bool {
     contract_scope::VarBinding_is_copy(contract_scope::LocalScope_binding_at(scope, index))
 }
 
+fn scope_binding_is_function(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    contract_type_access::TypeInfo_tag(contract_scope::VarBinding_type(binding)) == commands::TY_FN()
+}
+
 fn scope_binding_is_moved(scope: LocalScope, name: String) -> bool {
     let index = scope_binding_index(scope, name)
     if index < 0 {
         return false
     }
     contract_scope::VarBinding_is_moved(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_has_shared_borrow(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_has_shared_borrow(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_has_mutable_borrow(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_has_mutable_borrow(contract_scope::LocalScope_binding_at(scope, index))
 }
 
 fn scope_mark_moved(scope: LocalScope, name: String, is_moved: bool) {
@@ -118,6 +147,26 @@ fn scope_mark_moved(scope: LocalScope, name: String, is_moved: bool) {
     }
     let binding = contract_scope::LocalScope_binding_at(scope, index)
     contract_scope::VarBinding_set_moved(binding, is_moved)
+    set(scope.bindings, index, binding)
+}
+
+fn scope_mark_shared_borrow(scope: LocalScope, name: String, has_borrow: bool) {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return
+    }
+    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    contract_scope::VarBinding_set_shared_borrow(binding, has_borrow)
+    set(scope.bindings, index, binding)
+}
+
+fn scope_mark_mutable_borrow(scope: LocalScope, name: String, has_borrow: bool) {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return
+    }
+    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    contract_scope::VarBinding_set_mutable_borrow(binding, has_borrow)
     set(scope.bindings, index, binding)
 }
 

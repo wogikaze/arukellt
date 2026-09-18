@@ -34,6 +34,8 @@ fn DIAG_TYPE_PATTERN_MISMATCH() -> String { String_from("E0209") }
 fn DIAG_TYPE_GENERIC_INFERENCE() -> String { String_from("E0210") }
 fn DIAG_TYPE_TRAIT_BOUND() -> String { String_from("E0211") }
 fn DIAG_TYPE_MOVE_AFTER_USE() -> String { String_from("E0212") }
+fn DIAG_TYPE_CLOSURE_BORROW_ESCAPE() -> String { String_from("E0213") }
+fn DIAG_TYPE_CLOSURE_BORROW_CONFLICT() -> String { String_from("E0214") }
 
 fn DIAG_TARGET_UNKNOWN() -> String { String_from("E0300") }
 fn DIAG_TARGET_UNIMPLEMENTED() -> String { String_from("E0301") }

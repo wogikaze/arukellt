@@ -20,6 +20,8 @@ struct VarBinding {
     is_mutable: bool,
     is_copy: bool,
     is_moved: bool,
+    has_shared_borrow: bool,
+    has_mutable_borrow: bool,
 }
 
 struct LocalScope {
@@ -43,6 +45,8 @@ fn VarBinding_new_with_flags(name: String, ty: TypeInfo, is_mutable: bool, is_co
         is_mutable: is_mutable,
         is_copy: is_copy,
         is_moved: false,
+        has_shared_borrow: false,
+        has_mutable_borrow: false,
     }
 }
 
@@ -59,6 +63,8 @@ fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable
         is_mutable: is_mutable,
         is_copy: is_copy,
         is_moved: false,
+        has_shared_borrow: false,
+        has_mutable_borrow: false,
     }
 }
 
@@ -90,8 +96,24 @@ fn VarBinding_is_moved(binding: VarBinding) -> bool {
     binding.is_moved
 }
 
+fn VarBinding_has_shared_borrow(binding: VarBinding) -> bool {
+    binding.has_shared_borrow
+}
+
+fn VarBinding_has_mutable_borrow(binding: VarBinding) -> bool {
+    binding.has_mutable_borrow
+}
+
 fn VarBinding_set_moved(binding: VarBinding, is_moved: bool) {
     binding.is_moved = is_moved
+}
+
+fn VarBinding_set_shared_borrow(binding: VarBinding, has_borrow: bool) {
+    binding.has_shared_borrow = has_borrow
+}
+
+fn VarBinding_set_mutable_borrow(binding: VarBinding, has_borrow: bool) {
+    binding.has_mutable_borrow = has_borrow
 }
 
 fn LocalScope_binding_count(scope: LocalScope) -> i32 {

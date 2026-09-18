@@ -13,6 +13,7 @@ pub struct AstNode {
     is_mut: bool,
     is_pub: bool,
     is_async: bool,
+    is_move: bool,
 }
 
 fn AstNode_new(kind: i32, span: Span) -> AstNode {
@@ -28,7 +29,8 @@ fn AstNode_new(kind: i32, span: Span) -> AstNode {
         type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
-        is_async: false
+        is_async: false,
+        is_move: false
     }
 }
 
@@ -45,7 +47,8 @@ fn AstNode_leaf(kind: i32, text: String, span: Span) -> AstNode {
         type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
-        is_async: false
+        is_async: false,
+        is_move: false
     }
 }
 
@@ -62,7 +65,8 @@ fn AstNode_int(kind: i32, val: i32, span: Span) -> AstNode {
         type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
-        is_async: false
+        is_async: false,
+        is_move: false
     }
 }
 
@@ -79,6 +83,7 @@ fn AstNode_float(kind: i32, val: f64, span: Span) -> AstNode {
         type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
-        is_async: false
+        is_async: false,
+        is_move: false
     }
 }

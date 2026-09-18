@@ -4,3 +4,5 @@ fn AstNode_set_is_pub(node: AstNode, is_pub: bool) { ast_fields_record::ast_node
 fn AstNode_set_is_mut(node: AstNode, is_mut: bool) { ast_fields_record::ast_node_set_is_mut(node, is_mut) }
 fn AstNode_set_is_async(node: AstNode, is_async: bool) { ast_fields_record::ast_node_set_is_async(node, is_async) }
 fn AstNode_is_async(node: AstNode) -> bool { ast_fields_record::ast_node_is_async(node) }
+fn AstNode_set_is_move(node: AstNode, is_move: bool) { ast_fields_record::ast_node_set_is_move(node, is_move) }
+fn AstNode_is_move(node: AstNode) -> bool { ast_fields_record::ast_node_is_move(node) }

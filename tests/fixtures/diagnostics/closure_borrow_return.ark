@@ -1,0 +1,11 @@
+fn make_formatter() {
+    let source = String_from("return:")
+    let format = |n: i32| -> String {
+        concat(source, n.to_string())
+    }
+    return format
+}
+
+fn main() {
+    let _format = make_formatter()
+}

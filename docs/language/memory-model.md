@@ -13,7 +13,7 @@ Arukellt v2 の source semantics は Wasm GC の内部表現に依存しない�
 - `let` binding の move / `Copy` / `let mut` は ADR-059 に従う。
 - `Option` / `Result` / enum は owned tagged ADT である。
 - `Box<T>` は非 `Copy` の一意所有値、`Slice<T>` は source collection と bounded range を保持する非 `Copy` の読み取り view である（ADR-060）。
-- `as_slice` は source binding を消費しない。完全な lifetime / mutation 排他は後続の borrow / closure 設計で追加する。
+- `as_slice` は source binding を消費しない。closure capture の borrow / move / escape は ADR-061 の規則に従う。
 - 公開 stable ABI は WIT / Canonical ABI（ADR-006）。GC layout、linear header、tag、collector は compiler-private である。
 
 ## ターゲット別の表現（lowering）
@@ -69,11 +69,15 @@ owned ADT、Box、Slice の source-level 契約は両 target で同じである�
 ## Closure 表現
 
 closures は MIR lowerer により **named functions** としてコンパイルされる。
+通常の非 `Copy` capture は shared borrow、body が source を変更する capture は mutable borrow、
+`move |...|` は move capture として型検査する。borrow capture を含む closure の return、aggregate 保存、
+callback 引数への escape は E0213、borrow 中の source への再代入・再 move は E0214 とする（ADR-061）。
 キャプチャはヒープ環境 struct ではなく関数パラメータ経由で渡す（現行 fixture 集合向け）。
 
 - Class A/B の関数値は typed funcref（`(ref $sig)`）+ `ref.func` / `call_ref`
 - Class C / 動的ディスパッチは当面 `call_indirect` + table（ADR-033）
-- エスケープするクロージャが必要になった場合は別途環境 struct を検討する
+- move/capture-free の escaping closure と mutable managed environment は、GC / linear-memory の両方で
+  同じ source semantics を保つ environment lowering（#872 / #874）へ移行する。
 
 ## 参照先
 

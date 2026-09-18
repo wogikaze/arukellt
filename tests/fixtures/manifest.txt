@@ -237,6 +237,11 @@ diag:diagnostics/missing_annotation.ark
 diag:diagnostics/missing_brace.ark
 diag:diagnostics/mutable_sharing.ark
 diag:diagnostics/ownership_move_after_use.ark
+diag:diagnostics/closure_borrow_return.ark
+diag:diagnostics/closure_borrow_callback.ark
+diag:diagnostics/closure_borrow_store.ark
+diag:diagnostics/closure_borrow_conflict.ark
+diag:diagnostics/closure_move_after_capture.ark
 diag:diagnostics/non_exhaustive.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/parse_missing_rbrace.ark
@@ -341,6 +346,8 @@ run:associated_fn/i32_from.ark
 run:associated_fn/string_from.ark
 run:associated_fn/vec_new.ark
 run:closure_capture/capture_struct.ark
+run:closure_capture/borrow_local.ark
+run:closure_capture/move_local.ark
 run:control/break_continue.ark
 run:control/if_basic.ark
 run:control/if_else.ark

@@ -82,7 +82,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 7 | `Box<T>` | heap上の`T`を一意に所有する値とし、borrow、共有所有、tracing GC管理を別概念にする。 | ADR-060で採択済み。 |
 | 8 | GC依存 | Wasm GCを対応環境の優先backendとして積極利用しつつ、非対応環境ではlinear-memory runtime fallbackで同じsource semanticsを維持する。 | #854のADT/Box/Slice境界についてADR-060で適用を確認。tracing fallback全体は後続issue。 |
 | 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD等の真にtarget固有な機能だけをcapability errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
-| 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-033を拡張する詳細RFCが必要。 |
+| 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-061で採択済み。#855で shared/mutable borrow、move capture、return/store/callback escape を実装。managed closure environment の lowering は #872/#874。 |
 | 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。 | ADR-006と整合し、公開面の仕様を補う。 |
 | 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-044、RFC-004、ADR-036と統合する。 |
 | 13 | `?` と `From` | `Option`、`Result`、異種エラー変換をTrait解決に接続する。 | ADR-039と整合する。 |
@@ -136,6 +136,16 @@ move-only型、`Copy` 型、明示的な `clone`、共有借用、可変借用�
 GC backendでheap objectを使っても、それが言語上の共有参照や暗黙コピーを意味するとは限らない。
 
 借用検査を採択する場合、最小限の規則として、可変借用の同時存在、共有借用との排他、返却値へのescape、クロージャへの捕捉を検証対象にする。
+
+### 4.1.1 クロージャ捕捉の採択結果（ADR-061 / #855）
+
+通常の `|params| body` は、非 `Copy` の外側 binding を shared borrow として捕捉し、body がその place を変更する場合は mutable borrow とする。
+`move |params| body` は非 `Copy` binding を作成時に消費する。
+`Copy` binding は `move` を付けても Copy 規則に従い消費しない。
+
+borrow capture を含む closure の return、aggregate への保存、callback 引数への受け渡しは enclosing function の外へ escape するため E0213 で拒否する。
+borrow 中の source への再代入または再 move は E0214 で拒否する。
+これらの検査結果は `wasm32-gc` と `wasm32` で共有し、lambda lifting や managed environment の表現は意味論を変更しない。
 
 ### 4.2 Traitと標準ライブラリ
 

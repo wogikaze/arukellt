@@ -43,3 +43,11 @@ fn node_op(node: AstNode) -> i32 {
 fn node_is_mut(node: AstNode) -> bool {
     ast::ast_node_is_mut(node)
 }
+
+fn node_is_move(node: AstNode) -> bool {
+    ast::ast_node_is_move(node)
+}
+
+fn node_span_end(node: AstNode) -> i32 {
+    ast::ast_node_span_end(node)
+}

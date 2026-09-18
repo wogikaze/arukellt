@@ -57,6 +57,7 @@
 | [ADR-057-selfhost-current-only-fixture-gate.md](ADR-057-selfhost-current-only-fixture-gate.md) | ADR-057: セルフホスト fixture 検証を current-only 並列ゲートへ移行 | ADR-029 は、ピン留め selfhost wasm と現行 selfhost wasm の両方で各 run: fixture を コンパイル・package・実行し、出力を比較する fixture-parity ゲートを定義した。 |
 | [ADR-059-language-v2-ownership-copy-mutability.md](ADR-059-language-v2-ownership-copy-mutability.md) | ADR-059: 言語 v2 の所有権・Copy・可変性 | Arukellt v2 は、所有権と値の意味論を Wasm GC の内部表現に依存させない。 現行の型検査器は binding に型だけを保持し、let mut の再代入検査、move-after-use、 ユーザー定義型の Copy opt-in を一貫して表現できない。 |
 | [ADR-060-language-v2-owned-adts-box-slice.md](ADR-060-language-v2-owned-adts-box-slice.md) | ADR-060: 言語 v2 の owned ADT・Box・Slice | ADR-059 は binding の move、明示的な Copy、let mut を採択した。 しかし、Option / Result / enum の payload、heap 上の値を表す Box<T>、 Vec の一部を読む view である slice について、所有権の境界と backend の表現がまだ同じ契約に接続されていなかった。 |
+| [ADR-061-language-v2-closure-capture-lifetime.md](ADR-061-language-v2-closure-capture-lifetime.md) | ADR-061: 言語 v2 のクロージャ捕捉・借用・escape | ADR-059 と ADR-060 は binding の move / Copy、owned value、Box<T>、Slice<T> の値境界を固定した。 |
 
 ## 提案
 

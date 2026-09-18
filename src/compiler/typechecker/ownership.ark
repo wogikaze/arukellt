@@ -12,6 +12,16 @@ use diagnostics::record as diag_record
 fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
     if ast_expr_predicates::node_is_ident(target) {
         let name = ast_access::node_text(target)
+        if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
+        scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+            report_ownership_error(
+                env,
+                codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
+                target,
+                concat("cannot assign to borrowed capture `", concat(name, "`"))
+            )
+            return
+        }
         if !scope::scope_binding_is_mutable(scope, clone(name)) {
             report_ownership_error(
                 env,
@@ -111,6 +121,17 @@ fn consume_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) {
         return
     }
     if scope::scope_binding_is_copy(scope, clone(name)) {
+        return
+    }
+    if !scope::scope_binding_is_function(scope, clone(name)) &&
+    (scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
+        scope::scope_binding_has_mutable_borrow(scope, clone(name))) {
+        report_ownership_error(
+            env,
+            codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
+            node,
+            concat("cannot move borrowed capture `", concat(name, "`"))
+        )
         return
     }
     if scope::scope_binding_is_moved(scope, clone(name)) {

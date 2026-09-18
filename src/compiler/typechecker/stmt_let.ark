@@ -9,6 +9,7 @@ use typechecker::types
 use typechecker::unify
 use typechecker::ownership
 use typechecker::ownership_types
+use typechecker::closure_capture
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
 
@@ -23,6 +24,9 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
         let init = ast_access::node_child_at(node, 0)
         bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
         check_shared_mut_alias(env, scope, node, init, bind_ty)
+        if env.is_ownership_tracking_enabled {
+            closure_capture::reject_borrow_escape_on_store(env, scope, init)
+        }
     }
     if ast_access::node_type_ann_count(node) > 0 {
         let ann = ast_access::node_type_ann_at(node, 0)
@@ -46,6 +50,15 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
         }
     }
     if !eq(clone(bind_name), "_") {
+        let borrow_mode = if ast_access::node_child_count(node) > 0 {
+            closure_capture::value_borrow_mode(
+                env,
+                scope,
+                ast_access::node_child_at(node, 0)
+            )
+        } else {
+            0
+        }
         if ast_access::node_child_count(node) > 0 &&
         scope::is_syntactic_value(ast_access::node_child_at(node, 0)) {
             scope::scope_define_scheme_with_flags(
@@ -57,6 +70,13 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
             )
         } else {
             scope::scope_define_with_flags(scope, bind_name, bind_ty, ast_access::node_is_mut(node), is_copy)
+        }
+        if env.is_ownership_tracking_enabled && borrow_mode > 0 {
+            if closure_capture::value_borrow_is_mutable(borrow_mode) {
+                scope::scope_mark_mutable_borrow(scope, clone(bind_name), true)
+            } else {
+                scope::scope_mark_shared_borrow(scope, clone(bind_name), true)
+            }
         }
         contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }
