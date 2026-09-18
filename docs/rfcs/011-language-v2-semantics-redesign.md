@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
 
 ---
 
@@ -85,13 +85,13 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-061で採択済み。#855で shared/mutable borrow、move capture、return/store/callback escape を実装。managed closure environment の lowering は #872/#874。 |
 | 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。 | ADR-006と整合し、公開面の仕様を補う。 |
 | 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-062で `Self`、associated item、coherence、user blanket禁止、static dispatch、`dyn`境界を採択。 |
-| 13 | `?` と `From` | `Option`、`Result`、異種エラー変換をTrait解決に接続する。 | ADR-039と整合する。 |
+| 13 | `?` と `From` | `Option`、`Result`、異種エラー変換をTrait解決に接続する。 | ADR-039、ADR-063で canonical `From`、E0210、`TryFrom` 非暗黙探索を採択。 |
 | 14 | magic method | `__add` などのmagic methodを演算子Traitへ移行する。 | ADR-038の提案を詳細化する。 |
 | 15 | public free function | `push(v, x)` のような公開free functionをメソッドまたはTrait APIへ寄せる。 | ADR-046と整合する。 |
 | 16 | generic API | 型専用helperを減らし、ジェネリックTrait APIへ統一する。 | ADR-003、ADR-044、ADR-046と統合する。 |
 | 17 | 型パラメータ数 | 実装都合の上限を言語の理想として固定せず、表現可能なジェネリック規則を定義する。 | ADR-000の暫定制限禁止とADR-003に従う。 |
 | 18 | `Any` | 公開 `Any` による型消去を避け、必要な動的多相は明示したTrait境界で表す。 | 公開型システムの個別判断が必要。 |
-| 19 | `Error` sentinel | compiler内部のError sentinelをユーザーが使う型システムから分離する。 | 診断とエラー型の個別仕様が必要。 |
+| 19 | `Error` sentinel | compiler内部のError sentinelをユーザーが使う型システムから分離する。 | ADR-063で内部 recovery state と nominal `Error` を分離。 |
 | 20 | `i64` と `f64` | `i64 -> f64`だけでなく異なる具象数値型の暗黙昇格を原則禁止し、キャストまたは明示変換を要求する。 | 言語仕様と既存fixtureの移行判断が必要。 |
 | 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | normative specへ追加する。 |
 | 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | Wasmとnativeの差を検証してから採択する。 |

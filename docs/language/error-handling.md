@@ -26,8 +26,14 @@
 `expr?` は失敗 variant を自動的に伝搬します。
 
 - `Result<T, E>` — 囲む関数は `Result<_, E_target>` を返す。`E` と `E_target` が異なるときは
-  `From<E> for E_target` で変換する（import 不要、ADR-039）
+  一意な `From<E> for E_target` で変換する（import 不要、ADR-039）。該当 impl がなければ
+  lowering 前に E0210 となる。
 - `Option<T>` — 囲む関数は `Option<_>` を返す。`None` をそのまま伝搬する（変換なし）
+
+`?` は `TryFrom` / `TryInto` を暗黙には探索しない。これらは fallible
+conversion の明示 API であり、`?` の error propagation は canonical `From`
+だけを使う。`Error` は compiler sentinel ではなく、通常のユーザー定義
+error payload として利用できる。
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
@@ -40,7 +46,9 @@ fn parse_twice(s: String) -> Result<i32, String> {
 `Option` でも同じ構文が使えます（囲む関数は `Option<_>` を返す）。
 
 異種エラー型の変換例は [`tests/fixtures/question_mark/from_error.ark`](../../tests/fixtures/question_mark/from_error.ark)、
-Option 伝播は [`tests/fixtures/question_mark/option_propagate.ark`](../../tests/fixtures/question_mark/option_propagate.ark) を参照。
+Option 伝播は [`tests/fixtures/question_mark/option_propagate.ark`](../../tests/fixtures/question_mark/option_propagate.ark)、
+変換不能診断は [`tests/fixtures/diagnostics/question_from_missing.ark`](../../tests/fixtures/diagnostics/question_from_missing.ark)、
+ユーザー定義 `Error` は [`tests/fixtures/question_mark/user_error_type.ark`](../../tests/fixtures/question_mark/user_error_type.ark) を参照。
 
 > 📘 `?` 演算子の正規仕様は [spec.md §3.9 Try Operator](spec.md#39-try-operator) を参照。
 

@@ -59,6 +59,7 @@
 | [ADR-060-language-v2-owned-adts-box-slice.md](ADR-060-language-v2-owned-adts-box-slice.md) | ADR-060: 言語 v2 の owned ADT・Box・Slice | ADR-059 は binding の move、明示的な Copy、let mut を採択した。 しかし、Option / Result / enum の payload、heap 上の値を表す Box<T>、 Vec の一部を読む view である slice について、所有権の境界と backend の表現がまだ同じ契約に接続されていなかった。 |
 | [ADR-061-language-v2-closure-capture-lifetime.md](ADR-061-language-v2-closure-capture-lifetime.md) | ADR-061: 言語 v2 のクロージャ捕捉・借用・escape | ADR-059 と ADR-060 は binding の move / Copy、owned value、Box<T>、Slice<T> の値境界を固定した。 |
 | [ADR-062-language-v2-trait-core-coherence.md](ADR-062-language-v2-trait-core-coherence.md) | ADR-062: Language v2 の Trait core と coherence | Arukellt の parser と typechecker は trait、impl Trait for T、メソッド呼び出し、 型パラメータの bound を受け付ける。 |
+| [ADR-063-language-v2-conversion-error-boundary.md](ADR-063-language-v2-conversion-error-boundary.md) | ADR-063: Language v2 の変換 trait と error sentinel の境界 | Arukellt は Result<T, E> と Option<T>、From<T> / Into<T>、? の構文を持つ。 一方、fallible conversion の TryFrom<T> / TryInto<T> は別 issue で定義中であり、 compiler の型検査用 recovery sentinel と、ユーザーが宣言できる Error という nominal type の境界も |
 
 ## 提案
 

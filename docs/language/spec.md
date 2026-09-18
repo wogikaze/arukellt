@@ -218,8 +218,13 @@ Semicolons are optional.
 | Type | Description |
 |------|-------------|
 | `Never` | Type of diverging expressions (`return`, `panic`, `break`). Compatible with every type. |
-| `Error` | Sentinel used during error recovery in the type checker. |
 | `Any` | Polymorphic type (erased to `anyref` at Wasm level). Used only by `to_string`. |
+
+Parser `NK_ERROR`, unresolved type state, and CoreHIR/MIR recovery sentinels are
+compiler-internal states. They are not source-level types and are never used as
+`Result` payloads, trait obligations, or public ABI types. `Error` remains an
+ordinary nominal user-defined `struct` or `enum` name; it is not reserved for
+compiler recovery.
 
 ### 2.4 Value vs Reference Semantics
 
@@ -461,6 +466,8 @@ failure variant. Two forms are defined:
 - if `E_source` and `E_target` are the same type, return `Err(e)` (identity)
 - otherwise return `Err(From::from(e))`, resolved via the canonical `From`
   trait for language-syntax desugaring (import not required; ADR-039 D2)
+- if no unique `From<E_source> for E_target` implementation exists, type
+  checking stops with E0210; `TryFrom` and `TryInto` are not fallback candidates
 
 **`Option<T>`** — the enclosing function must return `Option<_>`. On
 `Some(v)`, the value of `expr?` is `v`. On `None`, return `None`. There is
@@ -468,10 +475,14 @@ no error-type conversion. Converting `Option` to `Result` is out of scope
 for `?` (use an explicit `ok_or` / `ok_or_else`).
 
 Any other operand type, or a mismatch between the operand and the enclosing
-return type (`Result` vs `Option`), is a type error.
+return type (`Result` vs `Option`), is a type error with E0210. This validation
+happens before CoreHIR/MIR lowering and does not depend on declaration order or
+the selected Wasm representation.
 
 Evidence: `tests/fixtures/question_mark/basic_propagate.ark`,
-`from_error.ark`, `option_propagate.ark`.
+`from_error.ark`, `option_propagate.ark`,
+`diagnostics/question_from_missing.ark`, and
+`question_mark/user_error_type.ark`.
 
 ### 3.10 If Expression
 

@@ -424,17 +424,19 @@ A function with a non-unit return type does not produce a value on all paths.
 A pattern in a `match` expression can never be reached because earlier arms
 already cover it.
 
-### E0210 — incompatible error type for `?` operator
+### E0210 — invalid `?` propagation or error conversion
 
 | | |
 |---|---|
 | **Severity** | error |
 | **Phase** | typecheck |
-| **Message** | incompatible error type for `?` operator |
+| **Message** | invalid `?` propagation or error conversion |
 
-The `?` operator is used in a function whose return type is not `Result`, or
-the error type of the inner expression is incompatible with the outer return
-type.
+The `?` operand must be `Result<T, E>` or `Option<T>`, and the enclosing
+function must return the corresponding container. For different `Result` error
+types, exactly one canonical `From<E_source> for E_target` implementation must
+be available. `TryFrom`/`TryInto` are not implicit candidates. The diagnostic is
+emitted during type checking before CoreHIR/MIR lowering.
 
 ```arukellt
 fn foo() -> i32 {

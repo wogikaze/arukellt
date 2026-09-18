@@ -1,0 +1,20 @@
+enum SourceError {
+    Source,
+}
+
+enum TargetError {
+    Target,
+}
+
+fn source() -> Result<i32, SourceError> {
+    Err(SourceError::Source)
+}
+
+fn propagate() -> Result<i32, TargetError> {
+    let value = source()?
+    Ok(value)
+}
+
+fn main() {
+    propagate()
+}

@@ -520,7 +520,7 @@ enum Ty {
     Function { params: Vec<Ty>, ret: Box<Ty> },
     TypeParam(String),
     Never,
-    Error,
+    Error, // compiler-internal recovery state; never a source-level type
 }
 ```
 
@@ -581,7 +581,7 @@ enum Type {
 
     // Special
     Never,          // diverging (return, panic, break)
-    Error,          // error recovery sentinel
+    Error,          // compiler-internal recovery sentinel, not a source type
 
     // Polymorphic
     Any,            // generic type param erased to anyref at Wasm level

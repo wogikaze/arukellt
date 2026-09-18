@@ -1,0 +1,29 @@
+use std::host::stdio
+
+// `Error` is a normal user enum. It must not be confused with a compiler
+// recovery state when it is used as a Result error payload.
+enum Error {
+    Invalid,
+}
+
+impl From<String> for Error {
+    fn from(message: String) -> Error {
+        Error::Invalid
+    }
+}
+
+fn source() -> Result<i32, String> {
+    Err(String_from("bad"))
+}
+
+fn propagate() -> Result<i32, Error> {
+    let value = source()?
+    Ok(value)
+}
+
+fn main() {
+    match propagate() {
+        Result::Ok(_) => assert(false),
+        Result::Err(Error::Invalid) => stdio::println(String_from("OK")),
+    }
+}

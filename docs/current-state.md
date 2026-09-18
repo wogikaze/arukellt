@@ -97,6 +97,23 @@ The same registry and source-level result are used for `wasm32-gc` and the
 validates both a GC component and a linear core module; the negative fixtures
 exercise coherence, blanket, arity, and dynamic-dispatch boundaries.
 
+### Language v2 conversion and error boundary (#857 / ADR-063)
+
+The current selfhost typechecker validates `?` before CoreHIR/MIR lowering.
+`Result<T, E>` requires an enclosing `Result<_, E_target>` and either identity
+error propagation or one canonical `From<E> for E_target` implementation;
+`Option<T>` requires an enclosing `Option<_>`. Missing or ambiguous conversion,
+container mismatch, and invalid operands produce E0210. `TryFrom`/`TryInto` are
+not implicit `?` candidates.
+
+Parser and IR recovery states remain compiler-internal. A source-level
+`struct Error` or `enum Error` is a normal nominal type, covered by the
+`question_mark/user_error_type.ark` fixture. The conversion diagnostics and
+the user `Error` fixture are checked against the same typechecker result for
+`wasm32-gc` and the `wasm32` linear-memory fallback. The broader `Error` trait
+ecosystem remains dependent on #694; the canonical pinned bootstrap rebuild
+still has the pre-existing #854 generic-enum mismatch.
+
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
@@ -147,9 +164,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2889 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1301 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2889 entries after the v2 ownership, closure-capture, and trait-core fixtures were added, so the current registry remainder is 1301. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 2893 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1305 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2893 entries after the v2 ownership, closure-capture, trait-core, and conversion-boundary fixtures were added, so the current registry remainder is 1305. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
