@@ -13,7 +13,7 @@ impl Point {
 }
 
 fn main() -> i32 {
-    let p = Point { x: 10, y: 20 }
+    let mut p = Point { x: 10, y: 20 }
     stdio::println(p.x)
     stdio::println(p.y)
     p.translate(5, 3)

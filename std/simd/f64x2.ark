@@ -12,7 +12,7 @@ pub fn splat(x: f64) -> v128 {
 
 /// Create a v128 from 2 f64 lane values.
 pub fn new(a: f64, b: f64) -> v128 {
-    let v = splat(a)
+    let mut v = splat(a)
     v = __simd_f64x2_replace_lane(v, 1, b)
     v
 }

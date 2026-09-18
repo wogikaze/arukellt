@@ -856,7 +856,7 @@ fn toml_insert_key(fields: Vec<TomlField>, key_path: Vec<String>, value: TomlVal
 pub fn toml_parse(s: String) -> Result<TomlValue, String> {
     let n = len(s)
     let root = Vec::new<TomlField>()
-    let mut current = root
+    let mut current_path = Vec::new<String>()
     let mut i = 0
     while i < n {
         i = toml_skip_ws_nl_comments(s, i)
@@ -873,15 +873,16 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
                 Result::Ok(parts) => {
                     if is_array {
                         match toml_append_array_table(root, parts) {
-                            Result::Ok(t) => current = t,
+                            Result::Ok(_) => {},
                             Result::Err(e) => return Err(e),
                         }
                     } else {
                         match toml_navigate_table(root, parts) {
-                            Result::Ok(t) => current = t,
+                            Result::Ok(_) => {},
                             Result::Err(e) => return Err(e),
                         }
                     }
+                    current_path = parts
                     i = toml_skip_inline_ws(s, ks.next)
                     // Allow a trailing comment on the header line.
                     if i < n && char_at(s, i) == 35 {
@@ -905,8 +906,13 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
                     let vs = toml_parse_value_at(s, j)
                     match vs.value {
                         Result::Ok(v) => {
-                            match toml_insert_key(current, parts, v) {
-                                Result::Ok(_) => {},
+                            match toml_navigate_table(root, current_path) {
+                                Result::Ok(current) => {
+                                    match toml_insert_key(current, parts, v) {
+                                        Result::Ok(_) => {},
+                                        Result::Err(e) => return Err(e),
+                                    }
+                                },
                                 Result::Err(e) => return Err(e),
                             }
                             j = vs.next

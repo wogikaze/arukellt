@@ -12,7 +12,7 @@ pub fn splat(x: i32) -> v128 {
 
 /// Create a v128 from 4 u32 lane values.
 pub fn new(a: i32, b: i32, c: i32, d: i32) -> v128 {
-    let v = splat(a)
+    let mut v = splat(a)
     v = __simd_u32x4_replace_lane(v, 1, b)
     v = __simd_u32x4_replace_lane(v, 2, c)
     v = __simd_u32x4_replace_lane(v, 3, d)

@@ -17,7 +17,7 @@ struct Outer {
 }
 
 fn main() {
-    let o = Outer { middle: Middle { inner: Inner { count: 0, name: String_from("a") }, label: String_from("mid") }, id: 1 }
+    let mut o = Outer { middle: Middle { inner: Inner { count: 0, name: String_from("a") }, label: String_from("mid") }, id: 1 }
     o.id = 99
     stdio::println((o.id).to_string())
     o.middle.label = String_from("updated")

@@ -1,6 +1,7 @@
 use typechecker::ast_access
 use typechecker::contract_fn_sig
 use typechecker::scope
+use typechecker::ownership_types
 
 fn bind_fn_params_from_sig(scope: LocalScope, fn_node: AstNode, sig: FnSig) {
     let child_count = ast_access::node_child_count(fn_node)
@@ -8,7 +9,14 @@ fn bind_fn_params_from_sig(scope: LocalScope, fn_node: AstNode, sig: FnSig) {
     let mut param_index = 0
     while param_index < child_count - 1 && param_index < param_count {
         let param = ast_access::node_child_at(fn_node, param_index)
-        scope::scope_define(scope, ast_access::node_text(param), contract_fn_sig::FnSig_param_at(sig, param_index))
+        let param_ty = contract_fn_sig::FnSig_param_at(sig, param_index)
+        scope::scope_define_with_flags(
+            scope,
+            ast_access::node_text(param),
+            param_ty,
+            true,
+            ownership_types::type_is_builtin_copy(param_ty)
+        )
         param_index = param_index + 1
     }
 }
