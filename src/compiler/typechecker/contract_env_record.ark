@@ -26,6 +26,7 @@ struct TypeEnv {
     fn_sig_index: NameIndex,
     current_fn_type_params: Vec<String>,
     current_fn_bounds: Vec<TypeParamBounds>,
+    is_ownership_tracking_enabled: bool,
 }
 
 fn TypeEnv_new() -> TypeEnv {
@@ -46,7 +47,8 @@ fn TypeEnv_new() -> TypeEnv {
         trait_methods: Vec::new<TraitMethodEntry>(),
         fn_sig_index: name_index::NameIndex_new(0),
         current_fn_type_params: Vec::new<String>(),
-        current_fn_bounds: Vec::new<TypeParamBounds>()
+        current_fn_bounds: Vec::new<TypeParamBounds>(),
+        is_ownership_tracking_enabled: true
     }
 }
 

@@ -36,7 +36,12 @@ fn check_fn_body_with_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<Enum
         contract_env_record::type_env_finalize_unused_bindings(env)
         let return_tag = contract_type_access::TypeInfo_tag(contract_fn_sig::FnSig_return_type(sig))
         if return_tag != commands::TY_UNKNOWN() && return_tag != commands::TY_UNIT() {
+            // The return-contract pass re-infers the body for type compatibility.
+            // It must not mutate ownership state already established by the main
+            // statement pass, or a valid first move is reported as a second use.
+            env.is_ownership_tracking_enabled = false
             body_returns::check_fn_body_return_contract(env, scope, fn_sigs, enum_defs, sig, body)
+            env.is_ownership_tracking_enabled = true
         }
     }
 }

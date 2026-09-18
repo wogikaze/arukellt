@@ -6,7 +6,8 @@ fn check_expr_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     if ast_access::node_child_count(node) > 0 {
         let child = ast_access::node_child_at(node, 0)
         let _inferred_ty = infer_expr(env, scope, fn_sigs, enum_defs, child)
-        if ast_access::node_kind_is(child, kinds::NK_ASSIGN()) &&
+        if env.is_ownership_tracking_enabled &&
+        ast_access::node_kind_is(child, kinds::NK_ASSIGN()) &&
         ast_access::node_child_count(child) >= 2 {
             ownership::check_assignment_target(env, scope, ast_access::node_child_at(child, 0))
         }

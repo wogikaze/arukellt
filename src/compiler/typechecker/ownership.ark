@@ -48,13 +48,28 @@ fn consume_expr(env: TypeEnv, scope: LocalScope, node: AstNode) {
         return
     }
     if kind == kinds::NK_ASSIGN() || kind == kinds::NK_CALL() || kind == kinds::NK_METHOD_CALL() ||
-    kind == kinds::NK_PATH() || kind == kinds::NK_BLOCK() {
+    kind == kinds::NK_PATH() || kind == kinds::NK_BLOCK() || kind == kinds::NK_BINARY() ||
+    kind == kinds::NK_UNARY() || kind == kinds::NK_IF_EXPR() || kind == kinds::NK_MATCH_EXPR() ||
+    kind == kinds::NK_CLOSURE() || kind == kinds::NK_COMPREHENSION() || kind == kinds::NK_TRY() {
+        return
+    }
+    if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() {
+        consume_aggregate_children(env, scope, node)
+        return
+    }
+    if kind == kinds::NK_ARRAY_REPEAT() {
+        if ast_access::node_child_count(node) > 0 {
+            consume_expr(env, scope, ast_access::node_child_at(node, 0))
+        }
         return
     }
     if kind == kinds::NK_STRUCT_LIT() {
         consume_struct_fields(env, scope, node)
         return
     }
+}
+
+fn consume_aggregate_children(env: TypeEnv, scope: LocalScope, node: AstNode) {
     let child_count = ast_access::node_child_count(node)
     let mut i = 0
     while i < child_count {

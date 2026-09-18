@@ -41,7 +41,9 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
             ast_access::node_child_at(node, 0),
             bind_ty
         )
-        ownership::consume_expr(env, scope, ast_access::node_child_at(node, 0))
+        if env.is_ownership_tracking_enabled {
+            ownership::consume_expr(env, scope, ast_access::node_child_at(node, 0))
+        }
     }
     if !eq(clone(bind_name), "_") {
         if ast_access::node_child_count(node) > 0 &&
@@ -68,7 +70,9 @@ fn check_tuple_destructure_let(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnS
     let init = ast_access::node_child_at(node, 1)
     let bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
     check_shared_mut_alias(env, scope, node, init, bind_ty)
-    ownership::consume_expr(env, scope, init)
+    if env.is_ownership_tracking_enabled {
+        ownership::consume_expr(env, scope, init)
+    }
     bind_tuple_pat_identifiers(env, scope, pat, bind_ty)
 }
 
