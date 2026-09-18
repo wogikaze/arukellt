@@ -34,11 +34,11 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I854["854 854 — ADT / Box / slice の値意味論を統一する"]
   I855["855 855 — Closure capture / escape / lifetime を実装する"]
   I856["856 856 — Trait core / coherence / generic arity を確定する"]
   I861["861 861 — 数値の暗黙変換を廃止し明示変換を定義する"]
   I862["862 862 — 算術 edge case と評価順序を仕様化する"]
+  I863["863 863 — String / Unicode semantics を確定する"]
   I866["866 866 — source module の import / use 構文を整理する"]
   I868["868 868 — Prelude / boolean literal / keyword policy を固定する"]
   I869["869 869 — multi-clause / where / semicolon grammar を確定する"]
@@ -54,7 +54,6 @@ graph LR
   I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I863["863 863 — String / Unicode semantics を確定する"]
   I857["857 857 — `?` / conversion / Error sentinel を整理する"]
   I858["858 858 — 演算子 Trait へ統一し magic method を退役する"]
   I859["859 859 — 公開 API を generic Trait 面へ統一する"]
@@ -90,7 +89,6 @@ graph LR
   I729 --> I865
   I791 --> I814
   I851 --> I850
-  I854 --> I863
   I694 --> I857
   I856 --> I857
   I856 --> I858
@@ -99,7 +97,6 @@ graph LR
   I856 --> I860
   I856 --> I864
   I866 --> I867
-  I854 --> I871
   I870 --> I871
   I870 --> I873
   I682 --> I683
@@ -112,7 +109,6 @@ graph LR
   I859 --> I872
   I860 --> I872
   I871 --> I872
-  I854 --> I874
   I855 --> I874
   I859 --> I874
   I860 --> I874
@@ -188,11 +184,11 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **854** depends on: 853; blocks: 863, 871, 874
 - **855** depends on: 853; blocks: 872, 874
 - **856** depends on: none; blocks: 857, 858, 859, 860, 864
 - **861** depends on: none; blocks: 875
 - **862** depends on: none; blocks: 875
+- **863** depends on: 854; blocks: 875
 - **866** depends on: none; blocks: 867
 - **868** depends on: none; blocks: 875
 - **869** depends on: none; blocks: 875
@@ -208,7 +204,6 @@ graph LR
 - **865** depends on: 729; blocks: 875
 - **814** depends on: 791; blocks: none
 - **850** depends on: 851; blocks: none
-- **863** depends on: 854; blocks: 875
 - **857** depends on: 694, 856; blocks: 875, 877
 - **858** depends on: 856; blocks: 875, 877
 - **859** depends on: 856; blocks: 872, 874
