@@ -1,0 +1,7 @@
+trait Unary<T> {}
+
+struct Boxed {}
+
+impl Unary<i32, i64> for Boxed {}
+
+fn main() {}

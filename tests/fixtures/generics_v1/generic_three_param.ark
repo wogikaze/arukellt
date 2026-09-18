@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn first<A, B, C>(a: A, b: B, c: C) -> A {
+    a
+}
+
+fn main() {
+    let value: i32 = first(7, true, String_from("ignored"))
+    stdio::println((value).to_string())
+}

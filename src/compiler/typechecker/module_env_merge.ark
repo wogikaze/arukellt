@@ -57,7 +57,9 @@ fn merge_type_env(dst: TypeEnv, src: TypeEnv) {
 
 fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
     let child = contract_env_record::TypeEnv_new()
+    child.trait_defs = parent.trait_defs
     child.trait_impls = parent.trait_impls
+    child.associated_types = parent.associated_types
     child.trait_methods = parent.trait_methods
     child.fn_sig_index = parent.fn_sig_index
     child.current_fn_type_params = parent.current_fn_type_params

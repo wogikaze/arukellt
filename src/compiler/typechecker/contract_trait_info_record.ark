@@ -1,0 +1,33 @@
+struct TraitInfo {
+    name: String,
+    type_param_count: i32,
+    associated_type_names: Vec<String>,
+}
+
+fn TraitInfo_new(name: String, type_param_count: i32) -> TraitInfo {
+    TraitInfo {
+        name: name,
+        type_param_count: type_param_count,
+        associated_type_names: Vec::new<String>(),
+    }
+}
+
+fn trait_info_name(info: TraitInfo) -> String {
+    clone(info.name)
+}
+
+fn trait_info_type_param_count(info: TraitInfo) -> i32 {
+    info.type_param_count
+}
+
+fn trait_info_associated_type_count(info: TraitInfo) -> i32 {
+    len(info.associated_type_names)
+}
+
+fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
+    clone(get_unchecked(info.associated_type_names, index))
+}
+
+fn trait_info_push_associated_type(info: TraitInfo, name: String) {
+    push(info.associated_type_names, name)
+}

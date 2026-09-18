@@ -2,6 +2,7 @@
 fn NK_FN_DECL() -> i32 { 50 }
 fn NK_ENUM_DECL() -> i32 { 52 }
 fn NK_IMPORT() -> i32 { 53 }
+fn NK_TRAIT_DECL() -> i32 { 55 }
 fn NK_IMPL_DECL() -> i32 { 56 }
 fn NK_RESOURCE_DECL() -> i32 { 57 }
 fn NK_CONST_DECL() -> i32 { 58 }
@@ -57,9 +58,11 @@ fn NK_FOR() -> i32 { 36 }
 fn NK_EXPR_STMT() -> i32 { 37 }
 
 // Type annotation and proof metadata node kinds.
+fn NK_TYPE_NAMED() -> i32 { 90 }
 fn NK_TYPE_GENERIC() -> i32 { 91 }
 fn NK_TYPE_TUPLE() -> i32 { 93 }
 fn NK_PROOF_CONTRACT() -> i32 { 98 }
+fn NK_ASSOC_TYPE() -> i32 { 99 }
 
 // Comparison operator kinds.
 fn OP_EQ() -> i32 { 6 }

@@ -31,30 +31,68 @@ fn is_trait_decl(node: AstNode) -> bool {
 
 fn register_trait_methods(env: TypeEnv, trait_node: AstNode) {
     let trait_name = ast_access::node_text(trait_node)
+    let trait_type_params = trait_type_param_names(trait_node)
+    let trait_type_param_count = len(trait_type_params)
     let child_count = ast_access::node_child_count(trait_node)
     let mut i = 0
     while i < child_count {
         let child = ast_access::node_child_at(trait_node, i)
         if ast_decl_predicates::node_is_fn_decl(child) {
             let method_name = ast_access::node_text(child)
-            let sig = sigs::fn_sig_from_fn_decl(child)
-            push(env.trait_methods, contract_trait_method_record::TraitMethodEntry_new(clone(trait_name), clone(method_name), sig))
+            let sig = sigs::fn_sig_from_fn_decl_with_type_params(
+                child,
+                clone(trait_type_params)
+            )
+            push(
+                env.trait_methods,
+                contract_trait_method_record::TraitMethodEntry_new(
+                    clone(trait_name),
+                    clone(method_name),
+                    sig,
+                    trait_type_param_count
+                )
+            )
         }
         i = i + 1
     }
 }
 
-fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: String) -> FnSig {
+fn trait_type_param_names(trait_node: AstNode) -> Vec<String> {
+    let names = Vec::new<String>()
+    let count = ast_access::node_type_ann_count(trait_node)
+    let mut i = 0
+    while i < count {
+        let ann = ast_access::node_type_ann_at(trait_node, i)
+        if !ast_access::node_kind_is(ann, kinds::NK_ASSOC_TYPE()) {
+            push(names, ast_access::node_text(ann))
+        }
+        i = i + 1
+    }
+    names
+}
+
+fn lookup_trait_method(env: TypeEnv, trait_name: String, method_name: String) -> TraitMethodEntry {
     let count = len(env.trait_methods)
     let mut i = 0
     while i < count {
         let entry = get_unchecked(env.trait_methods, i)
         if eq(contract_trait_method_record::trait_method_entry_trait_name(entry), clone(trait_name)) && eq(contract_trait_method_record::trait_method_entry_method_name(entry), clone(method_name)) {
-            return contract_trait_method_record::trait_method_entry_sig(entry)
+            return entry
         }
         i = i + 1
     }
-    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+    contract_trait_method_record::TraitMethodEntry_new(
+        String_new(),
+        String_new(),
+        contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN())),
+        0
+    )
+}
+
+fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: String) -> FnSig {
+    contract_trait_method_record::trait_method_entry_sig(
+        lookup_trait_method(env, trait_name, method_name)
+    )
 }
 
 fn simple_type(tag: i32) -> TypeInfo {

@@ -1,0 +1,9 @@
+trait Render {
+    fn render(self: Self) -> String
+}
+
+fn use_dyn(value: dyn Render) -> String {
+    value.render()
+}
+
+fn main() {}

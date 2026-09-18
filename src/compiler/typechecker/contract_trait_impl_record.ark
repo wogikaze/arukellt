@@ -2,11 +2,20 @@ use typechecker::contract_types_record
 
 struct TraitImplInfo {
     trait_name: String,
+    trait_args: Vec<TypeInfo>,
     self_ty: TypeInfo,
 }
 
-fn TraitImplInfo_new(trait_name: String, self_ty: TypeInfo) -> TraitImplInfo {
-    TraitImplInfo { trait_name: trait_name, self_ty: self_ty }
+fn TraitImplInfo_new(
+    trait_name: String,
+    trait_args: Vec<TypeInfo>,
+    self_ty: TypeInfo
+) -> TraitImplInfo {
+    TraitImplInfo {
+        trait_name: trait_name,
+        trait_args: trait_args,
+        self_ty: self_ty,
+    }
 }
 
 fn trait_impl_info_trait_name(info: TraitImplInfo) -> String {
@@ -15,4 +24,8 @@ fn trait_impl_info_trait_name(info: TraitImplInfo) -> String {
 
 fn trait_impl_info_self_ty(info: TraitImplInfo) -> TypeInfo {
     info.self_ty
+}
+
+fn trait_impl_info_trait_args(info: TraitImplInfo) -> Vec<TypeInfo> {
+    info.trait_args
 }

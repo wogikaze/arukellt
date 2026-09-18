@@ -1,0 +1,1 @@
+error[E0216|typecheck]: blanket trait impl is not allowed

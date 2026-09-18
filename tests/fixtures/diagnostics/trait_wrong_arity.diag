@@ -1,0 +1,1 @@
+error[E0218|typecheck]: trait `Unary` expects 1 type argument(s), found 2

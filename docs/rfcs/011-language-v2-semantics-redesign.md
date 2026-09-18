@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
 
 ---
 
@@ -84,7 +84,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD等の真にtarget固有な機能だけをcapability errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
 | 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-061で採択済み。#855で shared/mutable borrow、move capture、return/store/callback escape を実装。managed closure environment の lowering は #872/#874。 |
 | 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。 | ADR-006と整合し、公開面の仕様を補う。 |
-| 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-044、RFC-004、ADR-036と統合する。 |
+| 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-062で `Self`、associated item、coherence、user blanket禁止、static dispatch、`dyn`境界を採択。 |
 | 13 | `?` と `From` | `Option`、`Result`、異種エラー変換をTrait解決に接続する。 | ADR-039と整合する。 |
 | 14 | magic method | `__add` などのmagic methodを演算子Traitへ移行する。 | ADR-038の提案を詳細化する。 |
 | 15 | public free function | `push(v, x)` のような公開free functionをメソッドまたはTrait APIへ寄せる。 | ADR-046と整合する。 |
@@ -212,7 +212,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 1. 借用検査を言語の必須規則にするか、限定的な静的検査から始めるか。
 2. Wasm GC backendで所有権を実行時にどこまで表現するか、型検査後にどこまで消去するか。またlinear-memory fallbackのcollector/root管理をどのruntime契約にするか。
 3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか（source-level owned ADT 契約はADR-060で採択済み）。
-4. `dyn Trait`、associated type、coherence、blanket implementationの初期範囲。
+4. ADR-062 の範囲外である `dyn Trait` の動的 ABI、specialization、higher-kinded projection。
 5. overflow、NaN、ゼロ除算、Unicode invalid sequenceの各処理結果。
 6. `import` と `use` の最終構文、およびWIT parserのcanonical path。
 7. `wasm32-gc`、`wasm32`、Memory64、WASI profileをCLIでどう表現するか。

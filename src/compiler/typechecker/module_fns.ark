@@ -1,10 +1,11 @@
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
-use typechecker::ast_type_predicates
+use typechecker::associated_types
 use typechecker::contract_fn_sig
+use typechecker::kinds
 use typechecker::sigs
 
-fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
+fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
     let fn_sigs = Vec::new<FnSig>()
     let decl_count = len(decls)
     let mut i = 0
@@ -17,26 +18,26 @@ fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
             push(fn_sigs, sigs::fn_sig_from_const_decl(node))
         }
         if ast_decl_predicates::node_is_impl_decl(node) {
-            collect_impl_method_sigs(fn_sigs, node)
+            collect_impl_method_sigs(fn_sigs, node, env)
         }
         i = i + 1
     }
     fn_sigs
 }
 
-fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode) {
+fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv) {
     let impl_child_count = ast_access::node_child_count(node)
     let mut ic = 0
     while ic < impl_child_count {
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
-            push(fn_sigs, impl_method_sig(node, meth))
+            push(fn_sigs, impl_method_sig(env, node, meth))
         }
         ic = ic + 1
     }
 }
 
-fn impl_method_sig(impl_decl: AstNode, method_decl: AstNode) -> FnSig {
+fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> FnSig {
     let impl_type_params = extract_impl_type_params(impl_decl)
     let bare_sig = if len(impl_type_params) > 0 {
         sigs::fn_sig_from_fn_decl_with_impl_type_params(method_decl, impl_type_params)
@@ -47,7 +48,8 @@ fn impl_method_sig(impl_decl: AstNode, method_decl: AstNode) -> FnSig {
         impl_self_type_name(impl_decl),
         concat("::", contract_fn_sig::FnSig_name(bare_sig))
     )
-    contract_fn_sig::FnSig_with_name(bare_sig, mangled_name)
+    let named_sig = contract_fn_sig::FnSig_with_name(bare_sig, mangled_name)
+    associated_types::resolve_impl_signature(env, impl_decl, named_sig)
 }
 
 // Extract type parameter names from an impl block's head type.
@@ -63,35 +65,50 @@ fn extract_impl_type_params(decl: AstNode) -> Vec<String> {
     // For `impl Type`, the impl target is type_ann[0].
     let head_idx = if ann_count >= 2 { 1 } else { 0 }
     let head_type = ast_access::node_type_ann_at(decl, head_idx)
-    if !ast_type_predicates::node_is_type_generic(head_type) {
-        return Vec::new<String>()
-    }
-    // NK_TYPE_GENERIC children: [0] = base type, [1..] = type args
-    let child_count = ast_access::node_child_count(head_type)
     let params = Vec::new<String>()
-    let mut k = 1
-    while k < child_count {
-        let type_arg = ast_access::node_child_at(head_type, k)
-        let type_arg_name = ast_access::node_text(type_arg)
-        if is_impl_type_param_name(clone(type_arg_name)) {
-            push(params, type_arg_name)
-        }
-        k = k + 1
+    collect_impl_type_params_from_node(head_type, params)
+    if ann_count >= 2 {
+        collect_impl_type_params_from_node(
+            ast_access::node_type_ann_at(decl, 0),
+            params
+        )
     }
     params
 }
 
+fn collect_impl_type_params_from_node(node: AstNode, params: Vec<String>) {
+    let name = ast_access::node_text(node)
+    if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
+    is_impl_type_param_name(clone(name)) &&
+    !string_vec_contains(params, clone(name)) {
+        push(params, clone(name))
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        collect_impl_type_params_from_node(ast_access::node_child_at(node, i), params)
+        i = i + 1
+    }
+}
+
 fn is_impl_type_param_name(name: String) -> bool {
-    eq(clone(name), "T") ||
-    eq(clone(name), "E") ||
-    eq(clone(name), "U") ||
-    eq(clone(name), "V") ||
-    eq(clone(name), "W") ||
-    eq(clone(name), "K") ||
-    eq(clone(name), "A") ||
-    eq(clone(name), "B") ||
-    eq(clone(name), "C") ||
-    eq(clone(name), "D")
+    if len(name) != 1 {
+        return false
+    }
+    let ch = char_at(name, 0)
+    ch >= 65 && ch <= 90
+}
+
+fn string_vec_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 // Extract the impl target type name from an impl declaration.

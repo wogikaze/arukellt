@@ -1,51 +1,498 @@
-use typechecker::ast_decl_predicates
-use typechecker::contract_trait_impl
-use typechecker::contract_env_record
+use std::text
+use diagnostics::codes
+use diagnostics::record
 use typechecker::ast_access
+use typechecker::ast_decl_predicates
+use typechecker::contract_associated_type
+use typechecker::contract_fn_sig
+use typechecker::contract_trait_impl
+use typechecker::contract_trait_impl_record
+use typechecker::contract_trait_info
+use typechecker::contract_type_access
+use typechecker::kinds
 use typechecker::names
 use typechecker::types
+use diagnostics::mod as diag_mod
+
+// Register declarations before impls so arity and associated-item checks use
+// the same local trait registry as obligation solving.
+fn register_trait_decls(env: TypeEnv, decls: Vec<AstNode>) {
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_trait_decl(node) {
+            register_trait_decl(env, node)
+        }
+        i = i + 1
+    }
+}
+
+fn register_trait_decl(env: TypeEnv, node: AstNode) {
+    let trait_name = ast_access::node_text(node)
+    if trait_info_index(env, clone(trait_name)) >= 0 {
+        return
+    }
+    let param_count = count_trait_type_params(node)
+    let info = contract_trait_info::TraitInfo_new(clone(trait_name), param_count)
+    let ann_count = ast_access::node_type_ann_count(node)
+    let mut i = 0
+    while i < ann_count {
+        let ann = ast_access::node_type_ann_at(node, i)
+        if ast_access::node_kind_is(ann, kinds::NK_ASSOC_TYPE()) {
+            contract_trait_info::trait_info_push_associated_type(
+                info,
+                ast_access::node_text(ann)
+            )
+        }
+        i = i + 1
+    }
+    push(env.trait_defs, info)
+}
+
+fn count_trait_type_params(node: AstNode) -> i32 {
+    let count = ast_access::node_type_ann_count(node)
+    let mut total = 0
+    let mut i = 0
+    while i < count {
+        if !ast_access::node_kind_is(
+            ast_access::node_type_ann_at(node, i),
+            kinds::NK_ASSOC_TYPE()
+        ) {
+            total = total + 1
+        }
+        i = i + 1
+    }
+    total
+}
 
 fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
+    register_trait_impl_entry(
+        env,
+        trait_name,
+        Vec::new<TypeInfo>(),
+        self_ty,
+        String_new()
+    )
+}
+
+fn register_trait_impl_entry(
+    env: TypeEnv,
+    trait_name: String,
+    trait_args: Vec<TypeInfo>,
+    self_ty: TypeInfo,
+    display_self_ty: String
+) {
     let count = len(env.trait_impls)
     let mut i = 0
     while i < count {
         let existing = get_unchecked(env.trait_impls, i)
-        if eq(contract_trait_impl::TraitImplInfo_trait_name(existing), clone(trait_name)) && names::same_named_type(contract_trait_impl::TraitImplInfo_self_ty(existing), self_ty) {
+        if eq(
+            contract_trait_impl::TraitImplInfo_trait_name(existing),
+            clone(trait_name)
+        ) && type_vec_equal(
+            contract_trait_impl_record::trait_impl_info_trait_args(existing),
+            trait_args
+        ) && same_type(
+            contract_trait_impl::TraitImplInfo_self_ty(existing),
+            self_ty
+        ) {
+            let shown = if len(display_self_ty) > 0 {
+                clone(display_self_ty)
+            } else {
+                names::type_display_name(self_ty)
+            }
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_TRAIT_CONFLICT(),
+                concat(
+                    String_from("overlapping trait impl: duplicate impl of "),
+                    concat(clone(trait_name), concat(" for ", shown))
+                )
+            )
             return
         }
         i = i + 1
     }
-    push(env.trait_impls, contract_trait_impl::TraitImplInfo_new(trait_name, self_ty))
+    push(
+        env.trait_impls,
+        contract_trait_impl::TraitImplInfo_new(
+            trait_name,
+            trait_args,
+            self_ty
+        )
+    )
 }
 
 fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     if !ast_decl_predicates::node_is_impl_decl(node) {
         return
     }
-    let trait_name = ast_access::node_text(node)
-    if eq(clone(trait_name), "") {
+    let ann_count = ast_access::node_type_ann_count(node)
+    if ann_count < 2 {
         return
     }
-    if ast_access::node_type_ann_count(node) < 2 {
+    let trait_node = ast_access::node_type_ann_at(node, 0)
+    let self_node = ast_access::node_type_ann_at(node, 1)
+    let type_params = collect_impl_type_params(trait_node, self_node)
+    let trait_ref = types::resolve_type_ann_node_generic(trait_node, type_params)
+    let self_ty = types::resolve_type_ann_node_generic(self_node, type_params)
+    let trait_name = ast_access::node_text(trait_node)
+    let trait_args = type_args(trait_ref)
+    if !validate_trait_arity(env, clone(trait_name), len(trait_args)) {
         return
     }
-    let child_count = ast_access::node_child_count(node)
-    if child_count == 0 && eq(clone(trait_name), "Copy") {
-        let self_ty_node = ast_access::node_type_ann_at(node, 1)
-        register_trait_impl(env, trait_name, types::resolve_type_ann_node(self_ty_node))
+    let is_blanket = type_contains_var(trait_ref) || type_contains_var(self_ty)
+    if is_blanket && !is_compiler_owned_blanket(clone(trait_name), self_ty) {
+        report_trait_error(
+            env,
+            codes::DIAG_TYPE_TRAIT_BLANKET(),
+            concat(
+                String_from("blanket trait impl is not allowed for user code: "),
+                clone(trait_name)
+            )
+        )
         return
     }
-    if child_count < 1 {
-        return
+    register_trait_impl_entry(
+        env,
+        clone(trait_name),
+        trait_args,
+        self_ty,
+        ast_access::node_text(self_node)
+    )
+    if !is_blanket {
+        register_impl_associated_types(
+            env,
+            clone(trait_name),
+            types::resolve_type_ann_node(self_node),
+            collect_impl_type_params(trait_node, self_node),
+            node
+        )
     }
-    let mut i = 0
-    while i < child_count {
-        let child = ast_access::node_child_at(node, i)
-        if !ast_decl_predicates::node_is_fn_decl(child) {
-            return
+}
+
+fn is_compiler_owned_blanket(trait_name: String, self_ty: TypeInfo) -> bool {
+    if !eq(clone(trait_name), "Ord") {
+        return false
+    }
+    if !eq(contract_type_access::TypeInfo_name(self_ty), "Reverse") {
+        return false
+    }
+    if contract_type_access::TypeInfo_type_arg_count(self_ty) != 1 {
+        return false
+    }
+    contract_type_access::TypeInfo_tag(
+        contract_type_access::TypeInfo_type_arg_at(self_ty, 0)
+    ) == commands::TY_TYPE_VAR()
+}
+
+fn register_impl_associated_types(
+    env: TypeEnv,
+    trait_name: String,
+    self_ty: TypeInfo,
+    type_params: Vec<String>,
+    impl_node: AstNode
+) {
+    let trait_info = trait_info_at(env, clone(trait_name))
+    let is_known_trait = contract_trait_info::trait_info_type_param_count(trait_info) >= 0
+    let ann_count = ast_access::node_type_ann_count(impl_node)
+    let mut i = 2
+    while i < ann_count {
+        let assoc = ast_access::node_type_ann_at(impl_node, i)
+        if !ast_access::node_kind_is(assoc, kinds::NK_ASSOC_TYPE()) {
+            i = i + 1
+            continue
+        }
+        let assoc_name = ast_access::node_text(assoc)
+        if !is_known_trait || !trait_has_associated_type(trait_info, clone(assoc_name)) {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_ASSOCIATED_ITEM(),
+                concat(
+                    String_from("associated type `"),
+                    concat(clone(assoc_name), "` is not declared by trait")
+                )
+            )
+            i = i + 1
+            continue
+        }
+        if ast_access::node_type_ann_count(assoc) == 0 {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_ASSOCIATED_ITEM(),
+                concat(
+                    String_from("associated type `"),
+                    concat(clone(assoc_name), "` requires an impl definition")
+                )
+            )
+            i = i + 1
+            continue
+        }
+        let value_node = ast_access::node_type_ann_at(assoc, 0)
+        let value_ty = types::resolve_type_ann_node_generic(value_node, type_params)
+        if associated_type_impl_exists(env, clone(trait_name), self_ty, clone(assoc_name)) {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_ASSOCIATED_ITEM(),
+                concat(
+                    String_from("duplicate associated type definition: `"),
+                    concat(clone(assoc_name), "`")
+                )
+            )
+        } else {
+            push(
+                env.associated_types,
+                contract_associated_type::TraitAssociatedTypeInfo_new(
+                    clone(trait_name),
+                    self_ty,
+                    clone(assoc_name),
+                    value_ty
+                )
+            )
         }
         i = i + 1
     }
-    let self_ty_node = ast_access::node_type_ann_at(node, 1)
-    register_trait_impl(env, trait_name, types::resolve_type_ann_node(self_ty_node))
+    require_associated_type_definitions(env, clone(trait_name), self_ty, trait_info)
+}
+
+fn require_associated_type_definitions(
+    env: TypeEnv,
+    trait_name: String,
+    self_ty: TypeInfo,
+    trait_info: TraitInfo
+) {
+    let count = contract_trait_info::trait_info_associated_type_count(trait_info)
+    let mut i = 0
+    while i < count {
+        let name = contract_trait_info::trait_info_associated_type_at(trait_info, i)
+        if !associated_type_impl_exists(env, clone(trait_name), self_ty, clone(name)) {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_ASSOCIATED_ITEM(),
+                concat(
+                    String_from("impl is missing associated type `"),
+                    concat(clone(name), "`")
+                )
+            )
+        }
+        i = i + 1
+    }
+}
+
+fn associated_type_impl_exists(
+    env: TypeEnv,
+    trait_name: String,
+    self_ty: TypeInfo,
+    assoc_name: String
+) -> bool {
+    let count = len(env.associated_types)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(env.associated_types, i)
+        if eq(
+            contract_associated_type::trait_associated_type_info_trait_name(entry),
+            clone(trait_name)
+        ) && eq(
+            contract_associated_type::trait_associated_type_info_name(entry),
+            clone(assoc_name)
+        ) && same_type(
+            contract_associated_type::trait_associated_type_info_self_ty(entry),
+            self_ty
+        ) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn trait_has_associated_type(info: TraitInfo, name: String) -> bool {
+    let count = contract_trait_info::trait_info_associated_type_count(info)
+    let mut i = 0
+    while i < count {
+        if eq(
+            contract_trait_info::trait_info_associated_type_at(info, i),
+            clone(name)
+        ) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn validate_trait_arity(env: TypeEnv, trait_name: String, actual: i32) -> bool {
+    let info = trait_info_at(env, clone(trait_name))
+    let expected = contract_trait_info::trait_info_type_param_count(info)
+    if expected < 0 || expected == actual {
+        return true
+    }
+    report_trait_error(
+        env,
+        codes::DIAG_TYPE_TRAIT_ARITY(),
+        concat(
+            String_from("trait `"),
+            concat(
+                clone(trait_name),
+                concat(
+                    "` expects ",
+                    concat(
+                        to_string(expected),
+                        concat(" type argument(s), found ", to_string(actual))
+                    )
+                )
+            )
+        )
+    )
+    false
+}
+
+fn trait_info_index(env: TypeEnv, trait_name: String) -> i32 {
+    let count = len(env.trait_defs)
+    let mut i = 0
+    while i < count {
+        if eq(
+            contract_trait_info::trait_info_name(get_unchecked(env.trait_defs, i)),
+            clone(trait_name)
+        ) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn trait_info_at(env: TypeEnv, trait_name: String) -> TraitInfo {
+    let index = trait_info_index(env, clone(trait_name))
+    if index < 0 {
+        return contract_trait_info::TraitInfo_new(String_new(), 0 - 1)
+    }
+    get_unchecked(env.trait_defs, index)
+}
+
+fn collect_impl_type_params(trait_node: AstNode, self_node: AstNode) -> Vec<String> {
+    let names = Vec::new<String>()
+    collect_type_params_from_node(trait_node, names)
+    collect_type_params_from_node(self_node, names)
+    names
+}
+
+fn collect_type_params_from_node(node: AstNode, names: Vec<String>) {
+    let name = ast_access::node_text(node)
+    if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
+    is_impl_type_param_name(clone(name)) &&
+    !string_vec_contains(names, clone(name)) {
+        push(names, clone(name))
+    }
+    let count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < count {
+        collect_type_params_from_node(ast_access::node_child_at(node, i), names)
+        i = i + 1
+    }
+}
+
+fn is_impl_type_param_name(name: String) -> bool {
+    if len(name) != 1 {
+        return false
+    }
+    let ch = char_at(name, 0)
+    ch >= 65 && ch <= 90
+}
+
+fn string_vec_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn type_args(ty: TypeInfo) -> Vec<TypeInfo> {
+    let args = Vec::new<TypeInfo>()
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        push(args, contract_type_access::TypeInfo_type_arg_at(ty, i))
+        i = i + 1
+    }
+    args
+}
+
+fn type_contains_var(ty: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        return true
+    }
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        if type_contains_var(contract_type_access::TypeInfo_type_arg_at(ty, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(a) != contract_type_access::TypeInfo_tag(b) ||
+    !eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
+        return false
+    }
+    type_vec_equal(type_args(a), type_args(b))
+}
+
+fn type_vec_equal(a: Vec<TypeInfo>, b: Vec<TypeInfo>) -> bool {
+    if len(a) != len(b) {
+        return false
+    }
+    let mut i = 0
+    while i < len(a) {
+        if !same_type(get_unchecked(a, i), get_unchecked(b, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn report_trait_error(env: TypeEnv, code: String, message: String) {
+    env.error_count = env.error_count + 1
+    push(env.errors, clone(message))
+    let span = record::DiagnosticSpan_from_raw(0, 0)
+    let diag = diag_mod::Diagnostic_new(code, diag_mod::SEV_ERROR(), span, message)
+    push(env.diagnostics, diag)
+}
+
+fn reject_dyn_in_sig(env: TypeEnv, sig: FnSig) {
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < param_count {
+        reject_dyn_in_type(env, contract_fn_sig::FnSig_param_at(sig, i))
+        i = i + 1
+    }
+    reject_dyn_in_type(env, contract_fn_sig::FnSig_return_type(sig))
+}
+
+fn reject_dyn_in_type(env: TypeEnv, ty: TypeInfo) {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_STRUCT() &&
+    text::starts_with(contract_type_access::TypeInfo_name(ty), "dyn ") {
+        report_trait_error(
+            env,
+            codes::DIAG_TYPE_DYN_TRAIT(),
+            "dyn Trait requires a separate dynamic-dispatch ABI; use a generic trait bound"
+        )
+        return
+    }
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        reject_dyn_in_type(env, contract_type_access::TypeInfo_type_arg_at(ty, i))
+        i = i + 1
+    }
 }

@@ -83,6 +83,9 @@ fn NK_TYPE_RESULT() -> i32 { 95 }
 fn NK_ERROR() -> i32 { 96 }
 fn NK_MISSING() -> i32 { 97 }
 fn NK_PROOF_CONTRACT() -> i32 { 98 }
+// Contextual trait associated-type declaration stored in a declaration's
+// type-annotation metadata rather than its executable member children.
+fn NK_ASSOC_TYPE() -> i32 { 99 }
 
 // Arithmetic operator kinds.
 fn OP_ADD() -> i32 { 1 }

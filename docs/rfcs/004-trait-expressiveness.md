@@ -1,7 +1,7 @@
 # RFC-004: Trait expressiveness（Self・型引数・associated function・coherence）
 
-ステータス: **DRAFT**  
-関連: [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)、[ADR-038](../adr/ADR-038-operator-overload-traits.md)、[ADR-039](../adr/ADR-039-question-mark-operator.md)、[ADR-040](../adr/ADR-040-typed-mir-signature-registry.md)、[ADR-042](../adr/ADR-042-intrinsic-layer-separation.md)
+ステータス: **DRAFT（Language v2 core の trait 境界は ADR-062 で採択）**
+関連: [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)、[ADR-038](../adr/ADR-038-operator-overload-traits.md)、[ADR-039](../adr/ADR-039-question-mark-operator.md)、[ADR-040](../adr/ADR-040-typed-mir-signature-registry.md)、[ADR-042](../adr/ADR-042-intrinsic-layer-separation.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)
 提案日: 2026-07-11  
 改訂日: 2026-07-11 — associated function・output 一意性・coherence・演算子/`?` の canonical 解決を追加
 
@@ -10,7 +10,9 @@
 ## 目的
 
 ADR-036/038/039 が前提とする trait 面を、**現行型システムで書ける最小表現**に固定する。
-associated type を先送りし、型引数と `Self`（メソッド戻り）で代替する。
+この RFC の初期案は associated type を先送りしていたが、Language v2 の trait core では
+[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md) が `Self::Item` projection を含めて置き換える。
+型引数と `Self`（メソッド戻り）も引き続き利用する。
 あわせて、初期 solver が壊れない **coherence / functional dependency** と、
 method call と language syntax の解決経路の分離を定義する。
 
@@ -28,7 +30,7 @@ method call と language syntax の解決経路の分離を定義する。
 | `Self`（下記 §2） | ✅ | trait 宣言内と impl 内で意味が異なる |
 | 型パラメータ付き trait | ✅ | `From<T>`, `Add<Rhs>`, `TryFrom<T, E>` |
 | blanket impl | ✅ | コンパイラ既知の少数（`Into`/`TryInto` 等）。任意ユーザー blanket は後続 |
-| associated type | ❌ 初期 | RFC 後継で導入 |
+| associated type | ✅ Language v2 | `type Item` と `Self::Item` projection。詳細は ADR-062 |
 | `derive` | ❌ 初期 | #696 後続 |
 | trait import スコープ（method call） | ✅ 最小 | §6 |
 
@@ -76,7 +78,12 @@ trait TryFrom<T, E> {
 ADR-044 が採択しているのは trait / impl / `x.method()`。
 `T::default()` と `U::from(x)` の構文・名前解決は本 RFC が補完する。
 
-### 4. associated type の代替と output 一意性
+### 4. associated type の代替と output 一意性（初期案の履歴）
+
+初期案では associated type を型引数で代替した。Language v2 ではこの制約を
+ADR-062 が置き換え、trait 内の associated type 宣言、impl 内の concrete 定義、
+`Self::Name` projection を正規形とする。以下の型引数による表現は、既存 API の
+移行と、associated type をまだ採択していない過去の設計面を説明する履歴として残す。
 
 ```text
 Iterator<Item>          — Item を型引数に
@@ -166,7 +173,7 @@ impl discovery:
 ### 8. 禁止（初期）
 
 - ユーザー定義の任意 blanket impl
-- associated type 構文
+- ADR-062 が採択した associated type を除く、未採択の拡張的 associated item 構文
 - `Into` / `TryInto` の直接実装
 - 同一 input key への複数 impl
 - language syntax の import 依存解決

@@ -1,8 +1,7 @@
-use typechecker::kinds
 use typechecker::contract_fn_sig
 use typechecker::contract_type_param_bounds
 use typechecker::contract_trait_impl
-use typechecker::contract_env_record
+use typechecker::contract_trait_impl_record
 use typechecker::contract_type_access
 use typechecker::names
 use typechecker::unify
@@ -15,17 +14,95 @@ fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bo
     if is_builtin_trait_impl(resolved_ty, bound) {
         return true
     }
+    let match_count = matching_trait_impl_count(env, resolved_ty, bound)
+    if match_count > 1 {
+        unify::type_error(
+            env,
+            concat(
+                String_from("ambiguous trait bound: multiple impls satisfy "),
+                names::type_display_name(bound)
+            )
+        )
+        return false
+    }
+    match_count == 1
+}
+
+fn matching_trait_impl_count(env: TypeEnv, resolved_ty: TypeInfo, bound: TypeInfo) -> i32 {
     let count = len(env.trait_impls)
+    let mut matches = 0
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
-        if eq(contract_trait_impl::TraitImplInfo_trait_name(impl_info), contract_type_access::TypeInfo_name(bound)) &&
-        names::same_named_type(contract_trait_impl::TraitImplInfo_self_ty(impl_info), resolved_ty) {
-            return true
+        if trait_impl_matches(impl_info, resolved_ty, bound) {
+            matches = matches + 1
         }
         i = i + 1
     }
-    false
+    matches
+}
+
+fn trait_impl_matches(impl_info: TraitImplInfo, resolved_ty: TypeInfo, bound: TypeInfo) -> bool {
+    if !eq(
+        contract_trait_impl::TraitImplInfo_trait_name(impl_info),
+        contract_type_access::TypeInfo_name(bound)
+    ) {
+        return false
+    }
+    if !type_matches_pattern(
+        contract_trait_impl::TraitImplInfo_self_ty(impl_info),
+        resolved_ty
+    ) {
+        return false
+    }
+    type_args_match(
+        contract_trait_impl_record::trait_impl_info_trait_args(impl_info),
+        bound
+    )
+}
+
+fn type_args_match(impl_args: Vec<TypeInfo>, bound: TypeInfo) -> bool {
+    let bound_count = contract_type_access::TypeInfo_type_arg_count(bound)
+    if len(impl_args) != bound_count {
+        return false
+    }
+    let mut i = 0
+    while i < bound_count {
+        if !type_matches_pattern(
+            get_unchecked(impl_args, i),
+            contract_type_access::TypeInfo_type_arg_at(bound, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn type_matches_pattern(pattern: TypeInfo, actual: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
+        return true
+    }
+    if contract_type_access::TypeInfo_tag(pattern) != contract_type_access::TypeInfo_tag(actual) ||
+    !eq(contract_type_access::TypeInfo_name(pattern), contract_type_access::TypeInfo_name(actual)) {
+        return false
+    }
+    let pattern_count = contract_type_access::TypeInfo_type_arg_count(pattern)
+    let actual_count = contract_type_access::TypeInfo_type_arg_count(actual)
+    if pattern_count != actual_count {
+        return false
+    }
+    let mut i = 0
+    while i < pattern_count {
+        if !type_matches_pattern(
+            contract_type_access::TypeInfo_type_arg_at(pattern, i),
+            contract_type_access::TypeInfo_type_arg_at(actual, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
 }
 
 fn is_builtin_trait_impl(ty: TypeInfo, bound: TypeInfo) -> bool {

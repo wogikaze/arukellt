@@ -22,6 +22,16 @@ fn FnSig_with_name(sig: FnSig, name: String) -> FnSig {
     FnSig_new(name, sig.param_types, sig.return_type, sig.type_params, sig.type_param_bounds)
 }
 
+fn FnSig_with_types(sig: FnSig, param_types: Vec<TypeInfo>, return_type: TypeInfo) -> FnSig {
+    FnSig_new(
+        FnSig_name(sig),
+        param_types,
+        return_type,
+        sig.type_params,
+        sig.type_param_bounds
+    )
+}
+
 fn FnSig_name(sig: FnSig) -> String {
     clone(sig.name)
 }

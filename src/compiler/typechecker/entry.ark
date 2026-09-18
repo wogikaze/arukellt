@@ -29,7 +29,7 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
     contract_result_state::typecheck_result_set_errors(result, resolver_errors::typecheck_resolve_errors(resolve_ctx))
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
-    let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls), module_wit::collect_wit_fn_sigs(wit_paths, decls))
+    let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls, env), module_wit::collect_wit_fn_sigs(wit_paths, decls))
     env.fn_sig_index = build_fn_sig_index(fn_sigs)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
@@ -67,7 +67,7 @@ fn check_impl_methods(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
             let meth_env = module_env_merge::type_env_for_fn_check(env)
-            let method_sig = module_fns::impl_method_sig(node, meth)
+            let method_sig = module_fns::impl_method_sig(env, node, meth)
             body::check_fn_body_with_sig(meth_env, fn_sigs, enum_defs, meth, method_sig)
             module_env_merge::merge_type_env(env, meth_env)
         }

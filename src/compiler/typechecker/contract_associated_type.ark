@@ -1,0 +1,31 @@
+use typechecker::contract_associated_type_record
+
+fn TraitAssociatedTypeInfo_new(
+    trait_name: String,
+    self_ty: TypeInfo,
+    name: String,
+    value_ty: TypeInfo
+) -> TraitAssociatedTypeInfo {
+    contract_associated_type_record::TraitAssociatedTypeInfo_new(
+        trait_name,
+        self_ty,
+        name,
+        value_ty
+    )
+}
+
+fn trait_associated_type_info_trait_name(info: TraitAssociatedTypeInfo) -> String {
+    contract_associated_type_record::trait_associated_type_info_trait_name(info)
+}
+
+fn trait_associated_type_info_self_ty(info: TraitAssociatedTypeInfo) -> TypeInfo {
+    contract_associated_type_record::trait_associated_type_info_self_ty(info)
+}
+
+fn trait_associated_type_info_name(info: TraitAssociatedTypeInfo) -> String {
+    contract_associated_type_record::trait_associated_type_info_name(info)
+}
+
+fn trait_associated_type_info_value_ty(info: TraitAssociatedTypeInfo) -> TypeInfo {
+    contract_associated_type_record::trait_associated_type_info_value_ty(info)
+}

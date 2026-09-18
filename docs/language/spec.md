@@ -278,9 +278,11 @@ Type parameter bounds are supported by the current trait system:
 fn print_value<T: Display>(x: T) { … }
 ```
 
-The issue specification states a maximum of 2 type parameters per
-generic item. In practice the parser accepts an arbitrary number;
-the limit is a design guideline per issue #159.
+Generic items have an ordered sequence of type parameters. The language does
+not impose a small semantic maximum; backend or toolchain resource limits are
+implementation issues and must not change type-checking meaning. The
+three-parameter `generic_three_param.ark` fixture is a regression check for
+this contract.
 
 Generics are compiled via **monomorphisation** — specialised code is
 generated for each concrete type instantiation (ADR-003).
@@ -1560,8 +1562,14 @@ clause_param  = pattern ;
               (* patterns instead of typed identifiers *)
 struct_def  = "struct" IDENT type_params? "{" field_list? "}" ;
 enum_def    = "enum" IDENT type_params? "{" variant_list? "}" ;
-trait_def   = "trait" IDENT type_params? "{" method_sig* "}" ;
-impl_block  = "impl" (IDENT "for")? IDENT "{" fn_def* "}" ;
+trait_def   = "trait" IDENT type_params? "{" trait_item* "}" ;
+impl_block  = "impl" type_expr ("for" type_expr)? "{" impl_item* "}" ;
+trait_item  = associated_type_decl | method_sig ;
+impl_item   = associated_type_def | fn_def ;
+associated_type_decl
+            = "type" IDENT ("=" type_expr)? ;
+associated_type_def
+            = "type" IDENT "=" type_expr ;
 
 type_params = "<" type_param ("," type_param)* ">" ;
 type_param  = IDENT (":" IDENT ("+" IDENT)*)? ;
@@ -1573,7 +1581,7 @@ variant_list= variant ("," variant)* ","? ;
 variant     = IDENT
             | IDENT "(" type_expr ("," type_expr)* ")"
             | IDENT "{" field_list? "}" ;
-method_sig  = IDENT "(" param_list? ")" ("->" type_expr)? ;
+method_sig  = "fn" IDENT "(" param_list? ")" ("->" type_expr)? ;
 where_block = "where" ident_eq_expr+ ;
 ident_eq_expr = IDENT "=" expr ;
 
@@ -1648,6 +1656,7 @@ type_expr   = "()"
             | "(" type_expr ("," type_expr)+ ")"
             | "[" type_expr (";" INT_LIT)? "]"
             | "fn" "(" type_list? ")" "->" type_expr
+            | "dyn" type_expr
             | IDENT
             | IDENT "." IDENT
             | IDENT "<" type_list ">" ;

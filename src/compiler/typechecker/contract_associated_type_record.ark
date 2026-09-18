@@ -1,0 +1,38 @@
+use typechecker::contract_types_record
+
+struct TraitAssociatedTypeInfo {
+    trait_name: String,
+    self_ty: TypeInfo,
+    name: String,
+    value_ty: TypeInfo,
+}
+
+fn TraitAssociatedTypeInfo_new(
+    trait_name: String,
+    self_ty: TypeInfo,
+    name: String,
+    value_ty: TypeInfo
+) -> TraitAssociatedTypeInfo {
+    TraitAssociatedTypeInfo {
+        trait_name: trait_name,
+        self_ty: self_ty,
+        name: name,
+        value_ty: value_ty,
+    }
+}
+
+fn trait_associated_type_info_trait_name(info: TraitAssociatedTypeInfo) -> String {
+    clone(info.trait_name)
+}
+
+fn trait_associated_type_info_self_ty(info: TraitAssociatedTypeInfo) -> TypeInfo {
+    info.self_ty
+}
+
+fn trait_associated_type_info_name(info: TraitAssociatedTypeInfo) -> String {
+    clone(info.name)
+}
+
+fn trait_associated_type_info_value_ty(info: TraitAssociatedTypeInfo) -> TypeInfo {
+    info.value_ty
+}

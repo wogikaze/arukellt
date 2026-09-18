@@ -1,0 +1,25 @@
+use typechecker::contract_trait_info_record
+
+fn TraitInfo_new(name: String, type_param_count: i32) -> TraitInfo {
+    contract_trait_info_record::TraitInfo_new(name, type_param_count)
+}
+
+fn trait_info_name(info: TraitInfo) -> String {
+    contract_trait_info_record::trait_info_name(info)
+}
+
+fn trait_info_type_param_count(info: TraitInfo) -> i32 {
+    contract_trait_info_record::trait_info_type_param_count(info)
+}
+
+fn trait_info_associated_type_count(info: TraitInfo) -> i32 {
+    contract_trait_info_record::trait_info_associated_type_count(info)
+}
+
+fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
+    contract_trait_info_record::trait_info_associated_type_at(info, index)
+}
+
+fn trait_info_push_associated_type(info: TraitInfo, name: String) {
+    contract_trait_info_record::trait_info_push_associated_type(info, name)
+}

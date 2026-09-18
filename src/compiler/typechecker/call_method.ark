@@ -1,9 +1,11 @@
 use typechecker::kinds
 use typechecker::ast_access
+use typechecker::associated_types
 use typechecker::call_args
 use typechecker::call_method_args
 use typechecker::call_generic
 use typechecker::contract_fn_sig
+use typechecker::contract_trait_method_record
 use typechecker::contract_type_access
 use typechecker::contract_type_param_bounds
 use typechecker::contract_type_constructors
@@ -11,6 +13,7 @@ use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::sigs
 use typechecker::trait_method_registry
+use typechecker::trait_method_record
 use typechecker::vec_core_mono
 
 fn simple_type(tag: i32) -> TypeInfo {
@@ -66,9 +69,10 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     if !contract_fn_sig::FnSig_has_name(sig) {
         // Fallback: receiver might be a type variable bounded by a trait.
         // Try to resolve the method via trait bounds.
-        let trait_sig = try_resolve_trait_method_from_bounds(env, scope, fn_sigs, enum_defs, node, method_name)
+        let trait_resolution = try_resolve_trait_method_from_bounds(env, scope, fn_sigs, enum_defs, node, method_name)
+        let trait_sig = contract_trait_method_record::trait_method_entry_sig(trait_resolution)
         if contract_fn_sig::FnSig_has_name(trait_sig) {
-            return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_sig)
+            return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_resolution)
         }
         return simple_type(commands::TY_UNKNOWN())
     }
@@ -77,9 +81,10 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     // Without this, `x.clone()` where `x: T: Clone` would resolve to the
     // prelude `clone(s: String) -> String` instead of `Clone::clone -> Self`.
     if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_TYPE_VAR() {
-        let trait_sig = try_resolve_trait_method_from_bounds(env, scope, fn_sigs, enum_defs, node, method_name)
+        let trait_resolution = try_resolve_trait_method_from_bounds(env, scope, fn_sigs, enum_defs, node, method_name)
+        let trait_sig = contract_trait_method_record::trait_method_entry_sig(trait_resolution)
         if contract_fn_sig::FnSig_has_name(trait_sig) {
-            return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_sig)
+            return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_resolution)
         }
     }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
@@ -201,12 +206,12 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
     String_new()
 }
 
-fn try_resolve_trait_method_from_bounds(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, method_name: String) -> FnSig {
+fn try_resolve_trait_method_from_bounds(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, method_name: String) -> TraitMethodEntry {
     let recv_node = ast_access::node_child_at(node, 0)
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     // Only attempt trait resolution when the receiver is a type variable.
     if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_TYPE_VAR() {
-        return contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+        return trait_method_registry::lookup_trait_method(env, String_new(), String_new())
     }
     let recv_ty_name = contract_type_access::TypeInfo_name(recv_ty)
     // Search the current function's type parameter bounds for a trait
@@ -222,19 +227,34 @@ fn try_resolve_trait_method_from_bounds(env: TypeEnv, scope: LocalScope, fn_sigs
             while j < inner_bound_count {
                 let bound_ty = contract_type_param_bounds::TypeParamBounds_bound_at(tp_bound, j)
                 let trait_name = contract_type_access::TypeInfo_name(bound_ty)
-                let trait_sig = trait_method_registry::lookup_trait_method_sig(env, clone(trait_name), clone(method_name))
+                let trait_entry = trait_method_registry::lookup_trait_method(
+                    env,
+                    clone(trait_name),
+                    clone(method_name)
+                )
+                let trait_sig = contract_trait_method_record::trait_method_entry_sig(trait_entry)
                 if contract_fn_sig::FnSig_has_name(trait_sig) {
-                    return trait_sig
+                    let resolved_sig = associated_types::resolve_trait_method_signature(
+                        env,
+                        trait_entry,
+                        bound_ty,
+                        recv_ty
+                    )
+                    return trait_method_record::trait_method_entry_with_sig(
+                        trait_entry,
+                        resolved_sig
+                    )
                 }
                 j = j + 1
             }
         }
         i = i + 1
     }
-    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+    trait_method_registry::lookup_trait_method(env, String_new(), String_new())
 }
 
-fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig) -> TypeInfo {
+fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, entry: TraitMethodEntry) -> TypeInfo {
+    let sig = contract_trait_method_record::trait_method_entry_sig(entry)
     let child_count = ast_access::node_child_count(node)
     let explicit_args = child_count - 1
     let param_count = contract_fn_sig::FnSig_param_count(sig)

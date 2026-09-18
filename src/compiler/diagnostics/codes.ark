@@ -36,6 +36,11 @@ fn DIAG_TYPE_TRAIT_BOUND() -> String { String_from("E0211") }
 fn DIAG_TYPE_MOVE_AFTER_USE() -> String { String_from("E0212") }
 fn DIAG_TYPE_CLOSURE_BORROW_ESCAPE() -> String { String_from("E0213") }
 fn DIAG_TYPE_CLOSURE_BORROW_CONFLICT() -> String { String_from("E0214") }
+fn DIAG_TYPE_TRAIT_CONFLICT() -> String { String_from("E0215") }
+fn DIAG_TYPE_TRAIT_BLANKET() -> String { String_from("E0216") }
+fn DIAG_TYPE_DYN_TRAIT() -> String { String_from("E0217") }
+fn DIAG_TYPE_TRAIT_ARITY() -> String { String_from("E0218") }
+fn DIAG_TYPE_ASSOCIATED_ITEM() -> String { String_from("E0219") }
 
 fn DIAG_TARGET_UNKNOWN() -> String { String_from("E0300") }
 fn DIAG_TARGET_UNIMPLEMENTED() -> String { String_from("E0301") }

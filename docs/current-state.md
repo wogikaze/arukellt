@@ -51,7 +51,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
 | SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
 | Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |
-| Trait expressiveness | RFC-004: Self + 型引数、associated type 先送り | 未実装 → **RFC DRAFT** |
+| Trait expressiveness | ADR-062: Self、型引数、associated item、coherence、static dispatch | #856 の trait core を実装中。associated type/function、重複・blanket・arity・dyn 診断を current selfhost で検証済み。stdlib 全体の trait 移行は継続中 |
 
 ### CoreHIR boundary and driver responsibilities
 
@@ -79,6 +79,23 @@ The committed pinned bootstrap predates generic enum payload support, so the
 canonical pinned `selfhost build-compiler` path still needs the bootstrap
 refresh/migration work tracked by the v2 migration and final-audit issues; the
 targeted #855 receipt uses the locally generated current selfhost artifact.
+
+### Language v2 trait core (#856 / ADR-062)
+
+The current selfhost typechecker uses a structural trait key consisting of the
+trait identity, ordered type arguments, and implementing type. It recognizes
+`Self` in trait and impl signatures, associated functions, `type Item` /
+`type Item = Concrete`, and `Self::Item` projection for concrete impl methods.
+Duplicate concrete impls, user blanket impls, trait arity mismatches, and
+`dyn Trait` type positions are diagnosed as E0215–E0218; malformed associated
+items use E0219. Trait method calls in generic bounds substitute the bound's
+trait arguments before checking the call. Dispatch remains monomorphized and
+static; a dynamic object ABI is not inferred.
+
+The same registry and source-level result are used for `wasm32-gc` and the
+`wasm32` linear-memory fallback. The positive #856 fixture generates and
+validates both a GC component and a linear core module; the negative fixtures
+exercise coherence, blanket, arity, and dynamic-dispatch boundaries.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
@@ -129,10 +146,10 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 ## Test Health
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
-- Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2880 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1292 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2880 entries after the v2 ownership and closure-capture fixtures were added, so the current registry remainder is 1292. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
+- Fixture registry: 2889 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1301 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2889 entries after the v2 ownership, closure-capture, and trait-core fixtures were added, so the current registry remainder is 1301. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 

@@ -1,0 +1,39 @@
+use std::host::stdio
+
+trait Factory<T> {
+    type Item
+    fn make(value: T) -> Self
+    fn item(self: Self) -> Self::Item
+    fn typed(self: Self) -> T
+}
+
+struct Boxed {
+    value: i32,
+}
+
+impl Factory<i32> for Boxed {
+    type Item = i32
+
+    fn make(value: i32) -> Boxed {
+        Boxed { value: value }
+    }
+
+    fn item(self: Boxed) -> i32 {
+        self.value
+    }
+
+    fn typed(self: Boxed) -> i32 {
+        self.value
+    }
+}
+
+fn get_typed<T: Factory<i32>>(value: T) -> i32 {
+    value.typed()
+}
+
+fn main() {
+    let boxed = Boxed::make(7)
+    let item = boxed.item()
+    let typed = get_typed(Boxed::make(9))
+    stdio::println(concat((item).to_string(), (typed).to_string()))
+}

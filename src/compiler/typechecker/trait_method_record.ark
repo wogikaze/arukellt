@@ -10,10 +10,21 @@ struct TraitMethodEntry {
     trait_name: String,
     method_name: String,
     sig: FnSig,
+    trait_type_param_count: i32,
 }
 
-fn TraitMethodEntry_new(trait_name: String, method_name: String, sig: FnSig) -> TraitMethodEntry {
-    TraitMethodEntry { trait_name: trait_name, method_name: method_name, sig: sig }
+fn TraitMethodEntry_new(
+    trait_name: String,
+    method_name: String,
+    sig: FnSig,
+    trait_type_param_count: i32
+) -> TraitMethodEntry {
+    TraitMethodEntry {
+        trait_name: trait_name,
+        method_name: method_name,
+        sig: sig,
+        trait_type_param_count: trait_type_param_count,
+    }
 }
 
 fn trait_method_entry_trait_name(entry: TraitMethodEntry) -> String {
@@ -26,4 +37,17 @@ fn trait_method_entry_method_name(entry: TraitMethodEntry) -> String {
 
 fn trait_method_entry_sig(entry: TraitMethodEntry) -> FnSig {
     entry.sig
+}
+
+fn trait_method_entry_with_sig(entry: TraitMethodEntry, sig: FnSig) -> TraitMethodEntry {
+    TraitMethodEntry {
+        trait_name: entry.trait_name,
+        method_name: entry.method_name,
+        sig: sig,
+        trait_type_param_count: entry.trait_type_param_count,
+    }
+}
+
+fn trait_method_entry_trait_type_param_count(entry: TraitMethodEntry) -> i32 {
+    entry.trait_type_param_count
 }

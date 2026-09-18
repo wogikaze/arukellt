@@ -1,6 +1,7 @@
 use std::text
 use parser::core_ast_children
 use parser::core_ast_factory
+use parser::core_ast_span_fields
 use parser::core_ast_text_fields
 use parser::core_ast_type_ann
 use parser::core_api_cursor
@@ -9,11 +10,15 @@ use parser::kinds
 use parser::token_state
 use parser::type_token_expect
 use parser::type_token_predicates
+use lexer::tokens
 
 fn parse_type(p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     let t = core_api_cursor::cur(p)
     let kind = token_state::Token_kind(t)
+    if kind == tokens::TK_IDENT() && eq(token_state::Token_text(t), "dyn") {
+        return parse_dyn_type(p, t)
+    }
     if type_token_predicates::is_named_start(kind) {
         let named = parse_named_type(p, t)
         if type_token_predicates::is_generic_start(core_api_cursor::peek_kind(p)) {
@@ -29,6 +34,24 @@ fn parse_type(p: Parser) -> AstNode {
     }
     core_api_expect::error(p, concat("expected type, got ", to_string(kind)))
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), "_error", core_api_expect::tok_span(t))
+}
+
+// `dyn` is contextual in type position.  Keeping the marker in the named
+// type text lets the typechecker reject it at the semantic boundary without
+// making `dyn` unavailable as an ordinary identifier in expression position.
+fn parse_dyn_type(p: Parser, dyn_token: Token) -> AstNode {
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    let trait_ty = parse_type(p)
+    let node = core_ast_factory::AstNode_new(
+        kinds::NK_TYPE_NAMED(),
+        core_ast_span_fields::AstNode_span(dyn_token)
+    )
+    core_ast_text_fields::AstNode_set_text(
+        node,
+        concat("dyn ", core_ast_text_fields::AstNode_text(trait_ty))
+    )
+    node
 }
 
 fn parse_named_type(p: Parser, t: Token) -> AstNode {

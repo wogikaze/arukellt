@@ -276,7 +276,10 @@ diag:selfhost/parser_recovery_decls.ark
 diag:selfhost/ret_stmt_mismatch.ark
 diag:selfhost/ret_type_mismatch.ark
 diag:selfhost/trait_ambiguous_bound.ark
+diag:diagnostics/trait_blanket_impl.ark
+diag:diagnostics/trait_dyn_boundary.ark
 diag:selfhost/trait_overlapping_impl.ark
+diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/typescheme_deny_no_generalize.ark
@@ -421,6 +424,7 @@ run:generics/two_params.ark
 run:generics/vec_generic.ark
 run:generics_v1/generic_method_call.ark
 run:generics_v1/generic_multi_param.ark
+run:generics_v1/generic_three_param.ark
 run:generics_v1/generic_struct.ark
 run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_generic_call.ark
@@ -1973,6 +1977,7 @@ run:trait/builtin_vec_method.ark
 run:trait/method_chain.ark
 run:trait/operator_overload.ark
 run:trait/trait_impl.ark
+run:trait/trait_core_v2.ark
 run:v0_constraints/no_impl.ark
 run:v0_constraints/no_nested_generics.ark
 run:v128_basic/basic.ark
@@ -2069,6 +2074,7 @@ t3-compile:generics/two_params.ark
 t3-compile:generics/vec_generic.ark
 t3-compile:generics_v1/generic_method_call.ark
 t3-compile:generics_v1/generic_multi_param.ark
+t3-compile:generics_v1/generic_three_param.ark
 t3-compile:generics_v1/generic_struct.ark
 t3-compile:generics_v1/mir_specialization.ark
 t3-compile:generics_v1/nested_generic_call.ark
@@ -2419,6 +2425,7 @@ t3-compile:trait/builtin_method.ark
 t3-compile:trait/method_chain.ark
 t3-compile:trait/operator_overload.ark
 t3-compile:trait/trait_impl.ark
+t3-compile:trait/trait_core_v2.ark
 t3-compile:v0_constraints/no_impl.ark
 t3-compile:v0_constraints/no_nested_generics.ark
 t3-compile:variables/bool_lit.ark
@@ -2499,6 +2506,7 @@ t3-run:generics/two_params.ark
 t3-run:generics/vec_generic.ark
 t3-run:generics_v1/generic_method_call.ark
 t3-run:generics_v1/generic_multi_param.ark
+t3-run:generics_v1/generic_three_param.ark
 t3-run:generics_v1/generic_struct.ark
 t3-run:generics_v1/mir_specialization.ark
 t3-run:generics_v1/nested_generic_call.ark
@@ -2844,6 +2852,7 @@ t3-run:tail_call_ref/basic.ark
 t3-run:trait/basic_impl.ark
 t3-run:trait/builtin_method.ark
 t3-run:trait/method_chain.ark
+t3-run:trait/trait_core_v2.ark
 t3-run:trait/operator_overload.ark
 t3-run:trait/trait_impl.ark
 t3-run:v0_constraints/no_impl.ark

@@ -1,0 +1,262 @@
+use std::text
+use typechecker::ast_access
+use typechecker::contract_associated_type
+use typechecker::contract_fn_sig
+use typechecker::contract_trait_method_record
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::trait_method_record
+use typechecker::types
+
+fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig {
+    let ann_count = ast_access::node_type_ann_count(impl_node)
+    if ann_count < 2 {
+        return sig
+    }
+    let trait_node = ast_access::node_type_ann_at(impl_node, 0)
+    let self_node = ast_access::node_type_ann_at(impl_node, 1)
+    let trait_name = ast_access::node_text(trait_node)
+    let self_ty = types::resolve_type_ann_node(self_node)
+    let params = Vec::new<TypeInfo>()
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < param_count {
+        push(
+            params,
+            resolve_projection(
+                env,
+                clone(trait_name),
+                self_ty,
+                contract_fn_sig::FnSig_param_at(sig, i)
+            )
+        )
+        i = i + 1
+    }
+    let return_type = resolve_projection(
+        env,
+        clone(trait_name),
+        self_ty,
+        contract_fn_sig::FnSig_return_type(sig)
+    )
+    contract_fn_sig::FnSig_with_types(sig, params, return_type)
+}
+
+fn resolve_projection_for_receiver(
+    env: TypeEnv,
+    trait_name: String,
+    receiver: TypeInfo,
+    ty: TypeInfo
+) -> TypeInfo {
+    resolve_projection(env, trait_name, receiver, ty)
+}
+
+fn resolve_trait_method_signature(
+    env: TypeEnv,
+    entry: TraitMethodEntry,
+    bound: TypeInfo,
+    receiver: TypeInfo
+) -> FnSig {
+    let sig = contract_trait_method_record::trait_method_entry_sig(entry)
+    let trait_name = contract_trait_method_record::trait_method_entry_trait_name(entry)
+    let trait_param_count = trait_method_record::trait_method_entry_trait_type_param_count(entry)
+    let params = Vec::new<TypeInfo>()
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < param_count {
+        push(
+            params,
+            resolve_trait_method_type(
+                env,
+                clone(trait_name),
+                bound,
+                receiver,
+                sig,
+                trait_param_count,
+                contract_fn_sig::FnSig_param_at(sig, i)
+            )
+        )
+        i = i + 1
+    }
+    let return_type = resolve_trait_method_type(
+        env,
+        clone(trait_name),
+        bound,
+        receiver,
+        sig,
+        trait_param_count,
+        contract_fn_sig::FnSig_return_type(sig)
+    )
+    contract_fn_sig::FnSig_with_types(sig, params, return_type)
+}
+
+fn resolve_trait_method_type(
+    env: TypeEnv,
+    trait_name: String,
+    bound: TypeInfo,
+    receiver: TypeInfo,
+    sig: FnSig,
+    trait_param_count: i32,
+    ty: TypeInfo
+) -> TypeInfo {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_TYPE_VAR() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        if eq(clone(name), "Self") {
+            return receiver
+        }
+        let param_index = trait_type_param_index(sig, trait_param_count, clone(name))
+        let bound_arg_count = contract_type_access::TypeInfo_type_arg_count(bound)
+        if param_index >= 0 && param_index < bound_arg_count {
+            return contract_type_access::TypeInfo_type_arg_at(bound, param_index)
+        }
+        return ty
+    }
+    if tag == commands::TY_STRUCT() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        let prefix = String_from("Self::")
+        if text::starts_with(clone(name), clone(prefix)) {
+            let assoc_name = substring(name, len(prefix), len(name))
+            let resolved = lookup_associated_type(
+                env,
+                clone(trait_name),
+                receiver,
+                assoc_name
+            )
+            if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
+                return resolved
+            }
+        }
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if arg_count == 0 {
+        return ty
+    }
+    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut i = 0
+    while i < arg_count {
+        contract_type_mutation::TypeInfo_push_type_arg(
+            resolved,
+            resolve_trait_method_type(
+                env,
+                clone(trait_name),
+                bound,
+                receiver,
+                sig,
+                trait_param_count,
+                contract_type_access::TypeInfo_type_arg_at(ty, i)
+            )
+        )
+        i = i + 1
+    }
+    resolved
+}
+
+fn trait_type_param_index(sig: FnSig, count: i32, name: String) -> i32 {
+    let mut i = 0
+    while i < count {
+        if eq(
+            contract_fn_sig::FnSig_type_param_at(sig, i),
+            clone(name)
+        ) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn resolve_projection(
+    env: TypeEnv,
+    trait_name: String,
+    receiver: TypeInfo,
+    ty: TypeInfo
+) -> TypeInfo {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_TYPE_VAR() {
+        if eq(contract_type_access::TypeInfo_name(ty), "Self") {
+            return receiver
+        }
+        return ty
+    }
+    if tag == commands::TY_STRUCT() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        let prefix = String_from("Self::")
+        if text::starts_with(clone(name), clone(prefix)) {
+            let assoc_name = substring(name, len(prefix), len(name))
+            let resolved = lookup_associated_type(env, clone(trait_name), receiver, assoc_name)
+            if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
+                return resolved
+            }
+        }
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if arg_count == 0 {
+        return ty
+    }
+    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut i = 0
+    while i < arg_count {
+        contract_type_mutation::TypeInfo_push_type_arg(
+            resolved,
+            resolve_projection(
+                env,
+                clone(trait_name),
+                receiver,
+                contract_type_access::TypeInfo_type_arg_at(ty, i)
+            )
+        )
+        i = i + 1
+    }
+    resolved
+}
+
+fn lookup_associated_type(
+    env: TypeEnv,
+    trait_name: String,
+    receiver: TypeInfo,
+    assoc_name: String
+) -> TypeInfo {
+    let count = len(env.associated_types)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(env.associated_types, i)
+        if eq(
+            contract_associated_type::trait_associated_type_info_trait_name(entry),
+            clone(trait_name)
+        ) && eq(
+            contract_associated_type::trait_associated_type_info_name(entry),
+            clone(assoc_name)
+        ) && same_type(
+            contract_associated_type::trait_associated_type_info_self_ty(entry),
+            receiver
+        ) {
+            return contract_associated_type::trait_associated_type_info_value_ty(entry)
+        }
+        i = i + 1
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(a) != contract_type_access::TypeInfo_tag(b) ||
+    !eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
+        return false
+    }
+    let ac = contract_type_access::TypeInfo_type_arg_count(a)
+    let bc = contract_type_access::TypeInfo_type_arg_count(b)
+    if ac != bc {
+        return false
+    }
+    let mut i = 0
+    while i < ac {
+        if !same_type(
+            contract_type_access::TypeInfo_type_arg_at(a, i),
+            contract_type_access::TypeInfo_type_arg_at(b, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

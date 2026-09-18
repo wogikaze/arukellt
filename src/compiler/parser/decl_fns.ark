@@ -1,11 +1,17 @@
 use lexer::tokens
 use parser::core_ast_children
+use parser::core_ast_factory
+use parser::core_ast_text_fields
 use parser::core_api_cursor
 use parser::core_api_expect
+use parser::core_ast_type_ann
 use parser::decl_headers
 use parser::expr
 use parser::fn_sig
+use parser::kinds
 use parser::stmt
+use parser::token_state
+use parser::types
 
 fn parse_fn_decl(p: Parser) -> AstNode {
     let node = fn_sig::parse_fn_decl_header(p)
@@ -43,8 +49,12 @@ fn parse_fn_members_until_rbrace(p: Parser, node: AstNode) {
         if core_api_cursor::at(p, tokens::TK_RBRACE()) {
             break
         }
-        let member = parse_fn_decl(p)
-        core_ast_children::AstNode_push_child(node, member)
+        if is_associated_type_start(p) {
+            parse_associated_type_member(p, node)
+        } else {
+            let member = parse_fn_decl(p)
+            core_ast_children::AstNode_push_child(node, member)
+        }
         core_api_cursor::skip_newlines(p)
         if core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
             p.pos = p.pos + 1
@@ -52,4 +62,32 @@ fn parse_fn_members_until_rbrace(p: Parser, node: AstNode) {
         }
     }
     core_api_expect::expect_token(p, tokens::TK_RBRACE())
+}
+
+fn is_associated_type_start(p: Parser) -> bool {
+    core_api_cursor::peek_kind(p) == tokens::TK_IDENT() &&
+    eq(core_api_cursor::peek_text(p), "type")
+}
+
+fn parse_associated_type_member(p: Parser, node: AstNode) {
+    let keyword = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let assoc = core_ast_factory::AstNode_new(
+        kinds::NK_ASSOC_TYPE(),
+        core_api_expect::tok_span(keyword)
+    )
+    core_ast_text_fields::AstNode_set_text(assoc, token_state::Token_text(name))
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_EQ() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let value = types::parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(assoc, value)
+    }
+    core_ast_type_ann::AstNode_push_type_ann(node, assoc)
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_SEMI() ||
+    core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
+        p.pos = p.pos + 1
+    }
 }

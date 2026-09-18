@@ -508,6 +508,62 @@ The source of a closure capture is reassigned, moved, or borrowed with an
 incompatible mode while the capture remains live. Shared and mutable capture
 are mutually exclusive under ADR-061.
 
+### E0215 — overlapping trait impl
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | overlapping trait impl |
+
+Two concrete impls have the same trait identity, ordered trait arguments, and
+implementing type. Declaration order never selects one of them.
+
+### E0216 — user blanket trait impl is not allowed
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | blanket trait impl is not allowed for user code |
+
+An impl whose trait arguments or implementing type contains a type variable is
+a blanket impl. Language v2 reserves blanket rules for explicit compiler-owned
+semantic rules.
+
+### E0217 — dynamic trait object is not available
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | dyn Trait requires a separate dynamic-dispatch ABI |
+
+`dyn Trait` is recognized contextually in type position, but v2 static
+dispatch does not infer a trait object or vtable.
+
+### E0218 — trait type argument arity mismatch
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | trait arity mismatch |
+
+An impl supplies a number of trait type arguments different from the trait
+declaration. Generic arity is otherwise not limited to a small fixed number.
+
+### E0219 — invalid associated item
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | invalid associated item |
+
+An impl defines an unknown, duplicate, or missing associated type. The v2 core
+requires a concrete definition for every associated type declared by a trait.
+
 ---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
@@ -948,6 +1004,11 @@ one, please file a bug report.
 | E0212 | error | typecheck | use of moved value |
 | E0213 | error | typecheck | borrowed closure capture escapes its enclosing function |
 | E0214 | error | typecheck | closure capture conflicts with another borrow or move |
+| E0215 | error | typecheck | overlapping trait impl |
+| E0216 | error | typecheck | blanket trait impl is not allowed for user code |
+| E0217 | error | typecheck | dyn Trait requires a separate dynamic-dispatch ABI |
+| E0218 | error | typecheck | trait arity mismatch |
+| E0219 | error | typecheck | invalid associated item |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

@@ -1,7 +1,17 @@
 use typechecker::trait_method_record
 
-fn TraitMethodEntry_new(trait_name: String, method_name: String, sig: FnSig) -> TraitMethodEntry {
-    trait_method_record::TraitMethodEntry_new(trait_name, method_name, sig)
+fn TraitMethodEntry_new(
+    trait_name: String,
+    method_name: String,
+    sig: FnSig,
+    trait_type_param_count: i32
+) -> TraitMethodEntry {
+    trait_method_record::TraitMethodEntry_new(
+        trait_name,
+        method_name,
+        sig,
+        trait_type_param_count
+    )
 }
 
 fn trait_method_entry_trait_name(entry: TraitMethodEntry) -> String {

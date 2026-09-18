@@ -10,8 +10,8 @@ fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
     trait_method_registry::register_trait_method_sigs(env, decls)
 }
 
-fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
-    module_fns::collect_fn_sigs(decls)
+fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
+    module_fns::collect_fn_sigs(decls, env)
 }
 
 fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
