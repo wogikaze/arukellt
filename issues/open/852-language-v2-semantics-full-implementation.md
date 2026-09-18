@@ -25,7 +25,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 - [x] #853 — Ownership / move / Copy / mutability を確定・実装する — RFC 1–4 — depends: none
 - [x] #854 — ADT / Box / slice の値意味論を統一する — RFC 5–7, 25 — depends: 853
-- [ ] #855 — Closure capture / escape / lifetime を実装する — RFC 10 — depends: 853
+- [x] #855 — Closure capture / escape / lifetime を実装する — RFC 10 — depends: 853
 
 ### Trait / API / type system
 
@@ -161,3 +161,4 @@ graph TD
 
 - [x] #853: `ad0c4f21d`, `7fda6273c`; ADR-059; GC/fallback positive parity; `verify fixtures` PASS=1692 FAIL=0. See [#853](853-ownership-move-copy-mutability.md).
 - [x] #854: `ca6b85ad8`; ADR-060; owned ADT / Box / Slice implementation; GC component and linear-memory parity output `42, 1, 1, 8`; `verify lane` and docs/ADR gates PASS. See [#854](../done/854-adt-box-slice-value-semantics.md).
+- [x] #855: `093e2e914`; ADR-061; shared/mutable borrow, move capture, E0213/E0214 escape/conflict diagnostics, and GC/linear positive parity (`borrow:3`, `move:4`). The targeted current-artifact quality lane passed; pinned bootstrap refresh remains an existing #854/#878 boundary. See [#855](../done/855-closure-capture-lifetime.md).

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-18T19:21:15Z",
+  "generated_at": "2026-09-18T20:28:56Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -561,28 +561,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "855",
-      "path": "855-closure-capture-lifetime.md",
-      "title": "855 — Closure capture / escape / lifetime を実装する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "853"
-      ],
-      "blocks_issue_ids": [
-        "872",
-        "874"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1501,8 +1479,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 4,
-        "unchecked": 30
+        "checked": 6,
+        "unchecked": 29
       },
       "orchestration": {
         "class": "blocked-by-upstream",
