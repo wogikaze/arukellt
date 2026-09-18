@@ -24,9 +24,9 @@
 
 値の複製、move、借用、可変性、クロージャ捕捉、評価順序、型変換、Trait解決を、特定のWasm命令やGC heap layoutから独立して定義する。
 
-不変な束縛を既定とし、再代入には `let mut` を使う。
+不変な束縛を既定とし、そのbindingを通した再代入と通常の可変操作には `let mut` を使う。mutabilityと`Copy`可能性は別軸として扱う。
 
-暗黙コピーを許す型とmoveされる型を区別し、複製が必要な場所には `Copy` または `clone` を明示する。
+暗黙コピーを許す型とmoveされる型を区別し、複製が必要な場所には `Copy` または `clone` を明示する。ユーザー定義struct/enumは、全fieldが`Copy`であるだけでは自動的に`Copy`へせず、明示的なopt-inを要求する候補とする。
 
 借用を導入する場合は、共有借用と可変借用、借用の有効範囲、返却または保存を越えるescapeを型検査の契約に含める。
 
@@ -34,11 +34,13 @@
 
 GC、参照カウント、linear memory、native runtimeは、共通の言語意味論を実装する候補である。
 
-`wasm32-gc` と `wasm32` が異なる意味論を提供するのではなく、同一の意味を各ターゲットの表現へloweringする。
+`wasm32-gc` と `wasm32` が異なる意味論を提供するのではなく、同一の意味を各ターゲットの表現へloweringする。Wasm GC 対応環境では managed aggregate や共有グラフを `struct` / `array` / `ref` へ直接 lower する経路を優先し、ファイルサイズ、実行性能、ホストGC統合の利点を狙う。
 
-ターゲットが表現できない機能は、別の値の意味に黙って変換せず、target capability errorとして診断する。
+Wasm GC 非対応環境では linear memory 上の allocator と tracing GC runtime 等を用意し、共有・循環参照を含む通常のソースプログラムを同じ観測可能意味論で実行できるようにする。GCの有無だけを理由に通常コードをcompile-time errorへしない。
 
-この候補は現在の [ADR-002](../adr/ADR-002-memory-model.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md) を変更するため、採択には後続ADRが必要である。
+host固有API、ABI、SIMDなど、本当にターゲット能力に依存する機能はtarget capabilityとして診断する。
+
+この候補は現在の [ADR-002](../adr/ADR-002-memory-model.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md) の責務境界を変更するため、採択には後続ADRが必要である。
 
 ### 2.3 APIと境界
 
@@ -68,13 +70,13 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 |---:|---|---|---|
 | 1 | 暗黙の共有参照 | 値の所有者を明確にし、暗黙共有をmove、`Copy`、`clone`、借用の規則へ置き換える。 | ADR-002、ADR-035と衝突するため後続ADRが必要。 |
 | 2 | `let mut` | 束縛を不変にし、再代入可能性を `let mut` で明示する。 | 新しい言語意味論としてRFCで詳細化する。 |
-| 3 | 構造体とタプル | 構造体とタプルで値型、参照型、moveの分類を一致させる。 | 1と同じ型意味論の後続判断に含める。 |
+| 3 | 構造体とタプル | どちらもowned valueとし、代入はmove、明示`Copy`だけ暗黙copyとする。ユーザー定義型の`Copy`はfield構成だけで自動決定しない。 | 1と同じ型意味論の後続判断に含める。 |
 | 4 | 配列の複製 | 配列の複製、move、要素単位の `Copy` を暗黙挙動から分離する。 | 回帰fixtureと移行診断が必要。 |
-| 5 | `Option` と `Result` | payloadの所有権とunboxingを明示し、参照型であることを意味論の代用にしない。 | ADR-002、ADR-035の表現と要調整。 |
-| 6 | enum | enumの値意味論とheap表現を分け、必要な最適化をbackendへ置く。 | ADR-035のGC layoutとの後続判断が必要。 |
-| 7 | `Box<T>` | `Box<T>` が所有権、配置、単なる表現のどれを意味するかを固定する。 | 型とbackendの境界を別RFCで具体化する。 |
-| 8 | GC依存 | 言語仕様からGC必須という前提を外し、メモリ管理をbackendの選択肢にする。 | ADR-002、ADR-013、ADR-035を変更するため後続ADRが必要。 |
-| 9 | target capability | ターゲットごとの差を機能能力として宣言し、非対応機能をcompile-time errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
+| 5 | `Option` と `Result` | 通常のowned ADTとして定義し、payloadに応じたmove/`Copy`を適用する。GC object、tagged value、unboxed等はbackend表現とする。 | ADR-002、ADR-035の表現と要調整。 |
+| 6 | enum | tagged ADTとしての意味とheap/unboxed表現を分離し、`Copy`は明示opt-in、representation optimizationはbackendへ置く。 | ADR-035のGC layoutとの後続判断が必要。 |
+| 7 | `Box<T>` | heap上の`T`を一意に所有する値として定義する候補とし、borrow、共有所有、tracing GC管理を別概念にする。 | 型とbackendの境界を別RFCで具体化する。 |
+| 8 | GC依存 | Wasm GCを対応環境の優先backendとして積極利用しつつ、非対応環境ではlinear-memory runtime fallbackで同じsource semanticsを維持する。 | ADR-002、ADR-013、ADR-035の責務境界を変更するため後続ADRが必要。 |
+| 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD等の真にtarget固有な機能だけをcapability errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
 | 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-033を拡張する詳細RFCが必要。 |
 | 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。 | ADR-006と整合し、公開面の仕様を補う。 |
 | 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-044、RFC-004、ADR-036と統合する。 |
@@ -85,19 +87,19 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 17 | 型パラメータ数 | 実装都合の上限を言語の理想として固定せず、表現可能なジェネリック規則を定義する。 | ADR-000の暫定制限禁止とADR-003に従う。 |
 | 18 | `Any` | 公開 `Any` による型消去を避け、必要な動的多相は明示したTrait境界で表す。 | 公開型システムの個別判断が必要。 |
 | 19 | `Error` sentinel | compiler内部のError sentinelをユーザーが使う型システムから分離する。 | 診断とエラー型の個別仕様が必要。 |
-| 20 | `i64` と `f64` | 暗黙の数値昇格を禁止し、キャストまたは明示変換を要求する。 | 言語仕様と既存fixtureの移行判断が必要。 |
-| 21 | 混合演算 | 数値型の組み合わせごとの変換表と、演算前後の型規則を定義する。 | normative specへ追加する。 |
+| 20 | `i64` と `f64` | `i64 -> f64`だけでなく異なる具象数値型の暗黙昇格を原則禁止し、キャストまたは明示変換を要求する。 | 言語仕様と既存fixtureの移行判断が必要。 |
+| 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | normative specへ追加する。 |
 | 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | Wasmとnativeの差を検証してから採択する。 |
-| 23 | 評価順序 | 式の評価を左から右へ固定し、副作用の順序を仕様に記録する。 | 実行可能な意味論fixtureが必要。 |
+| 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeを候補とする。 | 実行可能な意味論fixtureが必要。 |
 | 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | stdlibと仕様の同時改訂が必要。 |
 | 25 | slice | sliceを独立したviewまたは借用として定義し、`Vec`との戻り値の不整合を解消する。 | 所有権案と依存するため後続判断が必要。 |
 | 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-003とTrait stdlib案に統合する。 |
-| 27 | let-generalization | let一般化とvalue restrictionを型検査規則として形式化する。 | 型システムRFCで扱う。 |
-| 28 | 糖衣展開 | 脱糖をstdlibの関数名に依存させず、言語レベルの構文規則として定義する。 | parser、typechecker、stdlibの境界を整理する。 |
+| 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | 型システムRFCで扱う。 |
+| 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
 | 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
 | 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | ADR-009、ADR-031との整合確認が必要。 |
 | 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | ADR-031を正本として実装と仕様を一致させる。 |
-| 32 | Prelude | 暗黙に使えるPreludeを小さくし、Traitや言語組み込みと明示的importを分離する。 | stdlib API移行とADR-014の確認が必要。 |
+| 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | stdlib API移行とADR-014の確認が必要。 |
 | 33 | 真偽値 | `true` と `false` を字句リテラルとして一意に扱い、Preludeとの重複をなくす。 | lexer、name resolution、fixtureを同期する。 |
 | 34 | multi-clause関数 | 複数節の関数をどの構文単位としてまとめるかを明示する。 | parserと仕様の個別RFCが必要。 |
 | 35 | `where` | pattern match後のmulti-clauseで、`where` の束縛範囲を一貫させる。 | P0相当の文法回帰fixtureを追加する。 |
@@ -106,7 +108,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-006のABI分類と整合する。 |
 | 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | ADR-007、ADR-013の語彙と再整理する。 |
 | 40 | `wasm32-gc` とMemory64 | GC、memory width、host profileの既定値を別々の設定として説明する。 | ADR-013、ADR-035、current-stateとの同期が必要。 |
-| 41 | 予約キーワード | 将来用途だけの予約を減らし、実装済みまたは採択済みの構文だけを予約する。 | lexer契約と仕様分類を更新する。 |
+| 41 | 予約キーワード | hard reserved / contextual / future-reservedに分類し、未実装という理由だけで将来語を解放しない。 | lexer契約と仕様分類を更新する。 |
 | 42 | 安定性ラベル | stableを実装完成度ではなく、互換性保証のラベルとして扱う。 | ADR-014と整合する。 |
 | 43 | specとredesign | 再設計中の節をstableと誤認させず、仕様の分類と実装状態を同期する。 | ADR-014、ADR-018に従う。 |
 | 44 | 実行可能な文書例 | normativeな例をfixtureまたは検証コマンドへ接続し、根拠のないskipを減らす。 | ADR-029、ADR-057、ADR-018と整合する。 |
@@ -116,9 +118,11 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 
 ### 4.1 所有権、借用、値の表現
 
-move-only型、`Copy` 型、明示的な `clone`、共有借用、可変借用を区別する。
+move-only型、`Copy` 型、明示的な `clone`、共有借用、可変借用を区別する。`Copy`可能性とmutabilityは独立に扱う。
 
-構造体、タプル、配列、enum、`Option`、`Result`、`Box`、`Vec`、`String`について、言語上の値とbackendの格納表現を別々に定義する。
+構造体、タプル、配列、enum、`Option`、`Result`、`Box`、`Vec`、`String`について、言語上はowned valueとしての意味を先に定義し、backendの格納表現と分離する。ユーザー定義struct/enumの`Copy`は全fieldが`Copy`であることを必要条件としつつ、明示的なopt-inを要求する候補とする。
+
+`Box<T>` はheap上の`T`を一意に所有する値として定義する候補とし、`&T` / `&mut T`、共有ownership、tracing GC管理は別概念にする。
 
 GC backendでheap objectを使っても、それが言語上の共有参照や暗黙コピーを意味するとは限らない。
 
@@ -134,7 +138,7 @@ Traitの静的dispatch、`dyn Trait`、associated type、型引数、ユーザ�
 
 ### 4.3 数値、文字列、コレクション
 
-暗黙変換を減らし、整数、浮動小数点、SIMD、文字、byte、Unicode scalar valueの変換境界を表にする。
+異なる具象数値型の暗黙変換は原則禁止し、整数、浮動小数点、SIMD、文字、byte、Unicode scalar valueの明示変換境界を定義する。変換はlossless / checked / wrapping / saturating等の意味を区別し、型ペアごとの暗黙promotion matrixは作らない。
 
 文字列のbyte indexと文字単位の位置を同じ値として扱わず、sliceの寿命と所有権を明示する。
 
@@ -144,11 +148,13 @@ HashMapやIteratorのAPIは型専用のhelperを増やさず、Traitとジェネ
 
 `import`、`use`、Prelude、真偽値、multi-clause、`where`、セミコロン、f-string、Iterator構文を、parserの偶然ではなく仕様上の構文変換として定義する。
 
-糖衣構文が存在する場合、展開先のstdlib名を変更しても言語の意味が変わらないよう、compiler内部のcanonical representationへ直接変換する。
+Preludeは「最小であること」より、小さく安定した集合であることを優先する。予約語はhard reserved / contextual / future-reservedに分類し、未実装であるという理由だけでは将来予約を解除しない。
+
+糖衣構文が存在する場合、展開先のstdlib名を通常の名前解決で検索しない。lang item、pre-resolved symbol、intrinsic等のhygienicな参照へ変換し、stdlib APIの名前変更やユーザー定義名のshadowingでソース構文の意味が変わらないようにする。
 
 ### 4.5 ターゲットとComponent境界
 
-ターゲット名は、値の意味論、メモリ表現、WASI profile、Component emit、Memory64のような独立した能力を一つに混ぜない候補とする。
+ターゲット名は、値の意味論、メモリ表現、WASI profile、Component emit、Memory64のような独立した能力を一つに混ぜない候補とする。Wasm GCは対応環境での優先 lowering とし、非対応環境ではlinear-memory runtime fallbackを用意する。通常の共有・循環参照コードについて、GC featureの有無をsource-level capabilityにはしない。
 
 WIT package identifierはComponent境界の識別子として扱い、ソースモジュールの名前解決と同じ構文規則へ無理に押し込まない。
 
@@ -176,7 +182,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 - `Copy` と `Clone` をどの型に実装するか。
 - 借用エラー、escapeエラー、move後の利用をどう診断するか。
 - GC backendでのheap objectと、言語上の所有者をどう対応づけるか。
-- `wasm32` と `wasm32-gc` の能力差をどの段階で報告するか。
+- `wasm32-gc` のmanaged representationと、`wasm32` fallback runtimeで同じ所有・共有・循環参照意味論をどう対応づけるか。
 
 原案に含まれていたフェーズ日付、完了表示、トップ10の作業順は、実装計画やissueの正本には移さず、各後続ADRの採択後に独立したplanとして作成する。
 
@@ -185,7 +191,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 次の事項は、このRFCだけでは決定しない。
 
 1. 借用検査を言語の必須規則にするか、限定的な静的検査から始めるか。
-2. GC backendで所有権を実行時に表現するか、型検査だけで消去するか。
+2. Wasm GC backendで所有権を実行時にどこまで表現するか、型検査後にどこまで消去するか。またlinear-memory fallbackのcollector/root管理をどのruntime契約にするか。
 3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか。
 4. `dyn Trait`、associated type、coherence、blanket implementationの初期範囲。
 5. overflow、NaN、ゼロ除算、Unicode invalid sequenceの各処理結果。
@@ -202,9 +208,9 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 - 正常系、診断系、ターゲット能力エラーを含む回帰fixture。
 - compile、validate、runtime、必要な場合はComponent/WIT検証のreceipt。
 - stable APIを変更する場合の移行手順。
-- GCと非GCで同じ観測可能結果になることを示す比較。
+- Wasm GC backendとlinear-memory fallbackで、共有・循環参照を含む同じ観測可能結果になることを示す比較。
 
-性能評価は、入力とtoolchainを固定したbenchmarkで行い、原案の相対速度チャートは採択根拠にしない。
+性能評価は、入力とtoolchainを固定したbenchmarkで行い、原案の相対速度チャートは採択根拠にしない。少なくとも `.wasm` size、startup、steady-state runtime、allocation throughput、peak memory を個別に記録し、Wasm GCがどのworkloadで有利かを実測する。
 
 ## 8. 関連
 

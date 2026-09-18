@@ -14,7 +14,9 @@
 
 これらは相互に依存するが、すべてを一つの採択判断にすると、未検証の設計案と既存の採択契約を区別できなくなる。
 
-特に、GCを言語意味論の前提から外す提案は、現在の [ADR-002](ADR-002-memory-model.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-035](ADR-035-wasm-gc-implementation.md) と衝突する。
+特に、現行設計では reachability GC という言語上の要求と Wasm GC の `struct` / `array` / `ref` という具体表現が近接している。v2 ではこの二つを分離しつつ、Wasm GC 自体は後退させず、対応環境でファイルサイズ・実行性能・ホストGC統合を狙う優先 lowering として扱う必要がある。
+
+Wasm GC 非対応環境では linear memory 上の runtime fallback を用意し、通常のソースプログラムについて同じ観測可能意味論を維持する。この方針は現在の [ADR-002](ADR-002-memory-model.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-035](ADR-035-wasm-gc-implementation.md) の責務境界を再整理するため、採択には後続ADRが必要である。
 
 一方で、Traitとメソッドを正規APIにする、WIT境界とソースモジュールを分ける、例を実行可能な検証対象にする、といった項目は既存の採択ADRまたは提案中のRFCと重なる。
 
@@ -32,17 +34,21 @@
 
 Wasm GC、linear memory、参照カウント、native runtime などのメモリ管理方式は、その意味論を実現するバックエンドの選択肢として扱う。
 
-ターゲットが扱えない機能は、意味論を別言語に変えるのではなく、コンパイル時の target capability error として報告する。
+Wasm GC 対応ターゲットでは、managed aggregate や共有グラフを `struct` / `array` / `ref` へ直接 lower する経路を優先し、専用collectorやobject headerを配布物へ抱える必要を減らす。Wasm GC 非対応ターゲットでは、linear memory 上の allocator と tracing GC runtime などで、共有・循環参照を含む同じソース意味論を実装する。
+
+通常の言語機能について「GC target では合法だが non-GC target では違法」という差は作らない。host固有API、ABI、SIMDのように本当にターゲット能力へ依存する機能だけを target capability error の対象にする。
 
 ### 2. 明示的な値操作を候補の基本形とする
 
-原案の候補では、束縛は不変を既定とし、`let mut` で再代入可能性を明示する。
+原案の候補では、束縛は不変を既定とし、`let mut` でそのbindingを通した再代入と通常の可変操作を明示する。`Copy` 可能性とmutabilityは別軸にする。
 
-暗黙コピーを行う型と move される型を区別し、必要な複製には `Copy` または明示的な `clone` を使う。
+暗黙コピーを行う型と move される型を区別し、必要な複製には `Copy` または明示的な `clone` を使う。ユーザー定義struct/enumは、全fieldが`Copy`であるだけでは自動的に`Copy`へせず、`derive Copy`等の明示を要求する候補とする。
+
+`Box<T>` は単なる配置指定ではなく heap 上の `T` を一意に所有する値として定義する候補とし、borrow、共有所有、tracing GC 管理は別概念として分離する。`Option`、`Result`、enum、struct、tuple、arrayは実装由来の「値型/参照型」分類ではなく、所有される値として意味を定義する。
 
 借用とクロージャの捕捉が関数の返却や保存を越えないことを、型検査とライフタイム規則で検査する。
 
-この項目は候補設計であり、`Copy`、`Clone`、`Box`、`Option`、`Result`、enum の表現と診断を別途確定しなければ採択しない。
+この項目は候補設計であり、`Copy`、`Clone`、`Box`、`Option`、`Result`、enum のABI・表現と診断を別途確定しなければ採択しない。
 
 ### 3. 正規APIとComponent境界を分ける
 
@@ -64,7 +70,7 @@ Wasm GC、linear memory、参照カウント、native runtime などのメモリ
 
 このADRが `PROPOSED` である間、現在の `ACCEPTED` ADRは変更しない。
 
-`wasm32-gc` は引き続きprimary、`wasm32` はsupported、WASI P2はprimaryの既定host profileであり、GC表現は [ADR-035](ADR-035-wasm-gc-implementation.md) の契約に従う。
+`wasm32-gc` は引き続きprimary、`wasm32` はsupported、WASI P2はprimaryの既定host profileであり、GC表現は [ADR-035](ADR-035-wasm-gc-implementation.md) の契約に従う。本提案は Wasm GC の利用を弱めるものではなく、対応環境では優先 backend として積極的に使い、非対応環境向けの fallback を同一意味論の別 lowering として追加する候補である。
 
 本提案を採択するときは、RFC-011の各項目を検証し、GC依存の変更、ターゲット契約の変更、公開構文の変更、互換性方針の変更について、それぞれ後続の `ACCEPTED` ADRを作成する。
 
@@ -88,7 +94,7 @@ Wasm GC、linear memory、参照カウント、native runtime などのメモリ
 
 これは現在の `ACCEPTED` 契約を維持する限り必要な選択である。
 
-しかし、将来の非GCバックエンド、明示的な所有権、より厳密な言語意味論を検討する設計案自体を記録できないため、この提案の記録先としては不十分である。
+しかし、Wasm GC 非対応環境への移植性、明示的な所有権、より厳密な言語意味論を検討する設計案自体を記録できないため、この提案の記録先としては不十分である。Wasm GC を優先 backend として維持しながら fallback を設計する余地が必要である。
 
 ## 帰結
 
@@ -98,9 +104,9 @@ RFC-011が45項目の詳細設計と既存ADRとの関係を保持するため�
 
 所有権と借用を採択する場合、言語仕様、型検査、クロージャ、標準ライブラリ、各バックエンド、移行診断を同時に整備する必要がある。
 
-非GCバックエンドを採択する場合も、GC backendと別の言語意味論を作らず、同一意味論からのloweringとtarget capabilityの境界を検証しなければならない。
+fallback backendを採択する場合も、Wasm GC backendと別の言語意味論を作らず、循環参照、共有managed object、クロージャ環境を含めて同一意味論からloweringできることを検証しなければならない。
 
-性能については、原案のイメージチャートを根拠にせず、条件を固定したbenchmark receiptで評価する。
+性能については、原案のイメージチャートを根拠にせず、条件を固定したbenchmark receiptで評価する。特に `wasm32-gc` と linear-memory fallback について `.wasm` size、startup、runtime、allocation throughput、peak memory を分けて測り、Wasm GCの利点を仮定ではなく実測で確認する。
 
 ## 再検討条件
 
