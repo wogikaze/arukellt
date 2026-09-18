@@ -1,0 +1,151 @@
+use typechecker::kinds
+use typechecker::ast_access
+use typechecker::scope
+use typechecker::ownership_types
+use typechecker::ast_expr_predicates
+use typechecker::contract_type_constructors
+use parser::ast
+use diagnostics::codes
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
+
+fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
+    if ast_expr_predicates::node_is_ident(target) {
+        let name = ast_access::node_text(target)
+        if !scope::scope_binding_is_mutable(scope, clone(name)) {
+            report_ownership_error(
+                env,
+                codes::DIAG_TYPE_RETURN_MISMATCH(),
+                target,
+                concat("cannot assign to immutable variable ", name)
+            )
+            return
+        }
+        scope::scope_mark_moved(scope, name, false)
+        return
+    }
+    let kind = ast_access::node_kind(target)
+    if kind == kinds::NK_FIELD_ACCESS() || kind == kinds::NK_INDEX() {
+        if ast_access::node_child_count(target) > 0 {
+            check_assignment_target(env, scope, ast_access::node_child_at(target, 0))
+        }
+    }
+}
+
+fn consume_expr(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if ast_expr_predicates::node_is_ident(node) {
+        consume_identifier(env, scope, node)
+        return
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_FIELD_ACCESS() {
+        return
+    }
+    if kind == kinds::NK_INDEX() {
+        if ast_access::node_child_count(node) > 1 {
+            consume_expr(env, scope, ast_access::node_child_at(node, 1))
+        }
+        return
+    }
+    if kind == kinds::NK_ASSIGN() || kind == kinds::NK_CALL() || kind == kinds::NK_METHOD_CALL() ||
+    kind == kinds::NK_PATH() || kind == kinds::NK_BLOCK() {
+        return
+    }
+    if kind == kinds::NK_STRUCT_LIT() {
+        consume_struct_fields(env, scope, node)
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        consume_expr(env, scope, ast_access::node_child_at(node, i))
+        i = i + 1
+    }
+}
+
+fn consume_struct_fields(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let field_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < field_count {
+        let field = ast_access::node_child_at(node, i)
+        if ast_access::node_child_count(field) > 0 {
+            consume_expr(env, scope, ast_access::node_child_at(field, 0))
+        }
+        i = i + 1
+    }
+}
+
+fn consume_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let name = ast_access::node_text(node)
+    if scope::scope_binding_index(scope, clone(name)) < 0 {
+        return
+    }
+    if scope::scope_binding_is_copy(scope, clone(name)) {
+        return
+    }
+    if scope::scope_binding_is_moved(scope, clone(name)) {
+        report_ownership_error(
+            env,
+            codes::DIAG_TYPE_MOVE_AFTER_USE(),
+            node,
+            concat("use of moved value `", concat(name, "`"))
+        )
+        return
+    }
+    scope::scope_mark_moved(scope, name, true)
+}
+
+fn expr_is_copy(env: TypeEnv, scope: LocalScope, node: AstNode, inferred_ty: TypeInfo) -> bool {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        if scope::scope_binding_index(scope, clone(name)) >= 0 {
+            return scope::scope_binding_is_copy(scope, name)
+        }
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() {
+        return aggregate_children_are_copy(env, scope, node)
+    }
+    if kind == kinds::NK_ARRAY_REPEAT() {
+        if ast_access::node_child_count(node) == 0 {
+            return false
+        }
+        return expr_is_copy(env, scope, ast_access::node_child_at(node, 0), inferred_ty)
+    }
+    if ast_expr_predicates::node_is_struct_lit(node) {
+        return ownership_types::type_is_copy(env, inferred_ty)
+    }
+    if ast_expr_predicates::node_is_int_lit(node) || ast_expr_predicates::node_is_float_lit(node) ||
+    ast_expr_predicates::node_is_bool_lit(node) || ast_expr_predicates::node_is_char_lit(node) {
+        return true
+    }
+    ownership_types::type_is_copy(env, inferred_ty)
+}
+
+fn aggregate_children_are_copy(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
+    let count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < count {
+        if !expr_is_copy(
+            env,
+            scope,
+            ast_access::node_child_at(node, i),
+            contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn report_ownership_error(env: TypeEnv, code: String, node: AstNode, message: String) {
+    env.error_count = env.error_count + 1
+    push(env.errors, clone(message))
+    let span = diag_record::DiagnosticSpan_from_raw(
+        ast_access::node_span_start(node),
+        ast::ast_node_span_end(node)
+    )
+    let diag = diag_mod::Diagnostic_new(code, diag_mod::SEV_ERROR(), span, message)
+    push(env.diagnostics, diag)
+}

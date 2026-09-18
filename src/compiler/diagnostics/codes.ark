@@ -33,6 +33,7 @@ fn DIAG_TYPE_UNSUPPORTED_OPERATOR() -> String { String_from("E0208") }
 fn DIAG_TYPE_PATTERN_MISMATCH() -> String { String_from("E0209") }
 fn DIAG_TYPE_GENERIC_INFERENCE() -> String { String_from("E0210") }
 fn DIAG_TYPE_TRAIT_BOUND() -> String { String_from("E0211") }
+fn DIAG_TYPE_MOVE_AFTER_USE() -> String { String_from("E0212") }
 
 fn DIAG_TARGET_UNKNOWN() -> String { String_from("E0300") }
 fn DIAG_TARGET_UNIMPLEMENTED() -> String { String_from("E0301") }

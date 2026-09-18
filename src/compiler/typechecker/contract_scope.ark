@@ -17,6 +17,9 @@ struct VarBinding {
     ty: TypeInfo,
     scheme: TypeScheme,
     is_generalized: bool,
+    is_mutable: bool,
+    is_copy: bool,
+    is_moved: bool,
 }
 
 struct LocalScope {
@@ -28,20 +31,34 @@ fn LocalScope_new_contract() -> LocalScope {
 }
 
 fn VarBinding_new(name: String, ty: TypeInfo) -> VarBinding {
+    VarBinding_new_with_flags(name, ty, false, false)
+}
+
+fn VarBinding_new_with_flags(name: String, ty: TypeInfo, is_mutable: bool, is_copy: bool) -> VarBinding {
     VarBinding {
         name: name,
         ty: ty,
         scheme: TypeScheme_empty(),
-        is_generalized: false
+        is_generalized: false,
+        is_mutable: is_mutable,
+        is_copy: is_copy,
+        is_moved: false,
     }
 }
 
 fn VarBinding_new_scheme(name: String, scheme: TypeScheme) -> VarBinding {
+    VarBinding_new_scheme_with_flags(name, scheme, false, false)
+}
+
+fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable: bool, is_copy: bool) -> VarBinding {
     VarBinding {
         name: name,
         ty: scheme.body,
         scheme: scheme,
-        is_generalized: true
+        is_generalized: true,
+        is_mutable: is_mutable,
+        is_copy: is_copy,
+        is_moved: false,
     }
 }
 
@@ -59,6 +76,22 @@ fn VarBinding_scheme(binding: VarBinding) -> TypeScheme {
 
 fn VarBinding_is_generalized(binding: VarBinding) -> bool {
     binding.is_generalized
+}
+
+fn VarBinding_is_mutable(binding: VarBinding) -> bool {
+    binding.is_mutable
+}
+
+fn VarBinding_is_copy(binding: VarBinding) -> bool {
+    binding.is_copy
+}
+
+fn VarBinding_is_moved(binding: VarBinding) -> bool {
+    binding.is_moved
+}
+
+fn VarBinding_set_moved(binding: VarBinding, is_moved: bool) {
+    binding.is_moved = is_moved
 }
 
 fn LocalScope_binding_count(scope: LocalScope) -> i32 {

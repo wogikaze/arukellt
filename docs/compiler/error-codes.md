@@ -464,6 +464,28 @@ modules; callers must use a supported official component interface instead.
 
 ---
 
+### E0212 — use of moved value
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | use of moved value |
+
+A non-`Copy` value was used after ownership had already moved out of its
+binding. Add an explicit clone or keep the value in a binding whose type
+implements `Copy`.
+
+```arukellt
+fn main() {
+    let first: String = String_from("owned")
+    let second = first
+    let again = first
+}
+```
+
+---
+
 ## v0 Version Constraints & Target Errors — `E03xx`
 
 These errors enforce the v0 language subset and target compatibility.
@@ -899,6 +921,7 @@ one, please file a bug report.
 | E0209 | error | typecheck | unreachable pattern |
 | E0210 | error | typecheck | incompatible error type for `?` operator |
 | E0211 | error | resolve | module contains only unimplemented host stubs |
+| E0212 | error | typecheck | use of moved value |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

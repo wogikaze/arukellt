@@ -5,6 +5,7 @@ use typechecker::contract_type_access
 use typechecker::instantiate
 use typechecker::unify
 use typechecker::ast_access
+use typechecker::ownership_types
 
 fn unknown_type() -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
@@ -21,21 +22,23 @@ fn scope_child(parent: LocalScope) -> LocalScope {
     while i < count {
         let binding = contract_scope::LocalScope_binding_at(parent, i)
         if contract_scope::VarBinding_is_generalized(binding) {
-            contract_scope::LocalScope_push_binding(
-                child,
-                contract_scope::VarBinding_new_scheme(
-                    contract_scope::VarBinding_name(binding),
-                    contract_scope::VarBinding_scheme(binding)
-                )
+            let copied = contract_scope::VarBinding_new_scheme_with_flags(
+                contract_scope::VarBinding_name(binding),
+                contract_scope::VarBinding_scheme(binding),
+                contract_scope::VarBinding_is_mutable(binding),
+                contract_scope::VarBinding_is_copy(binding)
             )
+            contract_scope::VarBinding_set_moved(copied, contract_scope::VarBinding_is_moved(binding))
+            contract_scope::LocalScope_push_binding(child, copied)
         } else {
-            contract_scope::LocalScope_push_binding(
-                child,
-                contract_scope::VarBinding_new(
-                    contract_scope::VarBinding_name(binding),
-                    contract_scope::VarBinding_type(binding)
-                )
+            let copied = contract_scope::VarBinding_new_with_flags(
+                contract_scope::VarBinding_name(binding),
+                contract_scope::VarBinding_type(binding),
+                contract_scope::VarBinding_is_mutable(binding),
+                contract_scope::VarBinding_is_copy(binding)
             )
+            contract_scope::VarBinding_set_moved(copied, contract_scope::VarBinding_is_moved(binding))
+            contract_scope::LocalScope_push_binding(child, copied)
         }
         i = i + 1
     }
@@ -43,11 +46,79 @@ fn scope_child(parent: LocalScope) -> LocalScope {
 }
 
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
-    contract_scope::LocalScope_push_binding(scope, contract_scope::VarBinding_new(name, ty))
+    scope_define_with_flags(scope, name, ty, false, ownership_types::type_is_builtin_copy(ty))
+}
+
+fn scope_define_with_flags(scope: LocalScope, name: String, ty: TypeInfo, is_mutable: bool, is_copy: bool) {
+    contract_scope::LocalScope_push_binding(
+        scope,
+        contract_scope::VarBinding_new_with_flags(name, ty, is_mutable, is_copy)
+    )
 }
 
 fn scope_define_scheme(scope: LocalScope, name: String, scheme: TypeScheme) {
-    contract_scope::LocalScope_push_binding(scope, contract_scope::VarBinding_new_scheme(name, scheme))
+    scope_define_scheme_with_flags(
+        scope,
+        name,
+        scheme,
+        false,
+        ownership_types::type_is_builtin_copy(scheme.body)
+    )
+}
+
+fn scope_define_scheme_with_flags(scope: LocalScope, name: String, scheme: TypeScheme, is_mutable: bool, is_copy: bool) {
+    contract_scope::LocalScope_push_binding(
+        scope,
+        contract_scope::VarBinding_new_scheme_with_flags(name, scheme, is_mutable, is_copy)
+    )
+}
+
+fn scope_binding_index(scope: LocalScope, name: String) -> i32 {
+    let count = contract_scope::LocalScope_binding_count(scope)
+    let mut found = -1
+    let mut i = 0
+    while i < count {
+        let binding = contract_scope::LocalScope_binding_at(scope, i)
+        if eq(contract_scope::VarBinding_name(binding), clone(name)) {
+            found = i
+        }
+        i = i + 1
+    }
+    found
+}
+
+fn scope_binding_is_mutable(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_is_mutable(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_is_copy(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_is_copy(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_is_moved(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_is_moved(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_mark_moved(scope: LocalScope, name: String, is_moved: bool) {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return
+    }
+    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    contract_scope::VarBinding_set_moved(binding, is_moved)
+    set(scope.bindings, index, binding)
 }
 
 fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {

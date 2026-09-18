@@ -7,6 +7,8 @@ use typechecker::contract_type_access
 use typechecker::scope
 use typechecker::types
 use typechecker::unify
+use typechecker::ownership
+use typechecker::ownership_types
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
 
@@ -20,7 +22,7 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
     if ast_access::node_child_count(node) > 0 {
         let init = ast_access::node_child_at(node, 0)
         bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
-        check_shared_mut_alias(env, node, init, bind_ty)
+        check_shared_mut_alias(env, scope, node, init, bind_ty)
     }
     if ast_access::node_type_ann_count(node) > 0 {
         let ann = ast_access::node_type_ann_at(node, 0)
@@ -31,12 +33,28 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
             bind_ty = unify::unify(env, bind_ty, ann_ty)
         }
     }
+    let mut is_copy = ownership_types::type_is_copy(env, bind_ty)
+    if ast_access::node_child_count(node) > 0 {
+        is_copy = ownership::expr_is_copy(
+            env,
+            scope,
+            ast_access::node_child_at(node, 0),
+            bind_ty
+        )
+        ownership::consume_expr(env, scope, ast_access::node_child_at(node, 0))
+    }
     if !eq(clone(bind_name), "_") {
         if ast_access::node_child_count(node) > 0 &&
         scope::is_syntactic_value(ast_access::node_child_at(node, 0)) {
-            scope::scope_define_scheme(scope, bind_name, scope::generalize(env, bind_ty))
+            scope::scope_define_scheme_with_flags(
+                scope,
+                bind_name,
+                scope::generalize(env, bind_ty),
+                ast_access::node_is_mut(node),
+                is_copy
+            )
         } else {
-            scope::scope_define(scope, bind_name, bind_ty)
+            scope::scope_define_with_flags(scope, bind_name, bind_ty, ast_access::node_is_mut(node), is_copy)
         }
         contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }
@@ -49,11 +67,12 @@ fn check_tuple_destructure_let(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnS
     let pat = ast_access::node_child_at(node, 0)
     let init = ast_access::node_child_at(node, 1)
     let bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
-    check_shared_mut_alias(env, node, init, bind_ty)
-    bind_tuple_pat_identifiers(scope, pat, bind_ty)
+    check_shared_mut_alias(env, scope, node, init, bind_ty)
+    ownership::consume_expr(env, scope, init)
+    bind_tuple_pat_identifiers(env, scope, pat, bind_ty)
 }
 
-fn bind_tuple_pat_identifiers(scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
+fn bind_tuple_pat_identifiers(env: TypeEnv, scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
     if ast_access::node_child_count(pat) == 0 {
         return
     }
@@ -64,7 +83,14 @@ fn bind_tuple_pat_identifiers(scope: LocalScope, pat: AstNode, tuple_ty: TypeInf
         if ast_access::node_kind_is(elem, kinds::NK_PAT_IDENT()) {
             let name = ast_access::node_text(elem)
             if !eq(clone(name), "_") {
-                scope::scope_define(scope, name, tuple_element_type_at(tuple_ty, i))
+                let elem_ty = tuple_element_type_at(tuple_ty, i)
+                scope::scope_define_with_flags(
+                    scope,
+                    name,
+                    elem_ty,
+                    ast_access::node_is_mut(pat),
+                    ownership_types::type_is_copy(env, elem_ty)
+                )
             }
         }
         i = i + 1
@@ -83,11 +109,14 @@ fn tuple_element_type_at(tuple_ty: TypeInfo, index: i32) -> TypeInfo {
 }
 
 // W0001: detect `let alias = v` where `v` is `mut` and the type is a reference type.
-fn check_shared_mut_alias(env: TypeEnv, let_node: AstNode, init: AstNode, bind_ty: TypeInfo) {
+fn check_shared_mut_alias(env: TypeEnv, scope: LocalScope, let_node: AstNode, init: AstNode, bind_ty: TypeInfo) {
     if ast_access::node_is_mut(let_node) {
         return
     }
     if !ast_expr_predicates::node_is_ident(init) {
+        return
+    }
+    if scope::scope_binding_is_copy(scope, ast_access::node_text(init)) {
         return
     }
     if is_reference_type(bind_ty) {

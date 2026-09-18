@@ -1,0 +1,21 @@
+struct NonCopy {
+    value: i32
+}
+
+fn main() {
+    let first: String = String_from("owned")
+    let second = first
+    let again = first
+
+    let value = NonCopy { value: 9 }
+    let moved_value = value
+    let reused_value = value
+
+    let tuple = (String_from("tuple"), 1)
+    let moved_tuple = tuple
+    let reused_tuple = tuple
+
+    let array = [String_from("array")]
+    let moved_array = array
+    let reused_array = array
+}

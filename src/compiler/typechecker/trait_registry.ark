@@ -30,6 +30,11 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
         return
     }
     let child_count = ast_access::node_child_count(node)
+    if child_count == 0 && eq(clone(trait_name), "Copy") {
+        let self_ty_node = ast_access::node_type_ann_at(node, 1)
+        register_trait_impl(env, trait_name, types::resolve_type_ann_node(self_ty_node))
+        return
+    }
     if child_count < 1 {
         return
     }

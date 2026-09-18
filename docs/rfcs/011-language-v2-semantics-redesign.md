@@ -15,6 +15,9 @@
 原案の中心は、所有権と借用を言語意味論に置き、GCやlinear memoryなどのメモリ管理をターゲット実装から選べるようにすることにある。
 
 原案には、既存の採択ADRと整合する項目、既存ADRを拡張する項目、既存ADRを変更する項目が含まれる。
+この RFC のうち所有権・`let mut`・owned aggregate・配列の move / Copy（1–4）は
+[ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md) で採択済みであり、
+以下では候補ではなく現行の v2 意味論として扱う。借用、clone の詳細、backend 表現などは引き続き未採択である。
 
 本RFCは詳細設計の候補を記録するが、現行挙動の正本でも、採択済みの設計判断でもない。
 
@@ -26,7 +29,7 @@
 
 不変な束縛を既定とし、そのbindingを通した再代入と通常の可変操作には `let mut` を使う。mutabilityと`Copy`可能性は別軸として扱う。
 
-暗黙コピーを許す型とmoveされる型を区別し、複製が必要な場所には `Copy` または `clone` を明示する。ユーザー定義struct/enumは、全fieldが`Copy`であるだけでは自動的に`Copy`へせず、明示的なopt-inを要求する候補とする。
+暗黙コピーを許す型とmoveされる型を区別し、複製が必要な場所には `Copy` または `clone` を明示する。ユーザー定義struct/enumは、全fieldが`Copy`であっても自動的には `Copy` とせず、明示的な opt-in を要求する。
 
 借用を導入する場合は、共有借用と可変借用、借用の有効範囲、返却または保存を越えるescapeを型検査の契約に含める。
 
@@ -70,8 +73,8 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 |---:|---|---|---|
 | 1 | 暗黙の共有参照 | 値の所有者を明確にし、暗黙共有をmove、`Copy`、`clone`、借用の規則へ置き換える。 | ADR-002、ADR-035と衝突するため後続ADRが必要。 |
 | 2 | `let mut` | 束縛を不変にし、再代入可能性を `let mut` で明示する。 | 新しい言語意味論としてRFCで詳細化する。 |
-| 3 | 構造体とタプル | どちらもowned valueとし、代入はmove、明示`Copy`だけ暗黙copyとする。ユーザー定義型の`Copy`はfield構成だけで自動決定しない。 | 1と同じ型意味論の後続判断に含める。 |
-| 4 | 配列の複製 | 配列の複製、move、要素単位の `Copy` を暗黙挙動から分離する。 | 回帰fixtureと移行診断が必要。 |
+| 3 | 構造体とタプル | どちらも owned value とし、代入は move、明示 `Copy` だけ暗黙 copy とする。ユーザー定義型の `Copy` は field 構成だけで自動決定しない。 | ADR-059 で採択済み。 |
+| 4 | 配列の複製 | 配列の複製、move、要素単位の `Copy` を暗黙挙動から分離する。 | ADR-059 で採択済み。回帰 fixture は #853 が担当する。 |
 | 5 | `Option` と `Result` | 通常のowned ADTとして定義し、payloadに応じたmove/`Copy`を適用する。GC object、tagged value、unboxed等はbackend表現とする。 | ADR-002、ADR-035の表現と要調整。 |
 | 6 | enum | tagged ADTとしての意味とheap/unboxed表現を分離し、`Copy`は明示opt-in、representation optimizationはbackendへ置く。 | ADR-035のGC layoutとの後続判断が必要。 |
 | 7 | `Box<T>` | heap上の`T`を一意に所有する値として定義する候補とし、borrow、共有所有、tracing GC管理を別概念にする。 | 型とbackendの境界を別RFCで具体化する。 |
@@ -120,7 +123,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 
 move-only型、`Copy` 型、明示的な `clone`、共有借用、可変借用を区別する。`Copy`可能性とmutabilityは独立に扱う。
 
-構造体、タプル、配列、enum、`Option`、`Result`、`Box`、`Vec`、`String`について、言語上はowned valueとしての意味を先に定義し、backendの格納表現と分離する。ユーザー定義struct/enumの`Copy`は全fieldが`Copy`であることを必要条件としつつ、明示的なopt-inを要求する候補とする。
+構造体、タプル、配列、enum、`Option`、`Result`、`Box`、`Vec`、`String`について、言語上は owned value としての意味を先に定義し、backend の格納表現と分離する。ユーザー定義 struct / enum の `Copy` は明示的な opt-in を要求する。
 
 `Box<T>` はheap上の`T`を一意に所有する値として定義する候補とし、`&T` / `&mut T`、共有ownership、tracing GC管理は別概念にする。
 

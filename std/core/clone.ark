@@ -6,6 +6,12 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
+/// Marker trait for values that may be copied implicitly at an ownership boundary.
+///
+/// Scalar types are Copy by language rule. User-defined structs and enums must
+/// opt in explicitly with `impl Copy for T {}`.
+trait Copy {}
+
 /// Trait for types that can be duplicated.
 ///
 /// ## Protocol catalog: `Clone`
