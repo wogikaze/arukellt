@@ -34,6 +34,16 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
+  I854["854 854 — ADT / Box / slice の値意味論を統一する"]
+  I855["855 855 — Closure capture / escape / lifetime を実装する"]
+  I856["856 856 — Trait core / coherence / generic arity を確定する"]
+  I861["861 861 — 数値の暗黙変換を廃止し明示変換を定義する"]
+  I862["862 862 — 算術 edge case と評価順序を仕様化する"]
+  I866["866 866 — source module の import / use 構文を整理する"]
+  I868["868 868 — Prelude / boolean literal / keyword policy を固定する"]
+  I869["869 869 — multi-clause / where / semicolon grammar を確定する"]
+  I870["870 870 — target capability / Memory64 / host profile を分解する"]
+  I876["876 876 — stability / current-state / redesign の分類を整合する"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -41,15 +51,33 @@ graph LR
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
+  I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
+  I863["863 863 — String / Unicode semantics を確定する"]
+  I857["857 857 — `?` / conversion / Error sentinel を整理する"]
+  I858["858 858 — 演算子 Trait へ統一し magic method を退役する"]
+  I859["859 859 — 公開 API を generic Trait 面へ統一する"]
+  I860["860 860 — Iterator Trait 体系を統合完了する"]
+  I864["864 864 — let-generalization / value restriction を形式化する"]
+  I867["867 867 — `pub` / Component export / WIT import 境界を分離する"]
+  I871["871 871 — Wasm GC aggregate lowering を完成する"]
+  I873["873 873 — linear-memory tracing GC fallback runtime を実装する"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
+  I872["872 872 — Wasm GC closure / collection lowering を完成する"]
+  I874["874 874 — fallback managed-value lowering を実装する"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I877["877 877 — normative examples と操作的意味論を実行可能にする"]
+  I878["878 878 — Language v2 compatibility migration を完了する"]
+  I879["879 879 — Wasm GC / fallback の性能・サイズ receipt を取得する"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
+  I880["880 880 — Language v2 最終 close audit を実施する"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
+  I852["852 852 — 言語 v2 意味論再設計 umbrella"]
   I680 --> I682
   I686 --> I698
   I686 --> I801
@@ -59,25 +87,75 @@ graph LR
   I695 --> I703
   I715 --> I719
   I715 --> I799
+  I729 --> I865
   I791 --> I814
   I851 --> I850
+  I854 --> I863
+  I694 --> I857
+  I856 --> I857
+  I856 --> I858
+  I856 --> I859
+  I691 --> I860
+  I856 --> I860
+  I856 --> I864
+  I866 --> I867
+  I854 --> I871
+  I870 --> I871
+  I870 --> I873
   I682 --> I683
   I698 --> I699
   I691 --> I709
   I695 --> I709
   I697 --> I709
   I703 --> I709
+  I855 --> I872
+  I859 --> I872
+  I860 --> I872
+  I871 --> I872
+  I854 --> I874
+  I855 --> I874
+  I859 --> I874
+  I860 --> I874
+  I873 --> I874
   I691 --> I710
   I697 --> I710
   I709 --> I710
+  I857 --> I875
+  I858 --> I875
+  I861 --> I875
+  I862 --> I875
+  I863 --> I875
+  I864 --> I875
+  I865 --> I875
+  I867 --> I875
+  I868 --> I875
+  I869 --> I875
+  I871 --> I875
+  I872 --> I875
+  I874 --> I875
   I681 --> I711
   I709 --> I711
   I710 --> I711
+  I857 --> I877
+  I858 --> I877
+  I860 --> I877
+  I875 --> I877
+  I876 --> I877
+  I875 --> I878
+  I876 --> I878
+  I871 --> I879
+  I872 --> I879
+  I874 --> I879
+  I875 --> I879
   I709 --> I712
   I711 --> I712
+  I877 --> I880
+  I878 --> I880
+  I879 --> I880
   I709 --> I713
   I711 --> I713
   I712 --> I713
+  I880 --> I852
 ```
 
 ## Adjacency list
@@ -91,9 +169,9 @@ graph LR
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: 698, 801
-- **691** depends on: 688, 707; blocks: 697, 703, 709, 710
+- **691** depends on: 688, 707; blocks: 697, 703, 709, 710, 860
 - **693** depends on: 688, 692; blocks: none
-- **694** depends on: 690, 692; blocks: none
+- **694** depends on: 690, 692; blocks: 857
 - **695** depends on: 688; blocks: 697, 703, 709
 - **702** depends on: 688, 700, 692; blocks: none
 - **708** depends on: 692, 707; blocks: none
@@ -102,7 +180,7 @@ graph LR
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
-- **729** depends on: 843; blocks: none
+- **729** depends on: 843; blocks: 865
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814
 - **815** depends on: none; blocks: none
@@ -110,6 +188,16 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
+- **854** depends on: 853; blocks: 863, 871, 874
+- **855** depends on: 853; blocks: 872, 874
+- **856** depends on: none; blocks: 857, 858, 859, 860, 864
+- **861** depends on: none; blocks: 875
+- **862** depends on: none; blocks: 875
+- **866** depends on: none; blocks: 867
+- **868** depends on: none; blocks: 875
+- **869** depends on: none; blocks: 875
+- **870** depends on: none; blocks: 871, 873
+- **876** depends on: none; blocks: 877, 878
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
@@ -117,12 +205,30 @@ graph LR
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
+- **865** depends on: 729; blocks: 875
 - **814** depends on: 791; blocks: none
 - **850** depends on: 851; blocks: none
+- **863** depends on: 854; blocks: 875
+- **857** depends on: 694, 856; blocks: 875, 877
+- **858** depends on: 856; blocks: 875, 877
+- **859** depends on: 856; blocks: 872, 874
+- **860** depends on: 691, 856; blocks: 872, 874, 877
+- **864** depends on: 856; blocks: 875
+- **867** depends on: 866; blocks: 875
+- **871** depends on: 854, 870; blocks: 872, 875, 879
+- **873** depends on: 870; blocks: 874
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
+- **872** depends on: 855, 859, 860, 871; blocks: 875, 879
+- **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
 - **711** depends on: 681, 709, 710; blocks: 712, 713
+- **877** depends on: 857, 858, 860, 875, 876; blocks: 880
+- **878** depends on: 875, 876; blocks: 880
+- **879** depends on: 871, 872, 874, 875; blocks: 880
 - **712** depends on: 709, 711; blocks: 713
+- **880** depends on: 877, 878, 879; blocks: 852
 - **713** depends on: 709, 711, 712; blocks: none
+- **852** depends on: 880; blocks: none

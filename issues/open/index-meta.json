@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-15T23:00:58Z",
+  "generated_at": "2026-09-18T17:12:54Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -193,7 +193,8 @@
         "697",
         "703",
         "709",
-        "710"
+        "710",
+        "860"
       ],
       "acceptance": {
         "checked": 0,
@@ -234,7 +235,9 @@
         "690",
         "692"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "857"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 12
@@ -411,7 +414,9 @@
       "depends_on": [
         "843"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "865"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
@@ -556,6 +561,209 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
+      }
+    },
+    {
+      "id": "854",
+      "path": "854-adt-box-slice-value-semantics.md",
+      "title": "854 — ADT / Box / slice の値意味論を統一する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "853"
+      ],
+      "blocks_issue_ids": [
+        "863",
+        "871",
+        "874"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "855",
+      "path": "855-closure-capture-lifetime.md",
+      "title": "855 — Closure capture / escape / lifetime を実装する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "853"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "874"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "856",
+      "path": "856-trait-core-coherence-generics.md",
+      "title": "856 — Trait core / coherence / generic arity を確定する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "857",
+        "858",
+        "859",
+        "860",
+        "864"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "861",
+      "path": "861-numeric-conversion-rules.md",
+      "title": "861 — 数値の暗黙変換を廃止し明示変換を定義する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "862",
+      "path": "862-arithmetic-edge-and-evaluation-order.md",
+      "title": "862 — 算術 edge case と評価順序を仕様化する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "866",
+      "path": "866-source-import-use-syntax.md",
+      "title": "866 — source module の import / use 構文を整理する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "867"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "868",
+      "path": "868-prelude-booleans-keywords.md",
+      "title": "868 — Prelude / boolean literal / keyword policy を固定する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "869",
+      "path": "869-multi-clause-where-semicolon-grammar.md",
+      "title": "869 — multi-clause / where / semicolon grammar を確定する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "870",
+      "path": "870-target-capability-configuration.md",
+      "title": "870 — target capability / Memory64 / host profile を分解する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "871",
+        "873"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "876",
+      "path": "876-stability-current-state-spec-labels.md",
+      "title": "876 — stability / current-state / redesign の分類を整合する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "877",
+        "878"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
       }
     },
     {
@@ -709,6 +917,27 @@
       }
     },
     {
+      "id": "865",
+      "path": "865-hygienic-desugaring-fstring.md",
+      "title": "865 — Hygienic desugaring と f-string lowering を実装する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "729"
+      ],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "814",
       "path": "814-formatter-parser-exceptions.md",
       "title": "814 — Formatter/parser exceptions (23 files)",
@@ -744,6 +973,205 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
+      }
+    },
+    {
+      "id": "863",
+      "path": "863-string-unicode-semantics.md",
+      "title": "863 — String / Unicode semantics を確定する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "854"
+      ],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "857",
+      "path": "857-question-mark-conversion-error-sentinel.md",
+      "title": "857 — `?` / conversion / Error sentinel を整理する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "694",
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "858",
+      "path": "858-operator-traits-magic-method-retirement.md",
+      "title": "858 — 演算子 Trait へ統一し magic method を退役する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "859",
+      "path": "859-generic-public-api-any-hashmap.md",
+      "title": "859 — 公開 API を generic Trait 面へ統一する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "874"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "860",
+      "path": "860-iterator-unification-integration.md",
+      "title": "860 — Iterator Trait 体系を統合完了する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "874",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "864",
+      "path": "864-let-generalization-value-restriction.md",
+      "title": "864 — let-generalization / value restriction を形式化する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "867",
+      "path": "867-component-wit-visibility-boundary.md",
+      "title": "867 — `pub` / Component export / WIT import 境界を分離する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "866"
+      ],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "871",
+      "path": "871-wasm-gc-aggregate-lowering.md",
+      "title": "871 — Wasm GC aggregate lowering を完成する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "854",
+        "870"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "875",
+        "879"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "873",
+      "path": "873-linear-memory-tracing-gc-runtime.md",
+      "title": "873 — linear-memory tracing GC fallback runtime を実装する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "870"
+      ],
+      "blocks_issue_ids": [
+        "874"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
       }
     },
     {
@@ -814,6 +1242,57 @@
       }
     },
     {
+      "id": "872",
+      "path": "872-wasm-gc-closure-collection-lowering.md",
+      "title": "872 — Wasm GC closure / collection lowering を完成する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "855",
+        "859",
+        "860",
+        "871"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "879"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "874",
+      "path": "874-fallback-managed-value-lowering.md",
+      "title": "874 — fallback managed-value lowering を実装する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "854",
+        "855",
+        "859",
+        "860",
+        "873"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "879"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "710",
       "path": "710-stdlib-linear-collections-type-surface.md",
       "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
@@ -836,6 +1315,41 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      }
+    },
+    {
+      "id": "875",
+      "path": "875-cross-backend-semantic-parity.md",
+      "title": "875 — wasm32-gc / fallback の意味論 parity を証明する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "857",
+        "858",
+        "861",
+        "862",
+        "863",
+        "864",
+        "865",
+        "867",
+        "868",
+        "869",
+        "871",
+        "872",
+        "874"
+      ],
+      "blocks_issue_ids": [
+        "877",
+        "878",
+        "879"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
       }
     },
     {
@@ -863,6 +1377,77 @@
       }
     },
     {
+      "id": "877",
+      "path": "877-executable-normative-semantics.md",
+      "title": "877 — normative examples と操作的意味論を実行可能にする",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "857",
+        "858",
+        "860",
+        "875",
+        "876"
+      ],
+      "blocks_issue_ids": [
+        "880"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "878",
+      "path": "878-language-v2-compatibility-migration.md",
+      "title": "878 — Language v2 compatibility migration を完了する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "875",
+        "876"
+      ],
+      "blocks_issue_ids": [
+        "880"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "879",
+      "path": "879-wasm-gc-fallback-benchmarks.md",
+      "title": "879 — Wasm GC / fallback の性能・サイズ receipt を取得する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "871",
+        "872",
+        "874",
+        "875"
+      ],
+      "blocks_issue_ids": [
+        "880"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "712",
       "path": "712-llm-code-quality-signal-gates.md",
       "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
@@ -885,6 +1470,29 @@
       }
     },
     {
+      "id": "880",
+      "path": "880-language-v2-final-close-audit.md",
+      "title": "880 — Language v2 最終 close audit を実施する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "877",
+        "878",
+        "879"
+      ],
+      "blocks_issue_ids": [
+        "852"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "713",
       "path": "713-stdlib-best-practices-doc-pack.md",
       "title": "713 — Stdlib and Arukellt code best-practices doc pack",
@@ -903,6 +1511,25 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#709 trait-first policy, #711 stdlib docs, #712 LLM quality signals"
+      }
+    },
+    {
+      "id": "852",
+      "path": "852-language-v2-semantics-full-implementation.md",
+      "title": "852 — 言語 v2 意味論再設計 umbrella",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "880"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 31
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": 880
       }
     }
   ],

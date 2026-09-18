@@ -23,7 +23,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 ### Frontend semantics
 
-- [ ] #853 — Ownership / move / Copy / mutability を確定・実装する — RFC 1–4 — depends: none
+- [x] #853 — Ownership / move / Copy / mutability を確定・実装する — RFC 1–4 — depends: none
 - [ ] #854 — ADT / Box / slice の値意味論を統一する — RFC 5–7, 25 — depends: 853
 - [ ] #855 — Closure capture / escape / lifetime を実装する — RFC 10 — depends: 853
 
@@ -156,3 +156,7 @@ graph TD
 - [ ] RFC 1–45 coverage complete
 - [ ] no child closed with unexplained TODO/skip
 - [ ] close note links child commits, ADRs, parity receipts, migration evidence, benchmark receipts
+
+## Completed child receipts
+
+- [x] #853: `ad0c4f21d`, `7fda6273c`; ADR-059; GC/fallback positive parity; `verify fixtures` PASS=1692 FAIL=0. See [#853](853-ownership-move-copy-mutability.md).
