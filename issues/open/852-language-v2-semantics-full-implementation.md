@@ -29,7 +29,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 ### Trait / API / type system
 
-- [ ] #856 — Trait core / coherence / generic arity を確定する — RFC 12, 17 — depends: none
+- [x] #856 — Trait core / coherence / generic arity を確定する — RFC 12, 17 — depends: none
 - [ ] #857 — `?` / conversion / Error sentinel を整理する — RFC 13, 19 — depends: 694, 856
 - [ ] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [ ] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
@@ -162,3 +162,4 @@ graph TD
 - [x] #853: `ad0c4f21d`, `7fda6273c`; ADR-059; GC/fallback positive parity; `verify fixtures` PASS=1692 FAIL=0. See [#853](853-ownership-move-copy-mutability.md).
 - [x] #854: `ca6b85ad8`; ADR-060; owned ADT / Box / Slice implementation; GC component and linear-memory parity output `42, 1, 1, 8`; `verify lane` and docs/ADR gates PASS. See [#854](../done/854-adt-box-slice-value-semantics.md).
 - [x] #855: `093e2e914`; ADR-061; shared/mutable borrow, move capture, E0213/E0214 escape/conflict diagnostics, and GC/linear positive parity (`borrow:3`, `move:4`). The targeted current-artifact quality lane passed; pinned bootstrap refresh remains an existing #854/#878 boundary. See [#855](../done/855-closure-capture-lifetime.md).
+- [x] #856: `782c34b2980368400a5a076ea72f20b369234bfd`; ADR-062; structural trait identity with ordered type arguments, `Self`, associated type/function projection, coherence and blanket termination rules, static-dispatch/`dyn Trait` boundary, and unrestricted semantic generic arity. Positive GC/linear fixtures produced `79` and `7`; diagnostic fixtures cover E0215–E0218. The current artifact registry/core-op audits reported zero mismatches; the canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum bootstrap mismatch, and the fixture gate retains one unrelated pre-existing `match_extensions/struct_pattern.ark` failure. See [#856](../done/856-trait-core-coherence-generics.md).

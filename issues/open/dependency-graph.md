@@ -34,10 +34,12 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I856["856 856 — Trait core / coherence / generic arity を確定する"]
+  I858["858 858 — 演算子 Trait へ統一し magic method を退役する"]
+  I859["859 859 — 公開 API を generic Trait 面へ統一する"]
   I861["861 861 — 数値の暗黙変換を廃止し明示変換を定義する"]
   I862["862 862 — 算術 edge case と評価順序を仕様化する"]
   I863["863 863 — String / Unicode semantics を確定する"]
+  I864["864 864 — let-generalization / value restriction を形式化する"]
   I866["866 866 — source module の import / use 構文を整理する"]
   I868["868 868 — Prelude / boolean literal / keyword policy を固定する"]
   I869["869 869 — multi-clause / where / semicolon grammar を確定する"]
@@ -46,6 +48,8 @@ graph LR
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
+  I860["860 860 — Iterator Trait 体系を統合完了する"]
+  I857["857 857 — `?` / conversion / Error sentinel を整理する"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -53,11 +57,6 @@ graph LR
   I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I857["857 857 — `?` / conversion / Error sentinel を整理する"]
-  I858["858 858 — 演算子 Trait へ統一し magic method を退役する"]
-  I859["859 859 — 公開 API を generic Trait 面へ統一する"]
-  I860["860 860 — Iterator Trait 体系を統合完了する"]
-  I864["864 864 — let-generalization / value restriction を形式化する"]
   I867["867 867 — `pub` / Component export / WIT import 境界を分離する"]
   I871["871 871 — Wasm GC aggregate lowering を完成する"]
   I873["873 873 — linear-memory tracing GC fallback runtime を実装する"]
@@ -79,6 +78,8 @@ graph LR
   I680 --> I682
   I686 --> I698
   I686 --> I801
+  I691 --> I860
+  I694 --> I857
   I691 --> I697
   I695 --> I697
   I691 --> I703
@@ -88,13 +89,6 @@ graph LR
   I729 --> I865
   I791 --> I814
   I851 --> I850
-  I694 --> I857
-  I856 --> I857
-  I856 --> I858
-  I856 --> I859
-  I691 --> I860
-  I856 --> I860
-  I856 --> I864
   I866 --> I867
   I870 --> I871
   I870 --> I873
@@ -181,10 +175,12 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **856** depends on: none; blocks: 857, 858, 859, 860, 864
+- **858** depends on: 856; blocks: 875, 877
+- **859** depends on: 856; blocks: 872, 874
 - **861** depends on: none; blocks: 875
 - **862** depends on: none; blocks: 875
 - **863** depends on: 854; blocks: 875
+- **864** depends on: 856; blocks: 875
 - **866** depends on: none; blocks: 867
 - **868** depends on: none; blocks: 875
 - **869** depends on: none; blocks: 875
@@ -193,6 +189,8 @@ graph LR
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
+- **860** depends on: 691, 856; blocks: 872, 874, 877
+- **857** depends on: 694, 856; blocks: 875, 877
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none
@@ -200,11 +198,6 @@ graph LR
 - **865** depends on: 729; blocks: 875
 - **814** depends on: 791; blocks: none
 - **850** depends on: 851; blocks: none
-- **857** depends on: 694, 856; blocks: 875, 877
-- **858** depends on: 856; blocks: 875, 877
-- **859** depends on: 856; blocks: 872, 874
-- **860** depends on: 691, 856; blocks: 872, 874, 877
-- **864** depends on: 856; blocks: 875
 - **867** depends on: 866; blocks: 875
 - **871** depends on: 854, 870; blocks: 872, 875, 879
 - **873** depends on: 870; blocks: 874

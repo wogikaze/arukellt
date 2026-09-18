@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
 Updated: 2026-09-19
 ID: 856
@@ -39,7 +39,7 @@ RFC-011: **12, 17**。
 
 ## Evidence
 
-- Implementation commit: pending the focused implementation commit for this issue.
+- Implementation commit: `782c34b2980368400a5a076ea72f20b369234bfd`.
 - Normative decision: [ADR-062](../../docs/adr/ADR-062-language-v2-trait-core-coherence.md), with synchronized updates to `docs/language/spec.md`, RFC-004, RFC-011, and the diagnostic catalog.
 - Positive fixtures: `tests/fixtures/trait/trait_core_v2.ark` covers `Self`, trait type arguments, associated type/function, projection, and a generic bound method; `tests/fixtures/generics_v1/generic_three_param.ark` proves no semantic three-parameter cap.
 - Diagnostic fixtures: `tests/fixtures/diagnostics/trait_blanket_impl.ark` (E0216), `trait_dyn_boundary.ark` (E0217), `trait_wrong_arity.ark` (E0218), and the existing overlapping-impl fixture (E0215).

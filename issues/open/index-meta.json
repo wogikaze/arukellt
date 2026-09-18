@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-18T20:28:56Z",
+  "generated_at": "2026-09-18T21:46:35Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -564,18 +564,39 @@
       }
     },
     {
-      "id": "856",
-      "path": "856-trait-core-coherence-generics.md",
-      "title": "856 — Trait core / coherence / generic arity を確定する",
+      "id": "858",
+      "path": "858-operator-traits-magic-method-retirement.md",
+      "title": "858 — 演算子 Trait へ統一し magic method を退役する",
       "track": "language-v2",
       "status": "open",
-      "depends_on": [],
+      "depends_on": [
+        "856"
+      ],
       "blocks_issue_ids": [
-        "857",
-        "858",
-        "859",
-        "860",
-        "864"
+        "875",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "859",
+      "path": "859-generic-public-api-any-hashmap.md",
+      "title": "859 — 公開 API を generic Trait 面へ統一する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "874"
       ],
       "acceptance": {
         "checked": 0,
@@ -632,6 +653,27 @@
       "status": "open",
       "depends_on": [
         "854"
+      ],
+      "blocks_issue_ids": [
+        "875"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "864",
+      "path": "864-let-generalization-value-restriction.md",
+      "title": "864 — let-generalization / value restriction を形式化する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "856"
       ],
       "blocks_issue_ids": [
         "875"
@@ -806,6 +848,53 @@
       }
     },
     {
+      "id": "860",
+      "path": "860-iterator-unification-integration.md",
+      "title": "860 — Iterator Trait 体系を統合完了する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "874",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "857",
+      "path": "857-question-mark-conversion-error-sentinel.md",
+      "title": "857 — `?` / conversion / Error sentinel を整理する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "694",
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "697",
       "path": "697-vec-operation-extension.md",
       "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
@@ -949,118 +1038,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
-      }
-    },
-    {
-      "id": "857",
-      "path": "857-question-mark-conversion-error-sentinel.md",
-      "title": "857 — `?` / conversion / Error sentinel を整理する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "694",
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "858",
-      "path": "858-operator-traits-magic-method-retirement.md",
-      "title": "858 — 演算子 Trait へ統一し magic method を退役する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "859",
-      "path": "859-generic-public-api-any-hashmap.md",
-      "title": "859 — 公開 API を generic Trait 面へ統一する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "872",
-        "874"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "860",
-      "path": "860-iterator-unification-integration.md",
-      "title": "860 — Iterator Trait 体系を統合完了する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "872",
-        "874",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "864",
-      "path": "864-let-generalization-value-restriction.md",
-      "title": "864 — let-generalization / value restriction を形式化する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1479,8 +1456,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 6,
-        "unchecked": 29
+        "checked": 8,
+        "unchecked": 28
       },
       "orchestration": {
         "class": "blocked-by-upstream",
