@@ -53,6 +53,14 @@ use std::core::scalar_format
 //
 // =============================================================================
 // String construction
+pub enum Box<T> {
+    Owned(T),
+}
+
+pub enum Slice<T> {
+    View(Vec<T>, i32, i32),
+}
+
 pub fn String_from(s: String) -> String {
     return s
 }
@@ -723,6 +731,37 @@ pub fn is_ok(r: Result<i32, i32>) -> bool {
 
 pub fn is_err(r: Result<i32, i32>) -> bool {
     panic(String_new()); return false
+}
+
+// Box is an owned heap wrapper. Its representation is selected by the target
+// backend, while the source-level value remains a unique owner.
+pub fn Box_new<T>(value: T) -> Box<T> {
+    Box::Owned(value)
+}
+
+pub fn unbox<T>(boxed: Box<T>) -> T {
+    match boxed {
+        Box::Owned(value) => value,
+    }
+}
+
+// A slice retains the source collection and a bounded range. The collection
+// reference is shared by the backend representation; the source binding is
+// not consumed at this language boundary.
+pub fn as_slice<T>(source: Vec<T>, start: i32, end: i32) -> Slice<T> {
+    Slice::View(source, start, end)
+}
+
+pub fn slice_len<T>(view: Slice<T>) -> i32 {
+    match view {
+        Slice::View(_, start, end) => end - start,
+    }
+}
+
+pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
+    match view {
+        Slice::View(source, start, _) => get_unchecked(source, start + index),
+    }
 }
 
 // Collections

@@ -255,12 +255,6 @@ fn resolve_pattern_fallback_handler_id(callee: String) -> i32 {
     if is_vec_new_pattern(clone(callee)) {
         return fallback_vec_new_handler_id()
     }
-    // Box has no distinct Wasm representation. Its constructor and extractor
-    // are identity operations, so they share the normal clone handler.
-    if starts_with(clone(callee), String_from("Box_new")) ||
-    starts_with(clone(callee), String_from("unbox")) {
-        return core_op_registry_generated::core_op_handler_text_clone()
-    }
     if starts_with(clone(callee), String_from("__intrinsic_string_eq")) ||
     ends_with(clone(callee), String_from("String::eq")) ||
     ends_with(clone(callee), String_from("string_eq")) {

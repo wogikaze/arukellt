@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 391 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 393 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 31 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -155,7 +155,7 @@
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given ArenaId. |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new Arena (bump allocator for stable i32 IDs). |
-| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
 | `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of set bits in a BitSet. |
 | `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the intersection of two BitSets. |
@@ -279,6 +279,8 @@
 | `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
 | `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
 | `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `slice_get` | `(Slice<T>, i32) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `slice_len` | `(Slice<T>) -> i32` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return true if the SlotKey is present and active. |
 | `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given SlotKey, or None if removed. |
 | `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Insert a value into the SlotMap, returning a stable SlotKey. |

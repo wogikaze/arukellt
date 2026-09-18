@@ -1,0 +1,7 @@
+fn main() {
+    let boxed = Box_new(7)
+    let moved = boxed
+    let reused = boxed
+    stdio::println(unbox(moved).to_string())
+    stdio::println(unbox(reused).to_string())
+}

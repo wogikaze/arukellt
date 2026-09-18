@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
 
 ---
 
@@ -17,7 +17,9 @@
 原案には、既存の採択ADRと整合する項目、既存ADRを拡張する項目、既存ADRを変更する項目が含まれる。
 この RFC のうち所有権・`let mut`・owned aggregate・配列の move / Copy（1–4）は
 [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md) で採択済みであり、
-以下では候補ではなく現行の v2 意味論として扱う。借用、clone の詳細、backend 表現などは引き続き未採択である。
+以下では候補ではなく現行の v2 意味論として扱う。さらに、owned ADT、`Box<T>`、`Slice<T>` の値境界は
+[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md) で採択済みである。
+完全な借用 lifetime、clone の詳細、backend の bytes/ABI は引き続き別 issue / ADR の対象である。
 
 本RFCは詳細設計の候補を記録するが、現行挙動の正本でも、採択済みの設計判断でもない。
 
@@ -75,10 +77,10 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 2 | `let mut` | 束縛を不変にし、再代入可能性を `let mut` で明示する。 | 新しい言語意味論としてRFCで詳細化する。 |
 | 3 | 構造体とタプル | どちらも owned value とし、代入は move、明示 `Copy` だけ暗黙 copy とする。ユーザー定義型の `Copy` は field 構成だけで自動決定しない。 | ADR-059 で採択済み。 |
 | 4 | 配列の複製 | 配列の複製、move、要素単位の `Copy` を暗黙挙動から分離する。 | ADR-059 で採択済み。回帰 fixture は #853 が担当する。 |
-| 5 | `Option` と `Result` | 通常のowned ADTとして定義し、payloadに応じたmove/`Copy`を適用する。GC object、tagged value、unboxed等はbackend表現とする。 | ADR-002、ADR-035の表現と要調整。 |
-| 6 | enum | tagged ADTとしての意味とheap/unboxed表現を分離し、`Copy`は明示opt-in、representation optimizationはbackendへ置く。 | ADR-035のGC layoutとの後続判断が必要。 |
-| 7 | `Box<T>` | heap上の`T`を一意に所有する値として定義する候補とし、borrow、共有所有、tracing GC管理を別概念にする。 | 型とbackendの境界を別RFCで具体化する。 |
-| 8 | GC依存 | Wasm GCを対応環境の優先backendとして積極利用しつつ、非対応環境ではlinear-memory runtime fallbackで同じsource semanticsを維持する。 | ADR-002、ADR-013、ADR-035の責務境界を変更するため後続ADRが必要。 |
+| 5 | `Option` と `Result` | 通常のowned ADTとして定義し、payloadに応じたmove/`Copy`を適用する。GC object、tagged value、unboxed等はbackend表現とする。 | ADR-060で採択済み。 |
+| 6 | enum | tagged ADTとしての意味とheap/unboxed表現を分離し、`Copy`は明示opt-in、representation optimizationはbackendへ置く。 | ADR-060で採択済み。 |
+| 7 | `Box<T>` | heap上の`T`を一意に所有する値とし、borrow、共有所有、tracing GC管理を別概念にする。 | ADR-060で採択済み。 |
+| 8 | GC依存 | Wasm GCを対応環境の優先backendとして積極利用しつつ、非対応環境ではlinear-memory runtime fallbackで同じsource semanticsを維持する。 | #854のADT/Box/Slice境界についてADR-060で適用を確認。tracing fallback全体は後続issue。 |
 | 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD等の真にtarget固有な機能だけをcapability errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
 | 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-033を拡張する詳細RFCが必要。 |
 | 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。 | ADR-006と整合し、公開面の仕様を補う。 |
@@ -95,7 +97,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | Wasmとnativeの差を検証してから採択する。 |
 | 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeを候補とする。 | 実行可能な意味論fixtureが必要。 |
 | 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | stdlibと仕様の同時改訂が必要。 |
-| 25 | slice | sliceを独立したviewまたは借用として定義し、`Vec`との戻り値の不整合を解消する。 | 所有権案と依存するため後続判断が必要。 |
+| 25 | slice | sliceを独立した非`Copy`の読み取りviewとして定義し、`Vec`との戻り値の不整合を解消する。source binding は現行 API では消費しない。 | ADR-060で採択済み。完全なlifetime/borrow検査は後続。 |
 | 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-003とTrait stdlib案に統合する。 |
 | 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | 型システムRFCで扱う。 |
 | 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
@@ -125,7 +127,11 @@ move-only型、`Copy` 型、明示的な `clone`、共有借用、可変借用�
 
 構造体、タプル、配列、enum、`Option`、`Result`、`Box`、`Vec`、`String`について、言語上は owned value としての意味を先に定義し、backend の格納表現と分離する。ユーザー定義 struct / enum の `Copy` は明示的な opt-in を要求する。
 
-`Box<T>` はheap上の`T`を一意に所有する値として定義する候補とし、`&T` / `&mut T`、共有ownership、tracing GC管理は別概念にする。
+`Option` / `Result` は payload がすべて `Copy` の場合だけ構造的に `Copy` とし、ユーザー enum は明示 `impl Copy` が必要である。
+`Box<T>` は非 `Copy` の一意所有値、`Slice<T>` は source collection と range を保持する非 `Copy` の読み取り view である。
+`as_slice` は source binding を消費しない。完全な lifetime / mutation 排他はこの RFC の後続項目で扱う。
+
+`Box<T>` はheap上の`T`を一意に所有する値として定義し、`&T` / `&mut T`、共有ownership、tracing GC管理は別概念にする。
 
 GC backendでheap objectを使っても、それが言語上の共有参照や暗黙コピーを意味するとは限らない。
 
@@ -195,7 +201,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 
 1. 借用検査を言語の必須規則にするか、限定的な静的検査から始めるか。
 2. Wasm GC backendで所有権を実行時にどこまで表現するか、型検査後にどこまで消去するか。またlinear-memory fallbackのcollector/root管理をどのruntime契約にするか。
-3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか。
+3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか（source-level owned ADT 契約はADR-060で採択済み）。
 4. `dyn Trait`、associated type、coherence、blanket implementationの初期範囲。
 5. overflow、NaN、ゼロ除算、Unicode invalid sequenceの各処理結果。
 6. `import` と `use` の最終構文、およびWIT parserのcanonical path。

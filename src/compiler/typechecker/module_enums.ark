@@ -22,6 +22,7 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
     let payload_types = Vec::new<TypeInfo>()
     let payload_starts = Vec::new<i32>()
     let payload_counts = Vec::new<i32>()
+    let type_params = enum_type_param_names(node)
     let vc = ast_access::node_child_count(node)
     let mut vi = 0
     while vi < vc {
@@ -32,7 +33,13 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
         let ann_count = ast_access::node_type_ann_count(variant)
         let mut ai = 0
         while ai < ann_count {
-            push(payload_types, types::resolve_type_ann_node(ast_access::node_type_ann_at(variant, ai)))
+            push(
+                payload_types,
+                types::resolve_type_ann_node_generic(
+                    ast_access::node_type_ann_at(variant, ai),
+                    type_params
+                )
+            )
             payload_count = payload_count + 1
             ai = ai + 1
         }
@@ -41,7 +48,13 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
         while fi < field_count {
             let field = ast_access::node_child_at(variant, fi)
             if ast_access::node_type_ann_count(field) > 0 {
-                push(payload_types, types::resolve_type_ann_node(ast_access::node_type_ann_at(field, 0)))
+                push(
+                    payload_types,
+                    types::resolve_type_ann_node_generic(
+                        ast_access::node_type_ann_at(field, 0),
+                        type_params
+                    )
+                )
                 payload_count = payload_count + 1
             }
             fi = fi + 1
@@ -56,4 +69,16 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
         payload_starts,
         payload_counts
     )
+}
+
+fn enum_type_param_names(node: AstNode) -> Vec<String> {
+    let names = Vec::new<String>()
+    let count = ast_access::node_type_ann_count(node)
+    let mut i = 0
+    while i < count {
+        let ann = ast_access::node_type_ann_at(node, i)
+        push(names, ast_access::node_text(ann))
+        i = i + 1
+    }
+    names
 }

@@ -1,6 +1,7 @@
 // GC enum variant signature helpers.
 use std::text
 use mir::lower::ctx_gc_struct
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::value_types
 
@@ -252,7 +253,8 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 }
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
-                sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
+                let resolved_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(ft))
+                sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(resolved_ft)))
                 fi = fi + 1
             }
             return sig

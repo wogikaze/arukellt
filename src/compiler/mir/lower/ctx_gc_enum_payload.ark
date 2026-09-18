@@ -1,6 +1,7 @@
 use std::text
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 
 fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
@@ -181,9 +182,14 @@ fn gc_enum_build_payload_field_sigs_for_type(ctx: LowerCtx, variant_name: String
                     si = si + 1
                 }
                 off = off + fi
-                let ft = get_unchecked(ctx.struct_field_types, off)
+                let raw_ft = get_unchecked(ctx.struct_field_types, off)
+                let ft = if fi == 1 && len(type_name) > 0 && ctx_struct_field_type::ctx_payload_field_types_match(clone(raw_ft), clone(type_name)) {
+                    clone(type_name)
+                } else {
+                    ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(raw_ft))
+                }
                 if fi == 1 {
-                    payload_ft = clone(ft)
+                    payload_ft = clone(raw_ft)
                 }
                 row_sig = text::builder_append(row_sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
                 fi = fi + 1

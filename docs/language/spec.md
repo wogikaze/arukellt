@@ -201,16 +201,16 @@ Semicolons are optional.
 
 | Type | Syntax | Semantics |
 |------|--------|-----------|
-| Struct | `struct Name { field: T, … }` | Named product type (reference) |
-| Enum | `enum Name { Variant, Variant(T), … }` | Tagged union (reference) |
+| Struct | `struct Name { field: T, … }` | Named owned product type |
+| Enum | `enum Name { Variant, Variant(T), … }` | Owned tagged ADT |
 | Tuple | `(T1, T2, …)` | Anonymous product type (value) |
 | Array | `[T; N]` | Fixed-size homogeneous sequence (value) |
-| Slice | `[T]` | Dynamically-sized view |
+| Slice | `[T]` / `Slice<T>` | Non-`Copy` read-only view over a source collection and bounded range |
 | `Vec<T>` | Generic resizable vector | Reference type |
-| `Option<T>` | `None \| Some(T)` | Built-in enum |
-| `Result<T, E>` | `Ok(T) \| Err(E)` | Built-in enum |
+| `Option<T>` | `None \| Some(T)` | Owned tagged ADT; structurally `Copy` when `T: Copy` |
+| `Result<T, E>` | `Ok(T) \| Err(E)` | Owned tagged ADT; structurally `Copy` when `T: Copy` and `E: Copy` |
 | `HashMap<K, V>` | Hash map (monomorphic variants only) | Reference type |
-| `Box<T>` | Heap-allocated wrapper | Reference type |
+| `Box<T>` | Heap-allocated wrapper | Non-`Copy` unique owner of `T` |
 | Function | `fn(T1, T2) -> R` | First-class function type |
 
 ### 2.3 Special Types
@@ -223,13 +223,18 @@ Semicolons are optional.
 
 ### 2.4 Value vs Reference Semantics
 
-**Value types** are copied on assignment:
-`i32`, `i64`, `f32`, `f64`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`,
-`bool`, `char`, `()`, tuples, arrays.
+Primitive scalar values are `Copy`. Tuples, arrays, `Option<T>`, and
+`Result<T, E>` are structurally `Copy` only when every component is `Copy`.
+User-defined structs and enums require an explicit `impl Copy for T {}`;
+their field layout does not implicitly opt them in.
 
-**Reference types** are GC-managed heap pointers:
-`String`, `Vec<T>`, `Option<T>`, `Result<T, E>`, structs, enums,
-`Box<T>`, slices, functions.
+Non-`Copy` values move at an ownership boundary and a later use is a type
+error. `Box<T>` is always a unique, non-`Copy` owner. `Slice<T>` is a
+non-`Copy` read-only view; `as_slice` retains the source binding and stores a
+backend-specific reference plus a bounded range. These rules do not depend on
+whether the backend stores the value as a Wasm GC object, a tagged/unboxed
+value, or a linear-memory record. See [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md)
+and [ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md).
 
 ### 2.5 Type Inference
 
@@ -1230,8 +1235,20 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 
 | Signature | Description |
 |-----------|-------------|
-| `Box_new(x: T) -> Box<T>` | Wrap in box |
-| `unbox(b: Box<T>) -> T` | Unwrap |
+| `Box_new(x: T) -> Box<T>` | Consume a non-`Copy` `x` and wrap it in a unique owner |
+| `unbox(b: Box<T>) -> T` | Consume the unique owner and return its `T` |
+
+### 9.12.1 Slice (prelude)
+
+| Signature | Description |
+|-----------|-------------|
+| `as_slice(source: Vec<T>, start: i32, end: i32) -> Slice<T>` | Create a bounded, non-`Copy` read view without consuming the source binding |
+| `slice_len(view: Slice<T>) -> i32` | Consume the view and return its bounded length |
+| `slice_get(view: Slice<T>, index: i32) -> T` | Consume the view and read an element within the bounded range |
+
+The current view API does not provide full lifetime or mutation-exclusion
+checking. Those rules are separate from the owned ADT contract and are tracked
+by the subsequent borrow/closure work.
 
 ### 9.13 Assertions (prelude)
 

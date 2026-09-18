@@ -148,14 +148,6 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
 }
 
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    // Box is a zero-cost recursive container in the current value model. The
-    // generic type argument is carried by the operand; use the open GC/ref
-    // representation for the result so a Box<WitType> can fill an enum field.
-    if is_box_identity_callee(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:open"))
-        set_vt_for_resolved_type_name(ctx, dest, String_from("enum:open"))
-        return
-    }
     // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).
     if call_type_fallback_stdlib::mark_toml_result_vec_call_type(ctx, clone(callee_name), dest) {
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
@@ -205,14 +197,6 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     // Sync MirLocal.value_type from MonoInstanceTable so emit spine lookup
     // matches SignatureRegistry (tuple mono returns; replaces body-scan infer).
     apply_mono_return_mvt_to_dest(ctx, clone(callee_name), dest)
-}
-
-fn is_box_identity_callee(callee_name: String) -> bool {
-    let bare = call_type_fallback_stdlib::mir_strip_module_prefix(clone(callee_name))
-    eq(clone(bare), String_from("Box_new")) ||
-    starts_with(clone(bare), String_from("Box_new__")) ||
-    eq(clone(bare), String_from("unbox")) ||
-    starts_with(clone(bare), String_from("unbox__"))
 }
 
 fn apply_mono_return_mvt_to_dest(ctx: LowerCtx, callee_name: String, dest: i32) {

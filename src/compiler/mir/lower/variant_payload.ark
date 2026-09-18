@@ -3,6 +3,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_types
 use mir::inst_const_i32
@@ -26,7 +27,10 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
 fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {
     let type_slot = if len(payload_vts) > 0 {
         let first_local = get_unchecked(payload_locals, 0)
-        let payload_type_name = ctx_api_local_types::ctx_get_local_type(ctx, first_local)
+        let payload_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(
+            ctx,
+            ctx_api_local_types::ctx_get_local_type(ctx, first_local)
+        )
         let first_vt = get_unchecked(payload_vts, 0)
         let typed_name = gc_payload_typed_variant_name(ctx, first_local, clone(payload_type_name), clone(variant_name), first_vt)
         if len(typed_name) > 0 {
@@ -196,7 +200,10 @@ fn gc_payload_layout_field_type_name(ctx: LowerCtx, variant_name: String, field_
     if len(variant_name) == 0 {
         return String_new()
     }
-    ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx)
+    ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx)
+    )
 }
 
 fn gc_payload_is_scalar_type_name(type_name: String) -> bool {

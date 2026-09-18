@@ -663,12 +663,29 @@ prelude = true
 stability = "stable"
 doc_category = "collections"
 
-# NOTE: as_slice is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "as_slice"
 kind = "builtin"
-params = ["Vec<T>"]
-returns = "Vec<T>"
+params = ["Vec<T>", "i32", "i32"]
+returns = "Slice<T>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "slice_len"
+kind = "builtin"
+params = ["Slice<T>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "slice_get"
+kind = "builtin"
+params = ["Slice<T>", "i32"]
+returns = "T"
 prelude = true
 stability = "stable"
 doc_category = "collections"

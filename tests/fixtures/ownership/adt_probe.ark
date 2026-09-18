@@ -1,0 +1,18 @@
+fn main() {
+    let boxed = Box_new(42)
+    let moved = boxed
+    let value = unbox(moved)
+    stdio::println(value.to_string())
+
+    let mut values: Vec<i32> = Vec::new<i32>()
+    push(values, 7)
+    let view = as_slice(values, 0, 1)
+    stdio::println((slice_len(view)).to_string())
+    stdio::println((len(values)).to_string())
+
+    let mut values_again: Vec<i32> = Vec::new<i32>()
+    push(values_again, 8)
+    let view_again = as_slice(values_again, 0, 1)
+    let viewed = slice_get(view_again, 0)
+    stdio::println(viewed.to_string())
+}

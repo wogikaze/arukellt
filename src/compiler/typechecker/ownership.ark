@@ -47,10 +47,14 @@ fn consume_expr(env: TypeEnv, scope: LocalScope, node: AstNode) {
         }
         return
     }
-    if kind == kinds::NK_ASSIGN() || kind == kinds::NK_CALL() || kind == kinds::NK_METHOD_CALL() ||
+    if kind == kinds::NK_ASSIGN() || kind == kinds::NK_METHOD_CALL() ||
     kind == kinds::NK_PATH() || kind == kinds::NK_BLOCK() || kind == kinds::NK_BINARY() ||
     kind == kinds::NK_UNARY() || kind == kinds::NK_IF_EXPR() || kind == kinds::NK_MATCH_EXPR() ||
     kind == kinds::NK_CLOSURE() || kind == kinds::NK_COMPREHENSION() || kind == kinds::NK_TRY() {
+        return
+    }
+    if kind == kinds::NK_CALL() {
+        consume_box_boundary_argument(env, scope, node)
         return
     }
     if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() {
@@ -66,6 +70,17 @@ fn consume_expr(env: TypeEnv, scope: LocalScope, node: AstNode) {
     if kind == kinds::NK_STRUCT_LIT() {
         consume_struct_fields(env, scope, node)
         return
+    }
+}
+
+fn consume_box_boundary_argument(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if ast_access::node_child_count(node) < 2 {
+        return
+    }
+    let callee = ast_access::node_child_at(node, 0)
+    let callee_name = ast_access::node_text(callee)
+    if eq(clone(callee_name), "Box_new") || eq(clone(callee_name), "unbox") {
+        consume_expr(env, scope, ast_access::node_child_at(node, 1))
     }
 }
 

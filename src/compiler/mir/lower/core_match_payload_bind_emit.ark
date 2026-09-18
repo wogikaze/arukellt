@@ -4,6 +4,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_lookup
@@ -86,6 +87,20 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
     // Multi-payload variants must reuse the construction slot; ensuring from
     // the first bind alone registers a single-payload twin that traps (#807).
     if type_slot >= 0 && variant_layout_payload_field_count(ctx, clone(variant_name)) > 1 {
+        let first_payload_type = emit_payload_field_bind_gc_resolve_type(ctx, clone(variant_name), 0, bind_local)
+        if len(first_payload_type) > 0 {
+            let typed_vts = Vec::new<i32>()
+            push(typed_vts, core_payload_type_value_type(clone(first_payload_type)))
+            let typed_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
+                ctx,
+                clone(variant_name),
+                typed_vts,
+                clone(first_payload_type)
+            )
+            if typed_slot >= 0 {
+                type_slot = typed_slot
+            }
+        }
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))
         return true
     }
@@ -149,9 +164,30 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
         field_count - 1
     }
 
+    fn core_payload_type_value_type(type_name: String) -> i32 {
+        if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
+            return value_types::VT_F64()
+        }
+        if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) {
+            return value_types::VT_I64()
+        }
+        if eq(clone(type_name), String_from("fnref")) ||
+        eq(clone(type_name), String_from("fn")) ||
+        starts_with(clone(type_name), String_from("fn(")) {
+            return value_types::VT_FUNCREF()
+        }
+        if core_match_payload_bind_types::core_payload_scalar_type_name(clone(type_name)) {
+            return value_types::VT_I32()
+        }
+        value_types::VT_GC_REF()
+    }
+
     fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, bi: i32, bind_local: i32) -> String {
         let mut bind_type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-        let layout_ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), bi + 1)
+        let layout_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(
+            ctx,
+            ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), bi + 1)
+        )
         let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(layout_ft))
         let mut layout_vec = String_new()
         if starts_with(clone(layout_norm), String_from("vec:")) {

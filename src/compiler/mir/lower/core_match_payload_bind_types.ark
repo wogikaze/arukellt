@@ -2,6 +2,7 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::value_types
@@ -26,7 +27,10 @@ fn core_match_variant_is_some_or_ok(variant_name: String) -> bool {
 }
 
 fn core_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_ref: bool) -> i32 {
-    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    )
     if core_payload_type_is_fnref(clone(field_type)) {
         return value_types::VT_FUNCREF()
     }
@@ -119,7 +123,10 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
     if bind_vt != value_types::VT_GC_REF() {
         return
     }
-    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    )
     if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "string")
         return

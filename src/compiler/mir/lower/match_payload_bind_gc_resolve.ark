@@ -1,5 +1,6 @@
 // MIR match payload GC bind type resolution.
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 
@@ -13,7 +14,8 @@ fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, 
     } else {
         ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
     }
-    let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(layout_ft))
+    let resolved_layout_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(layout_ft))
+    let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(resolved_layout_ft))
     let mut layout_vec = String_new()
     if starts_with(clone(layout_norm), "vec:") {
         layout_vec = clone(layout_norm)

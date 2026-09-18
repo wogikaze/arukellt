@@ -81,12 +81,40 @@ fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(type_var_name)) {
+        if ctx_mono_type_name_matches(
+            clone(get_unchecked(ctx.mono_type_param_names, i)),
+            clone(type_var_name)
+        ) {
             return clone(get_unchecked(ctx.mono_type_param_types, i))
         }
         i = i + 1
     }
     String_new()
+}
+
+fn ctx_mono_type_name_matches(stored_name: String, query_name: String) -> bool {
+    let query = ctx_mono_type_var_bare_name(clone(query_name))
+    let mut segment_start = 0
+    let mut i = 0
+    while i <= len(stored_name) {
+        let at_end = i == len(stored_name)
+        if at_end || char_at(clone(stored_name), i) == 58 {
+            let segment = substring(clone(stored_name), segment_start, i)
+            if eq(ctx_mono_type_var_bare_name(clone(segment)), clone(query)) {
+                return true
+            }
+            segment_start = i + 1
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn ctx_mono_type_var_bare_name(name: String) -> String {
+    if starts_with(clone(name), "?") {
+        return substring(name, 1, len(name))
+    }
+    name
 }
 
 fn ctx_has_mono_type_params(ctx: LowerCtx) -> bool {
@@ -107,8 +135,11 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
         // Extract the actual type variable name. For composite types like
         // "?Option:T", extract the inner "T". For plain type vars like "?T",
         // use the name as-is.
-        let var_name = ctx_extract_type_var_name(clone(ty_name))
-        if len(clone(var_name)) > 0 {
+        let local_vars = ctx_type_var_names_from_local_type(clone(ty_name))
+        let local_var_count = len(local_vars)
+        let mut vi = 0
+        while vi < local_var_count {
+            let var_name = get_unchecked(local_vars, vi)
             let mut found = false
             let rcount = len(result)
             let mut k = 0
@@ -119,10 +150,42 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
                 k = k + 1
             }
             if !found {
-                push(result, var_name)
+                push(result, clone(var_name))
             }
+            vi = vi + 1
         }
         i = i + 1
+    }
+    result
+}
+
+fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
+    let result = Vec::new<String>()
+    let mut name = clone(ty_name)
+    if starts_with(clone(name), "?") {
+        name = substring(clone(name), 1, len(name))
+    }
+    if is_plain_type_var_name(clone(name)) {
+        push(result, ctx_extract_type_var_name(clone(ty_name)))
+        return result
+    }
+    // Generic wrappers use `?Type:T:U`. Only argument segments are
+    // candidates; the wrapper name itself is not a type variable.
+    let mut segment_start = 0
+    let mut i = 0
+    while i < len(name) {
+        if char_at(name, i) == 58 {
+            let segment = substring(clone(name), segment_start, i)
+            if segment_start > 0 && is_plain_type_var_name(clone(segment)) {
+                push(result, segment)
+            }
+            segment_start = i + 1
+        }
+        i = i + 1
+    }
+    let final_segment = substring(clone(name), segment_start, len(name))
+    if segment_start > 0 && is_plain_type_var_name(clone(final_segment)) {
+        push(result, final_segment)
     }
     result
 }
@@ -162,6 +225,30 @@ fn is_plain_type_var_name(name: String) -> bool {
     }
     let c = char_at(name, 0)
     c >= 65 && c <= 90
+}
+
+// Resolve declaration-shaped generic field names before backend layout
+// selection. For example, `T` becomes `i32` and `vec:T` becomes `vec:i32`
+// inside a monomorphized `Box<i32>`/`Slice<i32>` body.
+fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
+    if len(type_name) == 0 {
+        return type_name
+    }
+    if !ctx_has_mono_type_params(ctx) {
+        return type_name
+    }
+    let direct = ctx_resolve_mono_type_param(ctx, clone(type_name))
+    if len(direct) > 0 {
+        return direct
+    }
+    if starts_with(clone(type_name), "vec:") {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        let concrete_elem = ctx_resolve_mono_type_param(ctx, clone(elem))
+        if len(concrete_elem) > 0 {
+            return concat("vec:", concrete_elem)
+        }
+    }
+    type_name
 }
 
 // Setup type parameter mapping by collecting type variable names from

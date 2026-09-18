@@ -20,7 +20,11 @@ fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeIn
 // into return-type checks — treat them as UNKNOWN (pre-prelude polymorphic builtin
 // behavior). Outer function type params (e.g. T) are not fresh vars here and are kept.
 fn resolve_call_return_type(infer_env: TypeEnv, ty: TypeInfo) -> TypeInfo {
-    let resolved = unify::resolve_type(infer_env, ty)
+    // Generic containers carry their inferred variables in type arguments.
+    // Resolving only the outer TypeInfo leaves values such as Box<t0> tied to
+    // the caller's unresolved placeholder, so the next generic call cannot
+    // infer its concrete payload. Resolve the complete type tree here.
+    let resolved = unify::resolve_type_deep(infer_env, ty)
     if is_unresolved_fresh_type_var(infer_env, resolved) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }

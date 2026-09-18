@@ -99,6 +99,10 @@ fn fn_param_local_type_name(node: AstNode) -> String {
                 concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
             )
         }
+        let generic_user_type = generic_user_type_local_name(ann)
+        if len(generic_user_type) > 0 {
+            return generic_user_type
+        }
     } else {
         return param_named_local_type_name(ann)
     }
@@ -175,8 +179,51 @@ fn method_param_local_type_name(node: AstNode) -> String {
                 concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
             )
         }
+        let generic_user_type = generic_user_type_local_name(ann)
+        if len(generic_user_type) > 0 {
+            return generic_user_type
+        }
     } else {
         return param_named_local_type_name(ann)
     }
     String_new()
+}
+
+// Built-in containers have dedicated compact aliases above. Preserve the
+// type arguments for a user-defined generic type so MIR monomorphization can
+// resolve payload fields such as `Box<T>::Owned(T)`.
+fn generic_user_type_local_name(ann: AstNode) -> String {
+    let name = decl_ann_name::decl_ann_name(ann)
+    let arg_count = decl_ann_children::decl_ann_child_count(ann)
+    if len(name) == 0 || arg_count < 2 {
+        return String_new()
+    }
+    let mut has_type_var = false
+    let mut i = 1
+    while i < arg_count {
+        let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
+        if is_generic_type_param_name(clone(arg_name)) {
+            has_type_var = true
+        }
+        i = i + 1
+    }
+    if !has_type_var {
+        return String_new()
+    }
+    let mut marker = concat(String_from("?"), clone(name))
+    i = 1
+    while i < arg_count {
+        let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
+        marker = concat(marker, concat(String_from(":"), arg_name))
+        i = i + 1
+    }
+    marker
+}
+
+fn is_generic_type_param_name(name: String) -> bool {
+    if len(name) != 1 {
+        return false
+    }
+    let ch = char_at(name, 0)
+    ch >= 65 && ch <= 90
 }

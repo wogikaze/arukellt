@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 743
+- **Canonical names:** 745
 - **Historical/deprecated names:** 3
-- **Total entries:** 746
+- **Total entries:** 748
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -595,6 +595,8 @@ Current public API names, sorted alphabetically.
 | `skip_ws` | `std::json` | `experimental` | Json |
 | `slice` | `prelude` | `stable` | String |
 | `slice_bytes` | `std::text` | `stable` | Text |
+| `slice_get` | `prelude` | `stable` | Collections |
+| `slice_len` | `prelude` | `stable` | Collections |
 | `slotmap_contains` | `std::collections::compiler` | `experimental` | Collections |
 | `slotmap_get` | `std::collections::compiler` | `experimental` | Collections |
 | `slotmap_insert` | `std::collections::compiler` | `experimental` | Collections |
@@ -1362,6 +1364,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `skip_ws` | ✅ `experimental` | `std::json` | Json |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `slice_bytes` | ✅ `stable` | `std::text` | Text |
+| `slice_get` | ✅ `stable` | `prelude` | Collections |
+| `slice_len` | ✅ `stable` | `prelude` | Collections |
 | `slotmap_contains` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `slotmap_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `slotmap_insert` | ✅ `experimental` | `std::collections::compiler` | Collections |

@@ -156,6 +156,20 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 - **Anchor fragments:** `python3 scripts/check/check-anchor-fragments.py` validates `path.md#anchor` links (ADR-019 §2) in the `verify quick` static pass.
 - **Playground format UI:** `docs/playground/index.html` exposes a Format toolbar action wired to `pg.format()`; tokenize drives editor syntax highlighting (#635).
 
+## Language v2 semantic milestones
+
+The current selfhost path implements the #854 owned-ADT boundary described by
+[ADR-060](adr/ADR-060-language-v2-owned-adts-box-slice.md): `Option`, `Result`,
+and user enums are owned tagged values; `Box<T>` is a non-`Copy` unique owner;
+and `Slice<T>` is a non-`Copy` bounded read view whose source binding remains
+usable. Move-after-use is diagnosed as E0212. The positive and negative fixtures
+are compiled on both `wasm32-gc` and `wasm32`; the GC component and linear core
+outputs validate and the positive fixture has matching runtime output.
+
+This milestone does not claim complete lifetime / mutation-exclusion checking
+for views, or a completed tracing-GC runtime on the linear target. Those remain
+separate follow-up work.
+
 ## Data Model (all Wasm targets)
 
 **Important:** The `wasm32` compatibility path still uses the
@@ -163,8 +177,9 @@ linear-memory data model. `wasm32-gc` emits Wasm GC reference locals/types and
 `struct.*` / `array.*` instructions for the current aggregate lowering
 shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
 locals, params, and struct/enum returns. This is an implementation slice, not the
-complete GC-native data model: strings, Vec, enums, options/results, and generic
-payloads may still use linear-memory or fixed-shape representation in places.
+complete GC-native data model. The #854 owned-ADT boundary is shared by both
+targets, but strings, Vec, enums, options/results, and generic payloads may still
+use linear-memory or fixed-shape representation in places.
 Layout policy (compiler-private) is accepted in ADR-035; implementation phases live in
 `docs/plans/wasm-gc-implementation.md`.
 
