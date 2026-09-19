@@ -1,0 +1,66 @@
+use typechecker::ast_access
+use typechecker::contract_type_access
+use typechecker::contract_fn_sig
+use typechecker::kinds
+use typechecker::names
+use typechecker::sigs
+use typechecker::trait_bounds
+use typechecker::types
+use typechecker::unify
+
+// A `for` source is accepted when its concrete type participates in either
+// the conversion protocol or the iterator protocol. Range syntax is a
+// built-in source form and is lowered separately from those trait calls.
+fn check_for_source(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode
+) {
+    if ast_access::node_child_count(node) == 0 {
+        return
+    }
+    let source = ast_access::node_child_at(node, 0)
+    if ast_access::node_kind_is(source, kinds::NK_RANGE()) {
+        return
+    }
+    let source_ty = infer_expr(env, scope, fn_sigs, enum_defs, source)
+    let resolved_source_ty = unify::resolve_type(env, source_ty)
+    let source_tag = contract_type_access::TypeInfo_tag(resolved_source_ty)
+    if source_tag == commands::TY_UNKNOWN() || source_tag == commands::TY_TYPE_VAR() {
+        return
+    }
+    let into_iterator = types::resolve_type_name(String_from("IntoIterator"))
+    if trait_bounds::type_satisfies_trait_bound(env, resolved_source_ty, into_iterator) {
+        return
+    }
+    let iterator = types::resolve_type_name(String_from("Iterator"))
+    if trait_bounds::type_satisfies_trait_bound(env, resolved_source_ty, iterator) {
+        return
+    }
+    if has_structural_next(env, fn_sigs, resolved_source_ty) {
+        return
+    }
+    let source_name = names::type_display_name(resolved_source_ty)
+    unify::type_error(
+        env,
+        concat(
+            String_from("non-iterable source: expected IntoIterator or Iterator, found "),
+            source_name
+        )
+    )
+}
+
+fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -> bool {
+    let source_name = contract_type_access::TypeInfo_name(source_ty)
+    if len(source_name) == 0 {
+        return false
+    }
+    let next_sig = sigs::lookup_fn_sig(
+        env,
+        fn_sigs,
+        concat(clone(source_name), String_from("::next"))
+    )
+    contract_fn_sig::FnSig_has_name(next_sig)
+}

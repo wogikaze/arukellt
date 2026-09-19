@@ -33,6 +33,7 @@ fn NK_INDEX() -> i32 { 10 }
 fn NK_ARRAY_LIT() -> i32 { 12 }
 fn NK_ARRAY_REPEAT() -> i32 { 24 }
 fn NK_CHAR_LIT() -> i32 { 23 }
+fn NK_RANGE() -> i32 { 19 }
 
 // Control expression node kinds.
 fn NK_IF_EXPR() -> i32 { 13 }

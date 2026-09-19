@@ -17,6 +17,10 @@ fn node_is_loop_like(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_WHILE()) || ast_access::node_kind_is(node, kinds::NK_FOR())
 }
 
+fn node_is_for(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_FOR())
+}
+
 fn node_is_block(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_BLOCK())
 }

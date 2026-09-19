@@ -1,0 +1,5 @@
+// Error: for source must implement IntoIterator
+fn main() {
+    for value in 42 {
+    }
+}

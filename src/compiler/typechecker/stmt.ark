@@ -2,6 +2,7 @@ use typechecker::ast_stmt_predicates
 use typechecker::ast_access
 use typechecker::stmt_expr
 use typechecker::stmt_let
+use typechecker::stmt_for
 
 fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_stmt_predicates::node_is_let(node) {
@@ -17,6 +18,19 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: V
         return
     }
     if ast_stmt_predicates::node_is_loop_like(node) {
+        if ast_stmt_predicates::node_is_for(node) {
+            stmt_for::check_for_source(env, scope, fn_sigs, enum_defs, node)
+            if ast_access::node_child_count(node) > 1 {
+                check_stmt(
+                    env,
+                    scope,
+                    fn_sigs,
+                    enum_defs,
+                    ast_access::node_child_at(node, 1)
+                )
+            }
+            return
+        }
         check_child_statements(env, scope, fn_sigs, enum_defs, node)
         return
     }
