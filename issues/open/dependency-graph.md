@@ -33,7 +33,7 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I866["866 866 — source module の import / use 構文を整理する"]
+  I867["867 867 — `pub` / Component export / WIT import 境界を分離する"]
   I868["868 868 — Prelude / boolean literal / keyword policy を固定する"]
   I869["869 869 — multi-clause / where / semicolon grammar を確定する"]
   I870["870 870 — target capability / Memory64 / host profile を分解する"]
@@ -49,7 +49,6 @@ graph LR
   I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I867["867 867 — `pub` / Component export / WIT import 境界を分離する"]
   I871["871 871 — Wasm GC aggregate lowering を完成する"]
   I873["873 873 — linear-memory tracing GC fallback runtime を実装する"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
@@ -80,7 +79,6 @@ graph LR
   I729 --> I865
   I791 --> I814
   I851 --> I850
-  I866 --> I867
   I870 --> I871
   I870 --> I873
   I682 --> I683
@@ -155,7 +153,7 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **866** depends on: none; blocks: 867
+- **867** depends on: 866; blocks: 875
 - **868** depends on: none; blocks: 875
 - **869** depends on: none; blocks: 875
 - **870** depends on: none; blocks: 871, 873
@@ -171,7 +169,6 @@ graph LR
 - **865** depends on: 729; blocks: 875
 - **814** depends on: 791; blocks: none
 - **850** depends on: 851; blocks: none
-- **867** depends on: 866; blocks: 875
 - **871** depends on: 854, 870; blocks: 872, 875, 879
 - **873** depends on: 870; blocks: 874
 - **683** depends on: 679, 682; blocks: none

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T07:51:51Z",
+  "generated_at": "2026-09-19T09:16:31Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -542,14 +542,16 @@
       }
     },
     {
-      "id": "866",
-      "path": "866-source-import-use-syntax.md",
-      "title": "866 — source module の import / use 構文を整理する",
+      "id": "867",
+      "path": "867-component-wit-visibility-boundary.md",
+      "title": "867 — `pub` / Component export / WIT import 境界を分離する",
       "track": "language-v2",
       "status": "open",
-      "depends_on": [],
+      "depends_on": [
+        "866"
+      ],
       "blocks_issue_ids": [
-        "867"
+        "875"
       ],
       "acceptance": {
         "checked": 0,
@@ -869,27 +871,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
-      }
-    },
-    {
-      "id": "867",
-      "path": "867-component-wit-visibility-boundary.md",
-      "title": "867 — `pub` / Component export / WIT import 境界を分離する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "866"
-      ],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1287,8 +1268,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 21,
-        "unchecked": 21
+        "checked": 22,
+        "unchecked": 20
       },
       "orchestration": {
         "class": "blocked-by-upstream",

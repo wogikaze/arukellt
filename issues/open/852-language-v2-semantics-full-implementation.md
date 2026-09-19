@@ -48,7 +48,16 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #863 — String / Unicode semantics を確定する — RFC 24 — depends: 854
   - Receipt: completed in `e4becb596`; ADR-069 and RFC-011 item 24 are synchronized. Valid UTF-8 String/scalar semantics, byte/scalar API separation, strict/lossy UTF-8 construction, boundary-aware slicing, and `char_at` migration are covered by positive/diagnostic fixtures. Current-source `wasm32-gc` and `wasm32` targeted compile/validate/runtime parity passes; canonical bootstrap remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch.
 - [ ] #865 — Hygienic desugaring と f-string lowering を実装する — RFC 28, 29 — depends: 729
-- [ ] #866 — source module の import / use 構文を整理する — RFC 30 — depends: none
+- [x] #866 — source module の import / use 構文を整理する — RFC 30 — depends: none
+  - Receipt: completed in `963d544a6`; `use` is the canonical source-module
+    syntax, legacy local `import` emits W0101 during migration, and alias,
+    selective import, public-only `pub use`, loader/resolver/formatter/LSP,
+    and the normative RFC/spec documents are synchronized. Positive,
+    negative, and diagnostic fixtures pass the targeted selfhost checks; GC
+    and linear current-source compile/validate/runtime receipts agree. The
+    canonical bootstrap remains blocked by the pre-existing #854
+    `unbox`/`slice_get` mismatch. WIT/component-boundary import work remains
+    explicitly scoped to #867.
 - [ ] #867 — `pub` / Component export / WIT import 境界を分離する — RFC 11, 31, 38 — depends: 866
 - [ ] #868 — Prelude / boolean literal / keyword policy を固定する — RFC 32, 33, 41 — depends: none
 - [ ] #869 — multi-clause / where / semicolon grammar を確定する — RFC 34–36 — depends: none
