@@ -33,7 +33,6 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I857["857 857 — `?` / conversion / Error sentinel を整理する"]
   I858["858 858 — 演算子 Trait へ統一し magic method を退役する"]
   I859["859 859 — 公開 API を generic Trait 面へ統一する"]
   I861["861 861 — 数値の暗黙変換を廃止し明示変換を定義する"]
@@ -105,7 +104,6 @@ graph LR
   I691 --> I710
   I697 --> I710
   I709 --> I710
-  I857 --> I875
   I858 --> I875
   I861 --> I875
   I862 --> I875
@@ -121,7 +119,6 @@ graph LR
   I681 --> I711
   I709 --> I711
   I710 --> I711
-  I857 --> I877
   I858 --> I877
   I860 --> I877
   I875 --> I877
@@ -172,7 +169,6 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **857** depends on: 694, 856; blocks: 875, 877
 - **858** depends on: 856; blocks: 875, 877
 - **859** depends on: 856; blocks: 872, 874
 - **861** depends on: none; blocks: 875

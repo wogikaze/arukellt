@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T00:14:12Z",
+  "generated_at": "2026-09-19T00:15:06Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,29 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "857",
-      "path": "857-question-mark-conversion-error-sentinel.md",
-      "title": "857 — `?` / conversion / Error sentinel を整理する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "694",
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
