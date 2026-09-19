@@ -66,7 +66,8 @@ pub trait FromIterator<T> {
 // Keep collection traversal in one generic implementation. The public trait
 // method is currently i32-specific because generic `Vec<T::Item>` lowering is
 // not yet valid on both backends; keeping that boundary explicit prevents
-// adapter-specific loops from drifting while the aggregate ABI is completed.
+// adapter-specific loops from drifting. Remove the i32 restriction when
+// generic aggregate projection lowering validates on both backends (#860).
 fn collect_iterator_i32<T: Iterator>(it: T) -> Vec<i32> {
     let result: Vec<i32> = Vec::new<i32>()
     while true {
