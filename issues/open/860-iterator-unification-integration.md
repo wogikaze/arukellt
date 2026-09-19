@@ -199,3 +199,23 @@ RFC-011: **37**。
   method-shaped lazy adapter migration, structural trait-driven `for`, and the
   final RFC-011 residual audit remain open. No acceptance checkbox is marked
   complete.
+
+## Progress receipt — 2026-09-20 (concrete IntoIterator for lowering)
+
+- Commit `33a604056` adds a shared concrete-source resolver to both legacy AST
+  and CoreHir `for` lowering. When a source has a registered
+  `IntoIterator::into_iter` implementation, lowering evaluates the source,
+  calls that conversion, and drives the resulting concrete iterator through
+  its canonical `next`; otherwise the existing Vec/raw or structural fallback
+  remains in place.
+- `iterator_vec_iter_for_loop.ark` covers direct `for x in Vec<i32>` and
+  `iterator_range_basic.ark` covers direct `for` over `Range` and
+  `RangeInclusive` locals. GC P2/Memory64 components and linear P1 modules
+  compile, validate, and run successfully on both paths.
+- WAT inspection confirms `Vec::into_iter`/`VecIter::next`,
+  `Range::into_iter`/`RangeIter::next`, and
+  `RangeInclusive::into_iter`/`RangeInclusiveIter::next` in both artifacts.
+  `verify lane` and `docs check` pass.
+- This is not a close receipt: `values(v)` compatibility remains, arbitrary
+  item representations, method-shaped lazy adapters, generic source
+  expressions, and the final RFC-011 residual audit remain open.

@@ -34,6 +34,13 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
 - [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
+  - Progress (not done, 2026-09-20): `33a604056` routes concrete local
+    `for` sources with a registered `IntoIterator` implementation through
+    `IntoIterator::into_iter` and canonical `next` in both AST and CoreHir
+    lowering. Vec, Range, and RangeInclusive direct-for fixtures pass current
+    source GC component and linear Wasm compile/validate/runtime checks.
+    Generic item representations, adapter methods, generic source expressions,
+    and the final RFC-011 residual audit remain open.
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax

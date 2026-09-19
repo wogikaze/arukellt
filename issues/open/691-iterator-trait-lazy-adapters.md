@@ -271,3 +271,20 @@ full adapter fixture matrix as a fallback parity gate.
   `i32`-backed item lane is proven; arbitrary item implementations, the
   method-shaped lazy adapter API, full eager/lazy migration, structural
   trait-driven `for`, and the final RFC-011 residual audit remain open.
+
+## Progress receipt — 2026-09-20 (concrete IntoIterator for lowering)
+
+- Commit `33a604056` adds a shared concrete-source resolver to both legacy AST
+  and CoreHir `for` lowering. Concrete sources with a registered
+  `IntoIterator::into_iter` conversion are converted before the canonical
+  iterator `next` call; the existing compatibility and structural fallbacks
+  remain for sources outside this boundary.
+- `iterator_vec_iter_for_loop.ark` and `iterator_range_basic.ark` cover direct
+  `for` over `Vec<i32>`, `Range`, and `RangeInclusive`. GC P2/Memory64
+  components and linear P1 modules compile, validate, and run successfully on
+  both target paths.
+- WAT inspection confirms the source-specific `into_iter` and iterator
+  `next` symbols in both artifacts. `verify lane` and `docs check` pass.
+- This remains partial #691 evidence: arbitrary item representations, the
+  method-shaped lazy adapter API, full eager/lazy migration, generic source
+  expressions, and the final RFC-011 residual audit remain open.
