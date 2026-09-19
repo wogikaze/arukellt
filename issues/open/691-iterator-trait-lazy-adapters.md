@@ -174,3 +174,13 @@ full adapter fixture matrix as a fallback parity gate.
   `for x in iter::vec_iter(v)` and generic `sum_iter<T: Iterator>`. Both
   observe `60` on GC and linear Wasm, documenting the current concrete
   lowering equivalence without changing the structural lowering implementation.
+
+## Progress receipt — 2026-09-20 (Range IntoIterator)
+
+- Commit `089ebf819` adds `IntoIterator for Range`, producing the existing
+  `RangeIter` adapter through the same trait conversion boundary as `Vec<i32>`.
+- `iterator_range_basic.ark` exercises `source.into_iter().next()`; GC
+  component compilation/execution and linear Wasm validation/execution pass.
+- Generic item collection, callback-bearing consumers, and structural
+  `for` desugaring remain open, so this is an incremental receipt rather than
+  a close receipt.

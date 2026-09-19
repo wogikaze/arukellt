@@ -101,3 +101,11 @@ RFC-011: **37**。
   `Iterator::sum` consumer over the same `VecIter` input. GC component and
   linear Wasm compile/validate/runtime checks pass, establishing the current
   concrete equivalence while leaving full trait-driven desugaring open.
+
+## Progress receipt — 2026-09-20 (Range IntoIterator)
+
+- Commit `089ebf819` adds the `Range -> RangeIter` `IntoIterator` impl and
+  extends the range fixture with a direct conversion call.
+- GC component compilation/execution and linear Wasm compilation, validation,
+  and execution pass. This broadens the unified conversion boundary without
+  changing structural `for` lowering or claiming generic aggregate support.
