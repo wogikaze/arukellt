@@ -1,7 +1,8 @@
-# wasm32 linear-memory lowering（arena + RC）
+# wasm32 linear-memory lowering（tracing fallback）
 
-ステータス: 実装計画（決定記録ではない）  
-関連 ADR: ADR-002  
+ステータス: 実装計画（決定記録ではない。collector 方針は ADR-075 が正本）
+
+関連 ADR: ADR-002、ADR-075
 日付: 2026-03-25（計画抽出: 2026-07-11）
 
 ---
@@ -13,32 +14,18 @@
 
 ### wasm32 プロファイル: メモリ管理モデル
 
-「arena ベース + escape/共有のみ RC」の hybrid モデルを採用する。
-pure arena と pure RC の二者択一より、これが最も実用的。
+`wasm32` は ADR-075 の非移動 mark-sweep tracing runtime を使う。
+arena、RC、cycle reject を target-specific な source semantics として導入しない。
 
-#### arena（デフォルト）
+#### runtime の段階導入
 
-- 実行単位ごとに region を確保（典型: main 全体で 1 arena）
-- オプション: 「関数内一時領域 + 昇格領域」の二層構成
-- 対象: 短命な値・AST 的な木・文字列・配列・小オブジェクト
-- プログラム終了時に一括解放（解放コード不要）
-- AtCoder 本番提出の標準
+1. **recorded bump allocation**: 現行の linear allocation を allocation record として登録する。
+2. **明示 root frame**: managed local の入口登録、local update、出口解放を compiler が出力する。
+3. **mark-sweep**: root から payload の pointer candidate を追跡し、cycle を含む unreachable graph を free list へ戻す。
+4. **managed-value lowering**: #874 で struct/enum/Option/Result/Vec/String/HashMap の descriptor と allocator reuse を接続する。
 
-#### RC: escape / 共有値のみ
-
-| 対象 | 判定 |
-|------|------|
-| 関数外へ escape する値 | RC に昇格 |
-| 複数箇所から共有される値 | RC に昇格 |
-| クロージャ環境（キャプチャ変数） | RC に昇格 |
-| 上記以外 | arena に留まる |
-
-循環参照: コンパイル時 reject（当面禁止。将来 `Weak<T>` で解決）。
-
-#### 実装順序
-
-1. **arena のみ**（先行）: linear memory 版を最小構成で成立させる
-2. **arena + RC hybrid**（次段）: escape 解析でオブジェクトを arena / RC に分類
+root update が全 managed local に接続されるまで、collector の自動起動は有効化しない。
+この制限は live value の誤回収を防ぐための移行境界であり、#873/#874 の完了時に削除する。
 
 ### wasm32 プロファイルが課す言語設計制約
 
@@ -46,8 +33,6 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 
 | 除外機能 | 理由 |
 |---------|------|
-| finalizer の実行タイミング保証 | arena では解放タイミングが不定 |
-| 弱参照（`Weak<T>`） | GC の到達可能性に依存（当面禁止、将来追加予定） |
-| 循環参照グラフのユーザー作成 | RC ではリークが発生 |
+| moving compaction / finalizer / weak reference | ADR-075 の初期 runtime 契約に含めない |
 
 ---

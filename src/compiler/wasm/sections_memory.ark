@@ -24,13 +24,20 @@ fn emit_memory_section(out: WasmWriter, target: String) {
 // `literal_cache` describes the GC string-literal cache global
 // (`constants::GLOBAL_GC_STRING_LITERAL_CACHE`); linear targets pass
 // `gc_string_literal_cache_none()` and emit only the heap pointer.
-fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal) {
+fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal, target: String) {
     let global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
-    let global_count = if literal_cache.array_type_idx >= 0 { 2 } else { 1 }
+    let linear_gc = emit_target::is_linear_memory_target(clone(target))
+    let cache_count = if literal_cache.array_type_idx >= 0 { 1 } else { 0 }
+    let linear_gc_count = if linear_gc { 6 } else { 0 }
+    let global_count = 1 + cache_count + linear_gc_count
     writer_core::emit_leb128_u(global_sec, global_count)
-    emit_heap_global_entry(global_sec, data_offset, writer_core::writer_memory64(out))
+    let heap_start = heap_start_from_data_offset(data_offset, linear_gc)
+    emit_heap_global_entry(global_sec, heap_start, writer_core::writer_memory64(out))
     if literal_cache.array_type_idx >= 0 {
         emit_string_literal_cache_global_entry(global_sec, literal_cache)
+    }
+    if linear_gc {
+        emit_linear_gc_global_entries(global_sec, heap_start)
     }
     writer_sections::emit_section(out, opcodes::SEC_GLOBAL(), global_sec)
 }
@@ -68,12 +75,11 @@ fn emit_string_literal_cache_global_entry(global_sec: WasmWriter, literal_cache:
     writer_core::emit_byte(global_sec, opcodes::OP_END())
 }
 
-fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32, memory64: bool) {
+fn emit_heap_global_entry(global_sec: WasmWriter, heap_start: i32, memory64: bool) {
     if memory64 {
         writer_core::emit_byte(global_sec, constants::WASM_I64())
         writer_core::emit_byte(global_sec, 1)
         writer_core::emit_byte(global_sec, opcodes::OP_I64_CONST())
-        let heap_start = heap_start_from_data_offset(data_offset)
         writer_core::emit_leb128_s_i64(global_sec, i32_to_i64(heap_start))
         writer_core::emit_byte(global_sec, opcodes::OP_END())
         return
@@ -81,13 +87,36 @@ fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32, memory64: bo
     writer_core::emit_byte(global_sec, constants::WASM_I32())
     writer_core::emit_byte(global_sec, 1)
     writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
-    let heap_start = heap_start_from_data_offset(data_offset)
     writer_core::emit_leb128_s(global_sec, heap_start)
     writer_core::emit_byte(global_sec, opcodes::OP_END())
 }
 
-fn heap_start_from_data_offset(data_offset: i32) -> i32 {
-    (data_offset + 7) / 8 * 8
+fn emit_linear_gc_global_entries(global_sec: WasmWriter, heap_start: i32) {
+    emit_linear_gc_i32_global(global_sec, 0)
+    emit_linear_gc_i32_global(global_sec, 0)
+    emit_linear_gc_i32_global(global_sec, heap_start)
+    emit_linear_gc_i32_global(global_sec, heap_start)
+    emit_linear_gc_i32_global(
+        global_sec,
+        heap_start - constants::LINEAR_GC_METADATA_BYTES()
+    )
+    emit_linear_gc_i32_global(global_sec, heap_start)
+}
+
+fn emit_linear_gc_i32_global(global_sec: WasmWriter, initial_value: i32) {
+    writer_core::emit_byte(global_sec, constants::WASM_I32())
+    writer_core::emit_byte(global_sec, 1)
+    writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(global_sec, initial_value)
+    writer_core::emit_byte(global_sec, opcodes::OP_END())
+}
+
+fn heap_start_from_data_offset(data_offset: i32, linear_gc: bool) -> i32 {
+    let aligned = (data_offset + 7) / 8 * 8
+    if linear_gc {
+        return aligned + constants::LINEAR_GC_METADATA_BYTES()
+    }
+    aligned
 }
 
 // Memory limits: flag 0x00 = i32 min only; 0x04 = memory64 min only (ADR-007).

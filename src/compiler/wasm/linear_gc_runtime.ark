@@ -1,0 +1,593 @@
+use wasm::constants
+use wasm::opcodes
+use wasm::writer_core
+
+// The fallback runtime is emitted as ordinary wasm32 functions. It deliberately
+// uses only linear-memory instructions; no function in this file may depend on
+// the Wasm GC prefix. Allocation records describe ranges rather than source
+// types so the bootstrap can track today's raw String/Vec layouts until #874
+// supplies exact managed-value descriptors.
+
+fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32) {
+    if ordinal == constants::LINEAR_GC_ROOT_FRAME_ENTER() {
+        emit_linear_gc_runtime_root_frame_enter_body(w)
+        return
+    }
+    if ordinal == constants::LINEAR_GC_ROOT_PUSH() {
+        emit_linear_gc_runtime_root_push_body(w)
+        return
+    }
+    if ordinal == constants::LINEAR_GC_ROOT_UPDATE() {
+        emit_linear_gc_runtime_root_update_body(w)
+        return
+    }
+    if ordinal == constants::LINEAR_GC_ROOT_FRAME_LEAVE() {
+        emit_linear_gc_runtime_root_frame_leave_body(w)
+        return
+    }
+    if ordinal == constants::LINEAR_GC_COMMIT_TOP() {
+        emit_linear_gc_runtime_commit_top_body(w)
+        return
+    }
+    if ordinal == constants::LINEAR_GC_MARK_CANDIDATE() {
+        emit_linear_gc_runtime_mark_candidate_body(w)
+        return
+    }
+    if ordinal == constants::LINEAR_GC_COLLECT() {
+        emit_linear_gc_runtime_collect_body(
+            w,
+            runtime_base + constants::LINEAR_GC_MARK_CANDIDATE()
+        )
+        return
+    }
+    if ordinal == constants::LINEAR_GC_ALLOC() {
+        emit_linear_gc_runtime_alloc_body(
+            w,
+            runtime_base + constants::LINEAR_GC_COMMIT_TOP()
+        )
+        return
+    }
+    emit_unreachable(w)
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_root_frame_enter_body(w: WasmWriter) {
+    emit_local_decls(w, 0)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_root_push_body(w: WasmWriter) {
+    emit_local_decls(w, 1)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_i32_const(w, constants::LINEAR_GC_ROOT_SLOT_BYTES())
+    emit_i32_sub(w)
+    emit_local_set(w, 1)
+
+    emit_local_get(w, 1)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_i32_le_u(w)
+    emit_if_empty(w)
+    emit_unreachable(w)
+    emit_end(w)
+
+    emit_local_get(w, 1)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_local_get(w, 1)
+    emit_local_get(w, 0)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 1)
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_root_update_body(w: WasmWriter) {
+    emit_local_decls(w, 0)
+    emit_local_get(w, 0)
+    emit_local_get(w, 1)
+    emit_i32_store(w, 0)
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
+    emit_local_decls(w, 0)
+    emit_local_get(w, 0)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter) {
+    emit_local_decls(w, 3)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
+    emit_local_set(w, 1)
+
+    emit_void_block(w)
+    emit_local_get(w, 0)
+    emit_local_get(w, 1)
+    emit_i32_le_u(w)
+    emit_br_if(w, 0)
+
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_local_set(w, 2)
+    emit_local_get(w, 2)
+    emit_i32_const(w, constants::LINEAR_GC_ALLOCATION_RECORD_BYTES())
+    emit_i32_add(w)
+    emit_local_set(w, 3)
+    emit_local_get(w, 3)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_i32_gt_u(w)
+    emit_if_empty(w)
+    emit_unreachable(w)
+    emit_end(w)
+
+    emit_local_get(w, 2)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_local_get(w, 1)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_local_get(w, 0)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_const(w, 0)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_local_get(w, 3)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_local_get(w, 0)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
+    emit_end(w)
+    emit_end(w)
+}
+
+// Returns 1 exactly when `candidate` newly marks an allocation record.
+fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
+    emit_local_decls(w, 3)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_local_set(w, 1)
+
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 1)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+
+    emit_local_get(w, 1)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 2)
+    emit_local_get(w, 1)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 3)
+
+    emit_local_get(w, 0)
+    emit_local_get(w, 2)
+    emit_i32_ge_u(w)
+    emit_local_get(w, 0)
+    emit_local_get(w, 3)
+    emit_i32_lt_u(w)
+    emit_i32_and(w)
+    emit_if_empty(w)
+    emit_local_get(w, 1)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_eqz(w)
+    emit_if_empty(w)
+    emit_local_get(w, 1)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_const(w, 1)
+    emit_i32_store(w, 0)
+    emit_i32_const(w, 1)
+    emit_return(w)
+    emit_end(w)
+    emit_i32_const(w, 0)
+    emit_return(w)
+    emit_end(w)
+
+    emit_local_get(w, 1)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 1)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+    emit_i32_const(w, 0)
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_collect_body(w: WasmWriter, mark_index: i32) {
+    emit_local_decls(w, 10)
+    emit_linear_gc_clear_marks(w)
+    emit_linear_gc_mark_roots(w, mark_index)
+    emit_linear_gc_mark_transitive(w, mark_index)
+    emit_linear_gc_sweep(w)
+    emit_end(w)
+}
+
+fn emit_linear_gc_clear_marks(w: WasmWriter) {
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_local_set(w, 0)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 0)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_const(w, 0)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 0)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 0)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+}
+
+fn emit_linear_gc_mark_roots(w: WasmWriter, mark_index: i32) {
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_local_set(w, 1)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 1)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_LIMIT())
+    emit_i32_ge_u(w)
+    emit_br_if(w, 1)
+    emit_local_get(w, 1)
+    emit_i32_load(w, 0)
+    emit_call(w, mark_index)
+    emit_drop(w)
+    emit_local_get(w, 1)
+    emit_i32_const(w, constants::LINEAR_GC_ROOT_SLOT_BYTES())
+    emit_i32_add(w)
+    emit_local_set(w, 1)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+}
+
+fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
+    emit_i32_const(w, 1)
+    emit_local_set(w, 3)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_i32_const(w, 0)
+    emit_local_set(w, 3)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_local_set(w, 0)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 0)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_if_empty(w)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 4)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 5)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 4)
+    emit_local_get(w, 5)
+    emit_i32_ge_u(w)
+    emit_br_if(w, 1)
+    emit_local_get(w, 4)
+    emit_i32_load(w, 0)
+    emit_call(w, mark_index)
+    emit_if_empty(w)
+    emit_i32_const(w, 1)
+    emit_local_set(w, 3)
+    emit_end(w)
+    emit_local_get(w, 4)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_local_set(w, 4)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+    emit_end(w)
+    emit_local_get(w, 0)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 0)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+    emit_local_get(w, 3)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+}
+
+fn emit_linear_gc_sweep(w: WasmWriter) {
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_local_set(w, 0)
+    emit_i32_const(w, 0)
+    emit_local_set(w, 7)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 0)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+    emit_local_get(w, 0)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 6)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 8)
+    emit_local_get(w, 8)
+    emit_i32_eqz(w)
+    emit_if_empty(w)
+    emit_local_get(w, 7)
+    emit_i32_eqz(w)
+    emit_if_empty(w)
+    emit_local_get(w, 6)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_else(w)
+    emit_local_get(w, 7)
+    emit_local_get(w, 6)
+    emit_i32_store(w, 0)
+    emit_end(w)
+    emit_local_get(w, 0)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
+    emit_i32_store(w, 0)
+    emit_local_get(w, 0)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
+    emit_else(w)
+    emit_local_get(w, 0)
+    emit_local_set(w, 7)
+    emit_end(w)
+    emit_local_get(w, 6)
+    emit_local_set(w, 0)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+}
+
+fn emit_linear_gc_runtime_alloc_body(w: WasmWriter, commit_index: i32) {
+    emit_local_decls(w, 7)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 3)
+    emit_i32_add(w)
+    emit_i32_const(w, 0 - 4)
+    emit_i32_and(w)
+    emit_local_set(w, 1)
+    emit_local_get(w, 1)
+    emit_i32_const(w, 4)
+    emit_i32_lt_u(w)
+    emit_if_empty(w)
+    emit_i32_const(w, 4)
+    emit_local_set(w, 1)
+    emit_end(w)
+
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
+    emit_local_set(w, 2)
+    emit_i32_const(w, 0)
+    emit_local_set(w, 3)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 2)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+    emit_local_get(w, 2)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 6)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 4)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_set(w, 5)
+    emit_local_get(w, 5)
+    emit_local_get(w, 4)
+    emit_i32_sub(w)
+    emit_local_get(w, 1)
+    emit_i32_ge_u(w)
+    emit_if_empty(w)
+    emit_local_get(w, 3)
+    emit_i32_eqz(w)
+    emit_if_empty(w)
+    emit_local_get(w, 6)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
+    emit_else(w)
+    emit_local_get(w, 3)
+    emit_local_get(w, 6)
+    emit_i32_store(w, 0)
+    emit_end(w)
+    emit_local_get(w, 2)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_local_get(w, 2)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_local_get(w, 4)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_local_get(w, 4)
+    emit_local_get(w, 1)
+    emit_i32_add(w)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_const(w, 0)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 4)
+    emit_return(w)
+    emit_end(w)
+    emit_local_get(w, 2)
+    emit_local_set(w, 3)
+    emit_local_get(w, 6)
+    emit_local_set(w, 2)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+
+    emit_global_get(w, constants::GLOBAL_HEAP_POINTER())
+    emit_local_set(w, 4)
+    emit_local_get(w, 4)
+    emit_local_get(w, 1)
+    emit_i32_add(w)
+    emit_local_set(w, 5)
+    emit_linear_gc_ensure_memory(w, 5)
+    emit_local_get(w, 5)
+    emit_global_set(w, constants::GLOBAL_HEAP_POINTER())
+    emit_local_get(w, 5)
+    emit_call(w, commit_index)
+    emit_local_get(w, 4)
+    emit_end(w)
+}
+
+fn emit_linear_gc_ensure_memory(w: WasmWriter, end_local: i32) {
+    emit_local_get(w, end_local)
+    emit_memory_size_bytes(w)
+    emit_i32_gt_u(w)
+    emit_if_empty(w)
+    emit_local_get(w, end_local)
+    emit_memory_size_bytes(w)
+    emit_i32_sub(w)
+    emit_i32_const(w, 65535)
+    emit_i32_add(w)
+    emit_i32_const(w, 16)
+    emit_i32_shr_u(w)
+    emit_memory_grow(w)
+    emit_drop(w)
+    emit_end(w)
+}
+
+fn emit_memory_size_bytes(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_core::emit_leb128_u(w, 0)
+    emit_i32_const(w, 65536)
+    emit_i32_mul(w)
+}
+
+fn emit_memory_grow(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_GROW())
+    writer_core::emit_leb128_u(w, 0)
+}
+
+fn emit_local_decls(w: WasmWriter, count: i32) {
+    if count == 0 {
+        writer_core::emit_leb128_u(w, 0)
+        return
+    }
+    writer_core::emit_leb128_u(w, 1)
+    writer_core::emit_leb128_u(w, count)
+    writer_core::emit_byte(w, constants::WASM_I32())
+}
+
+fn emit_i32_const(w: WasmWriter, value: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, value)
+}
+
+fn emit_local_get(w: WasmWriter, index: i32) {
+    writer_core::emit_local_get(w, index)
+}
+
+fn emit_local_set(w: WasmWriter, index: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, index)
+}
+
+fn emit_global_get(w: WasmWriter, index: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, index)
+}
+
+fn emit_global_set(w: WasmWriter, index: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_core::emit_leb128_u(w, index)
+}
+
+fn emit_i32_load(w: WasmWriter, offset: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_leb128_u(w, offset)
+}
+
+fn emit_i32_store(w: WasmWriter, offset: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_leb128_u(w, offset)
+}
+
+fn emit_i32_add(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_ADD()) }
+fn emit_i32_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SUB()) }
+fn emit_i32_mul(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_MUL()) }
+fn emit_i32_and(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_AND()) }
+fn emit_i32_eqz(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQZ()) }
+fn emit_i32_le_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LE_U()) }
+fn emit_i32_lt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LT_U()) }
+fn emit_i32_ge_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_U()) }
+fn emit_i32_gt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GT_U()) }
+fn emit_i32_shr_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHR_U()) }
+
+fn emit_call(w: WasmWriter, index: i32) {
+    writer_core::emit_byte(w, opcodes::OP_CALL())
+    writer_core::emit_leb128_u(w, index)
+}
+
+fn emit_drop(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_DROP()) }
+fn emit_unreachable(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_UNREACHABLE()) }
+fn emit_return(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_RETURN()) }
+
+fn emit_void_block(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_void_loop(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_if_empty(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_else(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_ELSE()) }
+fn emit_end(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_END()) }
+fn emit_br(w: WasmWriter, depth: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_core::emit_leb128_u(w, depth)
+}
+fn emit_br_if(w: WasmWriter, depth: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_core::emit_leb128_u(w, depth)
+}

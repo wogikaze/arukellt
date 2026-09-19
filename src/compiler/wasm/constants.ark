@@ -25,6 +25,30 @@ fn WASM_IMMUTABLE() -> i32 { 0 }
 fn GLOBAL_HEAP_POINTER() -> i32 { 0 }
 fn GLOBAL_GC_STRING_LITERAL_CACHE() -> i32 { 1 }
 
+// Linear fallback runtime globals. They are emitted only for `wasm32`; the
+// GC target keeps global 1 reserved for its literal cache.
+fn GLOBAL_LINEAR_GC_ALLOC_HEAD() -> i32 { 1 }
+fn GLOBAL_LINEAR_GC_FREE_HEAD() -> i32 { 2 }
+fn GLOBAL_LINEAR_GC_ROOT_CURSOR() -> i32 { 3 }
+fn GLOBAL_LINEAR_GC_ROOT_LIMIT() -> i32 { 4 }
+fn GLOBAL_LINEAR_GC_METADATA_CURSOR() -> i32 { 5 }
+fn GLOBAL_LINEAR_GC_LAST_TOP() -> i32 { 6 }
+fn LINEAR_GC_METADATA_BYTES() -> i32 { 65536 }
+fn LINEAR_GC_ALLOCATION_RECORD_BYTES() -> i32 { 16 }
+fn LINEAR_GC_ROOT_SLOT_BYTES() -> i32 { 4 }
+
+// Private linear runtime function ordinals. The function section emits these
+// in this order after user, wrapper, P2, and library functions.
+fn LINEAR_GC_ROOT_FRAME_ENTER() -> i32 { 0 }
+fn LINEAR_GC_ROOT_PUSH() -> i32 { 1 }
+fn LINEAR_GC_ROOT_UPDATE() -> i32 { 2 }
+fn LINEAR_GC_ROOT_FRAME_LEAVE() -> i32 { 3 }
+fn LINEAR_GC_COMMIT_TOP() -> i32 { 4 }
+fn LINEAR_GC_MARK_CANDIDATE() -> i32 { 5 }
+fn LINEAR_GC_COLLECT() -> i32 { 6 }
+fn LINEAR_GC_ALLOC() -> i32 { 7 }
+fn LINEAR_GC_RUNTIME_FUNCTION_COUNT() -> i32 { 8 }
+
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }

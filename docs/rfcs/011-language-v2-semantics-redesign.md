@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)、[ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)、[ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)、[ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)、[ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md)、[ADR-075](../adr/ADR-075-language-v2-linear-memory-tracing-runtime.md)
 
 ---
 
@@ -41,7 +41,7 @@ GC、参照カウント、linear memory、native runtimeは、共通の言語意
 
 `wasm32-gc` と `wasm32` が異なる意味論を提供するのではなく、同一の意味を各ターゲットの表現へloweringする。Wasm GC 対応環境では managed aggregate や共有グラフを `struct` / `array` / `ref` へ直接 lower する経路を優先し、ファイルサイズ、実行性能、ホストGC統合の利点を狙う。
 
-Wasm GC 非対応環境では linear memory 上の allocator と tracing GC runtime 等を用意し、共有・循環参照を含む通常のソースプログラムを同じ観測可能意味論で実行できるようにする。GCの有無だけを理由に通常コードをcompile-time errorへしない。
+Wasm GC 非対応環境では [ADR-075](../adr/ADR-075-language-v2-linear-memory-tracing-runtime.md) の linear memory 上の allocator と tracing GC runtime を用意し、共有・循環参照を含む通常のソースプログラムを同じ観測可能意味論で実行できるようにする。GC の有無だけを理由に通常コードを compile-time error へしない。
 
 host固有API、ABI、SIMDなど、本当にターゲット能力に依存する機能はtarget capabilityとして診断する。
 

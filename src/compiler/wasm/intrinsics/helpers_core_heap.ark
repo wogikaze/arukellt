@@ -92,6 +92,15 @@ fn emit_heap_set(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
     writer_leb::emit_leb128_u(w, 0)
     emit_heap_ensure_grown(w)
+    let commit_idx = writer_core::writer_linear_gc_commit_function_index(w)
+    if commit_idx >= 0 {
+        // The fallback records the just-advanced range without changing the
+        // established heap-set stack contract. The runtime sees global 0
+        // after growth and stores the previous top in its own cursor.
+        emit_heap_get(w)
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_leb::emit_leb128_u(w, commit_idx)
+    }
 }
 
 // Pre-grow linear memory when heap_top + headroom would exceed current size.

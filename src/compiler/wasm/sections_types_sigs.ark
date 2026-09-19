@@ -137,3 +137,17 @@ fn append_p2_runtime_type_sigs(type_sigs: Vec<String>, wasi_version: String) {
     push(type_sigs, "i32_i32_i32_i32_1i32")
     push(type_sigs, "0")
 }
+
+fn append_linear_gc_type_sigs(type_sigs: Vec<String>, target: String) {
+    if !emit_target::is_linear_memory_target(clone(target)) {
+        return
+    }
+    push(type_sigs, "1i32")
+    push(type_sigs, "i32_1i32")
+    push(type_sigs, "i32_i32_0")
+    push(type_sigs, "i32_0")
+    push(type_sigs, "i32_0")
+    push(type_sigs, "i32_1i32")
+    push(type_sigs, "0")
+    push(type_sigs, "i32_1i32")
+}

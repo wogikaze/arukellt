@@ -4,6 +4,10 @@ fn is_gc_target(target: String) -> bool {
     eq(clone(target), "wasm32-gc")
 }
 
+fn is_linear_memory_target(target: String) -> bool {
+    eq(clone(target), "wasm32")
+}
+
 // Memory width is an independent backend axis. The CLI resolves `auto` from
 // the target profile and forces component output to memory32 before reaching
 // the emitter; the fallback keeps an explicit memory32 writer.

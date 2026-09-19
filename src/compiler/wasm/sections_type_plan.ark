@@ -7,6 +7,7 @@ pub struct TypeSectionPlan {
     p2_library_wrapper_type_map: Vec<i32>,
     p2_realloc_type_idx: i32,
     p2_initialize_type_idx: i32,
+    linear_gc_type_map: Vec<i32>,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
     gc_type_base: i32,
@@ -82,6 +83,7 @@ fn TypeSectionPlan_new(
     p2_library_wrapper_type_map: Vec<i32>,
     p2_realloc_type_idx: i32,
     p2_initialize_type_idx: i32,
+    linear_gc_type_map: Vec<i32>,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
     gc_type_base: i32,
@@ -99,6 +101,7 @@ fn TypeSectionPlan_new(
         p2_library_wrapper_type_map: p2_library_wrapper_type_map,
         p2_realloc_type_idx: p2_realloc_type_idx,
         p2_initialize_type_idx: p2_initialize_type_idx,
+        linear_gc_type_map: linear_gc_type_map,
         wit_type_map: wit_type_map,
         wit_import_count: wit_import_count,
         gc_type_base: gc_type_base,
@@ -158,6 +161,10 @@ fn TypeSectionPlan_p2_initialize_type_idx(plan: TypeSectionPlan) -> i32 {
     plan.p2_initialize_type_idx
 }
 
+fn TypeSectionPlan_linear_gc_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.linear_gc_type_map
+}
+
 fn TypeSectionPlan_gc_type_base(plan: TypeSectionPlan) -> i32 {
     plan.gc_type_base
 }
@@ -194,7 +201,8 @@ fn build_type_section_plan(
     p2_library_post_count: i32,
     p2_library_wrapper_count: i32,
     p2_realloc_type_idx: i32,
-    p2_initialize_type_idx: i32
+    p2_initialize_type_idx: i32,
+    linear_gc_type_map: Vec<i32>
 ) -> TypeSectionPlan {
     let host_type_map = build_host_type_map(type_map, num_host_types)
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
@@ -231,6 +239,7 @@ fn build_type_section_plan(
         p2_library_wrapper_type_map,
         p2_realloc_type_idx,
         p2_initialize_type_idx,
+        linear_gc_type_map,
         wit_type_map,
         wit_import_count,
         gc_type_base,

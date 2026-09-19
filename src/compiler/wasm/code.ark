@@ -11,6 +11,7 @@ use wasm::code_body
 use wasm::ctx_record
 use wasm::function_indices
 use wasm::opcodes
+use wasm::constants
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::emit_target
@@ -19,6 +20,7 @@ use wasm::sections_types_sigs_detail
 use wasm::p2_canonical
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
+use wasm::linear_gc_runtime
 
 fn emit_function_inst_count(f: MirFunction) -> i32 {
     let block_count = function_block_queries::MirFunction_block_count(f)
@@ -78,6 +80,23 @@ fn emit_code_section(
     report_timing: i32
 ) {
     let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+    let target = ctx_record::SelfEmitCtx_target(ctx)
+    let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
+    let linear_gc_runtime_count = function_indices::linear_gc_runtime_function_count(clone(target))
+    if linear_gc_runtime_count > 0 {
+        let commit_index = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_COMMIT_TOP(),
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        writer_core::writer_set_linear_gc_commit_function_index(code_sec, commit_index)
+    }
     let p2_command_extra = if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) && needs_wrapper == 1 {
         1
     } else {
@@ -86,7 +105,7 @@ fn emit_code_section(
     writer_core::emit_leb128_u(
         code_sec,
         fn_count + needs_wrapper + p2_command_extra + p2_library_post_count + p2_runtime_function_count
-        + p2_library_wrapper_count
+        + p2_library_wrapper_count + linear_gc_runtime_count
     )
     let offsets = Vec::new<i32>()
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
@@ -143,6 +162,26 @@ fn emit_code_section(
         let initialize_size_off = emit_sized_code_body_begin(code_sec)
         emit_p2_initialize_body(code_sec)
         emit_sized_code_body_end(code_sec, initialize_size_off)
+    }
+    if linear_gc_runtime_count > 0 {
+        let runtime_base = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            0,
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+        let mut runtime_idx = 0
+        while runtime_idx < linear_gc_runtime_count {
+            let size_off = emit_sized_code_body_begin(code_sec)
+            linear_gc_runtime::emit_runtime_body(code_sec, runtime_idx, runtime_base)
+            emit_sized_code_body_end(code_sec, size_off)
+            runtime_idx = runtime_idx + 1
+        }
     }
     ctx_record::SelfEmitCtx_set_code_section_offsets(ctx, offsets)
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)

@@ -61,16 +61,31 @@ fn emit_type_section(
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
+    let linear_gc_enabled = emit_target::is_linear_memory_target(clone(target))
+    let linear_gc_sig_count = if linear_gc_enabled { 8 } else { 0 }
+    let p2_runtime_start = len(type_map) - 2 - linear_gc_sig_count
     let p2_realloc_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
-        get_unchecked(type_map, len(type_map) - 2)
+        get_unchecked(type_map, p2_runtime_start)
     } else {
         0 - 1
     }
     let p2_initialize_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
-        get_unchecked(type_map, len(type_map) - 1)
+        get_unchecked(type_map, p2_runtime_start + 1)
     } else {
         0 - 1
     }
+    let linear_gc_type_map = build_linear_gc_type_map(
+        type_map,
+        num_host_types,
+        wit_import_count,
+        gc_type_count,
+        fn_count,
+        needs_wrapper,
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        emit_target::is_p2_wasi(clone(wasi_version)),
+        linear_gc_enabled
+    )
     let gc_type_base = first_gc_type_index(canon_types)
     // Named GC structs are emitted before enum variants so Option/Result
     // payloads can reference them via gcsref without forward type indices
@@ -101,7 +116,8 @@ fn emit_type_section(
         p2_library_post_count,
         p2_library_wrapper_count,
         p2_realloc_type_idx,
-        p2_initialize_type_idx
+        p2_initialize_type_idx,
+        linear_gc_type_map
     )
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
@@ -119,6 +135,39 @@ fn emit_type_section(
     sections_type_plan::TypeSectionPlan_set_fn_type_refs(plan, fn_type_refs)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
     plan
+}
+
+fn build_linear_gc_type_map(
+    type_map: Vec<i32>,
+    num_host_types: i32,
+    wit_import_count: i32,
+    gc_type_count: i32,
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    p2_enabled: bool,
+    linear_gc_enabled: bool
+) -> Vec<i32> {
+    let linear_map = Vec::new<i32>()
+    if !linear_gc_enabled {
+        return linear_map
+    }
+    let command_extra = if p2_enabled {
+        if needs_wrapper == 1 { 2 } else { 0 }
+    } else {
+        needs_wrapper
+    }
+    let p2_runtime_extra = if p2_enabled { 2 } else { 0 }
+    let start = num_host_types + wit_import_count + gc_type_count + fn_count +
+    command_extra + p2_library_post_count + p2_library_wrapper_count + p2_runtime_extra
+    let count = 8
+    let mut i = 0
+    while i < count {
+        push(linear_map, get_unchecked(type_map, start + i))
+        i = i + 1
+    }
+    linear_map
 }
 
 fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32) -> Vec<i32> {
@@ -204,6 +253,7 @@ fn build_type_sigs(
         )
     }
     sections_types_sigs::append_p2_runtime_type_sigs(type_sigs, clone(wasi_version))
+    sections_types_sigs::append_linear_gc_type_sigs(type_sigs, clone(target))
     type_sigs
 }
 

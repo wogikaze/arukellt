@@ -1,4 +1,5 @@
 use wasm::emit_target
+use wasm::constants
 
 fn defined_function_index(function_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
     function_idx + emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
@@ -62,6 +63,35 @@ fn p2_runtime_realloc_function_index(
     p2_library_post_count +
     p2_library_wrapper_count +
     emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
+}
+
+fn linear_gc_runtime_function_index(
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    p2_runtime_function_count: i32,
+    ordinal: i32,
+    target: String,
+    wasi_version: String,
+    wit_import_count: i32
+) -> i32 {
+    let command_post_count = if needs_wrapper == 1 && emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { 0 }
+    fn_count +
+    needs_wrapper +
+    command_post_count +
+    p2_library_post_count +
+    p2_library_wrapper_count +
+    p2_runtime_function_count +
+    emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count) +
+    ordinal
+}
+
+fn linear_gc_runtime_function_count(target: String) -> i32 {
+    if emit_target::is_linear_memory_target(clone(target)) {
+        return constants::LINEAR_GC_RUNTIME_FUNCTION_COUNT()
+    }
+    0
 }
 
 fn wit_import_function_index(wit_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {

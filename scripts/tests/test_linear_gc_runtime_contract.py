@@ -1,0 +1,61 @@
+from __future__ import annotations
+
+from pathlib import Path
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+class LinearGcRuntimeContractTest(unittest.TestCase):
+    def test_runtime_has_allocator_root_and_cycle_collection_boundaries(self) -> None:
+        runtime = (ROOT / "src/compiler/wasm/linear_gc_runtime.ark").read_text(
+            encoding="utf-8"
+        )
+        required_symbols = (
+            "emit_linear_gc_runtime_root_frame_enter_body",
+            "emit_linear_gc_runtime_root_push_body",
+            "emit_linear_gc_runtime_root_update_body",
+            "emit_linear_gc_runtime_root_frame_leave_body",
+            "emit_linear_gc_runtime_commit_top_body",
+            "emit_linear_gc_runtime_mark_candidate_body",
+            "emit_linear_gc_runtime_collect_body",
+            "emit_linear_gc_runtime_alloc_body",
+        )
+        for symbol in required_symbols:
+            self.assertIn(f"fn {symbol}", runtime)
+        self.assertIn("emit_linear_gc_mark_transitive", runtime)
+        self.assertIn("emit_linear_gc_sweep", runtime)
+        self.assertNotIn("GC_PREFIX()", runtime)
+        self.assertNotIn("GC_STRUCT_", runtime)
+        self.assertNotIn("GC_ARRAY_", runtime)
+
+    def test_linear_target_wires_recording_without_enabling_gc_target_runtime(self) -> None:
+        target = (ROOT / "src/compiler/wasm/emit_target.ark").read_text(encoding="utf-8")
+        code = (ROOT / "src/compiler/wasm/code.ark").read_text(encoding="utf-8")
+        heap = (ROOT / "src/compiler/wasm/intrinsics/helpers_core_heap.ark").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("fn is_linear_memory_target", target)
+        self.assertIn("linear_gc_runtime_function_count", code)
+        self.assertIn("writer_set_linear_gc_commit_function_index", code)
+        self.assertIn("writer_linear_gc_commit_function_index", heap)
+        self.assertIn("emit_heap_get(w)", heap)
+        self.assertIn("OP_CALL()", heap)
+
+    def test_same_source_fixture_and_capability_diagnostic_remain_present(self) -> None:
+        gc_source = (ROOT / "tests/fixtures/target_capability/gc_linear_same_source.ark").read_text(
+            encoding="utf-8"
+        )
+        linear_source = (ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark").read_text(
+            encoding="utf-8"
+        )
+        self.assertEqual(gc_source, linear_source)
+        self.assertIn("--target wasm32", (ROOT / "tests/fixtures/target_capability/wasm32_same_source.flags").read_text(encoding="utf-8"))
+        diagnostic = ROOT / "tests/fixtures/diagnostics/target_memory_width_unavailable"
+        self.assertIn("--target wasm32", diagnostic.with_suffix(".flags").read_text(encoding="utf-8"))
+        self.assertIn("memory64", diagnostic.with_suffix(".diag").read_text(encoding="utf-8"))
+
+
+if __name__ == "__main__":
+    unittest.main()

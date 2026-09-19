@@ -41,4 +41,4 @@
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |
 | [verifiable-compiler-migration.md](verifiable-compiler-migration.md) | Verifiable Compiler Migration Plan | Archive | 関連 RFC: RFC-009、RFC-010 |
 | [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | 詳細設計: RFC-007 |
-| [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（arena + RC） | Archive | wasm32（AtCoder / 非 GC ランタイム向け）への lowering 実装方針。 言語仕様の正本は ADR-002（Wasm GC）。本ファイルは backend 実装計画のみ。 |
+| [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（tracing fallback） | Archive | wasm32（AtCoder / 非 GC ランタイム向け）への lowering 実装方針。 言語仕様の正本は ADR-002（Wasm GC）。本ファイルは backend 実装計画のみ。 |
