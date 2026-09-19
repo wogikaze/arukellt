@@ -32,7 +32,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #856 — Trait core / coherence / generic arity を確定する — RFC 12, 17 — depends: none
 - [x] #857 — `?` / conversion / Error sentinel を整理する — RFC 13, 19 — depends: 694, 856
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
-- [ ] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
+- [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
 - [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
 - [ ] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
@@ -165,3 +165,4 @@ graph TD
 - [x] #856: `782c34b2980368400a5a076ea72f20b369234bfd`; ADR-062; structural trait identity with ordered type arguments, `Self`, associated type/function projection, coherence and blanket termination rules, static-dispatch/`dyn Trait` boundary, and unrestricted semantic generic arity. Positive GC/linear fixtures produced `79` and `7`; diagnostic fixtures cover E0215–E0218. The current artifact registry/core-op audits reported zero mismatches; the canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum bootstrap mismatch, and the fixture gate retains one unrelated pre-existing `match_extensions/struct_pattern.ark` failure. See [#856](../done/856-trait-core-coherence-generics.md).
 - [x] #857: `d6ce3f5d4ee1e8ca82fdbff7292579a30e7edaf3`; ADR-063; `?` conversion and Error sentinel boundary, with positive and diagnostic fixtures and GC/linear targeted receipts. See [#857](../done/857-question-mark-conversion-error-sentinel.md).
 - [x] #858: `31c76ce33`; ADR-065; canonical operator Trait mapping, coherence-aware typechecking, generic/builtin/user-defined fixtures, and GC/linear parity receipts. The canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum mismatch; targeted quality/docs/ADR gates pass. See [#858](../done/858-operator-traits-magic-method-retirement.md).
+- [x] #859: `fd50e0f45`; ADR-066; canonical generic `HashMap<K,V>` constructor/method API, static typed adapters for six supported pairs, internal-only `Any` boundary, and explicit compatibility removal conditions. The positive HashMap fixture compiled/validated/ran on both `wasm32-gc` and `wasm32` fallback; the unsupported `bool,bool` pair produced the expected diagnostic. The canonical compiler rebuild and doc-example subgate remain blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted bootstrap shim is not claimed as a canonical rebuild. See [#859](../done/859-generic-public-api-any-hashmap.md).

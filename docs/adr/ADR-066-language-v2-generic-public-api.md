@@ -4,7 +4,7 @@
 
 決定日: 2026-09-19
 
-関連: [ADR-003](ADR-003-generics-strategy.md)、[ADR-014](ADR-014-stability-labels.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[ADR-065](ADR-065-language-v2-operator-trait-resolution.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#859](../../issues/open/859-generic-public-api-any-hashmap.md)
+関連: [ADR-003](ADR-003-generics-strategy.md)、[ADR-014](ADR-014-stability-labels.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[ADR-065](ADR-065-language-v2-operator-trait-resolution.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#859](../../issues/done/859-generic-public-api-any-hashmap.md)
 
 ## 文脈
 
