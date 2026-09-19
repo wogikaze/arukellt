@@ -134,3 +134,26 @@ RFC-011: **37**。
   range-specific `FromIterator` impls is not landed: it currently widens
   concrete GC integer locals before `Range` struct construction and produces
   invalid Wasm, so that compiler defect remains outside this unit.
+
+## Progress receipt — 2026-09-20 (FromIterator source dispatch)
+
+- Commit `b7baf92fb` extends the existing source-type-qualified static symbol
+  rule from `From` to `FromIterator`. A source-level `Vec::from_iter(...)`
+  call now selects the concrete `Vec::from_iter__<Source>` implementation from
+  its first argument type when that implementation is registered; ordinary
+  associated functions retain their existing name. `RangeIter` and
+  `RangeInclusiveIter` now implement `FromIterator` for `Vec<i32>` by
+  delegating to the canonical `Iterator::collect` traversal.
+- `iterator_range_basic.ark` verifies direct `Vec::from_iter` calls for both
+  half-open and closed ranges. The existing `iterator_vec_iter_next.ark`
+  remains a positive regression for `VecIter`; printed GC WAT contains the
+  distinct `Vec::from_iter__VecIter`, `Vec::from_iter__RangeIter`, and
+  `Vec::from_iter__RangeInclusiveIter` functions and calls the matching
+  source-specific symbols.
+- Both iterator fixtures pass `wasm32-gc` P2/Memory64 component
+  compile/validate/runtime and `wasm32` P1 linear Wasm compile/validate/runtime.
+  The targeted formatter and default `python3 scripts/manager.py verify lane`
+  pass; `python3 scripts/manager.py docs check` passes all 4 checks.
+- This remains partial evidence: generic `Vec<T::Item>` collection,
+  callback-bearing `fold`, full lazy adapter migration, and the final RFC item
+  37 residual audit remain open. No acceptance checkbox is marked complete.

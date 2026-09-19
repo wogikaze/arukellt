@@ -208,3 +208,20 @@ full adapter fixture matrix as a fallback parity gate.
 - GC component execution and linear Wasm validation/runtime pass. A separate
   `FromIterator` impl for range adapters is deferred because adding it exposed
   an existing GC numeric-width lowering defect; no invalid path is retained.
+
+## Progress receipt — 2026-09-20 (range FromIterator dispatch)
+
+- Commit `b7baf92fb` adds concrete `FromIterator<RangeIter>` and
+  `FromIterator<RangeInclusiveIter>` implementations for `Vec<i32>` and
+  resolves `Vec::from_iter` by the source iterator type at MIR lowering. This
+  preserves the trait-first associated-function surface while keeping static
+  monomorphization and the canonical `Iterator::collect` body.
+- `iterator_range_basic.ark` exercises both direct associated-function calls;
+  `iterator_vec_iter_next.ark` preserves the existing `VecIter` path. The GC
+  WAT contains separate source-qualified symbols, and both fixtures pass GC
+  component plus linear-memory compile/validate/runtime checks.
+- The earlier GC integer-width defect is independently fixed by `38cc7cc71`
+  under #871; the range FromIterator path now has no invalid Wasm artifact.
+  Formatter, `verify lane`, and docs check pass. Generic item projection,
+  callback-bearing consumers, and the remaining eager/lazy migration are still
+  open; this is not a close receipt.
