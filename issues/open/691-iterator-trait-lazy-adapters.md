@@ -288,3 +288,26 @@ full adapter fixture matrix as a fallback parity gate.
 - This remains partial #691 evidence: arbitrary item representations, the
   method-shaped lazy adapter API, full eager/lazy migration, generic source
   expressions, and the final RFC-011 residual audit remain open.
+
+## Progress receipt — 2026-09-20 (method-shaped lazy pipeline)
+
+- Commit `0a6cb7b81` adds the callable `Vec<i32>` method surface
+  `iter().map/filter/take/skip(...)` and routes the legacy `vec_iter`,
+  `map_iter`, `filter_iter`, `take_iter`, and `skip_iter` constructors through
+  those methods. `MapIter::filter` and `MapFilterIter::take` provide the
+  verified composed path `v.iter().map(f).filter(g).take(n).collect()` through
+  a single `MapFilterTakeIter` traversal without intermediate `Vec` stages.
+- `tests/fixtures/stdlib_trait/iterator_adapters.ark` checks the four
+  one-step method consumers and the composed map/filter/take pipeline. The
+  fixture compiles and runs as a `wasm32-gc` P2 component and as `wasm32`
+  linear Wasm; both artifacts pass `wasm-tools validate` and print `OK` under
+  Wasmtime. WAT inspection confirms the adapter chain and the linear
+  table-index callback representation.
+- The same commit fixes nested method lowering in both AST and CoreHir paths:
+  CoreHir child indexes are materialized before shape predicates, and results
+  stored in a nested method local are reloaded before the outer call. This
+  keeps the source meaning identical across GC and linear backends.
+- `docs/language/spec.md` and `docs/stdlib/migration-guidance.md` now state
+  the verified method status. Other item representations, additional adapter
+  compositions, manifest-level deprecation, and the final RFC-011 residual
+  audit remain open; this is not a close receipt.

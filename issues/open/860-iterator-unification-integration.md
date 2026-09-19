@@ -219,3 +219,22 @@ RFC-011: **37**。
 - This is not a close receipt: `values(v)` compatibility remains, arbitrary
   item representations, method-shaped lazy adapters, generic source
   expressions, and the final RFC-011 residual audit remain open.
+
+## Progress receipt — 2026-09-20 (method-shaped lazy pipeline)
+
+- Commit `0a6cb7b81` introduces the concrete `Vec<i32>` method boundary
+  `iter().map/filter/take/skip(...)` and makes the existing free constructors
+  delegate to it. The representative composed expression
+  `v.iter().map(f).filter(g).take(n).collect()` is implemented by
+  `MapIter::filter`, `MapFilterIter::take`, and `MapFilterTakeIter` while
+  retaining the canonical `Iterator::collect` traversal.
+- `iterator_adapters.ark` proves one-step method consumers and the composed
+  pipeline. GC component and linear Wasm compile, validate, and runtime checks
+  pass; linear WAT shows the expected callback table-index ABI and no
+  intermediate collection call between adapter stages. `verify lane` passes.
+- The compiler portion fixes CoreHir child-index handling and nested method
+  result reloads in the shared AST/CoreHir method lowering paths. The language
+  spec and migration guidance record this as a concrete `i32`-lane capability.
+- Acceptance remains open: arbitrary item representations, complete adapter
+  composition, full eager/lazy migration, trait-driven `for` desugaring, and
+  the final RFC-011 residual audit still require work.

@@ -39,8 +39,11 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     `IntoIterator::into_iter` and canonical `next` in both AST and CoreHir
     lowering. Vec, Range, and RangeInclusive direct-for fixtures pass current
     source GC component and linear Wasm compile/validate/runtime checks.
-    Generic item representations, adapter methods, generic source expressions,
-    and the final RFC-011 residual audit remain open.
+    `0a6cb7b81` adds and verifies the concrete method-shaped
+    `iter().map(...).filter(...).take(...).collect()` pipeline on both
+    backends, including the nested CoreHir method-lowering fix. Generic item
+    representations, additional adapter composition, generic source
+    expressions, and the final RFC-011 residual audit remain open.
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax
