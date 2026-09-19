@@ -5,7 +5,7 @@ fn first<T: iter::Iterator>(iterator: T) -> Option<T::Item> {
     iterator.next()
 }
 
-fn collect_values<T: iter::Iterator>(iterator: T) -> Vec<i32> {
+fn collect_values<T: iter::Iterator>(iterator: T) -> Vec<T::Item> {
     iterator.collect()
 }
 

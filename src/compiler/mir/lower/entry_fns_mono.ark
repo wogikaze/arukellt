@@ -40,14 +40,38 @@ fn mir_emit_top_level_fn_mono_bodies(
                     aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, clone(rt_type_name))
                 }
             }
-            entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, rt_type_name, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
+            entry_top::mir_emit_top_level_fn_body(
+                ctx,
+                body_input,
+                rt_tag,
+                rt_type_name,
+                clone(generic_rt_type_name),
+                emit_fn_name,
+                param_count,
+                typed_index,
+                mir_tr,
+                entry_view,
+                fn_info_index
+            )
             mono_emit_i = mono_emit_i + 1
         }
         return
     }
     let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
     let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
-    entry_top::mir_emit_top_level_fn_body(ctx, body_input, generic_rt_tag, generic_rt_type_name, clone(decl_name), param_count, typed_index, mir_tr, entry_view, fn_info_index)
+    entry_top::mir_emit_top_level_fn_body(
+        ctx,
+        body_input,
+        generic_rt_tag,
+        clone(generic_rt_type_name),
+        clone(generic_rt_type_name),
+        clone(decl_name),
+        param_count,
+        typed_index,
+        mir_tr,
+        entry_view,
+        fn_info_index
+    )
 }
 
 fn mono_instantiate_return_from_instance(ctx: LowerCtx, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {

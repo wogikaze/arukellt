@@ -31,7 +31,7 @@ fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     // store target's type when the temp itself is untyped / vec:i32.
     let store_vt = resolve_vec_type_from_immediate_store(ctx, dest_local)
     let default_vt = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    if store_vt >= 0 && store_vt != default_vt &&
+    if store_vt >= 0 &&
     (local_vt < 0 || local_vt == default_vt) {
         return store_vt
     }
@@ -55,8 +55,12 @@ fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     let local_type = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, dest_local))
     let store_type = sections_types_gc_phase7::gc_normalize_vec_type_name(find_immediate_store_target_type_name(ctx, dest_local))
     let mut type_name = clone(local_type)
-    if len(store_type) > 0 && !eq(clone(store_type), String_from("vec:i32")) &&
+    if len(store_type) > 0 &&
     (len(local_type) == 0 || eq(clone(local_type), String_from("vec:i32"))) {
+        let store_array = resolve_array_type_from_type_name(ctx, clone(store_type))
+        if store_array >= 0 {
+            return store_array
+        }
         type_name = store_type
     }
     let constructor_array = resolve_array_type_from_constructor(ctx, dest_local)

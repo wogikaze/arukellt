@@ -8,12 +8,14 @@ use mir::inst_local_set
 use mir::lower::core_bindings_type
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_calls
+use mir::lower::ctx_mono_type_params
 use mir::value_types
 
 fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let binding_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
+    let resolved_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(type_name))
     let mut val_idx = 0 - 1
     if child_count >= 1 {
         val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
@@ -37,8 +39,8 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
             ctx_api_local_types::ctx_local_vt(ctx, val_idx)
         )
     }
-    if len(type_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(type_name))
+    if len(resolved_type_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(resolved_type_name))
     }
     if child_count >= 1 && val_idx >= 0 {
         if ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_F64() && ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
@@ -59,15 +61,15 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         // For nested vec annotations (`Vec<Vec<i32>>` → vec:Vec) also rewrite the
         // initializer temp so Vec_new emission uses the structref-vec layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if len(type_name) > 0 {
-            if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") {
-                ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(type_name))
+        if len(resolved_type_name) > 0 {
+            if starts_with(clone(resolved_type_name), "vec:") || starts_with(clone(resolved_type_name), "hashmap:") {
+                ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(resolved_type_name))
                 ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
             }
         } else if len(init_type) > 1 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
         }
-        core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, clone(type_name), child_count)
+        core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, clone(resolved_type_name), child_count)
     }
     if child_count >= 1 {
         let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))

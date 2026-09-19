@@ -69,6 +69,18 @@ fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String
     ctx.mono_type_param_types = types
 }
 
+// Aggregate annotations can contain an associated-type projection such as
+// `vec:T::Item`. Keep the fully qualified spelling as an exact substitution
+// key; splitting it into ordinary type-variable segments would lose the
+// projection boundary and could resolve an unrelated `T` instead.
+fn ctx_set_mono_type_projection(ctx: LowerCtx, generic_name: String, concrete_name: String) {
+    if len(generic_name) == 0 || len(concrete_name) == 0 || eq(clone(generic_name), clone(concrete_name)) {
+        return
+    }
+    push(ctx.mono_type_param_names, generic_name)
+    push(ctx.mono_type_param_types, concrete_name)
+}
+
 fn ctx_clear_mono_type_params(ctx: LowerCtx) {
     if len(ctx.mono_type_param_names) == 0 && len(ctx.mono_type_param_types) == 0 {
         return
@@ -81,6 +93,9 @@ fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(type_var_name)) {
+            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        }
         if ctx_mono_type_name_matches(
             clone(get_unchecked(ctx.mono_type_param_names, i)),
             clone(type_var_name)

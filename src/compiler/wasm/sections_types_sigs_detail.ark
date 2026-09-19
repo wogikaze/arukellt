@@ -43,18 +43,27 @@ fn funcref_type_name_is_binary_i32(type_name: String) -> bool {
     contains(params, String_from(","))
 }
 
-fn funcref_param_sig_for_target(type_name: String, target: String) -> String {
+fn funcref_param_sig_for_target(type_name: String, target: String, memory64: bool) -> String {
     if !emit_target::is_gc_target(clone(target)) {
         return String_from("i32")
     }
     if funcref_type_name_is_binary_i32(clone(type_name)) {
+        if memory64 {
+            return String_from("fnref2m64")
+        }
         return String_from("fnref2")
+    }
+    if memory64 {
+        return String_from("fnrefm64")
     }
     String_from("fnref")
 }
 
-fn funcref_return_sig_for_target(target: String) -> String {
+fn funcref_return_sig_for_target(target: String, memory64: bool) -> String {
     if emit_target::is_gc_target(clone(target)) {
+        if memory64 {
+            return String_from("fnrefm64")
+        }
         return String_from("fnref")
     }
     String_from("i32")
@@ -802,7 +811,7 @@ fn build_param_type_sig(
     starts_with(clone(p_type_name), String_from("fnref")) ||
     local_access::MirLocal_val_type(p) == value_types::VT_FUNCREF() ||
     starts_with(clone(p_type_name), String_from("fn(")) {
-        return funcref_param_sig_for_target(clone(p_type_name), clone(target))
+        return funcref_param_sig_for_target(clone(p_type_name), clone(target), memory64)
     }
     // String byte-buffer helpers are always Vec<i32>; a mis-resolved vec:T
     // (structref layout) makes push store i64 chars into structref slots.
@@ -955,7 +964,7 @@ fn build_return_type_value_sig(
     eq(clone(return_type_name), String_from("fn")) ||
     starts_with(clone(return_type_name), String_from("fn(")) ||
     return_type == value_types::VT_FUNCREF() {
-        return funcref_return_sig_for_target(clone(target))
+        return funcref_return_sig_for_target(clone(target), memory64)
     }
     let typed_sig = sections_types_gc_plan::typed_function_return_sig(mir, clone(uf.name), clone(target))
     if len(typed_sig) > 0 {

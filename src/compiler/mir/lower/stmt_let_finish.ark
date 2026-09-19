@@ -1,6 +1,7 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_types
 use mir::lower::ann_types
@@ -23,7 +24,10 @@ fn apply_let_annotation_type(ctx: LowerCtx, node: AstNode, local_idx: i32, ta_co
     if ta_count >= 1 {
         let ta = ast_node::node_type_ann_at(node, 0)
         let ta_name = ast_node::node_text(ta)
-        let local_type_name = ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, clone(ta_name)))
+        let local_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(
+            ctx,
+            ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, clone(ta_name)))
+        )
         if len(local_type_name) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, local_type_name)
             if starts_with(clone(local_type_name), "enum:") {

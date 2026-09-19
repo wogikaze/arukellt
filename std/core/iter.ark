@@ -47,7 +47,7 @@
 pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
-    fn collect(self: Self) -> Vec<i32>
+    fn collect(self: Self) -> Vec<Self::Item>
     fn count(self: Self) -> i32
     fn sum(self: Self) -> i32
     fn fold(self: Self, init: i32, f: fn(i32, i32) -> i32) -> i32
@@ -69,13 +69,10 @@ pub trait FromIterator<T> {
     fn from_iter(it: T) -> Self
 }
 
-// Keep collection traversal in one generic implementation. The public trait
-// method is currently i32-specific because generic `Vec<T::Item>` lowering is
-// not yet valid on both backends; keeping that boundary explicit prevents
-// adapter-specific loops from drifting. Remove the i32 restriction when
-// generic aggregate projection lowering validates on both backends (#860).
-fn collect_iterator_i32<T: Iterator>(it: T) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
+// Keep collection traversal in one generic implementation so every adapter
+// uses the same associated-item result type.
+fn collect_iterator<T: Iterator>(it: T) -> Vec<T::Item> {
+    let result: Vec<T::Item> = Vec::new<T::Item>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -159,7 +156,7 @@ impl Iterator for VecIter {
     }
 
     fn collect(self: VecIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: VecIter) -> i32 {
@@ -223,7 +220,7 @@ impl Iterator for RangeIter {
     }
 
     fn collect(self: RangeIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: RangeIter) -> i32 {
@@ -277,7 +274,7 @@ impl Iterator for RangeInclusiveIter {
     }
 
     fn collect(self: RangeInclusiveIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: RangeInclusiveIter) -> i32 {
@@ -333,7 +330,7 @@ impl Iterator for MapIter {
     }
 
     fn collect(self: MapIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: MapIter) -> i32 {
@@ -381,7 +378,7 @@ impl Iterator for FilterIter {
     }
 
     fn collect(self: FilterIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: FilterIter) -> i32 {
@@ -432,7 +429,7 @@ impl Iterator for TakeIter {
     }
 
     fn collect(self: TakeIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: TakeIter) -> i32 {
@@ -483,7 +480,7 @@ impl Iterator for SkipIter {
     }
 
     fn collect(self: SkipIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: SkipIter) -> i32 {
@@ -544,7 +541,7 @@ impl Iterator for ChainIter {
     }
 
     fn collect(self: ChainIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: ChainIter) -> i32 {
@@ -595,7 +592,7 @@ impl Iterator for EnumerateIter {
     }
 
     fn collect(self: EnumerateIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: EnumerateIter) -> i32 {
@@ -649,7 +646,7 @@ impl Iterator for ZipIter {
     }
 
     fn collect(self: ZipIter) -> Vec<i32> {
-        collect_iterator_i32(self)
+        collect_iterator(self)
     }
 
     fn count(self: ZipIter) -> i32 {

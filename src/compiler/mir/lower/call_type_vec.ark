@@ -3,6 +3,7 @@ use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
 use mir::lower::call_type_fallback
 use mir::lower::call_rewrite_vec
@@ -34,8 +35,17 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     starts_with(clone(effective), String_from("Vec__with_capacity__")) {
         let last_sep = last_index_of_double_underscore(clone(effective))
         if last_sep >= 0 {
-            let elem = substring(effective, last_sep + 2, len(effective))
-            let elem = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
+            let elem_start = vec_constructor_element_start(clone(effective), last_sep + 2)
+            let mut elem = substring(effective, elem_start, len(effective))
+            elem = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
+            elem = decode_mono_vec_element_projection(elem)
+            let resolved_vec_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+                ctx,
+                concat(String_from("vec:"), clone(elem))
+            )
+            if starts_with(clone(resolved_vec_type), String_from("vec:")) {
+                elem = substring(resolved_vec_type, 4, len(resolved_vec_type))
+            }
             let mut set_ty = concat(String_from("vec:"), elem)
             if eq(clone(elem), String_from("Vec_String")) || eq(clone(elem), String_from("Vec_string")) {
                 set_ty = String_from("vec:Vec_String")
@@ -378,4 +388,30 @@ fn last_index_of_double_underscore(s: String) -> i32 {
         i = i - 1
     }
     0 - 1
+}
+
+fn vec_constructor_element_start(callee_name: String, fallback: i32) -> i32 {
+    if starts_with(clone(callee_name), String_from("Vec__new__")) ||
+    starts_with(clone(callee_name), String_from("Vec::new__")) {
+        return len(String_from("Vec__new__"))
+    }
+    if starts_with(clone(callee_name), String_from("Vec__with_capacity__")) ||
+    starts_with(clone(callee_name), String_from("Vec::with_capacity__")) {
+        return len(String_from("Vec__with_capacity__"))
+    }
+    fallback
+}
+
+// `mono_safe_name` turns the `::` in `T::Item` into `__`, but the constructor
+// separator uses the same spelling. Recover the projection after extracting
+// the constructor suffix so the associated type remains one semantic name.
+fn decode_mono_vec_element_projection(elem: String) -> String {
+    let separator = index_of(clone(elem), String_from("__"))
+    if separator < 0 {
+        return elem
+    }
+    concat(
+        substring(clone(elem), 0, separator),
+        concat(String_from("::"), substring(elem, separator + 2, len(elem)))
+    )
 }

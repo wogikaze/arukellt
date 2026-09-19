@@ -3093,6 +3093,14 @@ pub fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<St
     ctx.mono_type_param_types = types
 }
 
+pub fn ctx_set_mono_type_projection(ctx: LowerCtx, generic_name: String, concrete_name: String) {
+    if len(generic_name) == 0 || len(concrete_name) == 0 || eq(clone(generic_name), clone(concrete_name)) {
+        return
+    }
+    push(ctx.mono_type_param_names, generic_name)
+    push(ctx.mono_type_param_types, concrete_name)
+}
+
 pub fn ctx_clear_mono_type_params(ctx: LowerCtx) {
     ctx.mono_type_param_names = Vec_new_String()
     ctx.mono_type_param_types = Vec_new_String()
@@ -3102,6 +3110,9 @@ pub fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> Stri
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(type_var_name)) {
+            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        }
         if ctx_mono_type_name_matches(
             clone(get_unchecked(ctx.mono_type_param_names, i)),
             clone(type_var_name)
