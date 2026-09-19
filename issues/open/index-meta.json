@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T02:41:39Z",
+  "generated_at": "2026-09-19T03:36:59Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,25 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "861",
-      "path": "861-numeric-conversion-rules.md",
-      "title": "861 — 数値の暗黙変換を廃止し明示変換を定義する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1367,8 +1348,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 14,
-        "unchecked": 25
+        "checked": 15,
+        "unchecked": 24
       },
       "orchestration": {
         "class": "blocked-by-upstream",

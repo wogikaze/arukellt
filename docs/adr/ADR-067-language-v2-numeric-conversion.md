@@ -4,7 +4,7 @@
 
 決定日: 2026-09-19
 
-関連: [ADR-014](ADR-014-stability-labels.md)、[ADR-029](ADR-029-selfhost-validation.md)、[ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-063](ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](ADR-065-language-v2-operator-trait-resolution.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#861](../../issues/open/861-numeric-conversion-rules.md)
+関連: [ADR-014](ADR-014-stability-labels.md)、[ADR-029](ADR-029-selfhost-validation.md)、[ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-063](ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](ADR-065-language-v2-operator-trait-resolution.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#861](../../issues/done/861-numeric-conversion-rules.md)
 
 ## 文脈
 

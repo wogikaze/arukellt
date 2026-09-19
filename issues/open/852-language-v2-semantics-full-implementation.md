@@ -38,7 +38,11 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 ### Numeric / text / syntax
 
-- [ ] #861 — 数値の暗黙変換を廃止し明示変換を定義する — RFC 20, 21 — depends: none
+- [x] #861 — 数値の暗黙変換を廃止し明示変換を定義する — RFC 20, 21 — depends: none
+  - Receipt: completed in `549fc4e1a` plus fixture fix `72c188934`; ADR-067,
+    RFC-011, and the language spec are synchronized. Positive and diagnostic
+    fixtures prove explicit conversion and rejection of mixed concrete numeric
+    arithmetic; GC and linear compile/validate/runtime receipts both pass.
 - [ ] #862 — 算術 edge case と評価順序を仕様化する — RFC 22, 23 — depends: none
 - [ ] #863 — String / Unicode semantics を確定する — RFC 24 — depends: 854
 - [ ] #865 — Hygienic desugaring と f-string lowering を実装する — RFC 28, 29 — depends: 729
