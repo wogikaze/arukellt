@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T06:39:36Z",
+  "generated_at": "2026-09-19T07:51:51Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,27 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "864",
-      "path": "864-let-generalization-value-restriction.md",
-      "title": "864 — let-generalization / value restriction を形式化する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1308,8 +1287,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 19,
-        "unchecked": 22
+        "checked": 21,
+        "unchecked": 21
       },
       "orchestration": {
         "class": "blocked-by-upstream",

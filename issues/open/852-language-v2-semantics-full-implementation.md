@@ -34,7 +34,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
 - [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
-- [ ] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
+- [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax
 
@@ -174,3 +174,4 @@ graph TD
 - [x] #859: `fd50e0f45`; ADR-066; canonical generic `HashMap<K,V>` constructor/method API, static typed adapters for six supported pairs, internal-only `Any` boundary, and explicit compatibility removal conditions. The positive HashMap fixture compiled/validated/ran on both `wasm32-gc` and `wasm32` fallback; the unsupported `bool,bool` pair produced the expected diagnostic. The canonical compiler rebuild and doc-example subgate remain blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted bootstrap shim is not claimed as a canonical rebuild. See [#859](../done/859-generic-public-api-any-hashmap.md).
 - [x] #862: `a720c2cc7`; ADR-068; integer/float edge semantics, source evaluation order, place-before-RHS lowering, side-effect and diagnostic fixtures, and GC/linear compile/validate/runtime parity. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted shim receipt is explicitly not a canonical rebuild. See [#862](../done/862-arithmetic-edge-and-evaluation-order.md).
 - [x] #863: `e4becb596`; ADR-069; valid UTF-8 and Unicode scalar contract, byte/scalar API split, strict/lossy UTF-8 conversion, boundary-aware slicing, `char_at` compatibility migration, and GC/linear parity fixtures. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted current-source s2 receipt is explicit and does not claim a canonical rebuild. See [#863](../done/863-string-unicode-semantics.md).
+- [x] #864: `f9393be42`; ADR-070; immutable non-expansive let generalization, environment-aware TypeScheme subtraction, mutable/expansive negative fixtures, and GC/linear targeted runtime parity. `selfhost diag-parity` and `verify lane` pass; full current fixture parity remains an existing 176-failure backlog, and the canonical compiler rebuild remains blocked by #854. See [#864](864-let-generalization-value-restriction.md).
