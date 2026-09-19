@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 868
 Parent: 852
 Track: language-v2
@@ -62,6 +62,25 @@ RFC-011: **32, 33, 41**。
   provide valid current-source compile/validate/runtime evidence for this
   issue. `docs check` has the same three known doc-example failures. Acceptance
   remains unchecked and #868 stays open.
+
+## Progress receipt (not done; 2026-09-20)
+
+- Parser recovery fix: `29ad8cd46` (`fix: advance parser after rejected token`).
+  `expect_token` now consumes a non-EOF token after recording a mismatch, so a
+  reserved or boolean token used where an identifier is required cannot be
+  revisited forever by an enclosing parameter loop.
+- Current s2 verification: `future_reserved_keyword.ark` and
+  `boolean_literal_not_name.ark` both terminate with the expected
+  `error[E0001|parse]` instead of trapping with an out-of-bounds memory access;
+  `parse_bad_token.ark` retains its two parse diagnostics.
+- Related grammar smoke checks: `fn_multiclause_semicolon_boundary.ark`
+  reports its expected duplicate-definition diagnostic, and
+  `fn_multiclause_where_semicolon.ark` exits successfully with warnings only.
+- `selfhost diag-parity` improved to `PASS=52 SKIP=26 FAIL=1`. The remaining
+  failure is the unrelated `diagnostics/capability_stub.ark` golden, whose
+  expected source column is 4 while current output reports column 8. The
+  formatter parity gate still has the pre-existing interleaved/unsorted import
+  fixture failures. Acceptance remains unchecked and #868 stays open.
 
 ## False-done guard
 
