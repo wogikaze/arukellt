@@ -1,0 +1,14 @@
+// Positive fixture: newline continuation and semicolon-separated where bindings
+// prove that clause grouping and where binding termination use distinct rules.
+use std::host::stdio
+
+fn classify(n) -> String | n > limit = "high"
+fn classify(_) -> String = "low"
+where
+limit = 5 +
+5;
+
+fn main() {
+    stdio::println(classify(11))
+    stdio::println(classify(3))
+}

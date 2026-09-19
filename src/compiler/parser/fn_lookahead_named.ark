@@ -4,12 +4,14 @@ use parser::token_state
 
 fn has_next_clause(p: Parser, name: String) -> bool {
     let saved = p.pos
-    core_api_cursor::skip_newlines(p)
+    // A semicolon is an item terminator, so it must not be erased while
+    // deciding whether the next declaration belongs to this clause group.
+    core_api_cursor::skip_only_newlines(p)
     let mut result = false
     if core_api_cursor::peek_kind(p) == tokens::TK_FN() {
         let fn_pos = p.pos
         p.pos = p.pos + 1
-        core_api_cursor::skip_newlines(p)
+        core_api_cursor::skip_only_newlines(p)
         if core_api_cursor::at(p, tokens::TK_IDENT()) {
             let nt = core_api_cursor::cur(p)
             if eq(token_state::Token_text(nt), clone(name)) {

@@ -9,14 +9,14 @@ fn parse_fn_clause(p: Parser) -> AstNode {
     let node = fn_sig::parse_fn_clause_header(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_PIPE() {
         p.pos = p.pos + 1
-        core_api_cursor::skip_newlines(p)
+        core_api_cursor::skip_only_newlines(p)
         let guard = expr_bp_loop::parse_expr_bp(p, 2)
         core_ast_type_ann::AstNode_push_type_ann(node, fn_sig::make_fn_guard_annotation(guard))
-        core_api_cursor::skip_newlines(p)
+        core_api_cursor::skip_only_newlines(p)
     }
     if core_api_cursor::peek_kind(p) == tokens::TK_EQ() {
         p.pos = p.pos + 1
-        core_api_cursor::skip_newlines(p)
+        core_api_cursor::skip_only_newlines(p)
         let body = expr::parse_expr(p)
         fn_sig::mark_expr_body(node, body)
     }

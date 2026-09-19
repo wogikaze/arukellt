@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)、[ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)、[ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)、[ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md)
 
 ---
 
@@ -106,9 +106,9 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md) で full version 比較と source/WIT namespace 分離を採択し、ADR-031を精緻化する。 |
 | 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) で stable set、legacy auto-import boundary、#878 の移行条件を採択。 |
 | 33 | 真偽値 | `true` と `false` を字句リテラルとして一意に扱い、Preludeとの重複をなくす。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) で manifest value entry を削除し、lexer・name resolution・fixtureを同期。 |
-| 34 | multi-clause関数 | 複数節の関数をどの構文単位としてまとめるかを明示する。 | parserと仕様の個別RFCが必要。 |
-| 35 | `where` | pattern match後のmulti-clauseで、`where` の束縛範囲を一貫させる。 | P0相当の文法回帰fixtureを追加する。 |
-| 36 | セミコロン | 改行、式、blockの終端規則を組み合わせたときの曖昧さをなくす。 | normative grammarへ反映する。 |
+| 34 | multi-clause関数 | 複数節の関数をどの構文単位としてまとめるかを明示する。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) で改行 separator と semicolon 終端を採択。 |
+| 35 | `where` | pattern match後のmulti-clauseで、`where` の束縛範囲を一貫させる。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) で評価順序と scope を採択し、fixture を追加。 |
+| 36 | セミコロン | 改行、式、blockの終端規則を組み合わせたときの曖昧さをなくす。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) と normative spec へ反映。 |
 | 37 | Iterator | eager helper、lazy adapter、`IntoIterator`、`FromIterator`を共通のTrait面へ統一する。 | ADR-036とRFC-004に統合する。 |
 | 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-071 / ADR-006のABI分類と整合し、language spec の具体形式を削除済み。 |
 | 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | ADR-007、ADR-013の語彙と再整理する。 |

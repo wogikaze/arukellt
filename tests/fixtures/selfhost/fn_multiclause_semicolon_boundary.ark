@@ -1,0 +1,6 @@
+// Negative fixture: a semicolon terminates a clause group.
+// Same-name clauses separated by it are ordinary duplicate definitions.
+fn choose(0) -> String = "zero";
+fn choose(_) -> String = "other"
+
+fn main() {}

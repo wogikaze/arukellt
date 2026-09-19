@@ -83,6 +83,19 @@ let s: String = String_from("hello")
 > 📘 基本型・複合型の完全な一覧は [spec.md §2 Type System](spec.md#2-type-system) を参照。
 > struct / enum の定義構文は [spec.md §6.2–6.3](spec.md#62-struct-definition) を参照。
 
+### Multi-clause と `where`
+
+`fn name(pattern) -> Type = expression` は、同じ名前の clause を改行で
+続けて pattern dispatch として定義する provisional syntax です。
+clause group は改行でだけ継続し、明示的な `;` で終端します。
+`where` は group の最後に置き、binding は改行または `;` で分けます。
+`where` binding は synthetic function parameter と先行 binding を参照でき、
+各 clause の guard/body は自身の pattern binding と共有 binding を参照できます。
+実行可能な例は [`fn_multiclause_where_semicolon.ark`](../../tests/fixtures/selfhost/fn_multiclause_where_semicolon.ark)、
+semicolon による group 終端の診断例は [`fn_multiclause_semicolon_boundary.ark`](../../tests/fixtures/selfhost/fn_multiclause_semicolon_boundary.ark) です。
+
+> 📘 完全な文法と脱糖規則は [spec.md §4.6](spec.md#46-semicolons)、[§6.1.1–6.1.3](spec.md#611-multi-clause-function-definitions)、[ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) を参照。
+
 ## 制御構文
 
 ### if

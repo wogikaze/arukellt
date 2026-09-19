@@ -69,6 +69,7 @@
 | [ADR-070-language-v2-let-generalization.md](ADR-070-language-v2-let-generalization.md) | ADR-070: Language v2 の let-generalization と value restriction | 構文的な non-expansive/value restriction として固定する |
 | [ADR-071-component-export-visibility-boundary.md](ADR-071-component-export-visibility-boundary.md) | ADR-071: pub と Component export、WIT identity の境界 | トラック: language-v2 Issue: #867 |
 | [ADR-072-language-v2-prelude-and-keyword-policy.md](ADR-072-language-v2-prelude-and-keyword-policy.md) | ADR-072: Language v2 Prelude と keyword policy | トラック: language-v2 Issue: #868 |
+| [ADR-073-language-v2-multiclause-where-semicolon-grammar.md](ADR-073-language-v2-multiclause-where-semicolon-grammar.md) | ADR-073: Language v2 multi-clause / where / semicolon grammar | トラック: language-v2 Issue: #869 |
 
 ## 提案
 

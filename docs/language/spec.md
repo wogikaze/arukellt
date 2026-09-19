@@ -181,9 +181,10 @@ Single-quoted: `'a'`, `'\n'`.
 ### 1.7 Whitespace and Newlines
 
 Whitespace (spaces, tabs) is not significant and is consumed between
-tokens. Newlines are lexed as `Newline` tokens but are generally
-discarded by the parser except as optional statement terminators.
-Semicolons are optional.
+tokens. Newlines are lexed as `Newline` tokens and act as optional statement
+terminators or syntax-specific continuation separators. Semicolons are
+optional for ordinary block statements, but remain explicit terminators for
+items and for multi-clause group boundaries.
 
 ---
 
@@ -867,9 +868,17 @@ for item in expr {         // generic iterator
 
 ### 4.6 Semicolons
 
-Semicolons are optional statement terminators. Within a block, the
-absence of a semicolon on the last expression makes it the block's
-tail expression (return value).
+Semicolons are explicit statement or item terminators. Within a block, the
+absence of a semicolon on the last expression makes it the block's tail
+expression (return value). A newline may separate statements when the
+preceding expression is complete.
+
+At the outermost expression level, a newline or semicolon after a complete
+expression terminates that expression. A newline remains a continuation when
+the expression is inside an open delimiter or the preceding token requires a
+continuation, such as a binary, assignment, or range operator. A semicolon is
+never silently discarded while deciding whether two top-level declarations
+belong to one syntactic group.
 
 ---
 
@@ -986,7 +995,11 @@ block body. Each clause consists of `fn <name>(<pattern-params>) -> Ret = <expr>
 where parameters are **patterns** (not typed identifiers). The body is a single expression
 after `=`.
 
-Clauses must be consecutive and share the same name, arity, and return type annotation.
+Clauses share the same name, arity, and return type annotation. A clause group
+continues only across one or more newline tokens to another clause-form `fn`
+with the same name. An explicit semicolon terminates the group; a same-name
+clause after that semicolon is a separate declaration and is subject to the
+ordinary duplicate-definition rule.
 The group desugars to a single `fn` with a `match` body.
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- illustrative examples; needs prelude context -->
@@ -1025,7 +1038,8 @@ pub fn is_zero(_) -> bool = false
 1. **Same name**: every clause must have the same `IDENT`.
 2. **Same arity**: every clause must have the same number of parameters.
 3. **Compatible return**: all clauses must agree on the return type annotation.
-4. **Contiguous**: clauses must be consecutive in source without intervening items.
+4. **Newline-separated**: clauses must be separated by one or more newlines.
+   A semicolon is an item terminator and ends the group.
 
 **Desugaring:** Multi-clause groups are desugared at parse time into a single `fn`
 with a synthetic block body containing a `match` expression. All downstream passes
@@ -1071,7 +1085,8 @@ fn describe(_) -> String = "center"
 #### 6.1.3 Where Clauses <!-- stability: provisional -->
 
 A multi-clause function group may end with a `where` block declaring shared value
-bindings visible across all clauses. Each binding is `name = expr` on its own line.
+bindings visible across all clauses. Each binding is `name = expr`; bindings are
+separated by one or more newlines or by a semicolon.
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- struct type and guard syntax need full context -->
 ```ark
@@ -1082,8 +1097,12 @@ where
     m = p.x * p.x + p.y * p.y
 ```
 
-Where-bindings are evaluated before the clause dispatch and are scoped to all clauses
-in the group. They are not visible outside the function.
+Where-bindings are evaluated in source order before the clause dispatch. A binding
+may reference the synthetic function parameter and earlier `where` bindings, but
+not a pattern binding belonging only to a later or selected clause. Each clause's
+guard and body may reference its own pattern bindings and all `where` bindings.
+The bindings are not visible outside the function. A semicolon before `where`
+terminates the clause group, so it does not attach to that group.
 
 **Initial restriction:** non-recursive value bindings only. Local helper functions
 and mutual recursion are deferred.
@@ -1746,9 +1765,9 @@ fn_def      = fn_prefix "fn" IDENT type_params? "(" param_list? ")"
               (* unchanged -- single body form *)
 
 fn_clause_group
-            = fn_clause+ where_block? ;
-              (* one or more consecutive fn_clause with same name *)
-              (* optionally followed by where block *)
+            = fn_clause (NEWLINE+ fn_clause)* where_block? ;
+              (* every repeated clause has the same name and arity *)
+              (* a semicolon terminates the group *)
 
 fn_clause   = fn_prefix "fn" IDENT type_params? "(" clause_params? ")"
               ("->" type_expr)? ("|" expr)? "=" expr ;
@@ -1780,8 +1799,11 @@ variant     = IDENT
             | IDENT "(" type_expr ("," type_expr)* ")"
             | IDENT "{" field_list? "}" ;
 method_sig  = "fn" IDENT "(" param_list? ")" ("->" type_expr)? ;
-where_block = "where" ident_eq_expr+ ;
-ident_eq_expr = IDENT "=" expr ;
+where_block = "where" where_binding (where_separator where_binding)*
+              where_trailing_separator? ;
+where_binding = IDENT "=" expr ;
+where_separator = NEWLINE+ | ";" ;
+where_trailing_separator = NEWLINE* ";" ;
 
 block       = "{" stmt* expr? "}" ;
 stmt        = let_stmt | while_stmt | loop_stmt | for_stmt

@@ -11,7 +11,7 @@ use parser::token_state
 fn parse_where_binding(p: Parser) -> AstNode {
     let name_tok = core_api_expect::expect_token(p, tokens::TK_IDENT())
     core_api_expect::expect_token(p, tokens::TK_EQ())
-    core_api_cursor::skip_newlines(p)
+    core_api_cursor::skip_only_newlines(p)
     let init = expr::parse_expr(p)
     let binding = core_ast_factory::AstNode_new(kinds::NK_LET(), core_api_expect::tok_span(name_tok))
     core_ast_text_fields::AstNode_set_text(binding, token_state::Token_text(name_tok))

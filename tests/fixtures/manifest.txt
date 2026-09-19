@@ -92,6 +92,7 @@ compile-error:selfhost/fn_multiclause_guard_not_bool.ark
 compile-error:selfhost/fn_multiclause_guard_unknown_name.ark
 compile-error:selfhost/fn_multiclause_mixed_arity.ark
 compile-error:selfhost/fn_multiclause_multi_param.ark
+compile-error:selfhost/fn_multiclause_semicolon_boundary.ark
 compile-error:selfhost/fn_multiclause_where_unresolved.ark
 compile-error:wit_import/types/future-negative/main.ark
 compile-error:wit_import/types/stream-negative/main.ark
@@ -309,6 +310,7 @@ fmt:fmt/comments_preserved.ark
 fmt:fmt/delimiters_in_strings.ark
 fmt:fmt/if_else.ark
 fmt:fmt/keyword_policy.ark
+fmt:fmt/multiclause_where.ark
 fmt:fmt/imports_interleaved.ark
 fmt:fmt/imports_unsorted.ark
 mir-dump:wit_import/mir/call_add.ark
@@ -558,6 +560,7 @@ run:selfhost/fn_multiclause_literal.ark
 run:selfhost/fn_multiclause_literal_guard.ark
 run:selfhost/fn_multiclause_single.ark
 run:selfhost/fn_multiclause_where.ark
+run:selfhost/fn_multiclause_where_semicolon.ark
 run:selfhost/fn_multiclause_wildcard.ark
 run:selfhost/infer_occurs_check.ark
 run:selfhost/issue499_closure_literal.ark

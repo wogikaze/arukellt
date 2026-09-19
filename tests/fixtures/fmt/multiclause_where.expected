@@ -1,0 +1,5 @@
+fn label(n) -> String | n > limit = "high"
+fn label(_) -> String = "low"
+where
+limit = 5 +
+5;

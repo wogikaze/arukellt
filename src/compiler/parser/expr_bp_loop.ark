@@ -7,7 +7,7 @@ use parser::expr_prefix_dispatch
 use parser::pratt
 
 fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
-    core_api_cursor::skip_newlines(p)
+    core_api_cursor::skip_only_newlines(p)
     let mut lhs = expr_prefix_dispatch::parse_prefix(p)
     while true {
         let starts_after_newline = core_api_cursor::peek_kind(p) == tokens::TK_NEWLINE()
