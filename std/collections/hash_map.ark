@@ -1,15 +1,17 @@
 //! std::collections::hash_map — HashMap API wrappers
 //!
-//! Provides user-facing wrappers around the monomorphic HashMap intrinsics.
-//! For HashMap<i32,i32>:  use HashMap_i32_i32_new / HashMap_i32_i32_insert etc.
-//! For HashMap<String,i32>: use the functions below.
+//! Provides typed adapters for the generic `HashMap<K,V>` source API.
+//! `HashMap::new<K,V>()` and receiver methods are lowered to these adapters;
+//! the type-suffixed calls below remain compatibility implementation names.
 //!
 //! Typed String maps forward to `hash_string::*` by qualified name. Calling
 //! `HashMap_*` aliases that rewrite to the same short name as these wrappers
 //! causes self-recursion / missing `*_set` bodies (#807).
 
 use std::collections::hash
+use std::collections::hash_fn
 use std::collections::hash_string
+use std::collections::hash_str_fn
 
 /// Create a new HashMap<i32, i32> (alias for HashMap_i32_i32_new).
 pub fn hashmap_i32_i32_new() -> HashMap<i32, i32> {
@@ -71,6 +73,11 @@ pub fn hashmap_str_i32_contains(m: HashMap<String, i32>, key: String) -> bool {
     hash_string::hashmap_str_contains(m, key)
 }
 
+/// Remove a key from a HashMap<String, i32> and return its previous value.
+pub fn hashmap_str_i32_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
+    hash_string::hashmap_str_remove(m, key)
+}
+
 /// Return the number of entries in a HashMap<String, i32>.
 pub fn hashmap_str_i32_len(m: HashMap<String, i32>) -> i32 {
     hash_string::hashmap_str_len(m)
@@ -101,6 +108,11 @@ pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> 
 /// Check containment in a HashMap<i32, String>.
 pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
     hash_string::hashmap_i32_str_contains(m, key)
+}
+
+/// Remove a key from a HashMap<i32, String> and return its previous value.
+pub fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<String> {
+    hash_string::hashmap_i32_str_remove(m, key)
 }
 
 /// Return the number of entries in a HashMap<i32, String>.
@@ -137,6 +149,11 @@ pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool
     hash_string::hashmap_str_str_contains(m, key)
 }
 
+/// Remove a key from a HashMap<String, String> and return its previous value.
+pub fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option<String> {
+    hash_string::hashmap_str_str_remove(m, key)
+}
+
 /// Return the number of entries in a HashMap<String, String>.
 pub fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
     // Same short-name forwarder collision as hashmap_i32_str_len (#807).
@@ -146,6 +163,117 @@ pub fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
 /// Returns true if the HashMap<String, String> has no entries.
 pub fn hashmap_str_str_is_empty(m: HashMap<String, String>) -> bool {
     __hm_ss_size(m) == 0
+}
+
+/// Create a new HashMap<i32, fn(i32) -> i32>.
+pub fn hashmap_i32_fn_new() -> HashMap<i32, fn(i32) -> i32> {
+    hash_fn::hashmap_i32_fn_new()
+}
+
+/// Insert a function value and return the previous value if present.
+pub fn hashmap_i32_fn_insert(
+    m: HashMap<i32, fn(i32) -> i32>,
+    key: i32,
+    value: fn(i32) -> i32
+) -> Option<fn(i32) -> i32> {
+    let old: Option<fn(i32) -> i32> = hash_fn::hashmap_i32_fn_get(m, key)
+    let _stored: bool = hash_fn::hashmap_i32_fn_set(m, key, value)
+    old
+}
+
+pub fn hashmap_i32_fn_get(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<fn(i32) -> i32> {
+    hash_fn::hashmap_i32_fn_get(m, key)
+}
+
+pub fn hashmap_i32_fn_contains(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> bool {
+    hash_fn::hashmap_i32_fn_contains(m, key)
+}
+
+pub fn hashmap_i32_fn_remove(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<fn(i32) -> i32> {
+    hash_fn::hashmap_i32_fn_remove(m, key)
+}
+
+pub fn hashmap_i32_fn_len(m: HashMap<i32, fn(i32) -> i32>) -> i32 {
+    hash_fn::hashmap_i32_fn_len(m)
+}
+
+pub fn hashmap_i32_fn_is_empty(m: HashMap<i32, fn(i32) -> i32>) -> bool {
+    hash_fn::hashmap_i32_fn_len(m) == 0
+}
+
+/// Create a new HashMap<String, fn(i32) -> i32>.
+pub fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
+    hash_str_fn::hashmap_str_fn_new()
+}
+
+pub fn hashmap_str_fn_insert(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String,
+    value: fn(i32) -> i32
+) -> Option<fn(i32) -> i32> {
+    let old: Option<fn(i32) -> i32> = hash_str_fn::hashmap_str_fn_get(m, clone(key))
+    let _stored: bool = hash_str_fn::hashmap_str_fn_set(m, key, value)
+    old
+}
+
+pub fn hashmap_str_fn_get(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String
+) -> Option<fn(i32) -> i32> {
+    hash_str_fn::hashmap_str_fn_get(m, key)
+}
+
+pub fn hashmap_str_fn_contains(m: HashMap<String, fn(i32) -> i32>, key: String) -> bool {
+    hash_str_fn::hashmap_str_fn_contains(m, key)
+}
+
+pub fn hashmap_str_fn_remove(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String
+) -> Option<fn(i32) -> i32> {
+    hash_str_fn::hashmap_str_fn_remove(m, key)
+}
+
+pub fn hashmap_str_fn_len(m: HashMap<String, fn(i32) -> i32>) -> i32 {
+    hash_str_fn::hashmap_str_fn_len(m)
+}
+
+pub fn hashmap_str_fn_is_empty(m: HashMap<String, fn(i32) -> i32>) -> bool {
+    hash_str_fn::hashmap_str_fn_len(m) == 0
+}
+
+// Canonical v2 API. These generic shells provide the source-level contract;
+// MIR rewrites each supported specialization to the typed adapter above. The
+// rewrite is required so the shell bodies never recurse at runtime, and can be
+// removed with the legacy adapters after the ADR-014 deprecation window.
+impl HashMap<K, V> {
+    fn new() -> HashMap<K, V> {
+        HashMap::new<K, V>()
+    }
+
+    fn insert(self, key: K, value: V) -> Option<V> {
+        self.insert(key, value)
+    }
+
+    fn get(self, key: K) -> Option<V> {
+        self.get(key)
+    }
+
+    fn contains_key(self, key: K) -> bool {
+        self.contains_key(key)
+    }
+
+    fn remove(self, key: K) -> Option<V> {
+        self.remove(key)
+    }
+
+    fn len(self) -> i32 {
+        self.len()
+    }
+
+    fn is_empty(self) -> bool {
+        self.is_empty()
+    }
 }
 
 /// Create a new HashSet<String>.

@@ -201,10 +201,12 @@ reverse<i32>(numbers)
 | `HashMap_new_String_i32()` | `HashMap::new<String, i32>()` |
 | `HashMap_new_String_String()` | `HashMap::new<String, String>()` |
 | `HashMap_i32_i32_new()` | `HashMap::new<i32, i32>()` |
-| `HashMap_i32_i32_insert(m, k, v)` | `insert(m, k, v)` |
-| `HashMap_i32_i32_get(m, k)` | `get(m, k)` |
-| `HashMap_i32_i32_contains_key(m, k)` | `contains_key(m, k)` |
-| `HashMap_i32_i32_len(m)` | `len(m)` |
+| `HashMap_i32_i32_insert(m, k, v)` | `m.insert(k, v)` |
+| `HashMap_i32_i32_get(m, k)` | `m.get(k)` |
+| `HashMap_i32_i32_contains_key(m, k)` | `m.contains_key(k)` |
+| `HashMap_i32_i32_remove(m, k)` | `m.remove(k)` |
+| `HashMap_i32_i32_len(m)` | `m.len()` |
+| `HashMap_i32_i32_is_empty(m)` | `m.is_empty()` |
 
 **Before:**
 
@@ -220,9 +222,19 @@ let v = HashMap_i32_i32_get(m, 1)
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let m = HashMap::new<i32, i32>()
-insert(m, 1, 100)
-let v = get(m, 1)
+let _ = m.insert(1, 100)
+let v = m.get(1)
 ```
+
+The generic method returns `Option<V>` for `insert`, `get`, and `remove`; use a pattern
+match when the previous value must be inspected. `contains_key`, `len`, and `is_empty`
+are direct receiver methods. The currently supported concrete pairs and the removal
+conditions for the compatibility names are fixed in [ADR-066](../adr/ADR-066-language-v2-generic-public-api.md).
+
+The old HashMap names remain callable during the ADR-014 compatibility window. They are
+not marked with manifest `deprecated_by` until the manifest can name a method-level
+replacement; adding an unverifiable replacement string would make the deprecation record
+misleading.
 
 ### Option/Result Map
 

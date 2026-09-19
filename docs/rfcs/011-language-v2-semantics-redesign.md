@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
 
 ---
 
@@ -87,10 +87,10 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-062で `Self`、associated item、coherence、user blanket禁止、static dispatch、`dyn`境界を採択。 |
 | 13 | `?` と `From` | `Option`、`Result`、異種エラー変換をTrait解決に接続する。 | ADR-039、ADR-063で canonical `From`、E0210、`TryFrom` 非暗黙探索を採択。 |
 | 14 | magic method | `__add` などのmagic methodを演算子Traitへ移行する。 | ADR-065で採択済み。旧ADR-038を置換する。 |
-| 15 | public free function | `push(v, x)` のような公開free functionをメソッドまたはTrait APIへ寄せる。 | ADR-046と整合する。 |
-| 16 | generic API | 型専用helperを減らし、ジェネリックTrait APIへ統一する。 | ADR-003、ADR-044、ADR-046と統合する。 |
+| 15 | public free function | `push(v, x)` のような公開free functionをメソッドまたはTrait APIへ寄せる。 | ADR-046と整合する。HashMap の constructor / receiver method 面は ADR-066 で採択済み。 |
+| 16 | generic API | 型専用helperを減らし、ジェネリックTrait APIへ統一する。 | ADR-003、ADR-044、ADR-046と統合する。HashMap の static generic API は ADR-066 で採択済み。 |
 | 17 | 型パラメータ数 | 実装都合の上限を言語の理想として固定せず、表現可能なジェネリック規則を定義する。 | ADR-000の暫定制限禁止とADR-003に従う。 |
-| 18 | `Any` | 公開 `Any` による型消去を避け、必要な動的多相は明示したTrait境界で表す。 | 公開型システムの個別判断が必要。 |
+| 18 | `Any` | 公開 `Any` による型消去を避け、必要な動的多相は明示したTrait境界で表す。 | `Any` は source type にせず、compiler builtin の内部 placeholder / backend representation に限定することを ADR-066 で採択。 |
 | 19 | `Error` sentinel | compiler内部のError sentinelをユーザーが使う型システムから分離する。 | ADR-063で内部 recovery state と nominal `Error` を分離。 |
 | 20 | `i64` と `f64` | `i64 -> f64`だけでなく異なる具象数値型の暗黙昇格を原則禁止し、キャストまたは明示変換を要求する。 | 言語仕様と既存fixtureの移行判断が必要。 |
 | 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | normative specへ追加する。 |
@@ -98,7 +98,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeを候補とする。 | 実行可能な意味論fixtureが必要。 |
 | 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | stdlibと仕様の同時改訂が必要。 |
 | 25 | slice | sliceを独立した非`Copy`の読み取りviewとして定義し、`Vec`との戻り値の不整合を解消する。source binding は現行 API では消費しない。 | ADR-060で採択済み。完全なlifetime/borrow検査は後続。 |
-| 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-003とTrait stdlib案に統合する。 |
+| 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-066 で `HashMap::new<K,V>()` と receiver methods、supported pair 診断、旧 API の removal condition を採択。 |
 | 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | 型システムRFCで扱う。 |
 | 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
 | 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
@@ -163,6 +163,19 @@ Traitの静的dispatch、`dyn Trait`、associated type、型引数、ユーザ�
 
 HashMapやIteratorのAPIは型専用のhelperを増やさず、Traitとジェネリックなメソッドで表現する。
 
+#### 4.3.1 HashMap の generic source surface（ADR-066）
+
+HashMap の canonical source surface は `HashMap::new<K,V>()` と receiver method
+（`insert`、`get`、`contains_key`、`remove`、`len`、`is_empty`）である。
+具体型は static monomorphization で確定し、未対応の concrete pair は `Any` へ暗黙に
+erasureせず typecheck error にする。現行の supported pair は `i32` / `String` key と
+`i32`、`String`、`fn(i32) -> i32` value の組合せである。
+
+同じ source call は `wasm32-gc` では GC managed representation へ、`wasm32` では
+linear-memory representation へ lower する。`Option<V>`、hash/equality、remove、size
+の観測結果を target ごとに変えてはならない。type-suffixed entry と raw hash helper は
+ADR-014 の移行期間に限る compatibility surface であり、canonical API ではない。
+
 ### 4.4 構文と脱糖
 
 `import`、`use`、Prelude、真偽値、multi-clause、`where`、セミコロン、f-string、Iterator構文を、parserの偶然ではなく仕様上の構文変換として定義する。
@@ -192,6 +205,10 @@ name manglingは安定した言語APIにせず、必要な範囲でABI資料とb
 このRFCは旧構文との互換性を自動的に保証しない。
 
 stableな言語機能またはstdlib APIを変更する場合は、[ADR-014](../adr/ADR-014-stability-labels.md)に従い、非推奨期間、移行ガイド、削除条件を個別に定める。
+
+HashMap の具体型別 entry から generic method への移行条件は
+[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md) と
+[HashMap migration guidance](../stdlib/migration-guidance.md) に従う。
 
 provisionalまたはexperimentalな面でも、変更する入力と診断をfixtureで固定してから移行する。
 
@@ -246,6 +263,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 - [ADR-036: Trait-based Stdlib Redesign Strategy](../adr/ADR-036-trait-stdlib-redesign.md)
 - [ADR-038: 演算子オーバーロードをmagic methodからTraitへ移行する](../adr/ADR-038-operator-overload-traits.md)
 - [ADR-065: Language v2 の演算子 Trait 解決と magic method 移行](../adr/ADR-065-language-v2-operator-trait-resolution.md)
+- [ADR-066: Language v2 の generic 公開 API と HashMap](../adr/ADR-066-language-v2-generic-public-api.md)
 - [ADR-039: `?` の Option対応とエラー型変換](../adr/ADR-039-question-mark-operator.md)
 - [ADR-044: traitとメソッド構文を言語機能として採択する](../adr/ADR-044-trait-method-syntax-adopted.md)
 - [ADR-046: 公開 free function の根絶](../adr/ADR-046-free-function-eradication.md)

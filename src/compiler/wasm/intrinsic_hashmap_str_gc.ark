@@ -51,6 +51,9 @@ fn emit_hm_slot_set_gc(
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     writer_core::emit_local_get(w, s_idx)
+    // GC array indices are i32, while wasm32-gc scalar locals use the
+    // widened i64 representation used by the Memory64 ABI.
+    writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
     writer_core::emit_local_get(w, s_val)
     if array_type == i32_array_type {
         writer_gc::emit_gc_array_set_i32(w, array_type)

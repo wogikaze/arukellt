@@ -1,0 +1,1 @@
+error[E0200|typecheck]: unsupported HashMap type pair: bool, bool; supported pairs are i32/String keys with i32, String, or fn(i32) -> i32 values

@@ -58,6 +58,13 @@ prelude = true
 generic_params = ["T"]
 type_id = "vec"
 
+[[types]]
+name = "HashMap"
+prelude = true
+stability = "provisional"
+generic_params = ["K", "V"]
+type_id = "hashmap"
+
 # ─────────────────────────────────────────────
 # Prelude values (auto-imported)
 # ─────────────────────────────────────────────

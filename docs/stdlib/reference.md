@@ -21,6 +21,7 @@
 | `Result` | T, E | yes |
 | `String` | - | yes |
 | `Vec` | T | yes |
+| `HashMap` | K, V | yes |
 | `u8` | - | yes |
 | `u16` | - | yes |
 | `u32` | - | yes |

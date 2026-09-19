@@ -62,6 +62,7 @@
 | [ADR-063-language-v2-conversion-error-boundary.md](ADR-063-language-v2-conversion-error-boundary.md) | ADR-063: Language v2 の変換 trait と error sentinel の境界 | Arukellt は Result<T, E> と Option<T>、From<T> / Into<T>、? の構文を持つ。 一方、fallible conversion の TryFrom<T> / TryInto<T> は別 issue で定義中であり、 compiler の型検査用 recovery sentinel と、ユーザーが宣言できる Error という nominal type の境界も |
 | [ADR-064-error-trait-namespace-and-source-boundary.md](ADR-064-error-trait-namespace-and-source-boundary.md) | ADR-064: Error trait の名前空間と静的 source 境界 | std::core::error には、stdlib の既存 API と fixture が利用する Error enum と error_message があり、manifest でも stable として公開されている。 |
 | [ADR-065-language-v2-operator-trait-resolution.md](ADR-065-language-v2-operator-trait-resolution.md) | ADR-065: Language v2 の演算子 Trait 解決と magic method 移行 | Arukellt の parser は演算子を構文木へ保持し、MIR lowerer は組み込み opcode または receiver の 型名::method を選択できる。 |
+| [ADR-066-language-v2-generic-public-api.md](ADR-066-language-v2-generic-public-api.md) | ADR-066: Language v2 の generic 公開 API と HashMap | 旧来の HashMap API は、HashMap_i32_i32_new や HashMap_String_i32_get のように key/value の具体型を関数名へ埋め込んでいた。 |
 
 ## 提案
 

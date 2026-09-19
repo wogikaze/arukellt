@@ -1,0 +1,46 @@
+use std::host::process
+
+fn expect_i32(value: Option<i32>) -> i32 {
+    match value {
+        Some(number) => number,
+        None => -1,
+    }
+}
+
+fn require_i32(actual: i32, expected: i32) {
+    if actual != expected {
+        process::exit(1)
+    }
+}
+
+fn require_true(condition: bool) {
+    if !condition {
+        process::exit(1)
+    }
+}
+
+fn require_false(condition: bool) {
+    if condition {
+        process::exit(1)
+    }
+}
+
+fn main() {
+    let numbers = HashMap::new<i32, i32>()
+    let first = numbers.insert(1, 10)
+    let second = numbers.insert(1, 20)
+    require_i32(expect_i32(first), -1)
+    require_i32(expect_i32(second), 10)
+    require_i32(expect_i32(numbers.get(1)), 20)
+    require_true(numbers.contains_key(1))
+    require_i32(numbers.len(), 1)
+    require_false(numbers.is_empty())
+    require_i32(expect_i32(numbers.remove(1)), 20)
+    require_true(numbers.is_empty())
+
+    let words = HashMap::new<String, i32>()
+    let _ = words.insert("answer", 42)
+    require_i32(expect_i32(words.get("answer")), 42)
+    require_false(words.contains_key("missing"))
+    require_i32(words.len(), 1)
+}

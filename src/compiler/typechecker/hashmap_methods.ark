@@ -1,0 +1,111 @@
+use typechecker::ast_access
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::hashmap_api
+use typechecker::mono
+use typechecker::types
+use typechecker::unify
+
+fn infer_hashmap_constructor_call(env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
+    if !eq(ast_access::node_text(callee), String_from("HashMap::new")) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let type_arg_count = ast_access::node_child_count(callee) - 1
+    if type_arg_count != 2 {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let key_ty = types::resolve_type_ann_node(ast_access::node_child_at(callee, 1))
+    let value_ty = types::resolve_type_ann_node(ast_access::node_child_at(callee, 2))
+    let resolved_types = Vec::new<TypeInfo>()
+    push(resolved_types, key_ty)
+    push(resolved_types, value_ty)
+    let result_ty = hashmap_type(key_ty, value_ty)
+    if !hashmap_api::validate_hashmap_constructor(env, String_from("HashMap::new"), resolved_types) {
+        return result_ty
+    }
+    let mangled_name = mono::record_mono_instance(env, String_from("HashMap::new"), resolved_types)
+    mono::record_mono_call_site(
+        env,
+        ast_access::node_span_start(node),
+        String_from("HashMap::new"),
+        mangled_name
+    )
+    result_ty
+}
+
+fn infer_builtin_hashmap_method(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    recv_ty: TypeInfo,
+    method_name: String,
+    child_count: i32
+) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_HASHMAP() {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    if contract_type_access::TypeInfo_type_arg_count(recv_ty) < 2 {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let explicit_args = child_count - 1
+    if !hashmap_method_has_arity(clone(method_name), explicit_args) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let key_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
+    let value_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 1)
+    if explicit_args == 1 {
+        let arg_node = ast_access::node_child_at(node, 1)
+        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        unify::unify(env, key_ty, arg_ty)
+    }
+    if !hashmap_api::validate_hashmap_method(env, concat(String_from("HashMap::"), method_name), recv_ty) {
+        return hashmap_method_return_type(clone(method_name), value_ty)
+    }
+    let resolved_types = Vec::new<TypeInfo>()
+    push(resolved_types, key_ty)
+    push(resolved_types, value_ty)
+    let mono_name = concat(String_from("HashMap::"), method_name)
+    let mangled_name = mono::record_mono_instance(env, clone(mono_name), resolved_types)
+    mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_name, mangled_name)
+    hashmap_method_return_type(method_name, value_ty)
+}
+
+fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    let mut hm = contract_type_constructors::TypeInfo_simple(commands::TY_HASHMAP())
+    contract_type_mutation::TypeInfo_push_type_arg(hm, key_ty)
+    contract_type_mutation::TypeInfo_push_type_arg(hm, value_ty)
+    hm
+}
+
+fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
+    if explicit_args == 0 {
+        return eq(clone(method_name), String_from("len")) ||
+        eq(clone(method_name), String_from("is_empty"))
+    }
+    if explicit_args == 1 {
+        return eq(clone(method_name), String_from("insert")) ||
+        eq(clone(method_name), String_from("get")) ||
+        eq(clone(method_name), String_from("contains_key")) ||
+        eq(clone(method_name), String_from("remove"))
+    }
+    false
+}
+
+fn hashmap_method_return_type(method_name: String, value_ty: TypeInfo) -> TypeInfo {
+    if eq(clone(method_name), String_from("contains_key")) ||
+    eq(clone(method_name), String_from("len")) {
+        if eq(clone(method_name), String_from("len")) {
+            return contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+        }
+        return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
+    }
+    if eq(clone(method_name), String_from("is_empty")) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
+    }
+    let option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
+    contract_type_mutation::TypeInfo_push_type_arg(option, value_ty)
+    option
+}

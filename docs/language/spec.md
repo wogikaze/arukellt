@@ -209,7 +209,7 @@ Semicolons are optional.
 | `Vec<T>` | Generic resizable vector | Reference type |
 | `Option<T>` | `None \| Some(T)` | Owned tagged ADT; structurally `Copy` when `T: Copy` |
 | `Result<T, E>` | `Ok(T) \| Err(E)` | Owned tagged ADT; structurally `Copy` when `T: Copy` and `E: Copy` |
-| `HashMap<K, V>` | Hash map (monomorphic variants only) | Reference type |
+| `HashMap<K, V>` | Statically monomorphized generic hash map | Reference type |
 | `Box<T>` | Heap-allocated wrapper | Non-`Copy` unique owner of `T` |
 | Function | `fn(T1, T2) -> R` | First-class function type |
 
@@ -218,7 +218,7 @@ Semicolons are optional.
 | Type | Description |
 |------|-------------|
 | `Never` | Type of diverging expressions (`return`, `panic`, `break`). Compatible with every type. |
-| `Any` | Polymorphic type (erased to `anyref` at Wasm level). Used only by `to_string`. |
+| `Any` | Not a source-level type. Internal erased values may use `anyref`; `to_string` accepts a compiler-resolved concrete type. |
 
 Parser `NK_ERROR`, unresolved type state, and CoreHIR/MIR recovery sentinels are
 compiler-internal states. They are not source-level types and are never used as
@@ -1159,7 +1159,7 @@ import. Non-prelude functions require a `use` or `import` declaration.
 | `f64_to_string(n: f64) -> String` | f64 → String |
 | `bool_to_string(b: bool) -> String` | bool → String |
 | `char_to_string(c: char) -> String` | char → String |
-| `to_string(x: any) -> String` | Canonical polymorphic conversion |
+| `to_string<T>(x: T) -> String` | Canonical compiler-resolved conversion; `T` is not a user-visible `Any` type |
 | `parse_i32(s: String) -> Result<i32, String>` | String → i32 |
 
 `to_string(x)` is the canonical user-facing conversion form. Type-specific helpers such as `i32_to_string` and `char_to_string` remain available as compatibility and backend-mapped surface.
@@ -1308,15 +1308,26 @@ by the subsequent borrow/closure work.
 | `assert_eq_i64(a: i64, b: i64)` | Assert equal (i64) |
 | `assert_eq_str(a: String, b: String)` | Assert equal (String) |
 
-### 9.14 HashMap (prelude, monomorphic)
+### 9.14 HashMap (generic public API)
 
 | Signature | Description |
 |-----------|-------------|
-| `HashMap_i32_i32_new() -> HashMap<i32, i32>` | New map |
-| `HashMap_i32_i32_insert(m: HashMap<i32, i32>, k: i32, v: i32)` | Insert |
-| `HashMap_i32_i32_get(m: HashMap<i32, i32>, k: i32) -> Option<i32>` | Lookup |
-| `HashMap_i32_i32_contains_key(m: HashMap<i32, i32>, k: i32) -> bool` | Key test |
-| `HashMap_i32_i32_len(m: HashMap<i32, i32>) -> i32` | Size |
+| `HashMap::new<K, V>() -> HashMap<K, V>` | Construct a statically monomorphized map |
+| `m.insert(k: K, v: V) -> Option<V>` | Insert or update and return the previous value |
+| `m.get(k: K) -> Option<V>` | Lookup |
+| `m.contains_key(k: K) -> bool` | Key test |
+| `m.remove(k: K) -> Option<V>` | Remove and return the previous value |
+| `m.len() -> i32` | Number of entries |
+| `m.is_empty() -> bool` | Whether the map has no entries |
+
+The current concrete adapter set supports `i32` and `String` keys with `i32`, `String`,
+or `fn(i32) -> i32` values, for the six key/value pairs listed in
+[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md). A concrete pair outside that
+set is a typecheck error; it is not erased to `Any`.
+
+The compiler statically monomorphizes the same source API for `wasm32-gc` and the `wasm32`
+linear-memory fallback. Existing type-suffixed builtins remain compatibility entries during
+the ADR-014 migration window and are not the recommended source form.
 
 ### 9.15 Host — Standard I/O (`std::host::stdio`)
 

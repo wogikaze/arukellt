@@ -14,6 +14,12 @@ fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverCo
     module_state::LoadState_set_cache_dir(load_state, config_record::config_cache_dir(config))
     module_graph::load_stdlib_module("std::prelude", load_state)
     module_graph::load_imported_modules(decls, config_record::config_source_dir(config), load_state)
+    // Canonical v2 HashMap syntax lowers to typed adapters in the dedicated
+    // module. Load it even when the source contains no legacy `HashMap_*`
+    // spelling; otherwise the lowering target has no function index entry.
+    if contains(clone(source), "HashMap::") {
+        module_graph::load_stdlib_module("std::collections::hash_map", load_state)
+    }
     if contains(clone(source), "HashMap_") || contains(clone(source), "HashSet_") {
         module_graph::load_stdlib_module("std::collections::hash", load_state)
     }

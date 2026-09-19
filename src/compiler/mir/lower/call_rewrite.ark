@@ -2,6 +2,7 @@ use mir::lower::call_arg_i64
 use mir::lower::call_mono
 use mir::lower::call_mono_by_type
 use mir::lower::call_rewrite_method
+use mir::lower::call_rewrite_hashmap
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
 use mir::lower::ctx_api_emit
@@ -84,6 +85,14 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
     }
+    let hashmap_constructor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(rewritten))
+    if len(hashmap_constructor) > 0 {
+        rewritten = hashmap_constructor
+    }
+    let hashmap_method = call_rewrite_hashmap::mir_rewrite_hashmap_method(ctx, clone(rewritten), first_arg_idx)
+    if len(hashmap_method) > 0 {
+        rewritten = hashmap_method
+    }
     if eq(clone(rewritten), "to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, rewritten, first_arg_idx)
         rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
@@ -119,7 +128,10 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     // before FunctionId binding selects the sequence operation.
     let is_seq_extremum_alias = eq(clone(rewritten), String_from("seq::min_i32")) ||
     eq(clone(rewritten), String_from("seq::max_i32"))
-    if !is_seq_extremum_alias && !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) && !skip_first_arg_mono {
+    if !is_seq_extremum_alias &&
+    !call_rewrite_hashmap::mir_hashmap_target_is_adapter(clone(rewritten)) &&
+    !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) &&
+    !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
     }
     // Mono lookup may return the legacy `Vec_new_T` spelling even when the

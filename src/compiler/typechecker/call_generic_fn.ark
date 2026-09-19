@@ -6,6 +6,7 @@ use typechecker::call_generic_turbofish
 use typechecker::contract_fn_sig
 use typechecker::infer_env_scope
 use typechecker::instantiate
+use typechecker::hashmap_api
 use typechecker::mono
 use typechecker::traits
 
@@ -30,6 +31,9 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     }
     let resolved_type_args = call_generic_common::resolve_type_args(infer_env, var_types)
     traits::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
+    if !hashmap_api::validate_hashmap_constructor(env, clone(fn_name), resolved_type_args) {
+        return ret_ty
+    }
     let mangled_name = mono::record_mono_instance(env, clone(fn_name), resolved_type_args)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name)
     ret_ty

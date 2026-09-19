@@ -26,6 +26,9 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     if starts_with(clone(struct_name), "vec:") {
         struct_name = "Vec"
     }
+    if starts_with(clone(struct_name), "hashmap:") {
+        struct_name = "HashMap"
+    }
     if eq(clone(struct_name), "string") {
         struct_name = "String"
     }

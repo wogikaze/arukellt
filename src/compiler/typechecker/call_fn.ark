@@ -3,6 +3,7 @@ use typechecker::ast_expr_predicates
 use typechecker::ast_access
 use typechecker::call_args
 use typechecker::call_generic
+use typechecker::hashmap_methods
 use typechecker::call_unknown
 use typechecker::call_vec_ctor
 use typechecker::enum_expr
@@ -27,6 +28,10 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return enum_variant_ty
     }
     let callee_name = ast_access::node_text(callee)
+    let hashmap_ctor_ty = hashmap_methods::infer_hashmap_constructor_call(env, node, callee)
+    if contract_type_access::TypeInfo_tag(hashmap_ctor_ty) != commands::TY_UNKNOWN() {
+        return hashmap_ctor_ty
+    }
     // `clone` is a compiler-provided polymorphic operation. The prelude keeps
     // a String-shaped declaration for compatibility, but typechecking must
     // preserve the argument type for structs, enums, and collection elements.

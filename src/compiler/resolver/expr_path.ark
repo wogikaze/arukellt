@@ -163,6 +163,7 @@ fn is_builtin_type_name(name: String) -> bool {
     if eq(clone(name), String_from("String")) { return true }
     if eq(clone(name), String_from("Option")) { return true }
     if eq(clone(name), String_from("Result")) { return true }
+    if eq(clone(name), String_from("HashMap")) { return true }
     if eq(clone(name), String_from("i32")) { return true }
     if eq(clone(name), String_from("i64")) { return true }
     if eq(clone(name), String_from("f64")) { return true }

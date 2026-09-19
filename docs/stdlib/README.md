@@ -99,7 +99,7 @@ All 18 module pages carry curated overviews.
 
 - Manifest-backed public functions: **748**
 - Prelude wrappers: 134
-- Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
+- Prelude types: `Option`, `Result`, `String`, `Vec`, `HashMap`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
 - Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 174, `component` 7, `control` 1, `conversion` 6, `convert` 1, `core` 8, `csv` 7, `env` 6, `fs` 8, `host_clock` 2, `host_env` 5, `host_fs` 10, `host_process` 3, `host_random` 4, `host_stdio` 4, `io` 38, `json` 32, `math` 2, `numeric` 2, `option_result` 14, `path` 9, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 13, `signal` 10, `simd` 108, `string` 25, `test` 18, `text` 42, `time` 3, `toml` 14, `wasm` 79, `wit` 16
 - Source-backed modules: 28

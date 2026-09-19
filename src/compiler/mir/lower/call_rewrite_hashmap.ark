@@ -1,0 +1,151 @@
+use mir::lower::ctx_api_local_types
+
+// HashMap's source-level generic methods are semantic shells. Lower each
+// supported pair to the existing typed adapter so GC and linear-memory targets
+// share the same operation and Option/bool result contract.
+fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
+    if hashmap_constructor_matches(clone(callee_name), "i32", "i32") {
+        return String_from("hash_map::hashmap_i32_i32_new")
+    }
+    if hashmap_constructor_matches(clone(callee_name), "String", "i32") {
+        return String_from("hash_map::hashmap_str_i32_new")
+    }
+    if hashmap_constructor_matches(clone(callee_name), "i32", "String") {
+        return String_from("hash_map::hashmap_i32_str_new")
+    }
+    if hashmap_constructor_matches(clone(callee_name), "String", "String") {
+        return String_from("hash_map::hashmap_str_str_new")
+    }
+    if hashmap_constructor_matches(clone(callee_name), "i32", "fn") {
+        return String_from("hash_map::hashmap_i32_fn_new")
+    }
+    if hashmap_constructor_matches(clone(callee_name), "String", "fn") {
+        return String_from("hash_map::hashmap_str_fn_new")
+    }
+    String_new()
+}
+
+fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: i32) -> String {
+    if receiver_idx < 0 {
+        return String_new()
+    }
+    let family = hashmap_family_for_type(ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx))
+    if len(family) == 0 {
+        family = hashmap_family_for_callee(clone(callee_name))
+    }
+    if len(family) == 0 {
+        return String_new()
+    }
+    let method = hashmap_method_name(clone(callee_name))
+    if len(method) == 0 {
+        return String_new()
+    }
+    if eq(clone(method), String_from("contains_key")) {
+        return concat(clone(family), String_from("_contains"))
+    }
+    if eq(clone(method), String_from("insert")) ||
+    eq(clone(method), String_from("get")) ||
+    eq(clone(method), String_from("remove")) ||
+    eq(clone(method), String_from("len")) ||
+    eq(clone(method), String_from("is_empty")) {
+        return concat(clone(family), concat(String_from("_"), method))
+    }
+    String_new()
+}
+
+fn mir_hashmap_target_is_adapter(callee_name: String) -> bool {
+    starts_with(clone(callee_name), String_from("hash_map::hashmap_"))
+}
+
+fn hashmap_constructor_matches(callee_name: String, key_name: String, value_name: String) -> bool {
+    let suffix = concat(
+        String_from("__"),
+        concat(key_name, concat(String_from("__"), value_name))
+    )
+    let safe_prefix = concat(String_from("HashMap__new"), suffix)
+    let source_prefix = concat(String_from("HashMap::new"), suffix)
+    let legacy_safe_prefix = concat(String_from("HashMap_new"), suffix)
+    eq(clone(callee_name), safe_prefix) ||
+    eq(clone(callee_name), source_prefix) ||
+    eq(clone(callee_name), legacy_safe_prefix)
+}
+
+fn hashmap_method_name(callee_name: String) -> String {
+    if is_hashmap_method_leaf(clone(callee_name)) {
+        return strip_hashmap_method_suffix(clone(callee_name))
+    }
+    if starts_with(clone(callee_name), String_from("HashMap::")) {
+        return strip_hashmap_method_suffix(substring(callee_name, 9, len(callee_name)))
+    }
+    if starts_with(clone(callee_name), String_from("HashMap__")) {
+        return strip_hashmap_method_suffix(substring(callee_name, 9, len(callee_name)))
+    }
+    String_new()
+}
+
+fn is_hashmap_method_leaf(name: String) -> bool {
+    eq(clone(name), String_from("insert")) ||
+    eq(clone(name), String_from("get")) ||
+    eq(clone(name), String_from("contains_key")) ||
+    eq(clone(name), String_from("remove")) ||
+    eq(clone(name), String_from("len")) ||
+    eq(clone(name), String_from("is_empty"))
+}
+
+fn strip_hashmap_method_suffix(name: String) -> String {
+    let separator = index_of(clone(name), String_from("__"))
+    if separator >= 0 {
+        return substring(name, 0, separator)
+    }
+    name
+}
+
+fn hashmap_family_for_type(type_name: String) -> String {
+    if eq(clone(type_name), String_from("hashmap:i32i32")) ||
+    eq(clone(type_name), String_from("HashMap_i32_i32")) {
+        return String_from("hash_map::hashmap_i32_i32")
+    }
+    if eq(clone(type_name), String_from("hashmap:si32")) ||
+    eq(clone(type_name), String_from("HashMap_String_i32")) {
+        return String_from("hash_map::hashmap_str_i32")
+    }
+    if eq(clone(type_name), String_from("hashmap:i32str")) ||
+    eq(clone(type_name), String_from("HashMap_i32_String")) {
+        return String_from("hash_map::hashmap_i32_str")
+    }
+    if eq(clone(type_name), String_from("hashmap:strstr")) ||
+    eq(clone(type_name), String_from("HashMap_String_String")) {
+        return String_from("hash_map::hashmap_str_str")
+    }
+    if eq(clone(type_name), String_from("hashmap:i32fn")) ||
+    eq(clone(type_name), String_from("HashMap_i32_fn")) {
+        return String_from("hash_map::hashmap_i32_fn")
+    }
+    if eq(clone(type_name), String_from("hashmap:strfn")) ||
+    eq(clone(type_name), String_from("HashMap_String_fn")) {
+        return String_from("hash_map::hashmap_str_fn")
+    }
+    String_new()
+}
+
+fn hashmap_family_for_callee(callee_name: String) -> String {
+    if ends_with(clone(callee_name), String_from("__i32__i32")) {
+        return String_from("hash_map::hashmap_i32_i32")
+    }
+    if ends_with(clone(callee_name), String_from("__String__i32")) {
+        return String_from("hash_map::hashmap_str_i32")
+    }
+    if ends_with(clone(callee_name), String_from("__i32__String")) {
+        return String_from("hash_map::hashmap_i32_str")
+    }
+    if ends_with(clone(callee_name), String_from("__String__String")) {
+        return String_from("hash_map::hashmap_str_str")
+    }
+    if ends_with(clone(callee_name), String_from("__i32__fn")) {
+        return String_from("hash_map::hashmap_i32_fn")
+    }
+    if ends_with(clone(callee_name), String_from("__String__fn")) {
+        return String_from("hash_map::hashmap_str_fn")
+    }
+    String_new()
+}

@@ -6,16 +6,19 @@ This page records the intentional differences between Arukellt's current
 
 ## Current Representation
 
-Arukellt's source stdlib exposes a raw monomorphic `i32 -> i32` implementation
-in `std::collections::hash`. It is backed by a flat `Vec<i32>`:
+Arukellt's canonical source API is `HashMap::new<K,V>()` plus receiver methods
+(`insert`, `get`, `contains_key`, `remove`, `len`, and `is_empty`). The compiler
+statically monomorphizes the supported concrete pairs. The raw monomorphic
+`i32 -> i32` implementation in `std::collections::hash` is the compatibility
+and linear-memory implementation layer. It is backed by a flat `Vec<i32>`:
 
 ```text
 [capacity, size, keys..., values..., flags...]
 ```
 
-The user-facing generic `HashMap<K, V>` constructors and methods are compiler
-builtins that are monomorphized for the currently supported concrete pairs.
-Compatibility wrapper functions live in `std::collections::hash_map`.
+Typed adapters in `std::collections::hash_map` connect the source methods to
+the concrete GC or linear-memory implementation. Compatibility wrapper
+functions remain available during the ADR-014 migration window.
 
 ## Hashing Policy
 

@@ -33,6 +33,12 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if eq(clone(arg_type), "Vec") {
         return "Vec"
     }
+    if starts_with(clone(arg_type), "hashmap:") {
+        return "HashMap"
+    }
+    if eq(clone(arg_type), "HashMap") {
+        return "HashMap"
+    }
     if starts_with(clone(arg_type), "option:") {
         return substring(clone(arg_type), 7, len(arg_type))
     }

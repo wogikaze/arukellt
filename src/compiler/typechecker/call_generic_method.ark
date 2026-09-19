@@ -7,6 +7,7 @@ use typechecker::call_generic_resolve
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::infer_env_scope
+use typechecker::hashmap_api
 use typechecker::instantiate
 use typechecker::mono
 use typechecker::traits
@@ -32,6 +33,9 @@ fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<
     if len(type_prefix) > 0 {
         mono_fn_name = text::builder_append(type_prefix, concat("::", method_name))
     }
+    if !hashmap_api::validate_hashmap_method(env, clone(mono_fn_name), resolved_recv_ty) {
+        return ret_ty
+    }
     let mangled_name = mono::record_mono_instance(env, clone(mono_fn_name), resolved_type_args)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name)
     ret_ty
@@ -43,6 +47,9 @@ fn type_name_for_mono(ty: TypeInfo) -> String {
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_VEC() {
         return "Vec"
+    }
+    if tag == commands::TY_HASHMAP() {
+        return "HashMap"
     }
     if tag == commands::TY_STRING() {
         return "String"

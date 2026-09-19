@@ -831,6 +831,7 @@ run:stdlib_hashmap/hashmap_capacity_extend.ark
 run:stdlib_hashmap/hashmap_capacity_reserve.ark
 run:stdlib_hashmap/hashmap_extended.ark
 run:stdlib_hashmap/hashmap_generic_demo.ark
+run:stdlib_hashmap/hashmap_methods_generic.ark
 run:stdlib_hashmap/hashmap_hardening.ark
 run:stdlib_hashmap/hashmap_i32_string.ark
 run:stdlib_hashmap/hashmap_insert.ark
@@ -2027,6 +2028,7 @@ t3-compile:control/while_counter.ark
 t3-compile:diagnostics/method_syntax.ark
 t3-compile:diagnostics/nested_generic.ark
 t3-compile:diagnostics/operator_overload.ark
+t3-compile:diagnostics/hashmap_unsupported_pair.ark
 t3-compile:diagnostics/trait_def.ark
 t3-compile:stdlib_trait/error_trait.ark
 t3-compile:display_trait/display_struct.ark
@@ -2585,6 +2587,7 @@ t3-run:stdlib_hashmap/hashmap_basic.ark
 t3-run:stdlib_hashmap/hashmap_capacity_extend.ark
 t3-run:stdlib_hashmap/hashmap_capacity_reserve.ark
 t3-run:stdlib_hashmap/hashmap_generic_demo.ark
+t3-run:stdlib_hashmap/hashmap_methods_generic.ark
 t3-run:stdlib_hashmap/hashmap_i32_string.ark
 t3-run:stdlib_hashmap/hashmap_insert.ark
 t3-run:stdlib_hashmap/hashmap_insert_return.ark

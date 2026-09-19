@@ -1,9 +1,10 @@
 //! Hash-based collection helpers.
 //!
-//! Provides core HashMap and HashSet implementations backed by a flat `Vec<i32>`
-//! with open addressing and linear probing.  Generic `<K, V>` / `<T>` functions
-//! are exposed as compiler builtins (`HashMap_new<K,V>`, `HashSet_new<T>`, etc.)
-//! that the selfhost emitter monomorphizes per concrete key/value type.
+//! Provides the raw HashMap and HashSet implementation layer backed by a flat
+//! `Vec<i32>` with open addressing and linear probing. The canonical source
+//! surface is `HashMap::new<K,V>()` and receiver methods; the compiler
+//! monomorphizes those calls to typed adapters and uses these helpers where
+//! the selected representation is linear memory.
 //!
 //! ## Generic dispatch
 //!
@@ -15,15 +16,17 @@
 //! - `HashMap_contains_key<K,V>(m, key: K) -> bool`
 //! - `HashMap_remove<K,V>(m, key: K) -> Option<V>`
 //! - `HashMap_len<K,V>(m) -> i32`
+//! - `HashMap_is_empty<K,V>(m) -> bool`
 //!
-//! Each monomorphized instance (e.g. `HashMap_insert__String_i32`) is aliased
-//! by the emitter to the appropriate concrete function in this module.
+//! Each monomorphized instance is selected from the source receiver type and
+//! is aliased by the emitter to the appropriate concrete adapter. The generated
+//! name is an implementation detail, not a public API.
 //!
-//! ## Monomorphic wrappers
+//! ## Compatibility implementation
 //!
-//! User-facing monomorphic wrappers live in `hash_map.ark` and `hash_set.ark`.
-//! The functions in this module operate on `Vec<i32>` and serve as the internal
-//! implementation layer.
+//! Type-suffixed wrappers remain during the ADR-014 migration window. The
+//! functions in this module operate on `Vec<i32>` and serve as the raw
+//! compatibility implementation layer.
 //!
 //! ## Hash policy
 //!

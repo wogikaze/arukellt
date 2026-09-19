@@ -1,0 +1,3 @@
+fn main() {
+    let _map = HashMap::new<bool, bool>()
+}

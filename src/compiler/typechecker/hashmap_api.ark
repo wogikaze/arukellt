@@ -1,0 +1,99 @@
+use typechecker::contract_type_access
+use typechecker::kinds
+use typechecker::names
+use typechecker::unify
+
+// HashMap has one source-level generic API, but its current storage adapters
+// are statically specialized. Keep that representation boundary explicit: a
+// type variable is deferred to the enclosing generic body, while a concrete
+// unsupported pair is rejected before it can create a mono instance.
+fn validate_hashmap_constructor(env: TypeEnv, fn_name: String, type_args: Vec<TypeInfo>) -> bool {
+    if !is_hashmap_api_name(clone(fn_name)) {
+        return true
+    }
+    if len(type_args) < 2 {
+        return true
+    }
+    let key_ty = get_unchecked(type_args, 0)
+    let value_ty = get_unchecked(type_args, 1)
+    validate_hashmap_pair(env, key_ty, value_ty)
+}
+
+fn validate_hashmap_method(env: TypeEnv, fn_name: String, receiver_ty: TypeInfo) -> bool {
+    if !is_hashmap_api_name(clone(fn_name)) {
+        return true
+    }
+    if contract_type_access::TypeInfo_tag(receiver_ty) != commands::TY_HASHMAP() {
+        return true
+    }
+    if contract_type_access::TypeInfo_type_arg_count(receiver_ty) < 2 {
+        return true
+    }
+    let key_ty = contract_type_access::TypeInfo_type_arg_at(receiver_ty, 0)
+    let value_ty = contract_type_access::TypeInfo_type_arg_at(receiver_ty, 1)
+    validate_hashmap_pair(env, key_ty, value_ty)
+}
+
+fn is_hashmap_api_name(fn_name: String) -> bool {
+    starts_with(clone(fn_name), String_from("HashMap::"))
+}
+
+fn validate_hashmap_pair(env: TypeEnv, key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
+    if is_deferred_hashmap_type(key_ty) || is_deferred_hashmap_type(value_ty) {
+        return true
+    }
+    if is_supported_hashmap_key(key_ty) && is_supported_hashmap_value(value_ty) {
+        return true
+    }
+    let key_name = hashmap_type_name(key_ty)
+    let value_name = hashmap_type_name(value_ty)
+    let message = concat(
+        String_from("unsupported HashMap type pair: "),
+        concat(
+            key_name,
+            concat(
+                String_from(", "),
+                concat(value_name, String_from("; supported pairs are i32/String keys with i32, String, or fn(i32) -> i32 values"))
+            )
+        )
+    )
+    unify::type_error(env, message)
+    false
+}
+
+fn is_deferred_hashmap_type(ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_TYPE_VAR() || tag == commands::TY_UNKNOWN() {
+        return true
+    }
+    let name = contract_type_access::TypeInfo_name(ty)
+    len(name) == 1 && char_at(name, 0) >= 65 && char_at(name, 0) <= 90
+}
+
+fn is_supported_hashmap_key(ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    tag == commands::TY_I32() || tag == commands::TY_STRING()
+}
+
+fn is_supported_hashmap_value(ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_I32() || tag == commands::TY_STRING() || tag == kinds::TY_FN() {
+        return true
+    }
+    let name = contract_type_access::TypeInfo_name(ty)
+    eq(clone(name), String_from("fnref")) ||
+    eq(clone(name), String_from("fn")) ||
+    starts_with(clone(name), String_from("fn("))
+}
+
+fn hashmap_type_name(ty: TypeInfo) -> String {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_I32() { return String_from("i32") }
+    if tag == commands::TY_STRING() { return String_from("String") }
+    if tag == kinds::TY_FN() { return String_from("fn(i32) -> i32") }
+    let name = contract_type_access::TypeInfo_name(ty)
+    if len(name) > 0 {
+        return name
+    }
+    names::type_tag_name(tag)
+}

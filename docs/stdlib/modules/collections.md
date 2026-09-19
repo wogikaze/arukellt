@@ -7,13 +7,15 @@ Source-backed docs for the currently supported collection modules.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::collections` family provides the primary collection data structures for Arukellt programs: hash maps, double-ended queues, min-heap priority queues, sorted maps, and bitsets. All current containers are monomorphic `i32` containers backed by `Vec<i32>`, making them compatible with any build target.
+The `std::collections` family provides the primary collection data structures for Arukellt programs: hash maps, double-ended queues, min-heap priority queues, sorted maps, and bitsets. The canonical HashMap surface is generic and statically monomorphized; lower-level containers remain available for compatibility and compiler-facing work.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `hashmap_new` / `hashmap_get` / `hashmap_set` | Hash map with open addressing (i32 → i32). |
+| `HashMap::new` / `.insert` / `.get` | Generic HashMap API with static dispatch. |
+| `.contains_key` / `.remove` / `.len` | Typed lookup, removal, and size operations. |
+| `hashmap_new` / `hashmap_get` / `hashmap_set` | Raw i32 → i32 compatibility implementation. |
 | `deque_push_back` / `deque_pop_front` | FIFO / ring-buffer deque. |
 | `pq_push` / `pq_pop` | Min-heap priority queue — smallest element first. |
 | `sorted_map_insert` / `sorted_map_get` | Sorted-vector map for ordered iteration. |
@@ -24,12 +26,10 @@ The `std::collections` family provides the primary collection data structures fo
 **Typical usage:**
 
 ```ark
-import std::collections::hash
-
-let map = hashmap_new()
-hashmap_set(map, 42, 100)
-let v = hashmap_get(map, 42)   // 100
-let exists = hashmap_contains(map, 42)  // true
+let map = HashMap::new<i32, i32>()
+let _ = map.insert(42, 100)
+let v = map.get(42)              // Some(100)
+let exists = map.contains_key(42) // true
 ```
 
 ---
@@ -144,10 +144,11 @@ Return the number of interned strings.
 
 Hash-based collection helpers.
 
-Provides core HashMap and HashSet implementations backed by a flat `Vec<i32>`
-with open addressing and linear probing.  Generic `<K, V>` / `<T>` functions
-are exposed as compiler builtins (`HashMap_new<K,V>`, `HashSet_new<T>`, etc.)
-that the selfhost emitter monomorphizes per concrete key/value type.
+Provides the raw HashMap and HashSet implementation layer backed by a flat
+`Vec<i32>` with open addressing and linear probing. The canonical source
+surface is `HashMap::new<K,V>()` and receiver methods; the compiler
+monomorphizes those calls to typed adapters and uses these helpers where
+the selected representation is linear memory.
 
 ### Generic dispatch
 
@@ -159,15 +160,17 @@ The compiler registers generic signatures for:
 - `HashMap_contains_key<K,V>(m, key: K) -> bool`
 - `HashMap_remove<K,V>(m, key: K) -> Option<V>`
 - `HashMap_len<K,V>(m) -> i32`
+- `HashMap_is_empty<K,V>(m) -> bool`
 
-Each monomorphized instance (e.g. `HashMap_insert__String_i32`) is aliased
-by the emitter to the appropriate concrete function in this module.
+Each monomorphized instance is selected from the source receiver type and
+is aliased by the emitter to the appropriate concrete adapter. The generated
+name is an implementation detail, not a public API.
 
-### Monomorphic wrappers
+### Compatibility implementation
 
-User-facing monomorphic wrappers live in `hash_map.ark` and `hash_set.ark`.
-The functions in this module operate on `Vec<i32>` and serve as the internal
-implementation layer.
+Type-suffixed wrappers remain during the ADR-014 migration window. The
+functions in this module operate on `Vec<i32>` and serve as the raw
+compatibility implementation layer.
 
 ### Hash policy
 

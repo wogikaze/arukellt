@@ -154,11 +154,14 @@ let s = string_from_bytes(back)  // "hello"
             "summary": (
                 "The `std::collections` family provides the primary collection data structures "
                 "for Arukellt programs: hash maps, double-ended queues, min-heap priority queues, "
-                "sorted maps, and bitsets. All current containers are monomorphic `i32` "
-                "containers backed by `Vec<i32>`, making them compatible with any build target."
+                "sorted maps, and bitsets. The canonical HashMap surface is generic and "
+                "statically monomorphized; lower-level containers remain available for "
+                "compatibility and compiler-facing work."
             ),
             "highlights": [
-                ("`hashmap_new` / `hashmap_get` / `hashmap_set`", "Hash map with open addressing (i32 → i32)."),
+                ("`HashMap::new` / `.insert` / `.get`", "Generic HashMap API with static dispatch."),
+                ("`.contains_key` / `.remove` / `.len`", "Typed lookup, removal, and size operations."),
+                ("`hashmap_new` / `hashmap_get` / `hashmap_set`", "Raw i32 → i32 compatibility implementation."),
                 ("`deque_push_back` / `deque_pop_front`", "FIFO / ring-buffer deque."),
                 ("`pq_push` / `pq_pop`", "Min-heap priority queue — smallest element first."),
                 ("`sorted_map_insert` / `sorted_map_get`", "Sorted-vector map for ordered iteration."),
@@ -166,12 +169,10 @@ let s = string_from_bytes(back)  // "hello"
             ],
             "typical_usage": """\
 ```ark
-import std::collections::hash
-
-let map = hashmap_new()
-hashmap_set(map, 42, 100)
-let v = hashmap_get(map, 42)   // 100
-let exists = hashmap_contains(map, 42)  // true
+let map = HashMap::new<i32, i32>()
+let _ = map.insert(42, 100)
+let v = map.get(42)              // Some(100)
+let exists = map.contains_key(42) // true
 ```""",
         },
     },
