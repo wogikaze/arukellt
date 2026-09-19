@@ -36,7 +36,8 @@ graph LR
   I867["867 867 — `pub` / Component export / WIT import 境界を分離する"]
   I868["868 868 — Prelude / boolean literal / keyword policy を固定する"]
   I869["869 869 — multi-clause / where / semicolon grammar を確定する"]
-  I870["870 870 — target capability / Memory64 / host profile を分解する"]
+  I871["871 871 — Wasm GC aggregate lowering を完成する"]
+  I873["873 873 — linear-memory tracing GC fallback runtime を実装する"]
   I876["876 876 — stability / current-state / redesign の分類を整合する"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -49,23 +50,21 @@ graph LR
   I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I871["871 871 — Wasm GC aggregate lowering を完成する"]
-  I873["873 873 — linear-memory tracing GC fallback runtime を実装する"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
-  I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I872["872 872 — Wasm GC closure / collection lowering を完成する"]
   I874["874 874 — fallback managed-value lowering を実装する"]
-  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
-  I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I877["877 877 — normative examples と操作的意味論を実行可能にする"]
   I878["878 878 — Language v2 compatibility migration を完了する"]
   I879["879 879 — Wasm GC / fallback の性能・サイズ receipt を取得する"]
-  I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
+  I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I880["880 880 — Language v2 最終 close audit を実施する"]
-  I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
+  I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I852["852 852 — 言語 v2 意味論再設計 umbrella"]
+  I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
   I686 --> I698
   I686 --> I801
@@ -79,21 +78,16 @@ graph LR
   I729 --> I865
   I791 --> I814
   I851 --> I850
-  I870 --> I871
-  I870 --> I873
   I682 --> I683
   I698 --> I699
-  I691 --> I709
-  I695 --> I709
-  I697 --> I709
-  I703 --> I709
   I860 --> I872
   I871 --> I872
   I860 --> I874
   I873 --> I874
-  I691 --> I710
-  I697 --> I710
-  I709 --> I710
+  I691 --> I709
+  I695 --> I709
+  I697 --> I709
+  I703 --> I709
   I865 --> I875
   I867 --> I875
   I868 --> I875
@@ -101,9 +95,9 @@ graph LR
   I871 --> I875
   I872 --> I875
   I874 --> I875
-  I681 --> I711
-  I709 --> I711
-  I710 --> I711
+  I691 --> I710
+  I697 --> I710
+  I709 --> I710
   I860 --> I877
   I875 --> I877
   I876 --> I877
@@ -113,15 +107,18 @@ graph LR
   I872 --> I879
   I874 --> I879
   I875 --> I879
-  I709 --> I712
-  I711 --> I712
+  I681 --> I711
+  I709 --> I711
+  I710 --> I711
   I877 --> I880
   I878 --> I880
   I879 --> I880
+  I709 --> I712
+  I711 --> I712
+  I880 --> I852
   I709 --> I713
   I711 --> I713
   I712 --> I713
-  I880 --> I852
 ```
 
 ## Adjacency list
@@ -156,7 +153,8 @@ graph LR
 - **867** depends on: 866; blocks: 875
 - **868** depends on: none; blocks: 875
 - **869** depends on: none; blocks: 875
-- **870** depends on: none; blocks: 871, 873
+- **871** depends on: 854, 870; blocks: 872, 875, 879
+- **873** depends on: 870; blocks: 874
 - **876** depends on: none; blocks: 877, 878
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
@@ -169,20 +167,18 @@ graph LR
 - **865** depends on: 729; blocks: 875
 - **814** depends on: 791; blocks: none
 - **850** depends on: 851; blocks: none
-- **871** depends on: 854, 870; blocks: 872, 875, 879
-- **873** depends on: 870; blocks: 874
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
-- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879
 - **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879
-- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
-- **711** depends on: 681, 709, 710; blocks: 712, 713
+- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **877** depends on: 857, 858, 860, 875, 876; blocks: 880
 - **878** depends on: 875, 876; blocks: 880
 - **879** depends on: 871, 872, 874, 875; blocks: 880
-- **712** depends on: 709, 711; blocks: 713
+- **711** depends on: 681, 709, 710; blocks: 712, 713
 - **880** depends on: 877, 878, 879; blocks: 852
-- **713** depends on: 709, 711, 712; blocks: none
+- **712** depends on: 709, 711; blocks: 713
 - **852** depends on: 880; blocks: none
+- **713** depends on: 709, 711, 712; blocks: none

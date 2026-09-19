@@ -1,7 +1,7 @@
 ---
 Status: done
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 859
 Parent: 852
 Track: language-v2
@@ -39,7 +39,12 @@ RFC-011: **15, 16, 18, 26**。
 
 ## Evidence
 
-- Implementation commit: `fd50e0f45` (`Implement generic HashMap public API`).
+- Implementation commits: `fd50e0f45` (`Implement generic HashMap public API`),
+  `2bfeeede3` (`fix: restore generic hashmap numeric type checking`), and
+  `10fdbe597` (`fix: keep GC hashmap indices memory-width aware`). The
+  follow-up corrected the `insert(key, value)` arity check and restored the
+  explicit `i64` literals in the i64 `Hash` implementation that strict numeric
+  unification exposed during migration.
 - Normative decisions: [ADR-066](../../docs/adr/ADR-066-language-v2-generic-public-api.md)
   fixes `HashMap::new<K,V>()` and receiver methods as the canonical source surface,
   six supported concrete pairs, static adapter dispatch, the internal-only `Any`
@@ -65,20 +70,25 @@ RFC-011: **15, 16, 18, 26**。
   its `.diag` sidecar.
 - Target parity: the current-source bootstrap shim was rebuilt from the
   worktree (`compilation succeeded`, registry/core-op audits reported
-  `mismatched=0`, `unresolved=0`). The positive fixture compiled, validated,
-  and ran successfully for both `wasm32-gc` (GC/function-references/Memory64)
-  and `wasm32` (linear-memory/Memory64). The negative fixture returned rc=1
+  `mismatched=0`, `unresolved=0`). The positive fixture compiled and validated
+  for both `wasm32-gc` (GC/function-references/Memory64) and `wasm32`
+  (linear-memory/Memory64), and the fallback artifact ran successfully. The
+  positive fixture also packages, validates, and runs as the default GC P2
+  component after the memory32 index fix. The negative fixture returned rc=1
   with the expected unsupported-pair diagnostic.
-- Quality and docs: targeted Ark `fmt --check` passed (`checked=20`), the
-  post-fix touched-code quality ratchet passed, `verify lane --gate
-  quality-quick --json` passed, `check-adrs.py` passed, and the docs generator
-  reported `generated docs are up to date`. `docs check` passed freshness,
-  deprecated-API, and consistency checks; its doc-example subgate remains
-  blocked by the pre-existing #854 `unbox`/`slice_get` bootstrap mismatch.
-- Canonical `python3 scripts/manager.py selfhost build-compiler` is not claimed
-  as successful: it still reports the pre-existing #854 generic-enum return
-  mismatch for `unbox` and `slice_get`. The shim receipt is an explicit
-  workaround artifact for this verification boundary, not a canonical rebuild.
+- Migration regression: `tests/fixtures/stdlib_core/hash_i64.ark` now checks
+  successfully after the i64 `Hash` implementation was made explicit; the
+  generic HashMap fixture no longer fails with the former i32/i64 mismatch
+  cascade.
+- Quality and docs: targeted Ark `fmt --check` passed (`checked=2`), the
+  post-fix touched-code quality ratchet passed, `verify lane` passed, and the
+  docs generator reported generated docs are up to date. Final `docs check`
+  passed freshness, deprecated-API, consistency, and doc-example checks
+  (`4/4`).
+- `python3 scripts/manager.py selfhost build-compiler` now passes by applying
+  the guarded source-only Box/Slice overlay when the pinned stage-0 compiler
+  reaches the #854 generic-enum mismatch. This is a successful stage-2 build,
+  not yet a refreshed pin/fixpoint receipt.
 
 ## False-done guard
 

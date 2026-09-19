@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 873
 Parent: 852
 Track: language-v2
@@ -44,10 +44,10 @@ RFC-011: **8 (fallback runtime)**。
 - [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
 - [ ] 親 #852 の担当項目を evidence 付きで更新する
 
-## Progress receipt (not done; 2026-09-19)
+## Progress receipt (not done; 2026-09-20)
 
-- Implementation: `6cb9bb01f` (`language-v2: add linear-memory tracing runtime foundation`). The `wasm32` emitter now reserves linear metadata, emits allocation records, provides explicit root-frame entry/push/update/leave functions, and emits fixed-point mark/sweep and free-list allocation functions without Wasm GC instructions in the runtime source.
+- Implementation: `6cb9bb01f` (`language-v2: add linear-memory tracing runtime foundation`). The `wasm32` emitter now reserves linear metadata, emits allocation records, provides explicit root-frame entry/push/update/leave functions, and emits fixed-point mark/sweep and free-list allocation functions without Wasm GC instructions in the runtime source. `47995d5bf` adds the Memory64-to-memory32 P2 `cabi_realloc` boundary adapter, and `8ecb6b2a6` adds a guarded source-only Box/Slice overlay for the stale pinned bootstrap. The fixture import migration is `8ac3714b2`.
 - Normative updates: [ADR-075](../../docs/adr/ADR-075-language-v2-linear-memory-tracing-runtime.md), the [linear-memory lowering plan](../../docs/plans/wasm32-linear-memory-lowering.md), and RFC-011 section 2.2. The plan records that automatic collection remains disabled until root lowering is complete, so live values cannot be reclaimed during this migration step.
-- Positive/negative contract: the existing same-source `wasm32-gc` / `wasm32` fixture pair remains covered by `scripts/tests/test_linear_gc_runtime_contract.py`; the target-capability diagnostic fixture remains the applicable negative path. The new contract test passes (`Ran 3 tests ... OK`).
-- Verification: `verify lane` passed (fmt 14/14, lint 14/14, quality ratchet 13 files); `check-adrs.py` passed; docs regeneration and freshness/consistency passed; `git diff --cached --check` passed. `docs check` doc examples and canonical `selfhost build-compiler` remain blocked by the pre-existing #854 `unbox` / `slice_get` return-type mismatch in `src/compiler/main.ark`.
-- Remaining acceptance evidence: canonical `wasm32` artifact validation, binary proof that the emitted artifact contains no Wasm GC instructions, and root/cycle runtime fixtures are still pending. The collector is intentionally not auto-invoked until #874 connects managed-value lowering and root updates.
+- Positive/negative contract: `scripts/tests/test_linear_gc_runtime_contract.py` passes (`Ran 3 tests ... OK`); the target-capability diagnostic fixture remains the applicable negative path. The ADT ownership positive/negative fixtures now use the explicit `std::host::stdio` import required by the v2 source contract.
+- Verification: `python3 scripts/manager.py selfhost build-compiler` passes (stage-2 output; the command reports and applies the guarded structural overlay when the pinned stage-0 compiler encounters the generic enum payload mismatch). Current-source `adt_probe.ark` compiles and validates for both `wasm32-gc` and `wasm32`; the GC core also packages and validates as a P2 component. `wasm32` WAT contains no `struct.*`, `array.*`, or `ref.*` instructions. `scripts.tests.test_selfhost_overlay` and `scripts.tests.test_memory64_p2_realloc` pass (17 tests total), and `verify lane` passes its format/lint/quality gates.
+- Remaining acceptance evidence: the pinned bootstrap has not yet been refreshed to a generic-enum-capable fixpoint, and automatic collection remains disabled until #874 connects managed-value lowering and root updates. Root/cycle runtime fixtures and end-to-end fallback collection evidence are still pending, so this issue remains open.

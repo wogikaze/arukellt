@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — GC availability、memory width、host profile、artifact kind を独立した能力軸として扱う
 決定日: 2026-09-19
 トラック: language-v2
-Issue: [#870](../../issues/open/870-target-capability-configuration.md)
+Issue: [#870](../../issues/done/870-target-capability-configuration.md)
 関連: [ADR-007](ADR-007-targets.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)
 
 ## 文脈
@@ -100,7 +100,7 @@ backend/host 固有の capability に限定する。
 
 ## 関連
 
-- [#870](../../issues/open/870-target-capability-configuration.md)
+- [#870](../../issues/done/870-target-capability-configuration.md)
 - [#852](../../issues/open/852-language-v2-semantics-full-implementation.md)
 - [ADR-007: コンパイルターゲット整理](ADR-007-targets.md)
 - [ADR-013: `wasm32-gc` をプライマリターゲットとする](ADR-013-primary-target.md)

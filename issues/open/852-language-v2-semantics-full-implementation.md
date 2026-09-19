@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 852
 Track: language-v2
 Depends on: "880"
@@ -39,7 +39,8 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 ### Numeric / text / syntax
 
 - [x] #861 — 数値の暗黙変換を廃止し明示変換を定義する — RFC 20, 21 — depends: none
-  - Receipt: completed in `549fc4e1a` plus fixture fix `72c188934`; ADR-067,
+  - Receipt: completed in `549fc4e1a` plus fixture fix `72c188934` and
+    post-close migration fix `2bfeeede3`; ADR-067,
     RFC-011, and the language spec are synchronized. Positive and diagnostic
     fixtures prove explicit conversion and rejection of mixed concrete numeric
     arithmetic; GC and linear compile/validate/runtime receipts both pass.
@@ -79,12 +80,12 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 ### Targets / backends
 
-- [ ] #870 — target capability / Memory64 / host profile を分解する — RFC 9, 39, 40 — depends: none
-  - Progress (not done, 2026-09-19): implementation `b6b7b2e0f`; ADR-074, ADR-007/013/035, RFC-011, target contract data, CLI/config/Wasm propagation, and positive/diagnostic fixtures are synchronized. Quality, targeted contract, ADR, and docs-generation checks pass; canonical selfhost compile/validate/runtime evidence remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch, so #870 stays open.
+- [x] #870 — target capability / Memory64 / host profile を分解する — RFC 9, 39, 40 — depends: none
+  - Receipt: completed in `b6b7b2e0f` plus backend correction `10fdbe597`; ADR-074 and the target contract data are synchronized. GC/Memory64, WASI profile, and Component artifact axes are independent; the same HashMap source now packages and runs as the default GC P2 component, while the linear fallback remains validated. See [#870](../done/870-target-capability-configuration.md).
 - [ ] #871 — Wasm GC aggregate lowering を完成する — RFC 8 (aggregate) — depends: 854, 870
 - [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
-  - Progress (not done, 2026-09-19): implementation `6cb9bb01f`; ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the static runtime contract test are synchronized. The fallback emitter now has recorded allocation metadata, explicit root-frame APIs, fixed-point mark/sweep, cycle-capable candidate tracing, and free-list reuse without Wasm GC instructions in the runtime source. Quality/lane/ADR/docs freshness checks pass, but canonical build and doc examples remain blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; artifact validation and root/cycle runtime receipts remain pending, so #873 stays open.
+  - Progress (not done, 2026-09-20): implementation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; guarded pinned-bootstrap overlay `8ecb6b2a6`; fixture migration `8ac3714b2`. ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the static runtime contract test are synchronized. Current-source GC core/component and wasm32 fallback artifacts validate, and the fallback artifact has no Wasm GC instructions. `build-compiler` now succeeds through the source-only overlay, but pin refresh/fixpoint and managed root/cycle runtime receipts remain pending; #873 stays open.
 - [ ] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
 
@@ -197,7 +198,8 @@ graph TD
 - [x] #856: `782c34b2980368400a5a076ea72f20b369234bfd`; ADR-062; structural trait identity with ordered type arguments, `Self`, associated type/function projection, coherence and blanket termination rules, static-dispatch/`dyn Trait` boundary, and unrestricted semantic generic arity. Positive GC/linear fixtures produced `79` and `7`; diagnostic fixtures cover E0215–E0218. The current artifact registry/core-op audits reported zero mismatches; the canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum bootstrap mismatch, and the fixture gate retains one unrelated pre-existing `match_extensions/struct_pattern.ark` failure. See [#856](../done/856-trait-core-coherence-generics.md).
 - [x] #857: `d6ce3f5d4ee1e8ca82fdbff7292579a30e7edaf3`; ADR-063; `?` conversion and Error sentinel boundary, with positive and diagnostic fixtures and GC/linear targeted receipts. See [#857](../done/857-question-mark-conversion-error-sentinel.md).
 - [x] #858: `31c76ce33`; ADR-065; canonical operator Trait mapping, coherence-aware typechecking, generic/builtin/user-defined fixtures, and GC/linear parity receipts. The canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum mismatch; targeted quality/docs/ADR gates pass. See [#858](../done/858-operator-traits-magic-method-retirement.md).
-- [x] #859: `fd50e0f45`; ADR-066; canonical generic `HashMap<K,V>` constructor/method API, static typed adapters for six supported pairs, internal-only `Any` boundary, and explicit compatibility removal conditions. The positive HashMap fixture compiled/validated/ran on both `wasm32-gc` and `wasm32` fallback; the unsupported `bool,bool` pair produced the expected diagnostic. The canonical compiler rebuild and doc-example subgate remain blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted bootstrap shim is not claimed as a canonical rebuild. See [#859](../done/859-generic-public-api-any-hashmap.md).
+- [x] #859: `fd50e0f45` plus follow-ups `2bfeeede3` and `10fdbe597`; ADR-066; canonical generic `HashMap<K,V>` constructor/method API, static typed adapters for six supported pairs, internal-only `Any` boundary, and explicit compatibility removal conditions. The positive HashMap fixture compiles and validates on both `wasm32-gc` and `wasm32` fallback with the current s2 artifact; the fallback artifact runs successfully, and the default GC P2 component packages, validates, and runs successfully. The unsupported `bool,bool` pair produces the expected diagnostic, while `build-compiler` and the docs example gate pass through the guarded source-only bootstrap overlay. See [#859](../done/859-generic-public-api-any-hashmap.md).
 - [x] #862: `a720c2cc7`; ADR-068; integer/float edge semantics, source evaluation order, place-before-RHS lowering, side-effect and diagnostic fixtures, and GC/linear compile/validate/runtime parity. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted shim receipt is explicitly not a canonical rebuild. See [#862](../done/862-arithmetic-edge-and-evaluation-order.md).
 - [x] #863: `e4becb596`; ADR-069; valid UTF-8 and Unicode scalar contract, byte/scalar API split, strict/lossy UTF-8 conversion, boundary-aware slicing, `char_at` compatibility migration, and GC/linear parity fixtures. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted current-source s2 receipt is explicit and does not claim a canonical rebuild. See [#863](../done/863-string-unicode-semantics.md).
 - [x] #864: `f9393be42`; ADR-070; immutable non-expansive let generalization, environment-aware TypeScheme subtraction, mutable/expansive negative fixtures, and GC/linear targeted runtime parity. `selfhost diag-parity` and `verify lane` pass; full current fixture parity remains an existing 176-failure backlog, and the canonical compiler rebuild remains blocked by #854. See [#864](864-let-generalization-value-restriction.md).
+- [x] #870: `b6b7b2e0f` plus `10fdbe597`; ADR-074; independent GC, memory-width, host-profile, and artifact-kind capability axes, target-specific diagnostics, and GC/linear/component validation and runtime receipts. See [#870](../done/870-target-capability-configuration.md).

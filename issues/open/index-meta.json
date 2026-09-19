@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T14:12:40Z",
+  "generated_at": "2026-09-19T16:08:45Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -601,19 +601,44 @@
       }
     },
     {
-      "id": "870",
-      "path": "870-target-capability-configuration.md",
-      "title": "870 — target capability / Memory64 / host profile を分解する",
+      "id": "871",
+      "path": "871-wasm-gc-aggregate-lowering.md",
+      "title": "871 — Wasm GC aggregate lowering を完成する",
       "track": "language-v2",
       "status": "open",
-      "depends_on": [],
+      "depends_on": [
+        "854",
+        "870"
+      ],
       "blocks_issue_ids": [
-        "871",
-        "873"
+        "872",
+        "875",
+        "879"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "873",
+      "path": "873-linear-memory-tracing-gc-runtime.md",
+      "title": "873 — linear-memory tracing GC fallback runtime を実装する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "870"
+      ],
+      "blocks_issue_ids": [
+        "874"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -874,51 +899,6 @@
       }
     },
     {
-      "id": "871",
-      "path": "871-wasm-gc-aggregate-lowering.md",
-      "title": "871 — Wasm GC aggregate lowering を完成する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "854",
-        "870"
-      ],
-      "blocks_issue_ids": [
-        "872",
-        "875",
-        "879"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "873",
-      "path": "873-linear-memory-tracing-gc-runtime.md",
-      "title": "873 — linear-memory tracing GC fallback runtime を実装する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "870"
-      ],
-      "blocks_issue_ids": [
-        "874"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -956,33 +936,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "709",
-      "path": "709-stdlib-trait-first-api-policy.md",
-      "title": "709 — Stdlib trait-first API policy and free-function eradication",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "695",
-        "697",
-        "703"
-      ],
-      "blocks_issue_ids": [
-        "710",
-        "711",
-        "712",
-        "713"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
       }
     },
     {
@@ -1037,28 +990,30 @@
       }
     },
     {
-      "id": "710",
-      "path": "710-stdlib-linear-collections-type-surface.md",
-      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "id": "709",
+      "path": "709-stdlib-trait-first-api-policy.md",
+      "title": "709 — Stdlib trait-first API policy and free-function eradication",
       "track": "stdlib-api",
       "status": "open",
       "depends_on": [
         "691",
+        "695",
         "697",
-        "701",
-        "707",
-        "709"
+        "703"
       ],
       "blocks_issue_ids": [
-        "711"
+        "710",
+        "711",
+        "712",
+        "713"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 13
+        "unchecked": 11
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+        "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
       }
     },
     {
@@ -1097,19 +1052,20 @@
       }
     },
     {
-      "id": "711",
-      "path": "711-stdlib-docs-rich-reference-quality.md",
-      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
-      "track": "stdlib-docs",
+      "id": "710",
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "track": "stdlib-api",
       "status": "open",
       "depends_on": [
-        "681",
-        "709",
-        "710"
+        "691",
+        "697",
+        "701",
+        "707",
+        "709"
       ],
       "blocks_issue_ids": [
-        "712",
-        "713"
+        "711"
       ],
       "acceptance": {
         "checked": 0,
@@ -1117,7 +1073,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {
@@ -1192,25 +1148,27 @@
       }
     },
     {
-      "id": "712",
-      "path": "712-llm-code-quality-signal-gates.md",
-      "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
-      "track": "tooling-contract",
+      "id": "711",
+      "path": "711-stdlib-docs-rich-reference-quality.md",
+      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
+      "track": "stdlib-docs",
       "status": "open",
       "depends_on": [
+        "681",
         "709",
-        "711"
+        "710"
       ],
       "blocks_issue_ids": [
+        "712",
         "713"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 11
+        "unchecked": 13
       },
       "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
       }
     },
     {
@@ -1237,6 +1195,47 @@
       }
     },
     {
+      "id": "712",
+      "path": "712-llm-code-quality-signal-gates.md",
+      "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "709",
+        "711"
+      ],
+      "blocks_issue_ids": [
+        "713"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "852",
+      "path": "852-language-v2-semantics-full-implementation.md",
+      "title": "852 — 言語 v2 意味論再設計 umbrella",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "880"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 24,
+        "unchecked": 19
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": 880
+      }
+    },
+    {
       "id": "713",
       "path": "713-stdlib-best-practices-doc-pack.md",
       "title": "713 — Stdlib and Arukellt code best-practices doc pack",
@@ -1255,25 +1254,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#709 trait-first policy, #711 stdlib docs, #712 LLM quality signals"
-      }
-    },
-    {
-      "id": "852",
-      "path": "852-language-v2-semantics-full-implementation.md",
-      "title": "852 — 言語 v2 意味論再設計 umbrella",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "880"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 22,
-        "unchecked": 20
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": 880
       }
     }
   ],

@@ -1,7 +1,7 @@
 ---
 Status: done
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 861
 Parent: 852
 Track: language-v2
@@ -40,7 +40,8 @@ RFC-011: **20, 21**。
 ## Evidence
 
 - Implementation commits: `549fc4e1a` (`Implement issue 861 numeric conversion
-  rules`) and `72c188934` (`Fix numeric conversion fixture trait import`).
+  rules`), `72c188934` (`Fix numeric conversion fixture trait import`), and
+  `2bfeeede3` (`fix: restore generic hashmap numeric type checking`).
 - Normative references: [ADR-067](../../docs/adr/ADR-067-language-v2-numeric-conversion.md),
   [RFC-011](../../docs/rfcs/011-language-v2-semantics-redesign.md), and
   [language spec](../../docs/language/spec.md). The common typechecker rejects
@@ -76,6 +77,11 @@ RFC-011: **20, 21**。
   `146/151`; its five failures are unrelated existing manifest/core-op/T3 and
   thin-wrapper baseline failures, so this issue does not claim that gate as
   green.
+- Post-close migration correction (2026-09-20): strict concrete numeric
+  unification exposed unsuffixed i32 literals in the i64 `Hash` implementation
+  at `std/core/hash.ark`. `2bfeeede3` made those literals explicit; the
+  `hash_i64.ark` fixture now checks successfully without weakening the numeric
+  conversion rule.
 
 ## False-done guard
 

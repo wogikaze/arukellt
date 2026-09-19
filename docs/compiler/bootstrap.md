@@ -15,6 +15,14 @@ contract: the compiler's own data and working set must fit when it emits the
 next compiler under stock Wasmtime. User-facing `wasm32-gc` / `wasi-p2` output
 is still packaged as an official WASI component with the checked-in WIT world.
 
+The pinned stage-0 compiler predates generic enum payload lowering used by the
+current `std/prelude.ark`. `selfhost build-compiler` detects only that exact
+`unbox` / `slice_get` mismatch and retries in an isolated bootstrap workspace
+with a source-only structural `Box` / `Slice` overlay. The checked-in prelude,
+user source semantics, and emitted user artifacts are not rewritten; the
+overlay is a migration bridge until the pinned bootstrap is refreshed and the
+ADR-029 fixpoint is re-established.
+
 ## Which command?
 
 Agents and humans confuse these two. Use the table:
