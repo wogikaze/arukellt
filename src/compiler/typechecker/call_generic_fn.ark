@@ -3,6 +3,7 @@ use typechecker::call_generic_common
 use typechecker::call_generic_fn_args
 use typechecker::call_generic_resolve
 use typechecker::call_generic_turbofish
+use typechecker::associated_types
 use typechecker::contract_fn_sig
 use typechecker::infer_env_scope
 use typechecker::instantiate
@@ -24,7 +25,8 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     )
     call_generic_fn_args::constrain_generic_fn_args(env, scope, fn_sigs, enum_defs, node, sig, infer_env, var_names, var_types)
     let inst_ret = instantiate::instantiate_type(contract_fn_sig::FnSig_return_type(sig), var_names, var_types)
-    let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, inst_ret)
+    let projected_ret = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_ret)
+    let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, projected_ret)
     // Unresolved polymorphic calls must not mint mono instances.
     if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types) {
         return ret_ty
@@ -35,6 +37,7 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
         return ret_ty
     }
     let mangled_name = mono::record_mono_instance(env, clone(fn_name), resolved_type_args)
+    mono::record_mono_return_type(env, clone(mangled_name), ret_ty)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name)
     ret_ty
 }

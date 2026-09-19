@@ -6,8 +6,11 @@ use typechecker::contract_trait_method_record
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
+use typechecker::contract_type_param_bounds
 use typechecker::trait_method_record
 use typechecker::types
+use typechecker::names
+use typechecker::unify
 
 fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig {
     let ann_count = ast_access::node_type_ann_count(impl_node)
@@ -126,6 +129,7 @@ fn resolve_trait_method_type(
             if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                 return resolved
             }
+            return unresolved_projection_for_receiver(receiver, assoc_name)
         }
     }
     let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
@@ -188,6 +192,7 @@ fn resolve_projection(
             if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
                 return resolved
             }
+            return unresolved_projection_for_receiver(receiver, assoc_name)
         }
     }
     let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
@@ -211,6 +216,134 @@ fn resolve_projection(
     resolved
 }
 
+// Keep a projection symbolic while checking a generic body.  The concrete
+// associated type is selected later, after a call binds the type parameter to
+// an implementing type.
+fn unresolved_projection_for_receiver(receiver: TypeInfo, assoc_name: String) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(receiver) != commands::TY_TYPE_VAR() {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let receiver_name = contract_type_access::TypeInfo_name(receiver)
+    contract_type_constructors::TypeInfo_named(
+        commands::TY_STRUCT(),
+        concat(clone(receiver_name), concat("::", assoc_name))
+    )
+}
+
+// Resolve `T::Item` after generic argument inference has bound T to a
+// concrete receiver.  Signature construction cannot do this because it runs
+// before a call site supplies the implementing type.
+fn resolve_generic_call_type(
+    env: TypeEnv,
+    infer_env: TypeEnv,
+    sig: FnSig,
+    var_names: Vec<String>,
+    var_types: Vec<TypeInfo>,
+    ty: TypeInfo
+) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_STRUCT() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        let separator = index_of(clone(name), "::")
+        if separator > 0 {
+            let type_param = substring(clone(name), 0, separator)
+            let assoc_name = substring(clone(name), separator + 2, len(name))
+            let var_index = generic_type_var_index(var_names, clone(type_param))
+            if var_index >= 0 && var_index < len(var_types) {
+                let receiver = unify::resolve_type_deep(
+                    infer_env,
+                    get_unchecked(var_types, var_index)
+                )
+                let resolved = resolve_bound_projection(
+                    env,
+                    sig,
+                    clone(type_param),
+                    receiver,
+                    clone(assoc_name)
+                )
+                if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
+                    return resolve_generic_call_type(
+                        env,
+                        infer_env,
+                        sig,
+                        var_names,
+                        var_types,
+                        resolved
+                    )
+                }
+            }
+        }
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if arg_count == 0 {
+        return ty
+    }
+    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut i = 0
+    while i < arg_count {
+        contract_type_mutation::TypeInfo_push_type_arg(
+            resolved,
+            resolve_generic_call_type(
+                env,
+                infer_env,
+                sig,
+                var_names,
+                var_types,
+                contract_type_access::TypeInfo_type_arg_at(ty, i)
+            )
+        )
+        i = i + 1
+    }
+    resolved
+}
+
+fn generic_type_var_index(names: Vec<String>, target: String) -> i32 {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(target)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn resolve_bound_projection(
+    env: TypeEnv,
+    sig: FnSig,
+    type_param: String,
+    receiver: TypeInfo,
+    assoc_name: String
+) -> TypeInfo {
+    let bound_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
+    let mut i = 0
+    while i < bound_count {
+        let bound_info = contract_fn_sig::FnSig_type_param_bound_at(sig, i)
+        if eq(
+            contract_type_param_bounds::TypeParamBounds_name(bound_info),
+            clone(type_param)
+        ) {
+            let trait_count = contract_type_param_bounds::TypeParamBounds_bound_count(bound_info)
+            let mut j = 0
+            while j < trait_count {
+                let bound = contract_type_param_bounds::TypeParamBounds_bound_at(bound_info, j)
+                let resolved = lookup_associated_type(
+                    env,
+                    contract_type_access::TypeInfo_name(bound),
+                    receiver,
+                    clone(assoc_name)
+                )
+                if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
+                    return resolved
+                }
+                j = j + 1
+            }
+        }
+        i = i + 1
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
 fn lookup_associated_type(
     env: TypeEnv,
     trait_name: String,
@@ -221,7 +354,7 @@ fn lookup_associated_type(
     let mut i = 0
     while i < count {
         let entry = get_unchecked(env.associated_types, i)
-        if eq(
+        if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             clone(trait_name)
         ) && eq(
@@ -243,7 +376,10 @@ fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
         contract_type_access::TypeInfo_tag(a),
         contract_type_access::TypeInfo_tag(b)
     ) ||
-    !eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
+    !names::same_type_name(
+        contract_type_access::TypeInfo_name(a),
+        contract_type_access::TypeInfo_name(b)
+    ) {
         return false
     }
     let ac = contract_type_access::TypeInfo_type_arg_count(a)

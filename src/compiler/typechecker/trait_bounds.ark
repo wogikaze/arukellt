@@ -68,7 +68,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let mut i = 0
     while i < count {
         let info = get_unchecked(env.trait_defs, i)
-        if eq(contract_trait_info::trait_info_name(info), clone(trait_name)) {
+        if names::same_type_name(contract_trait_info::trait_info_name(info), clone(trait_name)) {
             return info
         }
         i = i + 1
@@ -91,7 +91,7 @@ fn matching_trait_impl_count(env: TypeEnv, resolved_ty: TypeInfo, bound: TypeInf
 }
 
 fn trait_impl_matches(impl_info: TraitImplInfo, resolved_ty: TypeInfo, bound: TypeInfo) -> bool {
-    if !eq(
+    if !names::same_type_name(
         contract_trait_impl::TraitImplInfo_trait_name(impl_info),
         contract_type_access::TypeInfo_name(bound)
     ) {
@@ -135,7 +135,10 @@ fn type_matches_pattern(pattern: TypeInfo, actual: TypeInfo) -> bool {
         contract_type_access::TypeInfo_tag(pattern),
         contract_type_access::TypeInfo_tag(actual)
     ) ||
-    !eq(contract_type_access::TypeInfo_name(pattern), contract_type_access::TypeInfo_name(actual)) {
+    !names::same_type_name(
+        contract_type_access::TypeInfo_name(pattern),
+        contract_type_access::TypeInfo_name(actual)
+    ) {
         return false
     }
     let pattern_count = contract_type_access::TypeInfo_type_arg_count(pattern)

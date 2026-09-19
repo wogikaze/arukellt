@@ -39,21 +39,24 @@
 /// | ChainIter   | impl   | Lazy chain of two `Vec<i32>`           |
 /// | EnumerateIter | impl | Lazy enumerate adapter                 |
 /// | ZipIter     | impl   | Lazy zip of two `Vec<i32>`             |
-trait Iterator<T> {
-    fn next(self: Self) -> Option<T>
+pub trait Iterator {
+    type Item
+    fn next(self: Self) -> Option<Self::Item>
 }
 
 /// Trait for types that can be converted into an iterator.
 ///
 /// `into_iter` consumes `self` and returns an `Iterator<T>`.
-trait IntoIterator<T> {
-    fn into_iter(self: Self) -> Self
+pub trait IntoIterator {
+    type Item
+    type IntoIter
+    fn into_iter(self: Self) -> Self::IntoIter
 }
 
 /// Trait for collections that can be built from an iterator.
 ///
 /// `from_iter` drains an iterator and constructs the collection.
-trait FromIterator<T> {
+pub trait FromIterator<T> {
     fn from_iter(it: Self) -> Self
 }
 
@@ -95,7 +98,9 @@ impl VecIter {
     }
 }
 
-impl Iterator<i32> for VecIter {
+impl Iterator for VecIter {
+    type Item = i32
+
     fn next(self: VecIter) -> Option<i32> {
         if self.index < self.length {
             let val: i32 = get_unchecked(self.vec, self.index)
@@ -107,7 +112,10 @@ impl Iterator<i32> for VecIter {
     }
 }
 
-impl IntoIterator<i32> for VecIter {
+impl IntoIterator for VecIter {
+    type Item = i32
+    type IntoIter = VecIter
+
     fn into_iter(self: VecIter) -> VecIter {
         self
     }
@@ -141,7 +149,9 @@ impl RangeIter {
     }
 }
 
-impl Iterator<i32> for RangeIter {
+impl Iterator for RangeIter {
+    type Item = i32
+
     fn next(self: RangeIter) -> Option<i32> {
         if self.current < self.end {
             let val: i32 = self.current
@@ -182,7 +192,9 @@ impl MapIter {
     }
 }
 
-impl Iterator<i32> for MapIter {
+impl Iterator for MapIter {
+    type Item = i32
+
     fn next(self: MapIter) -> Option<i32> {
         if self.index < self.length {
             let raw: i32 = get_unchecked(self.vec, self.index)
@@ -224,7 +236,9 @@ impl FilterIter {
     }
 }
 
-impl Iterator<i32> for FilterIter {
+impl Iterator for FilterIter {
+    type Item = i32
+
     fn next(self: FilterIter) -> Option<i32> {
         while self.index < self.length {
             let val: i32 = get_unchecked(self.vec, self.index)
@@ -270,7 +284,9 @@ impl TakeIter {
     }
 }
 
-impl Iterator<i32> for TakeIter {
+impl Iterator for TakeIter {
+    type Item = i32
+
     fn next(self: TakeIter) -> Option<i32> {
         if self.remaining <= 0 {
             return None
@@ -319,7 +335,9 @@ impl SkipIter {
     }
 }
 
-impl Iterator<i32> for SkipIter {
+impl Iterator for SkipIter {
+    type Item = i32
+
     fn next(self: SkipIter) -> Option<i32> {
         while self.to_skip > 0 && self.index < self.length {
             self.index = self.index + 1
@@ -378,7 +396,9 @@ impl ChainIter {
     }
 }
 
-impl Iterator<i32> for ChainIter {
+impl Iterator for ChainIter {
+    type Item = i32
+
     fn next(self: ChainIter) -> Option<i32> {
         if self.index < self.first_len {
             let val: i32 = get_unchecked(self.first, self.index)
@@ -431,7 +451,9 @@ impl EnumerateIter {
     }
 }
 
-impl Iterator<i32> for EnumerateIter {
+impl Iterator for EnumerateIter {
+    type Item = i32
+
     fn next(self: EnumerateIter) -> Option<i32> {
         if self.index < self.length {
             let val: i32 = get_unchecked(self.vec, self.index)
@@ -481,7 +503,9 @@ impl ZipIter {
     }
 }
 
-impl Iterator<i32> for ZipIter {
+impl Iterator for ZipIter {
+    type Item = i32
+
     fn next(self: ZipIter) -> Option<i32> {
         if self.index < self.length {
             let a: i32 = get_unchecked(self.first, self.index)
@@ -504,7 +528,7 @@ pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -516,7 +540,7 @@ pub fn collect_map_iter(it: MapIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -528,7 +552,7 @@ pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -540,7 +564,7 @@ pub fn collect_take_iter(it: TakeIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -552,7 +576,7 @@ pub fn collect_skip_iter(it: SkipIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -564,7 +588,7 @@ pub fn collect_chain_iter(it: ChainIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -576,7 +600,7 @@ pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
     while true {
         match it.next() {
             Some(v) => push(result, v),
-            None => break,
+            None => { break },
         }
     }
     result
@@ -593,7 +617,7 @@ impl FromIterator<i32> for Vec<i32> {
         while true {
             match it.next() {
                 Some(v) => push(result, v),
-                None => break,
+                None => { break },
             }
         }
         result

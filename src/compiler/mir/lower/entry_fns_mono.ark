@@ -52,6 +52,10 @@ fn mir_emit_top_level_fn_mono_bodies(
 
 fn mono_instantiate_return_from_instance(ctx: LowerCtx, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
     let inst = ctx_api_module::ctx_mono_instance_at(ctx, mangled)
+    let recorded_return = corehir::type_contracts::MonoInstance_return_type(inst)
+    if type_contracts::TypeInfo_tag(recorded_return) != 0 {
+        return recorded_return
+    }
     if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
         return type_contracts::TypeInfo_simple(0)
     }

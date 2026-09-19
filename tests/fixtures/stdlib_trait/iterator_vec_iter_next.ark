@@ -1,12 +1,21 @@
 use std::core::iter
 use std::test
 
+fn first<T: iter::Iterator>(iterator: T) -> Option<T::Item> {
+    iterator.next()
+}
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     push(v, 100)
     push(v, 200)
 
-    let it = iter::vec_iter(v)
+    let first_it: iter::VecIter = iter::vec_iter(v)
+    match first(first_it) {
+        Some(x) => test::assert_eq_i32(x, 100),
+        None => panic("expected Some(100)"),
+    }
+    let it: iter::VecIter = iter::vec_iter(v)
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 100),
         None => panic("expected Some(100)"),

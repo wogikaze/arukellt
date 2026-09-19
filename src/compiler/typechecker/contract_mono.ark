@@ -4,6 +4,7 @@ struct MonoInstance {
     fn_name: String,
     mangled_name: String,
     type_args: Vec<TypeInfo>,
+    return_type: TypeInfo,
 }
 
 struct MonoCallSite {
@@ -13,7 +14,16 @@ struct MonoCallSite {
 }
 
 fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {
-    MonoInstance { fn_name: fn_name, mangled_name: mangled_name, type_args: type_args }
+    MonoInstance {
+        fn_name: fn_name,
+        mangled_name: mangled_name,
+        type_args: type_args,
+        return_type: contract_types_record::TypeInfo_new(
+            commands::TY_UNKNOWN(),
+            String_new(),
+            Vec::new<TypeInfo>()
+        )
+    }
 }
 
 fn MonoInstance_fn_name(instance: MonoInstance) -> String {
@@ -30,6 +40,14 @@ fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
 
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
     get_unchecked(instance.type_args, index)
+}
+
+fn MonoInstance_return_type(instance: MonoInstance) -> TypeInfo {
+    instance.return_type
+}
+
+fn MonoInstance_set_return_type(instance: MonoInstance, return_type: TypeInfo) {
+    instance.return_type = return_type
 }
 
 fn MonoCallSite_new(span_start: i32, fn_name: String, mangled_name: String) -> MonoCallSite {

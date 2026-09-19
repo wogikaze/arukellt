@@ -12,6 +12,7 @@ use typechecker::contract_trait_info
 use typechecker::contract_trait_method_record
 use typechecker::contract_type_constructors
 use typechecker::kinds
+use typechecker::names
 use typechecker::sigs
 
 fn register_trait_method_sigs(env: TypeEnv, decls: Vec<AstNode>) {
@@ -88,7 +89,13 @@ fn lookup_trait_method_direct(env: TypeEnv, trait_name: String, method_name: Str
     let mut i = 0
     while i < count {
         let entry = get_unchecked(env.trait_methods, i)
-        if eq(contract_trait_method_record::trait_method_entry_trait_name(entry), clone(trait_name)) && eq(contract_trait_method_record::trait_method_entry_method_name(entry), clone(method_name)) {
+        if names::same_type_name(
+            contract_trait_method_record::trait_method_entry_trait_name(entry),
+            clone(trait_name)
+        ) && eq(
+            contract_trait_method_record::trait_method_entry_method_name(entry),
+            clone(method_name)
+        ) {
             return entry
         }
         i = i + 1
@@ -137,7 +144,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let mut i = 0
     while i < count {
         let info = get_unchecked(env.trait_defs, i)
-        if eq(contract_trait_info::trait_info_name(info), clone(trait_name)) {
+        if names::same_type_name(contract_trait_info::trait_info_name(info), clone(trait_name)) {
             return info
         }
         i = i + 1

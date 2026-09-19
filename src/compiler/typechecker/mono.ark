@@ -1,6 +1,8 @@
 use typechecker::mono_instances
 use typechecker::mono_key
 use typechecker::mono_sites
+use typechecker::contract_env_mono_record
+use typechecker::contract_mono
 
 fn mono_type_key(ty: TypeInfo) -> String {
     mono_key::mono_type_key(ty)
@@ -8,6 +10,22 @@ fn mono_type_key(ty: TypeInfo) -> String {
 
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     mono_instances::record_mono_instance(env, fn_name, resolved_types)
+}
+
+fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: TypeInfo) {
+    let count = contract_env_mono_record::type_env_mono_instance_count(env)
+    let mut i = 0
+    while i < count {
+        let instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
+        if eq(
+            contract_mono::MonoInstance_mangled_name(instance),
+            clone(mangled_name)
+        ) {
+            contract_mono::MonoInstance_set_return_type(instance, return_type)
+            return
+        }
+        i = i + 1
+    }
 }
 
 fn record_mono_call_site(env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {

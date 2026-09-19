@@ -31,9 +31,13 @@ fn get_typed<T: Factory<i32>>(value: T) -> i32 {
     value.typed()
 }
 
+fn get_item<T: Factory<i32>>(value: T) -> T::Item {
+    value.item()
+}
+
 fn main() {
     let boxed = Boxed::make(7)
-    let item = boxed.item()
+    let item = get_item(boxed)
     let typed = get_typed(Boxed::make(9))
     stdio::println(concat((item).to_string(), (typed).to_string()))
 }

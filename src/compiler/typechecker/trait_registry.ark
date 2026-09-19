@@ -92,7 +92,7 @@ fn register_trait_impl_entry(
     let mut i = 0
     while i < count {
         let existing = get_unchecked(env.trait_impls, i)
-        if eq(
+        if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(existing),
             clone(trait_name)
         ) && type_vec_equal(
@@ -335,7 +335,7 @@ fn associated_type_impl_exists(
     let mut i = 0
     while i < count {
         let entry = get_unchecked(env.associated_types, i)
-        if eq(
+        if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             clone(trait_name)
         ) && eq(
@@ -397,7 +397,7 @@ fn trait_info_index(env: TypeEnv, trait_name: String) -> i32 {
     let count = len(env.trait_defs)
     let mut i = 0
     while i < count {
-        if eq(
+        if names::same_type_name(
             contract_trait_info::trait_info_name(get_unchecked(env.trait_defs, i)),
             clone(trait_name)
         ) {
@@ -489,7 +489,10 @@ fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
         contract_type_access::TypeInfo_tag(a),
         contract_type_access::TypeInfo_tag(b)
     ) ||
-    !eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
+    !names::same_type_name(
+        contract_type_access::TypeInfo_name(a),
+        contract_type_access::TypeInfo_name(b)
+    ) {
         return false
     }
     type_vec_equal(type_args(a), type_args(b))

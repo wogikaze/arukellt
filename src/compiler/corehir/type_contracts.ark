@@ -2,6 +2,7 @@ struct MonoInstance {
     fn_name: String,
     mangled_name: String,
     type_args: Vec<TypeInfo>,
+    return_type: TypeInfo,
 }
 
 struct TypeCheckResult {
@@ -59,6 +60,10 @@ fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
     get_unchecked(instance.type_args, index)
 }
 
+fn MonoInstance_return_type(instance: MonoInstance) -> TypeInfo {
+    instance.return_type
+}
+
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
     TypeInfo { tag: tag, name: String_new(), type_args: Vec::new<TypeInfo>() }
 }
@@ -72,5 +77,10 @@ fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
 }
 
 fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {
-    MonoInstance { fn_name: fn_name, mangled_name: mangled_name, type_args: type_args }
+    MonoInstance {
+        fn_name: fn_name,
+        mangled_name: mangled_name,
+        type_args: type_args,
+        return_type: TypeInfo_simple(commands::TY_UNKNOWN())
+    }
 }

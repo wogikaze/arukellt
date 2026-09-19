@@ -97,7 +97,7 @@ fn count_from_impls(env: TypeEnv, source_ty: TypeInfo, target_ty: TypeInfo) -> i
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
-        if eq(
+        if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(impl_info),
             "From"
         ) && from_impl_matches(impl_info, source_ty, target_ty) {
