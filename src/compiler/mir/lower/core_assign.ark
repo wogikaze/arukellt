@@ -19,7 +19,6 @@ fn lower_core_assign(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) 
         let target_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
         let value_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
         let target_expr = get_unchecked(exprs, target_index)
-        let val_idx = lower_core_expr(ctx, exprs, value_index)
         if core_expr_shape_aggregate::mir_core_expr_is_field_access(target_expr) && core_expr_shape_accessors::mir_core_expr_child_count(target_expr) >= 1 {
             let base_expr_index = core_expr_shape_accessors::mir_core_expr_child(target_expr, 0)
             let base_expr = get_unchecked(exprs, base_expr_index)
@@ -36,8 +35,11 @@ fn lower_core_assign(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) 
                     struct_idx = assign::mir_save_field_base_from_stack(ctx)
                 }
             }
+            let val_idx = lower_core_expr(ctx, exprs, value_index)
             assign::mir_emit_field_assign(ctx, core_expr_shape_accessors::mir_core_expr_text(target_expr), struct_idx, val_idx)
+            return 0 - 1
         }
+        let _value_idx = lower_core_expr(ctx, exprs, value_index)
     }
     0 - 1
 }

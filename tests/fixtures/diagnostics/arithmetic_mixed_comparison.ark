@@ -1,0 +1,5 @@
+use std::core::convert
+
+fn main() {
+    let _mixed = 1.0f64 < 1i32
+}

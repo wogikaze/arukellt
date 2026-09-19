@@ -94,8 +94,8 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 19 | `Error` sentinel | compiler内部のError sentinelをユーザーが使う型システムから分離する。 | ADR-063で内部 recovery state と nominal `Error` を分離。 |
 | 20 | `i64` と `f64` | `i64 -> f64`だけでなく異なる具象数値型の暗黙昇格を禁止し、literal inference と concrete conversion を分離する。 | [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md) で採択済み。 |
 | 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md) と normative spec へ反映する。 |
-| 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | Wasmとnativeの差を検証してから採択する。 |
-| 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeを候補とする。 | 実行可能な意味論fixtureが必要。 |
+| 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | [ADR-068](../adr/ADR-068-language-v2-arithmetic-evaluation-semantics.md) で Wasm integer/float semantics と target parity を採択済み。 |
+| 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeとする。 | [ADR-068](../adr/ADR-068-language-v2-arithmetic-evaluation-semantics.md) と副作用付き fixture で採択済み。 |
 | 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | stdlibと仕様の同時改訂が必要。 |
 | 25 | slice | sliceを独立した非`Copy`の読み取りviewとして定義し、`Vec`との戻り値の不整合を解消する。source binding は現行 API では消費しない。 | ADR-060で採択済み。完全なlifetime/borrow検査は後続。 |
 | 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-066 で `HashMap::new<K,V>()` と receiver methods、supported pair 診断、旧 API の removal condition を採択。 |
@@ -234,7 +234,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 2. Wasm GC backendで所有権を実行時にどこまで表現するか、型検査後にどこまで消去するか。またlinear-memory fallbackのcollector/root管理をどのruntime契約にするか。
 3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか（source-level owned ADT 契約はADR-060で採択済み）。
 4. ADR-062 の範囲外である `dyn Trait` の動的 ABI、specialization、higher-kinded projection。
-5. overflow、NaN、ゼロ除算、Unicode invalid sequenceの各処理結果。
+5. Unicode invalid sequenceの処理結果。
 6. `import` と `use` の最終構文、およびWIT parserのcanonical path。
 7. `wasm32-gc`、`wasm32`、Memory64、WASI profileをCLIでどう表現するか。
 8. stable機能の移行期間と、実行可能な仕様fixtureの必須範囲。
@@ -268,6 +268,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 - [ADR-038: 演算子オーバーロードをmagic methodからTraitへ移行する](../adr/ADR-038-operator-overload-traits.md)
 - [ADR-065: Language v2 の演算子 Trait 解決と magic method 移行](../adr/ADR-065-language-v2-operator-trait-resolution.md)
 - [ADR-066: Language v2 の generic 公開 API と HashMap](../adr/ADR-066-language-v2-generic-public-api.md)
+- [ADR-068: Language v2 の算術 edge と評価順序](../adr/ADR-068-language-v2-arithmetic-evaluation-semantics.md)
 - [ADR-039: `?` の Option対応とエラー型変換](../adr/ADR-039-question-mark-operator.md)
 - [ADR-044: traitとメソッド構文を言語機能として採択する](../adr/ADR-044-trait-method-syntax-adopted.md)
 - [ADR-046: 公開 free function の根絶](../adr/ADR-046-free-function-eradication.md)

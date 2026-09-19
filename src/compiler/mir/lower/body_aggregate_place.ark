@@ -14,12 +14,21 @@ fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     if child_count >= 2 {
         let target = ast_node::node_child_at(node, 0)
         let value = ast_node::node_child_at(node, 1)
-        let val_idx = lower_expr(ctx, value)
         if ast_node::node_kind_is(target, lower_kinds::NK_IDENT()) {
+            let val_idx = lower_expr(ctx, value)
             assign::mir_emit_ident_assign(ctx, ast_node::node_text(target), val_idx)
         }
         if ast_node::node_kind_is(target, lower_kinds::NK_FIELD_ACCESS()) {
-            body_aggregate_assign_field::lower_field_assign_target(ctx, target, val_idx)
+            let struct_idx = body_aggregate_assign_field::lower_field_assign_base(ctx, target)
+            if struct_idx >= 0 {
+                let val_idx = lower_expr(ctx, value)
+                assign::mir_emit_field_assign(
+                    ctx,
+                    ast_node::node_text(target),
+                    struct_idx,
+                    val_idx
+                )
+            }
         }
     }
     0 - 1

@@ -1,0 +1,59 @@
+use std::host::process
+use std::core::convert
+
+struct Pair {
+    left: i32,
+    right: i32,
+}
+
+struct Cell {
+    value: i32,
+}
+
+fn observe(log: Vec<i32>, marker: i32) -> i32 {
+    push(log, marker)
+    marker
+}
+
+fn combine(left: i32, right: i32) -> i32 {
+    left + right
+}
+
+fn make_values(log: Vec<i32>) -> Vec<i32> {
+    push(log, 7)
+    let values = Vec::new<i32>()
+    push(values, 42)
+    values
+}
+
+fn make_cell(log: Vec<i32>, value: i32) -> Cell {
+    push(log, value)
+    Cell { value: value }
+}
+
+fn expect_marker(log: Vec<i32>, index: i32, expected: i32) {
+    if get_unchecked(log, index) != expected {
+        process::exit(1)
+    }
+}
+
+fn main() {
+    let log = Vec::new<i32>()
+
+    let _args = combine(observe(log, 1), observe(log, 2))
+    let _binary = observe(log, 3) + observe(log, 4)
+    let _aggregate = Pair { left: observe(log, 5), right: observe(log, 6) }
+    let _indexed = get_unchecked(make_values(log), observe(log, 8) - 8)
+    make_cell(log, 9).value = observe(log, 10)
+
+    expect_marker(log, 0, 1)
+    expect_marker(log, 1, 2)
+    expect_marker(log, 2, 3)
+    expect_marker(log, 3, 4)
+    expect_marker(log, 4, 5)
+    expect_marker(log, 5, 6)
+    expect_marker(log, 6, 7)
+    expect_marker(log, 7, 8)
+    expect_marker(log, 8, 9)
+    expect_marker(log, 9, 10)
+}

@@ -455,6 +455,35 @@ there is no coercion step, and the result type is the same as the operands.
 Comparison operators return `bool`. Logical operators require `bool`
 operands and return `bool`.
 
+#### 3.3.1 Scalar arithmetic edge semantics
+
+For `i32` and `i64`, `+`, `-`, and `*` wrap at the operand width. Signed `/`
+and `%` trap when the divisor is zero; signed `MIN / -1` also traps, while
+`MIN % -1` is zero. Shift counts use the low 5 bits for `i32` and the low 6
+bits for `i64`; right shift is arithmetic for signed operands. These rules
+match the corresponding WebAssembly integer operations.
+
+`f32` and `f64` use IEEE 754 binary32 and binary64 WebAssembly arithmetic.
+Floating-point division by zero produces the IEEE result rather than an
+integer trap. NaN compares unequal to every value, including itself; `!=` is
+true for NaN and all ordered comparisons involving NaN are false. NaN payload
+bits are not a source-level contract. `f64_to_f32` uses WebAssembly's explicit
+binary32 rounding and `f32_to_f64` is an exact widening conversion; see
+[ADR-068](../adr/ADR-068-language-v2-arithmetic-evaluation-semantics.md).
+
+#### 3.3.2 Evaluation order
+
+Evaluation is left-to-right where the syntax contains an ordered sequence.
+Call receivers are evaluated before arguments, and arguments are evaluated in
+source order. Binary operands, aggregate fields/elements, and an index's base
+then index are evaluated in source order. `&&` and `||` retain left-to-right
+short-circuit evaluation.
+
+An assignment evaluates its place (including field and index bases), then its
+right-hand side, then performs the store. A failed or trapping place
+evaluation prevents the right-hand side and store. This order is shared by
+the `wasm32-gc` and `wasm32` lowering paths and is not an implementation detail.
+
 ### 3.4 Unary Operations
 
 | Operator | Operand | Result |

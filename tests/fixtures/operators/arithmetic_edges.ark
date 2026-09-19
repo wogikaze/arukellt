@@ -1,0 +1,63 @@
+use std::host::process
+use std::core::convert
+
+fn fail() {
+    process::exit(1)
+}
+
+fn main() {
+    let i32_max = 2147483647i32
+    let i32_min = 0i32 - 2147483647i32 - 1i32
+    if i32_max + 1i32 != i32_min {
+        fail()
+    }
+    if i32_min - 1i32 != i32_max {
+        fail()
+    }
+
+    let i64_min = 0i64 - 9223372036854775807i64 - 1i64
+    if i64_min / 1i64 != i64_min {
+        fail()
+    }
+    if i64_min % (0i64 - 1i64) != 0i64 {
+        fail()
+    }
+
+    if (1i32 << 32i32) != 1i32 {
+        fail()
+    }
+    if ((0i32 - 2i32) >> 32i32) != (0i32 - 2i32) {
+        fail()
+    }
+
+    let positive_inf = 1.0f64 / 0.0f64
+    let negative_inf = (0.0f64 - 1.0f64) / 0.0f64
+    let nan = 0.0f64 / 0.0f64
+    if positive_inf != positive_inf {
+        fail()
+    }
+    if positive_inf <= negative_inf {
+        fail()
+    }
+    if nan == nan {
+        fail()
+    }
+    if nan != nan == false {
+        fail()
+    }
+    if nan < positive_inf {
+        fail()
+    }
+    if f64_bits_hi(positive_inf) != 2146435072i32 {
+        fail()
+    }
+
+    let rounded: f32 = f64_to_f32(16777217.0f64)
+    if f32_to_f64(rounded) != 16777216.0f64 {
+        fail()
+    }
+    let f32_nan: f32 = f64_to_f32(nan)
+    if f32_nan == f32_nan {
+        fail()
+    }
+}

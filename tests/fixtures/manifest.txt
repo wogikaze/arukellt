@@ -254,6 +254,7 @@ diag:diagnostics/resolve_undef_module.ark
 diag:diagnostics/resolve_undefined_fn.ark
 diag:diagnostics/type_mismatch.ark
 diag:diagnostics/numeric_implicit_promotion.ark
+diag:diagnostics/arithmetic_mixed_comparison.ark
 diag:diagnostics/operator_trait_missing.ark
 diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
@@ -487,8 +488,10 @@ run:operator_overload/index_custom.ark
 run:operator_overload/neg_wrapper.ark
 run:operator_overload/sub_vec.ark
 run:operators/arithmetic.ark
+run:operators/arithmetic_edges.ark
 run:operators/bitwise.ark
 run:operators/comparison.ark
+run:operators/evaluation_order.ark
 run:operators/logical.ark
 run:operators/mixed_types.ark
 run:operators/overflow.ark
@@ -2123,8 +2126,10 @@ t3-compile:operator_overload/index_custom.ark
 t3-compile:operator_overload/neg_wrapper.ark
 t3-compile:operator_overload/sub_vec.ark
 t3-compile:operators/arithmetic.ark
+t3-compile:operators/arithmetic_edges.ark
 t3-compile:operators/bitwise.ark
 t3-compile:operators/comparison.ark
+t3-compile:operators/evaluation_order.ark
 t3-compile:operators/logical.ark
 t3-compile:operators/mixed_types.ark
 t3-compile:operators/overflow.ark
@@ -2561,8 +2566,10 @@ t3-run:operator_overload/index_custom.ark
 t3-run:operator_overload/neg_wrapper.ark
 t3-run:operator_overload/sub_vec.ark
 t3-run:operators/arithmetic.ark
+t3-run:operators/arithmetic_edges.ark
 t3-run:operators/bitwise.ark
 t3-run:operators/comparison.ark
+t3-run:operators/evaluation_order.ark
 t3-run:operators/logical.ark
 t3-run:operators/mixed_types.ark
 t3-run:operators/overflow.ark

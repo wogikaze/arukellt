@@ -164,9 +164,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2911 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1323 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2911 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, and numeric-conversion fixtures were added, so the current registry remainder is 1323. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 2918 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1330 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2918 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, and arithmetic-evaluation fixtures were added, so the current registry remainder is 1330. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
