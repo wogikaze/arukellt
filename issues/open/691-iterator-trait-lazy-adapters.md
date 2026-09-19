@@ -184,3 +184,11 @@ full adapter fixture matrix as a fallback parity gate.
 - Generic item collection, callback-bearing consumers, and structural
   `for` desugaring remain open, so this is an incremental receipt rather than
   a close receipt.
+
+## Progress receipt — 2026-09-20 (generic IntoIterator dispatch)
+
+- Test commit `87222ad53` adds a generic `T: IntoIterator` consumer returning
+  `Option<T::Item>` and instantiates it with `Range`.
+- The fixture compiles and runs on the GC component path and on linear Wasm;
+  associated-item projection and conversion dispatch both observe the first
+  range value (`7`).

@@ -109,3 +109,11 @@ RFC-011: **37**。
 - GC component compilation/execution and linear Wasm compilation, validation,
   and execution pass. This broadens the unified conversion boundary without
   changing structural `for` lowering or claiming generic aggregate support.
+
+## Progress receipt — 2026-09-20 (generic IntoIterator dispatch)
+
+- Test commit `87222ad53` adds `first_from_source<T: IntoIterator>` and
+  exercises `source.into_iter().next()` through the associated `Item` type.
+- The Range instantiation passes GC component and linear Wasm compile,
+  validation, and runtime checks; full trait-driven `for` desugaring remains
+  open.
