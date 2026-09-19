@@ -9,6 +9,14 @@ fn collect_values<T: iter::Iterator>(iterator: T) -> Vec<i32> {
     iterator.collect()
 }
 
+fn count_values<T: iter::Iterator>(iterator: T) -> i32 {
+    iterator.count()
+}
+
+fn sum_values<T: iter::Iterator>(iterator: T) -> i32 {
+    iterator.sum()
+}
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     push(v, 100)
@@ -51,6 +59,13 @@ fn main() {
     let canonical = collect_values(iter::vec_iter(canonical_source))
     test::assert_eq_i32(len(canonical), 2)
     test::assert_eq_i32(get_unchecked(canonical, 1), 700)
+
+    let count_source: Vec<i32> = Vec::new<i32>()
+    push(count_source, 8)
+    push(count_source, 9)
+    push(count_source, 10)
+    test::assert_eq_i32(count_values(iter::vec_iter(count_source)), 3)
+    test::assert_eq_i32(sum_values(iter::vec_iter(count_source)), 27)
 
     let into_source: Vec<i32> = Vec::new<i32>()
     push(into_source, 500)

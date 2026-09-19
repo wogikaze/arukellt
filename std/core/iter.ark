@@ -9,10 +9,10 @@
 //! Because Arukellt's monomorphisation model does not yet support trait-object
 //! dynamic dispatch, the adapter structs are monomorphic over `i32` (matching
 //! the existing `std::seq` helpers). Each adapter implements the canonical
-//! `Iterator::next` and `Iterator::collect` methods directly; the structural
-//! `for` lowering can use the same concrete method target. Generic trait
-//! definitions are included to formalise the protocol and enable future
-//! generalisation.
+//! `Iterator::next`, `Iterator::collect`, `Iterator::count`, and
+//! `Iterator::sum` methods directly; the structural `for` lowering can use
+//! the same concrete method target. Generic trait definitions are included
+//! to formalise the protocol and enable future generalisation.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -23,8 +23,9 @@
 /// Trait for lazy, pull-based iteration over a sequence of `T` values.
 ///
 /// `next` returns `Option::Some(item)` for each successive element or
-/// `Option::None` when the iterator is exhausted. `collect` drains the current
-/// `i32` item lane into a `Vec<i32>` through the same trait dispatch path.
+/// `Option::None` when the iterator is exhausted. `collect` drains, `count`
+/// counts, and `sum` reduces the current `i32` item lane through the same
+/// trait dispatch path.
 /// This mirrors the structural protocol that `for x in v` already uses — any
 /// type with a `next() -> Option<T>` method is iterable.
 ///
@@ -45,6 +46,8 @@ pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
     fn collect(self: Self) -> Vec<i32>
+    fn count(self: Self) -> i32
+    fn sum(self: Self) -> i32
 }
 
 /// Trait for types that can be converted into an iterator.
@@ -77,6 +80,28 @@ fn collect_iterator_i32<T: Iterator>(it: T) -> Vec<i32> {
         }
     }
     result
+}
+
+fn count_iterator<T: Iterator>(it: T) -> i32 {
+    let mut count: i32 = 0
+    while true {
+        match it.next() {
+            Some(_) => count = count + 1,
+            None => { break },
+        }
+    }
+    count
+}
+
+fn sum_iterator_i32<T: Iterator>(it: T) -> i32 {
+    let mut total: i32 = 0
+    while true {
+        match it.next() {
+            Some(v) => total = total + v,
+            None => { break },
+        }
+    }
+    total
 }
 
 // ---------------------------------------------------------------------------
@@ -122,6 +147,14 @@ impl Iterator for VecIter {
     fn collect(self: VecIter) -> Vec<i32> {
         collect_iterator_i32(self)
     }
+
+    fn count(self: VecIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: VecIter) -> i32 {
+        sum_iterator_i32(self)
+    }
 }
 
 impl IntoIterator for VecIter {
@@ -164,6 +197,14 @@ impl Iterator for RangeIter {
     fn collect(self: RangeIter) -> Vec<i32> {
         collect_iterator_i32(self)
     }
+
+    fn count(self: RangeIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: RangeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -198,6 +239,14 @@ impl Iterator for MapIter {
 
     fn collect(self: MapIter) -> Vec<i32> {
         collect_iterator_i32(self)
+    }
+
+    fn count(self: MapIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: MapIter) -> i32 {
+        sum_iterator_i32(self)
     }
 }
 
@@ -234,6 +283,14 @@ impl Iterator for FilterIter {
 
     fn collect(self: FilterIter) -> Vec<i32> {
         collect_iterator_i32(self)
+    }
+
+    fn count(self: FilterIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: FilterIter) -> i32 {
+        sum_iterator_i32(self)
     }
 }
 
@@ -274,6 +331,14 @@ impl Iterator for TakeIter {
     fn collect(self: TakeIter) -> Vec<i32> {
         collect_iterator_i32(self)
     }
+
+    fn count(self: TakeIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: TakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -312,6 +377,14 @@ impl Iterator for SkipIter {
 
     fn collect(self: SkipIter) -> Vec<i32> {
         collect_iterator_i32(self)
+    }
+
+    fn count(self: SkipIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: SkipIter) -> i32 {
+        sum_iterator_i32(self)
     }
 }
 
@@ -362,6 +435,14 @@ impl Iterator for ChainIter {
     fn collect(self: ChainIter) -> Vec<i32> {
         collect_iterator_i32(self)
     }
+
+    fn count(self: ChainIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: ChainIter) -> i32 {
+        sum_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -400,6 +481,14 @@ impl Iterator for EnumerateIter {
 
     fn collect(self: EnumerateIter) -> Vec<i32> {
         collect_iterator_i32(self)
+    }
+
+    fn count(self: EnumerateIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: EnumerateIter) -> i32 {
+        sum_iterator_i32(self)
     }
 }
 
@@ -442,6 +531,14 @@ impl Iterator for ZipIter {
 
     fn collect(self: ZipIter) -> Vec<i32> {
         collect_iterator_i32(self)
+    }
+
+    fn count(self: ZipIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: ZipIter) -> i32 {
+        sum_iterator_i32(self)
     }
 }
 
