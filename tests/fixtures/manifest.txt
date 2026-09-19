@@ -242,6 +242,7 @@ diag:diagnostics/missing_annotation.ark
 diag:diagnostics/missing_brace.ark
 diag:diagnostics/mutable_sharing.ark
 diag:diagnostics/ownership_move_after_use.ark
+diag:diagnostics/adt_move_after_use.ark
 diag:diagnostics/closure_borrow_return.ark
 diag:diagnostics/closure_borrow_callback.ark
 diag:diagnostics/closure_borrow_store.ark
@@ -2022,6 +2023,7 @@ run:variables/i32_lit.ark
 run:variables/i64_lit.ark
 run:variables/mut_var.ark
 run:ownership/copy_and_mutability.ark
+run:ownership/adt_probe.ark
 run:variables/string_lit.ark
 run:variables/tuple.ark
 t3-compile:arrays/array_literal.ark
