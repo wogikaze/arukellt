@@ -20,6 +20,7 @@ use wasm::sections_types_sigs_detail
 use wasm::p2_canonical
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::linear_gc_runtime
 
 fn emit_function_inst_count(f: MirFunction) -> i32 {
@@ -243,17 +244,32 @@ fn emit_p2_realloc_body(w: WasmWriter) {
     // requested prefix when the canonical ABI asks for a resize.
     writer_core::emit_leb128_u(w, 1)
     writer_core::emit_leb128_u(w, 2)
-    writer_core::emit_byte(w, 127)
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, constants::WASM_I64())
+    } else {
+        writer_core::emit_byte(w, constants::WASM_I32())
+    }
     emit_p2_realloc_align(w)
     emit_p2_realloc_end(w)
+    if writer_core::writer_memory64(w) {
+        emit_p2_realloc_memory64_overflow_guard(w)
+    }
     writer_core::emit_local_get(w, 5)
     helpers_core_heap::emit_heap_set(w)
     emit_p2_realloc_copy(w)
     writer_core::emit_local_get(w, 4)
+    if writer_core::writer_memory64(w) {
+        // The guard above makes this an explicit checked ABI narrowing.
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
 fn emit_p2_realloc_align(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        emit_p2_realloc_align_memory64(w)
+        return
+    }
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_core::emit_leb128_u(w, 0)
     writer_core::emit_local_get(w, 2)
@@ -273,7 +289,39 @@ fn emit_p2_realloc_align(w: WasmWriter) {
     writer_core::emit_leb128_u(w, 4)
 }
 
+fn emit_p2_realloc_align_memory64(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, 0)
+    writer_core::emit_local_get(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_core::emit_leb128_s_i64(w, 1i64)
+    writer_core::emit_byte(w, opcodes::OP_I64_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I64_ADD())
+    writer_core::emit_local_set(w, 4)
+    writer_core::emit_local_get(w, 4)
+    writer_core::emit_local_get(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_core::emit_leb128_s_i64(w, 1i64)
+    writer_core::emit_byte(w, opcodes::OP_I64_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_core::emit_leb128_s_i64(w, 0i64 - 1i64)
+    writer_core::emit_byte(w, opcodes::OP_I64_XOR())
+    writer_core::emit_byte(w, opcodes::OP_I64_AND())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, 4)
+}
+
 fn emit_p2_realloc_end(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_local_get(w, 4)
+        writer_core::emit_local_get(w, 3)
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+        writer_core::emit_byte(w, opcodes::OP_I64_ADD())
+        writer_core::emit_local_set(w, 5)
+        return
+    }
     writer_core::emit_local_get(w, 4)
     writer_core::emit_local_get(w, 3)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
@@ -281,8 +329,43 @@ fn emit_p2_realloc_end(w: WasmWriter) {
     writer_core::emit_leb128_u(w, 5)
 }
 
+fn emit_p2_realloc_memory64_overflow_guard(w: WasmWriter) {
+    // `aligned == 2^32` is already outside the memory32 pointer domain, even
+    // when a zero-sized allocation would leave the end at the same boundary.
+    writer_core::emit_local_get(w, 4)
+    helpers_numeric_i64_const::emit_i64_const(
+        w,
+        constants::P2_CANONICAL_MEMORY32_LIMIT()
+    )
+    writer_core::emit_byte(w, opcodes::OP_I64_GE_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+    writer_core::emit_byte(w, opcodes::OP_END())
+
+    // An allocation may end exactly at 2^32, but it must not cross it.
+    writer_core::emit_local_get(w, 5)
+    helpers_numeric_i64_const::emit_i64_const(
+        w,
+        constants::P2_CANONICAL_MEMORY32_LIMIT()
+    )
+    writer_core::emit_byte(w, opcodes::OP_I64_GT_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
 fn emit_p2_realloc_copy(w: WasmWriter) {
     writer_core::emit_local_get(w, 4)
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_local_get(w, 0)
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+        writer_core::emit_local_get(w, 1)
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+        helpers_memory::emit_memory_copy(w)
+        return
+    }
     writer_core::emit_local_get(w, 0)
     writer_core::emit_local_get(w, 1)
     helpers_memory::emit_memory_copy(w)
