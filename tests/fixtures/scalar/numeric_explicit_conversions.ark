@@ -1,5 +1,6 @@
 // Numeric conversions are explicit and retain the same result on both Wasm
 // backends. Literal suffixes select the source type before conversion.
+use std::core::convert
 use std::host::process
 
 fn expect_some(value: Option<i32>, expected: i32) {
