@@ -17,7 +17,6 @@ graph LR
   I686["686 Wasm GC Selfhost Implementation"]
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
-  I694["694 694 — `Error` trait and unified error type ecosystem"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
@@ -34,6 +33,7 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
+  I857["857 857 — `?` / conversion / Error sentinel を整理する"]
   I858["858 858 — 演算子 Trait へ統一し magic method を退役する"]
   I859["859 859 — 公開 API を generic Trait 面へ統一する"]
   I861["861 861 — 数値の暗黙変換を廃止し明示変換を定義する"]
@@ -49,7 +49,6 @@ graph LR
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
   I860["860 860 — Iterator Trait 体系を統合完了する"]
-  I857["857 857 — `?` / conversion / Error sentinel を整理する"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -79,7 +78,6 @@ graph LR
   I686 --> I698
   I686 --> I801
   I691 --> I860
-  I694 --> I857
   I691 --> I697
   I695 --> I697
   I691 --> I703
@@ -158,7 +156,6 @@ graph LR
 - **686** depends on: none; blocks: 698, 801
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710, 860
 - **693** depends on: 688, 692; blocks: none
-- **694** depends on: 690, 692; blocks: 857
 - **695** depends on: 688; blocks: 697, 703, 709
 - **702** depends on: 688, 700, 692; blocks: none
 - **708** depends on: 692, 707; blocks: none
@@ -175,6 +172,7 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
+- **857** depends on: 694, 856; blocks: 875, 877
 - **858** depends on: 856; blocks: 875, 877
 - **859** depends on: 856; blocks: 872, 874
 - **861** depends on: none; blocks: 875
@@ -190,7 +188,6 @@ graph LR
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
 - **860** depends on: 691, 856; blocks: 872, 874, 877
-- **857** depends on: 694, 856; blocks: 875, 877
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none

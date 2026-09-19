@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-18T21:46:35Z",
+  "generated_at": "2026-09-19T00:14:12Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -223,28 +223,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
-      }
-    },
-    {
-      "id": "694",
-      "path": "694-error-trait-unified-ecosystem.md",
-      "title": "694 — `Error` trait and unified error type ecosystem",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "690",
-        "692"
-      ],
-      "blocks_issue_ids": [
-        "857"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#690 ? operator + From, #692 From trait"
       }
     },
     {
@@ -564,6 +542,29 @@
       }
     },
     {
+      "id": "857",
+      "path": "857-question-mark-conversion-error-sentinel.md",
+      "title": "857 — `?` / conversion / Error sentinel を整理する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "694",
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 8,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "858",
       "path": "858-operator-traits-magic-method-retirement.md",
       "title": "858 — 演算子 Trait へ統一し magic method を退役する",
@@ -860,29 +861,6 @@
       "blocks_issue_ids": [
         "872",
         "874",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "857",
-      "path": "857-question-mark-conversion-error-sentinel.md",
-      "title": "857 — `?` / conversion / Error sentinel を整理する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "694",
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875",
         "877"
       ],
       "acceptance": {
