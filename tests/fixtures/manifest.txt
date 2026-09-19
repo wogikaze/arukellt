@@ -263,6 +263,8 @@ diag:diagnostics/arithmetic_mixed_comparison.ark
 diag:diagnostics/operator_trait_missing.ark
 diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
+diag:diagnostics/boolean_literal_not_name.ark
+diag:diagnostics/future_reserved_keyword.ark
 diag:diagnostics/unresolved_name.ark
 diag:diagnostics/unused_binding.ark
 diag:diagnostics/unused_import.ark
@@ -306,6 +308,7 @@ diag:wit_import/parse/malformed.ark
 fmt:fmt/comments_preserved.ark
 fmt:fmt/delimiters_in_strings.ark
 fmt:fmt/if_else.ark
+fmt:fmt/keyword_policy.ark
 fmt:fmt/imports_interleaved.ark
 fmt:fmt/imports_unsorted.ark
 mir-dump:wit_import/mir/call_add.ark

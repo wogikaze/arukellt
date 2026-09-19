@@ -5,12 +5,15 @@
 
 ## Principle
 
-Every stdlib function has exactly one **canonical access path**:
+Every stdlib function has exactly one **canonical access path**. During the
+v2 migration, the manifest also distinguishes the stable Prelude policy from
+the broader legacy auto-import set:
 
-- **Prelude functions** (`prelude = true`): Available without import. Canonical path is the bare name.
+- **Stable Prelude functions**: Listed by `[prelude_policy]` in `std/manifest.toml`; their canonical source form is the bare name.
+- **Legacy Prelude functions** (`prelude = true` outside that policy): Currently available without import for compatibility. Their migration is tracked by #878 and does not expand the v2 stable promise.
 - **Module functions**: Require `use std::xxx` import. Canonical path is `std::xxx::name`.
 
-There are **no dual-exposed functions** — no function has both `prelude = true` and a `module` field in the manifest.
+There are **no dual-exposed functions** — no function has both `prelude = true` and a `module` field in the manifest. `true` and `false` are lexical literals and are intentionally absent from the values table.
 
 ## Prelude Categories
 

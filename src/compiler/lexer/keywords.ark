@@ -1,9 +1,19 @@
+use lexer::keyword_policy
 use lexer::keywords_control
 use lexer::keywords_decl
 use lexer::keywords_literals
 use lexer::keywords_module
+use lexer::tokens
+
+const KEYWORD_CLASS_IDENTIFIER: i32 = 0
+const KEYWORD_CLASS_HARD: i32 = 1
+const KEYWORD_CLASS_CONTEXTUAL: i32 = 2
+const KEYWORD_CLASS_FUTURE_RESERVED: i32 = 3
 
 fn keyword_kind(word: String) -> i32 {
+    if keyword_policy::is_future_reserved_keyword(clone(word)) {
+        return tokens::TK_RESERVED()
+    }
     let decl_kind = keywords_decl::keyword_kind_decl(clone(word))
     if decl_kind >= 0 {
         return decl_kind
@@ -21,4 +31,41 @@ fn keyword_kind(word: String) -> i32 {
         return literal_kind
     }
     0 - 1
+}
+
+pub fn keyword_class(word: String) -> i32 {
+    if keyword_policy::is_future_reserved_keyword(clone(word)) {
+        return KEYWORD_CLASS_FUTURE_RESERVED
+    }
+    if keyword_policy::is_contextual_keyword(clone(word)) {
+        return KEYWORD_CLASS_CONTEXTUAL
+    }
+    if keyword_kind(clone(word)) >= 0 {
+        return KEYWORD_CLASS_HARD
+    }
+    KEYWORD_CLASS_IDENTIFIER
+}
+
+pub fn is_reserved_name(word: String) -> bool {
+    let class = keyword_class(clone(word))
+    class == KEYWORD_CLASS_HARD || class == KEYWORD_CLASS_FUTURE_RESERVED
+}
+
+test mod "keywords" {
+    test "classifies hard keywords" {
+        assert(keyword_class("fn") == KEYWORD_CLASS_HARD)
+        assert(keyword_class("true") == KEYWORD_CLASS_HARD)
+        assert(is_reserved_name("false"))
+    }
+
+    test "classifies contextual keywords" {
+        assert(keyword_class("type") == KEYWORD_CLASS_CONTEXTUAL)
+        assert(keyword_class("mod") == KEYWORD_CLASS_CONTEXTUAL)
+        assert(!is_reserved_name("move"))
+    }
+
+    test "classifies future reserved keywords" {
+        assert(keyword_class("await") == KEYWORD_CLASS_FUTURE_RESERVED)
+        assert(is_reserved_name("unsafe"))
+    }
 }

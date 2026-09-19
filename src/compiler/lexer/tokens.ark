@@ -62,6 +62,9 @@ pub fn TK_USE() -> i32 { 30 }
 pub fn TK_WHERE() -> i32 { 31 }
 pub fn TK_RESOURCE() -> i32 { 32 }
 
+// kind_keyword_reserved
+pub fn TK_RESERVED() -> i32 { 87 }
+
 // kind_keyword_transfer
 pub fn TK_BREAK() -> i32 { 22 }
 pub fn TK_CONTINUE() -> i32 { 23 }
@@ -118,6 +121,7 @@ test mod "tokens" {
     test "fn" { assert(TK_FN() == 10) }
     test "proof" { assert(TK_PROOF() == 36) }
     test "export" { assert(TK_EXPORT() == 37) }
+    test "reserved" { assert(TK_RESERVED() == 87) }
     test "eqeq" { assert(TK_EQEQ() == 46) }
     test "plus" { assert(TK_PLUS() == 40) }
 }

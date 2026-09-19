@@ -3,16 +3,17 @@
 > **Status**: stable  
 > **Current contract sources**: `std/manifest.toml`, [stability policy](stability-policy.md)
 >
-> **Proposed design**: [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md) (PROPOSED; non-normative)
+> **v2 policy**: [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)
 
-The Arukellt compiler automatically imports a small set of symbols into every
-module. This page describes only the current prelude contract. Proposed
-trait-based changes live outside this stable reference.
+The v2 contract defines a small stable set of symbols, while the current
+resolver still auto-imports a broader legacy set during the migration tracked
+by #878. This page distinguishes those contracts rather than treating every
+legacy entry as a new stability promise.
 
 ## Tiny Prelude (stdlib design epoch 3)
 
-The following symbols are available without any explicit `use` statement.
-They form the *tiny prelude* — the permanent auto-imported surface.
+The following symbols form the v2 stable Prelude. They are available without
+an explicit `use` statement after the legacy migration boundary is removed.
 
 ### Compiler-builtin types and constructors
 
@@ -29,6 +30,9 @@ These are handled by `src/compiler/typechecker.ark` and are always in scope.
 | `Ok(v)` | constructor |
 | `Err(e)` | constructor |
 
+`true` and `false` are lexical boolean literals, not Prelude values. They do
+not have a second manifest or resolver entry.
+
 ### Functions provided by `std/prelude.ark`
 
 | Function | Purpose |
@@ -37,11 +41,12 @@ These are handled by `src/compiler/typechecker.ark` and are always in scope.
 | `assert(cond: bool)` | Assert a condition |
 | `String_from(s)` | Construct a String |
 | `String_new()` | Construct an empty String |
-| `i32_to_string(n)` | Format i32 as String |
-| `bool_to_string(b)` | Format bool as String |
+| `char_to_string(c)` | Encode a Unicode scalar as String |
 
-Plus scalar conversion intrinsics (`i32_to_i64`, `f64_to_f32`, …) and basic
-math helpers (`abs`, `min`, `max`).
+The intrinsic compatibility group (`len`, `push`, `pop`, `get`, `set`, and
+`get_unchecked`) remains explicit in the manifest policy for existing compiler
+and stdlib code. Other `prelude = true` entries are legacy auto-imports until
+#878 migrates their call sites and resolver registration.
 
 ## Legacy compatibility and migration
 

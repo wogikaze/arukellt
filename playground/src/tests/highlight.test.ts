@@ -23,7 +23,8 @@ describe("classifyTokenKind", () => {
     const keywords = [
       "Fn", "Struct", "Enum", "Let", "Mut", "If", "Else", "Match",
       "While", "Loop", "For", "In", "Break", "Continue", "Return",
-      "Pub", "Import", "As", "Trait", "Impl", "Use",
+      "Pub", "Import", "As", "Trait", "Impl", "Use", "Where", "Const",
+      "Proof", "Export", "Resource", "Async", "Self",
     ];
     for (const kw of keywords) {
       assert.equal(classifyTokenKind(kw), "keyword", `Expected ${kw} to be keyword`);
@@ -31,7 +32,7 @@ describe("classifyTokenKind", () => {
   });
 
   it("classifies reserved keywords (tuple variant)", () => {
-    assert.equal(classifyTokenKind('Reserved("async")'), "keyword");
+    assert.equal(classifyTokenKind('Reserved("await")'), "keyword");
     assert.equal(classifyTokenKind("Reserved"), "keyword");
   });
 

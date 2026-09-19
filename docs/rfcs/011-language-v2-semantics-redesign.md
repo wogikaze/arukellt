@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)、[ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)
 
 ---
 
@@ -104,8 +104,8 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
 | 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | #866で `use` を正規形、legacy `import` を `W0101` 付き移行構文として実装。alias、selective import、`pub use`、loader/resolver/formatter/LSPの同期を確認。仕様は [import-system.md](../spec/import-system.md) を参照。 |
 | 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md) で full version 比較と source/WIT namespace 分離を採択し、ADR-031を精緻化する。 |
-| 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | stdlib API移行とADR-014の確認が必要。 |
-| 33 | 真偽値 | `true` と `false` を字句リテラルとして一意に扱い、Preludeとの重複をなくす。 | lexer、name resolution、fixtureを同期する。 |
+| 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) で stable set、legacy auto-import boundary、#878 の移行条件を採択。 |
+| 33 | 真偽値 | `true` と `false` を字句リテラルとして一意に扱い、Preludeとの重複をなくす。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) で manifest value entry を削除し、lexer・name resolution・fixtureを同期。 |
 | 34 | multi-clause関数 | 複数節の関数をどの構文単位としてまとめるかを明示する。 | parserと仕様の個別RFCが必要。 |
 | 35 | `where` | pattern match後のmulti-clauseで、`where` の束縛範囲を一貫させる。 | P0相当の文法回帰fixtureを追加する。 |
 | 36 | セミコロン | 改行、式、blockの終端規則を組み合わせたときの曖昧さをなくす。 | normative grammarへ反映する。 |
@@ -113,7 +113,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-071 / ADR-006のABI分類と整合し、language spec の具体形式を削除済み。 |
 | 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | ADR-007、ADR-013の語彙と再整理する。 |
 | 40 | `wasm32-gc` とMemory64 | GC、memory width、host profileの既定値を別々の設定として説明する。 | ADR-013、ADR-035、current-stateとの同期が必要。 |
-| 41 | 予約キーワード | hard reserved / contextual / future-reservedに分類し、未実装という理由だけで将来語を解放しない。 | lexer契約と仕様分類を更新する。 |
+| 41 | 予約キーワード | hard reserved / contextual / future-reservedに分類し、未実装という理由だけで将来語を解放しない。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) と `docs/data/language-keyword-policy.toml` で分類・lexer・LSP・playgroundを同期。 |
 | 42 | 安定性ラベル | stableを実装完成度ではなく、互換性保証のラベルとして扱う。 | ADR-014と整合する。 |
 | 43 | specとredesign | 再設計中の節をstableと誤認させず、仕様の分類と実装状態を同期する。 | ADR-014、ADR-018に従う。 |
 | 44 | 実行可能な文書例 | normativeな例をfixtureまたは検証コマンドへ接続し、根拠のないskipを減らす。 | ADR-029、ADR-057、ADR-018と整合する。 |
@@ -196,7 +196,11 @@ ADR-014 の移行期間に限る compatibility surface であり、canonical API
 
 `import`、`use`、Prelude、真偽値、multi-clause、`where`、セミコロン、f-string、Iterator構文を、parserの偶然ではなく仕様上の構文変換として定義する。
 
-Preludeは「最小であること」より、小さく安定した集合であることを優先する。予約語はhard reserved / contextual / future-reservedに分類し、未実装であるという理由だけでは将来予約を解除しない。
+Preludeは「最小であること」より、小さく安定した集合であることを優先する。
+v2 の stable set と移行中の legacy auto-import は分けて扱う。`true` と `false` は lexical literal であり、Prelude value ではない。
+予約語は hard reserved / contextual / future-reserved に分類し、未実装であるという理由だけでは将来予約を解除しない。
+具体的な分類は [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) と
+[`docs/data/language-keyword-policy.toml`](../data/language-keyword-policy.toml) に従う。
 
 糖衣構文が存在する場合、展開先のstdlib名を通常の名前解決で検索しない。lang item、pre-resolved symbol、intrinsic等のhygienicな参照へ変換し、stdlib APIの名前変更やユーザー定義名のshadowingでソース構文の意味が変わらないようにする。
 

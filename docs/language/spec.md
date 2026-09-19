@@ -69,32 +69,43 @@ Source files are UTF-8 encoded. No BOM is required.
 
 ### 1.3 Keywords
 
-**Baseline keywords**
+**Hard-reserved keywords**
 
 ```
-fn   struct   enum   let   mut   if   else   match
-while   loop   for   in   break   continue   return
-pub   export   import   as   where
+fn   struct   enum   let   mut   if   else   match   while   loop
+for   in   break   continue   return   pub   export   import   as   where
+const   proof   resource   async   Self
 ```
 
-**Trait-system keywords**
+`trait`, `impl`, and `use` are hard-reserved as well:
 
 ```
-trait   impl
+trait   impl   use
 ```
 
-**Path-import keyword**
+`true` and `false` are lexical boolean literals. They are not Prelude values
+and cannot be introduced by a user declaration.
+
+**Contextual keywords**
 
 ```
-use
+test   move   dyn   type   mod
 ```
 
-**Reserved (future)**
+These words remain identifiers in the lexer and are recognized only in their
+grammar positions. In particular, `type` is used for associated types, `dyn`
+for dynamic trait syntax, `move` for closure capture, `test` for test
+declarations, and `mod` in existing module/test paths.
+
+**Future-reserved keywords**
 
 ```
-async   await   dyn   type   const   unsafe
-extern   mod   super   Self
+await   unsafe   extern   super
 ```
+
+Future-reserved words are rejected as source identifiers even while their
+syntax is unimplemented. The machine-readable list is
+[`docs/data/language-keyword-policy.toml`](../data/language-keyword-policy.toml).
 
 ### 1.4 Identifiers
 
@@ -149,7 +160,7 @@ Single-quoted: `'a'`, `'\n'`.
 
 #### Boolean Literals
 
-`true`, `false`.
+`true`, `false`. These are `bool` literals, not Prelude names.
 
 ### 1.6 Operators and Punctuation
 
@@ -1200,15 +1211,22 @@ Each `.ark` file is a module. A module consists of:
 
 ### 7.4 Prelude
 
-The following types and values are injected into every module without
-an explicit import:
+The v2 stable Prelude is the fixed set in the `[prelude_policy]` table of
+`std/manifest.toml`:
 
 **Types**: `Option`, `Result`, `String`, `Vec`
 
-**Values**: `Some`, `None`, `Ok`, `Err`, `true`, `false`
+**Values**: `Some`, `None`, `Ok`, `Err`
 
-**Functions**: All functions listed as `prelude = true` in
-`std/manifest.toml` (see §9).
+**Lexical literals**: `true`, `false` (not injected values)
+
+**Stable functions**: `panic`, `assert`, `String_from`, `String_new`,
+`char_to_string`
+
+The current resolver still auto-imports the broader set of entries marked
+`prelude = true` for compatibility. That legacy behavior is explicitly
+recorded by `legacy_auto_import = true` and is not a v2 stability promise;
+the reduction is tracked by #878.
 
 ---
 

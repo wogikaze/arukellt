@@ -1,0 +1,31 @@
+pub fn is_contextual_keyword(word: String) -> bool {
+    eq(clone(word), "test") ||
+    eq(clone(word), "move") ||
+    eq(clone(word), "dyn") ||
+    eq(clone(word), "type") ||
+    eq(clone(word), "mod")
+}
+
+pub fn is_future_reserved_keyword(word: String) -> bool {
+    eq(clone(word), "await") ||
+    eq(clone(word), "unsafe") ||
+    eq(clone(word), "extern") ||
+    eq(clone(word), "super")
+}
+
+test mod "keyword_policy" {
+    test "contextual keywords remain identifiers outside their grammar positions" {
+        assert(is_contextual_keyword("test"))
+        assert(is_contextual_keyword("move"))
+        assert(is_contextual_keyword("dyn"))
+        assert(is_contextual_keyword("type"))
+        assert(is_contextual_keyword("mod"))
+    }
+
+    test "future reserved keywords stay unavailable before implementation" {
+        assert(is_future_reserved_keyword("await"))
+        assert(is_future_reserved_keyword("unsafe"))
+        assert(is_future_reserved_keyword("extern"))
+        assert(is_future_reserved_keyword("super"))
+    }
+}

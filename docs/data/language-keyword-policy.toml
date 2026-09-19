@@ -1,0 +1,42 @@
+# Language v2 keyword policy. Normative prose: docs/language/spec.md and ADR-072.
+
+[metadata]
+language_version = "v2"
+owner_issue = "#868"
+
+[keywords]
+hard = [
+    "fn",
+    "struct",
+    "enum",
+    "let",
+    "mut",
+    "if",
+    "else",
+    "match",
+    "while",
+    "loop",
+    "for",
+    "in",
+    "break",
+    "continue",
+    "return",
+    "pub",
+    "export",
+    "import",
+    "as",
+    "where",
+    "trait",
+    "impl",
+    "use",
+    "const",
+    "proof",
+    "resource",
+    "async",
+    "Self",
+    "true",
+    "false",
+]
+contextual = ["test", "move", "dyn", "type", "mod"]
+future_reserved = ["await", "unsafe", "extern", "super"]
+boolean_literals = ["true", "false"]

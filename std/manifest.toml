@@ -30,6 +30,31 @@ default_since = "0.1.0"
 default_remove_in = "1.0.0"
 minimum_complete_releases = 1
 
+[prelude_policy]
+# The v2 contract is intentionally smaller than the legacy auto-import set.
+# `legacy_auto_import` remains true until the compatibility migration tracked by
+# issue #878 removes the broad resolver registration boundary.
+language_version = "v2"
+legacy_auto_import = true
+stable_types = ["Option", "Result", "String", "Vec"]
+stable_values = ["Some", "None", "Ok", "Err"]
+lexical_literals = ["true", "false"]
+stable_functions = [
+    "panic",
+    "assert",
+    "String_from",
+    "String_new",
+    "char_to_string",
+]
+intrinsic_compatibility_functions = [
+    "len",
+    "push",
+    "pop",
+    "get",
+    "set",
+    "get_unchecked",
+]
+
 # ─────────────────────────────────────────────
 # Prelude types (auto-imported)
 # ─────────────────────────────────────────────
@@ -85,15 +110,6 @@ stability = "stable"
 
 [[values]]
 name = "Err"
-prelude = true
-
-[[values]]
-name = "true"
-prelude = true
-stability = "stable"
-
-[[values]]
-name = "false"
 prelude = true
 
 # ─────────────────────────────────────────────

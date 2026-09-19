@@ -6,7 +6,7 @@ use lexer::token_state
 
 fn print_token_fields(kind: i32, text: String, int_val: i32, float_val: f64) {
     let kind_str = names::token_kind_name(kind)
-    if kind == tokens::TK_IDENT() || kind == tokens::TK_STRING() || kind == tokens::TK_ERROR() {
+    if kind == tokens::TK_IDENT() || kind == tokens::TK_STRING() || kind == tokens::TK_ERROR() || kind == tokens::TK_RESERVED() {
         stdio::println(concat(concat(concat(kind_str, "("), text), ")"))
         return
     }

@@ -56,7 +56,16 @@ const KEYWORDS = new Map<string, string>([
   ["trait", "Trait"],
   ["impl", "Impl"],
   ["use", "Use"],
+  ["where", "Where"],
+  ["const", "Const"],
+  ["proof", "Proof"],
+  ["export", "Export"],
+  ["resource", "Resource"],
+  ["async", "Async"],
+  ["Self", "Self"],
 ]);
+
+const FUTURE_RESERVED = new Set<string>(["await", "unsafe", "extern", "super"]);
 
 const MULTI_CHAR_TOKENS = new Map<string, string>([
   ["==", "EqEq"],
@@ -154,6 +163,9 @@ function isDigit(ch: string): boolean {
 function identKind(text: string): string {
   if (text === "true" || text === "false") {
     return `BoolLit(${text})`;
+  }
+  if (FUTURE_RESERVED.has(text)) {
+    return `Reserved(${JSON.stringify(text)})`;
   }
   return KEYWORDS.get(text) ?? `Ident(${JSON.stringify(text)})`;
 }
@@ -297,6 +309,18 @@ export function tokenizeSource(source: string): TokenizeResponse {
       i += 1;
       while (i < source.length && isIdentContinue(source[i])) i += 1;
       const text = source.slice(start, i);
+      if (FUTURE_RESERVED.has(text)) {
+        diagnostics.push(
+          diagnostic(
+            "ELEX004",
+            "lex",
+            `future-reserved keyword '${text}' is not available as an identifier`,
+            start,
+            i,
+            "choose a non-reserved identifier",
+          ),
+        );
+      }
       tokens.push({ kind: identKind(text), text, start, end: i });
       continue;
     }

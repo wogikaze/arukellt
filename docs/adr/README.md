@@ -68,6 +68,7 @@
 | [ADR-069-language-v2-string-unicode-semantics.md](ADR-069-language-v2-string-unicode-semantics.md) | ADR-069: Language v2 の String / Unicode semantics | 不正な UTF-8 の境界を Wasm GC／linear-memory の共通言語契約として固定する |
 | [ADR-070-language-v2-let-generalization.md](ADR-070-language-v2-let-generalization.md) | ADR-070: Language v2 の let-generalization と value restriction | 構文的な non-expansive/value restriction として固定する |
 | [ADR-071-component-export-visibility-boundary.md](ADR-071-component-export-visibility-boundary.md) | ADR-071: pub と Component export、WIT identity の境界 | トラック: language-v2 Issue: #867 |
+| [ADR-072-language-v2-prelude-and-keyword-policy.md](ADR-072-language-v2-prelude-and-keyword-policy.md) | ADR-072: Language v2 Prelude と keyword policy | トラック: language-v2 Issue: #868 |
 
 ## 提案
 

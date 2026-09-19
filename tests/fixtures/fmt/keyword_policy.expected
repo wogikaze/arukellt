@@ -1,0 +1,8 @@
+fn main() {
+    let flag: bool = true
+    if flag {
+        false
+    } else {
+        true
+    }
+}

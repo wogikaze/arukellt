@@ -3,6 +3,7 @@ use std::json
 use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
+use lexer::keywords
 use lsp::feature_request
 use lsp::positions
 use lsp::rename_workspace
@@ -13,23 +14,7 @@ fn null_result(id: i32) -> String {
 }
 
 fn is_keyword_name(name: String) -> bool {
-    if eq(clone(name), String_from("fn")) { return true }
-    if eq(clone(name), String_from("let")) { return true }
-    if eq(clone(name), String_from("mut")) { return true }
-    if eq(clone(name), String_from("if")) { return true }
-    if eq(clone(name), String_from("else")) { return true }
-    if eq(clone(name), String_from("match")) { return true }
-    if eq(clone(name), String_from("use")) { return true }
-    if eq(clone(name), String_from("pub")) { return true }
-    if eq(clone(name), String_from("return")) { return true }
-    if eq(clone(name), String_from("while")) { return true }
-    if eq(clone(name), String_from("loop")) { return true }
-    if eq(clone(name), String_from("for")) { return true }
-    if eq(clone(name), String_from("struct")) { return true }
-    if eq(clone(name), String_from("enum")) { return true }
-    if eq(clone(name), String_from("trait")) { return true }
-    if eq(clone(name), String_from("impl")) { return true }
-    false
+    keywords::is_reserved_name(clone(name))
 }
 
 fn is_renamable_at_offset(text: String, offset: i32) -> bool {

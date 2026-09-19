@@ -61,6 +61,13 @@ const KEYWORD_KINDS = new Set<string>([
   "Trait",
   "Impl",
   "Use",
+  "Where",
+  "Const",
+  "Proof",
+  "Export",
+  "Resource",
+  "Async",
+  "Self",
 ]);
 
 /**

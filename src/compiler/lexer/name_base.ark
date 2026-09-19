@@ -19,6 +19,9 @@ pub fn token_base_name(kind: i32) -> String {
     if kind == tokens::TK_BOOL() {
         return "BOOL"
     }
+    if kind == tokens::TK_RESERVED() {
+        return "RESERVED"
+    }
     if kind == tokens::TK_NEWLINE() {
         return "NEWLINE"
     }

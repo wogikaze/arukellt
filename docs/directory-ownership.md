@@ -36,6 +36,7 @@
 | `docs/data/project-state.toml` | product (SSOT input) | hand-maintained | Structured current-state numbers / target profiles |
 | `docs/data/sections.toml` | product (SSOT input) | hand-maintained | Docs section registry |
 | `docs/data/language-doc-classifications.toml` | product (SSOT input) | hand-maintained | Language doc classifications |
+| `docs/data/language-keyword-policy.toml` | product (SSOT input) | hand-maintained | Language v2 hard/contextual/future-reserved keyword policy |
 | `docs/data/cli-surface.toml` | product (SSOT input) | hand-maintained | CLI surface SSOT (#770) |
 | `docs/data/bootstrap-contract.toml` | product (SSOT input) | hand-maintained | Bootstrap contract SSOT (ADR-029) |
 | `docs/data/capabilities.toml` | product (SSOT input) | hand-maintained | Host capability matrix SSOT |

@@ -42,8 +42,6 @@
 | `None` | yes |
 | `Ok` | yes |
 | `Err` | yes |
-| `true` | yes |
-| `false` | yes |
 
 ## Assert
 
