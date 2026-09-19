@@ -62,6 +62,28 @@ RFC-011: **8 (aggregate)**。
 - Normative boundary: the representation/meaning separation remains defined
   by RFC-011 item 8 and ADR-060; this test adds executable binary evidence and
   does not introduce a new semantic or ABI decision.
+- Range scalar-width receipt: `38cc7cc71` fixes the existing `Range` GC
+  intrinsic at the Memory64 aggregate boundary. `range_new` narrows the
+  i64 scalar ABI values before constructing the two-i32 GC struct; `range_len`
+  and `range_contains` use width-aware arithmetic/comparisons after
+  `struct.get`, and widen the boolean result where the Memory64 scalar ABI
+  requires it. The change reuses the existing numeric-width helpers and does
+  not alter range meaning or the linear-memory representation.
+- Range verification: the temporary probe covering i64-to-i32 inputs,
+  `range_new`, `range_len`, and `range_contains` passed compile, validation,
+  and runtime on `wasm32-gc` P2/Memory64 and `wasm32` P1/memory32. The tracked
+  `stdlib_core/range_len_empty.ark` and
+  `stdlib_core/range_contains_edges.ark` fixtures also passed the same
+  compile/validate/runtime matrix. The GC artifacts were validated with
+  `wasm-tools validate --features gc,function-references,memory64` and run as
+  components with Wasmtime; the fallback artifacts were validated with
+  `wasm-tools validate` and run as core modules.
+- The focused quality checks and `git diff --check` passed. The requested
+  `verify lane --gate cli-parity` reached the quality gate successfully but
+  the unrelated CLI parity gate remains red because the pinned bootstrap
+  `--help` golden and an existing `stdio::println` lint fixture are already
+  out of sync. This receipt is partial evidence only; the acceptance boxes,
+  negative/diagnostic coverage, and final close review remain open.
 - This is progress, not a close receipt. Complete tag/payload observable
   semantics, cross-backend runtime parity, and the final issue-close review
   remain open; no acceptance checkbox is marked complete from this partial
