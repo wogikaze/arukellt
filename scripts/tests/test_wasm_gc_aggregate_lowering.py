@@ -37,11 +37,14 @@ class WasmGcAggregateLoweringTest(unittest.TestCase):
             self.skipTest("current-source selfhost wasm is not built")
         if shutil.which("wasm-tools") is None:
             self.skipTest("wasm-tools is required")
+        if shutil.which("wasmtime") is None:
+            self.skipTest("wasmtime is required")
         self.compiler = compiler
 
     def compile_fixture(self, fixture: str, target: str) -> Path:
         stem = Path(fixture).stem
-        output = ROOT / ".build/tests" / f"aggregate-{target}-{stem}.wasm"
+        artifact_kind = "component" if target == "wasm32-gc" else "wasm"
+        output = ROOT / ".build/tests" / f"aggregate-{target}-{stem}.{artifact_kind}.wasm"
         output.parent.mkdir(parents=True, exist_ok=True)
         command = [
             str(ROOT / "scripts/run/arukellt-selfhost.sh"),
@@ -54,7 +57,7 @@ class WasmGcAggregateLoweringTest(unittest.TestCase):
         ]
         if target == "wasm32":
             command.extend(("--memory-width", "memory32"))
-        command.extend(("--emit", "wasm", "-o", str(output.relative_to(ROOT))))
+        command.extend(("--emit", artifact_kind, "-o", str(output.relative_to(ROOT))))
         result = subprocess.run(
             command,
             cwd=ROOT,
@@ -89,11 +92,30 @@ class WasmGcAggregateLoweringTest(unittest.TestCase):
         self.assertEqual(printed.returncode, 0, printed.stderr)
         return printed.stdout
 
+    def run_fixture(self, fixture: str, target: str, artifact: Path) -> None:
+        command = ["wasmtime", "run"]
+        if target == "wasm32-gc":
+            command.extend(("--wasm", "gc", "--wasm", "function-references"))
+        command.extend(("--dir=.", str(artifact)))
+        executed = subprocess.run(
+            command,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+        expected = (ROOT / fixture).with_suffix(".expected").read_text(encoding="utf-8")
+        self.assertEqual(executed.returncode, 0, executed.stderr)
+        self.assertEqual(executed.stdout, expected)
+
     def test_gc_primary_uses_gc_aggregate_ops_and_linear_path_does_not(self) -> None:
         for fixture in FIXTURES:
             with self.subTest(fixture=fixture):
-                gc_wat = self.print_wat(self.compile_fixture(fixture, "wasm32-gc"))
-                linear_wat = self.print_wat(self.compile_fixture(fixture, "wasm32"))
+                gc_artifact = self.compile_fixture(fixture, "wasm32-gc")
+                linear_artifact = self.compile_fixture(fixture, "wasm32")
+                gc_wat = self.print_wat(gc_artifact)
+                linear_wat = self.print_wat(linear_artifact)
                 self.assertTrue(
                     any(prefix in gc_wat for prefix in GC_AGGREGATE_INSTRUCTION_PREFIXES),
                     f"GC primary silently fell back for {fixture}",
@@ -101,6 +123,8 @@ class WasmGcAggregateLoweringTest(unittest.TestCase):
                 self.assertNotIn("struct.", linear_wat)
                 self.assertNotIn("array.", linear_wat)
                 self.assertNotIn("ref.", linear_wat)
+                self.run_fixture(fixture, "wasm32-gc", gc_artifact)
+                self.run_fixture(fixture, "wasm32", linear_artifact)
 
 
 if __name__ == "__main__":
