@@ -43,7 +43,8 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     RFC-011, and the language spec are synchronized. Positive and diagnostic
     fixtures prove explicit conversion and rejection of mixed concrete numeric
     arithmetic; GC and linear compile/validate/runtime receipts both pass.
-- [ ] #862 — 算術 edge case と評価順序を仕様化する — RFC 22, 23 — depends: none
+- [x] #862 — 算術 edge case と評価順序を仕様化する — RFC 22, 23 — depends: none
+  - Receipt: completed in `a720c2cc7`; ADR-068, RFC-011, and the language spec are synchronized. Integer/float edge rules and place-before-RHS evaluation are covered by positive, diagnostic, and GC/linear runtime fixtures. Canonical `build-compiler` remains blocked by the pre-existing #854 `unbox`/`slice_get` bootstrap mismatch; the targeted shim receipt is explicitly not a canonical rebuild.
 - [ ] #863 — String / Unicode semantics を確定する — RFC 24 — depends: 854
 - [ ] #865 — Hygienic desugaring と f-string lowering を実装する — RFC 28, 29 — depends: 729
 - [ ] #866 — source module の import / use 構文を整理する — RFC 30 — depends: none
@@ -170,3 +171,4 @@ graph TD
 - [x] #857: `d6ce3f5d4ee1e8ca82fdbff7292579a30e7edaf3`; ADR-063; `?` conversion and Error sentinel boundary, with positive and diagnostic fixtures and GC/linear targeted receipts. See [#857](../done/857-question-mark-conversion-error-sentinel.md).
 - [x] #858: `31c76ce33`; ADR-065; canonical operator Trait mapping, coherence-aware typechecking, generic/builtin/user-defined fixtures, and GC/linear parity receipts. The canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum mismatch; targeted quality/docs/ADR gates pass. See [#858](../done/858-operator-traits-magic-method-retirement.md).
 - [x] #859: `fd50e0f45`; ADR-066; canonical generic `HashMap<K,V>` constructor/method API, static typed adapters for six supported pairs, internal-only `Any` boundary, and explicit compatibility removal conditions. The positive HashMap fixture compiled/validated/ran on both `wasm32-gc` and `wasm32` fallback; the unsupported `bool,bool` pair produced the expected diagnostic. The canonical compiler rebuild and doc-example subgate remain blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted bootstrap shim is not claimed as a canonical rebuild. See [#859](../done/859-generic-public-api-any-hashmap.md).
+- [x] #862: `a720c2cc7`; ADR-068; integer/float edge semantics, source evaluation order, place-before-RHS lowering, side-effect and diagnostic fixtures, and GC/linear compile/validate/runtime parity. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted shim receipt is explicitly not a canonical rebuild. See [#862](../done/862-arithmetic-edge-and-evaluation-order.md).

@@ -8,7 +8,7 @@ Wasm GC／linear-memory の共通言語契約として固定する
 関連: [ADR-013](ADR-013-primary-target.md)、[ADR-029](ADR-029-selfhost-validation.md)、
 [ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、
 [ADR-065](ADR-065-language-v2-operator-trait-resolution.md)、[ADR-067](ADR-067-language-v2-numeric-conversion.md)、
-[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#862](../../issues/open/862-arithmetic-edge-and-evaluation-order.md)
+[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#862](../../issues/done/862-arithmetic-edge-and-evaluation-order.md)
 
 ## 文脈
 

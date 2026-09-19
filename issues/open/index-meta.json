@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T03:36:59Z",
+  "generated_at": "2026-09-19T04:17:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,25 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "862",
-      "path": "862-arithmetic-edge-and-evaluation-order.md",
-      "title": "862 — 算術 edge case と評価順序を仕様化する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1348,8 +1329,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 15,
-        "unchecked": 24
+        "checked": 17,
+        "unchecked": 23
       },
       "orchestration": {
         "class": "blocked-by-upstream",
