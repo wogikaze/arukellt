@@ -88,6 +88,11 @@ tracked under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md)
 and [#860](../../issues/open/860-iterator-unification-integration.md). The
 `std::seq` helpers must not be marked deprecated until the method-level
 manifest contract exists.
+The concrete composed adapter is also a valid direct `for` source in this lane;
+`iterator_adapters.ark` checks the `map/filter/take` chain through its canonical
+`next` path on both GC and linear-memory Wasm. This remains a concrete fixture
+contract, not a claim that arbitrary adapter types or item representations have
+completed migration.
 
 ---
 

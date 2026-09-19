@@ -283,3 +283,20 @@ The remaining scope is generic or unregistered source dispatch, arbitrary item
 representations, complete adapter composition, full eager/lazy migration, and
 the final RFC-011 residual audit. This receipt does not close #860 or mark its
 acceptance boxes complete.
+
+## Progress receipt — 2026-09-20 (lazy adapter source in `for`)
+
+- Commit `dacac461e` extends `iterator_adapters.ark` with a direct `for` over
+  `v.iter().map(double).filter(is_even).take(2)`. The body consumes the
+  composed method-shaped adapter through its canonical `next` path and checks
+  the resulting aggregate without introducing an intermediate collection.
+- The `wasm32-gc` component and linear `wasm32` artifact both compile and pass
+  `wasm-tools validate`; both execute successfully under Wasmtime and print
+  `OK`. WAT inspection shows the same `MapFilterTakeIter::next` call after the
+  adapter construction; GC uses the typed call path and linear Wasm uses the
+  fallback callback/table representation.
+- `python3 scripts/manager.py verify lane` exits 0 after the fixture change.
+  This is concrete `i32`-lane evidence only: generic or unregistered source
+  dispatch, arbitrary item representations, broader adapter composition, full
+  eager/lazy migration, and the RFC-011 residual audit remain open. This
+  receipt does not close #860 or mark its acceptance boxes complete.

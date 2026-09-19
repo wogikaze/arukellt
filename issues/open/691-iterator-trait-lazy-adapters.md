@@ -311,3 +311,19 @@ full adapter fixture matrix as a fallback parity gate.
   the verified method status. Other item representations, additional adapter
   compositions, manifest-level deprecation, and the final RFC-011 residual
   audit remain open; this is not a close receipt.
+
+## Progress receipt — 2026-09-20 (lazy adapter source in `for`)
+
+- Commit `dacac461e` adds a direct `for` consumer to
+  `iterator_adapters.ark`: `v.iter().map(double).filter(is_even).take(2)`.
+  The concrete `map/filter/take` chain is consumed through
+  `MapFilterTakeIter::next` and produces the expected total without an
+  intermediate collection.
+- The GC component and linear-memory Wasm fixture both compile, validate, and
+  run successfully, printing `OK`. The generated WAT confirms the same
+  adapter construction and `next` sequence on both backends, with typed GC
+  calls and the linear callback/table fallback preserving the source meaning.
+- `verify lane` passes. This advances only the implemented `Vec<i32>` adapter
+  lane; arbitrary item representations, additional adapter compositions,
+  manifest-level deprecation, and the final RFC-011 residual audit remain
+  open. This is not a close receipt.
