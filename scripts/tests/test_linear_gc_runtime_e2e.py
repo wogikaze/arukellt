@@ -1,0 +1,214 @@
+"""Exercise the linear fallback collector through its emitted private ABI."""
+
+from __future__ import annotations
+
+import os
+import re
+import shutil
+import subprocess
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+FIXTURE = ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark"
+FUNCTION_DEFINITION = re.compile(r"^\s+\(func .*?\(;([0-9]+);\)", re.MULTILINE)
+
+
+class LinearGcRuntimeE2eTest(unittest.TestCase):
+    def setUp(self) -> None:
+        compiler_candidates = (
+            ROOT / ".build/selfhost/arukellt-s2-runtime.wasm",
+            ROOT / ".build/selfhost/arukellt-s2.wasm",
+        )
+        compiler = next((path for path in compiler_candidates if path.is_file()), None)
+        if compiler is None:
+            self.skipTest("current-source selfhost wasm is not built")
+        if shutil.which("wasm-tools") is None or shutil.which("wasmtime") is None:
+            self.skipTest("wasm-tools and wasmtime are required")
+        self.compiler = compiler
+
+    def compile_linear_fixture(self) -> Path:
+        output = ROOT / ".build/tests/linear_gc_runtime_e2e.wasm"
+        output.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [
+                str(ROOT / "scripts/run/arukellt-selfhost.sh"),
+                "compile",
+                str(FIXTURE.relative_to(ROOT)),
+                "--target",
+                "wasm32",
+                "--wasi-version",
+                "wasi-p1",
+                "--memory-width",
+                "memory32",
+                "--emit",
+                "wasm",
+                "-o",
+                str(output.relative_to(ROOT)),
+            ],
+            cwd=ROOT,
+            env={**os.environ, "ARUKELLT_SELFHOST_WASM": str(self.compiler)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(output.is_file())
+        return output
+
+    def runtime_function_indices(self, wat: str) -> tuple[int, ...]:
+        indices = [int(match.group(1)) for match in FUNCTION_DEFINITION.finditer(wat)]
+        self.assertGreaterEqual(len(indices), 8, "linear artifact is missing runtime functions")
+        runtime_indices = tuple(indices[-8:])
+        self.assertEqual(
+            runtime_indices,
+            tuple(range(runtime_indices[0], runtime_indices[0] + 8)),
+            "runtime functions are not the final contiguous function group",
+        )
+        return runtime_indices
+
+    def add_runtime_probe(self, wat: str) -> str:
+        (
+            root_frame_enter,
+            root_push,
+            root_update,
+            root_frame_leave,
+            _commit_top,
+            _mark_candidate,
+            collect,
+            alloc,
+        ) = self.runtime_function_indices(wat)
+        probe = f"""
+  (func (export "linear_gc_runtime_probe") (result i32)
+    (local $frame i32)
+    (local $root i32)
+    (local $first i32)
+    (local $second i32)
+    (local $third i32)
+    (local $fourth i32)
+    (local $fifth i32)
+    (local $cycle_live i32)
+    (local $pair_reused i32)
+    call {root_frame_enter}
+    local.set $frame
+    i32.const 16
+    call {alloc}
+    local.set $first
+    i32.const 16
+    call {alloc}
+    local.set $second
+    local.get $first
+    local.get $second
+    i32.store
+    local.get $second
+    local.get $first
+    i32.store
+    local.get $first
+    call {root_push}
+    local.set $root
+    local.get $root
+    local.get $first
+    call {root_update}
+    call {collect}
+    i32.const 16
+    call {alloc}
+    local.set $third
+    local.get $third
+    local.get $first
+    i32.ne
+    local.get $third
+    local.get $second
+    i32.ne
+    i32.and
+    local.set $cycle_live
+    local.get $root
+    i32.const 0
+    call {root_update}
+    call {collect}
+    i32.const 16
+    call {alloc}
+    local.set $fourth
+    i32.const 16
+    call {alloc}
+    local.set $fifth
+    local.get $fourth
+    local.get $first
+    i32.eq
+    local.get $fifth
+    local.get $second
+    i32.eq
+    i32.and
+    local.get $fourth
+    local.get $second
+    i32.eq
+    local.get $fifth
+    local.get $first
+    i32.eq
+    i32.and
+    i32.or
+    local.set $pair_reused
+    local.get $frame
+    call {root_frame_leave}
+    local.get $cycle_live
+    local.get $pair_reused
+    i32.and
+  )
+"""
+        module_end = wat.rstrip()
+        self.assertTrue(module_end.endswith(")"), "printed artifact is not a WAT module")
+        return module_end[:-1] + probe + ")\n"
+
+    def test_rooted_cycle_survives_and_unreachable_cycle_is_reused(self) -> None:
+        artifact = self.compile_linear_fixture()
+        printed = subprocess.run(
+            ["wasm-tools", "print", str(artifact)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(printed.returncode, 0, printed.stderr)
+        self.assertNotIn("struct.", printed.stdout)
+        self.assertNotIn("array.", printed.stdout)
+        self.assertNotIn("ref.", printed.stdout)
+
+        probe_wat = self.add_runtime_probe(printed.stdout)
+        probe = ROOT / ".build/tests/linear_gc_runtime_e2e_probe.wasm"
+        parsed = subprocess.run(
+            ["wasm-tools", "parse", "-o", str(probe)],
+            cwd=ROOT,
+            input=probe_wat,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(parsed.returncode, 0, parsed.stderr)
+        validated = subprocess.run(
+            ["wasm-tools", "validate", str(probe)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(validated.returncode, 0, validated.stderr)
+        executed = subprocess.run(
+            [
+                "wasmtime",
+                "run",
+                "--invoke",
+                "linear_gc_runtime_probe",
+                "--dir=.",
+                str(probe),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(executed.returncode, 0, executed.stderr)
+        self.assertEqual(executed.stdout.strip().splitlines()[-1], "1", executed.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
