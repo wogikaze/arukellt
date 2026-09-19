@@ -1011,17 +1011,7 @@ pub fn collect_range_i32(r: Range) -> Vec<i32> {
 /// This replaces the eager `std::seq::map_i32_i32` + `std::seq::filter_i32`
 /// chain with a single lazy traversal.
 pub fn collect_map_filter_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let n: i32 = len(v)
-    let mut i: i32 = 0
-    while i < n {
-        let mapped: i32 = map_f(get_unchecked(v, i))
-        if filter_f(mapped) {
-            push(result, mapped)
-        }
-        i = i + 1
-    }
-    result
+    v.iter().map(map_f).filter(filter_f).collect()
 }
 
 /// Map, filter, then take in a single pass — no intermediate `Vec` allocation.
@@ -1029,19 +1019,7 @@ pub fn collect_map_filter_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i
 /// This is the canonical lazy pipeline fixture:
 /// `v.iter().map(f).filter(g).take(n).collect()`.
 pub fn collect_map_filter_take_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool, n: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let total: i32 = len(v)
-    let mut i: i32 = 0
-    let mut taken: i32 = 0
-    while i < total && taken < n {
-        let mapped: i32 = map_f(get_unchecked(v, i))
-        if filter_f(mapped) {
-            push(result, mapped)
-            taken = taken + 1
-        }
-        i = i + 1
-    }
-    result
+    v.iter().map(map_f).filter(filter_f).take(n).collect()
 }
 
 /// Reduce `v` to a single value using `f`, starting from `init`.

@@ -34,6 +34,10 @@ fn main() {
     assert(len(pipe) == 2)
     assert(get_unchecked(pipe, 0) == 2)
     assert(get_unchecked(pipe, 1) == 4)
+    let map_filter = iter::collect_map_filter_i32(v, double, is_even)
+    assert(len(map_filter) == 5)
+    assert(get_unchecked(map_filter, 0) == 2)
+    assert(get_unchecked(map_filter, 4) == 10)
     // Method-shaped entry points preserve the same lazy adapter state.
     let method_map = v.iter().map(double).collect()
     assert(len(method_map) == 5)
