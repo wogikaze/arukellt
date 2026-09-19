@@ -33,4 +33,11 @@ fn main() {
         Some(_) => panic("expected None"),
         None => {}
     }
+
+    let collected_source: Vec<i32> = Vec::new<i32>()
+    push(collected_source, 300)
+    push(collected_source, 400)
+    let collected = Vec::from_iter(iter::vec_iter(collected_source))
+    test::assert_eq_i32(len(collected), 2)
+    test::assert_eq_i32(get_unchecked(collected, 1), 400)
 }
