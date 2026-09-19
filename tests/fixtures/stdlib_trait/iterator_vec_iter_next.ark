@@ -40,4 +40,12 @@ fn main() {
     let collected = Vec::from_iter(iter::vec_iter(collected_source))
     test::assert_eq_i32(len(collected), 2)
     test::assert_eq_i32(get_unchecked(collected, 1), 400)
+
+    let into_source: Vec<i32> = Vec::new<i32>()
+    push(into_source, 500)
+    let into_iter = iter::vec_iter(into_source).into_iter()
+    match into_iter.next() {
+        Some(x) => test::assert_eq_i32(x, 500),
+        None => panic("expected Some(500)"),
+    }
 }
