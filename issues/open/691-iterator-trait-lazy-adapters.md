@@ -81,3 +81,26 @@ type-specific function variants.
 - `src/compiler/mir/lower/loop_struct_iter.ark`
 - `tests/fixtures/iterator/custom_iterator.ark`
 - Rust `std::iter`: <https://doc.rust-lang.org/std/iter/index.html>
+
+## Progress receipt — 2026-09-20
+
+- Commit `4ec1085c7` adds the associated-type projection path needed by the
+  iterator redesign. `Iterator` now exposes `Item`; `IntoIterator` exposes
+  `Item` and `IntoIter`; and the existing `FromIterator` surface is public in
+  `std/core/iter.ark`.
+- Generic calls and methods resolve nested projections such as
+  `Option<T::Item>`, retain the concrete return type in monomorphized
+  instances, and accept imported trait/type paths such as `iter::Iterator`.
+- `tests/fixtures/stdlib_trait/iterator_vec_iter_next.ark` covers an imported
+  generic `Iterator` function on both targets. `trait_core_v2.ark` covers the
+  associated-type method path; its GC and linear executions produce `79`.
+- Evidence: `selfhost build-compiler` PASS; `verify lane` PASS including the
+  touched-code quality ratchet; `docs check` PASS; GC P2 component compile and
+  run PASS; linear P1 Wasm validate and run PASS.
+
+This is a partial implementation receipt, not a close receipt. Lazy adapter
+methods, generic collection implementations, canonical `collect`, structural
+`for` integration, and the existing `verify quick` backlog remain open. The
+generic imported non-generic constructor inference gap is also intentionally
+outside this unit; the regression fixture uses an explicit `iter::VecIter`
+annotation until that inference path is addressed.
