@@ -105,6 +105,9 @@ type-specific function variants.
   parameter, registers `FromIterator<VecIter> for Vec<i32>`, and adds a
   `Vec::from_iter(iter::vec_iter(...))` fixture. GC component and linear Wasm
   compile, validation, and runtime checks pass.
+- Test commit `18885e48e` extends the same fixture through
+  `iter::vec_iter(...).into_iter()` and verifies the returned iterator on both
+  target paths.
 
 This is a partial implementation receipt, not a close receipt. Lazy adapter
 methods, generic collection implementations, canonical `collect`, structural

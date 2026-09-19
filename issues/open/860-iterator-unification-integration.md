@@ -57,6 +57,8 @@ RFC-011: **37**。
   trait-only `VecIter` path on both targets.
 - Commit `099863a45` exercises the canonical `Vec::from_iter` associated
   function with a `VecIter` source on both targets.
+- Test commit `18885e48e` also exercises `IntoIterator::into_iter` before the
+  iterator is consumed by `next`.
 - This receipt does not mark any acceptance checkbox complete: eager/lazy
   duplication, canonical `collect`, desugared-iteration equivalence, and the
   RFC-011 residual audit still require implementation and review.
