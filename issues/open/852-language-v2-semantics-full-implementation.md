@@ -71,6 +71,11 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     verification remains blocked by the pre-existing #854 `unbox`/`slice_get`
     bootstrap mismatch. Acceptance remains open.
 - [ ] #869 — multi-clause / where / semicolon grammar を確定する — RFC 34–36 — depends: none
+  - Progress (not done, 2026-09-19): implementation `203029f18`; ADR-073,
+    RFC-011, language spec/syntax, positive/negative fixtures, and formatter
+    fixture are synchronized. Quality/docs checks pass, but current-source
+    compile/validate/runtime evidence remains blocked by the pre-existing #854
+    `unbox`/`slice_get` bootstrap mismatch. Acceptance remains open.
 
 ### Targets / backends
 
