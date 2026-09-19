@@ -166,6 +166,16 @@ impl IntoIterator for VecIter {
     }
 }
 
+/// Convert a `Vec<i32>` into the canonical lazy iterator over its elements.
+impl IntoIterator for Vec<i32> {
+    type Item = i32
+    type IntoIter = VecIter
+
+    fn into_iter(self: Vec<i32>) -> VecIter {
+        vec_iter(self)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // RangeIter — lazy adapter over Range
 // ---------------------------------------------------------------------------
