@@ -160,3 +160,17 @@ full adapter fixture matrix as a fallback parity gate.
 - `fold` remains open: its generic callback path still exposes the existing
   function-reference ABI gap, so this receipt does not claim the full consumer
   acceptance condition.
+
+## Progress receipt — 2026-09-20 (Vec IntoIterator)
+
+- Commit `30a5ec717` adds `IntoIterator for Vec<i32>`, producing the canonical
+  `VecIter` adapter while retaining the identity conversion for `VecIter`.
+- The iterator fixture now exercises `vector_into_source.into_iter()` directly.
+  GC component execution and linear Wasm validation/runtime pass.
+
+## Progress receipt — 2026-09-20 (for equivalence)
+
+- Test commit `67b4c876c` adds a same-input comparison between structural
+  `for x in iter::vec_iter(v)` and generic `sum_iter<T: Iterator>`. Both
+  observe `60` on GC and linear Wasm, documenting the current concrete
+  lowering equivalence without changing the structural lowering implementation.

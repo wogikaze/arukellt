@@ -85,3 +85,19 @@ RFC-011: **37**。
 - GC component execution and linear Wasm validate/runtime checks pass for the
   updated fixture. `fold` is intentionally not included because its generic
   callback lowering still hits the tracked function-reference ABI boundary.
+
+## Progress receipt — 2026-09-20 (Vec IntoIterator)
+
+- Commit `30a5ec717` adds the source-collection conversion
+  `IntoIterator for Vec<i32> -> VecIter`. The positive fixture calls
+  `vector_into_source.into_iter()` and passes GC component plus linear Wasm
+  compile/validate/runtime checks.
+- Structural `for` lowering remains unchanged and is not claimed as a fully
+  trait-driven desugaring in this receipt.
+
+## Progress receipt — 2026-09-20 (for equivalence)
+
+- Test commit `67b4c876c` compares structural `for` with a handwritten generic
+  `Iterator::sum` consumer over the same `VecIter` input. GC component and
+  linear Wasm compile/validate/runtime checks pass, establishing the current
+  concrete equivalence while leaving full trait-driven desugaring open.
