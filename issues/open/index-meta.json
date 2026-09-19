@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T00:15:06Z",
+  "generated_at": "2026-09-19T01:16:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,28 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "858",
-      "path": "858-operator-traits-magic-method-retirement.md",
-      "title": "858 — 演算子 Trait へ統一し magic method を退役する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "875",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1411,8 +1389,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 8,
-        "unchecked": 28
+        "checked": 12,
+        "unchecked": 26
       },
       "orchestration": {
         "class": "blocked-by-upstream",

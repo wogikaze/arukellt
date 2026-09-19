@@ -4,7 +4,7 @@
 
 決定日: 2026-09-19
 
-関連: [ADR-038](ADR-038-operator-overload-traits.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-062](ADR-062-language-v2-trait-core-coherence.md)、[RFC-004](../rfcs/004-trait-expressiveness.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#858](../../issues/open/858-operator-traits-magic-method-retirement.md)
+関連: [ADR-038](ADR-038-operator-overload-traits.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-062](ADR-062-language-v2-trait-core-coherence.md)、[RFC-004](../rfcs/004-trait-expressiveness.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#858](../../issues/done/858-operator-traits-magic-method-retirement.md)
 
 ## 文脈
 
