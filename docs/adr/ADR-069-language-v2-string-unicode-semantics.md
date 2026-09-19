@@ -8,7 +8,7 @@
 関連: [ADR-014](ADR-014-stability-labels.md)、[ADR-029](ADR-029-selfhost-validation.md)、
 [ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、
 [ADR-058](ADR-058-language-v2-semantics-redesign.md)、[ADR-060](ADR-060-language-v2-owned-adt-box-slice.md)、
-[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#863](../../issues/open/863-string-unicode-semantics.md)
+[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#863](../../issues/done/863-string-unicode-semantics.md)
 
 ## 文脈
 

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-19T04:17:41Z",
+  "generated_at": "2026-09-19T06:39:36Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,27 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "863",
-      "path": "863-string-unicode-semantics.md",
-      "title": "863 — String / Unicode semantics を確定する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "854"
-      ],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1329,8 +1308,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 17,
-        "unchecked": 23
+        "checked": 19,
+        "unchecked": 22
       },
       "orchestration": {
         "class": "blocked-by-upstream",
