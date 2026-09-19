@@ -64,6 +64,12 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     lane passes, but compile/runtime evidence remains blocked by the pre-existing
     #854 bootstrap mismatch, so #867 stays open.
 - [ ] #868 — Prelude / boolean literal / keyword policy を固定する — RFC 32, 33, 41 — depends: none
+  - Progress (not done, 2026-09-19): implementation `c19a95bb1`; ADR-072,
+    RFC-011, language spec, machine-readable keyword policy, stdlib manifest,
+    playground, and parser/formatter/diagnostic fixtures are synchronized.
+    Quality and docs/ADR checks pass, but canonical current-source compiler
+    verification remains blocked by the pre-existing #854 `unbox`/`slice_get`
+    bootstrap mismatch. Acceptance remains open.
 - [ ] #869 — multi-clause / where / semicolon grammar を確定する — RFC 34–36 — depends: none
 
 ### Targets / backends
