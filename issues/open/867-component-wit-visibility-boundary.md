@@ -37,6 +37,26 @@ RFC-011: **11, 31, 38**。
 - positive fixture + negative/diagnostic fixture
 - applicable compile/validate/runtime gate output
 
+## Progress receipt (not done; 2026-09-19)
+
+- Implementation: `d1f3014d9` (`language-v2: separate source and component visibility`).
+- Normative updates: `docs/adr/ADR-071-component-export-visibility-boundary.md`,
+  `docs/language/spec.md`, `docs/spec/import-system.md`, and RFC-011 references.
+- Frontend/compiler changes: `export` is a separate function declaration fact,
+  AST cache serialization preserves it, WIT package/interface identities use a
+  shared full-semver validator, and source visibility no longer implies a
+  Component export. Existing Component fixtures were migrated from `pub fn` to
+  `export fn`; positive, negative, diagnostic, and namespace-separation fixtures
+  were added.
+- Verification: `verify lane --gate component-interop` reached `quality changed`
+  PASS (lint 247, ratchet PASS). Targeted formatting, comment policy, semantic
+  debt, docs regeneration, and script unit tests pass. The component-interop lane
+  fails 102 runtime cases because the current bootstrap artifact still reports
+  the pre-existing #854 `unbox`/`slice_get` generic return mismatch.
+- The canonical `selfhost build-compiler` has the same #854 blocker, so current
+  source compile/validate/runtime evidence for this issue is not yet valid.
+  Acceptance remains unchecked and this issue stays open.
+
 ## False-done guard
 
 - [ ] Acceptance の一部だけで done にしない

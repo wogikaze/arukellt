@@ -59,6 +59,10 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     `unbox`/`slice_get` mismatch. WIT/component-boundary import work remains
     explicitly scoped to #867.
 - [ ] #867 — `pub` / Component export / WIT import 境界を分離する — RFC 11, 31, 38 — depends: 866
+  - Progress (not done, 2026-09-19): implementation `d1f3014d9`; ADR-071,
+    RFC-011, language spec, and import-system spec synchronized. The quality
+    lane passes, but compile/runtime evidence remains blocked by the pre-existing
+    #854 bootstrap mismatch, so #867 stays open.
 - [ ] #868 — Prelude / boolean literal / keyword policy を固定する — RFC 32, 33, 41 — depends: none
 - [ ] #869 — multi-clause / where / semicolon grammar を確定する — RFC 34–36 — depends: none
 
