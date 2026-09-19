@@ -28,6 +28,7 @@ from selfhost.checks import (  # noqa: E402
     BootstrapOverlayError,
     _replace_optional,
     _replace_required,
+    _patch_bootstrap_prelude_structural_box_slice_text,
     _sub_optional,
     _sub_required,
 )
@@ -163,6 +164,47 @@ class TestBootstrapOverlayError(unittest.TestCase):
     def test_message_preserved(self) -> None:
         err = BootstrapOverlayError("test message")
         self.assertEqual(str(err), "test message")
+
+
+class TestStructuralBoxSliceOverlay(unittest.TestCase):
+    """The compatibility transform stays source-only and narrowly scoped."""
+
+    def test_rewrites_generic_enum_wrappers_to_structs(self) -> None:
+        source = (
+            "pub enum Box<T> {\n"
+            "    Owned(T),\n"
+            "}\n\n"
+            "pub enum Slice<T> {\n"
+            "    View(Vec<T>, i32, i32),\n"
+            "}\n\n"
+            "// Box is an owned heap wrapper.\n"
+            "pub fn Box_new<T>(value: T) -> Box<T> {\n"
+            "    Box::Owned(value)\n"
+            "}\n\n"
+            "pub fn unbox<T>(boxed: Box<T>) -> T {\n"
+            "    match boxed { Box::Owned(value) => value, }\n"
+            "}\n\n"
+            "pub fn as_slice<T>(source: Vec<T>, start: i32, end: i32) -> Slice<T> {\n"
+            "    Slice::View(source, start, end)\n"
+            "}\n\n"
+            "pub fn slice_len<T>(view: Slice<T>) -> i32 {\n"
+            "    0\n"
+            "}\n\n"
+            "pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {\n"
+            "    match view { Slice::View(source, start, _) => get_unchecked(source, index), }\n"
+            "}\n\n"
+            "// Collections\n"
+        )
+        result = _patch_bootstrap_prelude_structural_box_slice_text(source)
+        self.assertIn("pub struct Box<T>", result)
+        self.assertIn("pub struct Slice<T>", result)
+        self.assertNotIn("pub enum Box<T>", result)
+        self.assertNotIn("Box::Owned", result)
+        self.assertIn("get_unchecked(view.source", result)
+
+    def test_rejects_drifted_prelude(self) -> None:
+        with self.assertRaises(BootstrapOverlayError):
+            _patch_bootstrap_prelude_structural_box_slice_text("pub enum Box<T> {}\n")
 
 
 if __name__ == "__main__":

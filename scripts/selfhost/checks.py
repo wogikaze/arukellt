@@ -136,6 +136,94 @@ def _overlay_skip(label: str) -> None:
     print(f"[bootstrap-overlay] optional patch skipped: {label}")
 
 
+def _patch_bootstrap_prelude_structural_box_slice_text(text: str) -> str:
+    """Adapt owned ADT wrappers for a pre-generic-enum pinned bootstrap.
+
+    The pinned stage-0 compiler can lower generic structs and generic Vec
+    payloads, but it cannot type-check a generic enum payload returned from a
+    match.  The current prelude's Box/Slice source contract is equivalent for
+    the compiler's own bootstrap inputs when represented as generic structs.
+    This transformation is restricted to the isolated bootstrap overlay; the
+    checked-in prelude and user-facing ADT representation are unchanged.
+    """
+    if "pub struct Box<T>" in text and "pub struct Slice<T>" in text:
+        return text
+
+    old_declarations = (
+        "pub enum Box<T> {\n"
+        "    Owned(T),\n"
+        "}\n\n"
+        "pub enum Slice<T> {\n"
+        "    View(Vec<T>, i32, i32),\n"
+        "}\n"
+    )
+    new_declarations = (
+        "pub struct Box<T> {\n"
+        "    value: T,\n"
+        "}\n\n"
+        "pub struct Slice<T> {\n"
+        "    source: Vec<T>,\n"
+        "    start: i32,\n"
+        "    end: i32,\n"
+        "}\n"
+    )
+    text = _replace_required(
+        text,
+        old_declarations,
+        new_declarations,
+        "bootstrap structural Box/Slice declarations",
+    )
+
+    begin = text.find("// Box is an owned heap wrapper.")
+    end = text.find("// Collections", begin)
+    if begin < 0 or end < 0:
+        raise BootstrapOverlayError(
+            "bootstrap structural Box/Slice functions are missing from std/prelude.ark"
+        )
+    replacement = (
+        "// Bootstrap-only structural representation for a pinned compiler that "
+        "predates generic enum payload lowering.\n"
+        "pub fn Box_new<T>(value: T) -> Box<T> {\n"
+        "    Box { value: value }\n"
+        "}\n\n"
+        "pub fn unbox<T>(boxed: Box<T>) -> T {\n"
+        "    boxed.value\n"
+        "}\n\n"
+        "pub fn as_slice<T>(source: Vec<T>, start: i32, end: i32) -> Slice<T> {\n"
+        "    Slice { source: source, start: start, end: end }\n"
+        "}\n\n"
+        "pub fn slice_len<T>(view: Slice<T>) -> i32 {\n"
+        "    view.end - view.start\n"
+        "}\n\n"
+        "pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {\n"
+        "    get_unchecked(view.source, view.start + index)\n"
+        "}\n\n"
+    )
+    return text[:begin] + replacement + text[end:]
+
+
+def _patch_bootstrap_prelude_structural_box_slice(workspace_root: Path) -> None:
+    """Apply the source-only Box/Slice compatibility transform to an overlay."""
+    prelude_path = workspace_root / "std" / "prelude.ark"
+    if not prelude_path.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay is missing std/prelude.ark for Box/Slice compatibility"
+        )
+    patched = _patch_bootstrap_prelude_structural_box_slice_text(
+        prelude_path.read_text(encoding="utf-8")
+    )
+    prelude_path.write_text(patched, encoding="utf-8")
+
+
+def _is_bootstrap_generic_enum_mismatch(stderr: str) -> bool:
+    """Recognize only the pinned stage-0 generic-enum return mismatch."""
+    markers = (
+        "return type mismatch: 'unbox' declared to return T but body returns T",
+        "return type mismatch: 'slice_get' declared to return T but body returns T",
+    )
+    return all(marker in stderr for marker in markers)
+
+
 class ReadOnlyFixtureUnavailable(RuntimeError):
     """Raised when a fixture's ``:ro`` execution contract cannot be enforced."""
 
@@ -3649,6 +3737,24 @@ def _compile_selfhost_bootstrap_chain(
         target=BOOTSTRAP_EMIT_TARGET,
         wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
     )
+    if result.returncode != 0 and _is_bootstrap_generic_enum_mismatch(result.stderr or ""):
+        workspace = _prepare_bootstrap_workspace(root)
+        _patch_bootstrap_prelude_structural_box_slice(workspace)
+        print(
+            "[selfhost] pinned bootstrap lacks generic enum payload lowering; "
+            "retrying with structural Box/Slice overlay"
+        )
+        result = _wasm_compile(
+            wasmtime,
+            bootstrap,
+            SELFHOST_SOURCE_REL,
+            out_rel,
+            root,
+            timeout=SELFHOST_COMPILE_TIMEOUT,
+            workspace_root=workspace,
+            target=BOOTSTRAP_EMIT_TARGET,
+            wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+        )
     if result.returncode == 0:
         out = root / out_rel
         if out.is_file():
