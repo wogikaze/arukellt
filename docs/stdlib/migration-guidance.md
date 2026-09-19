@@ -48,14 +48,17 @@ use std::core::iter
 
 fn main() {
     let values: Vec<i32> = core::range_inclusive_new(4, 6).into_iter().collect()
+    let collected: Vec<i32> = Vec::from_iter(core::range_new(0, 3).into_iter())
     let count = core::range_new(0, 3).into_iter().count()
     let total = core::range_new(0, 3).into_iter().sum()
 }
 ```
 
 `Vec<i32>`, `Range`, and `RangeInclusive` implement `IntoIterator`; the
-canonical `Iterator::collect`, `count`, and `sum` consumers currently cover the
-concrete `i32` item lane. Generic `Vec<T::Item>` collection, callback-bearing
+canonical `Iterator::collect`, `Vec::from_iter`, `count`, and `sum` consumers
+currently cover the concrete `i32` item lane. `FromIterator` dispatches the
+`VecIter`, `RangeIter`, and `RangeInclusiveIter` sources statically. Generic
+`Vec<T::Item>` collection, callback-bearing
 `fold`, and method adapters such as `.map()` and `.filter()` remain planned
 under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md) and
 [#860](../../issues/open/860-iterator-unification-integration.md). The
