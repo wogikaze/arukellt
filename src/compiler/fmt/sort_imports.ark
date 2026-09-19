@@ -44,7 +44,7 @@ fn fmt_collect_import_entries(text: String, decls: Vec<AstNode>) -> Vec<FmtImpor
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
-        if ast_decl_predicates::node_is_use(d) {
+        if ast_decl_predicates::node_is_use(d) || ast_decl_predicates::node_is_import(d) {
             let path = ast_access::node_text(d)
             let has_alias = ast_access::node_type_ann_count(d) > 0
             let line_start = ast_access::node_span_start(d)

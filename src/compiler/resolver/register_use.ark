@@ -2,7 +2,6 @@ use resolver::scope_lookup
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::scope_define
-use resolver::kinds
 use resolver::paths
 use resolver::ctx_record
 
@@ -27,15 +26,36 @@ fn register_use_decl_func_alias(ctx: ResolveCtx, d: AstNode) {
 }
 
 fn register_use_module_alias(ctx: ResolveCtx, d: AstNode) {
+    let default_name = paths::use_module_short_name(ast_access::node_text(d))
     let short_name = if ast_access::node_type_ann_count(d) > 0 {
         let alias_node = ast_access::node_type_ann_at(d, 0)
         ast_access::node_text(alias_node)
     } else {
-        paths::use_module_short_name(ast_access::node_text(d))
+        clone(default_name)
     }
     let existing_mod = scope_lookup::lookup(ctx, clone(short_name))
     if existing_mod < 0 {
         scope_define::define(ctx, clone(short_name), commands::SYM_MODULE())
+    }
+    if !eq(clone(short_name), clone(default_name)) {
+        ctx_record::resolve_ctx_add_use_alias(ctx, clone(short_name), default_name)
+    }
+}
+
+fn register_local_import_decl(ctx: ResolveCtx, d: AstNode) {
+    let path = ast_access::node_text(d)
+    let default_name = paths::use_module_short_name(clone(path))
+    let alias = if ast_access::node_type_ann_count(d) > 0 {
+        ast_access::node_text(ast_access::node_type_ann_at(d, 0))
+    } else {
+        clone(default_name)
+    }
+    let existing_mod = scope_lookup::lookup(ctx, clone(alias))
+    if existing_mod < 0 {
+        scope_define::define(ctx, clone(alias), commands::SYM_MODULE())
+    }
+    if !eq(clone(alias), clone(default_name)) {
+        ctx_record::resolve_ctx_add_use_alias(ctx, alias, default_name)
     }
 }
 

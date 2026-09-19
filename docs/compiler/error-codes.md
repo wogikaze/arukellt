@@ -1036,7 +1036,7 @@ one, please file a bug report.
 | W0009 | warning | lint-post-resolve | deprecated API usage with the manifest-recorded replacement |
 | W0010 | warning | lint-post-resolve | prefer use import for frequently qualified paths |
 | W0011 | warning | lint-post-resolve | prefer else-if over nested else { if } |
-| W0101 | warning | parse | deprecated import syntax; use `use` (declared; not emitted) |
+| W0101 | warning | parse | deprecated import syntax; use `use` |
 | W0102 | warning | lint-post-resolve | component lowering note (declared; not emitted) |
 <!-- END GENERATED:WARNING_CODE_CATALOGUE -->
 
@@ -1049,11 +1049,11 @@ one, please file a bug report.
 | **Severity** | warning |
 | **Phase** | parse |
 | **Message** | deprecated import syntax |
-| **Maturity** | declared; not currently emitted |
+| **Maturity** | implemented; emitted |
 
-ADR-031 reserves this identity for the `import` to `use` migration. The current
-parser does not yet emit the warning, so examples below describe the accepted
-contract rather than observed compiler output.
+ADR-031 reserves this identity for the `import` to `use` migration. The parser
+emits the warning for legacy local-source imports, so examples below describe
+the migration contract and its observed diagnostic.
 
 ```text
 // Deprecated

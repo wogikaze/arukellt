@@ -31,7 +31,7 @@ Each `.ark` file is a module whose name is derived from its filename:
 The `[bin]` section of `ark.toml` identifies the entry-point file.
 All other `.ark` files in the source tree are importable as sibling modules.
 
-### 2.2 `import` resolution order
+### 2.2 Legacy `import` resolution order
 
 `import math` resolves as follows (in order, first match wins):
 
@@ -39,10 +39,10 @@ All other `.ark` files in the source tree are importable as sibling modules.
 2. **Sibling directory** — look for `<current-file-dir>/math/mod.ark`
 3. **Error** — no match → compile error E0105 (unresolved import)
 
-`import` is a v0 keyword. As of v1, prefer `use` for all standard library
-imports. `import` will be reserved for Component Model boundary imports in v4+
-(see ADR-009). WIT package IDs (`namespace:pkg/iface@ver`) are a separate
-surface from `::` module paths; see [ADR-031](adr/ADR-031-import-syntax-wit-unification.md).
+`import` is the compatibility spelling for a local source-module import. It
+accepts an optional `as` alias, follows the same local alias rules as `use`,
+and emits `W0101` at parse phase. New source should use `use`. String-literal
+`import` for the Component Model boundary is tracked separately in #867.
 
 ### 2.3 `use` resolution order
 
@@ -51,7 +51,8 @@ surface from `::` module paths; see [ADR-031](adr/ADR-031-import-syntax-wit-unif
 1. **Standard library** — look up the path in `std/manifest.toml` module table
 2. **Error** — no match → compile error E0105 (unresolved import)
 
-`use` is the preferred import keyword for stdlib access.
+`use` is the canonical source import keyword. For a brace group, the loader
+loads the containing module while the resolver binds the selected public items.
 The standard library module tree is defined by `std/manifest.toml`.
 
 ### 2.4 Qualified access
@@ -71,7 +72,7 @@ A module alias can be renamed at import time:
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-import math as m
+use math as m
 let x = m::add(1, 2)
 ```
 
@@ -242,11 +243,12 @@ The module's exported functions become accessible via the alias `stdio::`.
 - `pub` makes an item visible to any importing module
 - `pub(crate)` is reserved syntax but not enforced in v1
 
-**Import re-export**: A `pub use` or `pub import` makes the imported module's
-public items re-exported through the re-exporting module's public API.
+**Import re-export**: A `pub use` makes selected public items (or all public
+items selected by a module path) available through the re-exporting module's
+public API.
 Importers of the facade module can access re-exported items as if they were
-defined in the facade. Non-`pub` uses remain module-private and are not
-visible to importers (implemented in #490).
+defined in the facade. Non-`pub` uses remain module-private and private source
+items cannot be promoted by a facade.
 
 ## 8. Resolution in the Extension and LSP
 

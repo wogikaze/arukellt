@@ -1,8 +1,31 @@
 # Module System
 
-Arukellt supports two import syntaxes for bringing modules into scope.
+`use` is the canonical source-module syntax. The legacy `import` spelling is
+accepted only as a migration form and emits `W0101` at parse phase.
 
-## `import` (local modules)
+## `use` (source and stdlib modules)
+
+```ark
+use std::core
+use std::text as t
+use std::collections::string
+use std::text::string::{split, join}
+```
+
+`use path::to::module` loads the module and uses its final path segment as the
+default alias. `as` replaces that alias. A brace group selects public items
+from the containing module and binds their short names.
+
+`pub use` re-exports public source items through a facade. The re-export does
+not change source visibility: a private item remains inaccessible.
+
+`use std::path::to::module` loads from the `std/` directory tree, resolving
+`::` to `/` in the filesystem. The path resolution order is:
+
+1. direct `.ark` file
+2. directory `mod.ark`
+
+### Legacy `import` (migration only)
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -15,25 +38,9 @@ fn main() {
 }
 ```
 
-`import name` loads `name.ark` from the same directory as the current file.
-
-## `use` (namespaced modules)
-
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-use std::core
-use std::text as t
-use std::collections::string
-
-fn main() {
-    core::identity(42)
-    t::repeat("ha", 3)
-}
-```
-
-`use std::path::to::module` loads from the `std/` directory tree, resolving
-`::` to `/` in the filesystem. The last path segment becomes the default
-module alias.
+`import name` and `import name as alias` load a local source module from the
+current file's directory. They use the same alias resolution as `use`, but
+new code should migrate to `use`.
 
 ### Path resolution order
 
@@ -103,10 +110,10 @@ std/
     └── random.ark       # use std::host::random
 ```
 
-## Limitations (v3)
+## Limitations (current)
 
 - No wildcard imports (`use std::foo::*`)
-- No `pub use` re-exports
+- No item-level aliases inside a brace group
 - Maximum 4 path segments recommended
 
 ## Function-level destructuring (v4 — issue #717)

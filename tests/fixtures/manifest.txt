@@ -230,6 +230,7 @@ diag:diagnostics/capability_stub.ark
 diag:diagnostics/deprecated_prelude_println.ark
 diag:diagnostics/deprecated_std_io_import.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
+diag:diagnostics/deprecated_import_syntax.ark
 diag:diagnostics/duplicate_def.ark
 diag:diagnostics/immutable_mutation.ark
 diag:diagnostics/mismatched_arms.ark
@@ -346,6 +347,7 @@ module-run:stdlib_time/monotonic.ark
 parse-only:module_import/pub_use_basic.ark
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
+parse-only:diagnostics/deprecated_import_dep.ark
 parse-only:modules/registry_http_ok/mock_reg/my_http_pkg.ark
 parse-only:stdlib_host/clock_import.ark
 parse-only:stdlib_host/random_import.ark

@@ -1,6 +1,7 @@
 use loader::module_state_loading
 use loader::module_import_paths
 use loader::module_local_decls
+use loader::module_file_load_local
 use loader::module_package_root
 use loader::module_paths
 use loader::module_sealed_raw
@@ -28,12 +29,12 @@ fn load_imported_modules_at(
     state: LoadState,
     importer_is_stdlib: bool
 ) {
-    let paths = module_import_paths::collect_import_paths(decls)
-    let count = len(paths)
+    let import_paths = module_import_paths::collect_import_paths(decls)
+    let count = len(import_paths)
     let mut i = 0
     while i < count {
         load_import_path(
-            clone(get_unchecked(paths, i)),
+            clone(get_unchecked(import_paths, i)),
             clone(current_dir),
             clone(root_dir),
             state,
@@ -69,12 +70,37 @@ fn load_import_path(
     if wit_manifest::is_wit_package_id(clone(use_path)) {
         return
     }
-    load_single_module(
+    load_local_module_or_parent(
         clone(use_path),
-        module_base_dir_for_import(clone(use_path), current_dir, clone(root_dir)),
+        module_base_dir_for_import(clone(use_path), clone(current_dir), clone(root_dir)),
+        current_dir,
         root_dir,
         state
     )
+}
+
+fn load_local_module_or_parent(
+    module_name: String,
+    base_dir: String,
+    fallback_dir: String,
+    root_dir: String,
+    state: LoadState
+) {
+    let direct = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
+    if module_file_load_local::DriverLoadedSource_is_ok(direct) {
+        load_single_module(module_name, base_dir, root_dir, state)
+        return
+    }
+    let parent_name = resolver::paths::use_module_parent_path(clone(module_name))
+    if len(clone(parent_name)) > 0 {
+        let parent_base = module_base_dir_for_import(clone(parent_name), fallback_dir, clone(root_dir))
+        let parent = module_file_load_local::read_local_module_source(clone(parent_name), clone(parent_base))
+        if module_file_load_local::DriverLoadedSource_is_ok(parent) {
+            load_single_module(parent_name, parent_base, root_dir, state)
+            return
+        }
+    }
+    load_single_module(module_name, base_dir, root_dir, state)
 }
 
 fn load_single_module(module_name: String, base_dir: String, root_dir: String, state: LoadState) {

@@ -3,6 +3,7 @@ use diagnostics::record
 use lexer::tokens
 use parser::cursor
 use parser::token_state
+use diagnostics::mod as diag_mod
 
 fn parser_token_kind_name(kind: i32) -> String {
     if kind == tokens::TK_RBRACE() {
@@ -47,4 +48,15 @@ fn parser_push_unexpected_error(p: Parser, msg: String) {
     let t = cursor::cur(p)
     let diag = record::Diagnostic_new_parse(codes::DIAG_PARSE_UNEXPECTED(), msg, token_state::Token_start(t), token_state::Token_end(t))
     push(p.errors, diag)
+}
+
+fn parser_push_deprecated_import_warning(p: Parser, tok: Token) {
+    let span = record::DiagnosticSpan_from_raw(token_state::Token_start(tok), token_state::Token_end(tok))
+    let diag = diag_mod::Diagnostic_new(
+        codes::DIAG_WARN_DEPRECATED_IMPORT(),
+        diag_mod::SEV_WARNING(),
+        span,
+        "deprecated `import <name>` syntax; use `use <name>`"
+    )
+    push(p.warnings, diag)
 }

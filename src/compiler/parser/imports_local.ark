@@ -3,6 +3,8 @@ use parser::core_ast_factory
 use parser::core_ast_literal_fields
 use parser::core_ast_text_fields
 use parser::core_api_expect
+use parser::diagnostics
+use parser::imports_alias
 use parser::kinds
 use parser::token_state
 
@@ -11,5 +13,7 @@ fn parse_local_import(p: Parser, import_span: Span) -> AstNode {
     let node = core_ast_factory::AstNode_new(kinds::NK_IMPORT(), import_span)
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(path_tok))
     core_ast_literal_fields::AstNode_set_int_val(node, kinds::IMPORT_KIND_LOCAL())
+    imports_alias::parse_use_alias(p, node)
+    diagnostics::parser_push_deprecated_import_warning(p, path_tok)
     node
 }

@@ -25,7 +25,19 @@ fn main() -> i32 {
 }
 ```
 
-## import
+## use / import
+
+ソースモジュールの正規形は `use` です。
+
+代表的な形は `use std::core as c`、`use std::text::string::{split, join}`、
+`pub use source::answer` です。
+
+- `use path::to::module` は末尾の path segment を既定 alias にします
+- `use path::to::module as alias` は現在の module 内の alias を明示します
+- `use path::to::module::{item_a, item_b}` は containing module の公開 item を選択します
+- `pub use` は選択した公開 item を facade から再公開します。private item は再公開されません
+
+旧来の `import` は移行期間の互換構文です。
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -35,7 +47,8 @@ import utils as u
 
 - 基本形は `import <name>`
 - alias 付きは `import <name> as <alias>`
-- qualified access は `math::add(1, 2)` の形を使います
+- `import` は `use` と同じ local module 解決を行い、`W0101`（parse warning）を出します
+- 新しい source では `use` を使います
 - capability 引数付き `main(caps: ...)` は現行の一般的 API ではありません
 
 > 📘 import/use の完全な構文は [spec.md §7 Module System](spec.md#7-module-system) を参照。

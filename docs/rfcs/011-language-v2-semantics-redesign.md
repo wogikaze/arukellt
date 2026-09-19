@@ -102,7 +102,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | ADR-070で immutable binding、environment-aware generalization、allocation/call/mutable state の境界を採択済み。 |
 | 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
 | 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
-| 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | ADR-009、ADR-031との整合確認が必要。 |
+| 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | #866で `use` を正規形、legacy `import` を `W0101` 付き移行構文として実装。alias、selective import、`pub use`、loader/resolver/formatter/LSPの同期を確認。仕様は [import-system.md](../spec/import-system.md) を参照。 |
 | 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | ADR-031を正本として実装と仕様を一致させる。 |
 | 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | stdlib API移行とADR-014の確認が必要。 |
 | 33 | 真偽値 | `true` と `false` を字句リテラルとして一意に扱い、Preludeとの重複をなくす。 | lexer、name resolution、fixtureを同期する。 |
@@ -247,7 +247,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか（source-level owned ADT 契約はADR-060で採択済み）。
 4. ADR-062 の範囲外である `dyn Trait` の動的 ABI、specialization、higher-kinded projection。
 5. Unicode normalization、grapheme cluster、その他の text segmentation API。
-6. `import` と `use` の最終構文、およびWIT parserのcanonical path。
+6. WIT parserのcanonical pathとComponent境界の受け渡し。
 7. `wasm32-gc`、`wasm32`、Memory64、WASI profileをCLIでどう表現するか。
 8. stable機能の移行期間と、実行可能な仕様fixtureの必須範囲。
 

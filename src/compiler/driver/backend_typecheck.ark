@@ -89,7 +89,7 @@ fn merge_warnings(into: Vec<Diagnostic>, from: Vec<Diagnostic>) {
     vec_extend::Vec_extend_Diagnostic(into, from)
 }
 
-fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> DriverTypecheckResult {
+fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx, parse_warnings: Vec<Diagnostic>) -> DriverTypecheckResult {
     let check_result = session_typecheck_query::session_typecheck_decls(all_decls, resolve_ctx, config_record::config_wit_paths(config))
     debug::dump_typed_hir_if_enabled(config, check_result)
     let error_count = session_typecheck_query::session_typecheck_error_count(check_result)
@@ -117,10 +117,12 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
         let deny_codes = config_record::config_lint_deny(config)
         let filtered_typecheck = filter_lint_warnings(warnings, allow_codes)
         let filtered_lint = filter_lint_warnings(lint_warnings, allow_codes)
+        let filtered_parse = filter_lint_warnings(parse_warnings, allow_codes)
         // Merge all warnings
         let merged = Vec::new<Diagnostic>()
         merge_warnings(merged, filtered_typecheck)
         merge_warnings(merged, filtered_lint)
+        merge_warnings(merged, filtered_parse)
         let denied = Vec::new<Diagnostic>()
         let kept = Vec::new<Diagnostic>()
         partition_deny_lists(merged, deny_codes, denied, kept)

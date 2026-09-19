@@ -2,7 +2,7 @@ use compiler::phases
 use driver::errors_phase
 use driver::result_record
 
-pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diagnostic>) -> CompileResult {
+pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diagnostic>, warnings: Vec<Diagnostic>) -> CompileResult {
     let parse_error_count = len(errors)
     let mut result = result_record::CompileResult_new(false, phases::PHASE_PARSE(), parse_error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     let mut k = 0
@@ -12,6 +12,26 @@ pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diag
         result_record::compile_result_push_error_message(result, errors_phase::enrich_diagnostic(clone(source), clone(source_file), diag))
         k = k + 1
     }
+    let warning_count = len(warnings)
+    let mut wi = 0
+    while wi < warning_count {
+        result_record::compile_result_push_diagnostic(result, get_unchecked(warnings, wi))
+        wi = wi + 1
+    }
     result_record::compile_result_set_error_count(result, parse_error_count)
+    result
+}
+
+pub fn parse_warnings_result(source: String, source_file: String, warnings: Vec<Diagnostic>) -> CompileResult {
+    let mut result = result_record::CompileResult_new(true, phases::PHASE_PARSE(), 0, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
+    let warning_count = len(warnings)
+    let mut wi = 0
+    while wi < warning_count {
+        let diag = get_unchecked(warnings, wi)
+        result_record::compile_result_push_diagnostic(result, diag)
+        result_record::compile_result_push_error_message(result, errors_phase::enrich_diagnostic(clone(source), clone(source_file), diag))
+        wi = wi + 1
+    }
+    result_record::compile_result_set_error_count(result, warning_count)
     result
 }

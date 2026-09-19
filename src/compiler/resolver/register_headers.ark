@@ -3,7 +3,6 @@ use resolver::scope_define
 use resolver::scope_lookup
 use resolver::ast_decl_predicates
 use resolver::ast_access
-use resolver::kinds
 use resolver::register_use
 use corehir::decl_impl_target
 
@@ -47,10 +46,10 @@ fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
 fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
     if ast_decl_predicates::node_is_impl_decl(d) {
         register_impl_method_headers(ctx, d)
-    } else {
-        if ast_decl_predicates::node_is_use(d) {
-            register_use::register_use_decl(ctx, d)
-        }
+    } else if ast_decl_predicates::node_is_use(d) {
+        register_use::register_use_decl(ctx, d)
+    } else if ast_decl_predicates::node_is_import(d) && !ast_decl_predicates::node_is_wit_import(d) {
+        register_use::register_local_import_decl(ctx, d)
     }
 }
 

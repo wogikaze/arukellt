@@ -35,7 +35,7 @@
 | `W0007` | warning | `lint-post-resolve` | unused binding |
 | `W0008` | warning | `lint-post-resolve` | documentation drift (declared; not emitted) |
 | `W0009` | warning | `lint-post-resolve` | deprecated API; manifest-recorded replacement |
-| `W0101` | warning | `parse` | deprecated `import <name>` syntax (declared; not emitted) |
+| `W0101` | warning | `parse` | deprecated `import <name>` syntax; use `use` |
 | `W0102` | warning | `lint-post-resolve` | component lowering note (declared; not emitted) |
 
 ### Important current-first choice
@@ -50,8 +50,8 @@ backend validation を通らない Wasm を「成功ビルド」として流さ�
 - `E0001` unexpected token
 - `E0002` missing token
 - `E0003` invalid construct
-- `W0101` deprecated `import <name>` syntax; use `use <name>` (declared;
-  current parser does not emit it yet)
+- `W0101` deprecated `import <name>` syntax; use `use <name>` (implemented;
+  emitted during parse)
 
 ### Resolve
 

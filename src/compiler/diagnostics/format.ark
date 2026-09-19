@@ -1,7 +1,7 @@
+use std::text
 use diagnostics::record
 use diagnostics::severity
 use diagnostics::source_map_offsets
-use std::text
 
 fn diagnostic_phase_name(code: String, msg: String) -> String {
     if eq(clone(code), String_from("E0500")) {
@@ -9,6 +9,9 @@ fn diagnostic_phase_name(code: String, msg: String) -> String {
             return String_from("resolve")
         }
         return String_from("emit")
+    }
+    if eq(clone(code), String_from("W0101")) {
+        return String_from("parse")
     }
     if len(code) >= 1 && eq(substring(clone(code), 0, 1), String_from("W")) {
         return String_from("typecheck")
@@ -38,7 +41,7 @@ fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic)
     let phase = diagnostic_phase_name(clone(code), clone(msg))
     let mut out = severity::severity_name(sev)
     out = text::builder_append(out, String_from("["))
-    out = text::builder_append(out, concat(code, concat(String_from("|"), concat(phase, concat(String_from("]: "), msg))))))
+    out = text::builder_append(out, concat(code, concat(String_from("|"), concat(phase, concat(String_from("]: "), msg)))))
     let span = record::diagnostic_span(diag)
     let start = record::diagnostic_span_start(span)
     let end = record::diagnostic_span_end(span)

@@ -1,8 +1,8 @@
 use driver::errors_parse
 use driver::errors_phase
 
-pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diagnostic>) -> CompileResult {
-    errors_parse::parse_errors_result(source, source_file, errors)
+pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diagnostic>, warnings: Vec<Diagnostic>) -> CompileResult {
+    errors_parse::parse_errors_result(source, source_file, errors, warnings)
 }
 
 pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {

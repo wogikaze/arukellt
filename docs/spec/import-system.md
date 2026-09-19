@@ -18,6 +18,9 @@ Layer S is the source-language module import surface.
 - Canonical form: `use path::to::module`
 - Path separator: `::`
 - Purpose: resolve Arukellt modules (stdlib and source modules) during source compilation.
+- `as` gives the imported module an explicit local alias.
+- `use path::to::module::{item, item2}` selects public items from one module.
+- `pub use` re-exports selected public items or all public items selected by a module path.
 - Layer S does not use WIT package identifiers as module paths.
 - `std::...` names remain source-level Arukellt imports, not WIT boundary IDs.
 
@@ -44,9 +47,17 @@ Layer C is not the same namespace as Layer S and must not be interpreted as `::`
 As of current implementation and docs contract:
 
 - `use` is the canonical source import mechanism for Layer S.
-- `import` is reserved by ADR-009 for future Layer C component-boundary use.
-- Legacy `import <single_identifier>` still exists in current parser behavior for file-level source import compatibility.
-  This legacy source usage is transitional and is not Layer C.
+- `use path as alias` resolves qualified access through `alias` while retaining the
+  canonical module path for lookup.
+- A selective `use` loads the containing module and creates aliases for the selected
+  items. An item alias is not a second module import.
+- `pub use` exposes only symbols that are public in the source module; a private
+  source symbol cannot become public through a facade.
+- Legacy `import <identifier> [as <alias>]` remains accepted for source-module
+  migration. It follows the same local module and alias resolution as `use`, and
+  emits `W0101` at parse phase. New source should use `use`.
+- String-literal `import` remains reserved for the Layer C/WIT boundary and is
+  specified separately by issue #867.
 
 Current behavior source of truth:
 
@@ -58,7 +69,7 @@ Current behavior source of truth:
 The following is planned/deferred and not yet implemented as a stable source feature:
 
 - Layer C source syntax for component-boundary imports (for example string-literal `import` forms targeting WIT identifiers).
-- Full remapping of legacy source `import <single_identifier>` to `use`-only source imports.
+- Removal of the compatibility form after the migration window defined by ADR-031.
 - Source-level remapping of Arukellt module names to WIT package identifiers such as `arukellt:std/io`.
 
 Until those changes land, do not treat `import` as active component-boundary syntax in user code.
@@ -69,7 +80,7 @@ This contract does not redefine Arukellt source module paths to WIT package synt
 
 - `std::...` (Layer S) is not rewritten into `namespace:package/...`.
 - WIT package identifiers belong to Layer C boundary contracts.
-- The spec does not require any current parser changes to support this split.
+- The spec does not make WIT package identifiers source-module paths.
 
 ## 5. Cross References
 

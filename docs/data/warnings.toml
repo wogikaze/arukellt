@@ -97,8 +97,9 @@ code = "W0101"
 severity = "warning"
 phase = "parse"
 summary = "deprecated import syntax; use `use`"
-maturity = "declared"
-emitted = false
+maturity = "implemented"
+emitted = true
+fixture = "tests/fixtures/diagnostics/deprecated_import_syntax.ark"
 adr = "ADR-031"
 
 [[diagnostics]]

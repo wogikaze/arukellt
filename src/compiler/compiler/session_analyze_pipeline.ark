@@ -11,6 +11,7 @@ use compiler::session_typecheck_query
 use corehir::frontend_bundle
 use corehir::mod
 use loader::load
+use parser::program
 use lint::checks as lint_checks
 
 fn lex_diag_code_string(code: i32) -> String {
@@ -98,6 +99,29 @@ fn session_record_parse_diagnostics(snap: AnalysisSnapshot, parse_result: ParseR
     }
 }
 
+fn session_record_parse_warnings(snap: AnalysisSnapshot, parse_result: ParseResult) {
+    let warnings = program::ParseResult_warnings(parse_result)
+    let warning_count = len(warnings)
+    let mut wi = 0
+    while wi < warning_count {
+        let warning = get_unchecked(warnings, wi)
+        let code = diag_record::diagnostic_code(warning)
+        let message = diag_record::diagnostic_message(warning)
+        let span = diag_record::diagnostic_span(warning)
+        let full_message = concat(clone(code), concat("|", clone(message)))
+        snapshot_state_record::snapshot_push(
+            snap,
+            diagnostic_record::AnalysisDiagnostic_new(
+                phases::PHASE_PARSE(),
+                full_message,
+                diag_record::diagnostic_span_start(span),
+                diag_record::diagnostic_span_end(span)
+            )
+        )
+        wi = wi + 1
+    }
+}
+
 fn session_record_resolve_diagnostics(snap: AnalysisSnapshot, resolve_ctx: ResolveCtx) {
     let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
     let mut ri = 0
@@ -164,6 +188,7 @@ pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<
     let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query::session_lex_tokens(lex_result))
     snapshot_state_record::snapshot_set_decl_count(snap, session_parse_tokens::session_parse_decl_count(parse_result))
     session_record_parse_diagnostics(snap, parse_result)
+    session_record_parse_warnings(snap, parse_result)
     let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
     let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, modules, Vec::new<String>())
     snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))

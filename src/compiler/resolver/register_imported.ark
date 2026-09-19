@@ -7,6 +7,7 @@ use resolver::scope_define
 use resolver::kinds
 use resolver::modules
 use resolver::register_exports
+use resolver::paths
 
 fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = len(modules)
@@ -181,8 +182,11 @@ fn collect_pub_use_edges(m: ModuleDecls, module_name: String, edge_targets: Vec<
 
 // True when at least one new qualified symbol was defined.
 fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) -> bool {
-    let prefix = concat(clone(source_module), "::")
-    let prefix_len = len(clone(prefix))
+    let source_root = paths::path_module_part(clone(source_module))
+    let selected_symbol = paths::path_symbol_part(clone(source_module))
+    let module_prefix = concat(clone(source_root), "::")
+    let module_prefix_len = len(clone(module_prefix))
+    let selected_prefix = concat(clone(source_module), "::")
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
     let mut defined_any = false
@@ -190,16 +194,19 @@ fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module
     while i < sym_count {
         let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
         let sym_name = scope_stack_symbols::Symbol_name(sym)
-        if starts_with(clone(sym_name), clone(prefix)) {
-            if scope_stack_symbols::Symbol_is_pub(sym) {
-                let suffix = substring(clone(sym_name), prefix_len, len(clone(sym_name)))
-                let qualified = concat(clone(target_module), concat("::", clone(suffix)))
-                let existing = scope_lookup::lookup(ctx, clone(qualified))
-                if existing < 0 {
-                    let kind = scope_stack_symbols::Symbol_kind(sym)
-                    scope_define::define_with_vis(ctx, qualified, kind, true)
-                    defined_any = true
-                }
+        let matches_source = if len(clone(selected_symbol)) == 0 {
+            starts_with(clone(sym_name), clone(module_prefix))
+        } else {
+            eq(clone(sym_name), clone(source_module)) || starts_with(clone(sym_name), clone(selected_prefix))
+        }
+        if matches_source && scope_stack_symbols::Symbol_is_pub(sym) {
+            let suffix = substring(clone(sym_name), module_prefix_len, len(clone(sym_name)))
+            let qualified = concat(clone(target_module), concat("::", clone(suffix)))
+            let existing = scope_lookup::lookup(ctx, clone(qualified))
+            if existing < 0 {
+                let kind = scope_stack_symbols::Symbol_kind(sym)
+                scope_define::define_with_vis(ctx, qualified, kind, true)
+                defined_any = true
             }
         }
         i = i + 1

@@ -25,7 +25,12 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         return pipeline_frontend::frontend_result_result(frontend)
     }
     if config_record::config_lint_local_only(config) {
-        return local_lint::run_local_lint_stage(clone(source), config, pipeline_frontend::frontend_result_decls(frontend))
+        return local_lint::run_local_lint_stage(
+            clone(source),
+            config,
+            pipeline_frontend::frontend_result_decls(frontend),
+            pipeline_frontend::frontend_result_parse_warnings(frontend)
+        )
     }
     let decls = pipeline_frontend::frontend_result_decls(frontend)
     let t0: i64 = pipeline_frontend::frontend_result_t0(frontend)
@@ -37,11 +42,12 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         decls,
         t0,
         t_lex,
-        t_parse
+        t_parse,
+        pipeline_frontend::frontend_result_parse_warnings(frontend)
     )
 }
 
-fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> CompileResult {
+fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>) -> CompileResult {
     let resolved = backend_resolve::backend_resolve(source, config, decls)
     if backend_resolve::resolve_result_should_return(resolved) {
         return backend_resolve::resolve_result_result(resolved)
@@ -51,7 +57,13 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         return result_record::CompileResult_ok(phases::PHASE_RESOLVE())
     }
     let all_decls = module_decls::combine_loaded_and_main_decls(backend_resolve::resolve_result_loaded_modules(resolved), decls)
-    let checked = backend_typecheck::backend_typecheck(clone(source), config, all_decls, backend_resolve::resolve_result_ctx(resolved))
+    let checked = backend_typecheck::backend_typecheck(
+        clone(source),
+        config,
+        all_decls,
+        backend_resolve::resolve_result_ctx(resolved),
+        parse_warnings
+    )
     if backend_typecheck::typecheck_result_should_return(checked) {
         return backend_typecheck::typecheck_result_result(checked)
     }

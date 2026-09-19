@@ -1,0 +1,5 @@
+import deprecated_import_dep as dep
+
+fn main() {
+    dep::answer()
+}

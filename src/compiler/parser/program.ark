@@ -7,16 +7,17 @@ use parser::state_record
 pub struct ParseResult {
     decls: Vec<AstNode>,
     errors: Vec<Diagnostic>,
+    warnings: Vec<Diagnostic>,
 }
 
-fn ParseResult_new(decls: Vec<AstNode>, errors: Vec<Diagnostic>) -> ParseResult {
-    ParseResult { decls: decls, errors: errors }
+fn ParseResult_new(decls: Vec<AstNode>, errors: Vec<Diagnostic>, warnings: Vec<Diagnostic>) -> ParseResult {
+    ParseResult { decls: decls, errors: errors, warnings: warnings }
 }
 
 fn parse_program_impl(tokens: Vec<Token>) -> ParseResult {
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
-    ParseResult_new(decls, state_record::parser_errors(p))
+    ParseResult_new(decls, state_record::parser_errors(p), state_record::parser_warnings(p))
 }
 
 fn ParseResult_decls(result: ParseResult) -> Vec<AstNode> {
@@ -37,4 +38,8 @@ fn ParseResult_error_at(result: ParseResult, index: i32) -> Diagnostic {
 
 fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {
     result.errors
+}
+
+pub fn ParseResult_warnings(result: ParseResult) -> Vec<Diagnostic> {
+    result.warnings
 }

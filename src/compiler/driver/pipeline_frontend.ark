@@ -7,6 +7,8 @@ use compiler::session_lex_query
 use compiler::session_parse_tokens
 use driver::debug
 use driver::errors
+use driver::errors_parse
+use parser::program
 use component
 
 fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
@@ -22,9 +24,21 @@ fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
         config_record::config_world(config)
     )
     if len(preflight_error) > 0 {
-        return frontend_stop(result_record::CompileResult_err(phases::PHASE_EMIT(), preflight_error), t0, frontend_result_t_lex(parsed), clock::monotonic_now())
+        return frontend_stop(
+            result_record::CompileResult_err(phases::PHASE_EMIT(), preflight_error),
+            t0,
+            frontend_result_t_lex(parsed),
+            clock::monotonic_now(),
+            frontend_result_parse_warnings(parsed)
+        )
     }
-    frontend_continue(frontend_result_decls(parsed), t0, frontend_result_t_lex(parsed), frontend_result_t_parse(parsed))
+    frontend_continue(
+        frontend_result_decls(parsed),
+        t0,
+        frontend_result_t_lex(parsed),
+        frontend_result_t_parse(parsed),
+        frontend_result_parse_warnings(parsed)
+    )
 }
 
 fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFrontendResult {
@@ -37,19 +51,56 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
     if lex_errors > 0 {
         // Canonical i64 zeros. Stub overlay (fields→i32) narrows `0i64`→`0`
         // in scripts/selfhost/checks.py so bootstrap still type-checks.
-        return frontend_stop(result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), " lexer error(s)")), t0, 0i64, 0i64)
+        return frontend_stop(
+            result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), " lexer error(s)")),
+            t0,
+            0i64,
+            0i64,
+            Vec::new<Diagnostic>()
+        )
     }
     let t_lex = clock::monotonic_now()
     let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
+    let parse_warnings = program::ParseResult_warnings(parse_result)
     debug::dump_ast_if_enabled(config, decls)
     let parse_error_count = session_parse_tokens::session_parse_error_count(parse_result)
     if parse_error_count > 0 {
-        return frontend_stop(errors::parse_errors_result(clone(source), config_record::config_source_file(config), session_parse_tokens::session_parse_errors_from_result(parse_result)), t0, t_lex, 0i64)
+        return frontend_stop(
+            errors::parse_errors_result(
+                clone(source),
+                config_record::config_source_file(config),
+                session_parse_tokens::session_parse_errors_from_result(parse_result),
+                parse_warnings
+            ),
+            t0,
+            t_lex,
+            0i64,
+            Vec::new<Diagnostic>()
+        )
     }
     if config_record::config_parse_only(config) {
-        return frontend_stop(result_record::CompileResult_ok(phases::PHASE_PARSE()), t0, t_lex, clock::monotonic_now())
+        if len(parse_warnings) > 0 {
+            return frontend_stop(
+                errors_parse::parse_warnings_result(
+                    clone(source),
+                    config_record::config_source_file(config),
+                    parse_warnings
+                ),
+                t0,
+                t_lex,
+                clock::monotonic_now(),
+                Vec::new<Diagnostic>()
+            )
+        }
+        return frontend_stop(
+            result_record::CompileResult_ok(phases::PHASE_PARSE()),
+            t0,
+            t_lex,
+            clock::monotonic_now(),
+            Vec::new<Diagnostic>()
+        )
     }
-    frontend_continue(decls, t0, t_lex, clock::monotonic_now())
+    frontend_continue(decls, t0, t_lex, clock::monotonic_now(), parse_warnings)
 }
 
 struct DriverFrontendResult {
@@ -59,18 +110,27 @@ struct DriverFrontendResult {
     t0: i64,
     t_lex: i64,
     t_parse: i64,
+    parse_warnings: Vec<Diagnostic>,
 }
 
-fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
-    DriverFrontendResult { should_return: should_return, result: result, decls: decls, t0: t0, t_lex: t_lex, t_parse: t_parse }
+fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>) -> DriverFrontendResult {
+    DriverFrontendResult {
+        should_return: should_return,
+        result: result,
+        decls: decls,
+        t0: t0,
+        t_lex: t_lex,
+        t_parse: t_parse,
+        parse_warnings: parse_warnings,
+    }
 }
 
-fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
-    DriverFrontendResult_new(true, result, Vec::new<AstNode>(), t0, t_lex, t_parse)
+fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>) -> DriverFrontendResult {
+    DriverFrontendResult_new(true, result, Vec::new<AstNode>(), t0, t_lex, t_parse, parse_warnings)
 }
 
-fn frontend_continue(decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
-    DriverFrontendResult_new(false, result_record::CompileResult_ok(phases::PHASE_PARSE()), decls, t0, t_lex, t_parse)
+fn frontend_continue(decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>) -> DriverFrontendResult {
+    DriverFrontendResult_new(false, result_record::CompileResult_ok(phases::PHASE_PARSE()), decls, t0, t_lex, t_parse, parse_warnings)
 }
 
 fn frontend_result_should_return(result: DriverFrontendResult) -> bool {
@@ -95,4 +155,8 @@ fn frontend_result_t_lex(result: DriverFrontendResult) -> i64 {
 
 fn frontend_result_t_parse(result: DriverFrontendResult) -> i64 {
     result.t_parse
+}
+
+fn frontend_result_parse_warnings(result: DriverFrontendResult) -> Vec<Diagnostic> {
+    result.parse_warnings
 }

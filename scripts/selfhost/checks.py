@@ -1710,6 +1710,18 @@ def _patch_bootstrap_driver_timing_i32_zeros(text: str) -> str:
     """Narrow canonical ``0i64`` timestamp literals when overlay slots are i32."""
     text = _replace_optional(
         text,
+        "t0,\n            0i64,\n            0i64,\n            Vec::new<Diagnostic>()",
+        "t0,\n            0,\n            0,\n            Vec::new<Diagnostic>()",
+        "driver_timing: i32 slots multiline frontend_stop zero pair",
+    )
+    text = _replace_optional(
+        text,
+        "t_lex,\n            0i64,\n            Vec::new<Diagnostic>()",
+        "t_lex,\n            0,\n            Vec::new<Diagnostic>()",
+        "driver_timing: i32 slots multiline frontend_stop zero t_parse",
+    )
+    text = _replace_optional(
+        text,
         "t0, 0i64, 0i64)",
         "t0, 0, 0)",
         "driver_timing: i32 slots frontend_stop zero pair",
@@ -1769,15 +1781,33 @@ def _patch_bootstrap_driver_timing_sigs(text: str) -> str:
     """Group 3: ctor / helper / getter signatures i64→i32."""
     text = _replace_optional(
         text,
+        "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>)",
+        "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i32, t_lex: i32, t_parse: i32, parse_warnings: Vec<Diagnostic>)",
+        "driver_timing: DriverFrontendResult_new i64→i32 with parse warnings",
+    )
+    text = _replace_optional(
+        text,
         "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64)",
         "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i32, t_lex: i32, t_parse: i32)",
         "driver_timing: DriverFrontendResult_new i64→i32",
     )
     text = _replace_optional(
         text,
+        "fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>)",
+        "fn frontend_stop(result: CompileResult, t0: i32, t_lex: i32, t_parse: i32, parse_warnings: Vec<Diagnostic>)",
+        "driver_timing: frontend_stop i64→i32 with parse warnings",
+    )
+    text = _replace_optional(
+        text,
         "fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64)",
         "fn frontend_stop(result: CompileResult, t0: i32, t_lex: i32, t_parse: i32)",
         "driver_timing: frontend_stop i64→i32",
+    )
+    text = _replace_optional(
+        text,
+        "fn frontend_continue(decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64, parse_warnings: Vec<Diagnostic>)",
+        "fn frontend_continue(decls: Vec<AstNode>, t0: i32, t_lex: i32, t_parse: i32, parse_warnings: Vec<Diagnostic>)",
+        "driver_timing: frontend_continue i64→i32 with parse warnings",
     )
     text = _replace_optional(
         text,

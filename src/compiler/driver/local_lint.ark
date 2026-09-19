@@ -45,11 +45,14 @@ fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, deni
 }
 
 // Skip resolve/typecheck so package modules can be linted one file at a time.
-pub fn run_local_lint_stage(source: String, config: DriverConfig, decls: Vec<AstNode>) -> CompileResult {
+pub fn run_local_lint_stage(source: String, config: DriverConfig, decls: Vec<AstNode>, parse_warnings: Vec<Diagnostic>) -> CompileResult {
     let lint_warnings = lint_checks::run_post_resolve_lint(decls, config_record::config_target(config))
+    let all_warnings = Vec::new<Diagnostic>()
+    vec_extend::Vec_extend_Diagnostic(all_warnings, parse_warnings)
+    vec_extend::Vec_extend_Diagnostic(all_warnings, lint_warnings)
     let allow_codes = config_record::config_lint_allow(config)
     let deny_codes = config_record::config_lint_deny(config)
-    let filtered = local_filter_allowed(lint_warnings, allow_codes)
+    let filtered = local_filter_allowed(all_warnings, allow_codes)
     let denied = Vec::new<Diagnostic>()
     let kept = Vec::new<Diagnostic>()
     local_partition_deny(filtered, deny_codes, denied, kept)

@@ -1,5 +1,4 @@
 use std::host::stdio
-
 import utils as u
 
 fn main() {

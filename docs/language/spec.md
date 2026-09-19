@@ -1129,9 +1129,28 @@ impl Trait for Name {
 
 ### 7.1 Import Syntax
 
-Two keywords are used for different scopes:
+`use` is the canonical source-module declaration. `import` is retained only
+as a migration form for local source modules; it is not a second source-module
+namespace.
 
-**`import`** — legacy file-level module import syntax:
+**`use`** — source-module import syntax:
+
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
+```ark
+use std::host::stdio
+use std::core as c
+use std::text::string::{split, join}
+```
+
+The final path segment is the default module alias. `as` replaces that alias
+for the current module. A brace group selects public items from the containing
+module; the selected items are available through their short names. Item-level
+aliases inside a brace group are not part of the current grammar.
+
+`pub use` re-exports the selected public items. A private source item remains
+private and cannot become visible through a re-exporting facade.
+
+**`import`** — compatibility syntax for local source modules:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -1139,21 +1158,13 @@ import math
 import utils as u
 ```
 
-`import` loads a sibling `.ark` file. Qualified access via `math::add(…)`.
-Aliases rename the module locally.
+`import` loads a local source module and accepts the same optional module alias
+as `use`. It emits `W0101` at parse phase. Qualified access via
+`math::add(…)` remains accepted so existing source can migrate incrementally.
 
-**`use`** — current path-based import syntax:
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
-```ark
-use std::host::stdio
-```
-
-`use` resolves a `::` separated path within the standard library.
-Qualified access via `stdio::println(…)`.
-
-Per ADR-009, `import` is reserved for future Component Model / WIT
-boundary imports (v4+). Source module imports should prefer `use`.
+String-literal `import` belongs to the future Component Model / WIT boundary;
+its stable contract is tracked separately in issue #867. Source module imports
+should use `use`.
 Normative layer contract: [../spec/import-system.md](../spec/import-system.md).
 
 ### 7.2 Module Structure
@@ -1680,9 +1691,15 @@ by the compiler without an ADR.
 ## Appendix A. Grammar Summary (EBNF)
 
 ```ebnf
-module      = doc_comment* import* item* ;
-import      = "import" IDENT ("as" IDENT)?
-            | "use" IDENT ("::" IDENT)+ ("as" IDENT)? ;
+module      = doc_comment* import_decl* item* ;
+import_decl = legacy_import | use_decl ;
+legacy_import
+            = "import" IDENT ("as" IDENT)? ;
+use_decl   = "pub"? "use" use_path ("as" IDENT)?
+              | "pub"? "use" use_path "::" "{" use_item_list "}" ;
+use_path   = IDENT ("::" IDENT)* ;
+use_item_list
+            = IDENT ("," IDENT)* ","? ;
 item        = ("pub")? ( fn_def | fn_clause_group | struct_def | enum_def
                         | trait_def | impl_block ) ;
 
