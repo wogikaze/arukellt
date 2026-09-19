@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 871
 Parent: 852
 Track: language-v2
@@ -36,6 +36,31 @@ RFC-011: **8 (aggregate)**。
 - normative spec / ADR/RFC update reference
 - positive fixture + negative/diagnostic fixture
 - applicable compile/validate/runtime gate output
+
+## Progress receipt (not done; 2026-09-20)
+
+- Verification guard: `b57a3f670` adds
+  `scripts/tests/test_wasm_gc_aggregate_lowering.py`. It compiles the
+  aggregate fixtures through the current selfhost compiler for the default
+  `wasm32-gc` P2/Memory64 path and the `wasm32` P1/memory32 fallback, then
+  runs `wasm-tools validate` and inspects the printed binary. The primary
+  artifact must contain concrete `struct.new/get/set` or `array.new/get/set`
+  instructions; the fallback artifact must contain no `struct.*`, `array.*`,
+  or `ref.*` instructions.
+- Positive fixtures cover a named enum payload in a struct/Vec, `Option`,
+  `Result`, and tuple lowering. The same-source linear artifact is the
+  negative representation check for silent GC fallback.
+- Verification receipts: the focused test passes (`Ran 1 test in 47.071s`),
+  the combined linear-runtime and aggregate suite passes (`Ran 5 tests in
+  53.020s`), and `python3 scripts/manager.py verify lane` passes its quality
+  gates. `git diff --check` and the staged diff check also pass.
+- Normative boundary: the representation/meaning separation remains defined
+  by RFC-011 item 8 and ADR-060; this test adds executable binary evidence and
+  does not introduce a new semantic or ABI decision.
+- This is progress, not a close receipt. Complete tag/payload observable
+  semantics, cross-backend runtime parity, and the final issue-close review
+  remain open; no acceptance checkbox is marked complete from this partial
+  evidence.
 
 ## False-done guard
 
