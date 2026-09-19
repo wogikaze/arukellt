@@ -17,6 +17,14 @@ fn sum_values<T: iter::Iterator>(iterator: T) -> i32 {
     iterator.sum()
 }
 
+fn fold_values<T: iter::Iterator>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    iterator.fold(init, f)
+}
+
+fn add_i32(a: i32, b: i32) -> i32 {
+    a + b
+}
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     push(v, 100)
@@ -66,6 +74,7 @@ fn main() {
     push(count_source, 10)
     test::assert_eq_i32(count_values(iter::vec_iter(count_source)), 3)
     test::assert_eq_i32(sum_values(iter::vec_iter(count_source)), 27)
+    test::assert_eq_i32(fold_values(iter::vec_iter(count_source), 1, add_i32), 28)
 
     let into_source: Vec<i32> = Vec::new<i32>()
     push(into_source, 500)

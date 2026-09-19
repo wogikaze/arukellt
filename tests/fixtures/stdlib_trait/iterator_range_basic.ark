@@ -6,6 +6,12 @@ fn first_from_source<T: iter::IntoIterator>(source: T) -> Option<T::Item> {
     source.into_iter().next()
 }
 
+fn fold_values<T: iter::Iterator>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    iterator.fold(init, f)
+}
+
+fn add_i32(a: i32, b: i32) -> i32 { a + b }
+
 fn main() {
     let r = core::range_new(0, 5)
     let collected = iter::collect_range_i32(r)
@@ -48,4 +54,7 @@ fn main() {
     let from_iter_inclusive: Vec<i32> = Vec::from_iter(core::range_inclusive_new(9, 11).into_iter())
     test::assert_eq_i32(len(from_iter_inclusive), 3)
     test::assert_eq_i32(get_unchecked(from_iter_inclusive, 2), 11)
+
+    test::assert_eq_i32(fold_values(core::range_new(2, 5).into_iter(), 10, add_i32), 19)
+    test::assert_eq_i32(fold_values(core::range_inclusive_new(1, 3).into_iter(), 0, add_i32), 6)
 }

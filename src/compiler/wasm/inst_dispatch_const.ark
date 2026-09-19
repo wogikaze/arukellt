@@ -62,11 +62,8 @@ fn try_emit_ref_func_inst(
         }
         i = i + 1
     }
-    // Typed funcref: emit ref.func with the module function index. Active
-    // table elem segments already declare referenced functions (#831 / ADR-033).
-    writer_core::emit_byte(w, opcodes::OP_REF_FUNC())
-    if found == 0 {
-        writer_core::emit_leb128_u(w, 0)
+    let defined_idx = if found == 0 {
+        0
     } else {
         let defined_idx = function_indices::defined_function_index(
             mir_fn_idx,
@@ -74,7 +71,19 @@ fn try_emit_ref_func_inst(
             ctx_record::SelfEmitCtx_wasi_version(ctx),
             len(bindings)
         )
+        defined_idx
+    }
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // Typed funcref: emit ref.func with the module function index. Active
+        // table elem segments also declare referenced functions (#831/ADR-033).
+        writer_core::emit_byte(w, opcodes::OP_REF_FUNC())
         writer_core::emit_leb128_u(w, defined_idx)
+    } else {
+        // The linear-memory fallback represents callbacks as table indices.
+        // Its call_ref MIR is emitted as call_indirect by call_ref.ark. Table
+        // slots use defined-function ordinals; imports are only included in
+        // the module function index used by ref.func and element entries.
+        helpers_numeric_i32_const::emit_i32_const(w, mir_fn_idx)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
     true

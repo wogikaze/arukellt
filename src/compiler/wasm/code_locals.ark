@@ -147,6 +147,13 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
             return
         }
     }
+    if vt == value_types::VT_FUNCREF() &&
+    !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // The linear fallback stores a callback as an i32 table index. The
+        // GC primary path uses a typed `(ref $sig)` local instead.
+        writer_core::emit_byte(body, constants::WASM_I32())
+        return
+    }
     writer_core::emit_byte(body, code_locals_val_type::val_type_to_wasm_width(
             vt,
             writer_core::writer_memory64(body)

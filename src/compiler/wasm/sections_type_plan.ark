@@ -393,9 +393,12 @@ fn val_type_to_target_sig(vt: i32, is_gc_target: bool, memory64: bool) -> String
     if vt == 5 && !is_gc_target {
         return "i32"
     }
-    // Typed funcref stays a reference type under Memory64 (not an i64 index).
+    // GC uses typed function references; linear memory uses table indices.
     if vt == 8 {
-        return "fnref"
+        if is_gc_target {
+            return "fnref"
+        }
+        return "i32"
     }
     // Memory64 (wasm32-gc default): widen former i32 Wasm values to i64.
     // WASI P2 command/component keeps i32 linear memory (#714), so skip widen.
