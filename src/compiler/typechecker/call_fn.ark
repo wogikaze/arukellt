@@ -51,11 +51,12 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         let stripped = tc_strip_module_prefix(clone(callee_name))
         if !eq(clone(stripped), clone(callee_name)) {
             let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(stripped))
-            // Module-qualified stdlib generic calls (e.g. fmt::format_debug) register
-            // mono instances under the bare decl name. Only rewrite when the bare sig
-            // is generic so compiler-local qualified calls (fmt::format_source,
-            // diagnostics::Diagnostic_new) keep legacy unknown-call typing.
-            if contract_fn_sig::FnSig_has_name(bare_sig) && contract_fn_sig::FnSig_type_param_count(bare_sig) > 0 {
+            // Imported declarations are flattened into the typecheck signature
+            // index, while the source path keeps its module alias. Use the bare
+            // signature for both generic and concrete calls after the direct
+            // qualified lookup misses; monomorphization still needs the bare
+            // declaration name for generic calls.
+            if contract_fn_sig::FnSig_has_name(bare_sig) {
                 sig = bare_sig
                 mono_fn_name = stripped
             }

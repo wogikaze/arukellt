@@ -10,12 +10,12 @@ fn main() {
     push(v, 100)
     push(v, 200)
 
-    let first_it: iter::VecIter = iter::vec_iter(v)
+    let first_it = iter::vec_iter(v)
     match first(first_it) {
         Some(x) => test::assert_eq_i32(x, 100),
         None => panic("expected Some(100)"),
     }
-    let it: iter::VecIter = iter::vec_iter(v)
+    let it = iter::vec_iter(v)
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 100),
         None => panic("expected Some(100)"),
