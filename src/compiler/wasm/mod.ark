@@ -5,6 +5,7 @@ pub fn emit_wasm(
     mir: MirModule,
     target: String,
     wasi_version: String,
+    memory_width: String,
     opt_level: i32,
     strip_debug: bool,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
@@ -12,7 +13,7 @@ pub fn emit_wasm(
     report_timing: i32
 ) -> Vec<i32> {
     wasm::emit_wasm_module(
-        mir, target, wasi_version, opt_level, strip_debug, bindings, source_file, report_timing
+        mir, target, wasi_version, memory_width, opt_level, strip_debug, bindings, source_file, report_timing
     )
 }
 

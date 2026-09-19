@@ -1307,16 +1307,24 @@ def join_pipeline(parts: list[str]) -> str:
 
 def render_target_table(state: dict) -> str:
     rows = [
-        "| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |",
-        "|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|",
+        "| Target | GC Availability | Default Memory | Allowed Memory Widths | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |",
+        "|--------|-----------------|----------------|----------------------|--------------|----------------|--------------------|-----|--------------|---------------|-------|",
     ]
     for profile in state.get("target_profiles", []):
         run = "Yes" if profile.get("run_supported") else "No"
+        gc_availability = profile.get("gc_availability", "—")
+        default_memory_width = profile.get("default_memory_width", "—")
+        allowed_memory_widths = ", ".join(
+            f"`{width}`" for width in profile.get("allowed_memory_widths", [])
+        ) or "—"
         default_emit = profile.get("default_emit_kind", "—")
         allowed = ", ".join(f"`{kind}`" for kind in profile.get("allowed_emit_kinds", [])) or "—"
         rows.append(
-            "| `{}` | {} | {} | {} | {} | `{}` | {} | {} |".format(
+            "| `{}` | `{}` | `{}` | {} | {} | {} | {} | {} | `{}` | {} | {} |".format(
                 profile["id"],
+                gc_availability,
+                default_memory_width,
+                allowed_memory_widths,
                 profile["support_tier"],
                 profile["implementation_state"],
                 profile["contract_stability"],
@@ -1359,8 +1367,25 @@ def validate_target_contract(state: dict) -> list[str]:
     hosts = {p.get("id") for p in state.get("host_profiles", [])}
     seen: set[str] = set()
     known_emit_kinds = {"wasm", "wat", "component", "wit", "all", "c", "llvm"}
+    known_gc_availability = {"wasm-gc", "linear-memory", "not-applicable"}
+    known_memory_widths = {"memory32", "memory64", "none"}
     for profile in state.get("target_profiles", []):
         target_id = profile.get("id")
+        gc_availability = profile.get("gc_availability")
+        default_memory_width = profile.get("default_memory_width")
+        allowed_memory_widths = profile.get("allowed_memory_widths")
+        if gc_availability not in known_gc_availability:
+            errors.append(f"target {target_id}: unknown gc_availability `{gc_availability}`")
+        if default_memory_width not in known_memory_widths:
+            errors.append(f"target {target_id}: unknown default_memory_width `{default_memory_width}`")
+        if not isinstance(allowed_memory_widths, list) or not allowed_memory_widths:
+            errors.append(f"target {target_id}: allowed_memory_widths must be a non-empty list")
+        elif any(width not in known_memory_widths for width in allowed_memory_widths):
+            errors.append(f"target {target_id}: unknown memory widths {allowed_memory_widths}")
+        elif default_memory_width not in allowed_memory_widths:
+            errors.append(
+                f"target {target_id}: default_memory_width `{default_memory_width}` must be listed in allowed_memory_widths"
+            )
         default_emit = profile.get("default_emit_kind")
         allowed = profile.get("allowed_emit_kinds")
         if not isinstance(default_emit, str) or not default_emit:
@@ -1381,6 +1406,17 @@ def validate_target_contract(state: dict) -> list[str]:
             )
         if not isinstance(profile.get("run_supported"), bool):
             errors.append(f"target {target_id}: run_supported must be a bool")
+    for profile in state.get("host_profiles", []):
+        host_id = profile.get("id")
+        supported = set(profile.get("supported_targets", []))
+        rejected = set(profile.get("rejected_targets", []))
+        planned = set(profile.get("planned_targets", []))
+        unknown = (supported | rejected | planned) - canonical
+        if unknown:
+            errors.append(f"host profile {host_id}: unknown target references {sorted(unknown)}")
+        overlap = (supported & rejected) | (supported & planned) | (rejected & planned)
+        if overlap:
+            errors.append(f"host profile {host_id}: target appears in multiple capability sets {sorted(overlap)}")
     for alias in state.get("target_aliases", []):
         spelling = alias.get("input")
         if not isinstance(spelling, str) or not spelling:
@@ -1475,7 +1511,48 @@ def render_compiler_target_contract(state: dict) -> str:
             f'        return "  {target_id}  {display}"',
             "    }",
         ])
-    lines.extend(["    String_new()", "}", "", "fn target_run_supported(input: String) -> bool {"])
+    lines.extend(["    String_new()", "}", "", "fn target_gc_availability(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'        return String_from("{_ark_string(profile["gc_availability"])}")',
+            "    }",
+        ])
+    lines.extend(["    String_new()", "}", "", "fn target_default_memory_width(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'        return String_from("{_ark_string(profile["default_memory_width"])}")',
+            "    }",
+        ])
+    lines.extend(["    String_new()", "}", "", "fn target_allows_memory_width(target: String, width: String) -> bool {"])
+    for profile in state.get("target_profiles", []):
+        target_id = _ark_string(profile["id"])
+        lines.append(f'    if eq(clone(target), String_from("{target_id}")) {{')
+        for width in profile.get("allowed_memory_widths", []):
+            lines.extend([
+                f'        if eq(clone(width), String_from("{_ark_string(width)}")) {{',
+                "            return true",
+                "        }",
+            ])
+        lines.extend(["        return false", "    }"])
+    lines.extend(["    false", "}", "", "fn target_allowed_memory_widths_message(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        allowed = ", ".join(profile.get("allowed_memory_widths", []))
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'        return String_from("{_ark_string(allowed)}")',
+            "    }",
+        ])
+    lines.extend(["    String_new()", "}", "", "fn target_allows_host_profile(target: String, host: String) -> bool {"])
+    for profile in state.get("host_profiles", []):
+        for target in profile.get("supported_targets", []):
+            lines.extend([
+                f'    if eq(clone(target), String_from("{_ark_string(target)}")) && eq(clone(host), String_from("{_ark_string(profile["id"])}")) {{',
+                "        return true",
+                "    }",
+            ])
+    lines.extend(["    false", "}", "", "fn target_run_supported(input: String) -> bool {"])
     for profile in state.get("target_profiles", []):
         supported = "true" if profile.get("run_supported") else "false"
         lines.extend([
@@ -1517,8 +1594,16 @@ def render_compiler_target_contract(state: dict) -> str:
         )
     for index, profile in enumerate(state.get("target_profiles", [])):
         target_id = _ark_string(profile["id"])
+        gc_availability = _ark_string(profile["gc_availability"])
+        default_memory_width = _ark_string(profile["default_memory_width"])
         default_emit = _ark_string(profile["default_emit_kind"])
         run_supported = "true" if profile.get("run_supported") else "false"
+        lines.append(
+            f'    test "gc_availability_{index}" {{ assert(eq(target_gc_availability(String_from("{target_id}")), String_from("{gc_availability}"))) }}'
+        )
+        lines.append(
+            f'    test "default_memory_width_{index}" {{ assert(eq(target_default_memory_width(String_from("{target_id}")), String_from("{default_memory_width}"))) }}'
+        )
         lines.append(
             f'    test "default_emit_{index}" {{ assert(eq(target_default_emit_kind(String_from("{target_id}")), String_from("{default_emit}"))) }}'
         )
@@ -1528,6 +1613,15 @@ def render_compiler_target_contract(state: dict) -> str:
         for kind_index, kind in enumerate(profile.get("allowed_emit_kinds", [])):
             lines.append(
                 f'    test "allows_{index}_{kind_index}" {{ assert(target_allows_emit_kind(String_from("{target_id}"), String_from("{_ark_string(kind)}"))) }}'
+            )
+        for width_index, width in enumerate(profile.get("allowed_memory_widths", [])):
+            lines.append(
+                f'    test "memory_width_{index}_{width_index}" {{ assert(target_allows_memory_width(String_from("{target_id}"), String_from("{_ark_string(width)}"))) }}'
+            )
+    for index, profile in enumerate(state.get("host_profiles", [])):
+        for target_index, target in enumerate(profile.get("supported_targets", [])):
+            lines.append(
+                f'    test "host_{index}_{target_index}" {{ assert(target_allows_host_profile(String_from("{_ark_string(target)}"), String_from("{_ark_string(profile["id"])}"))) }}'
             )
     for index, alias in enumerate(aliases):
         spelling = _ark_string(alias["input"])

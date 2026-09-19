@@ -4,11 +4,14 @@ fn is_gc_target(target: String) -> bool {
     eq(clone(target), "wasm32-gc")
 }
 
-// ADR-007: Memory64 is default emit OK for wasm32-gc only (not wasm32/iwasm).
-// WASI P2 command/component path keeps i32 linear memory for the official
-// canonical ABI boundary.
-fn uses_memory64(target: String, wasi_version: String) -> bool {
-    if is_p2_wasi(clone(wasi_version)) {
+// Memory width is an independent backend axis. The CLI resolves `auto` from
+// the target profile and forces component output to memory32 before reaching
+// the emitter; the fallback keeps an explicit memory32 writer.
+fn uses_memory64(target: String, _wasi_version: String, memory_width: String) -> bool {
+    if eq(clone(memory_width), String_from("memory64")) {
+        return true
+    }
+    if eq(clone(memory_width), String_from("memory32")) {
         return false
     }
     is_gc_target(clone(target))

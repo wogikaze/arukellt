@@ -6,6 +6,7 @@ fn emit_wasm_module(
     mir: MirModule,
     target: String,
     wasi_version: String,
+    memory_width: String,
     opt_level: i32,
     strip_debug: bool,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
@@ -13,7 +14,7 @@ fn emit_wasm_module(
     report_timing: i32
 ) -> Vec<i32> {
     let out = writer_core::WasmWriter_with_memory64(
-        emit_target::uses_memory64(clone(target), clone(wasi_version))
+        emit_target::uses_memory64(clone(target), clone(wasi_version), clone(memory_width))
     )
     emit_wasm_module_header(out)
     wasm_sections::emit_wasm_module_sections(

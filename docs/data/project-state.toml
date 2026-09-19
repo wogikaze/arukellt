@@ -45,6 +45,9 @@ run_supported = true
 default_emit_kind = "wasm"
 allowed_emit_kinds = ["wasm", "wat"]
 default_host_profile = "wasi-p1"
+gc_availability = "linear-memory"
+default_memory_width = "memory32"
+allowed_memory_widths = ["memory32"]
 role = "Supported: AtCoder / linear-memory competition path"
 display = "WebAssembly linear-memory target (WASI P1)"
 
@@ -57,6 +60,9 @@ run_supported = true
 default_emit_kind = "wasm"
 allowed_emit_kinds = ["wasm", "wat", "component", "wit", "all"]
 default_host_profile = "wasi-p2"
+gc_availability = "wasm-gc"
+default_memory_width = "memory64"
+allowed_memory_widths = ["memory32", "memory64"]
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
 display = "WebAssembly GC target (WASI P2, default)"
 
@@ -68,6 +74,9 @@ contract_stability = "experimental"
 run_supported = true
 default_emit_kind = "c"
 allowed_emit_kinds = ["c"]
+gc_availability = "not-applicable"
+default_memory_width = "none"
+allowed_memory_widths = ["none"]
 role = "Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json)"
 display = "Native C99 backend (scaffold; experimental public run + --emit c)"
 
@@ -87,6 +96,9 @@ contract_stability = "experimental"
 run_supported = false
 default_emit_kind = "llvm"
 allowed_emit_kinds = ["llvm"]
+gc_availability = "not-applicable"
+default_memory_width = "none"
+allowed_memory_widths = ["none"]
 role = "Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided"
 display = "Native LLVM backend scaffold"
 
@@ -211,12 +223,12 @@ source_commit = "982f3102"
 fixture_passed = 57
 fixture_skipped = 442
 fixture_failures = 1089
-fixture_manifest_count = 2936
+fixture_manifest_count = 2941
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
-fixture_not_in_last_harness_snapshot = 1348
-fixture_accounting_note = "Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2936 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, and multi-clause grammar fixtures were added, so the current registry remainder is 1348. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness."
+fixture_not_in_last_harness_snapshot = 1353
+fixture_accounting_note = "Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2941 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, and target capability fixtures were added, so the current registry remainder is 1353. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness."
 checks_passed = 166
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"

@@ -3,6 +3,7 @@ struct DriverConfig {
     wasi_version: String,
     // True when `--wasi-version` was set on the CLI (not inferred from --target).
     wasi_version_explicit: bool,
+    memory_width: String,
     opt_level: i32,
     emit_mode: String,
     wit_paths: Vec<String>,
@@ -32,6 +33,7 @@ fn DriverConfig_default() -> DriverConfig {
         target: "wasm32-gc",
         wasi_version: "wasi-p2",
         wasi_version_explicit: false,
+        memory_width: "auto",
         opt_level: 0,
         emit_mode: "wasm",
         wit_paths: Vec::new<String>(),
@@ -60,6 +62,7 @@ fn DriverConfig_default() -> DriverConfig {
 fn config_target(config: DriverConfig) -> String { clone(config.target) }
 fn config_wasi_version(config: DriverConfig) -> String { clone(config.wasi_version) }
 fn config_wasi_version_explicit(config: DriverConfig) -> bool { config.wasi_version_explicit }
+fn config_memory_width(config: DriverConfig) -> String { clone(config.memory_width) }
 fn config_opt_level(config: DriverConfig) -> i32 { config.opt_level }
 fn config_emit_mode(config: DriverConfig) -> String { clone(config.emit_mode) }
 fn config_wit_paths(config: DriverConfig) -> Vec<String> { config.wit_paths }
@@ -80,6 +83,7 @@ fn config_set_wasi_version(config: DriverConfig, wasi_version: String) { config.
 fn config_set_wasi_version_explicit(config: DriverConfig, wasi_version_explicit: bool) {
     config.wasi_version_explicit = wasi_version_explicit
 }
+fn config_set_memory_width(config: DriverConfig, memory_width: String) { config.memory_width = memory_width }
 fn config_set_target(config: DriverConfig, target: String) { config.target = target }
 fn config_set_opt_level(config: DriverConfig, opt_level: i32) { config.opt_level = opt_level }
 fn config_set_emit_mode(config: DriverConfig, emit_mode: String) { config.emit_mode = emit_mode }

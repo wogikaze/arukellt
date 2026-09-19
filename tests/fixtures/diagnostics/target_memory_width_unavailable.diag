@@ -1,0 +1,1 @@
+target `wasm32` does not support memory width `memory64`; allowed: memory32

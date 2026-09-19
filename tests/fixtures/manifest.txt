@@ -260,6 +260,7 @@ diag:diagnostics/resolve_undefined_fn.ark
 diag:diagnostics/type_mismatch.ark
 diag:diagnostics/unicode_codepoint_option_mismatch.ark
 diag:diagnostics/numeric_implicit_promotion.ark
+diag:diagnostics/target_memory_width_unavailable.ark
 diag:diagnostics/arithmetic_mixed_comparison.ark
 diag:diagnostics/operator_trait_missing.ark
 diag:diagnostics/vec_get_arith.ark
@@ -384,6 +385,8 @@ run:control/nested_loops.ark
 run:control/trait_dispatch_spike.ark
 run:control/while_basic.ark
 run:control/while_counter.ark
+run:target_capability/gc_linear_same_source.ark
+run:target_capability/wasm32_same_source.ark
 run:diagnostics/method_syntax.ark
 run:diagnostics/nested_generic.ark
 run:diagnostics/operator_overload.ark
@@ -2450,6 +2453,8 @@ t3-compile:t3/array_gc.ark
 t3-compile:t3/boxing_i31.ark
 t3-compile:t3/hashmap_match_only.ark
 t3-compile:t3/hello.ark
+t3-compile:target_capability/gc_linear_same_source.ark
+t3-compile:target_capability/wasm32_same_source.ark
 t3-compile:t3/if_println_string.ark
 t3-compile:t3/if_true_println_string.ark
 t3-compile:t3/match_println_i32.ark

@@ -81,7 +81,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 6 | enum | tagged ADTとしての意味とheap/unboxed表現を分離し、`Copy`は明示opt-in、representation optimizationはbackendへ置く。 | ADR-060で採択済み。 |
 | 7 | `Box<T>` | heap上の`T`を一意に所有する値とし、borrow、共有所有、tracing GC管理を別概念にする。 | ADR-060で採択済み。 |
 | 8 | GC依存 | Wasm GCを対応環境の優先backendとして積極利用しつつ、非対応環境ではlinear-memory runtime fallbackで同じsource semanticsを維持する。 | #854のADT/Box/Slice境界についてADR-060で適用を確認。tracing fallback全体は後続issue。 |
-| 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD等の真にtarget固有な機能だけをcapability errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
+| 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD、memory width、artifact boundary等の真にtarget固有な機能だけをcapability errorにする。 | [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) で軸分離、CLI matrix、diagnostic boundaryを採択。 |
 | 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-061で採択済み。#855で shared/mutable borrow、move capture、return/store/callback escape を実装。managed closure environment の lowering は #872/#874。 |
 | 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。`pub` は source visibility、`export fn` は Component export とする。 | [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md) で採択・実装済み。 |
 | 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-062で `Self`、associated item、coherence、user blanket禁止、static dispatch、`dyn`境界を採択。 |
@@ -111,8 +111,8 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 36 | セミコロン | 改行、式、blockの終端規則を組み合わせたときの曖昧さをなくす。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) と normative spec へ反映。 |
 | 37 | Iterator | eager helper、lazy adapter、`IntoIterator`、`FromIterator`を共通のTrait面へ統一する。 | ADR-036とRFC-004に統合する。 |
 | 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-071 / ADR-006のABI分類と整合し、language spec の具体形式を削除済み。 |
-| 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | ADR-007、ADR-013の語彙と再整理する。 |
-| 40 | `wasm32-gc` とMemory64 | GC、memory width、host profileの既定値を別々の設定として説明する。 | ADR-013、ADR-035、current-stateとの同期が必要。 |
+| 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) で target identity、host、memory、artifact を独立設定に採択。 |
+| 40 | `wasm32-gc` とMemory64 | GC、memory width、host profile、Component boundaryの既定値を別々の設定として説明する。 | [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) で `--memory-width` と capability matrix を採択。ADR-013、ADR-035、current-state と同期する。 |
 | 41 | 予約キーワード | hard reserved / contextual / future-reservedに分類し、未実装という理由だけで将来語を解放しない。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) と `docs/data/language-keyword-policy.toml` で分類・lexer・LSP・playgroundを同期。 |
 | 42 | 安定性ラベル | stableを実装完成度ではなく、互換性保証のラベルとして扱う。 | ADR-014と整合する。 |
 | 43 | specとredesign | 再設計中の節をstableと誤認させず、仕様の分類と実装状態を同期する。 | ADR-014、ADR-018に従う。 |
@@ -206,7 +206,7 @@ v2 の stable set と移行中の legacy auto-import は分けて扱う。`true`
 
 ### 4.5 ターゲットとComponent境界
 
-ターゲット名は、値の意味論、メモリ表現、WASI profile、Component emit、Memory64のような独立した能力を一つに混ぜない候補とする。Wasm GCは対応環境での優先 lowering とし、非対応環境ではlinear-memory runtime fallbackを用意する。通常の共有・循環参照コードについて、GC featureの有無をsource-level capabilityにはしない。
+ターゲット名は、値の意味論、メモリ表現、WASI profile、Component emit、Memory64のような独立した能力を一つに混ぜない候補とする。[ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) により、CLI は target、`--memory-width`、WASI profile、`--emit` を別軸として検証する。Wasm GCは対応環境での優先 lowering とし、非対応環境ではlinear-memory runtime fallbackを用意する。通常の共有・循環参照コードについて、GC featureの有無をsource-level capabilityにはしない。
 
 WIT package identifierはComponent境界の識別子として扱い、ソースモジュールの名前解決と同じ構文規則へ無理に押し込まない。`import "namespace:package/interface[@version]"` は Layer C の canonical source form であり、`use ...::...` は Layer S のまま分離する。詳細は ADR-071 に従う。
 
@@ -253,6 +253,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 5. Unicode normalization、grapheme cluster、その他の text segmentation API。
 6. WIT parserのcanonical pathとComponent境界の受け渡し。Layer C の source form、full version comparison、`export fn` の境界は ADR-071 で採択済みであり、world 宣言など追加 surface は別判断とする。
 7. `wasm32-gc`、`wasm32`、Memory64、WASI profileをCLIでどう表現するか。
+   [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) で解決済み。
 8. stable機能の移行期間と、実行可能な仕様fixtureの必須範囲。
 
 ## 7. 採択までの条件

@@ -26,6 +26,7 @@ fn emit_type_section(
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     gc_layout: GcLayoutTable
 ) -> TypeSectionPlan {
+    let memory64 = writer_core::writer_memory64(out)
     let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version))
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut gc_fixed_count = 0
@@ -47,7 +48,16 @@ fn emit_type_section(
     } else {
         0
     }
-    let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), bindings)
+    let type_sigs = build_type_sigs(
+        mir,
+        functions,
+        fn_count,
+        needs_wrapper,
+        clone(target),
+        clone(wasi_version),
+        memory64,
+        bindings
+    )
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
@@ -152,6 +162,7 @@ fn build_type_sigs(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
+    memory64: bool,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> Vec<String> {
     let type_sigs = Vec::new<String>()
@@ -169,6 +180,7 @@ fn build_type_sigs(
         fn_count,
         clone(target),
         clone(wasi_version),
+        memory64,
         mir
     )
     sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper, clone(wasi_version))
@@ -179,6 +191,7 @@ fn build_type_sigs(
             fn_count,
             clone(target),
             clone(wasi_version),
+            memory64,
             mir
         )
         sections_types_sigs::append_p2_library_wrapper_type_sigs(

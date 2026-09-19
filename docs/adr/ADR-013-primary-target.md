@@ -24,7 +24,9 @@ ADR-007 は canonical ターゲットを `wasm32` / `wasm32-gc` / `native-*` に
    実装が旧 alias 文字列（例: `wasm32-wasi-p2`）をまだ保持している場合は
    current-state の実装ギャップとして追跡し、公開文書は canonical 名を使う。
 3. **既定の host profile は WASI P2 とする。** WASI P3 は同一言語ターゲット上の
-   host profile であり、別の primary target とはしない。
+   host profile であり、別の primary target とはしない。Memory width と artifact kind は
+   host profile とは独立であり、core Wasm の `auto` は Memory64、Component 境界の `auto`
+   は Memory32 とする（[ADR-074](ADR-074-language-v2-target-capability-configuration.md)）。
 4. **`wasm32`（linear / AtCoder 向け）は supported** とし、primary と同等の CI ゲートは課さない。
 5. **native 系統は scaffold** とし、ABI・意味論は ADR-045 の再評価条件を満たし
    後継 ADR が採択されるまで固定しない。
@@ -53,5 +55,6 @@ ADR-007 は canonical ターゲットを `wasm32` / `wasm32-gc` / `native-*` に
 
 - [ADR-007](ADR-007-targets.md)
 - [ADR-002](ADR-002-memory-model.md)
+- [ADR-074](ADR-074-language-v2-target-capability-configuration.md)
 - [ADR-045](ADR-045-llvm-scope-withdrawn.md)
 - `issues/done/241-define-primary-target-and-tier-others.md`

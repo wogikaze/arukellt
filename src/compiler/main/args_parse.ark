@@ -26,6 +26,7 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
     }
     parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
     canonicalize_target_input(opts)
+    validate_target_configuration(opts)
     opts
 }
 
@@ -50,6 +51,72 @@ fn canonicalize_target_input(opts: CliOptions) {
     }
     if !args_record::cli_has_wasi_version(opts) {
         args_record::cli_set_wasi_version(opts, target_contract_generated::target_default_host_profile(input))
+    }
+}
+
+fn validate_target_configuration(opts: CliOptions) {
+    if args_record::cli_has_error(opts) {
+        return
+    }
+    let is_component_build = args_record::cli_command(opts) == kinds::CMD_COMPONENT() &&
+    args_record::cli_component_action(opts) == kinds::COMP_ACTION_BUILD()
+    let target = if is_component_build { String_from("wasm32-gc") } else { args_record::cli_target(opts) }
+    let host = if is_component_build { String_from("wasi-p2") } else { args_record::cli_wasi_version(opts) }
+    if len(clone(host)) > 0 && !target_contract_generated::target_allows_host_profile(clone(target), clone(host)) {
+        args_record::cli_set_error(
+            opts,
+            concat("target `", concat(clone(target), concat("` does not support host profile `", concat(clone(host), "`"))))
+        )
+        return
+    }
+    let emit_mode = if is_component_build { String_from("component") } else { args_record::cli_emit_mode(opts) }
+    if !target_contract_generated::target_allows_emit_kind(clone(target), clone(emit_mode)) {
+        args_record::cli_set_error(
+            opts,
+            concat(
+                "target `",
+                concat(
+                    clone(target),
+                    concat(
+                        "` does not support emit `",
+                        concat(
+                            clone(emit_mode),
+                            concat("`; allowed: ", target_contract_generated::target_allowed_emit_kinds_message(clone(target)))
+                        )
+                    )
+                )
+            )
+        )
+        return
+    }
+    let requested_width = args_record::cli_memory_width(opts)
+    if !eq(clone(requested_width), String_from("auto")) &&
+    !target_contract_generated::target_allows_memory_width(clone(target), clone(requested_width)) {
+        args_record::cli_set_error(
+            opts,
+            concat(
+                "target `",
+                concat(
+                    clone(target),
+                    concat(
+                        "` does not support memory width `",
+                        concat(
+                            clone(requested_width),
+                            concat("`; allowed: ", target_contract_generated::target_allowed_memory_widths_message(clone(target)))
+                        )
+                    )
+                )
+            )
+        )
+        return
+    }
+    if (eq(clone(emit_mode), String_from("component")) || eq(clone(emit_mode), String_from("all"))) &&
+    eq(clone(requested_width), String_from("memory64")) {
+        args_record::cli_set_error(opts, String_from("component emission requires memory32; use --memory-width memory32 or auto"))
+        return
+    }
+    if eq(clone(emit_mode), String_from("wat")) && eq(clone(requested_width), String_from("memory64")) {
+        args_record::cli_set_error(opts, String_from("wat emission requires memory32; use --memory-width memory32 or auto"))
     }
 }
 
@@ -202,54 +269,71 @@ fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index
         let arg = get_unchecked(argv, i)
         if commands::cli_str_eq(clone(arg), "--target") {
             i = args_parse_opts::parse_target_option(argv, argc, opts, i)
-        } else {
-            if commands::cli_str_eq(clone(arg), "--wasi-version") {
-                i = args_parse_opts::parse_wasi_version_option(argv, argc, opts, i)
-            } else {
-                if commands::cli_str_eq(clone(arg), "--opt-level") {
-                    i = args_parse_opts::parse_opt_level_option(argv, argc, opts, i)
-                } else {
-                    if commands::cli_str_eq(clone(arg), "--world") {
-                        i = parse_world_option(argv, argc, opts, i)
-                    } else {
-                        if commands::cli_str_eq(clone(arg), "--emit") {
-                            i = args_parse_opts::parse_emit_option(argv, argc, opts, i)
-                        } else {
-                            if commands::cli_str_eq(clone(arg), "--wit") {
-                                i = args_parse_opts::parse_wit_option(argv, argc, opts, i)
-                            } else {
-                                if commands::cli_str_eq(clone(arg), "-o") || commands::cli_str_eq(clone(arg), "--output") {
-                                    i = args_parse_opts::parse_output_option(argv, argc, opts, arg, i)
-                                } else {
-                                    if commands::cli_str_eq(clone(arg), "--dump-phases") {
-                                        i = args_parse_opts::parse_dump_phases_option(argv, argc, opts, i)
-                                    } else {
-                                        if commands::cli_str_eq(clone(arg), "--template") {
-                                            i = args_parse_opts::parse_template_option(argv, argc, opts, i)
-                                        } else {
-                                            if commands::cli_str_eq(clone(arg), "--cache-dir") {
-                                                i = args_parse_opts_cache::parse_cache_dir_option(argv, argc, opts, i)
-                                            } else {
-                                                if commands::cli_str_eq(clone(arg), "--allow") {
-                                                    i = args_parse_opts_lint::parse_lint_allow_option(argv, argc, opts, i)
-                                                } else {
-                                                    if commands::cli_str_eq(clone(arg), "--deny") {
-                                                        i = args_parse_opts_lint::parse_lint_deny_option(argv, argc, opts, i)
-                                                    } else {
-                                                        if !args_parse_flags::parse_flag_option(opts, arg) {
-                                                            parse_input_or_error(opts, arg)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--memory-width") {
+            i = args_parse_opts::parse_memory_width_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--wasi-version") {
+            i = args_parse_opts::parse_wasi_version_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--opt-level") {
+            i = args_parse_opts::parse_opt_level_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--world") {
+            i = parse_world_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--emit") {
+            i = args_parse_opts::parse_emit_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--wit") {
+            i = args_parse_opts::parse_wit_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "-o") || commands::cli_str_eq(clone(arg), "--output") {
+            i = args_parse_opts::parse_output_option(argv, argc, opts, arg, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--dump-phases") {
+            i = args_parse_opts::parse_dump_phases_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--template") {
+            i = args_parse_opts::parse_template_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--cache-dir") {
+            i = args_parse_opts_cache::parse_cache_dir_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--allow") {
+            i = args_parse_opts_lint::parse_lint_allow_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if commands::cli_str_eq(clone(arg), "--deny") {
+            i = args_parse_opts_lint::parse_lint_deny_option(argv, argc, opts, i)
+            i = i + 1
+            continue
+        }
+        if !args_parse_flags::parse_flag_option(opts, arg) {
+            parse_input_or_error(opts, arg)
         }
         i = i + 1
     }

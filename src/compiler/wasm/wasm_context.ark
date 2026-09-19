@@ -8,6 +8,7 @@ fn emit_wasm_context_new(
     strings: EmitStringTablePlan,
     target: String,
     wasi_version: String,
+    memory64: bool,
     source_file: String
 ) -> SelfEmitCtx {
     let string_values = strings::EmitStringTablePlan_values(strings)
@@ -20,6 +21,7 @@ fn emit_wasm_context_new(
         strings::EmitStringTablePlan_false_idx(strings),
         target,
         wasi_version,
+        memory64,
         source_file
     )
 }

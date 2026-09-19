@@ -5,7 +5,6 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::value_types
 use wasm::ctx_record
-use wasm::emit_target
 use wasm::inst_store
 use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::opcodes
@@ -51,10 +50,7 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
-    let memory64 = emit_target::uses_memory64(
-        ctx_record::SelfEmitCtx_target(ctx),
-        ctx_record::SelfEmitCtx_wasi_version(ctx)
-    )
+    let memory64 = ctx_record::SelfEmitCtx_memory64(ctx)
     // Unary HOF (map/filter): on wasm32 use stable WASI i32_1i32 (type 3).
     // Under Memory64, use only the explicit MIR parameter/return value types;
     // backend type names are not an admissible layout or ABI signal.

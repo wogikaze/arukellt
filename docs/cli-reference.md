@@ -5,6 +5,26 @@
 
 Full command list and release status also appear in [`current-state.md`](current-state.md).
 
+## Compile target axes
+
+`--target`, `--memory-width`, `--wasi-version`, and `--emit` are independent
+configuration axes. The accepted target/host matrix is generated from
+[`docs/data/project-state.toml`](data/project-state.toml).
+
+| Option | Values | Rule |
+|--------|--------|------|
+| `--target <target>` | `wasm32`, `wasm32-gc`, `native-cpp`, `native-llvm` | Selects the backend target and its GC availability. |
+| `--memory-width <width>` | `auto`, `memory32`, `memory64` | `auto` uses the target default; `wasm32` rejects `memory64`. |
+| `--wasi-version <profile>` | `wasi-p1`, `wasi-p2`, `wasi-p3` | Selects a host profile; it is not a target name. |
+| `--emit <kind>` | `wasm`, `wat`, `component`, `wit`, `all` | Selects an artifact kind allowed by the target. |
+
+`wasm32-gc` defaults to Memory64 for core Wasm. It also accepts explicit
+Memory32, so GC availability and memory width are not synonyms. Component
+output uses the official WASI P2 canonical memory boundary and resolves
+`auto` to Memory32; an explicit Memory64 request with `component` or `all`
+is rejected before source compilation. The current WAT scaffold resolves
+`auto` to Memory32 and rejects explicit Memory64. See [ADR-074](adr/ADR-074-language-v2-target-capability-configuration.md).
+
 ## Subcommands
 
 ### `doc`

@@ -117,6 +117,10 @@ source-level identity は `TypeId` と Typed MIR verifier が所有する。Wasm
 ### 8. host/component 境界
 
 Memory64 の内部アドレスと component canonical memory の pointer width は別契約とする。
+CLI/config の memory width、WASI profile、Component artifact の組合せは
+[ADR-074](ADR-074-language-v2-target-capability-configuration.md) が所有する。
+したがって `wasm32-gc` の core Wasm は Memory64 を既定にできるが、P2 Component の
+canonical memory boundary は Memory32 として明示的に解決する。
 幅変換は型付き canonical ABI adapter が所有し、通常の MIR call site に無検査 truncate を置かない。
 
 canonical memory を guest Memory64 と共有する範囲や adapter-owned memory32 buffer の詳細は

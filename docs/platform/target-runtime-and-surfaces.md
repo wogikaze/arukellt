@@ -114,6 +114,7 @@ python3 docs/research/wat-probes/run-probes.py
 
 - **WASI P2以降の機能**（Component Model や公式の HTTP / sockets interface 等）を使用しようとした場合:
   **コンパイルエラー**。
+- `--memory-width memory64` は `wasm32` の target capability error になる。
 - **default emit 禁止の Wasm 機能**（GC、Component Model、Memory64、tail-call、
   relaxed SIMD、multiple memories、EH 等 — 上表）を使用しようとした場合:
   **コンパイルエラー**。
@@ -121,12 +122,17 @@ python3 docs/research/wat-probes/run-probes.py
   フォールバックが存在する機能についてはエラーではなくフォールバックコードを生成する。
   フォールバックが存在しない機能のみコンパイルエラーとする。
 
-### `wasm32-gc` — `--wasi none` / `--wasi p1` / 未対応Wasm機能
+### `wasm32-gc` — host profile / memory width / 未対応Wasm機能
 
-- **`--wasi none` または `--wasi p1` を指定した場合**:
+- **`--wasi-version wasi-p1` を指定した場合**:
   **コンパイルエラー**。
   `wasm32-gc` は WASI P2/P3 のみを前提とする。WASI 非依存や P1 が必要な場合は
   `wasm32` ターゲットを使用すること。
+- `--memory-width auto` は core Wasm では Memory64 に解決される。WAT scaffold の `auto` は
+  Memory32 に解決され、Memory64 は capability error になる。
+  `--memory-width memory32` は同じ GC lowering を Memory32 width で使う明示的な設定である。
+- `--emit component` / `--emit all` の `auto` は official P2 canonical memory boundary の
+  Memory32 に解決される。これらと `--memory-width memory64` の組合せは拒否する。
 - **default emit 禁止の Wasm 機能**（特に **multiple memories**、Threads、
   Legacy EH、JS String Builtins を core 既定で出すこと）を使用しようとした場合:
   **コンパイルエラー**（または明示の opt-in プロファイル。default では出さない）。
@@ -135,6 +141,15 @@ python3 docs/research/wat-probes/run-probes.py
 > 旧 T2 の経路は廃止済みであり、現行の公開ターゲットは `wasm32` と `wasm32-gc` のみを
 > 使用する。`wasm32-gc` の host profile は公式 WASI P2/P3 import と Component Model
 > tooling に限定され、リポジトリ独自の host module や runtime bridge は生成しない。
+
+### Target capability axes
+
+`--target` は GC availability を選び、`--memory-width` は address width、
+`--wasi-version` は host profile、`--emit` は artifact kind を選ぶ。
+通常の source legality は GC availability に依存せず、`wasm32-gc` と `wasm32` は
+同じ parser/resolver/typechecker と観測可能な source semantics を共有する。
+正規の target/host/memory/artifact 行列は [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md)
+と [`project-state.toml`](../data/project-state.toml) を参照する。
 
 ### `native-cpp` / `native-llvm`
 

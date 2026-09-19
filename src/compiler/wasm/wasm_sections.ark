@@ -97,6 +97,7 @@ fn emit_wasm_module_sections(
         strings,
         clone(target),
         clone(wasi_version),
+        writer_core::writer_memory64(out),
         clone(source_file)
     )
     wasm_context::emit_wasm_context_set_gc_type_base(ctx, wasm_sections_facade::type_plan_gc_type_base(type_plan))

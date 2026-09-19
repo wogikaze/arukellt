@@ -115,6 +115,41 @@ class TargetContractTest(unittest.TestCase):
         wasm_gc = next(p for p in self.state["target_profiles"] if p["id"] == "wasm32-gc")
         self.assertNotIn("c", wasm_gc["allowed_emit_kinds"])
 
+    def test_memory_width_and_gc_axes_are_explicit(self) -> None:
+        profiles = {profile["id"]: profile for profile in self.state["target_profiles"]}
+        self.assertEqual(profiles["wasm32"]["gc_availability"], "linear-memory")
+        self.assertEqual(profiles["wasm32"]["default_memory_width"], "memory32")
+        self.assertEqual(profiles["wasm32"]["allowed_memory_widths"], ["memory32"])
+        self.assertEqual(profiles["wasm32-gc"]["gc_availability"], "wasm-gc")
+        self.assertEqual(profiles["wasm32-gc"]["default_memory_width"], "memory64")
+        self.assertEqual(profiles["wasm32-gc"]["allowed_memory_widths"], ["memory32", "memory64"])
+        self.assertIn("wasm32", next(p for p in self.state["host_profiles"] if p["id"] == "wasi-p1")["supported_targets"])
+        self.assertIn("wasm32-gc", next(p for p in self.state["host_profiles"] if p["id"] == "wasi-p2")["supported_targets"])
+
+    def test_target_capability_fixtures_cover_positive_and_diagnostic_paths(self) -> None:
+        positive_fixtures = [
+            ROOT / "tests/fixtures/target_capability/gc_linear_same_source.ark",
+            ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark",
+        ]
+        diagnostic = ROOT / "tests/fixtures/diagnostics/target_memory_width_unavailable.ark"
+        diagnostic_flags = diagnostic.with_suffix(".flags")
+        diagnostic_golden = diagnostic.with_suffix(".diag")
+        positive_sources = []
+        for positive in positive_fixtures:
+            positive_flags = positive.with_suffix(".flags")
+            positive_expected = positive.with_suffix(".expected")
+            self.assertTrue(positive.is_file())
+            self.assertTrue(positive_expected.is_file())
+            self.assertIn("--memory-width memory32", positive_flags.read_text(encoding="utf-8"))
+            positive_sources.append(positive.read_text(encoding="utf-8"))
+        self.assertIn("--target wasm32-gc", positive_fixtures[0].with_suffix(".flags").read_text(encoding="utf-8"))
+        self.assertIn("--target wasm32", positive_fixtures[1].with_suffix(".flags").read_text(encoding="utf-8"))
+        self.assertEqual(positive_sources[0], positive_sources[1])
+        self.assertTrue(diagnostic.is_file())
+        self.assertIn("--target wasm32", diagnostic_flags.read_text(encoding="utf-8"))
+        self.assertIn("--memory-width memory64", diagnostic_flags.read_text(encoding="utf-8"))
+        self.assertIn("does not support memory width", diagnostic_golden.read_text(encoding="utf-8"))
+
     def test_generated_emit_helpers_cover_native_cpp(self) -> None:
         compiler = (ROOT / "src/compiler/main/target_contract_generated.ark").read_text(
             encoding="utf-8"
@@ -122,6 +157,10 @@ class TargetContractTest(unittest.TestCase):
         self.assertIn("fn target_run_supported(", compiler)
         self.assertIn("fn target_default_emit_kind(", compiler)
         self.assertIn("fn target_allows_emit_kind(", compiler)
+        self.assertIn("fn target_gc_availability(", compiler)
+        self.assertIn("fn target_default_memory_width(", compiler)
+        self.assertIn("fn target_allows_memory_width(", compiler)
+        self.assertIn("fn target_allows_host_profile(", compiler)
         self.assertIn('String_from("native-cpp")', compiler)
         self.assertIn('return String_from("c")', compiler)
 

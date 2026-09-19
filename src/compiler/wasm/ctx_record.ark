@@ -23,6 +23,7 @@ pub struct SelfEmitCtx {
     vec_locals: Vec<i32>,
     target: String,
     wasi_version: String,
+    memory64: bool,
     gc_hint_offsets: Vec<i32>,
     source_file: String,
     code_section_offsets: Vec<i32>,
@@ -110,6 +111,7 @@ fn SelfEmitCtx_new(
     false_str_idx: i32,
     target: String,
     wasi_version: String,
+    memory64: bool,
     source_file: String
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
@@ -157,6 +159,7 @@ fn SelfEmitCtx_new(
         vec_locals: empty_i32,
         target: target,
         wasi_version: wasi_version,
+        memory64: memory64,
         gc_hint_offsets: empty_i32_b,
         source_file: source_file,
         code_section_offsets: Vec::new<i32>(),
@@ -340,6 +343,10 @@ fn SelfEmitCtx_target(ctx: SelfEmitCtx) -> String {
 
 fn SelfEmitCtx_wasi_version(ctx: SelfEmitCtx) -> String {
     ctx.wasi_version
+}
+
+fn SelfEmitCtx_memory64(ctx: SelfEmitCtx) -> bool {
+    ctx.memory64
 }
 
 fn SelfEmitCtx_code_section_offsets(ctx: SelfEmitCtx) -> Vec<i32> {

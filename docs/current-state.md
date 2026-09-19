@@ -117,12 +117,12 @@ still has the pre-existing #854 generic-enum mismatch.
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
-| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |
-|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
-| `wasm32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
-| `wasm32-gc` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | partial | experimental | Yes | `c` | `c` | Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json) |
-| `native-llvm` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
+| Target | GC Availability | Default Memory | Allowed Memory Widths | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |
+|--------|-----------------|----------------|----------------------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
+| `wasm32` | `linear-memory` | `memory32` | `memory32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
+| `wasm32-gc` | `wasm-gc` | `memory64` | `memory32`, `memory64` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
+| `native-cpp` | `not-applicable` | `none` | `none` | scaffold | partial | experimental | Yes | `c` | `c` | Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json) |
+| `native-llvm` | `not-applicable` | `none` | `none` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles
 
@@ -146,9 +146,11 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 `wasm32-gc` ⊆ wasmtime ∩ Node ∩ Browser ∩ jco≥1.25.2（**multiple memories は default 禁止**）。
 運用表: [platform/target-runtime-and-surfaces.md](platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。
 
-**Memory64（living）:** `wasm32-gc` の default emit は Memory64（memory limits flag + i64 heap /
-アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。Memory width は compiler emitter
-が決め、post-link heap patcher や旧 runtime rewrite は行わない。
+**Memory width（living）:** `wasm32-gc` の core Wasm `auto` は Memory64（memory limits
+flag + i64 heap / アドレス幅 widen）に解決され、`memory32` も明示指定できる。WAT scaffold は
+`auto` を Memory32 に解決し、Memory64 を拒否する。`wasm32` は Memory32 のみを許可する。Component の `auto` は official WASI P2 canonical memory boundary
+の Memory32 に解決される。解決済み width は compiler config から Wasm writer へ渡し、
+post-link heap patcher や旧 runtime rewrite は行わない（ADR-074）。
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
@@ -164,9 +166,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2926 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1338 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2926 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, and import/use syntax fixtures were added, so the current registry remainder is 1338. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 2941 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1353 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2941 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, and target capability fixtures were added, so the current registry remainder is 1353. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 

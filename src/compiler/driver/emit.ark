@@ -83,6 +83,7 @@ fn emit_component_output(
         mir_module,
         config_record::config_target(config),
         config_record::config_wasi_version(config),
+        config_record::config_memory_width(config),
         config_record::config_opt_level(config),
         config_record::config_strip_debug(config),
         bindings,
@@ -116,6 +117,10 @@ fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
 fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
     if eq(config_record::config_wasi_version(config), String_from("wasi-p3")) {
         return String_from("host profile wasi-p3 is not yet implemented")
+    }
+    if eq(clone(emit_mode), "component") &&
+    eq(config_record::config_memory_width(config), String_from("memory64")) {
+        return String_from("component emission requires memory32; use --memory-width memory32 or auto")
     }
     if eq(clone(emit_mode), "component") && !eq(config_record::config_wasi_version(config), String_from("wasi-p2")) {
         return String_from("component emission requires the official wasi-p2 host profile")
@@ -205,6 +210,7 @@ fn emit_wasm_output(
         mir_module,
         config_record::config_target(config),
         config_record::config_wasi_version(config),
+        config_record::config_memory_width(config),
         config_record::config_opt_level(config),
         config_record::config_strip_debug(config),
         bindings,

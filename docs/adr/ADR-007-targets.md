@@ -33,18 +33,24 @@
 | `native-cpp` | セルフホストexecutor + 公開 experimental run | C99 private ABI（ADR-049 / ADR-050） | **scaffold** |
 | `native-llvm` | 試験 | 未決定 | **scaffold** |
 
-### 2. `wasm32-gc` は製品 profile として束ねる
+### 2. `wasm32-gc` は既定値を持つ製品 profile として扱う
 
-CLI の `--target wasm32-gc` は、当面次を**既定で束ねた製品 profile**である:
+CLI の `--target wasm32-gc` は、当面次の既定値を持つ製品 profile である。
+これらの軸は target 名の同義語ではなく、CLI/config 境界で独立に検証する
+（[ADR-074](ADR-074-language-v2-target-capability-configuration.md)）。
 
 | 軸 | 既定 |
 |----|------|
-| TargetArchitecture | Wasm32Gc（値表現 = Wasm GC） |
-| HostProfile | WASI P2（`--wasi p3` で P3） |
-| ArtifactKind | core Wasm 既定。`--emit component` / `wit` / `all` 可（ADR-008） |
+| GC availability | `wasm-gc`（値表現 = Wasm GC） |
+| Memory width | core Wasm は `memory64`; `--memory-width memory32` も許可。WAT scaffold は `memory32` |
+| Host profile | WASI P2（`--wasi-version wasi-p3` で P3） |
+| Artifact kind | core Wasm 既定。`--emit component` / `wit` / `all` 可（ADR-008） |
 
-内部モデルとしては三軸が直交しうる（将来 `--host none` 等）。現状 CLI は
-`--wasi none` / `p1` を `wasm32-gc` 上で拒否する（コンパイルエラー）。
+Component artifact の canonical memory boundary は `memory32` である。
+そのため `--emit component` / `--emit all` の `auto` は `memory32` に解決され、
+`--memory-width memory64` との組合せは拒否する。
+内部モデルとしては各軸を独立に扱う（将来 `--host none` 等）。現状 CLI は
+`wasi-p1` を `wasm32-gc` 上で拒否する（コンパイルエラー）。
 WASI 非依存の旧 freestanding は提供しない。
 
 `jco` は実行エンジンではなく **packaging tool**（component → ESM）。
@@ -170,6 +176,9 @@ opt-in（明示フラグや将来プロファイル）で積集合外の機能�
 | `support_tier` | primary / supported / scaffold / not-started | 本 ADR §8 / ADR-013 |
 | `implementation_state` | complete / partial / scaffold / unimplemented | 実装の完成度（living） |
 | `contract_stability` | CLI 名・公開 target 契約の安定度 | 本節。ADR-014 の API stability ではない |
+| `gc_availability` | `wasm-gc` / `linear-memory` / `not-applicable` の backend capability | ADR-074 |
+| `default_memory_width` | `auto` 解決時の `memory32` / `memory64` / `none` | ADR-074 |
+| `allowed_memory_widths` | target が受け入れる memory width の集合 | ADR-074 |
 
 `contract_stability = stable` は「target 識別子と CLI 契約が安定」を意味し、
 `implementation_state = partial` と両立しうる（例: `wasm32-gc`）。
@@ -191,6 +200,7 @@ opt-in（明示フラグや将来プロファイル）で積集合外の機能�
 - [ADR-006](ADR-006-abi-policy.md) — 安定境界は WIT/canonical
 - [ADR-008](ADR-008-component-wrapping.md) — component in-tree
 - [ADR-013](ADR-013-primary-target.md) — primary = `wasm32-gc`
+- [ADR-074](ADR-074-language-v2-target-capability-configuration.md) — target capability axes
 - [ADR-037](ADR-037-std-simd.md) — SIMD 軸（fixed / relaxed）
 - [ADR-045](ADR-045-llvm-scope-withdrawn.md) — native判断の保留（ADR-049により後継済み）
 - [ADR-049](ADR-049-native-c99-selfhost-executor.md) — native-cppセルフホストexecutor

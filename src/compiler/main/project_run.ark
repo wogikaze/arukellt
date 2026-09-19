@@ -6,13 +6,14 @@ use driver::config_record
 use driver::file
 use driver::result_record
 use main::args_record
+use main::compile_core
 use main::output
 use parser::ast
 use parser::kinds as parser_kinds
 
 fn build_run_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
-    config_record::config_set_target(config, args_record::cli_target(opts))
+    compile_core::configure_target_axes(opts, config, "wasm")
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, "wasm")
     config
@@ -76,11 +77,7 @@ pub fn cmd_run(opts: CliOptions) {
 
 fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
-    config_record::config_set_target(config, args_record::cli_target(opts))
-    if args_record::cli_has_wasi_version(opts) {
-        config_record::config_set_wasi_version(config, args_record::cli_wasi_version(opts))
-    }
-    config_record::config_set_wasi_version_explicit(config, args_record::cli_wasi_version_explicit(opts))
+    compile_core::configure_target_axes(opts, config, args_record::cli_emit_mode(opts))
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
     config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))

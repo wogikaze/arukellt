@@ -10,6 +10,23 @@ pub fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i3
     next
 }
 
+pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
+    let next = i + 1
+    if next >= argc {
+        args_record::cli_set_error(opts, String_from("--memory-width requires auto, memory32, or memory64"))
+        return next
+    }
+    let width = clone(get_unchecked(argv, next))
+    if eq(clone(width), String_from("auto")) ||
+    eq(clone(width), String_from("memory32")) ||
+    eq(clone(width), String_from("memory64")) {
+        args_record::cli_set_memory_width(opts, width)
+        return next
+    }
+    args_record::cli_set_error(opts, String_from("--memory-width requires auto, memory32, or memory64"))
+    next
+}
+
 pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
