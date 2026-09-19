@@ -101,6 +101,10 @@ type-specific function variants.
   from all current adapters. The trait implementation is now the sole stdlib
   `next` definition while the existing structural `for` lowering remains
   compatible on GC and linear-memory targets.
+- Commit `099863a45` fixes `FromIterator<T>` so its source type is the trait
+  parameter, registers `FromIterator<VecIter> for Vec<i32>`, and adds a
+  `Vec::from_iter(iter::vec_iter(...))` fixture. GC component and linear Wasm
+  compile, validation, and runtime checks pass.
 
 This is a partial implementation receipt, not a close receipt. Lazy adapter
 methods, generic collection implementations, canonical `collect`, structural
