@@ -147,3 +147,16 @@ full adapter fixture matrix as a fallback parity gate.
 - The current implementation deliberately returns `Vec<i32>`; `Vec<T::Item>`
   remains a tracked follow-up under #860 because the existing aggregate ABI is
   not yet valid for that projection.
+
+## Progress receipt — 2026-09-20 (iterator consumers)
+
+- Commit `d901883d0` adds canonical `Iterator::count` and `Iterator::sum`
+  methods for the current `i32` item lane. Their generic traversals are shared
+  by the current adapter implementations, with no callback or projected Vec
+  ABI involved.
+- The same iterator fixture calls both consumers through generic
+  `count_values<T: iter::Iterator>` and `sum_values<T: iter::Iterator>`
+  functions. GC component execution and linear Wasm validation/runtime pass.
+- `fold` remains open: its generic callback path still exposes the existing
+  function-reference ABI gap, so this receipt does not claim the full consumer
+  acceptance condition.

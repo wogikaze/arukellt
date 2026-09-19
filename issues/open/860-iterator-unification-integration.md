@@ -75,3 +75,13 @@ RFC-011: **37**。
   collection implementations, eager/lazy API migration, desugared-iteration
   equivalence, and the RFC-011 residual audit still require implementation and
   review.
+
+## Progress receipt — 2026-09-20 (iterator consumers)
+
+- Commit `d901883d0` adds `Iterator::count` and `Iterator::sum` to the
+  canonical trait path for the supported `i32` item lane. Their generic
+  traversals are exercised through `count_values<T: Iterator>` and
+  `sum_values<T: Iterator>` in the positive fixture.
+- GC component execution and linear Wasm validate/runtime checks pass for the
+  updated fixture. `fold` is intentionally not included because its generic
+  callback lowering still hits the tracked function-reference ABI boundary.
