@@ -117,3 +117,11 @@ RFC-011: **37**。
 - The Range instantiation passes GC component and linear Wasm compile,
   validation, and runtime checks; full trait-driven `for` desugaring remains
   open.
+
+## Progress receipt — 2026-09-20 (RangeInclusive IntoIterator)
+
+- Commit `997d19ffb` adds the closed-range adapter and its `IntoIterator`
+  implementation.
+- The fixture checks `[3, 5]` through `next` and `count`; GC component and
+  linear Wasm compile, validation, and runtime checks pass without changing
+  structural `for` lowering.

@@ -192,3 +192,10 @@ full adapter fixture matrix as a fallback parity gate.
 - The fixture compiles and runs on the GC component path and on linear Wasm;
   associated-item projection and conversion dispatch both observe the first
   range value (`7`).
+
+## Progress receipt — 2026-09-20 (RangeInclusive IntoIterator)
+
+- Commit `997d19ffb` adds `RangeInclusiveIter` and `IntoIterator for
+  RangeInclusive`, preserving the closed `[start, end]` boundary.
+- The range fixture verifies the first item and the two remaining items after
+  consuming `3` from `[3, 5]`; GC component and linear Wasm checks pass.
