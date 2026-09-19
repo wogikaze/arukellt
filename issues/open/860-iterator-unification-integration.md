@@ -157,3 +157,23 @@ RFC-011: **37**。
 - This remains partial evidence: generic `Vec<T::Item>` collection,
   callback-bearing `fold`, full lazy adapter migration, and the final RFC item
   37 residual audit remain open. No acceptance checkbox is marked complete.
+
+## Progress receipt — 2026-09-20 (canonical fold and fallback callback ABI)
+
+- Commit `3ab6f0f56` adds the canonical `Iterator::fold` consumer for the
+  supported `i32` item lane. Its generic `fold_iterator_i32<T: Iterator>`
+  traversal is shared by every current adapter implementation, and the legacy
+  `iter_fold_i32` helper delegates through `VecIter::fold`.
+- Positive evidence covers generic dispatch over `VecIter`, `RangeIter`, and
+  `RangeInclusiveIter` in `iterator_vec_iter_next.ark` and
+  `iterator_range_basic.ark`. The fold sum/product/empty and map/filter
+  callback fixtures also pass on both target paths.
+- The callback ABI is now target-consistent in meaning: `wasm32-gc` keeps
+  typed `ref.func`/`call_ref`, while `wasm32` emits table-index `i32` values
+  and `call_indirect`. Both WAT forms validate and their runtimes produce the
+  expected results.
+- Targeted formatter checks and default `python3 scripts/manager.py verify lane`
+  pass. Generic aggregate projection, method-shaped adapter migration,
+  structural trait-driven `for` desugaring, and the final RFC item 37 residual
+  audit remain open. This receipt does not close #860 or mark its acceptance
+  boxes complete.

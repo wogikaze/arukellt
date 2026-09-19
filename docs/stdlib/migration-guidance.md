@@ -55,12 +55,13 @@ fn main() {
 ```
 
 `Vec<i32>`, `Range`, and `RangeInclusive` implement `IntoIterator`; the
-canonical `Iterator::collect`, `Vec::from_iter`, `count`, and `sum` consumers
-currently cover the concrete `i32` item lane. `FromIterator` dispatches the
-`VecIter`, `RangeIter`, and `RangeInclusiveIter` sources statically. Generic
-`Vec<T::Item>` collection, callback-bearing
-`fold`, and method adapters such as `.map()` and `.filter()` remain planned
-under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md) and
+canonical `Iterator::collect`, `Vec::from_iter`, `count`, `sum`, and `fold`
+consumers currently cover the concrete `i32` item lane. `fold` accepts a
+named `fn(i32, i32) -> i32` callback on both published Wasm targets.
+`FromIterator` dispatches the `VecIter`, `RangeIter`, and
+`RangeInclusiveIter` sources statically. Generic `Vec<T::Item>` collection
+and method adapters such as `.map()` and `.filter()` remain planned under
+[#691](../../issues/open/691-iterator-trait-lazy-adapters.md) and
 [#860](../../issues/open/860-iterator-unification-integration.md). The
 `std::seq` helpers must not be marked deprecated against those planned names
 until the method-level manifest contract exists.

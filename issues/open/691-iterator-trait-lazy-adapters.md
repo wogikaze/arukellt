@@ -225,3 +225,29 @@ full adapter fixture matrix as a fallback parity gate.
   Formatter, `verify lane`, and docs check pass. Generic item projection,
   callback-bearing consumers, and the remaining eager/lazy migration are still
   open; this is not a close receipt.
+
+## Progress receipt — 2026-09-20 (canonical fold and fallback callback ABI)
+
+- Commit `3ab6f0f56` adds `Iterator::fold(self, init, f)` for the supported
+  `i32` item lane and a shared `fold_iterator_i32<T: Iterator>` traversal.
+  `VecIter`, both range iterators, and the existing lazy adapter types delegate
+  to that canonical path; `iter_fold_i32` is now a compatibility entry point
+  over `VecIter::fold` rather than a second traversal implementation.
+- `iterator_vec_iter_next.ark` exercises a generic `fold_values<T: Iterator>`
+  consumer with `VecIter`; `iterator_range_basic.ark` exercises the same
+  consumer with both `RangeIter` and `RangeInclusiveIter`.
+- GC uses the existing typed `ref.func`/`call_ref` callback ABI. The linear
+  fallback now lowers the same callback MIR to an `i32` table slot and
+  `call_indirect`, including function signatures and callback locals. This
+  removes the previous linear validation/runtime boundary without changing
+  the GC primary representation.
+- `iterator_fold_sum.ark`, `iterator_fold_product.ark`,
+  `iterator_fold_empty.ark`, `iterator_map_basic.ark`, and
+  `iterator_filter_basic.ark` pass GC component and linear-memory compile,
+  Wasm validation, and runtime checks. The generated linear WAT contains
+  `call_indirect` and no typed callback parameter; the GC WAT contains
+  `call_ref` and typed callback parameters.
+- Targeted formatter checks and default `python3 scripts/manager.py verify lane`
+  pass. Generic `Vec<T::Item>` collection, method-shaped lazy adapters, the
+  remaining eager/lazy migration, and the final RFC item 37 residual audit
+  remain open; no acceptance checkbox is marked complete.
