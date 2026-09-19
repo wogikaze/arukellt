@@ -1,0 +1,8 @@
+fn main() {
+    let mut seed = |x| x
+    let read = |y| seed
+    let first = read(0)
+    let second = read(true)
+    let first_value: i32 = first(42)
+    let second_value: bool = second(true)
+}

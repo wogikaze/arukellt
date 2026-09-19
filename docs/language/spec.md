@@ -338,19 +338,38 @@ every use of the binding shares the same type variable state.
 
 #### Generalization rule
 
-**Only syntactic values are generalized.** A let-binding whose initializer
-is one of the following AST node kinds is eligible for generalization:
+Arukellt uses a conservative **non-expansive/value restriction** until an
+effect system can classify evaluation effects. A `let` binding is generalized
+only when the binding is immutable and its initializer is a `NonExpansive`
+expression. The type checker also removes type variables that are free in the
+typing environment or in a declared generic parameter; only the remaining
+variables are quantified.
 
-- Literals: `NK_INT_LIT`, `NK_FLOAT_LIT`, `NK_STRING_LIT`, `NK_BOOL_LIT`
-- Closures/lambdas: `NK_CLOSURE`
-- Identifier references: `NK_IDENT`
+The `NonExpansive` forms are:
 
-All other initializer forms (function calls, binary/unary expressions,
-blocks, if-expressions, match-expressions, comprehensions) are
-**expansive** and the binding is stored monomorphically.
+- literals: `NK_INT_LIT`, `NK_FLOAT_LIT`, `NK_STRING_LIT`, `NK_BOOL_LIT`,
+  `NK_CHAR_LIT`
+- closure/lambda literals: `NK_CLOSURE`
+- an identifier referring to an already generalized, immutable binding
 
-This is a conservative value-restriction rule equivalent to the ML
-value restriction.
+An identifier is not eligible merely because its AST kind is `NK_IDENT`.
+Parameters, mutable bindings, and aliases of monomorphic values remain
+monomorphic. `let mut` is never generalized, even when its initializer is a
+literal or closure.
+
+The following forms are **expansive** and are stored monomorphically:
+
+- function calls, method calls, and index expressions
+- tuple, array, array-repeat, and struct literals (aggregate allocation)
+- blocks, `if`, `match`, comprehensions, assignments, unary expressions, and
+  binary expressions
+- paths and any expression not listed as `NonExpansive`
+
+Known-pure calls are still expansive until an effect system is adopted. A
+backend allocation for a literal or closure does not change its source-level
+classification; Wasm GC and linear-memory lowering share this rule. Aggregate
+allocation, calls, and mutable state therefore cannot gain polymorphism from a
+backend-specific optimization.
 
 #### TypeScheme representation
 
@@ -359,14 +378,17 @@ Internally, a `TypeScheme` consists of:
 - `body`: the body type, which may reference the quantified variables
 
 The `generalize` function collects free (unbound) type variables from the
-inferred type and builds a scheme. The `instantiate_scheme` function
-creates fresh type variables for each quantified variable on each lookup.
+inferred type, subtracts variables free in the current environment, and builds
+a scheme. The `instantiate_scheme` function creates fresh type variables for
+each quantified variable on each lookup. This environment-aware subtraction
+also prevents a closure that captures a mutable value or an outer generic
+parameter from quantifying that outer type.
 
 #### Example
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- let-generalization illustration uses closure syntax not accepted as a standalone doc example -->
+<!-- fixture: selfhost/typescheme_poly_let.ark -->
 ```ark
-// `id` is a syntactic value (closure) -> generalized
+// `id` is a non-expansive closure -> generalized
 let id = fn(x) { x }
 
 // Each call gets fresh type variables
@@ -380,8 +402,8 @@ let s: String = id("hello")  // fresh t2, unified with String
 - Top-level generic function declarations are handled via explicit
   `FnSig.type_params` and are not affected by this let-generalization
   mechanism.
-- Let-generalization is local to function bodies and the scope level
-  where the binding appears.
+- Let-generalization is local to function bodies and the scope level where the
+  binding appears; type variables owned by that environment are not quantified.
 - TypeScheme is an internal compiler representation and does not appear
   in surface syntax.
 

@@ -289,6 +289,9 @@ diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/typescheme_deny_no_generalize.ark
+diag:selfhost/typescheme_environment_monomorphic.ark
+diag:selfhost/typescheme_mutable_binding.ark
+diag:selfhost/typescheme_expansive_call.ark
 diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
 diag:wit_import/errors/duplicate_alias.ark
@@ -576,6 +579,7 @@ run:selfhost/typecheck_mono_instances.ark
 run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_trait_impl_smoke.ark
 run:selfhost/typescheme_poly_let.ark
+run:selfhost/typescheme_value_restriction.ark
 run:simd_conformance/f32x4_basic.ark
 run:simd_conformance/i32x4_basic.ark
 run:simd_conformance/v128_bitwise.ark

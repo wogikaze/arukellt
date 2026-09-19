@@ -1,0 +1,15 @@
+// Test: a block result stays monomorphic even when it contains a closure type.
+use std::host::stdio
+
+fn main() {
+    let id = {
+        let inner = |x| x
+        inner
+    }
+    let number: i32 = id(42)
+    let flag: bool = id(true)
+    stdio::println(to_string(number))
+    if flag {
+        stdio::println(String_from("unexpectedly polymorphic"))
+    }
+}

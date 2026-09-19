@@ -1,0 +1,12 @@
+// Test: let mut never generalizes, even when its initializer is a closure literal.
+use std::host::stdio
+
+fn main() {
+    let mut id = |x| x
+    let number: i32 = id(42)
+    let flag: bool = id(true)
+    stdio::println(to_string(number))
+    if flag {
+        stdio::println(String_from("unexpectedly polymorphic"))
+    }
+}

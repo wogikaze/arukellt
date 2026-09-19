@@ -107,6 +107,14 @@ fn scope_binding_is_copy(scope: LocalScope, name: String) -> bool {
     contract_scope::VarBinding_is_copy(contract_scope::LocalScope_binding_at(scope, index))
 }
 
+fn scope_binding_is_generalized(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_is_generalized(contract_scope::LocalScope_binding_at(scope, index))
+}
+
 fn scope_binding_is_function(scope: LocalScope, name: String) -> bool {
     let index = scope_binding_index(scope, name)
     if index < 0 {
@@ -257,19 +265,73 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
     names
 }
 
-fn generalize(env: TypeEnv, ty: TypeInfo) -> TypeScheme {
+fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
+    let names = Vec::new<String>()
+    let binding_count = contract_scope::LocalScope_binding_count(scope)
+    let mut i = 0
+    while i < binding_count {
+        let binding = contract_scope::LocalScope_binding_at(scope, i)
+        let binding_names = collect_free_type_var_names(
+            env,
+            contract_scope::VarBinding_type(binding)
+        )
+        let quantified = if contract_scope::VarBinding_is_generalized(binding) {
+            contract_scope::VarBinding_scheme(binding).vars
+        } else {
+            Vec::new<String>()
+        }
+        let mut j = 0
+        while j < len(binding_names) {
+            let name = get_unchecked(binding_names, j)
+            if !type_name_is_present(quantified, clone(name)) &&
+            !type_name_is_present(names, clone(name)) {
+                push(names, clone(name))
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    let generic_count = len(env.current_fn_type_params)
+    let mut generic_index = 0
+    while generic_index < generic_count {
+        let name = get_unchecked(env.current_fn_type_params, generic_index)
+        if !type_name_is_present(names, clone(name)) {
+            push(names, clone(name))
+        }
+        generic_index = generic_index + 1
+    }
+    names
+}
+
+fn generalize(env: TypeEnv, scope: LocalScope, ty: TypeInfo) -> TypeScheme {
+    let candidates = collect_free_type_var_names(env, ty)
+    let environment_names = scope_free_type_var_names(env, scope)
+    let vars = Vec::new<String>()
+    let mut i = 0
+    while i < len(candidates) {
+        let name = get_unchecked(candidates, i)
+        if !type_name_is_present(environment_names, clone(name)) {
+            push(vars, clone(name))
+        }
+        i = i + 1
+    }
     TypeScheme {
-        vars: collect_free_type_var_names(env, ty),
+        vars: vars,
         body: ty
     }
 }
 
-fn is_syntactic_value(node: AstNode) -> bool {
+fn is_non_expansive_value(scope: LocalScope, node: AstNode) -> bool {
     let kind = ast_access::node_kind(node)
     if kind == kinds::NK_INT_LIT() || kind == kinds::NK_FLOAT_LIT() ||
     kind == kinds::NK_STRING_LIT() || kind == kinds::NK_BOOL_LIT() ||
-    kind == kinds::NK_CLOSURE() || kind == kinds::NK_IDENT() {
+    kind == kinds::NK_CHAR_LIT() || kind == kinds::NK_CLOSURE() {
         return true
+    }
+    if kind == kinds::NK_IDENT() {
+        let name = ast_access::node_text(node)
+        return scope_binding_is_generalized(scope, clone(name)) &&
+        !scope_binding_is_mutable(scope, clone(name))
     }
     false
 }

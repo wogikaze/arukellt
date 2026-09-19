@@ -9,6 +9,7 @@ use typechecker::call_vec_ctor
 use typechecker::enum_expr
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
+use typechecker::scope
 use typechecker::sigs
 use typechecker::unify
 
@@ -80,6 +81,19 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
             )
             if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() {
                 vec_core_mono::record_vec_core_mono_for_callee(env, clone(callee_name), recv_ty)
+            }
+        }
+        if ast_expr_predicates::node_is_ident(callee) {
+            let local_ty = scope::scope_lookup_instantiated(env, scope, clone(callee_name))
+            if contract_type_access::TypeInfo_tag(local_ty) == commands::TY_FN() {
+                return call_unknown::infer_local_function_call(
+                    env,
+                    scope,
+                    fn_sigs,
+                    enum_defs,
+                    node,
+                    local_ty
+                )
             }
         }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)

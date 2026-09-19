@@ -1,8 +1,45 @@
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::builtins
+use typechecker::call_args
+use typechecker::closure_capture
 use typechecker::contract_type_access
 use typechecker::scope
+use typechecker::unify
+
+fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, fn_ty: TypeInfo) -> TypeInfo {
+    let type_arg_count = contract_type_access::TypeInfo_type_arg_count(fn_ty)
+    if type_arg_count < 1 {
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let expected_arg_count = type_arg_count - 1
+    let actual_arg_count = ast_access::node_child_count(node) - 1
+    if actual_arg_count != expected_arg_count {
+        unify::type_error_bad_arity(
+            env,
+            concat(
+                String_from("wrong number of arguments for local function value: expected "),
+                concat(to_string(expected_arg_count), concat(String_from(", found "), to_string(actual_arg_count)))
+            )
+        )
+        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, actual_arg_count)
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let mut i = 0
+    while i < actual_arg_count {
+        let arg_node = ast_access::node_child_at(node, i + 1)
+        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        if env.is_ownership_tracking_enabled {
+            closure_capture::closure_borrow_escape(env, scope, arg_node)
+        }
+        let param_ty = contract_type_access::TypeInfo_type_arg_at(fn_ty, i)
+        let resolved_param_ty = unify::resolve_type(env, param_ty)
+        unify::unify(env, resolved_param_ty, arg_ty)
+        i = i + 1
+    }
+    let return_ty = contract_type_access::TypeInfo_type_arg_at(fn_ty, expected_arg_count)
+    unify::resolve_type(env, return_ty)
+}
 
 fn infer_unknown_ident_call(env: TypeEnv, scope: LocalScope, callee: AstNode) -> TypeInfo {
     let callee_name = ast_access::node_text(callee)

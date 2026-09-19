@@ -66,6 +66,7 @@
 | [ADR-067-language-v2-numeric-conversion.md](ADR-067-language-v2-numeric-conversion.md) | ADR-067: Language v2 の数値型と明示変換 | 旧来の型検査は i32 と i64 の二項演算や代入で暗黙に広い型へ寄せていた。 仕様はさらに i32 / i64 と f64 の promotion table を記載していたが、実装、 浮動小数点の丸め、checked conversion の失敗表現を一つの規則として定義していなかった。 |
 | [ADR-068-language-v2-arithmetic-evaluation-semantics.md](ADR-068-language-v2-arithmetic-evaluation-semantics.md) | ADR-068: Language v2 の算術 edge と評価順序 | Wasm GC／linear-memory の共通言語契約として固定する |
 | [ADR-069-language-v2-string-unicode-semantics.md](ADR-069-language-v2-string-unicode-semantics.md) | ADR-069: Language v2 の String / Unicode semantics | 不正な UTF-8 の境界を Wasm GC／linear-memory の共通言語契約として固定する |
+| [ADR-070-language-v2-let-generalization.md](ADR-070-language-v2-let-generalization.md) | ADR-070: Language v2 の let-generalization と value restriction | 構文的な non-expansive/value restriction として固定する |
 
 ## 提案
 

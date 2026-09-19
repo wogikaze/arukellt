@@ -317,6 +317,31 @@ def _known_fixture_parity_exclusions(root: Path) -> set[str]:
     return exclusions
 
 
+_NEGATIVE_FIXTURE_KINDS = frozenset({
+    "compile-error",
+    "component-world-error",
+    "diag",
+    "module-diag",
+})
+
+
+def _manifest_negative_fixture_paths(root: Path) -> set[str]:
+    """Return manifest fixtures whose source is expected to reject checking."""
+    manifest = root / "tests/fixtures/manifest.txt"
+    if not manifest.is_file():
+        return set()
+
+    paths: set[str] = set()
+    for raw_line in manifest.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        kind, separator, fixture = line.partition(":")
+        if separator and kind in _NEGATIVE_FIXTURE_KINDS:
+            paths.add(f"tests/fixtures/{fixture}")
+    return paths
+
+
 def _paths_without_known_fixture_parity_exclusions(root: Path, paths: list[str]) -> list[str]:
     exclusions = _known_fixture_parity_exclusions(root)
     selected = [path for path in paths if path not in exclusions]
@@ -790,13 +815,16 @@ def run_quality(
 
     base = quality_base(root)
     selected = changed_paths(root, base) if mode in {"changed", "quick", "full"} else None
-    # Negative diagnostic fixtures are expected to fail typecheck; lint them via
-    # diag-parity, not quality changed/quick (otherwise adding a diag: fixture
-    # always fails the lane).
+    # Negative fixture sources are expected to fail typecheck; validate them via
+    # the fixture/diagnostic harness, not quality changed/quick. The manifest
+    # classification is needed because selfhost and module fixtures do not all
+    # live below tests/fixtures/diagnostics/.
+    negative_fixture_paths = _manifest_negative_fixture_paths(root)
     ark_selected = [
         path for path in (selected or [])
         if path.endswith(".ark")
         and not path.startswith("tests/fixtures/diagnostics/")
+        and path not in negative_fixture_paths
     ]
     selected_ark = _paths_without_known_fixture_parity_exclusions(root, ark_selected)
     lint_selected = selected_ark

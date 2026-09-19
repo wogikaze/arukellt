@@ -86,6 +86,12 @@ is_none(x)
 - 数値や文字列は素直な型推論が入ります
 - 空コレクションは `Vec_new_T()` のような型特化コンストラクタを使う方が安全です
 
+`let` の多相化は、immutable binding の literal、closure、または既に generalized された
+immutable binding の alias に限られます。
+call、aggregate、block、`let mut` は value restriction により monomorphic に保たれます。
+完全な規則と environment の型変数を量化しない理由は [spec.md §2.8](spec.md#28-let-generalization-typescheme) と
+[ADR-070](../adr/ADR-070-language-v2-let-generalization.md) を参照してください。
+
 ## 値型と参照型
 
 値型・参照型の分類は [spec.md §2.4 Value vs Reference Semantics](spec.md#24-value-vs-reference-semantics) を参照してください。

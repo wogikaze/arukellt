@@ -60,11 +60,12 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
             0
         }
         if ast_access::node_child_count(node) > 0 &&
-        scope::is_syntactic_value(ast_access::node_child_at(node, 0)) {
+        !ast_access::node_is_mut(node) &&
+        scope::is_non_expansive_value(scope, ast_access::node_child_at(node, 0)) {
             scope::scope_define_scheme_with_flags(
                 scope,
                 bind_name,
-                scope::generalize(env, bind_ty),
+                scope::generalize(env, scope, bind_ty),
                 ast_access::node_is_mut(node),
                 is_copy
             )

@@ -276,6 +276,37 @@ class TestQualityCommands(unittest.TestCase):
                 },
             )
 
+    def test_manifest_negative_fixture_paths_include_non_diagnostics_roots(self):
+        from scripts.quality.checks import _manifest_negative_fixture_paths
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "tests/fixtures/manifest.txt"
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text(
+                "\n".join(
+                    [
+                        "run:selfhost/valid.ark",
+                        "diag:selfhost/type_error.ark",
+                        "compile-error:component/bad_export.ark",
+                        "module-diag:modules/bad/main.ark",
+                        "component-world-error:component/bad_world.ark",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                _manifest_negative_fixture_paths(root),
+                {
+                    "tests/fixtures/selfhost/type_error.ark",
+                    "tests/fixtures/component/bad_export.ark",
+                    "tests/fixtures/modules/bad/main.ark",
+                    "tests/fixtures/component/bad_world.ark",
+                },
+            )
+
     def test_quality_changed_excludes_known_fixture_parity_entries_from_fmt_and_lint(self):
         from scripts.quality.checks import run_quality
 

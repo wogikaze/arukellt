@@ -99,7 +99,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | ADR-069で採択済み。仕様・stdlib・GC／linear parity fixtureへ反映する。 |
 | 25 | slice | sliceを独立した非`Copy`の読み取りviewとして定義し、`Vec`との戻り値の不整合を解消する。source binding は現行 API では消費しない。 | ADR-060で採択済み。完全なlifetime/borrow検査は後続。 |
 | 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-066 で `HashMap::new<K,V>()` と receiver methods、supported pair 診断、旧 API の removal condition を採択。 |
-| 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | 型システムRFCで扱う。 |
+| 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | ADR-070で immutable binding、environment-aware generalization、allocation/call/mutable state の境界を採択済み。 |
 | 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
 | 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
 | 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | ADR-009、ADR-031との整合確認が必要。 |
