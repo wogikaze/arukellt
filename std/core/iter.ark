@@ -813,6 +813,94 @@ impl Iterator for ZipIter {
 }
 
 // ---------------------------------------------------------------------------
+// IntoIterator identity conversions for concrete lazy adapters
+// ---------------------------------------------------------------------------
+
+// An iterator is already an iterable source. These identity conversions keep
+// `for` on the same trait boundary as collection sources without allocating or
+// changing the adapter state.
+impl IntoIterator for MapIter {
+    type Item = i32
+    type IntoIter = MapIter
+
+    fn into_iter(self: MapIter) -> MapIter {
+        self
+    }
+}
+
+impl IntoIterator for MapFilterIter {
+    type Item = i32
+    type IntoIter = MapFilterIter
+
+    fn into_iter(self: MapFilterIter) -> MapFilterIter {
+        self
+    }
+}
+
+impl IntoIterator for MapFilterTakeIter {
+    type Item = i32
+    type IntoIter = MapFilterTakeIter
+
+    fn into_iter(self: MapFilterTakeIter) -> MapFilterTakeIter {
+        self
+    }
+}
+
+impl IntoIterator for FilterIter {
+    type Item = i32
+    type IntoIter = FilterIter
+
+    fn into_iter(self: FilterIter) -> FilterIter {
+        self
+    }
+}
+
+impl IntoIterator for TakeIter {
+    type Item = i32
+    type IntoIter = TakeIter
+
+    fn into_iter(self: TakeIter) -> TakeIter {
+        self
+    }
+}
+
+impl IntoIterator for SkipIter {
+    type Item = i32
+    type IntoIter = SkipIter
+
+    fn into_iter(self: SkipIter) -> SkipIter {
+        self
+    }
+}
+
+impl IntoIterator for ChainIter {
+    type Item = i32
+    type IntoIter = ChainIter
+
+    fn into_iter(self: ChainIter) -> ChainIter {
+        self
+    }
+}
+
+impl IntoIterator for EnumerateIter {
+    type Item = i32
+    type IntoIter = EnumerateIter
+
+    fn into_iter(self: EnumerateIter) -> EnumerateIter {
+        self
+    }
+}
+
+impl IntoIterator for ZipIter {
+    type Item = i32
+    type IntoIter = ZipIter
+
+    fn into_iter(self: ZipIter) -> ZipIter {
+        self
+    }
+}
+
+// ---------------------------------------------------------------------------
 // collect — drain an iterator into a Vec<i32>
 // ---------------------------------------------------------------------------
 
