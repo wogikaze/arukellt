@@ -40,7 +40,8 @@ RFC-011: **8 (aggregate)**。
 ## Progress receipt (not done; 2026-09-20)
 
 - Verification guard: `b57a3f670` adds
-  `scripts/tests/test_wasm_gc_aggregate_lowering.py`. It compiles the
+  `scripts/tests/test_wasm_gc_aggregate_lowering.py`; `c11c782fc` extends it
+  to runtime parity. It compiles the
   aggregate fixtures through the current selfhost compiler for the default
   `wasm32-gc` P2/Memory64 path and the `wasm32` P1/memory32 fallback, then
   runs `wasm-tools validate` and inspects the printed binary. The primary
@@ -50,9 +51,13 @@ RFC-011: **8 (aggregate)**。
 - Positive fixtures cover a named enum payload in a struct/Vec, `Option`,
   `Result`, and tuple lowering. The same-source linear artifact is the
   negative representation check for silent GC fallback.
+- Runtime parity: the GC artifact is packaged as a P2 component and the
+  fallback artifact as a P1 wasm module. Both are executed with Wasmtime and
+  each target's stdout matches the fixture `.expected` output for all four
+  fixtures.
 - Verification receipts: the focused test passes (`Ran 1 test in 47.071s`),
-  the combined linear-runtime and aggregate suite passes (`Ran 5 tests in
-  53.020s`), and `python3 scripts/manager.py verify lane` passes its quality
+  the extended combined linear-runtime and aggregate suite passes (`Ran 5
+  tests in 53.082s`), and `python3 scripts/manager.py verify lane` passes its quality
   gates. `git diff --check` and the staged diff check also pass.
 - Normative boundary: the representation/meaning separation remains defined
   by RFC-011 item 8 and ADR-060; this test adds executable binary evidence and
