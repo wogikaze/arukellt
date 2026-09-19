@@ -886,6 +886,12 @@ The current implementation applies this trait boundary to `Vec<i32>`,
 without an `IntoIterator` implementation retain the structural `next()`
 fallback until their trait implementation is available.
 
+For the current `Vec<i32>` item lane, the canonical lazy adapter expression is
+`v.iter().map(f).filter(g).take(n).collect()`. It evaluates the source through
+the iterator protocol and does not require an intermediate collection between
+the adapter stages. Other item representations and additional adapter
+compositions remain implementation work under the iterator migration issues.
+
 ### 4.6 Semicolons
 
 Semicolons are explicit statement or item terminators. Within a block, the

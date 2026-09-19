@@ -1,17 +1,30 @@
 use mir::lower::ast_node
+use mir::lower::ctx_api_emit
 use mir::lower::method
+use mir::inst_local_get
+use mir::lower_kinds
 
 fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 1 {
         let receiver = ast_node::node_child_at(node, 0)
+        let receiver_is_composed = ast_node::node_kind_is(receiver, lower_kinds::NK_METHOD_CALL()) ||
+        ast_node::node_kind_is(receiver, lower_kinds::NK_CALL())
         let receiver_idx = lower_expr(ctx, receiver)
+        if receiver_is_composed && receiver_idx >= 0 {
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(receiver_idx))
+        }
         let callee_name = method::mir_initial_method_callee(ctx, ast_node::node_text(node), receiver_idx)
         let mut a = 1
         let mut first_method_arg_idx = 0 - 1
         while a < child_count {
             let arg = ast_node::node_child_at(node, a)
+            let arg_is_composed = ast_node::node_kind_is(arg, lower_kinds::NK_METHOD_CALL()) ||
+            ast_node::node_kind_is(arg, lower_kinds::NK_CALL())
             let method_arg_idx = lower_expr(ctx, arg)
+            if arg_is_composed && method_arg_idx >= 0 {
+                ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
+            }
             if a == 1 {
                 first_method_arg_idx = method_arg_idx
             }

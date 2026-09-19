@@ -68,12 +68,15 @@ remains an explicit compatibility form.
 `Vec<T::Item>` for the currently implemented `i32`-backed iterator types;
 the compiler resolves that projection during monomorphization and emits the
 same concrete aggregate representation on both Wasm targets. Adding iterator
-implementations for other item representations, and method adapters such as
-`.map()` and `.filter()`, remain planned under
-[#691](../../issues/open/691-iterator-trait-lazy-adapters.md) and
-[#860](../../issues/open/860-iterator-unification-integration.md). The
-`std::seq` helpers must not be marked deprecated against those planned names
-until the method-level manifest contract exists.
+implementations for other item representations remains planned. The current
+`Vec<i32>` method surface includes `iter()`, `map`, `filter`, `take`, and
+`skip`; the verified composed path
+`iter().map(f).filter(g).take(n).collect()` remains lazy and uses the same
+canonical `Iterator::collect` traversal. Additional adapter compositions are
+tracked under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md)
+and [#860](../../issues/open/860-iterator-unification-integration.md). The
+`std::seq` helpers must not be marked deprecated until the method-level
+manifest contract exists.
 
 ---
 

@@ -44,6 +44,7 @@
 /// | ChainIter   | impl   | Lazy chain of two `Vec<i32>`           |
 /// | EnumerateIter | impl | Lazy enumerate adapter                 |
 /// | ZipIter     | impl   | Lazy zip of two `Vec<i32>`             |
+/// | MapFilterTakeIter | impl | Composed map/filter/take pipeline   |
 pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
@@ -132,13 +133,40 @@ pub struct VecIter {
 
 /// Construct a `VecIter` over `v`. The iterator borrows `v` by handle.
 pub fn vec_iter(v: Vec<i32>) -> VecIter {
-    VecIter { vec: v, index: 0, length: len(v) }
+    v.iter()
+}
+
+/// Return the canonical lazy iterator for a `Vec<i32>`.
+impl Vec<i32> {
+    fn iter(self: Vec<i32>) -> VecIter {
+        VecIter { vec: self, index: 0, length: len(self) }
+    }
 }
 
 impl VecIter {
     /// Returns true when no more elements remain.
     fn is_empty(self: VecIter) -> bool {
         self.index >= self.length
+    }
+
+    /// Lazily transform the remaining elements with `f`.
+    fn map(self: VecIter, f: fn(i32) -> i32) -> MapIter {
+        MapIter { vec: self.vec, index: self.index, length: self.length, f: f }
+    }
+
+    /// Lazily keep the remaining elements accepted by `f`.
+    fn filter(self: VecIter, f: fn(i32) -> bool) -> FilterIter {
+        FilterIter { vec: self.vec, index: self.index, length: self.length, f: f }
+    }
+
+    /// Lazily limit the remaining elements to `n` values.
+    fn take(self: VecIter, n: i32) -> TakeIter {
+        TakeIter { vec: self.vec, index: self.index, length: self.length, remaining: n }
+    }
+
+    /// Lazily skip `n` values from the remaining elements.
+    fn skip(self: VecIter, n: i32) -> SkipIter {
+        SkipIter { vec: self.vec, index: self.index, length: self.length, to_skip: n }
     }
 }
 
@@ -313,7 +341,20 @@ pub struct MapIter {
 
 /// Construct a `MapIter` over `v` with transform `f`.
 pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter {
-    MapIter { vec: v, index: 0, length: len(v), f: f }
+    vec_iter(v).map(f)
+}
+
+impl MapIter {
+    /// Lazily keep mapped elements accepted by `f`.
+    fn filter(self: MapIter, f: fn(i32) -> bool) -> MapFilterIter {
+        MapFilterIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            map_f: self.f,
+            filter_f: f,
+        }
+    }
 }
 
 impl Iterator for MapIter {
@@ -347,6 +388,115 @@ impl Iterator for MapIter {
 }
 
 // ---------------------------------------------------------------------------
+// MapFilterIter — composed lazy map/filter adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that maps each source value and then filters the mapped value.
+pub struct MapFilterIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    map_f: fn(i32) -> i32,
+    filter_f: fn(i32) -> bool,
+}
+
+impl MapFilterIter {
+    /// Lazily limit the accepted mapped values to `n` elements.
+    fn take(self: MapFilterIter, n: i32) -> MapFilterTakeIter {
+        MapFilterTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            map_f: self.map_f,
+            filter_f: self.filter_f,
+            remaining: n,
+        }
+    }
+}
+
+impl Iterator for MapFilterIter {
+    type Item = i32
+
+    fn next(self: MapFilterIter) -> Option<i32> {
+        while self.index < self.length {
+            let raw: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            let mapped: i32 = (self.map_f)(raw)
+            if (self.filter_f)(mapped) {
+                return Some(mapped)
+            }
+        }
+        None
+    }
+
+    fn collect(self: MapFilterIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: MapFilterIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: MapFilterIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+
+    fn fold(self: MapFilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MapFilterTakeIter — composed lazy map/filter/take adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator for `map(...).filter(...).take(...)` without intermediate Vecs.
+pub struct MapFilterTakeIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    map_f: fn(i32) -> i32,
+    filter_f: fn(i32) -> bool,
+    remaining: i32,
+}
+
+impl Iterator for MapFilterTakeIter {
+    type Item = i32
+
+    fn next(self: MapFilterTakeIter) -> Option<i32> {
+        if self.remaining <= 0 {
+            return None
+        }
+        while self.index < self.length {
+            let raw: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            let mapped: i32 = (self.map_f)(raw)
+            if (self.filter_f)(mapped) {
+                self.remaining = self.remaining - 1
+                return Some(mapped)
+            }
+        }
+        None
+    }
+
+    fn collect(self: MapFilterTakeIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: MapFilterTakeIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: MapFilterTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+
+    fn fold(self: MapFilterTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // FilterIter — lazy filter adapter
 // ---------------------------------------------------------------------------
 
@@ -360,7 +510,7 @@ pub struct FilterIter {
 
 /// Construct a `FilterIter` over `v` with predicate `f`.
 pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter {
-    FilterIter { vec: v, index: 0, length: len(v), f: f }
+    vec_iter(v).filter(f)
 }
 
 impl Iterator for FilterIter {
@@ -408,7 +558,7 @@ pub struct TakeIter {
 
 /// Construct a `TakeIter` over `v` limited to `n` elements.
 pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter {
-    TakeIter { vec: v, index: 0, length: len(v), remaining: n }
+    vec_iter(v).take(n)
 }
 
 impl Iterator for TakeIter {
@@ -459,7 +609,7 @@ pub struct SkipIter {
 
 /// Construct a `SkipIter` over `v` that drops the first `n` elements.
 pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter {
-    SkipIter { vec: v, index: 0, length: len(v), to_skip: n }
+    vec_iter(v).skip(n)
 }
 
 impl Iterator for SkipIter {
@@ -734,28 +884,28 @@ impl FromIterator<RangeInclusiveIter> for Vec<i32> {
 ///
 /// This is the lazy-pipeline replacement for `std::seq::map_i32_i32`.
 pub fn collect_map_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
-    collect_map_iter(map_iter(v, f))
+    v.iter().map(f).collect()
 }
 
 /// Filter `v` with `f` and collect into a new `Vec<i32>`.
 ///
 /// This is the lazy-pipeline replacement for `std::seq::filter_i32`.
 pub fn collect_filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
-    collect_filter_iter(filter_iter(v, f))
+    v.iter().filter(f).collect()
 }
 
 /// Take the first `n` elements of `v` and collect into a new `Vec<i32>`.
 ///
 /// This is the lazy-pipeline replacement for `std::seq::take_i32`.
 pub fn collect_take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    collect_take_iter(take_iter(v, n))
+    v.iter().take(n).collect()
 }
 
 /// Skip the first `n` elements of `v` and collect the rest into a new `Vec<i32>`.
 ///
 /// This is the lazy-pipeline replacement for `std::seq::skip_i32`.
 pub fn collect_skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    collect_skip_iter(skip_iter(v, n))
+    v.iter().skip(n).collect()
 }
 
 /// Chain two vectors and collect into a new `Vec<i32>`.
