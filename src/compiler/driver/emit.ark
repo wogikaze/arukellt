@@ -238,7 +238,7 @@ fn emit_wat_output(
     let mut wat_bytes: Vec<i32> = Vec::new<i32>()
     let mut wi = 0
     while wi < wat_len {
-        push(wat_bytes, char_at(wat_text, wi))
+        push(wat_bytes, byte_at(wat_text, wi))
         wi = wi + 1
     }
     result_record::compile_result_set_output_bytes(result, wat_bytes)

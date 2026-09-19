@@ -329,7 +329,7 @@ fn native_c_append(state: NativeCFunctionEmitState, source: String) {
     let length = len(source)
     let mut index = 0
     while index < length {
-        push(state.source, char_at(source, index))
+        push(state.source, byte_at(source, index))
         index = index + 1
     }
 }
@@ -450,7 +450,7 @@ fn native_c_allocate_temporary(state: NativeCFunctionEmitState, c_type: String) 
         )
         let mut index = 0
         while index < len(declaration) {
-            push(state.temporary_declarations, char_at(declaration, index))
+            push(state.temporary_declarations, byte_at(declaration, index))
             index = index + 1
         }
     }
@@ -566,14 +566,14 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
             stripped_length = len(literal)
         }
         if stripped_length >= 1 {
-            let last = char_at(literal, stripped_length - 1)
+            let last = byte_at(literal, stripped_length - 1)
             if last == 76 || last == 108 {
                 literal = substring(literal, 0, stripped_length - 1)
                 stripped_length = len(literal)
             }
         }
         // Ark allows `1_i64` / `1_000_i64`; INT64_C token-pastes a trailing `L`.
-        while stripped_length >= 1 && char_at(literal, stripped_length - 1) == 95 {
+        while stripped_length >= 1 && byte_at(literal, stripped_length - 1) == 95 {
             literal = substring(literal, 0, stripped_length - 1)
             stripped_length = len(literal)
         }
@@ -608,7 +608,7 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
             let mut index = 0
             while index < length {
                 if index > 0 { expression = concat(expression, ",") }
-                expression = concat(expression, i32_to_string(char_at(literal, index)))
+                expression = concat(expression, i32_to_string(byte_at(literal, index)))
                 index = index + 1
             }
             expression = concat(
@@ -717,7 +717,7 @@ fn native_c_option_result_elem_type_name(type_name: String) -> String {
         let rest = substring(type_name, 7, len(type_name))
         let mut index = 0
         while index < len(rest) {
-            if char_at(rest, index) == 58 {
+            if byte_at(rest, index) == 58 {
                 return substring(rest, 0, index)
             }
             index = index + 1
@@ -728,7 +728,7 @@ fn native_c_option_result_elem_type_name(type_name: String) -> String {
         let rest = substring(type_name, 7, len(type_name))
         let mut index = 0
         while index < len(rest) {
-            if char_at(rest, index) == 95 {
+            if byte_at(rest, index) == 95 {
                 return substring(rest, 0, index)
             }
             index = index + 1
@@ -1677,7 +1677,7 @@ fn native_c_short_callee_name(mangled: String) -> String {
     let length = len(mangled)
     let mut index = length - 2
     while index >= 0 {
-        if char_at(mangled, index) == 58 && char_at(mangled, index + 1) == 58 {
+        if byte_at(mangled, index) == 58 && byte_at(mangled, index + 1) == 58 {
             return substring(mangled, index + 2, length)
         }
         index = index - 1
@@ -1881,7 +1881,7 @@ fn native_c_emit_call(
             let mut index = length - 2
             let mut short = clone(callee)
             while index >= 0 {
-                if char_at(callee, index) == 58 && char_at(callee, index + 1) == 58 {
+                if byte_at(callee, index) == 58 && byte_at(callee, index + 1) == 58 {
                     short = substring(callee, index + 2, length)
                     index = -1
                 } else {

@@ -2,12 +2,12 @@ use lexer::char_class
 
 fn try_eat_type_suffix(lex: Lexer) -> i32 {
     if lex.pos + 3 <= lex.src_len {
-        let c0 = char_at(lex.src, lex.pos)
-        let c1 = char_at(lex.src, lex.pos + 1)
-        let c2 = char_at(lex.src, lex.pos + 2)
+        let c0 = byte_at(lex.src, lex.pos)
+        let c1 = byte_at(lex.src, lex.pos + 1)
+        let c2 = byte_at(lex.src, lex.pos + 2)
         let mut end_ok = true
         if lex.pos + 3 < lex.src_len {
-            let cn = char_at(lex.src, lex.pos + 3)
+            let cn = byte_at(lex.src, lex.pos + 3)
             if char_class::is_alnum(cn) || cn == 95 {
                 end_ok = false
             }
@@ -21,11 +21,11 @@ fn try_eat_type_suffix(lex: Lexer) -> i32 {
         }
     }
     if lex.pos + 2 <= lex.src_len {
-        let c0 = char_at(lex.src, lex.pos)
-        let c1 = char_at(lex.src, lex.pos + 1)
+        let c0 = byte_at(lex.src, lex.pos)
+        let c1 = byte_at(lex.src, lex.pos + 1)
         let mut end_ok = true
         if lex.pos + 2 < lex.src_len {
-            let cn = char_at(lex.src, lex.pos + 2)
+            let cn = byte_at(lex.src, lex.pos + 2)
             if char_class::is_alnum(cn) || cn == 95 {
                 end_ok = false
             }

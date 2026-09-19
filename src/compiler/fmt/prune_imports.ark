@@ -30,7 +30,7 @@ fn prune_import_sort_group(path: String, has_alias: bool) -> i32 {
 fn prune_import_line_end(text: String, line_start: i32) -> i32 {
     let n = len(text)
     let mut i = line_start
-    while i < n && char_at(text, i) != 10 {
+    while i < n && byte_at(text, i) != 10 {
         i = i + 1
     }
     if i < n {
@@ -63,8 +63,8 @@ fn contains_ident_usage(body: String, name: String) -> bool {
     let mut i = 0
     while i <= n - name_len {
         if substring(clone(body), i, i + name_len) == name {
-            let before_ok = i == 0 || !is_ident_char(char_at(body, i - 1))
-            let after_ok = i + name_len >= n || !is_ident_char(char_at(body, i + name_len))
+            let before_ok = i == 0 || !is_ident_char(byte_at(body, i - 1))
+            let after_ok = i + name_len >= n || !is_ident_char(byte_at(body, i + name_len))
             if before_ok && after_ok {
                 return true
             }
@@ -98,7 +98,7 @@ fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneI
             let has_alias = ast_access::node_type_ann_count(d) > 0
             let line_start = ast_access::node_span_start(d)
             let mut line_begin = line_start
-            while line_begin > 0 && char_at(text, line_begin - 1) != 10 {
+            while line_begin > 0 && byte_at(text, line_begin - 1) != 10 {
                 line_begin = line_begin - 1
             }
             let line_end = prune_import_line_end(clone(text), line_begin)

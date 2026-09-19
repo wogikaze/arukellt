@@ -99,7 +99,7 @@ fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
         let mut last = 0 - 1
         let mut i = 0
         while i < n {
-            if char_at(type_name, i) == 58 {
+            if byte_at(type_name, i) == 58 {
                 if first < 0 {
                     first = i
                 }
@@ -193,7 +193,7 @@ fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
     let mut sep = 0 - 1
     let mut i = 0
     while i < len(rest) {
-        if char_at(rest, i) == 58 {
+        if byte_at(rest, i) == 58 {
             sep = i
             i = len(rest)
         }
@@ -261,7 +261,7 @@ fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if char_at(return_type_name, i) == 58 {
+        if byte_at(return_type_name, i) == 58 {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -334,7 +334,7 @@ fn tuple_key_count(keys: String) -> i32 {
     let mut count = 1
     let mut i = 0
     while i < n {
-        if char_at(keys, i) == 44 {
+        if byte_at(keys, i) == 44 {
             count = count + 1
         }
         i = i + 1
@@ -348,7 +348,7 @@ fn tuple_field_key_at(keys: String, index: i32) -> String {
     let mut start = 0
     let mut i = 0
     while i <= n {
-        if i == n || char_at(keys, i) == 44 {
+        if i == n || byte_at(keys, i) == 44 {
             if cur == index {
                 return substring(keys, start, i)
             }
@@ -395,7 +395,7 @@ fn tuple_gc_field_sig_for_key(key: String, field_idx: i32) -> String {
         return concat(prefix, "_ref14")
     }
     if len(key) == 1 {
-        let ch = char_at(key, 0)
+        let ch = byte_at(key, 0)
         if ch >= 65 && ch <= 90 {
             return concat(prefix, "_i32")
         }

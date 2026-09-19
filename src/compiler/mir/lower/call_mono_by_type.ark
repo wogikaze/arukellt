@@ -127,7 +127,7 @@ fn call_mono_by_type_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i > 0 {
-        if char_at(name, i) == 58 && char_at(name, i - 1) == 58 {
+        if byte_at(name, i) == 58 && byte_at(name, i - 1) == 58 {
             return substring(name, i + 1, n)
         }
         i = i - 1

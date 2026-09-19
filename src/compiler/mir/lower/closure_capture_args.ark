@@ -13,7 +13,7 @@ fn closure_emit_captured_args(ctx: LowerCtx, packed: String) {
         let at_end = i == L
         let mut is_comma = false
         if !at_end {
-            if char_at(packed, i) == 44 {
+            if byte_at(packed, i) == 44 {
                 is_comma = true
             }
         }

@@ -39,7 +39,7 @@ fn split_param_list(inner: String) -> Vec<String> {
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = char_at(inner, i)
+        let ch = byte_at(inner, i)
         if ch == 60 {
             depth = depth + 1
         } else {

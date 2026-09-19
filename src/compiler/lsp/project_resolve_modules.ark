@@ -11,7 +11,7 @@ fn ark_stem_from_path(path: String) -> String {
     let mut last_slash = 0 - 1
     let mut i = n - 1
     while i >= 0 {
-        if char_at(path, i) == 47 {
+        if byte_at(path, i) == 47 {
             last_slash = i
             i = 0 - 1
         } else {

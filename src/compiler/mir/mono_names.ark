@@ -14,7 +14,7 @@ fn mono_safe_name(name: String) -> String {
     let mut out = ""
     let mut i = 0
     while i < n {
-        if is_mono_unsafe_char(char_at(name, i)) {
+        if is_mono_unsafe_char(byte_at(name, i)) {
             out = text::builder_append(out, substring(name, run_start, i))
             out = text::builder_append(out, "_")
             run_start = i + 1

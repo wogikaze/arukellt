@@ -50,7 +50,7 @@ fn enum_name_from_variant_path(path: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2
@@ -72,7 +72,7 @@ fn enum_type_name_from_variant_path(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
             last_sep = i
             i = i + 2
             continue

@@ -622,6 +622,21 @@ let sub = slice(s, 0, 3)              // "hel"
 let trimmed = trim(String_from("  hi  "))
 ```
 
+String values are valid UTF-8. The byte APIs and Unicode scalar APIs use different
+index domains:
+
+- byte_at and byte_len inspect UTF-8 bytes.
+- std::text::len_chars and std::text::codepoint_at use Unicode scalar indices.
+- std::text::slice_bytes requires UTF-8 boundaries; std::text::slice_chars uses
+  scalar indices.
+- std::text::chars returns one String per scalar value. Combining marks are
+  separate scalars; grapheme clusters and normalization are not implicit.
+
+std::text::try_from_utf8 rejects invalid input. std::text::from_utf8 replaces each
+invalid sequence with U+FFFD. char_to_string and push_char encode a char as canonical
+UTF-8. The deprecated char_at name remains a raw byte compatibility API; new code
+should use byte_at or codepoint_at according to its intent.
+
 ### Conversions
 
 #### Stringification — `to_string(x)`

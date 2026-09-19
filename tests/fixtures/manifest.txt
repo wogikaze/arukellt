@@ -253,6 +253,7 @@ diag:diagnostics/resolve_dup_fn.ark
 diag:diagnostics/resolve_undef_module.ark
 diag:diagnostics/resolve_undefined_fn.ark
 diag:diagnostics/type_mismatch.ark
+diag:diagnostics/unicode_codepoint_option_mismatch.ark
 diag:diagnostics/numeric_implicit_promotion.ark
 diag:diagnostics/arithmetic_mixed_comparison.ark
 diag:diagnostics/operator_trait_missing.ark
@@ -1469,6 +1470,7 @@ run:stdlib_text/join_single_element.ark
 run:stdlib_text/len_bytes_basic.ark
 run:stdlib_text/len_chars_ascii.ark
 run:stdlib_text/len_chars_multibyte.ark
+run:stdlib_text/unicode_scalar_semantics.ark
 run:stdlib_text/lines_basic.ark
 run:stdlib_text/lines_crlf.ark
 run:stdlib_text/pad_left_basic.ark

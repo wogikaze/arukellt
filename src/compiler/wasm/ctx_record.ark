@@ -511,7 +511,7 @@ fn SelfEmitCtx_bare_suffix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             if i + 1 < n {
                 return substring(name, i + 1, n)
             }
@@ -527,7 +527,7 @@ fn SelfEmitCtx_module_stripped_name(name: String) -> String {
     let name_len = len(name)
     let mut index = name_len - 2
     while index >= 0 {
-        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
             return substring(name, index + 2, name_len)
         }
         index = index - 1

@@ -47,7 +47,7 @@ fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst)
         let mut index = length - 2
         let mut short = clone(callee)
         while index >= 0 {
-            if char_at(callee, index) == 58 && char_at(callee, index + 1) == 58 {
+            if byte_at(callee, index) == 58 && byte_at(callee, index + 1) == 58 {
                 short = substring(callee, index + 2, length)
                 index = -1
             } else {
@@ -82,7 +82,7 @@ fn native_c_parse_first_arg_vt_hint(hint: String) -> i32 {
     let mut value = 0
     let mut i = 0
     while i < n {
-        let d = char_at(hint, i)
+        let d = byte_at(hint, i)
         if d >= 48 && d <= 57 {
             value = value * 10 + (d - 48)
         } else {

@@ -305,7 +305,7 @@ fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
     }
     // Single uppercase letter (T, U, V, ...) — unsubstituted generic field.
     if len(type_name) == 1 {
-        let ch = char_at(type_name, 0)
+        let ch = byte_at(type_name, 0)
         if ch >= 65 && ch <= 90 {
             return true
         }

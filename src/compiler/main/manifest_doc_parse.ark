@@ -147,8 +147,8 @@ pub fn doc_parse_manifest(content: String) -> DocManifestTable {
     let mut line_start = 0
     let mut i = 0
     while i < n {
-        if char_at(content, i) == 10 || i == n - 1 {
-            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
+        if byte_at(content, i) == 10 || i == n - 1 {
+            let line_end = if byte_at(content, i) == 10 { i } else { i + 1 }
             let line = substring(content, line_start, line_end)
             if starts_with(clone(line), String_from("[[functions]]")) {
                 doc_flush_fn(fns, fn_state)

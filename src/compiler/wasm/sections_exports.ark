@@ -112,7 +112,7 @@ fn export_name_seen_bump(counts: ExportNameCounts, name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ char_at(name, hi)
+        hash = hash * fnv_prime ^ byte_at(name, hi)
         if hash < 0 {
             hash = 0 - hash
         }
@@ -136,7 +136,7 @@ fn export_name_seen_bump(counts: ExportNameCounts, name: String) -> i32 {
         if same {
             let mut i = 0
             while i < name_len {
-                if char_at(key, i) != char_at(name, i) {
+                if byte_at(key, i) != byte_at(name, i) {
                     same = false
                     i = name_len
                 } else {
@@ -433,7 +433,7 @@ fn is_p2_std_helper_name(name: String) -> bool {
 
 fn is_internal_export_name(name: String) -> bool {
     let name_len = len(name)
-    name_len > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95
+    name_len > 2 && byte_at(name, 0) == 95 && byte_at(name, 1) == 95
 }
 
 fn is_generic_function(f: MirFunction) -> bool {
@@ -444,7 +444,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     let mut has_sep = false
     let mut i = 0
     while i < name_len - 1 {
-        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+        if byte_at(fn_name, i) == 95 && byte_at(fn_name, i + 1) == 95 {
             has_sep = true
         }
         i = i + 1

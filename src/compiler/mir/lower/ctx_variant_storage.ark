@@ -48,7 +48,7 @@ fn variant_enum_variant_key(name: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2

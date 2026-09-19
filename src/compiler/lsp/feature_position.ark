@@ -11,7 +11,7 @@ fn extract_position_field(body: String, key: String) -> i32 {
     }
     let r = json::skip_ws(clone(body), q)
     let n = len(body)
-    if r >= n || char_at(body, r) != 58 {
+    if r >= n || byte_at(body, r) != 58 {
         return 0
     }
     json::parse_int_at(clone(body), r + 1)

@@ -1,0 +1,5 @@
+use std::text
+
+fn main() {
+    let scalar: i32 = "é".codepoint_at(0)
+}

@@ -66,19 +66,19 @@ fn apply_manifest_line(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state
 pub fn trim_brackets(raw: String) -> String {
     let n = len(raw)
     let mut start = 0
-    while start < n && char_at(raw, start) == 32 {
+    while start < n && byte_at(raw, start) == 32 {
         start = start + 1
     }
     let mut end = n
-    while end > start && char_at(raw, end - 1) == 32 {
+    while end > start && byte_at(raw, end - 1) == 32 {
         end = end - 1
     }
     let s = substring(raw, start, end)
     let sn = len(s)
-    if sn >= 2 && char_at(s, 0) == 91 {
+    if sn >= 2 && byte_at(s, 0) == 91 {
         let inner = substring(s, 1, sn - 1)
         let in_n = len(inner)
-        if in_n >= 2 && char_at(inner, 0) == 34 {
+        if in_n >= 2 && byte_at(inner, 0) == 34 {
             return substring(inner, 1, in_n - 1)
         }
         return inner

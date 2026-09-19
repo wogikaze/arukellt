@@ -110,7 +110,7 @@ fn mono_bare_source(source: String) -> String {
     let source_len = len(source)
     let mut index = source_len - 1
     while index >= 0 {
-        if char_at(source, index) == 58 {
+        if byte_at(source, index) == 58 {
             return substring(source, index + 1, source_len)
         }
         index = index - 1

@@ -78,7 +78,7 @@ fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
     let n = len(normalized)
     let mut i = n - 1
     while i >= 0 {
-        if char_at(clone(normalized), i) == 58 {
+        if byte_at(clone(normalized), i) == 58 {
             return substring(clone(normalized), i + 1, n)
         }
         i = i - 1
@@ -96,7 +96,7 @@ fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if char_at(normalized, i) == 58 && char_at(normalized, i + 1) == 58 {
+        if byte_at(normalized, i) == 58 && byte_at(normalized, i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2

@@ -224,6 +224,6 @@ fn is_generic_type_param_name(name: String) -> bool {
     if len(name) != 1 {
         return false
     }
-    let ch = char_at(name, 0)
+    let ch = byte_at(name, 0)
     ch >= 65 && ch <= 90
 }

@@ -4,7 +4,7 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
     let n = len(input)
     let mut p = pos
     while p < n {
-        let c = char_at(input, p)
+        let c = byte_at(input, p)
         if c != 32 && c != 9 && c != 10 && c != 13 {
             break
         }
@@ -25,7 +25,7 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
     let block_len = len(header_block)
     let mut q = cl_idx + 15
     while q < block_len {
-        let c = char_at(header_block, q)
+        let c = byte_at(header_block, q)
         if c != 32 && c != 9 {
             break
         }
@@ -33,7 +33,7 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
     }
     let mut clen = 0
     while q < block_len {
-        let c = char_at(header_block, q)
+        let c = byte_at(header_block, q)
         if c < 48 || c > 57 {
             break
         }

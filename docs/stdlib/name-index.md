@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 745
-- **Historical/deprecated names:** 3
-- **Total entries:** 748
+- **Canonical names:** 749
+- **Historical/deprecated names:** 4
+- **Total entries:** 753
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -145,7 +145,6 @@ Current public API names, sorted alphabetically.
 | `bytes_slice` | `std::bytes` | `stable` | Bytes |
 | `canonical_abi_version` | `std::component` | `experimental` | Component |
 | `ceil` | `std::simd::f32x4` | `experimental` | Simd |
-| `char_at` | `prelude` | `stable` | String |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `chars` | `std::text` | `stable` | Text |
 | `clamp_i32` | `prelude` | `stable` | Math |
@@ -153,6 +152,7 @@ Current public API names, sorted alphabetically.
 | `clone` | `prelude` | `stable` | String |
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `cmp_i32` | `std::core` | `stable` | Core |
+| `codepoint_at` | `std::text` | `stable` | Text |
 | `combine` | `std::core::hash` | `stable` | Core |
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `components` | `std::path` | `stable` | Path |
@@ -595,6 +595,7 @@ Current public API names, sorted alphabetically.
 | `skip_ws` | `std::json` | `experimental` | Json |
 | `slice` | `prelude` | `stable` | String |
 | `slice_bytes` | `std::text` | `stable` | Text |
+| `slice_chars` | `std::text` | `stable` | Text |
 | `slice_get` | `prelude` | `stable` | Collections |
 | `slice_len` | `prelude` | `stable` | Collections |
 | `slotmap_contains` | `std::collections::compiler` | `experimental` | Collections |
@@ -678,6 +679,9 @@ Current public API names, sorted alphabetically.
 | `trim_end` | `std::text` | `stable` | Text |
 | `trim_start` | `std::text` | `stable` | Text |
 | `trunc` | `std::simd::f32x4` | `experimental` | Simd |
+| `try_from_utf8` | `std::text` | `experimental` | Text |
+| `try_slice_bytes` | `std::text` | `stable` | Text |
+| `try_slice_chars` | `std::text` | `stable` | Text |
 | `u16_from_le_bytes` | `std::bytes` | `stable` | Bytes |
 | `u16_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `u16_to_le_bytes` | `std::bytes` | `stable` | Bytes |
@@ -775,6 +779,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
+| ~~`char_at`~~ | `byte_at` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
@@ -911,7 +916,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bytes_slice` | ✅ `stable` | `std::bytes` | Bytes |
 | `canonical_abi_version` | ✅ `experimental` | `std::component` | Component |
 | `ceil` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `char_at` | ✅ `stable` | `prelude` | String |
+| ~~`char_at`~~ | ⚠️ deprecated | `prelude` | → `byte_at` · [migration guide](migration-guidance.md) |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `chars` | ✅ `stable` | `std::text` | Text |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
@@ -919,6 +924,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
+| `codepoint_at` | ✅ `stable` | `std::text` | Text |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `components` | ✅ `stable` | `std::path` | Path |
@@ -1364,6 +1370,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `skip_ws` | ✅ `experimental` | `std::json` | Json |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `slice_bytes` | ✅ `stable` | `std::text` | Text |
+| `slice_chars` | ✅ `stable` | `std::text` | Text |
 | `slice_get` | ✅ `stable` | `prelude` | Collections |
 | `slice_len` | ✅ `stable` | `prelude` | Collections |
 | `slotmap_contains` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -1447,6 +1454,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `trim_end` | ✅ `stable` | `std::text` | Text |
 | `trim_start` | ✅ `stable` | `std::text` | Text |
 | `trunc` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `try_from_utf8` | ✅ `experimental` | `std::text` | Text |
+| `try_slice_bytes` | ✅ `stable` | `std::text` | Text |
+| `try_slice_chars` | ✅ `stable` | `std::text` | Text |
 | `u16_from_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `u16_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `u16_to_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |

@@ -1,7 +1,7 @@
 fn string_literal_has_escape(lex: Lexer) -> bool {
     let mut scan = lex.pos
     while scan < lex.src_len {
-        let sc = char_at(lex.src, scan)
+        let sc = byte_at(lex.src, scan)
         if sc == 34 || sc == 10 {
             break
         }

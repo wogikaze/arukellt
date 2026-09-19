@@ -13,7 +13,7 @@ fn peek(lex: Lexer) -> i32 {
     if lexer_at_end(lex) {
         -1
     } else {
-        char_at(lex.src, lex.pos)
+        byte_at(lex.src, lex.pos)
     }
 }
 
@@ -22,12 +22,12 @@ fn peek_at(lex: Lexer, offset: i32) -> i32 {
     if p >= lex.src_len {
         -1
     } else {
-        char_at(lex.src, p)
+        byte_at(lex.src, p)
     }
 }
 
 fn advance(lex: Lexer) -> i32 {
-    let c = char_at(lex.src, lex.pos)
+    let c = byte_at(lex.src, lex.pos)
     lex.pos = lex.pos + 1
     c
 }

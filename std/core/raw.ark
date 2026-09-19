@@ -61,7 +61,7 @@ pub fn raw_string_len_bytes(s: String) -> i32 {
 
 /// Returns the byte at `i` without bounds checking.
 pub fn raw_string_byte_at_unchecked(s: String, i: i32) -> i32 {
-    char_at(s, i)
+    byte_at(s, i)
 }
 
 /// Clones raw string storage.

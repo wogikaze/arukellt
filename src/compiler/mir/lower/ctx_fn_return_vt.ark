@@ -65,7 +65,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     let mut colon_pos = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
-        if char_at(name, ci) == 58 {
+        if byte_at(name, ci) == 58 {
             colon_pos = ci
             ci = 0 - 1
         }

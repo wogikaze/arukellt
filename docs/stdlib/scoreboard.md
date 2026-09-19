@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
-| `prelude` | 135 | 112 | 22 | 0 | 1 | 114/134 (85%) | no |
+| `prelude` | 135 | 111 | 22 | 0 | 2 | 113/133 (85%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
@@ -45,14 +45,14 @@
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::v128` | 7 | 0 | 0 | 7 | 0 | 4/7 (57%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
-| `std::text` | 34 | 32 | 0 | 2 | 0 | 34/34 (100%) | no |
+| `std::text` | 39 | 36 | 0 | 3 | 0 | 39/39 (100%) | no |
 | `std::text::rope` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 748 APIs, 393 stable, 31 provisional, 321 experimental, 3 deprecated, 626/745 (84%) fixture coverage
+**Total**: 753 APIs, 396 stable, 31 provisional, 322 experimental, 4 deprecated, 630/749 (84%) fixture coverage
 
 ## Legend
 

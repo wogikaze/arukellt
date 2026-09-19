@@ -98,7 +98,7 @@ fn ctx_mono_type_name_matches(stored_name: String, query_name: String) -> bool {
     let mut i = 0
     while i <= len(stored_name) {
         let at_end = i == len(stored_name)
-        if at_end || char_at(clone(stored_name), i) == 58 {
+        if at_end || byte_at(clone(stored_name), i) == 58 {
             let segment = substring(clone(stored_name), segment_start, i)
             if eq(ctx_mono_type_var_bare_name(clone(segment)), clone(query)) {
                 return true
@@ -174,7 +174,7 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     let mut segment_start = 0
     let mut i = 0
     while i < len(name) {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             let segment = substring(clone(name), segment_start, i)
             if segment_start > 0 && is_plain_type_var_name(clone(segment)) {
                 push(result, segment)
@@ -201,7 +201,7 @@ fn ctx_extract_type_var_name(ty_name: String) -> String {
         let rlen = len(rest)
         let mut ci = 0
         while ci < rlen {
-            if char_at(rest, ci) == 58 {
+            if byte_at(rest, ci) == 58 {
                 return substring(rest, 0, ci)
             }
             ci = ci + 1
@@ -223,7 +223,7 @@ fn is_plain_type_var_name(name: String) -> bool {
     if len(name) != 1 {
         return false
     }
-    let c = char_at(name, 0)
+    let c = byte_at(name, 0)
     c >= 65 && c <= 90
 }
 
@@ -261,7 +261,7 @@ fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
     let mut i = 0
     let mut has_sep = false
     while i < name_len - 1 {
-        if char_at(mangled_name, i) == 95 && char_at(mangled_name, i + 1) == 95 {
+        if byte_at(mangled_name, i) == 95 && byte_at(mangled_name, i + 1) == 95 {
             has_sep = true
             i = name_len
         } else {

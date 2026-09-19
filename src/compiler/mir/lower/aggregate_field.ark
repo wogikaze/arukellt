@@ -20,7 +20,7 @@ fn strip_struct_type_prefix(type_name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if char_at(type_name, i) == ':' {
+        if byte_at(type_name, i) == ':' {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -44,7 +44,7 @@ fn strip_module_qualifier(type_name: String) -> String {
     }
     let mut i = n - 2
     while i >= 0 {
-        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
             return substring(type_name, i + 2, n)
         }
         i = i - 1

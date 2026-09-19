@@ -4,7 +4,7 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
     let n = len(type_name)
     let mut i = 0
     while i < n {
-        if char_at(type_name, i) == ':' {
+        if byte_at(type_name, i) == ':' {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -23,7 +23,7 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if char_at(type_name, i) == ':' {
+        if byte_at(type_name, i) == ':' {
             last_colon = i
         }
         i = i + 1
@@ -34,7 +34,7 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {
-        let d = char_at(type_name, j)
+        let d = byte_at(type_name, j)
         if d >= 48 && d <= 57 {
             byte_size = byte_size * 10 + (d - 48)
         } else {

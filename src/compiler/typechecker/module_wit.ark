@@ -84,14 +84,14 @@ fn wit_binding_generic_args(name: String) -> Vec<String> {
     let open = index_of(name, "<")
     if open < 0 { return args }
     let mut close = len(name) - 1
-    while close > open && char_at(name, close) != 62 { close = close - 1 }
+    while close > open && byte_at(name, close) != 62 { close = close - 1 }
     if close <= open { return args }
     let inner = substring(name, open + 1, close)
     let mut depth = 0
     let mut start = 0
     let mut i = 0
     while i < len(inner) {
-        let ch = char_at(inner, i)
+        let ch = byte_at(inner, i)
         if ch == 60 { depth = depth + 1 }
         if ch == 62 { depth = depth - 1 }
         if ch == 44 && depth == 0 {

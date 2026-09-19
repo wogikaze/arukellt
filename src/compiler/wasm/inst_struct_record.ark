@@ -350,7 +350,7 @@ fn gc_struct_name_without_size(type_name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if char_at(body, i) == 58 {
+        if byte_at(body, i) == 58 {
             last_colon = i
         }
         i = i + 1
@@ -363,7 +363,7 @@ fn gc_struct_name_without_size(type_name: String) -> String {
         return String_new()
     }
     while j < n {
-        let ch = char_at(body, j)
+        let ch = byte_at(body, j)
         if ch < 48 || ch > 57 {
             return body
         }

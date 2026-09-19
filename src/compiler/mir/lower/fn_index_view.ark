@@ -101,7 +101,7 @@ fn mir_import_facing_qualified_name(qualified_name: String) -> String {
     let separators = Vec::new<i32>()
     let mut index = 0
     while index < name_len - 1 {
-        if char_at(qualified_name, index) == 58 && char_at(qualified_name, index + 1) == 58 {
+        if byte_at(qualified_name, index) == 58 && byte_at(qualified_name, index + 1) == 58 {
             push(separators, index)
             index = index + 2
         } else {

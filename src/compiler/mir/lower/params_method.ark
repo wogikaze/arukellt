@@ -181,7 +181,7 @@ fn mir_method_param_type_name_is_concrete(type_name: String) -> bool {
         return false
     }
     if len(type_name) == 1 {
-        let ch = char_at(type_name, 0)
+        let ch = byte_at(type_name, 0)
         if ch >= 65 && ch <= 90 {
             return false
         }
@@ -202,7 +202,7 @@ fn mir_method_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             return substring(name, i + 1, n)
         }
         i = i - 1

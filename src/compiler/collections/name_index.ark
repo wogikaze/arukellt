@@ -53,13 +53,13 @@ fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
     let name_len = len(name)
     let mut hash = name_len * 31
     if name_len > 0 {
-        hash = hash * 16777619 ^ char_at(name, 0)
+        hash = hash * 16777619 ^ byte_at(name, 0)
     }
     if name_len > 2 {
-        hash = hash * 16777619 ^ char_at(name, name_len / 2)
+        hash = hash * 16777619 ^ byte_at(name, name_len / 2)
     }
     if name_len > 1 {
-        hash = hash * 16777619 ^ char_at(name, name_len - 1)
+        hash = hash * 16777619 ^ byte_at(name, name_len - 1)
     }
     if hash < 0 {
         hash = 0 - hash
@@ -76,7 +76,7 @@ fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
         if same {
             let mut i = 0
             while i < name_len {
-                if char_at(key, i) != char_at(name, i) {
+                if byte_at(key, i) != byte_at(name, i) {
                     same = false
                     i = name_len
                 } else {

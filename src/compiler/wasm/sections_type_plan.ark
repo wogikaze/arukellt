@@ -343,7 +343,7 @@ fn type_sig_param_segments(csig: String) -> Vec<String> {
     let mut seg_start = 0
     let mut si = 0
     while si < sig_len {
-        if char_at(csig, si) == 95 {
+        if byte_at(csig, si) == 95 {
             let seg = substring(csig, seg_start, si)
             push(param_segments, seg)
             seg_start = si + 1
@@ -358,7 +358,7 @@ fn type_sig_result_segment(csig: String) -> String {
     let mut seg_start = 0
     let mut si = 0
     while si < sig_len {
-        if char_at(csig, si) == 95 {
+        if byte_at(csig, si) == 95 {
             seg_start = si + 1
         }
         si = si + 1

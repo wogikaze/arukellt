@@ -22,7 +22,7 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
         end = n
     }
     let mut start = end
-    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+    while start > 0 && is_ident_char(byte_at(text, start - 1)) {
         start = start - 1
     }
     substring(text, start, end)

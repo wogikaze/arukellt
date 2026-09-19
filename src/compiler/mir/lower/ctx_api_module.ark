@@ -70,7 +70,7 @@ fn ctx_mono_inst_probe_slot(ctx: LowerCtx, name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ char_at(name, hi)
+        hash = hash * fnv_prime ^ byte_at(name, hi)
         if hash < 0 {
             hash = 0 - hash
         }
@@ -91,7 +91,7 @@ fn ctx_mono_inst_probe_slot(ctx: LowerCtx, name: String) -> i32 {
         if same {
             let mut i = 0
             while i < name_len {
-                if char_at(key, i) != char_at(name, i) {
+                if byte_at(key, i) != byte_at(name, i) {
                     same = false
                     i = name_len
                 } else {

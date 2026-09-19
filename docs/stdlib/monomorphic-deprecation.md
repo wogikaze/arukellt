@@ -10,8 +10,9 @@ helpers are included alongside any other deprecated public entry.
 
 | API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |
 |-----|--------|-----------|-------------|------------------|------------------|--------|
+| `char_at` | `prelude` | `deprecated` | `byte_at` | `0.1.0` | `1.0.0` | Return the raw byte at a byte index. Use byte_at for the explicit compatibility API. |
 | `concat` | `prelude` | `deprecated` | `std::text::concat` | `0.1.0` | `1.0.0` | Concatenate two strings and return the result. |
 | `get_var` | `std::env` | `deprecated` | `var` | `0.1.0` | `1.0.0` | Alias for env::var. Use var instead. |
 | `exists` | `std::host::fs` | `deprecated` | `is_readable_file` | `0.1.0` | `1.0.0` | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query. |
 
-Total deprecated public entries: **3**.
+Total deprecated public entries: **4**.

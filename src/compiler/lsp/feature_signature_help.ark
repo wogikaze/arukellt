@@ -32,7 +32,7 @@ pub fn handle_signature_help(state: LspState, body: String) {
         let mut last_colon = 0
         let mut pos = len(callee) - 1
         while pos >= 0 {
-            if char_at(callee, pos) == 58 && pos > 0 && char_at(callee, pos - 1) == 58 {
+            if byte_at(callee, pos) == 58 && pos > 0 && byte_at(callee, pos - 1) == 58 {
                 last_colon = pos + 1
                 pos = 0 - 1
             } else {

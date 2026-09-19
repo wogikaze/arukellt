@@ -67,7 +67,7 @@ fn is_deferred_hashmap_type(ty: TypeInfo) -> bool {
         return true
     }
     let name = contract_type_access::TypeInfo_name(ty)
-    len(name) == 1 && char_at(name, 0) >= 65 && char_at(name, 0) <= 90
+    len(name) == 1 && byte_at(name, 0) >= 65 && byte_at(name, 0) <= 90
 }
 
 fn is_supported_hashmap_key(ty: TypeInfo) -> bool {

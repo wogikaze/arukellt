@@ -78,7 +78,7 @@ pub fn rope_line_count(r: String) -> i32 {
     let mut count: i32 = 1
     let mut i: i32 = 0
     while i < n {
-        if char_at(r, i) == 10 {
+        if byte_at(r, i) == 10 {
             count = count + 1
         }
         i = i + 1

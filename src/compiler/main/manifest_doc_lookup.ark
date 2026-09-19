@@ -4,7 +4,7 @@ fn doc_last_segment(path: String) -> String {
     let n = len(path)
     let mut i = n - 1
     while i >= 0 {
-        if i + 1 < n && char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+        if i + 1 < n && byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
             return substring(path, i + 2, n)
         }
         i = i - 1
@@ -79,7 +79,7 @@ fn doc_symbol_is_module_query(symbol: String) -> bool {
         return false
     }
     let last = doc_last_segment(clone(symbol))
-    let ch = char_at(last, 0)
+    let ch = byte_at(last, 0)
     ch >= 65 && ch <= 90
 }
 

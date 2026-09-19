@@ -52,12 +52,12 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
 
 fn is_legacy_generic_struct_name(name: String) -> bool {
     if len(name) == 1 {
-        let first = char_at(name, 0)
+        let first = byte_at(name, 0)
         return first >= 65 && first <= 90
     }
     if starts_with(clone(name), "struct:") && len(name) >= 9 {
-        let marker = char_at(name, 7)
-        return marker >= 65 && marker <= 90 && char_at(name, 8) == 58
+        let marker = byte_at(name, 7)
+        return marker >= 65 && marker <= 90 && byte_at(name, 8) == 58
     }
     false
 }

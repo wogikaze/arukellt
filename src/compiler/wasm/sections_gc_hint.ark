@@ -25,7 +25,7 @@ fn emit_gc_hint_section_name(w: WasmWriter, name: String) {
     writer_core::emit_leb128_u(w, nlen)
     let mut ci = 0
     while ci < nlen {
-        writer_core::emit_byte(w, char_at(name, ci))
+        writer_core::emit_byte(w, byte_at(name, ci))
         ci = ci + 1
     }
 }

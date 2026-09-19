@@ -96,7 +96,7 @@ fn is_generic_type_parameter_name(type_name: String) -> bool {
     if len(bare) != 1 {
         return false
     }
-    let ch = char_at(bare, 0)
+    let ch = byte_at(bare, 0)
     ch >= 65 && ch <= 90
 }
 
@@ -204,7 +204,7 @@ fn variant_layout_enum_variant_key(name: String) -> String {
     let mut prev_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
             prev_sep = last_sep
             last_sep = i
             i = i + 2
@@ -275,7 +275,7 @@ fn field_type_is_type_param(type_name: String) -> bool {
         return field_type_is_type_param(substring(type_name, 1, len(type_name)))
     }
     if len(type_name) == 1 {
-        let ch = char_at(type_name, 0)
+        let ch = byte_at(type_name, 0)
         if ch >= 65 && ch <= 90 {
             return true
         }
@@ -399,7 +399,7 @@ fn strip_module_prefix(name: String) -> String {
     let name_len = len(name)
     let mut index = name_len - 2
     while index >= 0 {
-        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
             return substring(name, index + 2, name_len)
         }
         index = index - 1

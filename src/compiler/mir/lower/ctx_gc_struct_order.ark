@@ -136,7 +136,7 @@ fn gc_struct_parse_gcsref_slot(sig: String, start: i32) -> Vec<i32> {
     let mut slot = 0
     let mut has_digit = false
     while j < n {
-        let c = char_at(clone(sig), j)
+        let c = byte_at(clone(sig), j)
         if c >= 48 && c <= 57 {
             slot = slot * 10 + (c - 48)
             has_digit = true

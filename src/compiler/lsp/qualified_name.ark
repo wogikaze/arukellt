@@ -26,11 +26,11 @@ fn is_ident_char(ch: i32) -> bool {
 fn read_ident_backward(text: String, pos: i32) -> IdentSlice {
     let n = len(text)
     let mut end = pos
-    while end < n && is_ident_char(char_at(text, end)) {
+    while end < n && is_ident_char(byte_at(text, end)) {
         end = end + 1
     }
     let mut start = pos
-    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+    while start > 0 && is_ident_char(byte_at(text, start - 1)) {
         start = start - 1
     }
     IdentSlice_new(substring(text, start, end), start)
@@ -38,10 +38,10 @@ fn read_ident_backward(text: String, pos: i32) -> IdentSlice {
 
 fn scan_colon_colon_before(text: String, ident_start: i32) -> i32 {
     let mut pos = ident_start - 1
-    while pos >= 0 && char_at(text, pos) == 32 {
+    while pos >= 0 && byte_at(text, pos) == 32 {
         pos = pos - 1
     }
-    if pos >= 1 && char_at(text, pos) == 58 && char_at(text, pos - 1) == 58 {
+    if pos >= 1 && byte_at(text, pos) == 58 && byte_at(text, pos - 1) == 58 {
         return pos - 1
     }
     return 0 - 1

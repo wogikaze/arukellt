@@ -103,7 +103,7 @@ fn mir_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             return substring(name, i + 1, n)
         }
         i = i - 1

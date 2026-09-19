@@ -26,7 +26,7 @@ fn is_module_style_qualified_path(path: String) -> bool {
     if len(clone(sym_part)) == 0 {
         return false
     }
-    let c = char_at(mod_part, 0)
+    let c = byte_at(mod_part, 0)
     if c == 95 {
         return true
     }

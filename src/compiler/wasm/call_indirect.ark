@@ -33,7 +33,7 @@ fn parse_first_arg_vt_hint(hint: String) -> i32 {
     let mut value = 0
     let mut i = 0
     while i < n {
-        let d = char_at(hint, i)
+        let d = byte_at(hint, i)
         if d >= 48 && d <= 57 {
             value = value * 10 + (d - 48)
         } else {

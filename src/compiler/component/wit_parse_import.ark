@@ -16,7 +16,7 @@ fn wit_import_serialized_records(text: String) -> Vec<String> {
     let mut i = 0
     let n = len(text)
     while i < n {
-        if char_at(text, i) == 59 {
+        if byte_at(text, i) == 59 {
             if i > start {
                 push(records, substring(text, start, i))
             }
@@ -36,7 +36,7 @@ fn wit_import_serialized_fields(record: String) -> Vec<String> {
     let mut i = 0
     let n = len(record)
     while i < n {
-        if char_at(record, i) == 124 {
+        if byte_at(record, i) == 124 {
             push(fields, substring(record, start, i))
             start = i + 1
         }
@@ -55,7 +55,7 @@ fn wit_import_serialized_list(text: String) -> Vec<String> {
     let mut i = 0
     let n = len(text)
     while i < n {
-        if char_at(text, i) == 126 {
+        if byte_at(text, i) == 126 {
             push(values, substring(text, start, i))
             start = i + 1
         }

@@ -188,7 +188,7 @@ fn emit_parse_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: 
     while ei < msg_len {
         helpers_core::emit_local_get(w, s_err)
         helpers_numeric_i32::emit_i32_const(w, ei)
-        helpers_numeric_i32::emit_i32_const(w, char_at(msg, ei))
+        helpers_numeric_i32::emit_i32_const(w, byte_at(msg, ei))
         writer_gc::emit_gc_array_set(w, string_type)
         ei = ei + 1
     }

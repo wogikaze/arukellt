@@ -35,7 +35,7 @@ fn is_ident_char(ch: i32) -> bool {
 
 fn read_ident_backward(text: String, pos: i32) -> String {
     let mut start = pos
-    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+    while start > 0 && is_ident_char(byte_at(text, start - 1)) {
         start = start - 1
     }
     substring(text, start, pos)
@@ -46,7 +46,7 @@ fn count_active_param(text: String, open_paren: i32, offset: i32) -> i32 {
     let mut commas = 0
     let mut i = open_paren + 1
     while i < offset {
-        let ch = char_at(text, i)
+        let ch = byte_at(text, i)
         if ch == 40 {
             depth = depth + 1
         } else {
@@ -74,7 +74,7 @@ pub fn call_context_at_offset(text: String, offset: i32) -> CallContext {
     if i >= n {
         i = n - 1
     }
-    while i >= 0 && (char_at(text, i) == 32 || char_at(text, i) == 9 || char_at(text, i) == 10 || char_at(text, i) == 13) {
+    while i >= 0 && (byte_at(text, i) == 32 || byte_at(text, i) == 9 || byte_at(text, i) == 10 || byte_at(text, i) == 13) {
         i = i - 1
     }
     if i < 0 {
@@ -83,7 +83,7 @@ pub fn call_context_at_offset(text: String, offset: i32) -> CallContext {
     let mut pos = i
     let mut depth = 0
     while pos >= 0 {
-        let ch = char_at(text, pos)
+        let ch = byte_at(text, pos)
         if ch == 41 {
             depth = depth + 1
         } else {

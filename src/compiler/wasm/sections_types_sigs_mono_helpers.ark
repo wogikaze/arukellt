@@ -9,7 +9,7 @@ fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String
         let n = len(return_type_name)
         let mut i = 0
         while i < n {
-            if char_at(return_type_name, i) == 58 {
+            if byte_at(return_type_name, i) == 58 {
                 if first_colon < 0 {
                     first_colon = i
                 }

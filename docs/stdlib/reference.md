@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 393 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 396 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 31 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
+| `experimental` | 322 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 4 | Superseded — see migration guidance. |
 
 ## Prelude Types
 
@@ -346,7 +346,7 @@ push(v, 2)
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
+| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | Encode a Unicode scalar as canonical UTF-8. |
 | `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `functional` | `builtin` | no | - | - |
 | `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
 | `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
@@ -876,7 +876,7 @@ let input = read_to_string()
 | `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
 | `byte_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_at` | - |
 | `byte_len` | `(String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_len` | - |
-| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_at` | - |
+| ~~`char_at`~~ ⚠️ Deprecated → `byte_at` | `(String, i32) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_at` | Return the raw byte at a byte index. Use byte_at for the explicit compatibility API. |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
 | ~~`concat`~~ ⚠️ Deprecated → `std::text::concat` | `(String, String) -> String` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
@@ -886,7 +886,7 @@ let input = read_to_string()
 | `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
 | `is_empty` | `(String) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
-| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_push_char` | - |
+| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_push_char` | Append a Unicode scalar encoded as canonical UTF-8. |
 | `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
 | `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
@@ -941,7 +941,8 @@ Expected output: `hello world`
 | `builder_build` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `builder_len` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `builder_new` | `() -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Split into one valid UTF-8 String per Unicode scalar value. |
+| `codepoint_at` | `(String, i32) -> Option<char>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the Unicode scalar at a scalar index, or None when out of range. |
 | `concat` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_concat` | - |
 | `contains` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_contains` | - |
 | `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_ends_with` | - |
@@ -949,12 +950,12 @@ Expected output: `hello world`
 | `format_f64` | `(f64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `format_i32` | `(i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `format_i64` | `(i64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `functional` | `builtin` | no | - | - |
+| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Decode bytes as UTF-8, replacing each invalid sequence with U+FFFD. |
 | `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_index_of` | - |
 | `is_empty` | `(String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_join` | - |
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the number of Unicode scalar values. |
 | `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
@@ -968,15 +969,19 @@ Expected output: `hello world`
 | `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a new empty Rope. |
 | `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
 | `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Convert the Rope to a String. |
-| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string. |
+| `slice_chars` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string. |
 | `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_split` | - |
 | `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_starts_with` | - |
 | `to_lower` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_lower` | - |
 | `to_upper` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_upper` | - |
-| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | - |
+| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Return the canonical UTF-8 bytes of the string. |
 | `trim` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `trim_end` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 | `trim_start` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `try_from_utf8` | `(Vec<i32>) -> Option<String>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Decode bytes as UTF-8 and return None when the complete input is invalid. |
+| `try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return a byte slice when both bounds are UTF-8 boundaries, or None. |
+| `try_slice_chars` | `(String, i32, i32) -> Option<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the scalar-indexed slice, or None for an invalid range. |
 
 ## Time
 
@@ -1112,10 +1117,11 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **3 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **4 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
+| ~~`char_at`~~ | `byte_at` | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |

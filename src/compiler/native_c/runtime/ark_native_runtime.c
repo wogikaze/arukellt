@@ -1410,6 +1410,9 @@ int32_t ark_rt_string_index_of(ark_string *source, ark_string *needle) {
 ark_string *ark_rt_char_to_string(uint32_t value) {
     uint8_t bytes[4];
     uint32_t length = 0;
+    if (value > 0x10ffffu || (value >= 0xd800u && value <= 0xdfffu)) {
+        value = 0xfffdu;
+    }
     if (value <= 0x7fu) {
         bytes[0] = (uint8_t)value;
         length = 1;
@@ -1417,7 +1420,7 @@ ark_string *ark_rt_char_to_string(uint32_t value) {
         bytes[0] = (uint8_t)(0xc0u | (value >> 6));
         bytes[1] = (uint8_t)(0x80u | (value & 0x3fu));
         length = 2;
-    } else if (value <= 0xffffu && !(value >= 0xd800u && value <= 0xdfffu)) {
+    } else if (value <= 0xffffu) {
         bytes[0] = (uint8_t)(0xe0u | (value >> 12));
         bytes[1] = (uint8_t)(0x80u | ((value >> 6) & 0x3fu));
         bytes[2] = (uint8_t)(0x80u | (value & 0x3fu));
@@ -2254,6 +2257,10 @@ ark_unit ark_rt_string_push_char(ark_string *string, uint32_t codepoint) {
     if (string == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     uint8_t encoded[4];
     uint32_t encoded_len = 0;
+    if (codepoint > 0x10FFFFu ||
+        (codepoint >= 0xD800u && codepoint <= 0xDFFFu)) {
+        codepoint = 0xFFFDu;
+    }
     if (codepoint <= 0x7Fu) {
         encoded[0] = (uint8_t)codepoint;
         encoded_len = 1;

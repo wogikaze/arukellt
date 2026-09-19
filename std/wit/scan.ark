@@ -12,7 +12,7 @@ pub fn wit_find_char(s: String, ch: i32, from: i32) -> i32 {
     let n = len(s)
     let mut i = from
     while i < n {
-        if char_at(s, i) == ch {
+        if byte_at(s, i) == ch {
             return i
         }
         i = i + 1
@@ -25,7 +25,7 @@ pub fn wit_trim(s: String) -> String {
     let n = len(s)
     let mut start = 0
     while start < n {
-        let ch = char_at(s, start)
+        let ch = byte_at(s, start)
         if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
             break
         }
@@ -33,7 +33,7 @@ pub fn wit_trim(s: String) -> String {
     }
     let mut end = n
     while end > start {
-        let ch = char_at(s, end - 1)
+        let ch = byte_at(s, end - 1)
         if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
             break
         }
@@ -78,7 +78,7 @@ pub fn wit_split_csv_items(inner: String) -> Vec<String> {
     let mut depth = 0
     let mut i = 0
     while i < n {
-        let ch = char_at(inner, i)
+        let ch = byte_at(inner, i)
         if ch == 60 {
             depth = depth + 1
         }
@@ -101,7 +101,7 @@ pub fn wit_split_csv_items(inner: String) -> Vec<String> {
 pub fn wit_line_start(text: String, pos: i32) -> i32 {
     let mut i = pos
     while i > 0 {
-        if char_at(text, i - 1) == 10 {
+        if byte_at(text, i - 1) == 10 {
             return i
         }
         i = i - 1
@@ -114,7 +114,7 @@ pub fn wit_line_end(text: String, pos: i32) -> i32 {
     let n = len(text)
     let mut i = pos
     while i < n {
-        if char_at(text, i) == 10 {
+        if byte_at(text, i) == 10 {
             return i
         }
         i = i + 1

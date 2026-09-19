@@ -97,18 +97,18 @@ fn dot_completion_items(text: String, offset: i32) -> String {
     }
     let mut pos = offset - 1
     while pos >= 0 {
-        let ch = char_at(text, pos)
+        let ch = byte_at(text, pos)
         if ch == 32 || ch == 9 {
             pos = pos - 1
         } else {
             break
         }
     }
-    if pos < 0 || char_at(text, pos) != 46 {
+    if pos < 0 || byte_at(text, pos) != 46 {
         return String_new()
     }
     let mut start = pos
-    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+    while start > 0 && is_ident_char(byte_at(text, start - 1)) {
         start = start - 1
     }
     let recv = substring(text, start, pos)
@@ -130,12 +130,12 @@ fn dot_completion_items(text: String, offset: i32) -> String {
 fn type_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
     let mut scan = offset - 1
     while scan >= 0 {
-        let ch = char_at(text, scan)
+        let ch = byte_at(text, scan)
         if ch == 32 || ch == 9 {
             scan = scan - 1
         } else {
             if ch == 58 {
-                if scan > 0 && char_at(text, scan - 1) == 58 {
+                if scan > 0 && byte_at(text, scan - 1) == 58 {
                     scan = scan - 1
                 } else {
                     let mut out = String_new()
@@ -156,7 +156,7 @@ fn type_completion_items(state: LspState, text: String, offset: i32, prefix: Str
 
 fn use_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
     let mut pos = offset
-    while pos > 0 && char_at(text, pos - 1) != 10 {
+    while pos > 0 && byte_at(text, pos - 1) != 10 {
         pos = pos - 1
     }
     let line_prefix = substring(clone(text), pos, offset)
@@ -190,7 +190,7 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
     let mut end = offset
     if end > n { end = n }
     let mut start = end
-    while start > 0 && is_ident_char(char_at(text, start - 1)) {
+    while start > 0 && is_ident_char(byte_at(text, start - 1)) {
         start = start - 1
     }
     substring(text, start, end)

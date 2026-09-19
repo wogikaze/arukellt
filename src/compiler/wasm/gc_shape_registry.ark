@@ -47,7 +47,7 @@ fn GcShapeRegistry_struct_field_count(reg: GcShapeRegistry, idx: i32) -> i32 {
 
 fn GcShapeRegistry_struct_field_type_at(reg: GcShapeRegistry, struct_idx: i32, field_idx: i32) -> i32 {
     let types_code = get_unchecked(reg.struct_field_types, struct_idx)
-    let c = char_at(clone(types_code), field_idx)
+    let c = byte_at(clone(types_code), field_idx)
     if c == 108 { value_types::VT_I64() }
     else if c == 100 { value_types::VT_F64() }
     else if c == 102 { value_types::VT_F32() }
@@ -69,7 +69,7 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
         sig = text::builder_append(sig, "_f")
         sig = text::builder_append(sig, to_string(fi))
         sig = text::builder_append(sig, "_")
-        sig = text::builder_append(sig, code_to_gc_sig(char_at(clone(types_code), fi)))
+        sig = text::builder_append(sig, code_to_gc_sig(byte_at(clone(types_code), fi)))
         fi = fi + 1
     }
     sig

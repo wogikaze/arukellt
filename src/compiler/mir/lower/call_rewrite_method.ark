@@ -15,7 +15,7 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
         let n = len(rest)
         let mut i = 0
         while i < n {
-            if char_at(rest, i) == 58 {
+            if byte_at(rest, i) == 58 {
                 return substring(rest, 0, i)
             }
             i = i + 1

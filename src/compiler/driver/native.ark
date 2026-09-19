@@ -3,7 +3,7 @@ pub fn native_output_bytes_from_string(text: String) -> Vec<i32> {
     let text_len = len(text)
     let mut i = 0
     while i < text_len {
-        push(out, char_at(text, i))
+        push(out, byte_at(text, i))
         i = i + 1
     }
     out

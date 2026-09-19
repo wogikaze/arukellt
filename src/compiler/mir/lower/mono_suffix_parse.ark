@@ -4,7 +4,7 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
     let mut start = 0
     let mut i = 0
     while i < slen - 1 {
-        if char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
+        if byte_at(suffix, i) == 95 && byte_at(suffix, i + 1) == 95 {
             push(result, substring(suffix, start, i))
             start = i + 2
             i = i + 2
@@ -36,7 +36,7 @@ fn extract_first_type_var(rest: String) -> String {
     let rlen = len(rest)
     let mut ci = 0
     while ci < rlen {
-        if char_at(rest, ci) == 58 {
+        if byte_at(rest, ci) == 58 {
             return substring(rest, 0, ci)
         }
         ci = ci + 1
@@ -49,7 +49,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     let sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
-        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+        if byte_at(fn_name, i) == 95 && byte_at(fn_name, i + 1) == 95 {
             push(sep_positions, i)
         }
         i = i + 1
@@ -86,19 +86,19 @@ fn mono_elem_is_substitutable_type_var(elem: String) -> bool {
         return mono_elem_is_substitutable_type_var(substring(elem, 1, len(elem)))
     }
     if len(elem) == 1 {
-        let c = char_at(elem, 0)
+        let c = byte_at(elem, 0)
         if c >= 65 && c <= 90 {
             return true
         }
         return false
     }
     // Ordinal placeholders: t0, T0, t12, ...
-    let c0 = char_at(elem, 0)
+    let c0 = byte_at(elem, 0)
     if c0 == 116 || c0 == 84 {
         let mut i = 1
         let mut all_digit = true
         while i < len(elem) {
-            let c = char_at(elem, i)
+            let c = byte_at(elem, i)
             if c < 48 || c > 57 {
                 all_digit = false
             }
@@ -148,11 +148,11 @@ fn is_valid_mono_type_key(key: String) -> bool {
     // Nominal keys are PascalCase type names (Point). Reject snake_case
     // tails from module__FnName exports (Token_float_val).
     if len(key) > 0 {
-        let first = char_at(key, 0)
+        let first = byte_at(key, 0)
         if first >= 65 && first <= 90 {
             let mut ki = 1
             while ki < len(key) {
-                if char_at(key, ki) == 95 {
+                if byte_at(key, ki) == 95 {
                     return false
                 }
                 ki = ki + 1

@@ -1,6 +1,6 @@
 // GC target: text::chars returns Vec<String>, matching the public std::text
 // contract. It shares the empty-separator implementation with split so every
-// element is a one-byte String rather than an i32 character code.
+// element is one valid UTF-8 String per Unicode scalar value.
 
 use wasm::intrinsic_string_split_gc
 

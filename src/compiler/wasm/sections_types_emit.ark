@@ -34,7 +34,7 @@ fn emit_canon_type_entries(
                             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
                             writer_core::emit_leb128_s(type_sec, type_idx)
                             writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
-                        } else if char_at(clone(csig), 0) == 65 {
+                        } else if byte_at(clone(csig), 0) == 65 {
                             sections_types_gc::emit_array_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
                         } else {
                             writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
@@ -178,15 +178,15 @@ fn struct_field_sigs(sig: String) -> Vec<String> {
     let sig_len = len(sig)
     let mut si = 0
     while si < sig_len {
-        if char_at(clone(sig), si) == 95 && si + 1 < sig_len && char_at(clone(sig), si + 1) == 102 {
+        if byte_at(clone(sig), si) == 95 && si + 1 < sig_len && byte_at(clone(sig), si + 1) == 102 {
             let mut pi = si + 2
-            while pi < sig_len && char_at(clone(sig), pi) != 95 {
+            while pi < sig_len && byte_at(clone(sig), pi) != 95 {
                 pi = pi + 1
             }
             if pi < sig_len {
                 let type_start = pi + 1
                 let mut type_end = type_start
-                while type_end < sig_len && char_at(clone(sig), type_end) != 95 {
+                while type_end < sig_len && byte_at(clone(sig), type_end) != 95 {
                     type_end = type_end + 1
                 }
                 push(fields, substring(clone(sig), type_start, type_end))

@@ -21,7 +21,7 @@ fn strip_module_double_colon(type_name: String) -> String {
     }
     let mut i = n - 2
     while i >= 0 {
-        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
             return substring(type_name, i + 2, n)
         }
         i = i - 1
@@ -42,7 +42,7 @@ fn strip_embedded_module_path_prefixes(type_name: String) -> String {
         let mut sep = 0 - 1
         let mut i = 0
         while i < n - 1 {
-            if char_at(result, i) == 58 && char_at(result, i + 1) == 58 {
+            if byte_at(result, i) == 58 && byte_at(result, i + 1) == 58 {
                 sep = i
                 i = n
             } else {
@@ -54,7 +54,7 @@ fn strip_embedded_module_path_prefixes(type_name: String) -> String {
         }
         let mut start = sep - 1
         while start >= 0 {
-            let ch = char_at(result, start)
+            let ch = byte_at(result, start)
             let is_ident = (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122)
             if !is_ident {
                 start = start + 1

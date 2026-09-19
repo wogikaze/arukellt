@@ -152,7 +152,7 @@ fn constructor_element_name(callee: String) -> String {
 fn last_index_of_double_underscore(s: String) -> i32 {
     let mut i = len(s) - 2
     while i >= 0 {
-        if char_at(s, i) == 95 && char_at(s, i + 1) == 95 {
+        if byte_at(s, i) == 95 && byte_at(s, i + 1) == 95 {
             return i
         }
         i = i - 1

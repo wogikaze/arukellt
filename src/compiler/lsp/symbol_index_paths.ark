@@ -47,16 +47,16 @@ pub fn extract_json_string_field(body: String, key: String) -> String {
     let after_len = len(after)
     let mut p = 0
     while p < after_len {
-        let c = char_at(after, p)
+        let c = byte_at(after, p)
         if c != 32 && c != 9 && c != 10 && c != 13 {
             break
         }
         p = p + 1
     }
-    if p < after_len && char_at(after, p) == 110 && starts_with(substring(after, p, after_len), "null") {
+    if p < after_len && byte_at(after, p) == 110 && starts_with(substring(after, p, after_len), "null") {
         return String_new()
     }
-    if p >= after_len || char_at(after, p) != 34 {
+    if p >= after_len || byte_at(after, p) != 34 {
         return String_new()
     }
     let rest = substring(after, p + 1, after_len)

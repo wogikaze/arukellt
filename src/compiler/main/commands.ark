@@ -10,33 +10,33 @@ fn parse_command(name: String) -> i32 {
 
 fn parse_ascii_core_command(name: String) -> i32 {
     let name_len = len(clone(name))
-    if name_len == 5 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 104 && char_at(clone(name), 2) == 101 && char_at(clone(name), 3) == 99 && char_at(clone(name), 4) == 107 {
+    if name_len == 5 && byte_at(clone(name), 0) == 99 && byte_at(clone(name), 1) == 104 && byte_at(clone(name), 2) == 101 && byte_at(clone(name), 3) == 99 && byte_at(clone(name), 4) == 107 {
         return kinds::CMD_CHECK()
     }
     if name_len == 7 &&
-    char_at(clone(name), 0) == 99 &&
-    char_at(clone(name), 1) == 111 &&
-    char_at(clone(name), 2) == 109 &&
-    char_at(clone(name), 3) == 112 &&
-    char_at(clone(name), 4) == 105 &&
-    char_at(clone(name), 5) == 108 &&
-    char_at(clone(name), 6) == 101 {
+    byte_at(clone(name), 0) == 99 &&
+    byte_at(clone(name), 1) == 111 &&
+    byte_at(clone(name), 2) == 109 &&
+    byte_at(clone(name), 3) == 112 &&
+    byte_at(clone(name), 4) == 105 &&
+    byte_at(clone(name), 5) == 108 &&
+    byte_at(clone(name), 6) == 101 {
         return kinds::CMD_COMPILE()
     }
-    if name_len == 5 && char_at(clone(name), 0) == 112 && char_at(clone(name), 1) == 97 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 101 {
+    if name_len == 5 && byte_at(clone(name), 0) == 112 && byte_at(clone(name), 1) == 97 && byte_at(clone(name), 2) == 114 && byte_at(clone(name), 3) == 115 && byte_at(clone(name), 4) == 101 {
         return kinds::CMD_PARSE()
     }
-    if name_len == 4 && char_at(clone(name), 0) == 104 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 108 && char_at(clone(name), 3) == 112 {
+    if name_len == 4 && byte_at(clone(name), 0) == 104 && byte_at(clone(name), 1) == 101 && byte_at(clone(name), 2) == 108 && byte_at(clone(name), 3) == 112 {
         return kinds::CMD_HELP()
     }
     if name_len == 7 &&
-    char_at(clone(name), 0) == 118 &&
-    char_at(clone(name), 1) == 101 &&
-    char_at(clone(name), 2) == 114 &&
-    char_at(clone(name), 3) == 115 &&
-    char_at(clone(name), 4) == 105 &&
-    char_at(clone(name), 5) == 111 &&
-    char_at(clone(name), 6) == 110 {
+    byte_at(clone(name), 0) == 118 &&
+    byte_at(clone(name), 1) == 101 &&
+    byte_at(clone(name), 2) == 114 &&
+    byte_at(clone(name), 3) == 115 &&
+    byte_at(clone(name), 4) == 105 &&
+    byte_at(clone(name), 5) == 111 &&
+    byte_at(clone(name), 6) == 110 {
         return kinds::CMD_VERSION()
     }
     kinds::CMD_UNKNOWN()
@@ -133,7 +133,7 @@ fn cli_str_eq(a: String, b: String) -> bool {
     }
     let mut i = 0
     while i < n {
-        if char_at(clone(a), i) != char_at(clone(b), i) {
+        if byte_at(clone(a), i) != byte_at(clone(b), i) {
             return false
         }
         i = i + 1

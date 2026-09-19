@@ -257,8 +257,10 @@ intrinsic = "__intrinsic_char_at"
 params = ["String", "i32"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "byte_at"
 doc_category = "string"
+doc = "Return the raw byte at a byte index. Use byte_at for the explicit compatibility API."
 
 [[functions]]
 name = "substring"
@@ -309,6 +311,7 @@ returns = "()"
 prelude = true
 stability = "stable"
 doc_category = "string"
+doc = "Append a Unicode scalar encoded as canonical UTF-8."
 
 [[functions]]
 name = "is_empty"
@@ -491,6 +494,7 @@ returns = "String"
 prelude = true
 stability = "stable"
 doc_category = "conversion"
+doc = "Encode a Unicode scalar as canonical UTF-8."
 
 # Polymorphic to_string — dispatched by emitter based on argument type
 [[functions]]
@@ -1700,7 +1704,7 @@ availability = { t1 = true, t3 = true }
 name = "std::text"
 stability = "stable"
 family = "text"
-doc = "String manipulation helpers. Operations are largely byte-oriented or ASCII-aware (case folding, char iteration, len_chars, pad, format) — they do NOT implement full Unicode segmentation, normalization, or grapheme-cluster semantics. Multi-byte UTF-8 input is preserved by the byte-level helpers (slice_bytes, len_bytes, split, join, concat, contains, starts_with, ends_with) but case mapping and char counting are not Unicode-correct."
+doc = "String helpers with explicit byte and Unicode-scalar APIs. String values are valid UTF-8; chars and len_chars use Unicode scalar values, while slice_bytes and byte-oriented inspection use byte indices. This module does not implement grapheme segmentation or normalization."
 
 [[functions]]
 name = "len_bytes"
@@ -1774,6 +1778,7 @@ doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "Vec<String>"
+doc = "Split into one valid UTF-8 String per Unicode scalar value."
 
 [[functions]]
 name = "pad_left"
@@ -1838,6 +1843,16 @@ doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "i32"
+doc = "Return the number of Unicode scalar values."
+
+[[functions]]
+name = "codepoint_at"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32"]
+returns = "Option<char>"
+doc = "Return the Unicode scalar at a scalar index, or None when out of range."
 
 [[functions]]
 name = "slice_bytes"
@@ -1846,6 +1861,34 @@ doc_category = "text"
 stability = "stable"
 params = ["String", "i32", "i32"]
 returns = "String"
+doc = "Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string."
+
+[[functions]]
+name = "try_slice_bytes"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "i32"]
+returns = "Option<String>"
+doc = "Return a byte slice when both bounds are UTF-8 boundaries, or None."
+
+[[functions]]
+name = "slice_chars"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "i32"]
+returns = "String"
+doc = "Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string."
+
+[[functions]]
+name = "try_slice_chars"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "i32"]
+returns = "Option<String>"
+doc = "Return the scalar-indexed slice, or None for an invalid range."
 
 [[functions]]
 name = "from_utf8"
@@ -1854,6 +1897,16 @@ doc_category = "text"
 stability = "experimental"
 params = ["Vec<i32>"]
 returns = "String"
+doc = "Decode bytes as UTF-8, replacing each invalid sequence with U+FFFD."
+
+[[functions]]
+name = "try_from_utf8"
+module = "std::text"
+doc_category = "text"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "Option<String>"
+doc = "Decode bytes as UTF-8 and return None when the complete input is invalid."
 
 [[functions]]
 name = "to_utf8_bytes"
@@ -1862,6 +1915,7 @@ doc_category = "text"
 stability = "experimental"
 params = ["String"]
 returns = "Vec<i32>"
+doc = "Return the canonical UTF-8 bytes of the string."
 
 [[functions]]
 name = "split"

@@ -24,7 +24,7 @@ fn mir_module_stem_from_qualified(name: String) -> String {
     let mut last_colon = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
-        if char_at(name, ci) == 58 {
+        if byte_at(name, ci) == 58 {
             last_colon = ci
             ci = 0 - 1
         }

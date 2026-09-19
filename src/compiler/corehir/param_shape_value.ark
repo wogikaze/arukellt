@@ -73,7 +73,7 @@ fn param_ann_name_is_type_param(name: String) -> bool {
         return param_ann_name_is_type_param(substring(name, 1, len(name)))
     }
     if len(name) == 1 {
-        let ch = char_at(name, 0)
+        let ch = byte_at(name, 0)
         if ch >= 65 && ch <= 90 {
             return true
         }

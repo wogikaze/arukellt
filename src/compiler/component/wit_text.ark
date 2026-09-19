@@ -138,7 +138,7 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 
 fn string_to_bytes(text: String) -> Vec<i32> {
     let mut bytes = Vec::new<i32>()
-    for i in 0..len(text) { push(bytes, char_at(text, i)) }
+    for i in 0..len(text) { push(bytes, byte_at(text, i)) }
     bytes
 }
 

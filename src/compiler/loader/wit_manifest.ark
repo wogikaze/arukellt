@@ -51,8 +51,8 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     let content_len = len(deps_section)
     let mut i = 0
     while i < content_len {
-        if char_at(deps_section, i) == 10 || i == content_len - 1 {
-            let line_end = if char_at(deps_section, i) == 10 { i } else { i + 1 }
+        if byte_at(deps_section, i) == 10 || i == content_len - 1 {
+            let line_end = if byte_at(deps_section, i) == 10 { i } else { i + 1 }
             let line = substring(deps_section, line_start, line_end)
             wit_collect_line_dependency(paths, clone(package_root), line)
             line_start = i + 1
@@ -102,15 +102,15 @@ fn wit_vendor_rel_from_line(line: String) -> String {
 fn wit_trim_key(key: String) -> String {
     let n = len(key)
     let mut start = 0
-    while start < n && char_at(key, start) == 32 {
+    while start < n && byte_at(key, start) == 32 {
         start = start + 1
     }
     let mut end = n
-    while end > start && char_at(key, end - 1) == 32 {
+    while end > start && byte_at(key, end - 1) == 32 {
         end = end - 1
     }
     let trimmed = substring(key, start, end)
-    if len(trimmed) >= 2 && char_at(trimmed, 0) == 34 && char_at(trimmed, len(trimmed) - 1) == 34 {
+    if len(trimmed) >= 2 && byte_at(trimmed, 0) == 34 && byte_at(trimmed, len(trimmed) - 1) == 34 {
         return substring(trimmed, 1, len(trimmed) - 1)
     }
     trimmed

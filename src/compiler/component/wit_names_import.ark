@@ -13,7 +13,7 @@ fn wit_kebab_to_snake(name: String) -> String {
     let n = len(name)
     let mut i = 0
     while i < n {
-        let ch = char_at(name, i)
+        let ch = byte_at(name, i)
         if ch == 45 {
             out = text::builder_append(out, String_from("_"))
         } else {
@@ -30,7 +30,7 @@ fn wit_pascal_case_text(name: String) -> String {
     let mut i = 0
     let mut capitalize_next = true
     while i < n {
-        let ch = char_at(name, i)
+        let ch = byte_at(name, i)
         if ch == 45 || ch == 95 {
             capitalize_next = true
         } else if capitalize_next {

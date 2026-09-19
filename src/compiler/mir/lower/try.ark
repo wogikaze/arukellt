@@ -140,7 +140,7 @@ fn try_extract_first_result_type_param(scrut_type: String) -> String {
     let mut i = 0
     let rlen = len(rest)
     while i < rlen {
-        let ch = char_at(rest, i)
+        let ch = byte_at(rest, i)
         if ch == 95 || ch == 58 {
             sep = i
             i = rlen
@@ -173,7 +173,7 @@ fn try_extract_second_result_type_param(scrut_type: String) -> String {
     let mut i = 0
     let rlen = len(rest)
     while i < rlen {
-        let ch = char_at(rest, i)
+        let ch = byte_at(rest, i)
         if ch == 95 || ch == 58 {
             sep = i
             i = rlen

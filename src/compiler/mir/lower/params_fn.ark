@@ -230,7 +230,7 @@ fn mir_param_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             return substring(name, i + 1, n)
         }
         i = i - 1
@@ -246,7 +246,7 @@ fn mir_param_name_is_type_param(name: String) -> bool {
         return mir_param_name_is_type_param(substring(name, 1, len(name)))
     }
     if len(name) == 1 {
-        let ch = char_at(name, 0)
+        let ch = byte_at(name, 0)
         if ch >= 65 && ch <= 90 {
             return true
         }

@@ -13,7 +13,7 @@ fn ascii_lower_str(s: String) -> String {
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        out = concat(out, char_to_string(ascii_lower_char(char_at(s, i))))
+        out = concat(out, char_to_string(ascii_lower_char(byte_at(s, i))))
         i = i + 1
     }
     out

@@ -127,7 +127,7 @@ fn sig_reg_import_facing_qualified_name(qualified_name: String) -> String {
     let mut previous = 0 - 1
     let mut i = 0
     while i < n - 1 {
-        if char_at(qualified_name, i) == 58 && char_at(qualified_name, i + 1) == 58 {
+        if byte_at(qualified_name, i) == 58 && byte_at(qualified_name, i + 1) == 58 {
             previous = last
             last = i
             i = i + 2

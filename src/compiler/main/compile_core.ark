@@ -64,9 +64,9 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
         let sub = substring(clone(phases), i, i + phase_len)
         if eq(sub, clone(phase)) {
             let at_start = i == 0
-            let after_comma = i > 0 && char_at(phases, i - 1) == 44
+            let after_comma = i > 0 && byte_at(phases, i - 1) == 44
             let at_end = i + phase_len == phases_len
-            let before_comma = i + phase_len < phases_len && char_at(phases, i + phase_len) == 44
+            let before_comma = i + phase_len < phases_len && byte_at(phases, i + phase_len) == 44
             if at_start || after_comma && at_end || before_comma {
                 return true
             }

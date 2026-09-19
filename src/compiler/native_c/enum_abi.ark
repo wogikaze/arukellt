@@ -213,7 +213,7 @@ fn native_c_type_name_has_variant_path(name: String) -> bool {
     let length = len(name)
     let mut index = 0
     while index + 1 < length {
-        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
             return true
         }
         index = index + 1
@@ -229,7 +229,7 @@ fn native_c_type_name_enum_basename(name: String) -> String {
     let length = len(base)
     let mut index = 0
     while index + 1 < length {
-        if char_at(base, index) == 58 && char_at(base, index + 1) == 58 {
+        if byte_at(base, index) == 58 && byte_at(base, index + 1) == 58 {
             return substring(base, 0, index)
         }
         index = index + 1

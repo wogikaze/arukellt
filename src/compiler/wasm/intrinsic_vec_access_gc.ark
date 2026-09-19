@@ -72,7 +72,7 @@ fn strip_module_prefix_type_name(type_name: String) -> String {
     let n = len(type_name)
     let mut i = n - 2
     while i >= 0 {
-        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
             return substring(type_name, i + 2, n)
         }
         i = i - 1
@@ -87,7 +87,7 @@ fn parse_struct_name_from_encoding(type_name: String) -> String {
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if char_at(type_name, i) == 58 {
+        if byte_at(type_name, i) == 58 {
             if first_colon < 0 {
                 first_colon = i
             }

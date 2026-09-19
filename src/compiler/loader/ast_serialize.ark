@@ -30,7 +30,7 @@ fn buf_push_string(buf: Vec<i32>, s: String) {
     buf_push_i32(buf, n)
     let mut i = 0
     while i < n {
-        push(buf, char_at(s, i) & 255)
+        push(buf, byte_at(s, i) & 255)
         i = i + 1
     }
 }

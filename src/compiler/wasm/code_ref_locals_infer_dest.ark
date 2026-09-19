@@ -94,7 +94,7 @@ fn strip_module_prefix_type_name(type_name: String) -> String {
     let n = len(type_name)
     let mut i = n - 2
     while i >= 0 {
-        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+        if byte_at(type_name, i) == 58 && byte_at(type_name, i + 1) == 58 {
             return substring(type_name, i + 2, n)
         }
         i = i - 1

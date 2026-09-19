@@ -335,7 +335,7 @@ fn native_c_append_bytes(output: Vec<i32>, fragment: String) {
     let length = len(fragment)
     let mut index = 0
     while index < length {
-        push(output, char_at(fragment, index))
+        push(output, byte_at(fragment, index))
         index = index + 1
     }
 }

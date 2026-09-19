@@ -254,7 +254,7 @@ pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
     if tag == 0 {
         let mut i: i32 = 0
         while i < n {
-            push(w, char_at(s, i) & 255)
+            push(w, byte_at(s, i) & 255)
             i = i + 1
         }
         Ok(n)
@@ -386,7 +386,7 @@ pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
     let n: i32 = len(s)
     let mut i: i32 = 0
     while i < n {
-        push(bw, char_at(s, i) & 255)
+        push(bw, byte_at(s, i) & 255)
         i = i + 1
     }
     let buf_size: i32 = len(bw) - 2

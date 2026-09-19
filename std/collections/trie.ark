@@ -137,7 +137,7 @@ pub fn trie_insert(buf: Vec<i32>, key: String, value: i32) {
     let key_len = len(key)
     let mut i = 0
     while i < key_len {
-        let byte = char_at(key, i)
+        let byte = byte_at(key, i)
         let child = get_child(buf, current, byte)
         if child == NIL {
             let new_node = alloc_node(buf)
@@ -162,7 +162,7 @@ pub fn trie_get(buf: Vec<i32>, key: String) -> Option<i32> {
     let key_len = len(key)
     let mut i = 0
     while i < key_len {
-        let byte = char_at(key, i)
+        let byte = byte_at(key, i)
         let child = get_child(buf, current, byte)
         if child == NIL {
             return Option::None
@@ -195,7 +195,7 @@ pub fn trie_has_prefix(buf: Vec<i32>, prefix: String) -> bool {
     let prefix_len = len(prefix)
     let mut i = 0
     while i < prefix_len {
-        let byte = char_at(prefix, i)
+        let byte = byte_at(prefix, i)
         let child = get_child(buf, current, byte)
         if child == NIL {
             return false
@@ -217,7 +217,7 @@ pub fn trie_remove(buf: Vec<i32>, key: String) -> bool {
     let key_len = len(key)
     let mut i = 0
     while i < key_len {
-        let byte = char_at(key, i)
+        let byte = byte_at(key, i)
         let child = get_child(buf, current, byte)
         if child == NIL {
             return false
@@ -243,7 +243,7 @@ pub fn trie_count_with_prefix(buf: Vec<i32>, prefix: String) -> i32 {
     let prefix_len = len(prefix)
     let mut i = 0
     while i < prefix_len {
-        let byte = char_at(prefix, i)
+        let byte = byte_at(prefix, i)
         let child = get_child(buf, current, byte)
         if child == NIL {
             return 0

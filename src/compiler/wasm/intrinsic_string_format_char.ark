@@ -1,46 +1,49 @@
 use mir::inst_accessors_operands
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Handler for: char_to_string
-fn emit_char_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_char_to_string(w: WasmWriter, _inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        emit_char_to_string_gc(w, inst, ctx)
+        emit_char_to_string_gc(w, _inst, ctx)
         return true
     }
-    let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_char = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    emit_char_to_string_setup(w, s_tmp)
-    emit_char_to_string_alloc(w, s_alloc)
-    emit_char_to_string_payload(w, s_alloc, s_tmp)
+    let s_width = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    emit_char_to_string_setup(w, s_char)
+    emit_char_to_string_width(w, s_char, s_width)
+    emit_char_to_string_alloc(w, s_alloc, s_width, s_data)
+    emit_utf8_payload_linear(w, s_data, s_char, s_width)
     helpers_core::emit_local_get(w, s_alloc)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
     return true
 }
 
-fn emit_char_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_char_to_string_gc(w: WasmWriter, _inst: MirInst, ctx: SelfEmitCtx) {
     let s_char = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_width = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     helpers_core::emit_local_set(w, s_char)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
+    emit_normalize_char(w, s_char)
+    emit_char_to_string_width(w, s_char, s_width)
+    helpers_core::emit_local_get(w, s_width)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     string_gc_helpers::emit_gc_local_set(w, s_gc)
-    string_gc_helpers::emit_gc_local_get(w, s_gc)
-    string_gc_helpers::emit_gc_i32_const(w, 0)
-    helpers_numeric_i32::emit_narrow_i64_operand(w)
-    helpers_core::emit_local_get(w, s_char)
-    string_gc_helpers::emit_gc_array_set(w, string_type)
+    emit_utf8_payload_gc(w, s_gc, s_char, s_width, string_type)
     // Leave the gc array ref on the stack; finish_text_call handles dest store.
     string_gc_helpers::emit_gc_local_get(w, s_gc)
 }
@@ -53,10 +56,20 @@ fn emit_push_char(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_char = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    emit_push_char_setup(w, s_char, s_str, s_len)
-    emit_push_char_store(w, s_char, s_str, s_len)
-    emit_push_char_len_update(w, s_str, s_len)
-    return true
+    let s_width = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_new = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    emit_push_char_setup(w, s_char, s_str, s_len, s_width)
+    emit_push_char_linear_alloc(w, s_len, s_width, s_new, s_data)
+    emit_push_char_linear_copy(w, s_str, s_data, s_len, s_i)
+    helpers_core::emit_local_get(w, s_data)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    emit_utf8_payload_linear(w, s_i, s_char, s_width)
+    emit_push_char_linear_store_receiver(w, inst, s_data)
+    return false
 }
 
 // GC target push_char: string is a GC array ref (array of mut i8).
@@ -67,6 +80,7 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_new = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_width = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
 
     // Stack: [string_ref, char]  (char on top)
@@ -74,15 +88,17 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_char)
     // Pop string ref into GC ref scratch
     helpers_core::emit_local_set(w, s_gc)
+    emit_normalize_char(w, s_char)
+    emit_char_to_string_width(w, s_char, s_width)
 
     // Get string length: array.len
     helpers_core::emit_local_get(w, s_gc)
     string_gc_helpers::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_len)
 
-    // Create new array with len+1 elements
+    // Create new array with len+encoded-width elements.
     helpers_core::emit_local_get(w, s_len)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_get(w, s_width)
     helpers_numeric_i32::emit_i32_add(w)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, s_new)
@@ -97,12 +113,7 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_len)
     writer_gc::emit_gc_array_copy(w, string_type, string_type)
 
-    // Set new char at index s_len
-    helpers_core::emit_local_get(w, s_new)
-    helpers_core::emit_local_get(w, s_len)
-    helpers_numeric_i32::emit_narrow_i64_operand(w)
-    helpers_core::emit_local_get(w, s_char)
-    string_gc_helpers::emit_gc_array_set(w, string_type)
+    emit_utf8_payload_gc_at(w, s_new, s_len, s_char, s_width, string_type)
 
     // GC arrays are immutable in size; write the grown array back into the
     // receiver local recorded on CALL.arg0 (#807 push_char).
@@ -133,51 +144,316 @@ fn emit_String_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_char_to_string_setup(w: WasmWriter, char_local: i32) {
     helpers_core::emit_local_set(w, char_local)
+    emit_normalize_char(w, char_local)
 }
 
-fn emit_char_to_string_alloc(w: WasmWriter, alloc_local: i32) {
+fn emit_normalize_char(w: WasmWriter, char_local: i32) {
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_control::emit_if_empty(w)
+    emit_set_replacement_char(w, char_local)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 1114111)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    helpers_control::emit_if_empty(w)
+    emit_set_replacement_char(w, char_local)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 55296)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 57344)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_control::emit_if_empty(w)
+    emit_set_replacement_char(w, char_local)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
+fn emit_set_replacement_char(w: WasmWriter, char_local: i32) {
+    helpers_numeric_i32::emit_i32_const(w, 65533)
+    helpers_core::emit_local_set(w, char_local)
+}
+
+fn emit_char_to_string_width(w: WasmWriter, char_local: i32, width_local: i32) {
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 127)
+    helpers_numeric_i32::emit_i32_le_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, width_local)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 2047)
+    helpers_numeric_i32::emit_i32_le_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i32::emit_i32_const(w, 2)
+    helpers_core::emit_local_set(w, width_local)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, 65535)
+    helpers_numeric_i32::emit_i32_le_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_core::emit_local_set(w, width_local)
+    helpers_control::emit_else(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_core::emit_local_set(w, width_local)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
+fn emit_char_to_string_alloc(w: WasmWriter, alloc_local: i32, width_local: i32, data_local: i32) {
     helpers_core::emit_heap_get(w)
     helpers_core::emit_local_tee(w, alloc_local)
-    helpers_numeric_i32::emit_i32_const(w, 5)
+    helpers_core::emit_local_get(w, width_local)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_heap_set(w)
     helpers_core::emit_local_get(w, alloc_local)
-    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_get(w, width_local)
     helpers_memory::emit_i32_store_default(w)
-}
-
-fn emit_char_to_string_payload(w: WasmWriter, alloc_local: i32, char_local: i32) {
     helpers_core::emit_local_get(w, alloc_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, data_local)
+}
+
+fn emit_utf8_payload_linear(w: WasmWriter, data_local: i32, char_local: i32, width_local: i32) {
+    helpers_core::emit_local_get(w, width_local)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    emit_store_utf8_raw(w, data_local, char_local, 0)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, width_local)
+    helpers_numeric_i32::emit_i32_const(w, 2)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    emit_store_utf8_div(w, data_local, char_local, 0, 192, 64)
+    emit_store_utf8_rem(w, data_local, char_local, 1, 128, 64)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, width_local)
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    emit_store_utf8_div(w, data_local, char_local, 0, 224, 4096)
+    emit_store_utf8_mid(w, data_local, char_local, 1, 128, 64)
+    emit_store_utf8_rem(w, data_local, char_local, 2, 128, 64)
+    helpers_control::emit_else(w)
+    emit_store_utf8_div(w, data_local, char_local, 0, 240, 262144)
+    emit_store_utf8_mid(w, data_local, char_local, 1, 128, 4096)
+    emit_store_utf8_mid(w, data_local, char_local, 2, 128, 64)
+    emit_store_utf8_rem(w, data_local, char_local, 3, 128, 64)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
+fn emit_store_utf8_raw(w: WasmWriter, data_local: i32, char_local: i32, offset: i32) {
+    helpers_core::emit_local_get(w, data_local)
+    if offset != 0 {
+        helpers_numeric_i32::emit_i32_const(w, offset)
+        helpers_numeric_i32::emit_i32_add(w)
+    }
     helpers_core::emit_local_get(w, char_local)
     helpers_memory::emit_i32_store8_default(w)
 }
 
-fn emit_push_char_setup(w: WasmWriter, char_local: i32, str_local: i32, len_local: i32) {
+fn emit_store_utf8_div(w: WasmWriter, data_local: i32, char_local: i32, offset: i32, prefix: i32, divisor: i32) {
+    helpers_core::emit_local_get(w, data_local)
+    if offset != 0 {
+        helpers_numeric_i32::emit_i32_const(w, offset)
+        helpers_numeric_i32::emit_i32_add(w)
+    }
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, divisor)
+    helpers_numeric_i32::emit_i32_div_u(w)
+    helpers_numeric_i32::emit_i32_const(w, prefix)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store8_default(w)
+}
+
+fn emit_store_utf8_rem(w: WasmWriter, data_local: i32, char_local: i32, offset: i32, prefix: i32, divisor: i32) {
+    helpers_core::emit_local_get(w, data_local)
+    helpers_numeric_i32::emit_i32_const(w, offset)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, divisor)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    helpers_numeric_i32::emit_i32_const(w, prefix)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store8_default(w)
+}
+
+fn emit_store_utf8_mid(w: WasmWriter, data_local: i32, char_local: i32, offset: i32, prefix: i32, divisor: i32) {
+    helpers_core::emit_local_get(w, data_local)
+    helpers_numeric_i32::emit_i32_const(w, offset)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, char_local)
+    helpers_numeric_i32::emit_i32_const(w, divisor)
+    helpers_numeric_i32::emit_i32_div_u(w)
+    helpers_numeric_i32::emit_i32_const(w, 64)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    helpers_numeric_i32::emit_i32_const(w, prefix)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store8_default(w)
+}
+
+fn emit_push_char_setup(w: WasmWriter, char_local: i32, str_local: i32, len_local: i32, width_local: i32) {
     helpers_core::emit_local_set(w, char_local)
     helpers_core::emit_local_set(w, str_local)
     helpers_core::emit_local_get(w, str_local)
     helpers_memory::emit_string_len_from_stack(w)
     helpers_core::emit_local_set(w, len_local)
+    emit_normalize_char(w, char_local)
+    emit_char_to_string_width(w, char_local, width_local)
 }
 
-fn emit_push_char_store(w: WasmWriter, char_local: i32, str_local: i32, len_local: i32) {
-    helpers_core::emit_local_get(w, str_local)
+fn emit_push_char_linear_alloc(w: WasmWriter, len_local: i32, width_local: i32, base_local: i32, data_local: i32) {
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, base_local)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_get(w, len_local)
     helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, char_local)
-    helpers_memory::emit_i32_store8_default(w)
-}
-
-fn emit_push_char_len_update(w: WasmWriter, str_local: i32, len_local: i32) {
-    helpers_core::emit_local_get(w, str_local)
-    helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_get(w, width_local)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+    helpers_core::emit_local_get(w, base_local)
     helpers_core::emit_local_get(w, len_local)
-    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_get(w, width_local)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, base_local)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, data_local)
+}
+
+fn emit_push_char_linear_copy(w: WasmWriter, src_local: i32, dest_local: i32, len_local: i32, index_local: i32) {
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, index_local)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, index_local)
+    helpers_core::emit_local_get(w, len_local)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, dest_local)
+    helpers_core::emit_local_get(w, index_local)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, src_local)
+    helpers_core::emit_local_get(w, index_local)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_memory::emit_i32_store8_default(w)
+    helpers_core::emit_local_get(w, index_local)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, index_local)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+}
+
+fn emit_push_char_linear_store_receiver(w: WasmWriter, inst: MirInst, data_local: i32) {
+    let receiver = inst_accessors_operands::MirInst_arg0(inst)
+    if receiver >= 0 {
+        helpers_core::emit_local_get(w, data_local)
+        helpers_core::emit_local_set(w, receiver)
+    }
+}
+
+fn emit_utf8_payload_gc(w: WasmWriter, array_local: i32, char_local: i32, width_local: i32, string_type: i32) {
+    emit_utf8_payload_gc_at(w, array_local, 0 - 1, char_local, width_local, string_type)
+}
+
+fn emit_utf8_payload_gc_at(w: WasmWriter, array_local: i32, start_local: i32, char_local: i32, width_local: i32, string_type: i32) {
+    helpers_core::emit_local_get(w, width_local)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    emit_gc_store_utf8_raw(w, array_local, start_local, char_local, 0, string_type)
+    string_gc_helpers::emit_gc_else(w)
+    helpers_core::emit_local_get(w, width_local)
+    string_gc_helpers::emit_gc_i32_const(w, 2)
+    helpers_numeric_i32::emit_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    emit_gc_store_utf8_div(w, array_local, start_local, char_local, 0, 192, 64, string_type)
+    emit_gc_store_utf8_rem(w, array_local, start_local, char_local, 1, 128, 64, string_type)
+    string_gc_helpers::emit_gc_else(w)
+    helpers_core::emit_local_get(w, width_local)
+    string_gc_helpers::emit_gc_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    emit_gc_store_utf8_div(w, array_local, start_local, char_local, 0, 224, 4096, string_type)
+    emit_gc_store_utf8_mid(w, array_local, start_local, char_local, 1, 128, 64, string_type)
+    emit_gc_store_utf8_rem(w, array_local, start_local, char_local, 2, 128, 64, string_type)
+    string_gc_helpers::emit_gc_else(w)
+    emit_gc_store_utf8_div(w, array_local, start_local, char_local, 0, 240, 262144, string_type)
+    emit_gc_store_utf8_mid(w, array_local, start_local, char_local, 1, 128, 4096, string_type)
+    emit_gc_store_utf8_mid(w, array_local, start_local, char_local, 2, 128, 64, string_type)
+    emit_gc_store_utf8_rem(w, array_local, start_local, char_local, 3, 128, 64, string_type)
+    string_gc_helpers::emit_gc_end(w)
+    string_gc_helpers::emit_gc_end(w)
+    string_gc_helpers::emit_gc_end(w)
+}
+
+fn emit_gc_utf8_index(w: WasmWriter, array_local: i32, start_local: i32, offset: i32) {
+    helpers_core::emit_local_get(w, array_local)
+    if start_local >= 0 {
+        helpers_core::emit_local_get(w, start_local)
+        string_gc_helpers::emit_gc_i32_const(w, offset)
+        helpers_numeric_i32::emit_i32_add(w)
+    } else {
+        string_gc_helpers::emit_gc_i32_const(w, offset)
+    }
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+}
+
+fn emit_gc_store_utf8_raw(w: WasmWriter, array_local: i32, start_local: i32, char_local: i32, offset: i32, string_type: i32) {
+    emit_gc_utf8_index(w, array_local, start_local, offset)
+    helpers_core::emit_local_get(w, char_local)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+}
+
+fn emit_gc_store_utf8_div(w: WasmWriter, array_local: i32, start_local: i32, char_local: i32, offset: i32, prefix: i32, divisor: i32, string_type: i32) {
+    emit_gc_utf8_index(w, array_local, start_local, offset)
+    helpers_core::emit_local_get(w, char_local)
+    string_gc_helpers::emit_gc_i32_const(w, divisor)
+    helpers_numeric_i32::emit_i32_div_u(w)
+    string_gc_helpers::emit_gc_i32_const(w, prefix)
+    helpers_numeric_i32::emit_i32_add(w)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+}
+
+fn emit_gc_store_utf8_rem(w: WasmWriter, array_local: i32, start_local: i32, char_local: i32, offset: i32, prefix: i32, divisor: i32, string_type: i32) {
+    emit_gc_utf8_index(w, array_local, start_local, offset)
+    helpers_core::emit_local_get(w, char_local)
+    string_gc_helpers::emit_gc_i32_const(w, divisor)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    string_gc_helpers::emit_gc_i32_const(w, prefix)
+    helpers_numeric_i32::emit_i32_add(w)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+}
+
+fn emit_gc_store_utf8_mid(w: WasmWriter, array_local: i32, start_local: i32, char_local: i32, offset: i32, prefix: i32, divisor: i32, string_type: i32) {
+    emit_gc_utf8_index(w, array_local, start_local, offset)
+    helpers_core::emit_local_get(w, char_local)
+    string_gc_helpers::emit_gc_i32_const(w, divisor)
+    helpers_numeric_i32::emit_i32_div_u(w)
+    string_gc_helpers::emit_gc_i32_const(w, 64)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    string_gc_helpers::emit_gc_i32_const(w, prefix)
+    helpers_numeric_i32::emit_i32_add(w)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
 }
 
 fn emit_String_new_alloc(w: WasmWriter, str_base_local: i32) {

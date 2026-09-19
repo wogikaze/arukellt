@@ -82,7 +82,7 @@ fn short_name_after_last_double_colon(name: String) -> String {
     let name_len = len(name)
     let mut index = name_len - 2
     while index >= 0 {
-        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+        if byte_at(name, index) == 58 && byte_at(name, index + 1) == 58 {
             return substring(name, index + 2, name_len)
         }
         index = index - 1
@@ -177,7 +177,7 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     }
     // Bare user struct names from MonoInstance TypeTable entries (Point).
     if !fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
-        let first = char_at(type_name, 0)
+        let first = byte_at(type_name, 0)
         if first >= 65 && first <= 90 {
             return true
         }
@@ -190,7 +190,7 @@ fn type_name_has_type_var_suffix(type_name: String) -> bool {
     if n == 0 {
         return false
     }
-    let last = char_at(type_name, n - 1)
+    let last = byte_at(type_name, n - 1)
     if last >= 65 && last <= 90 {
         return true
     }

@@ -36,7 +36,7 @@ pub fn first_use_insert_offset(text: String) -> i32 {
     }
     let n = len(text)
     let mut line_end = use_pos
-    while line_end < n && char_at(text, line_end) != 10 {
+    while line_end < n && byte_at(text, line_end) != 10 {
         line_end = line_end + 1
     }
     if line_end < n {

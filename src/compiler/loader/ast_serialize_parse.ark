@@ -2,10 +2,10 @@
 
 // Read i32 from string at position, return (value, new_pos)
 fn read_i32(data: String, pos: i32) -> (i32, i32) {
-    let b0 = char_at(data, pos)
-    let b1 = char_at(data, pos + 1)
-    let b2 = char_at(data, pos + 2)
-    let b3 = char_at(data, pos + 3)
+    let b0 = byte_at(data, pos)
+    let b1 = byte_at(data, pos + 1)
+    let b2 = byte_at(data, pos + 2)
+    let b3 = byte_at(data, pos + 3)
     let val = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
     (val, pos + 4)
 }
@@ -17,14 +17,14 @@ fn read_string(data: String, pos: i32) -> (String, i32) {
     let mut result = String_new()
     let mut i = 0
     while i < n {
-        result = concat(result, char_to_string(char_at(data, new_pos + i) & 255))
+        result = concat(result, char_to_string(byte_at(data, new_pos + i) & 255))
         i = i + 1
     }
     (result, new_pos + n)
 }
 
 fn read_byte(data: String, pos: i32) -> (i32, i32) {
-    (char_at(data, pos) & 255, pos + 1)
+    (byte_at(data, pos) & 255, pos + 1)
 }
 
 pub fn deserialize_ast_nodes(data: String) -> Vec<AstNode> {
@@ -33,7 +33,7 @@ pub fn deserialize_ast_nodes(data: String) -> Vec<AstNode> {
         return Vec::new<AstNode>()
     }
     // Check magic
-    if char_at(data, 0) != 65 || char_at(data, 1) != 83 || char_at(data, 2) != 84 || char_at(data, 3) != 67 {
+    if byte_at(data, 0) != 65 || byte_at(data, 1) != 83 || byte_at(data, 2) != 84 || byte_at(data, 3) != 67 {
         return Vec::new<AstNode>()
     }
     let version = 0

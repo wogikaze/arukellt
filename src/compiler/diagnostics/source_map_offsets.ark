@@ -6,7 +6,7 @@ pub fn offset_to_line(source: String, offset: i32) -> i32 {
     let mut line: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
-        let c = char_at(source, i)
+        let c = byte_at(source, i)
         if c == 10 {
             line = line + 1
         }
@@ -20,7 +20,7 @@ pub fn offset_to_column(source: String, offset: i32) -> i32 {
     let mut col: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
-        let c = char_at(source, i)
+        let c = byte_at(source, i)
         if c == 10 {
             col = 1
         } else {
@@ -44,7 +44,7 @@ pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> 
     let mut p = 0
     let mut cur_line = 0
     while cur_line < line && p < n {
-        let c = char_at(source, p)
+        let c = byte_at(source, p)
         p = p + 1
         if c == 10 {
             cur_line = cur_line + 1
@@ -52,7 +52,7 @@ pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> 
     }
     let mut col = 0
     while col < column && p < n {
-        let c = char_at(source, p)
+        let c = byte_at(source, p)
         if c == 10 {
             return p
         }

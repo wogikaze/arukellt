@@ -41,7 +41,7 @@ fn emit_static_string(w: WasmWriter, ctx: SelfEmitCtx, value: String) {
 }
 
 fn string_byte_at(value: String, index: i32) -> i32 {
-    let ch = char_at(clone(value), index)
+    let ch = byte_at(clone(value), index)
     if ch == '\r' {
         return 13
     }

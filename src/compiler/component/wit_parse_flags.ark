@@ -6,7 +6,7 @@ fn wit_trim_ws(text: String) -> String {
     let n = len(text)
     let mut start = 0
     while start < n {
-        let ch = char_at(text, start)
+        let ch = byte_at(text, start)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
@@ -14,7 +14,7 @@ fn wit_trim_ws(text: String) -> String {
     }
     let mut end = n
     while end > start {
-        let ch = char_at(text, end - 1)
+        let ch = byte_at(text, end - 1)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
@@ -40,7 +40,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
     }
     let mut part = String_new()
     for i in 0..len(body) {
-        let ch = char_at(body, i)
+        let ch = byte_at(body, i)
         if ch == 44 {
             let trimmed = wit_trim_ws(part)
             if len(trimmed) > 0 {

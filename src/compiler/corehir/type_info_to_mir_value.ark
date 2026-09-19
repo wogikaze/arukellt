@@ -286,7 +286,7 @@ fn string_contains_char(s: String, c: i32) -> bool {
     let n = len(s)
     let mut i = 0
     while i < n {
-        if char_at(s, i) == c {
+        if byte_at(s, i) == c {
             return true
         }
         i = i + 1

@@ -1,14 +1,14 @@
 fn corehir_int_lit_has_small_suffix(text: String, n: i32) -> bool {
     if n >= 2 {
-        let last = char_at(text, n - 1)
-        let prev = char_at(text, n - 2)
+        let last = byte_at(text, n - 1)
+        let prev = byte_at(text, n - 2)
         if last == 56 && (prev == 105 || prev == 117) {
             return true
         }
         if n >= 3 {
-            let a = char_at(text, n - 3)
-            let b = char_at(text, n - 2)
-            let c = char_at(text, n - 1)
+            let a = byte_at(text, n - 3)
+            let b = byte_at(text, n - 2)
+            let c = byte_at(text, n - 1)
             if (a == 105 || a == 117) && b == 49 && c == 54 {
                 return true
             }
@@ -21,20 +21,20 @@ fn corehir_int_lit_has_small_suffix(text: String, n: i32) -> bool {
 }
 
 fn corehir_int_lit_small_type_name(text: String, n: i32) -> String {
-    if n >= 2 && char_at(text, n - 1) == 56 {
-        if char_at(text, n - 2) == 117 {
+    if n >= 2 && byte_at(text, n - 1) == 56 {
+        if byte_at(text, n - 2) == 117 {
             return "u8"
         }
         return "i8"
     }
-    if n >= 3 && char_at(text, n - 2) == 49 && char_at(text, n - 1) == 54 {
-        if char_at(text, n - 3) == 117 {
+    if n >= 3 && byte_at(text, n - 2) == 49 && byte_at(text, n - 1) == 54 {
+        if byte_at(text, n - 3) == 117 {
             return "u16"
         }
         return "i16"
     }
-    if n >= 3 && char_at(text, n - 2) == 51 && char_at(text, n - 1) == 50 {
-        if char_at(text, n - 3) == 117 {
+    if n >= 3 && byte_at(text, n - 2) == 51 && byte_at(text, n - 1) == 50 {
+        if byte_at(text, n - 3) == 117 {
             return "u32"
         }
         return "i32"
@@ -44,9 +44,9 @@ fn corehir_int_lit_small_type_name(text: String, n: i32) -> String {
 
 fn corehir_int_lit_has_64_suffix(text: String, n: i32) -> bool {
     if n >= 3 {
-        let a = char_at(text, n - 3)
-        let b = char_at(text, n - 2)
-        let c = char_at(text, n - 1)
+        let a = byte_at(text, n - 3)
+        let b = byte_at(text, n - 2)
+        let c = byte_at(text, n - 1)
         if (a == 105 || a == 117) && b == 54 && c == 52 {
             return true
         }
@@ -55,7 +55,7 @@ fn corehir_int_lit_has_64_suffix(text: String, n: i32) -> bool {
 }
 
 fn corehir_int_lit_64_type_name(text: String, n: i32) -> String {
-    if n >= 3 && char_at(text, n - 3) == 117 {
+    if n >= 3 && byte_at(text, n - 3) == 117 {
         return "u64"
     }
     "i64"

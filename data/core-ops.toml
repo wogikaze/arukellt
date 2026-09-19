@@ -1767,10 +1767,6 @@ alias = "text::replace"
 core_op_id = "string.replace"
 
 [[legacy_bindings]]
-alias = "text::slice_bytes"
-core_op_id = "string.slice"
-
-[[legacy_bindings]]
 alias = "text::split"
 core_op_id = "string.split"
 
@@ -11254,7 +11250,7 @@ id = "string.char_at"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Return the byte at an unchecked String index through the sealed raw API."
+description = "Deprecated compatibility operation: return the raw byte at an unchecked String index through the sealed raw API."
 [operations.signature]
 inputs = [
   { name = "string", type = { kind = "ref", name = "string" } },
@@ -12063,7 +12059,7 @@ id = "text.char_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Convert a char to a one-byte String through a sealed-raw Ark body."
+description = "Encode a Unicode scalar as canonical UTF-8 through a sealed-raw Ark body."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "char" } }]
 receiver_index = 0
@@ -12099,7 +12095,7 @@ id = "text.chars"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Split a String into one-byte Strings through a sealed-raw Ark body."
+description = "Split a valid UTF-8 String into one String per Unicode scalar value through a sealed-raw Ark body."
 [operations.signature]
 inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
 receiver_index = 0
@@ -12378,7 +12374,7 @@ id = "text.push_char"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append a char via sealed-raw string mutation (issue 822)."
+description = "Append a Unicode scalar encoded as canonical UTF-8 via sealed-raw string mutation."
 [operations.signature]
 inputs = [
   { name = "string", type = { kind = "ref", name = "string" } },

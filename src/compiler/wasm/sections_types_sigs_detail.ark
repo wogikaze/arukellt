@@ -163,7 +163,7 @@ fn p2_type_argument(type_name: String, index: i32) -> String {
     let mut depth = 0
     while i <= len(body) {
         let at_end = i == len(body)
-        let c = if at_end { 44 } else { char_at(clone(body), i) }
+        let c = if at_end { 44 } else { byte_at(clone(body), i) }
         if c == 60 {
             depth = depth + 1
         } else if c == 62 {
@@ -251,7 +251,7 @@ fn p2_struct_name_from_type(type_name: String) -> String {
         let mut last = first
         let mut i = first + 1
         while i < len(type_name) {
-            if char_at(clone(type_name), i) == 58 {
+            if byte_at(clone(type_name), i) == 58 {
                 last = i
             }
             i = i + 1
@@ -270,7 +270,7 @@ fn p2_struct_field_sigs(type_name: String, mir: MirModule) -> Vec<String> {
         let mut last = 0 - 1
         let mut i = len(name) - 1
         while i >= 0 {
-            if char_at(clone(name), i) == 58 {
+            if byte_at(clone(name), i) == 58 {
                 last = i
                 i = 0 - 1
             }
@@ -732,7 +732,7 @@ fn p2_post_type_sig_for_function(f: MirFunction, function_sig: String) -> String
     let mut result_start = 0
     let mut i = 0
     while i < len(function_sig) {
-        if char_at(function_sig, i) == 95 {
+        if byte_at(function_sig, i) == 95 {
             result_start = i + 1
         }
         i = i + 1
@@ -1057,7 +1057,7 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
     let mut colon_pos = 0 - 1
     let mut ci = name_len - 1
     while ci >= 0 {
-        if char_at(return_type_name, ci) == 58 {
+        if byte_at(return_type_name, ci) == 58 {
             colon_pos = ci
             ci = 0 - 1
         }
@@ -1085,7 +1085,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     let n = len(type_name)
     let mut i = 0
     while i < n {
-        if char_at(type_name, i) == ':' {
+        if byte_at(type_name, i) == ':' {
             if first_colon < 0 {
                 first_colon = i
             }
@@ -1108,7 +1108,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {
-        let d = char_at(type_name, j)
+        let d = byte_at(type_name, j)
         if d >= 48 && d <= 57 {
             byte_size = byte_size * 10 + (d - 48)
         } else {

@@ -73,7 +73,7 @@ impl Hash for String {
         let n = len(self)
         let mut i = 0
         while i < n {
-            let ch = char_at(self, i)
+            let ch = byte_at(self, i)
             h = h * 16777619 ^ ch
             if h < 0 {
                 h = 0 - h

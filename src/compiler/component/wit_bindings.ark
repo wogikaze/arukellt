@@ -10,7 +10,7 @@ fn wit_binding_generic_inner(t: String) -> String {
     let open = index_of(t, "<")
     if open < 0 { return String_new() }
     let mut close = len(t) - 1
-    while close > open && char_at(t, close) != 62 { close = close - 1 }
+    while close > open && byte_at(t, close) != 62 { close = close - 1 }
     if close <= open { return String_new() }
     wit_parse_text_scan::wit_trim_txt(substring(t, open + 1, close))
 }

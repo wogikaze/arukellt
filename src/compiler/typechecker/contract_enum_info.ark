@@ -81,7 +81,7 @@ fn EnumInfo_variant_payload_at(info: EnumInfo, variant_index: i32, payload_index
 fn enum_variant_leaf_name(name: String) -> String {
     let mut i = len(name) - 1
     while i >= 0 {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             return substring(name, i + 1, len(name))
         }
         i = i - 1

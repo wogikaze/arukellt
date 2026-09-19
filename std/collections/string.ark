@@ -27,6 +27,193 @@ fn __core_string_char_at_impl(s: String, index: i32) -> i32 {
     raw::raw_string_byte_at_unchecked(s, index)
 }
 
+fn __core_string_is_continuation_byte(byte: i32) -> bool {
+    byte >= 128 && byte <= 191
+}
+
+// Returns the validated UTF-8 width at a byte boundary. Invalid input is
+// represented by zero internally; public scalar APIs convert that condition to
+// None or advance one replacement byte, so it never becomes a public sentinel.
+fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
+    let string_len = raw::raw_string_len_bytes(s)
+    if index < 0 || index >= string_len {
+        return 0
+    }
+    let first = raw::raw_string_byte_at_unchecked(s, index)
+    if first <= 127 {
+        return 1
+    }
+    if first >= 194 && first <= 223 {
+        if index + 1 >= string_len {
+            return 0
+        }
+        if __core_string_is_continuation_byte(
+            raw::raw_string_byte_at_unchecked(s, index + 1)
+        ) {
+            return 2
+        }
+        return 0
+    }
+    if first >= 224 && first <= 239 {
+        if index + 2 >= string_len {
+            return 0
+        }
+        let second = raw::raw_string_byte_at_unchecked(s, index + 1)
+        let third = raw::raw_string_byte_at_unchecked(s, index + 2)
+        if !__core_string_is_continuation_byte(second) ||
+        !__core_string_is_continuation_byte(third) {
+            return 0
+        }
+        if first == 224 && second < 160 {
+            return 0
+        }
+        if first == 237 && second > 159 {
+            return 0
+        }
+        return 3
+    }
+    if first >= 240 && first <= 244 {
+        if index + 3 >= string_len {
+            return 0
+        }
+        let second = raw::raw_string_byte_at_unchecked(s, index + 1)
+        let third = raw::raw_string_byte_at_unchecked(s, index + 2)
+        let fourth = raw::raw_string_byte_at_unchecked(s, index + 3)
+        if !__core_string_is_continuation_byte(second) ||
+        !__core_string_is_continuation_byte(third) ||
+        !__core_string_is_continuation_byte(fourth) {
+            return 0
+        }
+        if first == 240 && second < 144 {
+            return 0
+        }
+        if first == 244 && second > 143 {
+            return 0
+        }
+        return 4
+    }
+    0
+}
+
+fn __core_string_is_utf8_boundary_impl(s: String, index: i32) -> bool {
+    let string_len = raw::raw_string_len_bytes(s)
+    if index < 0 || index > string_len {
+        return false
+    }
+    if index == 0 || index == string_len {
+        return true
+    }
+    !__core_string_is_continuation_byte(raw::raw_string_byte_at_unchecked(s, index))
+}
+
+// The public API exposes a character, but scalar values use the same i32
+// runtime representation as the compiler's character literals. Keep this
+// decoder numeric so arithmetic remains explicit at the representation boundary.
+fn __core_string_decode_codepoint_impl(s: String, index: i32, width: i32) -> i32 {
+    let first = raw::raw_string_byte_at_unchecked(s, index)
+    if width == 1 {
+        return first
+    }
+    let second = raw::raw_string_byte_at_unchecked(s, index + 1)
+    if width == 2 {
+        return (first - 192) * 64 + second - 128
+    }
+    let third = raw::raw_string_byte_at_unchecked(s, index + 2)
+    if width == 3 {
+        return (first - 224) * 4096 + (second - 128) * 64 + third - 128
+    }
+    let fourth = raw::raw_string_byte_at_unchecked(s, index + 3)
+    (first - 240) * 262144 + (second - 128) * 4096 +
+    (third - 128) * 64 + fourth - 128
+}
+
+fn __core_string_char_byte_index_impl(s: String, char_index: i32) -> i32 {
+    if char_index < 0 {
+        return 0 - 1
+    }
+    let string_len = raw::raw_string_len_bytes(s)
+    let mut byte_index = 0
+    let mut scalar_index = 0
+    while byte_index < string_len && scalar_index < char_index {
+        let width = __core_string_utf8_width_impl(s, byte_index)
+        if width > 0 {
+            byte_index = byte_index + width
+        } else {
+            byte_index = byte_index + 1
+        }
+        scalar_index = scalar_index + 1
+    }
+    if scalar_index == char_index {
+        return byte_index
+    }
+    0 - 1
+}
+
+fn __core_string_char_len_impl(s: String) -> i32 {
+    let string_len = raw::raw_string_len_bytes(s)
+    let mut byte_index = 0
+    let mut count = 0
+    while byte_index < string_len {
+        let width = __core_string_utf8_width_impl(s, byte_index)
+        if width > 0 {
+            byte_index = byte_index + width
+        } else {
+            byte_index = byte_index + 1
+        }
+        count = count + 1
+    }
+    count
+}
+
+fn __core_string_codepoint_at_impl(s: String, char_index: i32) -> Option<char> {
+    let byte_index = __core_string_char_byte_index_impl(s, char_index)
+    let string_len = raw::raw_string_len_bytes(s)
+    if byte_index < 0 || byte_index >= string_len {
+        return None
+    }
+    let width = __core_string_utf8_width_impl(s, byte_index)
+    if width == 0 {
+        return None
+    }
+    Some(__core_string_decode_codepoint_impl(s, byte_index, width))
+}
+
+fn __core_string_try_slice_bytes_impl(s: String, start: i32, end: i32) -> Option<String> {
+    let string_len = raw::raw_string_len_bytes(s)
+    if start < 0 || end < start || end > string_len {
+        return None
+    }
+    if !__core_string_is_utf8_boundary_impl(s, start) ||
+    !__core_string_is_utf8_boundary_impl(s, end) {
+        return None
+    }
+    Some(__core_string_slice_impl(s, start, end))
+}
+
+fn __core_string_slice_chars_impl(s: String, start: i32, end: i32) -> String {
+    if start < 0 || end < start {
+        return raw::raw_string_new()
+    }
+    let byte_start = __core_string_char_byte_index_impl(s, start)
+    let byte_end = __core_string_char_byte_index_impl(s, end)
+    if byte_start < 0 || byte_end < 0 {
+        return raw::raw_string_new()
+    }
+    __core_string_slice_impl(s, byte_start, byte_end)
+}
+
+fn __core_string_try_slice_chars_impl(s: String, start: i32, end: i32) -> Option<String> {
+    if start < 0 || end < start {
+        return None
+    }
+    let byte_start = __core_string_char_byte_index_impl(s, start)
+    let byte_end = __core_string_char_byte_index_impl(s, end)
+    if byte_start < 0 || byte_end < 0 {
+        return None
+    }
+    Some(__core_string_slice_impl(s, byte_start, byte_end))
+}
+
 fn __core_string_new_impl() -> String {
     raw::raw_string_new()
 }
@@ -284,7 +471,22 @@ fn __core_string_lines_impl(s: String) -> Vec<String> {
 }
 
 fn __core_string_chars_impl(s: String) -> Vec<String> {
-    __core_string_split_impl(s, "")
+    let parts = Vec::new<String>()
+    let string_len = raw::raw_string_len_bytes(s)
+    if string_len == 0 {
+        __core_string_push_part(parts, __core_string_slice_impl(s, 0, 0))
+        return parts
+    }
+    let mut byte_index = 0
+    while byte_index < string_len {
+        let width = __core_string_utf8_width_impl(s, byte_index)
+        let scalar_width = if width > 0 { width } else { 1 }
+        __core_string_push_part(parts, __core_string_slice_impl(
+                s, byte_index, byte_index + scalar_width
+            ))
+        byte_index = byte_index + scalar_width
+    }
+    parts
 }
 
 fn __core_string_region_matches(s: String, needle: String, start: i32) -> bool {
@@ -409,6 +611,30 @@ pub fn chars(s: String) -> Vec<String> {
     __core_string_chars_impl(s)
 }
 
+pub fn byte_at(s: String, index: i32) -> i32 {
+    __core_string_char_at_impl(s, index)
+}
+
+pub fn len_chars(s: String) -> i32 {
+    __core_string_char_len_impl(s)
+}
+
+pub fn codepoint_at(s: String, char_index: i32) -> Option<char> {
+    __core_string_codepoint_at_impl(s, char_index)
+}
+
+pub fn try_slice_bytes(s: String, start: i32, end: i32) -> Option<String> {
+    __core_string_try_slice_bytes_impl(s, start, end)
+}
+
+pub fn slice_chars(s: String, start: i32, end: i32) -> String {
+    __core_string_slice_chars_impl(s, start, end)
+}
+
+pub fn try_slice_chars(s: String, start: i32, end: i32) -> Option<String> {
+    __core_string_try_slice_chars_impl(s, start, end)
+}
+
 pub fn push_char(s: String, c: char) {
     __intrinsic_push_char(s, c)
 }
@@ -434,9 +660,29 @@ impl String {
         __core_string_is_empty_impl(self)
     }
 
-    /// Returns the byte value at index `i` (no bounds check).
+    /// Deprecated raw-byte compatibility access at index `i` (no bounds check).
     fn char_at(self: String, i: i32) -> i32 {
         __core_string_char_at_impl(self, i)
+    }
+
+    /// Returns the UTF-8 byte value at index `i` (no bounds check).
+    fn byte_at(self: String, i: i32) -> i32 {
+        __core_string_char_at_impl(self, i)
+    }
+
+    /// Returns the number of Unicode scalar values in `self`.
+    fn len_chars(self: String) -> i32 {
+        __core_string_char_len_impl(self)
+    }
+
+    /// Returns the Unicode scalar at scalar index `i`, or `None`.
+    fn codepoint_at(self: String, i: i32) -> Option<char> {
+        __core_string_codepoint_at_impl(self, i)
+    }
+
+    /// Returns the scalar-indexed half-open slice `[start, end)`.
+    fn slice_chars(self: String, start: i32, end: i32) -> String {
+        __core_string_slice_chars_impl(self, start, end)
     }
 
     /// Returns the byte index of the first occurrence of `sub`, or -1.
@@ -529,7 +775,7 @@ impl String {
         __core_string_lines_impl(self)
     }
 
-    /// Splits `self` into one-byte Strings.
+    /// Splits `self` into one valid UTF-8 String per Unicode scalar value.
     fn chars(self: String) -> Vec<String> {
         __core_string_chars_impl(self)
     }

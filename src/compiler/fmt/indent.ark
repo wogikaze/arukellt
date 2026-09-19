@@ -18,7 +18,7 @@ fn fmt_indent_trimmed(line: String) -> String {
     let n = len(clone(line))
     let mut start = 0
     while start < n {
-        let c = char_at(clone(line), start)
+        let c = byte_at(clone(line), start)
         if c != 32 && c != 9 {
             break
         }
@@ -31,7 +31,7 @@ fn fmt_indent_closes_else_opens(trimmed: String, scan: FmtIndentScan) -> bool {
     if len(trimmed) < 6 {
         return false
     }
-    if char_at(clone(trimmed), 0) != 125 {
+    if byte_at(clone(trimmed), 0) != 125 {
         return false
     }
     return index_of(clone(trimmed), "else") >= 0 && scan.opens > 0
@@ -41,7 +41,7 @@ fn fmt_indent_starts_close(trimmed: String) -> bool {
     if len(trimmed) == 0 {
         return false
     }
-    let c = char_at(trimmed, 0)
+    let c = byte_at(trimmed, 0)
     c == 125 || c == 93 || c == 41
 }
 
@@ -98,8 +98,8 @@ fn fmt_indent_scan_line(text: String, starts_in_block_comment: bool) -> FmtInden
     let mut in_block_comment = starts_in_block_comment
     let mut i = 0
     while i < n {
-        let ch = char_at(clone(text), i)
-        let next = if i + 1 < n { char_at(clone(text), i + 1) } else { 0 }
+        let ch = byte_at(clone(text), i)
+        let next = if i + 1 < n { byte_at(clone(text), i + 1) } else { 0 }
         if in_block_comment {
             if ch == 42 && next == 47 {
                 in_block_comment = false

@@ -197,6 +197,23 @@ Semicolons are optional.
 | `()` | Unit type | (none) |
 | `String` | UTF-8 string (reference type) | GC-managed ref |
 
+### 2.1.1 String encoding and Unicode scalar boundaries
+
+String values are well-formed UTF-8. A char is a Unicode scalar value: code points in
+the surrogate range are not valid char values. Combining marks remain independent
+scalar values; the language does not define grapheme-cluster segmentation or normalization.
+
+Byte and scalar positions are different domains. byte_at, byte_len, slice_bytes, and
+to_utf8_bytes use byte indices. len_chars, codepoint_at, chars, and slice_chars use
+Unicode scalar indices. A byte slice succeeds only when both bounds are within the
+string and on UTF-8 scalar boundaries. The fallible forms return None; the non-fallible
+slice forms return the empty string on invalid input.
+
+try_from_utf8 is strict and returns None for an invalid byte sequence. from_utf8 is
+lossy and replaces each invalid sequence with U+FFFD. char_to_string and push_char
+encode valid scalar values as canonical UTF-8; an invalid internal integer is replaced
+with U+FFFD. These rules are shared by wasm32-gc and wasm32.
+
 ### 2.2 Composite Types
 
 | Type | Syntax | Semantics |
@@ -1180,6 +1197,8 @@ import. Non-prelude functions require a `use` or `import` declaration.
 |-----------|-------------|
 | `String_from(s: String) -> String` | Construct from literal |
 | `String_new() -> String` | Empty string |
+| `byte_at(s: String, i: i32) -> i32` | Raw UTF-8 byte at a byte index |
+| `byte_len(s: String) -> i32` | UTF-8 byte length |
 | `eq(a: String, b: String) -> bool` | Equality |
 | `concat(a: String, b: String) -> String` | Concatenation |
 | `clone(s: String) -> String` | Clone |
@@ -1190,13 +1209,24 @@ import. Non-prelude functions require a `use` or `import` declaration.
 | `slice(s: String, start: i32, end: i32) -> String` | Substring by index |
 | `trim(s: String) -> String` | Strip leading/trailing whitespace |
 | `contains(s: String, sub: String) -> bool` | Substring test |
-| `char_at(s: String, i: i32) -> i32` | Code point at index |
+| `char_at(s: String, i: i32) -> i32` | Deprecated raw byte compatibility API; index is a byte index |
 | `substring(s: String, start: i32, end: i32) -> String` | Substring |
 | `replace(s: String, from: String, to: String) -> String` | Replace all |
 | `split(s: String, delim: String) -> Vec<String>` | Split by delimiter |
 | `join(v: Vec<String>, sep: String) -> String` | Join with separator |
 | `push_char(s: String, c: char)` | Append character (mutates) |
 | `is_empty(s: String) -> bool` | Empty test |
+
+The deprecated char_at entry returns a raw byte for compatibility. Use byte_at for
+byte inspection and codepoint_at for a Unicode scalar value. byte_at and byte_len
+remain prelude compatibility names for the byte API.
+
+### 9.1.1 std::text — Unicode and byte operations
+
+The std::text module exposes the explicit string domains. chars returns one valid
+UTF-8 String per Unicode scalar value, including supplementary scalars and combining
+marks as separate elements. slice_chars uses scalar indices; slice_bytes uses byte
+indices and rejects non-boundary ranges. len_chars counts scalars, not grapheme clusters.
 
 ### 9.2 Type Conversions (prelude)
 

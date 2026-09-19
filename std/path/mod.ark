@@ -170,11 +170,11 @@ pub fn last_index_of(s: String, needle: String) -> i32 {
         if nlen == 0 {
             n
         } else {
-            let nc = char_at(needle, 0)
+            let nc = byte_at(needle, 0)
             let mut result = 0 - 1
             let mut i = n - 1
             while i >= 0 {
-                if char_at(s, i) == nc {
+                if byte_at(s, i) == nc {
                     if nlen == 1 {
                         result = i
                         i = 0 - 1

@@ -29,7 +29,7 @@ fn fmt_import_sort_group(path: String, has_alias: bool) -> i32 {
 fn fmt_import_line_end(text: String, line_start: i32) -> i32 {
     let n = len(text)
     let mut i = line_start
-    while i < n && char_at(text, i) != 10 {
+    while i < n && byte_at(text, i) != 10 {
         i = i + 1
     }
     if i < n {
@@ -49,7 +49,7 @@ fn fmt_collect_import_entries(text: String, decls: Vec<AstNode>) -> Vec<FmtImpor
             let has_alias = ast_access::node_type_ann_count(d) > 0
             let line_start = ast_access::node_span_start(d)
             let mut line_begin = line_start
-            while line_begin > 0 && char_at(text, line_begin - 1) != 10 {
+            while line_begin > 0 && byte_at(text, line_begin - 1) != 10 {
                 line_begin = line_begin - 1
             }
             let line_end = fmt_import_line_end(clone(text), line_begin)
@@ -123,7 +123,7 @@ fn fmt_import_entries_are_contiguous(text: String, entries: Vec<FmtImportEntry>)
         let next_start = fmt_import_entry_line_start(entry)
         let mut cursor = previous_end
         while cursor < next_start {
-            let ch = char_at(text, cursor)
+            let ch = byte_at(text, cursor)
             if ch != 9 && ch != 10 && ch != 13 && ch != 32 {
                 return false
             }

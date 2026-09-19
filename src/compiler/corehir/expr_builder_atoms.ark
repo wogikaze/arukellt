@@ -30,9 +30,9 @@ fn corehir_float_text_is_f32(text: String) -> bool {
     if text_len < 3 {
         return false
     }
-    char_at(text, text_len - 3) == 102 &&
-    char_at(text, text_len - 2) == 51 &&
-    char_at(text, text_len - 1) == 50
+    byte_at(text, text_len - 3) == 102 &&
+    byte_at(text, text_len - 2) == 51 &&
+    byte_at(text, text_len - 1) == 50
 }
 
 fn corehir_expr_string(text: String, span_start: i32) -> CoreHirExpr {

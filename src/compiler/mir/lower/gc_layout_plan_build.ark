@@ -170,7 +170,7 @@ fn gc_layout_plan_bare_suffix(name: String) -> String {
     let n = len(name)
     let mut index = n - 1
     while index >= 0 {
-        if char_at(clone(name), index) == 58 {
+        if byte_at(clone(name), index) == 58 {
             if index + 1 < n {
                 return substring(name, index + 1, n)
             }
@@ -217,7 +217,7 @@ fn gc_layout_plan_strip_trailing_size(name: String) -> String {
     let mut index = n - 1
     let mut digits = 0
     while index >= 0 {
-        let ch = char_at(clone(name), index)
+        let ch = byte_at(clone(name), index)
         if ch >= 48 && ch <= 57 {
             digits = digits + 1
             index = index - 1
@@ -225,7 +225,7 @@ fn gc_layout_plan_strip_trailing_size(name: String) -> String {
             break
         }
     }
-    if digits > 0 && index >= 0 && char_at(clone(name), index) == 58 {
+    if digits > 0 && index >= 0 && byte_at(clone(name), index) == 58 {
         return substring(name, 0, index)
     }
     name

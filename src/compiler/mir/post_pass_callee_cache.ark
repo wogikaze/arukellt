@@ -117,7 +117,7 @@ fn strip_module_prefix(name: String) -> String {
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
-        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
             let next = i + 2
             if next < n {
                 last = next

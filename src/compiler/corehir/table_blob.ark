@@ -12,7 +12,7 @@ fn table_blob_hex_nibble(code: i32) -> i32 {
 }
 
 fn table_blob_hex_byte(hex: String, offset: i32) -> i32 {
-    table_blob_hex_nibble(char_at(hex, offset)) * 16 + table_blob_hex_nibble(char_at(hex, offset + 1))
+    table_blob_hex_nibble(byte_at(hex, offset)) * 16 + table_blob_hex_nibble(byte_at(hex, offset + 1))
 }
 
 fn table_blob_i32_from_hex8(hex: String, offset: i32) -> i32 {

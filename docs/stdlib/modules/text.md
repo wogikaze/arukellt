@@ -39,8 +39,8 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 ## Module `std::text`
 
 - Source: [`../../../std/text/mod.ark`](../../../std/text/mod.ark)
-- Manifest-backed functions: 34
-- Stability: experimental 2, stable 32
+- Manifest-backed functions: 39
+- Stability: experimental 3, stable 36
 
 Extended string operations beyond the prelude.
 
@@ -50,12 +50,12 @@ prelude string functions.
 
 ### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 
-- Operations here are largely **byte / ASCII oriented**. They are
-not full Unicode-aware text routines: indices, lengths, and
-slicing speak in bytes unless an API explicitly says otherwise
-(for example, `len_chars` provides a best-effort scalar count).
-- Multi-byte aware helpers are best-effort and may produce results
-that differ from a full Unicode segmentation library.
+- Byte-oriented and Unicode-scalar operations are separate APIs.
+byte_at, byte_len, and slice_bytes use byte indices; len_chars,
+codepoint_at, chars, and slice_chars use scalar indices.
+- This module does not define grapheme-cluster segmentation or
+normalization. Invalid byte input is handled by the UTF-8
+construction API according to its strict or lossy contract.
 - String building helpers (`StringBuilder`, rope) are utility
 surfaces, not a guaranteed-stable text-processing facade.
 
@@ -64,7 +64,7 @@ surfaces, not a guaranteed-stable text-processing facade.
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
 | `len_bytes` | `(String) -> i32` | `stable` | ✅ functional | Returns the length of the string in bytes. |
-| `len_chars` | `(String) -> i32` | `stable` | ✅ functional | Returns the number of characters (best-effort Unicode scalar count). |
+| `len_chars` | `(String) -> i32` | `stable` | ✅ functional | Returns the number of Unicode scalar values. |
 | `is_empty` | `(String) -> bool` | `stable` | ✅ functional | Returns true when the string has zero bytes. |
 | `repeat` | `(String, i32) -> String` | `stable` | ✅ functional | - |
 | `split` | `(String, String) -> Vec<String>` | `stable` | ✅ functional | Splits s on sep and returns the resulting parts. |
@@ -75,7 +75,12 @@ surfaces, not a guaranteed-stable text-processing facade.
 | `to_lower` | `(String) -> String` | `stable` | ✅ functional | Converts all ASCII uppercase letters to lowercase. |
 | `to_upper` | `(String) -> String` | `stable` | ✅ functional | Converts all ASCII lowercase letters to uppercase. |
 | `slice_bytes` | `(String, i32, i32) -> String` | `stable` | ✅ functional | Extracts a byte-range substring. Returns empty string if boundaries are invalid. |
-| `from_utf8` | `(Vec<i32>) -> String` | `experimental` | ✅ functional | Converts a byte buffer (Vec<i32>, each 0..255) to a string. |
+| `try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `stable` | ✅ functional | - |
+| `codepoint_at` | `(String, i32) -> Option<char>` | `stable` | ✅ functional | - |
+| `slice_chars` | `(String, i32, i32) -> String` | `stable` | ✅ functional | - |
+| `try_slice_chars` | `(String, i32, i32) -> Option<String>` | `stable` | ✅ functional | - |
+| `from_utf8` | `(Vec<i32>) -> String` | `experimental` | ✅ functional | Converts bytes to UTF-8, replacing each invalid sequence with U+FFFD. |
+| `try_from_utf8` | `(Vec<i32>) -> Option<String>` | `experimental` | ✅ functional | - |
 | `to_utf8_bytes` | `(String) -> Vec<i32>` | `experimental` | ✅ functional | Converts a string to its UTF-8 byte values as Vec<i32>. |
 | `contains` | `(String, String) -> bool` | `stable` | ✅ functional | Returns true when the substring appears at least once. |
 | `index_of` | `(String, String) -> i32` | `stable` | ✅ functional | Returns the byte index of the first matching substring, or -1. |
@@ -84,7 +89,47 @@ surfaces, not a guaranteed-stable text-processing facade.
 | `trim_end` | `(String) -> String` | `stable` | ✅ functional | Removes ASCII whitespace from the end of the string. |
 | `replace` | `(String, String, String) -> String` | `stable` | ✅ functional | Replaces each non-overlapping match of from with to. |
 | `lines` | `(String) -> Vec<String>` | `stable` | ✅ functional | Splits the string on newlines and returns the resulting lines. |
-| `chars` | `(String) -> Vec<String>` | `stable` | ✅ functional | Returns individual characters as single-byte strings. |
+| `chars` | `(String) -> Vec<String>` | `stable` | ✅ functional | Returns one valid UTF-8 String per Unicode scalar value. |
+
+#### `std::text::len_chars`
+
+Return the number of Unicode scalar values.
+
+#### `std::text::slice_bytes`
+
+Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string.
+
+#### `std::text::try_slice_bytes`
+
+Return a byte slice when both bounds are UTF-8 boundaries, or None.
+
+#### `std::text::codepoint_at`
+
+Return the Unicode scalar at a scalar index, or None when out of range.
+
+#### `std::text::slice_chars`
+
+Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string.
+
+#### `std::text::try_slice_chars`
+
+Return the scalar-indexed slice, or None for an invalid range.
+
+#### `std::text::from_utf8`
+
+Decode bytes as UTF-8, replacing each invalid sequence with U+FFFD.
+
+#### `std::text::try_from_utf8`
+
+Decode bytes as UTF-8 and return None when the complete input is invalid.
+
+#### `std::text::to_utf8_bytes`
+
+Return the canonical UTF-8 bytes of the string.
+
+#### `std::text::chars`
+
+Split into one valid UTF-8 String per Unicode scalar value.
 
 ### `std::text` — Pad
 

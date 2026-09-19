@@ -85,7 +85,7 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         if len(rest) == 0 {
             return false
         }
-        let first = char_at(rest, 0)
+        let first = byte_at(rest, 0)
         if first >= 48 && first <= 57 {
             return false
         }

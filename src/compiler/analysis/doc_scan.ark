@@ -1,7 +1,7 @@
 fn line_start(text: String, offset: i32) -> i32 {
     let mut pos = offset
     while pos > 0 {
-        if char_at(text, pos - 1) == 10 {
+        if byte_at(text, pos - 1) == 10 {
             return pos
         }
         pos = pos - 1
@@ -11,7 +11,7 @@ fn line_start(text: String, offset: i32) -> i32 {
 
 fn trim_line_prefix(line: String) -> String {
     let mut start = 0
-    while start < len(line) && char_at(line, start) == 32 {
+    while start < len(line) && byte_at(line, start) == 32 {
         start = start + 1
     }
     if start >= len(line) {
@@ -24,7 +24,7 @@ fn is_doc_line(line: String) -> bool {
     if len(line) < 3 {
         return false
     }
-    char_at(line, 0) == 47 && char_at(line, 1) == 47 && char_at(line, 2) == 47
+    byte_at(line, 0) == 47 && byte_at(line, 1) == 47 && byte_at(line, 2) == 47
 }
 
 fn doc_text_from_line(line: String) -> String {
@@ -32,7 +32,7 @@ fn doc_text_from_line(line: String) -> String {
         return String_new()
     }
     let mut start = 3
-    if len(line) > 4 && char_at(line, 3) == 32 {
+    if len(line) > 4 && byte_at(line, 3) == 32 {
         start = 4
     }
     substring(line, start, len(line))

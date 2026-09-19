@@ -31,10 +31,40 @@ fn __core_format_bool_impl(value: bool) -> String {
     raw::raw_string_from_bytes(bytes)
 }
 
-fn __core_char_to_string_impl(value: char) -> String {
-    // Match the legacy emitter: one byte payload (store8 / GC array.set of the char).
-    let bytes = raw::raw_array_new(1)
-    push(bytes, value)
+// CoreOp inputs use the runtime representation of char, which is i32 on both
+// Wasm targets. Keep the conversion arithmetic in that explicit boundary;
+// the public char_to_string contract remains typed as char.
+fn __core_char_to_string_impl(value: i32) -> String {
+    let mut codepoint = value
+    if codepoint < 0 || codepoint > 1114111 ||
+    codepoint >= 55296 && codepoint <= 57343 {
+        codepoint = 65533
+    }
+    let width = if codepoint <= 127 {
+        1
+    } else if codepoint <= 2047 {
+        2
+    } else if codepoint <= 65535 {
+        3
+    } else {
+        4
+    }
+    let bytes = raw::raw_array_new(width)
+    if width == 1 {
+        push(bytes, codepoint)
+    } else if width == 2 {
+        push(bytes, 192 + codepoint / 64)
+        push(bytes, 128 + codepoint % 64)
+    } else if width == 3 {
+        push(bytes, 224 + codepoint / 4096)
+        push(bytes, 128 + codepoint / 64 % 64)
+        push(bytes, 128 + codepoint % 64)
+    } else {
+        push(bytes, 240 + codepoint / 262144)
+        push(bytes, 128 + codepoint / 4096 % 64)
+        push(bytes, 128 + codepoint / 64 % 64)
+        push(bytes, 128 + codepoint % 64)
+    }
     raw::raw_string_from_bytes(bytes)
 }
 

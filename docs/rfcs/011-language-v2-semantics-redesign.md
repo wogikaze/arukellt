@@ -96,7 +96,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md) と normative spec へ反映する。 |
 | 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | [ADR-068](../adr/ADR-068-language-v2-arithmetic-evaluation-semantics.md) で Wasm integer/float semantics と target parity を採択済み。 |
 | 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeとする。 | [ADR-068](../adr/ADR-068-language-v2-arithmetic-evaluation-semantics.md) と副作用付き fixture で採択済み。 |
-| 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | stdlibと仕様の同時改訂が必要。 |
+| 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | ADR-069で採択済み。仕様・stdlib・GC／linear parity fixtureへ反映する。 |
 | 25 | slice | sliceを独立した非`Copy`の読み取りviewとして定義し、`Vec`との戻り値の不整合を解消する。source binding は現行 API では消費しない。 | ADR-060で採択済み。完全なlifetime/borrow検査は後続。 |
 | 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-066 で `HashMap::new<K,V>()` と receiver methods、supported pair 診断、旧 API の removal condition を採択。 |
 | 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | 型システムRFCで扱う。 |
@@ -164,6 +164,18 @@ checked / wrapping / saturating 等の意味を区別し、型ペアごとの暗
 作らない。
 
 文字列のbyte indexと文字単位の位置を同じ値として扱わず、sliceの寿命と所有権を明示する。
+
+#### 4.3.1 String / Unicode semantics（ADR-069）
+
+String は well-formed UTF-8 の言語値であり、char は Unicode scalar value である。
+byte index と scalar index は別の API 面で扱う。byte_at、byte_len、slice_bytes、
+to_utf8_bytes、try_from_utf8 は byte 面、len_chars、codepoint_at、chars、slice_chars は
+scalar 面に属する。char_at は移行期間だけ残る raw byte compatibility API とする。
+
+slice の byte 境界、strict な try_from_utf8、invalid input を U+FFFD へ置換する from_utf8、
+char_to_string / push_char の canonical UTF-8 encoding は ADR-069 を正本とする。
+これらの observable result は wasm32-gc と wasm32 で一致させ、GC array と linear-memory
+layout の違いを source semantics に漏らさない。
 
 HashMapやIteratorのAPIは型専用のhelperを増やさず、Traitとジェネリックなメソッドで表現する。
 
@@ -234,7 +246,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 2. Wasm GC backendで所有権を実行時にどこまで表現するか、型検査後にどこまで消去するか。またlinear-memory fallbackのcollector/root管理をどのruntime契約にするか。
 3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか（source-level owned ADT 契約はADR-060で採択済み）。
 4. ADR-062 の範囲外である `dyn Trait` の動的 ABI、specialization、higher-kinded projection。
-5. Unicode invalid sequenceの処理結果。
+5. Unicode normalization、grapheme cluster、その他の text segmentation API。
 6. `import` と `use` の最終構文、およびWIT parserのcanonical path。
 7. `wasm32-gc`、`wasm32`、Memory64、WASI profileをCLIでどう表現するか。
 8. stable機能の移行期間と、実行可能な仕様fixtureの必須範囲。
@@ -274,3 +286,4 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 - [ADR-046: 公開 free function の根絶](../adr/ADR-046-free-function-eradication.md)
 - [ADR-057: セルフホスト fixture 検証を current-only 並列ゲートへ移行](../adr/ADR-057-selfhost-current-only-fixture-gate.md)
 - [RFC-004: Trait expressiveness](004-trait-expressiveness.md)
+- [ADR-069: Language v2 の String / Unicode semantics](../adr/ADR-069-language-v2-string-unicode-semantics.md)

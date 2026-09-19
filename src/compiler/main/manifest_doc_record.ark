@@ -101,7 +101,7 @@ fn doc_split_module_and_name(symbol: String) -> DocModuleNameParts {
     let mut split = 0 - 1
     let mut i = n - 1
     while i >= 1 {
-        if char_at(symbol, i - 1) == 58 && char_at(symbol, i) == 58 {
+        if byte_at(symbol, i - 1) == 58 && byte_at(symbol, i) == 58 {
             split = i + 1
             i = 0 - 1
         } else {

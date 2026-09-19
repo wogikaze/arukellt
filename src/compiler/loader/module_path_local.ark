@@ -27,7 +27,7 @@ pub fn module_path_to_file_stem(path: String) -> String {
     let mut i = 0
     let mut seg_start = 0
     while i < n {
-        if char_at(path, i) == 58 && i + 1 < n && char_at(path, i + 1) == 58 {
+        if byte_at(path, i) == 58 && i + 1 < n && byte_at(path, i + 1) == 58 {
             result = concat(clone(result), concat(substring(clone(path), seg_start, i), "/"))
             i = i + 2
             seg_start = i

@@ -4,7 +4,7 @@ fn fmt_normalize_line(line: String) -> String {
     let n = len(clone(line))
     let mut end = n
     while end > 0 {
-        let c = char_at(clone(line), end - 1)
+        let c = byte_at(clone(line), end - 1)
         if c != 32 && c != 9 {
             break
         }
@@ -13,7 +13,7 @@ fn fmt_normalize_line(line: String) -> String {
     let mut result = String_new()
     let mut pos = 0
     while pos < end {
-        let c = char_at(clone(line), pos)
+        let c = byte_at(clone(line), pos)
         if c == 9 {
             result = text::builder_append(result, "    ")
         } else {
@@ -71,7 +71,7 @@ fn fmt_split_lines(input: String) -> Vec<String> {
     let mut start = 0
     let mut i = 0
     while i < n {
-        if char_at(clone(input), i) == 10 {
+        if byte_at(clone(input), i) == 10 {
             push(lines, substring(clone(input), start, i))
             start = i + 1
         }

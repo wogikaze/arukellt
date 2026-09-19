@@ -4,7 +4,7 @@ fn wit_trim_ws(text: String) -> String {
     let n = len(text)
     let mut start = 0
     while start < n {
-        let ch = char_at(text, start)
+        let ch = byte_at(text, start)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }
@@ -12,7 +12,7 @@ fn wit_trim_ws(text: String) -> String {
     }
     let mut end = n
     while end > start {
-        let ch = char_at(text, end - 1)
+        let ch = byte_at(text, end - 1)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
             break
         }

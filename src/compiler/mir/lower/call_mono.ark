@@ -85,7 +85,7 @@ fn mir_strip_callee_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
     while i >= 0 {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             return substring(name, i + 1, n)
         }
         i = i - 1
@@ -160,7 +160,7 @@ fn normalize_mono_type_key(mono_arg_type: String) -> String {
         let mut cut = rest_len
         let mut i = 0
         while i < rest_len {
-            if char_at(rest, i) == 58 {
+            if byte_at(rest, i) == 58 {
                 cut = i
                 i = rest_len
             } else {

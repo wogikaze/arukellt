@@ -19,7 +19,7 @@ fn use_module_short_name(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
             last_sep = i
             break
         }
@@ -37,7 +37,7 @@ fn use_module_parent_path(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+        if byte_at(path, i) == 58 && byte_at(path, i + 1) == 58 {
             last_sep = i
             break
         }

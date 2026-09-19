@@ -140,7 +140,7 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
 fn find_type_name_colon(name: String, start: i32) -> i32 {
     let mut i = start
     while i < len(name) {
-        if char_at(name, i) == 58 {
+        if byte_at(name, i) == 58 {
             return i
         }
         i = i + 1
@@ -151,7 +151,7 @@ fn find_type_name_colon(name: String, start: i32) -> i32 {
 fn first_generic_type_arg(args: String) -> String {
     let mut i = 0
     while i < len(args) {
-        if char_at(args, i) == 58 {
+        if byte_at(args, i) == 58 {
             return substring(args, 0, i)
         }
         i = i + 1
@@ -239,7 +239,7 @@ fn extract_result_err_type_var(rest: String) -> String {
     let rlen = len(rest)
     let mut ci = 0
     while ci < rlen {
-        if char_at(rest, ci) == 58 {
+        if byte_at(rest, ci) == 58 {
             return substring(rest, ci + 1, rlen)
         }
         ci = ci + 1

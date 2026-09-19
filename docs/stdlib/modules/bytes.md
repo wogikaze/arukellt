@@ -65,7 +65,7 @@ Vec<u8> is unavailable; Vec<i32> is used throughout.
 |------|-----------|-----------|----------------|---------|
 | `bytes_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
 | `bytes_from_string` | `(String) -> Vec<i32>` | `stable` | ✅ functional | Create a byte buffer from the raw bytes of a UTF-8 string. |
-| `string_from_bytes` | `(Vec<i32>) -> String` | `stable` | ✅ functional | Interpret a byte buffer as a UTF-8 string (best-effort, one byte = one char). |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `stable` | ✅ functional | Decode the buffer as UTF-8, replacing each invalid sequence with U+FFFD. |
 | `bytes_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
 | `bytes_get` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
 | `bytes_push` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |

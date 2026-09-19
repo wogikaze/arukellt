@@ -40,7 +40,7 @@ fn mir_vec_element_vt(elem_type: String) -> i32 {
         return value_types::VT_I32()
     }
     if len(elem_type) == 1 {
-        let ch = char_at(elem_type, 0)
+        let ch = byte_at(elem_type, 0)
         if ch >= 65 && ch <= 90 {
             return value_types::VT_I32()
         }

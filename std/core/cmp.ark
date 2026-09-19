@@ -1,6 +1,4 @@
 //! Comparison utilities for core scalar values.
-use std::core
-
 /// Trait for types that support equality comparison.
 ///
 /// Implementors must provide `eq` which returns `true` when two values are equal.
@@ -148,15 +146,15 @@ impl Ord for f64 {
     }
 }
 
-/// `Ord` impl for `String` — lexicographic comparison by char code.
+/// `Ord` impl for `String` — lexicographic comparison by UTF-8 byte order.
 impl Ord for String {
     fn cmp(self: String, other: String) -> Ordering {
         let la = len(self)
         let lb = len(other)
         let mut i = 0
         while i < la && i < lb {
-            let ca = char_at(self, i)
-            let cb = char_at(other, i)
+            let ca = byte_at(self, i)
+            let cb = byte_at(other, i)
             if ca < cb {
                 return Ordering::Less
             }

@@ -53,7 +53,7 @@ pub fn canonical_lower_string(scratch: Vec<i32>, s: String) -> Result<CanonicalS
         Result::Ok(start) => {
             let mut i = 0
             while i < n {
-                scratch_write_byte(scratch, start + i, char_at(s, i))
+                scratch_write_byte(scratch, start + i, byte_at(s, i))
                 i = i + 1
             }
             Ok(CanonicalSlice { ptr: start, len: n })

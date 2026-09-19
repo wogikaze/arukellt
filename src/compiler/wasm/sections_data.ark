@@ -45,7 +45,7 @@ fn emit_string_data_payload(data_sec: WasmWriter, strings: Vec<String>) {
         writer_core::emit_byte(data_sec, slen / 65536 % 256)
         writer_core::emit_byte(data_sec, slen / 16777216 % 256)
         for ci2 in 0..slen {
-            writer_core::emit_byte(data_sec, char_at(s, ci2))
+            writer_core::emit_byte(data_sec, byte_at(s, ci2))
         }
     }
 }

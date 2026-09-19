@@ -126,7 +126,7 @@ fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
 // `Vec_String_` or `?_i32_`.
 fn gc_normalize_vec_element_name(elem: String) -> String {
     let mut normalized = clone(elem)
-    while len(normalized) > 0 && char_at(normalized, len(normalized) - 1) == 95 {
+    while len(normalized) > 0 && byte_at(normalized, len(normalized) - 1) == 95 {
         normalized = substring(normalized, 0, len(normalized) - 1)
     }
     if starts_with(clone(normalized), "?_") {
@@ -157,7 +157,7 @@ fn gc_normalize_vec_type_name(type_name: String) -> String {
 fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
     // Single-letter type vars: T, U, K, E, R, A, B, V, ...
     if len(elem) == 1 {
-        let c = char_at(elem, 0)
+        let c = byte_at(elem, 0)
         if c >= 65 && c <= 90 {
             return true
         }
@@ -167,12 +167,12 @@ fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
         return gc_vec_elem_name_is_type_param(substring(elem, 1, len(elem)))
     }
     if len(elem) >= 2 {
-        let c0 = char_at(elem, 0)
+        let c0 = byte_at(elem, 0)
         if (c0 == 116 || c0 == 84) {
             let mut i = 1
             let mut all_digit = true
             while i < len(elem) {
-                let c = char_at(elem, i)
+                let c = byte_at(elem, i)
                 if c < 48 || c > 57 {
                     all_digit = false
                 }

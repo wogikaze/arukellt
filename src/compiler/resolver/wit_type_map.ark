@@ -25,13 +25,13 @@ fn wit_trim_type(t: String) -> String {
     let n = len(t)
     let mut start = 0
     while start < n {
-        let ch = char_at(t, start)
+        let ch = byte_at(t, start)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 { break }
         start = start + 1
     }
     let mut end = n
     while end > start {
-        let ch = char_at(t, end - 1)
+        let ch = byte_at(t, end - 1)
         if ch != 32 && ch != 9 && ch != 10 && ch != 13 { break }
         end = end - 1
     }
@@ -103,14 +103,14 @@ fn wit_generic_args(t: String) -> Vec<String> {
     let open = index_of(t, "<")
     if open < 0 { return args }
     let mut close = len(t) - 1
-    while close > open && char_at(t, close) != 62 { close = close - 1 }
+    while close > open && byte_at(t, close) != 62 { close = close - 1 }
     if close <= open { return args }
     let inner = substring(t, open + 1, close)
     let mut start = 0
     let mut depth = 0
     let mut i = 0
     while i < len(inner) {
-        let ch = char_at(inner, i)
+        let ch = byte_at(inner, i)
         if ch == 60 { depth = depth + 1 }
         if ch == 62 { depth = depth - 1 }
         if ch == 44 && depth == 0 {

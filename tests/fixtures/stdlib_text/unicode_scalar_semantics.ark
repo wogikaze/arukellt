@@ -1,0 +1,83 @@
+use std::test
+use std::text
+
+fn main() {
+    let source = "Aé😀é"
+    test::assert_eq_i32(text::len_bytes(source), 10)
+    test::assert_eq_i32(text::len_chars(source), 5)
+    test::assert_eq_i32(byte_at(source, 1), 195)
+    test::assert_eq_i32(byte_at(source, 2), 169)
+
+    match text::codepoint_at(source, 0) {
+        Option::Some(value) => test::assert_eq_string(char_to_string(value), "A"),
+        Option::None => assert(false),
+    }
+    match text::codepoint_at(source, 2) {
+        Option::Some(value) => test::assert_eq_string(char_to_string(value), "😀"),
+        Option::None => assert(false),
+    }
+    match text::codepoint_at(source, 5) {
+        Option::Some(_) => assert(false),
+        Option::None => {},
+    }
+
+    let scalars = text::chars(source)
+    test::assert_eq_i32(len(scalars), 5)
+    test::assert_eq_i32(text::len_bytes(get_unchecked(scalars, 0)), 1)
+    test::assert_eq_i32(text::len_bytes(get_unchecked(scalars, 1)), 2)
+    test::assert_eq_i32(text::len_bytes(get_unchecked(scalars, 2)), 4)
+    test::assert_eq_i32(text::len_bytes(get_unchecked(scalars, 4)), 2)
+
+    test::assert_eq_string(text::slice_bytes(source, 1, 3), "é")
+    test::assert_eq_string(text::slice_bytes(source, 2, 3), "")
+    test::assert_eq_string(text::slice_chars(source, 1, 3), "é😀")
+    test::assert_eq_string(text::slice_chars(source, 3, 5), "é")
+    test::assert_eq_string(text::slice_chars(source, 4, 6), "")
+    match text::try_slice_bytes(source, 2, 3) {
+        Option::Some(_) => assert(false),
+        Option::None => {},
+    }
+    match text::try_slice_chars(source, 4, 6) {
+        Option::Some(_) => assert(false),
+        Option::None => {},
+    }
+
+    let valid_bytes = Vec::new<i32>()
+    push(valid_bytes, 195)
+    push(valid_bytes, 169)
+    match text::try_from_utf8(valid_bytes) {
+        Option::Some(value) => test::assert_eq_string(value, "é"),
+        Option::None => assert(false),
+    }
+
+    let invalid_bytes = Vec::new<i32>()
+    push(invalid_bytes, 65)
+    push(invalid_bytes, 195)
+    push(invalid_bytes, 40)
+    let lossy_input = Vec::new<i32>()
+    push(lossy_input, 65)
+    push(lossy_input, 195)
+    push(lossy_input, 40)
+    match text::try_from_utf8(invalid_bytes) {
+        Option::Some(_) => assert(false),
+        Option::None => {},
+    }
+    let lossy = text::from_utf8(lossy_input)
+    let lossy_bytes = text::to_utf8_bytes(lossy)
+    test::assert_eq_i32(get_unchecked(lossy_bytes, 0), 65)
+    test::assert_eq_i32(get_unchecked(lossy_bytes, 1), 239)
+    test::assert_eq_i32(get_unchecked(lossy_bytes, 2), 191)
+    test::assert_eq_i32(get_unchecked(lossy_bytes, 3), 189)
+    test::assert_eq_i32(get_unchecked(lossy_bytes, 4), 40)
+
+    let mut built = String_new()
+    match text::codepoint_at(source, 1) {
+        Option::Some(value) => push_char(built, value),
+        Option::None => assert(false),
+    }
+    match text::codepoint_at(source, 2) {
+        Option::Some(value) => push_char(built, value),
+        Option::None => assert(false),
+    }
+    test::assert_eq_string(built, "é😀")
+}

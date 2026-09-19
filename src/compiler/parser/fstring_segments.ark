@@ -8,7 +8,7 @@ fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
     let mut lit_start = 0
     let mut i = 0
     while i < clen {
-        let c = char_at(content, i)
+        let c = byte_at(content, i)
         if c == 123 {
             if i > lit_start {
                 push(nodes, fstring_nodes::fstring_string_lit(substring(content, lit_start, i), span))
@@ -34,8 +34,8 @@ fn fstring_push_expr_segment(nodes: Vec<AstNode>, content: String, span: Span, o
     let mut in_char = false
     let mut i = open_idx + 1
     while i < clen && depth > 0 {
-        let ec = char_at(content, i)
-        let prev = if i > 1 { char_at(content, i - 1) } else { 0 }
+        let ec = byte_at(content, i)
+        let prev = if i > 1 { byte_at(content, i - 1) } else { 0 }
         if in_string {
             if ec == 34 && prev != 92 {
                 in_string = false
@@ -86,7 +86,7 @@ fn fstring_trim(s: String) -> String {
     let mut start = 0
     let mut end = n
     while start < end {
-        let c = char_at(s, start)
+        let c = byte_at(s, start)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             start = start + 1
         } else {
@@ -94,7 +94,7 @@ fn fstring_trim(s: String) -> String {
         }
     }
     while end > start {
-        let c = char_at(s, end - 1)
+        let c = byte_at(s, end - 1)
         if c == 32 || c == 9 || c == 10 || c == 13 {
             end = end - 1
         } else {
