@@ -1,16 +1,17 @@
 # Deprecated API Migration Guidance
 
-> This guide documents deprecated stdlib APIs, their generic replacements, and
-> migration examples. For the full deprecation table, see
+> This guide documents manifest-backed deprecations and separately records
+> planned trait-first migrations. A replacement shown in a planned table is
+> not necessarily callable yet. For the authoritative lifecycle table, see
 > [monomorphic-deprecation.md](monomorphic-deprecation.md).
 
 ## Why APIs Are Being Deprecated
 
-Arukellt's stdlib originally provided **monomorphic** (type-suffixed) functions
-such as `Vec_new_i32()`, `sort_i32()`, and `filter_i32()`. These have been
-superseded by **generic** equivalents (`Vec::new<i32>()`, `sort<i32>()`,
-`filter<i32>()`) that reduce API surface while preserving identical runtime
-behavior.
+Arukellt's stdlib still contains legacy free functions and monomorphic
+helpers. The trait-first v2 design is being introduced incrementally: a
+replacement is documented as available only after its manifest entry,
+implementation, and both-target fixture evidence exist. Roadmap examples use
+the eventual method/trait shape but are explicitly marked as planned below.
 
 Deprecated APIs continue to compile and run and emit **W0009** warnings from
 the post-resolve lint pass. They will be removed in a future major
@@ -20,68 +21,46 @@ version per the [Stability Policy](stability-policy.md#deprecation-process).
 
 ## Currently Deprecated APIs
 
-These functions already carry `deprecated_by` in `std/manifest.toml` and are
-shown with ~~strikethrough~~ in the [API reference](reference.md).
+Only these four public entries currently carry `deprecated_by` in
+`std/manifest.toml`; they are shown with ~~strikethrough~~ in the
+[API reference](reference.md).
 
-### `Vec_new_i32` → `Vec::new<i32>`
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `char_at` | `byte_at` |
+| `concat` | `std::text::concat` |
+| `std::env::get_var` | `std::env::var` |
+| `std::host::fs::exists` | `std::host::fs::is_readable_file` |
 
-Creates an empty `Vec<i32>`.
+The `std::seq` helpers and the legacy `Vec_*` names are not in this list yet.
+They remain in their current stability tier until a callable replacement and a
+manifest-level deprecation target are available.
 
-**Before:**
+## Iterator v2 status
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+The current iterator implementation is intentionally narrower than the final
+trait-first design. The following path is implemented and verified for both
+`wasm32-gc` and `wasm32`:
+
 ```ark
-let v = Vec_new_i32()
-push(v, 1)
-push(v, 2)
+use std::core
+use std::core::iter
+
+fn main() {
+    let values: Vec<i32> = core::range_inclusive_new(4, 6).into_iter().collect()
+    let count = core::range_new(0, 3).into_iter().count()
+    let total = core::range_new(0, 3).into_iter().sum()
+}
 ```
 
-**After:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let v = Vec::new<i32>()
-push(v, 1)
-push(v, 2)
-```
-
-### `Vec_new_i64` → `Vec::new<i64>`
-
-Creates an empty `Vec<i64>`.
-
-**Before:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let v = Vec_new_i64()
-push(v, 100i64)
-```
-
-**After:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let v = Vec::new<i64>()
-push(v, 100i64)
-```
-
-### `filter_i32` → `filter<i32>`
-
-Filters a `Vec<i32>` by a predicate.
-
-**Before:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let evens = filter_i32(numbers, fn(x: i32) -> bool { x % 2 == 0 })
-```
-
-**After:**
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-let evens = filter<i32>(numbers, fn(x: i32) -> bool { x % 2 == 0 })
-```
+`Vec<i32>`, `Range`, and `RangeInclusive` implement `IntoIterator`; the
+canonical `Iterator::collect`, `count`, and `sum` consumers currently cover the
+concrete `i32` item lane. Generic `Vec<T::Item>` collection, callback-bearing
+`fold`, and method adapters such as `.map()` and `.filter()` remain planned
+under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md) and
+[#860](../../issues/open/860-iterator-unification-integration.md). The
+`std::seq` helpers must not be marked deprecated against those planned names
+until the method-level manifest contract exists.
 
 ---
 
