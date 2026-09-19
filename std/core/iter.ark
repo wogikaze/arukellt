@@ -9,9 +9,10 @@
 //! Because Arukellt's monomorphisation model does not yet support trait-object
 //! dynamic dispatch, the adapter structs are monomorphic over `i32` (matching
 //! the existing `std::seq` helpers). Each adapter implements the canonical
-//! `Iterator::next` method directly; the structural `for` lowering can use
-//! the same concrete method target. Generic trait definitions are included to
-//! formalise the protocol and enable future generalisation.
+//! `Iterator::next` and `Iterator::collect` methods directly; the structural
+//! `for` lowering can use the same concrete method target. Generic trait
+//! definitions are included to formalise the protocol and enable future
+//! generalisation.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -21,8 +22,9 @@
 
 /// Trait for lazy, pull-based iteration over a sequence of `T` values.
 ///
-/// The sole required method is `next`, which returns `Option::Some(item)` for
-/// each successive element or `Option::None` when the iterator is exhausted.
+/// `next` returns `Option::Some(item)` for each successive element or
+/// `Option::None` when the iterator is exhausted. `collect` drains the current
+/// `i32` item lane into a `Vec<i32>` through the same trait dispatch path.
 /// This mirrors the structural protocol that `for x in v` already uses — any
 /// type with a `next() -> Option<T>` method is iterable.
 ///
@@ -42,6 +44,7 @@
 pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
+    fn collect(self: Self) -> Vec<i32>
 }
 
 /// Trait for types that can be converted into an iterator.
@@ -58,6 +61,21 @@ pub trait IntoIterator {
 /// `from_iter` drains an iterator and constructs the collection.
 pub trait FromIterator<T> {
     fn from_iter(it: T) -> Self
+}
+
+// Keep collection traversal in one generic implementation. The public trait
+// method is currently i32-specific because generic `Vec<T::Item>` lowering is
+// not yet valid on both backends; keeping that boundary explicit prevents
+// adapter-specific loops from drifting while the aggregate ABI is completed.
+fn collect_iterator_i32<T: Iterator>(it: T) -> Vec<i32> {
+    let result: Vec<i32> = Vec::new<i32>()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => { break },
+        }
+    }
+    result
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +117,10 @@ impl Iterator for VecIter {
             None
         }
     }
+
+    fn collect(self: VecIter) -> Vec<i32> {
+        collect_iterator_i32(self)
+    }
 }
 
 impl IntoIterator for VecIter {
@@ -137,6 +159,10 @@ impl Iterator for RangeIter {
             None
         }
     }
+
+    fn collect(self: RangeIter) -> Vec<i32> {
+        collect_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -167,6 +193,10 @@ impl Iterator for MapIter {
         } else {
             None
         }
+    }
+
+    fn collect(self: MapIter) -> Vec<i32> {
+        collect_iterator_i32(self)
     }
 }
 
@@ -199,6 +229,10 @@ impl Iterator for FilterIter {
             }
         }
         None
+    }
+
+    fn collect(self: FilterIter) -> Vec<i32> {
+        collect_iterator_i32(self)
     }
 }
 
@@ -235,6 +269,10 @@ impl Iterator for TakeIter {
             None
         }
     }
+
+    fn collect(self: TakeIter) -> Vec<i32> {
+        collect_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +307,10 @@ impl Iterator for SkipIter {
         } else {
             None
         }
+    }
+
+    fn collect(self: SkipIter) -> Vec<i32> {
+        collect_iterator_i32(self)
     }
 }
 
@@ -315,6 +357,10 @@ impl Iterator for ChainIter {
             }
         }
     }
+
+    fn collect(self: ChainIter) -> Vec<i32> {
+        collect_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -349,6 +395,10 @@ impl Iterator for EnumerateIter {
         } else {
             None
         }
+    }
+
+    fn collect(self: EnumerateIter) -> Vec<i32> {
+        collect_iterator_i32(self)
     }
 }
 
@@ -388,6 +438,10 @@ impl Iterator for ZipIter {
             None
         }
     }
+
+    fn collect(self: ZipIter) -> Vec<i32> {
+        collect_iterator_i32(self)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -396,86 +450,37 @@ impl Iterator for ZipIter {
 
 /// Drain a `VecIter` into a new `Vec<i32>`.
 pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 /// Drain a `MapIter` into a new `Vec<i32>`.
 pub fn collect_map_iter(it: MapIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 /// Drain a `FilterIter` into a new `Vec<i32>`.
 pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 /// Drain a `TakeIter` into a new `Vec<i32>`.
 pub fn collect_take_iter(it: TakeIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 /// Drain a `SkipIter` into a new `Vec<i32>`.
 pub fn collect_skip_iter(it: SkipIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 /// Drain a `ChainIter` into a new `Vec<i32>`.
 pub fn collect_chain_iter(it: ChainIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 /// Drain a `RangeIter` into a new `Vec<i32>`.
 pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    while true {
-        match it.next() {
-            Some(v) => push(result, v),
-            None => { break },
-        }
-    }
-    result
+    it.collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -485,14 +490,7 @@ pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
 /// `FromIterator<i32>` impl for `Vec<i32>` — drains a `VecIter`.
 impl FromIterator<VecIter> for Vec<i32> {
     fn from_iter(it: VecIter) -> Vec<i32> {
-        let result: Vec<i32> = Vec::new<i32>()
-        while true {
-            match it.next() {
-                Some(v) => push(result, v),
-                None => { break },
-            }
-        }
-        result
+        it.collect()
     }
 }
 
