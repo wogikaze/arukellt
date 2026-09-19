@@ -238,3 +238,24 @@ RFC-011: **37**。
 - Acceptance remains open: arbitrary item representations, complete adapter
   composition, full eager/lazy migration, trait-driven `for` desugaring, and
   the final RFC-011 residual audit still require work.
+
+## Progress receipt — 2026-09-20 (direct source expressions)
+
+- Commit `c064cb46a` extends the existing concrete `IntoIterator` boundary to
+  direct call and method sources in both AST and CoreHir lowering. Range syntax
+  is now selected by its `NK_RANGE` node kind instead of by child count, so a
+  two-argument call is not misclassified as a numeric range.
+- `iterator_range_basic.ark` verifies
+  `for item in core::range_new(2, 5)` and
+  `for item in core::range_inclusive_new(3, 5).into_iter()`; each source is
+  lowered once, materialized into a local, and then follows the same concrete
+  conversion/`next` path as a named local.
+- Both `wasm32-gc` component and linear `wasm32` artifacts compile and
+  validate; both runtimes exit 0. Linear WAT confirms
+  `Range::into_iter`/`RangeInclusive::into_iter` and the canonical range
+  iterator `next` calls for the direct expressions.
+- The remaining scope is generic or unregistered source dispatch, arbitrary
+  item representations, complete adapter composition, full eager/lazy
+  migration, the required negative/diagnostic fixture, and the final RFC-011
+  residual audit. This receipt does not close #860 or mark its acceptance
+  boxes complete.

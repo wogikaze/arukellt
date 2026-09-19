@@ -886,6 +886,13 @@ The current implementation applies this trait boundary to `Vec<i32>`,
 without an `IntoIterator` implementation retain the structural `next()`
 fallback until their trait implementation is available.
 
+The iterable source may be a direct call or method expression, not only a
+pre-bound local. For example, `for item in core::range_new(0, 3)` and
+`for item in core::range_inclusive_new(0, 2).into_iter()` use the same
+conversion and `next()` sequence as their equivalent local-binding forms.
+This verified surface remains concrete; it does not imply dynamic dispatch for
+an unregistered or generic source type.
+
 For the current `Vec<i32>` item lane, the canonical lazy adapter expression is
 `v.iter().map(f).filter(g).take(n).collect()`. It evaluates the source through
 the iterator protocol and does not require an intermediate collection between

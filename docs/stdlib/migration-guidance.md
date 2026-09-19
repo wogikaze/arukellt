@@ -63,6 +63,11 @@ Structural `for item in source` lowering now crosses the same
 the iterator's canonical `next` method. The GC and linear-memory backends
 therefore observe the same source conversion and item sequence. `values(v)`
 remains an explicit compatibility form.
+The source can be a direct call or method expression as well as a named local;
+the range fixture verifies `for item in core::range_new(2, 5)` and
+`for item in core::range_inclusive_new(3, 5).into_iter()` on both backends.
+Generic or unregistered source types still require the corresponding concrete
+trait implementation and are not covered by this migration step.
 `FromIterator` dispatches the `VecIter`, `RangeIter`, and
 `RangeInclusiveIter` sources statically. A generic consumer can now return
 `Vec<T::Item>` for the currently implemented `i32`-backed iterator types;
