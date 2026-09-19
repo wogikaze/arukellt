@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-29
+Updated: 2026-09-20
 ID: 691
 Track: stdlib-api
 Depends on: "688, 707"
@@ -114,8 +114,36 @@ type-specific function variants.
   module-alias inference path on GC and linear-memory targets.
 
 This is a partial implementation receipt, not a close receipt. Lazy adapter
-methods, generic collection implementations, canonical `collect`, structural
-`for` integration, and the existing `verify quick` backlog remain open. The
-generic imported non-generic constructor inference gap is also intentionally
-outside this unit; the regression fixture uses an explicit `iter::VecIter`
-annotation until that inference path is addressed.
+methods, generic collection implementations, structural `for` integration,
+and the existing `verify quick` backlog remain open. The canonical
+`Iterator::collect` path is now present for the supported `i32` item lane:
+`collect_iterator_i32<T: Iterator>` owns the traversal, every current adapter
+impl delegates to it, and the legacy `collect_*` helpers plus
+`FromIterator<VecIter>` delegate through the trait method. The fixture's
+generic `collect_values<T: Iterator>` proves this path on GC and linear Wasm.
+
+The `Vec<T::Item>` generalization is intentionally not enabled: the current
+aggregate emitter still produces invalid Wasm for that projection. #860 owns
+removal of this boundary once generic aggregate projection lowering validates
+on both targets. The generic imported non-generic constructor inference gap is
+also intentionally outside this unit; the regression fixture now exercises
+the unannotated qualified constructor path that is supported.
+
+The existing linear-memory function-reference ABI gap for callback-bearing
+adapters remains outside this receipt (#807); this unit does not claim the
+full adapter fixture matrix as a fallback parity gate.
+
+## Progress receipt — 2026-09-20 (canonical collect)
+
+- Commit `cfd072391` adds `Iterator::collect(self) -> Vec<i32>` and routes
+  the adapter-specific collection helpers and `FromIterator<VecIter>` through
+  that canonical trait method. Commit `fde82c993` records the generic
+  aggregate-lowering removal condition in the source boundary comment and
+  updates the formatter baseline.
+- `tests/fixtures/stdlib_trait/iterator_vec_iter_next.ark` adds a generic
+  `collect_values<T: iter::Iterator>` caller. It compiles and runs on
+  `wasm32-gc` as a component and on `wasm32` after Wasm validation, with both
+  runtimes passing.
+- The current implementation deliberately returns `Vec<i32>`; `Vec<T::Item>`
+  remains a tracked follow-up under #860 because the existing aggregate ABI is
+  not yet valid for that projection.

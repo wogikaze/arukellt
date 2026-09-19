@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 860
 Parent: 852
 Track: language-v2
@@ -62,6 +62,16 @@ RFC-011: **37**。
 - Commit `9a1241bcc` removes the last explicit `VecIter` annotations from the
   imported iterator fixture, proving that qualified constructor inference
   feeds the generic `Iterator` projection path on both targets.
-- This receipt does not mark any acceptance checkbox complete: eager/lazy
-  duplication, canonical `collect`, desugared-iteration equivalence, and the
-  RFC-011 residual audit still require implementation and review.
+- Commit `cfd072391` makes `Iterator::collect` the canonical trait path for the
+  current `i32` item lane. The generic `collect_iterator_i32<T: Iterator>`
+  traversal is shared by adapter implementations; legacy collection helpers
+  and `FromIterator<VecIter>` no longer own duplicate traversal bodies.
+- The positive fixture now calls that method through a generic
+  `collect_values<T: Iterator>` function and passes GC component plus linear
+  Wasm compile/validate/runtime checks. `Vec<T::Item>` remains explicitly
+  deferred under #860 until generic aggregate projection lowering is valid on
+  both targets.
+- This receipt does not mark any acceptance checkbox complete: fully generic
+  collection implementations, eager/lazy API migration, desugared-iteration
+  equivalence, and the RFC-011 residual audit still require implementation and
+  review.
