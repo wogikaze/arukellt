@@ -866,6 +866,26 @@ for item in expr {         // generic iterator
 }
 ```
 
+For a concrete source with an `IntoIterator` implementation, the v2
+iteration contract is equivalent to converting the source first and then
+pulling the resulting iterator:
+
+```ark
+let iterator = expr.into_iter()
+loop {
+    match iterator.next() {
+        Some(item) => body,
+        None => break,
+    }
+}
+```
+
+The current implementation applies this trait boundary to `Vec<i32>`,
+`Range`, `RangeInclusive`, and their concrete iterator types. The legacy
+`values(v)` form remains an explicit compatibility path, and concrete types
+without an `IntoIterator` implementation retain the structural `next()`
+fallback until their trait implementation is available.
+
 ### 4.6 Semicolons
 
 Semicolons are explicit statement or item terminators. Within a block, the

@@ -58,6 +58,11 @@ fn main() {
 canonical `Iterator::collect`, `Vec::from_iter`, `count`, `sum`, and `fold`
 consumers currently cover the concrete `i32` item lane. `fold` accepts a
 named `fn(i32, i32) -> i32` callback on both published Wasm targets.
+Structural `for item in source` lowering now crosses the same
+`IntoIterator::into_iter` boundary for those concrete sources before calling
+the iterator's canonical `next` method. The GC and linear-memory backends
+therefore observe the same source conversion and item sequence. `values(v)`
+remains an explicit compatibility form.
 `FromIterator` dispatches the `VecIter`, `RangeIter`, and
 `RangeInclusiveIter` sources statically. A generic consumer can now return
 `Vec<T::Item>` for the currently implemented `i32`-backed iterator types;

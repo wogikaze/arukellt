@@ -2,13 +2,17 @@ use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_fn_return_vt
 use mir::lower::loop_conditions
 use mir::lower::loop_scope
 use mir::lower::loop_struct_iter
 use mir::lower::loop_vec
+use mir::lower::for_iter_resolve
 use mir::lower::method_resolve
 use mir::lower_kinds
 use mir::value_types
+use mir::inst_call
 
 fn lower_for_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
@@ -43,6 +47,11 @@ fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, 
         if range_local_si >= 0 {
             let raw_struct_type = ctx_get_local_type(ctx, range_local_si)
             let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
+            let si_into_iter_type = for_iter_resolve::mir_for_into_iterator_type(ctx, clone(raw_struct_type))
+            if len(si_into_iter_type) > 0 {
+                lower_into_iterator_for_stmt(ctx, node, range, body, raw_struct_type, si_into_iter_type)
+                return
+            }
             if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) {
                 let vec_idx = lower_expr(ctx, range)
                 lower_vec_for_stmt(ctx, node, body, vec_idx)
@@ -58,6 +67,31 @@ fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, 
             }
         }
     }
+}
+
+fn lower_into_iterator_for_stmt(
+    ctx: LowerCtx,
+    node: AstNode,
+    range: AstNode,
+    body: AstNode,
+    source_type: String,
+    iterator_type: String
+) {
+    let _source_idx = lower_expr(ctx, range)
+    let into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(source_type)
+    let into_iter_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(into_iter_callee))
+    let into_iter_local = ctx_fresh_local(ctx, into_iter_vt)
+    ctx_set_local_type(ctx, into_iter_local, clone(iterator_type))
+    ctx_emit(ctx, inst_call::MirInst_call(into_iter_callee, 1, into_iter_local))
+    let next_callee = concat(clone(iterator_type), "::next")
+    let iter_scope = loop_struct_iter::mir_begin_struct_iterator_loop(
+        ctx,
+        ast_node::node_text(node),
+        iterator_type,
+        next_callee
+    )
+    let _body_result = lower_expr(ctx, body)
+    loop_struct_iter::mir_end_struct_iterator_loop(ctx, iter_scope)
 }
 
 fn lower_i32_range_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {

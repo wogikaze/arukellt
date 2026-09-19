@@ -1,0 +1,38 @@
+use mir::lower::ctx_fn_return_type
+use mir::lower::loop_vec
+use mir::lower::method_resolve
+
+// Resolve the concrete IntoIterator owner used by a `for` source. The
+// lowering runs after monomorphisation, so this is a concrete type lookup;
+// generic type variables must not be turned into guessed method names.
+fn mir_for_into_iterator_owner(source_type: String) -> String {
+    let normalized = method_resolve::mir_normalize_type_name(clone(source_type))
+    if len(normalized) == 0 || byte_at(normalized, 0) == 63 {
+        return String_from("")
+    }
+    if loop_vec::mir_is_vec_type_name(clone(source_type)) {
+        let element_type = loop_vec::mir_vec_element_type_name(clone(source_type))
+        if eq(clone(element_type), "i32") || eq(clone(element_type), "I32") {
+            return String_from("Vec")
+        }
+        return String_from("")
+    }
+    normalized
+}
+
+fn mir_for_into_iterator_type(ctx: LowerCtx, source_type: String) -> String {
+    let owner = mir_for_into_iterator_owner(source_type)
+    if len(owner) == 0 {
+        return String_from("")
+    }
+    let callee = concat(clone(owner), "::into_iter")
+    ctx_fn_return_type::ctx_fn_return_type_name(ctx, callee)
+}
+
+fn mir_for_into_iterator_callee(source_type: String) -> String {
+    let owner = mir_for_into_iterator_owner(source_type)
+    if len(owner) == 0 {
+        return String_from("")
+    }
+    concat(owner, "::into_iter")
+}
