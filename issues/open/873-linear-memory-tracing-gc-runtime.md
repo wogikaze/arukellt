@@ -43,3 +43,11 @@ RFC-011: **8 (fallback runtime)**。
 - [ ] Acceptance の一部だけで done にしない
 - [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
 - [ ] 親 #852 の担当項目を evidence 付きで更新する
+
+## Progress receipt (not done; 2026-09-19)
+
+- Implementation: `6cb9bb01f` (`language-v2: add linear-memory tracing runtime foundation`). The `wasm32` emitter now reserves linear metadata, emits allocation records, provides explicit root-frame entry/push/update/leave functions, and emits fixed-point mark/sweep and free-list allocation functions without Wasm GC instructions in the runtime source.
+- Normative updates: [ADR-075](../../docs/adr/ADR-075-language-v2-linear-memory-tracing-runtime.md), the [linear-memory lowering plan](../../docs/plans/wasm32-linear-memory-lowering.md), and RFC-011 section 2.2. The plan records that automatic collection remains disabled until root lowering is complete, so live values cannot be reclaimed during this migration step.
+- Positive/negative contract: the existing same-source `wasm32-gc` / `wasm32` fixture pair remains covered by `scripts/tests/test_linear_gc_runtime_contract.py`; the target-capability diagnostic fixture remains the applicable negative path. The new contract test passes (`Ran 3 tests ... OK`).
+- Verification: `verify lane` passed (fmt 14/14, lint 14/14, quality ratchet 13 files); `check-adrs.py` passed; docs regeneration and freshness/consistency passed; `git diff --cached --check` passed. `docs check` doc examples and canonical `selfhost build-compiler` remain blocked by the pre-existing #854 `unbox` / `slice_get` return-type mismatch in `src/compiler/main.ark`.
+- Remaining acceptance evidence: canonical `wasm32` artifact validation, binary proof that the emitted artifact contains no Wasm GC instructions, and root/cycle runtime fixtures are still pending. The collector is intentionally not auto-invoked until #874 connects managed-value lowering and root updates.

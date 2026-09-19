@@ -84,6 +84,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [ ] #871 — Wasm GC aggregate lowering を完成する — RFC 8 (aggregate) — depends: 854, 870
 - [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
+  - Progress (not done, 2026-09-19): implementation `6cb9bb01f`; ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the static runtime contract test are synchronized. The fallback emitter now has recorded allocation metadata, explicit root-frame APIs, fixed-point mark/sweep, cycle-capable candidate tracing, and free-list reuse without Wasm GC instructions in the runtime source. Quality/lane/ADR/docs freshness checks pass, but canonical build and doc examples remain blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; artifact validation and root/cycle runtime receipts remain pending, so #873 stays open.
 - [ ] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
 
