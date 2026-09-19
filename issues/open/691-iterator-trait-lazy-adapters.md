@@ -327,3 +327,18 @@ full adapter fixture matrix as a fallback parity gate.
   lane; arbitrary item representations, additional adapter compositions,
   manifest-level deprecation, and the final RFC-011 residual audit remain
   open. This is not a close receipt.
+
+## Progress receipt — 2026-09-20 (adapter identity conversion)
+
+- Commit `ce6a83389` implements identity `IntoIterator` conversions for the
+  concrete lazy adapters. `for` over an adapter therefore uses the same
+  `IntoIterator::into_iter` boundary as `Vec` and range sources before calling
+  the adapter's canonical `Iterator::next` method.
+- `iterator_adapters.ark` verifies the composed
+  `map/filter/take` source in a direct `for`; GC and linear-memory artifacts
+  both compile, validate, and run with `OK`. WAT inspection shows
+  `MapFilterTakeIter::into_iter` immediately before `next` on both backends.
+- `verify lane` passes with the formatter baseline synchronized. This advances
+  the concrete `Vec<i32>` adapter lane only; arbitrary item representations,
+  additional compositions, manifest-level deprecation, and the final RFC-011
+  residual audit remain open. This is not a close receipt.

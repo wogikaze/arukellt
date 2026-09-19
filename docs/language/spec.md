@@ -907,8 +907,9 @@ the adapter stages. Other item representations and additional adapter
 compositions remain implementation work under the iterator migration issues.
 The same concrete method-shaped adapter can be used directly as a `for` source;
 `iterator_adapters.ark` verifies `v.iter().map(f).filter(g).take(2)` reaches
-the composed adapter's `next()` path on both published Wasm targets. This does
-not extend the contract to arbitrary item representations or dynamic dispatch.
+the composed adapter's `IntoIterator::into_iter` identity conversion and then
+its `next()` path on both published Wasm targets. This does not extend the
+contract to arbitrary item representations or dynamic dispatch.
 
 ### 4.6 Semicolons
 

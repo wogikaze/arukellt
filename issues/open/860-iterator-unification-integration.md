@@ -300,3 +300,21 @@ acceptance boxes complete.
   dispatch, arbitrary item representations, broader adapter composition, full
   eager/lazy migration, and the RFC-011 residual audit remain open. This
   receipt does not close #860 or mark its acceptance boxes complete.
+
+## Progress receipt — 2026-09-20 (adapter identity conversion)
+
+- Commit `ce6a83389` adds identity `IntoIterator` implementations for the
+  concrete lazy adapters, including `MapIter`, `FilterIter`, `TakeIter`,
+  `SkipIter`, their supported composed forms, `ChainIter`, `EnumerateIter`,
+  and `ZipIter`. Each conversion returns the existing iterator state, so the
+  source sequence and ownership behavior are unchanged.
+- The direct adapter `for` fixture now lowers through
+  `MapFilterTakeIter::into_iter` followed by `MapFilterTakeIter::next` on both
+  targets. GC uses the typed reference call path; linear Wasm uses the same
+  source-level conversion with its fallback representation. Both artifacts
+  validate and run successfully with `OK`.
+- `verify lane` passes after refreshing the formatter exception hash for the
+  changed stdlib source. Generic item representations, broader adapter
+  composition, full eager/lazy migration, and the RFC-011 residual audit
+  remain open. This receipt does not close #860 or mark its acceptance boxes
+  complete.
