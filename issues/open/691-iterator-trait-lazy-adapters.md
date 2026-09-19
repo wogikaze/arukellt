@@ -108,6 +108,10 @@ type-specific function variants.
 - Test commit `18885e48e` extends the same fixture through
   `iter::vec_iter(...).into_iter()` and verifies the returned iterator on both
   target paths.
+- Commit `9a1241bcc` preserves concrete signatures for qualified imported
+  non-generic calls. The iterator fixture now leaves `iter::vec_iter(...)`
+  unannotated before passing it to a generic `Iterator` function, covering the
+  module-alias inference path on GC and linear-memory targets.
 
 This is a partial implementation receipt, not a close receipt. Lazy adapter
 methods, generic collection implementations, canonical `collect`, structural

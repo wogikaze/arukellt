@@ -59,6 +59,9 @@ RFC-011: **37**。
   function with a `VecIter` source on both targets.
 - Test commit `18885e48e` also exercises `IntoIterator::into_iter` before the
   iterator is consumed by `next`.
+- Commit `9a1241bcc` removes the last explicit `VecIter` annotations from the
+  imported iterator fixture, proving that qualified constructor inference
+  feeds the generic `Iterator` projection path on both targets.
 - This receipt does not mark any acceptance checkbox complete: eager/lazy
   duplication, canonical `collect`, desugared-iteration equivalence, and the
   RFC-011 residual audit still require implementation and review.
