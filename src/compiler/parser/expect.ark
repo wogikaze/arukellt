@@ -29,6 +29,11 @@ fn expect_token(p: Parser, kind: i32) -> Token {
         return t
     }
     diagnostics::parser_push_expected_token_error(p, kind, actual, t)
+    // A failed expectation must still make progress. Otherwise an invalid
+    // token can be revisited indefinitely by an enclosing recovery loop.
+    if actual != tokens::TK_EOF() {
+        state_record::parser_advance(p)
+    }
     t
 }
 
