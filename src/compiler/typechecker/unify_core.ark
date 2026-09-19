@@ -65,12 +65,6 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         }
         return a
     }
-    if a_tag == commands::TY_I32() && b_tag == commands::TY_I64() {
-        return b
-    }
-    if a_tag == commands::TY_I64() && b_tag == commands::TY_I32() {
-        return a
-    }
     unify_env::type_error(env, concat("type mismatch: ", concat(names::type_tag_name(a_tag), concat(" vs ", names::type_tag_name(b_tag)))))
     a
 }

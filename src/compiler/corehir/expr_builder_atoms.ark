@@ -19,7 +19,20 @@ fn corehir_expr_int_typed(text: String, int_val: i32, val_type: i32, type_name: 
 }
 
 fn corehir_expr_float(text: String, float_val: f64, span_start: i32) -> CoreHirExpr {
+    if corehir_float_text_is_f32(text) {
+        return expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FLOAT(), text, 0, float_val, value_types::VT_F32(), "f32", span_start, Vec::new<i32>())
+    }
     expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_FLOAT(), text, 0, float_val, value_types::VT_F64(), "f64", span_start, Vec::new<i32>())
+}
+
+fn corehir_float_text_is_f32(text: String) -> bool {
+    let text_len = len(text)
+    if text_len < 3 {
+        return false
+    }
+    char_at(text, text_len - 3) == 102 &&
+    char_at(text, text_len - 2) == 51 &&
+    char_at(text, text_len - 1) == 50
 }
 
 fn corehir_expr_string(text: String, span_start: i32) -> CoreHirExpr {

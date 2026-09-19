@@ -3,7 +3,7 @@
 // Verifies:
 // - Clone trait is defined with scalar impls.
 // - Default trait is defined with scalar impls.
-// - From<T> / Into<T> traits are defined with numeric widening impls.
+// - From<T> / Into<T> traits are defined with lossless numeric widening impls.
 //
 // Note: Generic dispatch through `fn dup<T: Clone>(x: T) -> T { x.clone() }`
 // requires `Self` return type support in the typechecker, which is not yet
@@ -26,6 +26,6 @@ fn main() {
     stdio::println(t)
 
     // Direct call to Into<i64> for i32 (via impl method dispatch).
-    let wide: i64 = 456.into()
+    let wide: i64 = 456i32.into()
     stdio::println((wide).to_string())
 }

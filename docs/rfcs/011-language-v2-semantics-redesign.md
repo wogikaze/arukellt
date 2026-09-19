@@ -4,7 +4,7 @@
 
 提案日: 2026-09-18
 
-関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
+関連ADR: [ADR-058](../adr/ADR-058-language-v2-semantics-redesign.md)、[ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md)、[ADR-062](../adr/ADR-062-language-v2-trait-core-coherence.md)、[ADR-063](../adr/ADR-063-language-v2-conversion-error-boundary.md)、[ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md)、[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md)、[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md)、[ADR-002](../adr/ADR-002-memory-model.md)、[ADR-003](../adr/ADR-003-generics-strategy.md)、[ADR-007](../adr/ADR-007-targets.md)、[ADR-013](../adr/ADR-013-primary-target.md)、[ADR-014](../adr/ADR-014-stability-labels.md)、[ADR-031](../adr/ADR-031-import-syntax-wit-unification.md)、[ADR-035](../adr/ADR-035-wasm-gc-implementation.md)、[ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)、[ADR-046](../adr/ADR-046-free-function-eradication.md)
 
 ---
 
@@ -92,8 +92,8 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 17 | 型パラメータ数 | 実装都合の上限を言語の理想として固定せず、表現可能なジェネリック規則を定義する。 | ADR-000の暫定制限禁止とADR-003に従う。 |
 | 18 | `Any` | 公開 `Any` による型消去を避け、必要な動的多相は明示したTrait境界で表す。 | `Any` は source type にせず、compiler builtin の内部 placeholder / backend representation に限定することを ADR-066 で採択。 |
 | 19 | `Error` sentinel | compiler内部のError sentinelをユーザーが使う型システムから分離する。 | ADR-063で内部 recovery state と nominal `Error` を分離。 |
-| 20 | `i64` と `f64` | `i64 -> f64`だけでなく異なる具象数値型の暗黙昇格を原則禁止し、キャストまたは明示変換を要求する。 | 言語仕様と既存fixtureの移行判断が必要。 |
-| 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | normative specへ追加する。 |
+| 20 | `i64` と `f64` | `i64 -> f64`だけでなく異なる具象数値型の暗黙昇格を禁止し、literal inference と concrete conversion を分離する。 | [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md) で採択済み。 |
+| 21 | 混合演算 | `u32 + i16`等の異種具象数値演算を型エラーとし、巨大な暗黙promotion matrixを作らない。明示変換のlossless/checked/wrapping/saturating規則を定義する。 | [ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md) と normative spec へ反映する。 |
 | 22 | overflowとNaN | overflow、NaN、inf、ゼロ除算をターゲット差なしに観測可能な規則へする。 | Wasmとnativeの差を検証してから採択する。 |
 | 23 | 評価順序 | 構文ごとに評価順序をArukellt自身の規則として固定する。引数・二項演算・aggregate初期化はsource order、代入はplace評価→右辺評価→storeを候補とする。 | 実行可能な意味論fixtureが必要。 |
 | 24 | `String` | Unicode、UTF-8、文字単位操作、byte単位操作の境界を分ける。 | stdlibと仕様の同時改訂が必要。 |
@@ -157,7 +157,11 @@ Traitの静的dispatch、`dyn Trait`、associated type、型引数、ユーザ�
 
 ### 4.3 数値、文字列、コレクション
 
-異なる具象数値型の暗黙変換は原則禁止し、整数、浮動小数点、SIMD、文字、byte、Unicode scalar valueの明示変換境界を定義する。変換はlossless / checked / wrapping / saturating等の意味を区別し、型ペアごとの暗黙promotion matrixは作らない。
+[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md) に従い、異なる具象数値型の
+暗黙変換は行わない。整数、浮動小数点、SIMD、文字、byte、Unicode scalar valueの明示
+変換境界を定義し、literal inference と concrete conversion を分離する。変換は lossless /
+checked / wrapping / saturating 等の意味を区別し、型ペアごとの暗黙 promotion matrix は
+作らない。
 
 文字列のbyte indexと文字単位の位置を同じ値として扱わず、sliceの寿命と所有権を明示する。
 

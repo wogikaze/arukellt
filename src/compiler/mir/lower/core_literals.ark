@@ -38,6 +38,13 @@ fn lower_core_literal_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         return dest
     }
     if core_expr_shape_atoms::mir_core_expr_is_float(expr) {
+        let float_type = core_expr_shape_accessors::mir_core_expr_val_type(expr)
+        if float_type == value_types::VT_F32() {
+            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F32())
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f32"))
+            ctx_api_emit::ctx_emit(ctx, inst_const_f64::MirInst_const_f32(core_expr_shape_accessors::mir_core_expr_float_val(expr), dest))
+            return dest
+        }
         let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F64())
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
         ctx_api_emit::ctx_emit(ctx, inst_const_f64::MirInst_const_f64(core_expr_shape_accessors::mir_core_expr_float_val(expr), dest))

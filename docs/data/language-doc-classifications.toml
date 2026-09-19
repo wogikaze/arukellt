@@ -128,7 +128,7 @@ stability = "stable"
 
 [[features]]
 id = "2.6"
-name = "Type Coercion (Numeric Promotion)"
+name = "Numeric Conversion and Literal Inference"
 stability = "stable"
 
 [[features]]

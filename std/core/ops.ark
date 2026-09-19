@@ -185,7 +185,7 @@ impl Rem for i64 {
 /// `Neg` impl for `i64` — computes `0 - self` (subtraction from zero).
 impl Neg for i64 {
     fn neg(self: i64) -> i64 {
-        0 - self
+        0i64 - self
     }
 }
 
@@ -285,7 +285,7 @@ impl BitNot for i32 {
 /// `BitNot` impl for `i64` — delegates to the built-in `^` operator.
 impl BitNot for i64 {
     fn bitnot(self: i64) -> i64 {
-        self ^ -1
+        self ^ -1i64
     }
 }
 

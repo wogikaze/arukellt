@@ -273,10 +273,10 @@ impl SaturatingAdd for i64 {
     fn saturating_add(self: i64, rhs: i64) -> i64 {
         let result = self + rhs
         if self >= 0 && rhs >= 0 && result < 0 {
-            0x7FFFFFFFFFFFFFFF
+            0x7FFFFFFFFFFFFFFFi64
         } else {
             if self < 0 && rhs < 0 && result >= 0 {
-                0 - 0x8000000000000000
+                0i64 - 0x8000000000000000i64
             } else {
                 result
             }
@@ -288,10 +288,10 @@ impl SaturatingSub for i64 {
     fn saturating_sub(self: i64, rhs: i64) -> i64 {
         let result = self - rhs
         if self >= 0 && rhs < 0 && result < 0 {
-            0x7FFFFFFFFFFFFFFF
+            0x7FFFFFFFFFFFFFFFi64
         } else {
             if self < 0 && rhs >= 0 && result >= 0 {
-                0 - 0x8000000000000000
+                0i64 - 0x8000000000000000i64
             } else {
                 result
             }
@@ -304,9 +304,9 @@ impl SaturatingMul for i64 {
         let result = self * rhs
         if rhs != 0 && result / rhs != self {
             if (self >= 0 && rhs >= 0) || (self < 0 && rhs < 0) {
-                0x7FFFFFFFFFFFFFFF
+                0x7FFFFFFFFFFFFFFFi64
             } else {
-                0 - 0x8000000000000000
+                0i64 - 0x8000000000000000i64
             }
         } else {
             result

@@ -4,9 +4,9 @@ use std::test
 fn main() {
     let n: i32 = 42
     let wide: i64 = n.into()
-    test::assert_eq_i64(wide, 42)
+    test::assert_eq_i64(wide, 42i64)
 
     let big: i32 = 2147483647
     let big_wide: i64 = big.into()
-    test::assert_eq_i64(big_wide, 2147483647)
+    test::assert_eq_i64(big_wide, 2147483647i64)
 }

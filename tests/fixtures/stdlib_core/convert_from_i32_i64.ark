@@ -3,12 +3,13 @@ use std::test
 
 fn main() {
     // From<i32> for i64 — widening conversion via trait dispatch
-    let wide: i64 = (42).into()
+    let wide: i64 = (42i32).into()
     test::assert_eq_i64(wide, 42i64)
 
-    let wide2: i64 = (0).into()
+    let wide2: i64 = (0i32).into()
     test::assert_eq_i64(wide2, 0i64)
 
-    let wide3: i64 = (-5).into()
+    let negative: i32 = 0i32 - 5i32
+    let wide3: i64 = negative.into()
     test::assert_eq_i64(wide3, -5i64)
 }

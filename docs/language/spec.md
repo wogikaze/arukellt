@@ -245,26 +245,45 @@ and [ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md).
 
 - Integer literals without suffix default to `i32`.
 - Float literals without suffix default to `f64`.
+- A suffix selects the literal's concrete type; a type annotation does not
+  implicitly convert a literal to another numeric type.
 - `let` bindings infer their type from the initialiser expression.
 - Empty collections require explicit type annotation or a typed
   constructor (e.g., `Vec_new_i32()`).
 - Functions with no declared return type default to `()`.
 
-### 2.6 Type Coercion (Numeric Promotion)
+### 2.6 Numeric Conversion and Literal Inference
 
-Implicit widening occurs in binary operations when operand types differ:
+Distinct concrete numeric types never undergo implicit promotion or coercion.
+After literal inference, arithmetic, comparison, and bitwise operands must
+have the same concrete numeric type. The same rule applies to assignments,
+function arguments, return values, and generic arguments.
 
-| Left | Right | Result |
-|------|-------|--------|
-| `i32` | `i64` | `i64` |
-| `i64` | `i32` | `i64` |
-| `i32` | `f64` | `f64` |
-| `f64` | `i32` | `f64` |
-| `i64` | `f64` | `f64` |
-| `f64` | `i64` | `f64` |
+Use a literal suffix when the literal itself should have another type:
 
-**No implicit narrowing** is ever performed. Narrowing requires an
-explicit conversion.
+```ark
+let count: i64 = 1i64
+let ratio: f64 = 1.0f64
+let total: i64 = 1i64 + 2i64
+```
+
+Conversion of a concrete value must be explicit and its mode must be visible:
+
+| Source → target | Canonical API | Semantics |
+|---|---|---|
+| `i32 → i64` | `value.into()` | lossless widening |
+| `i64 → i32` | `value.to_i32_checked()` | `Option<i32>`, `None` outside range |
+| `i64 → i32` | `value.to_i32_wrapping()` | two's-complement modulo at i32 width |
+| `i64 → i32` | `value.to_i32_saturating()` | clamp to i32 bounds |
+| `f32 → f64` | `f32_to_f64(value)` | lossless widening |
+| `f64 → f32` | `f64_to_f32(value)` | explicit IEEE/Wasm rounding |
+
+`From` / `Into` are reserved for lossless conversions. Existing prelude
+`*_to_*` functions remain explicit compatibility APIs during migration; they
+do not enable implicit conversion. Integer aliases such as `u8` and `i16`
+currently share compiler representation with `i32`, but their explicit
+wrapper semantics remain part of the compatibility surface. See
+[ADR-067](../adr/ADR-067-language-v2-numeric-conversion.md).
 
 ### 2.7 Generics
 
@@ -430,8 +449,8 @@ For a user-defined or generic operand, the canonical trait obligation must be
 satisfied and the operator's operands and result follow that trait's method
 signature. Scalar operators retain the built-in numeric rules below as the
 backend fast path for the same protocol. Both operands of arithmetic and
-bitwise operators must have the same numeric type (after coercion per §2.6),
-and the result type is the same as the operands.
+bitwise operators must have the same numeric type after literal inference;
+there is no coercion step, and the result type is the same as the operands.
 
 Comparison operators return `bool`. Logical operators require `bool`
 operands and return `bool`.

@@ -1,0 +1,55 @@
+// Numeric conversions are explicit and retain the same result on both Wasm
+// backends. Literal suffixes select the source type before conversion.
+use std::host::process
+
+fn expect_some(value: Option<i32>, expected: i32) {
+    match value {
+        Some(actual) => {
+            if actual != expected {
+                process::exit(1)
+            }
+        },
+        None => process::exit(1),
+    }
+}
+
+fn expect_none(value: Option<i32>) {
+    match value {
+        Some(_) => process::exit(1),
+        None => {},
+    }
+}
+
+fn main() {
+    let exact: i64 = 42i32.into()
+    if exact != 42i64 {
+        process::exit(1)
+    }
+
+    let upper: i64 = 2147483648i64
+    let lower: i64 = 0i64 - 2147483649i64
+    expect_some(42i64.to_i32_checked(), 42)
+    expect_none(upper.to_i32_checked())
+    expect_none(lower.to_i32_checked())
+    if upper.to_i32_wrapping() != -2147483648i32 {
+        process::exit(1)
+    }
+    if lower.to_i32_wrapping() != 2147483647i32 {
+        process::exit(1)
+    }
+    if upper.to_i32_saturating() != 2147483647i32 {
+        process::exit(1)
+    }
+    if lower.to_i32_saturating() != -2147483648i32 {
+        process::exit(1)
+    }
+
+    let widened_float: f64 = f32_to_f64(1.5f32)
+    if widened_float != 1.5f64 {
+        process::exit(1)
+    }
+    let narrowed_float: f32 = f64_to_f32(1.5f64)
+    if f32_to_f64(narrowed_float) != 1.5f64 {
+        process::exit(1)
+    }
+}

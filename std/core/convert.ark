@@ -291,12 +291,12 @@ impl Integer for i64 {
             return 1i64
         }
         let mut x = self - 1i64
-        x = x | (x >> 1)
-        x = x | (x >> 2)
-        x = x | (x >> 4)
-        x = x | (x >> 8)
-        x = x | (x >> 16)
-        x = x | (x >> 32)
+        x = x | (x >> 1i64)
+        x = x | (x >> 2i64)
+        x = x | (x >> 4i64)
+        x = x | (x >> 8i64)
+        x = x | (x >> 16i64)
+        x = x | (x >> 32i64)
         let result = x + 1i64
         if result <= 0i64 {
             4611686018427387904i64
@@ -314,27 +314,27 @@ impl Integer for i64 {
         }
         let mut count = 0
         let mut x = self
-        if (x & 0xFFFFFFFF00000000) == 0i64 {
+        if (x & 0xFFFFFFFF00000000i64) == 0i64 {
             count = count + 32
-            x = x << 32
+            x = x << 32i64
         }
-        if (x & 0xFFFF000000000000) == 0i64 {
+        if (x & 0xFFFF000000000000i64) == 0i64 {
             count = count + 16
-            x = x << 16
+            x = x << 16i64
         }
-        if (x & 0xFF00000000000000) == 0i64 {
+        if (x & 0xFF00000000000000i64) == 0i64 {
             count = count + 8
-            x = x << 8
+            x = x << 8i64
         }
-        if (x & 0xF000000000000000) == 0i64 {
+        if (x & 0xF000000000000000i64) == 0i64 {
             count = count + 4
-            x = x << 4
+            x = x << 4i64
         }
-        if (x & 0xC000000000000000) == 0i64 {
+        if (x & 0xC000000000000000i64) == 0i64 {
             count = count + 2
-            x = x << 2
+            x = x << 2i64
         }
-        if (x & 0x8000000000000000) == 0i64 {
+        if (x & 0x8000000000000000i64) == 0i64 {
             count = count + 1
         }
         count
@@ -348,7 +348,7 @@ impl Integer for i64 {
         let mut x = self
         while (x & 1i64) == 0i64 {
             count = count + 1
-            x = x >> 1
+            x = x >> 1i64
         }
         count
     }
@@ -418,6 +418,33 @@ impl i64 {
     /// Returns the string representation of this integer.
     fn to_string(self: i64) -> String {
         __intrinsic_i64_to_string(self)
+    }
+
+    /// Converts to i32, returning None when the value is outside i32's range.
+    fn to_i32_checked(self: i64) -> Option<i32> {
+        if self < -2147483648i64 || self > 2147483647i64 {
+            None
+        } else {
+            Some(__intrinsic_i64_to_i32(self))
+        }
+    }
+
+    /// Converts to i32 with two's-complement wrapping at the target width.
+    fn to_i32_wrapping(self: i64) -> i32 {
+        __intrinsic_i64_to_i32(self)
+    }
+
+    /// Converts to i32 by clamping values outside i32's range.
+    fn to_i32_saturating(self: i64) -> i32 {
+        if self < -2147483648i64 {
+            -2147483648i32
+        } else {
+            if self > 2147483647i64 {
+                2147483647i32
+            } else {
+                __intrinsic_i64_to_i32(self)
+            }
+        }
     }
 
     /// Returns the absolute value.
@@ -515,10 +542,10 @@ impl char {
 // ---------------------------------------------------------------------------
 // From / Into conversion traits (issue #692).
 //
-// `From<T>` is implemented for lossless conversions between types.
+// `From<T>` is implemented only for lossless conversions between types.
 // `Into<T>` is the dual — in Rust it has a blanket impl, but Arukellt's
-// static dispatch model requires explicit impls. We provide the most
-// common numeric widening conversions.
+// static dispatch model requires explicit impls. Narrowing conversions use
+// named checked, wrapping, or saturating methods instead.
 // ---------------------------------------------------------------------------
 
 /// Trait for lossless conversion from `T` to `Self`.
@@ -528,7 +555,7 @@ impl char {
 /// | From    | To      | Status | Notes                        |
 /// |---------|---------|--------|------------------------------|
 /// | i32     | i64     | impl   | Widening via intrinsic       |
-/// | i64     | i32     | impl   | Narrowing (truncation)       |
+/// | i64     | i32     | —      | Use an explicit conversion method |
 trait From<T> {
     fn from(v: T) -> From
 }
@@ -537,13 +564,6 @@ trait From<T> {
 impl From<i32> for i64 {
     fn from(v: i32) -> i64 {
         __intrinsic_i32_to_i64(v)
-    }
-}
-
-/// `From<i64>` impl for `i32` — narrowing conversion (truncation).
-impl From<i64> for i32 {
-    fn from(v: i64) -> i32 {
-        __intrinsic_i64_to_i32(v)
     }
 }
 
@@ -569,12 +589,5 @@ trait Into<T> {
 impl Into<i64> for i32 {
     fn into(self: i32) -> i64 {
         __intrinsic_i32_to_i64(self)
-    }
-}
-
-/// `Into<i32>` impl for `i64` — delegates to `From<i64> for i32`.
-impl Into<i32> for i64 {
-    fn into(self: i64) -> i32 {
-        __intrinsic_i64_to_i32(self)
     }
 }

@@ -253,6 +253,7 @@ diag:diagnostics/resolve_dup_fn.ark
 diag:diagnostics/resolve_undef_module.ark
 diag:diagnostics/resolve_undefined_fn.ark
 diag:diagnostics/type_mismatch.ark
+diag:diagnostics/numeric_implicit_promotion.ark
 diag:diagnostics/operator_trait_missing.ark
 diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
@@ -510,6 +511,7 @@ run:regression/vec_struct_len.ark
 run:scalar/comparison.ark
 run:scalar/const_i32.ark
 run:scalar/conversion.ark
+run:scalar/numeric_explicit_conversions.ark
 run:scalar/f32_basic.ark
 run:scalar/f32_local.ark
 run:scalar/gc_hint_short_lived.ark
@@ -2029,6 +2031,7 @@ t3-compile:diagnostics/method_syntax.ark
 t3-compile:diagnostics/nested_generic.ark
 t3-compile:diagnostics/operator_overload.ark
 t3-compile:diagnostics/hashmap_unsupported_pair.ark
+t3-compile:diagnostics/numeric_implicit_promotion.ark
 t3-compile:diagnostics/trait_def.ark
 t3-compile:stdlib_trait/error_trait.ark
 t3-compile:display_trait/display_struct.ark
@@ -2576,6 +2579,7 @@ t3-run:question_mark/from_trait_not_inherent.ark
 t3-run:question_mark/user_error_type.ark
 t3-run:scalar/gc_hint_short_lived.ark
 t3-run:scalar/const_i32.ark
+t3-run:scalar/numeric_explicit_conversions.ark
 t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_env/env_var_lookup.ark

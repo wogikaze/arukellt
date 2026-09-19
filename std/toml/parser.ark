@@ -397,7 +397,7 @@ fn toml_scan_bare_token(s: String, pos: i32) -> i32 {
 /// any `0x`/`0o`/`0b` prefix and optional sign.
 fn toml_parse_int_radix(digits: String, radix: i32, neg: bool) -> i64 {
     let n = len(digits)
-    let mut result: i64 = 0
+    let mut result: i64 = 0i64
     let mut i = 0
     let rad = i32_to_i64(radix)
     while i < n {
@@ -408,7 +408,7 @@ fn toml_parse_int_radix(digits: String, radix: i32, neg: bool) -> i64 {
         i = i + 1
     }
     if neg {
-        0 - result
+        0i64 - result
     } else {
         result
     }

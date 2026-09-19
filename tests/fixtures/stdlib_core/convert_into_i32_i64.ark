@@ -3,14 +3,16 @@ use std::test
 
 fn main() {
     // Into<i64> for i32 — widening
-    let wide: i64 = (100).into()
+    let wide: i64 = (100i32).into()
     test::assert_eq_i64(wide, 100i64)
 
-    // Into<i32> for i64 — narrowing
-    let narrow: i32 = (42i64).into()
+    // Explicit wrapping conversion for i64 -> i32 narrowing.
+    let narrow: i32 = (42i64).to_i32_wrapping()
     test::assert_eq_i32(narrow, 42)
 
-    // Round-trip: i32 -> i64 -> i32
-    let rt: i32 = ((999).into()).into()
+    // Round-trip: i32 -> i64 -> i32 with both modes explicit.
+    let source: i32 = 999i32
+    let widened: i64 = source.into()
+    let rt: i32 = widened.to_i32_wrapping()
     test::assert_eq_i32(rt, 999)
 }

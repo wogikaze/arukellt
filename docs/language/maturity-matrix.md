@@ -45,7 +45,7 @@
 | 2.3 | Special Types | stable | — |
 | 2.4 | Value vs Reference Semantics | stable | — |
 | 2.5 | Type Inference | stable | — |
-| 2.6 | Type Coercion (Numeric Promotion) | stable | — |
+| 2.6 | Numeric Conversion and Literal Inference | stable | — |
 | 2.7 | Generics | stable | — |
 | 2.8 | Traits and Impl Blocks (v1) | **provisional** | version-gated feature — interface may change before stable exit |
 | 3 | Expressions | stable | — |

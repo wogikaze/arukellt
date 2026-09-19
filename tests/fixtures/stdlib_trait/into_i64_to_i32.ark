@@ -2,11 +2,11 @@ use std::core::convert
 use std::test
 
 fn main() {
-    let big: i64 = 99999
-    let narrow: i32 = big.into()
+    let big: i64 = 99999i64
+    let narrow: i32 = big.to_i32_wrapping()
     test::assert_eq_i32(narrow, 99999)
 
-    let neg: i64 = -42
-    let neg_narrow: i32 = neg.into()
+    let neg: i64 = -42i64
+    let neg_narrow: i32 = neg.to_i32_wrapping()
     test::assert_eq_i32(neg_narrow, -42)
 }
