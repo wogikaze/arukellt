@@ -35,6 +35,7 @@
 /// |-------------|--------|----------------------------------------|
 /// | VecIter     | impl   | Adapter over `Vec<i32>`                |
 /// | RangeIter   | impl   | Adapter over `Range`                   |
+/// | RangeInclusiveIter | impl | Adapter over `RangeInclusive`      |
 /// | MapIter     | impl   | Lazy map adapter                       |
 /// | FilterIter  | impl   | Lazy filter adapter                    |
 /// | TakeIter    | impl   | Lazy take adapter                      |
@@ -223,6 +224,56 @@ impl IntoIterator for Range {
 
     fn into_iter(self: Range) -> RangeIter {
         range_iter(self)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RangeInclusiveIter — lazy adapter over RangeInclusive
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator over a closed integer range `[start, end]`.
+pub struct RangeInclusiveIter {
+    current: i32,
+    end: i32,
+}
+
+/// Construct a `RangeInclusiveIter` from a `RangeInclusive`.
+pub fn range_inclusive_iter(r: RangeInclusive) -> RangeInclusiveIter {
+    RangeInclusiveIter { current: r.start, end: r.end }
+}
+
+impl Iterator for RangeInclusiveIter {
+    type Item = i32
+
+    fn next(self: RangeInclusiveIter) -> Option<i32> {
+        if self.current <= self.end {
+            let value: i32 = self.current
+            self.current = self.current + 1
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: RangeInclusiveIter) -> Vec<i32> {
+        collect_iterator_i32(self)
+    }
+
+    fn count(self: RangeInclusiveIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: RangeInclusiveIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IntoIterator for RangeInclusive {
+    type Item = i32
+    type IntoIter = RangeInclusiveIter
+
+    fn into_iter(self: RangeInclusive) -> RangeInclusiveIter {
+        range_inclusive_iter(self)
     }
 }
 

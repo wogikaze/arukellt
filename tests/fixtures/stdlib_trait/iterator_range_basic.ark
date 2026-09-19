@@ -28,4 +28,12 @@ fn main() {
         Some(value) => test::assert_eq_i32(value, 7),
         None => panic("expected generic range item"),
     }
+
+    let inclusive_source = core::range_inclusive_new(3, 5)
+    let inclusive_iterator = inclusive_source.into_iter()
+    match inclusive_iterator.next() {
+        Some(value) => test::assert_eq_i32(value, 3),
+        None => panic("expected inclusive range item"),
+    }
+    test::assert_eq_i32(inclusive_iterator.count(), 2)
 }
