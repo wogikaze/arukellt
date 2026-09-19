@@ -1,0 +1,97 @@
+use typechecker::ast_access
+use typechecker::ast_expr_predicates
+use typechecker::contract_enum_info
+use typechecker::contract_type_constructors
+
+fn infer_enum_variant_path(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if !ast_expr_predicates::node_is_path(node) {
+        return unknown_type()
+    }
+    let path = ast_access::node_text(node)
+    let enum_name = enum_name_from_variant_path(clone(path))
+    if len(enum_name) == 0 {
+        return unknown_type()
+    }
+    let enum_type_name = enum_type_name_from_variant_path(clone(path))
+    if len(enum_type_name) == 0 {
+        return unknown_type()
+    }
+    let enum_def = find_enum_def(enum_defs, clone(path), clone(enum_name))
+    let declared_name = contract_enum_info::EnumInfo_name(enum_def)
+    if len(declared_name) == 0 {
+        return unknown_type()
+    }
+    contract_type_constructors::TypeInfo_named(commands::TY_ENUM(), enum_type_name)
+}
+
+fn infer_enum_variant_call(enum_defs: Vec<EnumInfo>, callee: AstNode) -> TypeInfo {
+    infer_enum_variant_path(enum_defs, callee)
+}
+
+fn find_enum_def(enum_defs: Vec<EnumInfo>, path: String, enum_name: String) -> EnumInfo {
+    let fallback = contract_enum_info::EnumInfo_new(String_new(), Vec::new<String>())
+    let count = len(enum_defs)
+    let mut i = 0
+    while i < count {
+        let enum_def = get_unchecked(enum_defs, i)
+        let declared_name = contract_enum_info::EnumInfo_name(enum_def)
+        if enum_names_match(clone(declared_name), clone(enum_name)) &&
+        contract_enum_info::EnumInfo_variant_index(enum_def, clone(path)) >= 0 {
+            return enum_def
+        }
+        i = i + 1
+    }
+    fallback
+}
+
+fn enum_name_from_variant_path(path: String) -> String {
+    let n = len(path)
+    let mut last_sep = 0 - 1
+    let mut prev_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+            prev_sep = last_sep
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep < 0 {
+        return String_new()
+    }
+    if prev_sep < 0 {
+        return substring(path, 0, last_sep)
+    }
+    substring(path, prev_sep + 2, last_sep)
+}
+
+fn enum_type_name_from_variant_path(path: String) -> String {
+    let n = len(path)
+    let mut last_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(path, i) == 58 && char_at(path, i + 1) == 58 {
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep < 0 {
+        return String_new()
+    }
+    substring(path, 0, last_sep)
+}
+
+fn enum_names_match(declared_name: String, enum_name: String) -> bool {
+    if eq(clone(declared_name), clone(enum_name)) {
+        return true
+    }
+    ends_with(clone(declared_name), concat("::", clone(enum_name)))
+}
+
+fn unknown_type() -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}

@@ -30,10 +30,10 @@ path = "src/compiler/mir/lower/core_if.ark"
 sha256 = "6aa07f22a117fd761e70f92bf2690fd23bb4df38eca1b7b0b2cbcda7d5d29bf9"
 [[exceptions]]
 path = "src/compiler/typechecker/infer_compound.ark"
-sha256 = "46524b6bb2281060eeedddbd32d22e92d1ca49d5d874e8127f2a76e0d2d73f06"
+sha256 = "2fc8fc682cf0850b55f94beddfbb60eef7b69002f3fa284865f212a5327b2e92"
 [[exceptions]]
 path = "src/compiler/typechecker/returns.ark"
-sha256 = "42b8c2b3e83346f3b99baa9a26510a63344939a11456a48b661b20863e94d2c9"
+sha256 = "2decaa8469e5200dc8820d89685a1454590a5d33a96a5d4db1ecb1eccdbe2b0b"
 [[exceptions]]
 path = "src/compiler/wasm/wat.ark"
 sha256 = "0ad0c1cd8c0f13212ca534fdda3b699b9a71768935c0603968e98f7557992649"

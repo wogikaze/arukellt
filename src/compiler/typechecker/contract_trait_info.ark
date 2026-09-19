@@ -23,3 +23,15 @@ fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
 fn trait_info_push_associated_type(info: TraitInfo, name: String) {
     contract_trait_info_record::trait_info_push_associated_type(info, name)
 }
+
+fn trait_info_supertrait_count(info: TraitInfo) -> i32 {
+    contract_trait_info_record::trait_info_supertrait_count(info)
+}
+
+fn trait_info_supertrait_at(info: TraitInfo, index: i32) -> String {
+    contract_trait_info_record::trait_info_supertrait_at(info, index)
+}
+
+fn trait_info_push_supertrait(info: TraitInfo, name: String) {
+    contract_trait_info_record::trait_info_push_supertrait(info, name)
+}

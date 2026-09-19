@@ -63,6 +63,8 @@ fn NK_TYPE_GENERIC() -> i32 { 91 }
 fn NK_TYPE_TUPLE() -> i32 { 93 }
 fn NK_PROOF_CONTRACT() -> i32 { 98 }
 fn NK_ASSOC_TYPE() -> i32 { 99 }
+// Trait supertraits are declaration metadata, not generic parameters.
+fn NK_TRAIT_SUPER() -> i32 { 100 }
 
 // Comparison operator kinds.
 fn OP_EQ() -> i32 { 6 }

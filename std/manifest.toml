@@ -1371,6 +1371,13 @@ module = "std::core::error"
 stability = "stable"
 prelude = false
 
+[[modules]]
+name = "std::error"
+stability = "provisional"
+family = "core"
+doc = "Static-dispatch Error trait. Implementations must provide Display and may expose a rendered immediate source message. Typed dynamic source objects are not part of the current ABI."
+availability = { t1 = true, t3 = true }
+
 [[types]]
 name = "Ordering"
 module = "std::core"
@@ -4315,6 +4322,12 @@ returns = "bool"
 
 # === std::io ===
 
+[[types]]
+name = "IoError"
+module = "std::io"
+stability = "stable"
+prelude = false
+
 [[functions]]
 name = "reader_from_bytes"
 module = "std::io"
@@ -4337,7 +4350,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
-returns = "Result<Vec<i32>, String>"
+returns = "Result<Vec<i32>, IoError>"
 
 [[functions]]
 name = "reader_read_exact"
@@ -4345,7 +4358,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
-returns = "Result<Vec<i32>, String>"
+returns = "Result<Vec<i32>, IoError>"
 
 [[functions]]
 name = "reader_read_all"
@@ -4353,7 +4366,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
-returns = "Result<Vec<i32>, String>"
+returns = "Result<Vec<i32>, IoError>"
 
 [[functions]]
 name = "reader_read_line"
@@ -4361,7 +4374,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
-returns = "Result<String, String>"
+returns = "Result<String, IoError>"
 
 [[functions]]
 name = "stdin"
@@ -4393,7 +4406,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = []
-returns = "Result<String, String>"
+returns = "Result<String, IoError>"
 
 [[functions]]
 name = "print_bytes"
@@ -4417,7 +4430,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<i32, String>"
+returns = "Result<i32, IoError>"
 
 [[functions]]
 name = "writer_write_str"
@@ -4425,7 +4438,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "String"]
-returns = "Result<i32, String>"
+returns = "Result<i32, IoError>"
 
 [[functions]]
 name = "write_all"
@@ -4433,7 +4446,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<(), String>"
+returns = "Result<(), IoError>"
 
 [[functions]]
 name = "write_string"
@@ -4441,7 +4454,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "String"]
-returns = "Result<(), String>"
+returns = "Result<(), IoError>"
 
 [[functions]]
 name = "writer_flush"
@@ -4449,7 +4462,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
-returns = "Result<(), String>"
+returns = "Result<(), IoError>"
 
 [[functions]]
 name = "flush"
@@ -4457,7 +4470,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
-returns = "Result<(), String>"
+returns = "Result<(), IoError>"
 
 [[functions]]
 name = "writer_to_bytes"
@@ -4489,7 +4502,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
-returns = "Result<String, String>"
+returns = "Result<String, IoError>"
 
 [[functions]]
 name = "buf_writer_new"
@@ -4513,7 +4526,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "String"]
-returns = "Result<i32, String>"
+returns = "Result<i32, IoError>"
 
 [[functions]]
 name = "buf_writer_flush"
@@ -4521,7 +4534,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
-returns = "Result<(), String>"
+returns = "Result<(), IoError>"
 
 [[functions]]
 name = "copy_bytes"
@@ -4529,7 +4542,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<i32, String>"
+returns = "Result<i32, IoError>"
 
 [[functions]]
 name = "copy"
@@ -4537,7 +4550,7 @@ module = "std::io"
 doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<i32, String>"
+returns = "Result<i32, IoError>"
 
 [[functions]]
 name = "new_memory_buffer"

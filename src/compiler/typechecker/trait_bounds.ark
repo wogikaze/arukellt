@@ -2,11 +2,22 @@ use typechecker::contract_fn_sig
 use typechecker::contract_type_param_bounds
 use typechecker::contract_trait_impl
 use typechecker::contract_trait_impl_record
+use typechecker::contract_trait_info
 use typechecker::contract_type_access
 use typechecker::names
+use typechecker::type_names
 use typechecker::unify
 
 fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
+    type_satisfies_trait_bound_at_depth(env, ty, bound, 0)
+}
+
+fn type_satisfies_trait_bound_at_depth(
+    env: TypeEnv,
+    ty: TypeInfo,
+    bound: TypeInfo,
+    depth: i32
+) -> bool {
     let resolved_ty = unify::resolve_type(env, ty)
     if contract_type_access::TypeInfo_tag(resolved_ty) == commands::TY_TYPE_VAR() {
         return true
@@ -25,7 +36,44 @@ fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bo
         )
         return false
     }
-    match_count == 1
+    if match_count != 1 {
+        return false
+    }
+    if depth >= len(env.trait_defs) {
+        return false
+    }
+    let trait_info = trait_info_for_name(
+        env,
+        contract_type_access::TypeInfo_name(bound)
+    )
+    let super_count = contract_trait_info::trait_info_supertrait_count(trait_info)
+    let mut i = 0
+    while i < super_count {
+        let super_name = contract_trait_info::trait_info_supertrait_at(trait_info, i)
+        if !type_satisfies_trait_bound_at_depth(
+            env,
+            resolved_ty,
+            type_names::resolve_type_name(clone(super_name)),
+            depth + 1
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
+    let count = len(env.trait_defs)
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(env.trait_defs, i)
+        if eq(contract_trait_info::trait_info_name(info), clone(trait_name)) {
+            return info
+        }
+        i = i + 1
+    }
+    contract_trait_info::TraitInfo_new(String_new(), 0 - 1)
 }
 
 fn matching_trait_impl_count(env: TypeEnv, resolved_ty: TypeInfo, bound: TypeInfo) -> i32 {
@@ -83,7 +131,10 @@ fn type_matches_pattern(pattern: TypeInfo, actual: TypeInfo) -> bool {
     if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
         return true
     }
-    if contract_type_access::TypeInfo_tag(pattern) != contract_type_access::TypeInfo_tag(actual) ||
+    if !trait_type_tags_match(
+        contract_type_access::TypeInfo_tag(pattern),
+        contract_type_access::TypeInfo_tag(actual)
+    ) ||
     !eq(contract_type_access::TypeInfo_name(pattern), contract_type_access::TypeInfo_name(actual)) {
         return false
     }
@@ -103,6 +154,19 @@ fn type_matches_pattern(pattern: TypeInfo, actual: TypeInfo) -> bool {
         i = i + 1
     }
     true
+}
+
+fn trait_type_tags_match(pattern_tag: i32, actual_tag: i32) -> bool {
+    if pattern_tag == actual_tag {
+        return true
+    }
+    if pattern_tag == commands::TY_STRUCT() && actual_tag == commands::TY_ENUM() {
+        return true
+    }
+    if pattern_tag == commands::TY_ENUM() && actual_tag == commands::TY_STRUCT() {
+        return true
+    }
+    false
 }
 
 fn is_builtin_trait_impl(ty: TypeInfo, bound: TypeInfo) -> bool {

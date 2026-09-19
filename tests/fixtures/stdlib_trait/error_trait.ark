@@ -1,0 +1,25 @@
+use std::error
+use std::io
+use std::test
+
+fn render_error<E: Error>(err: E) -> String {
+    err.to_string()
+}
+
+fn source_message<E: Error>(err: E) -> String {
+    match err.source() {
+        Some(message) => message,
+        None => "none",
+    }
+}
+
+fn main() {
+    let displayed = render_error(io::IoError::Other("disk full"))
+    test::assert_eq_string(displayed, "IoError: disk full")
+
+    let source = source_message(io::IoError::UnexpectedEof("short"))
+    test::assert_eq_string(source, "none")
+
+    let parse_error = render_error(String_from("invalid integer"))
+    test::assert_eq_string(parse_error, "invalid integer")
+}

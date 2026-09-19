@@ -52,6 +52,30 @@ Option 伝播は [`tests/fixtures/question_mark/option_propagate.ark`](../../tes
 
 > 📘 `?` 演算子の正規仕様は [spec.md §3.9 Try Operator](spec.md#39-try-operator) を参照。
 
+## `Error` trait
+
+`std::error::Error` は、表示可能な error payload を静的 dispatch で扱う
+provisional な trait です。`std::core::error::Error` enum とは別の名前空間です。
+
+```ark
+trait Error: Display {
+    fn source(self: Error) -> Option<String>
+}
+```
+
+`Display` が supertrait なので、`Error` の実装は `to_string()` も提供します。
+`source()` は現在の ABI で表現できる rendered な直近 cause を返します。
+typed な dynamic source object と `dyn Error` はまだ提供していません。
+そのため、現在の source chain はアプリケーション側の enum と `From` 実装で
+明示的に構成します。
+
+標準ライブラリでは `std::io::IoError` と `String` が `Error` を実装しています。
+ライブラリ境界では、アプリケーションの error enum に `From<IoError>` と
+`From<String>` を実装し、`?` で `Result<T, AppError>` へ集約する形が推奨です。
+実行可能な表示・source の例は [`stdlib_trait/error_trait.ark`](../../tests/fixtures/stdlib_trait/error_trait.ark)、
+横断的な `IoError` / parse error の伝播は [`question_mark/error_ecosystem.ark`](../../tests/fixtures/question_mark/error_ecosystem.ark)、
+変換境界の基本例は [`question_mark/from_error.ark`](../../tests/fixtures/question_mark/from_error.ark) を参照してください。
+
 ## panic
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->

@@ -10,4 +10,5 @@ fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
         traits::maybe_register_impl_decl(env, node)
         i = i + 1
     }
+    trait_registry::validate_trait_supertraits(env)
 }

@@ -13,3 +13,11 @@ fn type_display_name(ty: TypeInfo) -> String {
 fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
     name_compare::same_named_type(a, b)
 }
+
+fn same_nominal_type(a: TypeInfo, b: TypeInfo) -> bool {
+    name_compare::same_nominal_type(a, b)
+}
+
+fn same_type_name(left: String, right: String) -> bool {
+    name_compare::same_type_name(left, right)
+}

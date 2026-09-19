@@ -5,6 +5,7 @@ use typechecker::call_args
 use typechecker::call_generic
 use typechecker::call_unknown
 use typechecker::call_vec_ctor
+use typechecker::enum_expr
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::sigs
@@ -19,6 +20,11 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     if !ast_expr_predicates::node_is_ident(callee) && !ast_expr_predicates::node_is_path(callee) {
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let enum_variant_ty = enum_expr::infer_enum_variant_call(enum_defs, callee)
+    if contract_type_access::TypeInfo_tag(enum_variant_ty) != commands::TY_UNKNOWN() {
+        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
+        return enum_variant_ty
     }
     let callee_name = ast_access::node_text(callee)
     // `clone` is a compiler-provided polymorphic operation. The prelude keeps

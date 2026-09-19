@@ -279,6 +279,7 @@ diag:selfhost/ret_type_mismatch.ark
 diag:selfhost/trait_ambiguous_bound.ark
 diag:diagnostics/trait_blanket_impl.ark
 diag:diagnostics/trait_dyn_boundary.ark
+diag:diagnostics/error_supertrait_missing.ark
 diag:selfhost/trait_overlapping_impl.ark
 diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
@@ -496,6 +497,7 @@ run:operators/unary.ark
 run:opt/tail_call_deep.ark
 run:question_mark/basic_propagate.ark
 run:question_mark/from_error.ark
+run:question_mark/error_ecosystem.ark
 run:question_mark/nested_result.ark
 run:question_mark/option_propagate.ark
 run:question_mark/from_trait_not_inherent.ark
@@ -1650,6 +1652,7 @@ run:stdlib_trait/display_char.ark
 run:stdlib_trait/display_f64.ark
 run:stdlib_trait/display_i32.ark
 run:stdlib_trait/display_i64.ark
+run:stdlib_trait/error_trait.ark
 run:stdlib_trait/display_string.ark
 run:stdlib_trait/display_trait.ark
 run:stdlib_trait/display_trait_vec.ark
@@ -2023,6 +2026,7 @@ t3-compile:diagnostics/method_syntax.ark
 t3-compile:diagnostics/nested_generic.ark
 t3-compile:diagnostics/operator_overload.ark
 t3-compile:diagnostics/trait_def.ark
+t3-compile:stdlib_trait/error_trait.ark
 t3-compile:display_trait/display_struct.ark
 t3-compile:enums/enum_struct_variant.ark
 t3-compile:enums/exhaustive_match.ark
@@ -2122,6 +2126,7 @@ t3-compile:operators/short_circuit.ark
 t3-compile:operators/string_eq.ark
 t3-compile:operators/unary.ark
 t3-compile:question_mark/basic_propagate.ark
+t3-compile:question_mark/error_ecosystem.ark
 t3-compile:question_mark/from_error.ark
 t3-compile:question_mark/nested_result.ark
 t3-compile:question_mark/option_propagate.ark
@@ -2458,6 +2463,7 @@ t3-run:control/while_counter.ark
 t3-run:diagnostics/nested_generic.ark
 t3-run:diagnostics/operator_overload.ark
 t3-run:diagnostics/trait_def.ark
+t3-run:stdlib_trait/error_trait.ark
 t3-run:display_trait/display_struct.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
@@ -2557,6 +2563,7 @@ t3-run:operators/short_circuit.ark
 t3-run:operators/string_eq.ark
 t3-run:operators/unary.ark
 t3-run:question_mark/basic_propagate.ark
+t3-run:question_mark/error_ecosystem.ark
 t3-run:question_mark/from_error.ark
 t3-run:question_mark/nested_result.ark
 t3-run:question_mark/option_propagate.ark

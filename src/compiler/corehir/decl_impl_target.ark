@@ -1,7 +1,9 @@
 use corehir::decl_ann_member
+use corehir::decl_ann_children
 use corehir::decl_ann_name
 use corehir::decl_node_identity
 use corehir::semantic_trait_id
+use corehir::type_ann_node
 
 // Return the concrete type that owns methods in an impl block.
 // - `impl Trait for Type` → Type (type_ann[1])
@@ -25,4 +27,46 @@ fn impl_semantic_trait_id(decl: AstNode) -> i32 {
     }
     let trait_ann = decl_ann_member::decl_ann_at(decl, 0)
     semantic_trait_id::semantic_trait_id_from_trait_name(decl_ann_name::decl_ann_name(trait_ann))
+}
+
+// Trait implementations share the owner's public method namespace.  `From`
+// is the one trait whose method is selected by both source and target error
+// types, so its lowering name must retain the source type to keep overloads
+// distinct while preserving the source-level `from` spelling.
+fn impl_method_mangled_name(decl: AstNode, method_name: String) -> String {
+    let owner_name = impl_self_type_name(decl)
+    let base_name = concat(clone(owner_name), concat("::", clone(method_name)))
+    if impl_semantic_trait_id(decl) == semantic_trait_id::SEMANTIC_TRAIT_ID_NONE() {
+        return base_name
+    }
+    let source_name = impl_from_source_type_name(decl)
+    if len(source_name) == 0 {
+        return base_name
+    }
+    concat(base_name, concat("__", source_name))
+}
+
+fn impl_from_source_type_name(decl: AstNode) -> String {
+    if decl_ann_member::decl_ann_count(decl) < 2 {
+        return String_new()
+    }
+    let trait_ann = decl_ann_member::decl_ann_at(decl, 0)
+    if !eq(clone(decl_ann_name::decl_ann_name(trait_ann)), "From") ||
+    decl_ann_children::decl_ann_child_count(trait_ann) < 2 {
+        return String_new()
+    }
+    let source_ann = decl_ann_children::decl_ann_child_at(trait_ann, 1)
+    let source_name = type_ann_node::type_ann_name(source_ann)
+    if !type_ann_node::type_ann_is_generic(source_ann) {
+        return source_name
+    }
+    let key = clone(source_name)
+    let child_count = type_ann_node::type_ann_child_count(source_ann)
+    let mut i = 1
+    while i < child_count {
+        let child_name = type_ann_node::type_ann_name(type_ann_node::type_ann_child_at(source_ann, i))
+        key = concat(key, concat("_", child_name))
+        i = i + 1
+    }
+    key
 }

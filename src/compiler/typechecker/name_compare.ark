@@ -5,7 +5,33 @@ fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
         return false
     }
     if contract_type_access::TypeInfo_has_name(a) || contract_type_access::TypeInfo_has_name(b) {
-        return eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b))
+        return same_type_name(
+            contract_type_access::TypeInfo_name(a),
+            contract_type_access::TypeInfo_name(b)
+        )
     }
     true
+}
+
+fn same_nominal_type(a: TypeInfo, b: TypeInfo) -> bool {
+    let a_tag = contract_type_access::TypeInfo_tag(a)
+    let b_tag = contract_type_access::TypeInfo_tag(b)
+    if a_tag != b_tag && !((a_tag == commands::TY_STRUCT() && b_tag == commands::TY_ENUM()) ||
+        (a_tag == commands::TY_ENUM() && b_tag == commands::TY_STRUCT())) {
+        return false
+    }
+    same_type_name(
+        contract_type_access::TypeInfo_name(a),
+        contract_type_access::TypeInfo_name(b)
+    )
+}
+
+fn same_type_name(left: String, right: String) -> bool {
+    if eq(clone(left), clone(right)) {
+        return true
+    }
+    if index_of(left, "::") < 0 && ends_with(clone(right), concat("::", clone(left))) {
+        return true
+    }
+    index_of(right, "::") < 0 && ends_with(clone(left), concat("::", clone(right)))
 }

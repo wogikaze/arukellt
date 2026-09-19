@@ -7,7 +7,7 @@ Source-backed docs for ranges, errors, and hashing helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::core` family provides the fundamental building blocks shared across the standard library: integer ranges (`Range`, `RangeInclusive`), the shared `Error` type used by fallible stdlib operations, and low-level hash utilities used internally by collection modules. Import only the sub-module you need — most application code uses only `std::core` (ranges) and the `Error` type from `std::core::error`.
+The `std::core` family provides the fundamental building blocks shared across the standard library: integer ranges (`Range`, `RangeInclusive`), the shared `Error` type used by fallible stdlib operations, the provisional static-dispatch `std::error::Error` trait, and low-level hash utilities used internally by collection modules. Import only the sub-module you need — most application code uses only `std::core` (ranges) and the `Error` type from `std::core::error`; application error payloads use `std::error`.
 
 **Recommended API highlights:**
 
@@ -17,6 +17,7 @@ The `std::core` family provides the fundamental building blocks shared across th
 | `range_contains(r, value)` | Test membership in a range. |
 | `range_len(r)` | Length of a half-open range. |
 | `error_message(e)` | Convert a stdlib `Error` variant to a human-readable string. |
+| `Error::source()` | Expose a rendered immediate cause through static dispatch. |
 | `hash_i32(n)` | Hash an `i32` to a stable non-negative integer. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
@@ -128,3 +129,18 @@ and provides reasonable distribution for hash table operations.
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
 | `combine` | `(i32, i32) -> i32` | `stable` | ✅ functional | - |
+
+## Module `std::error`
+
+- Source: [`../../../std/error.ark`](../../../std/error.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+Static error protocol for the standard library.
+
+`Error` is separate from the legacy `std::core::error::Error` enum so the
+existing stable enum and its constructors remain source-compatible. The
+protocol is provisional while typed source objects and a dynamic error ABI
+remain outside the static-dispatch language contract.
+
+_No manifest-backed functions in this module._

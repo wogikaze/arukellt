@@ -11,6 +11,7 @@ use typechecker::contract_trait_info
 use typechecker::contract_type_access
 use typechecker::kinds
 use typechecker::names
+use typechecker::trait_bounds
 use typechecker::types
 use diagnostics::mod as diag_mod
 
@@ -44,6 +45,11 @@ fn register_trait_decl(env: TypeEnv, node: AstNode) {
                 info,
                 ast_access::node_text(ann)
             )
+        } else if ast_access::node_kind_is(ann, kinds::NK_TRAIT_SUPER()) {
+            contract_trait_info::trait_info_push_supertrait(
+                info,
+                ast_access::node_text(ann)
+            )
         }
         i = i + 1
     }
@@ -55,10 +61,9 @@ fn count_trait_type_params(node: AstNode) -> i32 {
     let mut total = 0
     let mut i = 0
     while i < count {
-        if !ast_access::node_kind_is(
-            ast_access::node_type_ann_at(node, i),
-            kinds::NK_ASSOC_TYPE()
-        ) {
+        let ann = ast_access::node_type_ann_at(node, i)
+        if !ast_access::node_kind_is(ann, kinds::NK_ASSOC_TYPE()) &&
+        !ast_access::node_kind_is(ann, kinds::NK_TRAIT_SUPER()) {
             total = total + 1
         }
         i = i + 1
@@ -169,6 +174,46 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
             collect_impl_type_params(trait_node, self_node),
             node
         )
+    }
+}
+
+fn validate_trait_supertraits(env: TypeEnv) {
+    let impl_count = len(env.trait_impls)
+    let mut i = 0
+    while i < impl_count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        let trait_name = contract_trait_impl::TraitImplInfo_trait_name(impl_info)
+        let trait_info = trait_info_at(env, clone(trait_name))
+        let super_count = contract_trait_info::trait_info_supertrait_count(trait_info)
+        let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
+        let mut j = 0
+        while j < super_count {
+            let super_name = contract_trait_info::trait_info_supertrait_at(trait_info, j)
+            let super_ty = types::resolve_type_name(clone(super_name))
+            if !trait_bounds::type_satisfies_trait_bound(env, self_ty, super_ty) {
+                let displayed_self = names::type_display_name(self_ty)
+                let message = concat(
+                    String_from("trait `"),
+                    concat(
+                        clone(trait_name),
+                        concat(
+                            "` requires supertrait `",
+                            concat(
+                                clone(super_name),
+                                concat("` for ", displayed_self)
+                            )
+                        )
+                    )
+                )
+                report_trait_error(
+                    env,
+                    codes::DIAG_TYPE_TRAIT_BOUND(),
+                    message
+                )
+            }
+            j = j + 1
+        }
+        i = i + 1
     }
 }
 
@@ -440,7 +485,10 @@ fn type_contains_var(ty: TypeInfo) -> bool {
 }
 
 fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
-    if contract_type_access::TypeInfo_tag(a) != contract_type_access::TypeInfo_tag(b) ||
+    if !trait_type_tags_match(
+        contract_type_access::TypeInfo_tag(a),
+        contract_type_access::TypeInfo_tag(b)
+    ) ||
     !eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
         return false
     }
@@ -459,6 +507,19 @@ fn type_vec_equal(a: Vec<TypeInfo>, b: Vec<TypeInfo>) -> bool {
         i = i + 1
     }
     true
+}
+
+fn trait_type_tags_match(a_tag: i32, b_tag: i32) -> bool {
+    if a_tag == b_tag {
+        return true
+    }
+    if a_tag == commands::TY_STRUCT() && b_tag == commands::TY_ENUM() {
+        return true
+    }
+    if a_tag == commands::TY_ENUM() && b_tag == commands::TY_STRUCT() {
+        return true
+    }
+    false
 }
 
 fn report_trait_error(env: TypeEnv, code: String, message: String) {

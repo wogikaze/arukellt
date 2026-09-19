@@ -31,6 +31,7 @@
 | `Ordering` | - | no |
 | `Range` | - | no |
 | `RangeInclusive` | - | no |
+| `IoError` | - | no |
 
 ## Prelude Values
 
@@ -564,43 +565,43 @@ let input = read_to_string()
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `buf_reader_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `buf_reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_reader_read_line` | `(Vec<i32>) -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_writer_flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Return the total number of bytes available in an io.traits memory buffer. |
 | `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Create an io.traits FileHandle from a raw file descriptor. |
 | `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Read bytes from an io.traits FileHandle into a buffer. |
 | `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Write buffer bytes to an io.traits FileHandle. |
 | `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Fill the internal buffer of an io.traits BufRead source. |
-| `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Create a new memory buffer for capability io.traits. |
 | `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Return the current cursor position of an io.traits memory buffer. |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Read up to n bytes from a memory buffer via io.traits Read dispatch. |
-| `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `read_stdin_line` | `() -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `reader_read` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read` | `(Vec<i32>, i32) -> Result<Vec<i32>, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read_line` | `(Vec<i32>) -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Seek to an absolute position via io.traits Seek dispatch. |
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `functional` | `builtin` | no | - | Write byte values into a memory buffer via io.traits Write dispatch. |
-| `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `write_string` | `(Vec<i32>, String) -> Result<(), IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `writer_to_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `writer_write` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_write_str` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Json
 

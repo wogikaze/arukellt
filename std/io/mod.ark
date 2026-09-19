@@ -42,6 +42,20 @@ pub fn io_error_message(err: IoError) -> String {
     }
 }
 
+/// Display implementation for the typed I/O error surface.
+impl Display for IoError {
+    fn to_string(self: IoError) -> String {
+        concat("IoError: ", io_error_message(self))
+    }
+}
+
+/// I/O errors have no nested source in the current in-memory runtime.
+impl Error for IoError {
+    fn source(self: IoError) -> Option<String> {
+        None
+    }
+}
+
 /// `From<IoError>` impl for `String` — flattens an `IoError` into its
 /// message string. Used by the `?` operator (issue #690) to convert
 /// `Result<_, IoError>` failures into `Result<_, String>` return types:

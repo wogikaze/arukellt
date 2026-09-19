@@ -86,6 +86,9 @@ fn NK_PROOF_CONTRACT() -> i32 { 98 }
 // Contextual trait associated-type declaration stored in a declaration's
 // type-annotation metadata rather than its executable member children.
 fn NK_ASSOC_TYPE() -> i32 { 99 }
+// Trait supertraits use the same metadata channel but must not count as
+// generic parameters or associated types.
+fn NK_TRAIT_SUPER() -> i32 { 100 }
 
 // Arithmetic operator kinds.
 fn OP_ADD() -> i32 { 1 }

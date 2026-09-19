@@ -14,6 +14,15 @@ fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, v
     if ret_tag == commands::TY_I32() && val_tag == commands::TY_CHAR() {
         return
     }
+    if (ret_tag == commands::TY_STRUCT() && val_tag == commands::TY_ENUM()) ||
+    (ret_tag == commands::TY_ENUM() && val_tag == commands::TY_STRUCT()) {
+        if eq(
+            contract_type_access::TypeInfo_name(resolved_ret),
+            contract_type_access::TypeInfo_name(resolved_val)
+        ) {
+            return
+        }
+    }
     if ret_tag != val_tag {
         let ret_name = names::type_display_name(resolved_ret)
         let val_name = names::type_display_name(resolved_val)

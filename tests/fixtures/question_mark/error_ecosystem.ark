@@ -1,0 +1,94 @@
+use std::error
+use std::host::stdio
+use std::io
+
+enum AppError {
+    Io(String),
+    Parse(String),
+}
+
+impl From<IoError> for AppError {
+    fn from(err: IoError) -> AppError {
+        AppError::Io(io::io_error_message(err))
+    }
+}
+
+impl From<String> for AppError {
+    fn from(message: String) -> AppError {
+        AppError::Parse(message)
+    }
+}
+
+impl Display for AppError {
+    fn to_string(self: AppError) -> String {
+        match self {
+            AppError::Io(message) => concat("io: ", message),
+            AppError::Parse(message) => concat("parse: ", message),
+        }
+    }
+}
+
+impl Error for AppError {
+    fn source(self: AppError) -> Option<String> {
+        match self {
+            AppError::Io(message) => Some(message),
+            AppError::Parse(message) => Some(message),
+        }
+    }
+}
+
+fn parse_count(text: String) -> Result<i32, String> {
+    parse_i32(text)
+}
+
+fn read_exact(data: Vec<i32>) -> Result<Vec<i32>, IoError> {
+    let reader = io::reader_from_bytes(data)
+    io::reader_read_exact(reader, 1)
+}
+
+fn read_and_parse(data: Vec<i32>, text: String) -> Result<i32, AppError> {
+    let bytes: Vec<i32> = match read_exact(data) {
+        Ok(value) => value,
+        Err(err) => return Err(AppError::Io(io::io_error_message(err))),
+    }
+    let parsed: i32 = parse_count(text)?
+    Ok(get_unchecked(bytes, 0) + parsed)
+}
+
+fn typed_io_failure() -> Result<i32, IoError> {
+    Err(IoError::Other(String_from("device unavailable")))
+}
+
+fn propagate_typed_io_failure() -> Result<i32, AppError> {
+    let value: i32 = typed_io_failure()?
+    Ok(value)
+}
+
+fn main() {
+    let input: Vec<i32> = Vec::new<i32>()
+    push(input, 1)
+    match read_and_parse(input, String_from("1")) {
+        Ok(value) => assert(value == 2),
+        Err(_) => assert(false),
+    }
+
+    let short_input: Vec<i32> = Vec::new<i32>()
+    match read_and_parse(short_input, String_from("1")) {
+        Ok(_) => assert(false),
+        Err(_) => assert(true),
+    }
+
+    let invalid_input: Vec<i32> = Vec::new<i32>()
+    push(invalid_input, 1)
+    match read_and_parse(invalid_input, String_from("bad")) {
+        Ok(_) => assert(false),
+        Err(_) => assert(true),
+    }
+
+    match propagate_typed_io_failure() {
+        Ok(_) => assert(false),
+        Err(_) => assert(true),
+    }
+
+    stdio::println(String_from("OK"))
+}

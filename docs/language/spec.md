@@ -354,18 +354,22 @@ let s: String = id("hello")  // fresh t2, unified with String
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 trait Display {
-    fn display(self) -> String
+    fn to_string(self: Display) -> String
 }
 
 impl Display for Point {
-    fn display(self) -> String { … }
+    fn to_string(self: Point) -> String { … }
 }
 ```
 
 - Traits and impl blocks are part of the current parser/type-checker surface;
   there is no edition flag that disables them.
 - Static dispatch only (no `dyn`).
-- Built-in traits planned: `Display`, `Eq`, `Hash`, `Into`/`From`.
+- Current protocol traits include `Display`, `Eq`, `Hash`, `Into`/`From`, and
+  the provisional `std::error::Error` trait.
+- `Error` has the supertrait bound `Display` and the method
+  `source(self: Error) -> Option<String>`. It uses static dispatch; `dyn Error`
+  and typed dynamic source objects are not part of the current ABI.
 - Operator overloading via magic method names: `__add`, `__sub`, `__mul`,
   `__div`, `__rem`, `__eq`, `__cmp`. Methods are mangled as
   `StructName__methodname`.

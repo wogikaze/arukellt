@@ -19,9 +19,17 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
+    set_linear_enum_type(ctx, dest, clone(variant_name))
     emit_variant_tag_field(ctx, dest, tag, 0 - 1)
     variant_payload_fields::emit_variant_payload_fields(ctx, dest, payload_locals, payload_vts, clone(variant_name))
     dest
+}
+
+fn set_linear_enum_type(ctx: LowerCtx, dest: i32, variant_name: String) {
+    let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(variant_name)
+    if len(enum_name) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+    }
 }
 
 fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {

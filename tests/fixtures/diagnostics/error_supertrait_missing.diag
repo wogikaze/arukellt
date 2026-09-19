@@ -1,0 +1,1 @@
+error[E0211|typecheck]: trait `Error` requires supertrait `Display` for MissingDisplay

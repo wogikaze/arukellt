@@ -2,6 +2,7 @@ struct TraitInfo {
     name: String,
     type_param_count: i32,
     associated_type_names: Vec<String>,
+    supertrait_names: Vec<String>,
 }
 
 fn TraitInfo_new(name: String, type_param_count: i32) -> TraitInfo {
@@ -9,6 +10,7 @@ fn TraitInfo_new(name: String, type_param_count: i32) -> TraitInfo {
         name: name,
         type_param_count: type_param_count,
         associated_type_names: Vec::new<String>(),
+        supertrait_names: Vec::new<String>(),
     }
 }
 
@@ -30,4 +32,16 @@ fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
 
 fn trait_info_push_associated_type(info: TraitInfo, name: String) {
     push(info.associated_type_names, name)
+}
+
+fn trait_info_supertrait_count(info: TraitInfo) -> i32 {
+    len(info.supertrait_names)
+}
+
+fn trait_info_supertrait_at(info: TraitInfo, index: i32) -> String {
+    clone(get_unchecked(info.supertrait_names, index))
+}
+
+fn trait_info_push_supertrait(info: TraitInfo, name: String) {
+    push(info.supertrait_names, name)
 }

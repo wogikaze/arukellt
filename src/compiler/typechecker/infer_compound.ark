@@ -10,6 +10,7 @@ use typechecker::infer_block
 use typechecker::infer_closure
 use typechecker::infer_comprehension
 use typechecker::match
+use typechecker::enum_expr
 
 fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if ast_access::node_kind_is(node, kinds::NK_ASSIGN()) {
@@ -20,6 +21,9 @@ fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enu
             return TypeInfo_simple(commands::TY_UNIT())
         }
         return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    if ast_expr_predicates::node_is_path(node) {
+        return enum_expr::infer_enum_variant_path(enum_defs, node)
     }
     if ast_expr_predicates::node_is_struct_lit(node) {
         // Struct field values can contain generic calls. Visit them even

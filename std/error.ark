@@ -1,0 +1,23 @@
+//! Static error protocol for the standard library.
+//!
+//! `Error` is separate from the legacy `std::core::error::Error` enum so the
+//! existing stable enum and its constructors remain source-compatible. The
+//! protocol is provisional while typed source objects and a dynamic error ABI
+//! remain outside the static-dispatch language contract.
+
+/// A displayable error that can expose a human-readable immediate cause.
+///
+/// `source` returns the rendered cause instead of a `dyn Error` object because
+/// Arukellt v2 has no dynamic trait-object ABI. Implementations must also
+/// implement `Display`; this is enforced by the trait supertrait boundary.
+pub trait Error: Display {
+    fn source(self: Error) -> Option<String>
+}
+
+/// A string is the canonical parse-error representation used by the current
+/// scalar parsing APIs.
+impl Error for String {
+    fn source(self: String) -> Option<String> {
+        None
+    }
+}

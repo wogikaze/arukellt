@@ -8,6 +8,7 @@ use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::contract_env_record
 use typechecker::contract_fn_sig
+use typechecker::contract_trait_info
 use typechecker::contract_trait_method_record
 use typechecker::contract_type_constructors
 use typechecker::kinds
@@ -63,7 +64,8 @@ fn trait_type_param_names(trait_node: AstNode) -> Vec<String> {
     let mut i = 0
     while i < count {
         let ann = ast_access::node_type_ann_at(trait_node, i)
-        if !ast_access::node_kind_is(ann, kinds::NK_ASSOC_TYPE()) {
+        if !ast_access::node_kind_is(ann, kinds::NK_ASSOC_TYPE()) &&
+        !ast_access::node_kind_is(ann, kinds::NK_TRAIT_SUPER()) {
             push(names, ast_access::node_text(ann))
         }
         i = i + 1
@@ -72,6 +74,16 @@ fn trait_type_param_names(trait_node: AstNode) -> Vec<String> {
 }
 
 fn lookup_trait_method(env: TypeEnv, trait_name: String, method_name: String) -> TraitMethodEntry {
+    let direct = lookup_trait_method_direct(env, clone(trait_name), clone(method_name))
+    if contract_fn_sig::FnSig_has_name(
+        contract_trait_method_record::trait_method_entry_sig(direct)
+    ) {
+        return direct
+    }
+    lookup_supertrait_method(env, trait_name, method_name, 0)
+}
+
+fn lookup_trait_method_direct(env: TypeEnv, trait_name: String, method_name: String) -> TraitMethodEntry {
     let count = len(env.trait_methods)
     let mut i = 0
     while i < count {
@@ -81,6 +93,59 @@ fn lookup_trait_method(env: TypeEnv, trait_name: String, method_name: String) ->
         }
         i = i + 1
     }
+    empty_trait_method_entry()
+}
+
+fn lookup_supertrait_method(
+    env: TypeEnv,
+    trait_name: String,
+    method_name: String,
+    depth: i32
+) -> TraitMethodEntry {
+    if depth >= len(env.trait_defs) {
+        return empty_trait_method_entry()
+    }
+    let trait_info = trait_info_for_name(env, clone(trait_name))
+    let super_count = contract_trait_info::trait_info_supertrait_count(trait_info)
+    let mut i = 0
+    while i < super_count {
+        let super_name = contract_trait_info::trait_info_supertrait_at(trait_info, i)
+        let direct = lookup_trait_method_direct(env, clone(super_name), clone(method_name))
+        if contract_fn_sig::FnSig_has_name(
+            contract_trait_method_record::trait_method_entry_sig(direct)
+        ) {
+            return direct
+        }
+        let nested = lookup_supertrait_method(
+            env,
+            clone(super_name),
+            clone(method_name),
+            depth + 1
+        )
+        if contract_fn_sig::FnSig_has_name(
+            contract_trait_method_record::trait_method_entry_sig(nested)
+        ) {
+            return nested
+        }
+        i = i + 1
+    }
+    empty_trait_method_entry()
+}
+
+fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
+    let count = len(env.trait_defs)
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(env.trait_defs, i)
+        if eq(contract_trait_info::trait_info_name(info), clone(trait_name)) {
+            return info
+        }
+        i = i + 1
+    }
+    contract_trait_info::TraitInfo_new(String_new(), 0 - 1)
+}
+
+fn empty_trait_method_entry() -> TraitMethodEntry {
     contract_trait_method_record::TraitMethodEntry_new(
         String_new(),
         String_new(),

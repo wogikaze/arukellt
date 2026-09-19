@@ -1,13 +1,16 @@
 use lexer::tokens
+use parser::core_ast_children
 use parser::core_ast_span_fields
 use parser::core_ast_factory
 use parser::core_ast_text_fields
+use parser::core_ast_type_ann
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds
 use parser::token_state
 use parser::type_params
 use parser::type_where
+use parser::types
 
 fn parse_trait_header(p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_TRAIT())
@@ -16,9 +19,36 @@ fn parse_trait_header(p: Parser) -> AstNode {
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
     core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name))
     type_params::parse_generic_params_into_node(p, node)
+    parse_trait_supertraits(p, node)
     core_api_cursor::skip_newlines(p)
     type_where::parse_optional_where_clause_stub(p)
     core_api_cursor::skip_newlines(p)
     core_api_expect::expect_token(p, tokens::TK_LBRACE())
     node
+}
+
+fn parse_trait_supertraits(p: Parser, node: AstNode) {
+    if core_api_cursor::peek_kind(p) != tokens::TK_COLON() {
+        return
+    }
+    p.pos = p.pos + 1
+    while true {
+        core_api_cursor::skip_newlines(p)
+        let supertrait = types::parse_type(p)
+        let marker = core_ast_factory::AstNode_new(
+            kinds::NK_TRAIT_SUPER(),
+            core_ast_span_fields::AstNode_span(supertrait)
+        )
+        core_ast_text_fields::AstNode_set_text(
+            marker,
+            core_ast_text_fields::AstNode_text(supertrait)
+        )
+        core_ast_children::AstNode_push_child(marker, supertrait)
+        core_ast_type_ann::AstNode_push_type_ann(node, marker)
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) != tokens::TK_PLUS() {
+            break
+        }
+        p.pos = p.pos + 1
+    }
 }

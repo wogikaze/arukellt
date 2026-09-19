@@ -438,6 +438,19 @@ fn double_parse(s: String) -> Result<i32, String> {
 }
 ```
 
+### The `Error` trait
+
+`std::error::Error` is a provisional, statically dispatched protocol for error
+payloads that also implement `Display`. `source()` currently returns an
+`Option<String>` rendered immediate cause; it does not create a `dyn Error`
+chain. `IoError` and `String` implement the trait in the standard library.
+
+For an application boundary, define an enum such as `AppError`, add
+`From<IoError>` and `From<String>` implementations, and let `?` convert into
+the application error type. See
+[`question_mark/error_ecosystem.ark`](../../tests/fixtures/question_mark/error_ecosystem.ark)
+for the executable cross-library example.
+
 ### panic
 
 For unrecoverable situations (programming errors, assertion failures):

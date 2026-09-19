@@ -1,0 +1,13 @@
+use std::error
+
+struct MissingDisplay {
+    value: i32,
+}
+
+impl Error for MissingDisplay {
+    fn source(self: MissingDisplay) -> Option<String> {
+        None
+    }
+}
+
+fn main() {}
