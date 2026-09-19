@@ -1,3 +1,5 @@
+use std::host::stdio
+
 fn main() {
     let boxed = Box_new(42)
     let moved = boxed
