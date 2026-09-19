@@ -39,7 +39,7 @@ path = "src/compiler/wasm/wat_functions.ark"
 sha256 = "9733ef7d5406efe96c0d025e78e1746a27f549708e2cec9b259e3b2d0f12d764"
 [[exceptions]]
 path = "std/core/iter.ark"
-sha256 = "600ace1c62aab2de6f8a7c34acb646335a80e17ca787d08079ce48314bf7e882"
+sha256 = "6401a7011b8869f38e432554d6ba9d8291b995bfc0c27add34e7c54435c66650"
 [[exceptions]]
 path = "std/seq/mod.ark"
 sha256 = "1ec7a8236b740119b214726014d82a124b1ee3a35947cce21ba7a6389ecf3798"

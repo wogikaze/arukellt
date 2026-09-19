@@ -58,6 +58,9 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     eq(clone(callee_name), String_from("std::text::len_bytes")) {
         return MirCallRewrite_new(String_from("text::len_bytes"), return_local, push_i64_needs_extend)
     }
+    if first_arg_idx >= 0 && contains(clone(rewritten), String_from("::")) {
+        rewritten = call_rewrite_method::mir_try_resolve_associated_function(ctx, clone(rewritten), first_arg_idx)
+    }
     if eq(clone(callee_name), String_from("is_empty")) {
         // Prefer String::is_empty before vec rewrite — String_from locals can
         // look like byte arrays and must not take the Vec struct.get path (#807).

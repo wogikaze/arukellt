@@ -40,4 +40,12 @@ fn main() {
     let collected_inclusive: Vec<i32> = core::range_inclusive_new(4, 6).into_iter().collect()
     test::assert_eq_i32(len(collected_inclusive), 3)
     test::assert_eq_i32(get_unchecked(collected_inclusive, 2), 6)
+
+    let from_iter_range: Vec<i32> = Vec::from_iter(core::range_new(8, 11).into_iter())
+    test::assert_eq_i32(len(from_iter_range), 3)
+    test::assert_eq_i32(get_unchecked(from_iter_range, 2), 10)
+
+    let from_iter_inclusive: Vec<i32> = Vec::from_iter(core::range_inclusive_new(9, 11).into_iter())
+    test::assert_eq_i32(len(from_iter_inclusive), 3)
+    test::assert_eq_i32(get_unchecked(from_iter_inclusive, 2), 11)
 }

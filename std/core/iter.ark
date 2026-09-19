@@ -662,6 +662,20 @@ impl FromIterator<VecIter> for Vec<i32> {
     }
 }
 
+/// `FromIterator<i32>` impl for `Vec<i32>` — drains a half-open range.
+impl FromIterator<RangeIter> for Vec<i32> {
+    fn from_iter(it: RangeIter) -> Vec<i32> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<i32>` impl for `Vec<i32>` — drains a closed range.
+impl FromIterator<RangeInclusiveIter> for Vec<i32> {
+    fn from_iter(it: RangeInclusiveIter) -> Vec<i32> {
+        it.collect()
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Convenience pipeline functions (single-pass, no intermediate allocation)
 // ---------------------------------------------------------------------------

@@ -63,3 +63,23 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     }
     bare_method
 }
+
+// Associated conversion functions keep the source-level `Type::method`
+// spelling, but concrete impl bodies include the source type in their static
+// symbol. Select that symbol from the first argument when it exists; leaving
+// the original name intact preserves ordinary associated functions.
+fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, first_arg_idx: i32) -> String {
+    if first_arg_idx < 0 || !contains(clone(associated_name), String_from("::")) {
+        return associated_name
+    }
+    let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    let source_name = mir_bare_receiver_type_name(clone(arg_type))
+    if len(source_name) == 0 {
+        return associated_name
+    }
+    let candidate = concat(clone(associated_name), concat("__", clone(source_name)))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(candidate)) {
+        return candidate
+    }
+    associated_name
+}
