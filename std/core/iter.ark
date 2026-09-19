@@ -8,9 +8,9 @@
 //!
 //! Because Arukellt's monomorphisation model does not yet support trait-object
 //! dynamic dispatch, the adapter structs are monomorphic over `i32` (matching
-//! the existing `std::seq` helpers). Each adapter exposes an inherent
-//! `next() -> Option<i32>` method so it can be used directly in `for` loops
-//! and drained by `collect_i32`. Generic trait definitions are included to
+//! the existing `std::seq` helpers). Each adapter implements the canonical
+//! `Iterator::next` method directly; the structural `for` lowering can use
+//! the same concrete method target. Generic trait definitions are included to
 //! formalise the protocol and enable future generalisation.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
@@ -81,17 +81,6 @@ pub fn vec_iter(v: Vec<i32>) -> VecIter {
 }
 
 impl VecIter {
-    /// Returns the next element, or `None` when exhausted.
-    fn next(self: VecIter) -> Option<i32> {
-        if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            Some(val)
-        } else {
-            None
-        }
-    }
-
     /// Returns true when no more elements remain.
     fn is_empty(self: VecIter) -> bool {
         self.index >= self.length
@@ -136,19 +125,6 @@ pub fn range_iter(r: Range) -> RangeIter {
     RangeIter { current: r.start, end: r.end }
 }
 
-impl RangeIter {
-    /// Returns the next integer, or `None` when the range is exhausted.
-    fn next(self: RangeIter) -> Option<i32> {
-        if self.current < self.end {
-            let val: i32 = self.current
-            self.current = self.current + 1
-            Some(val)
-        } else {
-            None
-        }
-    }
-}
-
 impl Iterator for RangeIter {
     type Item = i32
 
@@ -178,18 +154,6 @@ pub struct MapIter {
 /// Construct a `MapIter` over `v` with transform `f`.
 pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter {
     MapIter { vec: v, index: 0, length: len(v), f: f }
-}
-
-impl MapIter {
-    fn next(self: MapIter) -> Option<i32> {
-        if self.index < self.length {
-            let raw: i32 = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            Some((self.f)(raw))
-        } else {
-            None
-        }
-    }
 }
 
 impl Iterator for MapIter {
@@ -223,19 +187,6 @@ pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter {
     FilterIter { vec: v, index: 0, length: len(v), f: f }
 }
 
-impl FilterIter {
-    fn next(self: FilterIter) -> Option<i32> {
-        while self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            if (self.f)(val) {
-                return Some(val)
-            }
-        }
-        None
-    }
-}
-
 impl Iterator for FilterIter {
     type Item = i32
 
@@ -266,22 +217,6 @@ pub struct TakeIter {
 /// Construct a `TakeIter` over `v` limited to `n` elements.
 pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter {
     TakeIter { vec: v, index: 0, length: len(v), remaining: n }
-}
-
-impl TakeIter {
-    fn next(self: TakeIter) -> Option<i32> {
-        if self.remaining <= 0 {
-            return None
-        }
-        if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            self.remaining = self.remaining - 1
-            Some(val)
-        } else {
-            None
-        }
-    }
 }
 
 impl Iterator for TakeIter {
@@ -317,22 +252,6 @@ pub struct SkipIter {
 /// Construct a `SkipIter` over `v` that drops the first `n` elements.
 pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter {
     SkipIter { vec: v, index: 0, length: len(v), to_skip: n }
-}
-
-impl SkipIter {
-    fn next(self: SkipIter) -> Option<i32> {
-        while self.to_skip > 0 && self.index < self.length {
-            self.index = self.index + 1
-            self.to_skip = self.to_skip - 1
-        }
-        if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            Some(val)
-        } else {
-            None
-        }
-    }
 }
 
 impl Iterator for SkipIter {
@@ -377,25 +296,6 @@ pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter {
     }
 }
 
-impl ChainIter {
-    fn next(self: ChainIter) -> Option<i32> {
-        if self.index < self.first_len {
-            let val: i32 = get_unchecked(self.first, self.index)
-            self.index = self.index + 1
-            Some(val)
-        } else {
-            let second_index: i32 = self.index - self.first_len
-            if second_index < self.second_len {
-                let val: i32 = get_unchecked(self.second, second_index)
-                self.index = self.index + 1
-                Some(val)
-            } else {
-                None
-            }
-        }
-    }
-}
-
 impl Iterator for ChainIter {
     type Item = i32
 
@@ -437,20 +337,6 @@ pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter {
     EnumerateIter { vec: v, index: 0, length: len(v) }
 }
 
-impl EnumerateIter {
-    /// Returns `Some(index * 65536 + value)` or `None` when exhausted.
-    fn next(self: EnumerateIter) -> Option<i32> {
-        if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            let packed: i32 = self.index * 65536 + val
-            self.index = self.index + 1
-            Some(packed)
-        } else {
-            None
-        }
-    }
-}
-
 impl Iterator for EnumerateIter {
     type Item = i32
 
@@ -487,20 +373,6 @@ pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter {
     let len_b: i32 = len(second)
     let min_len: i32 = if len_a < len_b { len_a } else { len_b }
     ZipIter { first: first, second: second, index: 0, length: min_len }
-}
-
-impl ZipIter {
-    /// Returns `Some(a * 65536 + b)` or `None` when exhausted.
-    fn next(self: ZipIter) -> Option<i32> {
-        if self.index < self.length {
-            let a: i32 = get_unchecked(self.first, self.index)
-            let b: i32 = get_unchecked(self.second, self.index)
-            self.index = self.index + 1
-            Some(a * 65536 + b)
-        } else {
-            None
-        }
-    }
 }
 
 impl Iterator for ZipIter {
