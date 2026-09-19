@@ -177,3 +177,25 @@ RFC-011: **37**。
   structural trait-driven `for` desugaring, and the final RFC item 37 residual
   audit remain open. This receipt does not close #860 or mark its acceptance
   boxes complete.
+
+## Progress receipt — 2026-09-20 (projected collection and memory64 callback ABI)
+
+- Commit `00cecec42` removes the aggregate-projection blocker for the current
+  iterator item lane. `Iterator::collect` and its shared traversal now use
+  `Vec<Self::Item>` / `Vec<T::Item>`; monomorphization preserves the exact
+  associated projection through `Vec` constructor lowering and aggregate local
+  type resolution.
+- The Wasm type planner reserves canonical unary and binary memory64 callback
+  signatures before WIT, GC, and user function types. GC callback parameters,
+  callback locals, `ref.func`, and `call_ref` now reference the same widened
+  `i64` callback signatures; the linear fallback continues to use its table
+  index plus `i32` `call_indirect` ABI.
+- `iterator_vec_iter_next.ark` passes GC component and linear Wasm
+  compile/validate/runtime checks. Range, fold-product, and
+  map/filter/take-pipeline representatives also pass both target paths.
+- `python3 scripts/manager.py verify lane` passes with formatter and lint
+  ratchets clean. This advances the generic projection boundary for the
+  implemented `i32`-backed iterators; arbitrary new item representations,
+  method-shaped lazy adapter migration, structural trait-driven `for`, and the
+  final RFC-011 residual audit remain open. No acceptance checkbox is marked
+  complete.

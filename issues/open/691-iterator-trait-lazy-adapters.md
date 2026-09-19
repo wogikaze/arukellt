@@ -251,3 +251,23 @@ full adapter fixture matrix as a fallback parity gate.
   pass. Generic `Vec<T::Item>` collection, method-shaped lazy adapters, the
   remaining eager/lazy migration, and the final RFC item 37 residual audit
   remain open; no acceptance checkbox is marked complete.
+
+## Progress receipt — 2026-09-20 (projected collection and memory64 callback ABI)
+
+- Commit `00cecec42` changes the canonical `Iterator::collect` surface to
+  `Vec<Self::Item>` and makes the shared traversal `Vec<T::Item>`. Exact
+  associated-type projection is retained through monomorphized `Vec`
+  construction, so the current `i32`-backed iterator implementations no
+  longer require an `i32`-only aggregate helper.
+- The compiler reserves memory64 GC unary/binary callback signatures ahead of
+  user function types and keeps callback parameter, local, and `call_ref`
+  type indexes consistent. The linear-memory fallback keeps the same source
+  callback meaning through table-index `call_indirect`.
+- `iterator_vec_iter_next.ark`, `iterator_range_basic.ark`,
+  `iterator_fold_product.ark`, and
+  `iterator_map_filter_take_pipeline.ark` pass GC component and linear Wasm
+  compile, validation, and runtime checks. `verify lane` also passes.
+- This is still partial #691 evidence: only the currently implemented
+  `i32`-backed item lane is proven; arbitrary item implementations, the
+  method-shaped lazy adapter API, full eager/lazy migration, structural
+  trait-driven `for`, and the final RFC-011 residual audit remain open.
