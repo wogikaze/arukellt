@@ -1,6 +1,6 @@
-use typechecker::kinds
 use typechecker::ast_access
 use typechecker::ops
+use typechecker::operator_traits
 use typechecker::unify
 use typechecker::unify_env
 use typechecker::contract_type_access
@@ -12,7 +12,9 @@ fn infer_binary_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_
         let lhs_ty = infer_expr(env, scope, fn_sigs, enum_defs, lhs_node)
         let rhs_ty = infer_expr(env, scope, fn_sigs, enum_defs, rhs_node)
         let op = ast_access::node_op(node)
+        operator_traits::enforce_binary_operator(env, lhs_ty, op)
         if ops::is_comparison_op(op) {
+            unify::unify(env, lhs_ty, rhs_ty)
             return TypeInfo_simple(commands::TY_BOOL())
         }
         if ops::is_logical_op(op) {

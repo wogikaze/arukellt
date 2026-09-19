@@ -21,19 +21,34 @@ fn mir_operator_method_name(mir_op: i32) -> String {
         return "eq"
     }
     if mir_op == opcodes::MIR_NEQ() {
-        return "ne"
+        return "eq"
     }
     if mir_op == opcodes::MIR_LT() {
-        return "lt"
+        return "cmp"
     }
     if mir_op == opcodes::MIR_GT() {
-        return "gt"
+        return "cmp"
     }
     if mir_op == opcodes::MIR_LTEQ() {
-        return "le"
+        return "cmp"
     }
     if mir_op == opcodes::MIR_GTEQ() {
-        return "ge"
+        return "cmp"
+    }
+    if mir_op == opcodes::MIR_BIT_AND() {
+        return "bitand"
+    }
+    if mir_op == opcodes::MIR_BIT_OR() {
+        return "bitor"
+    }
+    if mir_op == opcodes::MIR_BIT_XOR() {
+        return "bitxor"
+    }
+    if mir_op == opcodes::MIR_SHL() {
+        return "shl"
+    }
+    if mir_op == opcodes::MIR_SHR() {
+        return "shr"
     }
     String_new()
 }
@@ -41,6 +56,12 @@ fn mir_operator_method_name(mir_op: i32) -> String {
 fn mir_unary_operator_method_name(uop: i32) -> String {
     if uop == lower_kinds::UOP_NEG() {
         return "neg"
+    }
+    if uop == lower_kinds::UOP_NOT() {
+        return "not"
+    }
+    if uop == lower_kinds::UOP_BITNOT() {
+        return "bitnot"
     }
     String_new()
 }

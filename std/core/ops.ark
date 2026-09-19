@@ -1,15 +1,13 @@
 //! Operator overload trait definitions for `std::core::ops`.
 //!
 //! Defines the trait surface for operator overloading (Add, Sub, Mul, Div,
-//! Neg, Index, IndexMut, Deref) per ADR-038. Built-in scalar impls are
+//! Neg, BitNot, Index, IndexMut, Deref) per ADR-065. Built-in scalar impls are
 //! provided for arithmetic operators.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 //!
-//! **Note:** Operator-to-trait resolution in the typechecker is tracked in
-//! #689. Until #689 is implemented, these traits are definable and implable
-//! but operator syntax (`+`, `[]`, `*`) does not yet resolve to them — only
-//! explicit method calls (`a.add(b)`) work via #688 trait method dispatch.
+//! Operator syntax is resolved through these canonical traits. Scalar MIR
+//! opcodes are only a backend fast path for the same protocol.
 
 use std::core
 
@@ -73,6 +71,11 @@ trait Not {
     fn not(self: Self) -> Self
 }
 
+/// Trait for integer bitwise complement (`~a`).
+trait BitNot {
+    fn bitnot(self: Self) -> Self
+}
+
 /// Trait for types that support indexed access (`a[i]`).
 trait Index {
     fn index(self: Index, idx: i32) -> i32
@@ -98,8 +101,8 @@ trait DerefMut {
 
 // ---------------------------------------------------------------------------
 // Built-in scalar impls for arithmetic operators.
-// These allow `impl Add for i32` etc. to be used via trait method dispatch
-// (#688) once the typechecker resolves operator syntax to trait calls (#689).
+// These allow scalar operator syntax to share the same protocol as user
+// implementations while retaining direct MIR opcode lowering where available.
 // ---------------------------------------------------------------------------
 
 /// `Add` impl for `i32` — delegates to the built-in `+` operator.
@@ -268,6 +271,20 @@ impl Shr for i32 {
 /// Do not use prefix `!` here: on i32 it currently lowers as logical eqz (#807).
 impl Not for i32 {
     fn not(self: i32) -> i32 {
+        self ^ -1
+    }
+}
+
+/// `BitNot` impl for `i32` — delegates to the built-in `^` operator.
+impl BitNot for i32 {
+    fn bitnot(self: i32) -> i32 {
+        self ^ -1
+    }
+}
+
+/// `BitNot` impl for `i64` — delegates to the built-in `^` operator.
+impl BitNot for i64 {
+    fn bitnot(self: i64) -> i64 {
         self ^ -1
     }
 }

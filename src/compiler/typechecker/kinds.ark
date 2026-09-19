@@ -67,6 +67,11 @@ fn NK_ASSOC_TYPE() -> i32 { 99 }
 fn NK_TRAIT_SUPER() -> i32 { 100 }
 
 // Comparison operator kinds.
+fn OP_ADD() -> i32 { 1 }
+fn OP_SUB() -> i32 { 2 }
+fn OP_MUL() -> i32 { 3 }
+fn OP_DIV() -> i32 { 4 }
+fn OP_MOD() -> i32 { 5 }
 fn OP_EQ() -> i32 { 6 }
 fn OP_NEQ() -> i32 { 7 }
 fn OP_LT() -> i32 { 8 }
@@ -77,6 +82,16 @@ fn OP_GTEQ() -> i32 { 11 }
 // Logical operator kinds.
 fn OP_AND() -> i32 { 12 }
 fn OP_OR() -> i32 { 13 }
+fn OP_BIT_AND() -> i32 { 14 }
+fn OP_BIT_OR() -> i32 { 15 }
+fn OP_BIT_XOR() -> i32 { 16 }
+fn OP_SHL() -> i32 { 17 }
+fn OP_SHR() -> i32 { 18 }
+
+// Unary operator kinds.
+fn UOP_NEG() -> i32 { 1 }
+fn UOP_NOT() -> i32 { 2 }
+fn UOP_BITNOT() -> i32 { 3 }
 
 // Unknown type tag.
 fn TY_UNKNOWN() -> i32 { 0 }

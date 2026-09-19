@@ -53,6 +53,10 @@ fn node_is_method_call(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_METHOD_CALL())
 }
 
+fn node_is_index(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_INDEX())
+}
+
 fn node_is_match_expr(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_MATCH_EXPR())
 }

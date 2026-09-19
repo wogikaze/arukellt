@@ -1,0 +1,16 @@
+// Operators require their canonical Trait impl; an inherent method is not a fallback.
+struct Point {
+    x: i32,
+}
+
+impl Point {
+    fn add(self: Point, rhs: Point) -> Point {
+        Point { x: self.x + rhs.x }
+    }
+}
+
+fn main() {
+    let left = Point { x: 1 }
+    let right = Point { x: 2 }
+    let total = left + right
+}

@@ -3,6 +3,7 @@ use mir::lower::binary_method
 use mir::lower::binary_type_names
 use mir::lower::binary_emit
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_fn_exists
@@ -11,8 +12,13 @@ use mir::lower_kinds
 use mir::inst_op
 
 fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
-    let ov_type = ctx_get_local_type(ctx, operand_idx)
-    if !binary_type_names::mir_is_primitive_operator_type(clone(ov_type)) {
+    let ov_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_get_local_type(ctx, operand_idx)
+    )
+    let can_use_trait_overload = !binary_type_names::mir_is_primitive_operator_type(clone(ov_type)) ||
+    op == lower_kinds::UOP_BITNOT()
+    if can_use_trait_overload {
         let ov_method = binary_method::mir_unary_operator_method_name(op)
         if len(ov_method) > 0 {
             let ov_callee = concat(clone(ov_type), concat("::", clone(ov_method)))

@@ -11,6 +11,8 @@ use typechecker::infer_closure
 use typechecker::infer_comprehension
 use typechecker::match
 use typechecker::enum_expr
+use typechecker::operator_traits
+use typechecker::contract_type_access
 
 fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if ast_access::node_kind_is(node, kinds::NK_ASSIGN()) {
@@ -46,6 +48,9 @@ fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enu
     if ast_expr_predicates::node_is_binary(node) {
         return infer_binary::infer_binary_expr(env, scope, fn_sigs, enum_defs, node)
     }
+    if ast_expr_predicates::node_is_index(node) {
+        return infer_index_expr(env, scope, fn_sigs, enum_defs, node)
+    }
     if ast_stmt_predicates::node_is_block(node) {
         return infer_block::infer_block_expr(env, scope, fn_sigs, enum_defs, node)
     }
@@ -65,6 +70,20 @@ fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enu
         return infer_tuple_expr(env, scope, fn_sigs, enum_defs, node)
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn infer_index_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_access::node_child_count(node) < 2 {
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let base_ty = infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 0))
+    infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 1))
+    operator_traits::enforce_index_operator(env, base_ty)
+    let tag = contract_type_access::TypeInfo_tag(base_ty)
+    if tag == commands::TY_VEC() && contract_type_access::TypeInfo_type_arg_count(base_ty) > 0 {
+        return contract_type_access::TypeInfo_type_arg_at(base_ty, 0)
+    }
+    TypeInfo_simple(commands::TY_I32())
 }
 
 fn infer_tuple_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {

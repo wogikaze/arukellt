@@ -60,6 +60,8 @@
 | [ADR-061-language-v2-closure-capture-lifetime.md](ADR-061-language-v2-closure-capture-lifetime.md) | ADR-061: 言語 v2 のクロージャ捕捉・借用・escape | ADR-059 と ADR-060 は binding の move / Copy、owned value、Box<T>、Slice<T> の値境界を固定した。 |
 | [ADR-062-language-v2-trait-core-coherence.md](ADR-062-language-v2-trait-core-coherence.md) | ADR-062: Language v2 の Trait core と coherence | Arukellt の parser と typechecker は trait、impl Trait for T、メソッド呼び出し、 型パラメータの bound を受け付ける。 |
 | [ADR-063-language-v2-conversion-error-boundary.md](ADR-063-language-v2-conversion-error-boundary.md) | ADR-063: Language v2 の変換 trait と error sentinel の境界 | Arukellt は Result<T, E> と Option<T>、From<T> / Into<T>、? の構文を持つ。 一方、fallible conversion の TryFrom<T> / TryInto<T> は別 issue で定義中であり、 compiler の型検査用 recovery sentinel と、ユーザーが宣言できる Error という nominal type の境界も |
+| [ADR-064-error-trait-namespace-and-source-boundary.md](ADR-064-error-trait-namespace-and-source-boundary.md) | ADR-064: Error trait の名前空間と静的 source 境界 | std::core::error には、stdlib の既存 API と fixture が利用する Error enum と error_message があり、manifest でも stable として公開されている。 |
+| [ADR-065-language-v2-operator-trait-resolution.md](ADR-065-language-v2-operator-trait-resolution.md) | ADR-065: Language v2 の演算子 Trait 解決と magic method 移行 | Arukellt の parser は演算子を構文木へ保持し、MIR lowerer は組み込み opcode または receiver の 型名::method を選択できる。 |
 
 ## 提案
 
@@ -67,7 +69,6 @@
 |----------|----------|------|
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | 提案日: 2026-06-26 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
-| [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
 | [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | 提案日: 2026-07-30 |
 | [ADR-058-language-v2-semantics-redesign.md](ADR-058-language-v2-semantics-redesign.md) | ADR-058: 言語 v2 の意味論と仕様境界を再設計する | 提案日: 2026-09-18 |
 
@@ -88,6 +89,7 @@
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | トラック: language-design（issue #123） 後継: ADR-031-import-syntax-wit-unification.md |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | 後継: ADR-031-import-syntax-wit-unification.md |
 | [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | 後継: ADR-055-playground-compile-boundary.md |
+| [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 後継: ADR-065-language-v2-operator-trait-resolution.md |
 | [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md 後継: ADR-049-native-c99-selfhost-executor.md |
 
 ## その他

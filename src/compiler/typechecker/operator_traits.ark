@@ -1,0 +1,202 @@
+use typechecker::contract_type_access
+use typechecker::contract_type_param_bounds
+use typechecker::kinds
+use typechecker::trait_bounds
+use typechecker::types
+use typechecker::unify
+use typechecker::unify_env
+
+// Canonical protocol names used by language syntax. Keep this table aligned
+// with ADR-065; operator syntax must not search an inherent method namespace.
+fn binary_trait_name(op: i32) -> String {
+    if op == kinds::OP_ADD() { return "Add" }
+    if op == kinds::OP_SUB() { return "Sub" }
+    if op == kinds::OP_MUL() { return "Mul" }
+    if op == kinds::OP_DIV() { return "Div" }
+    if op == kinds::OP_MOD() { return "Rem" }
+    if op == kinds::OP_EQ() || op == kinds::OP_NEQ() { return "Eq" }
+    if op == kinds::OP_LT() || op == kinds::OP_LTEQ() ||
+    op == kinds::OP_GT() || op == kinds::OP_GTEQ() {
+        return "Ord"
+    }
+    if op == kinds::OP_BIT_AND() { return "BitAnd" }
+    if op == kinds::OP_BIT_OR() { return "BitOr" }
+    if op == kinds::OP_BIT_XOR() { return "BitXor" }
+    if op == kinds::OP_SHL() { return "Shl" }
+    if op == kinds::OP_SHR() { return "Shr" }
+    String_new()
+}
+
+fn unary_trait_name(op: i32) -> String {
+    if op == kinds::UOP_NEG() { return "Neg" }
+    if op == kinds::UOP_NOT() { return "Not" }
+    if op == kinds::UOP_BITNOT() { return "BitNot" }
+    String_new()
+}
+
+fn binary_operator_symbol(op: i32) -> String {
+    if op == kinds::OP_ADD() { return "+" }
+    if op == kinds::OP_SUB() { return "-" }
+    if op == kinds::OP_MUL() { return "*" }
+    if op == kinds::OP_DIV() { return "/" }
+    if op == kinds::OP_MOD() { return "%" }
+    if op == kinds::OP_EQ() { return "==" }
+    if op == kinds::OP_NEQ() { return "!=" }
+    if op == kinds::OP_LT() { return "<" }
+    if op == kinds::OP_LTEQ() { return "<=" }
+    if op == kinds::OP_GT() { return ">" }
+    if op == kinds::OP_GTEQ() { return ">=" }
+    if op == kinds::OP_BIT_AND() { return "&" }
+    if op == kinds::OP_BIT_OR() { return "|" }
+    if op == kinds::OP_BIT_XOR() { return "^" }
+    if op == kinds::OP_SHL() { return "<<" }
+    if op == kinds::OP_SHR() { return ">>" }
+    String_from("operator")
+}
+
+fn unary_operator_symbol(op: i32) -> String {
+    if op == kinds::UOP_NEG() { return "-" }
+    if op == kinds::UOP_NOT() { return "!" }
+    if op == kinds::UOP_BITNOT() { return "~" }
+    String_from("operator")
+}
+
+fn enforce_binary_operator(env: TypeEnv, lhs_ty: TypeInfo, op: i32) {
+    let trait_name = binary_trait_name(op)
+    if len(trait_name) == 0 {
+        return
+    }
+    let symbol = binary_operator_symbol(op)
+    enforce_operator_trait(env, lhs_ty, trait_name, symbol)
+}
+
+fn enforce_unary_operator(env: TypeEnv, operand_ty: TypeInfo, op: i32) {
+    let trait_name = unary_trait_name(op)
+    if len(trait_name) == 0 {
+        return
+    }
+    enforce_operator_trait(env, operand_ty, trait_name, unary_operator_symbol(op))
+}
+
+fn enforce_index_operator(env: TypeEnv, base_ty: TypeInfo) {
+    let tag = contract_type_access::TypeInfo_tag(base_ty)
+    if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
+        return
+    }
+    enforce_operator_trait(env, base_ty, "Index", "[]")
+}
+
+fn enforce_operator_trait(
+    env: TypeEnv,
+    operand_ty: TypeInfo,
+    trait_name: String,
+    symbol: String
+) {
+    let resolved_ty = unify::resolve_type(env, operand_ty)
+    let tag = contract_type_access::TypeInfo_tag(resolved_ty)
+    if tag == commands::TY_UNKNOWN() {
+        return
+    }
+    if tag == commands::TY_TYPE_VAR() {
+        if type_var_has_bound(env, resolved_ty, trait_name) {
+            return
+        }
+        report_missing_operator_bound(env, symbol, trait_name, resolved_ty)
+        return
+    }
+    if is_builtin_operator_type(resolved_ty) {
+        return
+    }
+    let bound = types::resolve_type_name(clone(trait_name))
+    if trait_bounds::type_satisfies_trait_bound(env, resolved_ty, bound) {
+        return
+    }
+    let type_name = contract_type_access::TypeInfo_name(resolved_ty)
+    report_missing_operator_impl(env, symbol, trait_name, type_name)
+}
+
+// Primitive operators have a direct MIR opcode fast path. Their stdlib impls
+// document the same protocol, but requiring the imported declaration here
+// would make scalar syntax depend on module visibility.
+fn is_builtin_operator_type(ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    tag == commands::TY_I32() ||
+    tag == commands::TY_I64() ||
+    tag == commands::TY_F64() ||
+    tag == commands::TY_F32() ||
+    tag == commands::TY_BOOL() ||
+    tag == commands::TY_CHAR() ||
+    tag == commands::TY_STRING()
+}
+
+fn type_var_has_bound(env: TypeEnv, ty: TypeInfo, trait_name: String) -> bool {
+    let type_name = contract_type_access::TypeInfo_name(ty)
+    let bound_count = len(env.current_fn_bounds)
+    let mut i = 0
+    while i < bound_count {
+        let param = get_unchecked(env.current_fn_bounds, i)
+        if eq(
+            contract_type_param_bounds::TypeParamBounds_name(param),
+            clone(type_name)
+        ) && type_param_has_trait(param, clone(trait_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn type_param_has_trait(param: TypeParamBounds, trait_name: String) -> bool {
+    let bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
+    let mut i = 0
+    while i < bound_count {
+        let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
+        if eq(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn report_missing_operator_bound(
+    env: TypeEnv,
+    symbol: String,
+    trait_name: String,
+    operand_ty: TypeInfo
+) {
+    let type_name = contract_type_access::TypeInfo_name(operand_ty)
+    let message = concat(
+        String_from("operator `"),
+        concat(
+            clone(symbol),
+            concat(
+                "` requires ",
+                concat(
+                    clone(trait_name),
+                    concat(" bound for ", clone(type_name))
+                )
+            )
+        )
+    )
+    unify_env::type_error_unsupported_operator(env, message)
+}
+
+fn report_missing_operator_impl(
+    env: TypeEnv,
+    symbol: String,
+    trait_name: String,
+    type_name: String
+) {
+    let message = concat(
+        String_from("operator `"),
+        concat(
+            clone(symbol),
+            concat(
+                "` requires ",
+                concat(clone(trait_name), concat(" for ", clone(type_name)))
+            )
+        )
+    )
+    unify_env::type_error_unsupported_operator(env, message)
+}

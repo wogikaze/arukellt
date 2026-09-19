@@ -253,6 +253,7 @@ diag:diagnostics/resolve_dup_fn.ark
 diag:diagnostics/resolve_undef_module.ark
 diag:diagnostics/resolve_undefined_fn.ark
 diag:diagnostics/type_mismatch.ark
+diag:diagnostics/operator_trait_missing.ark
 diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
 diag:diagnostics/unresolved_name.ark
@@ -1758,6 +1759,7 @@ run:stdlib_trait/ops_not_i32.ark
 run:stdlib_trait/ops_rem_i32.ark
 run:stdlib_trait/ops_self_return_mul.ark
 run:stdlib_trait/ops_self_return_sub.ark
+run:stdlib_trait/operator_generic.ark
 run:stdlib_trait/ops_shl_shr_i32.ark
 run:stdlib_trait/ops_sub_f64.ark
 run:stdlib_trait/ops_sub_i32.ark
@@ -2271,6 +2273,7 @@ t3-compile:stdlib_trait/integer_trait.ark
 t3-compile:stdlib_trait/read_write.ark
 t3-compile:stdlib_trait/seek.ark
 t3-compile:stdlib_trait/self_return_add.ark
+t3-compile:stdlib_trait/operator_generic.ark
 t3-compile:stdlib_trait/self_return_clone.ark
 t3-compile:stdlib_vec/any_find.ark
 t3-compile:stdlib_vec/vec_any_all_match.ark
@@ -2714,6 +2717,7 @@ t3-run:stdlib_trait/io_copy.ark
 t3-run:stdlib_trait/read_write.ark
 t3-run:stdlib_trait/seek.ark
 t3-run:stdlib_trait/self_return_add.ark
+t3-run:stdlib_trait/operator_generic.ark
 t3-run:stdlib_trait/self_return_clone.ark
 t3-run:stdlib_vec/any_find.ark
 t3-run:stdlib_vec/vec_any_all_match.ark

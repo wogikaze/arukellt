@@ -29,9 +29,6 @@ sha256 = "792d3438b34096515ad7e5854e085753fe67f3009dae4d93ebf0e089c5291248"
 path = "src/compiler/mir/lower/core_if.ark"
 sha256 = "6aa07f22a117fd761e70f92bf2690fd23bb4df38eca1b7b0b2cbcda7d5d29bf9"
 [[exceptions]]
-path = "src/compiler/typechecker/infer_compound.ark"
-sha256 = "2fc8fc682cf0850b55f94beddfbb60eef7b69002f3fa284865f212a5327b2e92"
-[[exceptions]]
 path = "src/compiler/typechecker/returns.ark"
 sha256 = "2decaa8469e5200dc8820d89685a1454590a5d33a96a5d4db1ecb1eccdbe2b0b"
 [[exceptions]]

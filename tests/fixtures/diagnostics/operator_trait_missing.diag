@@ -1,0 +1,1 @@
+error[E0208|typecheck]: operator `+` requires Add for Point

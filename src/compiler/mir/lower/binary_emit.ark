@@ -7,6 +7,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::inst_call
+use mir::inst_local_get
 use mir::inst_op
 use mir::opcodes
 use mir::value_types
@@ -22,6 +23,45 @@ fn mir_emit_overloaded_binary_call(ctx: LowerCtx, callee: String) -> i32 {
     call_type_fallback::set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
     ctx_emit(ctx, inst_call::MirInst_call(callee, 2, dest))
     dest
+}
+
+fn mir_emit_overloaded_operator(ctx: LowerCtx, callee: String, mir_op: i32) -> i32 {
+    let result = mir_emit_overloaded_binary_call(ctx, clone(callee))
+    if mir_op == opcodes::MIR_NEQ() {
+        return mir_emit_boolean_inverse(ctx, result)
+    }
+    if mir_op == opcodes::MIR_LT() ||
+    mir_op == opcodes::MIR_LTEQ() ||
+    mir_op == opcodes::MIR_GT() ||
+    mir_op == opcodes::MIR_GTEQ() {
+        return mir_emit_order_projection(ctx, result, mir_op)
+    }
+    result
+}
+
+fn mir_emit_boolean_inverse(ctx: LowerCtx, source: i32) -> i32 {
+    let dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_set_local_type(ctx, dest, "bool")
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(source))
+    ctx_emit(ctx, inst_op::MirInst_unary(opcodes::MIR_NOT(), dest, source, value_types::VT_I32()))
+    dest
+}
+
+fn mir_emit_order_projection(ctx: LowerCtx, source: i32, mir_op: i32) -> i32 {
+    let method = mir_order_projection_method(mir_op)
+    if len(method) == 0 {
+        return source
+    }
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(source))
+    mir_emit_overloaded_unary_call(ctx, concat("Ordering::", method))
+}
+
+fn mir_order_projection_method(mir_op: i32) -> String {
+    if mir_op == opcodes::MIR_LT() { return "is_less" }
+    if mir_op == opcodes::MIR_LTEQ() { return "is_less_or_equal" }
+    if mir_op == opcodes::MIR_GT() { return "is_greater" }
+    if mir_op == opcodes::MIR_GTEQ() { return "is_greater_or_equal" }
+    String_new()
 }
 
 fn mir_emit_overloaded_unary_call(ctx: LowerCtx, callee: String) -> i32 {

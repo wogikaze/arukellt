@@ -370,9 +370,23 @@ impl Display for Point {
 - `Error` has the supertrait bound `Display` and the method
   `source(self: Error) -> Option<String>`. It uses static dispatch; `dyn Error`
   and typed dynamic source objects are not part of the current ABI.
-- Operator overloading via magic method names: `__add`, `__sub`, `__mul`,
-  `__div`, `__rem`, `__eq`, `__cmp`. Methods are mangled as
-  `StructName__methodname`.
+- Operator syntax resolves through the canonical traits in
+  [ADR-065](../adr/ADR-065-language-v2-operator-trait-resolution.md), not
+  through inherent methods or legacy magic names. The mapping is:
+
+  | Syntax | Canonical trait method |
+  |--------|------------------------|
+  | `a + b`, `a - b`, `a * b`, `a / b`, `a % b` | `Add::add`, `Sub::sub`, `Mul::mul`, `Div::div`, `Rem::rem` |
+  | `-a`, `!a`, `~a` | `Neg::neg`, `Not::not`, `BitNot::bitnot` |
+  | `a & b`, `a \| b`, `a ^ b`, `a << b`, `a >> b` | `BitAnd::bitand`, `BitOr::bitor`, `BitXor::bitxor`, `Shl::shl`, `Shr::shr` |
+  | `a == b`, `a != b` | `Eq::eq` (`!=` negates the result) |
+  | `a < b`, `a <= b`, `a > b`, `a >= b` | `Ord::cmp`, projected from `Ordering` |
+  | `a[i]`, `a[i] = v`, `*a`, `*a = v` | `Index`, `IndexMut`, `Deref`, `DerefMut` |
+
+  `&&` and `||` remain built-in short-circuit operators. `__add`, `__sub`,
+  `__mul`, `__div`, `__rem`, `__eq`, and `__cmp` are not operator candidates.
+  The compiler's scalar opcode path is an implementation fast path for the
+  same trait protocol. Methods are mangled as `StructName__methodname`.
 
 ---
 
@@ -412,9 +426,12 @@ Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
 Logical: `&&`, `||`
 Bitwise: `&`, `|`, `^`, `<<`, `>>`
 
-Both operands of arithmetic and bitwise operators must have the same
-numeric type (after coercion per §2.6). The result type is the same as
-the operands.
+For a user-defined or generic operand, the canonical trait obligation must be
+satisfied and the operator's operands and result follow that trait's method
+signature. Scalar operators retain the built-in numeric rules below as the
+backend fast path for the same protocol. Both operands of arithmetic and
+bitwise operators must have the same numeric type (after coercion per §2.6),
+and the result type is the same as the operands.
 
 Comparison operators return `bool`. Logical operators require `bool`
 operands and return `bool`.

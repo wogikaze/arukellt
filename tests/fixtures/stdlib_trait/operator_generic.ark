@@ -1,0 +1,26 @@
+// Generic operator obligations use the same Trait registry as concrete syntax.
+use std::host::stdio
+use std::core::ops
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Add for Point {
+    fn add(self: Point, rhs: Point) -> Point {
+        Point { x: self.x + rhs.x, y: self.y + rhs.y }
+    }
+}
+
+fn add_any<T: Add>(lhs: T, rhs: T) -> T {
+    lhs + rhs
+}
+
+fn main() {
+    let point = add_any(Point { x: 1, y: 2 }, Point { x: 3, y: 4 })
+    stdio::println(point.x)
+    stdio::println(point.y)
+    let scalar = add_any(10, 32)
+    stdio::println(scalar)
+}

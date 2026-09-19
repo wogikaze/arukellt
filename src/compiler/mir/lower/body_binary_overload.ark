@@ -2,10 +2,14 @@ use mir::lower::binary_method
 use mir::lower::binary_type_names
 use mir::lower::binary_emit
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 
 fn try_lower_overloaded_binary(ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_idx: i32) -> i32 {
-    let ov_ltype = ctx_get_local_type(ctx, l_idx)
+    let ov_ltype = ctx_mono_type_params::ctx_resolve_mono_type_name(
+        ctx,
+        ctx_get_local_type(ctx, l_idx)
+    )
     let ov_is_primitive = binary_type_names::mir_is_primitive_operator_type(clone(ov_ltype))
     if !ov_is_primitive {
         let ov_method = binary_method::mir_operator_method_name(mir_op)
@@ -13,7 +17,7 @@ fn try_lower_overloaded_binary(ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_idx: 
             let ov_callee = concat(clone(ov_ltype), concat("::", clone(ov_method)))
             if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
                 let ov_r_idx = lower_expr(ctx, rhs)
-                return binary_emit::mir_emit_overloaded_binary_call(ctx, ov_callee)
+                return binary_emit::mir_emit_overloaded_operator(ctx, ov_callee, mir_op)
             }
         }
     }

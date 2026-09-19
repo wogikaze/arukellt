@@ -14,6 +14,13 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     if b_tag == commands::TY_UNKNOWN() {
         return a
     }
+    // Declared generic parameters are copied into separate TypeInfo records
+    // during signature construction. Equal names denote the same parameter;
+    // binding that parameter to its copy would incorrectly trigger occurs check.
+    if a_tag == commands::TY_TYPE_VAR() && b_tag == commands::TY_TYPE_VAR() &&
+    eq(contract_type_access::TypeInfo_name(a), contract_type_access::TypeInfo_name(b)) {
+        return a
+    }
     if a_tag == commands::TY_TYPE_VAR() {
         unify_bind::bind_var(env, contract_type_access::TypeInfo_name(a), b)
         return b

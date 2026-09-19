@@ -1,6 +1,8 @@
 # ADR-038: 演算子オーバーロードを magic method から trait へ移行する
 
-ステータス: **PROPOSED** — 既存の magic method 面を `std::core::ops` trait 面へ置換する
+ステータス: **SUPERSEDED** — [ADR-065](ADR-065-language-v2-operator-trait-resolution.md) が canonical operator resolution と移行境界を採択
+
+後継: [ADR-065-language-v2-operator-trait-resolution.md](ADR-065-language-v2-operator-trait-resolution.md)
 
 提案日: 2026-06-26  
 改訂日: 2026-07-11 — 「新設」ではなく既存 `__add` 等からの移行として書き直し
