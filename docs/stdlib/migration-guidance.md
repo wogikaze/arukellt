@@ -68,6 +68,12 @@ the range fixture verifies `for item in core::range_new(2, 5)` and
 `for item in core::range_inclusive_new(3, 5).into_iter()` on both backends.
 Generic or unregistered source types still require the corresponding concrete
 trait implementation and are not covered by this migration step.
+Statically known scalar or nominal sources that implement neither
+`IntoIterator` nor `Iterator`, and do not expose the structural `next` method,
+are rejected during type checking with E0200. The negative contract is pinned
+by `tests/fixtures/selfhost/for_deny_non_iterable.ark` and its
+`.selfhost.diag` golden; unresolved generic sources remain deferred until
+their concrete obligation is available.
 `FromIterator` dispatches the `VecIter`, `RangeIter`, and
 `RangeInclusiveIter` sources statically. A generic consumer can now return
 `Vec<T::Item>` for the currently implemented `i32`-backed iterator types;

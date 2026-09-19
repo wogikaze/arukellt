@@ -893,6 +893,13 @@ conversion and `next()` sequence as their equivalent local-binding forms.
 This verified surface remains concrete; it does not imply dynamic dispatch for
 an unregistered or generic source type.
 
+For a statically known source, type checking requires an `IntoIterator` or
+`Iterator` implementation, or a concrete `Type::next` method for the current
+structural fallback. A known source that satisfies none of these contracts is
+rejected with E0200 (`non-iterable source`); the regression fixture
+`selfhost/for_deny_non_iterable.ark` covers the scalar `i32` case. Unresolved
+generic sources remain deferred until their concrete obligation can be checked.
+
 For the current `Vec<i32>` item lane, the canonical lazy adapter expression is
 `v.iter().map(f).filter(g).take(n).collect()`. It evaluates the source through
 the iterator protocol and does not require an intermediate collection between

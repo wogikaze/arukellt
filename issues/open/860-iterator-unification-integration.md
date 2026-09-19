@@ -259,3 +259,27 @@ RFC-011: **37**。
   migration, the required negative/diagnostic fixture, and the final RFC-011
   residual audit. This receipt does not close #860 or mark its acceptance
   boxes complete.
+
+## Progress receipt — 2026-09-20 (for source diagnostic contract)
+
+- Commit `3be855820` adds type checking for `for` sources. A statically known
+  source must satisfy `IntoIterator`, `Iterator`, or the existing concrete
+  `Type::next` structural fallback; built-in range syntax remains on its
+  dedicated lowering path. This preserves `iterator/custom_iterator.ark`
+  while rejecting a scalar source that has no iteration contract.
+- `tests/fixtures/selfhost/for_deny_non_iterable.ark` is registered as a
+  selfhost diagnostic fixture with a committed `.selfhost.diag` golden. The
+  current compiler emits `E0200` with the `non-iterable source` message and
+  exits 1; the fixture passes its diagnostic parity check.
+- `python3 scripts/manager.py verify lane` exits 0 after formatter, quality,
+  lint-smoke, and touched-code ratchet checks. Existing iterator range,
+  adapter, and custom structural-iterator fixtures remain typecheck-valid.
+- Full diagnostic parity still has one unrelated existing W0005 span golden
+  drift in `diagnostics/capability_stub.ark` (`4:4` golden versus `4:8`
+  current output); it is not attributed to this iterator change and remains
+  open for its owning diagnostics work.
+
+The remaining scope is generic or unregistered source dispatch, arbitrary item
+representations, complete adapter composition, full eager/lazy migration, and
+the final RFC-011 residual audit. This receipt does not close #860 or mark its
+acceptance boxes complete.
