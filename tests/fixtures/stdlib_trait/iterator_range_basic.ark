@@ -71,4 +71,16 @@ fn main() {
         direct_inclusive_total = direct_inclusive_total + value
     }
     test::assert_eq_i32(direct_inclusive_total, 12)
+
+    let mut direct_expression_total: i32 = 0
+    for value in core::range_new(2, 5) {
+        direct_expression_total = direct_expression_total + value
+    }
+    test::assert_eq_i32(direct_expression_total, 9)
+
+    let mut direct_method_total: i32 = 0
+    for value in core::range_inclusive_new(3, 5).into_iter() {
+        direct_method_total = direct_method_total + value
+    }
+    test::assert_eq_i32(direct_method_total, 12)
 }

@@ -14,8 +14,8 @@ fn corehir_build_for_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     if body_for_predicates::corehir_for_is_values_call(range) {
         return body_for_values::corehir_build_for_values_expr(table, node)
     }
-    if expr_node_predicates::expr_is_ident(range) {
-        return body_for_iter::corehir_build_for_iter_expr(table, node)
+    if expr_node_predicates::expr_is_range(range) {
+        return body_for_range::corehir_build_for_range_expr(table, node)
     }
-    body_for_range::corehir_build_for_range_expr(table, node)
+    body_for_iter::corehir_build_for_iter_expr(table, node)
 }

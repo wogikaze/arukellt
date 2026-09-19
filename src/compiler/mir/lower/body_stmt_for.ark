@@ -13,6 +13,7 @@ use mir::lower::method_resolve
 use mir::lower_kinds
 use mir::value_types
 use mir::inst_call
+use mir::inst_local_get
 
 fn lower_for_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
@@ -22,12 +23,10 @@ fn lower_for_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         let range_child_count = ast_node::node_child_count(range)
         if mir_for_range_is_values_call(range, range_child_count) {
             lower_values_for_stmt(ctx, node, range, body)
+        } else if ast_node::node_kind_is(range, lower_kinds::NK_RANGE()) {
+            lower_i32_range_for_stmt(ctx, node, range, body)
         } else {
-            if range_child_count >= 2 {
-                lower_i32_range_for_stmt(ctx, node, range, body)
-            } else {
-                lower_struct_iterator_for_stmt(ctx, node, range, body)
-            }
+            lower_struct_iterator_for_stmt(ctx, node, range, body)
         }
     }
     0 - 1
@@ -42,30 +41,33 @@ fn mir_for_range_is_values_call(range: AstNode, range_child_count: i32) -> bool 
 }
 
 fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, body: AstNode) {
-    if ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
-        let range_local_si = ctx_lookup_local(ctx, ast_node::node_text(range))
-        if range_local_si >= 0 {
-            let raw_struct_type = ctx_get_local_type(ctx, range_local_si)
-            let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
-            let si_into_iter_type = for_iter_resolve::mir_for_into_iterator_type(ctx, clone(raw_struct_type))
-            if len(si_into_iter_type) > 0 {
-                lower_into_iterator_for_stmt(ctx, node, range, body, raw_struct_type, si_into_iter_type)
-                return
-            }
-            if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) {
-                let vec_idx = lower_expr(ctx, range)
-                lower_vec_for_stmt(ctx, node, body, vec_idx)
-                return
-            }
-            let si_next_callee = concat(clone(si_struct_type), "::next")
-            let si_next_vt = ctx_fn_return_vt(ctx, clone(si_next_callee))
-            if si_next_vt != 0 {
-                let si_iter_idx = lower_expr(ctx, range)
-                let si_scope = loop_struct_iter::mir_begin_struct_iterator_loop(ctx, ast_node::node_text(node), si_struct_type, si_next_callee)
-                let _si_body = lower_expr(ctx, body)
-                loop_struct_iter::mir_end_struct_iterator_loop(ctx, si_scope)
-            }
+    let source_idx = lower_expr(ctx, range)
+    if source_idx < 0 {
+        return
+    }
+    let raw_struct_type = ctx_get_local_type(ctx, source_idx)
+    let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
+    let si_into_iter_type = for_iter_resolve::mir_for_into_iterator_type(ctx, clone(raw_struct_type))
+    if len(si_into_iter_type) > 0 {
+        lower_into_iterator_for_stmt(ctx, node, range, body, source_idx, raw_struct_type, si_into_iter_type)
+        return
+    }
+    if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) {
+        if !ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
+            ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
         }
+        lower_vec_for_stmt(ctx, node, body, source_idx)
+        return
+    }
+    let si_next_callee = concat(clone(si_struct_type), "::next")
+    let si_next_vt = ctx_fn_return_vt(ctx, clone(si_next_callee))
+    if si_next_vt != 0 {
+        if !ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
+            ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
+        }
+        let si_scope = loop_struct_iter::mir_begin_struct_iterator_loop(ctx, ast_node::node_text(node), si_struct_type, si_next_callee)
+        let _si_body = lower_expr(ctx, body)
+        loop_struct_iter::mir_end_struct_iterator_loop(ctx, si_scope)
     }
 }
 
@@ -74,10 +76,13 @@ fn lower_into_iterator_for_stmt(
     node: AstNode,
     range: AstNode,
     body: AstNode,
+    source_idx: i32,
     source_type: String,
     iterator_type: String
 ) {
-    let _source_idx = lower_expr(ctx, range)
+    if !ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
+    }
     let into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(source_type)
     let into_iter_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(into_iter_callee))
     let into_iter_local = ctx_fresh_local(ctx, into_iter_vt)
