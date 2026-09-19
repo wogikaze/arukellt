@@ -1,7 +1,7 @@
-use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_gc_slot_get(w: WasmWriter, s_idx: i32, region: i32, ctx: SelfEmitCtx) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
@@ -51,9 +51,9 @@ fn emit_hm_slot_set_gc(
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     writer_core::emit_local_get(w, s_idx)
-    // GC array indices are i32, while wasm32-gc scalar locals use the
-    // widened i64 representation used by the Memory64 ABI.
-    writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    // GC array indices are i32. Narrow only for Memory64, where scalar locals
+    // use the widened i64 representation; memory32 already has a true i32.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, s_val)
     if array_type == i32_array_type {
         writer_gc::emit_gc_array_set_i32(w, array_type)
