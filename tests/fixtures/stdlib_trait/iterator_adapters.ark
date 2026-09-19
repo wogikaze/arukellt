@@ -51,6 +51,11 @@ fn main() {
     assert(len(method_pipeline) == 2)
     assert(get_unchecked(method_pipeline, 0) == 2)
     assert(get_unchecked(method_pipeline, 1) == 4)
+    let mut method_for_total: i32 = 0
+    for value in v.iter().map(double).filter(is_even).take(2) {
+        method_for_total = method_for_total + value
+    }
+    assert(method_for_total == 6)
     // fold (named callback — anonymous closures emit GC stubs that fail validate)
     let sum = iter::iter_fold_i32(v, 0, add_i32)
     assert(sum == 15)
