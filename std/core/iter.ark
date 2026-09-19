@@ -217,6 +217,15 @@ impl Iterator for RangeIter {
     }
 }
 
+impl IntoIterator for Range {
+    type Item = i32
+    type IntoIter = RangeIter
+
+    fn into_iter(self: Range) -> RangeIter {
+        range_iter(self)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // MapIter — lazy map adapter
 // ---------------------------------------------------------------------------

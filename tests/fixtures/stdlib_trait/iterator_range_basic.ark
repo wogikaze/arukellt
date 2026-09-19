@@ -11,4 +11,11 @@ fn main() {
     test::assert_eq_i32(get_unchecked(collected, 2), 2)
     test::assert_eq_i32(get_unchecked(collected, 3), 3)
     test::assert_eq_i32(get_unchecked(collected, 4), 4)
+
+    let source = core::range_new(2, 5)
+    let iterator = source.into_iter()
+    match iterator.next() {
+        Some(value) => test::assert_eq_i32(value, 2),
+        None => panic("expected first range item"),
+    }
 }
