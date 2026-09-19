@@ -52,6 +52,9 @@ RFC-011: **37**。
   `tests/fixtures/stdlib_trait/iterator_vec_iter_next.ark` and
   `tests/fixtures/trait/trait_core_v2.ark`. Both GC P2 and linear P1 compile,
   validation, and runtime checks pass; the latter produces `79`.
+- Follow-up commit `c8707c13e` makes `Iterator::next` the only stdlib adapter
+  implementation and verifies the existing `for` lowering against the
+  trait-only `VecIter` path on both targets.
 - This receipt does not mark any acceptance checkbox complete: eager/lazy
   duplication, canonical `collect`, desugared-iteration equivalence, and the
   RFC-011 residual audit still require implementation and review.

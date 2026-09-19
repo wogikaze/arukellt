@@ -97,6 +97,10 @@ type-specific function variants.
 - Evidence: `selfhost build-compiler` PASS; `verify lane` PASS including the
   touched-code quality ratchet; `docs check` PASS; GC P2 component compile and
   run PASS; linear P1 Wasm validate and run PASS.
+- Follow-up commit `c8707c13e` removes the duplicate inherent `next` methods
+  from all current adapters. The trait implementation is now the sole stdlib
+  `next` definition while the existing structural `for` lowering remains
+  compatible on GC and linear-memory targets.
 
 This is a partial implementation receipt, not a close receipt. Lazy adapter
 methods, generic collection implementations, canonical `collect`, structural
