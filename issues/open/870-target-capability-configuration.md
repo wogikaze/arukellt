@@ -42,3 +42,12 @@ RFC-011: **9, 39, 40**。
 - [ ] Acceptance の一部だけで done にしない
 - [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
 - [ ] 親 #852 の担当項目を evidence 付きで更新する
+
+## Progress receipt (not done; 2026-09-19)
+
+- Implementation: `b6b7b2e0f` (`language-v2: separate target capability axes`).
+- Normative updates: [ADR-074](../../docs/adr/ADR-074-language-v2-target-capability-configuration.md), ADR-007, ADR-013, ADR-035, and RFC-011 sections 9, 39, and 40.
+- Contract: `docs/data/project-state.toml` now owns GC availability, default/allowed memory widths, host-profile support, and artifact-kind support. CLI parsing, generated target helpers, driver config, and Wasm writer propagation consume the same axes. `wasm32-gc` keeps GC and Memory64 independent; `wasm32` remains the Memory32 linear-memory fallback. Component and WAT scaffold paths resolve `auto` to Memory32 and reject explicit Memory64.
+- Fixtures: `target_capability/gc_linear_same_source.ark` and `target_capability/wasm32_same_source.ark` cover the same source on the GC and linear-memory paths; `diagnostics/target_memory_width_unavailable.ark` covers the target-specific Memory64 rejection.
+- Verification: `verify lane` passed (format, lint, quality ratchet); the four targeted target-contract tests passed; ADR checks, Python compilation, docs regeneration/freshness/consistency, and `git diff --check` passed. The docs check doc-example subgate remains 0 pass / 7 fail for the same #854 bootstrap mismatch.
+- Blocker: `python3 scripts/manager.py selfhost build-compiler` remains blocked by the pre-existing #854 `unbox`/`slice_get` generic return mismatch. Therefore canonical selfhost compile/validate/runtime evidence for this issue is not yet available, and this issue remains open.

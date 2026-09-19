@@ -80,6 +80,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 ### Targets / backends
 
 - [ ] #870 — target capability / Memory64 / host profile を分解する — RFC 9, 39, 40 — depends: none
+  - Progress (not done, 2026-09-19): implementation `b6b7b2e0f`; ADR-074, ADR-007/013/035, RFC-011, target contract data, CLI/config/Wasm propagation, and positive/diagnostic fixtures are synchronized. Quality, targeted contract, ADR, and docs-generation checks pass; canonical selfhost compile/validate/runtime evidence remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch, so #870 stays open.
 - [ ] #871 — Wasm GC aggregate lowering を完成する — RFC 8 (aggregate) — depends: 854, 870
 - [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
