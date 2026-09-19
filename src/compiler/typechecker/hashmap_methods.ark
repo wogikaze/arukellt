@@ -57,9 +57,11 @@ fn infer_builtin_hashmap_method(
     let key_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
     let value_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 1)
     if explicit_args == 1 {
-        let arg_node = ast_access::node_child_at(node, 1)
-        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
-        unify::unify(env, key_ty, arg_ty)
+        unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
+    }
+    if explicit_args == 2 {
+        unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
+        unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 2, value_ty)
     }
     if !hashmap_api::validate_hashmap_method(env, concat(String_from("HashMap::"), method_name), recv_ty) {
         return hashmap_method_return_type(clone(method_name), value_ty)
@@ -86,12 +88,28 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
         eq(clone(method_name), String_from("is_empty"))
     }
     if explicit_args == 1 {
-        return eq(clone(method_name), String_from("insert")) ||
         eq(clone(method_name), String_from("get")) ||
         eq(clone(method_name), String_from("contains_key")) ||
         eq(clone(method_name), String_from("remove"))
     }
+    if explicit_args == 2 {
+        return eq(clone(method_name), String_from("insert"))
+    }
     false
+}
+
+fn unify_hashmap_method_arg(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    child_idx: i32,
+    expected_ty: TypeInfo
+) {
+    let arg_node = ast_access::node_child_at(node, child_idx)
+    let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+    unify::unify(env, expected_ty, arg_ty)
 }
 
 fn hashmap_method_return_type(method_name: String, value_ty: TypeInfo) -> TypeInfo {
