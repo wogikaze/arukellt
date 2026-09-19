@@ -1,5 +1,5 @@
 // Export with f32 uses a fixture-specific f32 adapter while core lowering still widens to f64.
-pub fn square32(x: f32) -> f32 {
+export fn square32(x: f32) -> f32 {
     x
 }
 

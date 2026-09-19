@@ -6,11 +6,11 @@ resource ForwardHandle {
     id: i32,
 }
 
-pub fn wrap(val: i32) -> ForwardHandle {
+export fn wrap(val: i32) -> ForwardHandle {
     ForwardHandle { id: val }
 }
 
-pub fn unwrap_handle(h: ForwardHandle) -> i32 {
+export fn unwrap_handle(h: ForwardHandle) -> i32 {
     h.id
 }
 

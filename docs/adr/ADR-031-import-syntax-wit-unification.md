@@ -1,6 +1,6 @@
 # ADR-031: import 構文と WIT パッケージ識別子の統合
 
-ステータス: **ACCEPTED** — 二層分離を確定。`use` は Layer S、`import` は Layer C に予約
+ステータス: **ACCEPTED** — 二層分離を確定。`use` は Layer S、string-literal `import` は Layer C（詳細は ADR-071）
 日付: 2026-04-25
 トラック: language-design
 Issue: [#123](../../issues/done/123-import-syntax-unification.md)
@@ -22,7 +22,7 @@ Arukellt は現時点で、言語が Component Model 出力を目指すにつれ
 これらの表面は、WIT テキストが `.wit` とツールにあり `use` パス内にないため、現時点では字句的に衝突しない。しかし Layer C 宣言がソースに近づくにつれ 3 つの問題が浮かぶ:
 
 1. **概念的混乱** — LLM と新規コントリビュータが `std::io` と `wasi:io/streams` を同等概念と混同する。そうではない（`std::io` は Arukellt stdlib モジュールパス。`wasi:io/streams` は WebAssembly Component Model パッケージ識別子）。
-2. **未定義の構文** — Arukellt ソースから外部 WIT インターフェースを参照するソースレベル構文がまだない（Component Model 出力に必要、issue #124）。
+2. **採択時点で未定義だった構文** — Arukellt ソースから外部 WIT インターフェースを参照する構文がなかった（現在は #867 / ADR-071 で実装済み）。
 3. **2 つの `import` 表面** — `import math`（ローカルファイル）と `use std::io`（stdlib パス）が共存し、新規モジュールごとに「どちらのキーワード？」という疑問を生む。
 
 ---
@@ -94,7 +94,7 @@ use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 
 **欠点:**
 - 2 概念（「Layer S」vs「Layer C」）のドキュメントが必要
-- ソース内のインライン Component Model 宣言には依然構文決定が必要（将来フェーズに延期）
+- ソース内の Component export modifier と WIT import identity は ADR-071 で確定した。world 宣言など別の inline Component surface はこの ADR の範囲外である。
 
 **判定**: **Chosen**（決定節参照）。
 
@@ -156,7 +156,7 @@ import "wasi:cli/stdin@0.2.10"   // WIT package import via freed keyword
 
 2. **`import <single-identifier>` を次の移行で廃止、最終的に削除** — ローカルファイル import は `use <identifier>` に移行。廃止診断: W0101。
 
-3. **`import` キーワードを Layer C（WIT/Component Model）用に予約** — 具体構文は TBD（現候補は文字列形式 `import "wasi:cli/stdin@0.2.10"`。issue #124 参照）。
+3. **`import` キーワードを Layer C（WIT/Component Model）に使用** — string-literal 形式 `import "wasi:cli/stdin@0.2.10"` を採用する。source visibility と Component export の詳細、version 比較、canonical path は ADR-071 が定める。
 
 4. **WIT パッケージ識別子は Layer C 境界データのまま** — `.wit`、CLI フラグ、マニフェストに現れる。`use` パスセグメントとしては**無効**。
 
@@ -196,7 +196,7 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 | `use std::io` | 不変、警告なし | すべての stdlib / host import |
 | `use path::to::module` | 不変、警告なし | すべての `use` パス import |
 | `import math` (local file) | W0101 廃止警告。依然コンパイル可 | ローカルファイルモジュール import のみ |
-| `import "wasi:cli/stdin"` | 新 Layer C 構文（`--emit component` でゲート） | 新規コードのみ |
+| `import "wasi:cli/stdin"` | Layer C 構文。version 省略は loaded WIT document へ解決 | 新規コードのみ |
 
 `import <single-id>` から `use` への移行の推定フィクスチャ影響: **局所的**。stdlib は全体で `use` を使用。ほとんどの `import <single-id>` は特定テストフィクスチャに現れる。
 
@@ -210,6 +210,7 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 
 - `use` は安定した永続の Arukellt ソースモジュール import キーワード。再定義されない。
 - `import` は Component Model / WIT 境界キーワードとなる。`import <single-id>` セマンティクスは移行対象。
+- 明示的な `export fn` が Component export を作り、`pub` だけでは export されない。
 - ツール（IDE、LLM プロンプト、ドキュメント）は `use` と `import` を同義語ではなく別レイヤーとして説明すべき。
 - `std::` パスプレフィックスは Arukellt ソース名前空間であり、WIT 名前空間ではない。WIT identity 用語の `wasi:` や `arukellt:` と同等ではない。
 
@@ -225,3 +226,4 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 - [../module-resolution.md](../module-resolution.md) — `use` / `import` の Layer S 解決挙動。
 - Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 ネイティブ component 出力。
 - Issue [#124](../../issues/done/124-wit-component-import-syntax.md) — WIT component import 構文実装。
+- ADR-071: `pub` と Component export、WIT identity の境界

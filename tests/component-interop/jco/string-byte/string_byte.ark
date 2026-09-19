@@ -1,6 +1,6 @@
 // Component interop smoke test: string parameter canonical ABI with u8 result.
 
-pub fn byte_text(text: String) -> u8 {
+export fn byte_text(text: String) -> u8 {
     if len(text) == 0 {
         return 7u8
     }

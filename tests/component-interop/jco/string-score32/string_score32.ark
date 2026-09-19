@@ -1,6 +1,6 @@
 // Component interop smoke test: string parameter canonical ABI with f32 result.
 
-pub fn score32_text(text: String) -> f32 {
+export fn score32_text(text: String) -> f32 {
     if len(text) == 0 {
         return f64_to_f32(0.5)
     }

@@ -6,11 +6,11 @@ resource GcHandle {
     id: i32,
 }
 
-pub fn make_handle(val: i32) -> GcHandle {
+export fn make_handle(val: i32) -> GcHandle {
     GcHandle { id: val }
 }
 
-pub fn consume(h: GcHandle) -> i32 {
+export fn consume(h: GcHandle) -> i32 {
     h.id
 }
 

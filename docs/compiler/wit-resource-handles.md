@@ -46,7 +46,7 @@ model when #054 lands. Phase 1 adapters pass handles through as raw `i32`.
 
 ### Export: `export_resource_roundtrip.ark`
 
-- Ark: `resource Handle { id: s32 }` + `pub fn pass_handle(h: i32) -> i32`.
+- Ark: `resource Handle { id: s32 }` + `export fn pass_handle(h: i32) -> i32`.
 - Component wrapper: type section `resource` + `own<handle>`, canon lift on `own<handle>`.
 - `--emit wit` golden: `export_resource_roundtrip.expected.wit`.
 

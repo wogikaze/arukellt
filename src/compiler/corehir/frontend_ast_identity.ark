@@ -11,3 +11,7 @@ fn corehir_node_text(node: AstNode) -> String {
 fn corehir_node_is_pub(node: AstNode) -> bool {
     node.is_pub
 }
+
+fn corehir_node_is_component_export(node: AstNode) -> bool {
+    node.is_component_export
+}

@@ -4,7 +4,7 @@ enum Shape {
     Square(f64),
 }
 
-pub fn measure(s: Shape) -> i32 {
+export fn measure(s: Shape) -> i32 {
     match s {
         Shape::Circle(_) => 1,
         Shape::Square(_) => 2,

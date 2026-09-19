@@ -66,5 +66,6 @@ fn serialize_node(buf: Vec<i32>, node: AstNode) {
     if node.is_pub { flags = flags | 2 }
     if node.is_async { flags = flags | 4 }
     if node.is_move { flags = flags | 8 }
+    if node.is_component_export { flags = flags | 16 }
     buf_push_byte(buf, flags)
 }

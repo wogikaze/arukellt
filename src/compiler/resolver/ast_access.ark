@@ -36,6 +36,10 @@ fn node_is_pub(node: AstNode) -> bool {
     ast::ast_node_is_pub(node)
 }
 
+fn node_is_component_export(node: AstNode) -> bool {
+    ast::ast_node_is_component_export(node)
+}
+
 fn node_is_async(node: AstNode) -> bool {
     ast::ast_node_is_async(node)
 }

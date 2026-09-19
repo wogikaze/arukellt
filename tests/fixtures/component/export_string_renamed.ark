@@ -1,5 +1,5 @@
 // Export with String should not depend on the specific function name used by the smoke fixture.
-pub fn echo_text(value: String) -> String {
+export fn echo_text(value: String) -> String {
     value
 }
 

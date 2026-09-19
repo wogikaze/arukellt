@@ -1,0 +1,19 @@
+// `pub` is source visibility; `export` is the Component boundary.
+fn private_component_only(value: i32) -> i32 {
+    value + 1
+}
+
+pub fn source_only(value: i32) -> i32 {
+    value
+}
+
+export fn component_only(value: i32) -> i32 {
+    private_component_only(value)
+}
+
+pub export fn public_and_component(value: i32) -> i32 {
+    value + 2
+}
+
+fn main() {
+}

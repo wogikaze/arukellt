@@ -828,10 +828,10 @@ is never accepted as a successful build.
 | **Severity** | warning |
 | **Phase** | component |
 | **Maturity** | implemented; emitted |
-| **Message** | function has non-exportable parameter type, skipped from component exports |
+| **Message** | source-visible function has no explicit Component export declaration and is skipped from component exports |
 
-A public function uses parameter types that cannot be lowered through the
-canonical ABI and is therefore omitted from the component's export list.
+A source-visible function without `export fn` is omitted from the Component export list.
+`pub` controls source-module visibility and does not imply a Component export.
 
 ---
 
@@ -1029,7 +1029,7 @@ one, please file a bug report.
 | W0002 | warning | lint-post-resolve | deprecated target alias |
 | W0003 | warning | lint-post-resolve | unused symbol |
 | W0004 | **error** | backend-validate | generated Wasm failed validation |
-| W0005 | warning | component | non-exportable function skipped from component exports |
+| W0005 | warning | component | source-visible function without explicit export fn skipped from component exports |
 | W0006 | warning | lint-post-resolve | unused import |
 | W0007 | warning | lint-post-resolve | unused binding |
 | W0008 | warning | lint-post-resolve | documentation drift (declared; not emitted) |

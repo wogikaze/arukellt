@@ -1,6 +1,6 @@
 // Component interop smoke test: renamed u64 scalar parameter/result.
 
-pub fn widen_unsigned(n: u64) -> u64 {
+export fn widen_unsigned(n: u64) -> u64 {
     n + 4000000000u64
 }
 

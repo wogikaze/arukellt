@@ -5,11 +5,11 @@ enum Color {
     Blue,
 }
 
-pub fn rotate_color(c: Color) -> i32 {
+export fn rotate_color(c: Color) -> i32 {
     1
 }
 
-pub fn color_rank(c: Color) -> i32 {
+export fn color_rank(c: Color) -> i32 {
     match c {
         Color::Red => 1,
         Color::Green => 2,

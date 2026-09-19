@@ -5,7 +5,7 @@ struct Handle {
     id: i32,
 }
 
-pub fn get_handle_id(h: Handle) -> i32 {
+export fn get_handle_id(h: Handle) -> i32 {
     h.id
 }
 

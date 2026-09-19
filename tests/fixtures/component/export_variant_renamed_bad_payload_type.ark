@@ -4,7 +4,7 @@ enum Shape {
     Square(f64),
 }
 
-pub fn measure(s: Shape) -> f64 {
+export fn measure(s: Shape) -> f64 {
     0.0
 }
 

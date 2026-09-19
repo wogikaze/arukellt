@@ -25,7 +25,7 @@ fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
         let kind = frontend_ast_identity::corehir_node_kind(decl)
         if frontend_decl_kind::corehir_kind_is_decl_fn(kind) {
             let name = decl_node_identity::decl_name(decl)
-            if decl_node_identity::decl_is_pub(decl) && should_export_func(clone(name)) {
+            if decl_node_identity::decl_is_component_export(decl) && should_export_func(clone(name)) {
                 push(export_names, name)
             }
         }

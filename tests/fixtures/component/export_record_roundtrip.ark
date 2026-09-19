@@ -4,6 +4,6 @@ struct Point {
     y: i32,
 }
 
-pub fn shift_point(p: Point) -> Point {
+export fn shift_point(p: Point) -> Point {
     Point { x: p.x + 1, y: p.y - 1 }
 }

@@ -29,6 +29,10 @@ fn corehir_node_is_pub(node: AstNode) -> bool {
     frontend_ast_identity::corehir_node_is_pub(node)
 }
 
+fn corehir_node_is_component_export(node: AstNode) -> bool {
+    frontend_ast_identity::corehir_node_is_component_export(node)
+}
+
 fn corehir_node_span_start(node: AstNode) -> i32 {
     frontend_ast_span::corehir_node_span_start(node)
 }

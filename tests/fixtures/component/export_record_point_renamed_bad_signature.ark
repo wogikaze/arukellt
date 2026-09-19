@@ -4,11 +4,11 @@ struct Point {
     y: i32,
 }
 
-pub fn length_sq(p: Point) -> Point {
+export fn length_sq(p: Point) -> Point {
     p
 }
 
-pub fn translate(a: Point, b: Point) -> Point {
+export fn translate(a: Point, b: Point) -> Point {
     Point { x: a.x + b.x, y: a.y + b.y }
 }
 

@@ -5,7 +5,7 @@ enum Event {
     Done,
 }
 
-pub fn event_code(e: Event) -> i32 {
+export fn event_code(e: Event) -> i32 {
     0
 }
 

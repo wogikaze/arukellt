@@ -1,7 +1,7 @@
 // Export with Vec<bool> parameter — non-s32 list element canonical ABI is not supported yet.
 // WIT: list<bool> requires a dedicated non-s32 list lift/lower adapter.
 // Expected: E0401 compile-time error.
-pub fn flag_count(values: Vec<bool>) -> i32 {
+export fn flag_count(values: Vec<bool>) -> i32 {
     0
 }
 

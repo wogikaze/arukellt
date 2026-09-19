@@ -4,11 +4,11 @@ struct Point {
     y: i64,
 }
 
-pub fn distance_sq(p: Point) -> i32 {
+export fn distance_sq(p: Point) -> i32 {
     0
 }
 
-pub fn add_points(a: Point, b: Point) -> Point {
+export fn add_points(a: Point, b: Point) -> Point {
     a
 }
 

@@ -6,7 +6,7 @@ struct Perms {
     write: bool,
 }
 
-pub fn has_read(p: Perms) -> bool {
+export fn has_read(p: Perms) -> bool {
     p.read
 }
 

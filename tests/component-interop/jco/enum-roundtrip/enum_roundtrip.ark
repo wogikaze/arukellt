@@ -6,7 +6,7 @@ enum Color {
     Blue,
 }
 
-pub fn rotate_color(c: Color) -> Color {
+export fn rotate_color(c: Color) -> Color {
     match c {
         Color::Red => Color::Green,
         Color::Green => Color::Blue,

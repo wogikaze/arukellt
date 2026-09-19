@@ -1,6 +1,6 @@
 // Export with String parameter and scalar result maps to WIT string -> s32.
 
-pub fn text_len(text: String) -> i32 {
+export fn text_len(text: String) -> i32 {
     len(text)
 }
 

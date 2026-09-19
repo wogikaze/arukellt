@@ -1,2 +1,2 @@
-pub fn run() {}
+export fn run() {}
 fn main() {}

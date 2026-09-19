@@ -5,7 +5,7 @@ enum Shape {
     Square(f64),
 }
 
-pub fn area(s: Shape) -> f64 {
+export fn area(s: Shape) -> f64 {
     match s {
         Shape::Circle(r) => 3.14159 * r * r,
         Shape::Square(side) => side * side,

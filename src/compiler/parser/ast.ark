@@ -21,6 +21,10 @@ fn ast_node_is_pub(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_pub(node)
 }
 
+fn ast_node_is_component_export(node: AstNode) -> bool {
+    ast_fields_record::ast_node_is_component_export(node)
+}
+
 fn ast_node_is_mut(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_mut(node)
 }

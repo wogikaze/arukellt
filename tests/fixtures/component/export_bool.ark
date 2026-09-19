@@ -1,9 +1,9 @@
 // Export with boolean logic
-pub fn is_even(n: i32) -> bool {
+export fn is_even(n: i32) -> bool {
     n % 2 == 0
 }
 
-pub fn is_positive(n: i32) -> bool {
+export fn is_positive(n: i32) -> bool {
     n > 0
 }
 

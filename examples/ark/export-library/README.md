@@ -2,7 +2,7 @@
 
 Shows the **compile-once, call-from-anywhere** path:
 
-1. `calculator.ark` defines `pub fn` exports with component-compatible scalar types.
+1. `calculator.ark` defines `export fn` Component exports with component-compatible scalar types.
 2. `arukellt compile --target wasm32-gc --emit component` emits a standard WASI P2
    core module, then packages it as `calculator.component.wasm` with the official
    `wasm-tools component embed/new` pipeline and canonical-ABI exports.
@@ -41,4 +41,4 @@ wasmtime run --wasm gc --wasm component-model \
 - Scalar exports are the portable library boundary currently supported by the standard
   P2 core emitter. Unsupported aggregate signatures are rejected before packaging.
 - Core Wasm (`--emit wasm`) is a separate artifact; components add the canonical ABI boundary.
-- Library modules with both `pub fn` exports and a `main` entry compile as library components when exports are present; command-only programs use the P2 command wrapper.
+- Library modules with both `export fn` declarations and a `main` entry compile as library components when exports are present; command-only programs use the P2 command wrapper.

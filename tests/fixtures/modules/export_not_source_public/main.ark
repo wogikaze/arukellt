@@ -1,0 +1,5 @@
+use api
+
+fn main() {
+    let _ = api::hidden()
+}

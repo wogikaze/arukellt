@@ -100,6 +100,7 @@ fn deserialize_node(data: String, pos: i32) -> (AstNode, i32) {
         is_pub: (flags & 2) != 0,
         is_async: (flags & 4) != 0,
         is_move: (flags & 8) != 0,
+        is_component_export: (flags & 16) != 0,
     }
     (node, pos)
 }

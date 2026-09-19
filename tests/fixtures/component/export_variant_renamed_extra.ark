@@ -4,14 +4,14 @@ enum Shape {
     Square(f64),
 }
 
-pub fn measure(s: Shape) -> f64 {
+export fn measure(s: Shape) -> f64 {
     match s {
         Shape::Circle(r) => 3.14159 * r * r,
         Shape::Square(side) => side * side,
     }
 }
 
-pub fn perimeter_hint(s: Shape) -> f64 {
+export fn perimeter_hint(s: Shape) -> f64 {
     match s {
         Shape::Circle(r) => 6.28318 * r,
         Shape::Square(side) => 4.0 * side,

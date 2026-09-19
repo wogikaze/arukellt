@@ -5,7 +5,7 @@ enum Color {
     Blue,
 }
 
-pub fn next_color(c: Color) -> Color {
+export fn next_color(c: Color) -> Color {
     match c {
         Color::Red => Color::Green,
         Color::Green => Color::Blue,
@@ -13,7 +13,7 @@ pub fn next_color(c: Color) -> Color {
     }
 }
 
-pub fn color_to_value(c: Color) -> i32 {
+export fn color_to_value(c: Color) -> i32 {
     match c {
         Color::Red => 1,
         Color::Green => 2,
@@ -21,7 +21,7 @@ pub fn color_to_value(c: Color) -> i32 {
     }
 }
 
-pub fn color_identity(c: Color) -> Color {
+export fn color_identity(c: Color) -> Color {
     c
 }
 

@@ -1,6 +1,6 @@
 // Export with tuple return — maps to WIT tuple<s32, s32>
 // Fixture-specific adapter lifts the tuple result through memory.
-pub fn swap(a: i32, b: i32) -> (i32, i32) {
+export fn swap(a: i32, b: i32) -> (i32, i32) {
     (b, a)
 }
 

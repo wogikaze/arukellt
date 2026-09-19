@@ -6,7 +6,7 @@ struct Point {
     z: i32,
 }
 
-pub fn distance_sq(p: Point) -> i32 {
+export fn distance_sq(p: Point) -> i32 {
     p.x * p.x + p.y * p.y + p.z * p.z
 }
 

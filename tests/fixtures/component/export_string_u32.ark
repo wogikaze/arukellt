@@ -1,6 +1,6 @@
 // Export with String parameter and u32 result maps to WIT string -> u32.
 
-pub fn count32_text(text: String) -> u32 {
+export fn count32_text(text: String) -> u32 {
     if len(text) == 0 {
         return 32u32
     }

@@ -1,6 +1,6 @@
 // Component interop smoke test: tuple<s64, s64> result canonical ABI.
 
-pub fn wide_pair(a: i64, b: i64) -> (i64, i64) {
+export fn wide_pair(a: i64, b: i64) -> (i64, i64) {
     (b, a)
 }
 

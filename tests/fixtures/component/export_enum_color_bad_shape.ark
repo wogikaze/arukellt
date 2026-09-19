@@ -6,11 +6,11 @@ enum Color {
     Yellow,
 }
 
-pub fn next_color(c: Color) -> Color {
+export fn next_color(c: Color) -> Color {
     c
 }
 
-pub fn color_to_value(c: Color) -> i32 {
+export fn color_to_value(c: Color) -> i32 {
     0
 }
 

@@ -30,7 +30,7 @@
 | `W0002` | warning | `target` | deprecated target alias |
 | `W0003` | warning | `lint-post-resolve` | unused symbol |
 | `W0004` | error | `backend-validate` | generated Wasm failed validation |
-| `W0005` | warning | `component` | non-exportable component export |
+| `W0005` | warning | `component` | source-visible function without explicit `export fn` skipped |
 | `W0006` | warning | `lint-post-resolve` | unused import |
 | `W0007` | warning | `lint-post-resolve` | unused binding |
 | `W0008` | warning | `lint-post-resolve` | documentation drift (declared; not emitted) |

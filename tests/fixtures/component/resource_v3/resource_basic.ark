@@ -5,11 +5,11 @@ resource Handle {
     id: i32,
 }
 
-pub fn create_handle(val: i32) -> Handle {
+export fn create_handle(val: i32) -> Handle {
     Handle { id: val }
 }
 
-pub fn get_id(h: Handle) -> i32 {
+export fn get_id(h: Handle) -> i32 {
     h.id
 }
 

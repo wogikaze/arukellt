@@ -5,7 +5,7 @@ enum Shape {
     Square(f64),
 }
 
-pub fn normalize_shape(s: Shape) -> Shape {
+export fn normalize_shape(s: Shape) -> Shape {
     match s {
         Shape::Circle(r) => Shape::Square(r + 1.0),
         Shape::Square(side) => Shape::Circle(side + 2.0),

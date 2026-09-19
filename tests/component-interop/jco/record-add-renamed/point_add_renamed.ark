@@ -5,7 +5,7 @@ struct Point {
     y: i32,
 }
 
-pub fn merge_points(a: Point, b: Point) -> Point {
+export fn merge_points(a: Point, b: Point) -> Point {
     Point { x: a.x + b.x, y: a.y + b.y }
 }
 

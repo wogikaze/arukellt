@@ -1,6 +1,6 @@
 // Component interop smoke test: string parameter/result canonical ABI is name-independent.
 
-pub fn echo_text(value: String) -> String {
+export fn echo_text(value: String) -> String {
     value
 }
 

@@ -3,25 +3,25 @@
 // Tests that a single component can export functions with different
 // scalar types (i32, i64, f64, bool) through the Component Model ABI.
 // This validates heterogeneous function signatures in one world.
-pub fn add_i32(a: i32, b: i32) -> i32 {
+export fn add_i32(a: i32, b: i32) -> i32 {
     a + b
 }
 
-pub fn add_i64(a: i64, b: i64) -> i64 {
+export fn add_i64(a: i64, b: i64) -> i64 {
     a + b
 }
 
-pub fn mul_f64(a: f64, b: f64) -> f64 {
+export fn mul_f64(a: f64, b: f64) -> f64 {
     a * b
 }
 
-pub fn is_positive(x: i32) -> bool {
+export fn is_positive(x: i32) -> bool {
     x > 0
 }
 
 // Avoid the CoreOp-bound name `abs_i32` — stdlib defer skips user bodies for
 // that symbol, so the export would never appear in the component (#810).
-pub fn absolute_i32(x: i32) -> i32 {
+export fn absolute_i32(x: i32) -> i32 {
     if x < 0 {
         -x
     } else {

@@ -5,7 +5,7 @@ enum Status {
     Waiting,
 }
 
-pub fn status_code(s: Status) -> i32 {
+export fn status_code(s: Status) -> i32 {
     match s {
         Status::Ready => 1,
         Status::Waiting => 2,

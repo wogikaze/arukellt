@@ -4,15 +4,15 @@ struct Point {
     y: i32,
 }
 
-pub fn length_sq(p: Point) -> i32 {
+export fn length_sq(p: Point) -> i32 {
     p.x * p.x + p.y * p.y
 }
 
-pub fn translate(a: Point, b: Point) -> Point {
+export fn translate(a: Point, b: Point) -> Point {
     Point { x: a.x + b.x, y: a.y + b.y }
 }
 
-pub fn mirror_point(p: Point) -> Point {
+export fn mirror_point(p: Point) -> Point {
     p
 }
 

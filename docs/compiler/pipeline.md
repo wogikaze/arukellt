@@ -138,7 +138,7 @@ Full documentation: [optimization.md](optimization.md)
 
 - frontend diagnostics は parse / resolve / typecheck origin を持つ
 - backend validation failure (`W0004`) は hard error
-- component export surface では `W0005` が使われる
+- component export surface では、明示的な `export fn` がない source-visible 関数の除外に `W0005` が使われる
 - hidden snapshot / dump support は `ARUKELLT_DUMP_PHASES` と `ARUKELLT_DUMP_DIAGNOSTICS=1`
 
 ## Test / Verification Hook

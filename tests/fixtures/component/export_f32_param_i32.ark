@@ -1,5 +1,5 @@
 // Export with f32 parameter and s32 result maps to WIT float32 -> s32.
-pub fn classify32(x: f32) -> i32 {
+export fn classify32(x: f32) -> i32 {
     7
 }
 

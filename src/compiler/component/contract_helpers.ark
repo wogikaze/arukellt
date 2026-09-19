@@ -46,12 +46,12 @@ fn component_decl_is_func(d: AstNode) -> bool {
     ast_node::node_is_fn_decl(d)
 }
 
-fn component_decl_is_pub(d: AstNode) -> bool {
-    ast_node::node_is_pub(d)
+fn component_decl_is_exported(d: AstNode) -> bool {
+    ast_node::node_is_component_export(d)
 }
 
 fn is_export_func_decl(decl: AstNode) -> bool {
-    component_decl_is_func(decl) && component_decl_is_pub(decl) && should_export_func(component_func_name(decl))
+    component_decl_is_func(decl) && component_decl_is_exported(decl) && should_export_func(component_func_name(decl))
 }
 
 fn export_decl_name(decl: AstNode) -> String {

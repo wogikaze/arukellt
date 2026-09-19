@@ -6,16 +6,16 @@ resource FileHandle {
     path_len: i32,
 }
 
-pub fn open(path: String) -> FileHandle {
+export fn open(path: String) -> FileHandle {
     FileHandle { fd: 0, path_len: len(path) }
 }
 
-pub fn read(f: FileHandle, buffer: Vec<i32>) -> i32 {
+export fn read(f: FileHandle, buffer: Vec<i32>) -> i32 {
     // Read from file handle
     f.fd
 }
 
-pub fn close(f: FileHandle) {
+export fn close(f: FileHandle) {
     // Close file handle
     let _ = f.fd
 }

@@ -1,18 +1,15 @@
 use std::host::fs
 use std::toml
+use compiler::wit_identity
 use loader::module_paths
 use loader::module_package_root
 use loader::registry_config
 
 pub fn is_wit_package_id(name: String) -> bool {
-    if starts_with(clone(name), String_from("std::")) {
-        return false
+    if len(wit_identity::wit_identifier_error(clone(name))) == 0 {
+        return true
     }
-    // Rust module paths use `::`; WIT package ids use a single `namespace:package` colon.
-    if contains(clone(name), String_from("::")) {
-        return false
-    }
-    index_of(clone(name), String_from(":")) >= 0
+    len(wit_identity::wit_package_identity_error(clone(name))) == 0
 }
 
 pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -> Vec<String> {

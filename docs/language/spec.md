@@ -74,7 +74,7 @@ Source files are UTF-8 encoded. No BOM is required.
 ```
 fn   struct   enum   let   mut   if   else   match
 while   loop   for   in   break   continue   return
-pub   import   as   where
+pub   export   import   as   where
 ```
 
 **Trait-system keywords**
@@ -444,7 +444,8 @@ impl Display for Point {
   `&&` and `||` remain built-in short-circuit operators. `__add`, `__sub`,
   `__mul`, `__div`, `__rem`, `__eq`, and `__cmp` are not operator candidates.
   The compiler's scalar opcode path is an implementation fast path for the
-  same trait protocol. Methods are mangled as `StructName__methodname`.
+  same trait protocol. The compiler chooses private backend symbols for methods;
+  their spelling is not part of the language or stable ABI contract.
 
 ---
 
@@ -545,7 +546,8 @@ expr.method(arg1, …)
 ```
 
 Resolved via `impl` blocks. The receiver is the first parameter.
-Methods are mangled as `TypeName__method_name` internally.
+The compiler chooses private backend symbols for methods. A concrete symbol
+spelling is not part of the language or stable ABI contract.
 
 ### 3.7 Field Access
 
@@ -948,9 +950,22 @@ fn name(param1: T1, param2: T2) -> RetType {
 pub fn name<T>(param: T) -> T {
     body
 }
+
+export fn component_name(param: i32) -> i32 {
+    body
+}
+
+pub export fn public_component_name(param: i32) -> i32 {
+    body
+}
 ```
 
 - `pub` makes the function visible to other modules.
+- `export` makes the function a Component/WIT export root without changing
+  source-module visibility. `pub export` applies both contracts.
+- `pub` alone never creates a Component or raw Wasm export.
+- `export` is valid only on function declarations. Modifier order is
+  `[pub] [async] export fn`.
 - Return type defaults to `()` if omitted.
 
 #### 6.1.1 Multi-Clause Function Definitions <!-- stability: provisional -->
@@ -1162,9 +1177,12 @@ import utils as u
 as `use`. It emits `W0101` at parse phase. Qualified access via
 `math::add(…)` remains accepted so existing source can migrate incrementally.
 
-String-literal `import` belongs to the future Component Model / WIT boundary;
-its stable contract is tracked separately in issue #867. Source module imports
-should use `use`.
+String-literal `import` is the Layer C Component Model / WIT boundary. Its
+identifier uses `namespace:package/interface[@version]`; a supplied full
+version must match the loaded WIT document exactly, while an omitted version
+resolves to that document's version. `use` and `::` remain the Layer S source
+namespace and never become WIT identifiers. The source/export split and
+canonical identity are defined by [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md).
 Normative layer contract: [../spec/import-system.md](../spec/import-system.md).
 
 ### 7.2 Module Structure
@@ -1692,18 +1710,20 @@ by the compiler without an ADR.
 
 ```ebnf
 module      = doc_comment* import_decl* item* ;
-import_decl = legacy_import | use_decl ;
+import_decl = legacy_import | wit_import | use_decl ;
 legacy_import
             = "import" IDENT ("as" IDENT)? ;
+wit_import  = "import" STRING ("as" IDENT)? ;
 use_decl   = "pub"? "use" use_path ("as" IDENT)?
               | "pub"? "use" use_path "::" "{" use_item_list "}" ;
 use_path   = IDENT ("::" IDENT)* ;
 use_item_list
             = IDENT ("," IDENT)* ","? ;
-item        = ("pub")? ( fn_def | fn_clause_group | struct_def | enum_def
-                        | trait_def | impl_block ) ;
+item        = fn_def | fn_clause_group
+            | ("pub")? (struct_def | enum_def | trait_def | impl_block) ;
 
-fn_def      = "fn" IDENT type_params? "(" param_list? ")"
+fn_prefix   = "pub"? "async"? "export"? ;
+fn_def      = fn_prefix "fn" IDENT type_params? "(" param_list? ")"
               ("->" type_expr)? block ;
               (* unchanged -- single body form *)
 
@@ -1712,7 +1732,7 @@ fn_clause_group
               (* one or more consecutive fn_clause with same name *)
               (* optionally followed by where block *)
 
-fn_clause   = "fn" IDENT type_params? "(" clause_params? ")"
+fn_clause   = fn_prefix "fn" IDENT type_params? "(" clause_params? ")"
               ("->" type_expr)? ("|" expr)? "=" expr ;
               (* mandatory `= expr` body -- no block form *)
               (* optional guard via `| expr` before `=` *)
@@ -1861,6 +1881,7 @@ are defined in ADR-007; implementation migration status is in `docs/current-stat
 | ADR-011 | Host-bound APIs in `std::host::*`; pure APIs in `std::*` |
 | ADR-013 | Primary target = `wasm32-gc` (default host WASI P2) |
 | ADR-031 | Import / WIT package syntax unification (supersedes ADR-025/026 exploration) |
+| ADR-071 | `pub` と Component export、WIT identity の境界 |
 | ADR-044 | Trait / method syntax adopted (supersedes ADR-004) |
 | ADR-045 | Native/LLVM decision deferral, superseded by ADR-049 for the limited native-cpp executor scope |
 | ADR-049 | Native C99 selfhost executor with a compiler-private ABI; current implementation remains scaffold |

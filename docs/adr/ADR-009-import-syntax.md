@@ -1,6 +1,6 @@
 # ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離
 
-ステータス: **ACCEPTED** — `use std::host::stdio`の`::`-separated形式をソースモジュール参照として確定
+ステータス: **ACCEPTED** — `use` と string-literal `import` を Layer S / Layer C として分離（詳細は ADR-071）
 日付: 2026-03-28
 決定者: Language-design track (issue #123)
 決定日: 2026-03-28
@@ -18,7 +18,7 @@ Component Model 対応で「ソースから外部 WIT インターフェース�
 以下の問題が顕在化した:
 
 1. LLM が `std::host::stdio` と `wasi:io/streams` を同じ層の概念として混同するリスク
-2. Arukellt ソース内で WIT パッケージを参照する際の構文が未定義
+2. 採択時点では Arukellt ソース内で WIT パッケージを参照する構文が未定義だった（現在は ADR-071 で確定）
 3. `import 単識別子` と `use パス` の 2 種類が並存し、初学者が迷う
 
 ### 他言語の事例
@@ -41,15 +41,18 @@ Normative import-system contract page: [../spec/import-system.md](../spec/import
 
 変更なし。Arukellt ソース内でモジュールを参照する際は `use path::to::module` 構文を使い続ける。
 
-### 2. `import` keyword を Component Model / WIT 境界宣言用に予約する
+### 2. `import` keyword を Component Model / WIT 境界宣言に使う
 
 `import 単識別子`（ローカルファイルモジュール）は将来 `use` に統一し deprecate する。
-空いた `import` keyword は WIT 外部インターフェース参照に使用する:
+string-literal の `import` は WIT 外部インターフェース参照に使用する:
 
 ```
-// 将来の構文案
 import "wasi:cli/stdin@0.2.10"
 ```
+
+source visibility と Component export は別契約であり、`pub fn` は暗黙に Component export されない。
+明示的な `export fn` と `pub export fn` の規則、WIT version の完全一致、canonical identity は
+[ADR-071](ADR-071-component-export-visibility-boundary.md) で固定する。
 
 ### 3. 2 層を明確に命名する
 
@@ -89,7 +92,7 @@ WIT import の想定ワークフロー:
 ## Consequences
 
 - `use` は Arukellt ソースの module 参照として確定し、今後変更しない
-- `import` keyword は将来 WIT 境界宣言専用に再定義される
+- `import` keyword は WIT 境界宣言専用である（詳細契約は ADR-071）
 - パーサーの `TokenKind::Import` は WIT import 専用として再割り当てされる
 
 ## Related
@@ -102,4 +105,5 @@ WIT import の想定ワークフロー:
 - Issue #077: WASI P2 HTTP (`std::host::http`)
 - Issue #124: WIT component import syntax (`--wit` CLI flag)
 - Issue #123: import 構文と WIT パッケージ識別子の統一方針決定
+- ADR-071: `pub` と Component export、WIT identity の境界
 - Issue #139: WASI P2 sockets (`std::host::sockets`)

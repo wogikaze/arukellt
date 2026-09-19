@@ -1,5 +1,5 @@
 // Export with i64 parameter
-pub fn double(n: i64) -> i64 {
+export fn double(n: i64) -> i64 {
     n + n
 }
 

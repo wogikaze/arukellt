@@ -83,7 +83,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 8 | GC依存 | Wasm GCを対応環境の優先backendとして積極利用しつつ、非対応環境ではlinear-memory runtime fallbackで同じsource semanticsを維持する。 | #854のADT/Box/Slice境界についてADR-060で適用を確認。tracing fallback全体は後続issue。 |
 | 9 | target capability | GC有無はbackend capabilityとし通常コードの合法性を変えない。host API、ABI、SIMD等の真にtarget固有な機能だけをcapability errorにする。 | ADR-007、ADR-013のtarget契約と統合する。 |
 | 10 | クロージャ | move捕捉、借用捕捉、escape、保持期間を明示し、クロージャ返却を検査する。 | ADR-061で採択済み。#855で shared/mutable borrow、move capture、return/store/callback escape を実装。managed closure environment の lowering は #872/#874。 |
-| 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。 | ADR-006と整合し、公開面の仕様を補う。 |
+| 11 | `pub` とexport | ソース可視性とComponent exportを別の指定と契約にする。`pub` は source visibility、`export fn` は Component export とする。 | [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md) で採択・実装済み。 |
 | 12 | Traitコア | `Self`、関連型、coherence、blanket implementation、静的または動的dispatchを定義する。 | ADR-062で `Self`、associated item、coherence、user blanket禁止、static dispatch、`dyn`境界を採択。 |
 | 13 | `?` と `From` | `Option`、`Result`、異種エラー変換をTrait解決に接続する。 | ADR-039、ADR-063で canonical `From`、E0210、`TryFrom` 非暗黙探索を採択。 |
 | 14 | magic method | `__add` などのmagic methodを演算子Traitへ移行する。 | ADR-065で採択済み。旧ADR-038を置換する。 |
@@ -103,14 +103,14 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
 | 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
 | 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | #866で `use` を正規形、legacy `import` を `W0101` 付き移行構文として実装。alias、selective import、`pub use`、loader/resolver/formatter/LSPの同期を確認。仕様は [import-system.md](../spec/import-system.md) を参照。 |
-| 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | ADR-031を正本として実装と仕様を一致させる。 |
+| 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md) で full version 比較と source/WIT namespace 分離を採択し、ADR-031を精緻化する。 |
 | 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | stdlib API移行とADR-014の確認が必要。 |
 | 33 | 真偽値 | `true` と `false` を字句リテラルとして一意に扱い、Preludeとの重複をなくす。 | lexer、name resolution、fixtureを同期する。 |
 | 34 | multi-clause関数 | 複数節の関数をどの構文単位としてまとめるかを明示する。 | parserと仕様の個別RFCが必要。 |
 | 35 | `where` | pattern match後のmulti-clauseで、`where` の束縛範囲を一貫させる。 | P0相当の文法回帰fixtureを追加する。 |
 | 36 | セミコロン | 改行、式、blockの終端規則を組み合わせたときの曖昧さをなくす。 | normative grammarへ反映する。 |
 | 37 | Iterator | eager helper、lazy adapter、`IntoIterator`、`FromIterator`を共通のTrait面へ統一する。 | ADR-036とRFC-004に統合する。 |
-| 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-006のABI分類と整合する。 |
+| 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-071 / ADR-006のABI分類と整合し、language spec の具体形式を削除済み。 |
 | 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | ADR-007、ADR-013の語彙と再整理する。 |
 | 40 | `wasm32-gc` とMemory64 | GC、memory width、host profileの既定値を別々の設定として説明する。 | ADR-013、ADR-035、current-stateとの同期が必要。 |
 | 41 | 予約キーワード | hard reserved / contextual / future-reservedに分類し、未実装という理由だけで将来語を解放しない。 | lexer契約と仕様分類を更新する。 |
@@ -204,7 +204,7 @@ Preludeは「最小であること」より、小さく安定した集合であ�
 
 ターゲット名は、値の意味論、メモリ表現、WASI profile、Component emit、Memory64のような独立した能力を一つに混ぜない候補とする。Wasm GCは対応環境での優先 lowering とし、非対応環境ではlinear-memory runtime fallbackを用意する。通常の共有・循環参照コードについて、GC featureの有無をsource-level capabilityにはしない。
 
-WIT package identifierはComponent境界の識別子として扱い、ソースモジュールの名前解決と同じ構文規則へ無理に押し込まない。
+WIT package identifierはComponent境界の識別子として扱い、ソースモジュールの名前解決と同じ構文規則へ無理に押し込まない。`import "namespace:package/interface[@version]"` は Layer C の canonical source form であり、`use ...::...` は Layer S のまま分離する。詳細は ADR-071 に従う。
 
 name manglingは安定した言語APIにせず、必要な範囲でABI資料とbackendのテストに閉じ込める。
 
@@ -247,7 +247,7 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 3. `Box<T>`、`Option<T>`、`Result<T,E>`、enumの値表現とABIをどう固定するか（source-level owned ADT 契約はADR-060で採択済み）。
 4. ADR-062 の範囲外である `dyn Trait` の動的 ABI、specialization、higher-kinded projection。
 5. Unicode normalization、grapheme cluster、その他の text segmentation API。
-6. WIT parserのcanonical pathとComponent境界の受け渡し。
+6. WIT parserのcanonical pathとComponent境界の受け渡し。Layer C の source form、full version comparison、`export fn` の境界は ADR-071 で採択済みであり、world 宣言など追加 surface は別判断とする。
 7. `wasm32-gc`、`wasm32`、Memory64、WASI profileをCLIでどう表現するか。
 8. stable機能の移行期間と、実行可能な仕様fixtureの必須範囲。
 
@@ -285,5 +285,6 @@ provisionalまたはexperimentalな面でも、変更する入力と診断をfix
 - [ADR-044: traitとメソッド構文を言語機能として採択する](../adr/ADR-044-trait-method-syntax-adopted.md)
 - [ADR-046: 公開 free function の根絶](../adr/ADR-046-free-function-eradication.md)
 - [ADR-057: セルフホスト fixture 検証を current-only 並列ゲートへ移行](../adr/ADR-057-selfhost-current-only-fixture-gate.md)
+- [ADR-071: `pub` と Component export、WIT identity の境界](../adr/ADR-071-component-export-visibility-boundary.md)
 - [RFC-004: Trait expressiveness](004-trait-expressiveness.md)
 - [ADR-069: Language v2 の String / Unicode semantics](../adr/ADR-069-language-v2-string-unicode-semantics.md)

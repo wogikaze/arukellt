@@ -5,7 +5,7 @@ enum Color {
     Green,
 }
 
-pub fn color_code(c: Color) -> i32 {
+export fn color_code(c: Color) -> i32 {
     match c {
         Color::Red => 1,
         Color::Blue => 3,

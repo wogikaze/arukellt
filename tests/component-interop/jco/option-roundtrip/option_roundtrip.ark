@@ -1,6 +1,6 @@
 // Component interop smoke test: option<s32> parameter and result canonical ABI.
 
-pub fn keep_positive(v: Option<i32>) -> Option<i32> {
+export fn keep_positive(v: Option<i32>) -> Option<i32> {
     let n = unwrap_or(v, 0)
     if n > 0 {
         Some(n + 1)

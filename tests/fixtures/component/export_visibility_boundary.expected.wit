@@ -1,0 +1,6 @@
+package arukellt:generated;
+
+world arukellt {
+    export component-only: func(value: s32) -> s32;
+    export public-and-component: func(value: s32) -> s32;
+}

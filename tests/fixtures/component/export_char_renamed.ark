@@ -1,5 +1,5 @@
 // Export with renamed char parameter/result maps to WIT char.
-pub fn choose_marker(a: char, b: char) -> char {
+export fn choose_marker(a: char, b: char) -> char {
     if a == b {
         return a
     }

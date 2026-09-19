@@ -1,10 +1,10 @@
 // Component interop test fixture: scalar type metadata not recoverable from names.
 
-pub fn negate(x: bool) -> bool {
+export fn negate(x: bool) -> bool {
     !x
 }
 
-pub fn same_char(a: char, b: char) -> bool {
+export fn same_char(a: char, b: char) -> bool {
     a == b
 }
 

@@ -1,6 +1,6 @@
 // Component interop smoke test: renamed char scalar parameter/result.
 
-pub fn choose_marker(a: char, b: char) -> char {
+export fn choose_marker(a: char, b: char) -> char {
     if a == b {
         return a
     }

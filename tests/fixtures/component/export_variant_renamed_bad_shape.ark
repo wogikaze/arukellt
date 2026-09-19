@@ -5,7 +5,7 @@ enum Shape {
     Triangle(f64),
 }
 
-pub fn measure(s: Shape) -> f64 {
+export fn measure(s: Shape) -> f64 {
     match s {
         Shape::Circle(r) => 3.14159 * r * r,
         Shape::Square(side) => side * side,

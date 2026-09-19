@@ -1,15 +1,15 @@
 // Component interop test fixture: bool exports.
 //
 // Tests that boolean scalar values pass through the Component Model ABI.
-pub fn and_bool(a: bool, b: bool) -> bool {
+export fn and_bool(a: bool, b: bool) -> bool {
     a && b
 }
 
-pub fn or_bool(a: bool, b: bool) -> bool {
+export fn or_bool(a: bool, b: bool) -> bool {
     a || b
 }
 
-pub fn not_bool(x: bool) -> bool {
+export fn not_bool(x: bool) -> bool {
     !x
 }
 

@@ -1,0 +1,6 @@
+export struct Hidden {
+    value: i32,
+}
+
+fn main() {
+}

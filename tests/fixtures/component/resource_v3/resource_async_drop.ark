@@ -5,11 +5,11 @@ resource AsyncHandle {
     value: i32,
 }
 
-pub fn create(val: i32) -> AsyncHandle {
+export fn create(val: i32) -> AsyncHandle {
     AsyncHandle { value: val }
 }
 
-pub fn process(h: AsyncHandle) -> i32 {
+export fn process(h: AsyncHandle) -> i32 {
     let v = h.value
     // h is dropped here (async-safe via handle table)
     v

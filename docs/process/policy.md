@@ -82,7 +82,7 @@ Separate **public contract** from **living implementation**:
 - `W0001`: warning, `typecheck`, same-body shared alias heuristic
 - `W0002`: warning, `target`, deprecated target alias
 - `W0004`: error, `backend-validate`, generated Wasm failed validation
-- `W0005`: warning, `component`, non-exportable function skipped from component exports
+- `W0005`: warning, `component`, source-visible function without explicit `export fn` skipped from component exports
 
 ## Verification Policy
 

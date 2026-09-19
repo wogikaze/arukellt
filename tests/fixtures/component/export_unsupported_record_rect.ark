@@ -5,7 +5,7 @@ struct Rect {
     height: i32,
 }
 
-pub fn rect_area(r: Rect) -> i32 {
+export fn rect_area(r: Rect) -> i32 {
     r.width * r.height
 }
 

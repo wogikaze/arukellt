@@ -1,6 +1,6 @@
 // Component interop smoke test: renamed f64 scalar parameter/result.
 
-pub fn scale_value(x: f64) -> f64 {
+export fn scale_value(x: f64) -> f64 {
     x * 1.5
 }
 

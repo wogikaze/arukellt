@@ -4,7 +4,7 @@ struct Point {
     y: i32,
 }
 
-pub fn move_point(p: Point) -> Point {
+export fn move_point(p: Point) -> Point {
     Point { x: p.x + 2, y: p.y - 2 }
 }
 

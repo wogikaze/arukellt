@@ -5,7 +5,7 @@ enum Color {
     Blue,
 }
 
-pub fn color_rank(c: Color) -> i32 {
+export fn color_rank(c: Color) -> i32 {
     match c {
         Color::Red => 1,
         Color::Green => 2,

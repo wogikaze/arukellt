@@ -1,6 +1,6 @@
 // Component interop smoke test: string parameter canonical ABI with i8 result is name-independent.
 
-pub fn tiny_delta(text: String) -> i8 {
+export fn tiny_delta(text: String) -> i8 {
     if len(text) == 0 {
         return 0i8 - 5i8
     }

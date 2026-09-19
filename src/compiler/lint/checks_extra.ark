@@ -120,8 +120,9 @@ fn collect_referenced_idents(node: AstNode, referenced: Vec<String>) {
 }
 
 // ── W0005: capability stub ─────────────────────────────────────────────
-// Warns when a non-pub function would be skipped from component exports
-// when building for the canonical component target.
+// Warns when a source-visible function would be skipped from component exports
+// when building for the canonical component target. Private helpers are not
+// migration candidates and therefore do not need this warning.
 pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
     let warnings = Vec::new<Diagnostic>()
     // Only relevant for component targets
@@ -132,7 +133,9 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
     let mut i = 0
     while i < count {
         let node = get_unchecked(decls, i)
-        if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
+        if ast_decl_predicates::node_is_fn_decl(node) &&
+        ast_access::node_is_pub(node) &&
+        !ast_access::node_is_component_export(node) {
             let name = ast_access::node_text(node)
             // Skip main and private helpers starting with _
             if eq(clone(name), "main") {

@@ -12,6 +12,10 @@ fn decl_is_pub(node: AstNode) -> bool {
     frontend_ast_node::corehir_node_is_pub(node)
 }
 
+fn decl_is_component_export(node: AstNode) -> bool {
+    frontend_ast_node::corehir_node_is_component_export(node)
+}
+
 fn member_name(node: AstNode) -> String {
     frontend_ast_node::corehir_node_text(node)
 }

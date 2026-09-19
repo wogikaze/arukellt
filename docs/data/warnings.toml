@@ -37,7 +37,7 @@ emitted = true
 code = "W0005"
 severity = "warning"
 phase = "component"
-summary = "non-exportable function skipped from component exports"
+summary = "source-visible function without explicit export fn skipped from component exports"
 maturity = "implemented"
 emitted = true
 

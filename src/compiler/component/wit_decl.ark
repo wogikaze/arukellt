@@ -103,7 +103,7 @@ fn wit_func_name(func: ComponentWitFunc) -> String {
 }
 
 fn wit_func_is_export(func: ComponentWitFunc) -> bool {
-    ast_node::node_is_pub(func.node) && naming::comp_should_export_func(wit_func_name(func))
+    ast_node::node_is_component_export(func.node) && naming::comp_should_export_func(wit_func_name(func))
 }
 
 fn wit_func_param_count(func: ComponentWitFunc) -> i32 {

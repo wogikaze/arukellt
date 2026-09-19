@@ -25,6 +25,14 @@ fn ast_node_set_is_pub(node: AstNode, is_pub: bool) {
     node.is_pub = is_pub
 }
 
+fn ast_node_is_component_export(node: AstNode) -> bool {
+    node.is_component_export
+}
+
+fn ast_node_set_is_component_export(node: AstNode, is_component_export: bool) {
+    node.is_component_export = is_component_export
+}
+
 fn ast_node_set_is_mut(node: AstNode, is_mut: bool) {
     node.is_mut = is_mut
 }

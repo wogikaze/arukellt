@@ -3,7 +3,7 @@ resource Handle {
     id: i32,
 }
 
-pub fn pass_handle(h: i32) -> i32 {
+export fn pass_handle(h: i32) -> i32 {
     h
 }
 
