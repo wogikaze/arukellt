@@ -6,6 +6,10 @@ use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -53,7 +57,9 @@ fn emit_range_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_start)
     writer_core::emit_local_get(w, s_start)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, s_end)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_gc::emit_gc_struct_new(w, range_type)
 }
 
@@ -99,13 +105,14 @@ fn emit_range_contains_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, s_range)
     writer_gc::emit_gc_ref_cast(w, range_type)
     writer_gc::emit_gc_struct_get_i32(w, range_type, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
     writer_core::emit_local_get(w, s_val)
     writer_core::emit_local_get(w, s_range)
     writer_gc::emit_gc_ref_cast(w, range_type)
     writer_gc::emit_gc_struct_get_i32(w, range_type, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    helpers_numeric_i32_compare::emit_i32_lt_s(w)
     writer_core::emit_byte(w, opcodes::OP_I32_AND())
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
 }
 
 fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -152,15 +159,13 @@ fn emit_range_len_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, s_range)
     writer_gc::emit_gc_ref_cast(w, range_type)
     writer_gc::emit_gc_struct_get_i32(w, range_type, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    helpers_numeric_i32_arith::emit_i32_sub(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
     writer_core::emit_leb128_u(w, s_diff)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
     writer_core::emit_local_get(w, s_diff)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_gt_s(w)
     writer_core::emit_byte(w, opcodes::OP_SELECT())
 }
 
