@@ -36,4 +36,8 @@ fn main() {
         None => panic("expected inclusive range item"),
     }
     test::assert_eq_i32(inclusive_iterator.count(), 2)
+
+    let collected_inclusive: Vec<i32> = core::range_inclusive_new(4, 6).into_iter().collect()
+    test::assert_eq_i32(len(collected_inclusive), 3)
+    test::assert_eq_i32(get_unchecked(collected_inclusive, 2), 6)
 }
