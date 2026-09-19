@@ -125,3 +125,12 @@ RFC-011: **37**。
 - The fixture checks `[3, 5]` through `next` and `count`; GC component and
   linear Wasm compile, validation, and runtime checks pass without changing
   structural `for` lowering.
+
+## Progress receipt — 2026-09-20 (range canonical collect)
+
+- Test commit `01f548c9e` verifies `RangeInclusive::into_iter().collect()`
+  through the canonical `Iterator::collect` path on `[4, 5, 6]`.
+- GC component and linear Wasm compile/validate/runtime checks pass. Adding
+  range-specific `FromIterator` impls is not landed: it currently widens
+  concrete GC integer locals before `Range` struct construction and produces
+  invalid Wasm, so that compiler defect remains outside this unit.

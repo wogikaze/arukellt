@@ -199,3 +199,12 @@ full adapter fixture matrix as a fallback parity gate.
   RangeInclusive`, preserving the closed `[start, end]` boundary.
 - The range fixture verifies the first item and the two remaining items after
   consuming `3` from `[3, 5]`; GC component and linear Wasm checks pass.
+
+## Progress receipt — 2026-09-20 (range canonical collect)
+
+- Test commit `01f548c9e` exercises `RangeInclusive::into_iter().collect()`
+  through the existing `Iterator::collect` method and checks the closed-range
+  result `[4, 5, 6]`.
+- GC component execution and linear Wasm validation/runtime pass. A separate
+  `FromIterator` impl for range adapters is deferred because adding it exposed
+  an existing GC numeric-width lowering defect; no invalid path is retained.
