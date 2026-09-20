@@ -18,6 +18,15 @@ fn main() {
     test::assert_eq_string(get_unchecked(mapped, 0), "alpha")
     test::assert_eq_string(get_unchecked(mapped, 1), "go")
 
+    let map_from_iter_source: Vec<String> = Vec::new<String>()
+    push(map_from_iter_source, String_from("first"))
+    push(map_from_iter_source, String_from("second"))
+    let map_from_iter = map_from_iter_source.iter().map(map_identity)
+    let mapped_from_iter: Vec<String> = Vec::from_iter(map_from_iter)
+    test::assert_eq_i32(len(mapped_from_iter), 2)
+    test::assert_eq_string(get_unchecked(mapped_from_iter, 0), "first")
+    test::assert_eq_string(get_unchecked(mapped_from_iter, 1), "second")
+
     let filter_source: Vec<String> = Vec::new<String>()
     push(filter_source, String_from("alpha"))
     push(filter_source, String_from("go"))
@@ -26,5 +35,15 @@ fn main() {
     test::assert_eq_i32(len(filtered), 2)
     test::assert_eq_string(get_unchecked(filtered, 0), "alpha")
     test::assert_eq_string(get_unchecked(filtered, 1), "bravo")
+
+    let filter_from_iter_source: Vec<String> = Vec::new<String>()
+    push(filter_from_iter_source, String_from("alpha"))
+    push(filter_from_iter_source, String_from("go"))
+    push(filter_from_iter_source, String_from("bravo"))
+    let filter_from_iter = filter_from_iter_source.iter().filter(keep_long_string)
+    let filtered_from_iter: Vec<String> = Vec::from_iter(filter_from_iter)
+    test::assert_eq_i32(len(filtered_from_iter), 2)
+    test::assert_eq_string(get_unchecked(filtered_from_iter, 0), "alpha")
+    test::assert_eq_string(get_unchecked(filtered_from_iter, 1), "bravo")
 
 }

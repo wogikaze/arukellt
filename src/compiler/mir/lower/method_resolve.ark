@@ -108,6 +108,12 @@ fn mir_is_vec_string_iteration_method(method_name: String) -> bool {
     eq(clone(method_name), String_from("into_iter"))
 }
 
+fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
+    eq(clone(type_name), String_from("StringIter")) ||
+    eq(clone(type_name), String_from("StringMapIter")) ||
+    eq(clone(type_name), String_from("StringFilterIter"))
+}
+
 fn mir_resolve_short_method_name(ctx: LowerCtx, name: String) -> String {
     let norm = mir_normalize_type_name(clone(name))
     let exact = ctx_fn_index::ctx_fn_index_find(ctx, clone(norm))

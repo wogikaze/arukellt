@@ -84,7 +84,7 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     }
     let mut owner_name = mir_type_prefix(clone(associated_name))
     if eq(clone(associated_name), String_from("Vec::from_iter")) &&
-    eq(clone(source_name), String_from("StringIter")) {
+    method_resolve::mir_is_vec_string_from_iter_source(clone(source_name)) {
         owner_name = String_from("Vec_String")
     }
     let method_name = mir_bare_method_name(clone(associated_name))
