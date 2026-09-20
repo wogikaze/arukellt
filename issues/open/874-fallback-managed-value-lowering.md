@@ -188,3 +188,49 @@ RFC-011: **8 (fallback lowering)**。
   closure environments, descriptor-aware root writes, automatic collection,
   shared/cyclic source graphs, and complete cross-backend move/borrow parity
   remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (String composition allocation boundary)
+
+- Implementation commit `bf94dbe98` routes fallback `join`, `repeat`,
+  `pad_left`, and `pad_right` allocations through `LINEAR_GC_ALLOC`. `join`
+  allocates after its total-length pass, `repeat` uses the multiplied byte
+  length, and `pad` uses the requested final width; all preserve the
+  length-prefix record ABI and return `base + 4` as the payload pointer.
+  The no-fill pad path emits the documented ASCII space directly, while an
+  explicit fill continues to read the supplied String. The Wasm GC branches
+  remain unchanged.
+- Positive fixtures `tests/fixtures/stdlib_string/string_join.ark`,
+  `repeat_basic.ark`, `pad_left_basic.ark`, and `pad_right_basic.ark`, plus
+  `join_empty_vec.ark` and `repeat_zero.ark`, compile, validate, and execute
+  successfully on both the `wasm32` linear core and `wasm32-gc` component
+  paths. All twelve artifacts pass their string assertions, including
+  `"  5"`/`"5  "` and zero-length results.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  wasm-tools validate                                       PASS (12 artifacts)
+  wasmtime run                                              PASS (12 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear join        4880 bytes  e5566204ed311bfb318869e058bd8ebff4f6ce6d6e438a689c1a7204de407433
+  wasm32 linear repeat      4415 bytes  8fddf1839c88f7d731e38d097d3183fb56479e2d906de11e4aeb1678351fc6b9
+  wasm32 linear pad-left    4481 bytes  f8b2f887e3270ba75c08bd328db908f4799b9ee78d895b77137730256474c467
+  wasm32 linear pad-right   4484 bytes  1081e85fd8d1c8d63c51fc4d297978b7fd8b14297c0cbff21aef49227282ce47
+  wasm32-gc join component  13437 bytes 4f51a903510cb1663da0a902aebb07fb6098f59d816870b97ac55e887c964716
+  wasm32-gc repeat component 13065 bytes 1b7afe5092c1b99a96e98d4350c561d3456acdb72e387ef952063f3daa727cd7
+  wasm32-gc pad-left component 13312 bytes 4c59d5e772a107d35cdb05ca46967c1b3e9f6c68a2aaf08417e43ac022068a11
+  wasm32-gc pad-right component 13284 bytes f9aff0778e16a7ac3cf3ba169cd64bc8c65011a23a252fee64a7e8b0ed31d1f7
+  ```
+
+- This receipt covers the second String allocation family only. String
+  split/replace/format/char and other allocation helpers, HashMap descriptors,
+  closure environments, descriptor-aware root writes, automatic collection,
+  shared/cyclic source graphs, and complete cross-backend move/borrow parity
+  remain open; #874 stays open.

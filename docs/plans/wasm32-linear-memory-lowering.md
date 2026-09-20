@@ -40,6 +40,12 @@ payload pointer は `base + 4` として保持する。Wasm GC 側の array lowe
 変更していない。format/split/join/replace、HashMap descriptor、closure environment、
 descriptor-aware root write、automatic `collect` は引き続き未完了である。
 
+続く `bf94dbe98` では、fallback の `join`、`repeat`、`pad_left`、`pad_right` の
+allocation も `LINEAR_GC_ALLOC` へ接続した。`join` は count pass 後の総長、`repeat` は
+積算長、`pad` は目標幅に header 分を加えたサイズを allocator へ渡す。no-fill `pad` の
+既定 ASCII space も fallback で明示し、GC 側の array representation と同じ出力を保つ。
+zero-length の `join`/`repeat` を含む両 target の fixture で検証済みである。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:
