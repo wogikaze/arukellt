@@ -696,6 +696,22 @@ acceptance boxes complete.
 - Generic item representations, dynamic dispatch, manifest-level deprecation,
   and the final RFC-011 residual audit remain open; #860 is not closed.
 
+## Progress receipt — 2026-09-20 (numeric skip callback composition)
+
+- Commit `0115f6619` adds `SkipMapIter` and `SkipFilterIter` to the canonical
+  numeric `Iterator` / `IntoIterator` / `FromIterator` paths. Their `sum` and
+  `fold` capability implementations reuse the canonical traversal helpers.
+- `iterator_adapters.ark` covers direct `collect`, `Vec::from_iter`, and a
+  generic `T: IntoIterator` consumer for both `skip(2).map(...)` and
+  `skip(2).filter(...)`; the same fixture asserts their numeric totals. GC
+  component and linear-memory Wasm validate and run with identical results.
+- GC WAT uses typed `call_ref` and the fallback WAT uses table-based
+  `call_indirect` for the callback-bearing adapter, proving the same source
+  protocol across the two representations.
+- This is bounded `Vec<i32>` evidence only. Generic item representations,
+  dynamic dispatch, manifest-level deprecation, and the final RFC-011 residual
+  audit remain open; #860 is not closed.
+
 ## Progress receipt — 2026-09-20 (bounded String callback composition)
 
 - Commit `cee857bb7` adds `StringMapFilterTakeIter` and

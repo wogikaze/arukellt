@@ -420,6 +420,23 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (numeric skip callback composition)
+
+- Commit `0115f6619` adds concrete `SkipMapIter` and `SkipFilterIter` to the
+  numeric `Vec<i32>` lane. Each adapter consumes the skip prefix before calling
+  its map or filter callback, so the source order and callback boundary are
+  explicit in the lazy state.
+- `iterator_adapters.ark` verifies canonical `collect`, source-qualified
+  `Vec::from_iter`, generic `T: IntoIterator` traversal, and numeric `sum`
+  results for both compositions. GC component and linear-memory Wasm compile,
+  validate, and run with matching assertions.
+- The artifacts expose the same adapter path with typed GC `call_ref` and
+  linear-memory table-based `call_indirect`; no target-specific source
+  semantics are introduced.
+- This remains concrete `Vec<i32>` evidence. Arbitrary item-generic adapter
+  composition, dynamic dispatch, manifest-level deprecation, and the final
+  RFC-011 residual audit remain open; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (String skip callback composition)
 
 - Commit `da440bc97` adds `StringSkipMapIter` and `StringSkipFilterIter`.

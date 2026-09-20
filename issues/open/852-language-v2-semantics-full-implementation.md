@@ -72,6 +72,12 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     identical GC/linear output plus WAT call targets for map/filter/take/skip/
     fold. Arbitrary item representations, broader adapter composition,
     manifest-level deprecation, and the RFC-011 residual audit remain open.
+    `da440bc97` extends the concrete String lane with skip-before-callback
+    `map`/`filter` adapters and verifies `collect`, `Vec::from_iter`, and
+    generic `IntoIterator` consumption on both targets. `0115f6619` adds the
+    corresponding numeric `Vec<i32>` adapters, including `FromIterator` and
+    numeric `sum` capability evidence. These are bounded iterator receipts;
+    they do not complete #691/#860 or the arbitrary item-generic boundary.
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax
