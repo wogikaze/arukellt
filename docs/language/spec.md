@@ -971,8 +971,10 @@ the source-level `Vec::from_iter` associated function. The compiler selects the
 source-qualified `Vec_String::from_iter__StringMapIter` or
 `Vec_String::from_iter__StringFilterIter` implementation after monomorphizing
 the adapter source; `iterator_string_callbacks.ark` verifies both calls on GC
-and linear-memory Wasm. This is concrete String evidence, not a claim that
-arbitrary item-generic adapters or dynamic collection dispatch are complete.
+and linear-memory Wasm. The same fixture verifies a `T: Iterator` helper whose
+String adapter instantiation resolves to the same static implementation. This
+is bounded static monomorphization evidence, not a claim that arbitrary item
+representations or dynamic collection dispatch are complete.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

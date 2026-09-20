@@ -602,3 +602,17 @@ acceptance boxes complete.
   adapter sources. Generic arbitrary item adapters, broader composition,
   manifest-level deprecation, and the final RFC-011 residual audit remain open;
   #860 is not closed.
+
+## Progress receipt — 2026-09-20 (generic String FromIterator monomorphization)
+
+- Commit `5ac15709a` adds `collect_from_iterator<T: Iterator>` to the String
+  callback fixture. Its `Vec::from_iter(iterator)` body is statically
+  monomorphized for `StringMapIter` and resolves to
+  `Vec_String::from_iter__StringMapIter`; no dynamic collection or integer
+  packing is introduced.
+- The GC component and linear-memory artifacts validate and run with matching
+  String assertions. WAT shows the generic specialization returning the same
+  GC reference / linear handle type as the concrete associated-function path.
+- This advances the bounded projection case only. Arbitrary item-generic
+  adapters, dynamic dispatch, broader composition, manifest-level deprecation,
+  and the final RFC-011 residual audit remain open; #860 is not closed.
