@@ -9,6 +9,10 @@ fn keep_long_string(value: String) -> bool {
     len(value) > 3
 }
 
+fn collect_from_iterator<T: iter::Iterator>(iterator: T) -> Vec<T::Item> {
+    Vec::from_iter(iterator)
+}
+
 fn main() {
     let map_source: Vec<String> = Vec::new<String>()
     push(map_source, String_from("alpha"))
@@ -45,5 +49,11 @@ fn main() {
     test::assert_eq_i32(len(filtered_from_iter), 2)
     test::assert_eq_string(get_unchecked(filtered_from_iter, 0), "alpha")
     test::assert_eq_string(get_unchecked(filtered_from_iter, 1), "bravo")
+
+    let generic_from_iter_source: Vec<String> = Vec::new<String>()
+    push(generic_from_iter_source, String_from("generic"))
+    let generic_from_iter: Vec<String> = collect_from_iterator(generic_from_iter_source.iter().map(map_identity))
+    test::assert_eq_i32(len(generic_from_iter), 1)
+    test::assert_eq_string(get_unchecked(generic_from_iter, 0), "generic")
 
 }
