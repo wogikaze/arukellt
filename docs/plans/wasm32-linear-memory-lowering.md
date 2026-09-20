@@ -62,6 +62,12 @@ record base として既存の `base + 4` payload pointer を維持する。empt
 両 target の回帰 fixture だけを確認した。format/char、HashMap descriptor、closure
 environment、descriptor-aware root write、automatic `collect` は引き続き未完了である。
 
+続く `b31fe4557` では、fallback `chars` の Vec allocation と scalar ごとの
+length-prefix String allocation を `LINEAR_GC_ALLOC` へ接続した。empty separator の
+`split` が委譲する経路も同じ record base / `base + 4` payload ABI を使う。
+format、HashMap descriptor、closure environment、descriptor-aware root write、
+automatic `collect` は引き続き未完了である。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:

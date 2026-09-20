@@ -334,3 +334,49 @@ RFC-011: **8 (fallback lowering)**。
   descriptors, closure environments, descriptor-aware root writes, automatic
   collection, shared/cyclic source graphs, and complete cross-backend
   move/borrow parity remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (String chars allocation boundary)
+
+- Implementation commit `b31fe4557` routes fallback `chars` allocation through
+  `LINEAR_GC_ALLOC`. The Vec size remains `12 + count * 4`, and each scalar
+  String uses `width + 4`; the allocator result is stored as the record base,
+  with the established length-prefix payload at `base + 4`. The Wasm GC branch
+  and public API remain unchanged.
+- This completes the fallback allocation path used by empty-separator `split`:
+  `text::split(source, "")` now reaches the same allocator boundary as the
+  non-empty-separator path. Empty source behavior remains one empty String
+  element, as covered by the existing fixture.
+- Positive fixtures `tests/fixtures/stdlib_text/chars_basic.ark`,
+  `string_chars.ark`, `split_empty_sep.ark`, and `stress_many_splits.ark`
+  compile, validate, and execute successfully on both the `wasm32` linear core
+  and `wasm32-gc` component paths. All eight artifacts pass their assertions
+  and output checks.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  wasm-tools validate                                       PASS (8 artifacts)
+  wasmtime run                                              PASS (8 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear chars-basic          6567 bytes  16869409e9fb2cdae594610f86cdb0e84d4f9c31f3767d997f417b2fdc19ce56
+  wasm32 linear string-chars         4473 bytes  a23a3954c503ef28caf75c2d04cafad0a966633ad32db6bd30ed29b9b90f1a93
+  wasm32 linear split-empty-sep      6381 bytes  e9003ee5d45c23e6adf5ceabc7c840e898a1a9ee9a4bf5915363c2fb0c48fb37
+  wasm32 linear stress-many-splits   7703 bytes  0504a2484ede2beb6e61326c28a5623f3a8fde67cd4fc18fd33068c3318681d4
+  wasm32-gc chars-basic component   14799 bytes  1954d5050bb22e13a70ee87a0dfa87f4e1e12fd4dfbb4fe424f87c4e729c547f
+  wasm32-gc string-chars            12667 bytes  78ca72b67c91423d8cc29806aec4d4730235ccfcf1dd43e21f4c7b81724e2b82
+  wasm32-gc split-empty-sep         14793 bytes  8a68feb490bec07e41fb170cb0aa23df57ac0cfaa19fbc51b9b77b7a836bf35d
+  wasm32-gc stress-many-splits      16389 bytes  219482ba0901b0ed583f3745b6ab11bb480f5ba15bf3c16435d233d4af58e087
+  ```
+
+- This receipt covers the fallback `chars` and empty-separator `split` paths.
+  String format and other allocation helpers, HashMap descriptors, closure
+  environments, descriptor-aware root writes, automatic collection,
+  shared/cyclic source graphs, and complete cross-backend move/borrow parity
+  remain open; #874 stays open.
