@@ -10,6 +10,14 @@ fn fold_values<T: iter::Iterator>(iterator: T, init: i32, f: fn(i32, i32) -> i32
     iterator.fold(init, f)
 }
 
+fn sum_into_for<T: iter::IntoIterator>(source: T) -> i32 {
+    let mut total: i32 = 0
+    for value in source {
+        total = total + value
+    }
+    total
+}
+
 fn add_i32(a: i32, b: i32) -> i32 { a + b }
 
 fn main() {
@@ -83,4 +91,7 @@ fn main() {
         direct_method_total = direct_method_total + value
     }
     test::assert_eq_i32(direct_method_total, 12)
+
+    test::assert_eq_i32(sum_into_for(core::range_new(2, 5)), 9)
+    test::assert_eq_i32(sum_into_for(core::range_inclusive_new(3, 5)), 12)
 }
