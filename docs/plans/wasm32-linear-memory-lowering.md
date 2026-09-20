@@ -83,4 +83,13 @@ automatic `collect` は引き続き未完了である。
 |---------|------|
 | moving compaction / finalizer / weak reference | ADR-075 の初期 runtime 契約に含めない |
 
+続く `9e81a367e` では、linear fallback の Vec backing growth を
+`LINEAR_GC_ALLOC` へ接続した。concrete `vec_push` と sealed `raw_array_grow` の
+両経路が、既存の capacity doubling、element stride、Vec header、old backing の
+copy を維持したまま、`grown_capacity * element_stride` を allocator へ渡す。
+`std::collections::hash` の互換 HashMap はこの raw Vec growth を使うため、構築・再ハッシュ
+も recorded allocation を通る。Wasm GC の typed array lowering と公開 API は変更していない。
+HashMap descriptor、正確な pointer-field metadata、closure environment、automatic `collect`、
+shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---

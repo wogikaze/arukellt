@@ -428,3 +428,50 @@ RFC-011: **8 (fallback lowering)**。
   descriptor-aware root writes, automatic collection, shared/cyclic source
   graphs, and complete cross-backend move/borrow parity remain open; #874
   stays open.
+
+## Progress receipt — 2026-09-20 (Vec backing-growth allocation boundary)
+
+- Implementation commit `9e81a367e` routes both linear fallback Vec growth
+  paths through `LINEAR_GC_ALLOC`: concrete `vec_push` growth and the sealed
+  `raw_array_grow` path now allocate `grown_capacity * element_stride` bytes
+  through the allocator before copying the old backing storage. The existing
+  Vec header offsets, capacity doubling, logical length update, element stride,
+  and memory-copy behavior remain unchanged. Wasm GC continues to use its
+  existing typed array lowering.
+- This connects the fallback allocation boundary used by the compatibility
+  `std::collections::hash` implementation. HashMap construction and rehashing
+  therefore exercise recorded Vec backing allocations, while descriptor-aware
+  HashMap scans and automatic collection remain intentionally outside this
+  slice.
+- Positive fixtures `tests/fixtures/stdlib_hashmap/stress_100.ark`,
+  `hashmap_capacity_extend.ark`, and `stress_mixed.ark` compile, validate, and
+  execute successfully on both the `wasm32` linear core and `wasm32-gc`
+  component paths. The concrete push regression
+  `tests/fixtures/stdlib_vec/vec_stress_push_100.ark` also passes on both
+  paths; all eight artifacts pass.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/manager.py fmt --check                   PASS (1972 checked)
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  wasm-tools validate                                       PASS (8 artifacts)
+  wasmtime run                                              PASS (8 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear HashMap stress-100       17094 bytes d174fe4554d8b5d3f7e7e9c64565f004ed476ba42cc0d958bd95621503973262
+  wasm32 linear HashMap capacity-extend  21747 bytes b1fe374f65ed1ebc6c0ed75de480301108f9a61a648d648a9eba0fb9b8cc1423
+  wasm32 linear Vec push-100              4441 bytes 9eb8cc62572976f901ccc696f7fd72b02268d5f6844c0a44d60c88cc0ba55578
+  wasm32-gc HashMap stress-100 component 21770 bytes 9b52f1e890ce9c323b80d1bea259030ef40b3622500d753832a38e0b61a9b6ea
+  wasm32-gc Vec push-100 component       12445 bytes 9b7aa6e3f2cb4eb66ce57f6d0ed8ef8977ef236d97aab41909e0b6e4538921b5
+  ```
+
+- This receipt covers Vec backing growth and the compatibility HashMap
+  allocation boundary only. HashMap descriptors, exact pointer-field write
+  metadata, closure environments, automatic collection, shared/cyclic source
+  graphs, and complete cross-backend move/borrow parity remain open; #874
+  stays open.
