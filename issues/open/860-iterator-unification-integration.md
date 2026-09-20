@@ -542,3 +542,21 @@ acceptance boxes complete.
 - This remains a concrete no-callback item lane. Generic callback adapters,
   broader arbitrary-item composition, manifest-level deprecation, and the
   RFC-011 residual audit remain open; #860 stays open.
+
+## Progress receipt — 2026-09-20 (numeric consumer capability diagnostic)
+
+- Commit `3069c7142` hardens direct concrete `sum` / `fold` method resolution
+  against the accepted ADR-076 capability boundary. A receiver that implements
+  `Iterator` but not the matching `IteratorSum<i32, i32>` or
+  `IteratorFold<i32, i32>` now receives E0200 during type checking instead of
+  lowering an unresolved method to a runtime `unreachable` stub.
+- `iterator_vec_iter_next.ark` adds a direct concrete `VecIter.sum()` positive
+  call. It compiles, validates, and runs on the GC component and linear-memory
+  Wasm paths. `selfhost/iterator_string_numeric_consumer.ark` is the negative
+  diagnostic fixture for `StringIter.sum()`; selfhost diagnostic parity passes
+  for it.
+- The full `python3 scripts/manager.py selfhost diag-parity` gate still has the
+  pre-existing `diagnostics/capability_stub.ark` W0005 golden drift; the new
+  fixture is not the failing case. `verify lane` passes. This receipt does not
+  close #860: arbitrary item-generic adapters, manifest-level deprecation, and
+  the final RFC-011 residual audit remain open.
