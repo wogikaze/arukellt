@@ -21,6 +21,11 @@ fn main() {
     let collect = |value: i32| -> i32 { value }
     let rendered = f"{left_value()}{right_value()}"
     test::assert_eq_string(rendered, "12")
+    let first: i32 = 1
+    let second: i32 = 2
+    let interpolated = f"{first}{second}"
+    let explicit_core = first.to_string().concat(second.to_string())
+    test::assert_eq_string(interpolated, explicit_core)
     test::assert_eq_string(f"{1:?}", "1")
 
     let loop_source: Vec<String> = Vec::new<String>()
