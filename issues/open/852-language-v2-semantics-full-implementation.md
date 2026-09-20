@@ -154,6 +154,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     non-exhaustive enum diagnostic is rejected before backend emission. See
     [#871](../done/871-wasm-gc-aggregate-lowering.md).
 - [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
+  - Progress (not done, 2026-09-20): `104b108d2` preserves typed closure parameter/return annotations and fixes the typed capturing `closure_map` workload. GC component and linear core artifacts validate and run with matching `6017000`; managed closure environments, collection lowering, and negative coverage remain open. See [#872](872-wasm-gc-closure-collection-lowering.md).
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
   - Progress (not done, 2026-09-20): implementation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; guarded pinned-bootstrap overlay `8ecb6b2a6`; fixture migration `8ac3714b2`; runtime e2e receipt `055de4955`; fixture registration `2b4180c8b`. ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the executable private-ABI runtime probe are synchronized. The probe validates rooted-cycle retention and unreachable-cycle reuse, while current-source GC/component and wasm32 fallback artifacts validate without Wasm GC instructions. `verify quick` was run for close review but remains red on unrelated #652/#798/quality/MIR/T3 baseline checks; pin refresh/fixpoint and managed-value/root lowering remain separate follow-up boundaries, so #873 stays open.
 - [ ] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
@@ -165,7 +166,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [ ] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876
 - [ ] #878 — Language v2 compatibility migration を完了する — RFC migration — depends: 875, 876
 - [ ] #879 — Wasm GC / fallback の性能・サイズ receipt を取得する — RFC performance — depends: 871, 872, 874, 875
-  - Progress (not done, 2026-09-20): `f499fccad` makes the benchmark gate fail closed and records a current-s2 `wasm32` run in `tests/baselines/perf/current.json`. The fixed 20-workload run has 7 compile errors, 6 runtime errors, and 1 correctness failure; the historic 15-entry baseline remains unchanged. GC/fallback paired measurements and runtime allocation/GC telemetry remain open.
+  - Progress (not done, 2026-09-20): `f499fccad` makes the benchmark gate fail closed and records a current-s2 `wasm32` run in `tests/baselines/perf/current.json`. The fixed 20-workload run has 7 compile errors, 6 runtime errors, and 1 correctness failure; the historic 15-entry baseline remains unchanged. `104b108d2` adds targeted GC/linear `closure_map` compile/validate/runtime parity at `6017000`; complete paired measurements and runtime allocation/GC telemetry remain open. See [#879](879-wasm-gc-fallback-benchmarks.md).
 - [ ] #880 — Language v2 最終 close audit を実施する — RFC final — depends: 877, 878, 879
 
 ## Dependency DAG

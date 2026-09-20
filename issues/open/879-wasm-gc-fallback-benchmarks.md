@@ -64,3 +64,16 @@ RFC-011: **performance**。
 - This is an honest fallback-target measurement receipt only. A complete
   `wasm32-gc` versus linear-memory comparison, allocation/GC instrumentation,
   and the dependent lowering/parity work remain open; #879 is not closed.
+
+## Progress receipt — 2026-09-20 (typed closure workload parity)
+
+- Commit `104b108d2` fixes the typed-capturing-closure workload that previously
+  failed type checking with missing `Mul`/`Add` bounds for closure parameters.
+- With the current s2 artifact, the fixed `closure_map` workload compiles as a
+  `wasm32-gc` component (3447 bytes) and as a `wasm32` linear-memory core
+  module (3099 bytes). `wasm-tools validate` passes for both artifacts, and
+  Wasmtime executes both with the expected output `6017000`.
+- This is a targeted positive workload receipt, not completion of the fixed
+  20-workload gate. Allocation/GC time, peak memory, cold-start/steady-state
+  measurements, and the remaining compile/runtime/correctness failures remain
+  open; the historic baseline is unchanged.

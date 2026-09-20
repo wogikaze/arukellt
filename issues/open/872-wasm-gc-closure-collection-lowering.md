@@ -42,3 +42,20 @@ RFC-011: **8 (closure/collection)**。
 - [ ] Acceptance の一部だけで done にしない
 - [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
 - [ ] 親 #852 の担当項目を evidence 付きで更新する
+
+## Progress receipt — 2026-09-20 (closure annotation typing prerequisite)
+
+- Commit `104b108d2` preserves closure parameter annotations and the optional
+  return annotation in the selfhost AST. Closure inference now uses annotated
+  parameter types before operator-trait checks and unifies an annotated return
+  type with the body type; unannotated closures retain fresh-variable
+  inference.
+- `benchmarks/bench_cpu_closure_map.ark` is a positive regression workload with
+  two typed capturing closures. The current s2 compiler produces a valid GC
+  component (3447 bytes) and a valid linear-memory core module (3099 bytes).
+  Both validate and run under Wasmtime with the expected output `6017000`.
+- `python3 scripts/manager.py verify lane` passed, including formatter,
+  quality contract, lint smoke, and lint ratchet. This receipt covers the
+  typing/parser prerequisite only; managed closure environments, collection
+  lowering, and the representative negative fixture remain open, so #872 is
+  not closed.
