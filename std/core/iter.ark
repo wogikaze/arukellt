@@ -46,6 +46,7 @@
 /// | ZipIter     | impl   | Lazy zip of two `Vec<i32>`             |
 /// | MapFilterTakeIter | impl | Composed map/filter/take pipeline   |
 /// | FilterTakeIter | impl | Composed filter/take pipeline       |
+/// | SkipTakeIter | impl | Composed skip/take pipeline          |
 pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
@@ -732,6 +733,19 @@ pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter {
     vec_iter(v).skip(n)
 }
 
+impl SkipIter {
+    /// Lazily skip source values, then yield at most `n` remaining values.
+    fn take(self: SkipIter, n: i32) -> SkipTakeIter {
+        SkipTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            to_skip: self.to_skip,
+            remaining: n,
+        }
+    }
+}
+
 impl Iterator for SkipIter {
     type Item = i32
 
@@ -762,6 +776,57 @@ impl Iterator for SkipIter {
     }
 
     fn fold(self: SkipIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SkipTakeIter — composed lazy skip/take adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that skips source values and yields at most `n` values.
+pub struct SkipTakeIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    to_skip: i32,
+    remaining: i32,
+}
+
+impl Iterator for SkipTakeIter {
+    type Item = i32
+
+    fn next(self: SkipTakeIter) -> Option<i32> {
+        if self.remaining <= 0 {
+            return None
+        }
+        while self.to_skip > 0 && self.index < self.length {
+            self.index = self.index + 1
+            self.to_skip = self.to_skip - 1
+        }
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: SkipTakeIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: SkipTakeIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: SkipTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+
+    fn fold(self: SkipTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -1007,6 +1072,15 @@ impl IntoIterator for SkipIter {
     type IntoIter = SkipIter
 
     fn into_iter(self: SkipIter) -> SkipIter {
+        self
+    }
+}
+
+impl IntoIterator for SkipTakeIter {
+    type Item = i32
+    type IntoIter = SkipTakeIter
+
+    fn into_iter(self: SkipTakeIter) -> SkipTakeIter {
         self
     }
 }
