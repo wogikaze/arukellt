@@ -420,6 +420,27 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (Memory64 GC callback field parity)
+
+- Commit `51e41360a` fixes the GC type-section emitter so callback fields in
+  user structs and `A_fnref` arrays select the same unary/binary callback type
+  as function parameters for the active memory width. Previously, struct
+  fields always used the `i32 -> i32` callback index while Memory64 function
+  parameters used `i64 -> i64`, producing an invalid GC module for the
+  existing i32 lazy adapter chain.
+- `iterator_adapters.ark` now compiles as a GC P2 component and as linear P1
+  Wasm; both artifacts pass `wasm-tools validate` and run successfully under
+  Wasmtime (`OK`). `iterator_string.ark`'s existing no-callback String lane
+  also passes the same GC component and linear-memory compile, validation, and
+  runtime checks.
+- `python3 scripts/manager.py verify lane` and
+  `python3 scripts/manager.py verify lane --gate component-interop` pass,
+  including formatter, local lint, quality ratchet, and component interop.
+- This receipt does not add String callback adapters. `fn(String) -> String` /
+  `fn(String) -> bool` remains outside the current callback ABI contract, and
+  broader item-generic adapters, eager/lazy migration, manifest deprecation,
+  and the final RFC-011 audit remain open. #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (`Vec<String>::iter()` producer entry point)
 
 - `Vec<String>` now exposes the same item-preserving `StringIter` producer via
