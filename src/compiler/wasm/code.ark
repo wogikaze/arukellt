@@ -97,6 +97,18 @@ fn emit_code_section(
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_commit_function_index(code_sec, commit_index)
+        let alloc_index = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ALLOC(),
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        writer_core::writer_set_linear_gc_alloc_function_index(code_sec, alloc_index)
     }
     let p2_command_extra = if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) && needs_wrapper == 1 {
         1

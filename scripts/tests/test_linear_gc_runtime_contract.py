@@ -43,6 +43,19 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("emit_heap_get(w)", heap)
         self.assertIn("OP_CALL()", heap)
 
+    def test_managed_aggregate_constructors_use_private_allocator(self) -> None:
+        writer = (ROOT / "src/compiler/wasm/writer_core.ark").read_text(encoding="utf-8")
+        code = (ROOT / "src/compiler/wasm/code.ark").read_text(encoding="utf-8")
+        struct = (ROOT / "src/compiler/wasm/inst_struct_record.ark").read_text(encoding="utf-8")
+        array = (ROOT / "src/compiler/wasm/inst_array.ark").read_text(encoding="utf-8")
+        vec = (ROOT / "src/compiler/wasm/intrinsic_vec_new_layout.ark").read_text(encoding="utf-8")
+
+        self.assertIn("linear_gc_alloc_function_index", writer)
+        self.assertIn("writer_set_linear_gc_alloc_function_index", code)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", struct)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", array)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec)
+
     def test_same_source_fixture_and_capability_diagnostic_remain_present(self) -> None:
         gc_source = (ROOT / "tests/fixtures/target_capability/gc_linear_same_source.ark").read_text(
             encoding="utf-8"

@@ -15,6 +15,7 @@ use wasm::emit_target
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use mir::inst_accessors_operands
@@ -100,41 +101,13 @@ fn emit_vec_new_layout_lm(w: WasmWriter, heap_bump: i32, inst: MirInst, ctx: Sel
     }
     let total_size = heap_bump + 12
 
-    let old_result = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let new_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
 
-    // old_result = current heap pointer
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, old_result)
-
-    // new_end = old_result + total_size (may wrap around 2^32)
-    helpers_core::emit_local_get(w, old_result)
+    // The fallback allocator records the Vec header and backing storage as a
+    // single managed payload, so the collector can reuse it after collection.
     helpers_numeric_i32::emit_i32_const(w, total_size)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_set(w, new_end)
-
-    // result = (new_end < old_result) ? 0 : old_result
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_core::emit_local_get(w, old_result)
-    helpers_core::emit_local_get(w, new_end)
-    helpers_core::emit_local_get(w, old_result)
-    helpers_numeric_i32::emit_i32_lt_u(w)
-    writer_core::emit_byte(w, opcodes::OP_SELECT())
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
     helpers_core::emit_local_set(w, result)
-
-    // new_end = (new_end < old_result) ? total_size : new_end
-    helpers_numeric_i32::emit_i32_const(w, total_size)
-    helpers_core::emit_local_get(w, new_end)
-    helpers_core::emit_local_get(w, new_end)
-    helpers_core::emit_local_get(w, old_result)
-    helpers_numeric_i32::emit_i32_lt_u(w)
-    writer_core::emit_byte(w, opcodes::OP_SELECT())
-    helpers_core::emit_local_set(w, new_end)
-
-    // Advance the heap to new_end and ensure memory is grown if needed.
-    helpers_core::emit_local_get(w, new_end)
-    helpers_core::emit_heap_set(w)
 
     // Write the Vec header at the result pointer.
     emit_vec_new_store_i32(w, result, 0, 0)

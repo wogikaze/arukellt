@@ -103,6 +103,18 @@ fn emit_heap_set(w: WasmWriter) {
     }
 }
 
+// Consume a linear allocation size from the stack and leave its stable payload
+// pointer there. The runtime function exists only on the wasm32 fallback; all
+// callers are target-gated before reaching this helper.
+fn emit_heap_alloc_from_stack(w: WasmWriter) {
+    let alloc_idx = writer_core::writer_linear_gc_alloc_function_index(w)
+    if alloc_idx < 0 {
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_CALL())
+    writer_leb::emit_leb128_u(w, alloc_idx)
+}
+
 // Pre-grow linear memory when heap_top + headroom would exceed current size.
 fn emit_heap_pre_grow_headroom(w: WasmWriter, headroom: i32) {
     if writer_core::writer_memory64(w) {

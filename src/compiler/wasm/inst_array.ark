@@ -13,7 +13,7 @@ use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::intrinsic_vec_type
 use wasm::ctx_gc_layout_lookup
-use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use mir::function_locals_view
 use mir::local_access
 
@@ -30,16 +30,11 @@ fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
     } else {
-        writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-        writer_core::emit_leb128_u(w, 0)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
-        writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-        writer_core::emit_leb128_u(w, 0)
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst) * 4)
-        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-        helpers_core::emit_heap_set(w)
+        helpers_core_heap::emit_heap_alloc_from_stack(w)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
     }
 }
 
