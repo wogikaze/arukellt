@@ -106,6 +106,9 @@ The compatibility `collect_map_filter_i32` and
 `collect_map_filter_take_i32` helpers now delegate to the same lazy adapter
 chain and canonical `collect` traversal, so the eager entry points no longer
 own duplicate iteration logic.
+The adapter fixture also passes a composed `map/filter/take` source through a
+generic `T: IntoIterator` `for` consumer; the identity conversion and `next`
+sequence remain the same on GC and linear-memory Wasm.
 
 ---
 

@@ -379,3 +379,17 @@ acceptance boxes complete.
   arbitrary item representations, dynamic dispatch, broader adapter
   composition, manifest-level deprecation, and the RFC-011 residual audit
   remain open. This receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (generic lazy adapter `for` lowering)
+
+- Test commit `6c92fa741` adds a generic `sum_into_for<T: IntoIterator>` call
+  whose source is the composed `Vec<i32>` adapter
+  `iter().map(double).filter(is_even).take(2)`. The monomorphized body uses
+  `MapFilterTakeIter::into_iter` and then its canonical `next` loop.
+- The GC component and linear-memory Wasm artifacts compile, validate, and run
+  with `OK`. WAT confirms `sum_into_for__MapFilterTakeIter` calls the identity
+  conversion immediately before `MapFilterTakeIter::next` on both backends.
+- This proves generic adapter conversion for the implemented `i32` lane only;
+  arbitrary item representations, dynamic dispatch, broader composition,
+  manifest-level deprecation, and the RFC-011 residual audit remain open.
+  This receipt does not close #860.

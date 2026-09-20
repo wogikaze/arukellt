@@ -328,6 +328,20 @@ full adapter fixture matrix as a fallback parity gate.
   manifest-level deprecation, and the final RFC-011 residual audit remain
   open. This is not a close receipt.
 
+## Progress receipt — 2026-09-20 (generic lazy adapter `for` lowering)
+
+- Test commit `6c92fa741` sends the composed
+  `iter().map(double).filter(is_even).take(2)` adapter through a generic
+  `sum_into_for<T: IntoIterator>` consumer. The monomorphized adapter state is
+  preserved by identity `IntoIterator` before canonical `next` consumption.
+- GC and linear-memory Wasm compile, validate, and run with `OK`. WAT confirms
+  `sum_into_for__MapFilterTakeIter` uses the same conversion and `next` calls
+  on both backends.
+- This remains concrete `Vec<i32>` evidence. Arbitrary item representations,
+  dynamic dispatch, broader adapter composition, manifest-level deprecation,
+  and the final RFC-011 residual audit remain open. This is not a close
+  receipt.
+
 ## Progress receipt — 2026-09-20 (generic range `for` lowering)
 
 - Test commit `e9ee279b5` instantiates the generic
