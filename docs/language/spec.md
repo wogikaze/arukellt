@@ -966,10 +966,13 @@ yields the original accepted item. On `wasm32-gc`, these fields and calls use
 typed `call_ref` signatures; on linear-memory `wasm32`, the same source calls
 use the callback table and `call_indirect`. The representation differs, but
 the source-level item order, acceptance, and collection result are identical.
-The concrete `FromIterator` impls for these adapters are defined, while the
-generic `Vec::from_iter(source.iter().map(...))` call remains outside this
-verified contract until its associated-function lowering is valid on both
-targets.
+The concrete `FromIterator` impls for these adapters are also available through
+the source-level `Vec::from_iter` associated function. The compiler selects the
+source-qualified `Vec_String::from_iter__StringMapIter` or
+`Vec_String::from_iter__StringFilterIter` implementation after monomorphizing
+the adapter source; `iterator_string_callbacks.ark` verifies both calls on GC
+and linear-memory Wasm. This is concrete String evidence, not a claim that
+arbitrary item-generic adapters or dynamic collection dispatch are complete.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

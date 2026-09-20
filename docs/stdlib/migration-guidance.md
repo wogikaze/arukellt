@@ -166,8 +166,10 @@ typed `call_ref` signatures (`String -> String` and the Memory64 representation
 of `String -> bool`), while the fallback uses the callback table and
 `call_indirect`; the source-level order and results are the same. Concrete
 `FromIterator<StringMapIter>` and `FromIterator<StringFilterIter>` impls are
-present, but `Vec::from_iter(source.iter().map(...))` remains deferred until
-generic associated-function lowering emits valid Wasm on both targets.
+also reachable through `Vec::from_iter`; source-qualified associated-function
+lowering selects the matching `Vec_String::from_iter__<Source>` symbol. The
+fixture verifies both calls on GC and linear-memory Wasm. This remains a
+concrete String lane, not a claim for arbitrary item-generic adapters.
 
 ---
 

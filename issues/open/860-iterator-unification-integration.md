@@ -586,3 +586,19 @@ acceptance boxes complete.
   for that call; until then, the explicit adapter `FromIterator` impls are not
   treated as complete integration evidence. Eager/lazy migration,
   manifest-level deprecation, and the RFC-011 residual audit remain open.
+
+## Progress receipt — 2026-09-20 (String adapter FromIterator dispatch)
+
+- Commit `3a0b3b3ee` fixes the remaining concrete String callback collection
+  boundary. When `Vec::from_iter` receives `StringMapIter` or
+  `StringFilterIter`, MIR associated-function rewriting now selects
+  `Vec_String::from_iter__StringMapIter` or
+  `Vec_String::from_iter__StringFilterIter`; the result local keeps its String
+  vector reference type instead of falling back to `i64` and `unreachable`.
+- `iterator_string_callbacks.ark` now asserts both direct `Vec::from_iter`
+  calls. GC primary component and linear-memory fallback artifacts validate and
+  run successfully, with matching collection order and ownership behavior.
+- The earlier receipt's removal condition is satisfied for these two concrete
+  adapter sources. Generic arbitrary item adapters, broader composition,
+  manifest-level deprecation, and the final RFC-011 residual audit remain open;
+  #860 is not closed.

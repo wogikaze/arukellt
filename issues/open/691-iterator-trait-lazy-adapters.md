@@ -420,6 +420,20 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (String adapter collection dispatch)
+
+- Commit `3a0b3b3ee` extends the concrete String callback fixture through
+  `Vec::from_iter` for both `StringMapIter` and `StringFilterIter`. The compiler
+  now resolves the source-qualified `Vec_String::from_iter__<Source>` symbol
+  for every concrete String callback adapter currently in the lane.
+- GC and linear-memory Wasm artifacts validate and run with the same collection
+  assertions. The existing typed GC callback signatures and linear table
+  `call_indirect` path remain unchanged; this unit only closes the associated
+  collection dispatch boundary.
+- Arbitrary item-generic adapter composition, dynamic dispatch, manifest-level
+  deprecation, and the final RFC-011 residual audit remain open. This is not a
+  close receipt.
+
 ## Progress receipt — 2026-09-20 (String callback adapters)
 
 - Commit `2b862af04` adds `StringMapIter` and `StringFilterIter` with
