@@ -19,7 +19,7 @@ fn emit_parse_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_parse_f64_init(w, s_str, s_len_local)
     emit_parse_f64_prefix_validation(w, s_str, s_len_local)
     intrinsic_parse_f64_scan::emit_parse_f64_scan_loop(w, s_str, s_len_local)
-    intrinsic_parse_f64_finalize::emit_parse_f64_finalize(w)
+    intrinsic_parse_f64_finalize::emit_parse_f64_finalize(w, ctx)
     return true
 }
 

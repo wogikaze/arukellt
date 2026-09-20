@@ -1,15 +1,25 @@
 use wasm::opcodes
 use wasm::constants
+use wasm::ctx_scratch
 use wasm::intrinsic_parse_result
 
-fn emit_parse_f64_finalize(w: WasmWriter) {
+fn emit_parse_f64_finalize(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_parse_f64_invalid_branch_begin(w)
-    intrinsic_parse_result::emit_invalid_float_error_result(w)
+    intrinsic_parse_result::emit_invalid_float_error_result(
+        w,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3),
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4),
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    )
     emit_parse_f64_invalid_branch_else(w)
     emit_parse_f64_decimal_divisor(w)
     emit_parse_f64_apply_decimal_part(w)
     emit_parse_f64_apply_sign(w)
-    intrinsic_parse_result::emit_f64_ok_result(w, constants::SCRATCH_PF_RESULT())
+    intrinsic_parse_result::emit_f64_ok_result(
+        w,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2),
+        constants::SCRATCH_PF_RESULT()
+    )
     emit_parse_f64_invalid_branch_end(w)
 }
 

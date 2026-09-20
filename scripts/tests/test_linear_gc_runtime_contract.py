@@ -97,6 +97,20 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_raw_grow)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_access)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_pop)
+        f64_ok_start = parse_result.index("fn emit_f64_ok_result")
+        f64_ok_end = parse_result.index("fn emit_i32_ok_result")
+        f64_ok = parse_result[f64_ok_start:f64_ok_end]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", f64_ok)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", f64_ok)
+        float_error_string_start = parse_result_errors.index("fn emit_invalid_float_error_string")
+        float_error_record_start = parse_result_errors.index("fn emit_invalid_float_error_record")
+        integer_error_string_start = parse_result_errors.index("fn emit_invalid_integer_error_string")
+        float_error_string = parse_result_errors[float_error_string_start:float_error_record_start]
+        float_error_record = parse_result_errors[float_error_record_start:integer_error_string_start]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", float_error_string)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", float_error_string)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", float_error_record)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", float_error_record)
         integer_ok_start = parse_result.index("fn emit_integer_ok_header")
         integer_ok = parse_result[integer_ok_start:]
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", integer_ok)
