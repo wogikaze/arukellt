@@ -9,6 +9,7 @@ use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_vec_push_gc
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::opcodes
@@ -115,16 +116,12 @@ fn emit_raw_array_grow_lm_storage(
     helpers_core::emit_local_set(w, grown_cap)
     writer_core::emit_byte(w, opcodes::OP_END())
 
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_core::emit_leb128_u(w, 0)
-    helpers_core::emit_local_set(w, new_data)
-    helpers_core::emit_local_get(w, new_data)
     helpers_core::emit_local_get(w, grown_cap)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, elem_stride)
     helpers_numeric_i32::emit_i32_mul(w)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, new_data)
 
     emit_lm_load_field(w, vec, 8)
     helpers_core::emit_local_set(w, old_data)

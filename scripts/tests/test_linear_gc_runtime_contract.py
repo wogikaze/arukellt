@@ -65,6 +65,8 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         format_i64 = (ROOT / "src/compiler/wasm/intrinsic_string_format_i64.ark").read_text(encoding="utf-8")
         format_f64 = (ROOT / "src/compiler/wasm/intrinsic_string_format_f64_assemble.ark").read_text(encoding="utf-8")
         format_char = (ROOT / "src/compiler/wasm/intrinsic_string_format_char.ark").read_text(encoding="utf-8")
+        vec_push = (ROOT / "src/compiler/wasm/intrinsic_vec_push.ark").read_text(encoding="utf-8")
+        vec_raw_grow = (ROOT / "src/compiler/wasm/intrinsic_vec_raw_grow.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -87,6 +89,8 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_i64)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_f64)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_char)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_push)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_raw_grow)
         for source in (
             string_slice,
             string_trim,
@@ -102,6 +106,8 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             format_i64,
             format_f64,
             format_char,
+            vec_push,
+            vec_raw_grow,
         ):
             self.assertNotIn("helpers_core::emit_heap_get(w)", source)
             self.assertNotIn("helpers_core::emit_heap_set(w)", source)
