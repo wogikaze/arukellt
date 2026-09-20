@@ -63,6 +63,8 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     and the final RFC-011 residual audit remain open. `c064cb46a` additionally routes
     direct concrete call/method `for` sources through the same AST/CoreHir
     `IntoIterator` and canonical `next` path; both target receipts pass.
+    `5a1408aac` adds the concrete `FilterTakeIter` composition and verifies
+    lazy collection plus generic `IntoIterator` lowering on GC and linear Wasm.
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax

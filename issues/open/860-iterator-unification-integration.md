@@ -408,3 +408,19 @@ acceptance boxes complete.
   item representations, dynamic dispatch, all adapter combinations,
   manifest-level deprecation, and the RFC-011 residual audit remain open.
   This receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (filter/take adapter composition)
+
+- Commit `5a1408aac` adds the concrete `FilterTakeIter` adapter and the
+  `FilterIter::take` method. It preserves the predicate and explicit
+  remaining-count state, then delegates `collect`, `count`, `sum`, and `fold`
+  to the canonical iterator consumers.
+- `iterator_adapters.ark` checks
+  `v.iter().filter(is_even).take(1).collect()` and a generic
+  `T: IntoIterator` consumer. GC and linear-memory artifacts compile, validate,
+  and run with `OK`; WAT shows `FilterIter::take` constructing the adapter and
+  `FilterTakeIter::next` driving collection and generic `for` on both backends.
+- This expands only the supported concrete `i32` composition set. Arbitrary
+  item representations, dynamic dispatch, all adapter combinations,
+  manifest-level deprecation, and the RFC-011 residual audit remain open.
+  This receipt does not close #860.

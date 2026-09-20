@@ -113,6 +113,10 @@ The same fixture covers `iter().map(f).take(n).collect()` through the dedicated
 lazy `MapTakeIter` adapter, including its canonical `collect` traversal on both
 targets. This adds one concrete composition; arbitrary adapter combinations
 and other item representations remain migration work.
+The fixture also covers `iter().filter(g).take(n).collect()` through the
+dedicated lazy `FilterTakeIter` adapter and a generic `T: IntoIterator` consumer
+on both targets. This remains concrete `Vec<i32>` evidence, not a claim for
+arbitrary item representations or adapter combinations.
 
 ---
 

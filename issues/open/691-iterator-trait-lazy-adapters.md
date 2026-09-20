@@ -427,3 +427,17 @@ full adapter fixture matrix as a fallback parity gate.
   arbitrary item support. Generic obligations outside that bound, broader
   adapter composition, manifest-level deprecation, and the final RFC-011
   residual audit remain open. This is not a close receipt.
+
+## Progress receipt — 2026-09-20 (filter/take adapter composition)
+
+- Commit `5a1408aac` adds `FilterTakeIter` and `FilterIter::take`, keeping the
+  predicate and take limit in one lazy adapter state. The standard iterator
+  consumers delegate to the same canonical traversal helpers.
+- `iterator_adapters.ark` covers `iter().filter(is_even).take(1).collect()`
+  and a generic `T: IntoIterator` consumer. GC and linear-memory Wasm compile,
+  validate, and run with `OK`; WAT confirms `FilterIter::take`,
+  `FilterTakeIter::into_iter`, and `FilterTakeIter::next` on both backends.
+- This remains concrete `Vec<i32>` evidence. Other item representations,
+  arbitrary adapter combinations, dynamic dispatch, manifest-level
+  deprecation, and the final RFC-011 residual audit remain open. This is not a
+  close receipt.

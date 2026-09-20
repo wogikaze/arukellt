@@ -930,6 +930,10 @@ The concrete `iter().map(f).take(n).collect()` composition is also implemented
 by the lazy `MapTakeIter` adapter; `iterator_adapters.ark` verifies the
 two-element `Vec<i32>` case on both published Wasm targets. Arbitrary adapter
 combinations and other item representations remain outside this contract.
+The concrete `iter().filter(g).take(n).collect()` composition is implemented
+by `FilterTakeIter`, which retains the predicate and remaining-count state in
+one lazy adapter. The fixture also sends this adapter through a generic
+`T: IntoIterator` consumer; this evidence remains limited to `Vec<i32>`.
 
 ### 4.6 Semicolons
 
