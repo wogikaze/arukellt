@@ -158,6 +158,13 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
   - Progress (not done, 2026-09-20): implementation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; guarded pinned-bootstrap overlay `8ecb6b2a6`; fixture migration `8ac3714b2`; runtime e2e receipt `055de4955`; fixture registration `2b4180c8b`. ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the executable private-ABI runtime probe are synchronized. The probe validates rooted-cycle retention and unreachable-cycle reuse, while current-source GC/component and wasm32 fallback artifacts validate without Wasm GC instructions. `verify quick` was run for close review but remains red on unrelated #652/#798/quality/MIR/T3 baseline checks; pin refresh/fixpoint and managed-value/root lowering remain separate follow-up boundaries, so #873 stays open.
 - [ ] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
+  - Progress (not done, 2026-09-20): `6f480e71e` connects fallback
+    struct/array/Vec allocation constructors to the private tracing allocator;
+    enum and Vec representative fixtures validate and run on the fallback,
+    while the GC enum component remains parity-compatible. Root updates,
+    automatic collection, String/HashMap descriptors, closure environments,
+    and full move/borrow parity remain open. See
+    [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum
