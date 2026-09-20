@@ -11,6 +11,7 @@ use wasm::code_locals
 use wasm::code_ref_locals_fn_cache
 use wasm::ctx_call_reloc
 use wasm::emit_target
+use wasm::linear_root_lowering
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::inst_accessors_operands
@@ -147,7 +148,9 @@ fn emit_function_body(
         emit_body_gc_local_cache_end(ctx)
         return
     }
+    linear_root_lowering::emit_frame_enter_and_push(w, f, ctx)
     emit_function_instructions(w, f, ctx, bindings)
+    linear_root_lowering::emit_frame_leave(w, ctx)
     ctx_call_reloc::SelfEmitCtx_apply_call_relocs(
         ctx,
         w,

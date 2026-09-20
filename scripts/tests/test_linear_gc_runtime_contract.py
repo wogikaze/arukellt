@@ -60,6 +60,29 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_basic)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_from_bytes)
 
+    def test_compiler_connects_linear_root_frames_without_collecting(self) -> None:
+        code = (ROOT / "src/compiler/wasm/code.ark").read_text(encoding="utf-8")
+        body = (ROOT / "src/compiler/wasm/code_body.ark").read_text(encoding="utf-8")
+        locals_source = (ROOT / "src/compiler/wasm/inst_locals.ark").read_text(encoding="utf-8")
+        returns = (ROOT / "src/compiler/wasm/inst_convert.ark").read_text(encoding="utf-8")
+        scratch = (ROOT / "src/compiler/wasm/code_scratch_locals.ark").read_text(encoding="utf-8")
+        lowering = (ROOT / "src/compiler/wasm/linear_root_lowering.ark").read_text(encoding="utf-8")
+
+        for symbol in (
+            "writer_set_linear_gc_root_frame_enter_function_index",
+            "writer_set_linear_gc_root_push_function_index",
+            "writer_set_linear_gc_root_update_function_index",
+            "writer_set_linear_gc_root_frame_leave_function_index",
+        ):
+            self.assertIn(symbol, code)
+        self.assertIn("emit_frame_enter_and_push", body)
+        self.assertIn("emit_frame_leave(w, ctx)", body)
+        self.assertIn("emit_update_after_local_set(w, ctx, dest)", locals_source)
+        self.assertIn("linear_root_lowering::emit_frame_leave(w, ctx)", returns)
+        self.assertIn("scratch_linear_root_frame_local_count", scratch)
+        self.assertIn("SelfEmitCtx_linear_root_frame_local", lowering)
+        self.assertNotIn("LINEAR_GC_COLLECT", lowering)
+
     def test_same_source_fixture_and_capability_diagnostic_remain_present(self) -> None:
         gc_source = (ROOT / "tests/fixtures/target_capability/gc_linear_same_source.ark").read_text(
             encoding="utf-8"

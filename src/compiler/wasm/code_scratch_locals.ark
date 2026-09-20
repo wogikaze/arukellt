@@ -20,6 +20,15 @@ fn scratch_f32_local_count() -> i32 { 0 }
 
 fn scratch_i64_local_count() -> i32 { 1 }
 
+// Linear root-frame cursor. Offset 16 follows the fixed i32/f64/i64 scratch
+// prefix and is intentionally absent from the GC target layout.
+fn scratch_linear_root_frame_local_count(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_linear_memory_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return 1
+    }
+    0
+}
+
 // replace/pad need src+pat+rep+result (4) GC string temps concurrently.
 fn scratch_gc_local_count() -> i32 { 4 }
 
@@ -53,6 +62,7 @@ fn scratch_gc_enum_ref_array_local_count() -> i32 { 2 }
 
 fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
     let mut count = scratch_i32_local_count() + scratch_f64_local_count() + scratch_f32_local_count() + scratch_i64_local_count()
+    count = count + scratch_linear_root_frame_local_count(ctx)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         count = count + scratch_gc_local_count()
         count = count + scratch_gc_i32_array_local_count()
@@ -83,6 +93,7 @@ fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
     if scratch_f64_local_count() > 0 { count = count + 1 }
     if scratch_f32_local_count() > 0 { count = count + 1 }
     if scratch_i64_local_count() > 0 { count = count + 1 }
+    if scratch_linear_root_frame_local_count(ctx) > 0 { count = count + 1 }
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // Each GC scratch local is emitted as a separate group (1 local per group).
         count = count + scratch_gc_local_count()
@@ -105,6 +116,7 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
     emit_f64_scratch_local_decls(body, scratch_f64_local_count())
     emit_f32_scratch_local_decls(body, scratch_f32_local_count())
     emit_i64_scratch_local_decls(body, scratch_i64_local_count())
+    emit_linear_root_frame_local_decls(body, ctx)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_gc_scratch_local_decls(body, scratch_gc_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_i32_array_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1)
@@ -121,6 +133,13 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
         emit_gc_scratch_local_decls(body, scratch_gc_fnref_array_local_count(), ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx))
         emit_fnref_scratch_local_decls(body, scratch_gc_fnref_val_local_count(), ctx)
         emit_gc_scratch_local_decls(body, scratch_gc_enum_ref_array_local_count(), ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx))
+    }
+}
+
+fn emit_linear_root_frame_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
+    if scratch_linear_root_frame_local_count(ctx) > 0 {
+        writer_core::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, constants::WASM_I32())
     }
 }
 

@@ -109,6 +109,54 @@ fn emit_code_section(
             module_wit_imports::wit_import_count(bindings)
         )
         writer_core::writer_set_linear_gc_alloc_function_index(code_sec, alloc_index)
+        let root_frame_enter_index = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_FRAME_ENTER(),
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        writer_core::writer_set_linear_gc_root_frame_enter_function_index(code_sec, root_frame_enter_index)
+        let root_push_index = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_PUSH(),
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        writer_core::writer_set_linear_gc_root_push_function_index(code_sec, root_push_index)
+        let root_update_index = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_UPDATE(),
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        writer_core::writer_set_linear_gc_root_update_function_index(code_sec, root_update_index)
+        let root_frame_leave_index = function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_FRAME_LEAVE(),
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        writer_core::writer_set_linear_gc_root_frame_leave_function_index(code_sec, root_frame_leave_index)
     }
     let p2_command_extra = if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) && needs_wrapper == 1 {
         1

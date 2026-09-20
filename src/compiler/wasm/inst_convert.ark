@@ -6,6 +6,7 @@ use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::inst_locals
+use wasm::linear_root_lowering
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
@@ -21,6 +22,9 @@ fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 // (identity local_get_to), do not push it again — that caused
 // "values remaining on stack after return" / double local.get (#726 Vec::read).
 fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {
+    // Leave after any value already on the stack: the frame cursor is pushed
+    // above it, consumed by the runtime call, and the return value remains.
+    linear_root_lowering::emit_frame_leave(w, ctx)
     let ret_local = inst_accessors_operands::MirInst_arg0(inst)
     if ret_local >= 0 {
         let already_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() && prev_arg0 == ret_local

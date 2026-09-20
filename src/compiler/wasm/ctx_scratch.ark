@@ -8,6 +8,11 @@ fn SelfEmitCtx_scratch_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
     ctx.scratch_base + offset
 }
 
+fn SelfEmitCtx_linear_root_frame_local(ctx: SelfEmitCtx) -> i32 {
+    // The linear-only cursor follows 12 i32, 3 f64, and 1 i64 scratch local.
+    ctx.scratch_base + 16
+}
+
 fn SelfEmitCtx_scratch_gc_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
     // GC string slots: scratch_base+16 .. +19 (count 4).
     ctx.scratch_base + 16 + offset

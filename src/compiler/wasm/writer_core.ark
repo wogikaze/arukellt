@@ -11,6 +11,10 @@ pub struct WasmWriter {
     memory64: bool,
     linear_gc_commit_function_index: i32,
     linear_gc_alloc_function_index: i32,
+    linear_gc_root_frame_enter_function_index: i32,
+    linear_gc_root_push_function_index: i32,
+    linear_gc_root_update_function_index: i32,
+    linear_gc_root_frame_leave_function_index: i32,
     local_ref_types: Vec<i32>,
     ref_top_type: i32,
     ref_top_end: i32,
@@ -26,6 +30,10 @@ fn WasmWriter_with_memory64(memory64: bool) -> WasmWriter {
         memory64: memory64,
         linear_gc_commit_function_index: 0 - 1,
         linear_gc_alloc_function_index: 0 - 1,
+        linear_gc_root_frame_enter_function_index: 0 - 1,
+        linear_gc_root_push_function_index: 0 - 1,
+        linear_gc_root_update_function_index: 0 - 1,
+        linear_gc_root_frame_leave_function_index: 0 - 1,
         local_ref_types: Vec::new<i32>(),
         ref_top_type: 0 - 1,
         ref_top_end: 0 - 1,
@@ -102,6 +110,38 @@ fn writer_linear_gc_alloc_function_index(w: WasmWriter) -> i32 {
 
 fn writer_set_linear_gc_alloc_function_index(w: WasmWriter, index: i32) {
     w.linear_gc_alloc_function_index = index
+}
+
+fn writer_linear_gc_root_frame_enter_function_index(w: WasmWriter) -> i32 {
+    w.linear_gc_root_frame_enter_function_index
+}
+
+fn writer_set_linear_gc_root_frame_enter_function_index(w: WasmWriter, index: i32) {
+    w.linear_gc_root_frame_enter_function_index = index
+}
+
+fn writer_linear_gc_root_push_function_index(w: WasmWriter) -> i32 {
+    w.linear_gc_root_push_function_index
+}
+
+fn writer_set_linear_gc_root_push_function_index(w: WasmWriter, index: i32) {
+    w.linear_gc_root_push_function_index = index
+}
+
+fn writer_linear_gc_root_update_function_index(w: WasmWriter) -> i32 {
+    w.linear_gc_root_update_function_index
+}
+
+fn writer_set_linear_gc_root_update_function_index(w: WasmWriter, index: i32) {
+    w.linear_gc_root_update_function_index = index
+}
+
+fn writer_linear_gc_root_frame_leave_function_index(w: WasmWriter) -> i32 {
+    w.linear_gc_root_frame_leave_function_index
+}
+
+fn writer_set_linear_gc_root_frame_leave_function_index(w: WasmWriter, index: i32) {
+    w.linear_gc_root_frame_leave_function_index = index
 }
 
 fn writer_set_memory64(w: WasmWriter, memory64: bool) {

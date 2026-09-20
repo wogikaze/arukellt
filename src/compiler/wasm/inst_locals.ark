@@ -14,6 +14,7 @@ use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals
 use wasm::code_ref_locals_block_scan
 use mir::value_types
+use wasm::linear_root_lowering
 
 fn emit_local_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
@@ -25,7 +26,9 @@ fn emit_local_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
     emit_gc_ref_cast_to_local(w, inst, ctx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    let dest = inst_accessors_operands::MirInst_arg0(inst)
+    writer_core::emit_leb128_u(w, dest)
+    linear_root_lowering::emit_update_after_local_set(w, ctx, dest)
 }
 
 fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
