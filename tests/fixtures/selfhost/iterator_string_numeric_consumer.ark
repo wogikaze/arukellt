@@ -1,0 +1,8 @@
+use std::core::iter
+
+fn main() {
+    let source: Vec<String> = Vec::new<String>()
+    push(source, String_from("value"))
+    let total = source.iter().sum()
+    let _ = total
+}

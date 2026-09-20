@@ -1,0 +1,2 @@
+error[E0200|typecheck]: trait bound not satisfied: StringIter does not implement IteratorSum
+  --> tests/fixtures/selfhost/iterator_string_numeric_consumer.ark

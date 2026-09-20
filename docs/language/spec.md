@@ -931,8 +931,12 @@ are separate capabilities rather than requirements on every producer.
 `IteratorSum<Item, Output>` provides `sum`, and
 `IteratorFold<Item, Accumulator>` provides `fold`; the current numeric lane
 implements `IteratorSum<i32, i32>` and `IteratorFold<i32, i32>` for the concrete
-numeric adapters. A non-numeric iterator is not required to invent a numeric
-result or to pack its item into an integer.
+numeric adapters. A consumer call is legal only when the receiver satisfies
+the corresponding capability trait. A non-numeric iterator is not required to
+invent a numeric result or to pack its item into an integer: for example,
+`StringIter.sum()` is rejected during type checking with E0200 rather than
+lowering to a runtime stub or trap. The negative contract is pinned by
+`selfhost/iterator_string_numeric_consumer.ark`.
 
 `Vec<String>` implements `IntoIterator` through the item-preserving
 `StringIter` adapter. `iterator_string.ark` verifies direct and generic

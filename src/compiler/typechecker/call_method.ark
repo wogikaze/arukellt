@@ -13,8 +13,10 @@ use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::hashmap_methods
 use typechecker::sigs
+use typechecker::trait_bounds
 use typechecker::trait_method_registry
 use typechecker::trait_method_record
+use typechecker::type_names
 use typechecker::vec_core_mono
 
 fn simple_type(tag: i32) -> TypeInfo {
@@ -88,6 +90,18 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         if contract_fn_sig::FnSig_has_name(trait_sig) {
             return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_resolution)
         }
+        let numeric_result = infer_concrete_numeric_consumer_call(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            recv_ty,
+            method_name
+        )
+        if contract_type_access::TypeInfo_tag(numeric_result) != commands::TY_UNKNOWN() {
+            return numeric_result
+        }
         return simple_type(commands::TY_UNKNOWN())
     }
     // Bare function found — but if receiver is a type variable, prefer
@@ -102,6 +116,123 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         }
     }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
+}
+
+// Numeric iterator consumers are trait methods rather than inherent methods.
+// Keep direct concrete calls on the same capability boundary as generic calls,
+// and reject a non-numeric iterator before MIR can lower an unresolved method
+// to a runtime trap.
+fn infer_concrete_numeric_consumer_call(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    recv_ty: TypeInfo,
+    method_name: String
+) -> TypeInfo {
+    if !is_numeric_consumer_method(clone(method_name)) ||
+    !receiver_has_iterator_contract(env, recv_ty) {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    let bound = numeric_consumer_bound(clone(method_name))
+    if !trait_bounds::type_satisfies_trait_bound(env, recv_ty, bound) {
+        trait_bounds::enforce_trait_bound(env, recv_ty, bound)
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    let trait_name = numeric_consumer_trait_name(clone(method_name))
+    let entry = trait_method_registry::lookup_trait_method(
+        env,
+        clone(trait_name),
+        clone(method_name)
+    )
+    let sig = associated_types::resolve_trait_method_signature(
+        env,
+        entry,
+        bound,
+        recv_ty
+    )
+    let resolved_entry = trait_method_record::trait_method_entry_with_sig(entry, sig)
+    infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, resolved_entry)
+}
+
+fn is_numeric_consumer_method(method_name: String) -> bool {
+    eq(clone(method_name), String_from("sum")) ||
+    eq(clone(method_name), String_from("fold"))
+}
+
+fn numeric_consumer_trait_name(method_name: String) -> String {
+    if eq(clone(method_name), String_from("sum")) {
+        return String_from("IteratorSum")
+    }
+    String_from("IteratorFold")
+}
+
+fn numeric_consumer_bound(method_name: String) -> TypeInfo {
+    let bound = type_names::resolve_type_name(
+        numeric_consumer_trait_name(clone(method_name))
+    )
+    contract_type_mutation::TypeInfo_push_type_arg(
+        bound,
+        simple_type(commands::TY_I32())
+    )
+    contract_type_mutation::TypeInfo_push_type_arg(
+        bound,
+        simple_type(commands::TY_I32())
+    )
+    bound
+}
+
+fn receiver_has_iterator_contract(env: TypeEnv, recv_ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(recv_ty)
+    if tag == commands::TY_TYPE_VAR() {
+        return current_fn_has_trait_bound(
+            env,
+            contract_type_access::TypeInfo_name(recv_ty),
+            String_from("Iterator")
+        )
+    }
+    trait_bounds::type_satisfies_trait_bound(
+        env,
+        recv_ty,
+        type_names::resolve_type_name(String_from("Iterator"))
+    )
+}
+
+fn current_fn_has_trait_bound(
+    env: TypeEnv,
+    type_param_name: String,
+    trait_name: String
+) -> bool {
+    let bound_count = len(env.current_fn_bounds)
+    let mut i = 0
+    while i < bound_count {
+        let type_param = get_unchecked(env.current_fn_bounds, i)
+        if eq(
+            contract_type_param_bounds::TypeParamBounds_name(type_param),
+            clone(type_param_name)
+        ) && type_param_has_trait(
+            type_param,
+            clone(trait_name)
+        ) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn type_param_has_trait(param: TypeParamBounds, trait_name: String) -> bool {
+    let count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
+    let mut i = 0
+    while i < count {
+        let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
+        if eq(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn string_vec_type() -> TypeInfo {

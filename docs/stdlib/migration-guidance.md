@@ -101,6 +101,13 @@ tracked under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md)
 and [#860](../../issues/open/860-iterator-unification-integration.md). The
 `std::seq` helpers must not be marked deprecated until the method-level
 manifest contract exists.
+Calls to `sum` and `fold` now require the matching numeric capability at
+type-check time. The item-preserving `StringIter` lane therefore remains
+valid for `next`, `collect`, `count`, and bounded adapters, while an accidental
+`StringIter.sum()` is rejected with E0200; it is not accepted and deferred to
+an invalid backend stub. See
+`tests/fixtures/selfhost/iterator_string_numeric_consumer.ark` for the
+negative migration contract.
 The concrete composed adapter is also a valid direct `for` source in this lane;
 `iterator_adapters.ark` checks the `map/filter/take` chain through its identity
 `IntoIterator::into_iter` conversion and canonical `next` path on both GC and
