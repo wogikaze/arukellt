@@ -81,7 +81,7 @@ The authoritative JSON Schema is [`benchmarks/schema.json`](../../benchmarks/sch
 
 | Field          | Type       | Unit   | Description                         |
 |----------------|------------|--------|-------------------------------------|
-| `status`       | string     | —      | `"ok"` or `"skipped"`              |
+| `status`       | string     | —      | `"ok"`, `"error"`, or `"skipped"`   |
 | `iterations`   | integer    | —      | Number of samples taken              |
 | `samples_ms`   | number[]   | ms     | Raw wall-clock samples               |
 | `median_ms`    | number     | ms     | Median compile time                  |
@@ -92,7 +92,7 @@ The authoritative JSON Schema is [`benchmarks/schema.json`](../../benchmarks/sch
 
 | Field          | Type       | Unit   | Description                         |
 |----------------|------------|--------|-------------------------------------|
-| `status`       | string     | —      | `"ok"` or `"skipped"`              |
+| `status`       | string     | —      | `"ok"`, `"error"`, or `"skipped"`   |
 | `iterations`   | integer    | —      | Number of timed iterations           |
 | `warmups`      | integer    | —      | Warmup iterations (discarded)        |
 | `samples_ms`   | number[]   | ms     | Raw wall-clock samples               |
@@ -101,7 +101,7 @@ The authoritative JSON Schema is [`benchmarks/schema.json`](../../benchmarks/sch
 | `p95_ms`       | number     | ms     | Linear-interpolated 95th percentile |
 | `p99_ms`       | number     | ms     | Linear-interpolated 99th percentile |
 | `max_rss_kb`   | number\|null | KiB  | Peak resident memory                 |
-| `correctness`  | string     | —      | `"pass"` or `"fail"`               |
+| `correctness`  | string     | —      | `"pass"`, `"fail"`, or `"skipped"`  |
 
 ## 3. Execution Modes
 
@@ -124,6 +124,10 @@ All modes are invoked through `scripts/util/benchmark_runner.py`.
 | Binary size   | +15 %                  |
 
 If any benchmark exceeds its threshold in `ci` mode the runner exits non-zero.
+The runner also exits non-zero when a requested compile or runtime measurement
+is an error, output correctness is not `pass`, or a comparison metric is
+skipped because the committed baseline has no corresponding value.  This
+prevents an unavailable measurement from being reported as a passing gate.
 
 Percentiles use linear interpolation at position `(n - 1) * p / 100` over the
 sorted raw samples. The rule is recorded in the runner code so a ten-sample

@@ -44,6 +44,11 @@ REPRO_THRESHOLD = 10  # percent — reproducibility check: two sequential runs m
 # History / trend constants
 RESULTS_DIR = ROOT / "benchmarks" / "results"
 HISTORY_N = 5  # moving median window and trend depth
+CURRENT_SELFHOST_WASM_CANDIDATES = (
+    ROOT / ".build" / "selfhost" / "arukellt-s2-runtime.wasm",
+    ROOT / ".build" / "selfhost" / "arukellt-s2.wasm",
+    ROOT / ".build" / "selfhost" / "arukellt-s3.wasm",
+)
 
 WASM_SECTION_ID_NAMES: dict[int, str] = {
     0: "custom",
@@ -279,7 +284,8 @@ MODE_PRESETS: dict[str, dict[str, Any]] = {
 
 
 def rel(path: Path) -> str:
-    return str(path.relative_to(ROOT))
+    resolved = path if path.is_absolute() else ROOT / path
+    return str(resolved.relative_to(ROOT))
 
 
 def resolve_compiler(explicit: str | None) -> Path:
@@ -297,6 +303,18 @@ def resolve_compiler(explicit: str | None) -> Path:
     raise SystemExit(
         "arukellt entrypoint not found. Set ARUKELLT_BIN, use scripts/run/arukellt-selfhost.sh, or use `python3 scripts/util/benchmark_runner.py --mode full`."
     )
+
+
+def configure_selfhost_environment(compiler: Path) -> None:
+    if os.environ.get("ARUKELLT_SELFHOST_WASM"):
+        return
+    wrapper = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
+    if compiler.resolve() != wrapper.resolve():
+        return
+    for candidate in CURRENT_SELFHOST_WASM_CANDIDATES:
+        if candidate.is_file():
+            os.environ["ARUKELLT_SELFHOST_WASM"] = str(candidate)
+            return
 
 
 def iso_now() -> str:
@@ -527,7 +545,16 @@ def measure_compile(
         except FileNotFoundError:
             pass
         output = run_measured(
-            [str(compiler), "compile", "--time", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
+            [
+                str(compiler),
+                "compile",
+                "--time",
+                "--target",
+                target,
+                "-o",
+                rel(wasm_path),
+                case.source,
+            ],
             cwd=ROOT,
             time_bin=time_bin,
         )
@@ -721,7 +748,15 @@ def measure_startup_probe(
         return None
     wasm_path = work_dir / "startup-probe.wasm"
     compile_out = run_measured(
-        [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(startup_source)],
+        [
+            str(compiler),
+            "compile",
+            "--target",
+            target,
+            "-o",
+            rel(wasm_path),
+            rel(startup_source),
+        ],
         cwd=ROOT,
         time_bin=None,
     )
@@ -760,6 +795,7 @@ def environment_info() -> dict[str, Any]:
 def collect_results(args: argparse.Namespace) -> dict[str, Any]:
     preset = MODE_PRESETS[args.mode]
     compiler = resolve_compiler(args.arukellt)
+    configure_selfhost_environment(compiler)
     tools = {
         "wasmtime": tool_info("wasmtime"),
         "hyperfine": tool_info("hyperfine"),
@@ -774,7 +810,12 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
         else preset["runtime_latency_iterations"]
     )
 
-    with tempfile.TemporaryDirectory(prefix="arukellt-bench-") as tmp_dir:
+    benchmark_tmp_root = ROOT / ".build"
+    benchmark_tmp_root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="arukellt-bench-",
+        dir=benchmark_tmp_root,
+    ) as tmp_dir:
         work_dir = Path(tmp_dir)
         # Measure the startup probe once for the whole run; used to separate
         # wasmtime instantiation overhead from guest execution time.
@@ -2181,6 +2222,43 @@ def failing_comparison(comparison: dict[str, Any]) -> bool:
     return any(metric["status"] == "fail" for bench in comparison["benchmarks"] for metric in bench["metrics"].values())
 
 
+def first_failure_detail(result: dict[str, Any]) -> str:
+    details = result.get("stderr_head") or []
+    for detail in details:
+        if detail and "setlocale" not in detail:
+            return detail
+    return result.get("reason", "unknown error")
+
+
+def measurement_failures(current: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    for benchmark in current.get("benchmarks", []):
+        name = benchmark.get("name", "unknown")
+        compile_result = benchmark.get("compile", {})
+        if "compile" in benchmark.get("metrics", []) and compile_result.get("status") != "ok":
+            detail = first_failure_detail(compile_result)
+            failures.append(f"{name}: compile {compile_result.get('status', 'unknown')}: {detail}")
+            continue
+        runtime_result = benchmark.get("runtime", {})
+        if "runtime" in benchmark.get("metrics", []) and runtime_result.get("status") != "ok":
+            detail = first_failure_detail(runtime_result)
+            failures.append(f"{name}: runtime {runtime_result.get('status', 'unknown')}: {detail}")
+            continue
+        if "runtime" in benchmark.get("metrics", []) and runtime_result.get("correctness") != "pass":
+            correctness = runtime_result.get("correctness", "unknown")
+            failures.append(f"{name}: runtime correctness {correctness}")
+    return failures
+
+
+def comparison_gaps(comparison: dict[str, Any]) -> list[str]:
+    gaps: list[str] = []
+    for benchmark in comparison.get("benchmarks", []):
+        for metric_name, metric in benchmark.get("metrics", {}).items():
+            if metric.get("status") == "skipped":
+                gaps.append(f"{benchmark.get('name', 'unknown')}: {metric_name}")
+    return gaps
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Arukellt benchmark runner")
     parser.add_argument("--mode", choices=sorted(MODE_PRESETS), default="full")
@@ -2253,6 +2331,7 @@ def main() -> None:
     baseline_path = Path(args.baseline)
     baseline = load_json(baseline_path)
     comparison = compare_results(current, baseline)
+    measurement_errors = measurement_failures(current)
 
     output_json = Path(args.output_json)
     output_md = Path(args.output_md)
@@ -2289,9 +2368,21 @@ def main() -> None:
         sys.stdout.write(json.dumps(current, indent=2) + "\n")
 
     should_fail = args.fail_on_regression or args.mode == "ci"
+    if should_fail and measurement_errors:
+        sys.stderr.write("benchmark measurements incomplete:\n")
+        for error in measurement_errors:
+            sys.stderr.write(f"  {error}\n")
+        raise SystemExit(1)
     if should_fail and not comparison["baseline_available"]:
         sys.stderr.write(f"baseline file not found: {baseline_path}\n")
         raise SystemExit(1)
+    if should_fail:
+        baseline_gaps = comparison_gaps(comparison)
+        if baseline_gaps:
+            sys.stderr.write("baseline comparison incomplete:\n")
+            for gap in baseline_gaps:
+                sys.stderr.write(f"  {gap}\n")
+            raise SystemExit(1)
     if should_fail and failing_comparison(comparison):
         raise SystemExit(1)
 

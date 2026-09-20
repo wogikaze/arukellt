@@ -30,6 +30,9 @@ definition; downstream tooling **must** honour these semantics.
 
 - `quick` **must not** write to `baselines.json`.
 - `ci` **must** exit non-zero on threshold regression (see §2).
+- `ci` **must** also exit non-zero when any requested benchmark cannot compile,
+  execute, produce expected output, or compare all requested metrics against
+  the committed baseline.
 - `update-baseline` **must** write `baselines.json` and **must not** compare against the old baseline.
 - All modes write `tests/baselines/perf/current.json` and overwrite
   `docs/history/benchmarks/benchmark-results.md`.

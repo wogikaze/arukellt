@@ -17,6 +17,11 @@ from perf.checks import (  # noqa: E402
     run_benchmarks,
     run_gate,
 )
+from util.benchmark_runner import (  # noqa: E402
+    comparison_gaps,
+    measurement_failures,
+    rel,
+)
 
 _ROOT = Path("/home/wogikaze/arukellt")
 
@@ -96,6 +101,84 @@ class TestCommands(unittest.TestCase):
             "--output-json", "tests/baselines/perf/current.json",
             "--output-md", "docs/history/benchmarks/benchmark-results.md",
         ])
+
+
+class TestPathRendering(unittest.TestCase):
+    def test_rel_accepts_repository_relative_paths(self):
+        self.assertEqual(rel(Path("tests/baselines/perf/baselines.json")),
+                         "tests/baselines/perf/baselines.json")
+
+    def test_rel_accepts_absolute_repository_paths(self):
+        path = (
+            Path(__file__).resolve().parents[2]
+            / "tests"
+            / "baselines"
+            / "perf"
+            / "baselines.json"
+        )
+        self.assertEqual(rel(path), "tests/baselines/perf/baselines.json")
+
+
+class TestMeasurementGate(unittest.TestCase):
+    def test_compile_failure_is_reported(self):
+        current = {
+            "benchmarks": [
+                {
+                    "name": "fib",
+                    "metrics": ["compile", "runtime"],
+                    "compile": {
+                        "status": "error",
+                        "stderr_head": ["failed to read file"],
+                    },
+                    "runtime": {"status": "skipped"},
+                }
+            ]
+        }
+        self.assertEqual(
+            measurement_failures(current),
+            ["fib: compile error: failed to read file"],
+        )
+
+    def test_runtime_failure_is_reported_after_successful_compile(self):
+        current = {
+            "benchmarks": [
+                {
+                    "name": "fib",
+                    "metrics": ["compile", "runtime"],
+                    "compile": {"status": "ok"},
+                    "runtime": {"status": "error", "reason": "trap"},
+                }
+            ]
+        }
+        self.assertEqual(measurement_failures(current), ["fib: runtime error: trap"])
+
+    def test_runtime_correctness_failure_is_reported(self):
+        current = {
+            "benchmarks": [
+                {
+                    "name": "fib",
+                    "metrics": ["compile", "runtime"],
+                    "compile": {"status": "ok"},
+                    "runtime": {"status": "ok", "correctness": "fail"},
+                }
+            ]
+        }
+        self.assertEqual(measurement_failures(current), ["fib: runtime correctness fail"])
+
+    def test_missing_baseline_metric_is_reported(self):
+        comparison = {
+            "baseline_available": True,
+            "benchmarks": [
+                {
+                    "name": "new_fixture",
+                    "metrics": {
+                        "compile_ms": {"status": "skipped"},
+                        "run_ms": {"status": "pass"},
+                    },
+                }
+            ],
+        }
+        self.assertEqual(comparison_gaps(comparison), ["new_fixture: compile_ms"])
 
 
 if __name__ == "__main__":

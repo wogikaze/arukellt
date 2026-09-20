@@ -141,8 +141,8 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["ok", "skipped"],
-          "description": "Whether compile metrics were collected."
+          "enum": ["ok", "error", "skipped"],
+          "description": "Whether compile metrics were collected or failed."
         },
         "iterations": {
           "type": "integer",
@@ -234,8 +234,8 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["ok", "skipped"],
-          "description": "Whether runtime metrics were collected."
+          "enum": ["ok", "error", "skipped"],
+          "description": "Whether runtime metrics were collected or failed."
         },
         "iterations": {
           "type": "integer",
@@ -298,7 +298,7 @@
         },
         "correctness": {
           "type": "string",
-          "enum": ["pass", "fail"],
+          "enum": ["pass", "fail", "skipped"],
           "description": "Whether stdout matched the .expected file."
         },
         "command": {
