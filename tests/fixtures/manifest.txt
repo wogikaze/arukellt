@@ -268,6 +268,7 @@ diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
 diag:diagnostics/boolean_literal_not_name.ark
 diag:diagnostics/future_reserved_keyword.ark
+diag:diagnostics/fstring_embedded_unresolved.ark
 diag:diagnostics/unresolved_name.ark
 diag:diagnostics/unused_binding.ark
 diag:diagnostics/unused_import.ark
@@ -1965,6 +1966,7 @@ run:stdlib_wit/world_build.ark
 run:string_interp/fstring_basic.ark
 run:string_interp/fstring_debug_specifier.ark
 run:string_interp/fstring_expr.ark
+run:string_interp/fstring_hygiene.ark
 run:struct_mutation/field_assign.ark
 run:structs/basic_struct.ark
 run:structs/chained_field_assign.ark
@@ -2886,6 +2888,7 @@ t3-run:stdlib_vec_ops/sum_i32.ark
 t3-run:string_interp/fstring_basic.ark
 t3-run:string_interp/fstring_debug_specifier.ark
 t3-run:string_interp/fstring_expr.ark
+t3-run:string_interp/fstring_hygiene.ark
 t3-run:struct_mutation/field_assign.ark
 t3-run:structs/basic_struct.ark
 t3-run:structs/constructor_fn.ark

@@ -152,7 +152,14 @@ Standard escape sequences: `\\`, `\"`, `\n`, `\r`, `\t`, `\0`.
 f"hello {expr}"
 ```
 
-Desugared by the compiler to `concat(…, to_string(expr), …)`.
+The compiler lowers each embedded expression through the typed receiver method
+`expr.to_string()` (`Display`). Literal and converted segments are combined
+left-to-right with the canonical `String::concat` method. The debug specifier
+`{expr:?}` uses `expr.fmt_debug()` (`Debug`). These are compiler-owned method
+references; the expansion does not perform ordinary source-level lookup of
+`concat`, `to_string`, or `format_debug`, so a user binding with one of those
+names cannot capture the generated call. Embedded expressions are evaluated
+once in source order.
 
 #### Character Literals
 
@@ -764,9 +771,13 @@ let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 {
-    let result: Vec<ElemType> = Vec_new_ElemType()
-    for VAR in values(ITER) {
-        push(result, ELEM)
+    let result: Vec<ElemType> = Vec::new<ElemType>()
+    let iterator = ITER.into_iter()
+    loop {
+        match iterator.next() {
+            Some(VAR) => result.push(ELEM),
+            None => break,
+        }
     }
     result
 }
@@ -777,10 +788,16 @@ With filter:
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 {
-    let result: Vec<ElemType> = Vec_new_ElemType()
-    for VAR in values(ITER) {
-        if FILTER {
-            push(result, ELEM)
+    let result: Vec<ElemType> = Vec::new<ElemType>()
+    let iterator = ITER.into_iter()
+    loop {
+        match iterator.next() {
+            Some(VAR) => {
+                if FILTER {
+                    result.push(ELEM)
+                }
+            }
+            None => break,
         }
     }
     result
@@ -788,7 +805,8 @@ With filter:
 ```
 
 **Type rules:**
-1. `ITER` must be `Vec<E>` for some element type `E`. A non-`Vec` iterable is a type error.
+1. `ITER` must provide the canonical `IntoIterator` conversion for some element type `E`.
+   A source without that implementation is a type error.
 2. The loop variable `VAR` is bound to type `E`.
 3. `ELEM` is type-checked in the loop scope. Its type `T` becomes the element type of the result.
 4. If `FILTER` is present, it must evaluate to `bool`.
@@ -797,6 +815,11 @@ With filter:
 **Restrictions:** One generator only (no nested `for`). `break` and `continue` inside
 a comprehension are not allowed (they would refer to the implicit loop, which is
 confusing).
+
+The generated `into_iter`, `next`, and `Vec::push` calls are compiler-owned receiver
+references. Ordinary source bindings with those names cannot capture a comprehension.
+The filter and element expression keep the same evaluation order as the explicit core
+form above.
 
 ---
 

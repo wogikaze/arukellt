@@ -1,0 +1,41 @@
+use std::host::stdio
+use std::core::iter
+use std::test
+
+fn left_value() -> i32 {
+    stdio::println("left")
+    1
+}
+
+fn right_value() -> i32 {
+    stdio::println("right")
+    2
+}
+
+fn main() {
+    let concat = |_left: String, _right: String| -> String { "shadowed concat" }
+    let to_string = |_value: i32| -> String { "shadowed to_string" }
+    let fmt_debug = |_value: i32| -> String { "shadowed fmt_debug" }
+    let into_iter = |value: i32| -> i32 { value }
+    let next = |value: i32| -> i32 { value }
+    let collect = |value: i32| -> i32 { value }
+    let rendered = f"{left_value()}{right_value()}"
+    test::assert_eq_string(rendered, "12")
+    test::assert_eq_string(f"{1:?}", "1")
+
+    let loop_source: Vec<String> = Vec::new<String>()
+    loop_source.push("iteration")
+    for item in loop_source {
+        stdio::println(item)
+    }
+
+    let push = |target: i32, _value: i32| -> i32 { target }
+    let comprehension_source: Vec<i32> = Vec::new<i32>()
+    comprehension_source.push(7)
+    comprehension_source.push(8)
+    let projected = [item for item in comprehension_source]
+    for item in projected {
+        stdio::println(item.to_string())
+    }
+    stdio::println("fstring_hygiene ok")
+}

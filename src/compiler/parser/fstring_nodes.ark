@@ -10,9 +10,11 @@ fn fstring_string_lit(text: String, span: Span) -> AstNode {
 }
 
 fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
-    let ts_node = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
-    let fn_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), "to_string", span)
-    core_ast_children::AstNode_push_child(ts_node, fn_node)
+    // Receiver syntax keeps Display resolution tied to the embedded value's
+    // type. A bare `to_string(expr)` would be captured by a user function or
+    // closure with the same name.
+    let ts_node = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
+    core_ast_text_fields::AstNode_set_text(ts_node, String_from("to_string"))
     core_ast_children::AstNode_push_child(ts_node, expr)
     ts_node
 }
@@ -30,9 +32,10 @@ fn fstring_format_debug_call(expr: AstNode, span: Span) -> AstNode {
 }
 
 fn fstring_concat_call(lhs: AstNode, rhs: AstNode, span: Span) -> AstNode {
-    let concat_call = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
-    let fn_concat = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), "concat", span)
-    core_ast_children::AstNode_push_child(concat_call, fn_concat)
+    // Both operands are String values. Use the canonical String receiver
+    // method so a local `concat` binding cannot capture the generated call.
+    let concat_call = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
+    core_ast_text_fields::AstNode_set_text(concat_call, String_from("concat"))
     core_ast_children::AstNode_push_child(concat_call, lhs)
     core_ast_children::AstNode_push_child(concat_call, rhs)
     concat_call

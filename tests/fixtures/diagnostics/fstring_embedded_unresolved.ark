@@ -1,0 +1,3 @@
+fn main() {
+    let rendered = f"value={unknown_value}"
+}

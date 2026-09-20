@@ -72,7 +72,7 @@ fn fstring_push_expr_segment(nodes: Vec<AstNode>, content: String, span: Span, o
         let spec_text = substring(content, colon_idx + 1, close_idx)
         let spec = fstring_trim(spec_text)
         if eq(spec, String_from("?")) {
-            // `{x:?}` → `fmt::format_debug(x)` (Debug trait dispatch).
+            // `{x:?}` → `x.fmt_debug()` (Debug trait dispatch).
             push(nodes, fstring_nodes::fstring_format_debug_call(expr, span))
             return i
         }

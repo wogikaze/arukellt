@@ -100,8 +100,8 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 25 | slice | sliceを独立した非`Copy`の読み取りviewとして定義し、`Vec`との戻り値の不整合を解消する。source binding は現行 API では消費しない。 | ADR-060で採択済み。完全なlifetime/borrow検査は後続。 |
 | 26 | `HashMap<K,V>` | 型専用のHashMap APIを隠し、ジェネリックな型安全APIにする。 | ADR-066 で `HashMap::new<K,V>()` と receiver methods、supported pair 診断、旧 API の removal condition を採択。 |
 | 27 | let-generalization | effect systemを導入しない段階では、曖昧な「pure判定」ではなく構文的なnon-expansive/value restrictionとして形式化する。 | ADR-070で immutable binding、environment-aware generalization、allocation/call/mutable state の境界を採択済み。 |
-| 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | parser、typechecker、stdlibの境界を整理する。 |
-| 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | 文字列仕様とfixtureを追加する。 |
+| 28 | 糖衣展開 | shadow可能なstdlib名を通常の名前解決で引かず、lang item / pre-resolved symbol / intrinsic等へのhygienic desugaringとして定義する。 | [ADR-077](../adr/ADR-077-language-v2-hygienic-desugaring.md) で compiler-owned receiver/method boundary を採択。for、comprehension、f-string の generated call は source binding に捕捉されない。 |
+| 29 | f-string | f-stringを衛生的に脱糖し、埋め込み式の評価順序と名前解決を保つ。 | [ADR-077](../adr/ADR-077-language-v2-hygienic-desugaring.md) と言語仕様、shadowing/evaluation-order fixture で固定。 |
 | 30 | `import` と `use` | ソースモジュールの参照面を整理し、キーワードの役割を重複させない。 | #866で `use` を正規形、legacy `import` を `W0101` 付き移行構文として実装。alias、selective import、`pub use`、loader/resolver/formatter/LSPの同期を確認。仕様は [import-system.md](../spec/import-system.md) を参照。 |
 | 31 | WIT import | WIT識別子、CLI、manifest、Component境界の受け渡しを一つのcanonical pathにする。 | [ADR-071](../adr/ADR-071-component-export-visibility-boundary.md) で full version 比較と source/WIT namespace 分離を採択し、ADR-031を精緻化する。 |
 | 32 | Prelude | 「最小化」自体を目的にせず、小さく安定した集合を固定する。頻度の低いhelper/Trait/APIは明示importとし、変更は互換性方針に従う。 | [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) で stable set、legacy auto-import boundary、#878 の移行条件を採択。 |
@@ -202,7 +202,7 @@ v2 の stable set と移行中の legacy auto-import は分けて扱う。`true`
 具体的な分類は [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md) と
 [`docs/data/language-keyword-policy.toml`](../data/language-keyword-policy.toml) に従う。
 
-糖衣構文が存在する場合、展開先のstdlib名を通常の名前解決で検索しない。lang item、pre-resolved symbol、intrinsic等のhygienicな参照へ変換し、stdlib APIの名前変更やユーザー定義名のshadowingでソース構文の意味が変わらないようにする。
+糖衣構文が存在する場合、展開先のstdlib名を通常の名前解決で検索しない。lang item、pre-resolved symbol、intrinsic等のhygienicな参照へ変換し、stdlib APIの名前変更やユーザー定義名のshadowingでソース構文の意味が変わらないようにする。f-string、for、comprehension の具体的な receiver/method lowering は [ADR-077](../adr/ADR-077-language-v2-hygienic-desugaring.md) に従う。
 
 ### 4.5 ターゲットとComponent境界
 
