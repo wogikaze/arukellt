@@ -34,9 +34,11 @@ fn mir_classify_hof_i64_call(callee: String) -> MirHofCallPlan {
 }
 
 fn mir_classify_hof_i32_call(callee: String) -> MirHofCallPlan {
-    let is_map_i32_i32 = eq(clone(callee), "map_i32_i32") || eq(clone(callee), "map_String_String") || eq(clone(callee), "seq::map_i32_i32")
-    let is_filter_i32 = eq(clone(callee), "filter_i32") || eq(clone(callee), "filter_String") || eq(clone(callee), "seq::filter_i32")
-    let is_fold_i32_i32 = eq(clone(callee), "fold_i32_i32") || eq(clone(callee), "seq::fold_i32_i32")
+    // std::seq compatibility wrappers are ordinary Ark bodies now; only the
+    // prelude/intrinsic names retain this legacy HOF lowering path.
+    let is_map_i32_i32 = eq(clone(callee), "map_i32_i32") || eq(clone(callee), "map_String_String")
+    let is_filter_i32 = eq(clone(callee), "filter_i32") || eq(clone(callee), "filter_String")
+    let is_fold_i32_i32 = eq(clone(callee), "fold_i32_i32")
     if is_map_i32_i32 || is_filter_i32 || is_fold_i32_i32 {
         let min_children_i32 = if is_fold_i32_i32 { 4 } else { 3 }
         let callback_index_i32 = if is_fold_i32_i32 { 3 } else { 2 }

@@ -19,11 +19,27 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
 // prelude declaration is the CoreOp shim. Keep the adapter body live so its
 // match can construct the public Option result.
 fn mir_should_defer_stdlib_body_for_qualified(decl_name: String, qualified_name: String) -> bool {
+    if mir_is_seq_iterator_compatibility_entry(clone(qualified_name)) {
+        return false
+    }
     if eq(clone(decl_name), String_from("parse_f64")) &&
     ends_with(clone(qualified_name), String_from("convert::parse_f64")) {
         return false
     }
     mir_should_defer_stdlib_body(decl_name)
+}
+
+// The qualified std::seq transformation entries are compatibility wrappers.
+// Their Ark bodies now delegate to std::core::iter, so the legacy HOF shim must
+// not discard those bodies before canonical iterator lowering can run.
+fn mir_is_seq_iterator_compatibility_entry(qualified_name: String) -> bool {
+    if ends_with(clone(qualified_name), String_from("seq::map_i32_i32")) {
+        return true
+    }
+    if ends_with(clone(qualified_name), String_from("seq::filter_i32")) {
+        return true
+    }
+    ends_with(clone(qualified_name), String_from("seq::fold_i32_i32"))
 }
 
 /// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
