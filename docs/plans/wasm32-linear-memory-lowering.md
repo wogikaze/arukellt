@@ -68,6 +68,13 @@ length-prefix String allocation を `LINEAR_GC_ALLOC` へ接続した。empty se
 format、HashMap descriptor、closure environment、descriptor-aware root write、
 automatic `collect` は引き続き未完了である。
 
+続く `5393f3dc7` では、fallback の numeric/floating-point `to_string`、
+`char_to_string`、`push_char`、`String_new` の length-prefix String allocation を
+`LINEAR_GC_ALLOC` へ接続した。i32 の既存 4-byte 丸めと `base + 4` payload pointer
+を維持し、Wasm GC の array lowering と公開 API は変更していない。debug／structured
+format、HashMap descriptor、closure environment、descriptor-aware root write、
+automatic `collect` は引き続き未完了である。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:

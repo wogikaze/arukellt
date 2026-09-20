@@ -380,3 +380,51 @@ RFC-011: **8 (fallback lowering)**。
   environments, descriptor-aware root writes, automatic collection,
   shared/cyclic source graphs, and complete cross-backend move/borrow parity
   remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (String numeric and char formatting allocation)
+
+- Implementation commit `5393f3dc7` routes fallback allocation in numeric and
+  floating-point String formatting (`i32`, `i64`, `f64`), `char_to_string`,
+  `push_char`, and `String_new` through `LINEAR_GC_ALLOC`. The i32 path keeps
+  its 4-byte size rounding; all paths retain the record-base and
+  `base + 4` length-prefix payload ABI. The Wasm GC branches and public API
+  remain unchanged.
+- Positive fixtures covering `format_i32`, `format_i64`, `format_f64`, boolean
+  formatting regression, numeric `to_string`, char conversion, empty String
+  construction, and repeated `push_char` compile, validate, and execute
+  successfully on both the `wasm32` linear core and `wasm32-gc` component paths.
+  Eighteen fixtures produce 36 passing artifacts.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  wasm-tools validate                                       PASS (36 artifacts)
+  wasmtime run                                              PASS (36 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear format-i32           5468 bytes  339517eb01fbc73193a80e1170dc77334d88d90400e1fe980d26908b1c787e54
+  wasm32 linear format-i64           6277 bytes  81b157e852a555c6ec10820ebbd84f368d70a0937e4f20e72ce8a6ece7866479
+  wasm32 linear format-f64           7461 bytes  94bdde8f6e21973a7159416e9823b271f0743a08dc67943081dd2e6ea47676d3
+  wasm32 linear char-to-string       5391 bytes  6a3d394098e8e28c2934984a83aea168582609a0dccea43f3fef17986d0e1abb
+  wasm32 linear String_new           3894 bytes  fea6c024aed19163207886527bccad1c7c1fe83ee3ab0bc0cc7f5de174030dfc
+  wasm32 linear push-char            3690 bytes  762d38f98f4dbde285c0777f3eb9e37a89f7c0f5787ba94030845f5fffe7f2fc
+  wasm32-gc format-i32 component    14225 bytes 243178f58766a7f462d829a73d91a886a1b06932ac4cc1aab4d5a947b180b70f
+  wasm32-gc format-i64 component    15220 bytes 361278ae2a3db674df5a60997dc0aa812df04ef8154663a3ca631f80cd2a977c
+  wasm32-gc format-f64 component    16251 bytes 10818f4e15e7c15d9104de24e947e229d227675848901711b33b2a041d56b695
+  wasm32-gc char-to-string          13914 bytes 7f44707d02fe1a525780196293e98ebbdad9b89a6859a91beb456311730681c5
+  wasm32-gc String_new              12448 bytes af60506bcee10a75aee36bea1fe1cdf265e19e143de3951d3ae7032d40a285f3
+  wasm32-gc push-char               11912 bytes 9e62e5910612ab0f647c0642b12d723a4c0dde6be8ffccec6109d292083e48dd
+  ```
+
+- This receipt covers the numeric/floating-point and char-oriented formatting
+  allocation paths only. Boolean/debug/structured formatting helpers and
+  other String allocation helpers, HashMap descriptors, closure environments,
+  descriptor-aware root writes, automatic collection, shared/cyclic source
+  graphs, and complete cross-backend move/borrow parity remain open; #874
+  stays open.
