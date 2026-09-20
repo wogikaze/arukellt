@@ -165,6 +165,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [ ] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876
 - [ ] #878 — Language v2 compatibility migration を完了する — RFC migration — depends: 875, 876
 - [ ] #879 — Wasm GC / fallback の性能・サイズ receipt を取得する — RFC performance — depends: 871, 872, 874, 875
+  - Progress (not done, 2026-09-20): `f499fccad` makes the benchmark gate fail closed and records a current-s2 `wasm32` run in `tests/baselines/perf/current.json`. The fixed 20-workload run has 7 compile errors, 6 runtime errors, and 1 correctness failure; the historic 15-entry baseline remains unchanged. GC/fallback paired measurements and runtime allocation/GC telemetry remain open.
 - [ ] #880 — Language v2 最終 close audit を実施する — RFC final — depends: 877, 878, 879
 
 ## Dependency DAG
