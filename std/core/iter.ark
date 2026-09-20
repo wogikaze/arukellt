@@ -250,12 +250,50 @@ pub struct StringTakeIter {
     remaining: i32,
 }
 
+/// Lazy adapter that skips String items before yielding the remainder.
+pub struct StringSkipIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    to_skip: i32,
+}
+
+/// Lazy composition that skips String items and then applies a bound.
+pub struct StringSkipTakeIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    to_skip: i32,
+    remaining: i32,
+}
+
 impl StringIter {
     fn take(self: StringIter, n: i32) -> StringTakeIter {
         StringTakeIter {
             vec: self.vec,
             index: self.index,
             length: self.length,
+            remaining: n,
+        }
+    }
+
+    fn skip(self: StringIter, n: i32) -> StringSkipIter {
+        StringSkipIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            to_skip: n,
+        }
+    }
+}
+
+impl StringSkipIter {
+    fn take(self: StringSkipIter, n: i32) -> StringSkipTakeIter {
+        StringSkipTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            to_skip: self.to_skip,
             remaining: n,
         }
     }
@@ -309,6 +347,62 @@ impl Iterator for StringTakeIter {
     }
 }
 
+impl Iterator for StringSkipIter {
+    type Item = String
+
+    fn next(self: StringSkipIter) -> Option<String> {
+        while self.to_skip > 0 && self.index < self.length {
+            self.index = self.index + 1
+            self.to_skip = self.to_skip - 1
+        }
+        if self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StringSkipIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringSkipIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
+impl Iterator for StringSkipTakeIter {
+    type Item = String
+
+    fn next(self: StringSkipTakeIter) -> Option<String> {
+        if self.remaining <= 0 {
+            return None
+        }
+        while self.to_skip > 0 && self.index < self.length {
+            self.index = self.index + 1
+            self.to_skip = self.to_skip - 1
+        }
+        if self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StringSkipTakeIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringSkipTakeIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
 impl IntoIterator for StringIter {
     type Item = String
     type IntoIter = StringIter
@@ -323,6 +417,24 @@ impl IntoIterator for StringTakeIter {
     type IntoIter = StringTakeIter
 
     fn into_iter(self: StringTakeIter) -> StringTakeIter {
+        self
+    }
+}
+
+impl IntoIterator for StringSkipIter {
+    type Item = String
+    type IntoIter = StringSkipIter
+
+    fn into_iter(self: StringSkipIter) -> StringSkipIter {
+        self
+    }
+}
+
+impl IntoIterator for StringSkipTakeIter {
+    type Item = String
+    type IntoIter = StringSkipTakeIter
+
+    fn into_iter(self: StringSkipTakeIter) -> StringSkipTakeIter {
         self
     }
 }

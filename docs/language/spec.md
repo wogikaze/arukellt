@@ -921,6 +921,9 @@ entry point and does not reinterpret String references as numeric payloads.
 `StringIter::take(n)` keeps the same item-preserving contract through the
 concrete `StringTakeIter` adapter; the fixture verifies its lazy bounded
 `collect` path without introducing an integer item representation.
+`StringIter::skip(n).take(m)` composes the same state transitions through
+`StringSkipTakeIter`: skip is applied before the bounded pull, with the
+`String` item type preserved throughout.
 The GC component and linear-memory Wasm artifacts validate and run with the
 same assertions. The `for` lowering chooses the typed `Option::Some` payload
 layout for the iterator item, so a String reference is never read through the

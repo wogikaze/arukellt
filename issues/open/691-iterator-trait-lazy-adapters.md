@@ -447,6 +447,19 @@ full adapter fixture matrix as a fallback parity gate.
   broader item composition, manifest-level deprecation, and the remaining
   RFC-011 audit are still open; #691 remains open.
 
+## Progress receipt — 2026-09-20 (String `skip` / `skip().take()` composition)
+
+- `StringIter::skip(n)` and `StringSkipIter::take(m)` now form the concrete
+  `StringSkipTakeIter` composition. The fixture checks skip-before-take order
+  through the canonical `Iterator::collect` consumer.
+- GC component and linear-memory artifacts both validate and run. The lowering
+  keeps the String reference item representation through
+  `Vec_String::iter`, `StringIter::skip`, `StringSkipIter::take`, and
+  `StringSkipTakeIter::collect`.
+- Callback-bearing adapters, broader generic item composition,
+  manifest-level deprecation, and the remaining RFC-011 audit are not complete;
+  #691 remains open.
+
 ## Progress receipt — 2026-09-20 (for-loop fixture migration boundary)
 
 - Commit `4b8d19657` updates `for_loops/for_values.ark` to import

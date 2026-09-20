@@ -140,12 +140,13 @@ The first non-numeric item lane is `Vec<String> -> StringIter`. The
 `collect`, direct `for` iteration, and the bounded
 `iter().take(1).collect()` pipeline. `iter()` and `into_iter()` both enter the
 same `StringIter` producer boundary, while `take` preserves the item through
-`StringTakeIter`. GC component and linear-memory Wasm compilation, validation,
-and runtime assertions pass with the same source behavior. The lowering
-selects a typed `Option::Some` payload layout for the item on the GC path and
-the corresponding reference value type on the linear fallback; no integer
-packing is used. This is concrete String evidence, not a claim that every
-collection or adapter has become item-generic.
+`StringTakeIter`. The `skip(n).take(m)` composition uses `StringSkipTakeIter`
+and applies skip state before the bounded pull. GC component and linear-memory
+Wasm compilation, validation, and runtime assertions pass with the same source
+behavior. The lowering selects a typed `Option::Some` payload layout for the
+item on the GC path and the corresponding reference value type on the linear
+fallback; no integer packing is used. This is concrete String evidence, not a
+claim that every collection or adapter has become item-generic.
 
 ---
 

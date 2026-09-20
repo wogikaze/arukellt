@@ -68,6 +68,14 @@ fn main() {
     test::assert_eq_i32(len(take_collected), 1)
     test::assert_eq_string(get_unchecked(take_collected, 0), "kappa")
 
+    let skip_take_source: Vec<String> = Vec::new<String>()
+    push(skip_take_source, String_from("mu"))
+    push(skip_take_source, String_from("nu"))
+    push(skip_take_source, String_from("xi"))
+    let skip_take_collected = skip_take_source.iter().skip(1).take(1).collect()
+    test::assert_eq_i32(len(skip_take_collected), 1)
+    test::assert_eq_string(get_unchecked(skip_take_collected, 0), "nu")
+
     let for_source: Vec<String> = Vec::new<String>()
     push(for_source, String_from("iota"))
     let mut seen = 0

@@ -527,3 +527,18 @@ acceptance boxes complete.
 - This is a no-callback adapter boundary. Callback-bearing generic
   `map`/`filter`, broader arbitrary-item composition, manifest-level
   deprecation, and the RFC-011 residual audit remain open; #860 stays open.
+
+## Progress receipt — 2026-09-20 (String `skip` / `skip().take()` composition)
+
+- The String lane now includes `StringIter::skip(n)` and the composed
+  `StringSkipIter::take(m) -> StringSkipTakeIter` path. The fixture verifies
+  that `source.iter().skip(1).take(1).collect()` returns the second item and
+  no other value.
+- GC and linear core modules compile and validate, and the linear module runs.
+  The GC component validates and runs. WAT shows
+  `Vec_String::iter -> StringIter::skip -> StringSkipIter::take ->
+  StringSkipTakeIter::collect`, preserving reference payloads across the
+  composition.
+- This remains a concrete no-callback item lane. Generic callback adapters,
+  broader arbitrary-item composition, manifest-level deprecation, and the
+  RFC-011 residual audit remain open; #860 stays open.
