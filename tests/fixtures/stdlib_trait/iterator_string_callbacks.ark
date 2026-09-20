@@ -56,4 +56,23 @@ fn main() {
     test::assert_eq_i32(len(generic_from_iter), 1)
     test::assert_eq_string(get_unchecked(generic_from_iter, 0), "generic")
 
+    let composed_source: Vec<String> = Vec::new<String>()
+    push(composed_source, String_from("alpha"))
+    push(composed_source, String_from("go"))
+    push(composed_source, String_from("bravo"))
+    let composed = composed_source.iter().map(map_identity).filter(keep_long_string).collect()
+    test::assert_eq_i32(len(composed), 2)
+    test::assert_eq_string(get_unchecked(composed, 0), "alpha")
+    test::assert_eq_string(get_unchecked(composed, 1), "bravo")
+
+    let composed_from_iter_source: Vec<String> = Vec::new<String>()
+    push(composed_from_iter_source, String_from("alpha"))
+    push(composed_from_iter_source, String_from("go"))
+    push(composed_from_iter_source, String_from("bravo"))
+    let composed_from_iter_source_adapter = composed_from_iter_source.iter().map(map_identity).filter(keep_long_string)
+    let composed_from_iter: Vec<String> = Vec::from_iter(composed_from_iter_source_adapter)
+    test::assert_eq_i32(len(composed_from_iter), 2)
+    test::assert_eq_string(get_unchecked(composed_from_iter, 0), "alpha")
+    test::assert_eq_string(get_unchecked(composed_from_iter, 1), "bravo")
+
 }
