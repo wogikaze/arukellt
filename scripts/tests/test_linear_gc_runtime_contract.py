@@ -67,6 +67,8 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         format_char = (ROOT / "src/compiler/wasm/intrinsic_string_format_char.ark").read_text(encoding="utf-8")
         vec_push = (ROOT / "src/compiler/wasm/intrinsic_vec_push.ark").read_text(encoding="utf-8")
         vec_raw_grow = (ROOT / "src/compiler/wasm/intrinsic_vec_raw_grow.ark").read_text(encoding="utf-8")
+        vec_access = (ROOT / "src/compiler/wasm/intrinsic_vec_access.ark").read_text(encoding="utf-8")
+        vec_pop = (ROOT / "src/compiler/wasm/intrinsic_vec_pop.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -91,6 +93,8 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_char)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_push)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_raw_grow)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_access)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_pop)
         for source in (
             string_slice,
             string_trim,
@@ -108,9 +112,12 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             format_char,
             vec_push,
             vec_raw_grow,
+            vec_access,
+            vec_pop,
         ):
             self.assertNotIn("helpers_core::emit_heap_get(w)", source)
             self.assertNotIn("helpers_core::emit_heap_set(w)", source)
+            self.assertNotIn("helpers_core_heap::emit_heap_set(w)", source)
 
     def test_compiler_connects_linear_root_frames_without_collecting(self) -> None:
         code = (ROOT / "src/compiler/wasm/code.ark").read_text(encoding="utf-8")
