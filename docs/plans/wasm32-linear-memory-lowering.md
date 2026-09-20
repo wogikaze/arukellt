@@ -106,4 +106,12 @@ invalid-integer の length-prefix String（32 bytes）と `Err` record（8 bytes
 経路、parse I/O scratch buffer、generic constructor、HashMap descriptor、closure environment、
 automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `c91051952` では、fallback の `Result<f64, String>` 成功 record と invalid-float の
+String／`Err` record を `LINEAR_GC_ALLOC` へ接続した。成功 record は 12 bytes、エラー String は
+30 bytes を要求して既存 allocator の 32-byte 境界へ丸め、`Err` record は 8 bytes とする。
+tag、f64 payload、length-prefix、`base + 4` の String ABI は維持し、数値走査用の固定 scratch
+address は一時状態として残している。Wasm GC の typed Result lowering、parse I/O scratch buffer、
+generic constructor、HashMap descriptor、closure environment、automatic `collect`、
+shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---

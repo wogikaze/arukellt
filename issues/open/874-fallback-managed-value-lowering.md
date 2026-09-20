@@ -558,3 +558,52 @@ RFC-011: **8 (fallback lowering)**。
   scratch buffers, generic Option/Result constructors, HashMap descriptors,
   closure environments, automatic collection, shared/cyclic source graphs,
   and complete cross-backend move/borrow parity remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (Floating-point parse Result allocation boundary)
+
+- Implementation commit `c91051952` routes the fallback `Result<f64, String>`
+  success record and invalid-float error values through `LINEAR_GC_ALLOC`.
+  The `Ok<f64>` record remains 12 bytes; invalid-float keeps its 30-byte
+  requested String allocation (rounded to the existing 32-byte allocator
+  boundary) plus the 8-byte `Err` record. Tag, f64 payload, length-prefix,
+  and `base + 4` String ABI layouts remain unchanged. The Wasm GC typed
+  Result path is unchanged.
+- The linear finalizer uses existing i32 scratch locals for the allocated
+  record and String pointers, so the numeric scanner's fixed scratch addresses
+  remain temporary parsing state rather than managed ownership.
+- Positive fixtures `tests/fixtures/stdlib_string/parse_f64.ark`,
+  `parse_f64_decimal.ark`, `parse_f64_invalid.ark`, and
+  `parse_f64_negative.ark` compile, validate, and execute successfully on both
+  the `wasm32` linear core and `wasm32-gc` component paths. All eight artifacts
+  pass; the four integer parse fixtures were also revalidated on both paths
+  after the shared emitter change.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (19.7s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (4 files)
+  wasm-tools validate                                       PASS (8 f64 + 8 integer artifacts)
+  wasmtime run                                              PASS (8 f64 + 8 integer artifacts)
+  ```
+
+- Representative f64 artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear parse-f64               12346 bytes 0df96faa1b9f5b076ad992c3b64f1a817fae585d89817a500b7f707d3e3c633e
+  wasm32 linear parse-f64-decimal        6441 bytes f5b6238b6bc9521b055f9708be87e5d85517c10d1afae55abc919f5a72a8eb78
+  wasm32 linear parse-f64-invalid        4587 bytes a7d3f3b356058dd20f5c70f74151bbc5146073e6b39cc2469cf43684b83d8a31
+  wasm32 linear parse-f64-negative       5979 bytes 6c1cd50d4f504a57e0f6a47da9ec13f2e24f9337ce84eae31466f75f25a1a23b
+  wasm32-gc parse-f64 component         22113 bytes c4c1d7bbc548ebceef8dd2f79940b996fb50cd7482d8b44217be8095e38a3422
+  wasm32-gc parse-f64-decimal component 15171 bytes 7c8ad53955f90df744da98564efef227ef24783a2b4c538bb3cc9d34d5c124cd
+  wasm32-gc parse-f64-invalid component 13120 bytes e898a0397871c72b9b6f1350edebbe79c34e455b548adbb7a52c4ad1e650c68f
+  wasm32-gc parse-f64-negative component 14629 bytes ac6d85457bb8650613b5c17670000b3962a2a2c6726deca6c56559a7a9e27927
+  ```
+
+- This receipt covers f64 parse Result records and invalid-float error values
+  only. Parse scanner I/O scratch buffers, generic Option/Result constructors,
+  HashMap descriptors, closure environments, automatic collection,
+  shared/cyclic source graphs, and complete cross-backend move/borrow parity
+  remain open; #874 stays open.
