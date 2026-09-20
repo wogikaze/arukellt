@@ -17,11 +17,11 @@ fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInter
     docs
 }
 
-fn wit_lookup_import(paths: Vec<String>, package_id: String) -> wit_parse_text::WitParsedInterface {
+fn wit_lookup_import(paths: Vec<String>, package_id: String) -> WitParsedInterface {
     return wit_find_interface(wit_load_interfaces(paths), clone(package_id))
 }
 
-fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id: String) -> wit_parse_text::WitParsedInterface {
+fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id: String) -> WitParsedInterface {
     for i in 0..len(docs) {
         let doc = get_unchecked(docs, i)
         if wit_parse_import::wit_import_id_matches(clone(package_id), doc) {

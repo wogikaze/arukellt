@@ -13,6 +13,7 @@ from __future__ import annotations
 import io
 import os
 import re
+import tempfile
 import unittest
 import unittest.mock
 from contextlib import redirect_stdout
@@ -29,6 +30,8 @@ from selfhost.checks import (  # noqa: E402
     _replace_optional,
     _replace_required,
     _patch_bootstrap_prelude_structural_box_slice_text,
+    _patch_bootstrap_wit_type_paths,
+    _rewrite_bootstrap_wit_type_paths_text,
     _sub_optional,
     _sub_required,
 )
@@ -205,6 +208,45 @@ class TestStructuralBoxSliceOverlay(unittest.TestCase):
     def test_rejects_drifted_prelude(self) -> None:
         with self.assertRaises(BootstrapOverlayError):
             _patch_bootstrap_prelude_structural_box_slice_text("pub enum Box<T> {}\n")
+
+
+class TestWitTypePathOverlay(unittest.TestCase):
+    """WIT type names are normalized only inside the flat bootstrap overlay."""
+
+    def test_rewrites_type_names_but_not_calls(self) -> None:
+        source = (
+            "fn parse(ty: types::WitType) -> ast::WitNode {\n"
+            "    types::wit_type_from_id(0)\n"
+            "}\n"
+            "fn make(func: world::WitFunc) -> types::WitParam { func }\n"
+        )
+        result = _rewrite_bootstrap_wit_type_paths_text(source)
+        self.assertIn("ty: WitType", result)
+        self.assertIn("-> WitNode", result)
+        self.assertIn("types::wit_type_from_id(0)", result)
+        self.assertIn("func: WitFunc", result)
+        self.assertIn("-> WitParam", result)
+
+    def test_requires_the_wit_closure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            wit_root = root / "std" / "wit"
+            wit_root.mkdir(parents=True)
+            for name in ("ast.ark", "parser.ark", "types.ark", "world.ark"):
+                (wit_root / name).write_text(
+                    "types::WitType\n" if name == "parser.ark" else "WitType\n",
+                    encoding="utf-8",
+                )
+            _patch_bootstrap_wit_type_paths(root)
+            self.assertEqual(
+                (wit_root / "parser.ark").read_text(encoding="utf-8"),
+                "WitType\n",
+            )
+
+    def test_reports_missing_wit_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(BootstrapOverlayError):
+                _patch_bootstrap_wit_type_paths(Path(tmp))
 
 
 if __name__ == "__main__":

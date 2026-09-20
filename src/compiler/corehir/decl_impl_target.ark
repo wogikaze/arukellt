@@ -70,7 +70,7 @@ fn impl_conversion_source_type_name(decl: AstNode) -> String {
     if !type_ann_node::type_ann_is_generic(source_ann) {
         return source_name
     }
-    let key = clone(source_name)
+    let mut key = clone(source_name)
     let child_count = type_ann_node::type_ann_child_count(source_ann)
     let mut i = 1
     while i < child_count {

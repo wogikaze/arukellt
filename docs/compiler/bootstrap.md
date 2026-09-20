@@ -23,6 +23,13 @@ user source semantics, and emitted user artifacts are not rewritten; the
 overlay is a migration bridge until the pinned bootstrap is refreshed and the
 ADR-029 fixpoint is re-established.
 
+The isolated WIT parser closure in that overlay also normalizes qualified type
+names (`types::WitType`, `ast::WitNode`, and related record types) to the flat
+overlay namespace. Function calls remain qualified, and the checked-in `std/`
+sources are not rewritten. This is a bootstrap namespace adapter only; it does
+not relax the language type identity or make an s2 build equivalent to an
+ADR-029 fixpoint.
+
 ## Which command?
 
 Agents and humans confuse these two. Use the table:

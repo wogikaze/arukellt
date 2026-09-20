@@ -65,7 +65,7 @@ fn wit_import_serialized_list(text: String) -> Vec<String> {
     values
 }
 
-fn wit_import_serialized_doc(serialized: String) -> wit_parse_text::WitParsedInterface {
+fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
     let records = wit_import_serialized_records(serialized)
     if len(records) == 0 {
         return wit_parse_text::WitParsedInterface_empty()
@@ -145,7 +145,7 @@ fn wit_import_serialized_doc(serialized: String) -> wit_parse_text::WitParsedInt
     doc
 }
 
-fn parse_wit_import_text(source: String) -> wit_parse_text::WitParsedInterface {
+fn parse_wit_import_text(source: String) -> WitParsedInterface {
     // `std::wit::parser::parse_full` is the canonical parser. The parser's
     // import-text helper calls it once and seals the recursive AST as String
     // metadata before this compiler layer decodes it.
@@ -157,7 +157,7 @@ fn parse_wit_import_text(source: String) -> wit_parse_text::WitParsedInterface {
     doc
 }
 
-fn parse_wit_import_file(path: String) -> wit_parse_text::WitParsedInterface {
+fn parse_wit_import_file(path: String) -> WitParsedInterface {
     match fs::read_to_string(clone(path)) {
         Result::Ok(source) => parse_wit_import_text(source),
         Result::Err(_) => wit_parse_text::WitParsedInterface_empty(),

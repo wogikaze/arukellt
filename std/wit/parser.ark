@@ -8,7 +8,7 @@ use std::wit::ast
 use std::wit::types
 use std::wit::world
 
-pub fn parse_full(source: String) -> ast::WitNode {
+pub fn parse_full(source: String) -> WitNode {
     ast::parse(source)
 }
 

@@ -215,6 +215,43 @@ def _patch_bootstrap_prelude_structural_box_slice(workspace_root: Path) -> None:
     prelude_path.write_text(patched, encoding="utf-8")
 
 
+def _rewrite_bootstrap_wit_type_paths_text(text: str) -> str:
+    """Normalize WIT type paths for the flattened bootstrap module namespace.
+
+    The checked-in WIT modules use qualified type paths such as
+    ``types::WitType``.  The bootstrap overlay copies that small module
+    closure without its original namespace tree, so the pinned/current
+    compiler pair can otherwise assign the same record a qualified identity
+    in a signature and an unqualified identity at a constructor return. Only
+    type names are rewritten; calls such as ``types::wit_type_from_id`` keep
+    their module qualification.
+    """
+    type_names = (
+        "WitField",
+        "WitFunc",
+        "WitNode",
+        "WitParam",
+        "WitType",
+        "WitVariantCase",
+        "World",
+    )
+    names = "|".join(type_names)
+    return re.sub(rf"\b(?:ast|types|world)::({names})\b", r"\1", text)
+
+
+def _patch_bootstrap_wit_type_paths(workspace_root: Path) -> None:
+    """Apply the flat-namespace WIT type normalization to an overlay only."""
+    wit_root = workspace_root / "std" / "wit"
+    for name in ("ast.ark", "parser.ark", "types.ark", "world.ark"):
+        path = wit_root / name
+        if not path.is_file():
+            raise BootstrapOverlayError(
+                f"bootstrap overlay missing WIT type source: std/wit/{name}"
+            )
+        text = path.read_text(encoding="utf-8")
+        path.write_text(_rewrite_bootstrap_wit_type_paths_text(text), encoding="utf-8")
+
+
 def _is_bootstrap_generic_enum_mismatch(stderr: str) -> bool:
     """Recognize only the pinned stage-0 generic-enum return mismatch."""
     markers = (
@@ -2943,7 +2980,7 @@ def _flatten_compiler_imports(text: str) -> str:
 _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
 _FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
 # v2: stage-2 bootstrap skips full MIR verify (see _patch_bootstrap_skip_mir_verify).
-_FLAT_OVERLAY_DISK_CACHE_VERSION = 2
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 3
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
@@ -3514,6 +3551,7 @@ def _prepare_flattened_selfhost_source_locked(
                 f"bootstrap overlay missing canonical WIT source: std/wit/{name}"
             )
         shutil.copyfile(source_path, wit_dst / name)
+    _patch_bootstrap_wit_type_paths(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
         raise BootstrapOverlayError(
