@@ -475,3 +475,43 @@ RFC-011: **8 (fallback lowering)**。
   metadata, closure environments, automatic collection, shared/cyclic source
   graphs, and complete cross-backend move/borrow parity remain open; #874
   stays open.
+
+## Progress receipt — 2026-09-20 (Vec Option result allocation boundary)
+
+- Implementation commit `0578b95a2` routes fallback `Vec::get` and `Vec::pop`
+  `Option<i32>` results through `LINEAR_GC_ALLOC`. Both `Some` and `None`
+  preserve the existing fixed 8-byte record layout (tag at offset 0 and
+  payload word at offset 4); only the allocation owner changes from direct
+  global-bump manipulation to the private allocator. Wasm GC continues to
+  construct typed Option variants.
+- Positive fixtures `tests/fixtures/stdlib_vec/vec_get.ark`,
+  `vec_edge_boundary_indices.ark`, `vec_pop_all.ark`, `vec_pop_empty.ark`,
+  and `vec_pop_then_push.ark` compile, validate, and execute successfully on
+  both the `wasm32` linear core and `wasm32-gc` component paths. All ten
+  artifacts pass, covering Some/None and empty/non-empty transitions.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  wasm-tools validate                                       PASS (10 artifacts)
+  wasmtime run                                              PASS (10 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear Vec get                 4910 bytes db7c3c84fd6b82da66b7c6138fdad7facc632cd784c06a68f2b892d71428769a
+  wasm32 linear Vec pop-all             5372 bytes 5a81c457add6d08ae2982464445160574c79d2e15241ac986e8251a2ef4b682a
+  wasm32 linear Vec pop-empty           3842 bytes abe9fb2bb821de33005449e9d33245f1c6a84e0be2e17d4f2553eb270d593905
+  wasm32-gc Vec get component          13212 bytes e2f9b6ac557b902f1bbb88ef8edea19e06bb015acdef1b2ef97247cfbac9527b
+  wasm32-gc Vec pop-all component      13701 bytes 41d4f2c994983c402c0e243031e27a7087e5340601b7ffdb909fc165e1209367
+  ```
+
+- This receipt covers only the fallback `Option<i32>` result records emitted
+  by Vec access and pop. Generic Option/Result constructors, String-valued
+  result payloads, parse I/O buffers, HashMap descriptors, closure
+  environments, automatic collection, shared/cyclic source graphs, and
+  complete cross-backend move/borrow parity remain open; #874 stays open.

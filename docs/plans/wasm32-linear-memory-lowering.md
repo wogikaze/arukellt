@@ -92,4 +92,11 @@ copy を維持したまま、`grown_capacity * element_stride` を allocator へ
 HashMap descriptor、正確な pointer-field metadata、closure environment、automatic `collect`、
 shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `0578b95a2` では、fallback の `Vec::get`／`Vec::pop` が返す
+`Option<i32>` の 8-byte record（tag offset 0、payload offset 4）を
+`LINEAR_GC_ALLOC` へ接続した。Some/None の layout と Vec の length semantics は維持し、
+Wasm GC は typed Option variant の lowering を継続する。generic Option/Result constructor、
+parse I/O buffer、HashMap descriptor、closure environment、automatic `collect`、
+shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---
