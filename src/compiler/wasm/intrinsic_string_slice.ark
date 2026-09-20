@@ -4,6 +4,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
@@ -16,7 +17,7 @@ fn emit_slice(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         let s_sl_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         let s_sl_src = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
         let s_sl_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-        emit_slice_setup(w, s_sl_end, s_sl_start, s_sl_src, s_sl_base)
+        emit_slice_setup(w, s_sl_end, s_sl_start, s_sl_src)
         emit_slice_heap_update(w, s_sl_base, s_sl_start, s_sl_end)
         emit_slice_header(w, s_sl_base, s_sl_end, s_sl_start)
         emit_slice_copy(w, s_sl_src, s_sl_base, s_sl_start, s_sl_end)
@@ -80,12 +81,10 @@ fn emit_slice_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     string_gc_helpers::emit_gc_local_get(w, dest)
 }
 
-fn emit_slice_setup(w: WasmWriter, end_local: i32, start_local: i32, src_local: i32, base_local: i32) {
+fn emit_slice_setup(w: WasmWriter, end_local: i32, start_local: i32, src_local: i32) {
     helpers_core::emit_local_set(w, end_local)
     helpers_core::emit_local_set(w, start_local)
     helpers_core::emit_local_set(w, src_local)
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, base_local)
 }
 
 fn emit_slice_header(w: WasmWriter, base_local: i32, end_local: i32, start_local: i32) {
@@ -106,16 +105,11 @@ fn emit_slice_copy(w: WasmWriter, src_local: i32, base_local: i32, start_local: 
 }
 
 fn emit_slice_heap_update(w: WasmWriter, base_local: i32, start_local: i32, end_local: i32) {
-    helpers_core::emit_local_get(w, base_local)
+    emit_slice_len(w, end_local, start_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
-    emit_slice_len(w, end_local, start_local)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_const(w, 3)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_const(w, -4)
-    helpers_numeric_i32::emit_i32_and(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, base_local)
 }
 
 fn emit_slice_len(w: WasmWriter, end_local: i32, start_local: i32) {

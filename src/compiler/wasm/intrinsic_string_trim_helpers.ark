@@ -2,24 +2,20 @@
 
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_trim_copy_result(w: WasmWriter, source_local: i32, start_offset_local: i32, len_local: i32, result_local: i32) {
-    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, len_local)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, result_local)
+    helpers_core::emit_local_get(w, result_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_set(w, result_local)
-    helpers_core::emit_heap_get(w)
-    helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, len_local)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_const(w, 3)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_const(w, -4)
-    helpers_numeric_i32::emit_i32_and(w)
-    helpers_core::emit_heap_set(w)
     helpers_core::emit_local_get(w, result_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_sub(w)

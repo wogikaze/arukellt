@@ -51,6 +51,10 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         vec = (ROOT / "src/compiler/wasm/intrinsic_vec_new_layout.ark").read_text(encoding="utf-8")
         string_basic = (ROOT / "src/compiler/wasm/intrinsic_string_basic.ark").read_text(encoding="utf-8")
         string_from_bytes = (ROOT / "src/compiler/wasm/intrinsic_string_from_bytes.ark").read_text(encoding="utf-8")
+        string_slice = (ROOT / "src/compiler/wasm/intrinsic_string_slice.ark").read_text(encoding="utf-8")
+        string_trim = (ROOT / "src/compiler/wasm/intrinsic_string_trim_helpers.ark").read_text(encoding="utf-8")
+        string_trim_full = (ROOT / "src/compiler/wasm/intrinsic_string_trim_full_helpers.ark").read_text(encoding="utf-8")
+        string_case = (ROOT / "src/compiler/wasm/intrinsic_string_case.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -59,6 +63,13 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_basic)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_from_bytes)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_slice)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_trim)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_trim_full)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_case)
+        for source in (string_slice, string_trim, string_trim_full, string_case):
+            self.assertNotIn("helpers_core::emit_heap_get(w)", source)
+            self.assertNotIn("helpers_core::emit_heap_set(w)", source)
 
     def test_compiler_connects_linear_root_frames_without_collecting(self) -> None:
         code = (ROOT / "src/compiler/wasm/code.ark").read_text(encoding="utf-8")
