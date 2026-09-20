@@ -13,6 +13,14 @@ fn collect_from_iterator<T: iter::Iterator>(iterator: T) -> Vec<T::Item> {
     Vec::from_iter(iterator)
 }
 
+fn total_string_lengths<T: iter::IntoIterator>(source: T) -> i32 {
+    let mut total: i32 = 0
+    for value in source {
+        total = total + len(value)
+    }
+    total
+}
+
 fn main() {
     let map_source: Vec<String> = Vec::new<String>()
     push(map_source, String_from("alpha"))
@@ -93,5 +101,12 @@ fn main() {
     test::assert_eq_i32(len(reverse_from_iter), 2)
     test::assert_eq_string(get_unchecked(reverse_from_iter, 0), "alpha")
     test::assert_eq_string(get_unchecked(reverse_from_iter, 1), "bravo")
+
+    let generic_for_source: Vec<String> = Vec::new<String>()
+    push(generic_for_source, String_from("alpha"))
+    push(generic_for_source, String_from("go"))
+    push(generic_for_source, String_from("bravo"))
+    let generic_for_total = total_string_lengths(generic_for_source.iter().filter(keep_long_string).map(map_identity))
+    test::assert_eq_i32(generic_for_total, 10)
 
 }
