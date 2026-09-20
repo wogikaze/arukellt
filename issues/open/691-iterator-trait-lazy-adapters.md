@@ -420,6 +420,23 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (String skip callback composition)
+
+- Commit `da440bc97` adds `StringSkipMapIter` and `StringSkipFilterIter`.
+  Both consume the configured source items before callback dispatch. The
+  filter predicate receives a cloned String handle and an accepted original
+  item is yielded, preserving source ownership and order.
+- `iterator_string_callbacks.ark` covers direct `collect`, source-qualified
+  `Vec::from_iter`, and a generic `T: IntoIterator` consumer for both
+  `skip(1).map(...)` and `skip(1).filter(...)`. GC component and linear-memory
+  Wasm artifacts compile, validate, and run with the same assertions.
+- WAT inspection confirms typed `call_ref` callback dispatch on `wasm32-gc`
+  and table-based `call_indirect` dispatch on linear-memory `wasm32`, together
+  with the concrete `FromIterator` symbols for both adapters.
+- This is bounded String evidence only. Arbitrary item-generic adapter
+  composition, dynamic dispatch, manifest-level deprecation, and the final
+  RFC-011 residual audit remain open; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (bounded String callback composition)
 
 - Commit `cee857bb7` adds lazy `map(...).filter(...).take(n)` and

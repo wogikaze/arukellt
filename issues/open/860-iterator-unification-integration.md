@@ -678,6 +678,24 @@ acceptance boxes complete.
   item-generic adapter families, dynamic dispatch, manifest-level deprecation,
   and the final RFC-011 residual audit remain open; #860 is not closed.
 
+## Progress receipt — 2026-09-20 (String skip callback composition)
+
+- Commit `da440bc97` adds `StringSkipMapIter` and `StringSkipFilterIter` to
+  the canonical `Iterator` / `IntoIterator` / `FromIterator` paths. Skip state
+  is consumed before either callback; the filter callback gets a cloned String
+  handle and the accepted original continues through the iterator.
+- `iterator_string_callbacks.ark` verifies `collect`, source-qualified
+  `Vec::from_iter`, and generic `T: IntoIterator` consumption for both
+  `skip(1).map(...)` and `skip(1).filter(...)`. The GC component and
+  linear-memory Wasm artifacts compile, validate, and run with identical
+  source-level results.
+- The generated symbols and WAT show typed GC `call_ref` and fallback
+  table-based `call_indirect` callback paths for the same source semantics.
+  This remains a concrete String monomorphization receipt, not arbitrary
+  item-generic adapter support.
+- Generic item representations, dynamic dispatch, manifest-level deprecation,
+  and the final RFC-011 residual audit remain open; #860 is not closed.
+
 ## Progress receipt — 2026-09-20 (bounded String callback composition)
 
 - Commit `cee857bb7` adds `StringMapFilterTakeIter` and
