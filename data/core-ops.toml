@@ -1909,6 +1909,11 @@ kind = "vec"
 generic_params = ["T"]
 
 [[types]]
+id = "hashmap"
+kind = "hashmap"
+generic_params = ["K", "V"]
+
+[[types]]
 id = "simd.i32x4"
 kind = "simd"
 lane_type = "i32"

@@ -53,7 +53,7 @@ VALID_MEMORY_VALUES = {"none", "read", "write", "read-write"}
 VALID_NONDETERMINISM_VALUES = {"deterministic", "clock", "random", "external"}
 VALID_OVERFLOW_VALUES = {"none", "wrap", "saturate", "ieee754"}
 VALID_TRAP_VALUES = {"none", "memory", "arithmetic", "unreachable"}
-VALID_TYPE_KINDS = {"string", "vec", "simd", "mask", "wasm_v128"}
+VALID_TYPE_KINDS = {"string", "vec", "hashmap", "simd", "mask", "wasm_v128"}
 VALID_LANE_TYPES = {"i8", "i16", "i32", "i64", "f32", "f64"}
 VALID_CAPABILITY_NAMES = {"wasm_raw_v128", "wasm_relaxed_simd"}
 VALID_TARGET_FEATURES = {"simd128"}  # extend as target features are added
@@ -392,6 +392,9 @@ def validate_type_definition(t: dict, errors: list[str]) -> None:
     elif kind == "vec":
         if len(generics) != 1:
             errors.append(f"type {type_id}: vec requires exactly one generic_param")
+    elif kind == "hashmap":
+        if len(generics) != 2:
+            errors.append(f"type {type_id}: hashmap requires exactly two generic_params")
 
 
 def validate_signature(op: dict, type_entries: dict[str, dict], primitive_names: set[str], errors: list[str]) -> None:

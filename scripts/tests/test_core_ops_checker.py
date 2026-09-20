@@ -219,6 +219,19 @@ class CoreOpsCheckerTest(unittest.TestCase):
         errors = self._run()
         self.assertTrue(any("unknown type identifier" in e for e in errors))
 
+    def test_manifest_hashmap_type_is_registered(self) -> None:
+        errors = self._run()
+        self.assertFalse(any("type 'HashMap'" in e for e in errors))
+
+    def test_hashmap_requires_two_generic_parameters(self) -> None:
+        self.core_ops["types"].append({
+            "id": "invalid_hashmap",
+            "kind": "hashmap",
+            "generic_params": ["K"],
+        })
+        errors = self._run()
+        self.assertTrue(any("hashmap requires exactly two" in e for e in errors))
+
     def test_malformed_constraints_not_list(self) -> None:
         self.core_ops["operations"][0]["signature"]["constraints"] = None
         errors = self._run()
