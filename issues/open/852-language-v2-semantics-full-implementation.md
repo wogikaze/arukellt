@@ -165,6 +165,12 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     automatic collection, String/HashMap descriptors, closure environments,
     and full move/borrow parity remain open. See
     [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-20): `8df8fa460` routes fallback `concat` and
+    `string_from_bytes` through the same private allocator while preserving the
+    length-prefix ABI. Linear and GC representative fixtures validate and run;
+    the remaining String helpers, HashMap descriptors, root updates, closure
+    environments, and full parity audit remain open. See
+    [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

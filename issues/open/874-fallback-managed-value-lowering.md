@@ -87,3 +87,42 @@ RFC-011: **8 (fallback lowering)**。
   HashMap descriptor lowering, closure environments, shared/cyclic source
   graphs, and the complete move/borrow parity audit remain open; this receipt
   does not close #874.
+
+## Progress receipt — 2026-09-20 (String allocation boundary)
+
+- Implementation commit `8df8fa460` routes linear `concat` and
+  `string_from_bytes` through the same private `LINEAR_GC_ALLOC` entry used by
+  the aggregate constructors. Both paths preserve the existing length-prefix
+  ABI: the allocator returns the record base, the stored length remains four
+  bytes before the returned payload pointer, and copying still addresses the
+  payload pointer.
+- Positive fixtures: `tests/fixtures/stdlib_migration/new_api_basic.ark`
+  runs as `Hello, Arukellt!`, `3`, and `one | two | three` on `wasm32`;
+  `tests/fixtures/stdlib_bytes/conv_string_from_bytes.ark` completes its `HI`
+  assertion on `wasm32`; and `tests/fixtures/stdlib_string/string_concat.ark`
+  passes on both the linear core module and the GC component.
+- `wasm-tools print` of the two linear artifacts shows calls to the private
+  allocator, while the linear WAT contains no `struct.*`, `array.*`, or
+  `ref.*` instructions. The GC component path remains on the existing GC
+  array representation and validates independently.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler       PASS
+  python3 scripts/manager.py verify lane                  PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py PASS (4 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py      PASS (1 test)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear concat       4850 bytes  96d9f5d898a56e79cdb87a155353da7f665e58af98f8e42e993dcf44ffbbef77
+  wasm32 linear from-bytes  4276 bytes  ae204a573aad3bc12e083bebb5b2d734801b07908bd9c2fd01bc30a6dcecce4c
+  wasm32-gc concat component 4803 bytes 833bacae7ee92fd6dedd41e8a25c2c0dc1533609e000432777286b209be856e8
+  ```
+
+- This slice covers two String allocation paths only. String case/format/
+  split/join/replace and other allocation helpers, HashMap descriptors,
+  closure environments, root updates, automatic collection, and complete
+  cross-backend move/borrow parity remain open.
