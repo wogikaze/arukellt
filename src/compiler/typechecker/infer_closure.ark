@@ -5,6 +5,7 @@ use typechecker::unify
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::closure_capture
+use typechecker::types
 
 fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let closure_scope = scope::scope_child(scope)
@@ -16,13 +17,32 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     let mut i = 0
     while i + 1 < child_count {
         let param = ast_access::node_child_at(node, i)
-        let param_ty = unify::fresh_var(env)
+        let param_ty = if ast_access::node_type_ann_count(param) > 0 {
+            types::resolve_type_ann_node(ast_access::node_type_ann_at(param, 0))
+        } else {
+            unify::fresh_var(env)
+        }
         push(param_types, param_ty)
         scope::scope_define(closure_scope, ast_access::node_text(param), param_ty)
         i = i + 1
     }
     let body = ast_access::node_child_at(node, child_count - 1)
     let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
+    let mut return_ty = body_ty
+    let mut annotation_index = 0
+    let annotation_count = ast_access::node_type_ann_count(node)
+    while annotation_index < annotation_count {
+        let annotation = ast_access::node_type_ann_at(node, annotation_index)
+        if eq(ast_access::node_text(annotation), "__return") {
+            if ast_access::node_child_count(annotation) > 0 {
+                let declared_ty = types::resolve_type_ann_node(
+                    ast_access::node_child_at(annotation, 0)
+                )
+                return_ty = unify::unify(env, body_ty, declared_ty)
+            }
+        }
+        annotation_index = annotation_index + 1
+    }
     let capture_summary = closure_capture::closure_capture_summary(env, scope, node)
     closure_capture::apply_closure_capture_summary(env, scope, capture_summary)
     let fn_ty = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
@@ -34,6 +54,6 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
         )
         param_index = param_index + 1
     }
-    contract_type_mutation::TypeInfo_push_type_arg(fn_ty, unify::resolve_type_deep(env, body_ty))
+    contract_type_mutation::TypeInfo_push_type_arg(fn_ty, unify::resolve_type_deep(env, return_ty))
     fn_ty
 }

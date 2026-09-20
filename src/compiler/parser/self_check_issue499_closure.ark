@@ -1,12 +1,13 @@
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
 use parser::core_ast_op_fields
+use parser::core_ast_type_ann
 use parser::kinds
 use parser::core_ast_children
 use parser::self_check_issue499_parse
 
 fn issue499_parser_self_check() -> String {
-    let src = "fn main() { let add = |x, y| x + y }"
+    let src = "fn main() { let add = |x: i32, y: i32| -> i32 x + y }"
     let parse = self_check_issue499_parse::parse_issue499_source(src)
     let decls = self_check_issue499_parse::issue499_parse_decls(parse)
     let error_count = self_check_issue499_parse::issue499_parse_error_count(parse)
@@ -52,6 +53,28 @@ fn issue499_parser_self_check() -> String {
     }
     if !eq(core_ast_text_fields::AstNode_text(param1), "y") {
         return "issue499 parser fail: second param"
+    }
+    if core_ast_type_ann::AstNode_type_ann_count(param0) != 1 ||
+    core_ast_type_ann::AstNode_type_ann_count(param1) != 1 {
+        return "issue499 parser fail: closure parameter annotations"
+    }
+    if !eq(
+        core_ast_text_fields::AstNode_text(core_ast_type_ann::AstNode_type_ann_at(param0, 0)),
+        "i32"
+    ) {
+        return "issue499 parser fail: first parameter annotation"
+    }
+    if core_ast_type_ann::AstNode_type_ann_count(closure) != 1 {
+        return "issue499 parser fail: closure return annotation count"
+    }
+    let return_ann = core_ast_type_ann::AstNode_type_ann_at(closure, 0)
+    if !eq(core_ast_text_fields::AstNode_text(return_ann), "__return") ||
+    core_ast_children::AstNode_child_count(return_ann) != 1 ||
+    !eq(
+        core_ast_text_fields::AstNode_text(core_ast_children::AstNode_child_at(return_ann, 0)),
+        "i32"
+    ) {
+        return "issue499 parser fail: closure return annotation"
     }
     if ast_kind_fields::AstNode_kind(closure_body) != kinds::NK_BINARY() || core_ast_op_fields::AstNode_op(closure_body) != kinds::OP_ADD() {
         return "issue499 parser fail: closure body"
