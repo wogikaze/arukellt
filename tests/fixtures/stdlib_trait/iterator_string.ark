@@ -61,6 +61,13 @@ fn main() {
     let method_collected = method_source.iter().collect()
     test::assert_eq_string(get_unchecked(method_collected, 0), "eta")
 
+    let take_source: Vec<String> = Vec::new<String>()
+    push(take_source, String_from("kappa"))
+    push(take_source, String_from("lambda"))
+    let take_collected = take_source.iter().take(1).collect()
+    test::assert_eq_i32(len(take_collected), 1)
+    test::assert_eq_string(get_unchecked(take_collected, 0), "kappa")
+
     let for_source: Vec<String> = Vec::new<String>()
     push(for_source, String_from("iota"))
     let mut seen = 0

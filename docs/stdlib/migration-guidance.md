@@ -137,13 +137,15 @@ The first non-numeric item lane is `Vec<String> -> StringIter`. The
 `stdlib_trait/iterator_string.ark` fixture checks direct `next`, generic
 `Iterator` and `IntoIterator` consumers, item-preserving `collect` and
 `count`, `Vec<String>::iter()` and `Vec<String>::from_iter`, method-shaped
-`collect`, and direct `for` iteration. `iter()` and `into_iter()` both enter the
-same `StringIter` producer boundary. GC component and linear-memory Wasm
-compilation, validation, and runtime assertions pass with the same source
-behavior. The lowering selects a typed `Option::Some` payload layout for the
-item on the GC path and the corresponding reference value type on the linear
-fallback; no integer packing is used. This is concrete String evidence, not a
-claim that every collection or adapter has become item-generic.
+`collect`, direct `for` iteration, and the bounded
+`iter().take(1).collect()` pipeline. `iter()` and `into_iter()` both enter the
+same `StringIter` producer boundary, while `take` preserves the item through
+`StringTakeIter`. GC component and linear-memory Wasm compilation, validation,
+and runtime assertions pass with the same source behavior. The lowering
+selects a typed `Option::Some` payload layout for the item on the GC path and
+the corresponding reference value type on the linear fallback; no integer
+packing is used. This is concrete String evidence, not a claim that every
+collection or adapter has become item-generic.
 
 ---
 

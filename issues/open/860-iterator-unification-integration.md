@@ -512,3 +512,18 @@ acceptance boxes complete.
 - This receipt is limited to the concrete String producer entry point. The
   remaining adapter/item generalization, manifest-level deprecation, and
   RFC-011 residual audit remain open; it does not close #860.
+
+## Progress receipt — 2026-09-20 (String item-preserving `take` adapter)
+
+- The concrete String lane now includes `StringIter::take(n)`, which produces
+  `StringTakeIter` and keeps the source `String` item type through the
+  canonical `Iterator::collect` traversal. The positive fixture exercises
+  `source.iter().take(1).collect()` and checks that exactly the first item is
+  retained.
+- GC and linear core modules compile and validate; the linear module runs
+  successfully. The GC component validates and runs. WAT confirms the
+  `Vec_String::iter -> StringIter::take -> StringTakeIter::collect` call chain,
+  with no numeric item packing.
+- This is a no-callback adapter boundary. Callback-bearing generic
+  `map`/`filter`, broader arbitrary-item composition, manifest-level
+  deprecation, and the RFC-011 residual audit remain open; #860 stays open.

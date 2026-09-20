@@ -434,6 +434,19 @@ full adapter fixture matrix as a fallback parity gate.
   broader item representations, manifest-level deprecation, and the remaining
   RFC-011 audit are not complete, so #691 remains open.
 
+## Progress receipt — 2026-09-20 (String item-preserving `take` adapter)
+
+- `StringIter::take(n)` now produces a concrete `StringTakeIter` while
+  preserving `Iterator::Item = String`. The fixture checks the bounded
+  `source.iter().take(1).collect()` pipeline and its one-item result.
+- The GC component and linear-memory core artifacts both validate and run.
+  WAT shows `Vec_String::iter`, `StringIter::take`, and
+  `StringTakeIter::collect` in sequence, so the adapter does not reinterpret
+  String references through the numeric i32 item path.
+- This receipt covers a no-callback adapter only. Generic callback adapters,
+  broader item composition, manifest-level deprecation, and the remaining
+  RFC-011 audit are still open; #691 remains open.
+
 ## Progress receipt — 2026-09-20 (for-loop fixture migration boundary)
 
 - Commit `4b8d19657` updates `for_loops/for_values.ark` to import

@@ -242,6 +242,25 @@ impl Vec<String> {
     }
 }
 
+/// Lazy bounded adapter that preserves String items from `StringIter`.
+pub struct StringTakeIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    remaining: i32,
+}
+
+impl StringIter {
+    fn take(self: StringIter, n: i32) -> StringTakeIter {
+        StringTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            remaining: n,
+        }
+    }
+}
+
 impl Iterator for StringIter {
     type Item = String
 
@@ -264,11 +283,46 @@ impl Iterator for StringIter {
     }
 }
 
+impl Iterator for StringTakeIter {
+    type Item = String
+
+    fn next(self: StringTakeIter) -> Option<String> {
+        if self.remaining <= 0 {
+            return None
+        }
+        if self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StringTakeIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringTakeIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
 impl IntoIterator for StringIter {
     type Item = String
     type IntoIter = StringIter
 
     fn into_iter(self: StringIter) -> StringIter {
+        self
+    }
+}
+
+impl IntoIterator for StringTakeIter {
+    type Item = String
+    type IntoIter = StringTakeIter
+
+    fn into_iter(self: StringTakeIter) -> StringTakeIter {
         self
     }
 }

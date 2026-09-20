@@ -918,6 +918,9 @@ result or to pack its item into an integer.
 and direct `for` iteration. `iter()` and `into_iter()` select the same
 `StringIter` producer boundary; the former is the canonical collection method
 entry point and does not reinterpret String references as numeric payloads.
+`StringIter::take(n)` keeps the same item-preserving contract through the
+concrete `StringTakeIter` adapter; the fixture verifies its lazy bounded
+`collect` path without introducing an integer item representation.
 The GC component and linear-memory Wasm artifacts validate and run with the
 same assertions. The `for` lowering chooses the typed `Option::Some` payload
 layout for the iterator item, so a String reference is never read through the
