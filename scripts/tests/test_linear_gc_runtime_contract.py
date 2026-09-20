@@ -69,6 +69,8 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         vec_raw_grow = (ROOT / "src/compiler/wasm/intrinsic_vec_raw_grow.ark").read_text(encoding="utf-8")
         vec_access = (ROOT / "src/compiler/wasm/intrinsic_vec_access.ark").read_text(encoding="utf-8")
         vec_pop = (ROOT / "src/compiler/wasm/intrinsic_vec_pop.ark").read_text(encoding="utf-8")
+        parse_result = (ROOT / "src/compiler/wasm/intrinsic_parse_result.ark").read_text(encoding="utf-8")
+        parse_result_errors = (ROOT / "src/compiler/wasm/intrinsic_parse_result_errors.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -95,6 +97,18 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_raw_grow)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_access)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec_pop)
+        integer_ok_start = parse_result.index("fn emit_integer_ok_header")
+        integer_ok = parse_result[integer_ok_start:]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", integer_ok)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", integer_ok)
+        integer_error_start = parse_result_errors.index("fn emit_invalid_integer_error_string")
+        integer_error_record_start = parse_result_errors.index("fn emit_invalid_integer_error_record")
+        integer_error_string = parse_result_errors[integer_error_start:integer_error_record_start]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", integer_error_string)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", integer_error_string)
+        integer_error_record = parse_result_errors[integer_error_record_start:]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", integer_error_record)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", integer_error_record)
         for source in (
             string_slice,
             string_trim,
