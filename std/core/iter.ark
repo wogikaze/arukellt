@@ -345,6 +345,17 @@ pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter {
 }
 
 impl MapIter {
+    /// Lazily limit mapped elements to `n` values.
+    fn take(self: MapIter, n: i32) -> MapTakeIter {
+        MapTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            map_f: self.f,
+            remaining: n,
+        }
+    }
+
     /// Lazily keep mapped elements accepted by `f`.
     fn filter(self: MapIter, f: fn(i32) -> bool) -> MapFilterIter {
         MapFilterIter {
@@ -383,6 +394,53 @@ impl Iterator for MapIter {
     }
 
     fn fold(self: MapIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MapTakeIter — composed lazy map/take adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that maps source values and yields at most `n` results.
+pub struct MapTakeIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    map_f: fn(i32) -> i32,
+    remaining: i32,
+}
+
+impl Iterator for MapTakeIter {
+    type Item = i32
+
+    fn next(self: MapTakeIter) -> Option<i32> {
+        if self.remaining <= 0 {
+            return None
+        }
+        if self.index < self.length {
+            let raw: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some((self.map_f)(raw))
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: MapTakeIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: MapTakeIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: MapTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+
+    fn fold(self: MapTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -824,6 +882,15 @@ impl IntoIterator for MapIter {
     type IntoIter = MapIter
 
     fn into_iter(self: MapIter) -> MapIter {
+        self
+    }
+}
+
+impl IntoIterator for MapTakeIter {
+    type Item = i32
+    type IntoIter = MapTakeIter
+
+    fn into_iter(self: MapTakeIter) -> MapTakeIter {
         self
     }
 }
