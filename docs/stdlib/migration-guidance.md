@@ -117,6 +117,10 @@ The fixture also covers `iter().filter(g).take(n).collect()` through the
 dedicated lazy `FilterTakeIter` adapter and a generic `T: IntoIterator` consumer
 on both targets. This remains concrete `Vec<i32>` evidence, not a claim for
 arbitrary item representations or adapter combinations.
+It also covers `iter().skip(n).take(m).collect()` through `SkipTakeIter` and a
+generic `T: IntoIterator` consumer. The skip-before-take state is shared by GC
+and linear-memory Wasm; other item representations and arbitrary compositions
+remain migration work.
 
 ---
 

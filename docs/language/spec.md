@@ -934,6 +934,10 @@ The concrete `iter().filter(g).take(n).collect()` composition is implemented
 by `FilterTakeIter`, which retains the predicate and remaining-count state in
 one lazy adapter. The fixture also sends this adapter through a generic
 `T: IntoIterator` consumer; this evidence remains limited to `Vec<i32>`.
+The concrete `iter().skip(n).take(m).collect()` composition is implemented by
+`SkipTakeIter`, which applies the skip state before the bounded pull. Its
+identity `IntoIterator` conversion and generic `for` consumer are covered by
+the same fixture on both published Wasm targets.
 
 ### 4.6 Semicolons
 
