@@ -5,6 +5,14 @@ fn sum_iter<T: iter::Iterator>(iterator: T) -> i32 {
     iterator.sum()
 }
 
+fn sum_for<T: iter::Iterator>(iterator: T) -> i32 {
+    let mut total: i32 = 0
+    for value in iterator {
+        total = total + value
+    }
+    total
+}
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
@@ -20,6 +28,9 @@ fn main() {
 
     let manual_total = sum_iter(iter::vec_iter(v))
     test::assert_eq_i32(manual_total, total)
+
+    let generic_for_total = sum_for(iter::vec_iter(v))
+    test::assert_eq_i32(generic_for_total, total)
 
     let direct_source: Vec<i32> = Vec::new<i32>()
     push(direct_source, 4)
