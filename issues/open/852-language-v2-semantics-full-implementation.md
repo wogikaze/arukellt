@@ -67,7 +67,11 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     lazy collection plus generic `IntoIterator` lowering on GC and linear Wasm.
     `317583de9` adds the concrete `SkipTakeIter` composition and verifies
     skip-before-take collection plus generic `IntoIterator` lowering on both
-    Wasm backends.
+    Wasm backends. `d31cb9ec3` routes the concrete `std::seq` compatibility
+    wrappers through canonical `std::core::iter` consumers and verifies
+    identical GC/linear output plus WAT call targets for map/filter/take/skip/
+    fold. Arbitrary item representations, broader adapter composition,
+    manifest-level deprecation, and the RFC-011 residual audit remain open.
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax

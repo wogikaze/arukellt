@@ -439,3 +439,17 @@ acceptance boxes complete.
   item representations, dynamic dispatch, all adapter combinations,
   manifest-level deprecation, and the RFC-011 residual audit remain open.
   This receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (std::seq compatibility delegation)
+
+- Commit `d31cb9ec3` routes the concrete `std::seq` map/filter/take/skip/fold
+  wrappers through `std::core::iter`. The compiler keeps the qualified wrapper
+  bodies live and reserves the legacy HOF classification for prelude/intrinsic
+  compatibility names.
+- `stdlib_seq/seq_map_filter.ark` and `stdlib_seq/seq_take_skip_fold.ark`
+  compile, validate, and run on both `wasm32-gc` and linear-memory `wasm32`.
+  Their outputs match exactly, and WAT confirms the canonical iterator
+  consumers are called from the public wrappers on both backends.
+- `verify lane` passes. The remaining scope is arbitrary item representations,
+  broader adapter composition, manifest-level deprecation, and the RFC-011
+  residual audit; this receipt does not close #860.

@@ -121,6 +121,13 @@ It also covers `iter().skip(n).take(m).collect()` through `SkipTakeIter` and a
 generic `T: IntoIterator` consumer. The skip-before-take state is shared by GC
 and linear-memory Wasm; other item representations and arbitrary compositions
 remain migration work.
+The existing `std::seq` compatibility helpers for map, filter, take, skip, and
+fold now delegate to the same canonical iterator consumers. The
+`stdlib_seq/seq_map_filter.ark` and `stdlib_seq/seq_take_skip_fold.ark`
+fixtures compile, validate, and run with identical output on `wasm32-gc` and
+linear-memory `wasm32`. This is an implementation migration receipt, not a
+manifest-level deprecation: the deprecation boundary still requires the
+method-level manifest contract described above.
 
 ---
 

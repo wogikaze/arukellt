@@ -938,6 +938,12 @@ The concrete `iter().skip(n).take(m).collect()` composition is implemented by
 `SkipTakeIter`, which applies the skip state before the bounded pull. Its
 identity `IntoIterator` conversion and generic `for` consumer are covered by
 the same fixture on both published Wasm targets.
+The compatibility helpers in `std::seq` (`map_i32_i32`, `filter_i32`,
+`take_i32`, `skip_i32`, and `fold_i32_i32`) now delegate to these canonical
+iterator consumers. The `seq_map_filter.ark` and `seq_take_skip_fold.ark`
+fixtures compile, validate, and produce identical output on `wasm32-gc` and
+linear-memory `wasm32`; qualified `std::seq` calls no longer use the legacy
+eager HOF lowering path.
 
 ### 4.6 Semicolons
 

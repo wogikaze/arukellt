@@ -455,3 +455,18 @@ full adapter fixture matrix as a fallback parity gate.
   arbitrary adapter combinations, dynamic dispatch, manifest-level
   deprecation, and the final RFC-011 residual audit remain open. This is not a
   close receipt.
+
+## Progress receipt — 2026-09-20 (std::seq compatibility delegation)
+
+- Commit `d31cb9ec3` changes the concrete `std::seq` map/filter/take/skip/fold
+  compatibility helpers to delegate to `std::core::iter` consumers. The
+  qualified `std::seq` map/filter/fold entries are kept as ordinary Ark bodies
+  so they no longer enter the legacy eager HOF lowering shim.
+- `stdlib_seq/seq_map_filter.ark` and `stdlib_seq/seq_take_skip_fold.ark`
+  compile and pass `wasm-tools validate` on both targets. Both GC components
+  and linear-memory Wasm run with identical output; WAT shows calls to
+  `collect_map_i32`, `collect_filter_i32`, `collect_take_i32`,
+  `collect_skip_i32`, and `iter_fold_i32` on both backends.
+- This is concrete `Vec<i32>` migration evidence only. Arbitrary item
+  representations, arbitrary adapter combinations, manifest-level deprecation,
+  and the final RFC-011 residual audit remain open. This is not a close receipt.
