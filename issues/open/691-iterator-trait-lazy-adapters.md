@@ -420,6 +420,19 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (String filter-map composition)
+
+- Commit `38c326934` adds the reverse `StringFilterMapIter` path. Its predicate
+  receives a clone of the source String; only accepted originals are passed to
+  `map`, preserving ownership and source order without an intermediate vector.
+- `iterator_string_callbacks.ark` verifies lazy `collect` and direct
+  `Vec::from_iter` on both the GC component and linear-memory fallback paths.
+  Typed GC `call_ref` and linear table `call_indirect` artifacts validate and
+  run with matching results.
+- This remains concrete String composition. Arbitrary item-generic adapter
+  composition, dynamic dispatch, manifest-level deprecation, and the final
+  RFC-011 residual audit remain open; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (String map-filter composition)
 
 - Commit `4b0468228` adds `StringMapFilterIter` for the lazy

@@ -175,6 +175,9 @@ lane, not a claim for arbitrary item-generic adapters or dynamic dispatch. The
 fixture also covers `iter().map(map_identity).filter(keep_long_string).collect()`
 and its `Vec::from_iter` form through `StringMapFilterIter`; the predicate sees
 a cloned mapped handle and accepted items retain their source order.
+The reverse `iter().filter(keep_long_string).map(map_identity)` pipeline and
+its `Vec::from_iter` form are covered too; filtering clones the source handle,
+then mapping consumes only accepted originals.
 
 ---
 

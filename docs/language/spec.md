@@ -980,6 +980,10 @@ intermediate vector. `StringMapFilterIter` preserves the mapped item, passes a
 clone to the owning predicate, and exposes the same `collect`, `IntoIterator`,
 and `FromIterator` contracts; GC and linear-memory fixtures verify both direct
 collection forms.
+The reverse `filter` followed by `map` composition is also concrete: the
+predicate receives a clone of the source item, and only an accepted original is
+passed to the mapping callback. Its `collect` and `FromIterator` paths use the
+same target-specific callback representations.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

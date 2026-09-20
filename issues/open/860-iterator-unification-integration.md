@@ -630,3 +630,16 @@ acceptance boxes complete.
 - This closes one concrete composition only. Arbitrary item-generic adapter
   composition, dynamic dispatch, manifest-level deprecation, and the final
   RFC-011 residual audit remain open; #860 is not closed.
+
+## Progress receipt — 2026-09-20 (String filter-map composition)
+
+- Commit `38c326934` adds the reverse `StringFilterMapIter` path. Its predicate
+  receives a clone of the source String; only accepted originals are passed to
+  `map`, preserving ownership and source order without an intermediate vector.
+- The fixture verifies lazy `collect` and direct `Vec::from_iter`. GC typed
+  `call_ref` and linear-memory `call_indirect` artifacts both validate and run
+  with the same assertions, including the concrete
+  `Vec_String::from_iter__StringFilterMapIter` symbol.
+- This is another concrete String composition, not completion of arbitrary
+  item-generic adapters, dynamic dispatch, manifest-level deprecation, or the
+  final RFC-011 residual audit; #860 remains open.
