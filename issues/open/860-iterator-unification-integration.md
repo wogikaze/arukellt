@@ -660,3 +660,20 @@ acceptance boxes complete.
   adapter. Arbitrary item-generic adapters, dynamic dispatch,
   manifest-level deprecation, and the final RFC-011 residual audit remain
   open; #860 is not closed.
+
+## Progress receipt — 2026-09-20 (String callback adapters with bounds)
+
+- Commit `ef8b0bfa2` adds lazy `StringMapTakeIter` and
+  `StringFilterTakeIter` compositions. The map adapter decrements its bound
+  per mapped output; the filter adapter decrements it only for accepted items
+  and clones the predicate argument before yielding the owned source String.
+- `iterator_string_callbacks.ark` covers canonical `collect`, source-qualified
+  `Vec::from_iter`, and generic `T: IntoIterator` `for` consumers for both
+  compositions. GC and linear-memory artifacts validate and run with the same
+  bounded results.
+- WAT exposes `Vec_String::from_iter__StringMapTakeIter` and
+  `Vec_String::from_iter__StringFilterTakeIter`; callback calls remain typed
+  `call_ref` on GC and table-based `call_indirect` on linear memory.
+- This broadens concrete String adapter composition only. Arbitrary
+  item-generic adapter families, dynamic dispatch, manifest-level deprecation,
+  and the final RFC-011 residual audit remain open; #860 is not closed.

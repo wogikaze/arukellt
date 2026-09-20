@@ -420,6 +420,21 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (String callback adapters with bounds)
+
+- Commit `ef8b0bfa2` adds lazy `StringMapTakeIter` and
+  `StringFilterTakeIter` compositions. `filter(...).take(n)` counts accepted
+  values, while the predicate receives a clone and the accepted source String
+  remains the yielded owner.
+- The callback fixture covers canonical `collect`, source-qualified
+  `Vec::from_iter`, and generic `T: IntoIterator` `for` consumers for both
+  compositions. GC and linear-memory artifacts validate and run with the same
+  bounded results, preserving typed `call_ref` versus table-based
+  `call_indirect` backend lowering.
+- This is concrete non-numeric adapter evidence, not completion of arbitrary
+  item-generic composition, HashMap iterator coverage, manifest-level
+  deprecation, or the remaining RFC-011 audit; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (generic String `IntoIterator` for lowering)
 
 - Test commit `c91f76573` extends the String callback fixture with a generic

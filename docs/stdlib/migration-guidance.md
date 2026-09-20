@@ -185,6 +185,11 @@ adapter's identity `IntoIterator` conversion and canonical `next` loop on both
 published Wasm targets. This is bounded evidence for one non-numeric adapter
 composition; arbitrary item-generic dispatch and manifest-level deprecation
 remain open.
+Bounded callback compositions are also available: `map(...).take(n)` uses
+`StringMapTakeIter`, while `filter(...).take(n)` uses `StringFilterTakeIter`
+and counts accepted items. The fixture verifies their lazy `collect`,
+`Vec::from_iter`, and generic `T: IntoIterator` consumers on both published
+Wasm targets; the implementation remains a concrete String lane.
 
 ---
 

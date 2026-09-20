@@ -991,6 +991,13 @@ identity `IntoIterator` conversion before the canonical `next` loop. GC and
 linear-memory artifacts validate and run the same length assertion; this is
 still bounded evidence for a concrete String adapter, not arbitrary
 item-generic dispatch.
+The same callback lane supports bounded compositions through
+`StringMapTakeIter` and `StringFilterTakeIter`. `map(...).take(n)` counts
+mapped outputs, while `filter(...).take(n)` counts accepted items and clones
+the predicate argument before yielding the original String. Their `collect`,
+source-qualified `Vec::from_iter`, and generic `T: IntoIterator` `for` paths
+are verified on both Wasm targets; this remains concrete String composition,
+not a general arbitrary-item adapter family.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current
