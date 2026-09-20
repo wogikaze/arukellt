@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-20
 ID: 869
 Parent: 852
 Track: language-v2
@@ -24,11 +24,11 @@ RFC-011: **34–36**。
 
 ## Acceptance
 
-- [ ] multi-clause grouping を adjacency に依存させない
-- [ ] pattern-bound variable と `where` scope を固定する
-- [ ] newline/semicolon/continuation grammar を固定する
-- [ ] ambiguous parse の negative fixture を追加する
-- [ ] parser/formatter round-trip を一致させる
+- [x] multi-clause grouping を adjacency に依存させない
+- [x] pattern-bound variable と `where` scope を固定する
+- [x] newline/semicolon/continuation grammar を固定する
+- [x] ambiguous parse の negative fixture を追加する
+- [x] parser/formatter round-trip を一致させる
 
 ## Required evidence
 
@@ -57,16 +57,30 @@ RFC-011: **34–36**。
   lint 11/11, ratchets PASS); comment policy, semantic-debt, ADR ledger,
   docs freshness/consistency, and Python docs/gate tests pass. `docs regenerate`
   passes in the working tree.
-- Blocker: `python3 scripts/manager.py selfhost build-compiler` and the
-  selfhost formatter-parity lane remain blocked by the pre-existing #854
-  bootstrap mismatch (`unbox` and `slice_get` declared and inferred as the
-  same generic `T`). The stale artifact accepts the new positive fixture, but
-  it cannot validate the new semicolon-boundary diagnostic; this is not
-  current-source evidence. Canonical compile/validate/runtime acceptance is
-  therefore still unchecked and #869 stays open.
+- Historical blocker (2026-09-19): the pinned bootstrap rejected the generic
+  enum payload path before current-source evidence could be collected. It is
+  superseded for this issue by the guarded bootstrap overlay in `34f855148`.
+
+## Evidence (current-source recheck; 2026-09-20)
+
+- `34f855148` keeps the copied WIT closure's type identities stable in the
+  isolated bootstrap overlay. `python3 scripts/manager.py selfhost
+  build-compiler` passes, and changed-source `verify lane` passes.
+- With `ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm`,
+  `fn_multiclause_where_semicolon.ark` compiles to a standard WASI P2
+  component, `wasm-tools validate` passes, and Wasmtime prints the committed
+  `high` / `low` output. The semicolon-boundary fixture returns the expected
+  duplicate-definition diagnostic.
+- The current s2 formatter produces the committed
+  `fmt/multiclause_where.expected` output and remains idempotent. The
+  current-only selfhost fixture gate still reports six unrelated legacy
+  selfhost fixture failures; this issue's positive and negative fixtures pass
+  independently and the failures are not hidden or allow-listed here.
+- Acceptance is complete for this issue. The remaining broad fixture backlog
+  is tracked outside the multi-clause grammar scope.
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する

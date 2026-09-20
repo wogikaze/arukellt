@@ -229,6 +229,33 @@ class TestFixtureGateMigration(unittest.TestCase):
 
             self.assertTrue(result.ok)
 
+    def test_fixture_compile_selects_memory32_for_p2_component_packaging(self):
+        from selfhost.fixture_parity import _compile_current_fixture as compile_current_fixture
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "fixture.wasm"
+
+            def run_compile(argv, _cwd, **_kwargs):
+                self.assertEqual(
+                    argv[argv.index("--memory-width") + 1],
+                    "memory32",
+                )
+                output.write_bytes(b"compiled wasm")
+                return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+            with patch.object(selfhost_checks, "_run", side_effect=run_compile):
+                rc, detail = compile_current_fixture(
+                    root,
+                    "wasmtime",
+                    root / "compiler.wasm",
+                    "sample/ok.ark",
+                    str(output),
+                )
+
+            self.assertEqual((rc, detail), (0, ""))
+            self.assertEqual(output.read_bytes(), b"compiled wasm")
+
 
 class TestWasiRuntimeAbiCloseGates(unittest.TestCase):
     """Keep the active WASI filesystem and runtime lowering contracts in CI."""

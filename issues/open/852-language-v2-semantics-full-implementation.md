@@ -110,19 +110,24 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     RFC-011, language spec, and import-system spec synchronized. The quality
     lane passes, but compile/runtime evidence remains blocked by the pre-existing
     #854 bootstrap mismatch, so #867 stays open.
-- [ ] #868 — Prelude / boolean literal / keyword policy を固定する — RFC 32, 33, 41 — depends: none
-  - Progress (not done, 2026-09-19): implementation `c19a95bb1`; ADR-072,
+- [x] #868 — Prelude / boolean literal / keyword policy を固定する — RFC 32, 33, 41 — depends: none
+  - Receipt (done, 2026-09-20): implementation `c19a95bb1`; ADR-072,
     RFC-011, language spec, machine-readable keyword policy, stdlib manifest,
     playground, and parser/formatter/diagnostic fixtures are synchronized.
-    Quality and docs/ADR checks pass, but canonical current-source compiler
-    verification remains blocked by the pre-existing #854 `unbox`/`slice_get`
-    bootstrap mismatch. Acceptance remains open.
-- [ ] #869 — multi-clause / where / semicolon grammar を確定する — RFC 34–36 — depends: none
-  - Progress (not done, 2026-09-19): implementation `203029f18`; ADR-073,
+    Current s2 diagnostics for boolean and future-reserved names pass, the
+    formatter and playground suite pass, and the guarded bootstrap overlay
+    permits current-source `build-compiler`. The unrelated capability-stub
+    diagnostic-column golden remains an open parity follow-up. See
+    [#868](../done/868-prelude-booleans-keywords.md).
+- [x] #869 — multi-clause / where / semicolon grammar を確定する — RFC 34–36 — depends: none
+  - Receipt (done, 2026-09-20): implementation `203029f18`; ADR-073,
     RFC-011, language spec/syntax, positive/negative fixtures, and formatter
-    fixture are synchronized. Quality/docs checks pass, but current-source
-    compile/validate/runtime evidence remains blocked by the pre-existing #854
-    `unbox`/`slice_get` bootstrap mismatch. Acceptance remains open.
+    fixture are synchronized. Current s2 component compile/validate/runtime
+    produces `high` / `low`, the semicolon boundary returns the expected
+    duplicate-definition diagnostic, and the formatter fixture is idempotent.
+    The broad fixture gate retains six unrelated legacy failures; they are not
+    hidden by this child receipt. See
+    [#869](../done/869-multi-clause-where-semicolon-grammar.md).
 
 ### Targets / backends
 

@@ -128,6 +128,12 @@ def _compile_current_fixture(
         _checks.SELFHOST_TARGET,
         "--wasi-version",
         _checks.SELFHOST_WASI_VERSION,
+        # Official WASI P2 component canonical ABI uses memory32.  The
+        # wasm32-gc target defaults standalone core output to memory64, so the
+        # fixture gate must select the component boundary explicitly before
+        # wasm-tools packages the core module.
+        "--memory-width",
+        "memory32",
         "-o",
         out_rel,
     ]

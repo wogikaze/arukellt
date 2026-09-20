@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
 Updated: 2026-09-20
 ID: 868
@@ -24,11 +24,11 @@ RFC-011: **32, 33, 41**。
 
 ## Acceptance
 
-- [ ] Prelude を小さく stable な固定集合として列挙する
-- [ ] `true`/`false` を lexical literal に一意化する
-- [ ] hard/contextual/future-reserved を分類する
-- [ ] 未実装を理由に future-reserved を解放しない
-- [ ] parser/formatter/highlighting fixture を同期する
+- [x] Prelude を小さく stable な固定集合として列挙する
+- [x] `true`/`false` を lexical literal に一意化する
+- [x] hard/contextual/future-reserved を分類する
+- [x] 未実装を理由に future-reserved を解放しない
+- [x] parser/formatter/highlighting fixture を同期する
 
 ## Required evidence
 
@@ -56,14 +56,30 @@ RFC-011: **32, 33, 41**。
   changed` passes (fmt 7/7, lint 7/7, ratchet PASS); comment policy,
   semantic-debt, stdlib manifest, docs consistency, ADR ledger, and Python
   docs/gate tests pass. `docs regenerate` passes in the current working tree.
-- Blocker: `python3 scripts/manager.py selfhost build-compiler` still fails on
-  the pre-existing #854 bootstrap mismatch (`unbox` and `slice_get` declared
-  and inferred as the same generic `T`). The current artifact therefore cannot
-  provide valid current-source compile/validate/runtime evidence for this
-  issue. `docs check` has the same three known doc-example failures. Acceptance
-  remains unchecked and #868 stays open.
+- Historical blocker (2026-09-19): the pinned bootstrap rejected the generic
+  enum payload path before current-source evidence could be collected. It is
+  superseded for this issue by the guarded bootstrap overlay in `34f855148`.
 
-## Progress receipt (not done; 2026-09-20)
+## Evidence (current-source recheck; 2026-09-20)
+
+- `34f855148` keeps the copied WIT closure's type identities stable in the
+  isolated bootstrap overlay. `python3 scripts/manager.py selfhost
+  build-compiler` passes, and `python3 scripts/manager.py verify lane` passes
+  for the changed compiler/verification surface.
+- `python3 scripts/manager.py selfhost diag-parity` reports `PASS=54
+  SKIP=26 FAIL=1`; both `diagnostics/boolean_literal_not_name.ark` and
+  `diagnostics/future_reserved_keyword.ark` pass. The single failure is the
+  unrelated `diagnostics/capability_stub.ark` warning-column golden.
+- The current s2 compiler returns the expected parse diagnostics for both
+  boolean-as-name and future-reserved-name fixtures. The current formatter
+  produces the committed `fmt/keyword_policy.expected` output, and the
+  playground build plus test suite passes `182/182`, including lexical
+  highlighting and keyword-policy tests.
+- Acceptance is complete for this issue. The unrelated diagnostic golden is
+  retained as an open verification follow-up; it is not hidden or skipped by
+  this issue.
+
+## Historical progress receipt (superseded; 2026-09-20)
 
 - Parser recovery fix: `29ad8cd46` (`fix: advance parser after rejected token`).
   `expect_token` now consumes a non-EOF token after recording a mismatch, so a
@@ -76,14 +92,16 @@ RFC-011: **32, 33, 41**。
 - Related grammar smoke checks: `fn_multiclause_semicolon_boundary.ark`
   reports its expected duplicate-definition diagnostic, and
   `fn_multiclause_where_semicolon.ark` exits successfully with warnings only.
-- `selfhost diag-parity` improved to `PASS=52 SKIP=26 FAIL=1`. The remaining
+- At the time of this receipt, `selfhost diag-parity` had improved to
+  `PASS=52 SKIP=26 FAIL=1`. The remaining
   failure is the unrelated `diagnostics/capability_stub.ark` golden, whose
   expected source column is 4 while current output reports column 8. The
   formatter parity gate still has the pre-existing interleaved/unsorted import
-  fixture failures. Acceptance remains unchecked and #868 stays open.
+  fixture failures. The later current-source recheck above supersedes this
+  provisional status.
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
