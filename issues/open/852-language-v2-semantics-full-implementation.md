@@ -34,7 +34,12 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
 - [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
-  - Progress (not done, 2026-09-20): `33a604056` routes concrete local
+  - Progress (not done, 2026-09-20): `c50043518` adds a generic
+    `sum_for<T: Iterator>` fixture and verifies monomorphized `VecIter`
+    lowering through identity `IntoIterator::into_iter` and canonical `next`
+    on both GC and linear Wasm. `8384f8115` routes the eager map/filter
+    compatibility helpers through the same lazy adapter and canonical
+    `collect` path. `33a604056` routes concrete local
     `for` sources with a registered `IntoIterator` implementation through
     `IntoIterator::into_iter` and canonical `next` in both AST and CoreHir
     lowering. Vec, Range, and RangeInclusive direct-for fixtures pass current
@@ -42,9 +47,9 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     `0a6cb7b81` adds and verifies the concrete method-shaped
     `iter().map(...).filter(...).take(...).collect()` pipeline on both
     backends, including the nested CoreHir method-lowering fix. Generic item
-    representations, additional adapter composition, generic or unregistered
-    source expressions, the required negative/diagnostic fixture, and the
-    final RFC-011 residual audit remain open. `c064cb46a` additionally routes
+    representations, additional adapter composition, unresolved generic or
+    unregistered source expressions, the required negative/diagnostic fixture,
+    and the final RFC-011 residual audit remain open. `c064cb46a` additionally routes
     direct concrete call/method `for` sources through the same AST/CoreHir
     `IntoIterator` and canonical `next` path; both target receipts pass.
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856

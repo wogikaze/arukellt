@@ -356,3 +356,18 @@ full adapter fixture matrix as a fallback parity gate.
 - `verify lane` passes. Generic item representations, broader adapter
   composition, manifest-level deprecation, and the final RFC-011 residual
   audit remain open. This is not a close receipt.
+
+## Progress receipt — 2026-09-20 (generic `Iterator` `for` lowering)
+
+- Test commit `c50043518` adds a generic `sum_for<T: Iterator>` consumer to
+  `iterator_vec_iter_for_loop.ark`. Its `for` body is instantiated with
+  `VecIter`, proving that desugared iteration and a handwritten generic
+  `Iterator` consumer share the same monomorphized source path.
+- GC component and linear-memory Wasm compile, validate, and run successfully.
+  WAT inspection shows `sum_for__VecIter` calling the identity
+  `VecIter::into_iter` before the canonical `VecIter::next` loop on both
+  backends.
+- This is evidence for the checked `T: Iterator` case, not dynamic dispatch or
+  arbitrary item support. Generic obligations outside that bound, broader
+  adapter composition, manifest-level deprecation, and the final RFC-011
+  residual audit remain open. This is not a close receipt.

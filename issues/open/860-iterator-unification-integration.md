@@ -333,3 +333,19 @@ acceptance boxes complete.
 - `verify lane` passes. The remaining scope is generic item representations,
   broader adapter composition, manifest-level deprecation, full migration, and
   the RFC-011 residual audit; this receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (generic `Iterator` `for` lowering)
+
+- Test commit `c50043518` adds `sum_for<T: Iterator>`, whose body consumes
+  the generic parameter directly with `for`. The fixture instantiates it with
+  `VecIter`, and monomorphization emits the same identity
+  `IntoIterator::into_iter` plus canonical `Iterator::next` sequence as the
+  handwritten concrete loop.
+- `iterator_vec_iter_for_loop.ark` compiles and runs successfully on both the
+  `wasm32-gc` component path and the linear-memory `wasm32` path. Both Wasm
+  artifacts validate; the GC and linear WAT show `sum_for__VecIter` calling
+  `VecIter::into_iter` before `VecIter::next`.
+- This proves the bounded `T: Iterator` case only. Generic sources whose
+  iteration obligation is unresolved, arbitrary item representations, dynamic
+  dispatch, broader adapter composition, and the RFC-011 residual audit remain
+  open. This receipt does not close #860.

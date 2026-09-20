@@ -890,15 +890,19 @@ The iterable source may be a direct call or method expression, not only a
 pre-bound local. For example, `for item in core::range_new(0, 3)` and
 `for item in core::range_inclusive_new(0, 2).into_iter()` use the same
 conversion and `next()` sequence as their equivalent local-binding forms.
-This verified surface remains concrete; it does not imply dynamic dispatch for
-an unregistered or generic source type.
+Concrete source dispatch remains static; this does not imply dynamic dispatch
+for an unregistered source. A generic function bounded by `Iterator` may use
+its parameter directly as a `for` source. After monomorphization, the
+`iterator_vec_iter_for_loop.ark` fixture verifies `T = VecIter` through the
+same identity `IntoIterator::into_iter` and canonical `next` sequence.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current
 structural fallback. A known source that satisfies none of these contracts is
 rejected with E0200 (`non-iterable source`); the regression fixture
 `selfhost/for_deny_non_iterable.ark` covers the scalar `i32` case. Unresolved
-generic sources remain deferred until their concrete obligation can be checked.
+generic sources remain deferred until their concrete obligation can be checked;
+the verified generic case is bounded by `Iterator` and then monomorphized.
 
 For the current `Vec<i32>` item lane, the canonical lazy adapter expression is
 `v.iter().map(f).filter(g).take(n).collect()`. It evaluates the source through

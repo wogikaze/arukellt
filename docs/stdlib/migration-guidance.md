@@ -66,8 +66,12 @@ remains an explicit compatibility form.
 The source can be a direct call or method expression as well as a named local;
 the range fixture verifies `for item in core::range_new(2, 5)` and
 `for item in core::range_inclusive_new(3, 5).into_iter()` on both backends.
-Generic or unregistered source types still require the corresponding concrete
-trait implementation and are not covered by this migration step.
+Concrete source dispatch remains static, and unregistered sources still require
+the corresponding concrete trait implementation. A generic function bounded by
+`Iterator` can use its parameter directly as a `for` source; after
+monomorphization, `iterator_vec_iter_for_loop.ark` verifies the `VecIter` case
+on both backends. Generic sources without a checked iteration obligation remain
+outside this migration step.
 Statically known scalar or nominal sources that implement neither
 `IntoIterator` nor `Iterator`, and do not expose the structural `next` method,
 are rejected during type checking with E0200. The negative contract is pinned
