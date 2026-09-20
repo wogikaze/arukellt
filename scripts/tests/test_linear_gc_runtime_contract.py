@@ -61,6 +61,10 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         string_replace = (ROOT / "src/compiler/wasm/intrinsic_string_replace_all_helpers.ark").read_text(encoding="utf-8")
         string_split = (ROOT / "src/compiler/wasm/intrinsic_string_split.ark").read_text(encoding="utf-8")
         string_chars = (ROOT / "src/compiler/wasm/intrinsic_string_chars.ark").read_text(encoding="utf-8")
+        format_i32 = (ROOT / "src/compiler/wasm/intrinsic_string_format_i32.ark").read_text(encoding="utf-8")
+        format_i64 = (ROOT / "src/compiler/wasm/intrinsic_string_format_i64.ark").read_text(encoding="utf-8")
+        format_f64 = (ROOT / "src/compiler/wasm/intrinsic_string_format_f64_assemble.ark").read_text(encoding="utf-8")
+        format_char = (ROOT / "src/compiler/wasm/intrinsic_string_format_char.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -79,6 +83,10 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_replace)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_split)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_chars)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_i32)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_i64)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_f64)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", format_char)
         for source in (
             string_slice,
             string_trim,
@@ -90,6 +98,10 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             string_replace,
             string_split,
             string_chars,
+            format_i32,
+            format_i64,
+            format_f64,
+            format_char,
         ):
             self.assertNotIn("helpers_core::emit_heap_get(w)", source)
             self.assertNotIn("helpers_core::emit_heap_set(w)", source)

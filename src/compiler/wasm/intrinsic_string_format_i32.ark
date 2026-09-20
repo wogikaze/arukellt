@@ -6,6 +6,7 @@ use wasm::writer_core
 use mir::inst_accessors_operands
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
@@ -158,17 +159,15 @@ fn emit_i32_string_alloc(w: WasmWriter, buf_end: i32, s_wpos: i32, s_len: i32, s
     helpers_core::emit_local_get(w, s_wpos)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_core::emit_local_set(w, s_len)
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_tee(w, s_alloc)
     helpers_core::emit_local_get(w, s_len)
     helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_const(w, 3)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_const(w, -4)
     writer_core::emit_byte(w, opcodes::OP_I32_AND())
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_alloc)
     helpers_core::emit_local_get(w, s_alloc)
     helpers_core::emit_local_get(w, s_len)
     helpers_memory::emit_i32_store_default(w)

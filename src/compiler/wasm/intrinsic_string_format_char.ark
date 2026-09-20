@@ -7,6 +7,7 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
@@ -210,13 +211,11 @@ fn emit_char_to_string_width(w: WasmWriter, char_local: i32, width_local: i32) {
 }
 
 fn emit_char_to_string_alloc(w: WasmWriter, alloc_local: i32, width_local: i32, data_local: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_tee(w, alloc_local)
     helpers_core::emit_local_get(w, width_local)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, alloc_local)
     helpers_core::emit_local_get(w, alloc_local)
     helpers_core::emit_local_get(w, width_local)
     helpers_memory::emit_i32_store_default(w)
@@ -318,16 +317,13 @@ fn emit_push_char_setup(w: WasmWriter, char_local: i32, str_local: i32, len_loca
 }
 
 fn emit_push_char_linear_alloc(w: WasmWriter, len_local: i32, width_local: i32, base_local: i32, data_local: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, base_local)
-    helpers_core::emit_heap_get(w)
     helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_get(w, len_local)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_get(w, width_local)
     helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, base_local)
     helpers_core::emit_local_get(w, base_local)
     helpers_core::emit_local_get(w, len_local)
     helpers_core::emit_local_get(w, width_local)
@@ -457,12 +453,9 @@ fn emit_gc_store_utf8_mid(w: WasmWriter, array_local: i32, start_local: i32, cha
 }
 
 fn emit_String_new_alloc(w: WasmWriter, str_base_local: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, str_base_local)
-    helpers_core::emit_heap_get(w)
     helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, str_base_local)
 }
 
 fn emit_String_new_header(w: WasmWriter, str_base_local: i32) {
