@@ -234,3 +234,51 @@ RFC-011: **8 (fallback lowering)**。
   closure environments, descriptor-aware root writes, automatic collection,
   shared/cyclic source graphs, and complete cross-backend move/borrow parity
   remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (String replace allocation boundary)
+
+- Implementation commit `d00da2f1c` routes fallback `replace` allocation through
+  `LINEAR_GC_ALLOC`. The existing upper-bound calculation now supplies the
+  allocator with `upper_bound + 4`; the returned record base is retained and
+  the length-prefixed payload continues to use `base + 4`. The Wasm GC branch
+  and public API remain unchanged.
+- An empty pattern now returns the original source string. This preserves the
+  non-progressing edge case without entering the replacement loop, which would
+  otherwise repeatedly inspect the same position and eventually write out of
+  bounds.
+- Positive fixtures `tests/fixtures/stdlib_string/replace_basic.ark`,
+  `replace_multiple.ark`, `replace_no_match.ark`, `replace_with_empty.ark`,
+  and `edge_repeated_chars.ark` compile, validate, and execute successfully on
+  both the `wasm32` linear core and `wasm32-gc` component paths. All ten
+  artifacts pass their assertions, including the empty-pattern case.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  wasm-tools validate                                       PASS (10 artifacts)
+  wasmtime run                                              PASS (10 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear replace-basic        5176 bytes  84b8deac5a5e36fbbd2c6b693cba7171b19617ae123833aff757e68a8bb5eb96
+  wasm32 linear replace-multiple     5179 bytes  8e9b5e02951a49f39b02fc68a45ac33197f40dcc9304973fafcb858d79454335
+  wasm32 linear replace-no-match     5159 bytes  fb6ff79fc543b05fcf900c5063f5e6638842efe8de371a4273aca1cb4006f742
+  wasm32 linear replace-empty        5162 bytes  8a57f7ad82cb7112714811b5c9c0137402099423a6ecaac383c48765d3905973
+  wasm32 linear repeated-chars       5832 bytes  3836731666d1e424a0e6f2b8db8e3a12bf5ca874d90cd132b20c410c77ab899a
+  wasm32-gc replace-basic component 14348 bytes  2f835f332bbebeeb7158ec88f745e300358de77c0114f91e004172789b80d7c
+  wasm32-gc replace-multiple        14351 bytes  bd492d103b4ab1b2c0aa442675e25c4adb51029f560993edcfb5a9c3a637f539
+  wasm32-gc replace-no-match        14241 bytes  1ce2f387aa9638adc50430967fc4d850483f987cd024422f9fefc6f056adcc47
+  wasm32-gc replace-empty           14334 bytes  da9cd2ead9cedb54005bb9dc29def05139c678944bf74b3d01c4dfad63b6466d
+  wasm32-gc repeated-chars          14835 bytes  ff425e7bdafa011ff72e087e8bb4a4ea374d7d47484678ecac63402be5773704
+  ```
+
+- This receipt covers the `replace` allocation path only. String
+  split/format/char and other allocation helpers, HashMap descriptors,
+  closure environments, descriptor-aware root writes, automatic collection,
+  shared/cyclic source graphs, and complete cross-backend move/borrow parity
+  remain open; #874 stays open.

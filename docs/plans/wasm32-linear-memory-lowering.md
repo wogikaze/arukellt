@@ -46,6 +46,14 @@ allocation も `LINEAR_GC_ALLOC` へ接続した。`join` は count pass 後の�
 既定 ASCII space も fallback で明示し、GC 側の array representation と同じ出力を保つ。
 zero-length の `join`/`repeat` を含む両 target の fixture で検証済みである。
 
+続く `d00da2f1c` では、fallback の `replace` が計算した上限サイズに header 分を
+加え、`LINEAR_GC_ALLOC` から得た record base と `base + 4` の payload pointer を
+使うようにした。empty pattern は source をそのまま返すことで、非進行の走査と
+out-of-bounds を防ぐ。GC 側の lowering と公開 API は変更していない。
+`replace` の両 target fixture で compile・validate・run を検証済みである。
+format/split、HashMap descriptor、closure environment、descriptor-aware root write、
+automatic `collect` は引き続き未完了である。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:
