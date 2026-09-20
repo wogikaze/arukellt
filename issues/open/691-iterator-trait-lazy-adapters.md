@@ -420,6 +420,31 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (String callback adapters)
+
+- Commit `2b862af04` adds `StringMapIter` and `StringFilterIter` with
+  `Iterator`, identity `IntoIterator`, and concrete `FromIterator` impls for
+  `Vec<String>`. `StringIter::map` accepts `fn(String) -> String`, and
+  `StringIter::filter` accepts `fn(String) -> bool`; the filter path clones the
+  callback argument so the accepted source item remains available to yield.
+- `tests/fixtures/stdlib_trait/iterator_string_callbacks.ark` exercises both
+  lazy adapters and their canonical `collect` traversal. The same source
+  compiles and validates on `wasm32-gc` and linear-memory `wasm32`, and both
+  runtime paths pass. The existing `iterator_string.ark` and
+  `iterator_adapters.ark` regression paths also pass after the callback ABI
+  change.
+- GC WAT records `String -> String` as typed callback index 46 and the
+  Memory64 `String -> bool` representation as index 48; fields, callback locals,
+  and `call_ref` use the same index. Linear WAT retains the table-based
+  `call_indirect` ABI. This is the same source-level item/order semantics, not
+  an integer-packed String representation.
+- `Vec::from_iter(source.iter().map(...))` is intentionally not included in
+  this receipt: the existing generic associated-function lowering still emits
+  `drop; unreachable` for that projected source. The concrete adapter
+  `FromIterator` impls remain tracked until that lowering emits valid Wasm on
+  both targets. Arbitrary adapter composition, manifest deprecation, and the
+  final RFC-011 residual audit remain open; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (Memory64 GC callback field parity)
 
 - Commit `51e41360a` fixes the GC type-section emitter so callback fields in

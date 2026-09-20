@@ -155,6 +155,20 @@ item on the GC path and the corresponding reference value type on the linear
 fallback; no integer packing is used. This is concrete String evidence, not a
 claim that every collection or adapter has become item-generic.
 
+The String lane now also has lazy callback adapters:
+`StringIter::map(fn(String) -> String)` and
+`StringIter::filter(fn(String) -> bool)`. The
+`stdlib_trait/iterator_string_callbacks.ark` fixture checks both adapters and
+their canonical `collect` path on GC and linear-memory Wasm. The filter adapter
+clones the callback argument because the callback owns its `String` input; the
+accepted source item is then yielded with its String identity intact. GC uses
+typed `call_ref` signatures (`String -> String` and the Memory64 representation
+of `String -> bool`), while the fallback uses the callback table and
+`call_indirect`; the source-level order and results are the same. Concrete
+`FromIterator<StringMapIter>` and `FromIterator<StringFilterIter>` impls are
+present, but `Vec::from_iter(source.iter().map(...))` remains deferred until
+generic associated-function lowering emits valid Wasm on both targets.
+
 ---
 
 ## Planned Deprecations

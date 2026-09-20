@@ -560,3 +560,29 @@ acceptance boxes complete.
   fixture is not the failing case. `verify lane` passes. This receipt does not
   close #860: arbitrary item-generic adapters, manifest-level deprecation, and
   the final RFC-011 residual audit remain open.
+
+## Progress receipt — 2026-09-20 (String callback adapters)
+
+- Commit `2b862af04` extends the concrete non-numeric lane with lazy
+  `StringIter::map(fn(String) -> String)` and
+  `StringIter::filter(fn(String) -> bool)` adapters. Their producer methods,
+  identity `IntoIterator` conversions, and concrete `FromIterator` impls keep
+  `Iterator::Item = String` instead of routing through a numeric ABI.
+- `iterator_string_callbacks.ark` is the positive fixture. It compiles,
+  validates, and runs on both the GC primary component path and the
+  linear-memory fallback. Existing String no-callback and numeric callback
+  iterator fixtures remain green. WAT inspection shows GC typed callback
+  indices 46 (`String -> String`) and 48 (Memory64 `String -> bool`) reused by
+  the struct field, local declaration, and `call_ref`; linear keeps
+  `call_indirect` and table slots.
+- The callback lowering carries the semantic function marker through MIR and
+  derives the callback result local type before Wasm emission. This closes the
+  concrete String callback ABI boundary without claiming dynamic dispatch or
+  arbitrary item adapters.
+- `Vec::from_iter(source.iter().map(...))` is still outside the verified
+  contract because the existing generic associated-function lowering emits an
+  invalid `drop; unreachable` path for the projected adapter source. The
+  removal condition is a valid GC and linear artifact plus runtime assertion
+  for that call; until then, the explicit adapter `FromIterator` impls are not
+  treated as complete integration evidence. Eager/lazy migration,
+  manifest-level deprecation, and the RFC-011 residual audit remain open.

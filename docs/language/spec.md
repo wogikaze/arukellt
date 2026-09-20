@@ -956,6 +956,21 @@ same assertions. The `for` lowering chooses the typed `Option::Some` payload
 layout for the iterator item, so a String reference is never read through the
 numeric i32 payload layout.
 
+The String producer also supports lazy callback adapters. `StringIter::map`
+accepts `fn(String) -> String`, and `StringIter::filter` accepts
+`fn(String) -> bool`; both retain `Iterator::Item = String` and delegate
+collection to the canonical `Iterator::collect` path. The positive contract is
+pinned by `stdlib_trait/iterator_string_callbacks.ark`. Because a callback owns
+its String argument, `filter` passes a cloned handle to the predicate and
+yields the original accepted item. On `wasm32-gc`, these fields and calls use
+typed `call_ref` signatures; on linear-memory `wasm32`, the same source calls
+use the callback table and `call_indirect`. The representation differs, but
+the source-level item order, acceptance, and collection result are identical.
+The concrete `FromIterator` impls for these adapters are defined, while the
+generic `Vec::from_iter(source.iter().map(...))` call remains outside this
+verified contract until its associated-function lowering is valid on both
+targets.
+
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current
 structural fallback. A known source that satisfies none of these contracts is
