@@ -677,3 +677,19 @@ acceptance boxes complete.
 - This broadens concrete String adapter composition only. Arbitrary
   item-generic adapter families, dynamic dispatch, manifest-level deprecation,
   and the final RFC-011 residual audit remain open; #860 is not closed.
+
+## Progress receipt — 2026-09-20 (bounded String callback composition)
+
+- Commit `cee857bb7` adds `StringMapFilterTakeIter` and
+  `StringFilterMapTakeIter`. Both preserve lazy single-pass traversal and
+  apply the bound to accepted output items; each owning predicate receives a
+  cloned String handle before the original or mapped value is returned.
+- The callback fixture covers `collect`, source-qualified `Vec::from_iter`,
+  and generic `T: IntoIterator` `for` consumers for both callback orders. GC
+  and linear-memory artifacts validate and run with identical one-item
+  results.
+- WAT shows the concrete `...MapFilterTakeIter` and
+  `...FilterMapTakeIter` collection symbols, typed GC `call_ref`, and linear
+  table-based `call_indirect`. Arbitrary item-generic adapter families,
+  dynamic dispatch, manifest-level deprecation, and the final RFC-011 audit
+  remain open; #860 is not closed.

@@ -998,6 +998,12 @@ the predicate argument before yielding the original String. Their `collect`,
 source-qualified `Vec::from_iter`, and generic `T: IntoIterator` `for` paths
 are verified on both Wasm targets; this remains concrete String composition,
 not a general arbitrary-item adapter family.
+The two callback orders can also be bounded after both stages through
+`StringMapFilterTakeIter` and `StringFilterMapTakeIter`. The bound applies to
+accepted outputs, and each owning predicate receives a cloned handle before
+the value proceeds to the next callback. Their `collect`, `Vec::from_iter`,
+and generic `T: IntoIterator` `for` paths are verified on both targets; this
+is still concrete String composition.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

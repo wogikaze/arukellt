@@ -420,6 +420,20 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (bounded String callback composition)
+
+- Commit `cee857bb7` adds lazy `map(...).filter(...).take(n)` and
+  `filter(...).map(...).take(n)` String adapters. The bound applies to
+  accepted output items, and predicate ownership is preserved by cloning the
+  callback argument before the owned value continues downstream.
+- The callback fixture verifies canonical `collect`, source-qualified
+  `Vec::from_iter`, and generic `T: IntoIterator` `for` consumers on both
+  published Wasm targets. GC and linear-memory artifacts validate and run with
+  identical results.
+- This is bounded concrete String evidence only. Arbitrary item-generic
+  adapter composition, HashMap iterator coverage, manifest-level deprecation,
+  and the remaining RFC-011 audit remain open; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (String callback adapters with bounds)
 
 - Commit `ef8b0bfa2` adds lazy `StringMapTakeIter` and

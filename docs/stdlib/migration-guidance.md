@@ -190,6 +190,11 @@ Bounded callback compositions are also available: `map(...).take(n)` uses
 and counts accepted items. The fixture verifies their lazy `collect`,
 `Vec::from_iter`, and generic `T: IntoIterator` consumers on both published
 Wasm targets; the implementation remains a concrete String lane.
+The same concrete lane supports `map(...).filter(...).take(n)` and the reverse
+`filter(...).map(...).take(n)` order through dedicated lazy adapters. Both
+orders keep the predicate ownership clone and apply the bound to accepted
+outputs; their `collect`, `Vec::from_iter`, and generic `for` paths are
+verified on GC and linear-memory Wasm.
 
 ---
 
