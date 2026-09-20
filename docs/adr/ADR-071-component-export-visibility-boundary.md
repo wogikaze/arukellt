@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — source visibility、Component export、WIT identity を別契約として固定する
 日付: 2026-09-19
 トラック: language-v2
-Issue: [#867](../../issues/open/867-component-wit-visibility-boundary.md)
+Issue: [#867](../../issues/done/867-component-wit-visibility-boundary.md)
 関連: [ADR-006](ADR-006-abi-policy.md)、[ADR-009](ADR-009-import-syntax.md)、[ADR-031](ADR-031-import-syntax-wit-unification.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)
 
 ---
@@ -93,4 +93,4 @@ GC-native lowering と linear-memory lowering はこの source/Component contrac
 - [ADR-009: Import 構文の決定](ADR-009-import-syntax.md)
 - [ADR-031: import 構文と WIT パッケージ識別子の統合](ADR-031-import-syntax-wit-unification.md)
 - [RFC-011: 言語 v2 の意味論再設計案](../rfcs/011-language-v2-semantics-redesign.md)
-- [#867](../../issues/open/867-component-wit-visibility-boundary.md)
+- [#867](../../issues/done/867-component-wit-visibility-boundary.md)

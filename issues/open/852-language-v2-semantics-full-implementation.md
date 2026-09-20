@@ -105,11 +105,14 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     canonical bootstrap remains blocked by the pre-existing #854
     `unbox`/`slice_get` mismatch. WIT/component-boundary import work remains
     explicitly scoped to #867.
-- [ ] #867 — `pub` / Component export / WIT import 境界を分離する — RFC 11, 31, 38 — depends: 866
-  - Progress (not done, 2026-09-19): implementation `d1f3014d9`; ADR-071,
-    RFC-011, language spec, and import-system spec synchronized. The quality
-    lane passes, but compile/runtime evidence remains blocked by the pre-existing
-    #854 bootstrap mismatch, so #867 stays open.
+- [x] #867 — `pub` / Component export / WIT import 境界を分離する — RFC 11, 31, 38 — depends: 866
+  - Receipt (done, 2026-09-20): implementation `d1f3014d9`; ADR-071,
+    RFC-011, language spec, and import-system spec synchronized. Current-source
+    s2 positive/negative/diagnostic fixtures prove source visibility, explicit
+    Component export, full-version WIT identity, and source/WIT namespace
+    separation. Official P2 packaging and WIT import gates 654, 666, and 670
+    pass; the linear `wasm32/wasi-p1` fallback also compiles, validates, and runs
+    the positive source fixture. See [#867](../done/867-component-wit-visibility-boundary.md).
 - [x] #868 — Prelude / boolean literal / keyword policy を固定する — RFC 32, 33, 41 — depends: none
   - Receipt (done, 2026-09-20): implementation `c19a95bb1`; ADR-072,
     RFC-011, language spec, machine-readable keyword policy, stdlib manifest,

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-20T03:13:41Z",
+  "generated_at": "2026-09-20T04:08:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,65 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "867",
-      "path": "867-component-wit-visibility-boundary.md",
-      "title": "867 — `pub` / Component export / WIT import 境界を分離する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "866"
-      ],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "868",
-      "path": "868-prelude-booleans-keywords.md",
-      "title": "868 — Prelude / boolean literal / keyword policy を固定する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "869",
-      "path": "869-multi-clause-where-semicolon-grammar.md",
-      "title": "869 — multi-clause / where / semicolon grammar を確定する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "875"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1227,8 +1168,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 24,
-        "unchecked": 19
+        "checked": 27,
+        "unchecked": 16
       },
       "orchestration": {
         "class": "blocked-by-upstream",
