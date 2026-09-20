@@ -136,18 +136,17 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 - [x] #870 — target capability / Memory64 / host profile を分解する — RFC 9, 39, 40 — depends: none
   - Receipt: completed in `b6b7b2e0f` plus backend correction `10fdbe597`; ADR-074 and the target contract data are synchronized. GC/Memory64, WASI profile, and Component artifact axes are independent; the same HashMap source now packages and runs as the default GC P2 component, while the linear fallback remains validated. See [#870](../done/870-target-capability-configuration.md).
-- [ ] #871 — Wasm GC aggregate lowering を完成する — RFC 8 (aggregate) — depends: 854, 870
-  - Progress (not done, 2026-09-20): verification guards `b57a3f670` and
-    `c11c782fc` compile and execute
-    struct/enum/Vec, Option, Result, and tuple fixtures through both the
-    default `wasm32-gc` P2/Memory64 path and the `wasm32` P1/memory32 fallback.
-    `wasm-tools validate` passes; binary inspection requires concrete GC
-    aggregate instructions on the primary and rejects `struct.*`, `array.*`,
-    and `ref.*` on the fallback. Wasmtime stdout matches all four fixture
-    expectations on both targets; focused and combined tests plus `verify lane`
-    pass. The receipt is intentionally not a close claim: complete
-    tag/payload observable semantics and cross-backend parity beyond this
-    aggregate matrix remain to be audited.
+- [x] #871 — Wasm GC aggregate lowering を完成する — RFC 8 (aggregate) — depends: 854, 870
+  - Receipt (done, 2026-09-20): implementation commits `402326820`,
+    `c107e7b42`, and `38cc7cc71` provide the explicit TypeId-owned aggregate
+    plan, GC instruction path, and Memory64 scalar-width correction.
+    `f38ffe5b3` extends the executable guard to all nine enum fixtures plus
+    struct/Vec, Option/Result, and tuple fixtures. The GC P2/Memory64
+    components contain concrete `struct.new/get` and `ref.cast` operations;
+    the linear P1/memory32 artifacts contain no GC instructions. All 13
+    fixtures validate and run with matching stdout on both targets, and the
+    non-exhaustive enum diagnostic is rejected before backend emission. See
+    [#871](../done/871-wasm-gc-aggregate-lowering.md).
 - [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
   - Progress (not done, 2026-09-20): implementation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; guarded pinned-bootstrap overlay `8ecb6b2a6`; fixture migration `8ac3714b2`; runtime e2e receipt `055de4955`; fixture registration `2b4180c8b`. ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the executable private-ABI runtime probe are synchronized. The probe validates rooted-cycle retention and unreachable-cycle reuse, while current-source GC/component and wasm32 fallback artifacts validate without Wasm GC instructions. `verify quick` was run for close review but remains red on unrelated #652/#798/quality/MIR/T3 baseline checks; pin refresh/fixpoint and managed-value/root lowering remain separate follow-up boundaries, so #873 stays open.

@@ -242,8 +242,9 @@ linear-memory data model. `wasm32-gc` emits Wasm GC reference locals/types and
 shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
 locals, params, and struct/enum returns. This is an implementation slice, not the
 complete GC-native data model. The #854 owned-ADT boundary is shared by both
-targets, but strings, Vec, enums, options/results, and generic payloads may still
-use linear-memory or fixed-shape representation in places.
+targets, and the core aggregate path for structs, tuples, enums, `Option`, and
+`Result` is covered by #871. Strings, Vec, closures, and generic or legacy
+payload paths may still use linear-memory or fixed-shape representation in places.
 Layout policy (compiler-private) is accepted in ADR-035; implementation phases live in
 `docs/plans/wasm-gc-implementation.md`.
 
@@ -257,15 +258,27 @@ The data model across all targets:
 | `String` | `i32` pointer to heap-allocated length-prefixed bytes |
 | `Vec<T>` | `i32` pointer to heap-allocated buffer with length/capacity |
 | Structs | `wasm32`: `i32` pointer to heap-allocated struct; `wasm32-gc`: GC struct references for supported field shapes |
-| Enums / Option / Result | Discriminated union in linear memory (GC layout migration in progress; ADR-035) |
+| Enums / Option / Result | `wasm32`: linear-memory discriminated union; `wasm32-gc`: GC tag/payload structs and variant references for the core aggregate path (#871) |
 | Closures | Parameter-passing captures; Class A/B HOF uses typed funcref + `call_ref` (`ref.func`); Class C / dynamic keeps `call_indirect` + table (ADR-033) |
 
 `wasm32-gc` differs from `wasm32` both in WASI/host profile / component emit and in
 this GC aggregate emission path. `wasm32` remains the linear-memory compatibility backend.
 
+### Aggregate lowering boundary (#871)
+
+The current selfhost compiler lowers the core struct, tuple, user-enum,
+`Option`, and `Result` shapes through Wasm GC `struct` / `array` / `ref`
+instructions on `wasm32-gc`. Unit, tuple, record, nested, `Option`, and
+`Result` variants are covered by a binary-inspection and runtime-parity guard.
+The same source fixtures lower through the linear-memory `wasm32` backend and
+produce matching observable output without Wasm GC instructions. This proves
+the aggregate meaning/representation boundary, not completion of the remaining
+GC collection, closure, managed-value, or final parity work tracked by #872,
+#874, and #875.
+
 **Future:** Completing the Wasm GC backend remains tracked by issue #686 and
-ADR-035 / `docs/plans/wasm-gc-implementation.md`, including GC strings, Vec/enum
-representations, cast-based dispatch,
+ADR-035 / `docs/plans/wasm-gc-implementation.md`, including remaining GC
+strings, Vec/legacy payload representations, cast-based dispatch,
 full fixture coverage, and `wasm32` / `wasm32-gc` parity gates.
 
 ## Performance Snapshot

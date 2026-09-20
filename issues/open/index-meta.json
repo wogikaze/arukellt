@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-20T04:08:20Z",
+  "generated_at": "2026-09-20T04:39:07Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,30 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "871",
-      "path": "871-wasm-gc-aggregate-lowering.md",
-      "title": "871 — Wasm GC aggregate lowering を完成する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "854",
-        "870"
-      ],
-      "blocks_issue_ids": [
-        "872",
-        "875",
-        "879"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1168,8 +1144,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 27,
-        "unchecked": 16
+        "checked": 28,
+        "unchecked": 15
       },
       "orchestration": {
         "class": "blocked-by-upstream",
