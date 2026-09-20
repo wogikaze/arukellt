@@ -53,7 +53,12 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
         return bare_method
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    let bare_type = mir_bare_receiver_type_name(clone(arg_type))
+    let mut bare_type = mir_bare_receiver_type_name(clone(arg_type))
+    if eq(clone(bare_method), String_from("into_iter")) &&
+    (eq(clone(arg_type), String_from("vec:String")) ||
+        eq(clone(arg_type), String_from("vec:Vec_String"))) {
+        bare_type = String_from("Vec_String")
+    }
     if len(bare_type) == 0 {
         return bare_method
     }
@@ -77,7 +82,16 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     if len(source_name) == 0 {
         return associated_name
     }
-    let candidate = concat(clone(associated_name), concat("__", clone(source_name)))
+    let mut owner_name = mir_type_prefix(clone(associated_name))
+    if eq(clone(associated_name), String_from("Vec::from_iter")) &&
+    eq(clone(source_name), String_from("StringIter")) {
+        owner_name = String_from("Vec_String")
+    }
+    let method_name = mir_bare_method_name(clone(associated_name))
+    let candidate = concat(
+        concat(owner_name, concat("::", method_name)),
+        concat("__", clone(source_name))
+    )
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(candidate)) {
         return candidate
     }

@@ -15,6 +15,9 @@ fn mir_for_into_iterator_owner(source_type: String) -> String {
         if eq(clone(element_type), "i32") || eq(clone(element_type), "I32") {
             return String_from("Vec")
         }
+        if eq(clone(element_type), "String") || eq(clone(element_type), "string") {
+            return String_from("Vec_String")
+        }
         return String_from("")
     }
     normalized

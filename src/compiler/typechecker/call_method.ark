@@ -209,6 +209,12 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
         return String_from("String")
     }
     if tag == commands::TY_VEC() {
+        if contract_type_access::TypeInfo_type_arg_count(ty) > 0 {
+            let elem_ty = contract_type_access::TypeInfo_type_arg_at(ty, 0)
+            if contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_STRING() {
+                return String_from("Vec_String")
+            }
+        }
         return String_from("Vec")
     }
     if tag == commands::TY_HASHMAP() {

@@ -6,7 +6,7 @@ fn first_from_source<T: iter::IntoIterator>(source: T) -> Option<T::Item> {
     source.into_iter().next()
 }
 
-fn fold_values<T: iter::Iterator>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+fn fold_values<T: iter::Iterator + iter::IteratorFold<i32, i32>>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     iterator.fold(init, f)
 }
 

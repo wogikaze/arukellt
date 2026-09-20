@@ -13,11 +13,11 @@ fn count_values<T: iter::Iterator>(iterator: T) -> i32 {
     iterator.count()
 }
 
-fn sum_values<T: iter::Iterator>(iterator: T) -> i32 {
+fn sum_values<T: iter::Iterator + iter::IteratorSum<i32, i32>>(iterator: T) -> i32 {
     iterator.sum()
 }
 
-fn fold_values<T: iter::Iterator>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+fn fold_values<T: iter::Iterator + iter::IteratorFold<i32, i32>>(iterator: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     iterator.fold(init, f)
 }
 

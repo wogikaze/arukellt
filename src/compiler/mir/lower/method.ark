@@ -21,10 +21,17 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
         }
     }
     // Normalize builtin type names so method calls resolve correctly.
-    // Vec locals carry type "vec:i32" / "vec:String" etc.; normalize to "Vec".
+    // Vec locals carry type "vec:i32" / "vec:String" etc.; the String
+    // conversion has its own impl owner because GC references are distinct.
     // String locals carry type "string"; normalize to "String".
     if starts_with(clone(struct_name), "vec:") {
-        struct_name = "Vec"
+        if eq(clone(method_name), String_from("into_iter")) &&
+        (eq(clone(struct_name), String_from("vec:String")) ||
+            eq(clone(struct_name), String_from("vec:Vec_String"))) {
+            struct_name = "Vec_String"
+        } else {
+            struct_name = "Vec"
+        }
     }
     if starts_with(clone(struct_name), "hashmap:") {
         struct_name = "HashMap"

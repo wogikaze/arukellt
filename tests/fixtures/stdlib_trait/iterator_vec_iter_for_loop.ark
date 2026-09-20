@@ -1,7 +1,7 @@
 use std::core::iter
 use std::test
 
-fn sum_iter<T: iter::Iterator>(iterator: T) -> i32 {
+fn sum_iter<T: iter::Iterator + iter::IteratorSum<i32, i32>>(iterator: T) -> i32 {
     iterator.sum()
 }
 

@@ -11,12 +11,24 @@ use corehir::type_ann_node
 fn impl_self_type_name(decl: AstNode) -> String {
     let ann_count = decl_ann_member::decl_ann_count(decl)
     if ann_count >= 2 {
-        return decl_ann_name::decl_ann_name(decl_ann_member::decl_ann_at(decl, 1))
+        return impl_target_type_name(decl_ann_member::decl_ann_at(decl, 1))
     }
     if ann_count >= 1 {
-        return decl_ann_name::decl_ann_name(decl_ann_member::decl_ann_at(decl, 0))
+        return impl_target_type_name(decl_ann_member::decl_ann_at(decl, 0))
     }
     return decl_node_identity::decl_name(decl)
+}
+
+fn impl_target_type_name(target: AstNode) -> String {
+    let target_name = decl_ann_name::decl_ann_name(target)
+    if eq(clone(target_name), String_from("Vec")) &&
+    type_ann_node::type_ann_child_count(target) > 1 {
+        let element = type_ann_node::type_ann_child_at(target, 1)
+        if eq(type_ann_node::type_ann_name(element), String_from("String")) {
+            return String_from("Vec_String")
+        }
+    }
+    target_name
 }
 
 // Canonical SemanticTraitId for `impl Trait for Type`, or NONE for inherent impls.

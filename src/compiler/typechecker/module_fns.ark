@@ -116,11 +116,20 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
 // For `impl Trait for Type { ... }` returns "Type" (the implementing type).
 fn impl_self_type_name(decl: AstNode) -> String {
     let ann_count = ast_access::node_type_ann_count(decl)
-    if ann_count >= 2 {
-        return ast_access::node_text(ast_access::node_type_ann_at(decl, 1))
+    let target = if ann_count >= 2 {
+        ast_access::node_type_ann_at(decl, 1)
+    } else if ann_count >= 1 {
+        ast_access::node_type_ann_at(decl, 0)
+    } else {
+        return ast_access::node_text(decl)
     }
-    if ann_count >= 1 {
-        return ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+    let target_name = ast_access::node_text(target)
+    if eq(clone(target_name), String_from("Vec")) &&
+    ast_access::node_child_count(target) > 1 {
+        let elem = ast_access::node_child_at(target, 1)
+        if eq(ast_access::node_text(elem), String_from("String")) {
+            return String_from("Vec_String")
+        }
     }
-    ast_access::node_text(decl)
+    target_name
 }

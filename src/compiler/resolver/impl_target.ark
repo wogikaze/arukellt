@@ -4,10 +4,22 @@ use resolver::ast_access
 fn impl_self_type_name(decl: AstNode) -> String {
     let ann_count = ast_access::node_type_ann_count(decl)
     if ann_count >= 2 {
-        return ast_access::node_text(ast_access::node_type_ann_at(decl, 1))
+        return impl_target_type_name(ast_access::node_type_ann_at(decl, 1))
     }
     if ann_count >= 1 {
-        return ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+        return impl_target_type_name(ast_access::node_type_ann_at(decl, 0))
     }
     return ast_access::node_text(decl)
+}
+
+fn impl_target_type_name(target: AstNode) -> String {
+    let target_name = ast_access::node_text(target)
+    if eq(clone(target_name), String_from("Vec")) &&
+    ast_access::node_child_count(target) > 1 {
+        let element = ast_access::node_child_at(target, 1)
+        if eq(ast_access::node_text(element), String_from("String")) {
+            return String_from("Vec_String")
+        }
+    }
+    target_name
 }

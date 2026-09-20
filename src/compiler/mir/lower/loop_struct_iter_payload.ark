@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
@@ -9,22 +10,44 @@ use mir::lower::loop_conditions
 use mir::value_types
 
 fn mir_emit_struct_iterator_payload(ctx: LowerCtx, opt_local: i32, iter_var: i32) {
+    let payload_vt = ctx_api_local_types::ctx_local_vt(ctx, iter_var)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        // Payload is on Option::Some(_f1_i32); must cast to that variant
-        // before struct.get field 1 — the open enum type has only the tag.
-        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Option::Some")
+        // The open Option type has only the tag. Select the concrete Some
+        // layout that matches the iterator item before reading field 1.
+        let payload_type = ctx_api_local_types::ctx_get_local_type(ctx, iter_var)
+        let payload_vts = Vec::new<i32>()
+        push(payload_vts, payload_vt)
+        let mut type_slot = 0 - 1
+        if len(payload_type) > 0 {
+            type_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
+                ctx,
+                "Option::Some",
+                clone(payload_vts),
+                payload_type
+            )
+        }
+        if type_slot < 0 {
+            type_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant(
+                ctx,
+                "Option::Some",
+                payload_vts
+            )
+        }
+        if type_slot < 0 {
+            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Option::Some")
+        }
         if type_slot < 0 {
             type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Some")
         }
         if type_slot < 0 {
             let payload_vts = Vec::new<i32>()
-            push(payload_vts, value_types::VT_I32())
+            push(payload_vts, payload_vt)
             type_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant(ctx, "Option::Some", payload_vts)
         }
-        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(iter_var, opt_local, type_slot, 1, value_types::VT_I32()))
+        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(iter_var, opt_local, type_slot, 1, payload_vt))
         return
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
-    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(4, value_types::VT_I32(), iter_var))
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(4, payload_vt, iter_var))
     loop_conditions::mir_save_stack_to_local(ctx, iter_var)
 }

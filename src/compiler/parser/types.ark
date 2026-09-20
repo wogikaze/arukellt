@@ -68,8 +68,10 @@ fn parse_named_type(p: Parser, t: Token) -> AstNode {
 fn parse_generic_type_args(p: Parser, t: Token, base: AstNode) -> AstNode {
     p.pos = p.pos + 1
     let node = core_ast_factory::AstNode_new(kinds::NK_TYPE_GENERIC(), core_api_expect::tok_span(t))
-    // Type resolution reads the base name from the generic node's text.
-    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
+    // Preserve the complete path (`module::Type`) on the generic node. Type
+    // resolution reads the base name from this field, so keeping only the
+    // first token would turn `iter::IteratorSum<i32, i32>` into `iter`.
+    core_ast_text_fields::AstNode_set_text(node, core_ast_text_fields::AstNode_text(base))
     core_ast_children::AstNode_push_child(node, base)
     let mut first = true
     while !type_token_predicates::is_generic_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {

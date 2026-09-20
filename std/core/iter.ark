@@ -7,13 +7,12 @@
 //! hold an upstream source plus a closure, pulling elements on demand.
 //!
 //! Because Arukellt's monomorphisation model does not yet support trait-object
-//! dynamic dispatch, the adapter structs are monomorphic over `i32` (matching
-//! the existing `std::seq` helpers). Each adapter implements the canonical
-//! `Iterator::next`, `Iterator::collect`, `Iterator::count`,
-//! `Iterator::sum`, and `Iterator::fold` methods directly; the structural
-//! `for` lowering can use
-//! the same concrete method target. Generic trait definitions are included
-//! to formalise the protocol and enable future generalisation.
+//! dynamic dispatch, the existing adapter structs are monomorphic over `i32`
+//! (matching the existing `std::seq` helpers). Item-preserving iteration is
+//! kept separate from numeric consumers so another item representation can
+//! implement `Iterator` without inventing a numeric meaning. Generic trait
+//! definitions are included to formalise the protocol and enable future
+//! generalisation.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -24,9 +23,8 @@
 /// Trait for lazy, pull-based iteration over a sequence of `T` values.
 ///
 /// `next` returns `Option::Some(item)` for each successive element or
-/// `Option::None` when the iterator is exhausted. `collect` drains, `count`
-/// counts, and `sum` reduces the current `i32` item lane through the same
-/// trait dispatch path.
+/// `Option::None` when the iterator is exhausted. `collect` drains and
+/// `count` counts through the same item-preserving trait dispatch path.
 /// This mirrors the structural protocol that `for x in v` already uses — any
 /// type with a `next() -> Option<T>` method is iterable.
 ///
@@ -52,8 +50,16 @@ pub trait Iterator {
     fn next(self: Self) -> Option<Self::Item>
     fn collect(self: Self) -> Vec<Self::Item>
     fn count(self: Self) -> i32
-    fn sum(self: Self) -> i32
-    fn fold(self: Self, init: i32, f: fn(i32, i32) -> i32) -> i32
+}
+
+/// Numeric sum capability for a concrete iterator item/output pair.
+pub trait IteratorSum<Item, Output> {
+    fn sum(self: Self) -> Output
+}
+
+/// Numeric fold capability for a concrete iterator item/accumulator pair.
+pub trait IteratorFold<Item, Accumulator> {
+    fn fold(self: Self, init: Accumulator, f: fn(Accumulator, Item) -> Accumulator) -> Accumulator
 }
 
 /// Trait for types that can be converted into an iterator.
@@ -193,13 +199,6 @@ impl Iterator for VecIter {
         count_iterator(self)
     }
 
-    fn sum(self: VecIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: VecIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 impl IntoIterator for VecIter {
@@ -218,6 +217,62 @@ impl IntoIterator for Vec<i32> {
 
     fn into_iter(self: Vec<i32>) -> VecIter {
         vec_iter(self)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// StringIter — item-preserving iterator over Vec<String>
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator over the elements of a `Vec<String>`.
+pub struct StringIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+}
+
+/// Construct a `StringIter` over `v` for the `Vec<String>` conversion impl.
+fn string_iter(v: Vec<String>) -> StringIter {
+    StringIter { vec: v, index: 0, length: len(v) }
+}
+
+impl Iterator for StringIter {
+    type Item = String
+
+    fn next(self: StringIter) -> Option<String> {
+        if self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StringIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
+impl IntoIterator for StringIter {
+    type Item = String
+    type IntoIter = StringIter
+
+    fn into_iter(self: StringIter) -> StringIter {
+        self
+    }
+}
+
+impl IntoIterator for Vec<String> {
+    type Item = String
+    type IntoIter = StringIter
+
+    fn into_iter(self: Vec<String>) -> StringIter {
+        string_iter(self)
     }
 }
 
@@ -257,13 +312,6 @@ impl Iterator for RangeIter {
         count_iterator(self)
     }
 
-    fn sum(self: RangeIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: RangeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 impl IntoIterator for Range {
@@ -311,13 +359,6 @@ impl Iterator for RangeInclusiveIter {
         count_iterator(self)
     }
 
-    fn sum(self: RangeInclusiveIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: RangeInclusiveIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 impl IntoIterator for RangeInclusive {
@@ -391,13 +432,6 @@ impl Iterator for MapIter {
         count_iterator(self)
     }
 
-    fn sum(self: MapIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: MapIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -438,13 +472,6 @@ impl Iterator for MapTakeIter {
         count_iterator(self)
     }
 
-    fn sum(self: MapTakeIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: MapTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -497,13 +524,6 @@ impl Iterator for MapFilterIter {
         count_iterator(self)
     }
 
-    fn sum(self: MapFilterIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: MapFilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -547,13 +567,6 @@ impl Iterator for MapFilterTakeIter {
         count_iterator(self)
     }
 
-    fn sum(self: MapFilterTakeIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: MapFilterTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -608,13 +621,6 @@ impl Iterator for FilterIter {
         count_iterator(self)
     }
 
-    fn sum(self: FilterIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: FilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -656,13 +662,6 @@ impl Iterator for FilterTakeIter {
         count_iterator(self)
     }
 
-    fn sum(self: FilterTakeIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: FilterTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -707,13 +706,6 @@ impl Iterator for TakeIter {
         count_iterator(self)
     }
 
-    fn sum(self: TakeIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: TakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -771,13 +763,6 @@ impl Iterator for SkipIter {
         count_iterator(self)
     }
 
-    fn sum(self: SkipIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: SkipIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -822,13 +807,6 @@ impl Iterator for SkipTakeIter {
         count_iterator(self)
     }
 
-    fn sum(self: SkipTakeIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: SkipTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -883,13 +861,6 @@ impl Iterator for ChainIter {
         count_iterator(self)
     }
 
-    fn sum(self: ChainIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: ChainIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -934,13 +905,6 @@ impl Iterator for EnumerateIter {
         count_iterator(self)
     }
 
-    fn sum(self: EnumerateIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-
-    fn fold(self: EnumerateIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -988,10 +952,190 @@ impl Iterator for ZipIter {
         count_iterator(self)
     }
 
+}
+
+// ---------------------------------------------------------------------------
+// Numeric consumer capabilities for the concrete i32 iterator lane
+// ---------------------------------------------------------------------------
+
+// These capabilities are intentionally separate from `Iterator`: a
+// non-numeric item type must not acquire an invented sum or fold meaning just
+// to satisfy the producer protocol.
+impl IteratorSum<i32, i32> for VecIter {
+    fn sum(self: VecIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for VecIter {
+    fn fold(self: VecIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for RangeIter {
+    fn sum(self: RangeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for RangeIter {
+    fn fold(self: RangeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for RangeInclusiveIter {
+    fn sum(self: RangeInclusiveIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for RangeInclusiveIter {
+    fn fold(self: RangeInclusiveIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for MapIter {
+    fn sum(self: MapIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for MapIter {
+    fn fold(self: MapIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for MapTakeIter {
+    fn sum(self: MapTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for MapTakeIter {
+    fn fold(self: MapTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for MapFilterIter {
+    fn sum(self: MapFilterIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for MapFilterIter {
+    fn fold(self: MapFilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for MapFilterTakeIter {
+    fn sum(self: MapFilterTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for MapFilterTakeIter {
+    fn fold(self: MapFilterTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for FilterIter {
+    fn sum(self: FilterIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for FilterIter {
+    fn fold(self: FilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for FilterTakeIter {
+    fn sum(self: FilterTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for FilterTakeIter {
+    fn fold(self: FilterTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for TakeIter {
+    fn sum(self: TakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for TakeIter {
+    fn fold(self: TakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for SkipIter {
+    fn sum(self: SkipIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for SkipIter {
+    fn fold(self: SkipIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for SkipTakeIter {
+    fn sum(self: SkipTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for SkipTakeIter {
+    fn fold(self: SkipTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for ChainIter {
+    fn sum(self: ChainIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for ChainIter {
+    fn fold(self: ChainIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for EnumerateIter {
+    fn sum(self: EnumerateIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for EnumerateIter {
+    fn fold(self: EnumerateIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for ZipIter {
     fn sum(self: ZipIter) -> i32 {
         sum_iterator_i32(self)
     }
+}
 
+impl IteratorFold<i32, i32> for ZipIter {
     fn fold(self: ZipIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
@@ -1172,6 +1316,13 @@ impl FromIterator<RangeIter> for Vec<i32> {
 /// `FromIterator<i32>` impl for `Vec<i32>` — drains a closed range.
 impl FromIterator<RangeInclusiveIter> for Vec<i32> {
     fn from_iter(it: RangeInclusiveIter) -> Vec<i32> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<StringIter>` impl for `Vec<String>` — preserves each item.
+impl FromIterator<StringIter> for Vec<String> {
+    fn from_iter(it: StringIter) -> Vec<String> {
         it.collect()
     }
 }

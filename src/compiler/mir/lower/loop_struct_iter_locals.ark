@@ -1,7 +1,9 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::loop_conditions
+use mir::lower::loop_vec
 use mir::value_types
 
 fn mir_struct_iterator_iter_ptr(ctx: LowerCtx, struct_type: String) -> i32 {
@@ -12,12 +14,24 @@ fn mir_struct_iterator_iter_ptr(ctx: LowerCtx, struct_type: String) -> i32 {
 }
 
 fn mir_struct_iterator_iter_var(ctx: LowerCtx, iter_name: String, next_callee: String) -> i32 {
-    let iter_var = ctx_alloc_local(ctx, iter_name, value_types::VT_I32())
     let payload_type = mir_struct_iterator_payload_type(ctx, next_callee)
+    let mut payload_vt = value_types::VT_I32()
+    if len(payload_type) > 0 {
+        payload_vt = mir_struct_iterator_payload_vt(ctx, clone(payload_type))
+    }
+    let iter_var = ctx_alloc_local(ctx, iter_name, payload_vt)
     if len(payload_type) > 0 {
         ctx_set_local_type(ctx, iter_var, payload_type)
     }
     iter_var
+}
+
+fn mir_struct_iterator_payload_vt(ctx: LowerCtx, payload_type: String) -> i32 {
+    let payload_vt = loop_vec::mir_vec_element_vt(payload_type)
+    if payload_vt == value_types::VT_GC_REF() && !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return value_types::VT_REF()
+    }
+    payload_vt
 }
 
 fn mir_struct_iterator_payload_type(ctx: LowerCtx, next_callee: String) -> String {
