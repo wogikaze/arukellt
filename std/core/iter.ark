@@ -283,6 +283,24 @@ pub struct StringFilterIter {
     f: fn(String) -> bool,
 }
 
+/// Lazy composition that maps String items and keeps at most `n` results.
+pub struct StringMapTakeIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    map_f: fn(String) -> String,
+    remaining: i32,
+}
+
+/// Lazy composition that keeps at most `n` accepted String items.
+pub struct StringFilterTakeIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    filter_f: fn(String) -> bool,
+    remaining: i32,
+}
+
 /// Lazy composition that maps each String and filters the mapped result.
 pub struct StringMapFilterIter {
     vec: Vec<String>,
@@ -340,6 +358,16 @@ impl StringIter {
 }
 
 impl StringMapIter {
+    fn take(self: StringMapIter, n: i32) -> StringMapTakeIter {
+        StringMapTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            map_f: self.f,
+            remaining: n,
+        }
+    }
+
     fn filter(self: StringMapIter, f: fn(String) -> bool) -> StringMapFilterIter {
         StringMapFilterIter {
             vec: self.vec,
@@ -352,6 +380,16 @@ impl StringMapIter {
 }
 
 impl StringFilterIter {
+    fn take(self: StringFilterIter, n: i32) -> StringFilterTakeIter {
+        StringFilterTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            filter_f: self.f,
+            remaining: n,
+        }
+    }
+
     fn map(self: StringFilterIter, f: fn(String) -> String) -> StringFilterMapIter {
         StringFilterMapIter {
             vec: self.vec,
@@ -527,6 +565,60 @@ impl Iterator for StringFilterIter {
     }
 }
 
+impl Iterator for StringMapTakeIter {
+    type Item = String
+
+    fn next(self: StringMapTakeIter) -> Option<String> {
+        if self.remaining <= 0 {
+            return None
+        }
+        if self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some((self.map_f)(value))
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StringMapTakeIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringMapTakeIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
+impl Iterator for StringFilterTakeIter {
+    type Item = String
+
+    fn next(self: StringFilterTakeIter) -> Option<String> {
+        if self.remaining <= 0 {
+            return None
+        }
+        while self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            let predicate_value = clone(value)
+            if (self.filter_f)(predicate_value) {
+                self.remaining = self.remaining - 1
+                return Some(value)
+            }
+        }
+        None
+    }
+
+    fn collect(self: StringFilterTakeIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringFilterTakeIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
 impl Iterator for StringMapFilterIter {
     type Item = String
 
@@ -626,6 +718,24 @@ impl IntoIterator for StringFilterIter {
     type IntoIter = StringFilterIter
 
     fn into_iter(self: StringFilterIter) -> StringFilterIter {
+        self
+    }
+}
+
+impl IntoIterator for StringMapTakeIter {
+    type Item = String
+    type IntoIter = StringMapTakeIter
+
+    fn into_iter(self: StringMapTakeIter) -> StringMapTakeIter {
+        self
+    }
+}
+
+impl IntoIterator for StringFilterTakeIter {
+    type Item = String
+    type IntoIter = StringFilterTakeIter
+
+    fn into_iter(self: StringFilterTakeIter) -> StringFilterTakeIter {
         self
     }
 }
@@ -1718,6 +1828,20 @@ impl FromIterator<StringMapIter> for Vec<String> {
 /// `FromIterator<StringFilterIter>` impl for `Vec<String>` — preserves accepted items.
 impl FromIterator<StringFilterIter> for Vec<String> {
     fn from_iter(it: StringFilterIter) -> Vec<String> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<StringMapTakeIter>` impl for `Vec<String>` — keeps the bound.
+impl FromIterator<StringMapTakeIter> for Vec<String> {
+    fn from_iter(it: StringMapTakeIter) -> Vec<String> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<StringFilterTakeIter>` impl for `Vec<String>` — keeps accepted items.
+impl FromIterator<StringFilterTakeIter> for Vec<String> {
+    fn from_iter(it: StringFilterTakeIter) -> Vec<String> {
         it.collect()
     }
 }
