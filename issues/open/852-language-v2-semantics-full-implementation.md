@@ -34,7 +34,9 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
 - [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
-  - Progress (not done, 2026-09-20): `6c92fa741` extends the generic
+  - Progress (not done, 2026-09-20): `b0849dee4` adds the concrete
+    `MapTakeIter` composition and verifies GC/linear parity. `6c92fa741`
+    extends the generic
     `for` evidence to a composed `MapFilterTakeIter` source and verifies
     identity `IntoIterator` plus canonical `next` on both backends. `e9ee279b5`
     extends the generic

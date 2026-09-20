@@ -393,3 +393,18 @@ acceptance boxes complete.
   arbitrary item representations, dynamic dispatch, broader composition,
   manifest-level deprecation, and the RFC-011 residual audit remain open.
   This receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (map/take adapter composition)
+
+- Commit `b0849dee4` adds the concrete `MapTakeIter` adapter and the
+  `MapIter::take` method. It preserves the upstream map callback and explicit
+  remaining-count state, then delegates `collect`, `count`, `sum`, and `fold`
+  to the canonical iterator consumers.
+- `iterator_adapters.ark` checks `v.iter().map(double).take(2).collect()`.
+  GC and linear-memory artifacts compile, validate, and run with `OK`; WAT
+  shows `MapIter::take` constructing the adapter and `MapTakeIter::next`
+  driving collection on both backends.
+- This expands only the supported concrete `i32` composition set. Arbitrary
+  item representations, dynamic dispatch, all adapter combinations,
+  manifest-level deprecation, and the RFC-011 residual audit remain open.
+  This receipt does not close #860.

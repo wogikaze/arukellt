@@ -109,6 +109,10 @@ own duplicate iteration logic.
 The adapter fixture also passes a composed `map/filter/take` source through a
 generic `T: IntoIterator` `for` consumer; the identity conversion and `next`
 sequence remain the same on GC and linear-memory Wasm.
+The same fixture covers `iter().map(f).take(n).collect()` through the dedicated
+lazy `MapTakeIter` adapter, including its canonical `collect` traversal on both
+targets. This adds one concrete composition; arbitrary adapter combinations
+and other item representations remain migration work.
 
 ---
 

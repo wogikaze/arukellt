@@ -385,6 +385,20 @@ full adapter fixture matrix as a fallback parity gate.
   manifest-level deprecation, and the final RFC-011 residual audit remain
   open. This is not a close receipt.
 
+## Progress receipt — 2026-09-20 (map/take adapter composition)
+
+- Commit `b0849dee4` adds `MapTakeIter` and `MapIter::take`, keeping the map
+  callback and take limit in one lazy adapter state. The standard iterator
+  consumers delegate to the same canonical traversal helpers.
+- `iterator_adapters.ark` covers `iter().map(double).take(2).collect()`;
+  GC and linear-memory Wasm compile, validate, and run with `OK`. WAT confirms
+  the `MapIter::take` construction and `MapTakeIter::next` calls on both
+  backends.
+- This remains concrete `Vec<i32>` evidence. Other item representations,
+  arbitrary adapter combinations, dynamic dispatch, manifest-level
+  deprecation, and the final RFC-011 residual audit remain open. This is not a
+  close receipt.
+
 ## Progress receipt — 2026-09-20 (eager helper delegation)
 
 - Commit `8384f8115` routes `collect_map_filter_i32` and

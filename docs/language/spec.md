@@ -926,6 +926,10 @@ after adapter monomorphization.
 The compatibility helpers `collect_map_filter_i32` and
 `collect_map_filter_take_i32` delegate to these same lazy chains and the
 canonical `collect` method; they do not maintain a second eager traversal.
+The concrete `iter().map(f).take(n).collect()` composition is also implemented
+by the lazy `MapTakeIter` adapter; `iterator_adapters.ark` verifies the
+two-element `Vec<i32>` case on both published Wasm targets. Arbitrary adapter
+combinations and other item representations remain outside this contract.
 
 ### 4.6 Semicolons
 
