@@ -126,3 +126,23 @@ RFC-011: **8 (fallback lowering)**。
   split/join/replace and other allocation helpers, HashMap descriptors,
   closure environments, root updates, automatic collection, and complete
   cross-backend move/borrow parity remain open.
+
+## Progress receipt — 2026-09-20 (compiler root-frame integration)
+
+- Implementation commit `aed3af031` connects the linear fallback compiler to
+  the existing private root-frame runtime. Each linear function saves a frame
+  cursor, conservatively registers its i32/ref locals, updates the matching
+  slot after `LOCAL_SET`, and restores the frame on return/fallthrough. The
+  GC backend is unchanged, so this boundary does not introduce target-specific
+  source semantics or a public API.
+- Positive verification: the current-source linear String and enum artifacts
+  validate, the fallback enum executes `75\n24`, the GC enum component also
+  validates and executes `75\n24`, and the GC aggregate parity guard passes
+  (`Ran 2 tests ... OK`). The focused root/runtime contract passes (`Ran 5
+  tests ... OK`), the collector e2e passes (`Ran 1 test ... OK`), and
+  `verify lane` passes.
+- This is a root-hook integration slice, not completion of fallback managed
+  values. Descriptor-aware struct/enum/Option/Result/Vec/String/HashMap write
+  coverage, closure environments, shared/cyclic source graphs, automatic
+  collection, and the full move/borrow parity audit remain open. No `collect`
+  call was added.

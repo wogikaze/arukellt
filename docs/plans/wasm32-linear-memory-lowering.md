@@ -27,6 +27,12 @@ arena、RC、cycle reject を target-specific な source semantics として導�
 root update が全 managed local に接続されるまで、collector の自動起動は有効化しない。
 この制限は live value の誤回収を防ぐための移行境界であり、#873/#874 の完了時に削除する。
 
+2026-09-20 時点では `aed3af031` により、この計画の compiler 接続の第一段階を実装した。
+linear 関数だけに frame cursor local を追加し、i32 表現の local と linear ref local を入口で
+`root_push`、`LOCAL_SET` 後に `root_update`、return/fallthrough で `root_frame_leave` へ接続する。
+これは保守的な bootstrap 表現に対する接続であり、descriptor-aware な managed write の全経路、
+closure environment、HashMap、そして自動 `collect` の有効化を完了したことを意味しない。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:

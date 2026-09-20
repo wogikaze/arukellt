@@ -156,7 +156,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
   - Progress (not done, 2026-09-20): `104b108d2` preserves typed closure parameter/return annotations and fixes the typed capturing `closure_map` workload. GC component and linear core artifacts validate and run with matching `6017000`; managed closure environments, collection lowering, and negative coverage remain open. See [#872](872-wasm-gc-closure-collection-lowering.md).
 - [ ] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
-  - Progress (not done, 2026-09-20): implementation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; guarded pinned-bootstrap overlay `8ecb6b2a6`; fixture migration `8ac3714b2`; runtime e2e receipt `055de4955`; fixture registration `2b4180c8b`. ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the executable private-ABI runtime probe are synchronized. The probe validates rooted-cycle retention and unreachable-cycle reuse, while current-source GC/component and wasm32 fallback artifacts validate without Wasm GC instructions. `verify quick` was run for close review but remains red on unrelated #652/#798/quality/MIR/T3 baseline checks; pin refresh/fixpoint and managed-value/root lowering remain separate follow-up boundaries, so #873 stays open.
+  - Progress (not done, 2026-09-20): implementation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; guarded pinned-bootstrap overlay `8ecb6b2a6`; fixture migration `8ac3714b2`; runtime e2e receipt `055de4955`; fixture registration `2b4180c8b`; compiler root-frame integration `aed3af031`. ADR-075, the linear-memory lowering plan, RFC-011 section 2.2, and the executable private-ABI runtime probe are synchronized. The compiler now emits conservative linear root frame/push/update/leave hooks, while automatic collection remains disabled until descriptor-aware managed coverage is complete. The probe validates rooted-cycle retention and unreachable-cycle reuse, while current-source GC/component and wasm32 fallback artifacts validate without Wasm GC instructions. `verify quick` was run for close review but remains red on unrelated #652/#798/quality/MIR/T3 baseline checks; pin refresh/fixpoint and complete managed-value lowering remain separate follow-up boundaries, so #873 stays open.
 - [ ] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
   - Progress (not done, 2026-09-20): `6f480e71e` connects fallback
     struct/array/Vec allocation constructors to the private tracing allocator;
@@ -168,8 +168,10 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
   - Progress (not done, 2026-09-20): `8df8fa460` routes fallback `concat` and
     `string_from_bytes` through the same private allocator while preserving the
     length-prefix ABI. Linear and GC representative fixtures validate and run;
-    the remaining String helpers, HashMap descriptors, root updates, closure
-    environments, and full parity audit remain open. See
+    the remaining String helpers, HashMap descriptors, closure environments,
+    automatic collection, and full parity audit remain open. `aed3af031` adds
+    conservative compiler root-frame/push/update/leave hooks without enabling
+    `collect`; descriptor-aware managed write coverage is still required. See
     [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum

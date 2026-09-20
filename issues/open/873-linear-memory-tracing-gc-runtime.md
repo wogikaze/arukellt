@@ -52,3 +52,25 @@ RFC-011: **8 (fallback runtime)**。
 - Verification: `python3 scripts/manager.py selfhost build-compiler` passes (stage-2 output; the command reports and applies the guarded structural overlay when the pinned stage-0 compiler encounters the generic enum payload mismatch). Current-source `adt_probe.ark` compiles and validates for both `wasm32-gc` and `wasm32`; the GC core also packages and validates as a P2 component. `wasm32` WAT contains no `struct.*`, `array.*`, or `ref.*` instructions. `scripts.tests.test_selfhost_overlay` and `scripts.tests.test_memory64_p2_realloc` pass (17 tests total), and `verify lane` passes its format/lint/quality gates.
 - Runtime acceptance receipt: `055de4955` adds `scripts.tests.test_linear_gc_runtime_e2e`. The test compiles the positive target-capability source for `wasm32`, resolves the emitted private runtime function group from the artifact, appends a verification-only adapter, and then runs `wasm-tools validate` plus Wasmtime. The adapter proves that a rooted two-node cycle remains allocated, that removing the root permits collection, and that both cycle records are reused; the linear artifact contains no `struct.*`, `array.*`, or `ref.*` instructions. `2b4180c8b` registers the ADT positive/diagnostic fixtures in `tests/fixtures/manifest.txt`; the manifest set now matches disk (`2079 == 2079`). The focused runtime contract and e2e tests pass (`Ran 4 tests ... OK`).
 - Close review: `python3 scripts/manager.py verify quick` was executed but returned exit code 1 because of repository-wide pre-existing failures in the #652 close gate, #798 HashMap core-op registry, quality ratchet, MIR/T3 validation backlog, and related baseline checks. Those failures are outside this runtime slice and are not hidden by a baseline or SKIP. The pinned bootstrap has not yet been refreshed to a generic-enum-capable fixpoint, and automatic collection remains disabled until #874 connects managed-value lowering and root updates, so this issue remains open.
+
+## Progress receipt — 2026-09-20 (compiler root-frame integration)
+
+- Implementation commit `aed3af031` connects the compiler-generated linear
+  function bodies to the private root-frame ABI. The code section records the
+  four root runtime indices, linear functions reserve a frame cursor local,
+  conservative i32/ref locals are pushed at entry, local writes update their
+  slots, and return/fallthrough paths leave the frame. The Wasm GC target keeps
+  its scratch layout and body emission unchanged.
+- The integration deliberately does not emit `collect`. It covers the current
+  i32 linear representation, but descriptor-aware managed writes across every
+  allocation path, closure environments, HashMap values, and the final
+  automatic-collection gate remain open under #874.
+- Verification: `python3 scripts/manager.py selfhost build-compiler` PASS;
+  `python3 scripts/manager.py verify lane` PASS; the focused contract test
+  passes (`Ran 5 tests ... OK`); and
+  `python3 scripts/tests/test_linear_gc_runtime_e2e.py` passes (`Ran 1 test
+  ... OK`). The e2e artifact validates the rooted-cycle retention and
+  unreachable-cycle reuse probe without `struct.*`, `array.*`, or `ref.*`.
+- This receipt advances the compiler integration boundary but does not satisfy
+  the full runtime acceptance list or close #873. Automatic collection remains
+  disabled until #874 proves complete managed-root coverage.
