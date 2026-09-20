@@ -267,6 +267,24 @@ pub struct StringSkipTakeIter {
     remaining: i32,
 }
 
+/// Lazy composition that skips source Strings before mapping the remainder.
+pub struct StringSkipMapIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    to_skip: i32,
+    map_f: fn(String) -> String,
+}
+
+/// Lazy composition that skips source Strings before filtering the remainder.
+pub struct StringSkipFilterIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    to_skip: i32,
+    filter_f: fn(String) -> bool,
+}
+
 /// Lazy adapter that transforms each remaining String item with `f`.
 pub struct StringMapIter {
     vec: Vec<String>,
@@ -448,6 +466,26 @@ impl StringFilterMapIter {
 }
 
 impl StringSkipIter {
+    fn map(self: StringSkipIter, f: fn(String) -> String) -> StringSkipMapIter {
+        StringSkipMapIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            to_skip: self.to_skip,
+            map_f: f,
+        }
+    }
+
+    fn filter(self: StringSkipIter, f: fn(String) -> bool) -> StringSkipFilterIter {
+        StringSkipFilterIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            to_skip: self.to_skip,
+            filter_f: f,
+        }
+    }
+
     fn take(self: StringSkipIter, n: i32) -> StringSkipTakeIter {
         StringSkipTakeIter {
             vec: self.vec,
@@ -559,6 +597,60 @@ impl Iterator for StringSkipTakeIter {
     }
 
     fn count(self: StringSkipTakeIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
+impl Iterator for StringSkipMapIter {
+    type Item = String
+
+    fn next(self: StringSkipMapIter) -> Option<String> {
+        while self.to_skip > 0 && self.index < self.length {
+            self.index = self.index + 1
+            self.to_skip = self.to_skip - 1
+        }
+        if self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some((self.map_f)(value))
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StringSkipMapIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringSkipMapIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
+impl Iterator for StringSkipFilterIter {
+    type Item = String
+
+    fn next(self: StringSkipFilterIter) -> Option<String> {
+        while self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            if self.to_skip > 0 {
+                self.to_skip = self.to_skip - 1
+                continue
+            }
+            let predicate_value = clone(value)
+            if (self.filter_f)(predicate_value) {
+                return Some(value)
+            }
+        }
+        None
+    }
+
+    fn collect(self: StringSkipFilterIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringSkipFilterIter) -> i32 {
         count_iterator(self)
     }
 }
@@ -803,6 +895,24 @@ impl IntoIterator for StringSkipTakeIter {
     type IntoIter = StringSkipTakeIter
 
     fn into_iter(self: StringSkipTakeIter) -> StringSkipTakeIter {
+        self
+    }
+}
+
+impl IntoIterator for StringSkipMapIter {
+    type Item = String
+    type IntoIter = StringSkipMapIter
+
+    fn into_iter(self: StringSkipMapIter) -> StringSkipMapIter {
+        self
+    }
+}
+
+impl IntoIterator for StringSkipFilterIter {
+    type Item = String
+    type IntoIter = StringSkipFilterIter
+
+    fn into_iter(self: StringSkipFilterIter) -> StringSkipFilterIter {
         self
     }
 }
@@ -1991,6 +2101,20 @@ impl FromIterator<StringMapFilterTakeIter> for Vec<String> {
 /// `FromIterator<StringFilterMapTakeIter>` impl for `Vec<String>` — bounds mapped accepted items.
 impl FromIterator<StringFilterMapTakeIter> for Vec<String> {
     fn from_iter(it: StringFilterMapTakeIter) -> Vec<String> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<StringSkipMapIter>` impl for `Vec<String>` — maps after skip.
+impl FromIterator<StringSkipMapIter> for Vec<String> {
+    fn from_iter(it: StringSkipMapIter) -> Vec<String> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<StringSkipFilterIter>` impl for `Vec<String>` — filters after skip.
+impl FromIterator<StringSkipFilterIter> for Vec<String> {
+    fn from_iter(it: StringSkipFilterIter) -> Vec<String> {
         it.collect()
     }
 }

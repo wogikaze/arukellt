@@ -1004,6 +1004,14 @@ accepted outputs, and each owning predicate receives a cloned handle before
 the value proceeds to the next callback. Their `collect`, `Vec::from_iter`,
 and generic `T: IntoIterator` `for` paths are verified on both targets; this
 is still concrete String composition.
+The item-preserving String lane also supports `skip(n).map(f)` and
+`skip(n).filter(g)` through `StringSkipMapIter` and `StringSkipFilterIter`.
+Both adapters consume the skipped source items before dispatching a callback;
+the filter predicate receives a cloned handle and an accepted original item is
+yielded. Their `collect`, `Vec::from_iter`, and generic `T: IntoIterator`
+consumers are verified on GC and linear-memory Wasm with the same item order
+and bounded results. This remains concrete String evidence, not arbitrary
+item-generic adapter support.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

@@ -195,6 +195,12 @@ The same concrete lane supports `map(...).filter(...).take(n)` and the reverse
 orders keep the predicate ownership clone and apply the bound to accepted
 outputs; their `collect`, `Vec::from_iter`, and generic `for` paths are
 verified on GC and linear-memory Wasm.
+The lane also supports `skip(n).map(...)` and `skip(n).filter(...)` through
+dedicated lazy adapters. Skipping consumes source items before callback
+dispatch; filtering clones the callback argument and yields the accepted
+original String. Their `collect`, `Vec::from_iter`, and generic
+`T: IntoIterator` paths are verified on both targets. This is still a bounded
+String migration receipt, not completion of arbitrary adapter combinations.
 
 ---
 
