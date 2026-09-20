@@ -914,7 +914,10 @@ result or to pack its item into an integer.
 `Vec<String>` implements `IntoIterator` through the item-preserving
 `StringIter` adapter. `iterator_string.ark` verifies direct and generic
 `Iterator`/`IntoIterator` calls for `next`, `collect`, and `count`, concrete
-`Vec<String>::from_iter`, method-shaped `collect`, and direct `for` iteration.
+`Vec<String>::iter()` and `Vec<String>::from_iter`, method-shaped `collect`,
+and direct `for` iteration. `iter()` and `into_iter()` select the same
+`StringIter` producer boundary; the former is the canonical collection method
+entry point and does not reinterpret String references as numeric payloads.
 The GC component and linear-memory Wasm artifacts validate and run with the
 same assertions. The `for` lowering chooses the typed `Option::Some` payload
 layout for the iterator item, so a String reference is never read through the

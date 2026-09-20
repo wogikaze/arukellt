@@ -496,3 +496,19 @@ acceptance boxes complete.
   and core validation in the existing P2 `realloc` component-packaging path.
 - `python3 scripts/manager.py fmt --check` passes (1971 checked, 0 failed).
   This receipt records fixture alignment only and does not close #860.
+
+## Progress receipt — 2026-09-20 (`Vec<String>::iter()` producer entry point)
+
+- The follow-up implementation extends the concrete String lane with
+  `impl Vec<String> { fn iter(...) -> StringIter }`. The MIR/WAT receipt names
+  the emitted method `Vec_String::iter`; it does not fall back to the numeric
+  `Vec::iter` method or pack String references into i32 values.
+- The updated `iterator_string.ark` fixture exercises
+  `method_source.iter().collect()` and retains the direct/generic producer,
+  `FromIterator`, and `for` assertions. The current stage-2 compiler produces
+  both GC and linear core modules; `wasm-tools validate` passes for each,
+  linear core execution passes, and the GC component validates and executes
+  through the supported stdio component path.
+- This receipt is limited to the concrete String producer entry point. The
+  remaining adapter/item generalization, manifest-level deprecation, and
+  RFC-011 residual audit remain open; it does not close #860.

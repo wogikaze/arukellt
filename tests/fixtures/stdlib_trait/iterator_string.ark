@@ -58,7 +58,7 @@ fn main() {
 
     let method_source: Vec<String> = Vec::new<String>()
     push(method_source, String_from("eta"))
-    let method_collected = method_source.into_iter().collect()
+    let method_collected = method_source.iter().collect()
     test::assert_eq_string(get_unchecked(method_collected, 0), "eta")
 
     let for_source: Vec<String> = Vec::new<String>()

@@ -236,6 +236,12 @@ fn string_iter(v: Vec<String>) -> StringIter {
     StringIter { vec: v, index: 0, length: len(v) }
 }
 
+impl Vec<String> {
+    fn iter(self: Vec<String>) -> StringIter {
+        string_iter(self)
+    }
+}
+
 impl Iterator for StringIter {
     type Item = String
 

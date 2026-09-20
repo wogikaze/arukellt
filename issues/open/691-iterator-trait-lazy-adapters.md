@@ -420,6 +420,20 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (`Vec<String>::iter()` producer entry point)
+
+- `Vec<String>` now exposes the same item-preserving `StringIter` producer via
+  `iter()` as well as `IntoIterator::into_iter`. The fixture uses
+  `method_source.iter().collect()`, and WAT confirms the GC lowering calls
+  `Vec_String::iter` before `StringIter::collect`.
+- The current stage-2 artifacts validate on both targets. The linear-memory
+  core runs successfully; the Wasm GC component validates and runs with the
+  supported component runner. This keeps the source-level result and String
+  payload identity equal across the primary and fallback paths.
+- The evidence is still one concrete non-numeric lane. Generic adapters,
+  broader item representations, manifest-level deprecation, and the remaining
+  RFC-011 audit are not complete, so #691 remains open.
+
 ## Progress receipt — 2026-09-20 (for-loop fixture migration boundary)
 
 - Commit `4b8d19657` updates `for_loops/for_values.ark` to import

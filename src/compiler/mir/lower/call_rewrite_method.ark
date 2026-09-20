@@ -5,6 +5,7 @@
 
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
+use mir::lower::method_resolve
 
 fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if len(arg_type) == 0 {
@@ -54,9 +55,8 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
     let mut bare_type = mir_bare_receiver_type_name(clone(arg_type))
-    if eq(clone(bare_method), String_from("into_iter")) &&
-    (eq(clone(arg_type), String_from("vec:String")) ||
-        eq(clone(arg_type), String_from("vec:Vec_String"))) {
+    if method_resolve::mir_is_vec_string_iteration_method(clone(bare_method)) &&
+    method_resolve::mir_is_vec_string_type(clone(arg_type)) {
         bare_type = String_from("Vec_String")
     }
     if len(bare_type) == 0 {
