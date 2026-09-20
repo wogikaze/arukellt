@@ -88,7 +88,11 @@ their concrete obligation is available.
 `Vec<T::Item>` for the currently implemented `i32`-backed iterator types;
 the compiler resolves that projection during monomorphization and emits the
 same concrete aggregate representation on both Wasm targets. Adding iterator
-implementations for other item representations remains planned. The current
+implementations for other item representations is now demonstrated by the
+concrete `StringIter` lane, while numeric consumers remain capability-bounded
+to the current `i32` implementations. `Iterator` itself is item-preserving:
+`IteratorSum<Item, Output>` and `IteratorFold<Item, Accumulator>` carry the
+numeric consumer contracts separately. The current
 `Vec<i32>` method surface includes `iter()`, `map`, `filter`, `take`, and
 `skip`; the verified composed path
 `iter().map(f).filter(g).take(n).collect()` remains lazy and uses the same
@@ -128,6 +132,17 @@ fixtures compile, validate, and run with identical output on `wasm32-gc` and
 linear-memory `wasm32`. This is an implementation migration receipt, not a
 manifest-level deprecation: the deprecation boundary still requires the
 method-level manifest contract described above.
+
+The first non-numeric item lane is `Vec<String> -> StringIter`. The
+`stdlib_trait/iterator_string.ark` fixture checks direct `next`, generic
+`Iterator` and `IntoIterator` consumers, item-preserving `collect` and
+`count`, `Vec<String>::from_iter`, method-shaped `collect`, and direct `for`
+iteration. GC component and linear-memory Wasm compilation, validation, and
+runtime assertions pass with the same source behavior. The lowering selects a
+typed `Option::Some` payload layout for the item on the GC path and the
+corresponding reference value type on the linear fallback; no integer packing
+is used. This is concrete String evidence, not a claim that every collection
+or adapter has become item-generic.
 
 ---
 

@@ -902,6 +902,24 @@ concrete `Vec<i32>` sources; the same fixture verifies `Vec::into_iter` before
 `RangeInclusive` expressions, preserving half-open and closed-range item
 sequences through the same generic `for` contract.
 
+The v2 producer contract is item-preserving: `Iterator` requires the
+associated `Item`, `next`, `collect`, and `count` methods. Numeric consumers
+are separate capabilities rather than requirements on every producer.
+`IteratorSum<Item, Output>` provides `sum`, and
+`IteratorFold<Item, Accumulator>` provides `fold`; the current numeric lane
+implements `IteratorSum<i32, i32>` and `IteratorFold<i32, i32>` for the concrete
+numeric adapters. A non-numeric iterator is not required to invent a numeric
+result or to pack its item into an integer.
+
+`Vec<String>` implements `IntoIterator` through the item-preserving
+`StringIter` adapter. `iterator_string.ark` verifies direct and generic
+`Iterator`/`IntoIterator` calls for `next`, `collect`, and `count`, concrete
+`Vec<String>::from_iter`, method-shaped `collect`, and direct `for` iteration.
+The GC component and linear-memory Wasm artifacts validate and run with the
+same assertions. The `for` lowering chooses the typed `Option::Some` payload
+layout for the iterator item, so a String reference is never read through the
+numeric i32 payload layout.
+
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current
 structural fallback. A known source that satisfies none of these contracts is

@@ -453,3 +453,32 @@ acceptance boxes complete.
 - `verify lane` passes. The remaining scope is arbitrary item representations,
   broader adapter composition, manifest-level deprecation, and the RFC-011
   residual audit; this receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (item-preserving String lane and consumer split)
+
+- Commit `e6d474dad` adopts [ADR-076](../../docs/adr/ADR-076-language-v2-iterator-consumer-boundary.md).
+  `Iterator` now keeps the associated `Item`, `next`, `collect`, and `count`
+  producer contract separate from the numeric `IteratorSum<Item, Output>` and
+  `IteratorFold<Item, Accumulator>` capability traits. Existing numeric
+  adapters implement the concrete `i32` capabilities; non-numeric producers
+  are not forced to return a fabricated numeric value.
+- The same commit adds `StringIter`, `IntoIterator for Vec<String>`, and
+  `FromIterator<StringIter> for Vec<String>`. The positive
+  `iterator_string.ark` fixture covers direct and generic `Iterator`/
+  `IntoIterator` calls, item-preserving `collect`/`count`, `Vec::from_iter`,
+  method-shaped collection, and direct `for` iteration over `Vec<String>`.
+- The compiler fixes qualified generic-bound parsing, concrete `Vec<String>`
+  method/associated-function symbol selection, and iterator-loop payload
+  typing. GC `for` lowering selects the typed `Option::Some` payload layout;
+  the linear fallback selects the corresponding reference value type.
+  This keeps String payloads out of the numeric i32 layout without packing.
+- `iterator_string.ark`, `iterator_vec_iter_for_loop.ark`,
+  `iterator_range_basic.ark`, and `iterator_adapters.ark` compile and pass
+  Wasm validation and runtime assertions on both `wasm32-gc` component and
+  `wasm32` linear-memory paths. `python3 scripts/manager.py verify lane`
+  passes after the compiler rebuild.
+- The broad `verify lane --gate t3` remains red on the pre-existing core-Wasm
+  validation backlog (72 validation failures and 30 compile failures in that
+  run); this receipt does not claim the full T3 corpus or close the issue.
+  Remaining work includes additional item representations and adapter
+  generalization, manifest-level deprecation, and the RFC-011 residual audit.

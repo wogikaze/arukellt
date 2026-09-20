@@ -222,6 +222,18 @@ This milestone does not claim complete lifetime / mutation-exclusion checking
 for views, or a completed tracing-GC runtime on the linear target. Those remain
 separate follow-up work.
 
+The iterator v2 boundary is partially implemented under ADR-076 and #860.
+`Iterator` is an item-preserving producer with an associated `Item`,
+`next`, `collect`, and `count`; numeric `sum` and `fold` are expressed by
+separate capability traits for the current `i32` lane. `Vec<String>` now
+converts through `StringIter`, and the positive
+`stdlib_trait/iterator_string.ark` fixture covers generic producer/consumer
+calls, `FromIterator`, and direct `for` iteration. Its wasm32-gc component and
+wasm32 linear-memory artifacts validate and execute with matching assertions.
+The implementation remains concrete: arbitrary item-generic adapters,
+manifest-level deprecation, and the final RFC-011 iterator residual audit are
+still open.
+
 ## Data Model (all Wasm targets)
 
 **Important:** The `wasm32` compatibility path still uses the

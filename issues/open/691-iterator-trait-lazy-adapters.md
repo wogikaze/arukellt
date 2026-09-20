@@ -399,6 +399,27 @@ full adapter fixture matrix as a fallback parity gate.
   deprecation, and the final RFC-011 residual audit remain open. This is not a
   close receipt.
 
+## Progress receipt — 2026-09-20 (item-preserving String lane and consumer split)
+
+- Commit `e6d474dad` adopts [ADR-076](../../docs/adr/ADR-076-language-v2-iterator-consumer-boundary.md)
+  and removes fixed `sum`/`fold` methods from the producer `Iterator` trait.
+  Numeric consumers are now represented by the concrete
+  `IteratorSum<i32, i32>` and `IteratorFold<i32, i32>` capability impls,
+  while `Iterator` retains item-preserving `next`, `collect`, and `count`.
+- `StringIter` implements the producer contract, `Vec<String>` converts to it
+  through `IntoIterator`, and `Vec<String>` reconstructs from it through
+  `FromIterator`. `iterator_string.ark` covers generic producer/source calls,
+  collection, counting, associated construction, and direct `for` iteration.
+  GC component and linear-memory Wasm compilation, validation, and runtime
+  assertions pass with the same source behavior.
+- The iterator-loop compiler path now allocates the element local with the
+  correct GC/linear reference value type and selects a typed `Option::Some`
+  payload layout. The implementation avoids integer packing and keeps the
+  String item identity intact on both backends.
+- This advances the arbitrary-item boundary with one concrete String lane; it
+  does not claim all adapter combinations, all collection types, manifest-level
+  deprecation, or completion of #691/#860.
+
 ## Progress receipt — 2026-09-20 (skip/take adapter composition)
 
 - Commit `317583de9` adds `SkipTakeIter` and `SkipIter::take`, preserving the
@@ -470,3 +491,24 @@ full adapter fixture matrix as a fallback parity gate.
 - This is concrete `Vec<i32>` migration evidence only. Arbitrary item
   representations, arbitrary adapter combinations, manifest-level deprecation,
   and the final RFC-011 residual audit remain open. This is not a close receipt.
+
+## Progress receipt — 2026-09-20 (item-preserving String lane and consumer split)
+
+- Commit `e6d474dad` adopts [ADR-076](../../docs/adr/ADR-076-language-v2-iterator-consumer-boundary.md)
+  and removes fixed `sum`/`fold` methods from the producer `Iterator` trait.
+  Numeric consumers are now represented by the concrete
+  `IteratorSum<i32, i32>` and `IteratorFold<i32, i32>` capability impls,
+  while `Iterator` retains item-preserving `next`, `collect`, and `count`.
+- `StringIter` implements the producer contract, `Vec<String>` converts to it
+  through `IntoIterator`, and `Vec<String>` reconstructs from it through
+  `FromIterator`. `iterator_string.ark` covers generic producer/source calls,
+  collection, counting, associated construction, and direct `for` iteration.
+  GC component and linear-memory Wasm compilation, validation, and runtime
+  assertions pass with the same source behavior.
+- The iterator-loop compiler path now allocates the element local with the
+  correct GC/linear reference value type and selects a typed `Option::Some`
+  payload layout. The implementation avoids integer packing and keeps the
+  String item identity intact on both backends.
+- This advances the arbitrary-item boundary with one concrete String lane; it
+  does not claim all adapter combinations, all collection types, manifest-level
+  deprecation, or completion of #691/#860.
