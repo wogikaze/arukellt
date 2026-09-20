@@ -28,8 +28,16 @@ fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enu
         return enum_expr::infer_enum_variant_path(enum_defs, node)
     }
     if ast_expr_predicates::node_is_struct_lit(node) {
-        // Struct field values can contain generic calls. Visit them even
-        // though the literal's result type comes from its struct name.
+        let mut aggregate_ty = enum_expr::infer_enum_variant_struct_lit(enum_defs, node)
+        if contract_type_access::TypeInfo_tag(aggregate_ty) == commands::TY_UNKNOWN() {
+            let struct_name = ast_access::node_text(node)
+            aggregate_ty = contract_type_constructors::TypeInfo_named(
+                commands::TY_STRUCT(),
+                struct_name
+            )
+        }
+        // Aggregate field values can contain generic calls. Visit them even
+        // though the literal's result type comes from its aggregate name.
         let field_count = ast_access::node_child_count(node)
         let mut field_idx = 0
         while field_idx < field_count {
@@ -39,8 +47,7 @@ fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enu
             }
             field_idx = field_idx + 1
         }
-        let struct_name = ast_access::node_text(node)
-        return contract_type_constructors::TypeInfo_named(commands::TY_STRUCT(), struct_name)
+        return aggregate_ty
     }
     if ast_expr_predicates::node_is_closure(node) {
         return infer_closure::infer_closure_expr(env, scope, fn_sigs, enum_defs, node)

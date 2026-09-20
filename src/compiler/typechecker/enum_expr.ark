@@ -7,6 +7,17 @@ fn infer_enum_variant_path(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo 
     if !ast_expr_predicates::node_is_path(node) {
         return unknown_type()
     }
+    infer_enum_variant_value(enum_defs, node)
+}
+
+fn infer_enum_variant_struct_lit(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if !ast_expr_predicates::node_is_struct_lit(node) {
+        return unknown_type()
+    }
+    infer_enum_variant_value(enum_defs, node)
+}
+
+fn infer_enum_variant_value(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let path = ast_access::node_text(node)
     let enum_name = enum_name_from_variant_path(clone(path))
     if len(enum_name) == 0 {

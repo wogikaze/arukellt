@@ -24,19 +24,25 @@ fn mir_store_if_branch_result(ctx: LowerCtx, result: i32, branch_result: i32) {
     }
     if branch_vt == value_types::VT_GC_REF() || branch_vt == value_types::VT_REF() {
         ctx_set_local_vt(ctx, result, branch_vt)
+        let branch_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, branch_result)
         let branch_type = ctx_api_local_types::ctx_get_local_type(ctx, branch_result)
-        if len(branch_type) > 0 {
+        let current_type = ctx_api_local_types::ctx_get_local_type(ctx, result)
+        let branch_is_variant_struct = starts_with(clone(branch_type), "struct:") &&
+        contains(clone(branch_type), "::")
+        // A conditional that selects different enum variants needs the enum
+        // base as its storage type.  Choosing the first variant here makes
+        // the second branch's LOCAL_SET invalid on GC targets before the
+        // common semantic type can be observed by the emitter.
+        if branch_slot >= 0 || branch_is_variant_struct {
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, result, 0 - 1)
+            ctx_api_local_types::ctx_set_local_type(ctx, result, "enum:open")
+        } else if len(current_type) == 0 && len(branch_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, result, branch_type)
-        } else {
-            // Enum variant constructors (Ok/Err/Some/None) produce GC_REF
-            // values with empty type names.  When the if/else result local
-            // also has no specific type, fall back to "enum:open" so the
-            // emitter uses the enum base (open) type — the common supertype
-            // of all variants — rather than picking one variant's type.
-            let current_type = ctx_api_local_types::ctx_get_local_type(ctx, result)
-            if len(current_type) == 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, result, "enum:open")
-            }
+        } else if len(current_type) == 0 {
+            // Enum variant constructors (Ok/Err/Some/None) can produce
+            // GC_REF values with no semantic type name.  Keep their result
+            // on the open enum base until a later consumer narrows it.
+            ctx_api_local_types::ctx_set_local_type(ctx, result, "enum:open")
         }
     }
     ctx_emit(ctx, inst_local_set::MirInst_local_set_from(result, branch_result))
