@@ -910,6 +910,9 @@ The same concrete method-shaped adapter can be used directly as a `for` source;
 the composed adapter's `IntoIterator::into_iter` identity conversion and then
 its `next()` path on both published Wasm targets. This does not extend the
 contract to arbitrary item representations or dynamic dispatch.
+The compatibility helpers `collect_map_filter_i32` and
+`collect_map_filter_take_i32` delegate to these same lazy chains and the
+canonical `collect` method; they do not maintain a second eager traversal.
 
 ### 4.6 Semicolons
 

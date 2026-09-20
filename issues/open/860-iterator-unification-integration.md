@@ -318,3 +318,18 @@ acceptance boxes complete.
   composition, full eager/lazy migration, and the RFC-011 residual audit
   remain open. This receipt does not close #860 or mark its acceptance boxes
   complete.
+
+## Progress receipt — 2026-09-20 (eager helper delegation)
+
+- Commit `8384f8115` removes the duplicate hand-written traversals from
+  `collect_map_filter_i32` and `collect_map_filter_take_i32`. Both compatibility
+  entry points now build the method-shaped lazy chain and finish through the
+  canonical `Iterator::collect` path.
+- `iterator_adapters.ark` checks the full map/filter result and the bounded
+  map/filter/take result. The GC component and linear Wasm artifacts compile,
+  validate, and run with `OK`; WAT shows `MapIter::filter` and
+  `MapFilterIter::take` calls inside the compatibility entries rather than a
+  second source-index loop.
+- `verify lane` passes. The remaining scope is generic item representations,
+  broader adapter composition, manifest-level deprecation, full migration, and
+  the RFC-011 residual audit; this receipt does not close #860.

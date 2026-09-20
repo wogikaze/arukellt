@@ -93,6 +93,10 @@ The concrete composed adapter is also a valid direct `for` source in this lane;
 `IntoIterator::into_iter` conversion and canonical `next` path on both GC and
 linear-memory Wasm. This remains a concrete fixture contract, not a claim that
 arbitrary adapter types or item representations have completed migration.
+The compatibility `collect_map_filter_i32` and
+`collect_map_filter_take_i32` helpers now delegate to the same lazy adapter
+chain and canonical `collect` traversal, so the eager entry points no longer
+own duplicate iteration logic.
 
 ---
 

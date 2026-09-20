@@ -342,3 +342,17 @@ full adapter fixture matrix as a fallback parity gate.
   the concrete `Vec<i32>` adapter lane only; arbitrary item representations,
   additional compositions, manifest-level deprecation, and the final RFC-011
   residual audit remain open. This is not a close receipt.
+
+## Progress receipt — 2026-09-20 (eager helper delegation)
+
+- Commit `8384f8115` routes `collect_map_filter_i32` and
+  `collect_map_filter_take_i32` through the concrete lazy
+  `map/filter[/take]` adapter chain and canonical `Iterator::collect`. The
+  compatibility helpers no longer carry separate eager source loops.
+- `iterator_adapters.ark` covers both the unbounded map/filter result and the
+  bounded map/filter/take result. GC and linear-memory artifacts compile,
+  validate, and run with `OK`; WAT confirms the adapter method calls are used
+  inside both compatibility entries.
+- `verify lane` passes. Generic item representations, broader adapter
+  composition, manifest-level deprecation, and the final RFC-011 residual
+  audit remain open. This is not a close receipt.
