@@ -99,4 +99,11 @@ Wasm GC は typed Option variant の lowering を継続する。generic Option/R
 parse I/O buffer、HashMap descriptor、closure environment、automatic `collect`、
 shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `f88ce4917` では、fallback の整数 parse Result allocation を
+`LINEAR_GC_ALLOC` へ接続した。`Ok<i32>` の 8-byte record、`Ok<i64>` の 12-byte record、
+invalid-integer の length-prefix String（32 bytes）と `Err` record（8 bytes）の既存 layout を
+維持し、tag、payload、`base + 4` の String ABI を変更していない。f64 の Result／invalid-float
+経路、parse I/O scratch buffer、generic constructor、HashMap descriptor、closure environment、
+automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---

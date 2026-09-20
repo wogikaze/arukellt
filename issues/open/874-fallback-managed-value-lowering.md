@@ -515,3 +515,46 @@ RFC-011: **8 (fallback lowering)**。
   result payloads, parse I/O buffers, HashMap descriptors, closure
   environments, automatic collection, shared/cyclic source graphs, and
   complete cross-backend move/borrow parity remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (Integer parse Result allocation boundary)
+
+- Implementation commit `f88ce4917` routes the fallback integer parse Result
+  records through `LINEAR_GC_ALLOC`: `Ok<i32>` uses its existing 8-byte record,
+  `Ok<i64>` its existing 12-byte record, and invalid-integer errors allocate
+  the existing 32-byte length-prefix String plus 8-byte `Err` record. Tag,
+  payload, length-prefix, and `base + 4` String ABI layouts remain unchanged;
+  the Wasm GC branches are unchanged.
+- Positive fixtures `tests/fixtures/stdlib_string/parse_i32_basic.ark`,
+  `parse_i32_invalid.ark`, `parse_i64.ark`, and `parse_i64_large.ark` compile,
+  validate, and execute successfully on both the `wasm32` linear core and
+  `wasm32-gc` component paths. All eight artifacts pass.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (20.5s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (2 files)
+  wasm-tools validate                                       PASS (8 artifacts)
+  wasmtime run                                              PASS (8 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear parse-i32-basic       4816 bytes 2ba2498a9055912e0eafb168a9c00450ca01afa0e5f900ba7b01b72ff8c92960
+  wasm32 linear parse-i32-invalid     3400 bytes e18f2e1e1982d7ce16fea93986e0f48d5c7a57773c353c2e6986b7dd45ed0052
+  wasm32 linear parse-i64              6598 bytes a271cc1df71ed9d005389e0250678f5536a1ca6ac0b0e4a118ce6bbd4cc463b5
+  wasm32 linear parse-i64-large        3355 bytes f2d3780d8ed15fb2baaee0700b65afa6c1e8c47caf9887a456429b00c729412a
+  wasm32-gc parse-i32-basic component 14291 bytes 2913c0459d659b8074968cd24c3ef3cc9df10f9f3265028ddc3c2d005a47e8c5
+  wasm32-gc parse-i32-invalid component 12692 bytes 05111c253c06b4bdf800c704d1e4c5700a975865f7348f61bc7f48e17df83a81
+  wasm32-gc parse-i64 component       16360 bytes 48fea7af4e299d09e1b7eff63eff00bad559598cf0a861b4a098c2c989d59c6f
+  wasm32-gc parse-i64-large component 12427 bytes aa8f39c638ed101e5e555099508419abc7d483ea5cf1cb0567388296e3b32448
+  ```
+
+- This receipt covers only integer parse Result records and invalid-integer
+  error values. f64 Result construction, invalid-float errors, parse I/O
+  scratch buffers, generic Option/Result constructors, HashMap descriptors,
+  closure environments, automatic collection, shared/cyclic source graphs,
+  and complete cross-backend move/borrow parity remain open; #874 stays open.
