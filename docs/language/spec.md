@@ -895,6 +895,9 @@ for an unregistered source. A generic function bounded by `Iterator` may use
 its parameter directly as a `for` source. After monomorphization, the
 `iterator_vec_iter_for_loop.ark` fixture verifies `T = VecIter` through the
 same identity `IntoIterator::into_iter` and canonical `next` sequence.
+The corresponding generic `T: IntoIterator` case is also monomorphized for
+concrete `Vec<i32>` sources; the same fixture verifies `Vec::into_iter` before
+`VecIter::next`.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

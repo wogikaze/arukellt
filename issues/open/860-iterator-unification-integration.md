@@ -349,3 +349,18 @@ acceptance boxes complete.
   iteration obligation is unresolved, arbitrary item representations, dynamic
   dispatch, broader adapter composition, and the RFC-011 residual audit remain
   open. This receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (generic `IntoIterator` `for` lowering)
+
+- Test commit `5492a9d81` extends the generic `for` fixture with
+  `sum_into_for<T: IntoIterator>`. Its `Vec<i32>` instantiation lowers through
+  `Vec::into_iter`, yielding `VecIter`, and then uses the canonical
+  `VecIter::next` loop.
+- The GC component and linear-memory Wasm artifacts compile and validate, and
+  both runtimes complete successfully. WAT shows
+  `sum_into_for__Vec_i32_` calling `Vec::into_iter` before `VecIter::next` on
+  both targets.
+- This verifies a concrete monomorphized `T: IntoIterator` case; unresolved
+  generic obligations, arbitrary item representations, dynamic dispatch,
+  broader adapter composition, and the RFC-011 residual audit remain open.
+  This receipt does not close #860.

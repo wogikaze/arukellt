@@ -34,7 +34,10 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
 - [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
-  - Progress (not done, 2026-09-20): `c50043518` adds a generic
+  - Progress (not done, 2026-09-20): `5492a9d81` extends the generic
+    `for` fixture with `sum_into_for<T: IntoIterator>` and verifies the
+    monomorphized `Vec<i32>` source through `Vec::into_iter` and canonical
+    `VecIter::next` on both GC and linear Wasm. `c50043518` adds a generic
     `sum_for<T: Iterator>` fixture and verifies monomorphized `VecIter`
     lowering through identity `IntoIterator::into_iter` and canonical `next`
     on both GC and linear Wasm. `8384f8115` routes the eager map/filter

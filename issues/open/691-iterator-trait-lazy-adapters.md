@@ -343,6 +343,20 @@ full adapter fixture matrix as a fallback parity gate.
   additional compositions, manifest-level deprecation, and the final RFC-011
   residual audit remain open. This is not a close receipt.
 
+## Progress receipt — 2026-09-20 (generic `IntoIterator` `for` lowering)
+
+- Test commit `5492a9d81` extends the generic for-loop fixture with
+  `sum_into_for<T: IntoIterator>`, instantiated with `Vec<i32>`. The
+  monomorphized body calls `Vec::into_iter` and consumes the resulting
+  `VecIter` through its canonical `next` method.
+- GC and linear-memory Wasm compile, validate, and run successfully. WAT
+  inspection confirms `sum_into_for__Vec_i32_` uses the same conversion and
+  `next` sequence on both backends.
+- This advances only the concrete monomorphized generic case. Arbitrary item
+  representations, dynamic dispatch, broader adapter composition,
+  manifest-level deprecation, and the final RFC-011 residual audit remain
+  open. This is not a close receipt.
+
 ## Progress receipt — 2026-09-20 (eager helper delegation)
 
 - Commit `8384f8115` routes `collect_map_filter_i32` and

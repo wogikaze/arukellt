@@ -72,6 +72,9 @@ the corresponding concrete trait implementation. A generic function bounded by
 monomorphization, `iterator_vec_iter_for_loop.ark` verifies the `VecIter` case
 on both backends. Generic sources without a checked iteration obligation remain
 outside this migration step.
+The same fixture covers a generic `T: IntoIterator` function instantiated with
+`Vec<i32>`; lowering calls `Vec::into_iter` and then the canonical `VecIter::next`
+sequence on both backends.
 Statically known scalar or nominal sources that implement neither
 `IntoIterator` nor `Iterator`, and do not expose the structural `next` method,
 are rejected during type checking with E0200. The negative contract is pinned
