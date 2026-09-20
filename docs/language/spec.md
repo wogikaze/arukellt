@@ -1049,6 +1049,14 @@ The concrete `iter().skip(n).take(m).collect()` composition is implemented by
 `SkipTakeIter`, which applies the skip state before the bounded pull. Its
 identity `IntoIterator` conversion and generic `for` consumer are covered by
 the same fixture on both published Wasm targets.
+The numeric `Vec<i32>` lane also composes `skip(n).map(f)` and
+`skip(n).filter(g)` through `SkipMapIter` and `SkipFilterIter`. Both consume
+the skipped source prefix before callback dispatch and retain the canonical
+`collect`, `Vec::from_iter`, `IntoIterator`, and numeric consumer paths. The
+fixture verifies direct collection, source-qualified construction, generic
+`T: IntoIterator` traversal, and matching `sum` results on GC and linear-memory
+Wasm. This is concrete numeric evidence, not arbitrary item-generic adapter
+support.
 The compatibility helpers in `std::seq` (`map_i32_i32`, `filter_i32`,
 `take_i32`, `skip_i32`, and `fold_i32_i32`) now delegate to these canonical
 iterator consumers. The `seq_map_filter.ark` and `seq_take_skip_fold.ark`

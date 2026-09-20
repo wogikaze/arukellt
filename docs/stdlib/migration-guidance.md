@@ -132,6 +132,11 @@ It also covers `iter().skip(n).take(m).collect()` through `SkipTakeIter` and a
 generic `T: IntoIterator` consumer. The skip-before-take state is shared by GC
 and linear-memory Wasm; other item representations and arbitrary compositions
 remain migration work.
+The numeric lane now also covers `skip(n).map(f)` and `skip(n).filter(g)` via
+`SkipMapIter` and `SkipFilterIter`. The fixture checks lazy `collect`,
+`Vec::from_iter`, generic `T: IntoIterator`, and numeric `sum` on both
+published targets. This remains concrete `Vec<i32>` evidence rather than a
+claim that arbitrary adapter combinations are item-generic.
 The existing `std::seq` compatibility helpers for map, filter, take, skip, and
 fold now delegate to the same canonical iterator consumers. The
 `stdlib_seq/seq_map_filter.ark` and `stdlib_seq/seq_take_skip_fold.ark`
