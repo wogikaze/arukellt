@@ -49,12 +49,16 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         struct = (ROOT / "src/compiler/wasm/inst_struct_record.ark").read_text(encoding="utf-8")
         array = (ROOT / "src/compiler/wasm/inst_array.ark").read_text(encoding="utf-8")
         vec = (ROOT / "src/compiler/wasm/intrinsic_vec_new_layout.ark").read_text(encoding="utf-8")
+        string_basic = (ROOT / "src/compiler/wasm/intrinsic_string_basic.ark").read_text(encoding="utf-8")
+        string_from_bytes = (ROOT / "src/compiler/wasm/intrinsic_string_from_bytes.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", struct)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", array)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", vec)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_basic)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_from_bytes)
 
     def test_same_source_fixture_and_capability_diagnostic_remain_present(self) -> None:
         gc_source = (ROOT / "tests/fixtures/target_capability/gc_linear_same_source.ark").read_text(
