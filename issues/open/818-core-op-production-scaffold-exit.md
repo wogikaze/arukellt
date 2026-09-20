@@ -64,6 +64,23 @@ to `production` only after every production gate is satisfied.
 - [ ] `python3 scripts/check/check-core-ops.py --production-structural-readiness` passes
 - [ ] `python3 scripts/manager.py verify full` passes
 
+## Progress receipt (2026-09-20)
+
+- `4ac49b6b7` (`core-ops: register generic hashmap type`) adds the existing
+  `HashMap<K,V>` manifest type to the CoreOp registry schema as `kind =
+  "hashmap"` with exactly two generic parameters. This aligns the registry
+  with ADR-066 without changing the public API or accepting an erased `Any`
+  type.
+- Verification: `python3 scripts/check/check-core-ops.py` passes; the two
+  HashMap-specific checker tests pass; and
+  `python3 scripts/check/check-core-op-compiler-validator.py` passes with the
+  generated registry/binding artifacts fresh.
+- The production gate remains open: `python3 scripts/check/check-core-ops.py
+  --production-structural-readiness` still stops at `status = "migration"`.
+  Legacy bindings/lowerings, compiler-aware production checks, and the full
+  `verify full` gate remain unchecked. This is progress evidence, not a close
+  claim.
+
 ## References
 
 - `issues/open/729-intrinsic-layer-separation.md`

@@ -89,6 +89,15 @@ ADR-042 defines five layers:
 - [ ] `data/core-ops.toml` has `status = "production"` and no migration-only lowerings or aliases
 - [ ] Global `python3 scripts/manager.py verify quick` exits 0 (blocked by #808 until fixed)
 
+## Progress receipt (2026-09-20)
+
+- #818's first structural blocker, the manifest `HashMap` type missing from
+  the CoreOp registry, is corrected in `4ac49b6b7`. The structural checker,
+  compiler-aware registry validator, and focused HashMap schema tests pass.
+- #818 remains open because the registry is intentionally still
+  `status = "migration"`; legacy binding/lowering removal and the production
+  readiness gates are not yet complete.
+
 ## Close gate
 
 A check script under `scripts/check/` that verifies semantic invariants, not
