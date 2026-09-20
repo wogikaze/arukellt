@@ -206,7 +206,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 703 | [703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)](703-monomorphic-api-bold-cutover.md) | stdlib-api | 700, 701, 691, 695 | 709 | 2 checked / 17 open | blocked-by-upstream | #700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord | |
 | 719 | [719 — `arukellt test` execution harness (ADR-041 Phase 2)](719-test-execution-harness.md) | tooling | 715 | none | 0 checked / 0 open | implementation | None | |
 | 799 | [799 — CQ-18: code-quality closed-loop strict final audit](799-cq-18-code-quality-closed-loop-strict-final-audit.md) | code-quality | 715, 796, 797 | none | 10 checked / 1 open | blocked | 715 | |
-| 865 | [865 — Hygienic desugaring と f-string lowering を実装する](865-hygienic-desugaring-fstring.md) | language-v2 | 729 | 875 | 0 checked / 8 open | implementation-ready | 852 | |
+| 865 | [865 — Hygienic desugaring と f-string lowering を実装する](865-hygienic-desugaring-fstring.md) | language-v2 | 729 | 875 | 8 checked / 0 open | implementation-ready | 852 | |
 | 814 | [814 — Formatter/parser exceptions (23 files)](814-formatter-parser-exceptions.md) | code-quality | 791 | none | 0 checked / 0 open | ready | None | |
 | 850 | [850 — Compiler phase-arena implementation (wasm32-gc host overlay)](850-compiler-phase-arena.md) | selfhost-infra | 851 | none | 0 checked / 7 open | architecture-implementation | 851 | |
 | 683 | [683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md) | docs-audit | 679, 682 | none | 0 checked / 6 open | audit-ready | None | |

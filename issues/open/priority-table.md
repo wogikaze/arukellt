@@ -12,24 +12,24 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 686 | Wasm GC Selfhost Implementation | main | 2 | 0 | 4 | 5 | 4 | 15 |
-| 2 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
-| 3 | 723 | Wasm Exception Handling (`exnref`) 統合の検討 | language-design | 0 | 0 | 4 | 5 | 5 | 14 |
-| 4 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
-| 5 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 5 | 0 | 1 | 3 | 3 | 12 |
-| 6 | 860 | 860 — Iterator Trait 体系を統合完了する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
-| 7 | 871 | 871 — Wasm GC aggregate lowering を完成する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
-| 8 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
-| 9 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 3 | 5 | 3 | 11 |
-| 10 | 875 | 875 — wasm32-gc / fallback の意味論 parity を証明する | language-v2 | 3 | 0 | 1 | 5 | 2 | 11 |
-| 11 | 876 | 876 — stability / current-state / redesign の分類を整合する | language-v2 | 2 | 0 | 1 | 5 | 3 | 11 |
-| 12 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
-| 13 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
-| 14 | 718 | 718 — Stdlib free-function → method/trait migration inventory | stdlib-api | 0 | 0 | 4 | 3 | 3 | 10 |
-| 15 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
-| 16 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
-| 17 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 1 | 0 | 1 | 5 | 3 | 10 |
-| 18 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
-| 19 | 865 | 865 — Hygienic desugaring と f-string lowering を実装する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |
+| 2 | 865 | 865 — Hygienic desugaring と f-string lowering を実装する | language-v2 | 1 | 0 | 5 | 5 | 4 | 15 |
+| 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
+| 4 | 723 | Wasm Exception Handling (`exnref`) 統合の検討 | language-design | 0 | 0 | 4 | 5 | 5 | 14 |
+| 5 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
+| 6 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 5 | 0 | 1 | 3 | 3 | 12 |
+| 7 | 860 | 860 — Iterator Trait 体系を統合完了する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
+| 8 | 871 | 871 — Wasm GC aggregate lowering を完成する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
+| 9 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
+| 10 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 3 | 5 | 3 | 11 |
+| 11 | 875 | 875 — wasm32-gc / fallback の意味論 parity を証明する | language-v2 | 3 | 0 | 1 | 5 | 2 | 11 |
+| 12 | 876 | 876 — stability / current-state / redesign の分類を整合する | language-v2 | 2 | 0 | 1 | 5 | 3 | 11 |
+| 13 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
+| 14 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
+| 15 | 718 | 718 — Stdlib free-function → method/trait migration inventory | stdlib-api | 0 | 0 | 4 | 3 | 3 | 10 |
+| 16 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
+| 17 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
+| 18 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 1 | 0 | 1 | 5 | 3 | 10 |
+| 19 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
 | 20 | 867 | 867 — `pub` / Component export / WIT import 境界を分離する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |
 | 21 | 868 | 868 — Prelude / boolean literal / keyword policy を固定する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |
 | 22 | 869 | 869 — multi-clause / where / semicolon grammar を確定する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |

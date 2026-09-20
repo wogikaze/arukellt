@@ -87,6 +87,14 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #863 — String / Unicode semantics を確定する — RFC 24 — depends: 854
   - Receipt: completed in `e4becb596`; ADR-069 and RFC-011 item 24 are synchronized. Valid UTF-8 String/scalar semantics, byte/scalar API separation, strict/lossy UTF-8 construction, boundary-aware slicing, and `char_at` migration are covered by positive/diagnostic fixtures. Current-source `wasm32-gc` and `wasm32` targeted compile/validate/runtime parity passes; canonical bootstrap remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch.
 - [ ] #865 — Hygienic desugaring と f-string lowering を実装する — RFC 28, 29 — depends: 729
+  - Progress (implementation complete, close blocked by upstream, 2026-09-20):
+    `9783627b5` plus fixture equivalence follow-up `b83d87ccf`; ADR-077,
+    RFC-011 items 28–29, language spec, and current-state are synchronized.
+    F-string receiver lowering, compiler-owned iteration / comprehension calls,
+    shadowing immunity, evaluation order, and core-form equivalence are covered
+    by positive and diagnostic fixtures. Current-source GC core/component and
+    linear compile/validate/runtime outputs match. #729 remains open, so #865
+    is not a done receipt; the final cross-backend audit remains under #875.
 - [x] #866 — source module の import / use 構文を整理する — RFC 30 — depends: none
   - Receipt: completed in `963d544a6`; `use` is the canonical source-module
     syntax, legacy local `import` emits W0101 during migration, and alias,
