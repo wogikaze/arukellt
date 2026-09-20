@@ -292,6 +292,15 @@ pub struct StringMapFilterIter {
     filter_f: fn(String) -> bool,
 }
 
+/// Lazy composition that filters source Strings and maps accepted items.
+pub struct StringFilterMapIter {
+    vec: Vec<String>,
+    index: i32,
+    length: i32,
+    filter_f: fn(String) -> bool,
+    map_f: fn(String) -> String,
+}
+
 impl StringIter {
     fn map(self: StringIter, f: fn(String) -> String) -> StringMapIter {
         StringMapIter {
@@ -338,6 +347,18 @@ impl StringMapIter {
             length: self.length,
             map_f: self.f,
             filter_f: f,
+        }
+    }
+}
+
+impl StringFilterIter {
+    fn map(self: StringFilterIter, f: fn(String) -> String) -> StringFilterMapIter {
+        StringFilterMapIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            filter_f: self.f,
+            map_f: f,
         }
     }
 }
@@ -531,6 +552,30 @@ impl Iterator for StringMapFilterIter {
     }
 }
 
+impl Iterator for StringFilterMapIter {
+    type Item = String
+
+    fn next(self: StringFilterMapIter) -> Option<String> {
+        while self.index < self.length {
+            let value: String = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            let predicate_value = clone(value)
+            if (self.filter_f)(predicate_value) {
+                return Some((self.map_f)(value))
+            }
+        }
+        None
+    }
+
+    fn collect(self: StringFilterMapIter) -> Vec<String> {
+        collect_iterator(self)
+    }
+
+    fn count(self: StringFilterMapIter) -> i32 {
+        count_iterator(self)
+    }
+}
+
 impl IntoIterator for StringIter {
     type Item = String
     type IntoIter = StringIter
@@ -590,6 +635,15 @@ impl IntoIterator for StringMapFilterIter {
     type IntoIter = StringMapFilterIter
 
     fn into_iter(self: StringMapFilterIter) -> StringMapFilterIter {
+        self
+    }
+}
+
+impl IntoIterator for StringFilterMapIter {
+    type Item = String
+    type IntoIter = StringFilterMapIter
+
+    fn into_iter(self: StringFilterMapIter) -> StringFilterMapIter {
         self
     }
 }
@@ -1671,6 +1725,13 @@ impl FromIterator<StringFilterIter> for Vec<String> {
 /// `FromIterator<StringMapFilterIter>` impl for `Vec<String>` — preserves filtered mapped items.
 impl FromIterator<StringMapFilterIter> for Vec<String> {
     fn from_iter(it: StringMapFilterIter) -> Vec<String> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<StringFilterMapIter>` impl for `Vec<String>` — maps accepted items.
+impl FromIterator<StringFilterMapIter> for Vec<String> {
+    fn from_iter(it: StringFilterMapIter) -> Vec<String> {
         it.collect()
     }
 }

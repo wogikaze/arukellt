@@ -112,7 +112,8 @@ fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
     eq(clone(type_name), String_from("StringIter")) ||
     eq(clone(type_name), String_from("StringMapIter")) ||
     eq(clone(type_name), String_from("StringFilterIter")) ||
-    eq(clone(type_name), String_from("StringMapFilterIter"))
+    eq(clone(type_name), String_from("StringMapFilterIter")) ||
+    eq(clone(type_name), String_from("StringFilterMapIter"))
 }
 
 fn mir_resolve_short_method_name(ctx: LowerCtx, name: String) -> String {

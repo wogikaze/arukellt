@@ -75,4 +75,23 @@ fn main() {
     test::assert_eq_string(get_unchecked(composed_from_iter, 0), "alpha")
     test::assert_eq_string(get_unchecked(composed_from_iter, 1), "bravo")
 
+    let reverse_composed_source: Vec<String> = Vec::new<String>()
+    push(reverse_composed_source, String_from("alpha"))
+    push(reverse_composed_source, String_from("go"))
+    push(reverse_composed_source, String_from("bravo"))
+    let reverse_composed = reverse_composed_source.iter().filter(keep_long_string).map(map_identity).collect()
+    test::assert_eq_i32(len(reverse_composed), 2)
+    test::assert_eq_string(get_unchecked(reverse_composed, 0), "alpha")
+    test::assert_eq_string(get_unchecked(reverse_composed, 1), "bravo")
+
+    let reverse_from_iter_source: Vec<String> = Vec::new<String>()
+    push(reverse_from_iter_source, String_from("alpha"))
+    push(reverse_from_iter_source, String_from("go"))
+    push(reverse_from_iter_source, String_from("bravo"))
+    let reverse_from_iter_adapter = reverse_from_iter_source.iter().filter(keep_long_string).map(map_identity)
+    let reverse_from_iter: Vec<String> = Vec::from_iter(reverse_from_iter_adapter)
+    test::assert_eq_i32(len(reverse_from_iter), 2)
+    test::assert_eq_string(get_unchecked(reverse_from_iter, 0), "alpha")
+    test::assert_eq_string(get_unchecked(reverse_from_iter, 1), "bravo")
+
 }
