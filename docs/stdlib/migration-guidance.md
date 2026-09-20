@@ -171,7 +171,10 @@ lowering selects the matching `Vec_String::from_iter__<Source>` symbol. The
 fixture verifies both calls on GC and linear-memory Wasm. A `T: Iterator` helper
 in the same fixture also monomorphizes to the matching static symbol, keeping
 the source-level collection semantics unchanged. This remains a bounded String
-lane, not a claim for arbitrary item-generic adapters or dynamic dispatch.
+lane, not a claim for arbitrary item-generic adapters or dynamic dispatch. The
+fixture also covers `iter().map(map_identity).filter(keep_long_string).collect()`
+and its `Vec::from_iter` form through `StringMapFilterIter`; the predicate sees
+a cloned mapped handle and accepted items retain their source order.
 
 ---
 

@@ -975,6 +975,11 @@ and linear-memory Wasm. The same fixture verifies a `T: Iterator` helper whose
 String adapter instantiation resolves to the same static implementation. This
 is bounded static monomorphization evidence, not a claim that arbitrary item
 representations or dynamic collection dispatch are complete.
+The concrete String lane also composes `map` followed by `filter` without an
+intermediate vector. `StringMapFilterIter` preserves the mapped item, passes a
+clone to the owning predicate, and exposes the same `collect`, `IntoIterator`,
+and `FromIterator` contracts; GC and linear-memory fixtures verify both direct
+collection forms.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

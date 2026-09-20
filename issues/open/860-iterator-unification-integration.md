@@ -616,3 +616,17 @@ acceptance boxes complete.
 - This advances the bounded projection case only. Arbitrary item-generic
   adapters, dynamic dispatch, broader composition, manifest-level deprecation,
   and the final RFC-011 residual audit remain open; #860 is not closed.
+
+## Progress receipt — 2026-09-20 (String map-filter composition)
+
+- Commit `4b0468228` adds the concrete `StringMapFilterIter` adapter and
+  source-qualified `FromIterator` dispatch for it. The fixture covers both
+  canonical `collect` and `Vec::from_iter` after
+  `iter().map(map_identity).filter(keep_long_string)`.
+- GC uses typed `call_ref` signatures 46 (`String -> String`) and 47
+  (`String -> bool`); linear-memory Wasm uses the callback table and
+  `call_indirect`. Both artifacts validate and run with identical String
+  ordering and ownership assertions.
+- This closes one concrete composition only. Arbitrary item-generic adapter
+  composition, dynamic dispatch, manifest-level deprecation, and the final
+  RFC-011 residual audit remain open; #860 is not closed.
