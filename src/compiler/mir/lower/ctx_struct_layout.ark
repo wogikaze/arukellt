@@ -47,6 +47,9 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if len(type_name) == 0 {
         return type_name
     }
+    if starts_with(clone(type_name), String_from("fnref")) {
+        return type_name
+    }
     if starts_with(clone(type_name), "enum:") {
         return type_name
     }
@@ -131,7 +134,8 @@ fn is_builtin_type_name(type_name: String) -> bool {
     eq(clone(type_name), "()") ||
     eq(clone(type_name), "v128") ||
     eq(clone(type_name), "fn") ||
-    eq(clone(type_name), "fnref")
+    eq(clone(type_name), "fnref") ||
+    starts_with(clone(type_name), String_from("fnref"))
 }
 
 fn ctx_normalize_generic_type_name(type_name: String) -> String {

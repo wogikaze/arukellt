@@ -231,7 +231,7 @@ fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32
         return false
     }
     // Function refs are i32 table indices.
-    if eq(clone(ft), "fnref") || eq(clone(ft), "fn") || starts_with(clone(ft), String_from("fn(")) {
+    if eq(clone(ft), "fnref") || starts_with(clone(ft), String_from("fnref")) || eq(clone(ft), "fn") || starts_with(clone(ft), String_from("fn(")) {
         return false
     }
     // Vec/HashMap/HashSet container fields are GC refs (not i32 handles).

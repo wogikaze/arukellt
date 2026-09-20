@@ -1,0 +1,30 @@
+use std::core::iter
+use std::test
+
+fn map_identity(value: String) -> String {
+    clone(value)
+}
+
+fn keep_long_string(value: String) -> bool {
+    len(value) > 3
+}
+
+fn main() {
+    let map_source: Vec<String> = Vec::new<String>()
+    push(map_source, String_from("alpha"))
+    push(map_source, String_from("go"))
+    let mapped = map_source.iter().map(map_identity).collect()
+    test::assert_eq_i32(len(mapped), 2)
+    test::assert_eq_string(get_unchecked(mapped, 0), "alpha")
+    test::assert_eq_string(get_unchecked(mapped, 1), "go")
+
+    let filter_source: Vec<String> = Vec::new<String>()
+    push(filter_source, String_from("alpha"))
+    push(filter_source, String_from("go"))
+    push(filter_source, String_from("bravo"))
+    let filtered = filter_source.iter().filter(keep_long_string).collect()
+    test::assert_eq_i32(len(filtered), 2)
+    test::assert_eq_string(get_unchecked(filtered, 0), "alpha")
+    test::assert_eq_string(get_unchecked(filtered, 1), "bravo")
+
+}

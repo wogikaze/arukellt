@@ -45,6 +45,19 @@ fn append_t2_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, "i32_i32_1i32")
 }
 
+fn gc_typed_callback_type_sig_count() -> i32 {
+    3
+}
+
+fn append_gc_typed_callback_type_sigs(type_sigs: Vec<String>) {
+    // These signatures are placed after the fixed GC layouts and before user
+    // functions. Struct fields may refer to them, while the type-section
+    // planner still treats the complete range as pre-function types.
+    push(type_sigs, "gcref0_1gcref0")
+    push(type_sigs, "gcref0_1i32")
+    push(type_sigs, "gcref0_1i64")
+}
+
 fn append_function_type_sigs(
     type_sigs: Vec<String>,
     functions: Vec<MirFunction>,

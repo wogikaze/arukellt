@@ -1763,6 +1763,7 @@ run:stdlib_trait/iterator_skip_more_than_len.ark
 run:stdlib_trait/iterator_skip_zero.ark
 run:stdlib_trait/iterator_stress_100.ark
 run:stdlib_trait/iterator_string.ark
+run:stdlib_trait/iterator_string_callbacks.ark
 run:stdlib_trait/iterator_sum_basic.ark
 run:stdlib_trait/iterator_take_basic.ark
 run:stdlib_trait/iterator_take_more_than_len.ark

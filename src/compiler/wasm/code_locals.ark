@@ -28,7 +28,45 @@ use wasm::sections_types_gc_phase7
 use wasm::intrinsic_vec_type
 use wasm::inst_ctx
 
+fn current_local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
+    let f = ctx_record::SelfEmitCtx_function_at(
+        ctx,
+        ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    )
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return String_new()
+    }
+    local_access::MirLocal_type_name(
+        function_locals_view::MirFunction_local_at(f, local_idx)
+    )
+}
+
 fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    let typed_callback_idx = call_indirect::typed_string_callback_type_idx(
+        ctx,
+        clone(type_name)
+    )
+    if typed_callback_idx >= 0 {
+        return typed_callback_idx
+    }
+    if eq(clone(type_name), String_from("fnrefss")) {
+        return call_indirect::resolve_indirect_type_idx(
+            ctx,
+            0 - 1,
+            1,
+            value_types::VT_GC_REF(),
+            value_types::VT_GC_REF()
+        )
+    }
+    if eq(clone(type_name), String_from("fnrefsb")) {
+        return call_indirect::resolve_indirect_type_idx(
+            ctx,
+            0 - 1,
+            1,
+            value_types::VT_I32(),
+            value_types::VT_GC_REF()
+        )
+    }
     // Binary fold callbacks: fn(i32, i32) -> i32 → type index for (i32,i32)->i32.
     if contains(clone(type_name), String_from(",")) || starts_with(clone(type_name), String_from("fnref2")) {
         return call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 2, value_types::VT_I32(), value_types::VT_I32())

@@ -3,6 +3,7 @@ use wasm::opcodes
 use wasm::sections_type_plan
 use wasm::sections_types_gc
 use wasm::sections_types_sig_parse
+use wasm::sections_types_sigs_detail
 use wasm::writer_core
 
 fn emit_canon_type_entries(
@@ -147,6 +148,13 @@ fn emit_struct_field_type(
     canon_types: Vec<String>,
     memory64: bool
 ) {
+    if sections_types_sigs_detail::funcref_type_name_is_typed_string_callback(clone(ft)) {
+        let type_idx = find_typed_callback_type_idx(canon_types, clone(ft), memory64)
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(type_sec, type_idx)
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        return
+    }
     if eq(clone(ft), String_from("fnref")) {
         // Enum/struct storage uses nullable funcref so struct.new_default works
         // (non-null `(ref $t)` is not defaultable). call_ref accepts null refs.
@@ -311,6 +319,12 @@ fn emit_sig_val_type(
     canon_types: Vec<String>,
     memory64: bool
 ) {
+    if sections_types_sigs_detail::funcref_type_name_is_typed_string_callback(clone(sig)) {
+        let type_idx = find_typed_callback_type_idx(canon_types, clone(sig), memory64)
+        writer_core::emit_byte(type_sec, constants::WASM_REF())
+        writer_core::emit_leb128_s(type_sec, type_idx)
+        return
+    }
     if eq(clone(sig), String_from("fnref2")) {
         let type_idx = if memory64 {
             find_binary_callback_type_idx_memory64(canon_types)
@@ -351,6 +365,21 @@ fn emit_sig_val_type(
         return
     }
     writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(sig))
+}
+
+fn find_typed_callback_type_idx(canon_types: Vec<String>, type_name: String, memory64: bool) -> i32 {
+    let wanted = sections_types_sigs_detail::typed_string_callback_type_sig(clone(type_name), memory64)
+    let n = len(canon_types)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(canon_types, i), clone(wanted)) {
+            return i
+        }
+        i = i + 1
+    }
+    // The callback signatures are reserved by build_type_sigs. Keep a valid
+    // fallback for old cached plans that predate the reservation.
+    find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
 }
 
 // Concrete `(ref null <type_idx>)` index for a signature segment, or -1 when

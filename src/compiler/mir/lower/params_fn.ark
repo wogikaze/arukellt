@@ -141,6 +141,7 @@ fn mir_param_type_name_is_concrete(type_name: String) -> bool {
 fn mir_param_type_is_fnref(type_name: String) -> bool {
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
     starts_with(clone(type_name), String_from("fn("))
 }
 

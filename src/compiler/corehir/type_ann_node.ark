@@ -14,6 +14,44 @@ fn type_ann_child_at(node: AstNode, idx: i32) -> AstNode {
     frontend_ast_children::corehir_node_child_at(node, idx)
 }
 
+fn type_ann_return_count(node: AstNode) -> i32 {
+    len(node.type_ann)
+}
+
+fn type_ann_return_at(node: AstNode, idx: i32) -> AstNode {
+    get_unchecked(node.type_ann, idx)
+}
+
+// Keep the two reference-bearing callback shapes used by item-preserving
+// iterator adapters distinct from the legacy scalar callback marker. The
+// marker is deliberately atomic because function-signature segments use `_`
+// as their separator.
+fn type_ann_function_ref_name(node: AstNode) -> String {
+    if !frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(node)) {
+        return String_new()
+    }
+    if type_ann_child_count(node) == 1 && type_ann_return_count(node) == 1 {
+        let param = type_ann_child_at(node, 0)
+        let result = type_ann_return_at(node, 0)
+        let param_name = type_ann_name(param)
+        let result_name = type_ann_name(result)
+        let param_is_string = eq(clone(param_name), String_from("String")) ||
+        eq(clone(param_name), String_from("string"))
+        let result_is_string = eq(clone(result_name), String_from("String")) ||
+        eq(clone(result_name), String_from("string"))
+        if param_is_string && result_is_string {
+            return String_from("fnrefss")
+        }
+        if param_is_string && eq(clone(result_name), String_from("bool")) {
+            return String_from("fnrefsb")
+        }
+    }
+    if type_ann_child_count(node) >= 2 {
+        return String_from("fnref2")
+    }
+    String_from("fnref")
+}
+
 fn type_ann_is_named(node: AstNode) -> bool {
     frontend_type_kind::corehir_kind_is_type_named(frontend_ast_identity::corehir_node_kind(node))
 }

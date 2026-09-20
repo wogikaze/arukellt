@@ -7,20 +7,26 @@ fn MirInst_call_ref(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32,
     inst_factory::MirInst_full(opcodes::MIR_CALL_REF(), dest, callee_local, type_idx, arg_count, 0.0, String_new(), return_vt)
 }
 
-// first_arg_vt is encoded in str_val so resolve_indirect_type_idx can prefer
-// candidates whose param0 matches (same convention as MIR_CALL_INDIRECT).
+// first_arg_vt and the callee's semantic callback marker are encoded in
+// str_val so the Wasm emitter can preserve a typed field after struct.get.
 fn MirInst_call_ref_with_arg0_vt(
     callee_local: i32,
     type_idx: i32,
     arg_count: i32,
     dest: i32,
     return_vt: i32,
-    first_arg_vt: i32
+    first_arg_vt: i32,
+    callee_type_name: String
 ) -> MirInstDraft {
-    let hint = if first_arg_vt >= 0 {
+    let numeric_hint = if first_arg_vt >= 0 {
         i32_to_string(first_arg_vt)
     } else {
         String_new()
+    }
+    let hint = if len(callee_type_name) > 0 {
+        concat(numeric_hint, concat(String_from("|"), callee_type_name))
+    } else {
+        numeric_hint
     }
     inst_factory::MirInst_full(opcodes::MIR_CALL_REF(), dest, callee_local, type_idx, arg_count, 0.0, hint, return_vt)
 }

@@ -32,12 +32,14 @@ fn emit_type_section(
     let mut gc_fixed_count = 0
     let mut enum_variant_count = 0
     let mut gc_struct_count = 0
+    let mut gc_callback_count = 0
     if emit_target::is_gc_target(clone(target)) {
         gc_fixed_count = sections_types_gc::gc_type_sig_count()
         enum_variant_count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
         gc_struct_count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
+        gc_callback_count = sections_types_sigs::gc_typed_callback_type_sig_count()
     }
-    let gc_type_count = gc_fixed_count + enum_variant_count + gc_struct_count
+    let gc_type_count = gc_fixed_count + enum_variant_count + gc_struct_count + gc_callback_count
     let p2_library_post_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
         sections_exports::p2_library_export_count(mir, fn_count)
     } else {
@@ -92,14 +94,29 @@ fn emit_type_section(
     // (#726 display_trait_vec / toml).
     let mut gc_struct_base = 0 - 1
     if gc_struct_count > 0 && gc_type_base >= 0 {
-        gc_struct_base = gc_type_base + gc_fixed_count
+        gc_struct_base = gc_type_base + gc_fixed_count + gc_callback_count
     }
     let mut gc_enum_variant_base = 0 - 1
     if enum_variant_count > 0 && gc_type_base >= 0 {
-        gc_enum_variant_base = gc_type_base + gc_fixed_count + gc_struct_count
+        gc_enum_variant_base = gc_type_base + gc_fixed_count + gc_callback_count + gc_struct_count
     }
-    let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count)
-    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, enum_variant_count)
+    let gc_struct_type_map = build_gc_struct_type_map(
+        type_map,
+        num_host_types,
+        wit_import_count,
+        gc_fixed_count,
+        gc_callback_count,
+        gc_struct_count
+    )
+    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(
+        type_map,
+        num_host_types,
+        wit_import_count,
+        gc_fixed_count,
+        gc_callback_count,
+        gc_struct_count,
+        enum_variant_count
+    )
     let plan = sections_type_plan::build_type_section_plan(
         type_map,
         num_host_types,
@@ -170,9 +187,16 @@ fn build_linear_gc_type_map(
     linear_map
 }
 
-fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32) -> Vec<i32> {
+fn build_gc_struct_type_map(
+    type_map: Vec<i32>,
+    num_host_types: i32,
+    wit_import_count: i32,
+    gc_fixed_count: i32,
+    gc_callback_count: i32,
+    gc_struct_count: i32
+) -> Vec<i32> {
     let mut struct_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_callback_count
     let mut si = 0
     while si < gc_struct_count {
         push(struct_map, get_unchecked(type_map, base_idx + si))
@@ -181,9 +205,17 @@ fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_
     struct_map
 }
 
-fn build_gc_enum_variant_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32, enum_variant_count: i32) -> Vec<i32> {
+fn build_gc_enum_variant_type_map(
+    type_map: Vec<i32>,
+    num_host_types: i32,
+    wit_import_count: i32,
+    gc_fixed_count: i32,
+    gc_callback_count: i32,
+    gc_struct_count: i32,
+    enum_variant_count: i32
+) -> Vec<i32> {
     let mut variant_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_struct_count
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_callback_count + gc_struct_count
     let mut si = 0
     while si < enum_variant_count {
         push(variant_map, get_unchecked(type_map, base_idx + si))
@@ -219,6 +251,7 @@ fn build_type_sigs(
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
+        sections_types_sigs::append_gc_typed_callback_type_sigs(type_sigs)
         // Structs before enum variants so gcsref fields resolve (#726).
         sections_types_gc::append_gc_struct_sigs(type_sigs, mir)
         sections_types_gc::append_enum_variant_sigs(type_sigs, mir)

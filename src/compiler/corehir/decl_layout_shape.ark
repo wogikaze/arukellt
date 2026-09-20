@@ -51,7 +51,7 @@ fn decl_layout_field_type_name(field: AstNode) -> String {
     }
     let fty = decl_layout_member_type_ann_at(field, 0)
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(fty)) {
-        return "fnref"
+        return type_ann_node::type_ann_function_ref_name(fty)
     }
     let type_name = decl_layout_type_name(fty)
     if len(type_name) > 0 {
@@ -65,7 +65,7 @@ fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
     // Array(Vec<TomlValue>) / Table(Vec<TomlField>) register as vec:*
     // instead of empty → _f1_ref14 (#726 toml/json).
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(pfield)) {
-        return "fnref"
+        return type_ann_node::type_ann_function_ref_name(pfield)
     }
     let type_name = decl_layout_type_name(pfield)
     if len(type_name) > 0 {

@@ -3,6 +3,7 @@ use mir::inst_local_get
 use mir::lower::ast_node
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_gc_enum
 use mir::lower::core_expr_shape_accessors
 use mir::lower::call_emit_dest
 use mir::lower::call_types
@@ -16,12 +17,34 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     // fnref2 = binary fold callbacks; must take call_ref, not direct CALL (#807).
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fn")) ||
     starts_with(clone(type_name), String_from("fn("))
 }
 
+fn mark_indirect_callback_result_type(ctx: LowerCtx, callee_type_name: String, dest: i32) {
+    if dest < 0 {
+        return
+    }
+    if eq(clone(callee_type_name), String_from("fnrefss")) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("String"))
+        let string_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            value_types::VT_GC_REF()
+        } else {
+            value_types::VT_REF()
+        }
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, string_vt)
+        return
+    }
+    if eq(clone(callee_type_name), String_from("fnrefsb")) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+    }
+}
+
 fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
+    let callee_type_name = ctx_api_local_types::ctx_get_local_type(ctx, callee_local)
     let mut first_arg_vt = 0 - 1
     let mut a = 1
     while a < child_count {
@@ -36,17 +59,19 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     if arg_count != 0 {
         dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
         call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+        mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
     // Class A/B: typed funcref + call_ref. Class C keeps MIR_CALL_INDIRECT elsewhere.
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt))
+    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt, callee_type_name))
     dest
 }
 
 // AST-level funcref call lowering (Class A/B → call_ref).
 fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
+    let callee_type_name = ctx_api_local_types::ctx_get_local_type(ctx, callee_local)
     let mut first_arg_vt = 0 - 1
     let mut a = 1
     while a < child_count {
@@ -62,9 +87,10 @@ fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, c
     if arg_count != 0 {
         dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
         call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+        mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt))
+    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt, callee_type_name))
     dest
 }

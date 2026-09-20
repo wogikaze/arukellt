@@ -52,7 +52,7 @@ fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
     if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
         return "v128"
     }
-    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), "fn(") {
+    if eq(clone(type_name), "fnref") || starts_with(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), "fn(") {
         return "fnref"
     }
     let value_type = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
@@ -94,7 +94,7 @@ fn mir_array_element_vt(element_type: String) -> i32 {
     if eq(clone(element_type), "v128") || eq(clone(element_type), "V128") {
         return value_types::VT_V128()
     }
-    if eq(clone(element_type), "fnref") || eq(clone(element_type), "fn") || starts_with(clone(element_type), "fn(") {
+    if eq(clone(element_type), "fnref") || starts_with(clone(element_type), "fnref") || eq(clone(element_type), "fn") || starts_with(clone(element_type), "fn(") {
         return value_types::VT_FUNCREF()
     }
     if eq(clone(element_type), "i32") || eq(clone(element_type), "I32") ||

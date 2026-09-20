@@ -43,9 +43,30 @@ fn funcref_type_name_is_binary_i32(type_name: String) -> bool {
     contains(params, String_from(","))
 }
 
+fn funcref_type_name_is_typed_string_callback(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fnrefss")) ||
+    eq(clone(type_name), String_from("fnrefsb"))
+}
+
+fn typed_string_callback_type_sig(type_name: String, memory64: bool) -> String {
+    if eq(clone(type_name), String_from("fnrefss")) {
+        return String_from("gcref0_1gcref0")
+    }
+    if eq(clone(type_name), String_from("fnrefsb")) {
+        if memory64 {
+            return String_from("gcref0_1i64")
+        }
+        return String_from("gcref0_1i32")
+    }
+    String_new()
+}
+
 fn funcref_param_sig_for_target(type_name: String, target: String, memory64: bool) -> String {
     if !emit_target::is_gc_target(clone(target)) {
         return String_from("i32")
+    }
+    if funcref_type_name_is_typed_string_callback(clone(type_name)) {
+        return clone(type_name)
     }
     if funcref_type_name_is_binary_i32(clone(type_name)) {
         if memory64 {

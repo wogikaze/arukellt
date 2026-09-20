@@ -2,6 +2,7 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use wasm::call_indirect
+use wasm::code_locals
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::inst_store
@@ -18,10 +19,20 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
     }
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     let dest_vt = inst_accessors_shape::MirInst_val_type(inst)
-    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(inst))
-    let type_idx = call_indirect::resolve_indirect_type_idx(
+    let raw_hint = inst_accessors_literals::MirInst_str_val(inst)
+    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(clone(raw_hint))
+    let callee_local = inst_accessors_operands::MirInst_arg0(inst)
+    let hint_type_name = call_indirect::parse_call_ref_type_name_hint(clone(raw_hint))
+    let current_type_name = code_locals::current_local_type_name(ctx, callee_local)
+    let callee_type_name = if len(hint_type_name) > 0 {
+        hint_type_name
+    } else {
+        current_type_name
+    }
+    let type_idx = call_indirect::resolve_call_ref_type_idx(
         ctx,
-        inst_accessors_operands::MirInst_arg1(inst),
+        callee_type_name,
+        callee_local,
         arg_count,
         dest_vt,
         first_arg_vt
