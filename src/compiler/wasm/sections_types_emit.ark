@@ -9,28 +9,29 @@ fn emit_canon_type_entries(
     type_sec: WasmWriter,
     canon_types: Vec<String>,
     gc_type_base: i32,
-    gc_struct_type_map: Vec<i32>
+    gc_struct_type_map: Vec<i32>,
+    memory64: bool
 ) -> FuncTypeRefs {
     let type_refs = sections_type_plan::FuncTypeRefs_new()
     for cti2 in 0..len(canon_types) {
         let csig = get_unchecked(canon_types, cti2)
         sections_type_plan::FuncTypeRefs_begin_entry(type_refs)
         if starts_with(clone(csig), String_from("SubF")) {
-            emit_sub_type_entry(type_sec, csig, gc_type_base, 1, gc_struct_type_map, canon_types)
+            emit_sub_type_entry(type_sec, csig, gc_type_base, 1, gc_struct_type_map, canon_types, memory64)
         } else {
             if starts_with(clone(csig), String_from("Sub0_")) {
-                emit_open_sub_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map, canon_types)
+                emit_open_sub_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map, canon_types, memory64)
             } else {
                 if starts_with(clone(csig), String_from("Sub")) {
-                    emit_sub_type_entry(type_sec, csig, gc_type_base, 0, gc_struct_type_map, canon_types)
+                    emit_sub_type_entry(type_sec, csig, gc_type_base, 0, gc_struct_type_map, canon_types, memory64)
                 } else {
                     if starts_with(clone(csig), String_from("GS_f")) {
-                        emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map, canon_types)
+                        emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map, canon_types, memory64)
                     } else {
                         if eq(clone(csig), String_from("A_fnref")) {
                             // Nullable (ref null $sig) so array.new_default works (#832).
                             writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
-                            let type_idx = find_unary_callback_type_idx(canon_types)
+                            let type_idx = find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
                             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
                             writer_core::emit_leb128_s(type_sec, type_idx)
                             writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
@@ -40,8 +41,8 @@ fn emit_canon_type_entries(
                             writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
                             let param_segments = sections_type_plan::type_sig_param_segments(csig)
                             let result_seg = sections_type_plan::type_sig_result_segment(csig)
-                            emit_type_param_entries(type_sec, param_segments, gc_type_base, gc_struct_type_map, canon_types)
-                            emit_type_result_entry(type_sec, result_seg, gc_type_base, gc_struct_type_map, canon_types)
+                            emit_type_param_entries(type_sec, param_segments, gc_type_base, gc_struct_type_map, canon_types, memory64)
+                            emit_type_result_entry(type_sec, result_seg, gc_type_base, gc_struct_type_map, canon_types, memory64)
                             record_func_type_refs(
                                 type_refs,
                                 param_segments,
@@ -90,11 +91,12 @@ fn emit_open_sub_type_entry(
     sig: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
     writer_core::emit_leb128_u(type_sec, 0)
-    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map, canon_types)
+    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map, canon_types, memory64)
 }
 
 fn emit_sub_type_entry(
@@ -103,7 +105,8 @@ fn emit_sub_type_entry(
     gc_type_base: i32,
     is_final: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     if is_final == 1 {
         writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FINAL_SUB())
@@ -117,7 +120,7 @@ fn emit_sub_type_entry(
     } else {
         writer_core::emit_leb128_u(type_sec, 0)
     }
-    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map, canon_types)
+    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map, canon_types, memory64)
 }
 
 fn emit_struct_type_entry(
@@ -125,13 +128,14 @@ fn emit_struct_type_entry(
     sig: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
     writer_core::emit_leb128_u(type_sec, len(field_sigs))
     for fi in 0..len(field_sigs) {
-        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base, gc_struct_type_map, canon_types)
+        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base, gc_struct_type_map, canon_types, memory64)
     }
 }
 
@@ -140,12 +144,13 @@ fn emit_struct_field_type(
     ft: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     if eq(clone(ft), String_from("fnref")) {
         // Enum/struct storage uses nullable funcref so struct.new_default works
         // (non-null `(ref $t)` is not defaultable). call_ref accepts null refs.
-        let type_idx = find_unary_callback_type_idx(canon_types)
+        let type_idx = find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(type_sec, type_idx)
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
@@ -206,14 +211,15 @@ fn emit_type_param_entries(
     param_segments: Vec<String>,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     let param_count = len(param_segments)
     writer_core::emit_leb128_u(type_sec, param_count)
     let mut pi = 0
     while pi < param_count {
         let seg = get_unchecked(param_segments, pi)
-        emit_sig_val_type(type_sec, seg, gc_type_base, gc_struct_type_map, canon_types)
+        emit_sig_val_type(type_sec, seg, gc_type_base, gc_struct_type_map, canon_types, memory64)
         pi = pi + 1
     }
 }
@@ -223,14 +229,15 @@ fn emit_type_result_entry(
     result_seg: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     if eq(clone(result_seg), "0") {
         writer_core::emit_leb128_u(type_sec, 0)
     } else {
         let rt = substring(result_seg, 1, len(result_seg))
         writer_core::emit_leb128_u(type_sec, 1)
-        emit_sig_val_type(type_sec, rt, gc_type_base, gc_struct_type_map, canon_types)
+        emit_sig_val_type(type_sec, rt, gc_type_base, gc_struct_type_map, canon_types, memory64)
     }
 }
 
@@ -251,6 +258,13 @@ fn find_unary_callback_type_idx(canon_types: Vec<String>) -> i32 {
         i = i + 1
     }
     3
+}
+
+fn find_unary_callback_type_idx_for_memory_width(canon_types: Vec<String>, memory64: bool) -> i32 {
+    if memory64 {
+        return find_unary_callback_type_idx_memory64(canon_types)
+    }
+    find_unary_callback_type_idx(canon_types)
 }
 
 fn find_unary_callback_type_idx_memory64(canon_types: Vec<String>) -> i32 {
@@ -294,10 +308,15 @@ fn emit_sig_val_type(
     sig: String,
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>,
-    canon_types: Vec<String>
+    canon_types: Vec<String>,
+    memory64: bool
 ) {
     if eq(clone(sig), String_from("fnref2")) {
-        let type_idx = find_binary_callback_type_idx(canon_types)
+        let type_idx = if memory64 {
+            find_binary_callback_type_idx_memory64(canon_types)
+        } else {
+            find_binary_callback_type_idx(canon_types)
+        }
         writer_core::emit_byte(type_sec, constants::WASM_REF())
         writer_core::emit_leb128_s(type_sec, type_idx)
         return
@@ -309,7 +328,7 @@ fn emit_sig_val_type(
         return
     }
     if eq(clone(sig), String_from("fnref")) {
-        let type_idx = find_unary_callback_type_idx(canon_types)
+        let type_idx = find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
         writer_core::emit_byte(type_sec, constants::WASM_REF())
         writer_core::emit_leb128_s(type_sec, type_idx)
         return
