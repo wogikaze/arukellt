@@ -60,6 +60,7 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         string_pad = (ROOT / "src/compiler/wasm/intrinsic_string_pad_helpers.ark").read_text(encoding="utf-8")
         string_replace = (ROOT / "src/compiler/wasm/intrinsic_string_replace_all_helpers.ark").read_text(encoding="utf-8")
         string_split = (ROOT / "src/compiler/wasm/intrinsic_string_split.ark").read_text(encoding="utf-8")
+        string_chars = (ROOT / "src/compiler/wasm/intrinsic_string_chars.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -77,6 +78,7 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_pad)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_replace)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_split)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_chars)
         for source in (
             string_slice,
             string_trim,
@@ -87,6 +89,7 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             string_pad,
             string_replace,
             string_split,
+            string_chars,
         ):
             self.assertNotIn("helpers_core::emit_heap_get(w)", source)
             self.assertNotIn("helpers_core::emit_heap_set(w)", source)
