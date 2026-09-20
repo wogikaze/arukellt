@@ -33,6 +33,13 @@ linear 関数だけに frame cursor local を追加し、i32 表現の local と
 これは保守的な bootstrap 表現に対する接続であり、descriptor-aware な managed write の全経路、
 closure environment、HashMap、そして自動 `collect` の有効化を完了したことを意味しない。
 
+同日 `196da76fa` では、length-prefix String ABI を使う fallback の `slice`、`trim`、
+`trim_start`、`trim_end`、`to_upper`、`to_lower` の allocation を
+`LINEAR_GC_ALLOC` へ接続した。allocator の戻り値を record base とし、既存の
+payload pointer は `base + 4` として保持する。Wasm GC 側の array lowering と公開 API は
+変更していない。format/split/join/replace、HashMap descriptor、closure environment、
+descriptor-aware root write、automatic `collect` は引き続き未完了である。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:

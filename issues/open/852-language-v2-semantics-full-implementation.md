@@ -173,6 +173,14 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     conservative compiler root-frame/push/update/leave hooks without enabling
     `collect`; descriptor-aware managed write coverage is still required. See
     [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-20): `196da76fa` routes fallback `slice`,
+    `trim`/`trim_start`/`trim_end`, and ASCII `to_upper`/`to_lower` allocations
+    through `LINEAR_GC_ALLOC` while preserving the length-prefix ABI. Three
+    representative String fixtures compile, validate, and run on both the
+    wasm32 linear core and wasm32-gc component paths; HashMap descriptors,
+    closure environments, descriptor-aware root writes, automatic collection,
+    and the remaining String allocation helpers remain open. See
+    [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

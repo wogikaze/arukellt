@@ -146,3 +146,45 @@ RFC-011: **8 (fallback lowering)**。
   coverage, closure environments, shared/cyclic source graphs, automatic
   collection, and the full move/borrow parity audit remain open. No `collect`
   call was added.
+
+## Progress receipt — 2026-09-20 (String transform allocation boundary)
+
+- Implementation commit `196da76fa` routes the linear fallback allocations in
+  `slice`, `trim`, `trim_start`, `trim_end`, `to_upper`, and `to_lower` through
+  the private `LINEAR_GC_ALLOC` entry. Each path now consumes `length + 4`,
+  stores the allocator result as the record base, and preserves the existing
+  length-prefix ABI by using `base + 4` as the payload pointer. The Wasm GC
+  branch remains on its existing array lowering and no public API or source
+  semantic distinction was introduced.
+- Positive fixtures `tests/fixtures/stdlib_string/string_slice.ark`,
+  `trim_basic.ark`, and `to_lower_upper.ark` compile, validate, and execute
+  successfully on both the `wasm32` linear core and `wasm32-gc` component
+  paths. The fixtures' string assertions pass on all six artifacts; the
+  linear modules contain no `struct.*`, `array.*`, or `ref.*` instructions.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  wasm-tools validate                                       PASS (6 artifacts)
+  wasmtime run                                              PASS (6 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear slice       4138 bytes  86362a16f3957ac8fa26d9deb2e13f4cb3826f623921d07a5ceca7eb2d3034bd
+  wasm32 linear trim        4771 bytes  c49eacf0f3fdebe579a3be7a18ecfbe29d7fc45df3cadc286126461604915360
+  wasm32 linear case        4489 bytes  83c4ea98f4e2e2aee7703e3c665c512d9b61f91c5cd2787abefbf04bb82ed439
+  wasm32-gc slice component 12693 bytes 827913fba6b549ed986293865c606e13ed2da33420d0acce481da607b7910902
+  wasm32-gc trim component  13517 bytes 4ec6db4848bd4c41a6058947879b3dfe5cf544a0ed1169b50e68e4dc230d40dc
+  wasm32-gc case component  13054 bytes 1cc01b99582786d834467ed1971707fd61da959b4f5f12ed08211d9a690f1181
+  ```
+
+- This receipt covers three String transform families only. Remaining String
+  format/split/join/replace and other allocation helpers, HashMap descriptors,
+  closure environments, descriptor-aware root writes, automatic collection,
+  shared/cyclic source graphs, and complete cross-backend move/borrow parity
+  remain open; #874 stays open.
