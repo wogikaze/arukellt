@@ -195,6 +195,13 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     split/format/char, HashMap descriptors, closure environments,
     descriptor-aware root writes, automatic collection, and full parity remain
     open. See [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-20): `26513a797` routes fallback non-empty-
+    separator `split` Vec and String records through `LINEAR_GC_ALLOC`. Five
+    split fixtures plus the existing empty-separator regression compile,
+    validate, and run on both backends; empty-separator `chars` allocations,
+    format, HashMap descriptors, closure environments, descriptor-aware root
+    writes, automatic collection, and full parity remain open. See
+    [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

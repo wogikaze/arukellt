@@ -54,6 +54,14 @@ out-of-bounds を防ぐ。GC 側の lowering と公開 API は変更していな
 format/split、HashMap descriptor、closure environment、descriptor-aware root write、
 automatic `collect` は引き続き未完了である。
 
+続く `26513a797` では、fallback の非空 separator `split` が使う Vec header と
+backing storage（76 bytes）、および各分割 String record を `LINEAR_GC_ALLOC` へ
+接続した。String record は `4 + segment_len` を 4-byte 境界へ丸め、戻り値を
+record base として既存の `base + 4` payload pointer を維持する。empty separator は
+既存の `chars` 経路へ委譲するため、この slice では allocator 接続の対象外とし、
+両 target の回帰 fixture だけを確認した。format/char、HashMap descriptor、closure
+environment、descriptor-aware root write、automatic `collect` は引き続き未完了である。
+
 ### wasm32 プロファイルが課す言語設計制約
 
 以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:
