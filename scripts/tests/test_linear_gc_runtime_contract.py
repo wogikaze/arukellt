@@ -55,6 +55,9 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         string_trim = (ROOT / "src/compiler/wasm/intrinsic_string_trim_helpers.ark").read_text(encoding="utf-8")
         string_trim_full = (ROOT / "src/compiler/wasm/intrinsic_string_trim_full_helpers.ark").read_text(encoding="utf-8")
         string_case = (ROOT / "src/compiler/wasm/intrinsic_string_case.ark").read_text(encoding="utf-8")
+        string_join = (ROOT / "src/compiler/wasm/intrinsic_string_join.ark").read_text(encoding="utf-8")
+        string_repeat = (ROOT / "src/compiler/wasm/intrinsic_string_repeat.ark").read_text(encoding="utf-8")
+        string_pad = (ROOT / "src/compiler/wasm/intrinsic_string_pad_helpers.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -67,7 +70,18 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_trim)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_trim_full)
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_case)
-        for source in (string_slice, string_trim, string_trim_full, string_case):
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_join)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_repeat)
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", string_pad)
+        for source in (
+            string_slice,
+            string_trim,
+            string_trim_full,
+            string_case,
+            string_join,
+            string_repeat,
+            string_pad,
+        ):
             self.assertNotIn("helpers_core::emit_heap_get(w)", source)
             self.assertNotIn("helpers_core::emit_heap_set(w)", source)
 

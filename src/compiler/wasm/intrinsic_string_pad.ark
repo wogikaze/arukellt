@@ -1,7 +1,6 @@
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::ctx_gc_type
-use wasm::ctx_string_view
 use wasm::emit_target
 use wasm::writer_gc
 use wasm::string_gc_helpers
@@ -27,15 +26,14 @@ fn emit_pad_left(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     let s_fb = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
-    let default_fill = ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, " ")
-    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen, arg_count, default_fill)
+    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen, arg_count)
     helpers_core::emit_local_get(w, s_slen)
     helpers_core::emit_local_get(w, s_width)
     helpers_numeric_i32::emit_i32_ge_s(w)
     helpers_control::emit_if_i32(w)
     helpers_core::emit_local_get(w, s_str)
     helpers_control::emit_else(w)
-    intrinsic_string_pad_helpers::emit_pad_delta_fill_and_alloc(w, s_width, s_slen, s_pad, s_fill, s_fb, s_alloc)
+    intrinsic_string_pad_helpers::emit_pad_delta_fill_and_alloc(w, s_width, s_slen, s_pad, s_fill, s_fb, s_alloc, arg_count >= 3)
     intrinsic_string_pad_helpers::emit_pad_fill_loop(w, s_alloc, s_slen, s_pad, s_i, s_fb, false)
     intrinsic_string_pad_helpers::emit_pad_copy_source(w, s_alloc, s_str, s_slen, s_pad, true)
     intrinsic_string_pad_helpers::emit_pad_result_ptr(w, s_alloc)
@@ -58,15 +56,14 @@ fn emit_pad_right(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     let s_fb = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
-    let default_fill = ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, " ")
-    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen, arg_count, default_fill)
+    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen, arg_count)
     helpers_core::emit_local_get(w, s_slen)
     helpers_core::emit_local_get(w, s_width)
     helpers_numeric_i32::emit_i32_ge_s(w)
     helpers_control::emit_if_i32(w)
     helpers_core::emit_local_get(w, s_str)
     helpers_control::emit_else(w)
-    intrinsic_string_pad_helpers::emit_pad_delta_fill_and_alloc(w, s_width, s_slen, s_pad, s_fill, s_fb, s_alloc)
+    intrinsic_string_pad_helpers::emit_pad_delta_fill_and_alloc(w, s_width, s_slen, s_pad, s_fill, s_fb, s_alloc, arg_count >= 3)
     intrinsic_string_pad_helpers::emit_pad_copy_source(w, s_alloc, s_str, s_slen, s_pad, false)
     intrinsic_string_pad_helpers::emit_pad_fill_loop(w, s_alloc, s_slen, s_pad, s_i, s_fb, true)
     intrinsic_string_pad_helpers::emit_pad_result_ptr(w, s_alloc)
