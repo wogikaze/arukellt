@@ -420,6 +420,20 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (for-loop fixture migration boundary)
+
+- Commit `4b8d19657` updates `for_loops/for_values.ark` to import
+  `std::core::iter`, matching the v2 requirement that the concrete
+  `IntoIterator` implementation be visible to type checking. The fixture had
+  retained the pre-IntoIterator form and was the source of an avoidable E0200
+  failure in the current-only fixture gate.
+- The migrated fixture compiles and passes `wasm-tools validate` for both
+  `wasm32-gc` and linear-memory `wasm32`. The filtered `for_loops` gate now
+  reports 2/3 passes; the remaining `for_range` failure occurs after compile
+  and core validation in the existing P2 `realloc` component-packaging path.
+- `python3 scripts/manager.py fmt --check` passes (1971 checked, 0 failed).
+  This receipt records fixture alignment only and does not close #691.
+
 ## Progress receipt — 2026-09-20 (skip/take adapter composition)
 
 - Commit `317583de9` adds `SkipTakeIter` and `SkipIter::take`, preserving the
