@@ -984,6 +984,13 @@ The reverse `filter` followed by `map` composition is also concrete: the
 predicate receives a clone of the source item, and only an accepted original is
 passed to the mapping callback. Its `collect` and `FromIterator` paths use the
 same target-specific callback representations.
+The same fixture sends this composed String adapter through a generic
+`total_string_lengths<T: IntoIterator>` consumer. Monomorphization emits
+`total_string_lengths__StringFilterMapIter`, which performs the adapter's
+identity `IntoIterator` conversion before the canonical `next` loop. GC and
+linear-memory artifacts validate and run the same length assertion; this is
+still bounded evidence for a concrete String adapter, not arbitrary
+item-generic dispatch.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

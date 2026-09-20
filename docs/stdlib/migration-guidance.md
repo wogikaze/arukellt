@@ -178,6 +178,13 @@ a cloned mapped handle and accepted items retain their source order.
 The reverse `iter().filter(keep_long_string).map(map_identity)` pipeline and
 its `Vec::from_iter` form are covered too; filtering clones the source handle,
 then mapping consumes only accepted originals.
+The same fixture passes that composed String source to a generic
+`total_string_lengths<T: IntoIterator>` consumer. The emitted
+`total_string_lengths__StringFilterMapIter` specialization crosses the
+adapter's identity `IntoIterator` conversion and canonical `next` loop on both
+published Wasm targets. This is bounded evidence for one non-numeric adapter
+composition; arbitrary item-generic dispatch and manifest-level deprecation
+remain open.
 
 ---
 

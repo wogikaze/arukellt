@@ -420,6 +420,22 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-20 (generic String `IntoIterator` for lowering)
+
+- Test commit `c91f76573` extends the String callback fixture with a generic
+  `total_string_lengths<T: IntoIterator>` consumer. The source is the lazy
+  `filter(...).map(...)` adapter, and its `for` loop is lowered through the
+  adapter's identity `IntoIterator` conversion and canonical `next` method.
+- GC component and linear-memory Wasm artifacts validate and run with the
+  same result. The specialization is
+  `total_string_lengths__StringFilterMapIter`; callback calls remain typed
+  `call_ref` on GC and table-based `call_indirect` on linear memory, so the
+  adapter chain retains one source-level meaning across both backends.
+- This is bounded generic-consumer evidence for one concrete String adapter
+  composition. Broader arbitrary-item adapter composition, HashMap iterator
+  coverage, manifest-level deprecation, and the remaining RFC-011 audit stay
+  open; #691 is not closed.
+
 ## Progress receipt — 2026-09-20 (String filter-map composition)
 
 - Commit `38c326934` adds the reverse `StringFilterMapIter` path. Its predicate

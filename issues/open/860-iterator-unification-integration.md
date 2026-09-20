@@ -643,3 +643,20 @@ acceptance boxes complete.
 - This is another concrete String composition, not completion of arbitrary
   item-generic adapters, dynamic dispatch, manifest-level deprecation, or the
   final RFC-011 residual audit; #860 remains open.
+
+## Progress receipt — 2026-09-20 (generic String `IntoIterator` for lowering)
+
+- Test commit `c91f76573` adds a `total_string_lengths<T: IntoIterator>`
+  consumer to `iterator_string_callbacks.ark`. Its `for value in source` body
+  is instantiated with `StringFilterMapIter`, so the generic source crosses
+  `StringFilterMapIter::into_iter` and the canonical `next` loop rather than a
+  fixture-specific traversal.
+- The current stage-2 compiler emits
+  `total_string_lengths__StringFilterMapIter` for both targets. The GC
+  component and linear-memory Wasm artifacts validate and run with the same
+  length assertion; WAT shows the same specialized call chain, with typed
+  `call_ref` on GC and table-based `call_indirect` on the fallback.
+- This extends generic `for` evidence to a concrete non-numeric composed
+  adapter. Arbitrary item-generic adapters, dynamic dispatch,
+  manifest-level deprecation, and the final RFC-011 residual audit remain
+  open; #860 is not closed.
