@@ -328,6 +328,20 @@ full adapter fixture matrix as a fallback parity gate.
   manifest-level deprecation, and the final RFC-011 residual audit remain
   open. This is not a close receipt.
 
+## Progress receipt — 2026-09-20 (generic range `for` lowering)
+
+- Test commit `e9ee279b5` instantiates the generic
+  `sum_into_for<T: IntoIterator>` consumer with `Range` and
+  `RangeInclusive` direct expressions. The fixture preserves the half-open
+  and closed range boundaries while using the shared `into_iter`/`next` path.
+- GC and linear-memory Wasm compile, validate, and run successfully. WAT
+  confirms separate monomorphized range functions and their corresponding
+  canonical iterator calls on both backends.
+- This remains static concrete `i32` evidence. Arbitrary item
+  representations, dynamic dispatch, broader adapter composition,
+  manifest-level deprecation, and the final RFC-011 residual audit remain
+  open. This is not a close receipt.
+
 ## Progress receipt — 2026-09-20 (adapter identity conversion)
 
 - Commit `ce6a83389` implements identity `IntoIterator` conversions for the

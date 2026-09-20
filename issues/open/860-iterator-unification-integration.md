@@ -364,3 +364,18 @@ acceptance boxes complete.
   generic obligations, arbitrary item representations, dynamic dispatch,
   broader adapter composition, and the RFC-011 residual audit remain open.
   This receipt does not close #860.
+
+## Progress receipt — 2026-09-20 (generic range `for` lowering)
+
+- Test commit `e9ee279b5` extends `iterator_range_basic.ark` with the generic
+  `sum_into_for<T: IntoIterator>` consumer for both `Range` and
+  `RangeInclusive` direct expressions. The half-open `[2, 5)` and closed
+  `[3, 5]` totals remain distinct and correct.
+- GC component and linear-memory Wasm compile, validate, and run successfully.
+  WAT shows separate monomorphized `sum_into_for__Range` and
+  `sum_into_for__RangeInclusive` functions calling their corresponding
+  `into_iter` and canonical `next` methods.
+- This is still static monomorphized dispatch for implemented `i32` ranges;
+  arbitrary item representations, dynamic dispatch, broader adapter
+  composition, manifest-level deprecation, and the RFC-011 residual audit
+  remain open. This receipt does not close #860.

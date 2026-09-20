@@ -898,6 +898,9 @@ same identity `IntoIterator::into_iter` and canonical `next` sequence.
 The corresponding generic `T: IntoIterator` case is also monomorphized for
 concrete `Vec<i32>` sources; the same fixture verifies `Vec::into_iter` before
 `VecIter::next`.
+`iterator_range_basic.ark` extends this evidence to direct `Range` and
+`RangeInclusive` expressions, preserving half-open and closed-range item
+sequences through the same generic `for` contract.
 
 For a statically known source, type checking requires an `IntoIterator` or
 `Iterator` implementation, or a concrete `Type::next` method for the current

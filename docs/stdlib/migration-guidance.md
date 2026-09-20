@@ -75,6 +75,8 @@ outside this migration step.
 The same fixture covers a generic `T: IntoIterator` function instantiated with
 `Vec<i32>`; lowering calls `Vec::into_iter` and then the canonical `VecIter::next`
 sequence on both backends.
+`iterator_range_basic.ark` also instantiates that generic `for` consumer with
+half-open and closed range expressions, preserving their distinct boundaries.
 Statically known scalar or nominal sources that implement neither
 `IntoIterator` nor `Iterator`, and do not expose the structural `next` method,
 are rejected during type checking with E0200. The negative contract is pinned
