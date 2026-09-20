@@ -45,6 +45,7 @@
 /// | EnumerateIter | impl | Lazy enumerate adapter                 |
 /// | ZipIter     | impl   | Lazy zip of two `Vec<i32>`             |
 /// | MapFilterTakeIter | impl | Composed map/filter/take pipeline   |
+/// | FilterTakeIter | impl | Composed filter/take pipeline       |
 pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
@@ -571,6 +572,19 @@ pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter {
     vec_iter(v).filter(f)
 }
 
+impl FilterIter {
+    /// Lazily limit accepted values to `n` elements.
+    fn take(self: FilterIter, n: i32) -> FilterTakeIter {
+        FilterTakeIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            filter_f: self.f,
+            remaining: n,
+        }
+    }
+}
+
 impl Iterator for FilterIter {
     type Item = i32
 
@@ -598,6 +612,54 @@ impl Iterator for FilterIter {
     }
 
     fn fold(self: FilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// FilterTakeIter — composed lazy filter/take adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that filters source values and yields at most `n` matches.
+pub struct FilterTakeIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    filter_f: fn(i32) -> bool,
+    remaining: i32,
+}
+
+impl Iterator for FilterTakeIter {
+    type Item = i32
+
+    fn next(self: FilterTakeIter) -> Option<i32> {
+        if self.remaining <= 0 {
+            return None
+        }
+        while self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            if (self.filter_f)(val) {
+                self.remaining = self.remaining - 1
+                return Some(val)
+            }
+        }
+        None
+    }
+
+    fn collect(self: FilterTakeIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: FilterTakeIter) -> i32 {
+        count_iterator(self)
+    }
+
+    fn sum(self: FilterTakeIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+
+    fn fold(self: FilterTakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -918,6 +980,15 @@ impl IntoIterator for FilterIter {
     type IntoIter = FilterIter
 
     fn into_iter(self: FilterIter) -> FilterIter {
+        self
+    }
+}
+
+impl IntoIterator for FilterTakeIter {
+    type Item = i32
+    type IntoIter = FilterTakeIter
+
+    fn into_iter(self: FilterTakeIter) -> FilterTakeIter {
         self
     }
 }
