@@ -216,6 +216,18 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     structured helpers, other String allocations, HashMap descriptors,
     closure environments, descriptor-aware root writes, automatic collection,
     and full parity remain open. See [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-22): `9e81a367e` routes fallback Vec backing
+    growth through `LINEAR_GC_ALLOC`; `0578b95a2` routes the Vec
+    `get`/`pop` Option<i32> records; `f88ce4917` and `c91051952` route the
+    integer and f64 parse Result records plus their invalid-input String/Err
+    allocations; `8e720d28f` routes the `core::range_new` record;
+    `15e0bfe75` routes the `seq::take_i32`/`skip_i32`/`unique` Vec header
+    and backing storage. Representative fixtures for each slice compile,
+    validate, and run with identical output on the wasm32 linear core and the
+    wasm32-gc component paths. Generic Option/Result constructors, HashMap
+    descriptors, closure environments, descriptor-aware root writes, automatic
+    collection, shared/cyclic source graphs, and full parity remain open. See
+    [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

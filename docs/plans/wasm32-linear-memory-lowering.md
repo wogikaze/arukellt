@@ -121,4 +121,12 @@ generic struct constructor を使う。seq take/skip/unique の Vec allocation�
 Option/Result constructor、HashMap descriptor、closure environment、automatic `collect`、
 shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `15e0bfe75` では、fallback の `seq::take_i32`／`seq::skip_i32`／`seq::unique`
+が作る Vec の header（12 bytes）と backing storage（result_len または src_len × 4 bytes）を
+`LINEAR_GC_ALLOC` へ接続した。既存の `[len, cap, data_ptr]` layout、len=0 初期化、
+memory.copy による payload 複製を維持し、raw bump 専用だった `emit_seq_slice_reserve_payload`
+は allocator への一本化で削除した。Wasm GC の typed array lowering は変更していない。
+generic Option/Result constructor、HashMap descriptor、closure environment、
+automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---

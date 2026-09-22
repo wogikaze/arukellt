@@ -652,3 +652,52 @@ RFC-011: **8 (fallback lowering)**。
   Option/Result constructors, HashMap descriptors, closure environments,
   automatic collection, shared/cyclic source graphs, and complete
   cross-backend move/borrow parity remain open; #874 stays open.
+
+## Progress receipt — 2026-09-22 (seq take/skip/unique Vec allocation boundary)
+
+- Implementation commit `15e0bfe75` routes the linear-memory Vec header
+  (12 bytes) and backing storage (`result_len * 4` for take/skip,
+  `src_len * 4` for unique) created by `seq::take_i32`, `seq::skip_i32`,
+  and `seq::unique` through `LINEAR_GC_ALLOC`. The existing
+  `[len, cap, data_ptr]` header layout, the `len = 0` initialization for
+  unique, and the `memory.copy` payload duplication are unchanged. The
+  raw-bump-only `emit_seq_slice_reserve_payload` helper was removed because
+  the allocator now reserves the backing payload directly. The Wasm GC typed
+  array lowering is unchanged.
+- Contract coverage: `test_managed_aggregate_constructors_use_private_allocator`
+  now asserts both seq files allocate through the private allocator and no
+  longer reference `emit_heap_set`.
+- Positive fixtures and outputs: `tests/fixtures/stdlib_seq/seq_take_skip_fold.ark`
+  produces `3 1 3 3 3 5 15 120 5 0` on both backends (including the
+  over-length take and empty skip edges); `seq_edge_cases.ark` produces
+  `2 0 4 -1 1 9 26 42 42 42 true false 3 3 0`; `seq_basic.ark` produces
+  `14 1 5 true false 2 3 4`. All three compile, validate, and run on the
+  wasm32 linear core and the wasm32-gc P2 component paths.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (22.6s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (2 files)
+  wasm-tools validate                                       PASS (6 artifacts)
+  wasmtime run                                              PASS (6 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear seq_take_skip_fold        12241 bytes 892ff26b01e8f973b16fbe7277e20d9ab5e4aca0a476297f455b73f356fa9a99
+  wasm32 linear seq_edge_cases            16288 bytes 88f580ec49741c18fac926dfe8287a62a35298cc256185a8c217dac55bf8bcf3
+  wasm32 linear seq_basic                  6590 bytes ad00633087b3733e03b14b5cf91e795cd305c63f14852a2817851191ef5195bc
+  wasm32-gc seq_take_skip_fold component  20414 bytes b32bf903e190047790a33a2f5ded772621773f6cabf87dd3708d8b35a3385435
+  wasm32-gc seq_edge_cases component      24549 bytes 5a7a62d6efe1e63ced17df1796660444a4dfc7f5dbaaa188a09a5b4356df6da9
+  wasm32-gc seq_basic component           15266 bytes 6ab3e411aeda68550c6644d9dcd7497493ef2a1e59bcc88901b1766f42f41932
+  ```
+
+- This receipt covers only the seq take/skip/unique Vec allocation boundary.
+  Generic Option/Result constructors, HashMap descriptors, closure
+  environments, descriptor-aware root writes, automatic collection,
+  shared/cyclic source graphs, and complete cross-backend move/borrow parity
+  remain open; #874 stays open.
