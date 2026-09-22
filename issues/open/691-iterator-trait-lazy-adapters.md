@@ -450,6 +450,45 @@ full adapter fixture matrix as a fallback parity gate.
   composition (#860), and the external `verify quick` blockers (#652, #765,
   MIR BFS baseline, T3 memory64). This is not a close receipt.
 
+## Progress receipt — 2026-09-23 (std::seq query helpers migrated)
+
+- Commit `b2e6d5510` completes the `std::seq` compatibility layer: every
+  remaining monomorphic helper now delegates to the lazy
+  `std::core::iter` pipeline or the generic `Ord`-based algorithms.
+  `binary_search` → `binary_search_by`, `min_i32` → `min_by`,
+  `max_i32` → `max_by`, `seq_reverse` → `iter_reverse_i32`,
+  `seq_contains` → `iter_contains_i32`, `unique` → `iter_unique_i32`,
+  and `count_eq` → `iter_count_eq_i32`. The private
+  `__core_seq_*_impl` duplicates are removed.
+- New ADR-076 capability traits `IteratorContains<Item>` and
+  `IteratorCountEq<Item>` carry membership and equality counting for the
+  concrete i32 lane (all 17 i32-backed adapters plus the two new ones).
+  New lazy adapters `UniqueIter` (first-occurrence, bounded `seen`
+  buffer) and `RevIter` (index-reversed) implement `Iterator`,
+  `IntoIterator`, `FromIterator`, `IteratorSum`, `IteratorFold`,
+  `IteratorContains`, and `IteratorCountEq`.
+- `tests/fixtures/stdlib_trait/iterator_query_consumers.ark` covers the
+  capability methods on `VecIter` and composed adapters, both new
+  adapters through `collect`/`for`/`Vec::from_iter`, and every
+  delegated `std::seq` entry. The fixture compiles, validates, and runs
+  on linear-memory `wasm32` and as a `wasm32-gc` P2 component.
+- Existing `stdlib_seq` fixtures (`seq_basic`, `seq_edge_cases`,
+  `seq_map_filter`, `seq_take_skip_fold`) and
+  `prelude_compiled_user_body` produce byte-identical output on linear
+  Wasm; `seq_basic` also matches on the GC component path, so the
+  delegation preserves source semantics.
+- The `std/seq/mod.ark` formatter-baseline exception was removed (the
+  canonical parser handles it); `std/core/iter.ark` keeps its
+  content-addressed exception with an updated hash because the pinned
+  bootstrap still cannot parse associated-type members.
+- Known unrelated defect observed during verification: `seq::sort_by`
+  emits invalid GC core Wasm on `wasm32-gc` (reproduced with the
+  pre-existing `ord_sort_by.ark` fixture, so it predates this change).
+  The new fixture uses a presorted input for `binary_search` coverage.
+- `verify lane` passes. Remaining residuals for this issue: arbitrary
+  item-generic adapter composition (#860) and the external
+  `verify quick` blockers. This is not a close receipt.
+
 ## Progress receipt — 2026-09-23 (manifest surface + eager-helper deprecation)
 
 - Commit `0148c9703` registers the public `std::core::iter` surface in
