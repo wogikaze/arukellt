@@ -1009,3 +1009,47 @@ RFC-011: **8 (fallback lowering)**。
   probe covers real cycles), closure environments, HashMap descriptors /
   exact pointer-field metadata, and the move/borrow parity audit remain
   open; #874 stays open.
+
+## Progress receipt — 2026-09-23 (HashMap survival + latent invalid-wasm fix)
+
+- Implementation commit `449bb5651` fixes a latent linear-backend bug
+  exposed while building this slice's fixture: `__hm_si_new`,
+  `__hm_is_new`, and `__hm_ss_new` lower to a `call hashmap_new` on
+  linear targets, but nothing in Ark source calls `hashmap_new` by name,
+  so reachability pruning dropped the body and the emitted index
+  resolved to import 8 (`random_get`) — every `HashMap<String,*>`,
+  `HashMap<i32,String>`, and `HashMap<String,String>` program produced
+  invalid wasm on `wasm32`. `hashmap_builtin_alias` now maps the
+  internal `__hm_*_new` builtins to `hashmap_new`, the same mechanism
+  the public `HashMap_*` aliases already used, so the walk retains the
+  flat `Vec<i32>` constructor.
+- The same commit adds
+  `tests/fixtures/target_capability/linear_gc_hashmap_survives.ark`:
+  a `HashMap<String,String>` holding concat-built keys/values (plus one
+  mid-loop insert) stays reachable through `main`'s root slots across
+  ~160 MiB of churn garbage and at least two entry-gated collections;
+  all `get`/`len`/`contains_key` assertions hold. The flat slot array
+  lives inside the routed `Vec<i32>` backing, so conservative transitive
+  marking keeps the managed strings alive without exact descriptors.
+- Regression coverage: `hashmap_insert`, `hashmap_generic_demo`,
+  `hashmap_string_string`, and `hashmap_i32_string` all compile,
+  validate, and run on `wasm32`/`wasi-p1`/`memory32` — the latter two
+  previously emitted the invalid `call 8` sequence. The GC component
+  path is unchanged (`__hm_*_new` emits `struct.new` inline there).
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (3 tests)
+  wasm32 linear compile+validate+run (5 hashmap fixtures)   PASS
+  wasm32-gc P2 component compile+run                        PASS
+  targeted fmt                                             PASS (2 files)
+  ```
+
+- This receipt covers HashMap storage survival under collection and the
+  `__hm_*_new` retention fix. Exact pointer-field descriptors (the scan
+  remains conservative per ADR-075), `HashMap<*,fn>` on linear
+  (currently `unreachable`), closure environments, and the move/borrow
+  parity audit remain open; #874 stays open.

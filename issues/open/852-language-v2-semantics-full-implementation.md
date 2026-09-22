@@ -293,6 +293,18 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     new e2e test runs the fixture under wasmtime for durable linear
     coverage. Closure environments, HashMap descriptors, and full parity
     remain open. See [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-23): `449bb5651` fixes a latent
+    linear-backend bug: `__hm_si_new`/`__hm_is_new`/`__hm_ss_new`
+    lower to `call hashmap_new` but reachability dropped the body, so
+    every String-keyed or String-valued HashMap program emitted invalid
+    wasm on `wasm32`. The internal builtins now alias to
+    `hashmap_new` like the public `HashMap_*` names. The new
+    `linear_gc_hashmap_survives` fixture keeps a
+    `HashMap<String,String>` alive across ~160 MiB of churn and two+
+    entry-gated collections; all lookups hold on both backends. Exact
+    descriptors, linear `HashMap<*,fn>`, closure environments, and
+    full parity remain open. See
+    [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

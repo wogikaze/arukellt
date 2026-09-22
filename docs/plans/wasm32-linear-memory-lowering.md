@@ -226,4 +226,26 @@ cycle は書けない（struct は managed ref ではなく i32 index を持つ�
 実 cycle は runtime probe がカバー）、closure environment、HashMap
 descriptor、move/borrow parity は引き続き未完了である。
 
+続く `449bb5651` では、同 fixture 作成中に露出した latent bug を直した。
+`__hm_si_new`/`__hm_is_new`/`__hm_ss_new` は linear では
+`call hashmap_new` に lower されるが、Ark ソースから `hashmap_new` を
+名前で呼ぶ箇所が無いため reachability prune が body を落とし、emit された
+index が import 8（`random_get`）へ解決していた ——
+`HashMap<String,*>`/`HashMap<i32,String>`/`HashMap<String,String>` を
+使う linear プログラムはすべて invalid wasm になっていた。
+`hashmap_builtin_alias` が内部 `__hm_*_new` builtin を `hashmap_new` へ
+写像するようにし（公開 `HashMap_*` alias と同じ仕組み）、walk が flat
+`Vec<i32>` constructor を保持する。併せて
+`linear_gc_hashmap_survives.ark` を追加し、concat 生成の key/value を持つ
+`HashMap<String,String>` が約 160 MiB の churn と 2 回以上の entry-gated
+collection を越えて get/len/contains_key を維持することを確認した。flat
+slot array は routed `Vec<i32>` backing 内にあるため、正確な descriptor
+なしでも conservative transitive marking が managed string を保持する。
+`hashmap_insert`/`hashmap_generic_demo`/`hashmap_string_string`/
+`hashmap_i32_string` の linear compile+validate+run も PASS（後者 2 件は
+従来 invalid だった）。GC 経路は不変（`__hm_*_new` は inline
+`struct.new`）。正確な pointer-field descriptor、linear の
+`HashMap<*,fn>`（現状 `unreachable`）、closure environment、
+move/borrow parity は引き続き未完了である。
+
 ---
