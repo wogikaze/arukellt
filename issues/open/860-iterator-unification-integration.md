@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-09-19
-Updated: 2026-09-20
+Updated: 2026-09-23
 ID: 860
 Parent: 852
 Track: language-v2
@@ -727,3 +727,20 @@ acceptance boxes complete.
   table-based `call_indirect`. Arbitrary item-generic adapter families,
   dynamic dispatch, manifest-level deprecation, and the final RFC-011 audit
   remain open; #860 is not closed.
+
+## Progress receipt — 2026-09-23 (manifest deprecation + residual audit)
+
+- Commit `0148c9703` (#691 slice) registers the `std::core::iter` manifest
+  surface (module, five trait types, 30 function entries) and marks the six
+  eager `std::seq` pipeline helpers `deprecated` with `deprecated_by`
+  targets under the ADR-076 section 4 contract; generated docs regenerated
+  with badges. Deprecated entries verified callable on both targets.
+- The RFC-011 item 37 residual audit is recorded in
+  `docs/stdlib/migration-guidance.md` ("Iterator v2 status" section).
+  Residuals owned by THIS issue: arbitrary item-generic adapter composition
+  (generic adapter types over `I: Iterator` plus stored callbacks exceed
+  current monomorphization), generic `for` source dispatch and the
+  structural `next()` fallback boundary, and the final residual-zero
+  review once #691 closes. HashMap iterator intrinsics and seq query
+  helpers are tracked under #691; `verify quick` remains red only on
+  unrelated pre-existing gates.

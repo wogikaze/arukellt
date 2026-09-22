@@ -109,8 +109,9 @@ numeric consumer contracts separately. The current
 canonical `Iterator::collect` traversal. Additional adapter compositions are
 tracked under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md)
 and [#860](../../issues/open/860-iterator-unification-integration.md). The
-`std::seq` helpers must not be marked deprecated until the method-level
-manifest contract exists.
+six eager `std::seq` pipeline helpers are deprecated under the manifest
+method-level contract (see [Currently Deprecated APIs](#currently-deprecated-apis));
+query helpers without a lazy replacement remain stable.
 Calls to `sum` and `fold` now require the matching numeric capability at
 type-check time. The item-preserving `StringIter` lane therefore remains
 valid for `next`, `collect`, `count`, and bounded adapters, while an accidental
@@ -138,6 +139,54 @@ The fixture also covers `iter().filter(g).take(n).collect()` through the
 dedicated lazy `FilterTakeIter` adapter and a generic `T: IntoIterator` consumer
 on both targets. This remains concrete `Vec<i32>` evidence, not a claim for
 arbitrary item representations or adapter combinations.
+
+### RFC-011 item 37 residual audit (2026-09-23)
+
+RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
+`FromIterator` share one trait surface. Audited against the current tree:
+
+**Done and verified on both `wasm32-gc` and `wasm32`:**
+
+- `Iterator` (`Item`, `next`, `collect`, `count`), `IntoIterator`,
+  `FromIterator<T>`, and the `IteratorSum` / `IteratorFold` capability
+  traits are defined in `std::core::iter` (ADR-076 producer/consumer split).
+- Concrete lanes: `Vec<i32>`, `Vec<String>`, `Range`, `RangeInclusive`
+  implement `IntoIterator`; lazy adapters exist for the i32 and String
+  lanes (map/filter/take/skip plus enumerated compositions, chain,
+  enumerate, zip); `collect` is the canonical trait path
+  (`Vec<Self::Item>`).
+- `for` lowering dispatches concrete `IntoIterator` sources through the
+  same conversion + canonical `next` sequence as handwritten consumers;
+  generic `T: Iterator` / `T: IntoIterator` consumers monomorphize to the
+  same path. Non-iterable sources are rejected with E0200.
+- The six eager `std::seq` pipeline helpers are `deprecated` with
+  `deprecated_by` targets and delegate to the lazy pipeline;
+  `std::core::iter` is registered in `std/manifest.toml`.
+
+**Residual (open, with owner):**
+
+- Arbitrary item-generic adapters: adapter structs are monomorphic per item
+  lane because generic adapter types over `I: Iterator` plus stored
+  callbacks exceed current monomorphization. Owner: #860 compiler
+  generics boundary.
+- HashMap iterator coverage: generic `HashMap<K,V>` has no keys/entries
+  enumeration intrinsic on either backend, so `for x in hashmap_iter` is
+  not yet expressible. Owner: #691 (new intrinsic work on GC and linear
+  emitters).
+- Generic `for` source dispatch: a source whose iteration obligation is
+  not statically resolved stays rejected; the structural `next()`
+  fallback for custom iterators remains as the compatibility path.
+  Owner: #860 / #878 migration boundary.
+- `std::seq` query helpers (`binary_search`, `min_i32`, `max_i32`,
+  `seq_reverse`, `seq_contains`, `unique`, `count_eq`) and prelude
+  monomorphic higher-order functions have no lazy replacement yet; they
+  stay `stable` until iterator coverage or an explicit eager decision
+  exists. Owner: #691 / #718 / #878.
+- `verify quick` exit 0 is blocked by unrelated pre-existing gates
+  (#652 WIT parser, #765 docs CI, MIR reachability baseline, T3
+  memory64 emitter), not by iterator work.
+
+Dynamic dispatch (`dyn Trait`) is intentionally out of scope per ADR-076.
 It also covers `iter().skip(n).take(m).collect()` through `SkipTakeIter` and a
 generic `T: IntoIterator` consumer. The skip-before-take state is shared by GC
 and linear-memory Wasm; other item representations and arbitrary compositions
@@ -277,6 +326,13 @@ sort<String>(names)
 ```
 
 ### Collection Operations (map, filter, fold, etc.)
+
+> Note (2026-09-23): for the `i32` pipeline helpers the canonical replacement
+> is now the lazy `std::core::iter` method chain — for example
+> `v.iter().map(f).collect()` — not a generic free function. The six
+> `std::seq` entries are already deprecated under that contract; the prelude
+> rows below remain planned until the #718 / #878 migration wires their
+> trait-first replacements.
 
 | Old API | Replacement |
 |---------|-------------|

@@ -453,6 +453,28 @@ full adapter fixture matrix as a fallback parity gate.
   (out of scope per ADR-076), the final RFC-011 item 37 residual audit,
   and the `verify quick` backlog gate. This is not a close receipt.
 
+## Progress receipt — 2026-09-23 (RFC-011 item 37 residual audit)
+
+- The full audit now lives in
+  `docs/stdlib/migration-guidance.md` -> "Iterator v2 status" ->
+  "RFC-011 item 37 residual audit". Verified-done items: trait surface
+  (ADR-076), concrete `Vec<i32>`/`Vec<String>`/`Range`/`RangeInclusive`
+  lanes, canonical `collect`, `for` conversion dispatch, seq deprecation
+  and manifest registration.
+- Residuals for THIS issue: HashMap iterator coverage (needs new
+  keys/entries enumeration intrinsics for generic `HashMap<K,V>` on both
+  the GC struct and linear flat-map emitters), `std::seq` query helpers
+  without lazy replacements (`binary_search`, `min_i32`, `max_i32`,
+  `seq_reverse`, `seq_contains`, `unique`, `count_eq`), and the
+  `verify quick` gate which is blocked by unrelated pre-existing
+  failures (#652, #765, MIR BFS baseline, T3 memory64).
+- Residuals owned elsewhere: arbitrary item-generic adapter composition
+  (#860 compiler generics boundary), generic `for` source dispatch and
+  the structural `next()` fallback boundary (#860/#878), prelude
+  monomorphic higher-order deprecation (#718/#878).
+- Dynamic dispatch (`dyn Trait`) stays out of scope per ADR-076; it is a
+  design boundary, not a residual.
+
 ## Progress receipt — 2026-09-20 (numeric skip callback composition)
 
 - Commit `0115f6619` adds concrete `SkipMapIter` and `SkipFilterIter` to the
