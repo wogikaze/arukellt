@@ -114,4 +114,11 @@ address は一時状態として残している。Wasm GC の typed Result lower
 generic constructor、HashMap descriptor、closure environment、automatic `collect`、
 shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `8e720d28f` では、fallback の `core::range_new` が返す 8-byte Range record
+（start offset 0、end offset 4）を `LINEAR_GC_ALLOC` へ接続した。Wasm GC は typed
+Range struct の lowering を継続する。`RangeInclusive` は aggregate slice で接続済みの
+generic struct constructor を使う。seq take/skip/unique の Vec allocation、generic
+Option/Result constructor、HashMap descriptor、closure environment、automatic `collect`、
+shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---

@@ -607,3 +607,48 @@ RFC-011: **8 (fallback lowering)**。
   HashMap descriptors, closure environments, automatic collection,
   shared/cyclic source graphs, and complete cross-backend move/borrow parity
   remain open; #874 stays open.
+
+## Progress receipt — 2026-09-20 (Range construction allocation boundary)
+
+- Implementation commit `8e720d28f` routes the fallback `core::range_new`
+  record through `LINEAR_GC_ALLOC`. The Range struct keeps its existing
+  8-byte layout (start at offset 0, end at offset 4); only the allocation
+  owner changes from direct global-bump manipulation to the private
+  allocator. The Wasm GC path continues to construct the typed Range struct.
+- Positive fixtures `tests/fixtures/stdlib_core/range_contains_edges.ark`,
+  `range_len_empty.ark`, `range_inclusive_contains.ark`, and
+  `range_inclusive_edges.ark` compile, validate, and execute successfully on
+  both the `wasm32` linear core and `wasm32-gc` component paths. All eight
+  artifacts pass, covering half-open bounds, empty/inverted ranges, and
+  inclusive endpoints.
+- Verification after the change:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (19.9s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (1 file)
+  wasm-tools validate                                       PASS (8 artifacts)
+  wasmtime run                                              PASS (8 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear range-contains-edges        3152 bytes f90f166515867dee3bf936ba7a01b3ba8ddf4d6c322d70bf6a3bc8197badfaf0
+  wasm32 linear range-len-empty             4170 bytes a37b046d8eab31d2a8d058b91f0a120a8bf52bc18582b408e69bcab1aa63bb94
+  wasm32 linear range-inclusive-contains    3515 bytes 660af7c07d8582e094e0de9a8243330b9a5f7d45ab58020fd0c13579ea3f64c6
+  wasm32 linear range-inclusive-edges       3936 bytes 4eafda16807ab6f630f85ca138039f9ccbc50a86d9b8ef1e3401fa2e2d8db23d
+  wasm32-gc range-contains-edges component 11426 bytes 241bc318a94d668ef80cd4e734085948d00887c9533cf4eed834d6205c7f4819
+  wasm32-gc range-len-empty component      12261 bytes 27147066358463ac655e3939f2c5a8ed0c7602205fc1355d6fb81ed042b751d7
+  wasm32-gc range-inclusive-contains comp. 11770 bytes f38e54aa7a282566934f5930dd183f8c961df0a46f023242702a20ef9baf6830
+  wasm32-gc range-inclusive-edges comp.    12037 bytes 75db858c1ad1a750f6ca5a84791901a3c104ff9d0c89a355c8b1faa3065df56f
+  ```
+
+- This receipt covers only the `core::range_new` fallback record.
+  `RangeInclusive` uses the generic struct constructor already covered by the
+  aggregate slice. Sequence take/skip/unique Vec allocation, generic
+  Option/Result constructors, HashMap descriptors, closure environments,
+  automatic collection, shared/cyclic source graphs, and complete
+  cross-backend move/borrow parity remain open; #874 stays open.
