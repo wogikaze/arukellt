@@ -918,3 +918,51 @@ RFC-011: **8 (fallback lowering)**。
   invoked, HashMap descriptors/exact pointer-field metadata, closure
   environments, automatic collection, shared/cyclic source graphs, and the
   complete move/borrow parity audit remain open; #874 stays open.
+
+## Progress receipt — 2026-09-23 (watermark-gated collection at function entry)
+
+- Implementation commit `2aaadcbf4` turns on automatic collection for the
+  linear fallback. A new mutable global `GLOBAL_LINEAR_GC_ALLOC_WATERMARK`
+  (index 7) accumulates the aligned payload bytes of every
+  `LINEAR_GC_ALLOC` call; `LINEAR_GC_COLLECT` resets it to 0. After a
+  function's root pushes, `emit_frame_enter_and_push` emits
+  `global.get watermark; i32.const LINEAR_GC_COLLECT_THRESHOLD_BYTES;
+  i32.ge_u; if; call collect; end`, so collection fires at function entry
+  once 64 MiB of payload has been allocated since the previous sweep.
+- Placement is the soundness point: at function entry the operand stack
+  is empty and every managed local of every live frame is already
+  mirrored into a root slot (previous receipt), so the mark phase cannot
+  produce a false negative. The only values suspended on caller operand
+  stacks are the call's arguments, which are now rooted params of the
+  current frame. An alloc-triggered collection was rejected because
+  managed pointers can sit below the size argument on the operand stack
+  at allocation sites.
+- The 64 MiB threshold amortizes the full-heap mark-sweep for the
+  selfhost compiler, which allocates hundreds of MiB per compile on the
+  linear path; small programs may never collect, in which case
+  `memory.grow` still backs allocation — collection bounds footprint, it
+  is not required for correctness.
+- E2E coverage: `test_linear_gc_runtime_e2e.py` gains
+  `test_function_entry_collects_when_watermark_exceeds_threshold`, which
+  appends a probe that allocates unrooted garbage, forces the watermark
+  past the threshold, calls the compiled `$main`, and asserts the
+  watermark was reset and the free list became non-empty — proving the
+  entry gate ran the collector and reclaimed unreachable records. The
+  rooted-cycle probe still passes.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (20.2s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (2 tests)
+  targeted fmt --check                                     PASS (6 files)
+  wasm-tools validate                                       PASS (probe artifacts)
+  wasmtime run --invoke                                     PASS (2 probes)
+  ```
+
+- This receipt covers gated automatic collection only. Closure
+  environments on the fallback heap, HashMap descriptors / exact
+  pointer-field metadata (the scan stays conservative, which ADR-075
+  permits for bootstrap), shared/cyclic source-level graphs, and the
+  complete move/borrow parity audit remain open; #874 stays open.

@@ -272,6 +272,18 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     Scratch/operand-stack-only pointers at allocation points, automatic
     `collect`, HashMap descriptors, closure environments, and full
     parity remain open. See [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-23): `2aaadcbf4` enables automatic
+    collection on the linear fallback. A new watermark global accumulates
+    aligned payload bytes per `LINEAR_GC_ALLOC`; once 64 MiB has been
+    allocated since the last sweep, the function-entry sequence (after
+    root pushes, while the operand stack is empty) calls
+    `LINEAR_GC_COLLECT`, which resets the watermark. A new e2e probe
+    forces the watermark past the threshold, enters the compiled
+    `$main`, and observes the reset watermark plus a non-empty free
+    list — entry-gated collection reclaims unreachable records on real
+    hardware. Closure environments, HashMap descriptors / exact
+    pointer-field metadata, shared/cyclic source graphs, and full parity
+    remain open. See [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

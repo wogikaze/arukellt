@@ -185,4 +185,27 @@ operand stack / scratch local だけが保持する pointer の collect 安全�
 automatic `collect`、shared/cyclic source graph、move/borrow parity は
 引き続き未完了である。
 
+続く `2aaadcbf4` では、linear fallback の自動回収を有効化した。新しい mutable
+global `GLOBAL_LINEAR_GC_ALLOC_WATERMARK`（index 7）が
+`LINEAR_GC_ALLOC` ごとの aligned payload バイト数を累積し、
+`LINEAR_GC_COLLECT` が先頭で 0 にリセットする。
+`emit_frame_enter_and_push` は root push 群の直後に
+`global.get watermark; i32.const 64MiB; i32.ge_u; if; call collect; end`
+を発行し、前回の sweep から 64 MiB 割り付けた時点で関数 entry が
+collector を起動する。entry 配置が健全性の核心で、operand stack が空かつ
+全 live frame の managed local が root slot へ反映済みのため mark が
+false negative を起こせない（caller の中断 stack に残るのは call 引数だけで、
+それは callee の rooted param になる）。alloc 起点の collect は、allocation
+site の operand stack 上に size より下へ managed pointer が残りうるため
+採用しなかった。64 MiB threshold は linear 経路で 1 回の compile に数百 MiB
+を割り付ける selfhost compiler が full-heap mark-sweep を償却できる値で、
+小さなプログラムは collect せず memory.grow が backing する（回収は
+footprint 最適化であり正しさの条件ではない）。e2e は
+`test_function_entry_collects_when_watermark_exceeds_threshold` を追加し、
+unrooted garbage 確保 → watermark 強制超過 → compiled `$main` 呼び出しで
+watermark リセットと free list 非空を確認した。closure environment、
+HashMap descriptor / 正確な pointer-field metadata（scan は ADR-075 が
+許す conservative のまま）、shared/cyclic source graph、move/borrow parity
+は引き続き未完了である。
+
 ---
