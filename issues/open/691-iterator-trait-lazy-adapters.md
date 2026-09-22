@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-09-20
+Updated: 2026-09-23
 ID: 691
 Track: stdlib-api
 Depends on: "688, 707"
@@ -419,6 +419,39 @@ full adapter fixture matrix as a fallback parity gate.
 - This advances the arbitrary-item boundary with one concrete String lane; it
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
+
+## Progress receipt — 2026-09-23 (manifest surface + eager-helper deprecation)
+
+- Commit `0148c9703` registers the public `std::core::iter` surface in
+  `std/manifest.toml`: a provisional module entry, the five trait types
+  (`Iterator`, `IntoIterator`, `FromIterator<T>`,
+  `IteratorSum<Item, Output>`, `IteratorFold<Item, Accumulator>`), and
+  30 public function entries covering adapter constructors, drain helpers,
+  pipeline compatibility entries, and numeric consumers.
+- With the manifest deprecation contract in place, the six eager pipeline
+  helpers are now marked `deprecated` with `deprecated_by` targets:
+  `map_i32_i32` -> `collect_map_i32`, `filter_i32` ->
+  `collect_filter_i32`, `take_i32` -> `collect_take_i32`,
+  `skip_i32` -> `collect_skip_i32`, `fold_i32_i32` ->
+  `iter_fold_i32`, `sum_i32` -> `iter_sum_i32`. `sum_i32` now also
+  delegates to `iter::iter_sum_i32` like the other compatibility entries
+  (ADR-076 section 4). Query helpers without a lazy replacement
+  (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
+  `seq_contains`, `unique`, `count_eq`) stay `stable`.
+- `docs/stdlib/migration-guidance.md` maps each deprecated helper to its
+  method-chain and named-function replacement; generated docs
+  (reference.md, monomorphic-deprecation.md, modules/seq.md, name-index,
+  scoreboard) regenerated with deprecation badges.
+- Verified: deprecated entries remain callable — `seq_map_filter`,
+  `seq_take_skip_fold`, `seq_basic` compile, `wasm-tools validate`,
+  and run with matching expected output on both linear `wasm32` P1 and
+  `wasm32-gc` P2 component targets. `docs consistency OK (0 issues)`,
+  `verify lane` PASS (formatter exception hash refreshed for the
+  `std/seq/mod.ark` edit).
+- Remaining open: arbitrary item-generic adapter composition, HashMap
+  iterator coverage (`for x in hashmap_iter` fixture), dynamic dispatch
+  (out of scope per ADR-076), the final RFC-011 item 37 residual audit,
+  and the `verify quick` backlog gate. This is not a close receipt.
 
 ## Progress receipt — 2026-09-20 (numeric skip callback composition)
 
