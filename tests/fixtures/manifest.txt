@@ -390,6 +390,7 @@ run:control/trait_dispatch_spike.ark
 run:control/while_basic.ark
 run:control/while_counter.ark
 run:target_capability/gc_linear_same_source.ark
+run:target_capability/linear_gc_entry_collect.ark
 run:target_capability/wasm32_same_source.ark
 run:diagnostics/method_syntax.ark
 run:diagnostics/nested_generic.ark
@@ -2910,6 +2911,7 @@ t3-run:t3/string_intern.ark
 t3-run:tail_call/deep_recursion.ark
 t3-run:tail_call/opportunistic.ark
 t3-run:tail_call_ref/basic.ark
+t3-run:target_capability/linear_gc_entry_collect.ark
 t3-run:trait/basic_impl.ark
 t3-run:trait/builtin_method.ark
 t3-run:trait/method_chain.ark

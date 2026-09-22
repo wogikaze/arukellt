@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark"
+COLLECT_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_entry_collect.ark"
 FUNCTION_DEFINITION = re.compile(r"^\s+\(func .*?\(;([0-9]+);\)", re.MULTILINE)
 MAIN_DEFINITION = re.compile(r"^\s+\(func \$main \(;([0-9]+);\)", re.MULTILINE)
 GLOBAL_DEFINITION = re.compile(r"^\s+\(global \(;", re.MULTILINE)
@@ -37,14 +38,14 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
             self.skipTest("wasm-tools and wasmtime are required")
         self.compiler = compiler
 
-    def compile_linear_fixture(self) -> Path:
-        output = ROOT / ".build/tests/linear_gc_runtime_e2e.wasm"
+    def compile_linear_fixture(self, fixture: Path = FIXTURE, output_name: str = "linear_gc_runtime_e2e.wasm") -> Path:
+        output = ROOT / ".build/tests" / output_name
         output.parent.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
             [
                 str(ROOT / "scripts/run/arukellt-selfhost.sh"),
                 "compile",
-                str(FIXTURE.relative_to(ROOT)),
+                str(fixture.relative_to(ROOT)),
                 "--target",
                 "wasm32",
                 "--wasi-version",
@@ -273,6 +274,37 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
             "linear_gc_runtime_e2e_probe.wasm",
         )
         self.assertEqual(stdout.strip().splitlines()[-1], "1", stdout)
+
+    def test_source_level_live_data_survives_entry_collection(self) -> None:
+        artifact = self.compile_linear_fixture(
+            COLLECT_FIXTURE,
+            "linear_gc_entry_collect.wasm",
+        )
+        wat = self.print_artifact(artifact)
+        self.assertNotIn("struct.", wat)
+        self.assertNotIn("array.", wat)
+        # The fixture allocates ~160 MiB of Vec garbage across 160 calls,
+        # so the 64 MiB entry gate must have fired at least twice while the
+        # kept strings stayed reachable through main's root slots. The
+        # in-source assertions panic on any corruption; exit 0 proves the
+        # collector preserved live data reachable via transitive marking.
+        executed = subprocess.run(
+            [
+                "wasmtime",
+                "run",
+                "--wasm",
+                "gc",
+                "--wasm",
+                "function-references",
+                "--dir=.",
+                str(artifact),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(executed.returncode, 0, executed.stderr)
 
     def test_function_entry_collects_when_watermark_exceeds_threshold(self) -> None:
         artifact = self.compile_linear_fixture()

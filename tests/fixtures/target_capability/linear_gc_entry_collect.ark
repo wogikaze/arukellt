@@ -1,0 +1,28 @@
+use std::test
+
+// #874 / ADR-075: on the linear fallback the collector runs at a function
+// entry once 64 MiB of payload has accumulated since the previous sweep.
+// Each churn call drops a ~1 MiB Vec, so the loop crosses the threshold
+// inside a callee entry while the kept strings stay reachable through
+// main's root slots and must survive transitive marking intact.
+
+fn churn(slots: i32) -> i32 {
+    let mut junk: Vec<i32> = Vec::with_capacity<i32>(slots)
+    push(junk, slots)
+    len(junk)
+}
+
+fn main() {
+    let mut keep: Vec<String> = Vec::new<String>()
+    let mut i = 0
+    while i < 160 {
+        let _n = churn(262144)
+        if i % 32 == 0 {
+            push(keep, concat(String_from("alive-"), i.to_string()))
+        }
+        i = i + 1
+    }
+    test::assert_eq_i32(len(keep), 5)
+    test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
+    test::assert_eq_string(get_unchecked(keep, 4), String_from("alive-128"))
+}
