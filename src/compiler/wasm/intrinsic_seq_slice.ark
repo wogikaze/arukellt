@@ -8,6 +8,7 @@ use wasm::emit_target
 use wasm::writer_gc
 use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 
@@ -274,14 +275,16 @@ fn emit_seq_skip_range(w: WasmWriter, count_local: i32, src_local: i32, start_lo
 
 fn emit_seq_slice_alloc_result(w: WasmWriter, result_len_local: i32, result_vec_local: i32, result_data_local: i32) {
     emit_seq_slice_alloc_header(w, result_len_local, result_vec_local)
-    emit_seq_slice_alloc_data(w, result_vec_local, result_data_local)
+    emit_seq_slice_alloc_data(w, result_len_local, result_vec_local, result_data_local)
 }
 
 fn emit_seq_slice_alloc_header(w: WasmWriter, result_len_local: i32, result_vec_local: i32) {
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 12)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, result_vec_local)
+    writer_core::emit_local_get(w, result_vec_local)
     writer_core::emit_local_get(w, result_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
@@ -294,17 +297,15 @@ fn emit_seq_slice_alloc_header(w: WasmWriter, result_len_local: i32, result_vec_
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
-    writer_core::emit_local_get(w, result_vec_local)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 12)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core::emit_heap_set(w)
 }
 
-fn emit_seq_slice_alloc_data(w: WasmWriter, result_vec_local: i32, result_data_local: i32) {
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+fn emit_seq_slice_alloc_data(w: WasmWriter, result_len_local: i32, result_vec_local: i32, result_data_local: i32) {
+    writer_core::emit_local_get(w, result_len_local)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, result_data_local)
     writer_core::emit_local_get(w, result_vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -317,21 +318,6 @@ fn emit_seq_slice_alloc_data(w: WasmWriter, result_vec_local: i32, result_data_l
 }
 
 fn emit_seq_slice_copy_payload(w: WasmWriter, result_len_local: i32, src_data_start_local: i32, result_data_local: i32) {
-    emit_seq_slice_reserve_payload(w, result_len_local, result_data_local)
-    emit_seq_slice_copy_memory(w, result_len_local, src_data_start_local, result_data_local)
-}
-
-fn emit_seq_slice_reserve_payload(w: WasmWriter, result_len_local: i32, result_data_local: i32) {
-    writer_core::emit_local_get(w, result_data_local)
-    writer_core::emit_local_get(w, result_len_local)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core::emit_heap_set(w)
-}
-
-fn emit_seq_slice_copy_memory(w: WasmWriter, result_len_local: i32, src_data_start_local: i32, result_data_local: i32) {
     writer_core::emit_local_get(w, result_data_local)
     writer_core::emit_local_get(w, src_data_start_local)
     writer_core::emit_local_get(w, result_len_local)
