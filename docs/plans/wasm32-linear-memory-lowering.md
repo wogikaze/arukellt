@@ -129,4 +129,16 @@ memory.copy による payload 複製を維持し、raw bump 専用だった `emi
 generic Option/Result constructor、HashMap descriptor、closure environment、
 automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `d752e6a4a` では、fallback の env/argv ABI 確保を `LINEAR_GC_ALLOC` へ接続した。
+`env::var` が返す 8-byte `Option<String>` record（tag offset 0、payload offset 4）、
+argv pointer table（argc × 4）と byte buffer、`env::args` の Vec header（12 bytes）と
+data slot（P1 は 32 bytes、P2 は align4((argc-1) × 4)）、cstr→String コピー（clen + 4）を
+managed allocator 経由に変更した。raw bump 専用の `emit_env_var_option_alloc`／
+`emit_env_var_option_ptr_on_stack`／未使用の `emit_env_missing_var_option` は削除し、
+bump pointer の alignment だけを担う `emit_env_var_align_heap` は raw heap_get/heap_set の
+まま残した。Wasm GC の `*_gc` variant と P2 component path は変更していない。
+host Result marshalling（result_helpers、fs/stdio buffer）、generic Option/Result
+constructor、HashMap descriptor、closure environment、descriptor-aware root write、
+automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---

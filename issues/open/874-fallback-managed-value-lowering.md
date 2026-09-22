@@ -701,3 +701,70 @@ RFC-011: **8 (fallback lowering)**。
   environments, descriptor-aware root writes, automatic collection,
   shared/cyclic source graphs, and complete cross-backend move/borrow parity
   remain open; #874 stays open.
+
+## Progress receipt — 2026-09-22 (env/argv ABI allocation boundary)
+
+- Implementation commit `d752e6a4a` routes the linear-memory env/argv ABI
+  allocations through `LINEAR_GC_ALLOC`. The 8-byte
+  `Option<String>` record ({tag, payload}) built by
+  `emit_env_var_option_none`/`emit_env_var_option_some`, the argv
+  pointer table (`argc * 4`) and byte buffer, the `env::args` Vec
+  header (12 bytes) and data slots (32 bytes on P1,
+  `align4((argc-1) * 4)` on P2), and the cstr->String copies
+  (`clen + 4`) now allocate via `emit_heap_alloc_from_stack` instead of
+  raw global-0 bump. The raw-bump-only helpers
+  `emit_env_var_option_alloc`, `emit_env_var_option_ptr_on_stack`, and
+  the dead `emit_env_missing_var_option` were removed.
+  `emit_env_var_align_heap` intentionally keeps raw
+  `emit_heap_get`/`emit_heap_set` because it aligns the bump pointer
+  itself rather than allocating a managed record. The Wasm GC
+  `*_gc` variants and the P2 component paths are unchanged.
+- Contract coverage: `test_linear_gc_runtime_contract.py` now asserts the
+  env option/args/arg-populate/arg-at/has-flag files allocate through the
+  private allocator and no longer reference `emit_heap_set` (the lookup
+  file is exempted from the `emit_heap_set` assertion because of the
+  intentional heap-alignment helper).
+- Positive fixtures and outputs: all nine fixtures compile, validate, and
+  run on both the wasm32 linear core and the wasm32-gc P2 component paths.
+  `stdlib_env/env_basic` prints `3 3` on both;
+  `stdlib_env/env_var_lookup` prints `found PATH` / `none as expected`
+  on wasm32-gc P2 and `PATH not found` / `none as expected` on wasm32
+  P1 (the pre-existing P1 environ-import limitation, unchanged by this
+  slice); `stdlib_env/env_var_default` and `env_var_or_default` print
+  identical output on both; `stdlib_host/wasi_args` prints
+  `wasi_args ok` on both; `stdlib_cli/cli_basic` prints
+  `3 true --` on wasm32 P1 and `3 true no arg` on wasm32-gc (the GC
+  `arg_at` stub, pre-existing); `stdlib_cli/cli_flag_check` and
+  `wasi_p2_native/args`/`env_var` produce matching expected output on
+  both backends.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (20.5s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (9 files)
+  wasm-tools validate                                       PASS (18 artifacts)
+  wasmtime run                                              PASS (18 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear cli_basic           2617 bytes 9ed09ee5bdddb6317ab1e9099258d3f5ce910d7ed516360cb344e39bc8856172
+  wasm32 linear env_basic           2233 bytes 4de9ad690ef5ffd4ab0328be7a45a2600eb921edc46f394e65c82c4c9a3959de
+  wasm32 linear env_var_lookup      2437 bytes c98caa305e9aefebf33846ce7875acced29d097f0346c08b11f805f65ae62a24
+  wasm32 linear args                2020 bytes cb2b91d349f8d7f54b213dfba24246bfce25a7b6740d42d887954fab9d8a0ec0
+  wasm32-gc cli_basic component    11004 bytes 2c23b25d2c28e8b2e5d19887178eedf0e642e66368d17cc15e8f903e505df780
+  wasm32-gc env_basic component    10478 bytes 650c53760b1414db548670b3931d27d951258393c2992fbfad227b2b53b66005
+  wasm32-gc env_var_lookup comp.   12079 bytes 5350bc84a48028a3f97ebea2bdb2d7bd53d7b10d05f2ad6b618b940be3fc6a8f
+  wasm32-gc args component         10122 bytes 194aff524d7530922fe71eddde78941cf35d54fceecc94de34be048037048fb2
+  ```
+
+- This receipt covers only the env/argv ABI allocation boundary. Host Result
+  marshalling (`result_helpers`, fs/stdio read-write buffers), generic
+  Option/Result constructors, HashMap descriptors, closure environments,
+  descriptor-aware root writes, automatic collection, shared/cyclic source
+  graphs, and complete cross-backend move/borrow parity remain open; #874
+  stays open.
