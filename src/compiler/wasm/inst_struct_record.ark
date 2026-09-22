@@ -16,6 +16,7 @@ use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_ref_locals
 use wasm::code_ref_locals_block_scan
+use wasm::linear_root_lowering
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::function_local_queries
@@ -136,6 +137,7 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
     helpers_core_heap::emit_heap_alloc_from_stack(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest)
+    linear_root_lowering::emit_update_after_local_set(w, dest)
 }
 
 fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {

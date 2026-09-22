@@ -2,6 +2,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use wasm::inst_store_policy
+use wasm::linear_root_lowering
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
@@ -84,10 +85,12 @@ fn emit_store_action(w: WasmWriter, dest: i32, action: i32) {
     if action == constants::STORE_ACTION_TEE() {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, dest)
+        linear_root_lowering::emit_update_after_local_set(w, dest)
         return
     }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest)
+    linear_root_lowering::emit_update_after_local_set(w, dest)
 }
 
 // On GC targets, const_string stores to dest directly (never on the stack).

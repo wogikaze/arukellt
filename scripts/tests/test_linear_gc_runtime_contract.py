@@ -230,7 +230,7 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             self.assertIn(symbol, code)
         self.assertIn("emit_frame_enter_and_push", body)
         self.assertIn("emit_frame_leave(w, ctx)", body)
-        self.assertIn("emit_update_after_local_set(w, ctx, dest)", locals_source)
+        self.assertIn("emit_update_after_local_set(w, dest)", locals_source)
         self.assertIn("linear_root_lowering::emit_frame_leave(w, ctx)", returns)
         self.assertIn("scratch_linear_root_frame_local_count", scratch)
         self.assertIn("SelfEmitCtx_linear_root_frame_local", lowering)

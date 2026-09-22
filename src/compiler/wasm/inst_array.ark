@@ -13,6 +13,7 @@ use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::intrinsic_vec_type
 use wasm::ctx_gc_layout_lookup
+use wasm::linear_root_lowering
 use wasm::intrinsics::helpers_core_heap
 use mir::function_locals_view
 use mir::local_access
@@ -35,6 +36,7 @@ fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         helpers_core_heap::emit_heap_alloc_from_stack(w)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
+        linear_root_lowering::emit_update_after_local_set(w, inst_accessors_operands::MirInst_dest(inst))
     }
 }
 
@@ -116,6 +118,7 @@ fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let arr_val = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, arr_val)
+        linear_root_lowering::emit_update_after_local_set(w, arr_val)
         writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
         if inst_accessors_literals::MirInst_int_val(inst) > 0 {
             writer_core::emit_byte(w, opcodes::OP_I32_CONST())

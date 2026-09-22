@@ -31,18 +31,6 @@ fn is_root_local(f: MirFunction, local_idx: i32) -> bool {
     vt == value_types::VT_GC_REF()
 }
 
-fn root_local_rank(f: MirFunction, local_idx: i32) -> i32 {
-    let mut rank = 0
-    let mut i = 0
-    while i < local_idx {
-        if is_root_local(f, i) {
-            rank = rank + 1
-        }
-        i = i + 1
-    }
-    rank
-}
-
 fn emit_call(w: WasmWriter, function_index: i32) {
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, function_index)
@@ -55,40 +43,56 @@ fn emit_i32_const(w: WasmWriter, value: i32) {
 
 fn emit_frame_enter_and_push(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
     if !should_emit(w, ctx) {
+        writer_core::writer_set_linear_root_frame_local(w, 0 - 1)
         return
     }
+    let frame_local = ctx_scratch::SelfEmitCtx_linear_root_frame_local(ctx)
     emit_call(
         w,
         writer_core::writer_linear_gc_root_frame_enter_function_index(w)
     )
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_core::emit_leb128_u(w, ctx_scratch::SelfEmitCtx_linear_root_frame_local(ctx))
+    writer_core::emit_leb128_u(w, frame_local)
 
     let local_count = function_locals_view::MirFunction_local_count(f)
+    let mut slot_offsets = Vec::new<i32>()
+    let mut rank = 0
     let mut local_idx = 0
     while local_idx < local_count {
         if is_root_local(f, local_idx) {
+            push(slot_offsets, constants::LINEAR_GC_ROOT_SLOT_BYTES() * (rank + 1))
+            rank = rank + 1
             writer_core::emit_local_get(w, local_idx)
             emit_call(w, writer_core::writer_linear_gc_root_push_function_index(w))
             writer_core::emit_byte(w, opcodes::OP_DROP())
+        } else {
+            push(slot_offsets, 0 - 1)
         }
         local_idx = local_idx + 1
     }
+    writer_core::writer_set_linear_root_frame_local(w, frame_local)
+    writer_core::writer_set_linear_root_slot_offsets(w, slot_offsets)
 }
 
-fn emit_update_after_local_set(w: WasmWriter, ctx: SelfEmitCtx, local_idx: i32) {
-    if !should_emit(w, ctx) {
+// Mirrors a local.set/local.tee into the root slot installed by
+// emit_frame_enter_and_push. Writer-carried state keeps this ctx-free so the
+// generic store paths (inst_store, struct/array constructors, ref-cast
+// fallback, future copies) can call it without threading SelfEmitCtx.
+fn emit_update_after_local_set(w: WasmWriter, local_idx: i32) {
+    if writer_core::writer_linear_gc_root_update_function_index(w) < 0 ||
+    writer_core::writer_memory64(w) {
         return
     }
-    let f = ctx_record::SelfEmitCtx_function_at(
-        ctx,
-        ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    )
-    if !is_root_local(f, local_idx) {
+    let frame_local = writer_core::writer_linear_root_frame_local(w)
+    if frame_local < 0 {
         return
     }
-    writer_core::emit_local_get(w, ctx_scratch::SelfEmitCtx_linear_root_frame_local(ctx))
-    emit_i32_const(w, constants::LINEAR_GC_ROOT_SLOT_BYTES() * (root_local_rank(f, local_idx) + 1))
+    let slot_offset = writer_core::writer_linear_root_slot_offset(w, local_idx)
+    if slot_offset < 0 {
+        return
+    }
+    writer_core::emit_local_get(w, frame_local)
+    emit_i32_const(w, slot_offset)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_local_get(w, local_idx)
     emit_call(w, writer_core::writer_linear_gc_root_update_function_index(w))

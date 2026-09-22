@@ -4,6 +4,7 @@ use mir::opcodes
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::linear_root_lowering
 use wasm::writer_core
 use wasm::writer_gc
 
@@ -16,6 +17,7 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
             writer_core::emit_local_get(w, scrut_local)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
             writer_core::emit_leb128_u(w, dest)
+            linear_root_lowering::emit_update_after_local_set(w, dest)
             return true
         }
         let type_slot = inst_accessors_operands::MirInst_arg0(inst)
@@ -35,6 +37,7 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
             writer_core::emit_local_get(w, scrut_local)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
             writer_core::emit_leb128_u(w, dest)
+            linear_root_lowering::emit_update_after_local_set(w, dest)
             return true
         }
         let type_slot = inst_accessors_operands::MirInst_arg0(inst)

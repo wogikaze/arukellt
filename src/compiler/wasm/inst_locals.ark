@@ -28,7 +28,7 @@ fn emit_local_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     let dest = inst_accessors_operands::MirInst_arg0(inst)
     writer_core::emit_leb128_u(w, dest)
-    linear_root_lowering::emit_update_after_local_set(w, ctx, dest)
+    linear_root_lowering::emit_update_after_local_set(w, dest)
 }
 
 fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
