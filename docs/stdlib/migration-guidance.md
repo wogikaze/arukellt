@@ -31,10 +31,20 @@ Only these four public entries currently carry `deprecated_by` in
 | `concat` | `std::text::concat` |
 | `std::env::get_var` | `std::env::var` |
 | `std::host::fs::exists` | `std::host::fs::is_readable_file` |
+| `std::seq::map_i32_i32` | `v.iter().map(f).collect()` or `std::core::iter::collect_map_i32` |
+| `std::seq::filter_i32` | `v.iter().filter(f).collect()` or `std::core::iter::collect_filter_i32` |
+| `std::seq::take_i32` | `v.iter().take(n).collect()` or `std::core::iter::collect_take_i32` |
+| `std::seq::skip_i32` | `v.iter().skip(n).collect()` or `std::core::iter::collect_skip_i32` |
+| `std::seq::fold_i32_i32` | `v.iter().fold(init, f)` or `std::core::iter::iter_fold_i32` |
+| `std::seq::sum_i32` | `v.iter().sum()` or `std::core::iter::iter_sum_i32` |
 
-The `std::seq` helpers and the legacy `Vec_*` names are not in this list yet.
-They remain in their current stability tier until a callable replacement and a
-manifest-level deprecation target are available.
+The deprecated `std::seq` rows remain callable compatibility entries that
+delegate to the lazy `std::core::iter` pipeline (ADR-076). The remaining
+`std::seq` query helpers (`binary_search`, `min_i32`, `max_i32`,
+`seq_reverse`, `seq_contains`, `unique`, `count_eq`) and the legacy
+`Vec_*` names are not in this list yet; they stay in their current
+stability tier until a callable replacement and a manifest-level deprecation
+target are available.
 
 ## Iterator v2 status
 

@@ -42,7 +42,7 @@ path = "std/core/iter.ark"
 sha256 = "4c44fa2cfaf37d3a6ca318767d56c80ec9f61ea9bd96fbedd8189c93b347aed3"
 [[exceptions]]
 path = "std/seq/mod.ark"
-sha256 = "70966aac836c4bca588b1ff599b2de4089397306dcefafb597f7da7dd39a1546"
+sha256 = "95f5c173e87f0151374a00f56f6a3c11c62fd416bb81110ea47c9a819fa8a1c4"
 [[exceptions]]
 path = "std/toml.ark"
 sha256 = "3da0b6189f981b71a0b1826be9bbae537ae54665c2e92454b950f85c6cd67f59"

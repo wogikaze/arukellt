@@ -39,16 +39,15 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)
 - Manifest-backed functions: 13
-- Stability: stable 13
+- Stability: deprecated 6, stable 7
 
-Eager sequence helpers over `Vec<i32>`.
+Sequence helpers over `Vec<i32>`.
 
-Provides `map`, `filter`, `take`, `skip`, `fold` as functional stubs over
-`Vec<i32>`, alongside search (`binary_search`, `seq_contains`),
-aggregation (`min_i32`, `max_i32`, `sum_i32`), deduplication (`unique`),
-reversal (`seq_reverse`), and equality counting (`count_eq`).
-
-Lazy generic `Seq<T>` pipelines are deferred to a future release.
+`map`/`filter`/`take`/`skip`/`fold`/`sum` are deprecated
+compatibility entries that delegate to the lazy `std::core::iter`
+pipeline (ADR-076). Search (`binary_search`, `seq_contains`),
+aggregation (`min_i32`, `max_i32`), deduplication (`unique`),
+reversal (`seq_reverse`), and equality counting (`count_eq`) remain.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -56,15 +55,15 @@ Lazy generic `Seq<T>` pipelines are deferred to a future release.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | ✅ functional | Apply f to every element of v and collect the results. |
-| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `stable` | ✅ functional | Keep only elements of v for which f returns true. |
-| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return the first n elements of v. |
-| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return all elements of v after skipping the first n. |
-| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `stable` | ✅ functional | Reduce v to a single value using f, starting from init. |
+| ~~`map_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_map_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `deprecated` | ✅ functional | Apply f to every element of v and collect the results. |
+| ~~`filter_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `deprecated` | ✅ functional | Keep only elements of v for which f returns true. |
+| ~~`take_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return the first n elements of v. |
+| ~~`skip_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `deprecated` | ✅ functional | Return all elements of v after skipping the first n. |
+| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_fold_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `deprecated` | ✅ functional | Reduce v to a single value using f, starting from init. |
 | `binary_search` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
 | `max_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `sum_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| ~~`sum_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_sum_i32` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
 | `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | - |
 | `seq_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
 | `unique` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | - |
@@ -72,20 +71,26 @@ Lazy generic `Seq<T>` pipelines are deferred to a future release.
 
 #### `std::seq::map_i32_i32`
 
-Apply f to every element of v and collect the results.
+Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect() or std::core::iter::collect_map_i32(v, f).
 
 #### `std::seq::filter_i32`
 
-Keep only elements of v for which f returns true.
+Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect() or std::core::iter::collect_filter_i32(v, f).
 
 #### `std::seq::take_i32`
 
-Return the first n elements of v.
+Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collect_take_i32(v, n).
 
 #### `std::seq::skip_i32`
 
-Return all elements of v after skipping the first n.
+Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect() or std::core::iter::collect_skip_i32(v, n).
 
 #### `std::seq::fold_i32_i32`
 
-Reduce v to a single value using f, starting from init.
+Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f) or std::core::iter::iter_fold_i32(v, init, f).
+
+#### `std::seq::sum_i32`
+
+Deprecated eager helper. Use the IteratorSum capability v.iter().sum() or std::core::iter::iter_sum_i32(v).
+
+> ⚠️ **6 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

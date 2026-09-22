@@ -1,11 +1,10 @@
-//! Eager sequence helpers over `Vec<i32>`.
+//! Sequence helpers over `Vec<i32>`.
 //!
-//! Provides `map`, `filter`, `take`, `skip`, `fold` as functional stubs over
-//! `Vec<i32>`, alongside search (`binary_search`, `seq_contains`),
-//! aggregation (`min_i32`, `max_i32`, `sum_i32`), deduplication (`unique`),
-//! reversal (`seq_reverse`), and equality counting (`count_eq`).
-//!
-//! Lazy generic `Seq<T>` pipelines are deferred to a future release.
+//! `map`/`filter`/`take`/`skip`/`fold`/`sum` are deprecated
+//! compatibility entries that delegate to the lazy `std::core::iter`
+//! pipeline (ADR-076). Search (`binary_search`, `seq_contains`),
+//! aggregation (`min_i32`, `max_i32`), deduplication (`unique`),
+//! reversal (`seq_reverse`), and equality counting (`count_eq`) remain.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -100,14 +99,7 @@ pub fn max_i32(v: Vec<i32>) -> i32 {
 }
 
 pub fn sum_i32(v: Vec<i32>) -> i32 {
-    let n: i32 = len(v)
-    let mut total: i32 = 0
-    let mut i: i32 = 0
-    while i < n {
-        total = total + get_unchecked(v, i)
-        i = i + 1
-    }
-    total
+    iter::iter_sum_i32(v)
 }
 
 pub fn seq_reverse(v: Vec<i32>) -> Vec<i32> {

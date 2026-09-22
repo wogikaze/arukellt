@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 749
-- **Historical/deprecated names:** 4
-- **Total entries:** 753
+- **Canonical names:** 773
+- **Historical/deprecated names:** 10
+- **Total entries:** 783
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -145,6 +145,7 @@ Current public API names, sorted alphabetically.
 | `bytes_slice` | `std::bytes` | `stable` | Bytes |
 | `canonical_abi_version` | `std::component` | `experimental` | Component |
 | `ceil` | `std::simd::f32x4` | `experimental` | Simd |
+| `chain_iter` | `std::core::iter` | `provisional` | Iter |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `chars` | `std::text` | `stable` | Text |
 | `clamp_i32` | `prelude` | `stable` | Math |
@@ -153,6 +154,21 @@ Current public API names, sorted alphabetically.
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `cmp_i32` | `std::core` | `stable` | Core |
 | `codepoint_at` | `std::text` | `stable` | Text |
+| `collect_chain_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_chain_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_filter_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_filter_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_map_filter_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_map_filter_take_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_map_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_map_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_range_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_range_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_skip_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_skip_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_take_i32` | `std::core::iter` | `provisional` | Iter |
+| `collect_take_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_vec_iter` | `std::core::iter` | `provisional` | Iter |
 | `combine` | `std::core::hash` | `stable` | Core |
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `components` | `std::path` | `stable` | Path |
@@ -194,6 +210,7 @@ Current public API names, sorted alphabetically.
 | `duration_us` | `std::time` | `stable` | Time |
 | `ends_with` | `prelude` | `stable` | String |
 | `ends_with` | `std::text` | `stable` | Text |
+| `enumerate_iter` | `std::core::iter` | `provisional` | Iter |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
 | `eq` | `std::simd::f32x4` | `experimental` | Simd |
@@ -233,8 +250,8 @@ Current public API names, sorted alphabetically.
 | `fill_buffer` | `std::io` | `stable` | Io |
 | `filter_f64` | `prelude` | `stable` | Collections |
 | `filter_i32` | `prelude` | `provisional` | Collections |
-| `filter_i32` | `std::seq` | `stable` | Seq |
 | `filter_i64` | `prelude` | `stable` | Collections |
+| `filter_iter` | `std::core::iter` | `provisional` | Iter |
 | `filter_String` | `prelude` | `stable` | Collections |
 | `find_f64` | `prelude` | `stable` | Collections |
 | `find_i32` | `prelude` | `stable` | Collections |
@@ -248,7 +265,6 @@ Current public API names, sorted alphabetically.
 | `flush` | `std::io` | `stable` | Io |
 | `fold_f64_f64` | `prelude` | `stable` | Collections |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
-| `fold_i32_i32` | `std::seq` | `stable` | Seq |
 | `fold_i64_i64` | `prelude` | `stable` | Collections |
 | `format_bool` | `std::text` | `stable` | Text |
 | `format_f64` | `std::text` | `stable` | Text |
@@ -381,6 +397,11 @@ Current public API names, sorted alphabetically.
 | `is_readable_file` | `std::host::fs` | `stable` | Host Fs |
 | `is_some` | `prelude` | `stable` | Option Result |
 | `is_string` | `std::json` | `experimental` | Json |
+| `iter_all_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_any_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_count_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_fold_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_sum_i32` | `std::core::iter` | `provisional` | Iter |
 | `join` | `prelude` | `stable` | String |
 | `join` | `std::text` | `stable` | Text |
 | `join` | `std::path` | `stable` | Path |
@@ -424,8 +445,8 @@ Current public API names, sorted alphabetically.
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
 | `map_i32_i32` | `prelude` | `stable` | Collections |
-| `map_i32_i32` | `std::seq` | `stable` | Seq |
 | `map_i64_i64` | `prelude` | `stable` | Collections |
+| `map_iter` | `std::core::iter` | `provisional` | Iter |
 | `map_option_i32_i32` | `prelude` | `stable` | Option Result |
 | `map_option_String_String` | `prelude` | `stable` | Option Result |
 | `map_result_i32_i32` | `prelude` | `stable` | Option Result |
@@ -526,7 +547,9 @@ Current public API names, sorted alphabetically.
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
 | `range_contains` | `std::core` | `stable` | Core |
 | `range_inclusive_contains` | `std::core` | `stable` | Core |
+| `range_inclusive_iter` | `std::core::iter` | `provisional` | Iter |
 | `range_inclusive_new` | `std::core` | `stable` | Core |
+| `range_iter` | `std::core::iter` | `provisional` | Iter |
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
@@ -591,7 +614,7 @@ Current public API names, sorted alphabetically.
 | `shr_u` | `std::simd::i32x4` | `experimental` | Simd |
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
-| `skip_i32` | `std::seq` | `stable` | Seq |
+| `skip_iter` | `std::core::iter` | `provisional` | Iter |
 | `skip_ws` | `std::json` | `experimental` | Json |
 | `slice` | `prelude` | `stable` | String |
 | `slice_bytes` | `std::text` | `stable` | Text |
@@ -651,8 +674,7 @@ Current public API names, sorted alphabetically.
 | `sub` | `std::simd::u64x2` | `experimental` | Simd |
 | `substring` | `prelude` | `stable` | String |
 | `sum_i32` | `prelude` | `stable` | Collections |
-| `sum_i32` | `std::seq` | `stable` | Seq |
-| `take_i32` | `std::seq` | `stable` | Seq |
+| `take_iter` | `std::core::iter` | `provisional` | Iter |
 | `tau` | `std::signal` | `stable` | Signal |
 | `to_lower` | `prelude` | `stable` | String |
 | `to_lower` | `std::text` | `stable` | Text |
@@ -726,6 +748,7 @@ Current public API names, sorted alphabetically.
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
+| `vec_iter` | `std::core::iter` | `provisional` | Iter |
 | `Vec_with_capacity_i32` | `prelude` | `stable` | Collections |
 | `Vec_with_capacity_String` | `prelude` | `stable` | Collections |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
@@ -770,6 +793,7 @@ Current public API names, sorted alphabetically.
 | `zero` | `std::simd::u32x4` | `experimental` | Simd |
 | `zero` | `std::simd::u64x2` | `experimental` | Simd |
 | `zeros` | `std::signal` | `stable` | Signal |
+| `zip_iter` | `std::core::iter` | `provisional` | Iter |
 
 ---
 
@@ -782,7 +806,13 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`char_at`~~ | `byte_at` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
+| ~~`filter_i32`~~ | `std::core::iter::collect_filter_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`fold_i32_i32`~~ | `std::core::iter::iter_fold_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
+| ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`sum_i32`~~ | `std::core::iter::iter_sum_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`take_i32`~~ | `std::core::iter::collect_take_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 
 ---
 
@@ -916,6 +946,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bytes_slice` | ✅ `stable` | `std::bytes` | Bytes |
 | `canonical_abi_version` | ✅ `experimental` | `std::component` | Component |
 | `ceil` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `chain_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | ~~`char_at`~~ | ⚠️ deprecated | `prelude` | → `byte_at` · [migration guide](migration-guidance.md) |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `chars` | ✅ `stable` | `std::text` | Text |
@@ -925,6 +956,21 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `codepoint_at` | ✅ `stable` | `std::text` | Text |
+| `collect_chain_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_chain_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_filter_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_filter_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_map_filter_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_map_filter_take_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_map_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_map_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_range_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_range_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_skip_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_skip_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_take_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_take_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_vec_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `components` | ✅ `stable` | `std::path` | Path |
@@ -967,6 +1013,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `duration_us` | ✅ `stable` | `std::time` | Time |
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `ends_with` | ✅ `stable` | `std::text` | Text |
+| `enumerate_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
 | `eq` | ✅ `experimental` | `std::simd::f32x4` | Simd |
@@ -1007,8 +1054,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fill_buffer` | ✅ `stable` | `std::io` | Io |
 | `filter_f64` | ✅ `stable` | `prelude` | Collections |
 | `filter_i32` | ✅ `provisional` | `prelude` | Collections |
-| `filter_i32` | ✅ `stable` | `std::seq` | Seq |
+| ~~`filter_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::collect_filter_i32` · [migration guide](migration-guidance.md) |
 | `filter_i64` | ✅ `stable` | `prelude` | Collections |
+| `filter_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `filter_String` | ✅ `stable` | `prelude` | Collections |
 | `find_f64` | ✅ `stable` | `prelude` | Collections |
 | `find_i32` | ✅ `stable` | `prelude` | Collections |
@@ -1022,7 +1070,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
-| `fold_i32_i32` | ✅ `stable` | `std::seq` | Seq |
+| ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_fold_i32` · [migration guide](migration-guidance.md) |
 | `fold_i64_i64` | ✅ `stable` | `prelude` | Collections |
 | `format_bool` | ✅ `stable` | `std::text` | Text |
 | `format_f64` | ✅ `stable` | `std::text` | Text |
@@ -1156,6 +1204,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_readable_file` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
 | `is_string` | ✅ `experimental` | `std::json` | Json |
+| `iter_all_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_any_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_count_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_fold_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_sum_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `join` | ✅ `stable` | `prelude` | String |
 | `join` | ✅ `stable` | `std::text` | Text |
 | `join` | ✅ `stable` | `std::path` | Path |
@@ -1199,8 +1252,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `map_i32_i32` | ✅ `stable` | `prelude` | Collections |
-| `map_i32_i32` | ✅ `stable` | `std::seq` | Seq |
+| ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::collect_map_i32` · [migration guide](migration-guidance.md) |
 | `map_i64_i64` | ✅ `stable` | `prelude` | Collections |
+| `map_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `map_option_i32_i32` | ✅ `stable` | `prelude` | Option Result |
 | `map_option_String_String` | ✅ `stable` | `prelude` | Option Result |
 | `map_result_i32_i32` | ✅ `stable` | `prelude` | Option Result |
@@ -1301,7 +1355,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
 | `range_contains` | ✅ `stable` | `std::core` | Core |
 | `range_inclusive_contains` | ✅ `stable` | `std::core` | Core |
+| `range_inclusive_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `range_inclusive_new` | ✅ `stable` | `std::core` | Core |
+| `range_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
@@ -1366,7 +1422,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `shr_u` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
-| `skip_i32` | ✅ `stable` | `std::seq` | Seq |
+| ~~`skip_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::collect_skip_i32` · [migration guide](migration-guidance.md) |
+| `skip_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `skip_ws` | ✅ `experimental` | `std::json` | Json |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `slice_bytes` | ✅ `stable` | `std::text` | Text |
@@ -1426,8 +1483,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sub` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `substring` | ✅ `stable` | `prelude` | String |
 | `sum_i32` | ✅ `stable` | `prelude` | Collections |
-| `sum_i32` | ✅ `stable` | `std::seq` | Seq |
-| `take_i32` | ✅ `stable` | `std::seq` | Seq |
+| ~~`sum_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_sum_i32` · [migration guide](migration-guidance.md) |
+| ~~`take_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::collect_take_i32` · [migration guide](migration-guidance.md) |
+| `take_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `tau` | ✅ `stable` | `std::signal` | Signal |
 | `to_lower` | ✅ `stable` | `prelude` | String |
 | `to_lower` | ✅ `stable` | `std::text` | Text |
@@ -1501,6 +1559,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
+| `vec_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1545,3 +1604,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `zero` | ✅ `experimental` | `std::simd::u32x4` | Simd |
 | `zero` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |
+| `zip_iter` | ✅ `provisional` | `std::core::iter` | Iter |
