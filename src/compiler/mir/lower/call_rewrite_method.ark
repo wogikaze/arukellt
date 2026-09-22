@@ -54,6 +54,16 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
         return bare_method
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    // hashmap:<pair> receivers register trait impls under the concrete pair
+    // owner (HashMap_String_i32::into_iter), not the bare HashMap inherent
+    // owner. Try the pair symbol first; fall through when no impl exists.
+    let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(arg_type))
+    if len(pair_owner) > 0 {
+        let pair_candidate = concat(clone(pair_owner), concat("::", clone(bare_method)))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(pair_candidate)) {
+            return pair_candidate
+        }
+    }
     let mut bare_type = mir_bare_receiver_type_name(clone(arg_type))
     if method_resolve::mir_is_vec_string_iteration_method(clone(bare_method)) &&
     method_resolve::mir_is_vec_string_type(clone(arg_type)) {

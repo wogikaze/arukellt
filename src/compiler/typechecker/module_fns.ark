@@ -131,5 +131,24 @@ fn impl_self_type_name(decl: AstNode) -> String {
             return String_from("Vec_String")
         }
     }
+    // Concrete HashMap<K, V> impls need a per-pair owner name so each impl
+    // method registers a unique HashMap_K_V::method symbol. Generic impl
+    // heads (HashMap<K, V> with type params) keep the bare HashMap owner.
+    if eq(clone(target_name), String_from("HashMap")) &&
+    ast_access::node_child_count(target) > 2 {
+        let key_node = ast_access::node_child_at(target, 1)
+        let value_node = ast_access::node_child_at(target, 2)
+        let key_name = ast_access::node_text(key_node)
+        let value_name = ast_access::node_text(value_node)
+        if ast_access::node_kind_is(key_node, kinds::NK_TYPE_NAMED()) &&
+        ast_access::node_kind_is(value_node, kinds::NK_TYPE_NAMED()) &&
+        !is_impl_type_param_name(clone(key_name)) &&
+        !is_impl_type_param_name(clone(value_name)) {
+            return concat(
+                String_from("HashMap_"),
+                concat(clone(key_name), concat(String_from("_"), clone(value_name)))
+            )
+        }
+    }
     target_name
 }

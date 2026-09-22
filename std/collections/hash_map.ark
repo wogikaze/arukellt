@@ -12,6 +12,7 @@ use std::collections::hash
 use std::collections::hash_fn
 use std::collections::hash_string
 use std::collections::hash_str_fn
+use std::core::iter
 
 /// Create a new HashMap<i32, i32> (alias for HashMap_i32_i32_new).
 pub fn hashmap_i32_i32_new() -> HashMap<i32, i32> {
@@ -51,6 +52,12 @@ pub fn hashmap_i32_i32_is_empty(m: HashMap<i32, i32>) -> bool {
     HashMap_i32_i32_len(m) == 0
 }
 
+/// Return a Vec<i32> of all keys currently in a HashMap<i32, i32>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_i32_keys(m: HashMap<i32, i32>) -> Vec<i32> {
+    HashMap_i32_i32_keys(m)
+}
+
 /// Create a new HashMap<String, i32>.
 pub fn hashmap_str_i32_new() -> HashMap<String, i32> {
     hash_string::hashmap_str_i32_new()
@@ -86,6 +93,12 @@ pub fn hashmap_str_i32_len(m: HashMap<String, i32>) -> i32 {
 /// Returns true if the HashMap<String, i32> has no entries.
 pub fn hashmap_str_i32_is_empty(m: HashMap<String, i32>) -> bool {
     hash_string::hashmap_str_len(m) == 0
+}
+
+/// Return a Vec<String> of all keys currently in a HashMap<String, i32>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
+    hash_string::hashmap_str_i32_keys(m)
 }
 
 /// Create a new HashMap<i32, String>.
@@ -127,6 +140,12 @@ pub fn hashmap_i32_str_is_empty(m: HashMap<i32, String>) -> bool {
     __hm_is_size(m) == 0
 }
 
+/// Return a Vec<i32> of all keys currently in a HashMap<i32, String>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
+    hash_string::hashmap_i32_str_keys(m)
+}
+
 /// Create a new HashMap<String, String>.
 pub fn hashmap_str_str_new() -> HashMap<String, String> {
     hash_string::hashmap_str_str_new()
@@ -163,6 +182,12 @@ pub fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
 /// Returns true if the HashMap<String, String> has no entries.
 pub fn hashmap_str_str_is_empty(m: HashMap<String, String>) -> bool {
     __hm_ss_size(m) == 0
+}
+
+/// Return a Vec<String> of all keys currently in a HashMap<String, String>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
+    hash_string::hashmap_str_str_keys(m)
 }
 
 /// Create a new HashMap<i32, fn(i32) -> i32>.
@@ -273,6 +298,46 @@ impl HashMap<K, V> {
 
     fn is_empty(self) -> bool {
         self.is_empty()
+    }
+}
+
+// For-in over a concrete map converts through these impls. Each one
+// snapshots the occupied keys into a Vec and reuses the matching Vec
+// iterator, so both backends share the same source-level meaning without a
+// map-specific iterator state type.
+impl IntoIterator for HashMap<i32, i32> {
+    type Item = i32
+    type IntoIter = VecIter
+
+    fn into_iter(self: HashMap<i32, i32>) -> VecIter {
+        hashmap_i32_i32_keys(self).iter()
+    }
+}
+
+impl IntoIterator for HashMap<String, i32> {
+    type Item = String
+    type IntoIter = StringIter
+
+    fn into_iter(self: HashMap<String, i32>) -> StringIter {
+        hashmap_str_i32_keys(self).iter()
+    }
+}
+
+impl IntoIterator for HashMap<i32, String> {
+    type Item = i32
+    type IntoIter = VecIter
+
+    fn into_iter(self: HashMap<i32, String>) -> VecIter {
+        hashmap_i32_str_keys(self).iter()
+    }
+}
+
+impl IntoIterator for HashMap<String, String> {
+    type Item = String
+    type IntoIter = StringIter
+
+    fn into_iter(self: HashMap<String, String>) -> StringIter {
+        hashmap_str_str_keys(self).iter()
     }
 }
 

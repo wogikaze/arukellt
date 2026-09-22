@@ -66,6 +66,18 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
         }
+        // Concrete HashMap pairs only own trait impls (for example
+        // HashMap_i32_i32::into_iter); inherent methods such as get/insert
+        // stay on the generic HashMap<K, V> shell. Retry the bare owner so
+        // pair receivers keep resolving the canonical API.
+        if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_HASHMAP() &&
+        !eq(clone(recv_type_name), String_from("HashMap")) {
+            let shell = concat(String_from("HashMap::"), clone(method_name))
+            let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
+            if contract_fn_sig::FnSig_has_name(shell_sig) {
+                return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
+            }
+        }
     }
     let builtin_vec_return = infer_builtin_vec_method(
         env,
@@ -349,6 +361,25 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
         return String_from("Vec")
     }
     if tag == commands::TY_HASHMAP() {
+        // Concrete pairs own their trait impls under HashMap_K_V (for
+        // example HashMap_String_i32::into_iter). Inherent methods stay on
+        // the generic HashMap<K, V> shell, so the lookup site retries the
+        // bare HashMap owner when the pair symbol is absent. Type variables
+        // and fn-valued pairs keep the bare HashMap owner.
+        if contract_type_access::TypeInfo_type_arg_count(ty) >= 2 {
+            let key_name = type_name_for_mangling(
+                contract_type_access::TypeInfo_type_arg_at(ty, 0)
+            )
+            let value_name = type_name_for_mangling(
+                contract_type_access::TypeInfo_type_arg_at(ty, 1)
+            )
+            if len(key_name) > 0 && len(value_name) > 0 {
+                return concat(
+                    String_from("HashMap_"),
+                    concat(clone(key_name), concat(String_from("_"), clone(value_name)))
+                )
+            }
+        }
         return String_from("HashMap")
     }
     if tag == commands::TY_STRUCT() {

@@ -1748,6 +1748,7 @@ run:stdlib_trait/iterator_filter_none_pass.ark
 run:stdlib_trait/iterator_fold_empty.ark
 run:stdlib_trait/iterator_fold_product.ark
 run:stdlib_trait/iterator_fold_sum.ark
+run:stdlib_trait/iterator_hashmap_keys.ark
 run:stdlib_trait/iterator_map_basic.ark
 run:stdlib_trait/iterator_map_empty.ark
 run:stdlib_trait/iterator_map_filter_pipeline.ark

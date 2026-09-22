@@ -63,6 +63,9 @@ fn hashmap_i32_i32_builtin_alias(name: String) -> String {
     if eq(clone(name), "HashMap_i32_i32_len") {
         return "hashmap_size"
     }
+    if eq(clone(name), "HashMap_i32_i32_keys") {
+        return "hashmap_keys"
+    }
     clone(name)
 }
 
@@ -84,6 +87,9 @@ fn hashmap_i32_string_builtin_alias(name: String) -> String {
     }
     if eq(clone(name), "HashMap_i32_String_len") {
         return "hash_string::hashmap_i32_str_len"
+    }
+    if eq(clone(name), "HashMap_i32_String_keys") {
+        return "hash_string::hashmap_i32_str_keys"
     }
     clone(name)
 }
@@ -151,6 +157,9 @@ fn hashmap_string_i32_builtin_alias(name: String) -> String {
     if eq(clone(name), "HashMap_String_i32_len") {
         return "hash_string::hashmap_str_len"
     }
+    if eq(clone(name), "HashMap_String_i32_keys") {
+        return "hash_string::hashmap_str_i32_keys"
+    }
     clone(name)
 }
 
@@ -172,6 +181,9 @@ fn hashmap_string_string_builtin_alias(name: String) -> String {
     }
     if eq(clone(name), "HashMap_String_String_len") {
         return "hash_string::hashmap_str_str_len"
+    }
+    if eq(clone(name), "HashMap_String_String_keys") {
+        return "hash_string::hashmap_str_str_keys"
     }
     clone(name)
 }

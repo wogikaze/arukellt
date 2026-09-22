@@ -122,6 +122,27 @@ fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
     eq(clone(type_name), String_from("StringSkipFilterIter"))
 }
 
+// Concrete HashMap<K, V> locals carry the hashmap:<pair> or HashMap_K_V
+// spelling. Map each supported pair to the impl owner that registers its
+// trait impl methods (for example HashMap_String_i32::into_iter).
+// Function-valued maps stay unmapped so the typecheck boundary keeps
+// reporting them as unsupported.
+fn mir_hashmap_impl_owner_name(type_name: String) -> String {
+    if eq(clone(type_name), "hashmap:i32i32") || eq(clone(type_name), "HashMap_i32_i32") {
+        return String_from("HashMap_i32_i32")
+    }
+    if eq(clone(type_name), "hashmap:si32") || eq(clone(type_name), "HashMap_String_i32") {
+        return String_from("HashMap_String_i32")
+    }
+    if eq(clone(type_name), "hashmap:i32str") || eq(clone(type_name), "HashMap_i32_String") {
+        return String_from("HashMap_i32_String")
+    }
+    if eq(clone(type_name), "hashmap:strstr") || eq(clone(type_name), "HashMap_String_String") {
+        return String_from("HashMap_String_String")
+    }
+    String_from("")
+}
+
 fn mir_resolve_short_method_name(ctx: LowerCtx, name: String) -> String {
     let norm = mir_normalize_type_name(clone(name))
     let exact = ctx_fn_index::ctx_fn_index_find(ctx, clone(norm))

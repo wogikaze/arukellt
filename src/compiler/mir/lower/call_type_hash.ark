@@ -173,6 +173,27 @@ fn is_hash_vec_i32_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash::hashmap_keys") {
         return true
     }
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "HashMap_i32_String_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_str_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_keys") {
+        return true
+    }
     if callee_eq(clone(callee_name), "hashmap_values") {
         return true
     }
@@ -231,6 +252,31 @@ fn is_hash_vec_i32_result(callee_name: String) -> bool {
         return true
     }
     callee_eq(callee_name, "hash::hashset_difference")
+}
+
+fn is_hash_vec_string_result(callee_name: String) -> bool {
+    if callee_eq(clone(callee_name), "hashmap_str_i32_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hashmap_str_str_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_str_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_map::hashmap_str_str_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "HashMap_String_i32_keys") {
+        return true
+    }
+    callee_eq(callee_name, "HashMap_String_String_keys")
 }
 
 fn is_option_i32_hash_query(callee_name: String) -> bool {
@@ -477,6 +523,9 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     }
     if is_hash_vec_i32_result(clone(callee_name)) {
         mark_hash_type_ref(ctx, dest, "vec:i32")
+    }
+    if is_hash_vec_string_result(clone(callee_name)) {
+        mark_hash_type_ref(ctx, dest, "vec:String")
     }
     if callee_eq(clone(callee_name), "hashset_str_new") || callee_eq(clone(callee_name), "hash_map::hashset_str_new") {
         mark_hash_type_ref(ctx, dest, "vec:String")
