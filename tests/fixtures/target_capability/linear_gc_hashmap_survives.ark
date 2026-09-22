@@ -1,0 +1,45 @@
+use std::test
+
+// #874 / ADR-075: a linear HashMap<String,String> keeps its flat slot
+// array inside the managed Vec<i32> backing, so keys and values are
+// tracked records reachable through conservative transitive marking.
+// Entries inserted before (and during) the churn loop must still resolve
+// after the watermark-gated collections that fire inside churn's entry.
+
+fn churn(slots: i32) -> i32 {
+    let mut junk: Vec<i32> = Vec::with_capacity<i32>(slots)
+    push(junk, slots)
+    len(junk)
+}
+
+fn main() {
+    let m = HashMap_new_String_String()
+    HashMap_String_String_insert(m, concat("gree", "ting"), concat("hel", "lo"))
+    HashMap_String_String_insert(m, "farewell", "goodbye")
+    HashMap_String_String_insert(m, "color", "red")
+    HashMap_String_String_insert(m, "color", "blue")
+
+    let mut i = 0
+    while i < 160 {
+        let _n = churn(262144)
+        if i == 80 {
+            HashMap_String_String_insert(m, "late", concat("va", "lue"))
+        }
+        i = i + 1
+    }
+
+    test::assert_eq_i32(HashMap_String_String_len(m), 4)
+    match HashMap_String_String_get(m, concat("gree", "ting")) {
+        Option::Some(v) => test::assert_eq_string(v, "hello"),
+        None => panic("expected Some(hello)"),
+    }
+    match HashMap_String_String_get(m, "color") {
+        Option::Some(v) => test::assert_eq_string(v, "blue"),
+        None => panic("expected Some(blue)"),
+    }
+    match HashMap_String_String_get(m, "late") {
+        Option::Some(v) => test::assert_eq_string(v, "value"),
+        None => panic("expected Some(value)"),
+    }
+    test::assert_true(HashMap_String_String_contains_key(m, "farewell"))
+}

@@ -1,4 +1,8 @@
 fn hashmap_builtin_alias(name: String) -> String {
+    let internal = hashmap_internal_builtin_alias(clone(name))
+    if !eq(clone(internal), clone(name)) {
+        return internal
+    }
     let i32_i32 = hashmap_i32_i32_builtin_alias(clone(name))
     if !eq(clone(i32_i32), clone(name)) {
         return i32_i32
@@ -22,6 +26,20 @@ fn hashmap_builtin_alias(name: String) -> String {
     let string_string = hashmap_string_string_builtin_alias(clone(name))
     if !eq(clone(string_string), clone(name)) {
         return string_string
+    }
+    clone(name)
+}
+
+// The __hm_*_new builtins lower to an inline GC struct on wasm32-gc but
+// to a call of the flat Vec<i32> hashmap_new constructor on linear
+// targets. Reachability must retain that body: nothing in Ark source
+// calls it by name, so without this edge the pruner drops it and the
+// emitted call index resolves to an import.
+fn hashmap_internal_builtin_alias(name: String) -> String {
+    if eq(clone(name), "__hm_si_new") ||
+    eq(clone(name), "__hm_is_new") ||
+    eq(clone(name), "__hm_ss_new") {
+        return "hashmap_new"
     }
     clone(name)
 }

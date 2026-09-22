@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark"
 COLLECT_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_entry_collect.ark"
+HASHMAP_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_hashmap_survives.ark"
 FUNCTION_DEFINITION = re.compile(r"^\s+\(func .*?\(;([0-9]+);\)", re.MULTILINE)
 MAIN_DEFINITION = re.compile(r"^\s+\(func \$main \(;([0-9]+);\)", re.MULTILINE)
 GLOBAL_DEFINITION = re.compile(r"^\s+\(global \(;", re.MULTILINE)
@@ -276,35 +277,38 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
         self.assertEqual(stdout.strip().splitlines()[-1], "1", stdout)
 
     def test_source_level_live_data_survives_entry_collection(self) -> None:
-        artifact = self.compile_linear_fixture(
-            COLLECT_FIXTURE,
-            "linear_gc_entry_collect.wasm",
-        )
-        wat = self.print_artifact(artifact)
-        self.assertNotIn("struct.", wat)
-        self.assertNotIn("array.", wat)
-        # The fixture allocates ~160 MiB of Vec garbage across 160 calls,
-        # so the 64 MiB entry gate must have fired at least twice while the
-        # kept strings stayed reachable through main's root slots. The
-        # in-source assertions panic on any corruption; exit 0 proves the
-        # collector preserved live data reachable via transitive marking.
-        executed = subprocess.run(
-            [
-                "wasmtime",
-                "run",
-                "--wasm",
-                "gc",
-                "--wasm",
-                "function-references",
-                "--dir=.",
-                str(artifact),
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(executed.returncode, 0, executed.stderr)
+        for fixture, output_name in (
+            (COLLECT_FIXTURE, "linear_gc_entry_collect.wasm"),
+            (HASHMAP_FIXTURE, "linear_gc_hashmap_survives.wasm"),
+        ):
+            with self.subTest(fixture=fixture.name):
+                artifact = self.compile_linear_fixture(fixture, output_name)
+                wat = self.print_artifact(artifact)
+                self.assertNotIn("struct.", wat)
+                self.assertNotIn("array.", wat)
+                # Each fixture allocates ~160 MiB of garbage across 160
+                # calls, so the 64 MiB entry gate must have fired at least
+                # twice while the kept strings stayed reachable through
+                # main's root slots. The in-source assertions panic on any
+                # corruption; exit 0 proves the collector preserved live
+                # data reachable via transitive marking.
+                executed = subprocess.run(
+                    [
+                        "wasmtime",
+                        "run",
+                        "--wasm",
+                        "gc",
+                        "--wasm",
+                        "function-references",
+                        "--dir=.",
+                        str(artifact),
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(executed.returncode, 0, executed.stderr)
 
     def test_function_entry_collects_when_watermark_exceeds_threshold(self) -> None:
         artifact = self.compile_linear_fixture()
