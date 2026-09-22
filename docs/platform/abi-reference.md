@@ -27,7 +27,7 @@ Arukellt が Component Model export で使用する WIT 型と、
 | 14 | `list<T>` | `Vec<T>` | linear-memory Vec header ptr | `(i32, i32)` ptr+len | ✅ fixture pass | `export_list.ark` | `list<s32>` fixture-specific adapter |
 | 14 | `flags` | struct (bool fields) | GC struct ref | bitmask u32 | ❌ E0401 | `export_flags.ark` | 専用型なし; E0400 予約済み |
 | 15 | `resource` | struct (handle) | GC struct ref | i32 handle index | ❌ E0401 | `export_resource.ark` | 専用型なし; E0402 予約済み |
-| 16 | multi-export | 複数 `pub fn` | — | — | ✅ pass | `multi_export.ark` | 複数関数 export |
+| 16 | multi-export | 複数 `export fn` | — | — | ✅ pass | `multi_export.ark` | 複数関数 export |
 
 ## ステータス凡例
 

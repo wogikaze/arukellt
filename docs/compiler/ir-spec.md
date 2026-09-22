@@ -682,7 +682,7 @@ struct MirFunction {
     enum_typed_locals: HashMap<u32, String>,    // local id → enum type name
     type_params: Vec<String>,                   // empty for non-generic functions
     source: SourceInfo,
-    is_exported: bool,                          // true for `pub fn` declarations
+    is_exported: bool,                          // true for `export fn` declarations
 }
 
 struct FnId(pub u32);

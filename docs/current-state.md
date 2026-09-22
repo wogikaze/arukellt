@@ -4,7 +4,7 @@
 > including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-07-22.
+> Updated: 2026-09-22.
 > Generated-At: 2026-07-15
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
@@ -75,10 +75,14 @@ linear compilation paths; the positive runtime outputs are `borrow:3` and
 `move:4` on both targets.
 
 Escaping managed closure-environment lowering is still owned by #872/#874.
-The committed pinned bootstrap predates generic enum payload support, so the
-canonical pinned `selfhost build-compiler` path still needs the bootstrap
-refresh/migration work tracked by the v2 migration and final-audit issues; the
-targeted #855 receipt uses the locally generated current selfhost artifact.
+The committed pinned bootstrap predates generic enum payload support and cannot
+typecheck the current generic enum `Box` / `Slice` prelude directly. The
+canonical `selfhost build-compiler` command now succeeds through a guarded,
+source-only structural overlay in the isolated bootstrap workspace; the
+checked-in prelude and user artifacts are unchanged. The pinned bootstrap
+refresh/fixpoint and migration work tracked by the v2 migration and final-audit
+issues are still pending; the targeted #855 receipt uses the locally generated
+current selfhost artifact.
 
 ### Language v2 trait core (#856 / ADR-062)
 
@@ -110,9 +114,30 @@ Parser and IR recovery states remain compiler-internal. A source-level
 `struct Error` or `enum Error` is a normal nominal type, covered by the
 `question_mark/user_error_type.ark` fixture. The conversion diagnostics and
 the user `Error` fixture are checked against the same typechecker result for
-`wasm32-gc` and the `wasm32` linear-memory fallback. The broader `Error` trait
-ecosystem remains dependent on #694; the canonical pinned bootstrap rebuild
-still has the pre-existing #854 generic-enum mismatch.
+`wasm32-gc` and the `wasm32` linear-memory fallback. The `Error` trait
+ecosystem is implemented by #694 / ADR-064. The pinned stage-0 compiler still
+has the #854 generic-enum limitation when invoked directly; the canonical
+build command uses the guarded source-only overlay until the pinned bootstrap
+is refreshed.
+
+### Language v2 Error trait ecosystem (#694 / ADR-064)
+
+`std::error::Error` is now a provisional static-dispatch trait with the
+`Display` supertrait and `source(self: Error) -> Option<String>`. The source
+method returns a rendered immediate cause because the current ABI has no typed
+dynamic trait-object representation; `dyn Error` is therefore rejected rather
+than inferred. This trait is distinct from the stable `std::core::error::Error`
+enum.
+
+`String` and `std::io::IoError` implement the trait. Applications can define an
+`AppError` enum with `From<IoError>` and `From<String>` implementations and use
+`?` to propagate both error families into one `Result<T, AppError>`. The
+`question_mark/error_ecosystem.ark` fixture compiles and runs through both the
+`wasm32-gc` primary path and the `wasm32` linear-memory fallback with the same
+source behavior. The pinned stage-0 compiler still cannot typecheck the
+generic return bodies directly, but `selfhost build-compiler` now succeeds
+through the guarded bootstrap overlay; the current artifact receipt is
+recorded in `issues/done/694-error-trait-unified-ecosystem.md`.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
@@ -165,12 +190,16 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 ## Test Health
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
+- Current observation (2026-09-17): base `edc010bb9fd57c73bc9ae003b3c9392dc94d6279`; uncommitted fixture gate fixes and documentation updates; not a clean-HEAD receipt.
+- ADR-057 current-only fixture gate: `python3 scripts/manager.py verify fixtures` — 1691 compile/validate passed, 0 failed; 100 runtime executed; 2 runtime contracts delegated to native-cpp.
+- Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
+- Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2941 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1353 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2941 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, and target capability fixtures were added, so the current registry remainder is 1353. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 2950 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1362 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2950 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, and iterator capability diagnostics fixtures were added, so the current registry remainder is 1362. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
+- Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
 ### Active blockers
 
@@ -178,7 +207,7 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 
 | ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
-| `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `stale` |
+| `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. Historical 2026-07-15 pinned/reference record at 982f3102: preserved; the 1089 failures are not individually resolved by later evidence. Current ADR-057 gate evidence (2026-09-17, HEAD edc010bb9fd57c73bc9ae003b3c9392dc94d6279, uncommitted fixture gate fixes): python3 scripts/manager.py verify fixtures PASS=1691 FAIL=0 COMPILE_VALIDATE=1691 EXECUTED=100 RUNTIME_UNSUPPORTED=2. That is current-only compile/validate plus sampled runtime evidence; it does not reclassify this check to pass, does not establish a clean-HEAD receipt, and does not establish CLI/diagnostic parity or release readiness. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `stale` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `stale` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from the pinned bootstrap compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `stale` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
@@ -230,9 +259,62 @@ converts through `StringIter`, and the positive
 `stdlib_trait/iterator_string.ark` fixture covers generic producer/consumer
 calls, `FromIterator`, and direct `for` iteration. Its wasm32-gc component and
 wasm32 linear-memory artifacts validate and execute with matching assertions.
-The implementation remains concrete: arbitrary item-generic adapters,
-manifest-level deprecation, and the final RFC-011 iterator residual audit are
-still open.
+Numeric consumer calls are checked against their capability trait: a String
+iterator cannot call `sum` or `fold`, and the negative
+`selfhost/iterator_string_numeric_consumer.ark` fixture records the E0200
+diagnostic rather than allowing an invalid runtime stub.
+The concrete String lane also provides lazy `map(fn(String) -> String)` and
+`filter(fn(String) -> bool)` adapters. Their positive callback fixture passes
+GC typed `call_ref` and linear-memory table-based `call_indirect` validation and
+runtime checks with the same item order; `filter` clones the callback argument
+to preserve the accepted source item under ownership semantics. The same fixture
+also verifies `Vec::from_iter` over both concrete adapter types; source-qualified
+associated-function lowering selects `Vec_String::from_iter__StringMapIter` and
+`Vec_String::from_iter__StringFilterIter`, producing valid GC references and
+linear-memory handles on the respective backends. The implementation remains
+concrete at the adapter-type boundary, but a `T: Iterator` helper now
+monomorphizes the same String source to the matching `FromIterator` symbol on
+both backends. Arbitrary item-generic adapters, manifest-level deprecation,
+and the final RFC-011 iterator residual audit are still open. The concrete
+`map(fn(String) -> String).filter(fn(String) -> bool).collect()` composition
+and its `Vec::from_iter` form are also covered; the predicate receives a clone
+of the mapped String, while the accepted mapped handle is yielded unchanged.
+The reverse `filter(...).map(...)` composition and its `Vec::from_iter` form
+are covered as well, with the predicate consuming only a clone of the source
+handle before the accepted value reaches the mapping callback.
+The same fixture now passes this composed String source through a generic
+`total_string_lengths<T: IntoIterator>` consumer. Monomorphization emits
+`total_string_lengths__StringFilterMapIter`, and the `for` lowering crosses
+the adapter's identity `IntoIterator` conversion before `next` on both
+`wasm32-gc` and linear-memory `wasm32`. This remains bounded concrete String
+evidence; arbitrary item-generic dispatch and manifest-level deprecation are
+not complete.
+The callback lane also provides bounded `map(...).take(n)` and
+`filter(...).take(n)` adapters. The latter clones the predicate argument and
+decrements its bound only for accepted source items. Their canonical
+`collect`, source-qualified `Vec::from_iter`, and generic `T: IntoIterator`
+`for` consumers validate and run with the same results on GC and linear-memory
+Wasm. This remains concrete String composition, not arbitrary item-generic
+adapter coverage.
+The same String callback lane now composes both orders through a bounded stage:
+`map(...).filter(...).take(n)` and `filter(...).map(...).take(n)`. Each
+predicate receives a clone, the bound counts accepted outputs, and canonical
+`collect`, `Vec::from_iter`, and generic `for` consumers validate and run with
+the same results on GC and linear-memory Wasm. This remains concrete String
+composition rather than arbitrary item-generic adapter coverage.
+
+### Language v2 hygienic desugaring (#865 / ADR-077)
+
+F-string interpolation now lowers embedded values through typed receiver methods:
+`Display::to_string`, `Debug::fmt_debug`, and `String::concat`. Compiler-owned
+`for` and comprehension lowering uses typed `IntoIterator` / `Iterator::next` and
+`Vec::push` references, so local bindings with those names do not capture the
+generated calls. Embedded expressions remain single-evaluation and left-to-right.
+The `string_interp/fstring_hygiene.ark` fixture covers f-string shadowing,
+evaluation order, direct iteration, and comprehension shadowing on both published
+Wasm targets; its diagnostic companion fixes ordinary unresolved-name handling
+inside an embedded expression. This is a focused #865 boundary; broader iterator
+genericity and final cross-backend audit remain tracked by #860/#875.
 
 ## Data Model (all Wasm targets)
 
@@ -334,7 +416,7 @@ numbers into current contracts.
 - `W0002`: deprecated target alias (warning, `lint-post-resolve`, implemented, emitted)
 - `W0003`: unused symbol (warning, `lint-post-resolve`, implemented, emitted)
 - `W0004`: generated Wasm failed validation (error, `backend-validate`, implemented, emitted)
-- `W0005`: non-exportable function skipped from component exports (warning, `component`, implemented, emitted)
+- `W0005`: source-visible function without explicit export fn skipped from component exports (warning, `component`, implemented, emitted)
 - `W0006`: unused import (warning, `lint-post-resolve`, implemented, emitted)
 - `W0007`: unused binding (warning, `lint-post-resolve`, implemented, emitted)
 - `W0008`: documentation drift (warning, `lint-post-resolve`, declared, not currently emitted)
@@ -400,8 +482,8 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - `native-cpp` is a **scaffold / partial / experimental** target with **`run_supported=true`** (not production-ready; `support_tier` remains scaffold): public `arukellt run --target native-cpp` is offered on Linux x86-64 with clang 14+ for the supported subset (ADR-050). Guaranteed public corpus: 16/16 (`docs/data/native-cpp-public-coverage-receipt.json`). **General backend readiness (measure v2) is COMPLETE** for the documented gates: positive compile ≥80.5%, compiled-positive semantic ≥95%, in-scope expected-negative diagnostic match 100% (14 fixtures listed in `docs/data/native-cpp-expected-negative-limitations.toml`), ICE 0, unexpected crash 0 (`docs/data/native-cpp-fixture-coverage-receipt.json`, baseline `docs/data/native-cpp-fixture-coverage-baseline.json`). Plan: [native-cpp-general-backend-readiness.md](plans/native-cpp-general-backend-readiness.md). The **internal** C99 selfhost executor lane remains **experimental**: production root clears, arena/GC dual mode, S2/S3 equality+determinism, and strict wall/RSS dual gate without `--allow-high-rss` (CI rejects that flag). Latest strict 3× evidence: warm wall 238–249 s, peak RSS ≤ 2.345 GiB (`docs/data/native-cpp-executor-promotion-receipt.json`). `native-llvm` retains its fixed GNU assembler scaffold. See [ADR-049](adr/ADR-049-native-c99-selfhost-executor.md), [ADR-050](adr/ADR-050-experimental-public-native-c99-run.md), and [RFC-008](rfcs/008-native-cpp-c99-backend-runtime-abi.md).
 - some historical docs remain archived / historical and should not override current-state
 - **Removed legacy host networking**: the Arukellt `std::host::http`, `std::host::sockets`, `std::host::streams`, and `std::host::udp` facades, their compiler intrinsics, and their compatibility fixtures were deleted. Programs needing networking must use an explicit official WASI interface/component; this repository does not provide a bridge or a legacy alias.
-- **Bootstrap vs s2 library exports (#666)**: library-style `pub fn` exports use the compiler's WIT/core output and the official Component Model tooling. The launcher does not insert a repository-specific adapter or compatibility layer.
-- **Library vs command component worlds (#666)**: on `wasm32-gc` with default WASI P2 host profile, modules that export component-compatible `pub fn` surfaces use the **library export** path. Modules with no exportable `pub fn` and no explicit `--world` use the **P2 command** world (`wasi:cli/command`). When both `pub fn` exports and `fn main` are present, exports take precedence; for a command-only program, use `--world wasi:cli/command`.
+- **Bootstrap vs s2 library exports (#666, #867)**: library-style `export fn` declarations use the compiler's WIT/core output and the official Component Model tooling. `pub` controls source visibility only; the launcher does not insert a repository-specific adapter or compatibility layer.
+- **Library vs command component worlds (#666, #867)**: on `wasm32-gc` with default WASI P2 host profile, modules with explicit component-compatible `export fn` surfaces use the **library export** path. Modules with no explicit export and no explicit `--world` use the **P2 command** world (`wasi:cli/command`). When `export fn` declarations and `fn main` are present, explicit exports take precedence; for a command-only program, use `--world wasi:cli/command`.
 
 ## API Baseline Notes
 

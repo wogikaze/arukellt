@@ -6,8 +6,12 @@
 ## Current Snapshot
 
 - Verification command: `python3 scripts/manager.py verify quick`
-- Current verification gate: 166/166 checks pass
-- Fixture registry: 2918 manifest entries (`docs/data/project-state.toml`)
+- Current observation (2026-09-17): base `edc010bb9fd57c73bc9ae003b3c9392dc94d6279`; uncommitted fixture gate fixes and documentation updates; not a clean-HEAD receipt.
+- ADR-057 current-only fixture gate: `python3 scripts/manager.py verify fixtures` — 1691 compile/validate passed, 0 failed; 100 runtime executed; 2 runtime contracts delegated to native-cpp.
+- Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
+- Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
+- Historical verification gate: 166/166 checks pass
+- Fixture registry: 2950 manifest entries (`docs/data/project-state.toml`)
 - Fixture harness (observed): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
 - Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.
 

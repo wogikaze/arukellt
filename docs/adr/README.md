@@ -71,6 +71,9 @@
 | [ADR-072-language-v2-prelude-and-keyword-policy.md](ADR-072-language-v2-prelude-and-keyword-policy.md) | ADR-072: Language v2 Prelude と keyword policy | トラック: language-v2 Issue: #868 |
 | [ADR-073-language-v2-multiclause-where-semicolon-grammar.md](ADR-073-language-v2-multiclause-where-semicolon-grammar.md) | ADR-073: Language v2 multi-clause / where / semicolon grammar | トラック: language-v2 Issue: #869 |
 | [ADR-074-language-v2-target-capability-configuration.md](ADR-074-language-v2-target-capability-configuration.md) | ADR-074: Language v2 target capability configuration | トラック: language-v2 Issue: #870 |
+| [ADR-075-language-v2-linear-memory-tracing-runtime.md](ADR-075-language-v2-linear-memory-tracing-runtime.md) | ADR-075: 言語 v2 の linear-memory tracing runtime | ADR-002 は Wasm GC を primary としつつ、linear memory への lowering を別言語にしないことを定めている。 ADR-060 は Option、Result、Box<T>、Slice<T> の所有権と値意味論を backend 間で共有することを定めている。 |
+| [ADR-076-language-v2-iterator-consumer-boundary.md](ADR-076-language-v2-iterator-consumer-boundary.md) | ADR-076: Language v2 Iterator の producer / consumer 責務境界 | Iterator は Self::Item を associated type として持つ producer であり、 wasm32-gc と linear-memory wasm32 の両方で同じ source-level iteration semantics を提供する必要がある。 |
+| [ADR-077-language-v2-hygienic-desugaring.md](ADR-077-language-v2-hygienic-desugaring.md) | ADR-077: Language v2 の hygienic desugaring 境界 | トラック: language-v2 Issue: #865 |
 
 ## 提案
 

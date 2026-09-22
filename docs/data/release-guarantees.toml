@@ -251,7 +251,7 @@ blocker_owner = "compiler/runtime"
 blocker_issue = "#807"
 first_seen_commit = "89eb5eb4"
 platforms = ["linux"]
-note = "Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count."
+note = "Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. Historical 2026-07-15 pinned/reference record at 982f3102: preserved; the 1089 failures are not individually resolved by later evidence. Current ADR-057 gate evidence (2026-09-17, HEAD edc010bb9fd57c73bc9ae003b3c9392dc94d6279, uncommitted fixture gate fixes): python3 scripts/manager.py verify fixtures PASS=1691 FAIL=0 COMPILE_VALIDATE=1691 EXECUTED=100 RUNTIME_UNSUPPORTED=2. That is current-only compile/validate plus sampled runtime evidence; it does not reclassify this check to pass, does not establish a clean-HEAD receipt, and does not establish CLI/diagnostic parity or release readiness."
 
 [[checks]]
 id = "check_determinism"

@@ -204,21 +204,23 @@ let ver = component_model_version()     // e.g. "0.2"
         "path": "modules/core.md",
         "title": "std::core family",
         "description": "Source-backed docs for ranges, errors, and hashing helpers.",
-        "modules": ["std::core", "std::core::error", "std::core::hash"],
+        "modules": ["std::core", "std::core::error", "std::core::hash", "std::error"],
         "overview": {
             "summary": (
                 "The `std::core` family provides the fundamental building blocks shared across "
                 "the standard library: integer ranges (`Range`, `RangeInclusive`), the shared "
-                "`Error` type used by fallible stdlib operations, and low-level hash utilities "
+                "`Error` type used by fallible stdlib operations, the provisional static-dispatch "
+                "`std::error::Error` trait, and low-level hash utilities "
                 "used internally by collection modules. Import only the sub-module you need — "
                 "most application code uses only `std::core` (ranges) and the `Error` type from "
-                "`std::core::error`."
+                "`std::core::error`; application error payloads use `std::error`."
             ),
             "highlights": [
                 ("`range_new(start, end)`", "Create a half-open range `[start, end)`."),
                 ("`range_contains(r, value)`", "Test membership in a range."),
                 ("`range_len(r)`", "Length of a half-open range."),
                 ("`error_message(e)`", "Convert a stdlib `Error` variant to a human-readable string."),
+                ("`Error::source()`", "Expose a rendered immediate cause through static dispatch."),
                 ("`hash_i32(n)`", "Hash an `i32` to a stable non-negative integer."),
             ],
             "typical_usage": """\
@@ -883,6 +885,24 @@ def format_fixture_harness(verification: dict, *, with_manifest: bool = True) ->
     if manifest_count is None:
         return base
     return f"{base}; registry: {manifest_count} manifest entries"
+
+
+def render_current_verification_observation(verification: dict) -> list[str]:
+    observation = verification.get("current_observation")
+    if not observation:
+        return []
+    return [
+        f"- Current observation ({observation['observed_at']}): base `{observation['base_commit']}`; "
+        f"{observation['working_tree']}.",
+        f"- ADR-057 current-only fixture gate: `{observation['fixture_command']}` — "
+        f"{observation['compile_validate_passed']} compile/validate passed, "
+        f"{observation['fixture_failed']} failed; {observation['runtime_executed']} runtime executed; "
+        f"{observation['runtime_unsupported']} runtime contracts delegated to native-cpp.",
+        f"- Observed quick gate: `{observation['quick_command']}` — "
+        f"{observation['quick_passed']}/{observation['quick_total']} checks pass.",
+        "- Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. "
+        "Historical failures are not individually resolved by this observation.",
+    ]
 
 
 def format_component_emit_summary(state: dict | None = None) -> str:
@@ -1778,7 +1798,8 @@ def render_current_state_test_health(state: dict, fixture_total: int, release_ch
         "## Test Health",
         "",
         f"- Unit tests: {verification['unit_tests_note']}",
-        f"- Fixture harness (observed snapshot): {format_fixture_harness(verification, with_manifest=False)}",
+        *render_current_verification_observation(verification),
+        f"- Historical fixture harness ({verification.get('last_verified_at', 'undated')}): {format_fixture_harness(verification, with_manifest=False)}",
         f"- Fixture registry: {manifest_count} manifest entries (distinct unit from harness outcomes)",
     ]
     if remainder is not None:
@@ -1791,7 +1812,7 @@ def render_current_state_test_health(state: dict, fixture_total: int, release_ch
     lines.extend(
         [
             "- Wasm validation is a hard error (W0004)",
-            f"- Verification entry point: `{state['project']['verification_command']}` — "
+            f"- Historical verification: `{state['project']['verification_command']}` — "
             f"**{verification['checks_passed']}/{verification['checks_total']} checks pass**",
         ]
     )
@@ -1985,8 +2006,9 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
             f"- Canonical target: `{targets['canonical']}`",
             f"- Component/WIT target: `{targets['component_target']}`",
             f"- Unit tests: {verification['unit_tests_note']}",
-            f"- Fixture harness: {harness_str}",
-            f"- Verification: `{state['project']['verification_command']}` — {verification['checks_passed']}/{verification['checks_total']} checks pass",
+            *render_current_verification_observation(verification),
+            f"- Historical fixture harness ({verification.get('last_verified_at', 'undated')}): {harness_str}",
+            f"- Historical verification: `{state['project']['verification_command']}` — {verification['checks_passed']}/{verification['checks_total']} checks pass",
             f"- Stdlib manifest-backed public API: {len(manifest_stats['public_functions'])} functions",
         ]
     )
@@ -2021,8 +2043,9 @@ def render_root_docs_readme(
         f"- CLI default target: `{state['targets']['cli_default']}`",
         f"- Canonical target: `{state['targets']['canonical']}`",
         f"- Component emit: {format_component_emit_summary(state)} ([axes](data/component-availability.md))",
-        f"- Fixture harness: {_harness}",
-        f"- Verification: `{state['project']['verification_command']}` — {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
+        *render_current_verification_observation(state["verification"]),
+        f"- Historical fixture harness ({state['verification'].get('last_verified_at', 'undated')}): {_harness}",
+        f"- Historical verification: `{state['project']['verification_command']}` — {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
         f"- Stdlib manifest-backed public API: {len(manifest_stats['public_functions'])} functions",
         "",
         "- [Current state](current-state.md)",
@@ -3241,7 +3264,8 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
     if snapshot == "process":
         return [
             f"- Verification command: `{state['project']['verification_command']}`",
-            f"- Current verification gate: {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
+            *render_current_verification_observation(state["verification"]),
+            f"- Historical verification gate: {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
             f"- Fixture registry: {manifest_count} manifest entries (`docs/data/project-state.toml`)",
             f"- Fixture harness (observed): {format_fixture_harness(state['verification'], with_manifest=False)}",
             "- Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.",

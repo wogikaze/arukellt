@@ -79,7 +79,7 @@ arukellt compile my_app.ark --target wasm32-gc --emit component -o out/my_app.co
 ```
 
 **Known limitation:** the pinned bootstrap wasm may return empty / non-invokable
-library components for `pub fn` exports. Use a built s2 artifact
+library components for `export fn` declarations. Use a built s2 artifact
 (`ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm`) for library component
 work — see [`current-state.md`](current-state.md).
 

@@ -132,5 +132,53 @@ class TestCommands(unittest.TestCase):
         self.assertEqual(cmd, ["python3", "scripts/gen/generate-docs.py", "--check"])
 
 
+class TestVerificationEvidenceRendering(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(_SCRIPTS_DIR / "gen"))
+        spec = importlib.util.spec_from_file_location(
+            "generate_docs_review", _SCRIPTS_DIR / "gen" / "generate-docs.py"
+        )
+        cls.generator = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = cls.generator
+        spec.loader.exec_module(cls.generator)
+
+    def test_current_observation_is_separate_from_historical_release_snapshot(self):
+        state = self.generator.load_toml(self.generator.PROJECT_STATE)
+        state["verification"]["current_observation"] = {
+            "observed_at": "2026-09-17",
+            "base_commit": "edc010bb9",
+            "working_tree": "uncommitted fixture gate fixes",
+            "fixture_command": "python3 scripts/manager.py verify fixtures",
+            "compile_validate_passed": 1691,
+            "fixture_failed": 0,
+            "runtime_executed": 100,
+            "runtime_unsupported": 2,
+            "quick_command": "python3 scripts/manager.py verify quick",
+            "quick_passed": 151,
+            "quick_total": 151,
+        }
+        readme = self.generator.render_readme_status(state, 2871, {"public_functions": []})
+        health = self.generator.render_current_state_test_health(state, 2871, [])
+        for rendered in (readme, health):
+            with self.subTest(rendered=rendered[:40]):
+                self.assertIn("1691 compile/validate passed", rendered)
+                self.assertIn("100 runtime executed", rendered)
+                self.assertIn("151/151", rendered)
+                self.assertIn("uncommitted fixture gate fixes", rendered)
+                self.assertIn("Historical", rendered)
+                self.assertIn("1089", rendered)
+                self.assertIn("not exhaustive runtime", rendered)
+                self.assertIn("not a release-readiness receipt", rendered)
+
+    def test_absent_current_observation_does_not_invent_current_results(self):
+        state = self.generator.load_toml(self.generator.PROJECT_STATE)
+        state["verification"].pop("current_observation", None)
+        rendered = self.generator.render_readme_status(state, 2871, {"public_functions": []})
+        self.assertNotIn("1691 compile/validate passed", rendered)
+        self.assertIn("Historical", rendered)
+        self.assertIn("166/166", rendered)
+
+
 if __name__ == "__main__":
     unittest.main()

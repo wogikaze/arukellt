@@ -2,7 +2,7 @@
 name = "Arukellt"
 version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-07-22"
+updated = "2026-09-22"
 verification_command = "python3 scripts/manager.py verify quick"
 agent_verification_command = "python3 scripts/manager.py verify lane"
 current_state_doc = "docs/current-state.md"
@@ -34,7 +34,7 @@ component_target = "wasm32-gc"
 default_emit = "core-wasm"
 component_emit = true
 wit_emit = true
-component_note = "The selfhost compiler emits standard WASI P2 core imports. The launcher packages command output with the official wasm-tools component embed/new pipeline; no Python wrapper, repository-specific bridge, or legacy compatibility ABI is part of the product path. Library-style pub fn exports use the same component toolchain."
+component_note = "The selfhost compiler emits standard WASI P2 core imports. The launcher packages command output with the official wasm-tools component embed/new pipeline; no Python wrapper, repository-specific bridge, or legacy compatibility ABI is part of the product path. Explicit export fn declarations use the same component toolchain; pub controls source visibility only."
 
 [[target_profiles]]
 id = "wasm32"
@@ -223,12 +223,12 @@ source_commit = "982f3102"
 fixture_passed = 57
 fixture_skipped = 442
 fixture_failures = 1089
-fixture_manifest_count = 2941
+fixture_manifest_count = 2950
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
-fixture_not_in_last_harness_snapshot = 1353
-fixture_accounting_note = "Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2941 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, and target capability fixtures were added, so the current registry remainder is 1353. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness."
+fixture_not_in_last_harness_snapshot = 1362
+fixture_accounting_note = "Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2950 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, and iterator capability diagnostics fixtures were added, so the current registry remainder is 1362. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness."
 checks_passed = 166
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
@@ -242,6 +242,19 @@ unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.
 #   check_fixture_harness, check_t3_wasm_validate, check_wat_roundtrip,
 #   check_component_interop_wasmtime, check_selfhost_cli_parity,
 #   check_selfhost_diag_parity, check_selfhost_fixpoint
+
+[verification.current_observation]
+observed_at = "2026-09-17"
+base_commit = "edc010bb9fd57c73bc9ae003b3c9392dc94d6279"
+working_tree = "uncommitted fixture gate fixes and documentation updates; not a clean-HEAD receipt"
+fixture_command = "python3 scripts/manager.py verify fixtures"
+compile_validate_passed = 1691
+fixture_failed = 0
+runtime_executed = 100
+runtime_unsupported = 2
+quick_command = "python3 scripts/manager.py verify quick"
+quick_passed = 151
+quick_total = 151
 
 [contract_audit]
 component_emit_tier = "smoke"
@@ -260,8 +273,8 @@ baseline_cases = [
 heavy_note = "Heavy perf comparisons are intentionally separated from the normal correctness gate"
 
 [component]
-status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-054: compiler emits core Wasm/WIT and official wasm-tools packages the component). jco transpile + Node.js E2E works for scalar `pub fn` with ARUKELLT_TEST_JCO=1; String/record/variant adapters still pending."
-summary = "Only user `pub fn` with WIT-compatible types are exported"
+status = "Implemented on `wasm32-gc` for supported WIT-compatible `export fn` declarations (ADR-054 / ADR-071: compiler emits core Wasm/WIT and official wasm-tools packages the component). jco transpile + Node.js E2E works for scalar exports with ARUKELLT_TEST_JCO=1; String/record/variant adapters still pending."
+summary = "Only user `export fn` declarations with WIT-compatible types are exported; `pub` alone is source visibility"
 
 # Lifecycle status labels used across docs, issues, and target-contract.md.
 # Every feature / target surface should use one of these labels.
