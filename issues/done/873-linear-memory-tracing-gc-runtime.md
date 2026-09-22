@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-20
+Updated: 2026-09-23
 ID: 873
 Parent: 852
 Track: language-v2
@@ -74,3 +74,53 @@ RFC-011: **8 (fallback runtime)**。
 - This receipt advances the compiler integration boundary but does not satisfy
   the full runtime acceptance list or close #873. Automatic collection remains
   disabled until #874 proves complete managed-root coverage.
+
+## Completion receipt — 2026-09-23 (automatic collection enabled; runtime complete)
+
+- The remaining blocker from the previous receipt — "automatic collection
+  remains disabled until #874 connects managed-value lowering and root
+  updates" — is resolved. `f3c56bbef` mirrors every managed local write
+  into root slots (generic store path, struct/array constructors,
+  `array_set` staging, ref test/cast fallbacks, future copies), and
+  `2aaadcbf4` emits a watermark-gated `LINEAR_GC_COLLECT` call at every
+  linear function entry: the operand stack is empty there and all live
+  frames' managed locals are already mirrored, so the mark phase cannot
+  produce a false negative. The 64 MiB watermark amortizes the full-heap
+  sweep for selfhost-scale programs; smaller programs simply never
+  collect and grow the heap instead.
+- Acceptance mapping with repo evidence:
+
+  | Acceptance | Evidence |
+  |---|---|
+  | linear-memory allocator | `wasm/linear_gc_runtime.ark` `emit_linear_gc_runtime_alloc_body` (free-list + bump + watermark); routed via `helpers_core_heap::emit_heap_alloc_from_stack` across all managed paths (`6cb9bb01f`, `9e81a367e`, `2aaadcbf4`) |
+  | root registration/update | `root_frame_enter`/`root_push`/`root_update`/`root_frame_leave` + `linear_root_lowering.ark` entry emission and `emit_update_after_local_set` (`aed3af031`, `f3c56bbef`) |
+  | tracing collector | `emit_linear_gc_runtime_collect_body`: clear marks → root scan → fixed-point transitive mark → free-list sweep (`6cb9bb01f`, `2aaadcbf4`) |
+  | cycle collection | `test_rooted_cycle_survives_and_unreachable_cycle_is_reused` probe: rooted 2-node cycle survives, unrooted cycle reclaimed and reused (`055de4955`) |
+  | no Wasm GC instructions | every e2e artifact asserts no `struct.*`/`array.*`/`ref.*` in printed WAT; `wasm-tools validate` PASS |
+  | runtime contract documented | ADR-075 (ACCEPTED) invariants + `docs/plans/wasm32-linear-memory-lowering.md` updated through `449bb5651` |
+
+- End-to-end proof on real programs:
+  `test_function_entry_collects_when_watermark_exceeds_threshold` forces
+  the watermark past the threshold and observes the reset plus a
+  non-empty free list after entering compiled `$main`;
+  `test_source_level_live_data_survives_entry_collection` runs
+  `linear_gc_entry_collect.ark` and `linear_gc_hashmap_survives.ark`
+  (~160 MiB churn, ≥2 collections) with in-source assertions holding on
+  both `wasm32` and `wasm32-gc` (`b2144f1c1`, `449bb5651`).
+- Verification receipts (this session):
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (3 tests)
+  python3 scripts/manager.py docs check                    PASS (4/4)
+  ```
+
+- Known bounds (documented, trap-not-corrupt per ADR-075): the 64 KiB
+  metadata region caps live allocation records at 4096 and root slots
+  share the same region; both bounds trap on exhaustion. Source-level
+  true pointer cycles remain inexpressible (structs store `i32`
+  indices) — that is a language-expressiveness item owned by
+  #872/#874, not a runtime gap. Exact pointer-field descriptors stay
+  conservative per ADR-075 and are tracked under #874.

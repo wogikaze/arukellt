@@ -4,7 +4,7 @@
 
 決定日: 2026-09-19
 
-関連: [ADR-002](ADR-002-memory-model.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-074](ADR-074-language-v2-target-capability-configuration.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#873](../../issues/open/873-linear-memory-tracing-gc-runtime.md)
+関連: [ADR-002](ADR-002-memory-model.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-074](ADR-074-language-v2-target-capability-configuration.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#873](../../issues/done/873-linear-memory-tracing-gc-runtime.md)
 
 ## 文脈
 
