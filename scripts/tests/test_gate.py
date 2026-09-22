@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import concurrent.futures
 import os
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -24,6 +26,7 @@ from gate_domain.checks import (  # noqa: E402
 )
 from selfhost import checks as selfhost_checks  # noqa: E402
 from selfhost.fixture_parity import (  # noqa: E402
+    _compile_current_fixture,
     _run_one_fixture,
     _select_smoke_fixtures,
     _worker_count,
@@ -174,7 +177,54 @@ class TestFixtureGateMigration(unittest.TestCase):
             self.assertIn("fewer than 10", output)
 
     def test_golden_accepts_expected_nonzero_runtime_output(self):
-        fixture = "sample/exit.ark"
+        result = self.run_runtime_result("sample/exit.ark", 1)
+        self.assertTrue(result.ok)
+
+    def test_fixture_compile_selects_memory32_for_p2_component_packaging(self):
+        from selfhost.fixture_parity import _compile_current_fixture as compile_current_fixture
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "fixture.wasm"
+
+            def run_compile(argv, _cwd, **_kwargs):
+                self.assertEqual(
+                    argv[argv.index("--memory-width") + 1],
+                    "memory32",
+                )
+                output.write_bytes(b"compiled wasm")
+                return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+            with patch.object(selfhost_checks, "_run", side_effect=run_compile):
+                rc, detail = compile_current_fixture(
+                    root,
+                    "wasmtime",
+                    root / "compiler.wasm",
+                    "sample/ok.ark",
+                    str(output),
+                )
+
+            self.assertEqual((rc, detail), (0, ""))
+            self.assertEqual(output.read_bytes(), b"compiled wasm")
+
+    def test_required_failure_rejects_success_even_with_matching_golden(self):
+        result = self.run_runtime_result("test_assert/assert_fail.ark", 0)
+        self.assertFalse(result.ok)
+        self.assertIn("expected runtime failure", " ".join(result.messages))
+
+    def test_required_failure_accepts_nonzero_with_matching_golden(self):
+        result = self.run_runtime_result("test_assert/assert_fail.ark", 1)
+        self.assertTrue(result.ok)
+
+    def test_explicit_trap_accepts_trap_status(self):
+        result = self.run_runtime_result("native_cpp_public/trap_div_zero.ark", 134)
+        self.assertTrue(result.ok)
+
+    def test_unexpected_trap_rejects_matching_golden(self):
+        result = self.run_runtime_result("sample/exit.ark", 134)
+        self.assertFalse(result.ok)
+
+    def run_runtime_result(self, fixture, returncode):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixture_path = root / "tests" / "fixtures" / fixture
@@ -186,7 +236,7 @@ class TestFixtureGateMigration(unittest.TestCase):
             component = root / "component.wasm"
             component.write_bytes(b"component")
             completed = subprocess.CompletedProcess(
-                args=["wasmtime"], returncode=1, stdout="expected\n", stderr=""
+                args=["wasmtime"], returncode=returncode, stdout="expected\n", stderr=""
             )
 
             def compile_fixture(_root, _wasmtime, _compiler, _fixture, out_rel):
@@ -227,34 +277,111 @@ class TestFixtureGateMigration(unittest.TestCase):
                     root / "packages",
                 )
 
-            self.assertTrue(result.ok)
+            return result
 
-    def test_fixture_compile_selects_memory32_for_p2_component_packaging(self):
-        from selfhost.fixture_parity import _compile_current_fixture as compile_current_fixture
+    def test_external_compile_stages_under_root_and_cleans_up(self):
+        for returncode, produces_output in ((0, True), (1, True), (0, False)):
+            with self.subTest(returncode=returncode, produces_output=produces_output), \
+                 tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "repo"
+                root.mkdir()
+                destination = Path(tmp) / "external-build" / "fixture.wasm"
+                destination.parent.mkdir()
+                staged_paths = []
 
+                def run_compile(argv, cwd, timeout):
+                    guest_output = Path(argv[argv.index("-o") + 1])
+                    self.assertFalse(guest_output.is_absolute())
+                    staged = root / guest_output
+                    staged_paths.append(staged)
+                    self.assertEqual(cwd, root)
+                    self.assertEqual(timeout, 30)
+                    self.assertEqual(argv[argv.index("--dir") + 1], str(root))
+                    self.assertEqual(staged.parent.parent, root)
+                    self.assertTrue(staged.parent.name.startswith(".fixture-compile-"))
+                    self.assertEqual(staged.name, destination.name)
+                    self.assertTrue(staged.parent.is_dir())
+                    self.assertFalse(destination.exists())
+                    if produces_output:
+                        staged.write_bytes(b"compiled wasm")
+                    return subprocess.CompletedProcess(
+                        argv, returncode, stdout="", stderr="compile failed" if returncode else ""
+                    )
+
+                with patch.object(selfhost_checks, "_run", side_effect=run_compile) as run:
+                    rc, detail = _compile_current_fixture(
+                        root, "wasmtime", root / "compiler.wasm", "sample/ok.ark", str(destination)
+                    )
+
+                run.assert_called_once()
+                self.assertEqual(rc, returncode)
+                self.assertEqual(detail, "compile failed" if returncode else "")
+                if returncode == 0 and produces_output:
+                    self.assertEqual(destination.read_bytes(), b"compiled wasm")
+                else:
+                    self.assertFalse(destination.exists())
+                self.assertFalse(staged_paths[0].parent.exists())
+                self.assertEqual(list(root.iterdir()), [])
+
+    def test_gate_isolates_overlapping_outputs_within_configured_build_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            output = root / "fixture.wasm"
+            root = Path(tmp) / "repo"
+            root.mkdir()
+            build_dir = Path(tmp) / "external-build"
+            outputs = []
+            both_compiling = threading.Barrier(2, timeout=10)
+            release_second = threading.Event()
 
-            def run_compile(argv, _cwd, **_kwargs):
-                self.assertEqual(
-                    argv[argv.index("--memory-width") + 1],
-                    "memory32",
-                )
-                output.write_bytes(b"compiled wasm")
-                return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+            def compile_fixture(_root, _wasmtime, _compiler, _fixture, out_rel):
+                output = root / out_rel
+                self.assertTrue(output.parent.is_dir())
+                output.write_bytes(b"wasm")
+                outputs.append(output)
+                both_compiling.wait()
+                if output == outputs[1]:
+                    self.assertTrue(release_second.wait(timeout=10))
+                    self.assertEqual(output.read_bytes(), b"wasm")
+                return 0, ""
 
-            with patch.object(selfhost_checks, "_run", side_effect=run_compile):
-                rc, detail = compile_current_fixture(
-                    root,
-                    "wasmtime",
-                    root / "compiler.wasm",
-                    "sample/ok.ark",
-                    str(output),
-                )
+            with patch.dict(os.environ, {"ARUKELLT_BUILD_DIR": str(build_dir)}), \
+                 patch.object(selfhost_checks, "_find_pinned_wasm", return_value=root / "pin.wasm"), \
+                 patch.object(selfhost_checks, "_find_wasmtime", return_value="wasmtime"), \
+                 patch.object(selfhost_checks, "_find_wasm_tools", return_value="wasm-tools"), \
+                 patch.object(selfhost_checks, "_ensure_current_selfhost", return_value=(root / "s2.wasm", "")), \
+                 patch.object(selfhost_checks, "_ensure_aot_cwasm", side_effect=lambda path: path), \
+                 patch.object(selfhost_checks, "_with_runtime_lock", side_effect=lambda fn, root: fn()), \
+                 patch.object(selfhost_checks, "_load_manifest_fixtures", return_value=(["sample/ok.ark"], "")), \
+                 patch("selfhost.fixture_parity._select_smoke_fixtures", return_value=set()), \
+                 patch("selfhost.fixture_parity._compile_current_fixture", side_effect=compile_fixture), \
+                 patch("selfhost.fixture_parity._validate_wasm", return_value=(0, "")):
+                with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                    futures = [
+                        pool.submit(run_fixture_parity, root, False, filter_dirs=["sample"])
+                        for _ in range(2)
+                    ]
+                    try:
+                        done, pending = concurrent.futures.wait(
+                            futures, timeout=10, return_when=concurrent.futures.FIRST_COMPLETED
+                        )
+                        self.assertEqual(len(done), 1)
+                        self.assertEqual(len(pending), 1)
+                        rc, output = next(iter(done)).result()
+                        self.assertEqual(rc, 0, output)
+                        self.assertEqual(len(outputs), 2)
+                        self.assertNotEqual(outputs[0].parent, outputs[1].parent)
+                        self.assertFalse(outputs[0].parent.exists())
+                        self.assertEqual(outputs[1].read_bytes(), b"wasm")
+                    finally:
+                        release_second.set()
+                    for future in futures:
+                        rc, output = future.result(timeout=10)
+                        self.assertEqual(rc, 0, output)
 
-            self.assertEqual((rc, detail), (0, ""))
-            self.assertEqual(output.read_bytes(), b"compiled wasm")
+            self.assertEqual(len(outputs), 2)
+            self.assertNotEqual(outputs[0], outputs[1])
+            for output in outputs:
+                self.assertEqual(output.parent.parent, build_dir / "fixture-test")
+                self.assertFalse(output.parent.exists())
 
 
 class TestWasiRuntimeAbiCloseGates(unittest.TestCase):

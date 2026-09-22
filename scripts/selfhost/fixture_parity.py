@@ -114,6 +114,18 @@ def _compile_current_fixture(
             "max-wasm-stack=16777216",
         ]
     src_rel = str(Path("tests") / "fixtures" / fixture)
+    output_path = (root / out_rel).resolve()
+    try:
+        guest_output = output_path.relative_to(root.resolve()).as_posix()
+    except ValueError:
+        with tempfile.TemporaryDirectory(prefix=".fixture-compile-", dir=root) as tmp:
+            staged = Path(tmp) / output_path.name
+            rc, detail = _compile_current_fixture(
+                root, wasmtime, compiler, fixture, str(staged)
+            )
+            if rc == 0 and staged.is_file():
+                shutil.copyfile(staged, output_path)
+            return rc, detail
     argv = [
         wasmtime,
         "run",
@@ -135,7 +147,7 @@ def _compile_current_fixture(
         "--memory-width",
         "memory32",
         "-o",
-        out_rel,
+        guest_output,
     ]
     result = _checks._run(argv, root, timeout=30)
     detail = (result.stderr or result.stdout or "").strip()
@@ -233,14 +245,8 @@ def _run_one_fixture(
     package_root: Path,
 ) -> FixtureResult:
     digest = hashlib.sha1(fixture.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
-    out_rel = str(Path(".build") / "fixture-test" / f"{digest}.wasm")
-    out = root / out_rel
-    try:
-        out.unlink()
-    except FileNotFoundError:
-        pass
-    except OSError as exc:
-        return FixtureResult(fixture, False, False, (f"cannot clear stale output: {exc}",))
+    out = package_root / f"{digest}.wasm"
+    out_rel = str(out)
 
     rc, detail = _compile_current_fixture(root, wasmtime, compiler, fixture, out_rel)
     if rc != 0 or not out.is_file():
@@ -301,6 +307,9 @@ def _run_one_fixture(
         if fixture in _checks.FIXTURE_PARITY_EXPECTED_TRAPS:
             return FixtureResult(fixture, True, True, ())
         return FixtureResult(fixture, False, True, ("unexpected runtime trap",))
+
+    if fixture in _checks.FIXTURE_PARITY_EXPECTED_TRAPS and proc.returncode == 0:
+        return FixtureResult(fixture, False, True, ("expected runtime failure, got exit 0",))
 
     expected_path = _expected_path(root, fixture)
     if expected_path.is_file():
@@ -380,7 +389,7 @@ def run_fixture_parity(
     if not fixtures:
         return (1, "error: no run fixtures found\n")
 
-    output_dir = root / ".build" / "fixture-test"
+    output_dir = _checks._build_dir(root) / "fixture-test"
     output_dir.mkdir(parents=True, exist_ok=True)
     smoke = _select_smoke_fixtures(root, fixtures)
     runtime_unsupported = set(fixtures) & RUNTIME_UNSUPPORTED_FIXTURES
@@ -395,7 +404,7 @@ def run_fixture_parity(
             f"{len(runtime_unsupported)} (native-cpp coverage owns these contracts)"
         )
 
-    with tempfile.TemporaryDirectory(prefix="arukellt-fixture-components-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="run-", dir=output_dir) as tmp:
         package_root = Path(tmp)
         results: list[FixtureResult] = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
