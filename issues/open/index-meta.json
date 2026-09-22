@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-22T17:52:59Z",
+  "generated_at": "2026-09-22T18:14:29Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,26 +539,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "876",
-      "path": "876-stability-current-state-spec-labels.md",
-      "title": "876 — stability / current-state / redesign の分類を整合する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "877",
-        "878"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -1123,8 +1103,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 30,
-        "unchecked": 14
+        "checked": 32,
+        "unchecked": 13
       },
       "orchestration": {
         "class": "blocked-by-upstream",

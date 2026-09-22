@@ -33,7 +33,6 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I876["876 876 — stability / current-state / redesign の分類を整合する"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -89,9 +88,7 @@ graph LR
   I709 --> I710
   I860 --> I877
   I875 --> I877
-  I876 --> I877
   I875 --> I878
-  I876 --> I878
   I872 --> I879
   I874 --> I879
   I875 --> I879
@@ -138,7 +135,6 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **876** depends on: none; blocks: 877, 878
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

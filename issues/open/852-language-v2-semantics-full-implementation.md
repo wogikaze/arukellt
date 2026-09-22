@@ -316,7 +316,8 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 ### Spec / migration / close
 
-- [ ] #876 — stability / current-state / redesign の分類を整合する — RFC 42, 43 — depends: none
+- [x] #876 — stability / current-state / redesign の分類を整合する — RFC 42, 43 — depends: none
+  - Receipt: `404ab8252`; ADR-014 canonical definitions now cited by the maturity matrix and the classifications TOML; spec.md provisional markers added for 2.9 / 6.4 / 6.5; TOML 2.8 renumbered to Let-Generalization (TypeScheme) with a new 2.9 Traits and Impl Blocks (v1) row; `check_spec_stability_marker_sync` wired into docs consistency detects label drift, section-renumber name drift, missing spec sections, and marker rows without TOML coverage; 13 unit tests cover parse/inheritance/normalization/drift. See [#876](../done/876-stability-current-state-spec-labels.md).
 - [ ] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876
 - [ ] #878 — Language v2 compatibility migration を完了する — RFC migration — depends: 875, 876
 - [ ] #879 — Wasm GC / fallback の性能・サイズ receipt を取得する — RFC performance — depends: 871, 872, 874, 875
@@ -430,3 +431,4 @@ graph TD
 - [x] #864: `f9393be42`; ADR-070; immutable non-expansive let generalization, environment-aware TypeScheme subtraction, mutable/expansive negative fixtures, and GC/linear targeted runtime parity. `selfhost diag-parity` and `verify lane` pass; full current fixture parity remains an existing 176-failure backlog, and the canonical compiler rebuild remains blocked by #854. See [#864](864-let-generalization-value-restriction.md).
 - [x] #870: `b6b7b2e0f` plus `10fdbe597`; ADR-074; independent GC, memory-width, host-profile, and artifact-kind capability axes, target-specific diagnostics, and GC/linear/component validation and runtime receipts. See [#870](../done/870-target-capability-configuration.md).
 - [x] #873: `6cb9bb01f`, `aed3af031`, `f3c56bbef`, `2aaadcbf4`, `b2144f1c1`, `449bb5651`; ADR-075; non-moving linear allocator with free-list reuse, explicit root frames with full managed-write mirroring, fixed-point mark/sweep collector, watermark-gated collection at function entry, rooted/unrooted cycle probe, source-level survival fixtures, and no Wasm GC instructions in fallback artifacts. `verify quick` stays red only on unrelated pre-existing baseline checks. See [#873](../done/873-linear-memory-tracing-gc-runtime.md).
+- [x] #876: `404ab8252`; ADR-014/ADR-018; canonical stability label definitions unified (matrix + TOML cite ADR-014), spec markers synced for 2.9/6.4/6.5, TOML 2.8 renumbering drift repaired with new 2.9 row, and `check_spec_stability_marker_sync` wired into docs consistency with 13 unit tests covering positive and four drift classes. See [#876](../done/876-stability-current-state-spec-labels.md).
