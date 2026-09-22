@@ -28,7 +28,7 @@ fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStrin
     let global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     let linear_gc = emit_target::is_linear_memory_target(clone(target))
     let cache_count = if literal_cache.array_type_idx >= 0 { 1 } else { 0 }
-    let linear_gc_count = if linear_gc { 6 } else { 0 }
+    let linear_gc_count = if linear_gc { 7 } else { 0 }
     let global_count = 1 + cache_count + linear_gc_count
     writer_core::emit_leb128_u(global_sec, global_count)
     let heap_start = heap_start_from_data_offset(data_offset, linear_gc)
@@ -101,6 +101,7 @@ fn emit_linear_gc_global_entries(global_sec: WasmWriter, heap_start: i32) {
         heap_start - constants::LINEAR_GC_METADATA_BYTES()
     )
     emit_linear_gc_i32_global(global_sec, heap_start)
+    emit_linear_gc_i32_global(global_sec, 0)
 }
 
 fn emit_linear_gc_i32_global(global_sec: WasmWriter, initial_value: i32) {

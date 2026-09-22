@@ -213,19 +213,23 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             self.assertNotIn("helpers_core::emit_heap_set(w)", source)
             self.assertNotIn("helpers_core_heap::emit_heap_set(w)", source)
 
-    def test_compiler_connects_linear_root_frames_without_collecting(self) -> None:
+    def test_compiler_connects_linear_root_frames_with_gated_collect(self) -> None:
         code = (ROOT / "src/compiler/wasm/code.ark").read_text(encoding="utf-8")
         body = (ROOT / "src/compiler/wasm/code_body.ark").read_text(encoding="utf-8")
         locals_source = (ROOT / "src/compiler/wasm/inst_locals.ark").read_text(encoding="utf-8")
         returns = (ROOT / "src/compiler/wasm/inst_convert.ark").read_text(encoding="utf-8")
         scratch = (ROOT / "src/compiler/wasm/code_scratch_locals.ark").read_text(encoding="utf-8")
         lowering = (ROOT / "src/compiler/wasm/linear_root_lowering.ark").read_text(encoding="utf-8")
+        runtime = (ROOT / "src/compiler/wasm/linear_gc_runtime.ark").read_text(encoding="utf-8")
+        constants = (ROOT / "src/compiler/wasm/constants.ark").read_text(encoding="utf-8")
+        memory = (ROOT / "src/compiler/wasm/sections_memory.ark").read_text(encoding="utf-8")
 
         for symbol in (
             "writer_set_linear_gc_root_frame_enter_function_index",
             "writer_set_linear_gc_root_push_function_index",
             "writer_set_linear_gc_root_update_function_index",
             "writer_set_linear_gc_root_frame_leave_function_index",
+            "writer_set_linear_gc_collect_function_index",
         ):
             self.assertIn(symbol, code)
         self.assertIn("emit_frame_enter_and_push", body)
@@ -234,7 +238,18 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("linear_root_lowering::emit_frame_leave(w, ctx)", returns)
         self.assertIn("scratch_linear_root_frame_local_count", scratch)
         self.assertIn("SelfEmitCtx_linear_root_frame_local", lowering)
-        self.assertNotIn("LINEAR_GC_COLLECT", lowering)
+        # Automatic collection is watermark-gated at function entry: the
+        # operand stack is empty there and every managed local is already
+        # mirrored into a root slot, so the collector cannot reclaim a live
+        # value suspended on a caller's operand stack.
+        self.assertIn("GLOBAL_LINEAR_GC_ALLOC_WATERMARK", lowering)
+        self.assertIn("LINEAR_GC_COLLECT_THRESHOLD_BYTES", lowering)
+        self.assertIn("writer_linear_gc_collect_function_index", lowering)
+        self.assertIn("GLOBAL_LINEAR_GC_ALLOC_WATERMARK", runtime)
+        self.assertIn("GLOBAL_LINEAR_GC_ALLOC_WATERMARK", constants)
+        self.assertIn("LINEAR_GC_COLLECT_THRESHOLD_BYTES", constants)
+        # The watermark global widens the linear global group from 6 to 7.
+        self.assertIn("if linear_gc { 7 } else { 0 }", memory)
 
     def test_same_source_fixture_and_capability_diagnostic_remain_present(self) -> None:
         gc_source = (ROOT / "tests/fixtures/target_capability/gc_linear_same_source.ark").read_text(

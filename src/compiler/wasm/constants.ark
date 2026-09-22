@@ -33,9 +33,14 @@ fn GLOBAL_LINEAR_GC_ROOT_CURSOR() -> i32 { 3 }
 fn GLOBAL_LINEAR_GC_ROOT_LIMIT() -> i32 { 4 }
 fn GLOBAL_LINEAR_GC_METADATA_CURSOR() -> i32 { 5 }
 fn GLOBAL_LINEAR_GC_LAST_TOP() -> i32 { 6 }
+fn GLOBAL_LINEAR_GC_ALLOC_WATERMARK() -> i32 { 7 }
 fn LINEAR_GC_METADATA_BYTES() -> i32 { 65536 }
 fn LINEAR_GC_ALLOCATION_RECORD_BYTES() -> i32 { 16 }
 fn LINEAR_GC_ROOT_SLOT_BYTES() -> i32 { 4 }
+// Bytes of payload allocated since the last collection before a function
+// entry runs the collector. Keeps steady-state programs from paying a full
+// mark-sweep on every call while still bounding garbage growth.
+fn LINEAR_GC_COLLECT_THRESHOLD_BYTES() -> i32 { 67108864 }
 
 // Private linear runtime function ordinals. The function section emits these
 // in this order after user, wrapper, P2, and library functions.

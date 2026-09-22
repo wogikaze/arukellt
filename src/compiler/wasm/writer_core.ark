@@ -15,6 +15,7 @@ pub struct WasmWriter {
     linear_gc_root_push_function_index: i32,
     linear_gc_root_update_function_index: i32,
     linear_gc_root_frame_leave_function_index: i32,
+    linear_gc_collect_function_index: i32,
     linear_root_frame_local: i32,
     linear_root_slot_offsets: Vec<i32>,
     local_ref_types: Vec<i32>,
@@ -36,6 +37,7 @@ fn WasmWriter_with_memory64(memory64: bool) -> WasmWriter {
         linear_gc_root_push_function_index: 0 - 1,
         linear_gc_root_update_function_index: 0 - 1,
         linear_gc_root_frame_leave_function_index: 0 - 1,
+        linear_gc_collect_function_index: 0 - 1,
         linear_root_frame_local: 0 - 1,
         linear_root_slot_offsets: Vec::new<i32>(),
         local_ref_types: Vec::new<i32>(),
@@ -146,6 +148,14 @@ fn writer_linear_gc_root_frame_leave_function_index(w: WasmWriter) -> i32 {
 
 fn writer_set_linear_gc_root_frame_leave_function_index(w: WasmWriter, index: i32) {
     w.linear_gc_root_frame_leave_function_index = index
+}
+
+fn writer_linear_gc_collect_function_index(w: WasmWriter) -> i32 {
+    w.linear_gc_collect_function_index
+}
+
+fn writer_set_linear_gc_collect_function_index(w: WasmWriter, index: i32) {
+    w.linear_gc_collect_function_index = index
 }
 
 // Root-slot layout of the function body currently being written. The table is

@@ -72,6 +72,20 @@ fn emit_frame_enter_and_push(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
     }
     writer_core::writer_set_linear_root_frame_local(w, frame_local)
     writer_core::writer_set_linear_root_slot_offsets(w, slot_offsets)
+
+    // Watermark-gated collection. At this point the operand stack is empty
+    // and every managed local of every live frame is mirrored into root
+    // slots, so the collector cannot see a false negative: the only values
+    // suspended on caller stacks are this call's arguments, which are now
+    // rooted params of the current frame.
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_ALLOC_WATERMARK())
+    emit_i32_const(w, constants::LINEAR_GC_COLLECT_THRESHOLD_BYTES())
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    emit_call(w, writer_core::writer_linear_gc_collect_function_index(w))
+    writer_core::emit_byte(w, opcodes::OP_END())
 }
 
 // Mirrors a local.set/local.tee into the root slot installed by

@@ -13,6 +13,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark"
 FUNCTION_DEFINITION = re.compile(r"^\s+\(func .*?\(;([0-9]+);\)", re.MULTILINE)
+MAIN_DEFINITION = re.compile(r"^\s+\(func \$main \(;([0-9]+);\)", re.MULTILINE)
+GLOBAL_DEFINITION = re.compile(r"^\s+\(global \(;", re.MULTILINE)
+
+# Linear modules emit exactly the heap pointer plus the seven fallback
+# globals declared by wasm::constants; there is no GC literal-cache global
+# on this target, so the ordinals below are stable.
+FREE_HEAD_GLOBAL = 2
+ALLOC_WATERMARK_GLOBAL = 7
+COLLECT_THRESHOLD_BYTES = 67108864
 
 
 class LinearGcRuntimeE2eTest(unittest.TestCase):
@@ -159,8 +168,51 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
         self.assertTrue(module_end.endswith(")"), "printed artifact is not a WAT module")
         return module_end[:-1] + probe + ")\n"
 
-    def test_rooted_cycle_survives_and_unreachable_cycle_is_reused(self) -> None:
-        artifact = self.compile_linear_fixture()
+    def add_entry_collect_probe(self, wat: str) -> str:
+        (_, _, _, _, _, _, _, alloc) = self.runtime_function_indices(wat)
+        main_match = MAIN_DEFINITION.search(wat)
+        self.assertIsNotNone(main_match, "compiled artifact is missing $main")
+        main_index = int(main_match.group(1))
+        # 256 blocks x 64 bytes of unrooted garbage, then a watermark forced
+        # past the threshold. Entering the compiled function must run the
+        # collector: the watermark is reset and the garbage records move to
+        # the free list.
+        probe = f"""
+  (func (export "linear_gc_entry_collect_probe") (result i32)
+    (local $i i32)
+    block ;; label = @1
+      loop ;; label = @2
+        local.get $i
+        i32.const 256
+        i32.ge_u
+        br_if 1 (;@1;)
+        i32.const 64
+        call {alloc}
+        drop
+        local.get $i
+        i32.const 1
+        i32.add
+        local.set $i
+        br 0 (;@2;)
+      end
+    end
+    i32.const -1
+    global.set {ALLOC_WATERMARK_GLOBAL}
+    call {main_index}
+    global.get {ALLOC_WATERMARK_GLOBAL}
+    i32.const {COLLECT_THRESHOLD_BYTES}
+    i32.lt_u
+    global.get {FREE_HEAD_GLOBAL}
+    i32.const 0
+    i32.ne
+    i32.and
+  )
+"""
+        module_end = wat.rstrip()
+        self.assertTrue(module_end.endswith(")"), "printed artifact is not a WAT module")
+        return module_end[:-1] + probe + ")\n"
+
+    def print_artifact(self, artifact: Path) -> str:
         printed = subprocess.run(
             ["wasm-tools", "print", str(artifact)],
             cwd=ROOT,
@@ -169,12 +221,10 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
             check=False,
         )
         self.assertEqual(printed.returncode, 0, printed.stderr)
-        self.assertNotIn("struct.", printed.stdout)
-        self.assertNotIn("array.", printed.stdout)
-        self.assertNotIn("ref.", printed.stdout)
+        return printed.stdout
 
-        probe_wat = self.add_runtime_probe(printed.stdout)
-        probe = ROOT / ".build/tests/linear_gc_runtime_e2e_probe.wasm"
+    def run_probe(self, probe_wat: str, probe_name: str, output_name: str) -> str:
+        probe = ROOT / ".build/tests" / output_name
         parsed = subprocess.run(
             ["wasm-tools", "parse", "-o", str(probe)],
             cwd=ROOT,
@@ -197,7 +247,7 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
                 "wasmtime",
                 "run",
                 "--invoke",
-                "linear_gc_runtime_probe",
+                probe_name,
                 "--dir=.",
                 str(probe),
             ],
@@ -207,7 +257,38 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
             check=False,
         )
         self.assertEqual(executed.returncode, 0, executed.stderr)
-        self.assertEqual(executed.stdout.strip().splitlines()[-1], "1", executed.stdout)
+        return executed.stdout
+
+    def test_rooted_cycle_survives_and_unreachable_cycle_is_reused(self) -> None:
+        artifact = self.compile_linear_fixture()
+        wat = self.print_artifact(artifact)
+        self.assertNotIn("struct.", wat)
+        self.assertNotIn("array.", wat)
+        self.assertNotIn("ref.", wat)
+
+        probe_wat = self.add_runtime_probe(wat)
+        stdout = self.run_probe(
+            probe_wat,
+            "linear_gc_runtime_probe",
+            "linear_gc_runtime_e2e_probe.wasm",
+        )
+        self.assertEqual(stdout.strip().splitlines()[-1], "1", stdout)
+
+    def test_function_entry_collects_when_watermark_exceeds_threshold(self) -> None:
+        artifact = self.compile_linear_fixture()
+        wat = self.print_artifact(artifact)
+        self.assertEqual(
+            len(GLOBAL_DEFINITION.findall(wat)),
+            8,
+            "linear artifact must emit the heap pointer plus 7 fallback globals",
+        )
+        probe_wat = self.add_entry_collect_probe(wat)
+        stdout = self.run_probe(
+            probe_wat,
+            "linear_gc_entry_collect_probe",
+            "linear_gc_entry_collect_probe.wasm",
+        )
+        self.assertEqual(stdout.strip().splitlines()[-1], "1", stdout)
 
 
 if __name__ == "__main__":
