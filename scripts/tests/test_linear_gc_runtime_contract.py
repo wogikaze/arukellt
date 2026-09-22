@@ -82,6 +82,7 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         fs_read_body = (ROOT / "src/compiler/wasm/runtime_abi_fs_read_body.ark").read_text(encoding="utf-8")
         fs_write_result = (ROOT / "src/compiler/wasm/runtime_abi_fs_write_result.ark").read_text(encoding="utf-8")
         fs_write_bytes_buffer = (ROOT / "src/compiler/wasm/runtime_abi_fs_write_bytes_buffer.ark").read_text(encoding="utf-8")
+        stdio_read_buffer = (ROOT / "src/compiler/wasm/runtime_abi_stdio_read_buffer.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -140,6 +141,28 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         fs_write_err = fs_write_result[fs_write_err_start:]
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", fs_write_err)
         self.assertNotIn("helpers_core::emit_heap_set(w)", fs_write_err)
+        # Streaming read loops advance the heap without committing so the
+        # assembled String lands in a single managed record at finalize time.
+        stdin_begin = stdio_read_buffer.index("fn emit_begin_stdin_string_buffer")
+        stdin_finalize = stdio_read_buffer.index("fn emit_finalize_stdin_string_buffer")
+        stdin_advance = stdio_read_buffer.index("fn emit_advance_stdin_buffer_or_break")
+        self.assertIn(
+            "helpers_core_heap::emit_heap_advance_uncommitted(w)",
+            stdio_read_buffer[stdin_begin:stdin_finalize],
+        )
+        self.assertNotIn(
+            "helpers_core::emit_heap_set(w)",
+            stdio_read_buffer[stdin_advance:],
+        )
+        fs_loop_start = fs_read_body.index("fn emit_fs_read_loop(")
+        fs_loop_p2_start = fs_read_body.index("fn emit_fs_read_loop_p2")
+        fs_loop_end = fs_read_body.index("fn emit_fs_read_output_ptr")
+        self.assertNotIn("helpers_core::emit_heap_set(w)", fs_read_body[fs_loop_start:fs_loop_p2_start])
+        self.assertNotIn("helpers_core::emit_heap_set(w)", fs_read_body[fs_loop_p2_start:fs_loop_end])
+        self.assertIn(
+            "helpers_core_heap::emit_heap_advance_uncommitted(w)",
+            fs_read_body[fs_loop_start:fs_loop_end],
+        )
         f64_ok_start = parse_result.index("fn emit_f64_ok_result")
         f64_ok_end = parse_result.index("fn emit_i32_ok_result")
         f64_ok = parse_result[f64_ok_start:f64_ok_end]

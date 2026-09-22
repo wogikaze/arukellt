@@ -103,6 +103,17 @@ fn emit_heap_set(w: WasmWriter) {
     }
 }
 
+// Advance the heap pointer and keep the memory-backing guarantee of
+// emit_heap_set, but skip the commit-top record. Streaming readers claim
+// each host-written chunk this way and fire one emit_heap_set once the
+// final size is known, so the assembled value lands in a single managed
+// record instead of one record per chunk.
+fn emit_heap_advance_uncommitted(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+    emit_heap_ensure_grown(w)
+}
+
 // Consume a linear allocation size from the stack and leave its stable payload
 // pointer there. The runtime function exists only on the wasm32 fallback; all
 // callers are target-gated before reaching this helper.

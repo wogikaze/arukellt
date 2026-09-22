@@ -1,5 +1,6 @@
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
@@ -10,7 +11,7 @@ fn emit_begin_stdin_string_buffer(w: WasmWriter) {
     helpers_core::emit_heap_get(w)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_advance_uncommitted(w)
 }
 
 fn emit_finalize_stdin_string_buffer(w: WasmWriter) {
@@ -29,6 +30,10 @@ fn emit_finalize_stdin_string_buffer(w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_memory::emit_i32_store_default(w)
+    // Commit the assembled [BUFSTART, heap) range as one managed record now
+    // that the final length is known.
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_heap_set(w)
 }
 
 fn emit_advance_stdin_buffer_or_break(w: WasmWriter) {
@@ -40,5 +45,5 @@ fn emit_advance_stdin_buffer_or_break(w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
     helpers_memory::emit_i32_load_default(w)
     helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_advance_uncommitted(w)
 }
