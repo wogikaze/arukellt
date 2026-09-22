@@ -169,4 +169,20 @@ HashMap descriptor、closure environment、descriptor-aware root write、
 automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き
 未完了である。
 
+続く `f3c56bbef` では、managed local への全書き込みが root slot へ反映される
+ようにした。従来は `MIR_LOCAL_SET` だけが `root_update` を発行し、
+`inst_store::emit_store_action`（SET/TEE）経由の intrinsic 結果、linear
+`struct_new`/`array_new` constructor、`array_set` の element staging、
+非 GC `REF_TEST`/`REF_CAST` fallback、`future_new`/`await` の copy が
+root slot を更新しないまま MIR local を書き換えていた（collect 有効化時の
+false negative 要因）。`emit_frame_enter_and_push` が関数ごとの
+slot-offset 表と frame cursor local を `WasmWriter` へ格納し、
+`emit_update_after_local_set` は ctx なしで参照する形に変えたため、
+generic store 経路のシグネチャ変更は不要だった。scratch local と SIMD lane
+への書き込みは managed pointer を持たないため対象外（表は -1 を返す）。
+operand stack / scratch local だけが保持する pointer の collect 安全性、
+`LINEAR_GC_COLLECT` の呼び出し、HashMap descriptor、closure environment、
+automatic `collect`、shared/cyclic source graph、move/borrow parity は
+引き続き未完了である。
+
 ---

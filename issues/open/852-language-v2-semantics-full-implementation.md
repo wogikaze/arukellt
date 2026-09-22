@@ -260,6 +260,18 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     closure environments, descriptor-aware root writes, automatic
     collection, and full parity remain open. See
     [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-23): `f3c56bbef` mirrors every managed
+    local write into its linear root slot: the generic
+    `emit_store_action` SET/TEE path, linear struct/array constructors,
+    `array_set` element staging, non-GC ref test/cast fallbacks, and
+    future copies now all emit `root_update`. The update helper is
+    ctx-free via a per-function slot-offset table carried by
+    `WasmWriter`, so no call-site signature changes were needed. Five
+    fixtures compile, validate, and run identically on both backends, and
+    WAT shows the update sequence after every root-local write.
+    Scratch/operand-stack-only pointers at allocation points, automatic
+    `collect`, HashMap descriptors, closure environments, and full
+    parity remain open. See [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

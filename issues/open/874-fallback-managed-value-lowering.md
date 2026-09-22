@@ -869,3 +869,52 @@ RFC-011: **8 (fallback lowering)**。
   descriptors, closure environments, descriptor-aware root writes,
   automatic collection, shared/cyclic source graphs, and complete
   cross-backend move/borrow parity remain open; #874 stays open.
+
+## Progress receipt — 2026-09-23 (root-slot coverage for all managed local writes)
+
+- Implementation commit `f3c56bbef` closes the root-update coverage gap
+  that blocked automatic collection. Previously only `MIR_LOCAL_SET`
+  mirrored writes into the root frame; intrinsic results stored through
+  `inst_store::emit_store_action` (SET/TEE to `MirInst_dest`), the linear
+  `struct_new`/`array_new` constructors, `array_set` element staging,
+  the non-GC `REF_TEST`/`REF_CAST` fallbacks, and `future_new`/`await`
+  copies all wrote MIR locals without updating their root slots, so a
+  fresh managed pointer could be invisible to the collector (a false
+  negative that ADR-075 forbids). `emit_update_after_local_set` is now
+  ctx-free: `emit_frame_enter_and_push` installs a per-function
+  slot-offset table plus the frame-cursor local into `WasmWriter`, and the
+  update helper reads them back, so the generic store paths needed no
+  signature changes. Scratch-slot and SIMD-lane writes are unaffected
+  (they never carry managed pointers; the table returns -1 for them).
+- Contract coverage: `test_linear_gc_runtime_contract.py` still asserts
+  the root-frame wiring and now checks the ctx-free update signature; the
+  `LINEAR_GC_COLLECT` non-emission assertion is unchanged because
+  automatic collection remains disabled.
+- Positive fixtures and outputs: `enums/enum_struct_variant` prints
+  `75|24`, `collections/vec_option_i32` prints `7`,
+  `stdlib_hashmap/hashmap_insert` prints `OK`, and
+  `stdlib_io/fs_read_write` prints `write ok|hello from arukellt|`
+  identically on the wasm32 linear core and the wasm32-gc P2 component
+  paths; `stdlib_string/string_concat` passes its internal assertions on
+  both. WAT inspection of the linear artifacts shows
+  `local.get frame; i32.const slot; i32.sub; local.get v; call root_update`
+  after every `local.set`/`local.tee` into a root local and no such
+  sequence after scratch writes.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (19.9s)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (9 files)
+  wasm-tools validate                                       PASS (9 artifacts)
+  wasmtime run                                              PASS (9 artifacts)
+  ```
+
+- This receipt covers only managed-local write coverage. Managed pointers
+  held only in scratch locals or on the operand stack at an allocation
+  point are still not collectible-safe, `LINEAR_GC_COLLECT` is still never
+  invoked, HashMap descriptors/exact pointer-field metadata, closure
+  environments, automatic collection, shared/cyclic source graphs, and the
+  complete move/borrow parity audit remain open; #874 stays open.
