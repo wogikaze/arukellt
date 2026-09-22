@@ -1062,6 +1062,126 @@ def check_stability_implementation_consistency() -> int:
     return 0
 
 
+# -- spec.md stability marker vs [[features]] sync (#876) ----------------------
+
+_SPEC_HEADING_RE = re.compile(
+    r"^([#]{2,4})\s+(\d+(?:\.\d+)*)\.?\s+(.+?)(?:\s*<!--.*?-->\s*)*$",
+    re.MULTILINE,
+)
+_SPEC_STABILITY_MARKER_RE = re.compile(r"<!--\s*stability:\s*([a-zA-Z_ ]+)\s*-->")
+_SPEC_STABILITY_LABELS = frozenset(
+    {"stable", "provisional", "experimental", "unimplemented"}
+)
+
+
+def _norm_feature_name(name: str) -> str:
+    """Normalise a feature name for spec/TOML comparison.
+
+    Trailing parenthesised qualifiers such as '(v1)' or '(TypeScheme)'
+    annotate the feature rather than identify it, so the two sources may
+    carry different ones. Case and whitespace are insignificant.
+    """
+    name = re.sub(r"(\s*\([^)]*\))+\s*$", "", name)
+    return re.sub(r"\s+", " ", name).strip().lower()
+
+
+def _spec_section_stability(
+    spec_text: str,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Return (effective, explicit, names) keyed by section id.
+
+    effective resolves each numbered section's label as its own
+    stability marker or the nearest enclosing marked ancestor's.
+    explicit contains only sections carrying a recognized marker of
+    their own. Non-label marker values (for example 'see individual
+    entries') count as unmarked for both maps. names holds the heading
+    title with HTML comments stripped.
+    """
+    effective: dict[str, str] = {}
+    explicit: dict[str, str] = {}
+    names: dict[str, str] = {}
+    stack: list[tuple[int, str]] = []
+    for match in _SPEC_HEADING_RE.finditer(spec_text):
+        level = len(match.group(1))
+        sid = match.group(2)
+        title = match.group(3).strip()
+        marker = _SPEC_STABILITY_MARKER_RE.search(match.group(0))
+        label = marker.group(1).strip() if marker else ""
+        if label not in _SPEC_STABILITY_LABELS:
+            label = ""
+        while stack and stack[-1][0] >= level:
+            stack.pop()
+        inherited = stack[-1][1] if stack else ""
+        eff = label or inherited
+        effective[sid] = eff
+        names[sid] = title
+        if label:
+            explicit[sid] = label
+        stack.append((level, eff))
+    return effective, explicit, names
+
+
+def check_spec_stability_marker_sync() -> int:
+    """Detect drift between spec.md stability markers and [[features]].
+
+    Each [[features]] row in language-doc-classifications.toml names a
+    spec.md section; the row's stability must equal the section's
+    effective label (own marker or nearest marked ancestor), and its
+    name must match the section title so a renumbered section cannot
+    silently reattach its label to a different feature. A spec section
+    carrying an explicit label marker without a TOML row is a coverage
+    gap. This is the ADR-014 side of the ADR-014/ADR-018 sync.
+    """
+    spec_path = ROOT / "docs" / "language" / "spec.md"
+    toml_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
+    if not spec_path.is_file() or not toml_path.is_file():
+        return 0
+
+    spec_text = spec_path.read_text(encoding="utf-8")
+    features = _tomllib.loads(toml_path.read_text(encoding="utf-8")).get(
+        "features", []
+    )
+    effective, explicit, names = _spec_section_stability(spec_text)
+    feature_ids = {feat.get("id", "") for feat in features}
+
+    issues: list[str] = []
+    for feat in features:
+        sid = feat.get("id", "")
+        stability = feat.get("stability", "")
+        if not sid:
+            continue
+        spec_label = effective.get(sid)
+        if spec_label is None:
+            issues.append(
+                f"feature {sid}: [[features]] row has no matching spec.md section"
+            )
+            continue
+        if spec_label != stability:
+            issues.append(
+                f"feature {sid}: TOML stability '{stability}' but spec.md "
+                f"effective label is '{spec_label or 'unmarked'}'"
+            )
+        spec_name = names.get(sid, "")
+        toml_name = feat.get("name", "")
+        if _norm_feature_name(spec_name) != _norm_feature_name(toml_name):
+            issues.append(
+                f"feature {sid}: TOML name '{toml_name}' does not match "
+                f"spec.md section title '{spec_name}'"
+            )
+    for sid, label in explicit.items():
+        if sid not in feature_ids:
+            issues.append(
+                f"spec.md section {sid} carries stability marker '{label}' "
+                "but has no [[features]] row"
+            )
+
+    if issues:
+        errors.append(
+            "spec stability marker drift: " + "; ".join(issues)
+        )
+        return 1
+    return 0
+
 # ── Cookbook example drift detection (#401) ────────────────────────────────────
 
 # Minimum overlap ratio between significant cookbook code lines and the union of
@@ -1808,6 +1928,7 @@ def main() -> int:
     failed += check_cross_page_metadata_consistency()
     failed += check_host_stub_fixture_coverage()
     failed += check_stability_implementation_consistency()
+    failed += check_spec_stability_marker_sync()
     failed += check_cookbook_example_drift()
     failed += check_recipe_fixture_links()
     failed += check_name_index_completeness()

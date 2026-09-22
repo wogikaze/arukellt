@@ -96,7 +96,9 @@ FUNCTION_KIND_REQUIRE_ONE_OF: dict[str, tuple[str, ...]] = {
 _SPEC_SECTION_RE = re.compile(
     r'^## (\d+)\. (.+?)(?:\s+<!--\s*stability:\s*(.*?)\s*-->)?\s*$'
 )
-_SPEC_SUBSECTION_RE = re.compile(r'^### (\d+\.\d+) (.+)$')
+_SPEC_SUBSECTION_RE = re.compile(
+    r'^#{3,4} (\d+\.\d+(?:\.\d+)*) (.+?)(?:\s+<!--\s*stability:\s*(.*?)\s*-->)?\s*$'
+)
 # Matches v1/v2/v3/v4 feature markers in subsection titles
 _V_FEATURE_RE = re.compile(r'\(v\d+\w*\)\s*$', re.IGNORECASE)
 
@@ -2342,8 +2344,13 @@ def parse_spec_stability_sections() -> list[dict]:
         if ms:
             sub_id = ms.group(1)
             sub_name = ms.group(2).strip()
-            # Version-gated features (v1/v2/...) are provisional
-            if _V_FEATURE_RE.search(sub_name):
+            raw_sub = (ms.group(3) or "").strip().lower()
+            if raw_sub in STABILITY_LABELS:
+                # Explicit <!-- stability: ... --> marker wins (ADR-014)
+                stability = raw_sub
+                sub_notes = ""
+            elif _V_FEATURE_RE.search(sub_name):
+                # Version-gated features (v1/v2/...) are provisional
                 stability = "provisional"
                 sub_notes = "version-gated feature — interface may change before stable exit"
             else:
@@ -2373,12 +2380,14 @@ def render_maturity_matrix(sections: list[dict]) -> str:
         "",
         "## Stability Labels",
         "",
+        "> Canonical definitions: [ADR-014](../adr/ADR-014-stability-labels.md).",
+        "",
         "| Label | Meaning |",
         "|-------|---------|",
-        "| **stable** | Feature is finalized. Breaking changes require a new major version. |",
-        "| **provisional** | Feature is implemented and tested, but the interface may change before stabilization. |",
-        "| **experimental** | Feature exists in the codebase but is not tested or guaranteed on every build. |",
-        "| **unimplemented** | Feature is specified but not yet implemented. |",
+        "| **stable** | Specification frozen. Breaking changes only via a pre-announced migration guide. |",
+        "| **provisional** | Mostly correct, but details may change. No unannounced breaking changes. |",
+        "| **experimental** | Under design. Unannounced breaking changes may occur. |",
+        "| **unimplemented** | Specified but not yet implemented; use is a compile error. |",
         "",
         "## Summary",
         "",

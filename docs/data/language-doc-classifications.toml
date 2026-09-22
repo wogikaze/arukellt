@@ -52,6 +52,7 @@ note = "Language docs ownership and release-gate map; governance companion to st
 # ── Feature maturity classifications ─────────────────────────────────────────
 # Source of truth for docs/language/maturity-matrix.md (generated).
 # Stability labels: stable | provisional | experimental | unimplemented
+# Canonical label definitions: docs/adr/ADR-014-stability-labels.md
 #
 # Workflow:  edit features below → run `python3 scripts/gen/generate-docs.py` → commit
 # CI guard:  `python3 scripts/check/check-docs-consistency.py` detects stale matrix
@@ -138,6 +139,12 @@ stability = "stable"
 
 [[features]]
 id = "2.8"
+name = "Let-Generalization (TypeScheme)"
+stability = "provisional"
+notes = "language uplift feature — interface may change before stable exit"
+
+[[features]]
+id = "2.9"
 name = "Traits and Impl Blocks (v1)"
 stability = "provisional"
 notes = "version-gated feature — interface may change before stable exit"

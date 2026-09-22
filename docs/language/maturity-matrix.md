@@ -11,19 +11,21 @@
 
 ## Stability Labels
 
+> Canonical definitions: [ADR-014](../adr/ADR-014-stability-labels.md).
+
 | Label | Meaning |
 |-------|---------|
-| **stable** | Feature is finalized. Breaking changes require a new major version. |
-| **provisional** | Feature is implemented and tested, but the interface may change before stabilization. |
-| **experimental** | Feature exists in the codebase but is not tested or guaranteed on every build. |
-| **unimplemented** | Feature is specified but not yet implemented. |
+| **stable** | Specification frozen. Breaking changes only via a pre-announced migration guide. |
+| **provisional** | Mostly correct, but details may change. No unannounced breaking changes. |
+| **experimental** | Under design. Unannounced breaking changes may occur. |
+| **unimplemented** | Specified but not yet implemented; use is a compile error. |
 
 ## Summary
 
 | Stability | Count |
 |-----------|-------|
 | stable | 58 |
-| provisional | 12 |
+| provisional | 13 |
 | experimental | 0 |
 | unimplemented | 0 |
 
@@ -47,7 +49,8 @@
 | 2.5 | Type Inference | stable | — |
 | 2.6 | Numeric Conversion and Literal Inference | stable | — |
 | 2.7 | Generics | stable | — |
-| 2.8 | Traits and Impl Blocks (v1) | **provisional** | version-gated feature — interface may change before stable exit |
+| 2.8 | Let-Generalization (TypeScheme) | **provisional** | language uplift feature — interface may change before stable exit |
+| 2.9 | Traits and Impl Blocks (v1) | **provisional** | version-gated feature — interface may change before stable exit |
 | 3 | Expressions | stable | — |
 | 3.1 | Literal Expressions | stable | — |
 | 3.2 | Identifier and Qualified Identifier | stable | — |

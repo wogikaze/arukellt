@@ -426,7 +426,7 @@ let s: String = id("hello")  // fresh t2, unified with String
 - TypeScheme is an internal compiler representation and does not appear
   in surface syntax.
 
-### 2.9 Traits and Impl Blocks
+### 2.9 Traits and Impl Blocks <!-- stability: provisional -->
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -1340,7 +1340,7 @@ Variant forms:
 - **Tuple**: `Variant(T1, T2, …)` — positional fields.
 - **Struct**: `Variant { field: T, … }` — named fields.
 
-### 6.4 Trait Definition
+### 6.4 Trait Definition <!-- stability: provisional -->
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
@@ -1353,7 +1353,7 @@ pub trait Name<T> {
 }
 ```
 
-### 6.5 Impl Block
+### 6.5 Impl Block <!-- stability: provisional -->
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
