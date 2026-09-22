@@ -61,7 +61,7 @@ fn emit_fs_write_bytes_result(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_fs_write_bytes_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
-    runtime_abi_fs_write_result::emit_fs_write_error_message(w)
+    runtime_abi_fs_write_result::emit_fs_write_error_message(w, ctx)
     runtime_abi_fs_write_result::emit_fs_write_error_result(w, ctx)
 }
 

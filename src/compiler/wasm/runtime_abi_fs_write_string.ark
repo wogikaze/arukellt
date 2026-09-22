@@ -89,7 +89,7 @@ fn emit_open_status_test(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
-    runtime_abi_fs_write_result::emit_fs_write_error_message(w)
+    runtime_abi_fs_write_result::emit_fs_write_error_message(w, ctx)
     runtime_abi_fs_write_result::emit_fs_write_error_result(w, ctx)
 }
 

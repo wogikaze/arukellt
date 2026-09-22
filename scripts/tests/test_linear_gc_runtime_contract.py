@@ -79,6 +79,9 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         env_arg_populate = (ROOT / "src/compiler/wasm/runtime_abi_env_arg_list_populate.ark").read_text(encoding="utf-8")
         env_arg_at = (ROOT / "src/compiler/wasm/runtime_abi_env_arg_at_body.ark").read_text(encoding="utf-8")
         env_has_flag = (ROOT / "src/compiler/wasm/runtime_abi_env_has_flag_body.ark").read_text(encoding="utf-8")
+        fs_read_body = (ROOT / "src/compiler/wasm/runtime_abi_fs_read_body.ark").read_text(encoding="utf-8")
+        fs_write_result = (ROOT / "src/compiler/wasm/runtime_abi_fs_write_result.ark").read_text(encoding="utf-8")
+        fs_write_bytes_buffer = (ROOT / "src/compiler/wasm/runtime_abi_fs_write_bytes_buffer.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -118,6 +121,25 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
             self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", env_source)
             self.assertNotIn("helpers_core::emit_heap_set(w)", env_source)
             self.assertNotIn("helpers_core_heap::emit_heap_set(w)", env_source)
+        self.assertIn(
+            "helpers_core_heap::emit_heap_alloc_from_stack(w)",
+            fs_write_bytes_buffer,
+        )
+        self.assertNotIn("helpers_core::emit_heap_set(w)", fs_write_bytes_buffer)
+        fs_read_result_pair_start = fs_read_body.index("fn emit_fs_read_result_pair(")
+        fs_read_result_pair_end = fs_read_body.index("fn emit_fs_read_result_pair_gc")
+        fs_read_result_pair = fs_read_body[fs_read_result_pair_start:fs_read_result_pair_end]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", fs_read_result_pair)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", fs_read_result_pair)
+        fs_write_unit_start = fs_write_result.index("fn emit_fs_write_success_unit_result")
+        fs_write_unit_end = fs_write_result.index("fn emit_fs_write_error_message")
+        fs_write_unit = fs_write_result[fs_write_unit_start:fs_write_unit_end]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", fs_write_unit)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", fs_write_unit)
+        fs_write_err_start = fs_write_result.index("fn emit_fs_write_error_result")
+        fs_write_err = fs_write_result[fs_write_err_start:]
+        self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", fs_write_err)
+        self.assertNotIn("helpers_core::emit_heap_set(w)", fs_write_err)
         f64_ok_start = parse_result.index("fn emit_f64_ok_result")
         f64_ok_end = parse_result.index("fn emit_i32_ok_result")
         f64_ok = parse_result[f64_ok_start:f64_ok_end]

@@ -62,7 +62,7 @@ fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     // path_open + write write
     helpers_io_store_path_and_open(w, s_path, ctx)
     string_gc_helpers::emit_gc_if_void(w)
-    runtime_abi_fs_write_result::emit_fs_write_error_message(w)
+    runtime_abi_fs_write_result::emit_fs_write_error_message(w, ctx)
     runtime_abi_fs_write_result::emit_fs_write_error_result(w, ctx)
     helpers_core::emit_local_set(w, s_res)
     string_gc_helpers::emit_gc_else(w)
@@ -72,7 +72,7 @@ fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
         helpers_numeric_i32::emit_i32_ne(w)
         string_gc_helpers::emit_gc_if_void(w)
         runtime_abi_fs_p2::emit_p2_close(w, ctx)
-        runtime_abi_fs_write_result::emit_fs_write_error_message(w)
+        runtime_abi_fs_write_result::emit_fs_write_error_message(w, ctx)
         runtime_abi_fs_write_result::emit_fs_write_error_result(w, ctx)
         helpers_core::emit_local_set(w, s_res)
         string_gc_helpers::emit_gc_else(w)
