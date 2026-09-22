@@ -11,7 +11,7 @@
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical verification gate: 166/166 checks pass
-- Fixture registry: 2954 manifest entries (`docs/data/project-state.toml`)
+- Fixture registry: 2955 manifest entries (`docs/data/project-state.toml`)
 - Fixture harness (observed): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
 - Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.
 

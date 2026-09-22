@@ -420,6 +420,36 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-23 (HashMap for-in iteration)
+
+- Commit `3844363be` adds `IntoIterator` implementations for the four
+  supported concrete pairs `HashMap<i32, i32>`, `HashMap<String, i32>`,
+  `HashMap<i32, String>`, and `HashMap<String, String>`. Each impl
+  snapshots occupied-bucket keys into a `Vec` through the new
+  `hashmap_*_keys` helpers and reuses the matching `VecIter` /
+  `StringIter` adapter, so no map-specific iterator state type is needed
+  and both backends share one source-level meaning.
+- Concrete impl targets now register per-pair owner symbols
+  (`HashMap_i32_i32::into_iter` and siblings) across the typechecker,
+  resolver, CoreHir, and MIR lowering paths; generic `HashMap<K, V>` impl
+  heads keep the bare `HashMap` owner so the canonical inherent shell is
+  unchanged. Method lookup tries the pair owner first and falls back to the
+  bare `HashMap` owner, which keeps `get`/`insert`/`contains_key`
+  resolving to the canonical shell.
+- `tests/fixtures/stdlib_trait/iterator_hashmap_keys.ark` covers direct
+  `for key in map` over all four pairs plus the empty-map case, with
+  order-agnostic assertions. The fixture compiles, validates, and runs on
+  linear-memory `wasm32` and as a `wasm32-gc` P2 component; WAT shows the
+  per-pair `into_iter` symbols and keys helpers on both backends.
+- `verify lane` passes including the touched-code quality ratchet. The
+  pre-existing `hashmap_methods_generic.ark` lane still passes on both
+  targets after the pair-owner fallback.
+- Remaining residuals for this issue: `std::seq` query helpers without lazy
+  replacements (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
+  `seq_contains`, `unique`, `count_eq`), arbitrary item-generic adapter
+  composition (#860), and the external `verify quick` blockers (#652, #765,
+  MIR BFS baseline, T3 memory64). This is not a close receipt.
+
 ## Progress receipt — 2026-09-23 (manifest surface + eager-helper deprecation)
 
 - Commit `0148c9703` registers the public `std::core::iter` surface in
