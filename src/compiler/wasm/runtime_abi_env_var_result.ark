@@ -23,7 +23,10 @@ fn emit_env_var_store_result(w: WasmWriter, ctx: SelfEmitCtx) {
 
 fn emit_env_var_load_or_none(w: WasmWriter, ctx: SelfEmitCtx) {
     let none_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    runtime_abi_env_var_option::emit_env_var_option_none(w, ctx)
+    runtime_abi_env_var_option::emit_env_var_option_none(
+        w,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    )
     helpers_core::emit_local_set(w, none_ptr)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_P_RES())
     helpers_memory::emit_i32_load_default(w)

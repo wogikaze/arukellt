@@ -74,6 +74,11 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         parse_result_errors = (ROOT / "src/compiler/wasm/intrinsic_parse_result_errors.ark").read_text(encoding="utf-8")
         seq_slice = (ROOT / "src/compiler/wasm/intrinsic_seq_slice.ark").read_text(encoding="utf-8")
         seq_unique = (ROOT / "src/compiler/wasm/intrinsic_seq_unique.ark").read_text(encoding="utf-8")
+        env_var_option = (ROOT / "src/compiler/wasm/runtime_abi_env_var_option.ark").read_text(encoding="utf-8")
+        env_args = (ROOT / "src/compiler/wasm/runtime_abi_env_args.ark").read_text(encoding="utf-8")
+        env_arg_populate = (ROOT / "src/compiler/wasm/runtime_abi_env_arg_list_populate.ark").read_text(encoding="utf-8")
+        env_arg_at = (ROOT / "src/compiler/wasm/runtime_abi_env_arg_at_body.ark").read_text(encoding="utf-8")
+        env_has_flag = (ROOT / "src/compiler/wasm/runtime_abi_env_has_flag_body.ark").read_text(encoding="utf-8")
 
         self.assertIn("linear_gc_alloc_function_index", writer)
         self.assertIn("writer_set_linear_gc_alloc_function_index", code)
@@ -109,6 +114,10 @@ class LinearGcRuntimeContractTest(unittest.TestCase):
         self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", seq_unique)
         self.assertNotIn("helpers_core::emit_heap_set(w)", seq_unique)
         self.assertNotIn("helpers_core_heap::emit_heap_set(w)", seq_unique)
+        for env_source in (env_var_option, env_args, env_arg_populate, env_arg_at, env_has_flag):
+            self.assertIn("helpers_core_heap::emit_heap_alloc_from_stack(w)", env_source)
+            self.assertNotIn("helpers_core::emit_heap_set(w)", env_source)
+            self.assertNotIn("helpers_core_heap::emit_heap_set(w)", env_source)
         f64_ok_start = parse_result.index("fn emit_f64_ok_result")
         f64_ok_end = parse_result.index("fn emit_i32_ok_result")
         f64_ok = parse_result[f64_ok_start:f64_ok_end]

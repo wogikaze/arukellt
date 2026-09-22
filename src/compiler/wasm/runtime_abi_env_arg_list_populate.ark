@@ -1,5 +1,6 @@
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
@@ -41,23 +42,17 @@ fn emit_env_args_prepare_argv_storage(w: WasmWriter, ctx: SelfEmitCtx, s_argc: i
 }
 
 fn emit_env_args_alloc_argv_table(w: WasmWriter, s_argc: i32, s_argv: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, s_argv)
-    helpers_core::emit_heap_get(w)
     helpers_core::emit_local_get(w, s_argc)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_mul(w)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_argv)
 }
 
 fn emit_env_args_alloc_argv_buffer(w: WasmWriter, s_bufsize: i32, s_argv_buf: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, s_argv_buf)
-    helpers_core::emit_heap_get(w)
     helpers_core::emit_local_get(w, s_bufsize)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_argv_buf)
 }
 
 fn emit_env_args_call_args_get(w: WasmWriter, ctx: SelfEmitCtx, s_argv: i32, s_argv_buf: i32) {
@@ -132,8 +127,12 @@ fn emit_env_args_cstr_len(w: WasmWriter, s_cstr: i32, s_slen: i32) {
 }
 
 fn emit_env_args_copy_cstr_to_string(w: WasmWriter, ctx: SelfEmitCtx, s_cstr: i32, s_slen: i32, s_str: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_tee(w, s_str)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_str)
+    helpers_core::emit_local_get(w, s_str)
     helpers_core::emit_local_get(w, s_slen)
     helpers_memory::emit_i32_store(w, 0)
     helpers_core::emit_local_get(w, s_str)
@@ -142,10 +141,4 @@ fn emit_env_args_copy_cstr_to_string(w: WasmWriter, ctx: SelfEmitCtx, s_cstr: i3
     helpers_core::emit_local_get(w, s_cstr)
     helpers_core::emit_local_get(w, s_slen)
     helpers_memory::emit_memory_copy(w)
-    helpers_core::emit_heap_get(w)
-    helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_core::emit_local_get(w, s_slen)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
 }

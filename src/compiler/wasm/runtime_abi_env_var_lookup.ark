@@ -9,6 +9,7 @@ use wasm::runtime_abi_env_arg_list_populate
 use wasm::runtime_abi_env_var_option
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
@@ -146,7 +147,11 @@ fn emit_env_var_scan_p2_entry(
     helpers_memory::emit_i32_load_default(w)
     helpers_core::emit_local_set(w, value_len)
     runtime_abi_env_arg_list_populate::emit_env_args_copy_cstr_to_string(w, ctx, value_ptr, value_len, value_str)
-    runtime_abi_env_var_option::emit_env_var_option_some(w, ctx, value_str)
+    runtime_abi_env_var_option::emit_env_var_option_some(
+        w,
+        value_str,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
+    )
     runtime_abi_env_var_result::emit_env_var_store_result(w, ctx)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_core::emit_local_set(w, found)
@@ -206,21 +211,15 @@ fn emit_env_var_align_heap(w: WasmWriter) {
 }
 
 fn emit_env_var_alloc_table(w: WasmWriter, env_count: i32, ptrs_base: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, ptrs_base)
-    helpers_core::emit_heap_get(w)
     helpers_core::emit_local_get(w, env_count)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_mul(w)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, ptrs_base)
 }
 
 fn emit_env_var_alloc_buffer(w: WasmWriter, buf_size: i32, buf_base: i32) {
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, buf_base)
-    helpers_core::emit_heap_get(w)
     helpers_core::emit_local_get(w, buf_size)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, buf_base)
 }

@@ -12,6 +12,7 @@ use wasm::ctx_record
 use wasm::import_indices
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
@@ -125,20 +126,17 @@ fn emit_env_args_alloc_data_slots_p2(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_local_set(w, s_data)
-    helpers_core::emit_heap_get(w)
     helpers_core::emit_local_get(w, s_argc)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_mul(w)
-    helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_const(w, 3)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32::emit_i32_const(w, -4)
     helpers_numeric_i32::emit_i32_and(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_data)
     helpers_core::emit_local_get(w, s_vec)
     helpers_core::emit_local_get(w, s_data)
     helpers_memory::emit_i32_store(w, 8)
@@ -202,13 +200,10 @@ fn emit_env_args_load_argc(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_env_args_alloc_vec_header(w: WasmWriter, ctx: SelfEmitCtx) {
-    helpers_core::emit_heap_get(w)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    helpers_core::emit_local_set(w, s_vec)
-    helpers_core::emit_heap_get(w)
     helpers_numeric_i32::emit_i32_const(w, 12)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_vec)
     helpers_core::emit_local_get(w, s_vec)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_memory::emit_i32_store(w, 0)
@@ -218,13 +213,10 @@ fn emit_env_args_alloc_vec_header(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_env_args_alloc_data_slots(w: WasmWriter, ctx: SelfEmitCtx) {
-    helpers_core::emit_heap_get(w)
     let s_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    helpers_core::emit_local_set(w, s_data)
-    helpers_core::emit_heap_get(w)
     helpers_numeric_i32::emit_i32_const(w, 32)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    helpers_core::emit_local_set(w, s_data)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     helpers_core::emit_local_get(w, s_vec)
     helpers_core::emit_local_get(w, s_data)
@@ -235,21 +227,4 @@ fn emit_env_var_default_fallback(w: WasmWriter, default_local: i32) {
     helpers_core::emit_local_set(w, default_local)
     helpers_core::emit_drop(w)
     helpers_core::emit_local_get(w, default_local)
-}
-
-fn emit_env_missing_var_option(w: WasmWriter) {
-    helpers_core::emit_drop(w)
-    helpers_core::emit_heap_get(w)
-    helpers_core::emit_heap_get(w)
-    helpers_numeric_i32::emit_i32_const(w, 1)
-    helpers_memory::emit_i32_store_default(w)
-    helpers_core::emit_heap_get(w)
-    helpers_numeric_i32::emit_i32_const(w, 4)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_memory::emit_i32_store_default(w)
-    helpers_core::emit_heap_get(w)
-    helpers_numeric_i32::emit_i32_const(w, 8)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_heap_set(w)
 }
