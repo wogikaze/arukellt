@@ -284,6 +284,15 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     hardware. Closure environments, HashMap descriptors / exact
     pointer-field metadata, shared/cyclic source graphs, and full parity
     remain open. See [#874](874-fallback-managed-value-lowering.md).
+  - Progress (not done, 2026-09-23): `b2144f1c1` adds the first
+    source-level driver of the automatic collector:
+    `target_capability/linear_gc_entry_collect.ark` drops ~160 MiB of
+    Vec garbage across 160 calls while five live strings stay reachable
+    through root slots and transitive marking; in-source assertions hold
+    on both the wasm32 linear core and the wasm32-gc component paths. A
+    new e2e test runs the fixture under wasmtime for durable linear
+    coverage. Closure environments, HashMap descriptors, and full parity
+    remain open. See [#874](874-fallback-managed-value-lowering.md).
 - [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum

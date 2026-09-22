@@ -208,4 +208,22 @@ HashMap descriptor / 正確な pointer-field metadata（scan は ADR-075 が
 許す conservative のまま）、shared/cyclic source graph、move/borrow parity
 は引き続き未完了である。
 
+続く `b2144f1c1` では、自動回収をソースレベルのプログラムから駆動する
+初めての fixture `tests/fixtures/target_capability/linear_gc_entry_collect.ark`
+を追加した。`churn` が呼び出しごとに約 1 MiB の `Vec<i32>` を捨て、
+`main` が 160 回呼ぶ（約 160 MiB）ため、64 MiB watermark gate が
+`churn` の entry で少なくとも 2 回発火する。その間 5 個の live 文字列は
+`main` の root slot と `keep` backing store 経由で到達可能であり、
+ソース内の `test::assert_*` が panic せず exit 0 となることで、mark が
+Vec-of-String の live graph を推移的にたどり sweep が garbage だけを
+回収したことを証明する。linear artifact の WAT では churn entry が
+frame_enter + 7 root push + watermark gate、Vec header と backing が
+`LINEAR_GC_ALLOC` 呼び出しであることを確認済み。fixture は `run:` と
+`t3-run:` に登録し、e2e には
+`test_source_level_live_data_survives_entry_collection` を追加して
+wasm32/wasi-p1/memory32 での実実行を CI に残した。ソースで真の pointer
+cycle は書けない（struct は managed ref ではなく i32 index を持つ。
+実 cycle は runtime probe がカバー）、closure environment、HashMap
+descriptor、move/borrow parity は引き続き未完了である。
+
 ---

@@ -966,3 +966,46 @@ RFC-011: **8 (fallback lowering)**。
   pointer-field metadata (the scan stays conservative, which ADR-075
   permits for bootstrap), shared/cyclic source-level graphs, and the
   complete move/borrow parity audit remain open; #874 stays open.
+
+## Progress receipt — 2026-09-23 (source-level survival under entry collection)
+
+- Test commit `b2144f1c1` adds
+  `tests/fixtures/target_capability/linear_gc_entry_collect.ark`, the
+  first source-level program that drives the automatic collector. A
+  `churn` helper drops a ~1 MiB `Vec<i32>` per call; `main` calls it 160
+  times (~160 MiB), so the 64 MiB watermark gate fires at least twice
+  inside `churn`'s entry sequence while five `alive-*` strings stay
+  reachable through `main`'s root slots and `keep`'s backing store. The
+  in-source `test::assert_*` checks panic on any corruption, so a clean
+  exit proves the mark phase traced the live Vec-of-String graph
+  transitively and the sweep reclaimed only garbage.
+- WAT inspection of the linear artifact confirms the route under test:
+  `churn`'s entry is `frame_enter` + 7 root pushes + the
+  `global.get watermark / i32.ge_u / call collect` gate, and both its
+  Vec header and backing store call `LINEAR_GC_ALLOC`. `main` pushes 10
+  root slots.
+- Durable coverage: the fixture is registered as `run:` (compiled and
+  validated by the fixture gate; `.flags` documents the linear
+  invocation) and `t3-run:` (wasm32-gc compile/validate), and the e2e
+  suite gains `test_source_level_live_data_survives_entry_collection`,
+  which compiles the fixture for `wasm32`/`wasi-p1`/`memory32` and runs
+  it under wasmtime — real linear execution in CI, not just artifact
+  inspection.
+- Verification receipts:
+
+  ```text
+  wasm32 linear compile + wasm-tools validate               PASS
+  wasm32 linear wasmtime run (exit 0, asserts held)         PASS (12 ms)
+  wasm32-gc P2 component compile + wasmtime run             PASS (23 ms)
+  selfhost-fixture-test --filter-dir target_capability      PASS (3+1)
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (3 tests)
+  targeted fmt                                             PASS (1 file)
+  ```
+
+- This receipt covers source-level shared/live graph survival under
+  automatic collection. True pointer cycles still cannot be expressed in
+  source (structs store `i32` indices, not managed refs — the runtime
+  probe covers real cycles), closure environments, HashMap descriptors /
+  exact pointer-field metadata, and the move/borrow parity audit remain
+  open; #874 stays open.
