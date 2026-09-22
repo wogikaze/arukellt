@@ -155,4 +155,18 @@ dead emit 関数群、generic Option/Result constructor、HashMap descriptor、
 closure environment、descriptor-aware root write、automatic `collect`、
 shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `0c4696759` では、streaming read buffer を単一 managed record として commit
+する形に変えた。`helpers_core_heap::emit_heap_advance_uncommitted`（global.set +
+ensure-grown、commit-top hook なし）を追加し、fs_read P1/P2 loop と stdin read loop の
+length-prefix reserve・chunk ごとの claim を uncommitted advance に変更、finalize
+（`emit_fs_read_success_len_header`／`emit_finish_stdin_string_buffer`／
+`emit_finalize_stdin_string_buffer`）で一度だけ `emit_heap_set` を発行して
+`[BUFSTART, heap)` 全体を 1 record として記録する。従来は chunk ごとに record が
+分かれ、live String の尾部 chunk が collect で回収されうる状態だった。wasm32-gc では
+commit index が未設定で heap_set は元々 raw bump のため、emit 形状の実効は変わらない。
+`result_helpers.ark` の dead emit 関数群、generic Option/Result constructor、
+HashMap descriptor、closure environment、descriptor-aware root write、
+automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き
+未完了である。
+
 ---

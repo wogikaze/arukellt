@@ -826,3 +826,46 @@ RFC-011: **8 (fallback lowering)**。
   constructors, HashMap descriptors, closure environments, descriptor-aware
   root writes, automatic collection, shared/cyclic source graphs, and
   complete cross-backend move/borrow parity remain open; #874 stays open.
+
+## Progress receipt — 2026-09-23 (streaming read buffers as single records)
+
+- Implementation commit `0c4696759` adds
+  `helpers_core_heap::emit_heap_advance_uncommitted` (global.set +
+  ensure-grown without the commit-top hook) and switches the fs_read P1/P2
+  and stdin read loops to it. The 4-byte length-prefix reserve and every
+  per-chunk claim now advance the heap without recording; the finalize
+  step (`emit_fs_read_success_len_header`,
+  `emit_finish_stdin_string_buffer`,
+  `emit_finalize_stdin_string_buffer`) fires one `emit_heap_set` that
+  commits the whole `[BUFSTART, heap)` range as a single managed record.
+  Previously each chunk bump committed its own record, so collection could
+  have reclaimed tail chunks of a still-live String. On wasm32-gc the
+  emitted shape is effect-identical because the commit index is unset there
+  and `heap_set` was already a plain scratch bump.
+- Contract coverage: `test_linear_gc_runtime_contract.py` now asserts the
+  stdin begin/advance and both fs_read loop slices use
+  `emit_heap_advance_uncommitted` and contain no `emit_heap_set`.
+- Positive fixtures and outputs: `stdlib_io/fs_read_write`,
+  `fs_read_error`, `quickstart/fs_read`, and the write_bytes probe print
+  identical output on both backends; `read_stdin_empty` fed piped input
+  surfaced the full multi-line content through the single-record buffer on
+  both backends (the fixture asserts empty stdin, so the surfaced content
+  demonstrates the read path end to end).
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (4 files)
+  wasm-tools validate                                       PASS (12 artifacts)
+  wasmtime run                                              PASS (12 artifacts)
+  ```
+
+- This receipt covers only the streaming-read single-record boundary. The
+  dead `emit_result_*` marshalling helpers in `result_helpers.ark` await
+  removal-or-conversion, generic Option/Result constructors, HashMap
+  descriptors, closure environments, descriptor-aware root writes,
+  automatic collection, shared/cyclic source graphs, and complete
+  cross-backend move/borrow parity remain open; #874 stays open.
