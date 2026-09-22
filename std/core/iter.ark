@@ -64,6 +64,16 @@ pub trait IteratorFold<Item, Accumulator> {
     fn fold(self: Self, init: Accumulator, f: fn(Accumulator, Item) -> Accumulator) -> Accumulator
 }
 
+/// Membership-test capability for a concrete iterator item type.
+pub trait IteratorContains<Item> {
+    fn contains(self: Self, target: Item) -> bool
+}
+
+/// Equality-counting capability for a concrete iterator item type.
+pub trait IteratorCountEq<Item> {
+    fn count_eq(self: Self, target: Item) -> i32
+}
+
 /// Trait for types that can be converted into an iterator.
 ///
 /// `into_iter` consumes `self` and returns an `Iterator<T>`.
@@ -126,6 +136,36 @@ fn fold_iterator_i32<T: Iterator>(it: T, init: i32, f: fn(i32, i32) -> i32) -> i
     total
 }
 
+fn contains_iterator_i32<T: Iterator>(it: T, target: i32) -> bool {
+    let mut found: bool = false
+    while true {
+        match it.next() {
+            Some(v) => {
+                if v == target {
+                    found = true
+                    break
+                }
+            },
+            None => { break },
+        }
+    }
+    found
+}
+
+fn count_eq_iterator_i32<T: Iterator>(it: T, target: i32) -> i32 {
+    let mut hits: i32 = 0
+    while true {
+        match it.next() {
+            Some(v) => {
+                if v == target {
+                    hits = hits + 1
+                }
+            },
+            None => { break },
+        }
+    }
+    hits
+}
 // ---------------------------------------------------------------------------
 // VecIter — lazy adapter over Vec<i32>
 // ---------------------------------------------------------------------------
@@ -177,6 +217,16 @@ impl VecIter {
     /// Lazily skip `n` values from the remaining elements.
     fn skip(self: VecIter, n: i32) -> SkipIter {
         SkipIter { vec: self.vec, index: self.index, length: self.length, to_skip: n }
+    }
+
+    /// Lazily yield each remaining element the first time it appears.
+    fn unique(self: VecIter) -> UniqueIter {
+        UniqueIter { vec: self.vec, index: self.index, length: self.length, seen: Vec::new<i32>() }
+    }
+
+    /// Lazily yield the remaining elements in reverse order.
+    fn rev(self: VecIter) -> RevIter {
+        RevIter { vec: self.vec, index: self.index, length: self.length }
     }
 }
 
@@ -1772,6 +1822,104 @@ impl Iterator for ZipIter {
 }
 
 // ---------------------------------------------------------------------------
+// UniqueIter — lazy first-occurrence adapter over Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields each source element only the first time it
+/// appears. The seen buffer holds already-yielded values, so memory use is
+/// proportional to the number of distinct items rather than the source
+/// length; no intermediate result vector is allocated.
+pub struct UniqueIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    seen: Vec<i32>,
+}
+
+/// Construct a UniqueIter over v.
+pub fn unique_iter(v: Vec<i32>) -> UniqueIter {
+    vec_iter(v).unique()
+}
+
+fn unique_seen_contains(seen: Vec<i32>, value: i32) -> bool {
+    let n: i32 = len(seen)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if get_unchecked(seen, i) == value {
+            found = true
+        }
+        i = i + 1
+    }
+    found
+}
+
+impl Iterator for UniqueIter {
+    type Item = i32
+
+    fn next(self: UniqueIter) -> Option<i32> {
+        while self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            if !unique_seen_contains(self.seen, val) {
+                push(self.seen, val)
+                return Some(val)
+            }
+        }
+        None
+    }
+
+    fn collect(self: UniqueIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: UniqueIter) -> i32 {
+        count_iterator(self)
+    }
+
+}
+
+// ---------------------------------------------------------------------------
+// RevIter — lazy reverse adapter over Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields the remaining source elements in reverse order.
+/// The index field tracks the first unconsumed slot and length the last, so
+/// next steps length down without copying the source.
+pub struct RevIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+}
+
+/// Construct a RevIter over v.
+pub fn rev_iter(v: Vec<i32>) -> RevIter {
+    vec_iter(v).rev()
+}
+
+impl Iterator for RevIter {
+    type Item = i32
+
+    fn next(self: RevIter) -> Option<i32> {
+        if self.length > self.index {
+            self.length = self.length - 1
+            Some(get_unchecked(self.vec, self.length))
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: RevIter) -> Vec<i32> {
+        collect_iterator(self)
+    }
+
+    fn count(self: RevIter) -> i32 {
+        count_iterator(self)
+    }
+
+}
+
+// ---------------------------------------------------------------------------
 // Numeric consumer capabilities for the concrete i32 iterator lane
 // ---------------------------------------------------------------------------
 
@@ -1982,6 +2130,264 @@ impl IteratorFold<i32, i32> for ZipIter {
     }
 }
 
+impl IteratorSum<i32, i32> for UniqueIter {
+    fn sum(self: UniqueIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for UniqueIter {
+    fn fold(self: UniqueIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+impl IteratorSum<i32, i32> for RevIter {
+    fn sum(self: RevIter) -> i32 {
+        sum_iterator_i32(self)
+    }
+}
+
+impl IteratorFold<i32, i32> for RevIter {
+    fn fold(self: RevIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+        fold_iterator_i32(self, init, f)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Membership and equality-counting capabilities for the i32 lane
+// ---------------------------------------------------------------------------
+
+// Like the numeric consumers, equality over items is a capability of the
+// concrete item type rather than part of the producer contract.
+impl IteratorContains<i32> for VecIter {
+    fn contains(self: VecIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for VecIter {
+    fn count_eq(self: VecIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for RangeIter {
+    fn contains(self: RangeIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for RangeIter {
+    fn count_eq(self: RangeIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for RangeInclusiveIter {
+    fn contains(self: RangeInclusiveIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for RangeInclusiveIter {
+    fn count_eq(self: RangeInclusiveIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for MapIter {
+    fn contains(self: MapIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for MapIter {
+    fn count_eq(self: MapIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for MapTakeIter {
+    fn contains(self: MapTakeIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for MapTakeIter {
+    fn count_eq(self: MapTakeIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for MapFilterIter {
+    fn contains(self: MapFilterIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for MapFilterIter {
+    fn count_eq(self: MapFilterIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for MapFilterTakeIter {
+    fn contains(self: MapFilterTakeIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for MapFilterTakeIter {
+    fn count_eq(self: MapFilterTakeIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for FilterIter {
+    fn contains(self: FilterIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for FilterIter {
+    fn count_eq(self: FilterIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for FilterTakeIter {
+    fn contains(self: FilterTakeIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for FilterTakeIter {
+    fn count_eq(self: FilterTakeIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for TakeIter {
+    fn contains(self: TakeIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for TakeIter {
+    fn count_eq(self: TakeIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for SkipIter {
+    fn contains(self: SkipIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for SkipIter {
+    fn count_eq(self: SkipIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for SkipTakeIter {
+    fn contains(self: SkipTakeIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for SkipTakeIter {
+    fn count_eq(self: SkipTakeIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for SkipMapIter {
+    fn contains(self: SkipMapIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for SkipMapIter {
+    fn count_eq(self: SkipMapIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for SkipFilterIter {
+    fn contains(self: SkipFilterIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for SkipFilterIter {
+    fn count_eq(self: SkipFilterIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for ChainIter {
+    fn contains(self: ChainIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for ChainIter {
+    fn count_eq(self: ChainIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for EnumerateIter {
+    fn contains(self: EnumerateIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for EnumerateIter {
+    fn count_eq(self: EnumerateIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for ZipIter {
+    fn contains(self: ZipIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for ZipIter {
+    fn count_eq(self: ZipIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for UniqueIter {
+    fn contains(self: UniqueIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for UniqueIter {
+    fn count_eq(self: UniqueIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<i32> for RevIter {
+    fn contains(self: RevIter, target: i32) -> bool {
+        contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorCountEq<i32> for RevIter {
+    fn count_eq(self: RevIter, target: i32) -> i32 {
+        count_eq_iterator_i32(self, target)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // IntoIterator identity conversions for concrete lazy adapters
 // ---------------------------------------------------------------------------
@@ -2111,6 +2517,24 @@ impl IntoIterator for ZipIter {
     type IntoIter = ZipIter
 
     fn into_iter(self: ZipIter) -> ZipIter {
+        self
+    }
+}
+
+impl IntoIterator for UniqueIter {
+    type Item = i32
+    type IntoIter = UniqueIter
+
+    fn into_iter(self: UniqueIter) -> UniqueIter {
+        self
+    }
+}
+
+impl IntoIterator for RevIter {
+    type Item = i32
+    type IntoIter = RevIter
+
+    fn into_iter(self: RevIter) -> RevIter {
         self
     }
 }
@@ -2270,6 +2694,20 @@ impl FromIterator<StringSkipFilterIter> for Vec<String> {
     }
 }
 
+/// `FromIterator<UniqueIter>` impl for `Vec<i32>` — drains first occurrences.
+impl FromIterator<UniqueIter> for Vec<i32> {
+    fn from_iter(it: UniqueIter) -> Vec<i32> {
+        it.collect()
+    }
+}
+
+/// `FromIterator<RevIter>` impl for `Vec<i32>` — drains in reverse order.
+impl FromIterator<RevIter> for Vec<i32> {
+    fn from_iter(it: RevIter) -> Vec<i32> {
+        it.collect()
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Convenience pipeline functions (single-pass, no intermediate allocation)
 // ---------------------------------------------------------------------------
@@ -2377,4 +2815,32 @@ pub fn iter_all_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
         i = i + 1
     }
     all
+}
+
+/// Returns true if any element of `v` equals `target`.
+///
+/// This is the lazy-traversal replacement for `std::seq::seq_contains`.
+pub fn iter_contains_i32(v: Vec<i32>, target: i32) -> bool {
+    vec_iter(v).contains(target)
+}
+
+/// Count how many elements of `v` equal `target`.
+///
+/// This is the lazy-traversal replacement for `std::seq::count_eq`.
+pub fn iter_count_eq_i32(v: Vec<i32>, target: i32) -> i32 {
+    vec_iter(v).count_eq(target)
+}
+
+/// Yield each element of `v` only the first time it appears.
+///
+/// This is the lazy-pipeline replacement for `std::seq::unique`.
+pub fn iter_unique_i32(v: Vec<i32>) -> Vec<i32> {
+    v.iter().unique().collect()
+}
+
+/// Yield the elements of `v` in reverse order.
+///
+/// This is the lazy-pipeline replacement for `std::seq::seq_reverse`.
+pub fn iter_reverse_i32(v: Vec<i32>) -> Vec<i32> {
+    v.iter().rev().collect()
 }

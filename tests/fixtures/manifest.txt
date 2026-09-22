@@ -1758,6 +1758,7 @@ run:stdlib_trait/iterator_map_negative.ark
 run:stdlib_trait/iterator_negative_values.ark
 run:stdlib_trait/iterator_property_filter_subset.ark
 run:stdlib_trait/iterator_property_map_length.ark
+run:stdlib_trait/iterator_query_consumers.ark
 run:stdlib_trait/iterator_range_basic.ark
 run:stdlib_trait/iterator_range_empty.ark
 run:stdlib_trait/iterator_range_single.ark
