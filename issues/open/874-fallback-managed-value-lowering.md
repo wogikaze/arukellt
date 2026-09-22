@@ -768,3 +768,61 @@ RFC-011: **8 (fallback lowering)**。
   descriptor-aware root writes, automatic collection, shared/cyclic source
   graphs, and complete cross-backend move/borrow parity remain open; #874
   stays open.
+
+## Progress receipt — 2026-09-23 (fs read/write result records and buffers)
+
+- Implementation commit `26ff0f517` routes the linear-memory fs host-ABI
+  allocations through `LINEAR_GC_ALLOC`. The 8-byte {tag, payload}
+  `Result` records built by `emit_fs_read_result_pair`,
+  `emit_fs_write_success_unit_result`, and `emit_fs_write_error_result`,
+  the 19/20-byte error String records from
+  `emit_fs_read_open_error_message`/`emit_fs_write_error_message`, and the
+  `align4(bcount)` staging buffer in `emit_fs_write_bytes_buffer` now
+  allocate via `emit_heap_alloc_from_stack`. The error-message builders
+  gate at emit time: wasm32 uses the managed allocator while wasm32-gc keeps
+  the raw scratch staging that the GC result builders copy out of. The
+  streaming fs_read/stdin chunk loops still claim bytes with per-chunk bump
+  commits (single-record consolidation is a follow-up), and the GC-only P2
+  canonical result area stays on raw scratch.
+- Contract coverage: `test_linear_gc_runtime_contract.py` now asserts the
+  fs read result-pair, write unit/error result slices, and the write-bytes
+  buffer allocate through the private allocator without `emit_heap_set`.
+- Positive fixtures and outputs: `stdlib_io/fs_read_write` prints
+  `write ok` / `hello from arukellt` on both backends;
+  `stdlib_io/fs_read_error` prints `file open error` on both;
+  `quickstart/fs_read` prints `Hello from file!` on both;
+  `wasi_fs_p2` prints `hello p2 fs` on both; an ad-hoc probe exercising
+  `fs::write_bytes` + read roundtrip + write-error + read-error prints
+  `wb ok` / `Hi!` / `file write error` / `file open error` identically
+  on the wasm32 linear core and the wasm32-gc P2 component paths.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                   PASS
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (1 test)
+  targeted fmt --check                                     PASS (6 files)
+  wasm-tools validate                                       PASS (11 artifacts)
+  wasmtime run                                              PASS (11 artifacts)
+  ```
+
+- Representative artifact hashes (SHA-256):
+
+  ```text
+  wasm32 linear fs_read_write          3852 bytes e32ffa38846aaa04f92b726a2e17a06c659807ae9081205edcc3d2a7a5ff5c34
+  wasm32 linear fs_read_error          2411 bytes cf8f784b776a6126bfb07ad35e336bc09c4b60ceaaf4096a3641e477a95839d7
+  wasm32 linear fs_slice_probe         6373 bytes 2c0b23c7e6b3386ee59fa6003ba6fe5904ef0247ba1d1f58536d7deccbe46c3d
+  wasm32-gc fs_read_write component   14181 bytes 82b2ab55e668a20bbcaaf9dc52e54be4a394cf6e98bab1511da05a0045e3f404
+  wasm32-gc fs_read_error component   11121 bytes 6fff5002ca738d05bb2cc44cfd1ac0c9a216e024c80bdd99192d8008bc622522
+  wasm32-gc fs_slice_probe component  17856 bytes 1007184b4851ff9efdb55c5f4ae3e114f5fa4fc14b25107439f822280ddc1b52
+  ```
+
+- This receipt covers only the fs read/write result-record and staging-buffer
+  boundary. The streaming fs_read/stdin read loops still split the assembled
+  String across per-chunk bump records (single-record consolidation needed
+  before automatic collection), the dead `emit_result_*` marshalling helpers
+  in `result_helpers.ark` await removal-or-conversion, generic Option/Result
+  constructors, HashMap descriptors, closure environments, descriptor-aware
+  root writes, automatic collection, shared/cyclic source graphs, and
+  complete cross-backend move/borrow parity remain open; #874 stays open.

@@ -141,4 +141,18 @@ host Result marshalling（result_helpers、fs/stdio buffer）、generic Option/R
 constructor、HashMap descriptor、closure environment、descriptor-aware root write、
 automatic `collect`、shared/cyclic source graph、move/borrow parity は引き続き未完了である。
 
+続く `26ff0f517` では、fallback の fs host ABI 確保を `LINEAR_GC_ALLOC` へ接続した。
+`emit_fs_read_result_pair`／`emit_fs_write_success_unit_result`／
+`emit_fs_write_error_result` が作る 8-byte {tag, payload} Result record、
+`emit_fs_read_open_error_message`／`emit_fs_write_error_message` の 19/20-byte
+error String record、`emit_fs_write_bytes_buffer` の align4(bcount) staging buffer を
+managed allocator 経由にした。error message builder は emit 時に target で分岐し、
+wasm32 では managed allocator、wasm32-gc では GC string copy-out 用の raw scratch
+staging を維持する。fs_read/stdin の streaming chunk loop は従来どおり chunk ごとの
+bump commit で、単一 record 化は後続課題とする。GC 専用の P2 canonical result area は
+raw scratch のままである。streaming loop の単一 record 化、`result_helpers.ark` の
+dead emit 関数群、generic Option/Result constructor、HashMap descriptor、
+closure environment、descriptor-aware root write、automatic `collect`、
+shared/cyclic source graph、move/borrow parity は引き続き未完了である。
+
 ---
