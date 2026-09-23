@@ -802,3 +802,45 @@ acceptance boxes complete.
   `Iterator for X<I>` is still compiler-owned per ADR-062 review), adapter
   migration to `I: Iterator` bodies, and the final residual-zero audit
   once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (parametric trait impls, ADR-078)
+
+- ADR-078 (`docs/adr/ADR-078-language-v2-parametric-trait-impl.md`,
+  ACCEPTED) splits parametric impls (`impl Iterator for Ctor<T>`) from
+  blanket impls (`impl<T> Trait for T`, still E0216). Coverage rule:
+  every trait-reference variable must appear in the self constructor;
+  overlap rule: at most one impl per (trait, constructor head) when
+  either side carries variables.
+- Commit `0c5af3dc5` implements the split. `trait_registry` admits
+  var-carrying impls only when the self type is a nominal constructor
+  application and trait-ref vars are covered by it; parametric-vs-any
+  overlap on the same (trait, ctor head) reports E0215. Associated
+  types (`type Item = T`) register for parametric impls and
+  `lookup_associated_type` resolves them by pattern-matching the
+  receiver against the impl pattern and instantiating the result.
+- `for` desugaring now works over parametric impls: `check_for_source`
+  records a mono instance, instantiated return type, and a span-keyed
+  call-site marker for each desugared `into_iter`/`next` call
+  (`record_for_desugar_mono`). MIR resolution
+  (`mir_for_desugar_callee`) tries the per-instantiation owner, then the
+  bare constructor owner, resolving through the span rewrite first and
+  the registered name rewrite as fallback — so `for` over
+  `WrapIter<i32>` emits `WrapIter__next__i32`, and a `WrapIter<String>`
+  loop in the same program resolves the String specialization.
+- Positive fixture `generics_v1/parametric_trait_impl.ark` covers
+  `impl Iterator for WrapIter<T>` (direct `next` + `for`), a second
+  `WrapIter<String>` instantiation, and `impl IntoIterator for Once<T>`
+  chained into `WrapIter<T>`; it runs identically on wasm32 (`7 9 hi
+  11`) and the wasm32-gc component. Negative probes verified: bare-var
+  self (`impl Iterator for T`) stays E0216, parametric+concrete overlap
+  reports E0215, and an unconstrained trait-ref var (`impl N3<T> for
+  P3`) stays E0216.
+- `verify lane` exits 0. Known pre-existing defect observed while
+  testing: generic struct construction at `WrapIter<String>` produces
+  invalid GC core Wasm on the Sep-19 compiler too (func type mismatch)
+  — unrelated to this change; the fixture's `run:` lane is wasm32.
+- Remaining #860 residuals: adapter migration to `I: Iterator` bodies
+  (std adapters still use concrete lanes), generic `for` sources over
+  bare type parameters rely on the name-rewrite fallback rather than a
+  recorded marker, and the final residual-zero audit once #691 closes.
+  #860 is not closed.
