@@ -131,12 +131,12 @@ own duplicate iteration logic.
 The adapter fixture also passes a composed `map/filter/take` source through a
 generic `T: IntoIterator` `for` consumer; the identity conversion and `next`
 sequence remain the same on GC and linear-memory Wasm.
-The same fixture covers `iter().map(f).take(n).collect()` through the dedicated
-lazy `MapTakeIter` adapter, including its canonical `collect` traversal on both
+The same fixture covers `iter().map(f).take(n).collect()` through the
+lazy `TakeIter<MapIter>` adapter, including its canonical `collect` traversal on both
 targets. This adds one concrete composition; arbitrary adapter combinations
 and other item representations remain migration work.
 The fixture also covers `iter().filter(g).take(n).collect()` through the
-dedicated lazy `FilterTakeIter` adapter and a generic `T: IntoIterator` consumer
+lazy `TakeIter<FilterIter>` adapter and a generic `T: IntoIterator` consumer
 on both targets. This remains concrete `Vec<i32>` evidence, not a claim for
 arbitrary item representations or adapter combinations.
 
@@ -187,7 +187,7 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   memory64 emitter), not by iterator work.
 
 Dynamic dispatch (`dyn Trait`) is intentionally out of scope per ADR-076.
-It also covers `iter().skip(n).take(m).collect()` through `SkipTakeIter` and a
+It also covers `iter().skip(n).take(m).collect()` through `TakeIter<SkipIter>` and a
 generic `T: IntoIterator` consumer. The skip-before-take state is shared by GC
 and linear-memory Wasm; other item representations and arbitrary compositions
 remain migration work.

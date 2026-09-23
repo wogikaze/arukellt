@@ -50,6 +50,12 @@ fn main() {
     test::assert_true(!v.iter().filter(is_even).contains(1))
     test::assert_eq_i32(v.iter().map(double).count_eq(8), 2)
 
+    // The collapsed TakeIter<Src> instantiations keep the same
+    // capability surface the fused *TakeIter types carried.
+    test::assert_eq_i32(v.iter().map(double).take(2).sum(), 8)
+    test::assert_true(v.iter().filter(is_even).take(1).contains(4))
+    test::assert_eq_i32(v.iter().skip(1).take(2).count_eq(1), 1)
+
     // unique yields first occurrences in source order.
     let uniq: Vec<i32> = v.iter().unique().collect()
     test::assert_eq_i32(len(uniq), 4)

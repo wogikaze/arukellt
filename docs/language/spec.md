@@ -1038,15 +1038,15 @@ The compatibility helpers `collect_map_filter_i32` and
 `collect_map_filter_take_i32` delegate to these same lazy chains and the
 canonical `collect` method; they do not maintain a second eager traversal.
 The concrete `iter().map(f).take(n).collect()` composition is also implemented
-by the lazy `MapTakeIter` adapter; `iterator_adapters.ark` verifies the
+by the lazy `TakeIter<MapIter>` adapter; `iterator_adapters.ark` verifies the
 two-element `Vec<i32>` case on both published Wasm targets. Arbitrary adapter
 combinations and other item representations remain outside this contract.
 The concrete `iter().filter(g).take(n).collect()` composition is implemented
-by `FilterTakeIter`, which retains the predicate and remaining-count state in
-one lazy adapter. The fixture also sends this adapter through a generic
+by `TakeIter<FilterIter>`: `FilterIter` retains the predicate and `TakeIter`
+bounds the remaining count. The fixture also sends this adapter through a generic
 `T: IntoIterator` consumer; this evidence remains limited to `Vec<i32>`.
 The concrete `iter().skip(n).take(m).collect()` composition is implemented by
-`SkipTakeIter`, which applies the skip state before the bounded pull. Its
+`TakeIter<SkipIter>`, which applies the skip state before the bounded pull. Its
 identity `IntoIterator` conversion and generic `for` consumer are covered by
 the same fixture on both published Wasm targets.
 The numeric `Vec<i32>` lane also composes `skip(n).map(f)` and
