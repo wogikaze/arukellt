@@ -744,3 +744,31 @@ acceptance boxes complete.
   review once #691 closes. HashMap iterator intrinsics and seq query
   helpers are tracked under #691; `verify quick` remains red only on
   unrelated pre-existing gates.
+
+## Progress receipt — 2026-09-23 (per-instantiation impl owners)
+
+- Commit `bfefffa2a` generalizes the HashMap_K_V collision rule to user
+  generic structs: `impl Trait for GenStruct<Concrete>` registers methods
+  under a per-instantiation owner (`GenTakeIter_VecIter::next`), so two
+  instantiations of one generic struct can carry independent trait impls.
+  Typechecker, resolver, CoreHir impl-target naming, and MIR method
+  resolution share the same owner-key rule (concrete args join as
+  `Name_arg1_arg2`; type-param args keep the bare owner; fn args key as
+  `fnref`; `Vec`/`HashMap` keep established spellings).
+- Impl-method return type names and concrete generic param local types now
+  keep the canonical `Name<args>` spelling instead of the bare base name,
+  so `for` loops over `GenTakeIter<VecIter>` resolve `into_iter`/`next`
+  against `GenTakeIter_VecIter` and field access derives the substituted
+  layout. Generic enums (`Result`/`Box`/`Slice`) keep the bare base name
+  their layout handling expects.
+- `tests/fixtures/generics_v1/generic_inst_trait_impl.ark` covers the
+  `GenTakeIter<VecIter>` + `GenTakeIter<StringIter>` impl collision, a
+  generic `first_i32<T: Iterator>` consumer, `collect`/`count` default
+  methods, and `for` over the adapter. It compiles and runs identically
+  on wasm32 and the wasm32-gc component (`2 2 11 2 11`); `verify lane`
+  is green.
+- Remaining #860 residuals: generic `for` source dispatch plus the
+  structural `next()` fallback boundary, blanket/generic trait impls
+  (`impl<I: Iterator> Iterator for X<I>` is still compiler-owned per
+  ADR-062 review), adapter migration to `I: Iterator` bodies, and the
+  final residual-zero audit once #691 closes. #860 is not closed.
