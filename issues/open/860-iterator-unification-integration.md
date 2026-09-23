@@ -1002,3 +1002,37 @@ acceptance boxes complete.
   defect on wasm32-gc for non-projection shapes, the `.fold(0, add)`
   fn-ptr-param emit bug, and the final residual-zero audit once #691
   closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (fn-item stack args + fold evidence)
+
+- `ef7d132f4` fixes the pre-existing fn-ptr-param emit bug that blocked
+  `.fold(0, add)`. A `MIR_REF_FUNC` sitting between a value producer and
+  a call is an argument push just like `LOCAL_GET(other)`: the store
+  policy now treats it as an independent producer, so earlier stack args
+  (`const.i32` init, receiver) stay on the stack for the call instead of
+  being forced into their temp. Previously `fold(0, add)` emitted
+  `const; ref_func; call` with the init stored away, leaving
+  `VecIter::fold` one stack arg short — `expected i32 but nothing on
+  stack` on wasm32 and invalid core Wasm on wasm32-gc.
+- `v.into_iter().fold(0, add)` now prints `6` on both wasm32 and the
+  wasm32-gc component lane. The `.fold` assertions removed earlier are
+  restored in `iterator_query_consumers.ark` (`v.iter().fold(0, add_acc)`
+  = 18, `map(double).fold` = 36, `take(3).fold` = 8) and pass on both
+  targets through the canonical `IteratorFold` path.
+- Regression: iterator fixture set (`iterator_take_*`,
+  `iterator_adapters` `OK`, `iterator_string_callbacks`,
+  `iterator_map_filter_take_pipeline`, `iterator_skip_basic`,
+  `iterator_stress_100`, `custom_iterator` `0 1 2 3 4`,
+  `generic_inst_trait_impl` `2 2 11 2 11`,
+  `generic_struct_field_method` `3 2 3 4 none_b`,
+  `parametric_trait_impl` `7 9 hi 11`) passes on wasm32; the GC
+  component lane passes for the same key fixtures. `verify lane` exits
+  0 on rebuilt s2.
+- Remaining #860 residuals: adapter migration for `SkipIter` ->
+  `SkipIter<I>` (blocked on callback adapters whose fields hold
+  `fn(I::Item)` values — the call side now works, but generic struct
+  fields of fn type still exceed current monomorphization), `ChainIter` /
+  `EnumerateIter` / `ZipIter` item representations, forward-ref emit
+  ordering, the `WrapIter<String>`-class generic-struct construction
+  defect on wasm32-gc for non-projection shapes, and the final
+  residual-zero audit once #691 closes. #860 is not closed.
