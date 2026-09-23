@@ -3,12 +3,118 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_struct_mono
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::lower::struct_lit_copy
 use mir::value_types
+
+// Resolve the layout name a struct literal should instantiate. For a
+// generic base (Pair<T>) the monomorphized name (Pair<String>) comes
+// from, in order: an explicit Pair<...> literal spelling, the pending
+// let annotation, the functional-update base, or the field value types
+// bound to the declared parameters. Non-generic names pass through.
+fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: Vec<String>, val_idxs: Vec<i32>, base_idx: i32) -> String {
+    let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, clone(base_name))
+    if len(ctx_struct_mono::generic_inst_base_name(clone(canon))) > 0 {
+        let _ok = ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(canon))
+        return canon
+    }
+    if !ctx_struct_mono::ctx_struct_name_is_generic(ctx, clone(canon)) {
+        return canon
+    }
+    // The let annotation is authoritative when present (Pair<i64> must
+    // not degrade to Pair<i32> from an integer literal field).
+    let expected = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(ctx.expected_struct_inst))
+    if eq(ctx_struct_mono::generic_inst_base_name(clone(expected)), clone(canon)) {
+        return expected
+    }
+    if base_idx >= 0 {
+        let base_type = ctx_struct_mono::ctx_derive_generic_struct_type_name(
+            ctx,
+            ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
+        )
+        if eq(ctx_struct_mono::generic_inst_base_name(clone(base_type)), clone(canon)) {
+            return base_type
+        }
+    }
+    // Bind each declared parameter from the field value's resolved type.
+    let joined = ctx_struct_mono::ctx_generic_struct_params(ctx, clone(canon))
+    let params = struct_lit_split_params(joined)
+    if len(params) == 0 {
+        return canon
+    }
+    let args = Vec::new<String>()
+    let bound = Vec::new<bool>()
+    let mut pi = 0
+    while pi < len(params) {
+        push(args, String_new())
+        push(bound, false)
+        pi = pi + 1
+    }
+    let mut i = 0
+    while i < len(field_names) {
+        let fi = ctx_struct_lookup::ctx_field_index(ctx, clone(canon), clone(get_unchecked(field_names, i)))
+        let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(canon), fi)
+        let mut pj = 0
+        while pj < len(params) {
+            if eq(get_unchecked(params, pj), clone(ft)) && i < len(val_idxs) {
+                let val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
+                    ctx,
+                    ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(val_idxs, i))
+                )
+                if len(val_ty) == 0 || ctx_struct_mono::generic_arg_is_unbound(clone(val_ty)) {
+                    return canon
+                }
+                set(args, pj, val_ty)
+                set(bound, pj, true)
+                pj = len(params)
+            }
+            pj = pj + 1
+        }
+        i = i + 1
+    }
+    let mut all_bound = true
+    let mut inst = concat(clone(canon), String_from("<"))
+    let mut bi = 0
+    while bi < len(params) {
+        if !get_unchecked(bound, bi) {
+            all_bound = false
+        }
+        if bi > 0 {
+            inst = concat(inst, String_from(","))
+        }
+        inst = concat(inst, clone(get_unchecked(args, bi)))
+        bi = bi + 1
+    }
+    inst = concat(inst, String_from(">"))
+    if !all_bound {
+        return canon
+    }
+    if ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(inst)) {
+        return inst
+    }
+    canon
+}
+
+fn struct_lit_split_params(joined: String) -> Vec<String> {
+    let params = Vec::new<String>()
+    let n = len(joined)
+    let mut seg_start = 0
+    let mut i = 0
+    while i <= n {
+        if i == n || byte_at(clone(joined), i) == 44 {
+            push(params, substring(clone(joined), seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    params
+}
 
 fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)

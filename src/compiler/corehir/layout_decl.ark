@@ -1,8 +1,8 @@
 use corehir::kinds
 use corehir::layout_decl_record
 
-fn CoreHirLayoutDecl_new(kind: i32, name: String, fields: Vec<CoreHirLayoutField>, variants: Vec<CoreHirLayoutVariant>) -> CoreHirLayoutDecl {
-    layout_decl_record::CoreHirLayoutDecl_new(kind, name, fields, variants)
+fn CoreHirLayoutDecl_new(kind: i32, name: String, fields: Vec<CoreHirLayoutField>, variants: Vec<CoreHirLayoutVariant>, type_params: Vec<String>) -> CoreHirLayoutDecl {
+    layout_decl_record::CoreHirLayoutDecl_new(kind, name, fields, variants, type_params)
 }
 
 fn layout_decl_is_struct(decl: CoreHirLayoutDecl) -> bool {

@@ -174,7 +174,7 @@ fn sig_reg_index_impl_methods(
         if method_info_index >= 0 {
             mangled = fn_index_source::mir_fn_index_source_method_mangled_name_at(source, method_info_index, mangled)
         }
-        signature_registry_entry::sig_reg_register_method(table, registry, source, sig_source, method_info_index, clone(mangled), impl_decl_index)
+        signature_registry_entry::sig_reg_register_method(table, registry, mono_table, source, sig_source, method_info_index, clone(mangled), impl_decl_index)
         signature_registry_build_mono::sig_reg_index_method_mono(table, registry, mono_table, source, sig_source, midx, clone(mangled), method_info_index, impl_decl_index)
         mi = mi + 1
     }

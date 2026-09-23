@@ -12,6 +12,7 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::hashmap_methods
+use typechecker::names
 use typechecker::sigs
 use typechecker::trait_bounds
 use typechecker::trait_method_registry
@@ -385,13 +386,13 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
         if len(name) > 0 {
-            return name
+            return names::unqualified_type_name(name)
         }
     }
     if tag == commands::TY_ENUM() {
         let name = contract_type_access::TypeInfo_name(ty)
         if len(name) > 0 {
-            return name
+            return names::unqualified_type_name(name)
         }
     }
     String_new()

@@ -34,6 +34,17 @@ pub struct LowerCtx {
     struct_field_counts: Vec<i32>,
     struct_all_fields: Vec<String>,
     struct_field_types: Vec<String>,
+    // Generic struct decl name -> comma-joined declared type parameter
+    // names (Pair -> "T"; HashMap-like user structs -> "K,V"). Registered
+    // from CoreHirLayoutDecl.type_params; used to derive monomorphized
+    // layouts such as Pair<String> on demand.
+    generic_struct_names: Vec<String>,
+    generic_struct_params: Vec<String>,
+    // Pending let-annotation instantiation (Pair<String>) consulted by
+    // struct literal lowering so the literal picks the annotation's
+    // monomorphized layout over field-value inference. Set/restored
+    // around initializer lowering.
+    expected_struct_inst: String,
     // struct_names[i] -> i for the first layout with that name, and the
     // field offset (prefix sum of struct_field_counts) of every layout.
     struct_layout_first_index: NameIndex,

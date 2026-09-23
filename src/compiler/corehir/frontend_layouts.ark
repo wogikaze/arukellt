@@ -1,5 +1,6 @@
 use corehir::decl_layout_shape
 use corehir::decl_node
+use corehir::decl_type_annotations
 use corehir::kinds
 use corehir::layout_decl
 use corehir::layout_field
@@ -8,6 +9,7 @@ use corehir::layout_variant
 fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
     let fields = Vec::new<CoreHirLayoutField>()
     let variants = Vec::new<CoreHirLayoutVariant>()
+    let type_params = Vec::new<String>()
     let field_count = decl_layout_shape::decl_layout_field_count(decl)
     let mut i = 0
     while i < field_count {
@@ -15,7 +17,16 @@ fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
         push(fields, layout_field::CoreHirLayoutField_new(decl_layout_shape::decl_layout_member_name(field), decl_layout_shape::decl_layout_field_type_name(field)))
         i = i + 1
     }
-    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_STRUCT(), decl_layout_shape::decl_layout_name(decl), fields, variants)
+    // Generic parameters are stored as the decl's own type annotations
+    // (struct Pair<T> records one NK_TYPE_NAMED child per parameter).
+    let param_count = decl_type_annotations::member_type_ann_count(decl)
+    let mut pi = 0
+    while pi < param_count {
+        let param = decl_type_annotations::member_type_ann_at(decl, pi)
+        push(type_params, decl_layout_shape::decl_layout_member_name(param))
+        pi = pi + 1
+    }
+    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_STRUCT(), decl_layout_shape::decl_layout_name(decl), fields, variants, type_params)
 }
 
 fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
@@ -54,7 +65,7 @@ fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
         push(variants, build_variant_layout(decl_layout_shape::decl_layout_variant_at(decl, i)))
         i = i + 1
     }
-    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_ENUM(), decl_layout_shape::decl_layout_name(decl), fields, variants)
+    layout_decl::CoreHirLayoutDecl_new(commands::COREHIR_DECL_ENUM(), decl_layout_shape::decl_layout_name(decl), fields, variants, Vec::new<String>())
 }
 
 fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {

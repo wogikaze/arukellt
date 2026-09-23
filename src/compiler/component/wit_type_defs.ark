@@ -8,17 +8,24 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
     let mut out = ""
     for i in 0..len(decls) {
         let d = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
-        if wit_decl::wit_decl_is_record(d) {
-            out = text::builder_append(out, emit_wit_record_type_def(d))
-        }
-        if wit_decl::wit_decl_is_resource(d) {
-            out = text::builder_append(out, emit_wit_resource_type_def(d))
-        }
-        if wit_decl::wit_decl_is_enum(d) {
-            out = text::builder_append(out, emit_wit_enum_type_def(d))
-        }
-        if component_decl_is_perms_flags_shape(get_unchecked(decls, i)) {
-            out = text::builder_append(out, emit_wit_flags_type_def(get_unchecked(decls, i)))
+        // Generic decls (Pair<T>) have no WIT record/enum equivalent;
+        // emitting their unsubstituted fields produces undeclared types.
+        // A nested guard is used instead of continue: for-loop continue
+        // support depends on the building compiler's lowering, and the
+        // pinned bootstrap predates the index-loop continue fix.
+        if !wit_decl::wit_decl_is_generic(d) {
+            if wit_decl::wit_decl_is_record(d) {
+                out = text::builder_append(out, emit_wit_record_type_def(d))
+            }
+            if wit_decl::wit_decl_is_resource(d) {
+                out = text::builder_append(out, emit_wit_resource_type_def(d))
+            }
+            if wit_decl::wit_decl_is_enum(d) {
+                out = text::builder_append(out, emit_wit_enum_type_def(d))
+            }
+            if component_decl_is_perms_flags_shape(get_unchecked(decls, i)) {
+                out = text::builder_append(out, emit_wit_flags_type_def(get_unchecked(decls, i)))
+            }
         }
     }
     out

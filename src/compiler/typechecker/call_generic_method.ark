@@ -8,6 +8,7 @@ use typechecker::associated_types
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::infer_env_scope
+use typechecker::names
 use typechecker::hashmap_api
 use typechecker::instantiate
 use typechecker::mono
@@ -60,13 +61,13 @@ fn type_name_for_mono(ty: TypeInfo) -> String {
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
         if len(name) > 0 {
-            return name
+            return names::unqualified_type_name(name)
         }
     }
     if tag == commands::TY_ENUM() {
         let name = contract_type_access::TypeInfo_name(ty)
         if len(name) > 0 {
-            return name
+            return names::unqualified_type_name(name)
         }
     }
     String_new()

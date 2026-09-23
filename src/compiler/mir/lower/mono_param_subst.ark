@@ -7,9 +7,11 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_mono
 use mir::lower::mono_suffix_parse
 use mir::function_identity
 use mir::function_param_view
+use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 
@@ -33,8 +35,11 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
     let param_count = function_param_view::MirFunction_param_count(func)
     let mut p = 0
     while p < param_count {
-        let param = function_param_view::MirFunction_param_at(func, p)
-        let ty_name = local_access::MirLocal_type_name(param)
+        // Read the local record, not the parameter record: the parameter
+        // carries the signature spelling (struct:Pair:8) while the local
+        // keeps the semantic generic name (?Pair:T) that substitution needs.
+        let local = function_locals_view::MirFunction_local_at(func, p)
+        let ty_name = local_access::MirLocal_type_name(local)
         // Handle composite type names containing type variables, e.g.
         // "?Option:T" or "?Result:T" — substitute the inner type variable
         // with the concrete monomorphized type.
@@ -129,6 +134,19 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
     }
     let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
     if len(concrete) == 0 {
+        return true
+    }
+    // ?Pair:T inside a mono body denotes the instantiated layout
+    // (Pair<String>), not the unsubstituted declaration. Resolve through
+    // the mono map and register the derived layout so field access and
+    // the parameter signature use the concrete struct type.
+    let resolved_inst = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(ty_name))
+    if ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(resolved_inst)) {
+        mono_set_param_gc_type(
+            ctx,
+            p,
+            ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved_inst)
+        )
         return true
     }
     let ref_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(base))

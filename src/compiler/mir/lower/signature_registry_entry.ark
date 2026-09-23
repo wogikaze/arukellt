@@ -10,9 +10,13 @@ use corehir::type_info_to_mir_value
 use corehir::core_op_id
 use corehir::param
 use mir::lower::fn_index_method_return_type
+use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
+use mir::lower::mono_instance_build
 use mir::lower::mono_suffix_parse
+use mir::lower::return_typeinfo
 use mir::value_types
+use corehir::type_contracts
 
 fn sig_reg_register_fn(
     table: TypeTable,
@@ -58,6 +62,7 @@ fn sig_reg_register_fn(
 fn sig_reg_register_method(
     table: TypeTable,
     registry: SignatureRegistry,
+    mono_table: MonoInstanceTable,
     source: MirLowerFnIndexSource,
     sig_source: CoreHirMirSignatureSource,
     method_info_index: i32,
@@ -67,7 +72,34 @@ fn sig_reg_register_method(
     let params = sig_reg_params_from_method_info(sig_source, method_info_index, table)
     let returns = Vec::new<MirValueType>()
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, "")
-    push(returns, type_info_to_mir_value::vt_to_mir_value(table, fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1), clone(mrvt_name)))
+    let mut return_vt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1)
+    let mut return_type_name = clone(mrvt_name)
+    // Monomorphized method instances (Pair__get_first__String) must register
+    // the substituted return so call sites see String, not the T template.
+    // Plain method registrations carry no mono suffix and keep the declared
+    // return untouched.
+    let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
+    let generic_return_ty = fn_index_method_return_type::method_return_type_info_from_name(clone(mrvt_name))
+    let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(mono_instances, clone(mangled), generic_return_ty)
+    if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
+        return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
+        return_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
+    } else {
+        let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(clone(mangled), clone(mrvt_name))
+        if len(concrete) > 0 {
+            return_type_name = concrete
+            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
+        }
+    }
+    push(returns, type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name))
+    let mono_id = mono_instance_build::mono_instance_table_register_from_instances(
+        mono_table,
+        table,
+        mono_instances,
+        clone(mangled),
+        params,
+        returns
+    )
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 5, "String")
     let trait_id = mir_signature_method::mir_signature_method_trait_id_at(sig_source, method_info_index)
     let entry = signature_entry::SignatureEntry_new(
@@ -79,7 +111,7 @@ fn sig_reg_register_method(
         receiver,
         trait_id,
         impl_decl_index,
-        0 - 1,
+        mono_id,
         kinds::ABI_KIND_TRAIT_DISPATCH(),
         core_op_id::CORE_OP_ID_NONE()
     )

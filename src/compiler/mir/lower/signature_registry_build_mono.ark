@@ -137,6 +137,7 @@ fn sig_reg_index_method_mono(
         signature_registry_entry::sig_reg_register_method(
             table,
             registry,
+            mono_table,
             source,
             sig_source,
             method_info_index,

@@ -78,7 +78,9 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
             }
             return "enum:Option"
         }
-        return String_new()
+        // User-defined generic types (Pair<String>, MapIter<I>) keep their
+        // argument list so MIR lowering can derive the substituted layout.
+        return type_ann_generic_inst_local_name(ann)
     }
     if eq(clone(ann_name), "Vec") {
         return "vec"
@@ -133,4 +135,32 @@ fn type_ann_shape_result_local_type_name(ann: AstNode, ok_name: String) -> Strin
         }
     }
     concat("Result_", normalized_ok_name)
+}
+
+// Canonical Name<arg,arg> spelling for user generic local type names.
+// Arguments reuse the local-type shaping so Pair<Vec<i32>> stays
+// Pair<vec:i32>, matching the field-type conventions used by layouts.
+fn type_ann_generic_inst_local_name(ann: AstNode) -> String {
+    let ann_name = type_ann_node::type_ann_name(ann)
+    if len(ann_name) == 0 {
+        return String_new()
+    }
+    let arg_count = type_ann_node::type_ann_child_count(ann)
+    if arg_count < 2 {
+        return String_new()
+    }
+    let mut out = concat(ann_name, String_from("<"))
+    let mut i = 1
+    while i < arg_count {
+        let arg_name = type_ann_shape_local_type_arg(type_ann_node::type_ann_child_at(ann, i))
+        if len(arg_name) == 0 {
+            return String_new()
+        }
+        if i > 1 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, arg_name)
+        i = i + 1
+    }
+    concat(out, String_from(">"))
 }

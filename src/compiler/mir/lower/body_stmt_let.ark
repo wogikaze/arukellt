@@ -1,4 +1,5 @@
 use mir::lower::ast_node
+use mir::lower::ann_types
 use mir::lower::stmt_let
 use mir::lower::stmt_let_tuple
 use mir::lower_kinds
@@ -16,7 +17,20 @@ fn lower_let_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     if child_count >= 1 {
         let pre_init = ast_node::node_child_at(node, 0)
         pre_init_kind = ast_node::node_kind(pre_init)
+        // A `Pair<String>` annotation is the expected instantiation for a
+        // struct literal init; literals otherwise infer it from field
+        // value types. Saved/restored so nested initializers cannot leak it.
+        let saved_expected = clone(ctx.expected_struct_inst)
+        let ta_count = ast_node::node_type_ann_count(node)
+        if ta_count >= 1 {
+            let shaped = ann_types::mir_local_type_name_from_ann(
+                ast_node::node_type_ann_at(node, 0),
+                0
+            )
+            ctx.expected_struct_inst = shaped
+        }
         pre_val_idx = lower_expr(ctx, pre_init)
+        ctx.expected_struct_inst = saved_expected
         vt = stmt_let::mir_adjust_let_vt_from_init(ctx, vt, node, pre_val_idx)
     }
     stmt_let::mir_finish_let_stmt(ctx, node, vt, pre_val_idx, pre_init_kind)

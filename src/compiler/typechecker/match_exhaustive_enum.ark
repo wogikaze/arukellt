@@ -26,7 +26,13 @@ fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
     if eq(clone(resolved_name), clone(declared_name)) {
         return true
     }
-    ends_with(resolved_name, concat("::", declared_name))
+    if ends_with(resolved_name, concat("::", declared_name)) {
+        return true
+    }
+    // The scrutinee type may carry the unqualified name (Ordering from a
+    // trait signature) while the enum decl is registered under its module
+    // path (cmp::Ordering). Accept the suffix match in both directions.
+    ends_with(declared_name, concat("::", resolved_name))
 }
 
 fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {

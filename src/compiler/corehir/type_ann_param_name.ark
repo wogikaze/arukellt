@@ -32,6 +32,12 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
             let err_ty = type_ann_node::type_ann_child_at(ty, 2)
             return concat(String_from("Result:"), concat(type_ann_node::type_ann_name(ok_ty), concat(String_from(":"), type_ann_node::type_ann_name(err_ty))))
         }
+        // User-defined generic types keep their argument list so MIR
+        // lowering can derive the substituted layout (Pair<String>).
+        let generic_name = type_ann_generic_inst_param_name(ty)
+        if len(generic_name) > 0 {
+            return generic_name
+        }
     }
     if type_ann_node::type_ann_is_tuple(ty) && type_ann_node::type_ann_child_count(ty) == 2 {
         let a = type_ann_node::type_ann_child_at(ty, 0)
@@ -39,4 +45,27 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
         return concat(String_from("Tuple:"), concat(type_ann_node::type_ann_name(a), concat(String_from(":"), type_ann_node::type_ann_name(b))))
     }
     type_ann_node::type_ann_name(ty)
+}
+
+// Canonical Name<arg,arg> spelling for user generic parameter types.
+fn type_ann_generic_inst_param_name(ty: AstNode) -> String {
+    let arg_count = type_ann_node::type_ann_child_count(ty)
+    if arg_count < 2 {
+        return String_new()
+    }
+    let mut out = concat(type_ann_node::type_ann_name(ty), String_from("<"))
+    let mut i = 1
+    while i < arg_count {
+        let arg_ty = type_ann_node::type_ann_child_at(ty, i)
+        let arg_name = type_ann_shape_param_type_name(arg_ty)
+        if len(arg_name) == 0 {
+            return String_new()
+        }
+        if i > 1 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, arg_name)
+        i = i + 1
+    }
+    concat(out, String_from(">"))
 }

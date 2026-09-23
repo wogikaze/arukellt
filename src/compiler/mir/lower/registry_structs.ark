@@ -4,12 +4,30 @@ use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_field_type
 use corehir::layout_decl_fields
 use corehir::layout_decl_name
+use corehir::layout_decl_type_params
 use corehir::layout_field
 
 fn mir_register_struct_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
     let fc = layout_decl_fields::layout_decl_field_count(decl)
     let name = layout_decl_name::layout_decl_name(decl)
     ctx_struct_storage::ctx_struct_push_layout(ctx, clone(name), fc)
+    // Generic decls (Pair<T>) record their parameter names so a later
+    // Pair<String> use can derive a substituted layout instead of falling
+    // back to the unsubstituted declaration.
+    let param_count = layout_decl_type_params::layout_decl_type_param_count(decl)
+    if param_count > 0 {
+        let mut joined = String_new()
+        let mut pi = 0
+        while pi < param_count {
+            if pi > 0 {
+                joined = concat(joined, String_from(","))
+            }
+            joined = concat(joined, layout_decl_type_params::layout_decl_type_param_at(decl, pi))
+            pi = pi + 1
+        }
+        push(ctx.generic_struct_names, clone(name))
+        push(ctx.generic_struct_params, joined)
+    }
     let mut fi = 0
     while fi < fc {
         let field = layout_decl_fields::layout_decl_field_at(decl, fi)

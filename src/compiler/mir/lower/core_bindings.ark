@@ -9,6 +9,7 @@ use mir::lower::core_bindings_type
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_calls
 use mir::lower::ctx_mono_type_params
+use mir::lower::ctx_struct_mono
 use mir::value_types
 
 fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
@@ -16,9 +17,15 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
     let binding_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
     let resolved_type_name = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(type_name))
+    let resolved_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, resolved_type_name)
     let mut val_idx = 0 - 1
     if child_count >= 1 {
+        // A Pair<String> annotation is the literal's expected instantiation;
+        // saved/restored so nested initializers cannot leak it.
+        let saved_expected = clone(ctx.expected_struct_inst)
+        ctx.expected_struct_inst = clone(resolved_type_name)
         val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+        ctx.expected_struct_inst = saved_expected
     }
     let mut vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
     if child_count >= 1 && len(type_name) == 0 && val_idx >= 0 {

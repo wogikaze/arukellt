@@ -18,16 +18,13 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     } else {
         raw_name
     }
-    let dest = struct_lit::mir_emit_struct_new(ctx, clone(struct_name))
-    // If this is an enum variant, set the _tag field to the variant's tag value.
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(struct_name))
-    if tag >= 0 {
-        let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
-        struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, "_tag", tag_local)
-    }
+    // Evaluate the functional-update base and field values first. For a
+    // generic base (Pair<T>) their types decide the monomorphized
+    // instantiation (Pair<String>) before struct.new picks a GC type.
     let mut base_idx = 0 - 1
     let mut has_base = false
+    let field_names = Vec::new<String>()
+    let field_vals = Vec::new<i32>()
     let mut f = 0
     while f < child_count {
         let field = ast_node::node_child_at(node, f)
@@ -36,24 +33,43 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             base_idx = lower_expr(ctx, base_expr)
             ctx_emit(ctx, inst_local_set::MirInst_local_set(base_idx))
             has_base = true
-        }
-        f = f + 1
-    }
-    if has_base {
-        struct_lit::mir_copy_struct_base_fields(ctx, clone(struct_name), dest, base_idx)
-    }
-    f = 0
-    while f < child_count {
-        let field = ast_node::node_child_at(node, f)
-        if !ast_node::node_kind_is(field, lower_kinds::NK_RANGE()) {
+        } else {
             let fc = ast_node::node_child_count(field)
             if fc >= 1 {
                 let init = ast_node::node_child_at(field, 0)
                 let val_idx = lower_expr(ctx, init)
-                struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, ast_node::node_text(field), val_idx)
+                // Field sets run after struct.new, so the stack-composed
+                // value must land in its local now; otherwise the linear
+                // store policy leaves it under the next producer.
+                ctx_emit(ctx, inst_local_set::MirInst_local_set(val_idx))
+                push(field_names, ast_node::node_text(field))
+                push(field_vals, val_idx)
             }
         }
         f = f + 1
+    }
+    let inst_name = struct_lit::mir_struct_lit_instance_name(ctx, clone(struct_name), field_names, field_vals, base_idx)
+    let dest = struct_lit::mir_emit_struct_new(ctx, clone(inst_name))
+    // If this is an enum variant, set the _tag field to the variant's tag value.
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(inst_name))
+    if tag >= 0 {
+        let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
+        struct_lit::mir_emit_struct_field_set(ctx, clone(inst_name), dest, "_tag", tag_local)
+    }
+    if has_base {
+        struct_lit::mir_copy_struct_base_fields(ctx, clone(inst_name), dest, base_idx)
+    }
+    let mut emit_i = 0
+    while emit_i < len(field_names) {
+        struct_lit::mir_emit_struct_field_set(
+            ctx,
+            clone(inst_name),
+            dest,
+            clone(get_unchecked(field_names, emit_i)),
+            get_unchecked(field_vals, emit_i)
+        )
+        emit_i = emit_i + 1
     }
     struct_lit::mir_emit_struct_get_local(ctx, dest)
 }

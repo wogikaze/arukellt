@@ -3,10 +3,15 @@ struct CoreHirLayoutDecl {
     name: String,
     fields: Vec<CoreHirLayoutField>,
     variants: Vec<CoreHirLayoutVariant>,
+    // Declared generic parameter names in order (Pair<T> has ["T"]).
+    // Empty for non-generic decls. MIR lowering uses these to derive
+    // monomorphized layouts such as Pair<String> with substituted field
+    // types instead of falling back to the unsubstituted declaration.
+    type_params: Vec<String>,
 }
 
-fn CoreHirLayoutDecl_new(kind: i32, name: String, fields: Vec<CoreHirLayoutField>, variants: Vec<CoreHirLayoutVariant>) -> CoreHirLayoutDecl {
-    CoreHirLayoutDecl { kind: kind, name: name, fields: fields, variants: variants }
+fn CoreHirLayoutDecl_new(kind: i32, name: String, fields: Vec<CoreHirLayoutField>, variants: Vec<CoreHirLayoutVariant>, type_params: Vec<String>) -> CoreHirLayoutDecl {
+    CoreHirLayoutDecl { kind: kind, name: name, fields: fields, variants: variants, type_params: type_params }
 }
 
 fn layout_decl_kind(decl: CoreHirLayoutDecl) -> i32 {
@@ -31,4 +36,12 @@ fn layout_decl_variant_count(decl: CoreHirLayoutDecl) -> i32 {
 
 fn layout_decl_variant_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutVariant {
     get_unchecked(decl.variants, index)
+}
+
+fn layout_decl_type_param_count(decl: CoreHirLayoutDecl) -> i32 {
+    len(decl.type_params)
+}
+
+fn layout_decl_type_param_at(decl: CoreHirLayoutDecl, index: i32) -> String {
+    clone(get_unchecked(decl.type_params, index))
 }

@@ -1,0 +1,25 @@
+use std::host::stdio
+
+struct Pair<T> {
+    first: T,
+    second: T,
+}
+
+impl Pair<T> {
+    fn get_first(self: Pair<T>) -> T {
+        self.first
+    }
+
+    fn get_second(self: Pair<T>) -> T {
+        self.second
+    }
+}
+
+fn main() {
+    let p: Pair<i32> = Pair { first: 7, second: 8 }
+    stdio::println((p.get_first()).to_string())
+    stdio::println((p.get_second()).to_string())
+    let s: Pair<String> = Pair { first: String_from("ab"), second: String_from("cd") }
+    stdio::println(s.get_first())
+    stdio::println(s.get_second())
+}

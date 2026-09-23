@@ -1,4 +1,5 @@
 // Mono type signature helpers.
+use mir::lower::fn_index_method_return_type
 use mir::module_gc_struct
 use wasm::emit_target
 use wasm::sections_types_gc
@@ -204,6 +205,22 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if !starts_with(clone(fn_name), concat(clone(receiver), "__")) {
         return String_new()
     }
+    // The suffix keys bind the method's type arguments; they double as the
+    // return type only when the declared return is generic — a type variable,
+    // or the receiver name MIR still carries for generic methods (e.g.
+    // "Picker" on Picker__echo__String). A concrete declared return such as
+    // enum:Ordering on Reverse__cmp__i32 names a different type and must
+    // resolve through the normal return-type paths below.
+    if len(return_type_name) > 0 {
+        let mut var_probe = clone(return_type_name)
+        if starts_with(clone(var_probe), "?") {
+            var_probe = substring(var_probe, 1, len(var_probe))
+        }
+        let is_var_return = fn_index_method_return_type::method_return_type_name_is_type_var(clone(var_probe))
+        if !is_var_return && !mono_declared_return_is_receiver(clone(return_type_name), clone(receiver)) {
+            return String_new()
+        }
+    }
     let type_keys = split_by_double_underscore(full_suffix)
     let key_count = len(type_keys)
     if key_count <= 0 {
@@ -222,4 +239,48 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         return concat("gcsref", i32_to_string(slot))
     }
     String_new()
+}
+
+// True when the declared return type name is just the receiver type — the
+// shape MIR produces for generic methods whose real return is a type
+// variable. enum:Ordering, Pair<String>, and scalars are genuine returns.
+fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) -> bool {
+    if len(receiver) == 0 {
+        return false
+    }
+    let mut bare = clone(return_type_name)
+    let n = len(bare)
+    if starts_with(clone(bare), "struct:") {
+        // struct:Name:size — keep the middle segment.
+        let mut first_colon = 0 - 1
+        let mut last_colon = 0 - 1
+        let mut i = 0
+        while i < n {
+            if byte_at(bare, i) == 58 {
+                if first_colon < 0 {
+                    first_colon = i
+                }
+                last_colon = i
+            }
+            i = i + 1
+        }
+        if first_colon >= 0 && last_colon > first_colon {
+            bare = substring(bare, first_colon + 1, last_colon)
+        }
+    } else {
+        // Strip enum:/option:/... prefixes and module qualifiers: keep the
+        // segment after the last colon.
+        let mut last_colon = 0 - 1
+        let mut i = 0
+        while i < n {
+            if byte_at(bare, i) == 58 {
+                last_colon = i
+            }
+            i = i + 1
+        }
+        if last_colon >= 0 {
+            bare = substring(bare, last_colon + 1, n)
+        }
+    }
+    eq(bare, receiver)
 }

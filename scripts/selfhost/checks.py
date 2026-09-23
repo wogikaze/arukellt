@@ -3054,6 +3054,28 @@ use mir_local_access
 use mir_mono_names
 use mir_type_contracts
 
+fn stub_vec_mono_key(ty: TypeInfo) -> String {
+    let count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
+    if count <= 0 {
+        return String_from("Vec")
+    }
+    let elem = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 0)
+    let elem_tag = mir_type_contracts::mir_type_contracts__TypeInfo_tag(elem)
+    if elem_tag == mir_lower_kinds::TY_I32() { return String_from("vec:i32") }
+    if elem_tag == mir_lower_kinds::TY_I64() { return String_from("vec:i64") }
+    if elem_tag == mir_lower_kinds::TY_F64() { return String_from("vec:f64") }
+    if elem_tag == mir_lower_kinds::TY_STRING() { return String_from("vec:String") }
+    if elem_tag == mir_lower_kinds::TY_VEC() { return String_from("vec:Vec") }
+    if elem_tag == mir_lower_kinds::TY_STRUCT() || elem_tag == mir_lower_kinds::TY_ENUM() {
+        return concat(String_from("vec:"), mir_type_info_to_mono_key(elem))
+    }
+    let elem_name = mir_type_contracts::mir_type_contracts__TypeInfo_name(elem)
+    if len(elem_name) > 0 {
+        return concat(String_from("vec:"), elem_name)
+    }
+    String_from("vec:i32")
+}
+
 fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     let tag = mir_type_contracts::mir_type_contracts__TypeInfo_tag(ty)
     if tag == mir_lower_kinds::TY_TYPE_VAR() {
@@ -3071,22 +3093,7 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         return String_from("unit")
     }
     if tag == mir_lower_kinds::TY_VEC() {
-        let count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
-        if count <= 0 {
-            return String_from("Vec")
-        }
-        let elem = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 0)
-        let elem_tag = mir_type_contracts::mir_type_contracts__TypeInfo_tag(elem)
-        if elem_tag == mir_lower_kinds::TY_I32() { return String_from("vec:i32") }
-        if elem_tag == mir_lower_kinds::TY_I64() { return String_from("vec:i64") }
-        if elem_tag == mir_lower_kinds::TY_F64() { return String_from("vec:f64") }
-        if elem_tag == mir_lower_kinds::TY_STRING() { return String_from("vec:String") }
-        if elem_tag == mir_lower_kinds::TY_VEC() { return String_from("vec:Vec") }
-        let elem_name = mir_type_contracts::mir_type_contracts__TypeInfo_name(elem)
-        if len(elem_name) > 0 {
-            return concat(String_from("vec:"), elem_name)
-        }
-        return String_from("vec:i32")
+        return stub_vec_mono_key(ty)
     }
     if tag == mir_lower_kinds::TY_OPTION() {
         let count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
@@ -3116,7 +3123,24 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         return String_from("Result")
     }
     if tag == mir_lower_kinds::TY_STRUCT() || tag == mir_lower_kinds::TY_ENUM() {
-        return mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
+        let name = mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
+        if eq(clone(name), String_from("Vec")) && mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty) > 0 {
+            return stub_vec_mono_key(ty)
+        }
+        let arg_count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
+        if arg_count > 0 && !contains(clone(name), String_from("<")) {
+            let mut out = concat(clone(name), String_from("<"))
+            let mut ai = 0
+            while ai < arg_count {
+                if ai > 0 {
+                    out = concat(out, String_from(","))
+                }
+                out = concat(out, mir_type_info_to_mono_key(mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, ai)))
+                ai = ai + 1
+            }
+            return concat(out, String_from(">"))
+        }
+        return name
     }
     let name = mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
     if len(name) > 0 {
@@ -3204,6 +3228,18 @@ pub fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
     if len(direct) > 0 {
         return direct
     }
+    if starts_with(clone(type_name), String_from("?")) {
+        let wrapped = ctx_resolve_wrapper_type_vars(ctx, substring(clone(type_name), 1, len(type_name)))
+        if len(wrapped) > 0 {
+            return wrapped
+        }
+    }
+    if contains(clone(type_name), String_from("<")) && ends_with(clone(type_name), String_from(">")) {
+        let wrapped = ctx_resolve_angle_type_vars(ctx, clone(type_name))
+        if len(wrapped) > 0 {
+            return wrapped
+        }
+    }
     if starts_with(clone(type_name), String_from("vec:")) {
         let elem = substring(clone(type_name), 4, len(type_name))
         let concrete_elem = ctx_resolve_mono_type_param(ctx, clone(elem))
@@ -3214,6 +3250,95 @@ pub fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
     type_name
 }
 
+// "Pair:T:U" -> "Pair<String,i32>" when every argument segment resolves to
+// a concrete type. The first segment is the wrapper name, not a variable.
+fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
+    let mut seg_start = 0
+    let n = len(name)
+    let mut i = 0
+    let mut out = String_new()
+    let mut seg_index = 0
+    while i <= n {
+        if i == n || byte_at(clone(name), i) == 58 {
+            let seg = substring(clone(name), seg_start, i)
+            if seg_index == 0 {
+                out = concat(clone(seg), String_from("<"))
+            } else {
+                let concrete = ctx_resolve_mono_type_param(ctx, clone(seg))
+                if len(concrete) == 0 {
+                    return String_new()
+                }
+                if seg_index > 1 {
+                    out = concat(out, String_from(","))
+                }
+                out = concat(out, concrete)
+            }
+            seg_index = seg_index + 1
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    if seg_index <= 1 {
+        return String_new()
+    }
+    concat(out, String_from(">"))
+}
+
+// "Pair<T,vec:U>" -> "Pair<String,vec:i32>" when every top-level argument
+// resolves. Unresolved arguments keep the original spelling so callers can
+// still fall back to the generic layout.
+fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
+    let n = len(type_name)
+    let mut lt = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(clone(type_name), i) == 60 {
+            lt = i
+            i = n
+        }
+        i = i + 1
+    }
+    if lt < 0 {
+        return String_new()
+    }
+    let base = substring(clone(type_name), 0, lt)
+    let inner = substring(clone(type_name), lt + 1, n - 1)
+    let mut out = concat(base, String_from("<"))
+    let mut depth = 0
+    let mut seg_start = 0
+    let m = len(inner)
+    let mut j = 0
+    let mut arg_index = 0
+    while j <= m {
+        let at_end = j == m
+        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+        if !at_end && ch == 60 {
+            depth = depth + 1
+        }
+        if !at_end && ch == 62 {
+            depth = depth - 1
+        }
+        if (at_end || ch == 44) && depth == 0 {
+            let seg = substring(clone(inner), seg_start, j)
+            let concrete = ctx_resolve_mono_type_param(ctx, clone(seg))
+            if len(concrete) == 0 {
+                return String_new()
+            }
+            if arg_index > 0 {
+                out = concat(out, String_from(","))
+            }
+            out = concat(out, concrete)
+            arg_index = arg_index + 1
+            seg_start = j + 1
+        }
+        j = j + 1
+    }
+    if arg_index == 0 {
+        return String_new()
+    }
+    concat(out, String_from(">"))
+}
+
 pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
     let result = Vec_new_String()
     let func = mir_lower_ctx_current_storage::ctx_current_func_value(ctx)
@@ -3222,26 +3347,88 @@ pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
     while i < local_count {
         let loc = mir_function_locals_view::MirFunction_local_at(func, i)
         let ty_name = mir_local_access::MirLocal_type_name(loc)
-        if starts_with(clone(ty_name), String_from("?")) {
+        let local_vars = ctx_type_var_names_from_local_type(clone(ty_name))
+        let local_var_count = len(local_vars)
+        let mut vi = 0
+        while vi < local_var_count {
+            let var_name = get_unchecked(local_vars, vi)
             let mut found = false
             let rcount = len(result)
             let mut k = 0
             while k < rcount {
-                if eq(get_unchecked(result, k), clone(ty_name)) {
+                if eq(get_unchecked(result, k), clone(var_name)) {
                     found = true
                 }
                 k = k + 1
             }
             if !found {
-                push(result, ty_name)
+                push(result, clone(var_name))
             }
+            vi = vi + 1
         }
         i = i + 1
     }
     result
 }
 
+fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
+    let result = Vec_new_String()
+    if starts_with(clone(ty_name), String_from("?")) {
+        let stripped = substring(clone(ty_name), 1, len(ty_name))
+        if !contains(clone(stripped), String_from(":")) {
+            push(result, stripped)
+            return result
+        }
+        // Generic wrappers use "?Type:T:U". Only argument segments are
+        // candidates; the wrapper name itself is not a type variable.
+        let mut segment_start = 0
+        let mut i = 0
+        let n = len(stripped)
+        while i < n {
+            if byte_at(stripped, i) == 58 {
+                let segment = substring(clone(stripped), segment_start, i)
+                if segment_start > 0 && is_plain_type_var_name(clone(segment)) {
+                    push(result, segment)
+                }
+                segment_start = i + 1
+            }
+            i = i + 1
+        }
+        let final_segment = substring(clone(stripped), segment_start, n)
+        if segment_start > 0 && is_plain_type_var_name(clone(final_segment)) {
+            push(result, final_segment)
+        }
+        return result
+    }
+    if is_plain_type_var_name(clone(ty_name)) {
+        push(result, ty_name)
+    }
+    result
+}
+
+fn is_plain_type_var_name(name: String) -> bool {
+    if len(name) != 1 {
+        return false
+    }
+    let c = byte_at(name, 0)
+    c >= 65 && c <= 90
+}
+
 pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
+    let name_len = len(mangled_name)
+    let mut si = 0
+    let mut has_sep = false
+    while si < name_len - 1 {
+        if byte_at(mangled_name, si) == 95 && byte_at(mangled_name, si + 1) == 95 {
+            has_sep = true
+            si = name_len
+        } else {
+            si = si + 1
+        }
+    }
+    if !has_sep {
+        return
+    }
     let type_var_names = ctx_collect_type_var_names(ctx)
     if len(type_var_names) == 0 {
         ctx_clear_mono_type_params(ctx)

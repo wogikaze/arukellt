@@ -1,0 +1,235 @@
+// Monomorphized user-struct layouts.
+//
+// A generic struct declaration registers one layout keyed by the bare decl
+// name (Pair with fields typed T). Uses such as Pair<String> need a layout
+// with substituted field types so GC field access and struct.new pick the
+// named GC type with reference fields instead of the i32 placeholder
+// fields of the unsubstituted declaration. This module derives those
+// instantiated layouts lazily from the declared parameter names recorded
+// in ctx.generic_struct_names / generic_struct_params.
+
+use mir::lower::ctx_struct_storage
+use mir::lower::ctx_gc_struct
+use mir::lower::ctx_mono_type_params
+use mir::lower::ctx_types
+
+// Comma-joined declared type parameter names for a generic struct base,
+// or "" when base is not a registered generic struct.
+fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
+    let count = len(ctx.generic_struct_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.generic_struct_names, i), clone(base)) {
+            return clone(get_unchecked(ctx.generic_struct_params, i))
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn ctx_struct_name_is_generic(ctx: LowerCtx, base: String) -> bool {
+    len(ctx_generic_struct_params(ctx, base)) > 0
+}
+
+// "Pair<String>" -> "Pair"; "" when name is not a Name<args> spelling.
+fn generic_inst_base_name(name: String) -> String {
+    let n = len(name)
+    if n < 3 || byte_at(clone(name), n - 1) != 62 {
+        return String_new()
+    }
+    let mut depth = 0
+    let mut i = 0
+    while i < n {
+        let ch = byte_at(clone(name), i)
+        if ch == 60 {
+            if depth == 0 {
+                return substring(clone(name), 0, i)
+            }
+            depth = depth + 1
+        }
+        if ch == 62 {
+            depth = depth - 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// "Pair<String,vec:i32>" -> ["String", "vec:i32"] split at top-level commas.
+fn generic_inst_args(name: String) -> Vec<String> {
+    let result = Vec::new<String>()
+    let n = len(name)
+    if n < 3 || byte_at(clone(name), n - 1) != 62 {
+        return result
+    }
+    let mut lt = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(clone(name), i) == 60 {
+            lt = i
+            i = n
+        }
+        i = i + 1
+    }
+    if lt < 0 {
+        return result
+    }
+    let inner = substring(clone(name), lt + 1, n - 1)
+    let mut depth = 0
+    let mut seg_start = 0
+    let m = len(inner)
+    let mut j = 0
+    while j <= m {
+        let at_end = j == m
+        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+        if !at_end && ch == 60 {
+            depth = depth + 1
+        }
+        if !at_end && ch == 62 {
+            depth = depth - 1
+        }
+        if (at_end || ch == 44) && depth == 0 {
+            push(result, substring(clone(inner), seg_start, j))
+            seg_start = j + 1
+        }
+        j = j + 1
+    }
+    result
+}
+
+fn type_ident_char(ch: i32) -> bool {
+    (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch == 95
+}
+
+// A still-generic argument: bare type parameter (T), ?-prefixed variable
+// (?T), or empty. Derived layouts require concrete arguments.
+fn generic_arg_is_unbound(arg: String) -> bool {
+    if len(arg) == 0 {
+        return true
+    }
+    if starts_with(clone(arg), String_from("?")) {
+        return true
+    }
+    if len(arg) == 1 {
+        let ch = byte_at(arg, 0)
+        if ch >= 65 && ch <= 90 {
+            return true
+        }
+    }
+    false
+}
+
+// Replace whole identifier tokens equal to a declared parameter with the
+// matching argument (vec:T -> vec:String, Pair<T> -> Pair<String>).
+fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<String>) -> String {
+    let n = len(ft)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        let ch = byte_at(clone(ft), i)
+        if !type_ident_char(ch) {
+            out = concat(out, substring(clone(ft), i, i + 1))
+            i = i + 1
+            continue
+        }
+        let start = i
+        while i < n && type_ident_char(byte_at(clone(ft), i)) {
+            i = i + 1
+        }
+        let tok = substring(clone(ft), start, i)
+        let mut replaced = false
+        let mut pi = 0
+        while pi < len(params) {
+            if pi < len(args) && eq(get_unchecked(params, pi), clone(tok)) {
+                out = concat(out, clone(get_unchecked(args, pi)))
+                replaced = true
+                pi = len(params)
+            }
+            pi = pi + 1
+        }
+        if !replaced {
+            out = concat(out, tok)
+        }
+    }
+    out
+}
+
+// Derive and register the layout for inst_name (Pair<String>) from the
+// generic base declaration. Idempotent; returns false when inst_name is
+// not a fully concrete instantiation of a registered generic struct.
+fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
+    if ctx_struct_storage::ctx_struct_layout_first_index(ctx, clone(inst_name)) >= 0 {
+        return true
+    }
+    let base = generic_inst_base_name(clone(inst_name))
+    if len(base) == 0 {
+        return false
+    }
+    let joined = ctx_generic_struct_params(ctx, clone(base))
+    if len(joined) == 0 {
+        return false
+    }
+    let args = generic_inst_args(clone(inst_name))
+    let params = Vec::new<String>()
+    // Split the comma-joined declared parameter list.
+    let mut seg_start = 0
+    let pn = len(joined)
+    let mut k = 0
+    while k <= pn {
+        if k == pn || byte_at(clone(joined), k) == 44 {
+            push(params, substring(clone(joined), seg_start, k))
+            seg_start = k + 1
+        }
+        k = k + 1
+    }
+    if len(args) != len(params) || len(args) == 0 {
+        return false
+    }
+    let mut ai = 0
+    while ai < len(args) {
+        if generic_arg_is_unbound(clone(get_unchecked(args, ai))) {
+            return false
+        }
+        ai = ai + 1
+    }
+    // Copy the base layout with substituted field types.
+    let base_index = ctx_struct_storage::ctx_struct_layout_first_index(ctx, clone(base))
+    if base_index < 0 {
+        return false
+    }
+    let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, base_index)
+    let base_off = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, base_index)
+    ctx_struct_storage::ctx_struct_push_layout(ctx, clone(inst_name), fc)
+    let mut fi = 0
+    while fi < fc {
+        let fname = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, base_off + fi)
+        let fty = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, base_off + fi)
+        ctx_struct_storage::ctx_struct_push_field(
+            ctx,
+            fname,
+            ctx_substitute_generic_field_type(fty, params, args)
+        )
+        fi = fi + 1
+    }
+    if ctx_gc_struct::ctx_is_gc_target(ctx) {
+        let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, inst_name)
+    }
+    true
+}
+
+// Normalize a local/annotation type name to the monomorphized layout name
+// and derive its layout when possible. Handles ?Wrapper:T mono-body
+// spellings and Name<args> instantiations; other names pass through.
+fn ctx_derive_generic_struct_type_name(ctx: LowerCtx, type_name: String) -> String {
+    if len(type_name) == 0 {
+        return type_name
+    }
+    let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, type_name)
+    if len(generic_inst_base_name(clone(resolved))) == 0 {
+        return resolved
+    }
+    if ctx_derive_generic_struct_layout(ctx, clone(resolved)) {
+        return resolved
+    }
+    resolved
+}

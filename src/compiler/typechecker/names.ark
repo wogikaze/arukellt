@@ -21,3 +21,19 @@ fn same_nominal_type(a: TypeInfo, b: TypeInfo) -> bool {
 fn same_type_name(left: String, right: String) -> bool {
     name_compare::same_type_name(left, right)
 }
+
+// Impl methods register under the unqualified owner name (Reverse::cmp),
+// while receiver types keep their import path (cmp::Reverse). Reduce a
+// possibly module-qualified type name to its last :: segment so method
+// lookup and mono instance naming agree with the registered signature.
+fn unqualified_type_name(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 2
+    while i >= 0 {
+        if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
+            return substring(name, i + 2, n)
+        }
+        i = i - 1
+    }
+    name
+}

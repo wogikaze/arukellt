@@ -105,6 +105,14 @@ fn decl_layout_type_name(ann: AstNode) -> String {
                 )
             }
         }
+        // User-defined generic types (Pair<String>, MapIter<I>) keep their
+        // argument list so MIR lowering can derive the monomorphized layout
+        // with substituted field types. Args reuse the same canonical names
+        // as field types (vec:/option:/result:/plain names).
+        let generic_name = decl_layout_generic_inst_name(ann)
+        if len(generic_name) > 0 {
+            return generic_name
+        }
         return ann_name
     }
     if type_ann_node::type_ann_is_named(ann) {
@@ -114,4 +122,31 @@ fn decl_layout_type_name(ann: AstNode) -> String {
         return ann_name
     }
     ""
+}
+
+// Canonical instantiation spelling Name<arg,arg> for user generic type
+// annotations. Child 0 is the base name; children 1.. are the arguments.
+fn decl_layout_generic_inst_name(ann: AstNode) -> String {
+    let ann_name = type_ann_node::type_ann_name(ann)
+    if len(ann_name) == 0 {
+        return String_new()
+    }
+    let arg_count = type_ann_node::type_ann_child_count(ann)
+    if arg_count < 2 {
+        return String_new()
+    }
+    let mut out = concat(ann_name, String_from("<"))
+    let mut i = 1
+    while i < arg_count {
+        let arg_name = decl_layout_type_name(type_ann_node::type_ann_child_at(ann, i))
+        if len(arg_name) == 0 {
+            return String_new()
+        }
+        if i > 1 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, arg_name)
+        i = i + 1
+    }
+    concat(out, String_from(">"))
 }

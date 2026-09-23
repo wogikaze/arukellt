@@ -50,6 +50,14 @@ fn wit_decl_is_enum(decl: ComponentWitDecl) -> bool {
     ast_node::node_is_enum_decl(decl.node)
 }
 
+// Generic decls (Pair<T>) carry their parameters as type annotations.
+// WIT records have no type parameters, so these decls cannot be emitted
+// as named WIT types; only concrete instantiations could be, and only
+// when an exported signature actually references them.
+fn wit_decl_is_generic(decl: ComponentWitDecl) -> bool {
+    ast_node::node_has_type_ann(decl.node)
+}
+
 fn wit_decl_name(decl: ComponentWitDecl) -> String {
     ast_node::node_text(decl.node)
 }

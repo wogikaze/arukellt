@@ -22,27 +22,20 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     } else {
         raw_name
     }
-    let dest = struct_lit::mir_emit_struct_new(ctx, clone(struct_name))
-    // If this is an enum variant, set the _tag field to the variant's tag value.
-    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(struct_name))
-    if tag >= 0 {
-        let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
-        struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, "_tag", tag_local)
-    }
+    // Evaluate base and field values first so a generic base (Pair<T>)
+    // binds its monomorphized instantiation before struct.new.
     let mut i = 0
+    let mut base_idx = 0 - 1
+    let mut has_base = false
+    let field_names = Vec::new<String>()
+    let field_vals = Vec::new<i32>()
     while i < child_count {
         let field_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i))
         if core_expr_shape_aggregate::mir_core_expr_is_struct_base(field_expr) && core_expr_shape_accessors::mir_core_expr_child_count(field_expr) >= 1 {
-            let base_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
+            base_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
             ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(base_idx))
-            struct_lit::mir_copy_struct_base_fields(ctx, clone(struct_name), dest, base_idx)
+            has_base = true
         }
-        i = i + 1
-    }
-    i = 0
-    while i < child_count {
-        let field_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i))
         if core_expr_shape_aggregate::mir_core_expr_is_struct_field(field_expr) && core_expr_shape_accessors::mir_core_expr_child_count(field_expr) >= 1 {
             let field_name = core_expr_shape_accessors::mir_core_expr_text(field_expr)
             let val_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
@@ -53,9 +46,36 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
             } else {
                 val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
             }
-            struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, field_name, val_idx)
+            // Materialize the stack-composed value before the next
+            // producer; deferred field sets read these locals.
+            ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(val_idx))
+            push(field_names, field_name)
+            push(field_vals, val_idx)
         }
         i = i + 1
+    }
+    let inst_name = struct_lit::mir_struct_lit_instance_name(ctx, clone(struct_name), field_names, field_vals, base_idx)
+    let dest = struct_lit::mir_emit_struct_new(ctx, clone(inst_name))
+    // If this is an enum variant, set the _tag field to the variant's tag value.
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(inst_name))
+    if tag >= 0 {
+        let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
+        struct_lit::mir_emit_struct_field_set(ctx, clone(inst_name), dest, "_tag", tag_local)
+    }
+    if has_base {
+        struct_lit::mir_copy_struct_base_fields(ctx, clone(inst_name), dest, base_idx)
+    }
+    let mut emit_i = 0
+    while emit_i < len(field_names) {
+        struct_lit::mir_emit_struct_field_set(
+            ctx,
+            clone(inst_name),
+            dest,
+            clone(get_unchecked(field_names, emit_i)),
+            get_unchecked(field_vals, emit_i)
+        )
+        emit_i = emit_i + 1
     }
     struct_lit::mir_emit_struct_get_local(ctx, dest)
 }

@@ -55,6 +55,22 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         if eq(clone(name), "Vec") && type_contracts::TypeInfo_type_arg_count(ty) > 0 {
             return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
         }
+        // User generic structs keep their argument list (Pair<String>) so
+        // monomorphized signatures and locals resolve the substituted
+        // layout instead of the unsubstituted declaration.
+        let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
+        if arg_count > 0 && !contains(clone(name), String_from("<")) {
+            let mut out = concat(clone(name), String_from("<"))
+            let mut ai = 0
+            while ai < arg_count {
+                if ai > 0 {
+                    out = concat(out, String_from(","))
+                }
+                out = concat(out, mir_type_info_to_mono_key(type_contracts::TypeInfo_type_arg_at(ty, ai)))
+                ai = ai + 1
+            }
+            return concat(out, String_from(">"))
+        }
         return name
     }
     let name = type_contracts::TypeInfo_name(ty)
@@ -176,62 +192,35 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
 
 fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     let result = Vec::new<String>()
-    let mut name = clone(ty_name)
-    if starts_with(clone(name), "?") {
-        name = substring(clone(name), 1, len(name))
-    }
-    if is_plain_type_var_name(clone(name)) {
-        push(result, ctx_extract_type_var_name(clone(ty_name)))
+    if starts_with(clone(ty_name), "?") {
+        let stripped = substring(clone(ty_name), 1, len(ty_name))
+        if !contains(clone(stripped), String_from(":")) {
+            push(result, stripped)
+            return result
+        }
+        let mut segment_start = 0
+        let mut i = 0
+        let n = len(stripped)
+        while i < n {
+            if byte_at(stripped, i) == 58 {
+                let segment = substring(clone(stripped), segment_start, i)
+                if segment_start > 0 && is_plain_type_var_name(clone(segment)) {
+                    push(result, segment)
+                }
+                segment_start = i + 1
+            }
+            i = i + 1
+        }
+        let final_segment = substring(clone(stripped), segment_start, n)
+        if segment_start > 0 && is_plain_type_var_name(clone(final_segment)) {
+            push(result, final_segment)
+        }
         return result
     }
-    // Generic wrappers use `?Type:T:U`. Only argument segments are
-    // candidates; the wrapper name itself is not a type variable.
-    let mut segment_start = 0
-    let mut i = 0
-    while i < len(name) {
-        if byte_at(name, i) == 58 {
-            let segment = substring(clone(name), segment_start, i)
-            if segment_start > 0 && is_plain_type_var_name(clone(segment)) {
-                push(result, segment)
-            }
-            segment_start = i + 1
-        }
-        i = i + 1
-    }
-    let final_segment = substring(clone(name), segment_start, len(name))
-    if segment_start > 0 && is_plain_type_var_name(clone(final_segment)) {
-        push(result, final_segment)
+    if is_plain_type_var_name(clone(ty_name)) {
+        push(result, ty_name)
     }
     result
-}
-
-fn ctx_extract_type_var_name(ty_name: String) -> String {
-    // Composite types: "?Option:T" → "T", "?Result:T:U" → "T"
-    if starts_with(clone(ty_name), "?Option:") {
-        return substring(clone(ty_name), 8, len(ty_name))
-    }
-    if starts_with(clone(ty_name), "?Result:") {
-        let rest = substring(clone(ty_name), 8, len(ty_name))
-        // "T:U" → take first part "T" (find colon by scanning)
-        let rlen = len(rest)
-        let mut ci = 0
-        while ci < rlen {
-            if byte_at(rest, ci) == 58 {
-                return substring(rest, 0, ci)
-            }
-            ci = ci + 1
-        }
-        return rest
-    }
-    // Prefixed type variable: "?T" → "T"
-    if starts_with(clone(ty_name), "?") {
-        return substring(clone(ty_name), 1, len(ty_name))
-    }
-    // Plain type variable names like "K" / "V" / "T"
-    if is_plain_type_var_name(clone(ty_name)) {
-        return ty_name
-    }
-    String_new()
 }
 
 fn is_plain_type_var_name(name: String) -> bool {
@@ -256,6 +245,20 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
     if len(direct) > 0 {
         return direct
     }
+    // Generic-wrapper spellings: ?Pair:T -> Pair<String>, Pair<T> ->
+    // Pair<String>. Each argument segment resolves through the mono map.
+    if starts_with(clone(type_name), "?") {
+        let wrapped = ctx_resolve_wrapper_type_vars(ctx, substring(clone(type_name), 1, len(type_name)))
+        if len(wrapped) > 0 {
+            return wrapped
+        }
+    }
+    if contains(clone(type_name), String_from("<")) && ends_with(clone(type_name), String_from(">")) {
+        let wrapped = ctx_resolve_angle_type_vars(ctx, clone(type_name))
+        if len(wrapped) > 0 {
+            return wrapped
+        }
+    }
     if starts_with(clone(type_name), "vec:") {
         let elem = substring(clone(type_name), 4, len(type_name))
         let concrete_elem = ctx_resolve_mono_type_param(ctx, clone(elem))
@@ -264,6 +267,95 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
         }
     }
     type_name
+}
+
+// "Pair:T:U" -> "Pair<String,i32>" when every argument segment resolves to
+// a concrete type. The first segment is the wrapper name, not a variable.
+fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
+    let mut seg_start = 0
+    let n = len(name)
+    let mut i = 0
+    let mut out = String_new()
+    let mut seg_index = 0
+    while i <= n {
+        if i == n || byte_at(clone(name), i) == 58 {
+            let seg = substring(clone(name), seg_start, i)
+            if seg_index == 0 {
+                out = concat(clone(seg), String_from("<"))
+            } else {
+                let concrete = ctx_resolve_mono_type_param(ctx, clone(seg))
+                if len(concrete) == 0 {
+                    return String_new()
+                }
+                if seg_index > 1 {
+                    out = concat(out, String_from(","))
+                }
+                out = concat(out, concrete)
+            }
+            seg_index = seg_index + 1
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    if seg_index <= 1 {
+        return String_new()
+    }
+    concat(out, String_from(">"))
+}
+
+// "Pair<T,vec:U>" -> "Pair<String,vec:i32>" when every top-level argument
+// resolves. Unresolved arguments keep the original spelling so callers can
+// still fall back to the generic layout.
+fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
+    let n = len(type_name)
+    let mut lt = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(clone(type_name), i) == 60 {
+            lt = i
+            i = n
+        }
+        i = i + 1
+    }
+    if lt < 0 {
+        return String_new()
+    }
+    let base = substring(clone(type_name), 0, lt)
+    let inner = substring(clone(type_name), lt + 1, n - 1)
+    let mut out = concat(base, String_from("<"))
+    let mut depth = 0
+    let mut seg_start = 0
+    let m = len(inner)
+    let mut j = 0
+    let mut arg_index = 0
+    while j <= m {
+        let at_end = j == m
+        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+        if !at_end && ch == 60 {
+            depth = depth + 1
+        }
+        if !at_end && ch == 62 {
+            depth = depth - 1
+        }
+        if (at_end || ch == 44) && depth == 0 {
+            let seg = substring(clone(inner), seg_start, j)
+            let concrete = ctx_resolve_mono_type_param(ctx, clone(seg))
+            if len(concrete) == 0 {
+                return String_new()
+            }
+            if arg_index > 0 {
+                out = concat(out, String_from(","))
+            }
+            out = concat(out, concrete)
+            arg_index = arg_index + 1
+            seg_start = j + 1
+        }
+        j = j + 1
+    }
+    if arg_index == 0 {
+        return String_new()
+    }
+    concat(out, String_from(">"))
 }
 
 // Setup type parameter mapping by collecting type variable names from
