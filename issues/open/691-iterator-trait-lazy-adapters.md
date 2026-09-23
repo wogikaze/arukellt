@@ -420,6 +420,28 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-24 (x.clone() on unbound type variables)
+
+- Commit `99212875d` keeps the receiver type for `x.clone()` on an unbound
+  `T`. The method form previously resolved to the String-shaped prelude
+  signature, so monomorphized bodies declared clone dests as String GC refs
+  for scalar and user-struct receivers.
+- The typechecker now treats `clone` as the compiler-polymorphic intrinsic
+  in the unbound-typevar path; `mir_emit_method_call` carries the marked dest
+  vt onto the call inst like direct calls; `mark_clone_call_result_type`
+  resolves `?T` through the mono substitution map; and the GC producer scan
+  recovers the receiver local for arg0-less clone calls via the preceding
+  `local.get`.
+- New fixture `stdlib_trait/clone_unbound_typevar.ark` covers `x.clone()`
+  and `clone(x)` over i32, String, and a user struct on run/t3-compile/t3-run
+  lanes. Repro (unbound dup for i32/String/Pair, `T: Clone` bound regression)
+  and 13 clone/iterator fixtures compile and run identically on wasm32-gc
+  and linear wasm32.
+- `T: Clone` bound dispatch still requires `use std::core::clone`; unbound
+  receivers need no import. Generic `HashMap` iteration, method-level
+  generics for `FilterIter::map`, `fn(I::Item) -> U` spelling, and the
+  RFC-011 residual audit remain open. This is not a close receipt.
+
 ## Progress receipt — 2026-09-24 (item-generic adapter migration)
 
 - Commit `261c5565f` retires the 11 concrete String callback adapter structs
