@@ -14,6 +14,14 @@ fn mir_emit_loop_back(ctx: LowerCtx) {
     loop_scope_end::mir_emit_loop_back(ctx)
 }
 
+fn mir_begin_for_body_continue_block(ctx: LowerCtx) -> i32 {
+    loop_scope_end::mir_begin_for_body_continue_block(ctx)
+}
+
+fn mir_end_for_body_continue_block(ctx: LowerCtx, saved_continue: i32) {
+    loop_scope_end::mir_end_for_body_continue_block(ctx, saved_continue)
+}
+
 fn mir_end_loop_scope(ctx: LowerCtx, scope: MirLoopScope) {
     loop_scope_end::mir_end_loop_scope(ctx, scope)
 }

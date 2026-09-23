@@ -11,6 +11,25 @@ fn mir_emit_loop_back(ctx: LowerCtx) {
     ctx_emit(ctx, inst_branch::MirInst_br(0))
 }
 
+// Index-based for loops place the increment after the body, so a plain
+// continue that re-enters the loop header would re-check the same index
+// forever. Wrapping the body in this block retargets continue at the
+// block end, which falls through to the increment. Returns the saved
+// continue depth for mir_end_for_body_continue_block.
+fn mir_begin_for_body_continue_block(ctx: LowerCtx) -> i32 {
+    ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    let saved_continue = ctx_api_loop_state::ctx_loop_continue_depth(ctx)
+    ctx_api_loop_state::ctx_set_loop_continue_depth_to_current(ctx)
+    saved_continue
+}
+
+fn mir_end_for_body_continue_block(ctx: LowerCtx, saved_continue: i32) {
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    ctx_api_nesting::ctx_pop_nesting(ctx)
+    ctx_api_loop_state::ctx_set_loop_continue_depth(ctx, saved_continue)
+}
+
 fn mir_end_loop_scope(ctx: LowerCtx, scope: MirLoopScope) {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)

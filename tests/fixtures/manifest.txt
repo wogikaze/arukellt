@@ -411,6 +411,7 @@ run:enums/unit_variant.ark
 run:examples/rpn_repl.ark
 run:examples/rpn_repl_demo.ark
 run:f32_basic/basic.ark
+run:for_loops/for_continue.ark
 run:for_loops/for_range.ark
 run:for_loops/for_sum.ark
 run:for_loops/for_values.ark
@@ -2080,6 +2081,7 @@ t3-compile:enums/result_err.ark
 t3-compile:enums/result_ok.ark
 t3-compile:enums/tuple_variant.ark
 t3-compile:enums/unit_variant.ark
+t3-compile:for_loops/for_continue.ark
 t3-compile:for_loops/for_range.ark
 t3-compile:for_loops/for_sum.ark
 t3-compile:for_loops/for_values.ark
@@ -2522,6 +2524,7 @@ t3-run:enums/result_err.ark
 t3-run:enums/result_ok.ark
 t3-run:enums/tuple_variant.ark
 t3-run:enums/unit_variant.ark
+t3-run:for_loops/for_continue.ark
 t3-run:for_loops/for_range.ark
 t3-run:for_loops/for_sum.ark
 t3-run:for_loops/for_values.ark
