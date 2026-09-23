@@ -48,6 +48,10 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
         }
     }
     // Bind each declared parameter from the field value's resolved type.
+    // Declared field types may embed a parameter inside a container
+    // (vec:T, option:T, result:T:E, Inner<T>), not only as a bare T, so the
+    // binding unifies the declared shape against the value's resolved type
+    // segment by segment.
     let joined = ctx_struct_mono::ctx_generic_struct_params(ctx, clone(canon))
     let params = struct_lit_split_params(joined)
     if len(params) == 0 {
@@ -65,26 +69,22 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
     while i < len(field_names) {
         let fi = ctx_struct_lookup::ctx_field_index(ctx, clone(canon), clone(get_unchecked(field_names, i)))
         let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(canon), fi)
-        let mut pj = 0
-        while pj < len(params) {
-            if eq(get_unchecked(params, pj), clone(ft)) && i < len(val_idxs) {
-                let mut val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
-                    ctx,
-                    ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(val_idxs, i))
+        if i < len(val_idxs) && struct_lit_field_type_mentions_params(clone(ft), params) {
+            let mut val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
+                ctx,
+                ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(val_idxs, i))
+            )
+            if len(val_ty) == 0 {
+                val_ty = struct_lit_scalar_type_for_vt(
+                    ctx_api_local_types::ctx_local_vt(ctx, get_unchecked(val_idxs, i))
                 )
-                if len(val_ty) == 0 {
-                    val_ty = struct_lit_scalar_type_for_vt(
-                        ctx_api_local_types::ctx_local_vt(ctx, get_unchecked(val_idxs, i))
-                    )
-                }
-                if len(val_ty) == 0 || ctx_struct_mono::generic_arg_is_unbound(clone(val_ty)) {
-                    return canon
-                }
-                set(args, pj, val_ty)
-                set(bound, pj, true)
-                pj = len(params)
             }
-            pj = pj + 1
+            if len(val_ty) == 0 {
+                return canon
+            }
+            if !struct_lit_unify_segments(clone(ft), clone(val_ty), params, args, bound) {
+                return canon
+            }
         }
         i = i + 1
     }
@@ -140,6 +140,206 @@ fn struct_lit_scalar_type_for_vt(vt: i32) -> String {
         return String_from("f64")
     }
     String_new()
+}
+
+fn struct_lit_ident_char(ch: i32) -> bool {
+    (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch == 95
+}
+
+fn struct_lit_param_index(params: Vec<String>, name: String) -> i32 {
+    let mut i = 0
+    while i < len(params) {
+        if eq(get_unchecked(params, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+// True when a declared field type mentions one of the struct's type
+// parameters as a whole identifier token (T in vec:T / Pair<T>, not the T
+// inside Token or i32).
+fn struct_lit_field_type_mentions_params(ft: String, params: Vec<String>) -> bool {
+    let n = len(ft)
+    let mut i = 0
+    while i < n {
+        let ch = byte_at(clone(ft), i)
+        if !struct_lit_ident_char(ch) {
+            i = i + 1
+        } else {
+            let start = i
+            while i < n && struct_lit_ident_char(byte_at(clone(ft), i)) {
+                i = i + 1
+            }
+            let tok = substring(clone(ft), start, i)
+            if struct_lit_param_index(params, tok) >= 0 {
+                return true
+            }
+        }
+    }
+    false
+}
+
+// Normalize the surface spellings a resolved value type can carry into the
+// canonical vec:/option:/result: space used by declared field types.
+fn struct_lit_canonical_type_spelling(name: String) -> String {
+    if starts_with(clone(name), String_from("Vec<")) && ends_with(clone(name), String_from(">")) {
+        return concat(
+            String_from("vec:"),
+            struct_lit_canonical_type_spelling(substring(clone(name), 4, len(name) - 1))
+        )
+    }
+    if starts_with(clone(name), String_from("Option<")) && ends_with(clone(name), String_from(">")) {
+        return concat(
+            String_from("option:"),
+            struct_lit_canonical_type_spelling(substring(clone(name), 7, len(name) - 1))
+        )
+    }
+    if starts_with(clone(name), String_from("Option_")) {
+        return concat(
+            String_from("option:"),
+            struct_lit_canonical_type_spelling(substring(clone(name), 7, len(name)))
+        )
+    }
+    if starts_with(clone(name), String_from("Result<")) && ends_with(clone(name), String_from(">")) {
+        let inner = substring(clone(name), 7, len(name) - 1)
+        let parts = ctx_mono_type_params::ctx_split_top_level_type_args(inner)
+        if len(parts) == 2 {
+            return concat(
+                String_from("result:"),
+                concat(
+                    struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 0))),
+                    concat(
+                        String_from(":"),
+                        struct_lit_canonical_type_spelling(clone(get_unchecked(parts, 1)))
+                    )
+                )
+            )
+        }
+        return name
+    }
+    if starts_with(clone(name), String_from("Result_")) {
+        let inner = substring(clone(name), 7, len(name))
+        let us = index_of(clone(inner), String_from("_"))
+        if us > 0 && us + 1 < len(inner) {
+            return concat(
+                String_from("result:"),
+                concat(
+                    struct_lit_canonical_type_spelling(substring(clone(inner), 0, us)),
+                    concat(
+                        String_from(":"),
+                        struct_lit_canonical_type_spelling(substring(clone(inner), us + 1, len(inner)))
+                    )
+                )
+            )
+        }
+        return concat(String_from("result:"), inner)
+    }
+    name
+}
+
+// Split a canonical type spelling on ':' separators that sit outside any
+// <...> / (...) group (vec:Pair<T> -> [vec, Pair<T>]).
+fn struct_lit_split_colon_top(name: String) -> Vec<String> {
+    let result = Vec::new<String>()
+    let n = len(name)
+    let mut depth = 0
+    let mut seg_start = 0
+    let mut i = 0
+    while i <= n {
+        let at_end = i == n
+        let ch = if at_end { 58 } else { byte_at(clone(name), i) }
+        if !at_end && (ch == 60 || ch == 40) {
+            depth = depth + 1
+        }
+        if !at_end && (ch == 62 || ch == 41) {
+            depth = depth - 1
+        }
+        if (at_end || ch == 58) && depth == 0 {
+            push(result, substring(clone(name), seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    result
+}
+
+fn struct_lit_type_is_composite(name: String) -> bool {
+    contains(clone(name), String_from("<")) || contains(clone(name), String_from(":"))
+}
+
+// Align a declared field type with the resolved value type and bind every
+// declared-parameter leaf to its concrete counterpart. A bare parameter
+// leaf (T) binds the whole value type; composite spellings (vec:T,
+// option:T, result:T:E, Inner<T>) recurse segment by segment. Returns
+// false when a parameter position lacks a concrete counterpart or the
+// shapes cannot align — the caller then keeps the unsubstituted base
+// layout instead of guessing an instantiation.
+fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, args: Vec<String>, bound: Vec<bool>) -> bool {
+    let direct = struct_lit_param_index(params, clone(ft))
+    if direct >= 0 {
+        if len(vt) == 0 ||
+        ctx_struct_mono::generic_arg_is_unbound(clone(vt)) ||
+        struct_lit_field_type_mentions_params(clone(vt), params) {
+            return false
+        }
+        set(args, direct, vt)
+        set(bound, direct, true)
+        return true
+    }
+    let f = struct_lit_canonical_type_spelling(ft)
+    let v = struct_lit_canonical_type_spelling(vt)
+    let f_segs = struct_lit_split_colon_top(clone(f))
+    let v_segs = struct_lit_split_colon_top(clone(v))
+    if len(f_segs) > 1 || len(v_segs) > 1 {
+        if len(f_segs) != len(v_segs) {
+            return !struct_lit_field_type_mentions_params(f, params)
+        }
+        let mut k = 0
+        while k < len(f_segs) {
+            let f_seg = get_unchecked(f_segs, k)
+            let v_seg = get_unchecked(v_segs, k)
+            if struct_lit_param_index(params, clone(f_seg)) >= 0 {
+                if !struct_lit_unify_segments(clone(f_seg), clone(v_seg), params, args, bound) {
+                    return false
+                }
+            } else if !eq(clone(f_seg), clone(v_seg)) {
+                if struct_lit_type_is_composite(clone(f_seg)) {
+                    if !struct_lit_unify_segments(clone(f_seg), clone(v_seg), params, args, bound) {
+                        return false
+                    }
+                } else {
+                    return !struct_lit_field_type_mentions_params(clone(f), params)
+                }
+            }
+            k = k + 1
+        }
+        return true
+    }
+    let f_base = ctx_struct_mono::generic_inst_base_name(clone(f))
+    if len(f_base) > 0 && eq(clone(f_base), ctx_struct_mono::generic_inst_base_name(clone(v))) {
+        let f_args = ctx_struct_mono::generic_inst_args(clone(f))
+        let v_args = ctx_struct_mono::generic_inst_args(clone(v))
+        if len(f_args) != len(v_args) {
+            return false
+        }
+        let mut k = 0
+        while k < len(f_args) {
+            if !struct_lit_unify_segments(
+                clone(get_unchecked(f_args, k)),
+                clone(get_unchecked(v_args, k)),
+                params,
+                args,
+                bound
+            ) {
+                return false
+            }
+            k = k + 1
+        }
+        return true
+    }
+    !struct_lit_field_type_mentions_params(f, params)
 }
 
 fn struct_lit_split_params(joined: String) -> Vec<String> {
@@ -201,11 +401,22 @@ fn mir_emit_struct_field_set(ctx: LowerCtx, struct_name: String, dest: i32, fiel
                 ctx,
                 clone(normalized_type_name)
             )
-            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, semantic_type_name)
-            if ctx_gc_enum::ctx_is_gc_target(ctx) {
-                ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
-            } else {
-                ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_REF())
+            // A still-generic field type (vec:T on the unbound base layout)
+            // must not overwrite the value local's concrete mono type —
+            // stamping vec:T onto a Vec<i32> parameter collapses later
+            // len()/get_unchecked calls to the Vec<i32> fallback.
+            let base_name = ctx_struct_mono::generic_inst_base_name(clone(canon))
+            let param_owner = if len(base_name) > 0 { base_name } else { clone(canon) }
+            let decl_params = struct_lit_split_params(
+                ctx_struct_mono::ctx_generic_struct_params(ctx, param_owner)
+            )
+            if !struct_lit_field_type_mentions_params(clone(semantic_type_name), decl_params) {
+                ctx_api_local_types::ctx_set_local_type(ctx, val_idx, semantic_type_name)
+                if ctx_gc_enum::ctx_is_gc_target(ctx) {
+                    ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
+                } else {
+                    ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_REF())
+                }
             }
         }
     }

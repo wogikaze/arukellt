@@ -1,0 +1,54 @@
+use std::core::iter
+use std::host::stdio
+
+struct GenVecIter<T> {
+    vec: Vec<T>,
+    index: i32,
+    length: i32,
+}
+
+fn gen_vec_iter<T>(v: Vec<T>) -> GenVecIter<T> {
+    GenVecIter { vec: v, index: 0, length: len(v) }
+}
+
+impl Iterator for GenVecIter<T> {
+    type Item = T
+    fn next(self: GenVecIter<T>) -> Option<T> {
+        if self.index < self.length {
+            let val: T = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Option::Some(val)
+        } else {
+            Option::None
+        }
+    }
+}
+
+fn main() -> i32 {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(10)
+    v.push(20)
+    v.push(30)
+    let it: GenVecIter<i32> = gen_vec_iter(v)
+    let mut total: i32 = 0
+    while true {
+        match it.next() {
+            Option::Some(x) => total = total + x,
+            Option::None => { break },
+        }
+    }
+    stdio::println(total.to_string())
+    let s: Vec<String> = Vec::new<String>()
+    s.push("ab")
+    s.push("cd")
+    let it2: GenVecIter<String> = gen_vec_iter(s)
+    let mut chars: i32 = 0
+    while true {
+        match it2.next() {
+            Option::Some(x) => chars = chars + x.len(),
+            Option::None => { break },
+        }
+    }
+    stdio::println(chars.to_string())
+    0
+}
