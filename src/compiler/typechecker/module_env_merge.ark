@@ -3,6 +3,7 @@ use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_env_record
 use typechecker::contract_type_access
+use typechecker::mono_instances
 
 fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
     let src_instances = contract_env_mono_record::type_env_mono_instances(src)
@@ -29,6 +30,36 @@ fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
         }
         if !found {
             push(dst.mono_instances, incoming)
+            mono_instances::rebind_enclosing_template_sites(
+                dst,
+                contract_mono::MonoInstance_fn_name(incoming),
+                clone(incoming.type_args)
+            )
+        }
+        i = i + 1
+    }
+}
+
+fn merge_mono_template_sites(dst: TypeEnv, src: TypeEnv) {
+    let src_count = len(src.mono_template_sites)
+    let mut i = 0
+    while i < src_count {
+        let incoming = get_unchecked(src.mono_template_sites, i)
+        let incoming_mangled = clone(incoming.mangled_name)
+        let incoming_enclosing = clone(incoming.enclosing_fn)
+        let dst_count = len(dst.mono_template_sites)
+        let mut found = false
+        let mut j = 0
+        while j < dst_count {
+            let existing = get_unchecked(dst.mono_template_sites, j)
+            if eq(clone(existing.mangled_name), clone(incoming_mangled)) &&
+            eq(clone(existing.enclosing_fn), clone(incoming_enclosing)) {
+                found = true
+            }
+            j = j + 1
+        }
+        if !found {
+            push(dst.mono_template_sites, incoming)
         }
         i = i + 1
     }
@@ -51,6 +82,7 @@ fn merge_type_env(dst: TypeEnv, src: TypeEnv) {
     }
     vec_extend::Vec_extend_Diagnostic(dst.diagnostics, src.diagnostics)
     vec_extend::Vec_extend_Diagnostic(dst.warnings, src.warnings)
+    merge_mono_template_sites(dst, src)
     merge_mono_instances(dst, src)
     vec_extend::Vec_extend_MonoCallSite(dst.mono_call_sites, src.mono_call_sites)
 }
@@ -63,6 +95,7 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
     child.trait_methods = parent.trait_methods
     child.struct_defs = parent.struct_defs
     child.fn_sig_index = parent.fn_sig_index
+    child.current_fn_name = parent.current_fn_name
     child.current_fn_type_params = parent.current_fn_type_params
     child.current_fn_bounds = parent.current_fn_bounds
     child

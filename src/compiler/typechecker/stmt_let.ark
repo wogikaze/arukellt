@@ -30,7 +30,11 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
     }
     if ast_access::node_type_ann_count(node) > 0 {
         let ann = ast_access::node_type_ann_at(node, 0)
-        let ann_ty = types::resolve_type_ann_node(ann)
+        // Resolve against the enclosing signature's type parameters so
+        // "let inner: Inner<I>" inside a generic body binds I as the
+        // type variable, not a nominal struct named "I". The var form is
+        // what mono template spellings ("Inner::next__?I") key on.
+        let ann_ty = types::resolve_type_ann_node_generic(ann, env.current_fn_type_params)
         if should_prefer_annotation(bind_ty, ann_ty) {
             bind_ty = ann_ty
         } else {

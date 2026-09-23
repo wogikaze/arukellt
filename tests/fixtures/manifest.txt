@@ -1766,6 +1766,7 @@ run:stdlib_trait/iterator_map_filter_take_pipeline.ark
 run:stdlib_trait/iterator_map_identity.ark
 run:stdlib_trait/iterator_map_negative.ark
 run:stdlib_trait/iterator_negative_values.ark
+run:stdlib_trait/iterator_nested_generic_adapter.ark
 run:stdlib_trait/iterator_property_filter_subset.ark
 run:stdlib_trait/iterator_property_map_length.ark
 run:stdlib_trait/iterator_query_consumers.ark
@@ -2324,6 +2325,7 @@ t3-compile:stdlib_trait/io_backward_compat.ark
 t3-compile:stdlib_trait/io_copy.ark
 t3-compile:stdlib_trait/iterator_adapters.ark
 t3-compile:stdlib_trait/iterator_generic_struct_item.ark
+t3-compile:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
 t3-compile:stdlib_trait/ord_trait.ark
 t3-compile:stdlib_trait/integer_trait.ark
@@ -2782,6 +2784,7 @@ t3-run:stdlib_trait/integer_trait.ark
 t3-run:stdlib_trait/io_backward_compat.ark
 t3-run:stdlib_trait/io_copy.ark
 t3-run:stdlib_trait/iterator_generic_struct_item.ark
+t3-run:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-run:stdlib_trait/read_write.ark
 t3-run:stdlib_trait/seek.ark
 t3-run:stdlib_trait/self_return_add.ark

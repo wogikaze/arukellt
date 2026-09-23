@@ -1,0 +1,57 @@
+use std::core::iter
+use std::host::stdio
+
+struct Inner<I> {
+    iter: I,
+}
+
+impl Iterator for Inner<I> {
+    type Item = I::Item
+    fn next(self: Inner<I>) -> Option<I::Item> {
+        self.iter.next()
+    }
+}
+
+// Field-access form: the forwarded receiver lives in a generic field.
+struct Forward<I> {
+    inner: Inner<I>,
+}
+
+impl Iterator for Forward<I> {
+    type Item = I::Item
+    fn next(self: Forward<I>) -> Option<I::Item> {
+        self.inner.next()
+    }
+}
+
+// Local-binding form: the wrapped iterator is built inside next() from
+// the enclosing impl's own type parameter.
+struct Local<I> {
+    iter: I,
+}
+
+impl Iterator for Local<I> {
+    type Item = I::Item
+    fn next(self: Local<I>) -> Option<I::Item> {
+        let inner: Inner<I> = Inner { iter: self.iter }
+        inner.next()
+    }
+}
+
+fn main() -> i32 {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(7)
+    let w: Vec<i32> = Vec::new<i32>()
+    w.push(9)
+    let it: Forward<VecIter> = Forward { inner: Inner { iter: v.into_iter() } }
+    match it.next() {
+        Some(x) => stdio::println(x.to_string()),
+        None => stdio::println("none"),
+    }
+    let it2: Local<VecIter> = Local { iter: w.into_iter() }
+    match it2.next() {
+        Some(x) => stdio::println(x.to_string()),
+        None => stdio::println("none"),
+    }
+    0
+}

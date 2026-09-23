@@ -13,6 +13,20 @@ struct MonoCallSite {
     mangled_name: String,
 }
 
+// A mono recording whose resolved arguments still mention the enclosing
+// function's type parameters (for example `inner.next()` on `Inner<I>`
+// inside `Outer<I>::next`). The enclosing function's own instantiation
+// supplies the concrete arguments later; the site is re-bound then so the
+// callee instance exists for MIR lowering (demand-driven propagation,
+// callee axis of ADR-078).
+struct MonoTemplateSite {
+    fn_name: String,
+    mangled_name: String,
+    type_args: Vec<TypeInfo>,
+    enclosing_fn: String,
+    enclosing_vars: Vec<String>,
+}
+
 fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {
     MonoInstance {
         fn_name: fn_name,

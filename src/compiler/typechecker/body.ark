@@ -28,6 +28,7 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn
 fn check_fn_body_with_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode, sig: FnSig) {
     trait_registry::reject_dyn_in_sig(env, sig)
     env.current_fn_return_type = contract_fn_sig::FnSig_return_type(sig)
+    env.current_fn_name = contract_fn_sig::FnSig_name(sig)
     let scope = scope::LocalScope_new()
     body_params::bind_fn_params_from_sig(scope, fn_node, sig)
     body_params::set_fn_type_params_from_sig(env, sig)

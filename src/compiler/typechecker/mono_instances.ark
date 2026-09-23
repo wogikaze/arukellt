@@ -24,6 +24,7 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
         mangled = text::builder_append(mangled, concat("__", mono_key::mono_type_key(ty)))
         i = i + 1
     }
+    record_template_site_if_generic(env, clone(fn_name), clone(mangled), clone(resolved_types))
     let mi_count = contract_env_mono_record::type_env_mono_instance_count(env)
     let mut j = 0
     while j < mi_count {
@@ -35,7 +36,103 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     }
     contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types)))
     propagate_parametric_impl_mono(env, clone(fn_name), resolved_types)
+    rebind_enclosing_template_sites(env, fn_name, resolved_types)
     mangled
+}
+
+// Demand-driven propagation, callee axis (ADR-078). A call inside a
+// generic body on a receiver that still mentions the enclosing
+// function's type parameters (`inner.next()` on `Inner<I>` inside
+// `Outer<I>::next`) records a template instance here. The enclosing
+// function's concrete instantiation later supplies the arguments that
+// re-bind the site into a callable instance; without it the call site
+// can only bind the trapping template body.
+fn record_template_site_if_generic(env: TypeEnv, fn_name: String, mangled_name: String, resolved_types: Vec<TypeInfo>) {
+    if len(env.current_fn_name) == 0 {
+        return
+    }
+    let mut mentions_var = false
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        if associated_types::type_contains_var(get_unchecked(resolved_types, i)) {
+            mentions_var = true
+        }
+        i = i + 1
+    }
+    if !mentions_var {
+        return
+    }
+    let site_count = len(env.mono_template_sites)
+    let mut s = 0
+    while s < site_count {
+        let site = get_unchecked(env.mono_template_sites, s)
+        if eq(clone(site.mangled_name), clone(mangled_name)) &&
+        eq(clone(site.enclosing_fn), clone(env.current_fn_name)) {
+            return
+        }
+        s = s + 1
+    }
+    push(env.mono_template_sites, MonoTemplateSite {
+            fn_name: fn_name,
+            mangled_name: mangled_name,
+            type_args: resolved_types,
+            enclosing_fn: clone(env.current_fn_name),
+            enclosing_vars: clone(env.current_fn_type_params)
+        })
+}
+
+// Re-bind template sites recorded inside `fn_name`'s body now that a
+// concrete instantiation supplies its arguments. `Outer::next`+[VecIter]
+// turns the `Inner::next`+[?I] site into `Inner::next`+[VecIter], which
+// MIR lowering can then emit and span-rewrite call sites can resolve.
+fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    if len(resolved_types) == 0 {
+        return
+    }
+    let arg_count = len(resolved_types)
+    let mut a = 0
+    while a < arg_count {
+        if associated_types::type_contains_var(get_unchecked(resolved_types, a)) {
+            return
+        }
+        a = a + 1
+    }
+    let site_count = len(env.mono_template_sites)
+    let mut s = 0
+    while s < site_count {
+        let site = get_unchecked(env.mono_template_sites, s)
+        if eq(clone(site.enclosing_fn), clone(fn_name)) {
+            let site_vars = clone(site.enclosing_vars)
+            if len(site_vars) == arg_count {
+                let site_args = clone(site.type_args)
+                let bound_args = Vec::new<TypeInfo>()
+                let mut b = 0
+                while b < len(site_args) {
+                    push(
+                        bound_args,
+                        associated_types::normalize_projection_ty(
+                            env,
+                            clone(site_vars),
+                            clone(resolved_types),
+                            instantiate::instantiate_type(
+                                get_unchecked(site_args, b),
+                                clone(site_vars),
+                                clone(resolved_types)
+                            )
+                        )
+                    )
+                    b = b + 1
+                }
+                let _rebound = record_mono_instance(
+                    env,
+                    clone(site.fn_name),
+                    bound_args
+                )
+            }
+        }
+        s = s + 1
+    }
 }
 
 fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: TypeInfo) {
