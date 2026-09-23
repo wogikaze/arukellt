@@ -879,3 +879,49 @@ acceptance boxes complete.
   bodies, generic `for` over bare type parameters (name-rewrite
   fallback only), forward-ref emit ordering, and the residual-zero
   audit once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (var-pinned span concretization + qualified bounds)
+
+- Commit `12d077031` lets generic adapter bodies iterate themselves.
+  `for item in self` inside `impl Iterator for Take<I>` records span
+  rewrites against the template spelling (`Take__next__?I`); MIR now
+  concretizes `?Var` segments through the enclosing instance's mono
+  type-param map before accepting the target, and an unresolvable
+  variable falls through to the receiver-derived paths instead of
+  pinning a callee that can only trap. Demand-driven propagation gains
+  the sibling axis (`propagate_owner_impl_mono`): recording
+  `Ctor::method`+[args] also records every method of `Ctor`'s
+  var-carrying impls at the same args, since the typechecker saw the
+  impl body at the bare type variable.
+- The same commit makes the instantiation-blind pools safe.
+  `mono_target_matches_source` is owner-aware, so
+  `Take__into_iter__VecIter` can no longer steal a `Vec::into_iter`
+  request; `?`-template targets stay out of the name-rewrite pool; the
+  pool never overrides a real function (`ctx_has_fn_name` wins); and
+  both `mir_resolve_method_callee` and `mir_for_desugar_callee` run
+  span, has-fn, and parametric resolution before the pooled fallback.
+- Commit `82a9580b8` fixes a bound-check escape: the `for`-source gate
+  compared bound names with `eq`, so `T: iter::IntoIterator` was
+  rejected as unbounded. `type_param_bounds_has_trait` now compares
+  through `names::same_type_name`; `iterator_adapters.ark`
+  (`run:`/`t3-compile:` fixture) compiles and runs again.
+- Verified on the rebuilt s2: `gen_take_std` (generic `Take<I>` with
+  `for` in `collect`/`count` plus a nested `Take<Take<VecIter>>` loop)
+  prints `2`/`9` on wasm32; `gts2` (nested `outer.next()`) prints
+  `4`/`5`/`none_c`; `bound_q`/`bound_u` print `3`;
+  `parametric_trait_impl` -> `7 9 hi 11`, `generic_inst_trait_impl` ->
+  `2 2 11 2 11`, `custom_iterator` -> `0 1 2 3 4`,
+  `iterator_adapters` -> `OK`, `iterator_query_consumers` exit 0.
+  `generic_inst_trait_impl` also passes the wasm32-gc component lane
+  (`2 2 11 2 11`). Both `for_deny_*` diag fixtures still emit their
+  committed goldens. `verify lane` exits 0.
+- Known residuals unchanged: `gts3` (`let it2 = outer.iter;
+  it2.next()`) still traps because field accesses are `TY_UNKNOWN` to
+  the typechecker, so `Take::next`+[VecIter] is never recorded;
+  generic-struct construction on wasm32-gc still emits invalid core
+  Wasm (pre-existing defect, same signature as `WrapIter<String>`);
+  forward references relying on emit order remain open.
+- Remaining #860 residuals: adapter migration to `I: Iterator` bodies
+  in `std/core/iter.ark` (e.g. `TakeIter` -> `TakeIter<I>`), the
+  field-access method-call gap above, forward-ref emit ordering, and
+  the final residual-zero audit once #691 closes. #860 is not closed.
