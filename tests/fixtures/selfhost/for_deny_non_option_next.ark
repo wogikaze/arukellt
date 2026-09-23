@@ -1,0 +1,20 @@
+// Error: a structural `next` fallback must keep the producer contract
+// `next(self) -> Option<T>`; other shapes are not iterable.
+struct Stepper {
+    value: i32,
+}
+
+impl Stepper {
+    fn next(self: Stepper) -> i32 {
+        self.value
+    }
+}
+
+fn main() -> i32 {
+    let s = Stepper { value: 1 }
+    let mut seen = 0
+    for x in s {
+        seen = 1
+    }
+    seen
+}

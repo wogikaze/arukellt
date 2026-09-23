@@ -1,0 +1,12 @@
+// Error: a generic `for` source must declare IntoIterator or Iterator
+fn consume<T>(source: T) -> i32 {
+    let mut total = 0
+    for item in source {
+        total = total + item
+    }
+    total
+}
+
+fn main() -> i32 {
+    0
+}

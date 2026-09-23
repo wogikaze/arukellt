@@ -1,7 +1,7 @@
 use typechecker::contract_type_access
 use typechecker::contract_trait_impl
-use typechecker::contract_type_param_bounds
 use typechecker::names
+use typechecker::trait_bounds
 
 fn type_is_builtin_copy(ty: TypeInfo) -> bool {
     let tag = contract_type_access::TypeInfo_tag(ty)
@@ -25,7 +25,11 @@ fn type_is_copy(env: TypeEnv, ty: TypeInfo) -> bool {
         return type_args_are_copy(env, ty)
     }
     if tag == commands::TY_TYPE_VAR() {
-        return type_var_has_copy_bound(env, contract_type_access::TypeInfo_name(ty))
+        return trait_bounds::env_type_var_has_trait_bound(
+            env,
+            contract_type_access::TypeInfo_name(ty),
+            String_from("Copy")
+        )
     }
     if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
         return has_explicit_copy_impl(env, ty)
@@ -53,27 +57,6 @@ fn has_explicit_copy_impl(env: TypeEnv, ty: TypeInfo) -> bool {
         if names::same_type_name(contract_trait_impl::TraitImplInfo_trait_name(impl_info), "Copy") &&
         names::same_nominal_type(contract_trait_impl::TraitImplInfo_self_ty(impl_info), ty) {
             return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-fn type_var_has_copy_bound(env: TypeEnv, name: String) -> bool {
-    let count = len(env.current_fn_bounds)
-    let mut i = 0
-    while i < count {
-        let param = get_unchecked(env.current_fn_bounds, i)
-        if eq(contract_type_param_bounds::TypeParamBounds_name(param), clone(name)) {
-            let bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
-            let mut j = 0
-            while j < bound_count {
-                let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, j)
-                if eq(contract_type_access::TypeInfo_name(bound), "Copy") {
-                    return true
-                }
-                j = j + 1
-            }
         }
         i = i + 1
     }

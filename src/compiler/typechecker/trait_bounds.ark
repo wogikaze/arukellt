@@ -63,6 +63,39 @@ fn type_satisfies_trait_bound_at_depth(
     true
 }
 
+// A type variable carries only the contracts declared in the current
+// function's parameter bounds. Callers use this to require a concrete
+// protocol (`IntoIterator`, `Copy`, operator traits) on generic values
+// before monomorphisation exposes the substituted type.
+fn env_type_var_has_trait_bound(env: TypeEnv, type_param_name: String, trait_name: String) -> bool {
+    let bound_count = len(env.current_fn_bounds)
+    let mut i = 0
+    while i < bound_count {
+        let param = get_unchecked(env.current_fn_bounds, i)
+        if eq(
+            contract_type_param_bounds::TypeParamBounds_name(param),
+            clone(type_param_name)
+        ) && type_param_bounds_has_trait(param, clone(trait_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn type_param_bounds_has_trait(param: TypeParamBounds, trait_name: String) -> bool {
+    let count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
+    let mut i = 0
+    while i < count {
+        let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
+        if eq(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let count = len(env.trait_defs)
     let mut i = 0

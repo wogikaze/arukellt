@@ -282,6 +282,8 @@ diag:selfhost/comprehen_deny_filter_not_bool.ark
 diag:selfhost/comprehen_deny_non_iterable.ark
 diag:selfhost/comprehen_deny_unresolved_filter.ark
 diag:selfhost/for_deny_non_iterable.ark
+diag:selfhost/for_deny_non_option_next.ark
+diag:selfhost/for_deny_unbounded_generic_source.ark
 diag:selfhost/iterator_string_numeric_consumer.ark
 diag:selfhost/infer_occurs_check_negative.ark
 diag:selfhost/json_diag_code_presence.ark

@@ -1,5 +1,4 @@
 use typechecker::contract_type_access
-use typechecker::contract_type_param_bounds
 use typechecker::kinds
 use typechecker::trait_bounds
 use typechecker::types
@@ -98,7 +97,11 @@ fn enforce_operator_trait(
         return
     }
     if tag == commands::TY_TYPE_VAR() {
-        if type_var_has_bound(env, resolved_ty, trait_name) {
+        if trait_bounds::env_type_var_has_trait_bound(
+            env,
+            contract_type_access::TypeInfo_name(resolved_ty),
+            clone(trait_name)
+        ) {
             return
         }
         report_missing_operator_bound(env, symbol, trait_name, resolved_ty)
@@ -127,36 +130,6 @@ fn is_builtin_operator_type(ty: TypeInfo) -> bool {
     tag == commands::TY_BOOL() ||
     tag == commands::TY_CHAR() ||
     tag == commands::TY_STRING()
-}
-
-fn type_var_has_bound(env: TypeEnv, ty: TypeInfo, trait_name: String) -> bool {
-    let type_name = contract_type_access::TypeInfo_name(ty)
-    let bound_count = len(env.current_fn_bounds)
-    let mut i = 0
-    while i < bound_count {
-        let param = get_unchecked(env.current_fn_bounds, i)
-        if eq(
-            contract_type_param_bounds::TypeParamBounds_name(param),
-            clone(type_name)
-        ) && type_param_has_trait(param, clone(trait_name)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-fn type_param_has_trait(param: TypeParamBounds, trait_name: String) -> bool {
-    let bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
-    let mut i = 0
-    while i < bound_count {
-        let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
-        if eq(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
 }
 
 fn report_missing_operator_bound(

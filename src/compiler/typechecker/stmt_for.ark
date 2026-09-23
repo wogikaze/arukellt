@@ -28,7 +28,11 @@ fn check_for_source(
     let source_ty = infer_expr(env, scope, fn_sigs, enum_defs, source)
     let resolved_source_ty = unify::resolve_type(env, source_ty)
     let source_tag = contract_type_access::TypeInfo_tag(resolved_source_ty)
-    if source_tag == commands::TY_UNKNOWN() || source_tag == commands::TY_TYPE_VAR() {
+    if source_tag == commands::TY_UNKNOWN() {
+        return
+    }
+    if source_tag == commands::TY_TYPE_VAR() {
+        check_generic_for_source(env, resolved_source_ty)
         return
     }
     let into_iterator = types::resolve_type_name(String_from("IntoIterator"))
@@ -52,6 +56,25 @@ fn check_for_source(
     )
 }
 
+// A generic `for` source must declare the conversion or iterator protocol
+// in its bounds; an unbounded type parameter has no iteration contract.
+fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
+    let var_name = contract_type_access::TypeInfo_name(source_ty)
+    if trait_bounds::env_type_var_has_trait_bound(env, clone(var_name), String_from("IntoIterator")) {
+        return
+    }
+    if trait_bounds::env_type_var_has_trait_bound(env, clone(var_name), String_from("Iterator")) {
+        return
+    }
+    unify::type_error(
+        env,
+        concat(
+            String_from("non-iterable source: expected IntoIterator or Iterator bound, found "),
+            var_name
+        )
+    )
+}
+
 fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -> bool {
     let source_name = contract_type_access::TypeInfo_name(source_ty)
     if len(source_name) == 0 {
@@ -62,5 +85,16 @@ fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -
         fn_sigs,
         concat(clone(source_name), String_from("::next"))
     )
-    contract_fn_sig::FnSig_has_name(next_sig)
+    if !contract_fn_sig::FnSig_has_name(next_sig) {
+        return false
+    }
+    // The structural fallback keeps `for` usable for types that have not
+    // migrated to `impl Iterator`, but the method must still match the
+    // producer contract `next(self) -> Option<T>`.
+    if contract_fn_sig::FnSig_param_count(next_sig) != 1 {
+        return false
+    }
+    contract_type_access::TypeInfo_tag(
+        contract_fn_sig::FnSig_return_type(next_sig)
+    ) == commands::TY_OPTION()
 }

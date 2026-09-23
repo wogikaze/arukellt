@@ -21,6 +21,14 @@ fn sum_into_for<T: IntoIterator>(source: T) -> i32 {
     total
 }
 
+fn sum_via_iter<T: Iterator>(it: T) -> i32 {
+    let mut total: i32 = 0
+    for item in it {
+        total = total + item
+    }
+    total
+}
+
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     push(v, 3)
@@ -57,9 +65,11 @@ fn main() {
     test::assert_eq_i32(get_unchecked(rev, 1), 5)
     test::assert_eq_i32(get_unchecked(rev, 5), 3)
 
-    // Both adapters keep the IntoIterator and FromIterator boundaries.
+    // Both adapters keep the IntoIterator and FromIterator boundaries. A
+    // `T: Iterator` source is consumed by `for` without a conversion step.
     test::assert_eq_i32(sum_into_for(v.iter().unique()), 13)
     test::assert_eq_i32(sum_into_for(v.iter().rev()), 18)
+    test::assert_eq_i32(sum_via_iter(v.iter().rev()), 18)
     let via_from: Vec<i32> = Vec::from_iter(v.iter().unique())
     test::assert_eq_i32(len(via_from), 4)
     let via_from_rev: Vec<i32> = Vec::from_iter(v.iter().rev())

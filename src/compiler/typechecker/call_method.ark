@@ -213,7 +213,7 @@ fn numeric_consumer_bound(method_name: String) -> TypeInfo {
 fn receiver_has_iterator_contract(env: TypeEnv, recv_ty: TypeInfo) -> bool {
     let tag = contract_type_access::TypeInfo_tag(recv_ty)
     if tag == commands::TY_TYPE_VAR() {
-        return current_fn_has_trait_bound(
+        return trait_bounds::env_type_var_has_trait_bound(
             env,
             contract_type_access::TypeInfo_name(recv_ty),
             String_from("Iterator")
@@ -224,42 +224,6 @@ fn receiver_has_iterator_contract(env: TypeEnv, recv_ty: TypeInfo) -> bool {
         recv_ty,
         type_names::resolve_type_name(String_from("Iterator"))
     )
-}
-
-fn current_fn_has_trait_bound(
-    env: TypeEnv,
-    type_param_name: String,
-    trait_name: String
-) -> bool {
-    let bound_count = len(env.current_fn_bounds)
-    let mut i = 0
-    while i < bound_count {
-        let type_param = get_unchecked(env.current_fn_bounds, i)
-        if eq(
-            contract_type_param_bounds::TypeParamBounds_name(type_param),
-            clone(type_param_name)
-        ) && type_param_has_trait(
-            type_param,
-            clone(trait_name)
-        ) {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-fn type_param_has_trait(param: TypeParamBounds, trait_name: String) -> bool {
-    let count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
-    let mut i = 0
-    while i < count {
-        let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
-        if eq(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
 }
 
 fn string_vec_type() -> TypeInfo {
