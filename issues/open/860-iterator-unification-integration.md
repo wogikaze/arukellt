@@ -772,3 +772,33 @@ acceptance boxes complete.
   (`impl<I: Iterator> Iterator for X<I>` is still compiler-owned per
   ADR-062 review), adapter migration to `I: Iterator` bodies, and the
   final residual-zero audit once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (generic for dispatch + structural next boundary)
+
+- Commit `5291c9a5c` bounds generic `for` sources and tightens the
+  structural `next()` fallback. A `for` source that resolves to a type
+  variable must now declare `IntoIterator` or `Iterator` in the current
+  function's parameter bounds; an unbounded `T` fails typecheck with
+  `non-iterable source: expected IntoIterator or Iterator bound`. The
+  structural fallback (types without a trait impl) now verifies the
+  producer contract `next(self) -> Option<T>` instead of accepting any
+  `Name::next` symbol, per ADR-076's producer/consumer boundary.
+- The three duplicated current-function-bound scans (`call_method`,
+  `ownership_types`, `operator_traits`) now share
+  `trait_bounds::env_type_var_has_trait_bound`; no behavior change for
+  `Copy` or operator-trait checks.
+- Positive: `iterator_query_consumers.ark` adds `sum_via_iter<T: Iterator>`
+  driving `for` directly over an `Iterator` bound (IntoIterator was
+  already covered by `sum_into_for`); it compiles and runs identically on
+  wasm32 and the wasm32-gc component. `custom_iterator.ark` confirms the
+  structural path still iterates `next(self) -> Option<i32>` types.
+- Negative: `for_deny_unbounded_generic_source.ark` and
+  `for_deny_non_option_next.ark` are registered `diag:` fixtures with
+  committed `.selfhost.diag` goldens; both pass diag parity.
+- `verify lane` exits 0; diag-parity reports PASS=57 SKIP=26 FAIL=1 where
+  the single failure is the pre-existing `capability_stub.ark` W0005 span
+  drift recorded above, not this change.
+- Remaining #860 residuals: blanket/generic trait impls (`impl<I: Iterator>`
+  `Iterator for X<I>` is still compiler-owned per ADR-062 review), adapter
+  migration to `I: Iterator` bodies, and the final residual-zero audit
+  once #691 closes. #860 is not closed.
