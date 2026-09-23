@@ -154,7 +154,13 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
     let bare_source = ctx_mono_rewrites::mono_bare_source(source)
     let prefix = concat(clone(bare_source), "__")
     if starts_with(clone(target), clone(prefix)) {
-        if !mono_source_owner_matches(clone(source), String_new()) {
+        // The owner guard exists for Type::method sources (Vec::into_iter
+        // must not steal a free into_iter__X target). Module-qualified free
+        // functions (seq::min_by_key) record their specialization under the
+        // bare name, so a lowercase module owner has nothing to check
+        // against and must not be rejected (#691).
+        if !mono_source_has_module_owner(clone(source)) &&
+        !mono_source_owner_matches(clone(source), String_new()) {
             return false
         }
         let rest = substring(target, len(prefix), len(target))
@@ -179,6 +185,19 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         return false
     }
     mono_source_owner_matches(clone(source), substring(clone(target), 0, pos))
+}
+
+// A lowercase owner segment before the module separator is a module path
+// (seq::, iter::), not a type owner. Bare-mangled free-function targets
+// carry no owner segment, so module-qualified sources would otherwise
+// always fail the owner check.
+fn mono_source_has_module_owner(source: String) -> bool {
+    let sep = index_of(clone(source), String_from("::"))
+    if sep <= 0 {
+        return false
+    }
+    let first = byte_at(clone(source), 0)
+    first >= 97 && first <= 122
 }
 
 fn mono_source_owner_matches(source: String, target_owner: String) -> bool {

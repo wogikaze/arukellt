@@ -1844,6 +1844,7 @@ run:stdlib_trait/seek.ark
 run:stdlib_trait/seek_then_read.ark
 run:stdlib_trait/seek_to_end.ark
 run:stdlib_trait/seek_to_zero.ark
+run:stdlib_trait/seq_ord_generic_algorithms.ark
 run:stdlib_trait/self_return_add.ark
 run:stdlib_trait/self_return_clone.ark
 run:stdlib_vec/any_find.ark
@@ -2338,6 +2339,7 @@ t3-compile:stdlib_trait/ord_trait.ark
 t3-compile:stdlib_trait/integer_trait.ark
 t3-compile:stdlib_trait/read_write.ark
 t3-compile:stdlib_trait/seek.ark
+t3-compile:stdlib_trait/seq_ord_generic_algorithms.ark
 t3-compile:stdlib_trait/self_return_add.ark
 t3-compile:stdlib_trait/operator_generic.ark
 t3-compile:stdlib_trait/self_return_clone.ark
@@ -2800,6 +2802,7 @@ t3-run:stdlib_trait/iterator_query_consumers.ark
 t3-run:stdlib_trait/iterator_string_callbacks.ark
 t3-run:stdlib_trait/read_write.ark
 t3-run:stdlib_trait/seek.ark
+t3-run:stdlib_trait/seq_ord_generic_algorithms.ark
 t3-run:stdlib_trait/self_return_add.ark
 t3-run:stdlib_trait/operator_generic.ark
 t3-run:stdlib_trait/self_return_clone.ark

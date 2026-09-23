@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 775
+- **Canonical names:** 781
 - **Historical/deprecated names:** 17
-- **Total entries:** 792
+- **Total entries:** 798
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -83,6 +83,7 @@ Current public API names, sorted alphabetically.
 | `base64_encode` | `std::bytes` | `stable` | Bytes |
 | `bench` | `std::test` | `experimental` | Test |
 | `binary_search_by` | `std::seq` | `provisional` | Seq |
+| `binary_search_by_key` | `std::seq` | `provisional` | Seq |
 | `bitmask` | `std::simd::i8x16` | `experimental` | Simd |
 | `bitselect` | `std::simd::v128` | `experimental` | Simd |
 | `bitset_clear` | `std::collections::ordered` | `experimental` | Collections |
@@ -444,6 +445,7 @@ Current public API names, sorted alphabetically.
 | `limits_min` | `std::wasm` | `experimental` | Wasm |
 | `limits_unbounded` | `std::wasm` | `experimental` | Wasm |
 | `lines` | `std::text` | `stable` | Text |
+| `lower_bound` | `std::seq` | `provisional` | Seq |
 | `lt` | `std::simd::f32x4` | `experimental` | Simd |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
@@ -457,12 +459,14 @@ Current public API names, sorted alphabetically.
 | `max` | `std::simd::f32x4` | `experimental` | Simd |
 | `max` | `std::simd::f64x2` | `experimental` | Simd |
 | `max_by` | `std::seq` | `provisional` | Seq |
+| `max_by_key` | `std::seq` | `provisional` | Seq |
 | `memory_copy` | `std::wasm` | `experimental` | Wasm |
 | `memory_fill` | `std::wasm` | `experimental` | Wasm |
 | `metadata` | `std::fs` | `provisional` | Fs |
 | `min` | `std::simd::f32x4` | `experimental` | Simd |
 | `min` | `std::simd::f64x2` | `experimental` | Simd |
 | `min_by` | `std::seq` | `provisional` | Seq |
+| `min_by_key` | `std::seq` | `provisional` | Seq |
 | `module_add_export_func` | `std::wasm` | `experimental` | Wasm |
 | `module_add_func` | `std::wasm` | `experimental` | Wasm |
 | `module_add_memory` | `std::wasm` | `experimental` | Wasm |
@@ -629,6 +633,7 @@ Current public API names, sorted alphabetically.
 | `slotmap_len` | `std::collections::compiler` | `experimental` | Collections |
 | `slotmap_new` | `std::collections::compiler` | `experimental` | Collections |
 | `slotmap_remove` | `std::collections::compiler` | `experimental` | Collections |
+| `sort_by` | `std::seq` | `provisional` | Seq |
 | `sort_f64` | `prelude` | `stable` | Collections |
 | `sort_i32` | `prelude` | `stable` | Collections |
 | `sort_i64` | `prelude` | `stable` | Collections |
@@ -721,6 +726,7 @@ Current public API names, sorted alphabetically.
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
 | `unwrap_or_else` | `prelude` | `stable` | Option Result |
+| `upper_bound` | `std::seq` | `provisional` | Seq |
 | `v128_and` | `std::wasm` | `experimental` | Wasm |
 | `v128_andnot` | `std::wasm` | `experimental` | Wasm |
 | `v128_any_true` | `std::wasm` | `experimental` | Wasm |
@@ -894,6 +900,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bench` | ✅ `experimental` | `std::test` | Test |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::binary_search_by` · [migration guide](migration-guidance.md) |
 | `binary_search_by` | ✅ `provisional` | `std::seq` | Seq |
+| `binary_search_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | `bitmask` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `bitselect` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `bitset_clear` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -1262,6 +1269,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `limits_min` | ✅ `experimental` | `std::wasm` | Wasm |
 | `limits_unbounded` | ✅ `experimental` | `std::wasm` | Wasm |
 | `lines` | ✅ `stable` | `std::text` | Text |
+| `lower_bound` | ✅ `provisional` | `std::seq` | Seq |
 | `lt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
@@ -1276,6 +1284,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `max` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `max` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `max_by` | ✅ `provisional` | `std::seq` | Seq |
+| `max_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::max_by` · [migration guide](migration-guidance.md) |
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1283,6 +1292,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `min_by` | ✅ `provisional` | `std::seq` | Seq |
+| `min_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::min_by` · [migration guide](migration-guidance.md) |
 | `module_add_export_func` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_add_func` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1453,6 +1463,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `slotmap_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `slotmap_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `slotmap_remove` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `sort_by` | ✅ `provisional` | `std::seq` | Seq |
 | `sort_f64` | ✅ `stable` | `prelude` | Collections |
 | `sort_i32` | ✅ `stable` | `prelude` | Collections |
 | `sort_i64` | ✅ `stable` | `prelude` | Collections |
@@ -1548,6 +1559,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or_else` | ✅ `stable` | `prelude` | Option Result |
+| `upper_bound` | ✅ `provisional` | `std::seq` | Seq |
 | `v128_and` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_andnot` | ✅ `experimental` | `std::wasm` | Wasm |
 | `v128_any_true` | ✅ `experimental` | `std::wasm` | Wasm |

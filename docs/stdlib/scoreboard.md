@@ -32,7 +32,7 @@
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
-| `std::seq` | 16 | 0 | 3 | 0 | 13 | **0/3 (0%)** | no |
+| `std::seq` | 22 | 0 | 9 | 0 | 13 | 6/9 (67%) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 16/24 (67%) | no |
 | `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 13/14 (93%) | no |
@@ -53,7 +53,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 792 APIs, 383 stable, 70 provisional, 322 experimental, 17 deprecated, 634/775 (82%) fixture coverage
+**Total**: 798 APIs, 383 stable, 76 provisional, 322 experimental, 17 deprecated, 640/781 (82%) fixture coverage
 
 ## Legend
 
@@ -69,4 +69,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::core::iter` (44%), `std::seq` (0%), `std::wasm` (47%), `std::wit` (44%).
+`std::core::iter` (44%), `std::wasm` (47%), `std::wit` (44%).

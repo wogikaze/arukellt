@@ -38,8 +38,8 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 ## Module `std::seq`
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)
-- Manifest-backed functions: 16
-- Stability: deprecated 13, provisional 3
+- Manifest-backed functions: 22
+- Stability: deprecated 13, provisional 9
 
 Sequence helpers over `Vec<i32>`.
 
@@ -69,8 +69,14 @@ generic `Ord`-based algorithms below (ADR-076).
 | ~~`unique`~~ ⚠️ Deprecated → `std::core::iter::iter_unique_i32` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | - |
 | ~~`count_eq`~~ ⚠️ Deprecated → `std::core::iter::iter_count_eq_i32` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | - |
 | `binary_search_by` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
+| `binary_search_by_key` | `(Vec<T>, K, fn(T) -> K) -> i32` | `provisional` | ✅ functional | - |
+| `lower_bound` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
 | `max_by` | `(Vec<T>) -> T` | `provisional` | ✅ functional | - |
+| `max_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `provisional` | ✅ functional | - |
 | `min_by` | `(Vec<T>) -> T` | `provisional` | ✅ functional | - |
+| `min_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `provisional` | ✅ functional | - |
+| `sort_by` | `(Vec<T>) -> Vec<T>` | `provisional` | ✅ functional | - |
+| `upper_bound` | `(Vec<T>, T) -> i32` | `provisional` | ✅ functional | - |
 
 #### `std::seq::map_i32_i32`
 
@@ -128,12 +134,36 @@ Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(ta
 
 Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1.
 
+#### `std::seq::binary_search_by_key`
+
+Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals target_key, or -1.
+
+#### `std::seq::lower_bound`
+
+Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are smaller.
+
 #### `std::seq::max_by`
 
 Return the maximum element of v under T: Ord.
 
+#### `std::seq::max_by_key`
+
+Return the element of v whose key(element) is maximal under K: Ord.
+
 #### `std::seq::min_by`
 
 Return the minimum element of v under T: Ord.
+
+#### `std::seq::min_by_key`
+
+Return the element of v whose key(element) is minimal under K: Ord.
+
+#### `std::seq::sort_by`
+
+Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector).
+
+#### `std::seq::upper_bound`
+
+Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <= target.
 
 > ⚠️ **13 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

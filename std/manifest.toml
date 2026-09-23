@@ -3914,6 +3914,60 @@ params = ["Vec<T>"]
 returns = "T"
 doc = "Return the maximum element of v under T: Ord."
 
+[[functions]]
+name = "binary_search_by_key"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>", "K", "fn(T) -> K"]
+returns = "i32"
+doc = "Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals target_key, or -1."
+
+[[functions]]
+name = "lower_bound"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>", "T"]
+returns = "i32"
+doc = "Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are smaller."
+
+[[functions]]
+name = "upper_bound"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>", "T"]
+returns = "i32"
+doc = "Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <= target."
+
+[[functions]]
+name = "sort_by"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>"]
+returns = "Vec<T>"
+doc = "Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector)."
+
+[[functions]]
+name = "min_by_key"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>", "fn(T) -> K"]
+returns = "T"
+doc = "Return the element of v whose key(element) is minimal under K: Ord."
+
+[[functions]]
+name = "max_by_key"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>", "fn(T) -> K"]
+returns = "T"
+doc = "Return the element of v whose key(element) is maximal under K: Ord."
+
 # === std::wasm ===
 
 [[functions]]

@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 383 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 70 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 76 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 322 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 17 | Superseded — see migration guidance. |
 
@@ -772,20 +772,26 @@ let input = read_to_string()
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | ~~`binary_search`~~ ⚠️ Deprecated → `std::seq::binary_search_by` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
 | `binary_search_by` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1. |
+| `binary_search_by_key` | `(Vec<T>, K, fn(T) -> K) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Binary search on a sorted Vec<T> by extracted key. Returns the index of the element whose key equals… |
 | ~~`count_eq`~~ ⚠️ Deprecated → `std::core::iter::iter_count_eq_i32` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target) or std::core::… |
 | ~~`filter_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect() or std::core::iter::coll… |
 | ~~`fold_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_fold_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f) or std::core::iter::… |
+| `lower_bound` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the index of the first element >= target in a sorted Vec<T: Ord>; len(v) if all elements are … |
 | ~~`map_i32_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_map_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect() or std::core::iter::collect… |
 | `max_by` | `(Vec<T>) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the maximum element of v under T: Ord. |
+| `max_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the element of v whose key(element) is maximal under K: Ord. |
 | ~~`max_i32`~~ ⚠️ Deprecated → `std::seq::max_by` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord. |
 | `min_by` | `(Vec<T>) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the minimum element of v under T: Ord. |
+| `min_by_key` | `(Vec<T>, fn(T) -> K) -> T` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the element of v whose key(element) is minimal under K: Ord. |
 | ~~`min_i32`~~ ⚠️ Deprecated → `std::seq::min_by` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord. |
 | ~~`seq_contains`~~ ⚠️ Deprecated → `std::core::iter::iter_contains_i32` | `(Vec<i32>, i32) -> bool` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target) or std::core:… |
 | ~~`seq_reverse`~~ ⚠️ Deprecated → `std::core::iter::iter_reverse_i32` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect() or std::core::iter::iter_rev… |
 | ~~`skip_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect() or std::core::iter::collec… |
+| `sort_by` | `(Vec<T>) -> Vec<T>` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Sort v into ascending order under T: Ord (stable insertion sort, in place; returns the same vector). |
 | ~~`sum_i32`~~ ⚠️ Deprecated → `std::core::iter::iter_sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorSum capability v.iter().sum() or std::core::iter::iter_sum_… |
 | ~~`take_i32`~~ ⚠️ Deprecated → `std::core::iter::collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collec… |
 | ~~`unique`~~ ⚠️ Deprecated → `std::core::iter::iter_unique_i32` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_… |
+| `upper_bound` | `(Vec<T>, T) -> i32` | `std::seq` | `provisional` | `functional` | `builtin` | no | - | Return the index of the first element > target in a sorted Vec<T: Ord>; len(v) if all elements are <… |
 
 ## Signal
 
