@@ -72,6 +72,15 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     if len(bare_type) == 0 {
         return bare_method
     }
+    // Concrete generic receivers (GenTakeIter<VecIter>) own impl methods
+    // under the per-instantiation owner (GenTakeIter_VecIter).
+    let inst_type = method_resolve::mir_inst_owner_name(clone(bare_type))
+    if !eq(clone(inst_type), clone(bare_type)) {
+        let inst_mangled = concat(clone(inst_type), concat("::", clone(bare_method)))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(inst_mangled)) {
+            return inst_mangled
+        }
+    }
     let mangled = concat(clone(bare_type), concat("::", clone(bare_method)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mangled)) {
         return mangled

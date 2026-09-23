@@ -1,4 +1,5 @@
 use corehir::decl_ann_children
+use corehir::type_ann_local_name
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
@@ -75,6 +76,20 @@ fn return_index_type_name(node: AstNode) -> String {
                 eq(clone(val_name), "fnref")
             ) {
                 return "hashmap:strfn"
+            }
+        }
+        // User generic struct returns keep their instantiation args
+        // (GenTakeIter<VecIter>) so MIR lowering sees the same Name<args>
+        // spelling that params and locals already use, and can derive
+        // substituted layouts plus per-instantiation impl owners. Generic
+        // enums keep the bare base name: Result/Box/Slice layout handling
+        // keys on it.
+        if !eq(clone(name), String_from("Result")) &&
+        !eq(clone(name), String_from("Box")) &&
+        !eq(clone(name), String_from("Slice")) {
+            let inst = type_ann_local_name::type_ann_generic_inst_local_name(ret)
+            if len(inst) > 0 {
+                return inst
             }
         }
         return clone(name)

@@ -47,11 +47,75 @@ fn impl_target_type_name(target: AstNode) -> String {
             )
         }
     }
+    // Concrete user-generic impl targets need a per-instantiation owner so
+    // each impl method registers a unique Name_arg::method symbol (the same
+    // collision rule as HashMap_K_V). Type-parameter args keep the bare
+    // owner because the impl itself is generic (impl Pair<T> -> Pair).
+    // Vec and HashMap keep their established owner spellings above.
+    if type_ann_node::type_ann_is_generic(target) &&
+    !eq(clone(target_name), String_from("Vec")) &&
+    !eq(clone(target_name), String_from("HashMap")) {
+        let inst_suffix = impl_inst_arg_suffix(target)
+        if len(inst_suffix) > 0 {
+            return concat(
+                clone(target_name),
+                concat(String_from("_"), inst_suffix)
+            )
+        }
+    }
     target_name
 }
 
 fn impl_type_param_name(name: String) -> bool {
     len(name) == 1 && byte_at(name, 0) >= 65 && byte_at(name, 0) <= 90
+}
+
+// Underscore-joined concrete key for the type arguments of a generic impl
+// target, or "" when any argument is a type parameter or has no owner-key
+// spelling. Children[0] is the head name, so iteration starts at 1.
+fn impl_inst_arg_suffix(target: AstNode) -> String {
+    let child_count = type_ann_node::type_ann_child_count(target)
+    if child_count < 2 {
+        return String_new()
+    }
+    let mut suffix = String_new()
+    let mut i = 1
+    while i < child_count {
+        let key = impl_inst_arg_key(type_ann_node::type_ann_child_at(target, i))
+        if len(key) == 0 {
+            return String_new()
+        }
+        if len(suffix) > 0 {
+            suffix = concat(suffix, String_from("_"))
+        }
+        suffix = concat(suffix, key)
+        i = i + 1
+    }
+    suffix
+}
+
+fn impl_inst_arg_key(arg: AstNode) -> String {
+    if type_ann_node::type_ann_is_named(arg) {
+        let name = type_ann_node::type_ann_name(arg)
+        if impl_type_param_name(clone(name)) {
+            return String_new()
+        }
+        return name
+    }
+    if type_ann_node::type_ann_is_generic(arg) {
+        let base = type_ann_node::type_ann_name(arg)
+        let inner = impl_inst_arg_suffix(arg)
+        if len(inner) == 0 {
+            return String_new()
+        }
+        return concat(clone(base), concat(String_from("_"), inner))
+    }
+    // Function-typed arguments share one owner-key marker; the typechecker
+    // and resolver owner names use the same fnref spelling.
+    if len(type_ann_node::type_ann_function_ref_name(arg)) > 0 {
+        return String_from("fnref")
+    }
+    String_new()
 }
 
 // Canonical SemanticTraitId for `impl Trait for Type`, or NONE for inherent impls.

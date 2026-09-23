@@ -8,6 +8,7 @@ use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_mono
 use mir::lower::ctx_types
 use mir::local_factory
 use mir::module_spine
@@ -31,8 +32,12 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
     let mut mir_type_name = clone(p_type_name)
     let mut sig_type_name = clone(p_type_name)
     if len(local_type_name) > 0 {
-        mir_type_name = clone(local_type_name)
-        sig_type_name = clone(local_type_name)
+        // Concrete instantiation spellings (GenTakeIter<VecIter>) derive the
+        // substituted layout so the registered-struct check sees the real GC
+        // layout instead of the unsubstituted declaration.
+        let derived_local = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(local_type_name))
+        mir_type_name = clone(derived_local)
+        sig_type_name = clone(derived_local)
         if starts_with(clone(local_type_name), "vec:") ||
         starts_with(clone(local_type_name), "hashmap:") ||
         starts_with(clone(local_type_name), "Option_") ||
@@ -41,13 +46,13 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
         starts_with(clone(local_type_name), "Result_") {
             pvt = value_types::VT_GC_REF()
         } else {
-            if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(local_type_name)) {
+            if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(derived_local)) {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
                 sig_type_name = clone(mir_type_name)
-            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
+            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
                 pvt = value_types::VT_GC_REF()
-                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
             } else {
                 let bare = mir_method_strip_module_prefix(clone(local_type_name))
                 let named = mir_method_resolve_named_user_type(clone(bare))
@@ -98,11 +103,15 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
     // emitter and causes ref-vs-ref on `local.set self` (#726 Vec::read).
     let mut self_type_name = clone(struct_name)
     if len(local_type_name) > 0 {
-        self_type_name = clone(local_type_name)
+        // A concrete instantiation spelling (GenTakeIter<VecIter>) derives
+        // its substituted layout here so the registered-struct check and the
+        // signature type name both see the real GC layout, not the impl
+        // owner spelling (GenTakeIter_VecIter) or the unsubstituted decl.
+        self_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(local_type_name))
         if starts_with(clone(local_type_name), "vec:") || starts_with(clone(local_type_name), "hashmap:") {
             self_vt = value_types::VT_GC_REF()
         } else {
-            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(self_type_name)) {
                 self_vt = value_types::VT_GC_REF()
             }
         }
@@ -124,9 +133,9 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
     let self_sig_type_name = if starts_with(clone(self_type_name), "vec:") || starts_with(clone(self_type_name), "hashmap:") {
         clone(self_type_name)
     } else if self_vt == value_types::VT_GC_REF() {
-        ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(struct_name))
+        ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(self_type_name))
     } else {
-        clone(struct_name)
+        clone(self_type_name)
     }
     ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, clone(self_sig_type_name)))
     ctx_set_local_type(ctx, self_local, clone(self_type_name))

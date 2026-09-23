@@ -98,6 +98,232 @@ fn mir_normalize_type_name(t: String) -> String {
     n
 }
 
+// Per-instantiation owner spelling for a concrete generic local type.
+// "GenTakeIter<VecIter>" -> "GenTakeIter_VecIter"; names without a generic
+// argument list pass through unchanged. Impl blocks on concrete
+// instantiations register methods under this owner (same rule as
+// HashMap_K_V), so method lookup must produce the same spelling.
+fn mir_inst_owner_name(type_name: String) -> String {
+    // Local-type spellings reach here as struct:Name<Args>:size; reduce them
+    // to the declared instantiation spelling before splitting on <>.
+    let normalized = mir_normalize_type_name(clone(type_name))
+    let n = len(normalized)
+    if n < 3 || byte_at(clone(normalized), n - 1) != 62 {
+        return normalized
+    }
+    let mut lt = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(clone(normalized), i) == 60 {
+            lt = i
+            i = n
+        }
+        i = i + 1
+    }
+    if lt <= 0 {
+        return normalized
+    }
+    let base = substring(clone(normalized), 0, lt)
+    let inner = substring(clone(normalized), lt + 1, n - 1)
+    // Vec and HashMap impl targets keep their established owner spellings:
+    // Vec<String> -> Vec_String, other Vec<T> -> Vec; HashMap<K, V> with two
+    // concrete named args -> HashMap_K_V, otherwise bare HashMap.
+    if eq(clone(base), String_from("Vec")) {
+        if eq(clone(inner), String_from("String")) ||
+        eq(clone(inner), String_from("string")) {
+            return String_from("Vec_String")
+        }
+        return String_from("Vec")
+    }
+    if eq(clone(base), String_from("HashMap")) {
+        return mir_hashmap_decl_owner_name(inner)
+    }
+    let suffix = mir_inst_key_suffix(inner)
+    if len(suffix) == 0 {
+        // A type parameter or unkeyable argument means the impl is generic;
+        // its methods register under the bare owner.
+        return base
+    }
+    concat(clone(base), concat(String_from("_"), suffix))
+}
+
+// Underscore-joined owner keys for a comma-separated generic argument list,
+// or "" when any argument is a type parameter or otherwise unkeyable. An
+// unkeyable argument makes the whole impl generic, so its methods register
+// under the bare owner.
+fn mir_inst_key_suffix(inner: String) -> String {
+    let mut suffix = String_new()
+    let mut seg_start = 0
+    let mut depth = 0
+    let m = len(inner)
+    let mut j = 0
+    while j <= m {
+        let at_end = j == m
+        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+        if ch == 60 {
+            depth = depth + 1
+        }
+        if ch == 62 {
+            depth = depth - 1
+        }
+        if (ch == 44 && depth == 0) || at_end {
+            let seg = substring(clone(inner), seg_start, j)
+            let key = mir_inst_arg_key(seg)
+            if len(key) == 0 {
+                return String_new()
+            }
+            if len(suffix) > 0 {
+                suffix = concat(suffix, String_from("_"))
+            }
+            suffix = concat(suffix, key)
+            seg_start = j + 1
+        }
+        j = j + 1
+    }
+    suffix
+}
+
+// HashMap impl targets specialize only on two concrete named type args
+// (HashMap<String, i32> -> HashMap_String_i32). Type-parameter or nested
+// generic args keep the bare HashMap owner, matching impl_self_type_name.
+fn mir_hashmap_decl_owner_name(inner: String) -> String {
+    let mut comma = 0 - 1
+    let mut depth = 0
+    let m = len(inner)
+    let mut i = 0
+    while i < m {
+        let ch = byte_at(clone(inner), i)
+        if ch == 60 {
+            depth = depth + 1
+        }
+        if ch == 62 {
+            depth = depth - 1
+        }
+        if ch == 44 && depth == 0 {
+            if comma >= 0 {
+                return String_from("HashMap")
+            }
+            comma = i
+        }
+        i = i + 1
+    }
+    if comma < 0 {
+        return String_from("HashMap")
+    }
+    let key_seg = substring(clone(inner), 0, comma)
+    let val_seg = substring(clone(inner), comma + 1, m)
+    if !mir_inst_seg_is_named(key_seg) || !mir_inst_seg_is_named(val_seg) {
+        return String_from("HashMap")
+    }
+    concat(
+        String_from("HashMap_"),
+        concat(
+            mir_inst_named_seg_key(key_seg),
+            concat(String_from("_"), mir_inst_named_seg_key(val_seg))
+        )
+    )
+}
+
+// A plain named type segment (no <>, no local-type classifier, not a type
+// parameter) — the shape impl_self_type_name accepts for HashMap_K_V owners.
+fn mir_inst_seg_is_named(seg: String) -> bool {
+    if len(seg) == 0 {
+        return false
+    }
+    if len(seg) == 1 && byte_at(clone(seg), 0) >= 65 && byte_at(clone(seg), 0) <= 90 {
+        return false
+    }
+    let mut i = 0
+    while i < len(seg) {
+        let ch = byte_at(clone(seg), i)
+        if ch == 60 || ch == 62 || ch == 58 || ch == 63 {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn mir_inst_named_seg_key(seg: String) -> String {
+    if eq(clone(seg), String_from("string")) {
+        return String_from("String")
+    }
+    seg
+}
+
+// Owner-key spelling for one concrete local-type argument. Mirrors the
+// typechecker inst_arg_key mapping on the local-type name spelling
+// (vec:i32 -> Vec_i32, hashmap:si32 -> HashMap_String_i32). Returns "" for
+// type variables so generic impl heads keep the bare owner.
+fn mir_inst_arg_key(seg: String) -> String {
+    if len(seg) == 0 {
+        return String_new()
+    }
+    if starts_with(clone(seg), String_from("vec:")) {
+        let inner = substring(clone(seg), 4, len(seg))
+        if len(inner) == 0 {
+            return String_from("Vec")
+        }
+        let elem_key = mir_inst_arg_key(inner)
+        if len(elem_key) == 0 {
+            return String_new()
+        }
+        return concat(String_from("Vec_"), elem_key)
+    }
+    if starts_with(clone(seg), String_from("hashmap:")) {
+        let owner = mir_hashmap_impl_owner_name(seg)
+        if len(owner) == 0 {
+            return String_from("HashMap")
+        }
+        return owner
+    }
+    if starts_with(clone(seg), String_from("struct:")) {
+        let rest = substring(clone(seg), 7, len(seg))
+        return mir_inst_arg_key(mir_strip_type_instance_suffix(rest))
+    }
+    if starts_with(clone(seg), String_from("enum:")) {
+        return mir_inst_arg_key(substring(clone(seg), 5, len(seg)))
+    }
+    if eq(clone(seg), String_from("string")) {
+        return String_from("String")
+    }
+    if byte_at(clone(seg), 0) == 63 {
+        return String_new()
+    }
+    if len(seg) == 1 && byte_at(clone(seg), 0) >= 65 && byte_at(clone(seg), 0) <= 90 {
+        return String_new()
+    }
+    if eq(clone(seg), String_from("fn")) ||
+    starts_with(clone(seg), String_from("fn(")) ||
+    starts_with(clone(seg), String_from("fnref")) {
+        return String_from("fnref")
+    }
+    let mut k = 0
+    while k < len(seg) {
+        if byte_at(clone(seg), k) == 60 {
+            // Nested generic arg: apply the generic key rule directly so
+            // Vec<i32> stays Vec_i32 (the Vec/HashMap target-level owner
+            // spellings do not apply to argument position). An unkeyable
+            // nested arg makes the whole owner fall back to bare.
+            let mut arg_end = len(seg)
+            if byte_at(clone(seg), arg_end - 1) == 62 {
+                arg_end = arg_end - 1
+            }
+            let arg_inner = substring(clone(seg), k + 1, arg_end)
+            let arg_suffix = mir_inst_key_suffix(arg_inner)
+            if len(arg_suffix) == 0 {
+                return String_new()
+            }
+            return concat(
+                substring(clone(seg), 0, k),
+                concat(String_from("_"), arg_suffix)
+            )
+        }
+        k = k + 1
+    }
+    seg
+}
+
 fn mir_is_vec_string_type(type_name: String) -> bool {
     eq(clone(type_name), String_from("vec:String")) ||
     eq(clone(type_name), String_from("vec:Vec_String"))

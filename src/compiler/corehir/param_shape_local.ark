@@ -1,4 +1,5 @@
 use corehir::decl_ann_children
+use corehir::type_ann_local_name
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
@@ -208,7 +209,10 @@ fn generic_user_type_local_name(ann: AstNode) -> String {
         i = i + 1
     }
     if !has_type_var {
-        return String_new()
+        // All-concrete arguments are a real instantiation
+        // (GenTakeIter<VecIter>): keep the canonical Name<args> local-type
+        // spelling so field access derives the substituted layout.
+        return type_ann_local_name::type_ann_generic_inst_local_name(ann)
     }
     let mut marker = concat(String_from("?"), clone(name))
     i = 1
