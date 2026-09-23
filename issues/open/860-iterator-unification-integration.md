@@ -1148,3 +1148,41 @@ acceptance boxes complete.
   item representations (packed-i32 semantic debt to replace with
   source-wrapping generic items), forward-ref emit ordering, and the
   final residual-zero audit once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (payload-base projection for generic-struct Option items)
+
+- `f5dfabae5` fixes the wasm32-gc failure that blocked the
+  EnumerateIter/ZipIter/ChainIter item migration: a monomorphized impl
+  method returning Option<Pair<i32,I::Item>> emitted an invalid module
+  because Some(p) selected the enum-open _f1_ref14 variant and stored a
+  (ref null Pair) into a (ref null open-enum) field.
+- Root cause: the mono map only held option:Pair -> option:Pair<i32,i32>
+  (the declared return keeps the payload base, the instantiated return
+  carries args), so Pair<i32,I::Item> never bound — i32 is not a mono
+  param and I::Item had no entry. ctx_resolve_angle_type_vars now
+  resolves Name<args> through a payload-base projection
+  (ctx_resolve_mono_base_projection): an exact Pair -> Pair<i32,i32>
+  entry wins, else the payload of an option:/Option_/vec:-prefixed pair
+  answers the base. Unresolved args keep their spelling instead of
+  failing the whole substitution, args are trimmed, and nested generics
+  resolve recursively. ctx_projection_canonical_wrapper canonicalizes
+  option:payload to the Option_ segment path so declared/instantiated
+  pairs decompose into Pair -> Pair<i32,i32> and I::Item -> i32.
+- The bootstrap overlay stub (scripts/selfhost/checks.py) received the
+  equivalent stub_base_payload_projection — the stub replaces the real
+  module in s2 builds, so source-only fixes never reached the compiler
+  under test. This also explains why earlier attempts appeared to no-op.
+- build_return_type_value_sig (sections_types_sigs_detail.ark) no longer
+  unwraps Option/Result/enum-spelled return names to the payload
+  gc_struct slot; option:Pair<i32,i32> returns keep the enum-open
+  signature the variant value actually needs.
+- Verified: new fixture stdlib_trait/iterator_generic_struct_item prints
+  3 0 7 7 108 209 on wasm32 and the wasm32-gc component lane; the GC
+  core module passes wasm-tools validate (previously func 20 failed);
+  probes opt_point/opt_pair/enum_wrap/pair_fields/pair_mono/skip_gen/
+  skip_chain/skip_chain2/enum_zip_probe/gc_skip_only unchanged on both
+  targets; verify lane and quality changed exit 0.
+- Remaining #860 residuals: the EnumerateIter/ZipIter/ChainIter
+  packed-i32 -> Pair migration itself (now unblocked), forward-ref emit
+  ordering, and the final residual-zero audit once #691 closes.
+  #860 is not closed.
