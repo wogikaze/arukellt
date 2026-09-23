@@ -17,11 +17,11 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
         let mut i = 0
         while i < n {
             if byte_at(rest, i) == 58 {
-                return substring(rest, 0, i)
+                return method_resolve::mir_inst_owner_name(substring(rest, 0, i))
             }
             i = i + 1
         }
-        return rest
+        return method_resolve::mir_inst_owner_name(rest)
     }
     if starts_with(clone(arg_type), "enum:") {
         return substring(clone(arg_type), 5, len(arg_type))
@@ -46,7 +46,11 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if starts_with(clone(arg_type), "Option_") {
         return substring(clone(arg_type), 7, len(arg_type))
     }
-    arg_type
+    // Generic-instantiation receivers (SkipMapIter<VecIter>) own impl
+    // methods under the per-instantiation owner (SkipMapIter_VecIter),
+    // so the lookup spelling must flatten the argument list the same
+    // way impl_self_type_name does.
+    method_resolve::mir_inst_owner_name(arg_type)
 }
 
 fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx: i32) -> String {
