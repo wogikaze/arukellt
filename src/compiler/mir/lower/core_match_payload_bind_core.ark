@@ -2,6 +2,8 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_mono
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_payload_bind_types
@@ -143,8 +145,16 @@ fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
             !starts_with(clone(elem_ty), "Result_") &&
             !starts_with(clone(elem_ty), "result:") &&
             !starts_with(clone(elem_ty), "Result<") {
-                if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(elem_ty)) < 0 {
+                // Struct payloads keep their layout name so field access can
+                // resolve indices; GC struct slots only exist on GC targets,
+                // so the layout registry must also accept a bare struct name.
+                // Generic instantiations derive the substituted layout first.
+                let derived = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(elem_ty))
+                if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(derived)) < 0 &&
+                !ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived)) {
                     set_type = concat("enum:", clone(elem_ty))
+                } else {
+                    set_type = derived
                 }
             }
         }

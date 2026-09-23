@@ -1,0 +1,44 @@
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+struct Pair<A, B> {
+    first: A,
+    second: B,
+}
+
+enum Wrapper {
+    Wrap(Point),
+    Empty,
+}
+
+fn main() -> i32 {
+    let o: Option<Point> = Option::Some(Point { x: 7, y: 0 })
+    match o {
+        Option::Some(q) => {
+            stdio::println((q.x).to_string())
+            stdio::println((q.y).to_string())
+        }
+        Option::None => stdio::println("none")
+    }
+    let g: Option<Pair<i32, i32>> = Option::Some(Pair { first: 7, second: 0 })
+    match g {
+        Option::Some(q) => {
+            stdio::println((q.first).to_string())
+            stdio::println((q.second).to_string())
+        }
+        Option::None => stdio::println("none")
+    }
+    let w: Wrapper = Wrapper::Wrap(Point { x: 7, y: 0 })
+    match w {
+        Wrapper::Wrap(q) => {
+            stdio::println((q.x).to_string())
+            stdio::println((q.y).to_string())
+        }
+        Wrapper::Empty => stdio::println("empty")
+    }
+    0
+}

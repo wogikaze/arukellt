@@ -160,6 +160,11 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
 // not a fully concrete instantiation of a registered generic struct.
 fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
     if ctx_struct_storage::ctx_struct_layout_first_index(ctx, clone(inst_name)) >= 0 {
+        // A layout registered by a non-derive path can lack its GC struct;
+        // keep the derive contract "layout + GC struct exist" on GC targets.
+        if ctx_gc_struct::ctx_is_gc_target(ctx) {
+            let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(inst_name))
+        }
         return true
     }
     let base = generic_inst_base_name(clone(inst_name))

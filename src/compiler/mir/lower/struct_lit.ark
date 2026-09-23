@@ -28,8 +28,13 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
         return canon
     }
     // The let annotation is authoritative when present (Pair<i64> must
-    // not degrade to Pair<i32> from an integer literal field).
-    let expected = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(ctx.expected_struct_inst))
+    // not degrade to Pair<i32> from an integer literal field). Under an
+    // Option<T> annotation the literal is the Some payload, so unwrap the
+    // payload type before comparing base names.
+    let expected = ctx_struct_mono::ctx_derive_generic_struct_type_name(
+        ctx,
+        struct_lit_expected_payload_type(clone(ctx.expected_struct_inst))
+    )
     if eq(ctx_struct_mono::generic_inst_base_name(clone(expected)), clone(canon)) {
         return expected
     }
@@ -63,10 +68,15 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
         let mut pj = 0
         while pj < len(params) {
             if eq(get_unchecked(params, pj), clone(ft)) && i < len(val_idxs) {
-                let val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
+                let mut val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
                     ctx,
                     ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(val_idxs, i))
                 )
+                if len(val_ty) == 0 {
+                    val_ty = struct_lit_scalar_type_for_vt(
+                        ctx_api_local_types::ctx_local_vt(ctx, get_unchecked(val_idxs, i))
+                    )
+                }
                 if len(val_ty) == 0 || ctx_struct_mono::generic_arg_is_unbound(clone(val_ty)) {
                     return canon
                 }
@@ -99,6 +109,37 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
         return inst
     }
     canon
+}
+
+// When the expected type is Option<T> (let annotation on a Some(payload)
+// initializer), the struct literal instantiates T, not the Option name.
+fn struct_lit_expected_payload_type(expected: String) -> String {
+    if starts_with(clone(expected), String_from("Option_")) {
+        return substring(expected, 7, len(expected))
+    }
+    if starts_with(clone(expected), String_from("option:")) {
+        return substring(expected, 7, len(expected))
+    }
+    if starts_with(clone(expected), String_from("Option<")) && ends_with(clone(expected), String_from(">")) {
+        return substring(expected, 7, len(expected) - 1)
+    }
+    expected
+}
+
+// Scalar literal fields carry no local type name; recover the type argument
+// from the value's MIR width so Pair { first: 7, second: 0 } instantiates
+// Pair<i32,i32> instead of staying a bare generic base.
+fn struct_lit_scalar_type_for_vt(vt: i32) -> String {
+    if vt == value_types::VT_I32() {
+        return String_from("i32")
+    }
+    if vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    String_new()
 }
 
 fn struct_lit_split_params(joined: String) -> Vec<String> {

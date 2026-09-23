@@ -5,6 +5,7 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::inst_struct_new
@@ -107,7 +108,9 @@ fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: Strin
     // selects the open-enum layout and struct.set fails (#726 toml).
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
         if starts_with(clone(type_name), "struct:") {
-            return type_name
+            // Storage spellings carry the byte size; the GC struct registry
+            // and field-sig resolver key on the semantic name.
+            return ctx_struct_layout::ctx_struct_semantic_type_name(type_name)
         }
         if len(type_name) > 0 && ctx_struct_field_type::field_type_is_registered_struct(ctx, clone(type_name)) {
             return type_name

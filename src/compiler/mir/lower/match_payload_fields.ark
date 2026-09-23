@@ -13,6 +13,7 @@ use mir::lower::match_payload_bind_gc_resolve
 use mir::lower::match_payload_field_type
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_struct_mono
 use mir::value_types
 fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool) {
     let variant_name = ast_node::node_text(pat)
@@ -181,7 +182,13 @@ fn mir_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
             !starts_with(clone(elem_ty), String_from("option:")) &&
             !starts_with(clone(elem_ty), String_from("Result_")) &&
             !starts_with(clone(elem_ty), String_from("result:")) {
-                if !ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(elem_ty)) {
+                // Struct payloads keep their layout name so field access can
+                // resolve indices; generic instantiations derive the
+                // substituted layout first.
+                let derived = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(elem_ty))
+                if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived)) {
+                    set_type = derived
+                } else {
                     set_type = concat(String_from("enum:"), clone(elem_ty))
                 }
             }

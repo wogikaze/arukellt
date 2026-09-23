@@ -5,6 +5,7 @@ use mir::lower::ctx_gc_struct
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_mono
 use mir::value_types
 fn core_match_variant_is_err(variant_name: String) -> bool {
     eq(clone(variant_name), "Err") || eq(clone(variant_name), "Result::Err")
@@ -145,8 +146,13 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
     }
     if len(field_type) > 0 && !core_payload_scalar_type_name(clone(field_type)) {
         // Named GC structs keep bare names for gcsref Option payloads (#726).
-        if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(field_type)) >= 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(field_type))
+        // Linear-memory targets have no GC struct slots; the layout registry
+        // must also keep a bare struct name or field binds resolve as enum:Name
+        // and every field index falls back to 0.
+        let derived_field = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(field_type))
+        if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(derived_field)) >= 0 ||
+        ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_field)) {
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, derived_field)
         } else {
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat("enum:", field_type))
         }
