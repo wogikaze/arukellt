@@ -1247,3 +1247,20 @@ acceptance boxes complete.
   closes. The earlier "forward-ref emit ordering" and "field-access
   method-call gap" residuals are resolved by this unit. #860 is not
   closed.
+
+## Progress receipt — 2026-09-23 (eager any/all dedup)
+
+- `3bebe2622` removes the last eager traversal bodies in
+  std/core/iter.ark: `iter_any_i32`/`iter_all_i32` indexed the vector
+  directly with get_unchecked (and scanned the whole range even after
+  the answer was known). They now delegate to private
+  `any_iterator_i32`/`all_iterator_i32` that walk `it.next()` like
+  `contains_iterator_i32`, short-circuiting on the first hit/miss.
+  Every `get_unchecked` left in the file is inside a lazy adapter's
+  own `next()` impl, which is the canonical place for index access.
+- Verified: iterator_any_basic/empty, iterator_all_basic/empty/false
+  compile+run pass on wasm32; iterator_any_basic passes the wasm32-gc
+  component lane; verify lane and quality changed exit 0.
+- Remaining #860 residuals: desugared-iteration vs hand-written
+  Iterator equivalence evidence, and the final residual-zero audit
+  once #691 closes. #860 is not closed.
