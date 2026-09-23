@@ -1108,3 +1108,43 @@ acceptance boxes complete.
   item representations (still concrete Vec<i32> state), forward-ref
   emit ordering, and the final residual-zero audit once #691 closes.
   #860 is not closed.
+
+## Progress receipt — 2026-09-23 (struct-payload binds + generic struct-literal instantiation)
+
+- `fa8396c9b` fixes `match o { Option::Some(q) => q.field }` returning
+  field 0 for every struct payload (`Option<Point>`,
+  `Option<Pair<i32,i32>>`, user enum `Wrapper::Wrap(Point)`) and a
+  wasm32-gc cast trap on generic struct payloads.
+- Bind side: `core_infer_payload_set_type` /
+  `set_gc_payload_bind_type_if_needed` (CoreHir + AST twins) and
+  `mir_infer_payload_set_type` now derive generic instantiations through
+  `ctx_derive_generic_struct_type_name` and keep the bare layout name
+  whenever the layout registry knows the struct — the GC-slot-only check
+  silently rewrote struct binds to `enum:Name`, so
+  `ctx_field_index` missed and every field read offset 0.
+- Let-annotation side: `apply_let_annotation_type` promotes locals whose
+  annotation names a registered struct/enum to VT_GC_REF via the named
+  predicate `let_annotation_is_gc_ref_type`; kept VT_I32 made
+  `Option::Some(p)` register an `{i32,i32}` variant and emit
+  `i32.wrap_i64` on a ref (invalid wasm).
+- Construction side: `gc_payload_typed_variant_name` maps
+  `struct:Name:size` storage spellings through
+  `ctx_struct_semantic_type_name`, and
+  `mir_struct_lit_instance_name` unwraps `Option<T>` expected types and
+  recovers scalar type args from MIR value width — `Pair { first: 7,`
+  `second: 0 }` under `Option<Pair<i32,i32>>` previously stayed a bare
+  `Pair`, so construction registered a different `Some` variant than
+  the bind's `Pair<i32,i32>` gcsref and the cast trapped.
+  `ctx_derive_generic_struct_layout` also ensures the GC struct on its
+  already-registered early return so the derive contract holds for
+  layouts registered by non-derive paths.
+- Verified: new fixture `enums/option_struct_payload_fields.ark`
+  prints `7 0 7 0 7 0` on wasm32 and the wasm32-gc component lane;
+  probes `opt_point`/`opt_pair`/`enum_wrap`/`pair_fields`/
+  `pair_mono`/`skip_gen`/`skip_chain`/`skip_chain2`/
+  `enum_zip_probe`/`gc_skip_only` unchanged on both targets;
+  `verify lane` and `quality changed` exit 0.
+- Remaining #860 residuals: `ChainIter` / `EnumerateIter` / `ZipIter`
+  item representations (packed-i32 semantic debt to replace with
+  source-wrapping generic items), forward-ref emit ordering, and the
+  final residual-zero audit once #691 closes. #860 is not closed.
