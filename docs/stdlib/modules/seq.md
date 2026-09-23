@@ -43,11 +43,11 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 
 Sequence helpers over `Vec<i32>`.
 
-`map`/`filter`/`take`/`skip`/`fold`/`sum` are deprecated
-compatibility entries that delegate to the lazy `std::core::iter`
-pipeline (ADR-076). Search (`binary_search`, `seq_contains`),
-aggregation (`min_i32`, `max_i32`), deduplication (`unique`),
-reversal (`seq_reverse`), and equality counting (`count_eq`) remain.
+`map`/`filter`/`take`/`skip`/`fold`/`sum` and the query helpers
+(`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
+`seq_contains`, `unique`, `count_eq`) are deprecated compatibility
+entries. They delegate to the lazy `std::core::iter` pipeline or the
+generic `Ord`-based algorithms below (ADR-076).
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 

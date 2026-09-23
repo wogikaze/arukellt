@@ -4,7 +4,10 @@
 
 決定日: 2026-09-19
 
-関連: [ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[RFC-004](../rfcs/004-trait-expressiveness.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#856](../../issues/open/856-trait-core-coherence-generics.md)
+関連: [ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[ADR-078](ADR-078-language-v2-parametric-trait-impl.md)、[RFC-004](../rfcs/004-trait-expressiveness.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#856](../../issues/open/856-trait-core-coherence-generics.md)
+
+> 補足: §2 の「type variable を含む user impl は blanket impl とみなし拒否する」句は、
+> self 型が具象 constructor 適用である parametric impl について [ADR-078](ADR-078-language-v2-parametric-trait-impl.md) が限定的に改訂する。
 
 ## 文脈
 

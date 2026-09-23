@@ -16,7 +16,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - ADR-057 current-only fixture gate: `python3 scripts/manager.py verify fixtures` — 1691 compile/validate passed, 0 failed; 100 runtime executed; 2 runtime contracts delegated to native-cpp.
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
-- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 2955 manifest entries
+- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 2965 manifest entries
 - Historical verification: `python3 scripts/manager.py verify quick` — 166/166 checks pass
 - Stdlib manifest-backed public API: 783 functions
 <!-- END GENERATED:README_STATUS -->
