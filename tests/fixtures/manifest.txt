@@ -1676,6 +1676,7 @@ run:stdlib_trait/clone_f64.ark
 run:stdlib_trait/clone_i32.ark
 run:stdlib_trait/clone_i64.ark
 run:stdlib_trait/clone_string.ark
+run:stdlib_trait/clone_unbound_typevar.ark
 run:stdlib_trait/debug_bool.ark
 run:stdlib_trait/debug_char.ark
 run:stdlib_trait/debug_f64.ark
@@ -2343,6 +2344,7 @@ t3-compile:stdlib_trait/seq_ord_generic_algorithms.ark
 t3-compile:stdlib_trait/self_return_add.ark
 t3-compile:stdlib_trait/operator_generic.ark
 t3-compile:stdlib_trait/self_return_clone.ark
+t3-compile:stdlib_trait/clone_unbound_typevar.ark
 t3-compile:stdlib_vec/any_find.ark
 t3-compile:stdlib_vec/vec_any_all_match.ark
 t3-compile:stdlib_vec/vec_any_first_element.ark
@@ -2806,6 +2808,7 @@ t3-run:stdlib_trait/seq_ord_generic_algorithms.ark
 t3-run:stdlib_trait/self_return_add.ark
 t3-run:stdlib_trait/operator_generic.ark
 t3-run:stdlib_trait/self_return_clone.ark
+t3-run:stdlib_trait/clone_unbound_typevar.ark
 t3-run:stdlib_vec/any_find.ark
 t3-run:stdlib_vec/vec_any_all_match.ark
 t3-run:stdlib_vec/vec_any_first_element.ark

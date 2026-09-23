@@ -1,0 +1,34 @@
+// Issue #691: x.clone() on an unbound type variable.
+//
+// `clone` is a compiler-polymorphic intrinsic, not trait dispatch. On an
+// unbound `T` the method form must preserve the receiver's concrete type
+// instead of resolving to the String-shaped prelude signature.
+use std::host::stdio
+
+struct Pair {
+    a: i32,
+    b: i32,
+}
+
+fn dup<T>(x: T) -> T {
+    x.clone()
+}
+
+fn dup_free<T>(x: T) -> T {
+    clone(x)
+}
+
+fn main() {
+    let n = dup(41)
+    assert(n == 41)
+    let s = dup(String_from("hi"))
+    assert(len(s) == 2)
+    let p = dup(Pair { a: 3, b: 4 })
+    assert(p.a == 3)
+    assert(p.b == 4)
+    let q = dup_free(Pair { a: 5, b: 6 })
+    assert(q.a == 5)
+    let m = dup_free(42)
+    assert(m == 42)
+    stdio::println("OK")
+}

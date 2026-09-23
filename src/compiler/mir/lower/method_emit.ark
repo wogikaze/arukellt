@@ -2,9 +2,11 @@ use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
 use mir::lower::call_emit_dest
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::call_types
 use mir::inst_call
+use mir::value_types
 
 fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(clone(callee_name))
@@ -29,7 +31,15 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
     // first_arg_idx is the receiver's local index, which corresponds to
     // the first argument of the resolved intrinsic (e.g. vec_get_unchecked).
     call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
-    ctx_emit(ctx, inst_call::MirInst_call(callee_name, arg_count, dest))
+    // Carry the marked dest vt onto the inst like mir_emit_direct_call does.
+    // VT_VOID here made GC local-decl scans adopt the callee's declared
+    // return (String for __core_string_clone_impl) even when the receiver
+    // was a scalar type variable (#691).
+    let mut dest_vt = value_types::VT_VOID()
+    if dest >= 0 {
+        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    }
+    ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))
     if dest < 0 {
         return 0 - 1
     }

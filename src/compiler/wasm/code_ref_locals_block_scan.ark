@@ -15,6 +15,7 @@ use mir::inst_accessors_shape
 use mir::local_access
 use mir::local_write_index
 use mir::opcodes
+use mir::post_pass_callee_lookup
 use mir::value_types
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
@@ -527,6 +528,33 @@ fn local_direct_producer_storage_type(
         wi = wi + 1
         if inst_accessors_operands::MirInst_dest(inst) != local_idx {
             continue
+        }
+        // Method-style clone calls carry no arg0 on the CALL inst; the
+        // receiver is the local pushed immediately before the call site.
+        // Recover it so a clone dest keeps the receiver's storage instead
+        // of the callee's declared String return (#691 x.clone() on a
+        // generic receiver).
+        if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
+        inst_accessors_operands::MirInst_arg0(inst) < 0 &&
+        post_pass_callee_lookup::is_generic_clone_intrinsic(
+            inst_accessors_literals::MirInst_str_val(inst)
+        ) {
+            let site_block = write_site_block(f, writes, wi - 1)
+            let site_index = local_write_index::local_write_index_inst_at(writes, wi - 1)
+            let recv = local_set_source_local(site_block, site_index, inst)
+            let arg_storage = code_ref_locals_infer_dest::clone_arg_gc_storage_type(f, recv, ctx)
+            if arg_storage == code_ref_locals_infer_dest::clone_arg_storage_scalar() {
+                code_ref_locals_fn_cache::set_cached_direct_producer_storage(ctx, local_idx, Option::None)
+                return Option::None
+            }
+            if arg_storage >= 0 {
+                code_ref_locals_fn_cache::set_cached_direct_producer_storage(
+                    ctx,
+                    local_idx,
+                    Option::Some(arg_storage)
+                )
+                return Option::Some(arg_storage)
+            }
         }
         let inferred =
         code_ref_locals_infer_dest::infer_ref_local_from_producer(

@@ -4,6 +4,7 @@ use mir::lower::call_type_vec
 use mir::inst_accessors_operands
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
 use mir::lower::gc_layout_plan_build
@@ -40,10 +41,20 @@ fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, fi
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
     if len(arg_type) == 0 {
-        return false
+        // Identity clone with an unnamed arg: keep the arg's storage class
+        // so the dest never adopts the callee's declared return layout.
+        ctx_api_local_types::ctx_set_local_vt(
+            ctx,
+            dest,
+            ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
+        )
+        return true
     }
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(arg_type))
     let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
+    // Generic receivers can keep a ?T spelling inside mono bodies; resolve
+    // through the substitution map before layout checks (#691).
+    let resolved_type = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(arg_type))
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(resolved_type))
     if arg_vt != value_types::VT_I32() {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, arg_vt)
     } else if ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -51,7 +62,7 @@ fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, fi
         // a real scalar (e.g. clone(mapped) with mapped: i32). Keeping the
         // scalar vt lets the local declare i64; forcing GC_REF made the
         // producer scan adopt the callee's String return (#691).
-        if gc_layout_plan_build::gc_layout_plan_name_is_i32(clone(arg_type)) {
+        if gc_layout_plan_build::gc_layout_plan_name_is_i32(clone(resolved_type)) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())

@@ -141,6 +141,14 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         if contract_fn_sig::FnSig_has_name(trait_sig) {
             return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_resolution)
         }
+        // `clone` is a compiler-polymorphic intrinsic, not trait dispatch:
+        // the free `clone(x)` path preserves any argument type, so
+        // `x.clone()` on an unbound type var keeps the receiver type
+        // instead of falling through to the String-shaped prelude sig
+        // (#691 generic adapter bodies).
+        if eq(clone(method_name), String_from("clone")) {
+            return recv_ty
+        }
     }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
 }
