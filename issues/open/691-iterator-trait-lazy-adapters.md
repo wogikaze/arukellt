@@ -462,6 +462,32 @@ full adapter fixture matrix as a fallback parity gate.
   deprecation and the final RFC-011 residual audit remain open. This is not a
   close receipt.
 
+## Progress receipt — 2026-09-24 (std::seq deprecation completed)
+
+- Commit `40676f0c6` marks every remaining monomorphic `std::seq` helper
+  `deprecated` in `std/manifest.toml`. `seq_reverse`, `seq_contains`,
+  `unique`, and `count_eq` point at the lazy `std::core::iter`
+  replacements (`iter_reverse_i32`, `iter_contains_i32`,
+  `iter_unique_i32`, `iter_count_eq_i32`); `binary_search`,
+  `min_i32`, and `max_i32` point at the generic `std::seq` Ord
+  algorithms (`binary_search_by`, `min_by`, `max_by`). The four iter
+  query consumers, the `unique_iter`/`rev_iter` constructors, and the
+  three generic seq entries are registered as `provisional` so every
+  `deprecated_by` resolves to a public nondeprecated manifest symbol.
+- All 13 monomorphic helpers are now callable deprecated compatibility
+  entries under ADR-014; the manifest lifecycle state finally matches the
+  `std/seq` module doc and the delegation layer from `b2e6d5510`.
+  `monomorphic-deprecation.md` regenerates to 17 deprecated public
+  entries. `docs check` and `check-stdlib-manifest` pass; W0009 lint
+  wiring stays with the hardcoded `deprecated_table` as before.
+- Residuals for this issue: the generic `std::seq` Ord functions
+  (`binary_search_by_key`, `lower_bound`, `upper_bound`, `sort_by`,
+  `min_by_key`, `max_by_key`) are public but still unregistered,
+  `sort_by` keeps its pre-existing wasm32-gc emit defect, the
+  `FilterIter<T>::map` / `StringSkip*` bounds from the previous receipt
+  stand, and the final RFC-011 iterator residual audit plus
+  `verify quick` remain open. This is not a close receipt.
+
 ## Progress receipt — 2026-09-23 (HashMap for-in iteration)
 
 - Commit `3844363be` adds `IntoIterator` implementations for the four
