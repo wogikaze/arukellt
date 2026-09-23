@@ -3171,36 +3171,82 @@ pub fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> Stri
     let count = len(ctx.mono_type_param_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(type_var_name)) {
+        let stored_name = clone(get_unchecked(ctx.mono_type_param_names, i))
+        if eq(clone(stored_name), clone(type_var_name)) {
             return clone(get_unchecked(ctx.mono_type_param_types, i))
         }
-        if ctx_mono_type_name_matches(
-            clone(get_unchecked(ctx.mono_type_param_names, i)),
-            clone(type_var_name)
-        ) {
-            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        let seg_idx = ctx_mono_type_match_segment_index(stored_name, clone(type_var_name))
+        if seg_idx >= 0 {
+            return ctx_mono_type_segment_value(
+                clone(get_unchecked(ctx.mono_type_param_names, i)),
+                clone(get_unchecked(ctx.mono_type_param_types, i)),
+                seg_idx
+            )
         }
         i = i + 1
     }
     String_new()
 }
 
-fn ctx_mono_type_name_matches(stored_name: String, query_name: String) -> bool {
+fn ctx_mono_type_match_segment_index(stored_name: String, query_name: String) -> i32 {
     let query = ctx_mono_type_var_bare_name(clone(query_name))
     let mut segment_start = 0
+    let mut seg_index = 0
     let mut i = 0
     while i <= len(stored_name) {
         let at_end = i == len(stored_name)
-        if at_end || char_at(clone(stored_name), i) == 58 {
+        if at_end || byte_at(clone(stored_name), i) == 58 {
             let segment = substring(clone(stored_name), segment_start, i)
             if eq(ctx_mono_type_var_bare_name(clone(segment)), clone(query)) {
-                return true
+                return seg_index
             }
             segment_start = i + 1
+            seg_index = seg_index + 1
         }
         i = i + 1
     }
-    false
+    0 - 1
+}
+
+// A composite stored pair binds the queried variable at the matched
+// segment position: option:T -> option:i32 answers T -> i32, not the
+// whole option:i32 (which would poison vec:T into vec:option:i32).
+// Whole-type answers stay only for mismatched shapes (I::Item -> i32)
+// where segment positions cannot align.
+fn ctx_mono_type_segment_value(stored_name: String, stored_type: String, seg_idx: i32) -> String {
+    if ctx_mono_count_colon_segments(stored_name) != ctx_mono_count_colon_segments(clone(stored_type)) {
+        return stored_type
+    }
+    ctx_mono_colon_segment_at(stored_type, seg_idx)
+}
+
+fn ctx_mono_count_colon_segments(name: String) -> i32 {
+    let mut count = 1
+    let mut i = 0
+    while i < len(name) {
+        if byte_at(clone(name), i) == 58 {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn ctx_mono_colon_segment_at(name: String, want: i32) -> String {
+    let mut segment_start = 0
+    let mut seg_index = 0
+    let mut i = 0
+    while i <= len(name) {
+        if i == len(name) || byte_at(clone(name), i) == 58 {
+            if seg_index == want {
+                return substring(clone(name), segment_start, i)
+            }
+            segment_start = i + 1
+            seg_index = seg_index + 1
+        }
+        i = i + 1
+    }
+    name
 }
 
 fn ctx_mono_type_var_bare_name(name: String) -> String {
@@ -3419,31 +3465,154 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
             push(result, stripped)
             return result
         }
-        // Generic wrappers use "?Type:T:U". Only argument segments are
-        // candidates; the wrapper name itself is not a type variable.
-        let mut segment_start = 0
-        let mut i = 0
-        let n = len(stripped)
-        while i < n {
-            if byte_at(stripped, i) == 58 {
-                let segment = substring(clone(stripped), segment_start, i)
-                if segment_start > 0 && is_plain_type_var_name(clone(segment)) {
-                    push(result, segment)
-                }
-                segment_start = i + 1
-            }
-            i = i + 1
-        }
-        let final_segment = substring(clone(stripped), segment_start, n)
-        if segment_start > 0 && is_plain_type_var_name(clone(final_segment)) {
-            push(result, final_segment)
-        }
+        ctx_push_colon_var_segments(stripped, result)
         return result
     }
     if is_plain_type_var_name(clone(ty_name)) {
         push(result, ty_name)
+        return result
+    }
+    // Canonical wrapper spellings (vec:T, option:T, result:T:E) carry the
+    // function's type variables in their segments: a Vec<T> parameter keeps
+    // the vec:T local spelling, so it must contribute T to the ordinal
+    // pairing exactly like a ?T local does. struct:/enum: spellings are
+    // excluded — their middle segment is a concrete layout name, and a
+    // one-letter struct id (struct:P:7) is not a type variable.
+    if ctx_local_type_is_var_wrapper(clone(ty_name)) {
+        ctx_push_colon_var_segments(ty_name, result)
+        return result
+    }
+    // Associated-type projections (I::Item) are not themselves type
+    // variables, but their head segment is — a local typed I::Item still
+    // needs I bound for the ordinal pairing.
+    let mut proj = 0 - 1
+    let mut pi = 0
+    while pi < len(ty_name) - 1 {
+        if byte_at(clone(ty_name), pi) == 58 && byte_at(clone(ty_name), pi + 1) == 58 {
+            proj = pi
+            pi = len(ty_name)
+        }
+        pi = pi + 1
+    }
+    if proj > 0 {
+        let head = substring(clone(ty_name), 0, proj)
+        if is_plain_type_var_name(clone(head)) {
+            push(result, head)
+        }
+    }
+    // Generic-instantiation spellings carry their type variables as
+    // angle-bracket arguments: a self/param local typed Skip<I> or
+    // Pair<T,Vec<U>> must still contribute its variables to the ordinal
+    // pairing, otherwise the mono map stays empty and struct literals in
+    // the body cannot derive their instantiated layout.
+    let n = len(ty_name)
+    let mut lt = 0 - 1
+    let mut li = 0
+    while li < n {
+        if byte_at(clone(ty_name), li) == 60 {
+            lt = li
+            li = n
+        }
+        li = li + 1
+    }
+    if lt > 0 && ends_with(clone(ty_name), String_from(">")) {
+        let inner = substring(clone(ty_name), lt + 1, n - 1)
+        let args = stub_split_top_level_type_args(inner)
+        let mut ai = 0
+        while ai < len(args) {
+            let arg = get_unchecked(args, ai)
+            if is_plain_type_var_name(clone(arg)) {
+                push(result, clone(arg))
+            } else {
+                let nested = ctx_type_var_names_from_local_type(clone(arg))
+                let mut ni = 0
+                while ni < len(nested) {
+                    push(result, get_unchecked(nested, ni))
+                    ni = ni + 1
+                }
+            }
+            ai = ai + 1
+        }
     }
     result
+}
+
+// Split `A<B, C<D,E>>` argument text on top-level commas only.
+fn stub_split_top_level_type_args(inner: String) -> Vec<String> {
+    let args = Vec_new_String()
+    let mut depth = 0
+    let mut seg_start = 0
+    let n = len(inner)
+    let mut i = 0
+    while i <= n {
+        let at_end = i == n
+        let ch = if at_end { 44 } else { byte_at(clone(inner), i) }
+        if !at_end && ch == 60 {
+            depth = depth + 1
+        }
+        if !at_end && ch == 62 {
+            depth = depth - 1
+        }
+        if (at_end || ch == 44) && depth == 0 {
+            push(args, substring(clone(inner), seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    args
+}
+
+fn ctx_local_type_is_var_wrapper(ty_name: String) -> bool {
+    starts_with(clone(ty_name), String_from("vec:")) ||
+    starts_with(clone(ty_name), String_from("option:")) ||
+    starts_with(clone(ty_name), String_from("Option:")) ||
+    starts_with(clone(ty_name), String_from("result:")) ||
+    starts_with(clone(ty_name), String_from("Result:")) ||
+    starts_with(clone(ty_name), String_from("hashmap:"))
+}
+
+// Push type-variable argument segments of a colon-composite spelling.
+// The first segment is the wrapper name and never a variable; later
+// segments contribute only when they are plain type variables (T, E).
+// Splits only on top-level colons so Pair<I::Item,T> arguments stay whole;
+// composite segments recurse so nested variables are still found.
+fn ctx_push_colon_var_segments(stripped: String, result: Vec<String>) {
+    let mut segment_start = 0
+    let mut i = 0
+    let n = len(stripped)
+    let mut depth = 0
+    while i <= n {
+        let at_end = i == n
+        let ch = if at_end { 58 } else { byte_at(stripped, i) }
+        if !at_end && (ch == 60 || ch == 40) {
+            depth = depth + 1
+        }
+        if !at_end && (ch == 62 || ch == 41) {
+            depth = depth - 1
+        }
+        if (at_end || ch == 58) && depth == 0 {
+            let segment = substring(clone(stripped), segment_start, i)
+            ctx_push_var_segment(segment, segment_start > 0, result)
+            segment_start = i + 1
+        }
+        i = i + 1
+    }
+}
+
+fn ctx_push_var_segment(segment: String, is_arg: bool, result: Vec<String>) {
+    if !is_arg {
+        return
+    }
+    if is_plain_type_var_name(clone(segment)) {
+        push(result, segment)
+        return
+    }
+    let nested = ctx_type_var_names_from_local_type(segment)
+    let mut i = 0
+    while i < len(nested) {
+        push(result, get_unchecked(nested, i))
+        i = i + 1
+    }
 }
 
 fn is_plain_type_var_name(name: String) -> bool {
