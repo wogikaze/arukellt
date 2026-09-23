@@ -1,0 +1,61 @@
+use std::core::iter
+use std::host::stdio
+
+struct WrapIter<T> {
+    item: T,
+    done: bool,
+}
+
+fn wrap_iter<T>(x: T) -> WrapIter<T> {
+    WrapIter { item: x, done: false }
+}
+
+// ADR-078: a parametric impl covers every instantiation of WrapIter.
+impl Iterator for WrapIter<T> {
+    type Item = T
+    fn next(self: WrapIter<T>) -> Option<T> {
+        if self.done {
+            return Option::None
+        }
+        self.done = true
+        Option::Some(self.item)
+    }
+}
+
+struct Once<T> {
+    item: T,
+}
+
+impl IntoIterator for Once<T> {
+    type Item = T
+    type IntoIter = WrapIter<T>
+    fn into_iter(self: Once<T>) -> WrapIter<T> {
+        WrapIter { item: self.item, done: false }
+    }
+}
+
+fn main() -> i32 {
+    let it: WrapIter<i32> = wrap_iter(7)
+    let first = it.next()
+    match first {
+        Option::Some(x) => stdio::println((x).to_string())
+        Option::None => stdio::println("none")
+    }
+    let it2: WrapIter<i32> = wrap_iter(9)
+    let mut total = 0
+    for x in it2 {
+        total = total + x
+    }
+    stdio::println((total).to_string())
+    // A second instantiation forces the for-loop desugar to resolve the
+    // String variant of next rather than reusing the i32 one.
+    let sit: WrapIter<String> = wrap_iter(String_from("hi"))
+    for s in sit {
+        stdio::println(s)
+    }
+    let once: Once<i32> = Once { item: 11 }
+    for x in once {
+        stdio::println((x).to_string())
+    }
+    0
+}

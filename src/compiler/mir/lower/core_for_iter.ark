@@ -29,7 +29,11 @@ fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr
     }
     let raw_struct_type = ctx_api_local_types::ctx_get_local_type(ctx, source_idx)
     let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
-    let si_into_iter_type = for_iter_resolve::mir_for_into_iterator_type(ctx, clone(raw_struct_type))
+    let si_into_iter_type = for_iter_resolve::mir_for_into_iterator_type(
+        ctx,
+        core_expr_shape_accessors::mir_core_expr_span_start(expr),
+        clone(raw_struct_type)
+    )
     if len(si_into_iter_type) > 0 {
         return lower_core_into_iterator_for(
             ctx,
@@ -43,9 +47,12 @@ fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr
     if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) && source_is_ident {
         return core_for_values::lower_core_for_values(ctx, exprs, expr)
     }
-    let si_next_callee = concat(method_resolve::mir_inst_owner_name(clone(si_struct_type)), "::next")
-    let si_next_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(si_next_callee))
-    if si_next_vt == 0 {
+    let si_next_callee = for_iter_resolve::mir_for_next_callee(
+        ctx,
+        core_expr_shape_accessors::mir_core_expr_span_start(expr),
+        clone(si_struct_type)
+    )
+    if len(si_next_callee) == 0 {
         return 0 - 1
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
@@ -64,12 +71,23 @@ fn lower_core_into_iterator_for(
     source_type: String
 ) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
-    let into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(source_type)
+    let into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(
+        ctx,
+        core_expr_shape_accessors::mir_core_expr_span_start(expr),
+        source_type
+    )
     let into_iter_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(into_iter_callee))
     let into_iter_local = ctx_api_local_alloc::ctx_fresh_local(ctx, into_iter_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, into_iter_local, clone(iterator_type))
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(into_iter_callee, 1, into_iter_local))
-    let next_callee = concat(method_resolve::mir_inst_owner_name(clone(iterator_type)), "::next")
+    let next_callee = for_iter_resolve::mir_for_next_callee(
+        ctx,
+        core_expr_shape_accessors::mir_core_expr_span_start(expr),
+        clone(iterator_type)
+    )
+    if len(next_callee) == 0 {
+        return 0 - 1
+    }
     let iter_scope = loop_struct_iter::mir_begin_struct_iterator_loop(
         ctx,
         core_expr_shape_accessors::mir_core_expr_text(expr),

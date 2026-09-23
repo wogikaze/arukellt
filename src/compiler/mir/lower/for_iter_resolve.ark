@@ -1,4 +1,6 @@
 use mir::lower::ctx_fn_return_type
+use mir::lower::ctx_fn_exists
+use mir::lower::ctx_fn_mono
 use mir::lower::loop_vec
 use mir::lower::method_resolve
 
@@ -29,19 +31,75 @@ fn mir_for_into_iterator_owner(source_type: String) -> String {
     method_resolve::mir_inst_owner_name(normalized)
 }
 
-fn mir_for_into_iterator_type(ctx: LowerCtx, source_type: String) -> String {
-    let owner = mir_for_into_iterator_owner(source_type)
-    if len(owner) == 0 {
+fn mir_for_into_iterator_type(ctx: LowerCtx, span_start: i32, source_type: String) -> String {
+    let callee = mir_for_into_iterator_callee(ctx, span_start, source_type)
+    if len(callee) == 0 {
         return String_from("")
     }
-    let callee = concat(clone(owner), "::into_iter")
     ctx_fn_return_type::ctx_fn_return_type_name(ctx, callee)
 }
 
-fn mir_for_into_iterator_callee(source_type: String) -> String {
-    let owner = mir_for_into_iterator_owner(source_type)
-    if len(owner) == 0 {
-        return String_from("")
+// Resolve the `into_iter` callee for a `for` source. Concrete-instantiation
+// impls live under the per-instantiation owner (`Ctor_arg::into_iter`);
+// parametric impls (`impl IntoIterator for Ctor<T>`) live under the bare
+// constructor owner (`Ctor::into_iter`). The instantiated owner wins when
+// both exist because it is the more specific impl.
+fn mir_for_into_iterator_callee(ctx: LowerCtx, span_start: i32, source_type: String) -> String {
+    let owner = mir_for_into_iterator_owner(clone(source_type))
+    if len(owner) > 0 {
+        let resolved = mir_for_desugar_callee(
+            ctx,
+            span_start,
+            concat(clone(owner), "::into_iter")
+        )
+        if len(resolved) > 0 {
+            return resolved
+        }
     }
-    concat(owner, "::into_iter")
+    let bare = method_resolve::mir_bare_owner_name(source_type)
+    if len(bare) == 0 || eq(clone(bare), clone(owner)) {
+        return String_new()
+    }
+    mir_for_desugar_callee(ctx, span_start, concat(bare, "::into_iter"))
+}
+
+// Resolve the `next` callee for a `for` iterator with the same
+// instantiation-then-bare-owner order as `into_iter`.
+fn mir_for_next_callee(ctx: LowerCtx, span_start: i32, iterator_type: String) -> String {
+    let inst_next = concat(
+        method_resolve::mir_inst_owner_name(clone(iterator_type)),
+        "::next"
+    )
+    let resolved = mir_for_desugar_callee(ctx, span_start, clone(inst_next))
+    if len(resolved) > 0 {
+        return resolved
+    }
+    let bare_next = concat(
+        method_resolve::mir_bare_owner_name(iterator_type),
+        "::next"
+    )
+    if eq(clone(bare_next), clone(inst_next)) {
+        return String_new()
+    }
+    mir_for_desugar_callee(ctx, span_start, bare_next)
+}
+
+// Resolve a desugared for-call to its emitted symbol. Concrete impls
+// register plain Owner::method symbols; parametric impls (ADR-078) only
+// exist as mangled mono variants found through the per-site span rewrite
+// recorded by the typechecker or, as a fallback, the first registered
+// name rewrite for the declared callee.
+fn mir_for_desugar_callee(ctx: LowerCtx, span_start: i32, declared: String) -> String {
+    let span_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, clone(declared))
+    if len(span_target) > 0 {
+        return span_target
+    }
+    let name_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(declared))
+    if len(name_target) > 0 {
+        return name_target
+    }
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(declared)) {
+        return declared
+    }
+    String_new()
 }

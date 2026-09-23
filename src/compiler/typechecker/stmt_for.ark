@@ -1,7 +1,12 @@
 use typechecker::ast_access
+use typechecker::associated_types
+use typechecker::contract_trait_impl
+use typechecker::contract_type_constructors
 use typechecker::contract_type_access
 use typechecker::contract_fn_sig
+use typechecker::instantiate
 use typechecker::kinds
+use typechecker::mono
 use typechecker::names
 use typechecker::sigs
 use typechecker::trait_bounds
@@ -37,10 +42,12 @@ fn check_for_source(
     }
     let into_iterator = types::resolve_type_name(String_from("IntoIterator"))
     if trait_bounds::type_satisfies_trait_bound(env, resolved_source_ty, into_iterator) {
+        record_for_desugar_mono(env, fn_sigs, node, resolved_source_ty, into_iterator, true)
         return
     }
     let iterator = types::resolve_type_name(String_from("Iterator"))
     if trait_bounds::type_satisfies_trait_bound(env, resolved_source_ty, iterator) {
+        record_for_desugar_mono(env, fn_sigs, node, resolved_source_ty, iterator, false)
         return
     }
     if has_structural_next(env, fn_sigs, resolved_source_ty) {
@@ -54,6 +61,139 @@ fn check_for_source(
             source_name
         )
     )
+}
+
+// "for" lowering emits real calls to into_iter/next. Parametric impls
+// (ADR-078) only exist as mangled mono variants, so each desugared call
+// needs a mono instance plus a span-keyed call-site marker for the MIR
+// resolver to find the emitted symbol. Concrete impls register plain
+// Owner::method symbols and need no recording.
+fn record_for_desugar_mono(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    node: AstNode,
+    source_ty: TypeInfo,
+    bound: TypeInfo,
+    via_into_iterator: bool
+) {
+    let span = ast_access::node_span_start(node)
+    let mut iterator_ty = clone(source_ty)
+    if via_into_iterator {
+        let into_impl = find_var_carrying_impl(env, source_ty, bound)
+        iterator_ty = record_for_method_mono(
+            env,
+            fn_sigs,
+            span,
+            into_impl,
+            source_ty,
+            String_from("into_iter")
+        )
+        if contract_type_access::TypeInfo_tag(iterator_ty) == commands::TY_UNKNOWN() {
+            return
+        }
+    }
+    let iterator_bound = types::resolve_type_name(String_from("Iterator"))
+    let next_impl = find_var_carrying_impl(env, iterator_ty, iterator_bound)
+    let _next_return = record_for_method_mono(
+        env,
+        fn_sigs,
+        span,
+        next_impl,
+        iterator_ty,
+        String_from("next")
+    )
+}
+
+// The single parametric impl allowed by ADR-078 for (trait, constructor
+// head), or an empty info when the matching impl is concrete.
+fn find_var_carrying_impl(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitImplInfo {
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        if trait_bounds::trait_impl_matches(impl_info, ty, bound) &&
+        associated_types::type_contains_var(
+            contract_trait_impl::TraitImplInfo_self_ty(impl_info)
+        ) {
+            return impl_info
+        }
+        i = i + 1
+    }
+    contract_trait_impl::TraitImplInfo_new(
+        String_new(),
+        Vec::new<TypeInfo>(),
+        contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    )
+}
+
+// Record the mono instance, instantiated return type, and span marker for
+// one desugared for-method call. Returns the instantiated return type so
+// the into_iter step can feed the iterator type into next resolution.
+fn record_for_method_mono(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    span: i32,
+    impl_info: TraitImplInfo,
+    owner_ty: TypeInfo,
+    method: String
+) -> TypeInfo {
+    let unknown = contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    if len(contract_trait_impl::TraitImplInfo_trait_name(impl_info)) == 0 {
+        return unknown
+    }
+    let owner_name = names::unqualified_type_name(
+        contract_type_access::TypeInfo_name(owner_ty)
+    )
+    let fn_name = concat(clone(owner_name), concat("::", method))
+    let sig = sigs::lookup_fn_sig(env, fn_sigs, clone(fn_name))
+    if !contract_fn_sig::FnSig_has_name(sig) {
+        return unknown
+    }
+    let var_names = Vec::new<String>()
+    let var_types = Vec::new<TypeInfo>()
+    if !associated_types::match_pattern_collect_vars(
+        contract_trait_impl::TraitImplInfo_self_ty(impl_info),
+        owner_ty,
+        var_names,
+        var_types
+    ) {
+        return unknown
+    }
+    let param_count = contract_fn_sig::FnSig_type_param_count(sig)
+    let param_names = Vec::new<String>()
+    let resolved = Vec::new<TypeInfo>()
+    let mut i = 0
+    while i < param_count {
+        let param_name = contract_fn_sig::FnSig_type_param_at(sig, i)
+        let bound_ty = lookup_bound_type_var(var_names, var_types, clone(param_name))
+        if contract_type_access::TypeInfo_tag(bound_ty) == commands::TY_UNKNOWN() {
+            return unknown
+        }
+        push(param_names, param_name)
+        push(resolved, bound_ty)
+        i = i + 1
+    }
+    let mangled = mono::record_mono_instance(env, clone(fn_name), resolved)
+    let return_ty = instantiate::instantiate_type(
+        contract_fn_sig::FnSig_return_type(sig),
+        param_names,
+        resolved
+    )
+    mono::record_mono_return_type(env, clone(mangled), return_ty)
+    mono::record_mono_call_site(env, span, fn_name, mangled)
+    return_ty
+}
+
+fn lookup_bound_type_var(names: Vec<String>, types: Vec<TypeInfo>, name: String) -> TypeInfo {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return get_unchecked(types, i)
+        }
+        i = i + 1
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
 }
 
 // A generic `for` source must declare the conversion or iterator protocol

@@ -464,6 +464,7 @@ run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_generic_call.ark
 run:generics_v1/nested_generics.ark
 run:generics_v1/nested_option.ark
+run:generics_v1/parametric_trait_impl.ark
 run:generics_v1/test_enum_return.ark
 run:generics_v1/test_parse_gc.ark
 run:generics_v1/test_parse_i32.ark

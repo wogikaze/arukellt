@@ -92,6 +92,7 @@ fn register_trait_impl_entry(
     let mut i = 0
     while i < count {
         let existing = get_unchecked(env.trait_impls, i)
+        let existing_self = contract_trait_impl::TraitImplInfo_self_ty(existing)
         if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(existing),
             clone(trait_name)
@@ -99,7 +100,7 @@ fn register_trait_impl_entry(
             contract_trait_impl_record::trait_impl_info_trait_args(existing),
             trait_args
         ) && same_type(
-            contract_trait_impl::TraitImplInfo_self_ty(existing),
+            clone(existing_self),
             self_ty
         ) {
             let shown = if len(display_self_ty) > 0 {
@@ -112,6 +113,32 @@ fn register_trait_impl_entry(
                 codes::DIAG_TYPE_TRAIT_CONFLICT(),
                 concat(
                     String_from("overlapping trait impl: duplicate impl of "),
+                    concat(clone(trait_name), concat(" for ", shown))
+                )
+            )
+            return
+        }
+        // ADR-078: a parametric impl matches every instantiation of its self
+        // constructor, so it conflicts with any other impl that shares the
+        // (trait, constructor head) key — concrete or parametric.
+        if names::same_type_name(
+            contract_trait_impl::TraitImplInfo_trait_name(existing),
+            clone(trait_name)
+        ) && (type_contains_var(existing_self) || type_contains_var(self_ty)) &&
+        names::same_type_name(
+            contract_type_access::TypeInfo_name(existing_self),
+            contract_type_access::TypeInfo_name(self_ty)
+        ) {
+            let shown = if len(display_self_ty) > 0 {
+                clone(display_self_ty)
+            } else {
+                names::type_display_name(self_ty)
+            }
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_TRAIT_CONFLICT(),
+                concat(
+                    String_from("overlapping trait impl: parametric impl conflicts on "),
                     concat(clone(trait_name), concat(" for ", shown))
                 )
             )
@@ -147,17 +174,25 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     if !validate_trait_arity(env, clone(trait_name), len(trait_args)) {
         return
     }
-    let is_blanket = type_contains_var(trait_ref) || type_contains_var(self_ty)
-    if is_blanket && !is_compiler_owned_blanket(clone(trait_name), self_ty) {
-        report_trait_error(
-            env,
-            codes::DIAG_TYPE_TRAIT_BLANKET(),
-            concat(
-                String_from("blanket trait impl is not allowed for user code: "),
-                clone(trait_name)
+    let contains_var = type_contains_var(trait_ref) || type_contains_var(self_ty)
+    let mut is_parametric = false
+    if contains_var && !is_compiler_owned_blanket(clone(trait_name), self_ty) {
+        // ADR-078: a var-carrying impl is legal only as a parametric impl —
+        // the self type must be a nominal constructor application and every
+        // trait-reference variable must also appear in that self type. Bare
+        // type-variable self types stay rejected as blanket impls.
+        if !is_legal_parametric_impl(trait_ref, self_ty) {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_TRAIT_BLANKET(),
+                concat(
+                    String_from("blanket trait impl is not allowed for user code: "),
+                    clone(trait_name)
+                )
             )
-        )
-        return
+            return
+        }
+        is_parametric = true
     }
     register_trait_impl_entry(
         env,
@@ -166,7 +201,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
         self_ty,
         ast_access::node_text(self_node)
     )
-    if !is_blanket {
+    if !contains_var || is_parametric {
         register_impl_associated_types(
             env,
             clone(trait_name),
@@ -482,6 +517,45 @@ fn type_contains_var(ty: TypeInfo) -> bool {
         i = i + 1
     }
     false
+}
+
+// ADR-078: a var-carrying impl is a legal parametric impl when its self type
+// is a nominal constructor application (not a bare type variable) and every
+// type variable in the trait reference also appears in the self type — an
+// impl parameter that never reaches the self type is unconstrained.
+fn is_legal_parametric_impl(trait_ref: TypeInfo, self_ty: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(self_ty) == commands::TY_TYPE_VAR() {
+        return false
+    }
+    let self_vars = Vec::new<String>()
+    collect_type_var_names(self_ty, self_vars)
+    let trait_vars = Vec::new<String>()
+    collect_type_var_names(trait_ref, trait_vars)
+    let count = len(trait_vars)
+    let mut i = 0
+    while i < count {
+        if !string_vec_contains(self_vars, get_unchecked(trait_vars, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn collect_type_var_names(ty: TypeInfo, out: Vec<String>) {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        if !string_vec_contains(out, clone(name)) {
+            push(out, name)
+        }
+        return
+    }
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        collect_type_var_names(contract_type_access::TypeInfo_type_arg_at(ty, i), out)
+        i = i + 1
+    }
 }
 
 fn same_type(a: TypeInfo, b: TypeInfo) -> bool {

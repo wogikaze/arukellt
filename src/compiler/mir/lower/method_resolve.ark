@@ -147,6 +147,23 @@ fn mir_inst_owner_name(type_name: String) -> String {
     concat(clone(base), concat(String_from("_"), suffix))
 }
 
+// Bare owner spelling for a generic local type: "WrapIter<i32>" -> "WrapIter".
+// Parametric impls (`impl Iterator for WrapIter<T>`) register methods under
+// the bare constructor owner, so method lookup falls back here when the
+// per-instantiation owner has no impl.
+fn mir_bare_owner_name(type_name: String) -> String {
+    let normalized = mir_normalize_type_name(clone(type_name))
+    let n = len(normalized)
+    let mut i = 0
+    while i < n {
+        if byte_at(clone(normalized), i) == 60 {
+            return substring(normalized, 0, i)
+        }
+        i = i + 1
+    }
+    normalized
+}
+
 // Underscore-joined owner keys for a comma-separated generic argument list,
 // or "" when any argument is a type parameter or otherwise unkeyable. An
 // unkeyable argument makes the whole impl generic, so its methods register

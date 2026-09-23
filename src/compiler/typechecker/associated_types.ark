@@ -7,6 +7,7 @@ use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_type_param_bounds
+use typechecker::instantiate
 use typechecker::trait_method_record
 use typechecker::types
 use typechecker::names
@@ -368,7 +369,96 @@ fn lookup_associated_type(
         }
         i = i + 1
     }
+    // Parametric impls register associated types under a var-carrying self
+    // pattern. Match the concrete receiver against the pattern, then
+    // instantiate the declared value type with the bound arguments.
+    let mut p = 0
+    while p < count {
+        let entry = get_unchecked(env.associated_types, p)
+        let pattern = contract_associated_type::trait_associated_type_info_self_ty(entry)
+        if names::same_type_name(
+            contract_associated_type::trait_associated_type_info_trait_name(entry),
+            clone(trait_name)
+        ) && eq(
+            contract_associated_type::trait_associated_type_info_name(entry),
+            clone(assoc_name)
+        ) && type_contains_var(pattern) {
+            let var_names = Vec::new<String>()
+            let var_types = Vec::new<TypeInfo>()
+            if match_pattern_collect_vars(pattern, receiver, var_names, var_types) {
+                return instantiate::instantiate_type(
+                    contract_associated_type::trait_associated_type_info_value_ty(entry),
+                    var_names,
+                    var_types
+                )
+            }
+        }
+        p = p + 1
+    }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn type_contains_var(ty: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        return true
+    }
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        if type_contains_var(contract_type_access::TypeInfo_type_arg_at(ty, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn match_pattern_collect_vars(
+    pattern: TypeInfo,
+    actual: TypeInfo,
+    names: Vec<String>,
+    types: Vec<TypeInfo>
+) -> bool {
+    if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
+        let var_name = contract_type_access::TypeInfo_name(pattern)
+        let bound_count = len(names)
+        let mut i = 0
+        while i < bound_count {
+            if eq(get_unchecked(names, i), clone(var_name)) {
+                return same_type(get_unchecked(types, i), actual)
+            }
+            i = i + 1
+        }
+        push(names, var_name)
+        push(types, actual)
+        return true
+    }
+    if !associated_type_tags_match(
+        contract_type_access::TypeInfo_tag(pattern),
+        contract_type_access::TypeInfo_tag(actual)
+    ) || !names::same_type_name(
+        contract_type_access::TypeInfo_name(pattern),
+        contract_type_access::TypeInfo_name(actual)
+    ) {
+        return false
+    }
+    let pattern_count = contract_type_access::TypeInfo_type_arg_count(pattern)
+    if pattern_count != contract_type_access::TypeInfo_type_arg_count(actual) {
+        return false
+    }
+    let mut a = 0
+    while a < pattern_count {
+        if !match_pattern_collect_vars(
+            contract_type_access::TypeInfo_type_arg_at(pattern, a),
+            contract_type_access::TypeInfo_type_arg_at(actual, a),
+            names,
+            types
+        ) {
+            return false
+        }
+        a = a + 1
+    }
+    true
 }
 
 fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
