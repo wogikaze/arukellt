@@ -10,6 +10,7 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
 use mir::lower::ctx_types
+use mir::lower::params_fn
 use mir::local_factory
 use mir::module_spine
 use mir::spine_lookup
@@ -53,7 +54,10 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
             } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
                 pvt = value_types::VT_GC_REF()
                 sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-            } else {
+            } else if !params_fn::mir_param_type_is_fnref(clone(local_type_name)) {
+                // fnref-family names (fnref/fnref2/fnsig:/fn() keep the
+                // callback ABI: the ':' inside fnsig: is a signature
+                // separator, not a module qualifier (#860).
                 let bare = mir_method_strip_module_prefix(clone(local_type_name))
                 let named = mir_method_resolve_named_user_type(clone(bare))
                 if len(named) > 0 {
@@ -176,6 +180,11 @@ fn mir_apply_param_mvt_override(ctx: LowerCtx, param_local: i32) {
         return
     }
     let current = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
+    // fnref-family params keep the callback ABI; a container/struct alias
+    // from the legacy spine must not rewrite fnsig: locals to GC refs (#860).
+    if params_fn::mir_param_type_is_fnref(clone(current)) {
+        return
+    }
     if type_info_to_mir_value::concrete_type_outranks_mvt_alias(clone(current), clone(alias)) {
         return
     }

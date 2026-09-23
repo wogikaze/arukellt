@@ -90,6 +90,85 @@ fn funcref_return_sig_for_target(target: String, memory64: bool) -> String {
     String_from("i32")
 }
 
+// `fnsig:<param>;<return>` -> `fnsig:<tokP>;<tokR>` where each segment is
+// rewritten to a func-sig token (gcrefN/gcsrefN/scalars). Returns empty
+// when a segment cannot be represented so callers can fall back to the
+// legacy fnref slot (#860).
+fn fnsig_param_sig_from_mir(type_name: String, target: String, mir: MirModule) -> String {
+    let rest = substring(clone(type_name), 6, len(type_name))
+    let sep = index_of(clone(rest), String_from(";"))
+    if sep < 0 {
+        return String_new()
+    }
+    let param_seg = substring(clone(rest), 0, sep)
+    let ret_seg = substring(clone(rest), sep + 1, len(rest))
+    if contains(clone(ret_seg), String_from(";")) {
+        return String_new()
+    }
+    let param_tok = fnsig_segment_sig_for_mir(param_seg, clone(target), mir)
+    let ret_tok = fnsig_segment_sig_for_mir(ret_seg, clone(target), mir)
+    if len(param_tok) == 0 || len(ret_tok) == 0 {
+        return String_new()
+    }
+    concat(
+        String_from("fnsig:"),
+        concat(param_tok, concat(String_from(";"), ret_tok))
+    )
+}
+
+// One fnsig segment -> func-sig token. Mirrors the field-suffix mapping
+// used for GC struct layouts: scalars stay scalar (emit widens i32 under
+// Memory64), String is the byte-array gcref0, containers use their fixed
+// vec/map offsets, Option/Result/enum land on the open-enum box, and
+// registered user structs become gcsref<slot>.
+fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> String {
+    if len(seg) == 0 || starts_with(clone(seg), String_from("fnsig:")) {
+        return String_new()
+    }
+    if eq(clone(seg), String_from("i32")) || eq(clone(seg), String_from("I32")) ||
+    eq(clone(seg), String_from("bool")) || eq(clone(seg), String_from("Bool")) ||
+    eq(clone(seg), String_from("char")) || eq(clone(seg), String_from("u8")) ||
+    eq(clone(seg), String_from("i8")) || eq(clone(seg), String_from("u16")) ||
+    eq(clone(seg), String_from("i16")) || eq(clone(seg), String_from("u32")) {
+        return String_from("i32")
+    }
+    if eq(clone(seg), String_from("i64")) || eq(clone(seg), String_from("I64")) ||
+    eq(clone(seg), String_from("u64")) {
+        return String_from("i64")
+    }
+    if eq(clone(seg), String_from("f64")) || eq(clone(seg), String_from("F64")) {
+        return String_from("f64")
+    }
+    if eq(clone(seg), String_from("f32")) || eq(clone(seg), String_from("F32")) {
+        return String_from("f32")
+    }
+    if eq(clone(seg), String_from("v128")) || eq(clone(seg), String_from("V128")) {
+        return String_from("v128")
+    }
+    if eq(clone(seg), String_from("fnref")) || starts_with(clone(seg), String_from("fnref")) {
+        return String_from("fnref")
+    }
+    if eq(clone(seg), String_from("String")) || eq(clone(seg), String_from("string")) {
+        return sections_types_gc::gc_string_type_sig()
+    }
+    let coll = sections_types_gc_plan::collection_type_sig(clone(seg), clone(target))
+    if len(coll) > 0 {
+        return coll
+    }
+    if starts_with(clone(seg), String_from("option:")) ||
+    starts_with(clone(seg), String_from("result:")) ||
+    starts_with(clone(seg), String_from("enum:")) ||
+    starts_with(clone(seg), String_from("Option")) ||
+    starts_with(clone(seg), String_from("Result")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(seg))
+    if slot >= 0 {
+        return concat(String_from("gcsref"), i32_to_string(slot))
+    }
+    String_new()
+}
+
 fn build_function_type_sig(uf: MirFunction, target: String, wasi_version: String, memory64: bool, mir: MirModule) -> String {
     let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
@@ -825,6 +904,21 @@ fn build_param_type_sig(
     mir: MirModule
 ) -> String {
     let p_type_name = local_access::MirLocal_type_name(p)
+    // `fnsig:<param>;<return>` callback params embed a concrete signature.
+    // Segments resolve to func-sig tokens here (mir is available) so the
+    // emitted type section can reference the exact callback type (#860).
+    // This must run before the generic funcref branch: fnsig locals also
+    // carry VT_FUNCREF and would otherwise collapse to the i32 ABI slot.
+    if starts_with(clone(p_type_name), String_from("fnsig:")) {
+        if !emit_target::is_gc_target(clone(target)) {
+            return String_from("i32")
+        }
+        let fnsig_sig = fnsig_param_sig_from_mir(clone(p_type_name), clone(target), mir)
+        if len(fnsig_sig) > 0 {
+            return fnsig_sig
+        }
+        return funcref_param_sig_for_target(String_from("fnref"), clone(target), memory64)
+    }
     // Typed funcref params encode as atomic segments (no underscores) so
     // type_sig_param_segments keeps them intact (#831). Binary fold callbacks
     // use fnref2 → WASI i32_i32_1i32; unary map/filter keep fnref (#807).
@@ -834,6 +928,9 @@ fn build_param_type_sig(
     starts_with(clone(p_type_name), String_from("fn(")) {
         return funcref_param_sig_for_target(clone(p_type_name), clone(target), memory64)
     }
+    // `fnsig:<param>;<return>` callback params embed a concrete signature.
+    // Segments resolve to func-sig tokens here (mir is available) so the
+    // emitted type section can reference the exact callback type (#860).
     // String byte-buffer helpers are always Vec<i32>; a mis-resolved vec:T
     // (structref layout) makes push store i64 chars into structref slots.
     if emit_target::is_gc_target(clone(target)) && pi == 0 && is_string_byte_vec_param_fn(clone(uf.name)) {

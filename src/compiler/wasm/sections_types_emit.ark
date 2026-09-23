@@ -155,6 +155,16 @@ fn emit_struct_field_type(
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
         return
     }
+    // `fnsig:<tokP>;<tokR>` fields reference the exact callback func type
+    // (e.g. fn(String) -> i32 = gcref0_1i64 under Memory64) instead of the
+    // legacy i32-ABI funcref slot (#860/#691).
+    if starts_with(clone(ft), String_from("fnsig:")) {
+        let type_idx = find_fnsig_type_idx(canon_types, clone(ft), memory64)
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(type_sec, type_idx)
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        return
+    }
     if eq(clone(ft), String_from("fnref")) {
         // Enum/struct storage uses nullable funcref so struct.new_default works
         // (non-null `(ref $t)` is not defaultable). call_ref accepts null refs.
@@ -325,6 +335,12 @@ fn emit_sig_val_type(
         writer_core::emit_leb128_s(type_sec, type_idx)
         return
     }
+    if starts_with(clone(sig), String_from("fnsig:")) {
+        let type_idx = find_fnsig_type_idx(canon_types, clone(sig), memory64)
+        writer_core::emit_byte(type_sec, constants::WASM_REF())
+        writer_core::emit_leb128_s(type_sec, type_idx)
+        return
+    }
     if eq(clone(sig), String_from("fnref2")) {
         let type_idx = if memory64 {
             find_binary_callback_type_idx_memory64(canon_types)
@@ -380,6 +396,86 @@ fn find_typed_callback_type_idx(canon_types: Vec<String>, type_name: String, mem
     // The callback signatures are reserved by build_type_sigs. Keep a valid
     // fallback for old cached plans that predate the reservation.
     find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
+}
+
+// Resolve a `fnsig:<tokP>;<tokR>` segment to the canon type index of the
+// matching func signature `<tokP>_1<tokR>`. Scalar i32 segments widen to
+// i64 under Memory64 — the same rule build_function_type_sig applies to
+// the callback function itself, so the stored ref.func type matches the
+// field/param slot (#860). Falls back to the unary i32-ABI callback when
+// the signature is not representable in this module.
+fn find_fnsig_type_idx(canon_types: Vec<String>, type_name: String, memory64: bool) -> i32 {
+    let rest = substring(clone(type_name), 6, len(type_name))
+    let sep = index_of(clone(rest), String_from(";"))
+    if sep < 0 {
+        return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
+    }
+    let param_tok = fnsig_emit_segment_token(substring(clone(rest), 0, sep), memory64)
+    let ret_seg = substring(clone(rest), sep + 1, len(rest))
+    if contains(clone(ret_seg), String_from(";")) {
+        return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
+    }
+    let ret_tok = fnsig_emit_segment_token(ret_seg, memory64)
+    if len(param_tok) == 0 || len(ret_tok) == 0 {
+        return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
+    }
+    let wanted = concat(param_tok, concat(String_from("_1"), ret_tok))
+    let n = len(canon_types)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(canon_types, i), clone(wanted)) {
+            return i
+        }
+        i = i + 1
+    }
+    find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
+}
+
+// One fnsig emit-segment -> func-sig token. Token segments produced at
+// sig-build time (gcrefN/gcsrefN/fnref) pass through; plain names map to
+// the same GC offsets used by build_param_type_sig so either dialect
+// resolves (#860).
+fn fnsig_emit_segment_token(seg: String, memory64: bool) -> String {
+    if len(seg) == 0 || starts_with(clone(seg), String_from("fnsig:")) {
+        return String_new()
+    }
+    if eq(clone(seg), String_from("i32")) || eq(clone(seg), String_from("I32")) ||
+    eq(clone(seg), String_from("bool")) || eq(clone(seg), String_from("Bool")) ||
+    eq(clone(seg), String_from("char")) || eq(clone(seg), String_from("u8")) ||
+    eq(clone(seg), String_from("i8")) || eq(clone(seg), String_from("u16")) ||
+    eq(clone(seg), String_from("i16")) || eq(clone(seg), String_from("u32")) {
+        if memory64 {
+            return String_from("i64")
+        }
+        return String_from("i32")
+    }
+    if eq(clone(seg), String_from("i64")) || eq(clone(seg), String_from("I64")) ||
+    eq(clone(seg), String_from("u64")) {
+        return String_from("i64")
+    }
+    if eq(clone(seg), String_from("f64")) || eq(clone(seg), String_from("F64")) {
+        return String_from("f64")
+    }
+    if eq(clone(seg), String_from("f32")) || eq(clone(seg), String_from("F32")) {
+        return String_from("f32")
+    }
+    if eq(clone(seg), String_from("v128")) || eq(clone(seg), String_from("V128")) {
+        return String_from("v128")
+    }
+    if eq(clone(seg), String_from("String")) || eq(clone(seg), String_from("string")) {
+        return String_from("gcref0")
+    }
+    if starts_with(clone(seg), String_from("gcref")) ||
+    starts_with(clone(seg), String_from("gcsref")) ||
+    starts_with(clone(seg), String_from("fnref")) ||
+    starts_with(clone(seg), String_from("vec:")) ||
+    starts_with(clone(seg), String_from("hashmap:")) ||
+    starts_with(clone(seg), String_from("option:")) ||
+    starts_with(clone(seg), String_from("result:")) ||
+    starts_with(clone(seg), String_from("enum:")) {
+        return seg
+    }
+    String_new()
 }
 
 // Concrete `(ref null <type_idx>)` index for a signature segment, or -1 when

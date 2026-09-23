@@ -239,8 +239,10 @@ fn struct_lit_canonical_type_spelling(name: String) -> String {
     name
 }
 
-// Split a canonical type spelling on ':' separators that sit outside any
-// <...> / (...) group (vec:Pair<T> -> [vec, Pair<T>]).
+// Split a canonical type spelling on ':' / ';' separators that sit outside
+// any <...> / (...) group (vec:Pair<T> -> [vec, Pair<T>]). ';' is the
+// fnsig: param/return separator: fnsig:T;U must align segment-wise with
+// fnsig:String;i32 so both type variables bind (#860).
 fn struct_lit_split_colon_top(name: String) -> Vec<String> {
     let result = Vec::new<String>()
     let n = len(name)
@@ -256,7 +258,7 @@ fn struct_lit_split_colon_top(name: String) -> Vec<String> {
         if !at_end && (ch == 62 || ch == 41) {
             depth = depth - 1
         }
-        if (at_end || ch == 58) && depth == 0 {
+        if (at_end || ch == 58 || ch == 59) && depth == 0 {
             push(result, substring(clone(name), seg_start, i))
             seg_start = i + 1
         }

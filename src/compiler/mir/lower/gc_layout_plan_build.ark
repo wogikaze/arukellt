@@ -14,6 +14,7 @@ use wasm::emit_target
 fn gc_layout_plan_name_is_fn(name: String) -> bool {
     eq(clone(name), "fn") ||
     eq(clone(name), "fnref") ||
+    starts_with(clone(name), "fnsig:") ||
     starts_with(name, "fn(")
 }
 

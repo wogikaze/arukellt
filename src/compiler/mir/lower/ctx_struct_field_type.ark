@@ -234,6 +234,10 @@ fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32
     if eq(clone(ft), "fnref") || starts_with(clone(ft), String_from("fnref")) || eq(clone(ft), "fn") || starts_with(clone(ft), String_from("fn(")) {
         return false
     }
+    // `fnsig:` callback fields are typed funcrefs, not GC data refs (#860).
+    if starts_with(clone(ft), String_from("fnsig:")) {
+        return false
+    }
     // Vec/HashMap/HashSet container fields are GC refs (not i32 handles).
     if field_type_is_container_ref(clone(ft)) {
         return true

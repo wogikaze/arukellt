@@ -263,6 +263,11 @@ fn typed_string_callback_type_idx_from_struct_field(
             }
             return callback_base + 1
         }
+        // fnsig field sigs carry func-sig tokens; String params reuse the
+        // reserved typed callback range (#860).
+        if starts_with(clone(field_sig), String_from("fnsig:")) {
+            return fnsig_string_callback_type_idx(ctx, clone(field_sig), callback_base)
+        }
         return 0 - 1
     }
     0 - 1
@@ -310,6 +315,12 @@ fn typed_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
         return 0 - 1
     }
     let callback_base = base + sections_types_gc::gc_type_sig_count()
+    // `fnsig:<param>;<return>` names carry the concrete signature. String
+    // params map onto the reserved typed-callback slots; other signatures
+    // resolve through the MirFunction search below (#860).
+    if starts_with(clone(type_name), String_from("fnsig:")) {
+        return fnsig_string_callback_type_idx(ctx, clone(type_name), callback_base)
+    }
     if eq(clone(type_name), String_from("fnrefss")) {
         return callback_base
     }
@@ -320,6 +331,129 @@ fn typed_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
         return callback_base + 1
     }
     0 - 1
+}
+
+// Callback type index for `fnsig:<param>;<return>` spellings whose param
+// is the String byte-array (gcref0). Return segments map to the reserved
+// typed-callback slots: ref returns use gcref0_1gcref0, i64 returns
+// gcref0_1i64, and i32-family returns gcref0_1i32 / gcref0_1i64 by memory
+// width — the same widening build_function_type_sig applies (#860).
+// Non-String params return -1 so callers fall through to the value-type
+// or MirFunction signature search.
+fn fnsig_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String, callback_base: i32) -> i32 {
+    let rest = substring(clone(type_name), 6, len(type_name))
+    let sep = index_of(clone(rest), String_from(";"))
+    if sep < 0 {
+        return 0 - 1
+    }
+    let param_seg = substring(clone(rest), 0, sep)
+    if !fnsig_segment_is_string(clone(param_seg)) {
+        return 0 - 1
+    }
+    let ret_seg = substring(clone(rest), sep + 1, len(rest))
+    if contains(clone(ret_seg), String_from(";")) {
+        return 0 - 1
+    }
+    if fnsig_segment_is_string(clone(ret_seg)) {
+        return callback_base
+    }
+    if eq(clone(ret_seg), String_from("i64")) || eq(clone(ret_seg), String_from("u64")) {
+        return callback_base + 2
+    }
+    if ctx_record::SelfEmitCtx_memory64(ctx) {
+        return callback_base + 2
+    }
+    callback_base + 1
+}
+
+fn fnsig_segment_is_string(seg: String) -> bool {
+    eq(clone(seg), String_from("String")) ||
+    eq(clone(seg), String_from("string")) ||
+    eq(clone(seg), String_from("gcref0"))
+}
+
+// Local-declaration type index for `fnsig:<param>;<return>` locals. String
+// params reuse the typed-callback slots; other unary signatures find the
+// program function with the matching value-type signature so the stored
+// ref.func and the declared local agree on the func type (#860).
+fn resolve_fnsig_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
+    }
+    let base = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    if base >= 0 {
+        let callback_base = base + sections_types_gc::gc_type_sig_count()
+        let typed = fnsig_string_callback_type_idx(ctx, clone(type_name), callback_base)
+        if typed >= 0 {
+            return typed
+        }
+    }
+    let rest = substring(clone(type_name), 6, len(type_name))
+    let sep = index_of(clone(rest), String_from(";"))
+    if sep < 0 {
+        return 0 - 1
+    }
+    let param_vt = fnsig_segment_value_type(substring(clone(rest), 0, sep))
+    let ret_vt = fnsig_segment_value_type(substring(clone(rest), sep + 1, len(rest)))
+    if param_vt < 0 || ret_vt < 0 {
+        return 0 - 1
+    }
+    find_fnsig_fn_type_idx(ctx, param_vt, ret_vt)
+}
+
+fn fnsig_segment_value_type(seg: String) -> i32 {
+    if eq(clone(seg), String_from("i32")) || eq(clone(seg), String_from("I32")) ||
+    eq(clone(seg), String_from("bool")) || eq(clone(seg), String_from("Bool")) ||
+    eq(clone(seg), String_from("char")) || eq(clone(seg), String_from("u8")) ||
+    eq(clone(seg), String_from("i8")) || eq(clone(seg), String_from("u16")) ||
+    eq(clone(seg), String_from("i16")) || eq(clone(seg), String_from("u32")) {
+        return value_types::VT_I32()
+    }
+    if eq(clone(seg), String_from("i64")) || eq(clone(seg), String_from("I64")) ||
+    eq(clone(seg), String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(seg), String_from("f64")) || eq(clone(seg), String_from("F64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(seg), String_from("f32")) || eq(clone(seg), String_from("F32")) {
+        return value_types::VT_F32()
+    }
+    // String, containers, user structs, and enum payloads are all GC
+    // references at the value-type level.
+    value_types::VT_GC_REF()
+}
+
+// Find a program function whose unary signature matches (param_vt ->
+// ret_vt) and return its canon type index. Reference params accept either
+// ref flavour so `fnsig:VecIter;i32` finds `fn(VecIter) -> i32` (#860).
+fn find_fnsig_fn_type_idx(ctx: SelfEmitCtx, param_vt: i32, ret_vt: i32) -> i32 {
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
+    let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
+    let fn_count = len(functions)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        if function_param_view::MirFunction_param_count(f) == 1 && fi < len(fn_type_map) {
+            let p0 = function_param_view::MirFunction_param_val_type(f, 0)
+            let rt = effective_return_vt(f)
+            if fnsig_vt_matches(p0, param_vt) && fnsig_vt_matches(rt, ret_vt) {
+                return get_unchecked(fn_type_map, fi)
+            }
+        }
+        fi = fi + 1
+    }
+    0 - 1
+}
+
+fn fnsig_vt_matches(actual: i32, want: i32) -> bool {
+    if actual == want {
+        return true
+    }
+    if want == value_types::VT_GC_REF() || want == value_types::VT_REF() {
+        return actual == value_types::VT_GC_REF() || actual == value_types::VT_REF()
+    }
+    false
 }
 
 fn find_unary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {

@@ -159,6 +159,12 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     if len(type_name) == 0 {
         return concat(prefix, String_from("_i32"))
     }
+    // `fnsig:<param>;<return>` fields embed the concrete callback
+    // signature so emit_struct_field_type can pick the exact func type
+    // instead of the legacy i32-ABI funcref slot (#860/#691).
+    if starts_with(clone(type_name), String_from("fnsig:")) {
+        return concat(prefix, gc_struct_fnsig_suffix(ctx, clone(type_name)))
+    }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
     if len(scalar) > 0 {
         return concat(prefix, scalar)
@@ -180,6 +186,54 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
         return concat(prefix, concat(String_from("_gcsref"), i32_to_string(struct_slot)))
     }
     concat(prefix, String_from("_ref14"))
+}
+
+// Translate `fnsig:<param>;<return>` into a field suffix carrying func-sig
+// tokens (gcrefN/gcsrefN/scalars). Each segment reuses the ordinary field
+// suffix path so vec:/option:/struct names land on the same GC offsets as
+// non-callback fields. Only unary callbacks resolve today; anything else
+// falls back to the legacy `fnref` slot.
+fn gc_struct_fnsig_suffix(ctx: LowerCtx, type_name: String) -> String {
+    let rest = substring(clone(type_name), 6, len(type_name))
+    let sep = index_of(clone(rest), String_from(";"))
+    if sep < 0 {
+        return String_from("_fnref")
+    }
+    let param_seg = substring(clone(rest), 0, sep)
+    let ret_seg = substring(clone(rest), sep + 1, len(rest))
+    if contains(clone(ret_seg), String_from(";")) {
+        return String_from("_fnref")
+    }
+    let param_tok = gc_struct_fnsig_segment_token(ctx, param_seg)
+    let ret_tok = gc_struct_fnsig_segment_token(ctx, ret_seg)
+    if len(param_tok) == 0 || len(ret_tok) == 0 {
+        return String_from("_fnref")
+    }
+    concat(
+        String_from("_fnsig:"),
+        concat(param_tok, concat(String_from(";"), ret_tok))
+    )
+}
+
+// Map one fnsig segment to its func-sig token by routing it through the
+// ordinary field-suffix machinery and converting the ref-offset dialect
+// (refN) to the func-sig dialect (gcrefN).
+fn gc_struct_fnsig_segment_token(ctx: LowerCtx, seg: String) -> String {
+    if len(seg) == 0 || starts_with(clone(seg), String_from("fnsig:")) {
+        return String_new()
+    }
+    let suffixed = gc_struct_field_sig_for_type(ctx, clone(seg), 0)
+    if len(suffixed) <= 4 {
+        return String_new()
+    }
+    let suffix = substring(clone(suffixed), 4, len(suffixed))
+    if starts_with(clone(suffix), String_from("gcsref")) {
+        return suffix
+    }
+    if starts_with(clone(suffix), String_from("ref")) {
+        return concat(String_from("gc"), suffix)
+    }
+    suffix
 }
 fn gc_struct_field_type_is_container(type_name: String) -> bool {
     if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {

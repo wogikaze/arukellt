@@ -313,6 +313,7 @@ fn mir_inst_arg_key(seg: String) -> String {
     }
     if eq(clone(seg), String_from("fn")) ||
     starts_with(clone(seg), String_from("fn(")) ||
+    starts_with(clone(seg), String_from("fnsig:")) ||
     starts_with(clone(seg), String_from("fnref")) {
         return String_from("fnref")
     }

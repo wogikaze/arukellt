@@ -37,7 +37,11 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         starts_with(clone(local_type_name), String_from("Result_")) ||
         starts_with(clone(local_type_name), String_from("result:")) {
             pvt = value_types::VT_GC_REF()
-        } else {
+        } else if !mir_param_type_is_fnref(clone(local_type_name)) {
+            // fnref-family names (fnref/fnref2/fnsig:/fn() carry the callback
+            // ABI. The ':' inside fnsig: is a signature separator, not a
+            // module qualifier — stripping it here would rewrite the param
+            // as a named user struct (GC_REF) and lose the funcref (#860).
             // Qualified names like "parser::TomlValue" need the bare enum
             // name for layout lookup; without this, export shells keep VT_I32.
             let bare = mir_param_strip_module_prefix(clone(local_type_name))
@@ -142,6 +146,7 @@ fn mir_param_type_is_fnref(type_name: String) -> bool {
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
     starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fnsig:")) ||
     starts_with(clone(type_name), String_from("fn("))
 }
 

@@ -3293,7 +3293,58 @@ pub fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
             return concat(String_from("vec:"), concrete_elem)
         }
     }
+    if starts_with(clone(type_name), String_from("fnsig:")) {
+        let resolved_fnsig = ctx_resolve_fnsig_type_vars(ctx, clone(type_name))
+        if len(resolved_fnsig) > 0 {
+            return resolved_fnsig
+        }
+    }
     type_name
+}
+
+// `fnsig:<param>;<return>` spellings resolve segment by segment so a
+// generic `fn(T) -> U` field or parameter specializes alongside the
+// enclosing monomorphization (#860).
+fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
+    let rest = substring(clone(type_name), 6, len(type_name))
+    let mut out = String_from("fnsig:")
+    let mut seg_start = 0
+    let n = len(rest)
+    let mut i = 0
+    let mut changed = false
+    while i <= n {
+        if i == n || byte_at(clone(rest), i) == 59 {
+            let seg = substring(clone(rest), seg_start, i)
+            let resolved = ctx_resolve_fnsig_segment(ctx, clone(seg))
+            if !eq(clone(resolved), clone(seg)) {
+                changed = true
+            }
+            out = concat(out, resolved)
+            if i < n {
+                out = concat(out, String_from(";"))
+            }
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    if !changed {
+        return String_new()
+    }
+    out
+}
+
+fn ctx_resolve_fnsig_segment(ctx: LowerCtx, seg: String) -> String {
+    if len(seg) == 0 {
+        return seg
+    }
+    let direct = ctx_resolve_mono_type_param(ctx, clone(seg))
+    if len(direct) > 0 {
+        return direct
+    }
+    if contains(clone(seg), String_from(":")) || contains(clone(seg), String_from("<")) {
+        return ctx_resolve_mono_type_name(ctx, seg)
+    }
+    seg
 }
 
 // "Pair:T:U" -> "Pair<String,i32>" when every argument segment resolves to
@@ -3472,6 +3523,14 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
         push(result, ty_name)
         return result
     }
+    // fnsig:<param>;<return> locals carry the function's type variables
+    // in both segments: a "f: fn(T) -> U" parameter must contribute T and
+    // U to the ordinal pairing, otherwise the mono map leaves U unbound
+    // and the fallback ordinal guess picks the wrong concrete type (#860).
+    if starts_with(clone(ty_name), String_from("fnsig:")) {
+        ctx_push_fnsig_var_segments(clone(ty_name), result)
+        return result
+    }
     // Canonical wrapper spellings (vec:T, option:T, result:T:E) carry the
     // function's type variables in their segments: a Vec<T> parameter keeps
     // the vec:T local spelling, so it must contribute T to the ordinal
@@ -3611,6 +3670,24 @@ fn ctx_push_var_segment(segment: String, is_arg: bool, result: Vec<String>) {
     let mut i = 0
     while i < len(nested) {
         push(result, get_unchecked(nested, i))
+        i = i + 1
+    }
+}
+
+// Push the ;-separated segments of a fnsig: local spelling. Every
+// segment is a type position (unlike colon wrappers whose first segment
+// is the wrapper name), so each one contributes its variables.
+fn ctx_push_fnsig_var_segments(ty_name: String, result: Vec<String>) {
+    let rest = substring(clone(ty_name), 6, len(ty_name))
+    let mut seg_start = 0
+    let n = len(rest)
+    let mut i = 0
+    while i <= n {
+        if i == n || byte_at(clone(rest), i) == 59 {
+            let seg = substring(clone(rest), seg_start, i)
+            ctx_push_var_segment(clone(seg), true, result)
+            seg_start = i + 1
+        }
         i = i + 1
     }
 }

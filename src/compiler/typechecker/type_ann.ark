@@ -17,6 +17,9 @@ fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
         }
         return tuple_ty
     }
+    if ast_access::node_kind_is(ann, kinds::NK_TYPE_FN()) {
+        return resolve_type_fn_node(ann)
+    }
     if ast_type_predicates::node_is_type_generic(ann) {
         let base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
         let child_count = ast_access::node_child_count(ann)
@@ -30,4 +33,27 @@ fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
         return base_ty
     }
     type_names::resolve_type_name(ast_access::node_text(ann))
+}
+
+// `fn(A, B) -> R` resolves to a TY_FN whose type args are the parameter
+// types followed by the return type in the last position — the same layout
+// infer_closure_expr produces for closure literals. A missing return
+// annotation contributes TY_UNKNOWN so the arg count stays uniform and
+// unification does not fail on arity alone.
+fn resolve_type_fn_node(ann: AstNode) -> TypeInfo {
+    let fn_ty = type_names::type_info_simple(commands::TY_FN())
+    let child_count = ast_access::node_child_count(ann)
+    let mut k = 0
+    while k < child_count {
+        let param = ast_access::node_child_at(ann, k)
+        contract_type_mutation::TypeInfo_push_type_arg(fn_ty, resolve_type_ann_node(param))
+        k = k + 1
+    }
+    if ast_access::node_type_ann_count(ann) > 0 {
+        let ret = ast_access::node_type_ann_at(ann, 0)
+        contract_type_mutation::TypeInfo_push_type_arg(fn_ty, resolve_type_ann_node(ret))
+    } else {
+        contract_type_mutation::TypeInfo_push_type_arg(fn_ty, type_names::type_info_simple(commands::TY_UNKNOWN()))
+    }
+    fn_ty
 }

@@ -1,7 +1,12 @@
 use typechecker::ast_access
+use typechecker::ast_expr_predicates
 use typechecker::associated_types
 use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::contract_type_mutation
 use typechecker::instantiate
+use typechecker::sigs
+use typechecker::type_names
 use typechecker::unify
 
 fn constrain_generic_fn_args(
@@ -31,11 +36,45 @@ fn constrain_generic_fn_args(
     let mut a = 0
     while a < arg_count && a < param_count {
         let arg_node = ast_access::node_child_at(node, a + 1)
-        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        let mut arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        // A bare function name passed as a callback argument infers
+        // TY_UNKNOWN because top-level functions are not scope bindings.
+        // Recover the declared signature so `fn(T) -> U` parameters bind
+        // the item type variables from the callee's own signature (#860).
+        if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() &&
+        ast_expr_predicates::node_is_ident(arg_node) {
+            let fn_ty = fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(arg_node))
+            if contract_type_access::TypeInfo_tag(fn_ty) == commands::TY_FN() {
+                arg_ty = fn_ty
+            }
+        }
         let param_ty = contract_fn_sig::FnSig_param_at(sig, a)
         let inst_param = instantiate::instantiate_type(param_ty, var_names, var_types)
         let projected_param = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_param)
         unify::unify(infer_env, projected_param, arg_ty)
         a = a + 1
     }
+}
+
+// Build the TY_FN value type for a named top-level function: parameter
+// types followed by the return type in the last position, matching the
+// closure-literal convention. Returns TY_UNKNOWN when `name` is not a
+// declared function (e.g. an unresolved path or a non-function ident).
+fn fn_value_type_from_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> TypeInfo {
+    if len(name) == 0 {
+        return type_names::type_info_simple(commands::TY_UNKNOWN())
+    }
+    let sig = sigs::lookup_fn_sig(env, fn_sigs, name)
+    if !contract_fn_sig::FnSig_has_name(sig) {
+        return type_names::type_info_simple(commands::TY_UNKNOWN())
+    }
+    let fn_ty = type_names::type_info_simple(commands::TY_FN())
+    let pc = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < pc {
+        contract_type_mutation::TypeInfo_push_type_arg(fn_ty, contract_fn_sig::FnSig_param_at(sig, i))
+        i = i + 1
+    }
+    contract_type_mutation::TypeInfo_push_type_arg(fn_ty, contract_fn_sig::FnSig_return_type(sig))
+    fn_ty
 }

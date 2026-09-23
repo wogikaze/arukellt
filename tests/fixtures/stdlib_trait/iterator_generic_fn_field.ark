@@ -1,0 +1,61 @@
+use std::core::iter
+use std::host::stdio
+
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn strlen(s: String) -> i32 {
+    s.len()
+}
+
+// Generic iterator adapter whose callback field is `fn(T) -> U`. The
+// struct field, the gen_map parameter, and the call through self.f must
+// all keep the concrete per-instance signature on both backends (#860).
+struct GenMap<T, U> {
+    vec: Vec<T>,
+    index: i32,
+    length: i32,
+    f: fn(T) -> U,
+}
+
+fn gen_map<T, U>(v: Vec<T>, f: fn(T) -> U) -> GenMap<T, U> {
+    GenMap { vec: v, index: 0, length: len(v), f: f }
+}
+
+impl Iterator for GenMap<T, U> {
+    type Item = U
+    fn next(self: GenMap<T, U>) -> Option<U> {
+        if self.index < self.length {
+            let raw: T = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Option::Some((self.f)(raw))
+        } else {
+            Option::None
+        }
+    }
+}
+
+fn main() -> i32 {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(3)
+    v.push(4)
+    let it: GenMap<i32, i32> = gen_map(v, double)
+    let mut total: i32 = 0
+    while true {
+        match it.next() {
+            Option::Some(x) => total = total + x,
+            Option::None => { break },
+        }
+    }
+    stdio::println(total.to_string())
+    let s: Vec<String> = Vec::new<String>()
+    s.push("abc")
+    s.push("de")
+    let it2: GenMap<String, i32> = gen_map(s, strlen)
+    match it2.next() {
+        Option::Some(x) => stdio::println(x.to_string()),
+        Option::None => stdio::println("none"),
+    }
+    0
+}

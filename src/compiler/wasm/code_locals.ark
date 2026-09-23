@@ -67,6 +67,15 @@ fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
             value_types::VT_GC_REF()
         )
     }
+    // `fnsig:<param>;<return>` locals resolve through the same callback
+    // slots as their bucket equivalents when the signature is covered,
+    // else through the MirFunction signature search (#860).
+    if starts_with(clone(type_name), String_from("fnsig:")) {
+        let fnsig_idx = call_indirect::resolve_fnsig_local_type_idx(ctx, clone(type_name))
+        if fnsig_idx >= 0 {
+            return fnsig_idx
+        }
+    }
     // Binary fold callbacks: fn(i32, i32) -> i32 → type index for (i32,i32)->i32.
     if contains(clone(type_name), String_from(",")) || starts_with(clone(type_name), String_from("fnref2")) {
         return call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 2, value_types::VT_I32(), value_types::VT_I32())
@@ -280,6 +289,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
     starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fnsig:")) ||
     starts_with(clone(type_name), String_from("fn(")) {
         let type_idx = resolve_fnref_local_type_idx_for_local(ctx, f, local_idx, clone(type_name))
         writer_core::emit_byte(body, constants::WASM_REF())
