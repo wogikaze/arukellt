@@ -1,0 +1,44 @@
+use std::core::iter
+use std::host::stdio
+
+// A hand-written Iterator: desugared `for` must behave identically to
+// driving `next()` manually.
+struct Countdown {
+    left: i32,
+}
+
+impl Iterator for Countdown {
+    type Item = i32
+    fn next(self: Countdown) -> Option<i32> {
+        if self.left <= 0 {
+            return Option::None
+        }
+        self.left = self.left - 1
+        Option::Some(self.left)
+    }
+}
+
+fn main() -> i32 {
+    let mut manual: Vec<i32> = Vec::new<i32>()
+    let it: Countdown = Countdown { left: 4 }
+    while true {
+        match it.next() {
+            Some(x) => push(manual, x),
+            None => { break },
+        }
+    }
+    let mut desugared: Vec<i32> = Vec::new<i32>()
+    let it2: Countdown = Countdown { left: 4 }
+    for x in it2 {
+        push(desugared, x)
+    }
+    stdio::println(len(manual).to_string())
+    stdio::println(len(desugared).to_string())
+    let mut i: i32 = 0
+    while i < len(manual) {
+        stdio::println(get_unchecked(manual, i).to_string())
+        stdio::println(get_unchecked(desugared, i).to_string())
+        i = i + 1
+    }
+    0
+}

@@ -1749,6 +1749,7 @@ run:stdlib_trait/iterator_chain_both_empty.ark
 run:stdlib_trait/iterator_chain_empty_first.ark
 run:stdlib_trait/iterator_chain_empty_second.ark
 run:stdlib_trait/iterator_count_basic.ark
+run:stdlib_trait/iterator_desugar_equiv.ark
 run:stdlib_trait/iterator_enumerate_basic.ark
 run:stdlib_trait/iterator_filter_all_pass.ark
 run:stdlib_trait/iterator_filter_basic.ark
@@ -2324,6 +2325,7 @@ t3-compile:stdlib_trait/hash_trait_nested.ark
 t3-compile:stdlib_trait/io_backward_compat.ark
 t3-compile:stdlib_trait/io_copy.ark
 t3-compile:stdlib_trait/iterator_adapters.ark
+t3-compile:stdlib_trait/iterator_desugar_equiv.ark
 t3-compile:stdlib_trait/iterator_generic_struct_item.ark
 t3-compile:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
@@ -2783,6 +2785,7 @@ t3-run:stdlib_trait/hash_trait_nested.ark
 t3-run:stdlib_trait/integer_trait.ark
 t3-run:stdlib_trait/io_backward_compat.ark
 t3-run:stdlib_trait/io_copy.ark
+t3-run:stdlib_trait/iterator_desugar_equiv.ark
 t3-run:stdlib_trait/iterator_generic_struct_item.ark
 t3-run:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-run:stdlib_trait/read_write.ark
