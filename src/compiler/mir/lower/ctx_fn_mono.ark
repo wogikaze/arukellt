@@ -1,6 +1,8 @@
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_mono_rewrites
+use mir::lower::ctx_mono_type_params
+use mir::mono_names
 
 fn ctx_replace_fn_index(
     ctx: LowerCtx,
@@ -39,16 +41,89 @@ fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> Strin
                 }
                 if get_unchecked(ctx.mono_call_span_used, i) == 0 {
                     ctx_mono_rewrites::ctx_mono_mark_span_rewrite_used(ctx, i)
-                    return candidate_target
+                    return ctx_mono_concretize_span_target(ctx, candidate_target)
                 }
             }
         }
         cursor = get_unchecked(ctx.mono_span_next, i)
     }
     if first_match >= 0 {
-        return get_unchecked(ctx.mono_call_span_targets, first_match)
+        return ctx_mono_concretize_span_target(ctx, get_unchecked(ctx.mono_call_span_targets, first_match))
     }
     ""
+}
+
+// A span rewrite recorded inside a generic body pins the template
+// spelling (`Take__next__?I`). The enclosing instance binds the type
+// variables, so rewrite `?Var` segments through the current mono map
+// before accepting the target. An unbound variable means the site was
+// recorded for a different instantiation; returning "" lets the name
+// and receiver-derived fallbacks resolve it instead of pinning a
+// callee that can only trap.
+fn ctx_mono_concretize_span_target(ctx: LowerCtx, target: String) -> String {
+    if !contains(clone(target), String_from("?")) {
+        return target
+    }
+    let resolved = ctx_mono_substitute_span_vars(ctx, clone(target))
+    if len(resolved) > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, clone(resolved)) {
+        return resolved
+    }
+    String_new()
+}
+
+fn ctx_mono_substitute_span_vars(ctx: LowerCtx, target: String) -> String {
+    if !ctx_mono_type_params::ctx_has_mono_type_params(ctx) {
+        return String_new()
+    }
+    let count = len(ctx.mono_type_param_names)
+    let mut out = clone(target)
+    let mut i = 0
+    while i < count {
+        let var_name = get_unchecked(ctx.mono_type_param_names, i)
+        let concrete = get_unchecked(ctx.mono_type_param_types, i)
+        out = ctx_mono_replace_var_token(
+            clone(out),
+            concat(String_from("?"), clone(var_name)),
+            mono_names::mono_safe_name(clone(concrete))
+        )
+        i = i + 1
+    }
+    if contains(clone(out), String_from("?")) {
+        return String_new()
+    }
+    out
+}
+
+// Replace `?Name` only at a mono argument boundary (end of name or the
+// `__` separator) so `?I` does not rewrite inside `?Item` or inside a
+// nested argument's mapped underscores.
+fn ctx_mono_replace_var_token(target: String, token: String, replacement: String) -> String {
+    let tlen = len(token)
+    let n = len(target)
+    if tlen == 0 || tlen > n {
+        return target
+    }
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        let mut matched = false
+        if i + tlen <= n && eq(substring(clone(target), i, i + tlen), clone(token)) {
+            let tail = i + tlen
+            if tail >= n {
+                matched = true
+            } else if tail + 1 < n && byte_at(clone(target), tail) == 95 && byte_at(clone(target), tail + 1) == 95 {
+                matched = true
+            }
+        }
+        if matched {
+            out = concat(out, clone(replacement))
+            i = i + tlen
+        } else {
+            out = concat(out, substring(clone(target), i, i + 1))
+            i = i + 1
+        }
+    }
+    out
 }
 
 fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
@@ -79,6 +154,9 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
     let bare_source = ctx_mono_rewrites::mono_bare_source(source)
     let prefix = concat(clone(bare_source), "__")
     if starts_with(clone(target), clone(prefix)) {
+        if !mono_source_owner_matches(clone(source), String_new()) {
+            return false
+        }
         let rest = substring(target, len(prefix), len(target))
         // Reject opaque numeric stubs like eq__1; accept type keys
         // such as eq__Person / pair_first__i32__String.
@@ -91,10 +169,51 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         }
         return true
     }
-    contains(target, concat("__", concat(bare_source, "__")))
+    // Owner check: Take__into_iter__VecIter specializes Take::into_iter,
+    // not Vec::into_iter. The target owner is the segment before the
+    // __method__ infix; a per-instantiation source owner (Take_VecIter)
+    // relaxes to its constructor base (Take).
+    let infix = concat(String_from("__"), concat(clone(bare_source), String_from("__")))
+    let pos = index_of(clone(target), clone(infix))
+    if pos < 0 {
+        return false
+    }
+    mono_source_owner_matches(clone(source), substring(clone(target), 0, pos))
+}
+
+fn mono_source_owner_matches(source: String, target_owner: String) -> bool {
+    let sep = index_of(clone(source), String_from("::"))
+    if sep < 0 {
+        return true
+    }
+    let source_owner = substring(clone(source), 0, sep)
+    if eq(clone(source_owner), clone(target_owner)) {
+        return true
+    }
+    eq(clone(target_owner), clone(mono_owner_inst_base(source_owner)))
+}
+
+// Constructor base of a per-instantiation owner spelling
+// (Take_VecIter -> Take, HashMap_i32_String -> HashMap).
+fn mono_owner_inst_base(owner: String) -> String {
+    let n = len(owner)
+    let mut i = 0
+    while i < n {
+        if byte_at(clone(owner), i) == 95 {
+            return substring(owner, 0, i)
+        }
+        i = i + 1
+    }
+    owner
 }
 
 fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
+    // Template instantiations (?Var args) are not callable
+    // specializations; they exist so span rewrites can pin the template
+    // spelling for per-enclosing-instance concretization.
+    if contains(clone(target), String_from("?")) {
+        return
+    }
     if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {
         return
     }
@@ -108,6 +227,12 @@ fn ctx_mono_source_rewrite_count(ctx: LowerCtx) -> i32 {
 // Candidates are exactly the rewrites sharing the bare source: an exact
 // source match implies a bare match, so the chain loses nothing.
 fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
+    // A callee that exists as a real function (concrete impl method such as
+    // Vec::into_iter) must not be stolen by a pooled specialization of a
+    // different owner's same-named method (Take::into_iter__VecIter).
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(source)) {
+        return String_new()
+    }
     let mut i = ctx_mono_rewrites::ctx_mono_name_rewrite_first_for_source(ctx, clone(source))
     while i >= 0 {
         if ctx_mono_rewrites::ctx_mono_name_rewrite_used_at(ctx, i) == 0 &&
@@ -121,6 +246,9 @@ fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
 }
 
 fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(source)) {
+        return String_new()
+    }
     let mut i = ctx_mono_rewrites::ctx_mono_name_rewrite_first_for_source(ctx, clone(source))
     while i >= 0 {
         if mono_target_matches_source(ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i), clone(source)) {

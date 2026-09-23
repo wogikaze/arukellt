@@ -459,10 +459,6 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     if len(mono_target) > 0 {
         return mono_target
     }
-    let named_mono_target = ctx_resolve_unused_mono_by_name(ctx, callee_name)
-    if len(named_mono_target) > 0 {
-        return named_mono_target
-    }
     if ctx_has_fn_name(ctx, clone(callee_name)) {
         return callee_name
     }
@@ -473,6 +469,13 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     let parametric_target = mir_parametric_impl_callee(ctx, clone(callee_name))
     if len(parametric_target) > 0 {
         return parametric_target
+    }
+    // The name-rewrite pool is instantiation-blind (first unused match for
+    // the bare method name), so it runs only after the precise
+    // receiver-derived paths above.
+    let named_mono_target = ctx_resolve_unused_mono_by_name(ctx, callee_name)
+    if len(named_mono_target) > 0 {
+        return named_mono_target
     }
     // Fallback for builtin types: if the mangled callee (e.g. "Vec::push")
     // is not a MIR function, check if the type prefix is a builtin type.

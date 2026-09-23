@@ -94,12 +94,19 @@ fn mir_for_desugar_callee(ctx: LowerCtx, span_start: i32, declared: String) -> S
     if len(span_target) > 0 {
         return span_target
     }
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(declared)) {
+        return declared
+    }
+    // Per-instantiation owner spellings (Take_VecIter::next) map to the
+    // propagated parametric instance (Take__next__VecIter) by argument
+    // segments; the instantiation-blind name pool only runs after that.
+    let parametric_target = method_resolve::mir_parametric_impl_callee(ctx, clone(declared))
+    if len(parametric_target) > 0 {
+        return parametric_target
+    }
     let name_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(declared))
     if len(name_target) > 0 {
         return name_target
-    }
-    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(declared)) {
-        return declared
     }
     String_new()
 }

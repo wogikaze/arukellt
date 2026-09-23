@@ -70,6 +70,43 @@ fn propagate_parametric_impl_mono(env: TypeEnv, fn_name: String, resolved_types:
         propagate_arg_impl_mono(env, clone(fn_name), get_unchecked(resolved_types, i))
         i = i + 1
     }
+    propagate_owner_impl_mono(env, fn_name, resolved_types)
+}
+
+// Sibling axis of demand-driven propagation. Recording
+// `Ctor::method`+[args] also needs the OTHER methods of Ctor's
+// var-carrying impls at the same args: `Take::collect`+[VecIter]
+// contains `for item in self`, which calls `Take::into_iter` and
+// `Take::next` at [VecIter] from inside the impl body. The
+// typechecker saw that body at the bare type variable, so the
+// concrete sibling instances only exist if they are recorded here.
+fn propagate_owner_impl_mono(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    if len(resolved_types) == 0 {
+        return
+    }
+    let sep = associated_types::projection_sep_index(clone(fn_name))
+    if sep < 0 {
+        return
+    }
+    let owner = substring(clone(fn_name), 0, sep)
+    let receiver = contract_types_record::TypeInfo_new(
+        commands::TY_STRUCT(),
+        clone(owner),
+        resolved_types
+    )
+    let impl_count = len(env.trait_impls)
+    let mut i = 0
+    while i < impl_count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
+        if names::same_type_name(
+            contract_type_access::TypeInfo_name(self_ty),
+            clone(owner)
+        ) && associated_types::type_contains_var(clone(self_ty)) {
+            propagate_impl_methods_mono(env, impl_info, clone(receiver))
+        }
+        i = i + 1
+    }
 }
 
 fn propagate_arg_impl_mono(env: TypeEnv, fn_name: String, arg: TypeInfo) {
