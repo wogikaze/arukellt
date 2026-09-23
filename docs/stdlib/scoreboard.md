@@ -17,7 +17,7 @@
 | `std::core` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::core::error` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
 | `std::core::hash` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
-| `std::core::iter` | 30 | 0 | 30 | 0 | 0 | 16/30 (53%) | no |
+| `std::core::iter` | 36 | 0 | 36 | 0 | 0 | **16/36 (44%)** | no |
 | `std::csv` | 7 | 0 | 0 | 7 | 0 | 5/7 (71%) | no |
 | `std::env` | 6 | 5 | 0 | 0 | 1 | 5/5 (100%) | no |
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
@@ -32,7 +32,7 @@
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
-| `std::seq` | 13 | 7 | 0 | 0 | 6 | 7/7 (100%) | no |
+| `std::seq` | 16 | 0 | 3 | 0 | 13 | **0/3 (0%)** | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 16/24 (67%) | no |
 | `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 13/14 (93%) | no |
@@ -53,7 +53,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 783 APIs, 390 stable, 61 provisional, 322 experimental, 10 deprecated, 641/773 (83%) fixture coverage
+**Total**: 792 APIs, 383 stable, 70 provisional, 322 experimental, 17 deprecated, 634/775 (82%) fixture coverage
 
 ## Legend
 
@@ -69,4 +69,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wasm` (47%), `std::wit` (44%).
+`std::core::iter` (44%), `std::seq` (0%), `std::wasm` (47%), `std::wit` (44%).

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 773
-- **Historical/deprecated names:** 10
-- **Total entries:** 783
+- **Canonical names:** 775
+- **Historical/deprecated names:** 17
+- **Total entries:** 792
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -82,7 +82,7 @@ Current public API names, sorted alphabetically.
 | `base64_decode` | `std::bytes` | `stable` | Bytes |
 | `base64_encode` | `std::bytes` | `stable` | Bytes |
 | `bench` | `std::test` | `experimental` | Test |
-| `binary_search` | `std::seq` | `stable` | Seq |
+| `binary_search_by` | `std::seq` | `provisional` | Seq |
 | `bitmask` | `std::simd::i8x16` | `experimental` | Simd |
 | `bitselect` | `std::simd::v128` | `experimental` | Simd |
 | `bitset_clear` | `std::collections::ordered` | `experimental` | Collections |
@@ -181,7 +181,6 @@ Current public API names, sorted alphabetically.
 | `copy` | `std::io` | `stable` | Io |
 | `copy_bytes` | `std::io` | `stable` | Io |
 | `cos_approx` | `std::signal` | `stable` | Signal |
-| `count_eq` | `std::seq` | `stable` | Seq |
 | `csv_count_rows` | `std::csv` | `experimental` | Csv |
 | `csv_get_row_raw` | `std::csv` | `experimental` | Csv |
 | `csv_parse_row` | `std::csv` | `experimental` | Csv |
@@ -399,9 +398,13 @@ Current public API names, sorted alphabetically.
 | `is_string` | `std::json` | `experimental` | Json |
 | `iter_all_i32` | `std::core::iter` | `provisional` | Iter |
 | `iter_any_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_contains_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_count_eq_i32` | `std::core::iter` | `provisional` | Iter |
 | `iter_count_i32` | `std::core::iter` | `provisional` | Iter |
 | `iter_fold_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_reverse_i32` | `std::core::iter` | `provisional` | Iter |
 | `iter_sum_i32` | `std::core::iter` | `provisional` | Iter |
+| `iter_unique_i32` | `std::core::iter` | `provisional` | Iter |
 | `join` | `prelude` | `stable` | String |
 | `join` | `std::text` | `stable` | Text |
 | `join` | `std::path` | `stable` | Path |
@@ -453,13 +456,13 @@ Current public API names, sorted alphabetically.
 | `map_String_String` | `prelude` | `stable` | Collections |
 | `max` | `std::simd::f32x4` | `experimental` | Simd |
 | `max` | `std::simd::f64x2` | `experimental` | Simd |
-| `max_i32` | `std::seq` | `stable` | Seq |
+| `max_by` | `std::seq` | `provisional` | Seq |
 | `memory_copy` | `std::wasm` | `experimental` | Wasm |
 | `memory_fill` | `std::wasm` | `experimental` | Wasm |
 | `metadata` | `std::fs` | `provisional` | Fs |
 | `min` | `std::simd::f32x4` | `experimental` | Simd |
 | `min` | `std::simd::f64x2` | `experimental` | Simd |
-| `min_i32` | `std::seq` | `stable` | Seq |
+| `min_by` | `std::seq` | `provisional` | Seq |
 | `module_add_export_func` | `std::wasm` | `experimental` | Wasm |
 | `module_add_func` | `std::wasm` | `experimental` | Wasm |
 | `module_add_memory` | `std::wasm` | `experimental` | Wasm |
@@ -582,6 +585,7 @@ Current public API names, sorted alphabetically.
 | `replace_lane` | `std::simd::i64x2` | `experimental` | Simd |
 | `replace_lane` | `std::simd::i8x16` | `experimental` | Simd |
 | `replace_lane` | `std::simd::i16x8` | `experimental` | Simd |
+| `rev_iter` | `std::core::iter` | `provisional` | Iter |
 | `reverse_i32` | `prelude` | `stable` | Collections |
 | `reverse_String` | `prelude` | `stable` | Collections |
 | `rope_delete` | `std::text::rope` | `experimental` | Text |
@@ -606,8 +610,6 @@ Current public API names, sorted alphabetically.
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
 | `seek_to` | `std::io` | `stable` | Io |
-| `seq_contains` | `std::seq` | `stable` | Seq |
-| `seq_reverse` | `std::seq` | `stable` | Seq |
 | `set` | `prelude` | `stable` | Collections |
 | `shl` | `std::simd::i32x4` | `experimental` | Simd |
 | `shr_s` | `std::simd::i32x4` | `experimental` | Simd |
@@ -715,7 +717,7 @@ Current public API names, sorted alphabetically.
 | `u64_to_u32` | `prelude` | `stable` | Scalar Conversion |
 | `u8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `unbox` | `prelude` | `stable` | Box |
-| `unique` | `std::seq` | `stable` | Seq |
+| `unique_iter` | `std::core::iter` | `provisional` | Iter |
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
 | `unwrap_or_else` | `prelude` | `stable` | Option Result |
@@ -803,16 +805,23 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
+| ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`char_at`~~ | `byte_at` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
+| ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `std::core::iter::collect_filter_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `std::core::iter::iter_fold_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`max_i32`~~ | `std::seq::max_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `std::core::iter::iter_sum_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `std::core::iter::collect_take_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`unique`~~ | `std::core::iter::iter_unique_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 
 ---
 
@@ -883,7 +892,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `base64_decode` | ✅ `stable` | `std::bytes` | Bytes |
 | `base64_encode` | ✅ `stable` | `std::bytes` | Bytes |
 | `bench` | ✅ `experimental` | `std::test` | Test |
-| `binary_search` | ✅ `stable` | `std::seq` | Seq |
+| ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::binary_search_by` · [migration guide](migration-guidance.md) |
+| `binary_search_by` | ✅ `provisional` | `std::seq` | Seq |
 | `bitmask` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `bitselect` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `bitset_clear` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -984,7 +994,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `copy` | ✅ `stable` | `std::io` | Io |
 | `copy_bytes` | ✅ `stable` | `std::io` | Io |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
-| `count_eq` | ✅ `stable` | `std::seq` | Seq |
+| ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_count_eq_i32` · [migration guide](migration-guidance.md) |
 | `csv_count_rows` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_get_row_raw` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_parse_row` | ✅ `experimental` | `std::csv` | Csv |
@@ -1206,9 +1216,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_string` | ✅ `experimental` | `std::json` | Json |
 | `iter_all_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `iter_any_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_contains_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_count_eq_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `iter_count_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `iter_fold_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_reverse_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `iter_sum_i32` | ✅ `provisional` | `std::core::iter` | Iter |
+| `iter_unique_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `join` | ✅ `stable` | `prelude` | String |
 | `join` | ✅ `stable` | `std::text` | Text |
 | `join` | ✅ `stable` | `std::path` | Path |
@@ -1261,13 +1275,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `map_String_String` | ✅ `stable` | `prelude` | Collections |
 | `max` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `max` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `max_i32` | ✅ `stable` | `std::seq` | Seq |
+| `max_by` | ✅ `provisional` | `std::seq` | Seq |
+| ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::max_by` · [migration guide](migration-guidance.md) |
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
 | `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `min_i32` | ✅ `stable` | `std::seq` | Seq |
+| `min_by` | ✅ `provisional` | `std::seq` | Seq |
+| ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::min_by` · [migration guide](migration-guidance.md) |
 | `module_add_export_func` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_add_func` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_add_memory` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1390,6 +1406,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `replace_lane` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `replace_lane` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `replace_lane` | ✅ `experimental` | `std::simd::i16x8` | Simd |
+| `rev_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `reverse_i32` | ✅ `stable` | `prelude` | Collections |
 | `reverse_String` | ✅ `stable` | `prelude` | Collections |
 | `rope_delete` | ✅ `experimental` | `std::text::rope` | Text |
@@ -1414,8 +1431,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `seeded_random` | ✅ `stable` | `std::random` | Random |
 | `seeded_range` | ✅ `stable` | `std::random` | Random |
 | `seek_to` | ✅ `stable` | `std::io` | Io |
-| `seq_contains` | ✅ `stable` | `std::seq` | Seq |
-| `seq_reverse` | ✅ `stable` | `std::seq` | Seq |
+| ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_contains_i32` · [migration guide](migration-guidance.md) |
+| ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_reverse_i32` · [migration guide](migration-guidance.md) |
 | `set` | ✅ `stable` | `prelude` | Collections |
 | `shl` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `shr_s` | ✅ `experimental` | `std::simd::i32x4` | Simd |
@@ -1526,7 +1543,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `u64_to_u32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `u8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `unbox` | ✅ `stable` | `prelude` | Box |
-| `unique` | ✅ `stable` | `std::seq` | Seq |
+| ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_unique_i32` · [migration guide](migration-guidance.md) |
+| `unique_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or` | ✅ `stable` | `prelude` | Option Result |
 | `unwrap_or_else` | ✅ `stable` | `prelude` | Option Result |

@@ -97,11 +97,11 @@ All 18 module pages carry curated overviews.
 
 ## Current Snapshot
 
-- Manifest-backed public functions: **783**
+- Manifest-backed public functions: **792**
 - Prelude wrappers: 134
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `HashMap`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`
-- Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 174, `component` 7, `control` 1, `conversion` 6, `convert` 1, `core` 8, `csv` 7, `env` 6, `fs` 8, `host_clock` 2, `host_env` 5, `host_fs` 10, `host_process` 3, `host_random` 4, `host_stdio` 4, `io` 38, `iter` 30, `json` 32, `math` 2, `numeric` 2, `option_result` 14, `path` 9, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 13, `signal` 10, `simd` 108, `string` 25, `test` 18, `text` 47, `time` 3, `toml` 14, `wasm` 79, `wit` 16
+- Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 174, `component` 7, `control` 1, `conversion` 6, `convert` 1, `core` 8, `csv` 7, `env` 6, `fs` 8, `host_clock` 2, `host_env` 5, `host_fs` 10, `host_process` 3, `host_random` 4, `host_stdio` 4, `io` 38, `iter` 36, `json` 32, `math` 2, `numeric` 2, `option_result` 14, `path` 9, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 16, `signal` 10, `simd` 108, `string` 25, `test` 18, `text` 47, `time` 3, `toml` 14, `wasm` 79, `wit` 16
 - Source-backed modules: 28
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 

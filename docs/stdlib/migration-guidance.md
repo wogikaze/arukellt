@@ -21,7 +21,7 @@ version per the [Stability Policy](stability-policy.md#deprecation-process).
 
 ## Currently Deprecated APIs
 
-Only these four public entries currently carry `deprecated_by` in
+The following public entries currently carry `deprecated_by` in
 `std/manifest.toml`; they are shown with ~~strikethrough~~ in the
 [API reference](reference.md).
 
@@ -37,14 +37,20 @@ Only these four public entries currently carry `deprecated_by` in
 | `std::seq::skip_i32` | `v.iter().skip(n).collect()` or `std::core::iter::collect_skip_i32` |
 | `std::seq::fold_i32_i32` | `v.iter().fold(init, f)` or `std::core::iter::iter_fold_i32` |
 | `std::seq::sum_i32` | `v.iter().sum()` or `std::core::iter::iter_sum_i32` |
+| `std::seq::seq_reverse` | `v.iter().rev().collect()` or `std::core::iter::iter_reverse_i32` |
+| `std::seq::seq_contains` | `v.iter().contains(target)` or `std::core::iter::iter_contains_i32` |
+| `std::seq::unique` | `v.iter().unique().collect()` or `std::core::iter::iter_unique_i32` |
+| `std::seq::count_eq` | `v.iter().count_eq(target)` or `std::core::iter::iter_count_eq_i32` |
+| `std::seq::binary_search` | `std::seq::binary_search_by` |
+| `std::seq::min_i32` | `std::seq::min_by` |
+| `std::seq::max_i32` | `std::seq::max_by` |
 
 The deprecated `std::seq` rows remain callable compatibility entries that
-delegate to the lazy `std::core::iter` pipeline (ADR-076). The remaining
-`std::seq` query helpers (`binary_search`, `min_i32`, `max_i32`,
-`seq_reverse`, `seq_contains`, `unique`, `count_eq`) and the legacy
-`Vec_*` names are not in this list yet; they stay in their current
-stability tier until a callable replacement and a manifest-level deprecation
-target are available.
+delegate to the lazy `std::core::iter` pipeline or the generic
+`Ord`-based algorithms (ADR-076). Every monomorphic `std::seq` helper now
+carries `deprecated_by`; the legacy `Vec_*` names are not in this list
+yet and stay in their current stability tier until a callable replacement
+and a manifest-level deprecation target are available.
 
 ## Iterator v2 status
 
@@ -109,9 +115,8 @@ numeric consumer contracts separately. The current
 canonical `Iterator::collect` traversal. Additional adapter compositions are
 tracked under [#691](../../issues/open/691-iterator-trait-lazy-adapters.md)
 and [#860](../../issues/open/860-iterator-unification-integration.md). The
-six eager `std::seq` pipeline helpers are deprecated under the manifest
-method-level contract (see [Currently Deprecated APIs](#currently-deprecated-apis));
-query helpers without a lazy replacement remain stable.
+all thirteen monomorphic `std::seq` helpers are deprecated under the
+manifest contract (see [Currently Deprecated APIs](#currently-deprecated-apis)).
 Calls to `sum` and `fold` now require the matching numeric capability at
 type-check time. The item-preserving `StringIter` lane therefore remains
 valid for `next`, `collect`, `count`, and bounded adapters, while an accidental
@@ -159,16 +164,19 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   same conversion + canonical `next` sequence as handwritten consumers;
   generic `T: Iterator` / `T: IntoIterator` consumers monomorphize to the
   same path. Non-iterable sources are rejected with E0200.
-- The six eager `std::seq` pipeline helpers are `deprecated` with
-  `deprecated_by` targets and delegate to the lazy pipeline;
+- All thirteen monomorphic `std::seq` helpers are `deprecated` with
+  `deprecated_by` targets and delegate to the lazy pipeline or the
+  generic `Ord`-based algorithms;
   `std::core::iter` is registered in `std/manifest.toml`.
 
 **Residual (open, with owner):**
 
-- Arbitrary item-generic adapters: adapter structs are monomorphic per item
-  lane because generic adapter types over `I: Iterator` plus stored
-  callbacks exceed current monomorphization. Owner: #860 compiler
-  generics boundary.
+- Arbitrary item-generic adapters: the `MapIter<T, U>` / `FilterIter<T>` /
+  `MapFilterIter<T, U>` / `FilterMapIter<T>` / `TakeIter<I>` family is
+  item-generic and shared by the i32 and String lanes, but
+  `FilterIter<T>::map` stays `T -> T` (no method-level generics) and the
+  `StringSkip*` adapters remain concrete until skip compositions can spell
+  `fn(I::Item) -> U`. Owner: #860 compiler generics boundary.
 - HashMap iterator coverage: generic `HashMap<K,V>` has no keys/entries
   enumeration intrinsic on either backend, so `for x in hashmap_iter` is
   not yet expressible. Owner: #691 (new intrinsic work on GC and linear
@@ -177,11 +185,9 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   not statically resolved stays rejected; the structural `next()`
   fallback for custom iterators remains as the compatibility path.
   Owner: #860 / #878 migration boundary.
-- `std::seq` query helpers (`binary_search`, `min_i32`, `max_i32`,
-  `seq_reverse`, `seq_contains`, `unique`, `count_eq`) and prelude
-  monomorphic higher-order functions have no lazy replacement yet; they
-  stay `stable` until iterator coverage or an explicit eager decision
-  exists. Owner: #691 / #718 / #878.
+- Prelude monomorphic higher-order functions have no lazy replacement yet;
+  they stay `stable` until iterator coverage or an explicit eager decision
+  exists. Owner: #718 / #878.
 - `verify quick` exit 0 is blocked by unrelated pre-existing gates
   (#652 WIT parser, #765 docs CI, MIR reachability baseline, T3
   memory64 emitter), not by iterator work.
@@ -341,7 +347,8 @@ sort<String>(names)
 > Note (2026-09-23): for the `i32` pipeline helpers the canonical replacement
 > is now the lazy `std::core::iter` method chain — for example
 > `v.iter().map(f).collect()` — not a generic free function. The six
-> `std::seq` entries are already deprecated under that contract; the prelude
+> `std::seq` pipeline entries and the seven query helpers are already
+> deprecated under that contract; the prelude
 > rows below remain planned until the #718 / #878 migration wires their
 > trait-first replacements.
 

@@ -3701,6 +3701,60 @@ params = ["Vec<i32>", "fn(i32) -> bool"]
 returns = "bool"
 doc = "Return true if all elements of v satisfy f."
 
+[[functions]]
+name = "iter_contains_i32"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Return true if v contains target via IteratorContains — the lazy-pipeline replacement for std::seq::seq_contains."
+
+[[functions]]
+name = "iter_count_eq_i32"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Count elements equal to target via IteratorCountEq — the lazy-pipeline replacement for std::seq::count_eq."
+
+[[functions]]
+name = "iter_unique_i32"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Yield first occurrences in source order via UniqueIter — the lazy-pipeline replacement for std::seq::unique."
+
+[[functions]]
+name = "iter_reverse_i32"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Yield elements in reverse order via RevIter — the lazy-pipeline replacement for std::seq::seq_reverse."
+
+[[functions]]
+name = "unique_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>"]
+returns = "UniqueIter"
+doc = "Compatibility constructor for the lazy unique adapter (canonical form: v.iter().unique())."
+
+[[functions]]
+name = "rev_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>"]
+returns = "RevIter"
+doc = "Compatibility constructor for the lazy reverse adapter (canonical form: v.iter().rev())."
+
 # === std::seq ===
 
 [[functions]]
@@ -3757,25 +3811,31 @@ doc = "Deprecated eager helper. Use the IteratorFold capability v.iter().fold(in
 name = "binary_search"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::seq::binary_search_by"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
+doc = "Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord."
 
 [[functions]]
 name = "min_i32"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::seq::min_by"
 params = ["Vec<i32>"]
 returns = "i32"
+doc = "Deprecated monomorphic wrapper. Use the generic std::seq::min_by(v) over T: Ord."
 
 [[functions]]
 name = "max_i32"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::seq::max_by"
 params = ["Vec<i32>"]
 returns = "i32"
+doc = "Deprecated monomorphic wrapper. Use the generic std::seq::max_by(v) over T: Ord."
 
 [[functions]]
 name = "sum_i32"
@@ -3791,33 +3851,68 @@ doc = "Deprecated eager helper. Use the IteratorSum capability v.iter().sum() or
 name = "seq_reverse"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::core::iter::iter_reverse_i32"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect() or std::core::iter::iter_reverse_i32(v)."
 
 [[functions]]
 name = "seq_contains"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::core::iter::iter_contains_i32"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
+doc = "Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target) or std::core::iter::iter_contains_i32(v, target)."
 
 [[functions]]
 name = "unique"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::core::iter::iter_unique_i32"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
+doc = "Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_unique_i32(v)."
 
 [[functions]]
 name = "count_eq"
 module = "std::seq"
 doc_category = "seq"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::core::iter::iter_count_eq_i32"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
+doc = "Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target) or std::core::iter::iter_count_eq_i32(v, target)."
+
+[[functions]]
+name = "binary_search_by"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>", "T"]
+returns = "i32"
+doc = "Binary search on a sorted Vec<T> using T: Ord. Returns the index of target or -1."
+
+[[functions]]
+name = "min_by"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>"]
+returns = "T"
+doc = "Return the minimum element of v under T: Ord."
+
+[[functions]]
+name = "max_by"
+module = "std::seq"
+doc_category = "seq"
+stability = "provisional"
+params = ["Vec<T>"]
+returns = "T"
+doc = "Return the maximum element of v under T: Ord."
 
 # === std::wasm ===
 
