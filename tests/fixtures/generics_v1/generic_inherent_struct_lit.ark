@@ -1,0 +1,90 @@
+// An inherent method on a generic shell (Skip<I>) constructs another
+// generic struct (SkipMap<I>) from a field value whose local type carries
+// the storage spelling struct:Name:id. The literal must still derive the
+// instantiated layout SkipMap<VecIter> so wasm32-gc struct.new picks the
+// named GC type instead of the unsubstituted declaration.
+use std::core::iter
+use std::host::stdio
+
+struct Skip<I> {
+    iter: I,
+    to_skip: i32,
+}
+
+struct SkipMap<I> {
+    iter: I,
+    to_skip: i32,
+    map_f: fn(i32) -> i32,
+}
+
+impl Skip<I> {
+    fn map(self: Skip<I>, f: fn(i32) -> i32) -> SkipMap<I> {
+        SkipMap { iter: self.iter, to_skip: self.to_skip, map_f: f }
+    }
+}
+
+impl Iterator for Skip<I> {
+    type Item = I::Item
+    fn next(self: Skip<I>) -> Option<I::Item> {
+        while self.to_skip > 0 {
+            let nxt = self.iter.next()
+            match nxt {
+                Option::Some(v) => self.to_skip = self.to_skip - 1
+                Option::None => return Option::None
+            }
+        }
+        self.iter.next()
+    }
+}
+
+impl Iterator for SkipMap<VecIter> {
+    type Item = i32
+    fn next(self: SkipMap<VecIter>) -> Option<i32> {
+        while self.to_skip > 0 {
+            let nxt = self.iter.next()
+            match nxt {
+                Option::Some(v) => self.to_skip = self.to_skip - 1
+                Option::None => return Option::None
+            }
+        }
+        let nxt = self.iter.next()
+        match nxt {
+            Option::Some(v) => Option::Some((self.map_f)(v))
+            Option::None => Option::None
+        }
+    }
+}
+
+impl IntoIterator for Skip<I> {
+    type Item = I::Item
+    type IntoIter = Skip<I>
+    fn into_iter(self: Skip<I>) -> Skip<I> {
+        self
+    }
+}
+
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn main() -> i32 {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(1)
+    v.push(2)
+    v.push(3)
+    v.push(4)
+    let it: Skip<VecIter> = Skip { iter: v.into_iter(), to_skip: 2 }
+    let a = it.next()
+    match a {
+        Option::Some(x) => stdio::println((x).to_string())
+        Option::None => stdio::println("none_a")
+    }
+    let it2: Skip<VecIter> = Skip { iter: v.into_iter(), to_skip: 1 }
+    let m = it2.map(double)
+    let b = m.next()
+    match b {
+        Option::Some(x) => stdio::println((x).to_string())
+        Option::None => stdio::println("none_b")
+    }
+    0
+}

@@ -454,6 +454,7 @@ run:generics/option_generic.ark
 run:generics/result_generic.ark
 run:generics/two_params.ark
 run:generics/vec_generic.ark
+run:generics_v1/generic_inherent_struct_lit.ark
 run:generics_v1/generic_inst_trait_impl.ark
 run:generics_v1/generic_struct_field_method.ark
 run:generics_v1/generic_method_call.ark
@@ -2571,6 +2572,7 @@ t3-run:generics/option_generic.ark
 t3-run:generics/result_generic.ark
 t3-run:generics/two_params.ark
 t3-run:generics/vec_generic.ark
+t3-run:generics_v1/generic_inherent_struct_lit.ark
 t3-run:generics_v1/generic_method_call.ark
 t3-run:generics_v1/generic_multi_param.ark
 t3-run:generics_v1/generic_three_param.ark

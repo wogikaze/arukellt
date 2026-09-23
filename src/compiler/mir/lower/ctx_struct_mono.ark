@@ -9,6 +9,7 @@
 // in ctx.generic_struct_names / generic_struct_params.
 
 use mir::lower::ctx_struct_storage
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
@@ -224,7 +225,10 @@ fn ctx_derive_generic_struct_type_name(ctx: LowerCtx, type_name: String) -> Stri
     if len(type_name) == 0 {
         return type_name
     }
-    let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, type_name)
+    // Local type names can carry the storage spelling struct:Name:id;
+    // strip it so instantiation derivation sees the semantic type name.
+    let semantic = ctx_struct_layout::ctx_struct_semantic_type_name(type_name)
+    let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, semantic)
     if len(generic_inst_base_name(clone(resolved))) == 0 {
         return resolved
     }

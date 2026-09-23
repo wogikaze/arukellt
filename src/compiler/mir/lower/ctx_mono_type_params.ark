@@ -345,6 +345,32 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     }
     if is_plain_type_var_name(clone(ty_name)) {
         push(result, ty_name)
+        return result
+    }
+    // Generic-instantiation spellings carry their type variables as
+    // angle-bracket arguments: a self/param local typed Skip<I> or
+    // Pair<T,Vec<U>> must still contribute its variables to the ordinal
+    // pairing, otherwise the mono map stays empty and struct literals in
+    // the body cannot derive their instantiated layout.
+    let lt = index_of(clone(ty_name), String_from("<"))
+    if lt > 0 && ends_with(clone(ty_name), String_from(">")) {
+        let inner = substring(clone(ty_name), lt + 1, len(ty_name) - 1)
+        let args = ctx_split_top_level_type_args(inner)
+        let mut ai = 0
+        while ai < len(args) {
+            let arg = get_unchecked(args, ai)
+            if is_plain_type_var_name(clone(arg)) {
+                push(result, clone(arg))
+            } else {
+                let nested = ctx_type_var_names_from_local_type(clone(arg))
+                let mut ni = 0
+                while ni < len(nested) {
+                    push(result, get_unchecked(nested, ni))
+                    ni = ni + 1
+                }
+            }
+            ai = ai + 1
+        }
     }
     result
 }
