@@ -488,6 +488,36 @@ full adapter fixture matrix as a fallback parity gate.
   stand, and the final RFC-011 iterator residual audit plus
   `verify quick` remain open. This is not a close receipt.
 
+## Progress receipt — 2026-09-24 (generic Ord seq API + module-qualified mono fix)
+
+- Commit `ba2ca47f6` fixes `mono_target_matches_source`: the bare-prefix
+  branch applied the type-owner guard to every qualified source, so
+  module-qualified calls like `seq::min_by_key` could never reach their
+  recorded specialization. Single-param generics escaped through the
+  first-arg type-key path, but `binary_search_by_key`, `min_by_key`, and
+  `max_by_key` emitted `drop + unreachable` stubs on both backends. The
+  owner guard now applies only to type-owned (uppercase) sources; lowercase
+  module owners pass because bare-mangled free-function targets carry no
+  owner segment to discriminate anyway.
+- The six remaining public `std::seq` generic Ord algorithms
+  (`binary_search_by_key`, `lower_bound`, `upper_bound`, `sort_by`,
+  `min_by_key`, `max_by_key`) are registered as `provisional` manifest
+  entries; every public `std::seq` function is now manifest-backed.
+- New fixture `stdlib_trait/seq_ord_generic_algorithms.ark` covers
+  `lower_bound`, `upper_bound`, `binary_search_by_key`, `min_by_key`,
+  and `max_by_key` on the i32 instantiation in the `run`, `t3-compile`,
+  and `t3-run` lanes; verified on wasm32 linear and the wasm32-gc
+  component. The `sort_by` wasm32-gc emit defect recorded in the 2026-09-23
+  receipt no longer reproduces on the current s2 (`ord_sort_by` validates
+  and runs OK).
+- `verify lane` and `docs check` pass. Residuals for this issue:
+  `FilterIter<T>::map` stays `T -> T`, the `StringSkip*` family stays
+  concrete, `x.clone()` on an unbound type var still resolves to the
+  String impl, `MirInst_call` stack-arg calls hide args from producer
+  scans, generic `HashMap<K,V>` iterator coverage still needs keys/entries
+  enumeration intrinsics on both emitters, and the RFC-011 residual audit
+  plus `verify quick` remain open. This is not a close receipt.
+
 ## Progress receipt — 2026-09-23 (HashMap for-in iteration)
 
 - Commit `3844363be` adds `IntoIterator` implementations for the four
