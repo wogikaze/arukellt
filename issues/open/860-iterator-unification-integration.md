@@ -1071,3 +1071,40 @@ acceptance boxes complete.
   itself (now unblocked), `ChainIter` / `EnumerateIter` / `ZipIter`
   item representations, forward-ref emit ordering, and the final
   residual-zero audit once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (SkipIter<I> migration + from_iter owner-key resolution)
+
+- `40b3c9652` migrates `SkipIter`, `SkipMapIter`, and `SkipFilterIter`
+  to the source-wrapping shape (`iter: I, to_skip`) matching
+  `TakeIter<I>`. `impl Iterator for SkipIter<I>` is parametric with
+  `Item = I::Item`; `impl IntoIterator for SkipIter<I>` likewise. The
+  callback adapters keep `fn(i32)` fields (the i32 lane) and register
+  `Iterator`, `IntoIterator`, `IteratorSum`, `IteratorFold`,
+  `IteratorContains`, `IteratorCountEq`, and `FromIterator` per
+  instantiation (`SkipMapIter<VecIter>` / `SkipFilterIter<VecIter>` /
+  `TakeIter<SkipIter<VecIter>>`). `collect`/`count` on `SkipIter<I>`
+  inline the `for item in self` loops like `TakeIter<I>` — calling the
+  generic `collect_iterator`/`count_iterator` helpers from a
+  monomorphized body leaves a bare generic callee that prunes to a
+  phantom fid and traps.
+- The same commit fixes `Vec::from_iter` for generic-instantiation
+  sources: `mir_bare_receiver_type_name` returned `SkipMapIter<VecIter>`
+  (or `struct:SkipMapIter<VecIter>:id`) verbatim, so the associated-fn
+  candidate `Vec::from_iter__SkipMapIter<VecIter>` never matched the
+  emitted `Vec::from_iter__SkipMapIter_VecIter` and the call stayed a
+  phantom `Vec::from_iter` (fid=-1, unreachable trap). It now routes
+  generic spellings through `mir_inst_owner_name`, matching
+  `impl_conversion_source_type_name`'s owner-key flattening.
+- Verified: `iterator_adapters` `OK`, `iterator_skip_basic`,
+  `iter_skip`, `iterator_skip_zero`, `iterator_skip_more_than_len`,
+  `seq_take_skip_fold` (`3 1 3 3 3 5 15 120 5 0`),
+  `iterator_query_consumers`, `iterator_string` on wasm32;
+  `iterator_adapters` `OK` on the wasm32-gc component lane; probe
+  chains `skip(2).take/map/filter.collect`, `sum_into_for`, and
+  `Vec::from_iter` all print expected values on wasm32. `verify lane`
+  exits 0; the formatter-exception hash for `std/core/iter.ark` is
+  refreshed.
+- Remaining #860 residuals: `ChainIter` / `EnumerateIter` / `ZipIter`
+  item representations (still concrete Vec<i32> state), forward-ref
+  emit ordering, and the final residual-zero audit once #691 closes.
+  #860 is not closed.
