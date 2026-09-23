@@ -163,6 +163,38 @@ fn count_eq_iterator_i32<T: Iterator>(it: T, target: i32) -> i32 {
     }
     hits
 }
+
+fn any_iterator_i32<T: Iterator>(it: T, f: fn(i32) -> bool) -> bool {
+    let mut found: bool = false
+    while true {
+        match it.next() {
+            Some(v) => {
+                if f(v) {
+                    found = true
+                    break
+                }
+            },
+            None => { break },
+        }
+    }
+    found
+}
+
+fn all_iterator_i32<T: Iterator>(it: T, f: fn(i32) -> bool) -> bool {
+    let mut all: bool = true
+    while true {
+        match it.next() {
+            Some(v) => {
+                if f(v) == false {
+                    all = false
+                    break
+                }
+            },
+            None => { break },
+        }
+    }
+    all
+}
 // ---------------------------------------------------------------------------
 // VecIter — lazy adapter over Vec<i32>
 // ---------------------------------------------------------------------------
@@ -2561,31 +2593,17 @@ pub fn iter_sum_i32(v: Vec<i32>) -> i32 {
 }
 
 /// Returns true if any element of `v` satisfies `f`.
+///
+/// Lazy traversal via vec_iter(v) — short-circuits on the first hit.
 pub fn iter_any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    let n: i32 = len(v)
-    let mut i: i32 = 0
-    let mut found: bool = false
-    while i < n {
-        if f(get_unchecked(v, i)) {
-            found = true
-        }
-        i = i + 1
-    }
-    found
+    any_iterator_i32(vec_iter(v), f)
 }
 
 /// Returns true if all elements of `v` satisfy `f`.
+///
+/// Lazy traversal via vec_iter(v) — short-circuits on the first miss.
 pub fn iter_all_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    let n: i32 = len(v)
-    let mut i: i32 = 0
-    let mut all: bool = true
-    while i < n {
-        if f(get_unchecked(v, i)) == false {
-            all = false
-        }
-        i = i + 1
-    }
-    all
+    all_iterator_i32(vec_iter(v), f)
 }
 
 /// Returns true if any element of `v` equals `target`.
