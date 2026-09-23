@@ -1212,3 +1212,38 @@ acceptance boxes complete.
 - Remaining #860 residuals: forward-ref emit ordering (uninvestigated),
   and the final residual-zero audit once #691 closes. #860 is not
   closed.
+
+## Progress receipt — 2026-09-23 (generic-body callee-axis propagation)
+
+- `c5cdea4a7` fixes the forward-ref/generic-receiver residual from the
+  previous receipts. A call inside a generic body on a receiver that
+  still mentions the enclosing type parameters (`inner.next()` on
+  `Inner<I>` inside `Outer<I>::next`, or `self.inner.next()` through a
+  generic field) recorded only the template `Inner::next`+[?I]; the
+  concrete `Inner::next`+[VecIter] was never recorded because
+  demand-driven propagation (ADR-078) covered only the owner and
+  argument axes, so MIR lowering bound the call to the trapping
+  template body (`I::next` fid=-1).
+- The callee axis: `MonoTemplateSite` records (fn, resolved args,
+  enclosing fn, enclosing vars) whenever a recording's resolved args
+  mention the current function's type parameters
+  (mono_instances.ark, contract_mono.ark, contract_env_record.ark).
+  `rebind_enclosing_template_sites` re-binds those sites through the
+  enclosing instantiation's concrete arguments when it is recorded or
+  merged into the parent env (module_env_merge.ark); recursion handles
+  deeper nesting. `env.current_fn_name` is set per body check
+  (body.ark).
+- `let` annotations now resolve against the enclosing signature's type
+  parameters (stmt_let.ark): `Inner<I>` spells the type variable that
+  produces the `Inner__next__?I` template spelling span-rewrite
+  concretization keys on, instead of a nominal struct named "I".
+- Verified: new fixture stdlib_trait/iterator_nested_generic_adapter
+  covers field-access and local-binding adapter forms and prints 7/9
+  on wasm32 and the wasm32-gc component lane; probes for impl-order
+  and generic free-fn variants print expected values; generics_v1 and
+  functions/generic_fn regression fixtures pass (17/17); verify lane
+  and quality changed exit 0.
+- Remaining #860 residuals: the final residual-zero audit once #691
+  closes. The earlier "forward-ref emit ordering" and "field-access
+  method-call gap" residuals are resolved by this unit. #860 is not
+  closed.
