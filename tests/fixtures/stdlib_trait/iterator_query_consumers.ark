@@ -13,6 +13,10 @@ fn double(x: i32) -> i32 {
     x * 2
 }
 
+fn add_acc(a: i32, b: i32) -> i32 {
+    a + b
+}
+
 fn sum_into_for<T: IntoIterator>(source: T) -> i32 {
     let mut total: i32 = 0
     for item in source {
@@ -55,6 +59,12 @@ fn main() {
     test::assert_eq_i32(v.iter().map(double).take(2).sum(), 8)
     test::assert_true(v.iter().filter(is_even).take(1).contains(4))
     test::assert_eq_i32(v.iter().skip(1).take(2).count_eq(1), 1)
+
+    // fold threads an accumulator through the canonical IteratorFold
+    // path; the fn item is passed as a callback argument.
+    test::assert_eq_i32(v.iter().fold(0, add_acc), 18)
+    test::assert_eq_i32(v.iter().map(double).fold(0, add_acc), 36)
+    test::assert_eq_i32(v.iter().take(3).fold(0, add_acc), 8)
 
     // unique yields first occurrences in source order.
     let uniq: Vec<i32> = v.iter().unique().collect()

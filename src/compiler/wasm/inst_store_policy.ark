@@ -131,8 +131,12 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
             }
         }
     }
-    if next_op == opcodes::MIR_LOCAL_GET() {
-        if next_arg0 != inst_accessors_operands::MirInst_dest(inst) {
+    if next_op == opcodes::MIR_LOCAL_GET() || next_op == opcodes::MIR_REF_FUNC() {
+        // REF_FUNC has no local operand: like LOCAL_GET(other) it is an
+        // independent stack producer, so a fn item passed as a callback
+        // argument (fold(0, add)) keeps earlier producers on the stack
+        // for the following call.
+        if next_op == opcodes::MIR_REF_FUNC() || next_arg0 != inst_accessors_operands::MirInst_dest(inst) {
             // Identity text-clone results are still represented by a call
             // destination.  A following aggregate-base load does not consume
             // the clone value from the stack, so materialize that destination
