@@ -1264,3 +1264,51 @@ acceptance boxes complete.
 - Remaining #860 residuals: desugared-iteration vs hand-written
   Iterator equivalence evidence, and the final residual-zero audit
   once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (generic struct-literal composite fields + mono wrapper vars)
+
+- `ca34b0aee` fixes generic struct construction on wasm32-gc for
+  fields that embed the type parameter inside a container.
+  `mir_struct_lit_instance_name` only bound a declared parameter when
+  the field type was the bare parameter, so `GenVecIter<T> { vec:
+  Vec<T> }` never bound T, derived the unsubstituted base layout, and
+  emitted invalid GC core Wasm (bogus `Vec<i32>` `ref.cast` on a
+  `Vec<String>` field). The binding now unifies the declared field
+  type against the resolved value type segment by segment (`vec:T`,
+  `option:T`, `result:T:E`, `Inner<T>`), and
+  `mir_emit_struct_field_set` no longer stamps a still-generic field
+  type onto a value local that already carries the concrete mono
+  type.
+- `b9fdbaa92` fixes the `fn first<T>(v: Vec<T>) -> Option<T>` GC
+  failure (`generics/vec_generic`). A `vec:T` param local contributed
+  no type variable to the ordinal pairing, so the only map entry was
+  the return projection `option:T -> option:i32`, and the
+  colon-segment name match returned the whole `option:i32` for a `T`
+  query — producing `vec:option:i32` and a bogus `Vec<Option>`
+  `ref.cast`. `ctx_type_var_names_from_local_type` now collects
+  variables from canonical wrapper spellings (`vec:`/`option:`/
+  `result:`/`hashmap:`, `Option:`/`Result:`) through a depth-aware
+  colon scan that recurses into composite segments, and `I::Item`
+  projections contribute their head variable.
+  `ctx_resolve_mono_type_param` returns the segment at the matched
+  position when stored name and type shapes align (`option:T` ->
+  `option:i32` answers `T` -> `i32`); mismatched shapes keep the
+  whole-type answer. The bootstrap overlay stub in
+  `scripts/selfhost/checks.py` received the same treatment (including
+  the angle-argument path the stub lacked) so the fix reaches the s2
+  compiler.
+- Verified on rebuilt s2: new fixture
+  `generics_v1/generic_struct_vec_field` (parametric `impl Iterator
+  for GenVecIter<T>` over a `Vec<T>` field, two instantiations)
+  prints `60`/`4` on wasm32 and the wasm32-gc component; the GC core
+  module passes `wasm-tools validate`. `generics/vec_generic` now
+  compiles and prints `99` on wasm32-gc (previously GC_COMPILE_FAIL)
+  and still prints `99` on wasm32. Fixture batch: 31/31 PASS on
+  wasm32, 26/27 PASS on the wasm32-gc component lane — the single
+  failure is the pre-existing `generics_v1/test_enum_return` resolve
+  error (`cmp::cmp_i32` undefined), unrelated to this change.
+  `verify lane`, `quality changed`, and `docs regenerate` exit 0
+  (registry 2983; the pre-existing remainder drift was corrected to
+  the manifest-observed invariant).
+- Remaining #860 residuals: the final residual-zero audit once #691
+  closes. #860 is not closed.
