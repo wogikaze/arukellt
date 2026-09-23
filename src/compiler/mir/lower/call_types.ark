@@ -6,6 +6,7 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
+use mir::lower::gc_layout_plan_build
 use mir::value_types
 
 fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
@@ -46,7 +47,15 @@ fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, fi
     if arg_vt != value_types::VT_I32() {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, arg_vt)
     } else if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        // A GC string arg already carries VT_GC_REF, so a VT_I32 arg here is
+        // a real scalar (e.g. clone(mapped) with mapped: i32). Keeping the
+        // scalar vt lets the local declare i64; forcing GC_REF made the
+        // producer scan adopt the callee's String return (#691).
+        if gc_layout_plan_build::gc_layout_plan_name_is_i32(clone(arg_type)) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
     } else {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
     }

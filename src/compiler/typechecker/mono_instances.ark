@@ -129,10 +129,48 @@ fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types
                     clone(site.fn_name),
                     bound_args
                 )
+                // The rebound instance also needs the resolved return:
+                // the template recorded it under the enclosing vars
+                // (Vec<U> for collect_iterator inside MapIter<T,U>::collect).
+                // Without it MIR falls back to the raw projection and emits
+                // vec:T::Item with an opaque structref element (#691).
+                let template_ret = mono_instance_return_type_by_mangled(
+                    env,
+                    clone(site.mangled_name)
+                )
+                if contract_type_access::TypeInfo_tag(clone(template_ret)) != 0 {
+                    let rebound_ret = associated_types::normalize_projection_ty(
+                        env,
+                        clone(site_vars),
+                        clone(resolved_types),
+                        instantiate::instantiate_type(
+                            clone(template_ret),
+                            clone(site_vars),
+                            clone(resolved_types)
+                        )
+                    )
+                    record_mono_return_type(env, clone(_rebound), rebound_ret)
+                }
             }
         }
         s = s + 1
     }
+}
+
+fn mono_instance_return_type_by_mangled(env: TypeEnv, mangled_name: String) -> TypeInfo {
+    let count = contract_env_mono_record::type_env_mono_instance_count(env)
+    let mut i = 0
+    while i < count {
+        let instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
+        if eq(
+            contract_mono::MonoInstance_mangled_name(instance),
+            clone(mangled_name)
+        ) {
+            return contract_mono::MonoInstance_return_type(instance)
+        }
+        i = i + 1
+    }
+    contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
 }
 
 fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: TypeInfo) {

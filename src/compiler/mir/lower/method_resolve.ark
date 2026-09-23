@@ -355,14 +355,14 @@ fn mir_is_vec_string_iteration_method(method_name: String) -> bool {
 
 fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
     eq(clone(type_name), String_from("StringIter")) ||
-    eq(clone(type_name), String_from("StringMapIter")) ||
-    eq(clone(type_name), String_from("StringFilterIter")) ||
-    eq(clone(type_name), String_from("StringMapTakeIter")) ||
-    eq(clone(type_name), String_from("StringFilterTakeIter")) ||
-    eq(clone(type_name), String_from("StringMapFilterIter")) ||
-    eq(clone(type_name), String_from("StringFilterMapIter")) ||
-    eq(clone(type_name), String_from("StringMapFilterTakeIter")) ||
-    eq(clone(type_name), String_from("StringFilterMapTakeIter")) ||
+    eq(clone(type_name), String_from("MapIter_String_String")) ||
+    eq(clone(type_name), String_from("FilterIter_String")) ||
+    eq(clone(type_name), String_from("TakeIter_MapIter_String_String")) ||
+    eq(clone(type_name), String_from("TakeIter_FilterIter_String")) ||
+    eq(clone(type_name), String_from("MapFilterIter_String_String")) ||
+    eq(clone(type_name), String_from("FilterMapIter_String")) ||
+    eq(clone(type_name), String_from("TakeIter_MapFilterIter_String_String")) ||
+    eq(clone(type_name), String_from("TakeIter_FilterMapIter_String")) ||
     eq(clone(type_name), String_from("StringSkipMapIter")) ||
     eq(clone(type_name), String_from("StringSkipFilterIter"))
 }

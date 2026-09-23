@@ -7,9 +7,13 @@
 //! hold an upstream source plus a closure, pulling elements on demand.
 //!
 //! Because Arukellt's monomorphisation model does not yet support trait-object
-//! dynamic dispatch, the existing adapter structs are monomorphic over `i32`
-//! (matching the existing `std::seq` helpers). Item-preserving iteration is
-//! kept separate from numeric consumers so another item representation can
+//! dynamic dispatch, adapters are monomorphised per concrete instantiation.
+//! The map/filter adapter family is item-generic (`MapIter<T, U>` holds
+//! `f: fn(T) -> U`), so the same adapter code serves `Vec<i32>` and
+//! `Vec<String>` pipelines; the skip-first family keeps concrete String
+//! adapters until skip compositions can spell `fn(I::Item) -> U` (#691).
+//! Item-preserving iteration is kept separate from numeric consumers so
+//! another item representation can
 //! implement `Iterator` without inventing a numeric meaning. Generic trait
 //! definitions are included to formalise the protocol and enable future
 //! generalisation.
@@ -35,15 +39,17 @@
 /// | VecIter     | impl   | Adapter over `Vec<i32>`                |
 /// | RangeIter   | impl   | Adapter over `Range`                   |
 /// | RangeInclusiveIter | impl | Adapter over `RangeInclusive`      |
-/// | MapIter     | impl   | Lazy map adapter                       |
-/// | FilterIter  | impl   | Lazy filter adapter                    |
+/// | MapIter<T,U> | impl | Lazy map adapter over `Vec<T>`           |
+/// | FilterIter<T> | impl | Lazy filter adapter over `Vec<T>`       |
+/// | MapFilterIter<T,U> | impl | Composed map/filter pipeline      |
+/// | FilterMapIter<T> | impl | Composed filter/map pipeline        |
 /// | TakeIter<I> | impl   | Lazy take adapter over any source      |
 /// | SkipIter<I> | impl   | Lazy skip adapter over any source      |
 /// | ChainIter<I> | impl  | Lazy chain of two `I: Iterator` sources |
 /// | EnumerateIter<I> | impl | Lazy enumerate yielding `Pair` items |
 /// | ZipIter<A,B> | impl | Lazy zip yielding `Pair` items           |
-/// | SkipMapIter | impl | Composed skip/map pipeline           |
-/// | SkipFilterIter | impl | Composed skip/filter pipeline       |
+/// | SkipMapIter<I> | impl | Composed skip/map pipeline           |
+/// | SkipFilterIter<I> | impl | Composed skip/filter pipeline       |
 pub trait Iterator {
     type Item
     fn next(self: Self) -> Option<Self::Item>
@@ -229,12 +235,12 @@ impl VecIter {
     }
 
     /// Lazily transform the remaining elements with `f`.
-    fn map(self: VecIter, f: fn(i32) -> i32) -> MapIter {
+    fn map(self: VecIter, f: fn(i32) -> i32) -> MapIter<i32, i32> {
         MapIter { vec: self.vec, index: self.index, length: self.length, f: f }
     }
 
     /// Lazily keep the remaining elements accepted by `f`.
-    fn filter(self: VecIter, f: fn(i32) -> bool) -> FilterIter {
+    fn filter(self: VecIter, f: fn(i32) -> bool) -> FilterIter<i32> {
         FilterIter { vec: self.vec, index: self.index, length: self.length, f: f }
     }
 
@@ -323,29 +329,12 @@ impl Vec<String> {
     }
 }
 
-/// Lazy bounded adapter that preserves String items from `StringIter`.
-pub struct StringTakeIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    remaining: i32,
-}
-
 /// Lazy adapter that skips String items before yielding the remainder.
 pub struct StringSkipIter {
     vec: Vec<String>,
     index: i32,
     length: i32,
     to_skip: i32,
-}
-
-/// Lazy composition that skips String items and then applies a bound.
-pub struct StringSkipTakeIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    to_skip: i32,
-    remaining: i32,
 }
 
 /// Lazy composition that skips source Strings before mapping the remainder.
@@ -366,81 +355,9 @@ pub struct StringSkipFilterIter {
     filter_f: fn(String) -> bool,
 }
 
-/// Lazy adapter that transforms each remaining String item with `f`.
-pub struct StringMapIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    f: fn(String) -> String,
-}
-
-/// Lazy adapter that keeps String items accepted by `f`.
-pub struct StringFilterIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    f: fn(String) -> bool,
-}
-
-/// Lazy composition that maps String items and keeps at most `n` results.
-pub struct StringMapTakeIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    map_f: fn(String) -> String,
-    remaining: i32,
-}
-
-/// Lazy composition that keeps at most `n` accepted String items.
-pub struct StringFilterTakeIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    filter_f: fn(String) -> bool,
-    remaining: i32,
-}
-
-/// Lazy composition that maps each String and filters the mapped result.
-pub struct StringMapFilterIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    map_f: fn(String) -> String,
-    filter_f: fn(String) -> bool,
-}
-
-/// Lazy composition that filters source Strings and maps accepted items.
-pub struct StringFilterMapIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    filter_f: fn(String) -> bool,
-    map_f: fn(String) -> String,
-}
-
-/// Lazy composition that maps, filters, and bounds String items.
-pub struct StringMapFilterTakeIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    map_f: fn(String) -> String,
-    filter_f: fn(String) -> bool,
-    remaining: i32,
-}
-
-/// Lazy composition that filters, maps, and bounds String items.
-pub struct StringFilterMapTakeIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-    filter_f: fn(String) -> bool,
-    map_f: fn(String) -> String,
-    remaining: i32,
-}
-
 impl StringIter {
-    fn map(self: StringIter, f: fn(String) -> String) -> StringMapIter {
-        StringMapIter {
+    fn map(self: StringIter, f: fn(String) -> String) -> MapIter<String, String> {
+        MapIter {
             vec: self.vec,
             index: self.index,
             length: self.length,
@@ -448,8 +365,8 @@ impl StringIter {
         }
     }
 
-    fn filter(self: StringIter, f: fn(String) -> bool) -> StringFilterIter {
-        StringFilterIter {
+    fn filter(self: StringIter, f: fn(String) -> bool) -> FilterIter<String> {
+        FilterIter {
             vec: self.vec,
             index: self.index,
             length: self.length,
@@ -457,11 +374,9 @@ impl StringIter {
         }
     }
 
-    fn take(self: StringIter, n: i32) -> StringTakeIter {
-        StringTakeIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
+    fn take(self: StringIter, n: i32) -> TakeIter<StringIter> {
+        TakeIter {
+            iter: self,
             remaining: n,
         }
     }
@@ -472,76 +387,6 @@ impl StringIter {
             index: self.index,
             length: self.length,
             to_skip: n,
-        }
-    }
-}
-
-impl StringMapIter {
-    fn take(self: StringMapIter, n: i32) -> StringMapTakeIter {
-        StringMapTakeIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            map_f: self.f,
-            remaining: n,
-        }
-    }
-
-    fn filter(self: StringMapIter, f: fn(String) -> bool) -> StringMapFilterIter {
-        StringMapFilterIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            map_f: self.f,
-            filter_f: f,
-        }
-    }
-}
-
-impl StringFilterIter {
-    fn take(self: StringFilterIter, n: i32) -> StringFilterTakeIter {
-        StringFilterTakeIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            filter_f: self.f,
-            remaining: n,
-        }
-    }
-
-    fn map(self: StringFilterIter, f: fn(String) -> String) -> StringFilterMapIter {
-        StringFilterMapIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            filter_f: self.f,
-            map_f: f,
-        }
-    }
-}
-
-impl StringMapFilterIter {
-    fn take(self: StringMapFilterIter, n: i32) -> StringMapFilterTakeIter {
-        StringMapFilterTakeIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            map_f: self.map_f,
-            filter_f: self.filter_f,
-            remaining: n,
-        }
-    }
-}
-
-impl StringFilterMapIter {
-    fn take(self: StringFilterMapIter, n: i32) -> StringFilterMapTakeIter {
-        StringFilterMapTakeIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            filter_f: self.filter_f,
-            map_f: self.map_f,
-            remaining: n,
         }
     }
 }
@@ -567,12 +412,9 @@ impl StringSkipIter {
         }
     }
 
-    fn take(self: StringSkipIter, n: i32) -> StringSkipTakeIter {
-        StringSkipTakeIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            to_skip: self.to_skip,
+    fn take(self: StringSkipIter, n: i32) -> TakeIter<StringSkipIter> {
+        TakeIter {
+            iter: self,
             remaining: n,
         }
     }
@@ -600,32 +442,6 @@ impl Iterator for StringIter {
     }
 }
 
-impl Iterator for StringTakeIter {
-    type Item = String
-
-    fn next(self: StringTakeIter) -> Option<String> {
-        if self.remaining <= 0 {
-            return None
-        }
-        if self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            self.remaining = self.remaining - 1
-            Some(value)
-        } else {
-            None
-        }
-    }
-
-    fn collect(self: StringTakeIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringTakeIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
 impl Iterator for StringSkipIter {
     type Item = String
 
@@ -648,36 +464,6 @@ impl Iterator for StringSkipIter {
     }
 
     fn count(self: StringSkipIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringSkipTakeIter {
-    type Item = String
-
-    fn next(self: StringSkipTakeIter) -> Option<String> {
-        if self.remaining <= 0 {
-            return None
-        }
-        while self.to_skip > 0 && self.index < self.length {
-            self.index = self.index + 1
-            self.to_skip = self.to_skip - 1
-        }
-        if self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            self.remaining = self.remaining - 1
-            Some(value)
-        } else {
-            None
-        }
-    }
-
-    fn collect(self: StringSkipTakeIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringSkipTakeIter) -> i32 {
         count_iterator(self)
     }
 }
@@ -736,214 +522,6 @@ impl Iterator for StringSkipFilterIter {
     }
 }
 
-impl Iterator for StringMapIter {
-    type Item = String
-
-    fn next(self: StringMapIter) -> Option<String> {
-        if self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            Some((self.f)(value))
-        } else {
-            None
-        }
-    }
-
-    fn collect(self: StringMapIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringMapIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringFilterIter {
-    type Item = String
-
-    fn next(self: StringFilterIter) -> Option<String> {
-        while self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            // The predicate takes ownership of its callback argument. Keep the
-            // source item for the yielded path by passing a cloned handle.
-            let predicate_value = clone(value)
-            if (self.f)(predicate_value) {
-                return Some(value)
-            }
-        }
-        None
-    }
-
-    fn collect(self: StringFilterIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringFilterIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringMapTakeIter {
-    type Item = String
-
-    fn next(self: StringMapTakeIter) -> Option<String> {
-        if self.remaining <= 0 {
-            return None
-        }
-        if self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            self.remaining = self.remaining - 1
-            Some((self.map_f)(value))
-        } else {
-            None
-        }
-    }
-
-    fn collect(self: StringMapTakeIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringMapTakeIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringFilterTakeIter {
-    type Item = String
-
-    fn next(self: StringFilterTakeIter) -> Option<String> {
-        if self.remaining <= 0 {
-            return None
-        }
-        while self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            let predicate_value = clone(value)
-            if (self.filter_f)(predicate_value) {
-                self.remaining = self.remaining - 1
-                return Some(value)
-            }
-        }
-        None
-    }
-
-    fn collect(self: StringFilterTakeIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringFilterTakeIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringMapFilterIter {
-    type Item = String
-
-    fn next(self: StringMapFilterIter) -> Option<String> {
-        while self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            let mapped = (self.map_f)(value)
-            let predicate_value = clone(mapped)
-            if (self.filter_f)(predicate_value) {
-                return Some(mapped)
-            }
-        }
-        None
-    }
-
-    fn collect(self: StringMapFilterIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringMapFilterIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringFilterMapIter {
-    type Item = String
-
-    fn next(self: StringFilterMapIter) -> Option<String> {
-        while self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            let predicate_value = clone(value)
-            if (self.filter_f)(predicate_value) {
-                return Some((self.map_f)(value))
-            }
-        }
-        None
-    }
-
-    fn collect(self: StringFilterMapIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringFilterMapIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringMapFilterTakeIter {
-    type Item = String
-
-    fn next(self: StringMapFilterTakeIter) -> Option<String> {
-        if self.remaining <= 0 {
-            return None
-        }
-        while self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            let mapped = (self.map_f)(value)
-            let predicate_value = clone(mapped)
-            if (self.filter_f)(predicate_value) {
-                self.remaining = self.remaining - 1
-                return Some(mapped)
-            }
-        }
-        None
-    }
-
-    fn collect(self: StringMapFilterTakeIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringMapFilterTakeIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl Iterator for StringFilterMapTakeIter {
-    type Item = String
-
-    fn next(self: StringFilterMapTakeIter) -> Option<String> {
-        if self.remaining <= 0 {
-            return None
-        }
-        while self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            let predicate_value = clone(value)
-            if (self.filter_f)(predicate_value) {
-                self.remaining = self.remaining - 1
-                return Some((self.map_f)(value))
-            }
-        }
-        None
-    }
-
-    fn collect(self: StringFilterMapTakeIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringFilterMapTakeIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
 impl IntoIterator for StringIter {
     type Item = String
     type IntoIter = StringIter
@@ -953,29 +531,11 @@ impl IntoIterator for StringIter {
     }
 }
 
-impl IntoIterator for StringTakeIter {
-    type Item = String
-    type IntoIter = StringTakeIter
-
-    fn into_iter(self: StringTakeIter) -> StringTakeIter {
-        self
-    }
-}
-
 impl IntoIterator for StringSkipIter {
     type Item = String
     type IntoIter = StringSkipIter
 
     fn into_iter(self: StringSkipIter) -> StringSkipIter {
-        self
-    }
-}
-
-impl IntoIterator for StringSkipTakeIter {
-    type Item = String
-    type IntoIter = StringSkipTakeIter
-
-    fn into_iter(self: StringSkipTakeIter) -> StringSkipTakeIter {
         self
     }
 }
@@ -994,78 +554,6 @@ impl IntoIterator for StringSkipFilterIter {
     type IntoIter = StringSkipFilterIter
 
     fn into_iter(self: StringSkipFilterIter) -> StringSkipFilterIter {
-        self
-    }
-}
-
-impl IntoIterator for StringMapIter {
-    type Item = String
-    type IntoIter = StringMapIter
-
-    fn into_iter(self: StringMapIter) -> StringMapIter {
-        self
-    }
-}
-
-impl IntoIterator for StringFilterIter {
-    type Item = String
-    type IntoIter = StringFilterIter
-
-    fn into_iter(self: StringFilterIter) -> StringFilterIter {
-        self
-    }
-}
-
-impl IntoIterator for StringMapTakeIter {
-    type Item = String
-    type IntoIter = StringMapTakeIter
-
-    fn into_iter(self: StringMapTakeIter) -> StringMapTakeIter {
-        self
-    }
-}
-
-impl IntoIterator for StringFilterTakeIter {
-    type Item = String
-    type IntoIter = StringFilterTakeIter
-
-    fn into_iter(self: StringFilterTakeIter) -> StringFilterTakeIter {
-        self
-    }
-}
-
-impl IntoIterator for StringMapFilterIter {
-    type Item = String
-    type IntoIter = StringMapFilterIter
-
-    fn into_iter(self: StringMapFilterIter) -> StringMapFilterIter {
-        self
-    }
-}
-
-impl IntoIterator for StringFilterMapIter {
-    type Item = String
-    type IntoIter = StringFilterMapIter
-
-    fn into_iter(self: StringFilterMapIter) -> StringFilterMapIter {
-        self
-    }
-}
-
-impl IntoIterator for StringMapFilterTakeIter {
-    type Item = String
-    type IntoIter = StringMapFilterTakeIter
-
-    fn into_iter(self: StringMapFilterTakeIter) -> StringMapFilterTakeIter {
-        self
-    }
-}
-
-impl IntoIterator for StringFilterMapTakeIter {
-    type Item = String
-    type IntoIter = StringFilterMapTakeIter
-
-    fn into_iter(self: StringFilterMapTakeIter) -> StringFilterMapTakeIter {
         self
     }
 }
@@ -1178,26 +666,28 @@ impl IntoIterator for RangeInclusive {
 // ---------------------------------------------------------------------------
 
 /// Lazy iterator that applies `f` to each element of the source vector.
-pub struct MapIter {
-    vec: Vec<i32>,
+/// The adapter is item-generic: `f: fn(T) -> U` keeps the concrete
+/// per-instance callback signature on both backends (#860/#691).
+pub struct MapIter<T, U> {
+    vec: Vec<T>,
     index: i32,
     length: i32,
-    f: fn(i32) -> i32,
+    f: fn(T) -> U,
 }
 
 /// Construct a `MapIter` over `v` with transform `f`.
-pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter {
+pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter<i32, i32> {
     vec_iter(v).map(f)
 }
 
-impl MapIter {
+impl MapIter<T, U> {
     /// Lazily limit mapped elements to `n` values.
-    fn take(self: MapIter, n: i32) -> TakeIter<MapIter> {
+    fn take(self: MapIter<T, U>, n: i32) -> TakeIter<MapIter<T, U>> {
         TakeIter { iter: self, remaining: n }
     }
 
     /// Lazily keep mapped elements accepted by `f`.
-    fn filter(self: MapIter, f: fn(i32) -> bool) -> MapFilterIter {
+    fn filter(self: MapIter<T, U>, f: fn(U) -> bool) -> MapFilterIter<T, U> {
         MapFilterIter {
             vec: self.vec,
             index: self.index,
@@ -1208,12 +698,12 @@ impl MapIter {
     }
 }
 
-impl Iterator for MapIter {
-    type Item = i32
+impl Iterator for MapIter<T, U> {
+    type Item = U
 
-    fn next(self: MapIter) -> Option<i32> {
+    fn next(self: MapIter<T, U>) -> Option<U> {
         if self.index < self.length {
-            let raw: i32 = get_unchecked(self.vec, self.index)
+            let raw: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
             Some((self.f)(raw))
         } else {
@@ -1221,11 +711,11 @@ impl Iterator for MapIter {
         }
     }
 
-    fn collect(self: MapIter) -> Vec<i32> {
+    fn collect(self: MapIter<T, U>) -> Vec<U> {
         collect_iterator(self)
     }
 
-    fn count(self: MapIter) -> i32 {
+    fn count(self: MapIter<T, U>) -> i32 {
         count_iterator(self)
     }
 
@@ -1236,41 +726,46 @@ impl Iterator for MapIter {
 // ---------------------------------------------------------------------------
 
 /// Lazy iterator that maps each source value and then filters the mapped value.
-pub struct MapFilterIter {
-    vec: Vec<i32>,
+/// Item-generic: `map_f: fn(T) -> U` and `filter_f: fn(U) -> bool` keep the
+/// concrete per-instance callback signatures on both backends (#860/#691).
+pub struct MapFilterIter<T, U> {
+    vec: Vec<T>,
     index: i32,
     length: i32,
-    map_f: fn(i32) -> i32,
-    filter_f: fn(i32) -> bool,
+    map_f: fn(T) -> U,
+    filter_f: fn(U) -> bool,
 }
 
-impl MapFilterIter {
+impl MapFilterIter<T, U> {
     /// Lazily limit the accepted mapped values to `n` elements.
-    fn take(self: MapFilterIter, n: i32) -> TakeIter<MapFilterIter> {
+    fn take(self: MapFilterIter<T, U>, n: i32) -> TakeIter<MapFilterIter<T, U>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for MapFilterIter {
-    type Item = i32
+impl Iterator for MapFilterIter<T, U> {
+    type Item = U
 
-    fn next(self: MapFilterIter) -> Option<i32> {
+    fn next(self: MapFilterIter<T, U>) -> Option<U> {
         while self.index < self.length {
-            let raw: i32 = get_unchecked(self.vec, self.index)
+            let raw: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
-            let mapped: i32 = (self.map_f)(raw)
-            if (self.filter_f)(mapped) {
+            let mapped: U = (self.map_f)(raw)
+            // The predicate takes ownership of its callback argument. Keep
+            // the mapped item for the yielded path by passing a clone.
+            let predicate_value = clone(mapped)
+            if (self.filter_f)(predicate_value) {
                 return Some(mapped)
             }
         }
         None
     }
 
-    fn collect(self: MapFilterIter) -> Vec<i32> {
+    fn collect(self: MapFilterIter<T, U>) -> Vec<U> {
         collect_iterator(self)
     }
 
-    fn count(self: MapFilterIter) -> i32 {
+    fn count(self: MapFilterIter<T, U>) -> i32 {
         count_iterator(self)
     }
 
@@ -1281,44 +776,110 @@ impl Iterator for MapFilterIter {
 // ---------------------------------------------------------------------------
 
 /// Lazy iterator that yields only elements for which `f` returns `true`.
-pub struct FilterIter {
-    vec: Vec<i32>,
+/// The adapter is item-generic: `f: fn(T) -> bool` keeps the concrete
+/// per-instance callback signature on both backends (#860/#691).
+pub struct FilterIter<T> {
+    vec: Vec<T>,
     index: i32,
     length: i32,
-    f: fn(i32) -> bool,
+    f: fn(T) -> bool,
 }
 
 /// Construct a `FilterIter` over `v` with predicate `f`.
-pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter {
+pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter<i32> {
     vec_iter(v).filter(f)
 }
 
-impl FilterIter {
+impl FilterIter<T> {
     /// Lazily limit accepted values to `n` elements.
-    fn take(self: FilterIter, n: i32) -> TakeIter<FilterIter> {
+    fn take(self: FilterIter<T>, n: i32) -> TakeIter<FilterIter<T>> {
         TakeIter { iter: self, remaining: n }
+    }
+
+    /// Lazily transform accepted items with `f`. Method-level generics are
+    /// not supported yet, so the mapped item keeps the source type `T`
+    /// (filter-then-map is T -> T only; map-then-filter stays fully
+    /// generic through `MapIter<T, U>::filter`) (#691 residual).
+    fn map(self: FilterIter<T>, f: fn(T) -> T) -> FilterMapIter<T> {
+        FilterMapIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            filter_f: self.f,
+            map_f: f,
+        }
     }
 }
 
-impl Iterator for FilterIter {
-    type Item = i32
+impl Iterator for FilterIter<T> {
+    type Item = T
 
-    fn next(self: FilterIter) -> Option<i32> {
+    fn next(self: FilterIter<T>) -> Option<T> {
         while self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
+            let val: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
-            if (self.f)(val) {
+            // The predicate takes ownership of its callback argument. Keep
+            // the source item for the yielded path by passing a clone.
+            let predicate_value = clone(val)
+            if (self.f)(predicate_value) {
                 return Some(val)
             }
         }
         None
     }
 
-    fn collect(self: FilterIter) -> Vec<i32> {
+    fn collect(self: FilterIter<T>) -> Vec<T> {
         collect_iterator(self)
     }
 
-    fn count(self: FilterIter) -> i32 {
+    fn count(self: FilterIter<T>) -> i32 {
+        count_iterator(self)
+    }
+
+}
+
+// ---------------------------------------------------------------------------
+// FilterMapIter — composed lazy filter/map adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that keeps source items accepted by `filter_f` and then
+/// transforms each accepted item with `map_f`. Item-generic over `T`; the
+/// T -> T map bound mirrors `FilterIter<T>::map` (#860/#691).
+pub struct FilterMapIter<T> {
+    vec: Vec<T>,
+    index: i32,
+    length: i32,
+    filter_f: fn(T) -> bool,
+    map_f: fn(T) -> T,
+}
+
+impl FilterMapIter<T> {
+    /// Lazily limit the accepted mapped values to `n` elements.
+    fn take(self: FilterMapIter<T>, n: i32) -> TakeIter<FilterMapIter<T>> {
+        TakeIter { iter: self, remaining: n }
+    }
+}
+
+impl Iterator for FilterMapIter<T> {
+    type Item = T
+
+    fn next(self: FilterMapIter<T>) -> Option<T> {
+        while self.index < self.length {
+            let val: T = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            let predicate_value = clone(val)
+            if (self.filter_f)(predicate_value) {
+                return Some((self.map_f)(val))
+            }
+        }
+        None
+    }
+
+    fn collect(self: FilterMapIter<T>) -> Vec<T> {
+        collect_iterator(self)
+    }
+
+    fn count(self: FilterMapIter<T>) -> i32 {
         count_iterator(self)
     }
 
@@ -1846,74 +1407,74 @@ impl IteratorFold<i32, i32> for RangeInclusiveIter {
     }
 }
 
-impl IteratorSum<i32, i32> for MapIter {
-    fn sum(self: MapIter) -> i32 {
+impl IteratorSum<i32, i32> for MapIter<i32, i32> {
+    fn sum(self: MapIter<i32, i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for MapIter {
-    fn fold(self: MapIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for MapIter<i32, i32> {
+    fn fold(self: MapIter<i32, i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for TakeIter<MapIter> {
-    fn sum(self: TakeIter<MapIter>) -> i32 {
+impl IteratorSum<i32, i32> for TakeIter<MapIter<i32, i32>> {
+    fn sum(self: TakeIter<MapIter<i32, i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for TakeIter<MapIter> {
-    fn fold(self: TakeIter<MapIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for TakeIter<MapIter<i32, i32>> {
+    fn fold(self: TakeIter<MapIter<i32, i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for MapFilterIter {
-    fn sum(self: MapFilterIter) -> i32 {
+impl IteratorSum<i32, i32> for MapFilterIter<i32, i32> {
+    fn sum(self: MapFilterIter<i32, i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for MapFilterIter {
-    fn fold(self: MapFilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for MapFilterIter<i32, i32> {
+    fn fold(self: MapFilterIter<i32, i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for TakeIter<MapFilterIter> {
-    fn sum(self: TakeIter<MapFilterIter>) -> i32 {
+impl IteratorSum<i32, i32> for TakeIter<MapFilterIter<i32, i32>> {
+    fn sum(self: TakeIter<MapFilterIter<i32, i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for TakeIter<MapFilterIter> {
-    fn fold(self: TakeIter<MapFilterIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for TakeIter<MapFilterIter<i32, i32>> {
+    fn fold(self: TakeIter<MapFilterIter<i32, i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for FilterIter {
-    fn sum(self: FilterIter) -> i32 {
+impl IteratorSum<i32, i32> for FilterIter<i32> {
+    fn sum(self: FilterIter<i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for FilterIter {
-    fn fold(self: FilterIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for FilterIter<i32> {
+    fn fold(self: FilterIter<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for TakeIter<FilterIter> {
-    fn sum(self: TakeIter<FilterIter>) -> i32 {
+impl IteratorSum<i32, i32> for TakeIter<FilterIter<i32>> {
+    fn sum(self: TakeIter<FilterIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for TakeIter<FilterIter> {
-    fn fold(self: TakeIter<FilterIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for TakeIter<FilterIter<i32>> {
+    fn fold(self: TakeIter<FilterIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -2059,74 +1620,74 @@ impl IteratorCountEq<i32> for RangeInclusiveIter {
     }
 }
 
-impl IteratorContains<i32> for MapIter {
-    fn contains(self: MapIter, target: i32) -> bool {
+impl IteratorContains<i32> for MapIter<i32, i32> {
+    fn contains(self: MapIter<i32, i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for MapIter {
-    fn count_eq(self: MapIter, target: i32) -> i32 {
+impl IteratorCountEq<i32> for MapIter<i32, i32> {
+    fn count_eq(self: MapIter<i32, i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for TakeIter<MapIter> {
-    fn contains(self: TakeIter<MapIter>, target: i32) -> bool {
+impl IteratorContains<i32> for TakeIter<MapIter<i32, i32>> {
+    fn contains(self: TakeIter<MapIter<i32, i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for TakeIter<MapIter> {
-    fn count_eq(self: TakeIter<MapIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for TakeIter<MapIter<i32, i32>> {
+    fn count_eq(self: TakeIter<MapIter<i32, i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for MapFilterIter {
-    fn contains(self: MapFilterIter, target: i32) -> bool {
+impl IteratorContains<i32> for MapFilterIter<i32, i32> {
+    fn contains(self: MapFilterIter<i32, i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for MapFilterIter {
-    fn count_eq(self: MapFilterIter, target: i32) -> i32 {
+impl IteratorCountEq<i32> for MapFilterIter<i32, i32> {
+    fn count_eq(self: MapFilterIter<i32, i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for TakeIter<MapFilterIter> {
-    fn contains(self: TakeIter<MapFilterIter>, target: i32) -> bool {
+impl IteratorContains<i32> for TakeIter<MapFilterIter<i32, i32>> {
+    fn contains(self: TakeIter<MapFilterIter<i32, i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for TakeIter<MapFilterIter> {
-    fn count_eq(self: TakeIter<MapFilterIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for TakeIter<MapFilterIter<i32, i32>> {
+    fn count_eq(self: TakeIter<MapFilterIter<i32, i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for FilterIter {
-    fn contains(self: FilterIter, target: i32) -> bool {
+impl IteratorContains<i32> for FilterIter<i32> {
+    fn contains(self: FilterIter<i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for FilterIter {
-    fn count_eq(self: FilterIter, target: i32) -> i32 {
+impl IteratorCountEq<i32> for FilterIter<i32> {
+    fn count_eq(self: FilterIter<i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for TakeIter<FilterIter> {
-    fn contains(self: TakeIter<FilterIter>, target: i32) -> bool {
+impl IteratorContains<i32> for TakeIter<FilterIter<i32>> {
+    fn contains(self: TakeIter<FilterIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for TakeIter<FilterIter> {
-    fn count_eq(self: TakeIter<FilterIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for TakeIter<FilterIter<i32>> {
+    fn count_eq(self: TakeIter<FilterIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
@@ -2234,29 +1795,38 @@ impl IteratorCountEq<i32> for RevIter {
 // An iterator is already an iterable source. These identity conversions keep
 // `for` on the same trait boundary as collection sources without allocating or
 // changing the adapter state.
-impl IntoIterator for MapIter {
-    type Item = i32
-    type IntoIter = MapIter
+impl IntoIterator for MapIter<T, U> {
+    type Item = U
+    type IntoIter = MapIter<T, U>
 
-    fn into_iter(self: MapIter) -> MapIter {
+    fn into_iter(self: MapIter<T, U>) -> MapIter<T, U> {
         self
     }
 }
 
-impl IntoIterator for MapFilterIter {
-    type Item = i32
-    type IntoIter = MapFilterIter
+impl IntoIterator for MapFilterIter<T, U> {
+    type Item = U
+    type IntoIter = MapFilterIter<T, U>
 
-    fn into_iter(self: MapFilterIter) -> MapFilterIter {
+    fn into_iter(self: MapFilterIter<T, U>) -> MapFilterIter<T, U> {
         self
     }
 }
 
-impl IntoIterator for FilterIter {
-    type Item = i32
-    type IntoIter = FilterIter
+impl IntoIterator for FilterIter<T> {
+    type Item = T
+    type IntoIter = FilterIter<T>
 
-    fn into_iter(self: FilterIter) -> FilterIter {
+    fn into_iter(self: FilterIter<T>) -> FilterIter<T> {
+        self
+    }
+}
+
+impl IntoIterator for FilterMapIter<T> {
+    type Item = T
+    type IntoIter = FilterMapIter<T>
+
+    fn into_iter(self: FilterMapIter<T>) -> FilterMapIter<T> {
         self
     }
 }
@@ -2352,12 +1922,12 @@ pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
 }
 
 /// Drain a `MapIter` into a new `Vec<i32>`.
-pub fn collect_map_iter(it: MapIter) -> Vec<i32> {
+pub fn collect_map_iter(it: MapIter<i32, i32>) -> Vec<i32> {
     it.collect()
 }
 
 /// Drain a `FilterIter` into a new `Vec<i32>`.
-pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
+pub fn collect_filter_iter(it: FilterIter<i32>) -> Vec<i32> {
     it.collect()
 }
 
@@ -2427,58 +1997,58 @@ impl FromIterator<StringIter> for Vec<String> {
     }
 }
 
-/// `FromIterator<StringMapIter>` impl for `Vec<String>` — preserves mapped items.
-impl FromIterator<StringMapIter> for Vec<String> {
-    fn from_iter(it: StringMapIter) -> Vec<String> {
+/// `FromIterator<MapIter<String, String>>` impl for `Vec<String>` — preserves mapped items.
+impl FromIterator<MapIter<String, String>> for Vec<String> {
+    fn from_iter(it: MapIter<String, String>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringFilterIter>` impl for `Vec<String>` — preserves accepted items.
-impl FromIterator<StringFilterIter> for Vec<String> {
-    fn from_iter(it: StringFilterIter) -> Vec<String> {
+/// `FromIterator<FilterIter<String>>` impl for `Vec<String>` — preserves accepted items.
+impl FromIterator<FilterIter<String>> for Vec<String> {
+    fn from_iter(it: FilterIter<String>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringMapTakeIter>` impl for `Vec<String>` — keeps the bound.
-impl FromIterator<StringMapTakeIter> for Vec<String> {
-    fn from_iter(it: StringMapTakeIter) -> Vec<String> {
+/// `FromIterator<TakeIter<MapIter<String, String>>>` impl for `Vec<String>` — keeps the bound.
+impl FromIterator<TakeIter<MapIter<String, String>>> for Vec<String> {
+    fn from_iter(it: TakeIter<MapIter<String, String>>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringFilterTakeIter>` impl for `Vec<String>` — keeps accepted items.
-impl FromIterator<StringFilterTakeIter> for Vec<String> {
-    fn from_iter(it: StringFilterTakeIter) -> Vec<String> {
+/// `FromIterator<TakeIter<FilterIter<String>>>` impl for `Vec<String>` — keeps accepted items.
+impl FromIterator<TakeIter<FilterIter<String>>> for Vec<String> {
+    fn from_iter(it: TakeIter<FilterIter<String>>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringMapFilterIter>` impl for `Vec<String>` — preserves filtered mapped items.
-impl FromIterator<StringMapFilterIter> for Vec<String> {
-    fn from_iter(it: StringMapFilterIter) -> Vec<String> {
+/// `FromIterator<MapFilterIter<String, String>>` impl for `Vec<String>` — preserves filtered mapped items.
+impl FromIterator<MapFilterIter<String, String>> for Vec<String> {
+    fn from_iter(it: MapFilterIter<String, String>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringFilterMapIter>` impl for `Vec<String>` — maps accepted items.
-impl FromIterator<StringFilterMapIter> for Vec<String> {
-    fn from_iter(it: StringFilterMapIter) -> Vec<String> {
+/// `FromIterator<FilterMapIter<String>>` impl for `Vec<String>` — maps accepted items.
+impl FromIterator<FilterMapIter<String>> for Vec<String> {
+    fn from_iter(it: FilterMapIter<String>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringMapFilterTakeIter>` impl for `Vec<String>` — bounds accepted mapped items.
-impl FromIterator<StringMapFilterTakeIter> for Vec<String> {
-    fn from_iter(it: StringMapFilterTakeIter) -> Vec<String> {
+/// `FromIterator<TakeIter<MapFilterIter<String, String>>>` impl for `Vec<String>` — bounds accepted mapped items.
+impl FromIterator<TakeIter<MapFilterIter<String, String>>> for Vec<String> {
+    fn from_iter(it: TakeIter<MapFilterIter<String, String>>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringFilterMapTakeIter>` impl for `Vec<String>` — bounds mapped accepted items.
-impl FromIterator<StringFilterMapTakeIter> for Vec<String> {
-    fn from_iter(it: StringFilterMapTakeIter) -> Vec<String> {
+/// `FromIterator<TakeIter<FilterMapIter<String>>>` impl for `Vec<String>` — bounds mapped accepted items.
+impl FromIterator<TakeIter<FilterMapIter<String>>> for Vec<String> {
+    fn from_iter(it: TakeIter<FilterMapIter<String>>) -> Vec<String> {
         it.collect()
     }
 }

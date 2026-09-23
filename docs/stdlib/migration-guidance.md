@@ -211,7 +211,8 @@ The first non-numeric item lane is `Vec<String> -> StringIter`. The
 `collect`, direct `for` iteration, and the bounded
 `iter().take(1).collect()` pipeline. `iter()` and `into_iter()` both enter the
 same `StringIter` producer boundary, while `take` preserves the item through
-`StringTakeIter`. The `skip(n).take(m)` composition uses `StringSkipTakeIter`
+`TakeIter<StringIter>`. The `skip(n).take(m)` composition uses
+`TakeIter<StringSkipIter>`
 and applies skip state before the bounded pull. GC component and linear-memory
 Wasm compilation, validation, and runtime assertions pass with the same source
 behavior. The lowering selects a typed `Option::Some` payload layout for the
@@ -219,43 +220,53 @@ item on the GC path and the corresponding reference value type on the linear
 fallback; no integer packing is used. This is concrete String evidence, not a
 claim that every collection or adapter has become item-generic.
 
-The String lane now also has lazy callback adapters:
-`StringIter::map(fn(String) -> String)` and
-`StringIter::filter(fn(String) -> bool)`. The
+The String lane now also has lazy callback adapters through the item-generic
+adapter types shared with the i32 lane:
+`StringIter::map(fn(String) -> String)` returns
+`MapIter<String, String>`, and
+`StringIter::filter(fn(String) -> bool)` returns `FilterIter<String>`. The
 `stdlib_trait/iterator_string_callbacks.ark` fixture checks both adapters and
 their canonical `collect` path on GC and linear-memory Wasm. The filter adapter
 clones the callback argument because the callback owns its `String` input; the
 accepted source item is then yielded with its String identity intact. GC uses
 typed `call_ref` signatures (`String -> String` and the Memory64 representation
 of `String -> bool`), while the fallback uses the callback table and
-`call_indirect`; the source-level order and results are the same. Concrete
-`FromIterator<StringMapIter>` and `FromIterator<StringFilterIter>` impls are
+`call_indirect`; the source-level order and results are the same.
+`FromIterator<MapIter<String, String>>` and
+`FromIterator<FilterIter<String>>` impls are
 also reachable through `Vec::from_iter`; source-qualified associated-function
 lowering selects the matching `Vec_String::from_iter__<Source>` symbol. The
 fixture verifies both calls on GC and linear-memory Wasm. A `T: Iterator` helper
 in the same fixture also monomorphizes to the matching static symbol, keeping
-the source-level collection semantics unchanged. This remains a bounded String
-lane, not a claim for arbitrary item-generic adapters or dynamic dispatch. The
+the source-level collection semantics unchanged. This remains bounded static
+monomorphization evidence, not a claim for arbitrary item representations or
+dynamic dispatch. The
 fixture also covers `iter().map(map_identity).filter(keep_long_string).collect()`
-and its `Vec::from_iter` form through `StringMapFilterIter`; the predicate sees
-a cloned mapped handle and accepted items retain their source order.
+and its `Vec::from_iter` form through `MapFilterIter<String, String>`; the
+predicate sees a cloned mapped handle and accepted items retain their source
+order.
 The reverse `iter().filter(keep_long_string).map(map_identity)` pipeline and
-its `Vec::from_iter` form are covered too; filtering clones the source handle,
-then mapping consumes only accepted originals.
+its `Vec::from_iter` form are covered through `FilterMapIter<String>`;
+filtering clones the source handle, then mapping consumes only accepted
+originals. Method-level generics are not supported yet, so
+`FilterIter<T>::map` keeps the item type at `T -> T`.
 The same fixture passes that composed String source to a generic
 `total_string_lengths<T: IntoIterator>` consumer. The emitted
-`total_string_lengths__StringFilterMapIter` specialization crosses the
+`total_string_lengths__FilterMapIter_String` specialization crosses the
 adapter's identity `IntoIterator` conversion and canonical `next` loop on both
 published Wasm targets. This is bounded evidence for one non-numeric adapter
 composition; arbitrary item-generic dispatch and manifest-level deprecation
 remain open.
 Bounded callback compositions are also available: `map(...).take(n)` uses
-`StringMapTakeIter`, while `filter(...).take(n)` uses `StringFilterTakeIter`
+`TakeIter<MapIter<String, String>>`, while `filter(...).take(n)` uses
+`TakeIter<FilterIter<String>>`
 and counts accepted items. The fixture verifies their lazy `collect`,
 `Vec::from_iter`, and generic `T: IntoIterator` consumers on both published
-Wasm targets; the implementation remains a concrete String lane.
-The same concrete lane supports `map(...).filter(...).take(n)` and the reverse
-`filter(...).map(...).take(n)` order through dedicated lazy adapters. Both
+Wasm targets.
+The same lane supports `map(...).filter(...).take(n)` and the reverse
+`filter(...).map(...).take(n)` order through
+`TakeIter<MapFilterIter<String, String>>` and
+`TakeIter<FilterMapIter<String>>`. Both
 orders keep the predicate ownership clone and apply the bound to accepted
 outputs; their `collect`, `Vec::from_iter`, and generic `for` paths are
 verified on GC and linear-memory Wasm.

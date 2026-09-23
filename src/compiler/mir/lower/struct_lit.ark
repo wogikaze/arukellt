@@ -271,6 +271,50 @@ fn struct_lit_type_is_composite(name: String) -> bool {
     contains(clone(name), String_from("<")) || contains(clone(name), String_from(":"))
 }
 
+// Legacy fnref-family value spellings carry no param/return segments.
+// Expand them against the declared fnsig: shape so parameter positions
+// bind the callback family the value spelling implies (fnref is the
+// i32-ABI bucket, fnrefss is String->String, fnrefsb is String->bool)
+// while concrete declared segments stay fixed — a declared fn(T)->bool
+// expands a fnref value to fnsig:i32;bool, not fnsig:i32;i32.
+fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) -> String {
+    if !starts_with(clone(f), String_from("fnsig:")) {
+        return v
+    }
+    let family = Vec::new<String>()
+    if eq(clone(v), String_from("fnref")) {
+        push(family, String_from("i32"))
+        push(family, String_from("i32"))
+    } else if eq(clone(v), String_from("fnrefss")) {
+        push(family, String_from("String"))
+        push(family, String_from("String"))
+    } else if eq(clone(v), String_from("fnrefsb")) {
+        push(family, String_from("String"))
+        push(family, String_from("bool"))
+    } else {
+        return v
+    }
+    let f_segs = struct_lit_split_colon_top(clone(f))
+    if len(f_segs) != 3 {
+        return v
+    }
+    let mut out = String_from("fnsig:")
+    let mut k = 1
+    while k < len(f_segs) {
+        if k > 1 {
+            out = concat(out, String_from(";"))
+        }
+        let f_seg = get_unchecked(f_segs, k)
+        if struct_lit_param_index(params, clone(f_seg)) >= 0 {
+            out = concat(out, clone(get_unchecked(family, k - 1)))
+        } else {
+            out = concat(out, f_seg)
+        }
+        k = k + 1
+    }
+    out
+}
+
 // Align a declared field type with the resolved value type and bind every
 // declared-parameter leaf to its concrete counterpart. A bare parameter
 // leaf (T) binds the whole value type; composite spellings (vec:T,
@@ -291,7 +335,7 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, args: 
         return true
     }
     let f = struct_lit_canonical_type_spelling(ft)
-    let v = struct_lit_canonical_type_spelling(vt)
+    let v = struct_lit_fnref_value_spelling(clone(f), struct_lit_canonical_type_spelling(vt), params)
     let f_segs = struct_lit_split_colon_top(clone(f))
     let v_segs = struct_lit_split_colon_top(clone(v))
     if len(f_segs) > 1 || len(v_segs) > 1 {

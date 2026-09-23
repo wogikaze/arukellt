@@ -460,7 +460,18 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         if post_pass_callee_lookup::is_generic_clone_intrinsic(clone(callee)) {
             let arg0 = inst_accessors_operands::MirInst_arg0(inst)
             if arg0 >= 0 && arg0 < function_locals_view::MirFunction_local_count(f) {
-                let arg_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, arg0))
+                let arg_loc = function_locals_view::MirFunction_local_at(f, arg0)
+                let arg_tn = local_access::MirLocal_type_name(arg_loc)
+                // Scalar clone args are identity: the dest keeps the scalar
+                // ABI, so the producer scan must not adopt the callee's
+                // declared String return or the arg's ref-typed layout slot
+                // (#691 MapFilterIter<i32,i32>::next clone dest).
+                if is_scalar_get_unchecked_result(
+                    clone(arg_tn),
+                    local_access::MirLocal_val_type(arg_loc)
+                ) {
+                    return Option::None
+                }
                 let named_arg = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(arg_tn))
                 match named_arg {
                     Option::Some(_opt_v) => {

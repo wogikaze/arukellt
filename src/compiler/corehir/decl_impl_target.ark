@@ -161,8 +161,15 @@ fn impl_conversion_source_type_name(decl: AstNode) -> String {
     let child_count = type_ann_node::type_ann_child_count(source_ann)
     let mut i = 1
     while i < child_count {
-        let child_name = type_ann_node::type_ann_name(type_ann_node::type_ann_child_at(source_ann, i))
-        key = concat(key, concat("_", child_name))
+        // Nested generic sources need the same underscore key the impl-owner
+        // and call-site lookups use: TakeIter<MapIter<String, String>>
+        // registers from_iter__TakeIter_MapIter_String_String, not
+        // from_iter__TakeIter_MapIter (#691).
+        let child_key = impl_inst_arg_key(type_ann_node::type_ann_child_at(source_ann, i))
+        if len(child_key) == 0 {
+            return String_new()
+        }
+        key = concat(key, concat("_", child_key))
         i = i + 1
     }
     key

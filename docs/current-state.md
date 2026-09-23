@@ -195,9 +195,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2983 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1395 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2983 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, and generic struct Vec-field fixtures were added, so the current registry remainder is 1395. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 2991 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1403 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 2991 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, and item-generic iterator adapter migration fixtures were added, so the current registry remainder is 1403. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -263,45 +263,55 @@ Numeric consumer calls are checked against their capability trait: a String
 iterator cannot call `sum` or `fold`, and the negative
 `selfhost/iterator_string_numeric_consumer.ark` fixture records the E0200
 diagnostic rather than allowing an invalid runtime stub.
-The concrete String lane also provides lazy `map(fn(String) -> String)` and
-`filter(fn(String) -> bool)` adapters. Their positive callback fixture passes
-GC typed `call_ref` and linear-memory table-based `call_indirect` validation and
-runtime checks with the same item order; `filter` clones the callback argument
-to preserve the accepted source item under ownership semantics. The same fixture
-also verifies `Vec::from_iter` over both concrete adapter types; source-qualified
-associated-function lowering selects `Vec_String::from_iter__StringMapIter` and
-`Vec_String::from_iter__StringFilterIter`, producing valid GC references and
-linear-memory handles on the respective backends. The implementation remains
-concrete at the adapter-type boundary, but a `T: Iterator` helper now
+The callback adapters are now item-generic types shared by the i32 and String
+lanes: `MapIter<T, U>`, `FilterIter<T>`, `MapFilterIter<T, U>`,
+`FilterMapIter<T>`, and the source-wrapping `TakeIter<I>` /
+`SkipIter<I>`. The String lane instantiates them as
+`MapIter<String, String>` and `FilterIter<String>`, providing lazy
+`map(fn(String) -> String)` and `filter(fn(String) -> bool)` adapters.
+Their positive callback fixture passes GC typed `call_ref` and linear-memory
+table-based `call_indirect` validation and runtime checks with the same item
+order; `filter` clones the callback argument to preserve the accepted source
+item under ownership semantics. The same fixture also verifies
+`Vec::from_iter` over both adapter instantiations; source-qualified
+associated-function lowering selects
+`Vec_String::from_iter__MapIter_String_String` and
+`Vec_String::from_iter__FilterIter_String`, producing valid GC references and
+linear-memory handles on the respective backends. A `T: Iterator` helper
 monomorphizes the same String source to the matching `FromIterator` symbol on
-both backends. Arbitrary item-generic adapters, manifest-level deprecation,
-and the final RFC-011 iterator residual audit are still open. The concrete
+both backends. Manifest-level deprecation and the final RFC-011 iterator
+residual audit are still open. The
 `map(fn(String) -> String).filter(fn(String) -> bool).collect()` composition
-and its `Vec::from_iter` form are also covered; the predicate receives a clone
-of the mapped String, while the accepted mapped handle is yielded unchanged.
-The reverse `filter(...).map(...)` composition and its `Vec::from_iter` form
-are covered as well, with the predicate consuming only a clone of the source
-handle before the accepted value reaches the mapping callback.
+and its `Vec::from_iter` form are also covered through
+`MapFilterIter<String, String>`; the predicate receives a clone of the
+mapped String, while the accepted mapped handle is yielded unchanged.
+The reverse `filter(...).map(...)` composition and its `Vec::from_iter`
+form are covered through `FilterMapIter<String>`, with the predicate
+consuming only a clone of the source handle before the accepted value reaches
+the mapping callback. Method-level generics are not supported yet, so
+`FilterIter<T>::map` keeps the item type at `T -> T`; the fully generic
+`T -> U` order is available through `MapIter<T, U>::filter`.
 The same fixture now passes this composed String source through a generic
 `total_string_lengths<T: IntoIterator>` consumer. Monomorphization emits
-`total_string_lengths__StringFilterMapIter`, and the `for` lowering crosses
+`total_string_lengths__FilterMapIter_String`, and the `for` lowering crosses
 the adapter's identity `IntoIterator` conversion before `next` on both
-`wasm32-gc` and linear-memory `wasm32`. This remains bounded concrete String
-evidence; arbitrary item-generic dispatch and manifest-level deprecation are
-not complete.
+`wasm32-gc` and linear-memory `wasm32`. This remains bounded static
+monomorphization evidence; arbitrary item-generic dispatch and manifest-level
+deprecation are not complete.
 The callback lane also provides bounded `map(...).take(n)` and
-`filter(...).take(n)` adapters. The latter clones the predicate argument and
-decrements its bound only for accepted source items. Their canonical
-`collect`, source-qualified `Vec::from_iter`, and generic `T: IntoIterator`
-`for` consumers validate and run with the same results on GC and linear-memory
-Wasm. This remains concrete String composition, not arbitrary item-generic
-adapter coverage.
+`filter(...).take(n)` adapters through
+`TakeIter<MapIter<String, String>>` and `TakeIter<FilterIter<String>>`.
+The latter clones the predicate argument and decrements its bound only for
+accepted source items. Their canonical `collect`, source-qualified
+`Vec::from_iter`, and generic `T: IntoIterator` `for` consumers validate
+and run with the same results on GC and linear-memory Wasm.
 The same String callback lane now composes both orders through a bounded stage:
-`map(...).filter(...).take(n)` and `filter(...).map(...).take(n)`. Each
-predicate receives a clone, the bound counts accepted outputs, and canonical
-`collect`, `Vec::from_iter`, and generic `for` consumers validate and run with
-the same results on GC and linear-memory Wasm. This remains concrete String
-composition rather than arbitrary item-generic adapter coverage.
+`map(...).filter(...).take(n)` and `filter(...).map(...).take(n)` via
+`TakeIter<MapFilterIter<String, String>>` and
+`TakeIter<FilterMapIter<String>>`. Each predicate receives a clone, the bound
+counts accepted outputs, and canonical `collect`, `Vec::from_iter`, and
+generic `for` consumers validate and run with the same results on GC and
+linear-memory Wasm.
 
 ### Language v2 hygienic desugaring (#865 / ADR-077)
 

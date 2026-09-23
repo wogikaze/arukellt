@@ -3464,7 +3464,7 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "fn(i32) -> i32"]
-returns = "MapIter"
+returns = "MapIter<i32, i32>"
 doc = "Compatibility constructor for the lazy map adapter (canonical form: v.iter().map(f))."
 
 [[functions]]
@@ -3473,7 +3473,7 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "fn(i32) -> bool"]
-returns = "FilterIter"
+returns = "FilterIter<i32>"
 doc = "Compatibility constructor for the lazy filter adapter (canonical form: v.iter().filter(f))."
 
 [[functions]]
@@ -3491,7 +3491,7 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "i32"]
-returns = "SkipIter"
+returns = "SkipIter<VecIter>"
 doc = "Compatibility constructor for the lazy skip adapter (canonical form: v.iter().skip(n))."
 
 [[functions]]
@@ -3535,7 +3535,7 @@ name = "collect_map_iter"
 module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
-params = ["MapIter"]
+params = ["MapIter<i32, i32>"]
 returns = "Vec<i32>"
 doc = "Drain a MapIter into a new Vec<i32> via Iterator::collect."
 
@@ -3544,7 +3544,7 @@ name = "collect_filter_iter"
 module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
-params = ["FilterIter"]
+params = ["FilterIter<i32>"]
 returns = "Vec<i32>"
 doc = "Drain a FilterIter into a new Vec<i32> via Iterator::collect."
 
@@ -3562,7 +3562,7 @@ name = "collect_skip_iter"
 module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
-params = ["SkipIter"]
+params = ["SkipIter<VecIter>"]
 returns = "Vec<i32>"
 doc = "Drain a SkipIter into a new Vec<i32> via Iterator::collect."
 
