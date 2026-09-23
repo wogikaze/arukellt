@@ -1036,3 +1036,38 @@ acceptance boxes complete.
   ordering, the `WrapIter<String>`-class generic-struct construction
   defect on wasm32-gc for non-projection shapes, and the final
   residual-zero audit once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-23 (generic-shell struct-literal instantiation on wasm32-gc)
+
+- `673b803e2` closes the `WrapIter<String>`-class generic-struct
+  construction defect on wasm32-gc. Root cause: inside a monomorphized
+  body, `mir_emit_field_access` stores the resolved field type on the
+  value local in the storage spelling `struct:Name:id`
+  (`struct:VecIter:12`). `mir_struct_lit_instance_name` bound that raw
+  name to the declared parameter, derived `Wrap2<struct:VecIter:12>`,
+  failed layout derivation, and fell back to the unsubstituted `Wrap2`
+  layout — so `struct.new_default` picked a placeholder ref field and
+  the module failed validation (`func 19 type mismatch` on
+  `Skip__rewrap__VecIter`). `ctx_derive_generic_struct_type_name` now
+  strips the storage spelling via `ctx_struct_semantic_type_name` before
+  mono resolution, so the binding sees `VecIter` and derives
+  `Wrap2<VecIter>` (canonicalizes to the same GC type index as
+  `Skip<VecIter>`). `ctx_type_var_names_from_local_type` also collects
+  type variables from `Name<args>` local spellings so non-param locals
+  in mono bodies contribute to the ordinal pairing.
+- Verified on the `skip_gen` probe (parametric `Skip<I>` + `SkipMap<I>`
+  with a `fn(i32) -> i32` field, inherent `Skip::map` constructing
+  `SkipMap<I>`, `impl Iterator for Skip<I>` with `I::Item` projection,
+  per-instantiation `impl Iterator for SkipMap<VecIter>`): prints `3` /
+  `4` on both wasm32 and the wasm32-gc component lane; the GC core
+  module now validates. New fixture
+  `tests/fixtures/generics_v1/generic_inherent_struct_lit.ark` is
+  registered as `run:` + `t3-run:` (registry 2969) and passes on both
+  targets. `verify lane` exits 0; `docs regenerate` is clean.
+- This unblocks the `SkipIter` -> `SkipIter<I>` migration: the probe
+  proves the full target shape (parametric shell + fn-valued field +
+  per-instantiation Iterator impl) works on both backends.
+- Remaining #860 residuals: `SkipIter` -> `SkipIter<I>` std migration
+  itself (now unblocked), `ChainIter` / `EnumerateIter` / `ZipIter`
+  item representations, forward-ref emit ordering, and the final
+  residual-zero audit once #691 closes. #860 is not closed.
