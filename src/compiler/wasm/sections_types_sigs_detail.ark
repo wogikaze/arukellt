@@ -997,9 +997,14 @@ fn build_return_type_value_sig(
             // Prefer a concrete gc_struct only for true user structs. Enum
             // names that were wrongly registered as GS_f0_ref14 boxes must
             // keep open-enum returns (toml_get / JsonValue) (#808).
-            let concrete = gc_struct_sig_from_return_type_name(clone(return_type_name), mir)
-            if len(concrete) > 0 && !gc_struct_sig_is_enum_open_box(clone(concrete), mir) {
-                return concrete
+            // Option/Result/enum-spelled returns are genuinely enum-open:
+            // stripping the wrapper to the payload's struct slot produces a
+            // signature that cannot hold the variant value (#860).
+            if !return_type_name_is_enum_family(clone(return_type_name)) {
+                let concrete = gc_struct_sig_from_return_type_name(clone(return_type_name), mir)
+                if len(concrete) > 0 && !gc_struct_sig_is_enum_open_box(clone(concrete), mir) {
+                    return concrete
+                }
             }
         } else {
             return typed_sig
@@ -1065,6 +1070,19 @@ fn build_return_type_value_sig(
 
 // True when a gcsref slot is the single-field open-enum box (GS_f0_ref14)
 // produced by wrongly registering an enum layout as a gc_struct.
+// Option/Result/enum-spelled return names are genuinely enum-open. The
+// concrete-struct preference must not unwrap option:Pair<i32,i32> to the
+// payload struct slot — the variant value cannot fit in it (#860).
+fn return_type_name_is_enum_family(type_name: String) -> bool {
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if p2_is_option_type_name(clone(type_name)) {
+        return true
+    }
+    p2_is_result_type_name(type_name)
+}
+
 fn gc_struct_sig_is_enum_open_box(sig_or_gcsref: String, mir: MirModule) -> bool {
     let mut sig = clone(sig_or_gcsref)
     if starts_with(clone(sig), String_from("gcsref")) {

@@ -182,6 +182,14 @@ fn ctx_projection_canonical_wrapper(name: String) -> String {
             substring(clone(name), 7, len(name) - 1)
         )
     }
+    // Local-type spellings use option:payload; canonicalizing lets declared
+    // Option_Pair / option:Pair pairs share the Option_ segment path (#860).
+    if starts_with(clone(name), String_from("option:")) {
+        return concat(
+            String_from("Option_"),
+            substring(clone(name), 7, len(name))
+        )
+    }
     name
 }
 
@@ -455,27 +463,37 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
     concat(out, String_from(">"))
 }
 
-// "Pair<T,vec:U>" -> "Pair<String,vec:i32>" when every top-level argument
-// resolves. Unresolved arguments keep the original spelling so callers can
-// still fall back to the generic layout.
+// "Pair<T,vec:U>" -> "Pair<String,vec:i32>". Arguments that are already
+// concrete (i32) or still unresolved keep their spelling so partially
+// bound instantiations such as Pair<i32,I::Item> -> Pair<i32,i32> resolve
+// instead of collapsing back to the unsubstituted name (#860).
 fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
     let lt = index_of(clone(type_name), String_from("<"))
     if lt < 0 {
         return String_new()
     }
     let base = substring(clone(type_name), 0, lt)
+    // A base-name projection answers every instantiation spelling in this
+    // body: Pair -> Pair<i32,i32> registered directly, or the payload of
+    // option:Pair -> option:Pair<i32,i32>, resolves Pair<i32,I::Item>
+    // whose projection argument never bound by ordinal (#860).
+    let base_inst = ctx_resolve_mono_base_projection(ctx, clone(base))
+    if len(base_inst) > 0 {
+        return base_inst
+    }
     let args = ctx_split_top_level_type_args(
         substring(clone(type_name), lt + 1, len(type_name) - 1)
     )
     let mut out = concat(base, String_from("<"))
     let mut arg_index = 0
     while arg_index < len(args) {
-        let concrete = ctx_resolve_mono_type_param(
-            ctx,
-            clone(get_unchecked(args, arg_index))
-        )
+        let arg = ctx_trim_type_arg_ws(get_unchecked(args, arg_index))
+        let mut concrete = ctx_resolve_mono_type_param(ctx, clone(arg))
+        if len(concrete) == 0 && contains(clone(arg), String_from("<")) {
+            concrete = ctx_resolve_angle_type_vars(ctx, clone(arg))
+        }
         if len(concrete) == 0 {
-            return String_new()
+            concrete = arg
         }
         if arg_index > 0 {
             out = concat(out, String_from(","))
@@ -487,6 +505,67 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
         return String_new()
     }
     concat(out, String_from(">"))
+}
+
+// Base-name projection lookup for Name<...> queries. An exact Pair ->
+// Pair<i32,i32> entry wins; otherwise a wrapper-prefixed entry such as
+// option:Pair -> option:Pair<i32,i32> still describes this body's single
+// Pair instantiation, so Pair<i32,I::Item> resolves through its payload.
+// Exact matching only: the segment matching in ctx_resolve_mono_type_param
+// would bind a Pair query to the option:Pair wrapper entry itself (#860).
+fn ctx_resolve_mono_base_projection(ctx: LowerCtx, base: String) -> String {
+    let count = len(ctx.mono_type_param_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(base)) {
+            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        }
+        i = i + 1
+    }
+    i = 0
+    while i < count {
+        let stored = clone(get_unchecked(ctx.mono_type_param_names, i))
+        let concrete = clone(get_unchecked(ctx.mono_type_param_types, i))
+        let mut hit = ctx_wrapper_payload_projection(clone(stored), clone(concrete), String_from("option:"), clone(base))
+        if len(hit) == 0 {
+            hit = ctx_wrapper_payload_projection(clone(stored), clone(concrete), String_from("Option_"), clone(base))
+        }
+        if len(hit) == 0 {
+            hit = ctx_wrapper_payload_projection(clone(stored), clone(concrete), String_from("vec:"), clone(base))
+        }
+        if len(hit) > 0 {
+            return hit
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// A stored pair of the form prefix+Base -> prefix+C binds the payload
+// base Base -> C inside this mono body.
+fn ctx_wrapper_payload_projection(stored: String, concrete: String, prefix: String, base: String) -> String {
+    if !starts_with(clone(stored), clone(prefix)) || !starts_with(clone(concrete), clone(prefix)) {
+        return String_new()
+    }
+    let plen = len(prefix)
+    if !eq(substring(stored, plen, len(stored)), clone(base)) {
+        return String_new()
+    }
+    substring(concrete, plen, len(concrete))
+}
+
+// Type argument lists are split on raw commas, so annotation spellings
+// such as "Pair<i32, I::Item>" keep a leading space on later segments.
+fn ctx_trim_type_arg_ws(seg: String) -> String {
+    let mut start = 0
+    let mut end = len(seg)
+    while start < end && byte_at(clone(seg), start) == 32 {
+        start = start + 1
+    }
+    while end > start && byte_at(clone(seg), end - 1) == 32 {
+        end = end - 1
+    }
+    substring(seg, start, end)
 }
 
 // Setup type parameter mapping by collecting type variable names from

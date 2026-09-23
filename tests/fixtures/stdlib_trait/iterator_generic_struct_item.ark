@@ -1,0 +1,61 @@
+use std::core::iter
+use std::host::stdio
+
+struct Pair<A, B> {
+    first: A,
+    second: B,
+}
+
+struct EnumI<I> {
+    iter: I,
+    index: i32,
+}
+
+impl Iterator for EnumI<I> {
+    type Item = Pair<i32, I::Item>
+    fn next(self: EnumI<I>) -> Option<Pair<i32, I::Item>> {
+        let nxt = self.iter.next()
+        match nxt {
+            Some(v) => {
+                let p: Pair<i32, I::Item> = Pair { first: self.index, second: v }
+                self.index = self.index + 1
+                Some(p)
+            }
+            None => None,
+        }
+    }
+
+    fn collect(self: EnumI<I>) -> Vec<Pair<i32, I::Item>> {
+        let out: Vec<Pair<i32, I::Item>> = Vec::new<Pair<i32, I::Item>>()
+        for item in self {
+            push(out, item)
+        }
+        out
+    }
+}
+
+impl IntoIterator for EnumI<I> {
+    type Item = Pair<i32, I::Item>
+    type IntoIter = EnumI<I>
+    fn into_iter(self: EnumI<I>) -> EnumI<I> {
+        self
+    }
+}
+
+fn main() -> i32 {
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(7)
+    v.push(8)
+    v.push(9)
+    let it: EnumI<VecIter> = EnumI { iter: v.into_iter(), index: 0 }
+    let items = it.collect()
+    stdio::println((len(items)).to_string())
+    let p0 = get_unchecked(items, 0)
+    stdio::println((p0.first).to_string())
+    stdio::println((p0.second).to_string())
+    let it2: EnumI<VecIter> = EnumI { iter: v.into_iter(), index: 0 }
+    for p in it2 {
+        stdio::println((p.first * 100 + p.second).to_string())
+    }
+    0
+}

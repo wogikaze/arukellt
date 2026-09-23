@@ -3302,6 +3302,10 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
         return String_new()
     }
     let base = substring(clone(type_name), 0, lt)
+    let base_inst = stub_base_payload_projection(ctx, clone(base))
+    if len(base_inst) > 0 {
+        return base_inst
+    }
     let inner = substring(clone(type_name), lt + 1, n - 1)
     let mut out = concat(base, String_from("<"))
     let mut depth = 0
@@ -3337,6 +3341,42 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
         return String_new()
     }
     concat(out, String_from(">"))
+}
+
+// An option:Pair -> option:Pair<i32,i32> entry describes this body's
+// single Pair instantiation; answer Pair<...> queries from the payload
+// so Pair<i32,I::Item> resolves even though I::Item never bound (#860).
+fn stub_base_payload_projection(ctx: LowerCtx, base: String) -> String {
+    let count = len(ctx.mono_type_param_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(base)) {
+            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        }
+        i = i + 1
+    }
+    i = 0
+    while i < count {
+        let stored = clone(get_unchecked(ctx.mono_type_param_names, i))
+        let concrete = clone(get_unchecked(ctx.mono_type_param_types, i))
+        if starts_with(clone(stored), String_from("option:")) && starts_with(clone(concrete), String_from("option:")) {
+            if eq(substring(stored, 7, len(stored)), clone(base)) {
+                return substring(concrete, 7, len(concrete))
+            }
+        }
+        if starts_with(clone(stored), String_from("Option_")) && starts_with(clone(concrete), String_from("Option_")) {
+            if eq(substring(stored, 7, len(stored)), clone(base)) {
+                return substring(concrete, 7, len(concrete))
+            }
+        }
+        if starts_with(clone(stored), String_from("vec:")) && starts_with(clone(concrete), String_from("vec:")) {
+            if eq(substring(stored, 4, len(stored)), clone(base)) {
+                return substring(concrete, 4, len(concrete))
+            }
+        }
+        i = i + 1
+    }
+    String_new()
 }
 
 pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
