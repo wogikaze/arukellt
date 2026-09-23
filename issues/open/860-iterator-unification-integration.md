@@ -925,3 +925,45 @@ acceptance boxes complete.
   in `std/core/iter.ark` (e.g. `TakeIter` -> `TakeIter<I>`), the
   field-access method-call gap above, forward-ref emit ordering, and
   the final residual-zero audit once #691 closes. #860 is not closed.
++## Progress receipt — 2026-09-23 (TakeIter<I> migration + projection element resolution)
+
+- `5b15a75a9` resolves associated-type projections inside mono bodies.
+  Generic struct return names keep their argument list
+  (`TakeIter<VecIter>`) for per-instantiation impl owners; propagated
+  impl-method returns instantiate impl-head vars before projection
+  normalization, so recorded returns are concrete. Method mono bodies
+  register the declared->concrete return projection like top-level fns,
+  aggregate projections decompose element-wise (`vec:I::Item` ->
+  `vec:i32` also binds `I::Item` -> `i32`), and Vec constructor callees
+  recorded with a projection element (`Vec__new__I__Item`) concretize
+  through the same map. This fixes the wasm32-gc invalid-core-Wasm
+  signature for projection-element Vec construction inside parametric
+  impl bodies (structref array -> i32 array).
+- `f91d1031a` migrates `TakeIter` to `TakeIter<I>`: the adapter wraps
+  the source iterator instead of copying VecIter state, so any
+  `I: Iterator` source is boundable (ADR-078). Capability impls stay
+  per-instantiation on `TakeIter<VecIter>` per ADR-076's i32-lane
+  reservation. Manifest signatures, generated docs, the formatter
+  exception hash, and the fixture registry count are refreshed
+  (pre-existing 2965->2966 drift from `0c5af3dc5`).
+- Verified on rebuilt s2: `iterator_take_basic`, `iterator_take_zero`,
+  `iterator_take_more_than_len`, `iterator_map_filter_take_pipeline`,
+  `iterator_adapters` (`OK`), `iterator_query_consumers`,
+  `iterator_string`, `iterator_string_callbacks`, `iterator_stress_100`,
+  `generic_inst_trait_impl` (`2 2 11 2 11`), `custom_iterator`
+  (`0 1 2 3 4`) all pass on wasm32; the same set passes the wasm32-gc
+  component lane including the previously invalid `iterator_take_basic`
+  and `iterator_adapters`. Probes `adp_b` (generic `sum_into_for` over
+  `TakeIter<VecIter>`) `OK`, `takeiter_gen` `11 2 2 3`, `gen_take_std`
+  `2 9`, `gts2` `4 5 none_c`, `bound_q`/`bound_u` `3`. Both `for_deny_*`
+  diag fixtures emit their goldens. `verify lane` exits 0; `docs
+  regenerate` is clean.
+- Remaining #860 residuals: adapter migration for the other lazy
+  adapters (`SkipIter` -> `SkipIter<I>` and collapsing the concrete
+  `*TakeIter`/`MapFilterTakeIter` fusion types onto `TakeIter<Src>`
+  instantiations; the same for map/filter chains where applicable),
+  the field-access method-call gap (`let it2 = outer.iter; it2.next()`
+  still traps — field accesses are `TY_UNKNOWN`), forward-ref emit
+  ordering, and the final residual-zero audit once #691 closes. The
+  generic-struct construction defect on wasm32-gc remains open for
+  non-projection shapes (`WrapIter<String>`-class). #860 is not closed.
