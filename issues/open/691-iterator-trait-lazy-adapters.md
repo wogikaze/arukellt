@@ -420,6 +420,48 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-24 (item-generic adapter migration)
+
+- Commit `261c5565f` retires the 11 concrete String callback adapter structs
+  (`StringMapIter`, `StringFilterIter`, `StringTakeIter`,
+  `StringSkipTakeIter`, `StringMapTakeIter`, `StringFilterTakeIter`,
+  `StringMapFilterIter`, `StringFilterMapIter`,
+  `StringMapFilterTakeIter`, `StringFilterMapTakeIter`) and moves the
+  String lane onto the same item-generic adapter types the i32 lane uses:
+  `MapIter<T, U>`, `FilterIter<T>`, `MapFilterIter<T, U>`,
+  `FilterMapIter<T>`, and source-wrapping `TakeIter<I>`. `FromIterator`
+  impls now target instantiated source names, so `Vec::from_iter` resolves
+  `Vec_String::from_iter__MapIter_String_String` /
+  `...__FilterIter_String` / `...__TakeIter_*` on both backends.
+- Compiler support landed in the same commit:
+  `rebind_enclosing_template_sites` records resolved return types on rebound
+  mono instances (collect bodies no longer fall back to `vec:T::Item`);
+  `impl_conversion_source_type_name` uses `impl_inst_arg_key` so nested
+  generic sources register `TakeIter_MapIter_String_String` keys;
+  struct-literal instantiation expands legacy `fnref`/`fnrefss`/`fnrefsb`
+  value spellings against the declared `fnsig:` shape;
+  `mark_clone_call_result_type` keeps `VT_I32` for scalar-named clone args
+  on GC and `infer_ref_local_from_producer` returns `None` for scalar clone
+  args, so a clone dest can no longer adopt the callee's String return layout.
+- All 10 iterator fixtures (`iterator_string_callbacks`,
+  `iterator_string`, `iterator_adapters`, `iterator_query_consumers`,
+  `iterator_generic_fn_field`, `iterator_desugar_equiv`,
+  `iterator_map_filter_pipeline`, `iterator_map_filter_take_pipeline`,
+  `iterator_nested_generic_adapter`, `iterator_generic_struct_item`)
+  compile and run on both `wasm32-gc` and linear-memory `wasm32`.
+  `iterator_string_callbacks` and `iterator_query_consumers` join
+  t3-compile/t3-run and `iterator_adapters` joins t3-run in the fixture
+  manifest; `verify lane` and `docs check` pass.
+- Residuals: `FilterIter<T>::map` stays `T -> T` (method-level generics are
+  unsupported; the generic `T -> U` order runs through
+  `MapIter<T, U>::filter`), the `StringSkip*` family stays concrete (skip
+  compositions cannot spell `fn(I::Item) -> U` yet), `x.clone()` on an
+  unbound type var still resolves to the String impl so generic bodies use
+  the free `clone(x)` intrinsic, and `MirInst_call` carries `arg0 = -1`
+  for stack-arg calls so producer scans cannot see those args. Manifest-level
+  deprecation and the final RFC-011 residual audit remain open. This is not a
+  close receipt.
+
 ## Progress receipt — 2026-09-23 (HashMap for-in iteration)
 
 - Commit `3844363be` adds `IntoIterator` implementations for the four
