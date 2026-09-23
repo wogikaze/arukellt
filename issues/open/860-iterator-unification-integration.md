@@ -967,3 +967,38 @@ acceptance boxes complete.
   ordering, and the final residual-zero audit once #691 closes. The
   generic-struct construction defect on wasm32-gc remains open for
   non-projection shapes (`WrapIter<String>`-class). #860 is not closed.
+
+## Progress receipt — 2026-09-23 (field-access mono resolution)
+
+- `53411d63c` types field accesses through registered struct
+  declarations. `TypeEnv` gains a `struct_defs` table (name, declaration
+  type parameters, annotated field types) populated from `all_decls`, and
+  `infer_expr` resolves `base.field` by substituting declaration type
+  parameters with the receiver's concrete type arguments. A `let` binding
+  or method receiver built from a field access therefore keeps the
+  concrete generic instantiation
+  (`Take<Take<VecIter>>.iter` -> `Take<VecIter>`), so `it2.next()` and
+  `outer.iter.next()` record and lower the per-instantiation impl mono
+  instance `Take::next`+[VecIter] instead of trapping on an unrecorded
+  body.
+- Positive fixture `tests/fixtures/generics_v1/generic_struct_field_method.ark`
+  covers both the let-bound and the direct receiver-chain forms; expected
+  output `3 2 3 4 none_b` matches on wasm32 and on the wasm32-gc
+  component lane. Rebuilt s2 passes the iterator regression set
+  (`iterator_take_*`, `iterator_adapters` `OK`,
+  `iterator_map_filter_take_pipeline`, `iterator_query_consumers`,
+  `iterator_string`, `iterator_stress_100`, `iterator_skip_basic`,
+  `custom_iterator` `0 1 2 3 4`, `generic_inst_trait_impl` `2 2 11 2 11`,
+  `parametric_trait_impl` `7 9 hi 11`). `verify lane` exits 0; `docs
+  regenerate` is clean at registry count 2967.
+- This closes the field-access method-call residual from the previous
+  receipt: field accesses are no longer `TY_UNKNOWN`, so the mono
+  instance for a method reached through a struct field is recorded.
+  Remaining #860 residuals: adapter migration for `SkipIter` ->
+  `SkipIter<I>` (blocked on callback adapters whose fields hold
+  `fn(I::Item)` values, beyond current monomorphization), `ChainIter` /
+  `EnumerateIter` / `ZipIter` item representations, forward-ref emit
+  ordering, the `WrapIter<String>`-class generic-struct construction
+  defect on wasm32-gc for non-projection shapes, the `.fold(0, add)`
+  fn-ptr-param emit bug, and the final residual-zero audit once #691
+  closes. #860 is not closed.
