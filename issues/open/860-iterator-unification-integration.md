@@ -1312,3 +1312,40 @@ acceptance boxes complete.
   the manifest-observed invariant).
 - Remaining #860 residuals: the final residual-zero audit once #691
   closes. #860 is not closed.
+
+## Progress receipt — 2026-09-24 (concrete fn(T)->U signatures through mono + GC emit)
+
+- `2021eb7b1` makes generic `fn(T) -> U` fields and parameters carry
+  their concrete per-instance signature end-to-end. Previously every
+  fn-type position collapsed to the legacy i32-ABI `fnref` bucket, so
+  `GenMap<T,U> { f: fn(T) -> U }` stored and invoked its callback
+  through the wrong func type and the wasm32-gc module failed
+  validation. The new `fnsig:<param>;<return>` spelling is produced by
+  corehir for unary fn types outside the i32-family bucket, bound by
+  the typechecker from a named callee's declared signature
+  (`fn_value_type_from_sig` recovers `strlen` -> `fn(String) -> i32`
+  where bare-ident inference yielded TY_UNKNOWN), specialized per
+  segment by `mono_subst_fnsig_param`, and resolved to the exact
+  callback func type by wasm emit (`fnsig:` params/locals/struct
+  fields on wasm32-gc; the i32 ABI on linear wasm).
+- Two non-obvious fixes were required beyond the spelling pipeline.
+  First, the bootstrap overlay stub for `ctx_mono_type_params` in
+  `scripts/selfhost/checks.py` replaces the whole module in s2 builds,
+  and its `ctx_type_var_names_from_local_type` lacked the `fnsig:`
+  branch — `f` contributed no type variables, the ordinal map bound
+  only T, and the `mono_type_var_to_index("U")=2` fallback picked
+  keys[0], producing `fnsig:String;String` on `gen_map__String__i32`.
+  Second, `struct_lit_unify_segments` split field spellings on `:`
+  only, so `fnsig:T;U` never aligned with `fnsig:String;i32` and the
+  literal derived the unsubstituted base `GenMap` layout (struct.new
+  on the wrong type id); `;` is now a top-level segment separator.
+- Verified on rebuilt s2: new fixture
+  `stdlib_trait/iterator_generic_fn_field` (parametric `impl Iterator
+  for GenMap<T,U>` over a `f: fn(T) -> U` field; `GenMap<i32,i32>`
+  doubles sum to 14, `GenMap<String,i32>` strlen yields 3) prints
+  `14`/`3` on wasm32 and on the wasm32-gc component, and the GC core
+  module passes `wasm-tools validate`. `verify lane` and
+  `quality changed` exit 0 (lint 22/22, ratchet clean).
+- Remaining #860 residuals: #691 adapter migration to source-generic
+  or item-generic form can now use `fn(T) -> U` fields; the final
+  residual-zero audit once #691 closes. #860 is not closed.
