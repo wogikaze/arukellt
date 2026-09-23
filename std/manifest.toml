@@ -3482,7 +3482,7 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "i32"]
-returns = "TakeIter"
+returns = "TakeIter<VecIter>"
 doc = "Compatibility constructor for the lazy take adapter (canonical form: v.iter().take(n))."
 
 [[functions]]
@@ -3553,7 +3553,7 @@ name = "collect_take_iter"
 module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
-params = ["TakeIter"]
+params = ["TakeIter<VecIter>"]
 returns = "Vec<i32>"
 doc = "Drain a TakeIter into a new Vec<i32> via Iterator::collect."
 

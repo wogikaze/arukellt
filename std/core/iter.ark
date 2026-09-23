@@ -37,7 +37,7 @@
 /// | RangeInclusiveIter | impl | Adapter over `RangeInclusive`      |
 /// | MapIter     | impl   | Lazy map adapter                       |
 /// | FilterIter  | impl   | Lazy filter adapter                    |
-/// | TakeIter    | impl   | Lazy take adapter                      |
+/// | TakeIter<I> | impl   | Lazy take adapter over any source      |
 /// | SkipIter    | impl   | Lazy skip adapter                      |
 /// | ChainIter   | impl   | Lazy chain of two `Vec<i32>`           |
 /// | EnumerateIter | impl | Lazy enumerate adapter                 |
@@ -210,8 +210,8 @@ impl VecIter {
     }
 
     /// Lazily limit the remaining elements to `n` values.
-    fn take(self: VecIter, n: i32) -> TakeIter {
-        TakeIter { vec: self.vec, index: self.index, length: self.length, remaining: n }
+    fn take(self: VecIter, n: i32) -> TakeIter<VecIter> {
+        TakeIter { iter: self, remaining: n }
     }
 
     /// Lazily skip `n` values from the remaining elements.
@@ -1443,41 +1443,49 @@ impl Iterator for FilterTakeIter {
 // ---------------------------------------------------------------------------
 
 /// Lazy iterator that yields at most `n` elements from the source.
-pub struct TakeIter {
-    vec: Vec<i32>,
-    index: i32,
-    length: i32,
+/// The adapter wraps the source iterator instead of copying its
+/// state, so any `I: Iterator` source can be bounded (ADR-078).
+pub struct TakeIter<I> {
+    iter: I,
     remaining: i32,
 }
 
 /// Construct a `TakeIter` over `v` limited to `n` elements.
-pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter {
+pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter<VecIter> {
     vec_iter(v).take(n)
 }
 
-impl Iterator for TakeIter {
-    type Item = i32
+impl Iterator for TakeIter<I> {
+    type Item = I::Item
 
-    fn next(self: TakeIter) -> Option<i32> {
+    fn next(self: TakeIter<I>) -> Option<I::Item> {
         if self.remaining <= 0 {
             return None
         }
-        if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            self.remaining = self.remaining - 1
-            Some(val)
-        } else {
-            None
+        let nxt = self.iter.next()
+        match nxt {
+            Some(val) => {
+                self.remaining = self.remaining - 1
+                Some(val)
+            }
+            None => None
         }
     }
 
-    fn collect(self: TakeIter) -> Vec<i32> {
-        collect_iterator(self)
+    fn collect(self: TakeIter<I>) -> Vec<I::Item> {
+        let out: Vec<I::Item> = Vec::new<I::Item>()
+        for item in self {
+            push(out, item)
+        }
+        out
     }
 
-    fn count(self: TakeIter) -> i32 {
-        count_iterator(self)
+    fn count(self: TakeIter<I>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
     }
 
 }
@@ -2034,14 +2042,17 @@ impl IteratorFold<i32, i32> for FilterTakeIter {
     }
 }
 
-impl IteratorSum<i32, i32> for TakeIter {
-    fn sum(self: TakeIter) -> i32 {
+// Capability traits stay per-instantiation: a parametric impl would
+// claim numeric aggregation for non-numeric sources such as
+// TakeIter<StringIter>, which ADR-076 reserves to i32 lanes.
+impl IteratorSum<i32, i32> for TakeIter<VecIter> {
+    fn sum(self: TakeIter<VecIter>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for TakeIter {
-    fn fold(self: TakeIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for TakeIter<VecIter> {
+    fn fold(self: TakeIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -2268,14 +2279,14 @@ impl IteratorCountEq<i32> for FilterTakeIter {
     }
 }
 
-impl IteratorContains<i32> for TakeIter {
-    fn contains(self: TakeIter, target: i32) -> bool {
+impl IteratorContains<i32> for TakeIter<VecIter> {
+    fn contains(self: TakeIter<VecIter>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for TakeIter {
-    fn count_eq(self: TakeIter, target: i32) -> i32 {
+impl IteratorCountEq<i32> for TakeIter<VecIter> {
+    fn count_eq(self: TakeIter<VecIter>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
@@ -2449,11 +2460,11 @@ impl IntoIterator for FilterTakeIter {
     }
 }
 
-impl IntoIterator for TakeIter {
-    type Item = i32
-    type IntoIter = TakeIter
+impl IntoIterator for TakeIter<I> {
+    type Item = I::Item
+    type IntoIter = TakeIter<I>
 
-    fn into_iter(self: TakeIter) -> TakeIter {
+    fn into_iter(self: TakeIter<I>) -> TakeIter<I> {
         self
     }
 }
@@ -2559,7 +2570,7 @@ pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
 }
 
 /// Drain a `TakeIter` into a new `Vec<i32>`.
-pub fn collect_take_iter(it: TakeIter) -> Vec<i32> {
+pub fn collect_take_iter(it: TakeIter<VecIter>) -> Vec<i32> {
     it.collect()
 }
 

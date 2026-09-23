@@ -625,7 +625,7 @@ let input = read_to_string()
 | `collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Skip the first n elements of v — the lazy-pipeline replacement for std::seq::skip_i32. |
 | `collect_skip_iter` | `(SkipIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a SkipIter into a new Vec<i32> via Iterator::collect. |
 | `collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Take the first n elements of v — the lazy-pipeline replacement for std::seq::take_i32. |
-| `collect_take_iter` | `(TakeIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a TakeIter into a new Vec<i32> via Iterator::collect. |
+| `collect_take_iter` | `(TakeIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a TakeIter into a new Vec<i32> via Iterator::collect. |
 | `collect_vec_iter` | `(VecIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a VecIter into a new Vec<i32> via Iterator::collect. |
 | `enumerate_iter` | `(Vec<i32>) -> EnumerateIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy enumerate adapter; yields index/value pairs packed in one i32 (index high 16 bits). |
 | `filter_iter` | `(Vec<i32>, fn(i32) -> bool) -> FilterIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy filter adapter (canonical form: v.iter().filter(f)). |
@@ -638,7 +638,7 @@ let input = read_to_string()
 | `range_inclusive_iter` | `(RangeInclusive) -> RangeInclusiveIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator over a closed RangeInclusive. |
 | `range_iter` | `(Range) -> RangeIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator over a half-open Range. |
 | `skip_iter` | `(Vec<i32>, i32) -> SkipIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy skip adapter (canonical form: v.iter().skip(n)). |
-| `take_iter` | `(Vec<i32>, i32) -> TakeIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy take adapter (canonical form: v.iter().take(n)). |
+| `take_iter` | `(Vec<i32>, i32) -> TakeIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy take adapter (canonical form: v.iter().take(n)). |
 | `vec_iter` | `(Vec<i32>) -> VecIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct the canonical lazy VecIter over v (same as v.iter()). |
 | `zip_iter` | `(Vec<i32>, Vec<i32>) -> ZipIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy zip over two vectors, stopping at the shorter length; pairs packed in one i32. |
 
