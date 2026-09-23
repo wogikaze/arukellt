@@ -344,7 +344,11 @@ fn resolve_bound_projection(
         }
         i = i + 1
     }
-    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    // The sig's parameter may carry no declared bound (parametric impl
+    // methods such as TakeIter<I>::collect -> Vec<I::Item>). Once the
+    // call binds the parameter to a concrete receiver, the projection
+    // is still resolvable through the receiver's own impl entries.
+    lookup_assoc_for_ctor(env, receiver, assoc_name)
 }
 
 fn lookup_associated_type(
@@ -384,15 +388,37 @@ fn lookup_associated_type(
         ) && eq(
             contract_associated_type::trait_associated_type_info_name(entry),
             clone(assoc_name)
-        ) && type_contains_var(pattern) {
-            let var_names = Vec::new<String>()
-            let var_types = Vec::new<TypeInfo>()
-            if match_pattern_collect_vars(pattern, receiver, var_names, var_types) {
-                return instantiate::instantiate_type(
-                    contract_associated_type::trait_associated_type_info_value_ty(entry),
-                    var_names,
-                    var_types
-                )
+        ) {
+            // The entry's self pattern can degrade impl type variables to
+            // named structs (I spelled as a struct), which hides the
+            // pattern from type_contains_var. The trait_impls entry keeps
+            // the authoritative var-carrying pattern for binding, the same
+            // fallback lookup_assoc_for_ctor uses.
+            let impl_self = lookup_var_carrying_impl_self(
+                env,
+                contract_associated_type::trait_associated_type_info_trait_name(entry),
+                clone(pattern)
+            )
+            if type_contains_var(clone(impl_self)) {
+                let var_names = Vec::new<String>()
+                let var_types = Vec::new<TypeInfo>()
+                if match_pattern_collect_vars(impl_self, receiver, var_names, var_types) {
+                    // The declared value can itself be a projection
+                    // (type Item = I::Item). instantiate_type only
+                    // substitutes TY_TYPE_VAR nodes, so reduce the
+                    // projection chain the same way lookup_assoc_for_ctor
+                    // does or callers see the raw I::Item spelling.
+                    return normalize_projection_ty(
+                        env,
+                        clone(var_names),
+                        clone(var_types),
+                        instantiate::instantiate_type(
+                            contract_associated_type::trait_associated_type_info_value_ty(entry),
+                            var_names,
+                            var_types
+                        )
+                    )
+                }
             }
         }
         p = p + 1

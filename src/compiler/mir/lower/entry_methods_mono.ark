@@ -58,7 +58,7 @@ fn mir_emit_method_mono_bodies(
                 }
             }
         }
-        entry_emit_method::mir_emit_method_body(ctx, body_input, clone(struct_name), clone(mangled), emit_method_name, method_param_count, entry_view, method_info_index, return_vt, rt_type_name)
+        entry_emit_method::mir_emit_method_body(ctx, body_input, clone(struct_name), clone(mangled), emit_method_name, method_param_count, entry_view, method_info_index, return_vt, rt_type_name, clone(generic_rtn))
         method_mono_emit_i = method_mono_emit_i + 1
     }
 }

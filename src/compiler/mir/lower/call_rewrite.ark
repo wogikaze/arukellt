@@ -141,6 +141,9 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     // source used `Vec::new<T>()`. Normalize after lookup too, so constructor
     // result typing and target-specific emission see one canonical name.
     rewritten = call_rewrite_vec::normalize_vec_constructor_callee(rewritten)
+    // Vec::new<I::Item> inside a parametric impl body keeps the projection
+    // spelling; resolve the element through the mono projection map.
+    rewritten = call_mono::concretize_vec_ctor_projection(ctx, rewritten)
     rewritten = call_rewrite_vec::mir_rewrite_vec_access_after_mono(ctx, rewritten, first_arg_idx)
     // Only re-dispatch format_debug / format_debug__?t0 shells — applying
     // mono_by_type to every callee regresses modules/multi_import (to_string).

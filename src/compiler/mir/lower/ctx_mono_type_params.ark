@@ -93,8 +93,134 @@ fn ctx_set_mono_type_projection(ctx: LowerCtx, generic_name: String, concrete_na
     if len(generic_name) == 0 || len(concrete_name) == 0 || eq(clone(generic_name), clone(concrete_name)) {
         return
     }
-    push(ctx.mono_type_param_names, generic_name)
-    push(ctx.mono_type_param_types, concrete_name)
+    push(ctx.mono_type_param_names, clone(generic_name))
+    push(ctx.mono_type_param_types, clone(concrete_name))
+    ctx_register_projection_arg_pairs(ctx, generic_name, concrete_name)
+}
+
+// An aggregate projection also binds element-wise: `vec:I::Item` ->
+// `vec:i32` must answer `I::Item` -> `i32` for callers that only see the
+// inner spelling, such as `Vec::new<I::Item>` inside a parametric impl
+// body. Only same-shape aggregates decompose; plain type-var segments stay
+// with ordinal setup, which registered them first.
+fn ctx_register_projection_arg_pairs(ctx: LowerCtx, generic_name: String, concrete_name: String) {
+    // Declared and instantiated spellings can differ in wrapper style
+    // (`Vec<I::Item>` vs `vec:i32`); canonicalize before comparing shapes.
+    let generic_name = ctx_projection_canonical_wrapper(generic_name)
+    let concrete_name = ctx_projection_canonical_wrapper(concrete_name)
+    if starts_with(clone(generic_name), String_from("vec:")) &&
+    starts_with(clone(concrete_name), String_from("vec:")) {
+        ctx_register_projection_segment(
+            ctx,
+            substring(clone(generic_name), 4, len(generic_name)),
+            substring(clone(concrete_name), 4, len(concrete_name))
+        )
+        return
+    }
+    if starts_with(clone(generic_name), String_from("Option_")) &&
+    starts_with(clone(concrete_name), String_from("Option_")) {
+        ctx_register_projection_segment(
+            ctx,
+            substring(clone(generic_name), 7, len(generic_name)),
+            substring(clone(concrete_name), 7, len(concrete_name))
+        )
+        return
+    }
+    let glt = index_of(clone(generic_name), String_from("<"))
+    let clt = index_of(clone(concrete_name), String_from("<"))
+    if glt <= 0 || clt <= 0 {
+        return
+    }
+    if !ends_with(clone(generic_name), String_from(">")) ||
+    !ends_with(clone(concrete_name), String_from(">")) {
+        return
+    }
+    if !eq(
+        substring(clone(generic_name), 0, glt),
+        substring(clone(concrete_name), 0, clt)
+    ) {
+        return
+    }
+    let g_args = ctx_split_top_level_type_args(
+        substring(clone(generic_name), glt + 1, len(generic_name) - 1)
+    )
+    let c_args = ctx_split_top_level_type_args(
+        substring(clone(concrete_name), clt + 1, len(concrete_name) - 1)
+    )
+    if len(g_args) != len(c_args) {
+        return
+    }
+    let mut i = 0
+    while i < len(g_args) {
+        ctx_register_projection_segment(
+            ctx,
+            get_unchecked(g_args, i),
+            get_unchecked(c_args, i)
+        )
+        i = i + 1
+    }
+}
+
+// Register one argument pair as a projection unless it is a plain type
+// variable: `I` in `TakeIter<I>` is already bound by ordinal setup, while
+// `I::Item` is a projection only the aggregate pair can describe.
+// Canonicalize built-in wrappers to the local-type spelling used by the
+// mono map: `Vec<X>` -> `vec:X`, `Option<X>` -> `Option_X`. User generic
+// structs keep the `Name<args>` form.
+fn ctx_projection_canonical_wrapper(name: String) -> String {
+    if starts_with(clone(name), String_from("Vec<")) &&
+    ends_with(clone(name), String_from(">")) {
+        return concat(
+            String_from("vec:"),
+            substring(clone(name), 4, len(name) - 1)
+        )
+    }
+    if starts_with(clone(name), String_from("Option<")) &&
+    ends_with(clone(name), String_from(">")) {
+        return concat(
+            String_from("Option_"),
+            substring(clone(name), 7, len(name) - 1)
+        )
+    }
+    name
+}
+
+fn ctx_register_projection_segment(ctx: LowerCtx, generic_seg: String, concrete_seg: String) {
+    if len(generic_seg) == 0 || len(concrete_seg) == 0 {
+        return
+    }
+    if is_plain_type_var_name(clone(generic_seg)) ||
+    starts_with(clone(generic_seg), String_from("?")) {
+        return
+    }
+    ctx_set_mono_type_projection(ctx, generic_seg, concrete_seg)
+}
+
+// Split `A<B, C<D,E>>` argument text on top-level commas only.
+fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
+    let args = Vec::new<String>()
+    let mut depth = 0
+    let mut seg_start = 0
+    let n = len(inner)
+    let mut i = 0
+    while i <= n {
+        let at_end = i == n
+        if !at_end {
+            let ch = byte_at(clone(inner), i)
+            if ch == 60 {
+                depth = depth + 1
+            }
+            if ch == 62 {
+                depth = depth - 1
+            }
+        }
+        if (at_end || byte_at(clone(inner), i) == 44) && depth == 0 {
+            push(args, substring(clone(inner), seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    args
 }
 
 fn ctx_clear_mono_type_params(ctx: LowerCtx) {
@@ -307,50 +433,29 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
 // resolves. Unresolved arguments keep the original spelling so callers can
 // still fall back to the generic layout.
 fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
-    let n = len(type_name)
-    let mut lt = 0 - 1
-    let mut i = 0
-    while i < n {
-        if byte_at(clone(type_name), i) == 60 {
-            lt = i
-            i = n
-        }
-        i = i + 1
-    }
+    let lt = index_of(clone(type_name), String_from("<"))
     if lt < 0 {
         return String_new()
     }
     let base = substring(clone(type_name), 0, lt)
-    let inner = substring(clone(type_name), lt + 1, n - 1)
+    let args = ctx_split_top_level_type_args(
+        substring(clone(type_name), lt + 1, len(type_name) - 1)
+    )
     let mut out = concat(base, String_from("<"))
-    let mut depth = 0
-    let mut seg_start = 0
-    let m = len(inner)
-    let mut j = 0
     let mut arg_index = 0
-    while j <= m {
-        let at_end = j == m
-        let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
-        if !at_end && ch == 60 {
-            depth = depth + 1
+    while arg_index < len(args) {
+        let concrete = ctx_resolve_mono_type_param(
+            ctx,
+            clone(get_unchecked(args, arg_index))
+        )
+        if len(concrete) == 0 {
+            return String_new()
         }
-        if !at_end && ch == 62 {
-            depth = depth - 1
+        if arg_index > 0 {
+            out = concat(out, String_from(","))
         }
-        if (at_end || ch == 44) && depth == 0 {
-            let seg = substring(clone(inner), seg_start, j)
-            let concrete = ctx_resolve_mono_type_param(ctx, clone(seg))
-            if len(concrete) == 0 {
-                return String_new()
-            }
-            if arg_index > 0 {
-                out = concat(out, String_from(","))
-            }
-            out = concat(out, concrete)
-            arg_index = arg_index + 1
-            seg_start = j + 1
-        }
-        j = j + 1
+        out = concat(out, concrete)
+        arg_index = arg_index + 1
     }
     if arg_index == 0 {
         return String_new()

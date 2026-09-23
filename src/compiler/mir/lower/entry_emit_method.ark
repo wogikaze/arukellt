@@ -23,7 +23,8 @@ fn mir_emit_method_body(
     entry_view: MirLowerEntryView,
     method_info_index: i32,
     return_vt: i32,
-    rt_type_name: String
+    rt_type_name: String,
+    generic_rt_type_name: String
 ) {
     let mf = function_factory::MirFunction_new(emit_method_name, source_location_record::SourceLocation_unmapped())
     let _entry_fn = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
@@ -32,6 +33,14 @@ fn mir_emit_method_body(
     // so that trait method calls on type-variable receivers can resolve to
     // the concrete type's impl method.
     ctx_mono_type_params::ctx_setup_mono_type_params_by_ordinal(ctx, clone(emit_method_name))
+    // Register the declared -> concrete return projection (vec:I::Item ->
+    // vec:i32) so associated-type spellings inside the body resolve through
+    // the same map top-level mono fns get in mir_emit_top_level_fn_body.
+    ctx_mono_type_params::ctx_set_mono_type_projection(
+        ctx,
+        generic_rt_type_name,
+        clone(rt_type_name)
+    )
     // Re-substitute type-variable param locals with concrete mono types (#707).
     mono_param_subst::mir_substitute_mono_param_types(ctx)
     ctx_api_function_frame::ctx_set_current_return_type(ctx, return_vt)

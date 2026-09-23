@@ -197,3 +197,151 @@ fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
     }
     concat(String_from("enum:"), name)
 }
+
+// Return type name for a user struct (TY_STRUCT). Concrete generic
+// instantiations keep their argument list in the canonical local-type
+// spelling (TakeIter<VecIter>) so per-instantiation impl owner
+// resolution (TakeIter_VecIter::next) and lazily derived layouts see
+// the substituted type instead of the bare declaration.
+fn mir_struct_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    let name = typeinfo_shape::mir_type_info_name(ty)
+    if eq(clone(name), String_from("Vec")) &&
+    typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
+        return mir_vec_return_type_name_from_type_info(ty)
+    }
+    if eq(clone(name), String_from("HashSet")) {
+        return mir_vec_return_type_name_from_type_info(ty)
+    }
+    if eq(clone(name), String_from("HashMap")) {
+        return mir_hashmap_return_type_name_from_type_info(ty)
+    }
+    if len(name) == 0 {
+        return name
+    }
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    if arg_count <= 0 || contains(clone(name), String_from("<")) {
+        return name
+    }
+    let mut out = concat(clone(name), String_from("<"))
+    let mut i = 0
+    while i < arg_count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(
+            out,
+            mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, i))
+        )
+        i = i + 1
+    }
+    concat(out, String_from(">"))
+}
+
+// Local-type spelling for one type argument inside a Name<...>
+// instantiation. Mirrors the annotation shaping rules (vec:elem,
+// Option_arg, Result_ok_err, hashmap:alias, Name<args>) so owner-key
+// derivation (mir_inst_arg_key) matches the impl registrations that
+// were built from annotation spellings.
+fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
+    let tag = mir_return_tag_from_type_info(ty)
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    if tag == lower_kinds::TY_TYPE_VAR() {
+        return concat(
+            String_from("?"),
+            typeinfo_shape::mir_type_info_name(ty)
+        )
+    }
+    if tag == lower_kinds::TY_VEC() {
+        if arg_count <= 0 {
+            return String_from("vec")
+        }
+        return concat(
+            String_from("vec:"),
+            mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
+        )
+    }
+    if tag == lower_kinds::TY_OPTION() {
+        if arg_count <= 0 {
+            return String_from("Option")
+        }
+        return concat(
+            String_from("Option_"),
+            mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
+        )
+    }
+    if tag == lower_kinds::TY_RESULT() {
+        if arg_count >= 2 {
+            let ok_name = mir_generic_inst_arg_type_name(
+                typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+            )
+            let err_name = mir_generic_inst_arg_type_name(
+                typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
+            )
+            return concat(
+                String_from("Result_"),
+                concat(ok_name, concat(String_from("_"), err_name))
+            )
+        }
+        if arg_count == 1 {
+            return concat(
+                String_from("Result_"),
+                mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
+            )
+        }
+        return String_from("Result")
+    }
+    if tag == lower_kinds::TY_HASHMAP() {
+        return mir_hashmap_return_type_name_from_type_info(ty)
+    }
+    if tag == lower_kinds::TY_TUPLE() {
+        return mir_tuple_return_type_name_from_type_info(ty)
+    }
+    let name = typeinfo_shape::mir_type_info_name(ty)
+    if tag == lower_kinds::TY_STRUCT() ||
+    tag == lower_kinds::TY_ENUM() ||
+    tag == 24 {
+        if eq(clone(name), String_from("Vec")) && arg_count > 0 {
+            return concat(
+                String_from("vec:"),
+                mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
+            )
+        }
+        if eq(clone(name), String_from("HashMap")) {
+            return mir_hashmap_return_type_name_from_type_info(ty)
+        }
+        if arg_count > 0 && !contains(clone(name), String_from("<")) {
+            let mut nested = concat(clone(name), String_from("<"))
+            let mut i = 0
+            while i < arg_count {
+                if i > 0 {
+                    nested = concat(nested, String_from(","))
+                }
+                nested = concat(
+                    nested,
+                    mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, i))
+                )
+                i = i + 1
+            }
+            return concat(nested, String_from(">"))
+        }
+        return name
+    }
+    // fn types carry a signature spelling (fn(i32)->i32) whose commas
+    // would break the top-level Name<...> argument split; the canonical
+    // argument key is fnref.
+    if tag == 20 {
+        return String_from("fnref")
+    }
+    if len(name) > 0 {
+        return name
+    }
+    if tag == lower_kinds::TY_I32() { return String_from("i32") }
+    if tag == lower_kinds::TY_I64() { return String_from("i64") }
+    if tag == lower_kinds::TY_F64() { return String_from("f64") }
+    if tag == lower_kinds::TY_F32() { return String_from("f32") }
+    if tag == lower_kinds::TY_BOOL() { return String_from("bool") }
+    if tag == lower_kinds::TY_STRING() { return String_from("String") }
+    if tag == lower_kinds::TY_CHAR() { return String_from("char") }
+    if tag == lower_kinds::TY_UNIT() { return String_from("unit") }
+    String_new()
+}

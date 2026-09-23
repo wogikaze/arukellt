@@ -1,9 +1,12 @@
+use mir::lower::call_type_vec
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::mono
 use mir::value_types
+use wasm::sections_types_gc_phase7
 
 fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
     let mut resolved = clone(rewritten)
@@ -61,8 +64,40 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
             }
         }
     }
+    resolved = concretize_vec_ctor_projection(ctx, resolved)
     resolved = resolve_format_debug_mono_target(ctx, clone(resolved), first_arg_idx)
     resolved
+}
+
+// A Vec constructor recorded inside a parametric impl body keeps the
+// projection spelling (`Vec::new<I::Item>` -> `Vec__new__I__Item`). The
+// enclosing instance's projection map binds `I::Item` to the concrete
+// element type, so rewrite the suffix here; otherwise emit derives a
+// structref array for the unresolvable element name.
+fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
+    let elem_start = call_type_vec::vec_constructor_element_start(clone(resolved), 0 - 1)
+    if elem_start < 0 {
+        return resolved
+    }
+    let mut elem = substring(clone(resolved), elem_start, len(resolved))
+    elem = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
+    elem = call_type_vec::decode_mono_vec_element_projection(elem)
+    // Only projection-shaped elements (`Owner::Assoc`) are rewritten; a
+    // concrete element like `Item` must not resolve through a stored
+    // `I::Item` segment match.
+    if !contains(clone(elem), String_from("::")) {
+        return resolved
+    }
+    let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(elem))
+    if len(concrete) == 0 || eq(clone(concrete), clone(elem)) {
+        return resolved
+    }
+    mono::mono_safe_name(
+        concat(
+            substring(clone(resolved), 0, elem_start),
+            concrete
+        )
+    )
 }
 
 fn mono_vec_element_candidate(callee: String, mono_arg_type: String) -> String {

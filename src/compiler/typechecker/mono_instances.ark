@@ -187,7 +187,16 @@ fn propagate_impl_methods_mono(env: TypeEnv, impl_info: TraitImplInfo, receiver:
                         env,
                         clone(var_names),
                         clone(var_types),
-                        contract_fn_sig::FnSig_return_type(resolved_sig)
+                        // resolve_trait_method_signature substitutes Self and
+                        // trait-level params only; impl-head vars (I in
+                        // TakeIter<I>) survive in the signature. Bind them to
+                        // the receiver's concrete args first so the recorded
+                        // return is TakeIter<VecIter>, not TakeIter<I>.
+                        instantiate::instantiate_type(
+                            contract_fn_sig::FnSig_return_type(resolved_sig),
+                            clone(var_names),
+                            clone(var_types)
+                        )
                     )
                 )
             }
