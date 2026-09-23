@@ -1186,3 +1186,29 @@ acceptance boxes complete.
   packed-i32 -> Pair migration itself (now unblocked), forward-ref emit
   ordering, and the final residual-zero audit once #691 closes.
   #860 is not closed.
+
+## Progress receipt — 2026-09-23 (EnumerateIter/ZipIter/ChainIter item migration)
+
+- `0daf5fc8d` replaces the packed-i32 item encoding with real generic
+  items, the last concrete-Vec<i32> adapters called out in the previous
+  receipt. New pub struct Pair<A,B> { first, second } in std::core::iter
+  is the enumerate/zip item type (ADR-076 rejected packed-int items).
+- EnumerateIter<I> wraps I: Iterator and yields Pair<i32,I::Item>;
+  enumerate_iter(Vec<i32>) -> EnumerateIter<VecIter>. ZipIter<A,B> wraps
+  two iterator sources and yields Pair<A::Item,B::Item>;
+  zip_iter(Vec,Vec) -> ZipIter<VecIter,VecIter>. ChainIter<I> wraps two
+  I: Iterator sources lazily via an on_first flag instead of indexing
+  vectors; chain_iter(Vec,Vec) -> ChainIter<VecIter> and
+  collect_chain_iter retargeted.
+- Numeric capability impls (IteratorSum/Fold/Contains/CountEq) were
+  dropped for EnumerateIter/ZipIter because Item is now a Pair — ADR-076
+  forbids fake numeric impls; ChainIter impls retargeted to
+  ChainIter<VecIter>. IntoIterator impls are generic per adapter.
+- Fixtures assert .first/.second fields instead of packed arithmetic;
+  manifest signatures/docs regenerated; formatter baseline refreshed.
+- Verified: all 8 iterator fixtures (enumerate, zip, zip_unequal,
+  chain x4, generic_struct_item) pass wasm32 and wasm32-gc component
+  lanes (16/16 rc=0); verify lane and quality changed exit 0.
+- Remaining #860 residuals: forward-ref emit ordering (uninvestigated),
+  and the final residual-zero audit once #691 closes. #860 is not
+  closed.
