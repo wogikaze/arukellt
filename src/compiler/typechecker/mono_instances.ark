@@ -1,7 +1,19 @@
 use std::text
+use collections::name_index
+use typechecker::associated_types
+use typechecker::contract_fn_sig
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
+use typechecker::contract_trait_impl
+use typechecker::contract_trait_impl_record
+use typechecker::contract_trait_method_record
+use typechecker::contract_type_access
+use typechecker::contract_types_record
+use typechecker::instantiate
 use typechecker::mono_key
+use typechecker::trait_method_record
+use typechecker::names
+use typechecker::types
 
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)
@@ -21,8 +33,164 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
         }
         j = j + 1
     }
-    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(fn_name, clone(mangled), resolved_types))
+    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types)))
+    propagate_parametric_impl_mono(env, clone(fn_name), resolved_types)
     mangled
+}
+
+fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: TypeInfo) {
+    let count = contract_env_mono_record::type_env_mono_instance_count(env)
+    let mut i = 0
+    while i < count {
+        let instance = contract_env_mono_record::type_env_mono_instance_at(env, i)
+        if eq(
+            contract_mono::MonoInstance_mangled_name(instance),
+            clone(mangled_name)
+        ) {
+            contract_mono::MonoInstance_set_return_type(instance, return_type)
+            return
+        }
+        i = i + 1
+    }
+}
+
+// Demand-driven nested monomorphization approximation (ADR-078). When
+// `Twice::next` monomorphizes at I=WrapIter<i32>, its body calls
+// `self.iter.next()`, which needs `WrapIter::next`+[i32]. The typechecker
+// cannot see inside impl bodies, so recording an instance whose resolved
+// args instantiate a parametric impl head also records that impl's trait
+// methods at the bound arguments. Pattern bindings follow self-type
+// traversal order, the same order extract_impl_type_params uses for impl
+// type parameters; ADR-078's coverage rule (trait-ref vars ⊆ self vars)
+// makes those bindings complete.
+fn propagate_parametric_impl_mono(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        propagate_arg_impl_mono(env, clone(fn_name), get_unchecked(resolved_types, i))
+        i = i + 1
+    }
+}
+
+fn propagate_arg_impl_mono(env: TypeEnv, fn_name: String, arg: TypeInfo) {
+    let tag = contract_type_access::TypeInfo_tag(arg)
+    if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
+        return
+    }
+    if contract_type_access::TypeInfo_type_arg_count(arg) == 0 {
+        return
+    }
+    if associated_types::type_contains_var(clone(arg)) {
+        return
+    }
+    let impl_count = len(env.trait_impls)
+    let mut i = 0
+    while i < impl_count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
+        if names::same_type_name(
+            contract_type_access::TypeInfo_name(self_ty),
+            contract_type_access::TypeInfo_name(arg)
+        ) && associated_types::type_contains_var(clone(self_ty)) {
+            propagate_impl_methods_mono(env, impl_info, clone(arg))
+        }
+        i = i + 1
+    }
+}
+
+fn propagate_impl_methods_mono(env: TypeEnv, impl_info: TraitImplInfo, receiver: TypeInfo) {
+    let var_names = Vec::new<String>()
+    let var_types = Vec::new<TypeInfo>()
+    if !associated_types::match_pattern_collect_vars(
+        contract_trait_impl::TraitImplInfo_self_ty(impl_info),
+        clone(receiver),
+        var_names,
+        var_types
+    ) {
+        return
+    }
+    let trait_name = contract_trait_impl::TraitImplInfo_trait_name(impl_info)
+    let bound = propagated_trait_bound(impl_info, var_names, var_types, clone(trait_name))
+    let owner_name = names::unqualified_type_name(contract_type_access::TypeInfo_name(receiver))
+    let entry_count = len(env.trait_methods)
+    let mut i = 0
+    while i < entry_count {
+        let entry = get_unchecked(env.trait_methods, i)
+        if names::same_type_name(
+            contract_trait_method_record::trait_method_entry_trait_name(entry),
+            clone(trait_name)
+        ) {
+            let sig = contract_trait_method_record::trait_method_entry_sig(entry)
+            let trait_param_count = trait_method_record::trait_method_entry_trait_type_param_count(entry)
+            // A method with its own type parameters cannot be resolved
+            // from the receiver alone; its call sites record directly.
+            if contract_fn_sig::FnSig_type_param_count(sig) <= trait_param_count {
+                let method_fn = concat(
+                    clone(owner_name),
+                    concat("::", contract_trait_method_record::trait_method_entry_method_name(entry))
+                )
+                // Only impl-defined methods have a body to monomorphize;
+                // trait defaults live under the trait's own owner name and
+                // would record a phantom instance here.
+                if name_index::name_index_get(env.fn_sig_index, clone(method_fn)) < 0 {
+                    i = i + 1
+                    continue
+                }
+                let mangled = record_mono_instance(env, clone(method_fn), clone(var_types))
+                let resolved_sig = associated_types::resolve_trait_method_signature(
+                    env,
+                    entry,
+                    clone(bound),
+                    clone(receiver)
+                )
+                record_mono_return_type(
+                    env,
+                    mangled,
+                    associated_types::normalize_projection_ty(
+                        env,
+                        clone(var_names),
+                        clone(var_types),
+                        contract_fn_sig::FnSig_return_type(resolved_sig)
+                    )
+                )
+            }
+        }
+        i = i + 1
+    }
+}
+
+// The trait reference with the impl's type variables replaced by the
+// receiver's concrete arguments, used to resolve trait-method signatures.
+fn propagated_trait_bound(
+    impl_info: TraitImplInfo,
+    var_names: Vec<String>,
+    var_types: Vec<TypeInfo>,
+    trait_name: String
+) -> TypeInfo {
+    let base = types::resolve_type_name(clone(trait_name))
+    let arg_patterns = contract_trait_impl_record::trait_impl_info_trait_args(impl_info)
+    let arg_count = len(arg_patterns)
+    if arg_count == 0 {
+        return base
+    }
+    let concrete_args = Vec::new<TypeInfo>()
+    let mut i = 0
+    while i < arg_count {
+        push(
+            concrete_args,
+            instantiate::instantiate_type(
+                get_unchecked(arg_patterns, i),
+                clone(var_names),
+                clone(var_types)
+            )
+        )
+        i = i + 1
+    }
+    contract_types_record::TypeInfo_new(
+        contract_type_access::TypeInfo_tag(base),
+        contract_type_access::TypeInfo_name(base),
+        concrete_args
+    )
 }
 
 fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {

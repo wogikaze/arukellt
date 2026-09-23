@@ -174,10 +174,19 @@ fn record_for_method_mono(
         i = i + 1
     }
     let mangled = mono::record_mono_instance(env, clone(fn_name), resolved)
-    let return_ty = instantiate::instantiate_type(
+    // instantiate_type leaves Var::Assoc projections (I::Item) untouched;
+    // reduce them through the impl's associated types so MIR sees the
+    // concrete Option payload (Option<i32>, not Option<I::Item>).
+    let raw_ret = instantiate::instantiate_type(
         contract_fn_sig::FnSig_return_type(sig),
-        param_names,
-        resolved
+        clone(param_names),
+        clone(resolved)
+    )
+    let return_ty = associated_types::normalize_projection_ty(
+        env,
+        var_names,
+        var_types,
+        clone(raw_ret)
     )
     mono::record_mono_return_type(env, clone(mangled), return_ty)
     mono::record_mono_call_site(env, span, fn_name, mangled)

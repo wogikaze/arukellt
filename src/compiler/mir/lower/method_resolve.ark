@@ -3,6 +3,7 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
 use mir::mono
+use mir::mono_instance_shape
 use mir::value_types
 
 fn mir_method_name_last_segment(name: String) -> String {
@@ -465,6 +466,14 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     if ctx_has_fn_name(ctx, clone(callee_name)) {
         return callee_name
     }
+    // Parametric impl method call on a per-instantiation owner (ADR-078):
+    // `self.iter.next()` inside `Twice<I>` at I=WrapIter<i32> arrives as
+    // `WrapIter_i32::next`. The propagated instance `WrapIter::next`+[i32]
+    // emits as `WrapIter__next__i32`; map the inst-owner spelling back.
+    let parametric_target = mir_parametric_impl_callee(ctx, clone(callee_name))
+    if len(parametric_target) > 0 {
+        return parametric_target
+    }
     // Fallback for builtin types: if the mangled callee (e.g. "Vec::push")
     // is not a MIR function, check if the type prefix is a builtin type.
     // If so, map to the corresponding compiler intrinsic name.
@@ -554,6 +563,94 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
         if eq(clone(prefix), String_from("f64")) { return String_from("hash_f64") }
     }
     String_from("")
+}
+
+// Parametric impl method call on a per-instantiation owner (ADR-078).
+// `self.iter.next()` inside `Twice<I>` at I=WrapIter<i32> reaches here as
+// `WrapIter_i32::next`: the receiver's concrete instantiation supplies the
+// impl self-type arguments, and the propagated instance
+// `WrapIter::next`+[i32] emits as `WrapIter__next__i32`. Scan recorded
+// instances for the method whose owner safe-name prefixes the
+// per-instantiation owner and whose argument key matches the remainder.
+fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
+    let owner = mir_type_prefix(clone(callee_name))
+    let method = mir_bare_method_name(clone(callee_name))
+    if len(owner) == 0 || len(method) == 0 {
+        return String_new()
+    }
+    if !contains(clone(owner), String_from("_")) {
+        return String_new()
+    }
+    let method_suffix = concat("::", clone(method))
+    let inst_count = len(ctx.mono_instances)
+    let mut i = 0
+    while i < inst_count {
+        let inst = get_unchecked(ctx.mono_instances, i)
+        let inst_fn = mono_instance_shape::mir_mono_instance_fn_name(inst)
+        if ends_with(clone(inst_fn), clone(method_suffix)) {
+            let inst_owner = substring(clone(inst_fn), 0, len(inst_fn) - len(method_suffix))
+            let owner_safe = mono::mono_safe_name(inst_owner)
+            let recv_prefix = concat(clone(owner_safe), String_from("_"))
+            if starts_with(clone(owner), clone(recv_prefix)) {
+                let recv_args = substring(clone(owner), len(recv_prefix), len(owner))
+                let mangled_safe = mono::mono_safe_name(
+                    mono_instance_shape::mir_mono_instance_mangled_name(inst)
+                )
+                let arg_prefix = concat(
+                    clone(owner_safe),
+                    concat("__", concat(clone(method), "__"))
+                )
+                if starts_with(clone(mangled_safe), clone(arg_prefix)) {
+                    let inst_args = substring(clone(mangled_safe), len(arg_prefix), len(mangled_safe))
+                    if mir_mono_arg_segments_eq(clone(recv_args), inst_args) &&
+                    ctx_has_fn_name(ctx, clone(mangled_safe)) {
+                        return mangled_safe
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// Compare mono argument keys that use different separators. Per-
+// instantiation owners join arguments with `_` (Pair_i32_String) while
+// mangled instance names join with `__` (i32__String) and nested args
+// keep a trailing `_` from `>`. Splitting on `_` and dropping empty
+// segments normalizes both forms.
+fn mir_mono_arg_segments_eq(recv_args: String, inst_args: String) -> bool {
+    let recv_segs = mir_mono_arg_segments(recv_args)
+    let inst_segs = mir_mono_arg_segments(inst_args)
+    if len(recv_segs) != len(inst_segs) {
+        return false
+    }
+    let mut i = 0
+    while i < len(recv_segs) {
+        if !eq(get_unchecked(recv_segs, i), get_unchecked(inst_segs, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn mir_mono_arg_segments(args: String) -> Vec<String> {
+    let segs = Vec::new<String>()
+    let mut seg_start = 0
+    let n = len(args)
+    let mut i = 0
+    while i <= n {
+        if i == n || byte_at(clone(args), i) == 95 {
+            let seg = substring(clone(args), seg_start, i)
+            if len(seg) > 0 {
+                push(segs, seg)
+            }
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    segs
 }
 
 fn mir_bare_method_name(mangled: String) -> String {

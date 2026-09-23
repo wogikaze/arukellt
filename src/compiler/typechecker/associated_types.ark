@@ -2,11 +2,13 @@ use std::text
 use typechecker::ast_access
 use typechecker::contract_associated_type
 use typechecker::contract_fn_sig
+use typechecker::contract_trait_impl
 use typechecker::contract_trait_method_record
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_type_param_bounds
+use typechecker::contract_types_record
 use typechecker::instantiate
 use typechecker::trait_method_record
 use typechecker::types
@@ -396,6 +398,238 @@ fn lookup_associated_type(
         p = p + 1
     }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+// Reduce Owner::Assoc and Var::Assoc names left inside an instantiated
+// type by resolving the associated type through the matching impl.
+// instantiate_type only substitutes TY_TYPE_VAR nodes, so I::Item
+// survives instantiation of Twice<I>'s Option<I::Item> return.
+// Bound variables resolve through var_names/var_types; concrete
+// Owner<Args> owners are reparsed into TypeInfo. Reduction recurses so
+// chained projections (I::Item -> WrapIter<i32>::Item -> i32)
+// finish at a concrete type. Unresolvable names stay symbolic.
+fn normalize_projection_ty(
+    env: TypeEnv,
+    var_names: Vec<String>,
+    var_types: Vec<TypeInfo>,
+    ty: TypeInfo
+) -> TypeInfo {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        let sep = projection_sep_index(clone(name))
+        if sep >= 0 {
+            let owner_name = substring(clone(name), 0, sep)
+            let assoc_name = substring(clone(name), sep + 2, len(name))
+            let receiver = projection_owner_ty(
+                env,
+                clone(var_names),
+                clone(var_types),
+                owner_name
+            )
+            if contract_type_access::TypeInfo_tag(receiver) != commands::TY_UNKNOWN() {
+                let resolved = lookup_assoc_for_ctor(env, receiver, assoc_name)
+                if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
+                    return normalize_projection_ty(env, var_names, var_types, resolved)
+                }
+            }
+        }
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if arg_count == 0 {
+        return ty
+    }
+    let result = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut i = 0
+    while i < arg_count {
+        contract_type_mutation::TypeInfo_push_type_arg(
+            result,
+            normalize_projection_ty(
+                env,
+                clone(var_names),
+                clone(var_types),
+                contract_type_access::TypeInfo_type_arg_at(ty, i)
+            )
+        )
+        i = i + 1
+    }
+    result
+}
+
+// Index of the last :: in a projection-style type name, or -1.
+fn projection_sep_index(name: String) -> i32 {
+    let mut i = len(name) - 2
+    while i >= 0 {
+        if byte_at(clone(name), i) == 58 && byte_at(clone(name), i + 1) == 58 {
+            return i
+        }
+        i = i - 1
+    }
+    0 - 1
+}
+
+// The receiver half of an Owner::Assoc name as TypeInfo. A bound type
+// variable resolves through the mono bindings; Owner<Args> reparses
+// into a constructor application; anything else resolves by name.
+fn projection_owner_ty(
+    env: TypeEnv,
+    var_names: Vec<String>,
+    var_types: Vec<TypeInfo>,
+    owner_name: String
+) -> TypeInfo {
+    let bound_count = len(var_names)
+    let mut b = 0
+    while b < bound_count {
+        if eq(
+            projection_bare_name(get_unchecked(var_names, b)),
+            projection_bare_name(clone(owner_name))
+        ) {
+            return get_unchecked(var_types, b)
+        }
+        b = b + 1
+    }
+    let n = len(owner_name)
+    if n > 2 && byte_at(clone(owner_name), n - 1) == 62 {
+        let mut lt = 0 - 1
+        let mut i = 0
+        while i < n {
+            if byte_at(clone(owner_name), i) == 60 {
+                lt = i
+                i = n
+            }
+            i = i + 1
+        }
+        if lt > 0 {
+            let ctor = substring(clone(owner_name), 0, lt)
+            let inner = substring(clone(owner_name), lt + 1, n - 1)
+            let args = Vec::new<TypeInfo>()
+            let mut seg_start = 0
+            let mut depth = 0
+            let m = len(inner)
+            let mut j = 0
+            while j <= m {
+                let at_end = j == m
+                let ch = if at_end { 44 } else { byte_at(clone(inner), j) }
+                if ch == 60 {
+                    depth = depth + 1
+                }
+                if ch == 62 {
+                    depth = depth - 1
+                }
+                if (ch == 44 && depth == 0) || at_end {
+                    push(
+                        args,
+                        projection_owner_ty(
+                            env,
+                            clone(var_names),
+                            clone(var_types),
+                            trim_type_ws(substring(clone(inner), seg_start, j))
+                        )
+                    )
+                    seg_start = j + 1
+                }
+                j = j + 1
+            }
+            return contract_types_record::TypeInfo_new(commands::TY_STRUCT(), ctor, args)
+        }
+    }
+    types::resolve_type_name(owner_name)
+}
+
+// Type-variable spellings differ between signature params (?I) and
+// projection names (I::Item). Compare on the bare identifier.
+fn projection_bare_name(name: String) -> String {
+    if len(name) > 0 && byte_at(clone(name), 0) == 63 {
+        return substring(name, 1, len(name))
+    }
+    name
+}
+
+fn trim_type_ws(seg: String) -> String {
+    let mut start = 0
+    let mut end = len(seg)
+    while start < end && byte_at(clone(seg), start) == 32 {
+        start = start + 1
+    }
+    while end > start && byte_at(clone(seg), end - 1) == 32 {
+        end = end - 1
+    }
+    substring(seg, start, end)
+}
+
+// lookup_associated_type without a trait qualifier: the projection name
+// Owner::Assoc carries no trait, so match on the associated-type name
+// and the self-type constructor instead.
+fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -> TypeInfo {
+    let ctor = contract_type_access::TypeInfo_name(receiver)
+    let count = len(env.associated_types)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(env.associated_types, i)
+        let entry_self = contract_associated_type::trait_associated_type_info_self_ty(entry)
+        if eq(
+            contract_associated_type::trait_associated_type_info_name(entry),
+            clone(assoc_name)
+        ) && names::same_type_name(
+            contract_type_access::TypeInfo_name(entry_self),
+            clone(ctor)
+        ) {
+            // The entry's self pattern can degrade impl type variables to
+            // named structs (T spelled as a struct). The trait_impls entry
+            // keeps the authoritative var-carrying pattern for binding.
+            let impl_self = lookup_var_carrying_impl_self(
+                env,
+                contract_associated_type::trait_associated_type_info_trait_name(entry),
+                clone(entry_self)
+            )
+            let bound_names = Vec::new<String>()
+            let bound_types = Vec::new<TypeInfo>()
+            if match_pattern_collect_vars(
+                clone(impl_self),
+                clone(receiver),
+                bound_names,
+                bound_types
+            ) {
+                return normalize_projection_ty(
+                    env,
+                    clone(bound_names),
+                    clone(bound_types),
+                    instantiate::instantiate_type(
+                        contract_associated_type::trait_associated_type_info_value_ty(entry),
+                        bound_names,
+                        bound_types
+                    )
+                )
+            }
+            if same_type(clone(entry_self), clone(receiver)) {
+                return contract_associated_type::trait_associated_type_info_value_ty(entry)
+            }
+        }
+        i = i + 1
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+// The var-carrying self pattern of the impl matching (trait, ctor), or
+// the associated-type entry's own self type when the impl is concrete.
+fn lookup_var_carrying_impl_self(env: TypeEnv, trait_name: String, entry_self: TypeInfo) -> TypeInfo {
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
+        if names::same_type_name(
+            contract_trait_impl::TraitImplInfo_trait_name(impl_info),
+            clone(trait_name)
+        ) && names::same_type_name(
+            contract_type_access::TypeInfo_name(self_ty),
+            contract_type_access::TypeInfo_name(entry_self)
+        ) && type_contains_var(clone(self_ty)) {
+            return self_ty
+        }
+        i = i + 1
+    }
+    entry_self
 }
 
 fn type_contains_var(ty: TypeInfo) -> bool {
