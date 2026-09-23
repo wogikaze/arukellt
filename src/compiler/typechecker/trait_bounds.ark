@@ -88,7 +88,7 @@ fn type_param_bounds_has_trait(param: TypeParamBounds, trait_name: String) -> bo
     let mut i = 0
     while i < count {
         let bound = contract_type_param_bounds::TypeParamBounds_bound_at(param, i)
-        if eq(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
+        if names::same_type_name(contract_type_access::TypeInfo_name(bound), clone(trait_name)) {
             return true
         }
         i = i + 1
