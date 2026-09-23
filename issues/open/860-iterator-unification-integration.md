@@ -844,3 +844,38 @@ acceptance boxes complete.
   bare type parameters rely on the name-rewrite fallback rather than a
   recorded marker, and the final residual-zero audit once #691 closes.
   #860 is not closed.
+
+## Progress receipt — 2026-09-23 (nested mono propagation)
+
+- Commit `088fc3204` closes the nested-monomorphization gap left by
+  parametric impls: `self.iter.next()` inside `impl Iterator for
+  Twice<I>` at `I=WrapIter<i32>` now resolves and runs identically on
+  wasm32 and wasm32-gc (`param_adapter` probe prints `5` on both).
+- Three layers were needed. (1) The typechecker cannot see inside impl
+  bodies, so `record_mono_instance` now propagates: each concrete
+  generic arg `Ctor<X..>` is matched against var-carrying
+  `env.trait_impls` self patterns, and the impl's trait methods are
+  recorded at the bound arguments — filtered by `fn_sig_index` so
+  trait defaults without a body (`collect`, `count`) do not record
+  phantom instances. (2) MIR callee resolution missed arg-less calls
+  (`first_method_arg_idx=-1`), so `mir_parametric_impl_callee` maps
+  the per-instantiation owner spelling `WrapIter_i32::next` back to
+  the propagated instance `WrapIter__next__i32`. (3)
+  `instantiate_type` never reduces `I::Item` projections, leaving
+  `Option<I::Item>` as the recorded return type and breaking GC enum
+  variant selection (invalid core Wasm); `normalize_projection_ty`
+  reduces projections through the impl's associated types, recursing
+  for chains (`I::Item -> WrapIter<i32>::Item -> i32`).
+- Verified on the rebuilt s2: `param_adapter` -> `5` on wasm32 and
+  the wasm32-gc component; `param_iter` -> `7 9`;
+  `generics_v1/parametric_trait_impl.ark` -> `7 9 hi 11` on wasm32.
+  `verify lane` exits 0 (W0010/W0003 style warnings only).
+- Known limitation: propagation resolves through `ctx_has_fn_name`,
+  so the propagated impl must be emitted before the consuming impl
+  body lowers (source-order constraint; forward references still
+  fail). The pre-existing `WrapIter<String>` GC construction defect
+  is unchanged and tracked separately.
+- Remaining #860 residuals: adapter migration to `I: Iterator`
+  bodies, generic `for` over bare type parameters (name-rewrite
+  fallback only), forward-ref emit ordering, and the residual-zero
+  audit once #691 closes. #860 is not closed.
