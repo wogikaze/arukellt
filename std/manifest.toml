@@ -3500,8 +3500,8 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "Vec<i32>"]
-returns = "ChainIter"
-doc = "Construct a lazy iterator chaining two vectors in order."
+returns = "ChainIter<VecIter>"
+doc = "Construct a lazy iterator chaining two vectors in order; wraps both sources as VecIter."
 
 [[functions]]
 name = "enumerate_iter"
@@ -3509,8 +3509,8 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>"]
-returns = "EnumerateIter"
-doc = "Lazy enumerate adapter; yields index/value pairs packed in one i32 (index high 16 bits)."
+returns = "EnumerateIter<VecIter>"
+doc = "Lazy enumerate adapter; yields Pair<i32, i32> index/value items."
 
 [[functions]]
 name = "zip_iter"
@@ -3518,8 +3518,8 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "Vec<i32>"]
-returns = "ZipIter"
-doc = "Lazy zip over two vectors, stopping at the shorter length; pairs packed in one i32."
+returns = "ZipIter<VecIter, VecIter>"
+doc = "Lazy zip over two vectors, stopping at the shorter length; yields Pair<i32, i32> items."
 
 [[functions]]
 name = "collect_vec_iter"
@@ -3571,7 +3571,7 @@ name = "collect_chain_iter"
 module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
-params = ["ChainIter"]
+params = ["ChainIter<VecIter>"]
 returns = "Vec<i32>"
 doc = "Drain a ChainIter into a new Vec<i32> via Iterator::collect."
 

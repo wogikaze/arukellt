@@ -13,15 +13,24 @@ fn main() {
 
     let it = iter::zip_iter(a, b)
     match it.next() {
-        Some(packed) => test::assert_eq_i32(packed, 1 * 65536 + 10),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 1)
+            test::assert_eq_i32(p.second, 10)
+        },
         None => panic("expected Some"),
     }
     match it.next() {
-        Some(packed) => test::assert_eq_i32(packed, 2 * 65536 + 20),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 2)
+            test::assert_eq_i32(p.second, 20)
+        },
         None => panic("expected Some"),
     }
     match it.next() {
-        Some(packed) => test::assert_eq_i32(packed, 3 * 65536 + 30),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 3)
+            test::assert_eq_i32(p.second, 30)
+        },
         None => panic("expected Some"),
     }
     match it.next() {

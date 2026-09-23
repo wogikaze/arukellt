@@ -39,9 +39,9 @@
 /// | FilterIter  | impl   | Lazy filter adapter                    |
 /// | TakeIter<I> | impl   | Lazy take adapter over any source      |
 /// | SkipIter<I> | impl   | Lazy skip adapter over any source      |
-/// | ChainIter   | impl   | Lazy chain of two `Vec<i32>`           |
-/// | EnumerateIter | impl | Lazy enumerate adapter                 |
-/// | ZipIter     | impl   | Lazy zip of two `Vec<i32>`             |
+/// | ChainIter<I> | impl  | Lazy chain of two `I: Iterator` sources |
+/// | EnumerateIter<I> | impl | Lazy enumerate yielding `Pair` items |
+/// | ZipIter<A,B> | impl | Lazy zip yielding `Pair` items           |
 /// | SkipMapIter | impl | Composed skip/map pipeline           |
 /// | SkipFilterIter | impl | Composed skip/filter pipeline       |
 pub trait Iterator {
@@ -1503,55 +1503,69 @@ impl Iterator for SkipFilterIter<VecIter> {
 }
 
 // ---------------------------------------------------------------------------
-// ChainIter — lazy chain of two Vec<i32>
+// Pair — item type for enumerate/zip adapters
+// ---------------------------------------------------------------------------
+
+/// A two-element item produced by enumerate and zip adapters.
+/// Keeping the pair as a real generic struct replaces the packed-i32
+/// encoding that silently truncated items (ADR-076).
+pub struct Pair<A, B> {
+    first: A,
+    second: B,
+}
+
+// ---------------------------------------------------------------------------
+// ChainIter — lazy chain of two I: Iterator sources
 // ---------------------------------------------------------------------------
 
 /// Lazy iterator that yields all elements of `first` then all of `second`.
-pub struct ChainIter {
-    first: Vec<i32>,
-    second: Vec<i32>,
-    index: i32,
-    first_len: i32,
-    second_len: i32,
+/// The adapter wraps the two source iterators instead of indexing the
+/// vectors, so any `I: Iterator` pair can be chained (ADR-078).
+pub struct ChainIter<I> {
+    first: I,
+    second: I,
+    on_first: bool,
 }
 
 /// Construct a `ChainIter` over two vectors.
-pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter {
+pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter<VecIter> {
     ChainIter {
-        first: first,
-        second: second,
-        index: 0,
-        first_len: len(first),
-        second_len: len(second),
+        first: vec_iter(first),
+        second: vec_iter(second),
+        on_first: true,
     }
 }
 
-impl Iterator for ChainIter {
-    type Item = i32
+impl Iterator for ChainIter<I> {
+    type Item = I::Item
 
-    fn next(self: ChainIter) -> Option<i32> {
-        if self.index < self.first_len {
-            let val: i32 = get_unchecked(self.first, self.index)
-            self.index = self.index + 1
-            Some(val)
-        } else {
-            let second_index: i32 = self.index - self.first_len
-            if second_index < self.second_len {
-                let val: i32 = get_unchecked(self.second, second_index)
-                self.index = self.index + 1
-                Some(val)
-            } else {
-                None
+    fn next(self: ChainIter<I>) -> Option<I::Item> {
+        if !self.on_first {
+            return self.second.next()
+        }
+        match self.first.next() {
+            Some(v) => Some(v),
+            None => {
+                self.on_first = false
+                self.second.next()
             }
         }
     }
 
-    fn collect(self: ChainIter) -> Vec<i32> {
-        collect_iterator(self)
+    fn collect(self: ChainIter<I>) -> Vec<I::Item> {
+        let out: Vec<I::Item> = Vec::new<I::Item>()
+        for item in self {
+            push(out, item)
+        }
+        out
     }
 
-    fn count(self: ChainIter) -> i32 {
-        count_iterator(self)
+    fn count(self: ChainIter<I>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
     }
 
 }
@@ -1560,89 +1574,101 @@ impl Iterator for ChainIter {
 // EnumerateIter — lazy enumerate adapter
 // ---------------------------------------------------------------------------
 
-/// Lazy iterator that yields `(index, value)` pairs as a packed i32.
-///
-/// The index is stored in the high 16 bits and the value in the low 16 bits
-/// so the result fits in a single `i32`. This keeps the adapter monomorphic
-/// while still carrying both pieces of information.
-pub struct EnumerateIter {
-    vec: Vec<i32>,
+/// Lazy iterator that yields (index, value) items as `Pair<i32, I::Item>`.
+/// The adapter wraps the source iterator, so any `I: Iterator` source can
+/// be enumerated (ADR-078); items are real pairs rather than a packed
+/// i32 encoding (ADR-076).
+pub struct EnumerateIter<I> {
+    iter: I,
     index: i32,
-    length: i32,
 }
 
 /// Construct an `EnumerateIter` over `v`.
-pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter {
-    EnumerateIter { vec: v, index: 0, length: len(v) }
+pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter<VecIter> {
+    EnumerateIter { iter: vec_iter(v), index: 0 }
 }
 
-impl Iterator for EnumerateIter {
-    type Item = i32
+impl Iterator for EnumerateIter<I> {
+    type Item = Pair<i32, I::Item>
 
-    fn next(self: EnumerateIter) -> Option<i32> {
-        if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
-            let packed: i32 = self.index * 65536 + val
-            self.index = self.index + 1
-            Some(packed)
-        } else {
-            None
+    fn next(self: EnumerateIter<I>) -> Option<Pair<i32, I::Item>> {
+        let nxt = self.iter.next()
+        match nxt {
+            Some(v) => {
+                let p: Pair<i32, I::Item> = Pair { first: self.index, second: v }
+                self.index = self.index + 1
+                Some(p)
+            }
+            None => None,
         }
     }
 
-    fn collect(self: EnumerateIter) -> Vec<i32> {
-        collect_iterator(self)
+    fn collect(self: EnumerateIter<I>) -> Vec<Pair<i32, I::Item>> {
+        let out: Vec<Pair<i32, I::Item>> = Vec::new<Pair<i32, I::Item>>()
+        for item in self {
+            push(out, item)
+        }
+        out
     }
 
-    fn count(self: EnumerateIter) -> i32 {
-        count_iterator(self)
+    fn count(self: EnumerateIter<I>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
     }
 
 }
 
 // ---------------------------------------------------------------------------
-// ZipIter — lazy zip of two Vec<i32>
+// ZipIter — lazy zip of two iterator sources
 // ---------------------------------------------------------------------------
 
-/// Lazy iterator that yields paired elements from two vectors as a packed i32.
-///
-/// The first vector's element occupies the high 16 bits and the second's the
-/// low 16 bits.
-pub struct ZipIter {
-    first: Vec<i32>,
-    second: Vec<i32>,
-    index: i32,
-    length: i32,
+/// Lazy iterator that yields paired elements from two sources as
+/// `Pair<A::Item, B::Item>` items. Iteration stops at the first
+/// exhausted source.
+pub struct ZipIter<A, B> {
+    first: A,
+    second: B,
 }
 
 /// Construct a `ZipIter` over two vectors. Iteration stops at the shorter length.
-pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter {
-    let len_a: i32 = len(first)
-    let len_b: i32 = len(second)
-    let min_len: i32 = if len_a < len_b { len_a } else { len_b }
-    ZipIter { first: first, second: second, index: 0, length: min_len }
+pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter<VecIter, VecIter> {
+    ZipIter { first: vec_iter(first), second: vec_iter(second) }
 }
 
-impl Iterator for ZipIter {
-    type Item = i32
+impl Iterator for ZipIter<A, B> {
+    type Item = Pair<A::Item, B::Item>
 
-    fn next(self: ZipIter) -> Option<i32> {
-        if self.index < self.length {
-            let a: i32 = get_unchecked(self.first, self.index)
-            let b: i32 = get_unchecked(self.second, self.index)
-            self.index = self.index + 1
-            Some(a * 65536 + b)
-        } else {
-            None
+    fn next(self: ZipIter<A, B>) -> Option<Pair<A::Item, B::Item>> {
+        let av = self.first.next()
+        match av {
+            Some(a) => {
+                let bv = self.second.next()
+                match bv {
+                    Some(b) => Some(Pair { first: a, second: b }),
+                    None => None,
+                }
+            }
+            None => None,
         }
     }
 
-    fn collect(self: ZipIter) -> Vec<i32> {
-        collect_iterator(self)
+    fn collect(self: ZipIter<A, B>) -> Vec<Pair<A::Item, B::Item>> {
+        let out: Vec<Pair<A::Item, B::Item>> = Vec::new<Pair<A::Item, B::Item>>()
+        for item in self {
+            push(out, item)
+        }
+        out
     }
 
-    fn count(self: ZipIter) -> i32 {
-        count_iterator(self)
+    fn count(self: ZipIter<A, B>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
     }
 
 }
@@ -1923,38 +1949,14 @@ impl IteratorFold<i32, i32> for SkipFilterIter<VecIter> {
     }
 }
 
-impl IteratorSum<i32, i32> for ChainIter {
-    fn sum(self: ChainIter) -> i32 {
+impl IteratorSum<i32, i32> for ChainIter<VecIter> {
+    fn sum(self: ChainIter<VecIter>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for ChainIter {
-    fn fold(self: ChainIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
-}
-
-impl IteratorSum<i32, i32> for EnumerateIter {
-    fn sum(self: EnumerateIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-}
-
-impl IteratorFold<i32, i32> for EnumerateIter {
-    fn fold(self: EnumerateIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-        fold_iterator_i32(self, init, f)
-    }
-}
-
-impl IteratorSum<i32, i32> for ZipIter {
-    fn sum(self: ZipIter) -> i32 {
-        sum_iterator_i32(self)
-    }
-}
-
-impl IteratorFold<i32, i32> for ZipIter {
-    fn fold(self: ZipIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for ChainIter<VecIter> {
+    fn fold(self: ChainIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -2157,38 +2159,14 @@ impl IteratorCountEq<i32> for SkipFilterIter<VecIter> {
     }
 }
 
-impl IteratorContains<i32> for ChainIter {
-    fn contains(self: ChainIter, target: i32) -> bool {
+impl IteratorContains<i32> for ChainIter<VecIter> {
+    fn contains(self: ChainIter<VecIter>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for ChainIter {
-    fn count_eq(self: ChainIter, target: i32) -> i32 {
-        count_eq_iterator_i32(self, target)
-    }
-}
-
-impl IteratorContains<i32> for EnumerateIter {
-    fn contains(self: EnumerateIter, target: i32) -> bool {
-        contains_iterator_i32(self, target)
-    }
-}
-
-impl IteratorCountEq<i32> for EnumerateIter {
-    fn count_eq(self: EnumerateIter, target: i32) -> i32 {
-        count_eq_iterator_i32(self, target)
-    }
-}
-
-impl IteratorContains<i32> for ZipIter {
-    fn contains(self: ZipIter, target: i32) -> bool {
-        contains_iterator_i32(self, target)
-    }
-}
-
-impl IteratorCountEq<i32> for ZipIter {
-    fn count_eq(self: ZipIter, target: i32) -> i32 {
+impl IteratorCountEq<i32> for ChainIter<VecIter> {
+    fn count_eq(self: ChainIter<VecIter>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
@@ -2287,29 +2265,29 @@ impl IntoIterator for SkipFilterIter<VecIter> {
     }
 }
 
-impl IntoIterator for ChainIter {
-    type Item = i32
-    type IntoIter = ChainIter
+impl IntoIterator for ChainIter<I> {
+    type Item = I::Item
+    type IntoIter = ChainIter<I>
 
-    fn into_iter(self: ChainIter) -> ChainIter {
+    fn into_iter(self: ChainIter<I>) -> ChainIter<I> {
         self
     }
 }
 
-impl IntoIterator for EnumerateIter {
-    type Item = i32
-    type IntoIter = EnumerateIter
+impl IntoIterator for EnumerateIter<I> {
+    type Item = Pair<i32, I::Item>
+    type IntoIter = EnumerateIter<I>
 
-    fn into_iter(self: EnumerateIter) -> EnumerateIter {
+    fn into_iter(self: EnumerateIter<I>) -> EnumerateIter<I> {
         self
     }
 }
 
-impl IntoIterator for ZipIter {
-    type Item = i32
-    type IntoIter = ZipIter
+impl IntoIterator for ZipIter<A, B> {
+    type Item = Pair<A::Item, B::Item>
+    type IntoIter = ZipIter<A, B>
 
-    fn into_iter(self: ZipIter) -> ZipIter {
+    fn into_iter(self: ZipIter<A, B>) -> ZipIter<A, B> {
         self
     }
 }
@@ -2362,7 +2340,7 @@ pub fn collect_skip_iter(it: SkipIter<VecIter>) -> Vec<i32> {
 }
 
 /// Drain a `ChainIter` into a new `Vec<i32>`.
-pub fn collect_chain_iter(it: ChainIter) -> Vec<i32> {
+pub fn collect_chain_iter(it: ChainIter<VecIter>) -> Vec<i32> {
     it.collect()
 }
 

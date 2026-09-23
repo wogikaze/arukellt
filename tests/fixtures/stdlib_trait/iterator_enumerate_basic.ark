@@ -9,20 +9,32 @@ fn main() {
 
     let it = iter::enumerate_iter(v)
     match it.next() {
-        Some(packed) => test::assert_eq_i32(packed, 0 * 65536 + 100),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 0)
+            test::assert_eq_i32(p.second, 100)
+        },
         None => panic("expected Some"),
     }
     let it2 = iter::enumerate_iter(v)
     match it2.next() {
-        Some(packed) => test::assert_eq_i32(packed, 0 * 65536 + 100),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 0)
+            test::assert_eq_i32(p.second, 100)
+        },
         None => panic("expected Some"),
     }
     match it2.next() {
-        Some(packed) => test::assert_eq_i32(packed, 1 * 65536 + 200),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 1)
+            test::assert_eq_i32(p.second, 200)
+        },
         None => panic("expected Some"),
     }
     match it2.next() {
-        Some(packed) => test::assert_eq_i32(packed, 2 * 65536 + 300),
+        Some(p) => {
+            test::assert_eq_i32(p.first, 2)
+            test::assert_eq_i32(p.second, 300)
+        },
         None => panic("expected Some"),
     }
     match it2.next() {
