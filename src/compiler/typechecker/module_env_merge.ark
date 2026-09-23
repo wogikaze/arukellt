@@ -61,6 +61,7 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
     child.trait_impls = parent.trait_impls
     child.associated_types = parent.associated_types
     child.trait_methods = parent.trait_methods
+    child.struct_defs = parent.struct_defs
     child.fn_sig_index = parent.fn_sig_index
     child.current_fn_type_params = parent.current_fn_type_params
     child.current_fn_bounds = parent.current_fn_bounds

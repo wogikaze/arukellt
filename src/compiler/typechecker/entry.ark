@@ -29,6 +29,7 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
     contract_result_state::typecheck_result_set_errors(result, resolver_errors::typecheck_resolve_errors(resolve_ctx))
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
+    module::register_struct_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls, env), module_wit::collect_wit_fn_sigs(wit_paths, decls))
     env.fn_sig_index = build_fn_sig_index(fn_sigs)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))

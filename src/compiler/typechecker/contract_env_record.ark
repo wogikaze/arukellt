@@ -2,6 +2,7 @@ use diagnostics::codes
 use diagnostics::record
 use typechecker::contract_associated_type_record
 use typechecker::contract_mono
+use typechecker::contract_struct_info
 use typechecker::contract_trait_info_record
 use typechecker::contract_trait_impl_record
 use typechecker::contract_trait_method_record
@@ -27,6 +28,7 @@ struct TypeEnv {
     trait_impls: Vec<TraitImplInfo>,
     associated_types: Vec<TraitAssociatedTypeInfo>,
     trait_methods: Vec<TraitMethodEntry>,
+    struct_defs: Vec<StructInfo>,
     fn_sig_index: NameIndex,
     current_fn_type_params: Vec<String>,
     current_fn_bounds: Vec<TypeParamBounds>,
@@ -52,6 +54,7 @@ fn TypeEnv_new() -> TypeEnv {
         trait_impls: Vec::new<TraitImplInfo>(),
         associated_types: Vec::new<TraitAssociatedTypeInfo>(),
         trait_methods: Vec::new<TraitMethodEntry>(),
+        struct_defs: Vec::new<StructInfo>(),
         fn_sig_index: name_index::NameIndex_new(0),
         current_fn_type_params: Vec::new<String>(),
         current_fn_bounds: Vec::new<TypeParamBounds>(),

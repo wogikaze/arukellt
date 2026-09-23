@@ -9,6 +9,7 @@ use typechecker::infer_binary
 use typechecker::infer_block
 use typechecker::infer_closure
 use typechecker::infer_comprehension
+use typechecker::infer_field
 use typechecker::match
 use typechecker::enum_expr
 use typechecker::operator_traits
@@ -57,6 +58,9 @@ fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enu
     }
     if ast_expr_predicates::node_is_index(node) {
         return infer_index_expr(env, scope, fn_sigs, enum_defs, node)
+    }
+    if ast_expr_predicates::node_is_field_access(node) {
+        return infer_field::infer_field_access_expr(env, scope, fn_sigs, enum_defs, node)
     }
     if ast_stmt_predicates::node_is_block(node) {
         return infer_block::infer_block_expr(env, scope, fn_sigs, enum_defs, node)

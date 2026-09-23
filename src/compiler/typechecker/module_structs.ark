@@ -1,0 +1,93 @@
+use typechecker::ast_decl_predicates
+use typechecker::ast_access
+use typechecker::contract_struct_info
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::instantiate
+use typechecker::module_enums
+use typechecker::names
+use typechecker::types
+
+// Register struct declarations into the typecheck env so field-access
+// expressions can recover a concrete field type. MIR owns the layout copy;
+// this table only needs names, declaration type parameters, and annotated
+// field types.
+fn register_struct_decls(env: TypeEnv, decls: Vec<AstNode>) {
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_struct_decl(node) {
+            push(env.struct_defs, collect_struct_def(node))
+        }
+        i = i + 1
+    }
+}
+
+fn collect_struct_def(node: AstNode) -> StructInfo {
+    let type_params = module_enums::enum_type_param_names(node)
+    let field_names = Vec::new<String>()
+    let field_types = Vec::new<TypeInfo>()
+    let field_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < field_count {
+        let field = ast_access::node_child_at(node, i)
+        push(field_names, ast_access::node_text(field))
+        if ast_access::node_type_ann_count(field) > 0 {
+            push(
+                field_types,
+                types::resolve_type_ann_node_generic(
+                    ast_access::node_type_ann_at(field, 0),
+                    type_params
+                )
+            )
+        } else {
+            push(field_types, contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()))
+        }
+        i = i + 1
+    }
+    contract_struct_info::StructInfo_new(ast_access::node_text(node), type_params, field_names, field_types)
+}
+
+// Resolve recv_ty.field_name through the registered struct declarations.
+// Declaration type parameters are substituted with the receiver's concrete
+// type arguments, so Take<Take<VecIter>>.iter reports Take<VecIter>.
+// TY_UNKNOWN means "not a known struct field" and preserves the previous
+// inference result for non-struct receivers.
+fn struct_field_type(env: TypeEnv, recv_ty: TypeInfo, field_name: String) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_STRUCT() {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let recv_name = names::unqualified_type_name(contract_type_access::TypeInfo_name(recv_ty))
+    let def_count = len(env.struct_defs)
+    let mut i = 0
+    while i < def_count {
+        let def = get_unchecked(env.struct_defs, i)
+        if !eq(contract_struct_info::StructInfo_name(def), clone(recv_name)) {
+            i = i + 1
+            continue
+        }
+        let field_idx = contract_struct_info::StructInfo_field_index(def, clone(field_name))
+        if field_idx < 0 {
+            return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+        }
+        let field_ty = contract_struct_info::StructInfo_field_type_at(def, field_idx)
+        let type_params = contract_struct_info::StructInfo_type_params(def)
+        if len(type_params) == 0 {
+            return field_ty
+        }
+        return instantiate::instantiate_type(field_ty, type_params, recv_type_args(recv_ty))
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn recv_type_args(recv_ty: TypeInfo) -> Vec<TypeInfo> {
+    let args = Vec::new<TypeInfo>()
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(recv_ty)
+    let mut i = 0
+    while i < arg_count {
+        push(args, contract_type_access::TypeInfo_type_arg_at(recv_ty, i))
+        i = i + 1
+    }
+    args
+}

@@ -1,0 +1,14 @@
+use typechecker::ast_access
+use typechecker::contract_type_constructors
+use typechecker::module_structs
+
+// base.field resolves through the struct declaration table so a bound
+// variable keeps its concrete struct type (including substituted generic
+// arguments) and later method calls can record their mono instances.
+fn infer_field_access_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_access::node_child_count(node) < 1 {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let base_ty = infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 0))
+    module_structs::struct_field_type(env, base_ty, ast_access::node_text(node))
+}

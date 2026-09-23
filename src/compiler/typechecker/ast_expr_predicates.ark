@@ -69,6 +69,10 @@ fn node_is_struct_lit(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_STRUCT_LIT())
 }
 
+fn node_is_field_access(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_FIELD_ACCESS())
+}
+
 fn node_is_char_lit(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_CHAR_LIT())
 }

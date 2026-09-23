@@ -1,0 +1,48 @@
+use typechecker::contract_types_record
+
+// Field table of one struct declaration for typecheck-time field access
+// inference. Field types keep the declaration's type parameters as
+// TY_TYPE_VAR; instantiate_type binds them to the receiver's concrete
+// arguments at the access site.
+struct StructInfo {
+    name: String,
+    type_params: Vec<String>,
+    field_names: Vec<String>,
+    field_types: Vec<TypeInfo>,
+}
+
+fn StructInfo_new(name: String, type_params: Vec<String>, field_names: Vec<String>, field_types: Vec<TypeInfo>) -> StructInfo {
+    StructInfo {
+        name: name,
+        type_params: type_params,
+        field_names: field_names,
+        field_types: field_types,
+    }
+}
+
+fn StructInfo_name(info: StructInfo) -> String {
+    clone(info.name)
+}
+
+fn StructInfo_type_params(info: StructInfo) -> Vec<String> {
+    info.type_params
+}
+
+fn StructInfo_field_index(info: StructInfo, field_name: String) -> i32 {
+    let count = len(info.field_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(info.field_names, i), clone(field_name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn StructInfo_field_type_at(info: StructInfo, index: i32) -> TypeInfo {
+    if index < 0 || index >= len(info.field_types) {
+        return contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
+    }
+    get_unchecked(info.field_types, index)
+}
