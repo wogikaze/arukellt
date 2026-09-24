@@ -2,6 +2,7 @@ use typechecker::kinds
 use typechecker::ast_access
 use typechecker::associated_types
 use typechecker::call_args
+use typechecker::closure_capture
 use typechecker::call_method_args
 use typechecker::call_generic
 use typechecker::contract_fn_sig
@@ -28,6 +29,16 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     let child_count = ast_access::node_child_count(node)
     if child_count < 1 {
         return simple_type(commands::TY_UNKNOWN())
+    }
+    // The receiver and every explicit argument are escape positions for a
+    // capturing closure. Check before method resolution so trait, builtin,
+    // and unresolved calls reject the same way (#872).
+    if env.is_ownership_tracking_enabled {
+        let mut a = 0
+        while a < child_count {
+            closure_capture::closure_capture_escape(env, scope, ast_access::node_child_at(node, a))
+            a = a + 1
+        }
     }
     let method_name = ast_access::node_text(node)
     let recv_node = ast_access::node_child_at(node, 0)

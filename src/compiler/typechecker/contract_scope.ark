@@ -22,6 +22,7 @@ struct VarBinding {
     is_moved: bool,
     has_shared_borrow: bool,
     has_mutable_borrow: bool,
+    has_captures: bool,
 }
 
 struct LocalScope {
@@ -47,6 +48,7 @@ fn VarBinding_new_with_flags(name: String, ty: TypeInfo, is_mutable: bool, is_co
         is_moved: false,
         has_shared_borrow: false,
         has_mutable_borrow: false,
+        has_captures: false,
     }
 }
 
@@ -65,6 +67,7 @@ fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable
         is_moved: false,
         has_shared_borrow: false,
         has_mutable_borrow: false,
+        has_captures: false,
     }
 }
 
@@ -114,6 +117,17 @@ fn VarBinding_set_shared_borrow(binding: VarBinding, has_borrow: bool) {
 
 fn VarBinding_set_mutable_borrow(binding: VarBinding, has_borrow: bool) {
     binding.has_mutable_borrow = has_borrow
+}
+
+// True when the binding holds a closure value that captures names from its
+// environment (any capture mode). Such a value cannot be passed, returned,
+// or stored where the backend cannot supply the captures (#872).
+fn VarBinding_has_captures(binding: VarBinding) -> bool {
+    binding.has_captures
+}
+
+fn VarBinding_set_has_captures(binding: VarBinding, has_caps: bool) {
+    binding.has_captures = has_caps
 }
 
 fn LocalScope_binding_count(scope: LocalScope) -> i32 {

@@ -2,6 +2,7 @@ use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
 use typechecker::call_args
+use typechecker::closure_capture
 use typechecker::call_generic
 use typechecker::hashmap_methods
 use typechecker::call_unknown
@@ -17,6 +18,18 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     let child_count = ast_access::node_child_count(node)
     if child_count < 1 {
         return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    // Every argument position is an escape for a capturing closure: the
+    // callee receives a bare funcref that cannot carry the captures. Check
+    // here — before signature resolution — so unresolved and builtin calls
+    // are covered the same way (#872). Child 0 is the callee, which is a
+    // direct-call position and stays legal.
+    if env.is_ownership_tracking_enabled {
+        let mut a = 1
+        while a < child_count {
+            closure_capture::closure_capture_escape(env, scope, ast_access::node_child_at(node, a))
+            a = a + 1
+        }
     }
     let callee = ast_access::node_child_at(node, 0)
     if !ast_expr_predicates::node_is_ident(callee) && !ast_expr_predicates::node_is_path(callee) {

@@ -11,6 +11,10 @@ fn check_expr_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         ast_access::node_kind_is(child, kinds::NK_ASSIGN()) &&
         ast_access::node_child_count(child) >= 2 {
             ownership::check_assignment_target(env, scope, ast_access::node_child_at(child, 0))
+            // Capture bindings are registered only for let bindings, so a
+            // capturing closure stored through assignment loses the link the
+            // backend needs to supply captures at call sites (#872).
+            closure_capture::closure_capture_escape(env, scope, ast_access::node_child_at(child, 1))
         }
     }
 }
@@ -20,7 +24,7 @@ fn check_return_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_
         let child = ast_access::node_child_at(node, 0)
         let _inferred_ty = infer_expr(env, scope, fn_sigs, enum_defs, child)
         if env.is_ownership_tracking_enabled {
-            closure_capture::closure_borrow_escape(env, scope, child)
+            closure_capture::closure_capture_escape(env, scope, child)
         }
     }
 }

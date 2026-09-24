@@ -15,10 +15,11 @@ struct ClosureCaptureSummary {
     names: Vec<String>,
     modes: Vec<i32>,
     nodes: Vec<AstNode>,
+    include_copy: bool,
 }
 
 struct CaptureEscape {
-    has_borrow: bool,
+    mode: i32,
     span_start: i32,
     span_end: i32,
 }
@@ -28,15 +29,36 @@ fn ClosureCaptureSummary_new() -> ClosureCaptureSummary {
         names: Vec::new<String>(),
         modes: Vec::new<i32>(),
         nodes: Vec::new<AstNode>(),
+        include_copy: false,
     }
 }
 
+// Escape checking needs every free variable the backend would pass as an
+// extra parameter — including Copy captures, which ownership tracking
+// skips because they cannot alias.
+fn ClosureCaptureSummary_new_with_copy() -> ClosureCaptureSummary {
+    let summary = ClosureCaptureSummary_new()
+    summary.include_copy = true
+    summary
+}
+
 fn CaptureEscape_none() -> CaptureEscape {
-    CaptureEscape { has_borrow: false, span_start: -1, span_end: -1 }
+    CaptureEscape { mode: 0, span_start: -1, span_end: -1 }
 }
 
 fn closure_capture_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) -> ClosureCaptureSummary {
     let summary = ClosureCaptureSummary_new()
+    let child_count = ast_access::node_child_count(closure)
+    if child_count == 0 {
+        return summary
+    }
+    let body = ast_access::node_child_at(closure, child_count - 1)
+    scan_capture_expr(env, scope, closure, body, summary)
+    summary
+}
+
+fn closure_escape_summary(env: TypeEnv, scope: LocalScope, closure: AstNode) -> ClosureCaptureSummary {
+    let summary = ClosureCaptureSummary_new_with_copy()
     let child_count = ast_access::node_child_count(closure)
     if child_count == 0 {
         return summary
@@ -107,7 +129,11 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         return
     }
     let binding_index = scope::scope_binding_index(scope, clone(name))
-    if binding_index < 0 || scope::scope_binding_is_copy(scope, clone(name)) {
+    if binding_index < 0 {
+        return
+    }
+    let is_copy_capture = scope::scope_binding_is_copy(scope, clone(name))
+    if is_copy_capture && !summary.include_copy {
         return
     }
     let mut mode = capture_shared_borrow()
@@ -115,6 +141,11 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         mode = capture_move()
     } else if is_mutable_use {
         mode = capture_mutable_borrow()
+    } else if is_copy_capture {
+        // A Copy capture is not a borrow, but as a funcref argument it is
+        // still an extra parameter the backend cannot supply at escape
+        // positions — report the capability diagnostic, not E0213 (#872).
+        mode = capture_move()
     }
     let existing = capture_name_index(summary, clone(name))
     if existing < 0 {
@@ -274,23 +305,63 @@ fn value_borrow_is_mutable(mode: i32) -> bool {
     mode == capture_mutable_borrow()
 }
 
-fn reject_borrow_escape_on_store(env: TypeEnv, scope: LocalScope, node: AstNode) {
-    let kind = ast_access::node_kind(node)
-    if kind == kinds::NK_TUPLE() || kind == kinds::NK_ARRAY_LIT() ||
-    kind == kinds::NK_ARRAY_REPEAT() || kind == kinds::NK_STRUCT_LIT() {
-        closure_borrow_escape(env, scope, node)
+// True when the expression evaluates to a closure value carrying captures
+// (a literal with captures, a binding flagged has_captures, or an
+// aggregate containing either). Used to mark let bindings so later
+// escape positions can reject the value (#872).
+fn value_has_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        let summary = closure_escape_summary(env, scope, node)
+        return len(summary.names) > 0
     }
-}
-
-fn closure_borrow_escape(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
-    let witness = borrow_escape_witness(env, scope, node)
-    if !witness.has_borrow {
+    if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
+        let name = ast_access::node_text(node)
+        return scope::scope_binding_has_captures(scope, clone(name)) ||
+        scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
+        scope::scope_binding_has_mutable_borrow(scope, clone(name))
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_BLOCK() {
+        let count = ast_access::node_child_count(node)
+        if count == 0 {
+            return false
+        }
+        return value_has_captures(env, scope, ast_access::node_child_at(node, count - 1))
+    }
+    if kind != kinds::NK_TUPLE() && kind != kinds::NK_ARRAY_LIT() &&
+    kind != kinds::NK_ARRAY_REPEAT() && kind != kinds::NK_STRUCT_LIT() &&
+    kind != kinds::NK_EXPR_STMT() {
         return false
     }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        if value_has_captures(env, scope, ast_access::node_child_at(node, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn closure_capture_escape(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    let witness = capture_escape_witness(env, scope, node)
+    if witness.mode == 0 {
+        return
+    }
     let span = diag_record::DiagnosticSpan_from_raw(witness.span_start, witness.span_end)
-    let message = "borrowed closure capture cannot escape its enclosing function"
+    // A capturing closure lowered to a bare funcref cannot carry its
+    // environment: borrow captures are rejected semantically (E0213), while
+    // move captures are legal but still unimplemented as managed
+    // environments, so they get the capability diagnostic (E0220, #872).
+    let mut message = "borrowed closure capture cannot escape its enclosing function"
+    let mut code = codes::DIAG_TYPE_CLOSURE_BORROW_ESCAPE()
+    if witness.mode == capture_move() {
+        message = "capturing closure cannot be passed, returned, or stored as a function value yet (managed closure environments are not implemented)"
+        code = codes::DIAG_TYPE_CLOSURE_CAPTURE_ESCAPE()
+    }
     let diag = diag_mod::Diagnostic_new(
-        codes::DIAG_TYPE_CLOSURE_BORROW_ESCAPE(),
+        code,
         diag_mod::SEV_ERROR(),
         span,
         message
@@ -298,20 +369,33 @@ fn closure_borrow_escape(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool
     env.error_count = env.error_count + 1
     push(env.errors, message)
     push(env.diagnostics, diag)
-    true
 }
 
-fn borrow_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> CaptureEscape {
+fn capture_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> CaptureEscape {
     if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
-        let summary = closure_capture_summary(env, scope, node)
-        return summary_borrow_witness(summary)
+        let summary = closure_escape_summary(env, scope, node)
+        return summary_escape_witness(summary)
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         let name = ast_access::node_text(node)
         if scope::scope_binding_has_shared_borrow(scope, clone(name)) ||
         scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+            let mut borrow_mode = capture_shared_borrow()
+            if scope::scope_binding_has_mutable_borrow(scope, clone(name)) {
+                borrow_mode = capture_mutable_borrow()
+            }
             return CaptureEscape {
-                has_borrow: true,
+                mode: borrow_mode,
+                span_start: ast_access::node_span_start(node),
+                span_end: ast_access::node_span_end(node),
+            }
+        }
+        // A binding that holds a move-capturing closure is legal to create
+        // but still cannot flow to a position where the backend cannot
+        // supply the captures.
+        if scope::scope_binding_has_captures(scope, clone(name)) {
+            return CaptureEscape {
+                mode: capture_move(),
                 span_start: ast_access::node_span_start(node),
                 span_end: ast_access::node_span_end(node),
             }
@@ -319,17 +403,27 @@ fn borrow_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> Capt
         return CaptureEscape_none()
     }
     let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_BLOCK() {
+        // Only the last child carries the block's value, so earlier
+        // statements cannot make a closure escape through this position.
+        let count = ast_access::node_child_count(node)
+        if count == 0 {
+            return CaptureEscape_none()
+        }
+        return capture_escape_witness(env, scope, ast_access::node_child_at(node, count - 1))
+    }
     if kind != kinds::NK_TUPLE() && kind != kinds::NK_ARRAY_LIT() &&
     kind != kinds::NK_ARRAY_REPEAT() && kind != kinds::NK_STRUCT_LIT() &&
-    kind != kinds::NK_BLOCK() {
+    kind != kinds::NK_IF_EXPR() && kind != kinds::NK_MATCH_EXPR() &&
+    kind != kinds::NK_EXPR_STMT() {
         return CaptureEscape_none()
     }
     let child_count = ast_access::node_child_count(node)
     let mut i = 0
     while i < child_count {
         let child = ast_access::node_child_at(node, i)
-        let witness = borrow_escape_witness(env, scope, child)
-        if witness.has_borrow {
+        let witness = capture_escape_witness(env, scope, child)
+        if witness.mode != 0 {
             return witness
         }
         i = i + 1
@@ -337,14 +431,14 @@ fn borrow_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> Capt
     CaptureEscape_none()
 }
 
-fn summary_borrow_witness(summary: ClosureCaptureSummary) -> CaptureEscape {
+fn summary_escape_witness(summary: ClosureCaptureSummary) -> CaptureEscape {
     let mut i = 0
     while i < len(summary.modes) {
         let mode = get_unchecked(summary.modes, i)
-        if mode == capture_shared_borrow() || mode == capture_mutable_borrow() {
+        if mode != 0 {
             let node = get_unchecked(summary.nodes, i)
             return CaptureEscape {
-                has_borrow: true,
+                mode: mode,
                 span_start: ast_access::node_span_start(node),
                 span_end: ast_access::node_span_end(node),
             }

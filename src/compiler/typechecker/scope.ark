@@ -31,6 +31,7 @@ fn scope_child(parent: LocalScope) -> LocalScope {
             contract_scope::VarBinding_set_moved(copied, contract_scope::VarBinding_is_moved(binding))
             contract_scope::VarBinding_set_shared_borrow(copied, contract_scope::VarBinding_has_shared_borrow(binding))
             contract_scope::VarBinding_set_mutable_borrow(copied, contract_scope::VarBinding_has_mutable_borrow(binding))
+            contract_scope::VarBinding_set_has_captures(copied, contract_scope::VarBinding_has_captures(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         } else {
             let copied = contract_scope::VarBinding_new_with_flags(
@@ -42,6 +43,7 @@ fn scope_child(parent: LocalScope) -> LocalScope {
             contract_scope::VarBinding_set_moved(copied, contract_scope::VarBinding_is_moved(binding))
             contract_scope::VarBinding_set_shared_borrow(copied, contract_scope::VarBinding_has_shared_borrow(binding))
             contract_scope::VarBinding_set_mutable_borrow(copied, contract_scope::VarBinding_has_mutable_borrow(binding))
+            contract_scope::VarBinding_set_has_captures(copied, contract_scope::VarBinding_has_captures(binding))
             contract_scope::LocalScope_push_binding(child, copied)
         }
         i = i + 1
@@ -146,6 +148,24 @@ fn scope_binding_has_mutable_borrow(scope: LocalScope, name: String) -> bool {
         return false
     }
     contract_scope::VarBinding_has_mutable_borrow(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_binding_has_captures(scope: LocalScope, name: String) -> bool {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return false
+    }
+    contract_scope::VarBinding_has_captures(contract_scope::LocalScope_binding_at(scope, index))
+}
+
+fn scope_mark_has_captures(scope: LocalScope, name: String, has_caps: bool) {
+    let index = scope_binding_index(scope, name)
+    if index < 0 {
+        return
+    }
+    let binding = contract_scope::LocalScope_binding_at(scope, index)
+    contract_scope::VarBinding_set_has_captures(binding, has_caps)
+    set(scope.bindings, index, binding)
 }
 
 fn scope_mark_moved(scope: LocalScope, name: String, is_moved: bool) {
