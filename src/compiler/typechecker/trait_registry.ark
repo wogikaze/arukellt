@@ -125,10 +125,7 @@ fn register_trait_impl_entry(
             contract_trait_impl::TraitImplInfo_trait_name(existing),
             clone(trait_name)
         ) && (type_contains_var(existing_self) || type_contains_var(self_ty)) &&
-        names::same_type_name(
-            contract_type_access::TypeInfo_name(existing_self),
-            contract_type_access::TypeInfo_name(self_ty)
-        ) {
+        impl_self_head_matches(existing_self, self_ty) {
             let shown = if len(display_self_ty) > 0 {
                 clone(display_self_ty)
             } else {
@@ -517,6 +514,21 @@ fn type_contains_var(ty: TypeInfo) -> bool {
         i = i + 1
     }
     false
+}
+
+// Constructor-head comparison for the parametric-impl overlap check.
+// Builtin container types (TY_VEC, TY_HASHMAP, TY_OPTION, ...) carry no
+// TypeInfo name, so an empty-name equality would collapse every builtin
+// head onto the same key — a parametric HashMap<K,V> impl would then
+// "conflict" with unrelated Vec impls. When either side is nameless the
+// tag is the head; named types keep the usual name comparison (#691).
+fn impl_self_head_matches(a: TypeInfo, b: TypeInfo) -> bool {
+    let a_name = contract_type_access::TypeInfo_name(a)
+    let b_name = contract_type_access::TypeInfo_name(b)
+    if len(a_name) == 0 || len(b_name) == 0 {
+        return contract_type_access::TypeInfo_tag(a) == contract_type_access::TypeInfo_tag(b)
+    }
+    names::same_type_name(a_name, b_name)
 }
 
 // ADR-078: a var-carrying impl is a legal parametric impl when its self type

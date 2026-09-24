@@ -311,61 +311,19 @@ impl HashMap<K, V> {
     }
 }
 
-// For-in over a concrete map converts through these impls. Each one
-// snapshots the occupied keys into a Vec and reuses the matching Vec
-// iterator, so both backends share the same source-level meaning without a
-// map-specific iterator state type.
-impl IntoIterator for HashMap<i32, i32> {
-    type Item = i32
-    type IntoIter = VecIter<i32>
+// For-in over a map converts through this parametric impl. The body
+// snapshots the occupied keys into a Vec<K> through the generic
+// HashMap::keys() method (which monomorphizes to the per-family keys
+// adapter) and wraps it in the shared VecIter<K> producer, so both
+// backends share one source-level meaning without a map-specific
+// iterator state type (#691/#860).
+impl IntoIterator for HashMap<K, V> {
+    type Item = K
+    type IntoIter = VecIter<K>
 
-    fn into_iter(self: HashMap<i32, i32>) -> VecIter<i32> {
-        hashmap_i32_i32_keys(self).iter()
-    }
-}
-
-impl IntoIterator for HashMap<String, i32> {
-    type Item = String
-    type IntoIter = VecIter<String>
-
-    fn into_iter(self: HashMap<String, i32>) -> VecIter<String> {
-        hashmap_str_i32_keys(self).iter()
-    }
-}
-
-impl IntoIterator for HashMap<i32, String> {
-    type Item = i32
-    type IntoIter = VecIter<i32>
-
-    fn into_iter(self: HashMap<i32, String>) -> VecIter<i32> {
-        hashmap_i32_str_keys(self).iter()
-    }
-}
-
-impl IntoIterator for HashMap<String, String> {
-    type Item = String
-    type IntoIter = VecIter<String>
-
-    fn into_iter(self: HashMap<String, String>) -> VecIter<String> {
-        hashmap_str_str_keys(self).iter()
-    }
-}
-
-impl IntoIterator for HashMap<i32, fn(i32) -> i32> {
-    type Item = i32
-    type IntoIter = VecIter<i32>
-
-    fn into_iter(self: HashMap<i32, fn(i32) -> i32>) -> VecIter<i32> {
-        hashmap_i32_fn_keys(self).iter()
-    }
-}
-
-impl IntoIterator for HashMap<String, fn(i32) -> i32> {
-    type Item = String
-    type IntoIter = VecIter<String>
-
-    fn into_iter(self: HashMap<String, fn(i32) -> i32>) -> VecIter<String> {
-        hashmap_str_fn_keys(self).iter()
+    fn into_iter(self: HashMap<K, V>) -> VecIter<K> {
+        let ks: Vec<K> = self.keys()
+        VecIter { vec: ks, index: 0, length: len(ks) }
     }
 }
 

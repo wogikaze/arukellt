@@ -120,6 +120,13 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
         mono_subst_result_type_args(ctx, p, rest, mono_suffix, has_mono_map)
         return true
     }
+    // The signature-spine mvt override writes `hashmap:K:V` for
+    // `self: HashMap<K,V>` before mono names bind; resolve each segment
+    // through the same path as `?HashMap:K:V` (#691).
+    if starts_with(clone(ty_name), String_from("hashmap:")) {
+        mono_subst_hashmap_param(ctx, p, substring(clone(ty_name), 8, len(ty_name)))
+        return true
+    }
     if starts_with(clone(ty_name), String_from("?")) && contains(clone(ty_name), String_from(":")) {
         return mono_subst_named_generic_param(ctx, p, clone(ty_name), clone(mono_suffix), has_mono_map)
     }

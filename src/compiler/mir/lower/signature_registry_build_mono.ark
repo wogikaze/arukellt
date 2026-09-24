@@ -63,7 +63,8 @@ fn sig_reg_register_mono_fn(
         sig_source,
         fn_info_index,
         table,
-        clone(mangled)
+        clone(mangled),
+        mono_instances
     )
     let returns = Vec::new<MirValueType>()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)

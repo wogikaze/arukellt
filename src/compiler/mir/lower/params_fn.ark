@@ -8,6 +8,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
@@ -112,8 +113,17 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         if len(alias) > 0 && !type_info_to_mir_value::concrete_type_outranks_mvt_alias(clone(preserved_type_name), clone(alias)) {
             let mvt_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt)
             ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
-            ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))
-            ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, clone(alias))
+            // A var-carrying spelling (?HashMap:K:V, vec:K) must keep its
+            // local type name: the ordinal mono map collects the variables
+            // from it before mono substitution resolves the concrete alias
+            // (#691). ctx_set_func_param_type would also sync the local
+            // record, so only the signature record takes the alias.
+            if len(ctx_mono_type_params::ctx_type_var_names_from_local_type(clone(preserved_type_name))) == 0 {
+                ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))
+                ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, clone(alias))
+            } else {
+                ctx_api_function_frame::ctx_set_func_param_sig_type(ctx, param_local, mvt_vt, clone(alias))
+            }
         }
     }
     // Keep Option<fn> as option:fnref across MVT aliasing (#831).

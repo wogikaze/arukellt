@@ -122,31 +122,116 @@ fn strip_hashmap_method_suffix(name: String) -> String {
 }
 
 fn hashmap_family_for_type(type_name: String) -> String {
-    if eq(clone(type_name), String_from("hashmap:i32i32")) ||
-    eq(clone(type_name), String_from("HashMap_i32_i32")) {
+    let normalized = hashmap_pair_alias_for_type_name(type_name)
+    if eq(clone(normalized), String_from("hashmap:i32i32")) ||
+    eq(clone(normalized), String_from("HashMap_i32_i32")) {
         return String_from("hash_map::hashmap_i32_i32")
     }
-    if eq(clone(type_name), String_from("hashmap:si32")) ||
-    eq(clone(type_name), String_from("HashMap_String_i32")) {
+    if eq(clone(normalized), String_from("hashmap:si32")) ||
+    eq(clone(normalized), String_from("HashMap_String_i32")) {
         return String_from("hash_map::hashmap_str_i32")
     }
-    if eq(clone(type_name), String_from("hashmap:i32str")) ||
-    eq(clone(type_name), String_from("HashMap_i32_String")) {
+    if eq(clone(normalized), String_from("hashmap:i32str")) ||
+    eq(clone(normalized), String_from("HashMap_i32_String")) {
         return String_from("hash_map::hashmap_i32_str")
     }
-    if eq(clone(type_name), String_from("hashmap:strstr")) ||
-    eq(clone(type_name), String_from("HashMap_String_String")) {
+    if eq(clone(normalized), String_from("hashmap:strstr")) ||
+    eq(clone(normalized), String_from("HashMap_String_String")) {
         return String_from("hash_map::hashmap_str_str")
     }
-    if eq(clone(type_name), String_from("hashmap:i32fn")) ||
-    eq(clone(type_name), String_from("HashMap_i32_fn")) ||
-    eq(clone(type_name), String_from("HashMap_i32_fnref")) {
+    if eq(clone(normalized), String_from("hashmap:i32fn")) ||
+    eq(clone(normalized), String_from("HashMap_i32_fn")) ||
+    eq(clone(normalized), String_from("HashMap_i32_fnref")) {
         return String_from("hash_map::hashmap_i32_fn")
     }
-    if eq(clone(type_name), String_from("hashmap:strfn")) ||
-    eq(clone(type_name), String_from("HashMap_String_fn")) ||
-    eq(clone(type_name), String_from("HashMap_String_fnref")) {
+    if eq(clone(normalized), String_from("hashmap:strfn")) ||
+    eq(clone(normalized), String_from("HashMap_String_fn")) ||
+    eq(clone(normalized), String_from("HashMap_String_fnref")) {
         return String_from("hash_map::hashmap_str_fn")
+    }
+    String_new()
+}
+
+// HashMap<i32,i32>-style instantiation spellings reach this lookup from
+// monomorphized method bodies: self: HashMap<K,V> keeps the angle form
+// while free-function params normalize to hashmap:<pair>. Map the
+// supported pairs onto the same alias so method rewrites resolve (#691).
+fn hashmap_pair_alias_for_type_name(type_name: String) -> String {
+    if !starts_with(clone(type_name), String_from("HashMap<")) ||
+    !ends_with(clone(type_name), String_from(">")) {
+        return type_name
+    }
+    let inner = substring(clone(type_name), 8, len(type_name) - 1)
+    let comma = hashmap_angle_comma_index(clone(inner))
+    if comma < 0 {
+        return type_name
+    }
+    let key = hashmap_angle_key_tag(substring(clone(inner), 0, comma))
+    let val = hashmap_angle_val_tag(substring(clone(inner), comma + 1, len(inner)))
+    if len(key) == 0 || len(val) == 0 {
+        return type_name
+    }
+    concat(String_from("hashmap:"), concat(key, val))
+}
+
+// Index of the comma separating the two HashMap type arguments, skipping
+// commas nested inside <> or () (fn-signature arguments).
+fn hashmap_angle_comma_index(inner: String) -> i32 {
+    let mut depth = 0
+    let mut i = 0
+    let n = len(inner)
+    while i < n {
+        let ch = byte_at(clone(inner), i)
+        if ch == 60 || ch == 40 {
+            depth = depth + 1
+        }
+        if ch == 62 || ch == 41 {
+            depth = depth - 1
+        }
+        if ch == 44 && depth == 0 {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn hashmap_angle_seg_trim(seg: String) -> String {
+    let n = len(seg)
+    let mut i = 0
+    while i < n && byte_at(clone(seg), i) == 32 {
+        i = i + 1
+    }
+    substring(seg, i, n)
+}
+
+fn hashmap_angle_key_tag(seg: String) -> String {
+    let s = hashmap_angle_seg_trim(seg)
+    if eq(clone(s), String_from("i32")) {
+        return String_from("i32")
+    }
+    if eq(clone(s), String_from("String")) {
+        return String_from("s")
+    }
+    String_new()
+}
+
+fn hashmap_angle_val_tag(seg: String) -> String {
+    let s = hashmap_angle_seg_trim(seg)
+    if eq(clone(s), String_from("i32")) {
+        return String_from("i32")
+    }
+    if eq(clone(s), String_from("String")) {
+        return String_from("str")
+    }
+    // fn-valued maps share the fnref storage family; every fn spelling
+    // (fn, fn(...), fn<...>, fnref, fnsig:) resolves to the same pair tag.
+    if eq(clone(s), String_from("fn")) ||
+    starts_with(clone(s), String_from("fn(")) ||
+    starts_with(clone(s), String_from("fn<")) ||
+    starts_with(clone(s), String_from("fnref")) ||
+    starts_with(clone(s), String_from("fnsig:")) {
+        return String_from("fn")
     }
     String_new()
 }

@@ -1,5 +1,6 @@
 use typechecker::ast_access
 use typechecker::associated_types
+use typechecker::call_method
 use typechecker::contract_trait_impl
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
@@ -141,10 +142,13 @@ fn record_for_method_mono(
     if len(contract_trait_impl::TraitImplInfo_trait_name(impl_info)) == 0 {
         return unknown
     }
-    let owner_name = names::unqualified_type_name(
+    let mut owner_name = names::unqualified_type_name(
         contract_type_access::TypeInfo_name(owner_ty)
     )
-    let fn_name = concat(clone(owner_name), concat("::", method))
+    if len(owner_name) == 0 {
+        owner_name = for_desugar_builtin_owner_name(owner_ty)
+    }
+    let fn_name = concat(clone(owner_name), concat("::", clone(method)))
     let sig = sigs::lookup_fn_sig(env, fn_sigs, clone(fn_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         return unknown
@@ -189,7 +193,21 @@ fn record_for_method_mono(
         clone(raw_ret)
     )
     mono::record_mono_return_type(env, clone(mangled), return_ty)
-    mono::record_mono_call_site(env, span, fn_name, mangled)
+    mono::record_mono_call_site(env, span, fn_name, clone(mangled))
+    // MIR resolves desugared calls under the per-instantiation owner
+    // (HashMap_i32_i32::into_iter), not the bare impl owner. Record the
+    // same span rewrite under that spelling so for-lowering finds the
+    // emitted mono variant directly, including fn-valued pairs whose
+    // arg-segment spellings differ (fnref vs fn_i32_i32_) (#691).
+    let inst_owner = call_method::type_name_for_mangling(owner_ty)
+    if len(inst_owner) > 0 && !eq(clone(inst_owner), clone(owner_name)) {
+        mono::record_mono_call_site(
+            env,
+            span,
+            concat(clone(inst_owner), concat(String_from("::"), clone(method))),
+            clone(mangled)
+        )
+    }
     return_ty
 }
 
@@ -203,6 +221,17 @@ fn lookup_bound_type_var(names: Vec<String>, types: Vec<TypeInfo>, name: String)
         i = i + 1
     }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+// Builtin container self types carry no TypeInfo name, so the impl-owner
+// key for a desugared for-call comes from the tag: a HashMap<K, V> source
+// registers its parametric IntoIterator methods under the bare HashMap
+// owner, matching the impl-head registration rule (#691).
+fn for_desugar_builtin_owner_name(ty: TypeInfo) -> String {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_HASHMAP() {
+        return String_from("HashMap")
+    }
+    String_new()
 }
 
 // A generic `for` source must declare the conversion or iterator protocol

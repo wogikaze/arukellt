@@ -15,6 +15,8 @@ use mir::lower::fn_index_source
 use mir::lower::mono_instance_build
 use mir::lower::mono_suffix_parse
 use mir::lower::return_typeinfo
+use mir::lower::return_typeinfo_names
+use mir::lower_kinds
 use mir::value_types
 use corehir::type_contracts
 
@@ -69,7 +71,8 @@ fn sig_reg_register_method(
     mangled: String,
     impl_decl_index: i32
 ) {
-    let params = sig_reg_params_from_method_info(sig_source, method_info_index, table)
+    let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
+    let params = sig_reg_params_from_method_info(sig_source, method_info_index, table, clone(mangled), mono_instances)
     let returns = Vec::new<MirValueType>()
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, "")
     let mut return_vt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1)
@@ -78,7 +81,6 @@ fn sig_reg_register_method(
     // the substituted return so call sites see String, not the T template.
     // Plain method registrations carry no mono suffix and keep the declared
     // return untouched.
-    let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let generic_return_ty = fn_index_method_return_type::method_return_type_info_from_name(clone(mrvt_name))
     let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(mono_instances, clone(mangled), generic_return_ty)
     if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
@@ -119,14 +121,15 @@ fn sig_reg_register_method(
 }
 
 fn sig_reg_params_from_fn_info(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
-    sig_reg_params_from_fn_info_mono(sig_source, fn_info_index, table, String_new())
+    sig_reg_params_from_fn_info_mono(sig_source, fn_info_index, table, String_new(), Vec::new<MonoInstance>())
 }
 
 fn sig_reg_params_from_fn_info_mono(
     sig_source: CoreHirMirSignatureSource,
     fn_info_index: i32,
     table: TypeTable,
-    mangled: String
+    mangled: String,
+    mono_instances: Vec<MonoInstance>
 ) -> Vec<MirValueType> {
     let result = Vec::new<MirValueType>()
     if fn_info_index < 0 {
@@ -143,6 +146,10 @@ fn sig_reg_params_from_fn_info_mono(
         }
         if len(mangled) > 0 {
             type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled))
+        }
+        if starts_with(clone(type_name), String_from("hashmap:")) ||
+        starts_with(clone(type_name), String_from("?HashMap:")) {
+            type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
         }
         let mut vt = param::param_value_type(p)
         if starts_with(clone(type_name), "vec:") ||
@@ -214,7 +221,13 @@ fn sig_reg_params_from_fn_info_mono(
         get_unchecked(keys, 0)
     }
 
-    fn sig_reg_params_from_method_info(sig_source: CoreHirMirSignatureSource, method_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
+    fn sig_reg_params_from_method_info(
+        sig_source: CoreHirMirSignatureSource,
+        method_info_index: i32,
+        table: TypeTable,
+        mangled: String,
+        mono_instances: Vec<MonoInstance>
+    ) -> Vec<MirValueType> {
         let result = Vec::new<MirValueType>()
         if method_info_index < 0 {
             return result
@@ -223,8 +236,86 @@ fn sig_reg_params_from_fn_info_mono(
         let mut pi = 0
         while pi < pc {
             let p = mir_signature_method::mir_signature_method_param_at(sig_source, method_info_index, pi)
-            push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), param::param_type_name(p)))
+            let mut type_name = param::param_type_name(p)
+            if starts_with(clone(type_name), String_from("hashmap:")) {
+                type_name = sig_reg_mono_hashmap_param_alias(type_name, clone(mangled), mono_instances)
+            }
+            push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), type_name))
             pi = pi + 1
         }
         result
+    }
+
+    // `hashmap:K:V` param spellings reach the registry unresolved: the
+    // declared HashMap<K,V> annotation aliases to `K:V` before mono names
+    // bind, and the pair lookup would silently take the si32 default layout.
+    // Resolve each segment through the MonoInstance type args (which keep fn
+    // signatures the mangled suffix cannot) and rebuild the canonical
+    // hashmap:<pair> alias (#691).
+    fn sig_reg_mono_hashmap_param_alias(type_name: String, mangled: String, mono_instances: Vec<MonoInstance>) -> String {
+        let args = if starts_with(clone(type_name), String_from("?HashMap:")) {
+            substring(clone(type_name), 9, len(type_name))
+        } else {
+            substring(clone(type_name), 8, len(type_name))
+        }
+        let colon = index_of(clone(args), String_from(":"))
+        if colon < 0 {
+            return type_name
+        }
+        let key_seg = substring(clone(args), 0, colon)
+        let val_seg = substring(clone(args), colon + 1, len(args))
+        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(key_seg)) &&
+        !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(val_seg)) {
+            return type_name
+        }
+        let inst = mono_instance_build::mono_find_instance(mono_instances, clone(mangled))
+        if type_contracts::MonoInstance_type_arg_count(inst) < 2 {
+            return type_name
+        }
+        let key_ty = sig_reg_hashmap_seg_type_info(key_seg, inst, 0)
+        let val_ty = sig_reg_hashmap_seg_type_info(val_seg, inst, 1)
+        if type_contracts::TypeInfo_tag(key_ty) == lower_kinds::TY_TYPE_VAR() ||
+        type_contracts::TypeInfo_tag(val_ty) == lower_kinds::TY_TYPE_VAR() {
+            return type_name
+        }
+        let map_ty = type_contracts::TypeInfo_simple(lower_kinds::TY_HASHMAP())
+        type_contracts::TypeInfo_push_type_arg(map_ty, key_ty)
+        type_contracts::TypeInfo_push_type_arg(map_ty, val_ty)
+        let alias = return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(map_ty)
+        if len(alias) == 0 {
+            return type_name
+        }
+        alias
+    }
+
+    // TypeInfo for one hashmap:<k>:<v> segment. A substitutable variable
+    // resolves to the MonoInstance argument at its segment ordinal — the
+    // `HashMap<K,V>` annotation lists impl parameters in declaration order,
+    // so segment position and argument position agree (#691).
+    fn sig_reg_hashmap_seg_type_info(seg: String, inst: MonoInstance, ordinal: i32) -> TypeInfo {
+        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(seg)) {
+            if ordinal >= 0 && ordinal < type_contracts::MonoInstance_type_arg_count(inst) {
+                return type_contracts::MonoInstance_type_arg_at(inst, ordinal)
+            }
+            return type_contracts::TypeInfo_simple(lower_kinds::TY_TYPE_VAR())
+        }
+        sig_reg_hashmap_concrete_seg_type_info(seg)
+    }
+
+    fn sig_reg_hashmap_concrete_seg_type_info(seg: String) -> TypeInfo {
+        if eq(clone(seg), String_from("i32")) {
+            return type_contracts::TypeInfo_simple(lower_kinds::TY_I32())
+        }
+        if eq(clone(seg), String_from("String")) || eq(clone(seg), String_from("string")) {
+            return type_contracts::TypeInfo_simple(lower_kinds::TY_STRING())
+        }
+        if eq(clone(seg), String_from("fn")) ||
+        eq(clone(seg), String_from("fnref")) ||
+        starts_with(clone(seg), String_from("fn(")) ||
+        starts_with(clone(seg), String_from("fn<")) ||
+        starts_with(clone(seg), String_from("fnsig:")) ||
+        starts_with(clone(seg), String_from("fn_")) {
+            return type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), String_from("fnref"), Vec::new<TypeInfo>())
+        }
+        type_contracts::TypeInfo_simple(lower_kinds::TY_TYPE_VAR())
     }
