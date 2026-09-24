@@ -190,6 +190,16 @@ pub fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
     hash_string::hashmap_str_str_keys(m)
 }
 
+/// Return a Vec<i32> of all keys currently in a HashMap<i32, fn>.
+pub fn hashmap_i32_fn_keys(m: HashMap<i32, fn(i32) -> i32>) -> Vec<i32> {
+    hash_fn::hashmap_i32_fn_keys(m)
+}
+
+/// Return a Vec<String> of all keys currently in a HashMap<String, fn>.
+pub fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
+    hash_str_fn::hashmap_str_fn_keys(m)
+}
+
 /// Create a new HashMap<i32, fn(i32) -> i32>.
 pub fn hashmap_i32_fn_new() -> HashMap<i32, fn(i32) -> i32> {
     hash_fn::hashmap_i32_fn_new()
@@ -338,6 +348,24 @@ impl IntoIterator for HashMap<String, String> {
 
     fn into_iter(self: HashMap<String, String>) -> StringIter {
         hashmap_str_str_keys(self).iter()
+    }
+}
+
+impl IntoIterator for HashMap<i32, fn(i32) -> i32> {
+    type Item = i32
+    type IntoIter = VecIter
+
+    fn into_iter(self: HashMap<i32, fn(i32) -> i32>) -> VecIter {
+        hashmap_i32_fn_keys(self).iter()
+    }
+}
+
+impl IntoIterator for HashMap<String, fn(i32) -> i32> {
+    type Item = String
+    type IntoIter = StringIter
+
+    fn into_iter(self: HashMap<String, fn(i32) -> i32>) -> StringIter {
+        hashmap_str_fn_keys(self).iter()
     }
 }
 

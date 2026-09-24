@@ -147,6 +147,20 @@ fn type_ann_is_named(node: AstNode) -> bool {
     frontend_type_kind::corehir_kind_is_type_named(frontend_ast_identity::corehir_node_kind(node))
 }
 
+// True when the annotation is exactly `fn(i32) -> i32` — the only callback
+// shape the HashMap storage adapters support (#691).
+fn type_ann_is_i32_i32_fn(node: AstNode) -> bool {
+    if !frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(node)) {
+        return false
+    }
+    if type_ann_child_count(node) != 1 || type_ann_return_count(node) != 1 {
+        return false
+    }
+    let param_name = type_ann_name(type_ann_child_at(node, 0))
+    let result_name = type_ann_name(type_ann_return_at(node, 0))
+    eq(param_name, String_from("i32")) && eq(result_name, String_from("i32"))
+}
+
 fn type_ann_is_generic(node: AstNode) -> bool {
     frontend_type_kind::corehir_kind_is_type_generic(frontend_ast_identity::corehir_node_kind(node))
 }

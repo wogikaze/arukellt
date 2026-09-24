@@ -140,12 +140,8 @@ fn mir_hashmap_constructor_name(callee: AstNode) -> String {
     }
     let key_node = ast_node::node_child_at(callee, 1)
     let value_node = ast_node::node_child_at(callee, 2)
-    if !type_ann_node::type_ann_is_named(key_node) ||
-    !type_ann_node::type_ann_is_named(value_node) {
-        return "HashMap::new"
-    }
-    let key_name = type_ann_node::type_ann_name(key_node)
-    let value_name = type_ann_node::type_ann_name(value_node)
+    let key_name = mir_hashmap_ctor_type_arg_name(key_node)
+    let value_name = mir_hashmap_ctor_type_arg_name(value_node)
     if len(key_name) == 0 || len(value_name) == 0 ||
     contains(clone(key_name), "::") || contains(clone(value_name), "::") {
         return "HashMap::new"
@@ -154,6 +150,19 @@ fn mir_hashmap_constructor_name(callee: AstNode) -> String {
         "HashMap__new__",
         concat(key_name, concat("__", value_name))
     )
+}
+
+// Type-argument spelling for `HashMap::new<K, V>` callees. fn(i32) -> i32
+// is not a named annotation; spell it the way mono_type_key does so the
+// constructor rewrite sees the same name the mono instance carries (#691).
+fn mir_hashmap_ctor_type_arg_name(node: AstNode) -> String {
+    if type_ann_node::type_ann_is_named(node) {
+        return type_ann_node::type_ann_name(node)
+    }
+    if type_ann_node::type_ann_is_i32_i32_fn(node) {
+        return String_from("fn_i32_i32_")
+    }
+    String_new()
 }
 
 fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg: AstNode, arg_idx: i32) -> i32 {

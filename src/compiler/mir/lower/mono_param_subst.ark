@@ -4,15 +4,19 @@
 
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_module
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
 use mir::lower::mono_suffix_parse
+use mir::lower::return_typeinfo_names
+use mir::lower_kinds
 use mir::function_identity
 use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
+use mir::type_contracts
 use mir::value_types
 
 fn mir_substitute_mono_param_types(ctx: LowerCtx) {
@@ -189,6 +193,10 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
     }
     let base = substring(clone(ty_name), 1, first_colon)
     let first_arg = substring(clone(ty_name), first_colon + 1, len(ty_name))
+    if eq(clone(base), String_from("HashMap")) {
+        mono_subst_hashmap_param(ctx, p, clone(first_arg))
+        return true
+    }
     let type_var = first_generic_type_arg(clone(first_arg))
     if len(type_var) == 0 {
         return false
@@ -214,6 +222,76 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
     let canonical = if len(ref_type) > 0 { ref_type } else { concat(String_from("enum:"), base) }
     mono_set_param_gc_type(ctx, p, canonical)
     true
+}
+
+// ?HashMap:K:V params keep the builtin hashmap:<pair> local-type
+// spelling so GC layout and method rewrites see the same name concrete
+// map locals carry. The generic-struct derive path only knows user
+// structs, so builtin pairs resolve here instead (#691).
+fn mono_subst_hashmap_param(ctx: LowerCtx, p: i32, args: String) {
+    let colon = find_type_name_colon(clone(args), 0)
+    if colon < 0 {
+        return
+    }
+    let key_var = substring(clone(args), 0, colon)
+    let val_var = substring(clone(args), colon + 1, len(args))
+    let key_ty = mono_hashmap_arg_type_info(ctx, key_var)
+    let val_ty = mono_hashmap_arg_type_info(ctx, val_var)
+    // An unresolved variable must keep the ? marker (loud unreachable)
+    // rather than silently taking the si32 default of the pair lookup.
+    if type_contracts::TypeInfo_tag(key_ty) == lower_kinds::TY_TYPE_VAR() ||
+    type_contracts::TypeInfo_tag(val_ty) == lower_kinds::TY_TYPE_VAR() {
+        return
+    }
+    let map_ty = type_contracts::TypeInfo_simple(lower_kinds::TY_HASHMAP())
+    type_contracts::TypeInfo_push_type_arg(map_ty, key_ty)
+    type_contracts::TypeInfo_push_type_arg(map_ty, val_ty)
+    let alias = return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(map_ty)
+    if len(alias) > 0 {
+        mono_set_param_gc_type(ctx, p, alias)
+    }
+}
+
+// TypeInfo for one ?HashMap arg segment. Type variables resolve to the
+// enclosing mono instance's recorded type argument by name position; the
+// string mono map cannot carry fn signatures, so the TypeInfo record is
+// the only source that keeps fn(i32) -> i32 (#691).
+fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
+    if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(arg)) {
+        return mono_hashmap_concrete_type_info(arg)
+    }
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let inst = ctx_api_module::ctx_mono_instance_at(ctx, function_identity::MirFunction_name(func))
+    let inst_args = type_contracts::MonoInstance_type_arg_count(inst)
+    let count = len(ctx.mono_type_param_names)
+    let mut i = 0
+    while i < count && i < inst_args {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(arg)) {
+            return type_contracts::MonoInstance_type_arg_at(inst, i)
+        }
+        i = i + 1
+    }
+    type_contracts::TypeInfo_simple(lower_kinds::TY_TYPE_VAR())
+}
+
+// TypeInfo for an already-concrete ?HashMap arg spelling. Only the
+// scalar/fn shapes the storage adapters support need real tags; anything
+// else stays an unknown marker so the pair lookup falls back.
+fn mono_hashmap_concrete_type_info(arg: String) -> TypeInfo {
+    if eq(clone(arg), String_from("i32")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_I32())
+    }
+    if eq(clone(arg), String_from("String")) || eq(clone(arg), String_from("string")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_STRING())
+    }
+    if eq(clone(arg), String_from("fn")) || eq(clone(arg), String_from("fnref")) ||
+    starts_with(clone(arg), String_from("fn(")) ||
+    starts_with(clone(arg), String_from("fn<")) ||
+    starts_with(clone(arg), String_from("fnsig:")) ||
+    starts_with(clone(arg), String_from("fn_")) {
+        return type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), String_from("fnref"), Vec::new<TypeInfo>())
+    }
+    type_contracts::TypeInfo_simple(lower_kinds::TY_TYPE_VAR())
 }
 
 fn find_type_name_colon(name: String, start: i32) -> i32 {

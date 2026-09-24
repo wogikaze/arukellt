@@ -338,6 +338,9 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
     if tag == commands::TY_STRING() {
         return String_from("String")
     }
+    if tag == commands::TY_FN() {
+        return String_from("fnref")
+    }
     if tag == commands::TY_VEC() {
         if contract_type_access::TypeInfo_type_arg_count(ty) > 0 {
             let elem_ty = contract_type_access::TypeInfo_type_arg_at(ty, 0)
@@ -352,7 +355,8 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
         // example HashMap_String_i32::into_iter). Inherent methods stay on
         // the generic HashMap<K, V> shell, so the lookup site retries the
         // bare HashMap owner when the pair symbol is absent. Type variables
-        // and fn-valued pairs keep the bare HashMap owner.
+        // keep the bare HashMap owner; fn-valued pairs use the shared fnref
+        // owner key (HashMap_i32_fnref, #691).
         if contract_type_access::TypeInfo_type_arg_count(ty) >= 2 {
             let key_name = type_name_for_mangling(
                 contract_type_access::TypeInfo_type_arg_at(ty, 0)

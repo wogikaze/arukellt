@@ -230,16 +230,27 @@ fn mir_hashmap_decl_owner_name(inner: String) -> String {
     }
     let key_seg = substring(clone(inner), 0, comma)
     let val_seg = substring(clone(inner), comma + 1, m)
-    if !mir_inst_seg_is_named(key_seg) || !mir_inst_seg_is_named(val_seg) {
+    if !mir_inst_seg_is_named(clone(key_seg)) {
         return String_from("HashMap")
     }
-    concat(
-        String_from("HashMap_"),
-        concat(
-            mir_inst_named_seg_key(key_seg),
-            concat(String_from("_"), mir_inst_named_seg_key(val_seg))
+    if mir_inst_seg_is_named(clone(val_seg)) {
+        return concat(
+            String_from("HashMap_"),
+            concat(
+                mir_inst_named_seg_key(key_seg),
+                concat(String_from("_"), mir_inst_named_seg_key(val_seg))
+            )
         )
-    )
+    }
+    // Function-valued pairs keep the shared fnref owner key that impl
+    // registration and inst_arg_key use (HashMap_i32_fnref, #691).
+    if mir_inst_seg_is_fn(clone(val_seg)) {
+        return concat(
+            String_from("HashMap_"),
+            concat(mir_inst_named_seg_key(key_seg), String_from("_fnref"))
+        )
+    }
+    String_from("HashMap")
 }
 
 // A plain named type segment (no <>, no local-type classifier, not a type
@@ -260,6 +271,24 @@ fn mir_inst_seg_is_named(seg: String) -> bool {
         i = i + 1
     }
     true
+}
+
+// A fn-typed generic argument segment (fn, fn(...), fn<...>, fnref,
+// fnsig:). Leading whitespace from source spellings is skipped so
+// "HashMap<i32, fn(i32) -> i32>" resolves the same owner as the compact
+// forms (#691).
+fn mir_inst_seg_is_fn(seg: String) -> bool {
+    let n = len(seg)
+    let mut i = 0
+    while i < n && byte_at(clone(seg), i) == 32 {
+        i = i + 1
+    }
+    let s = substring(clone(seg), i, n)
+    eq(clone(s), String_from("fn")) ||
+    starts_with(clone(s), String_from("fn(")) ||
+    starts_with(clone(s), String_from("fn<")) ||
+    starts_with(clone(s), String_from("fnref")) ||
+    starts_with(clone(s), String_from("fnsig:"))
 }
 
 fn mir_inst_named_seg_key(seg: String) -> String {
@@ -370,8 +399,9 @@ fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
 // Concrete HashMap<K, V> locals carry the hashmap:<pair> or HashMap_K_V
 // spelling. Map each supported pair to the impl owner that registers its
 // trait impl methods (for example HashMap_String_i32::into_iter).
-// Function-valued maps stay unmapped so the typecheck boundary keeps
-// reporting them as unsupported.
+// Function-valued pairs map to the shared fnref owners
+// (HashMap_i32_fnref::into_iter etc.) that impl registration produces
+// for HashMap<K, fn> impl targets (#691).
 fn mir_hashmap_impl_owner_name(type_name: String) -> String {
     if eq(clone(type_name), "hashmap:i32i32") || eq(clone(type_name), "HashMap_i32_i32") {
         return String_from("HashMap_i32_i32")
@@ -384,6 +414,12 @@ fn mir_hashmap_impl_owner_name(type_name: String) -> String {
     }
     if eq(clone(type_name), "hashmap:strstr") || eq(clone(type_name), "HashMap_String_String") {
         return String_from("HashMap_String_String")
+    }
+    if eq(clone(type_name), "hashmap:i32fn") || eq(clone(type_name), "HashMap_i32_fnref") {
+        return String_from("HashMap_i32_fnref")
+    }
+    if eq(clone(type_name), "hashmap:strfn") || eq(clone(type_name), "HashMap_String_fnref") {
+        return String_from("HashMap_String_fnref")
     }
     String_from("")
 }

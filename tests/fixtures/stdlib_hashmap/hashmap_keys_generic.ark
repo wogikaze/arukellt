@@ -1,0 +1,59 @@
+// Issue #691: HashMap::keys() and for-in over every supported pair.
+//
+// `keys()` is a source-level generic method that monomorphizes to the
+// per-combo `hashmap_<family>_keys` adapter, including inside generic
+// bodies with deferred K/V type variables. `for k in map` iterates the
+// key snapshot through IntoIterator.
+use std::host::stdio
+
+fn double(n: i32) -> i32 {
+    n * 2
+}
+
+fn key_count<K, V>(m: HashMap<K, V>) -> i32 {
+    len(m.keys())
+}
+
+fn main() {
+    let ii = HashMap::new<i32, i32>()
+    let _ = ii.insert(1, 10)
+    let _ = ii.insert(2, 20)
+    let ii_keys = ii.keys()
+    assert(len(ii_keys) == 2)
+
+    let si = HashMap::new<String, i32>()
+    let _ = si.insert(String_from("a"), 1)
+    let si_keys = si.keys()
+    assert(len(si_keys) == 1)
+    assert(eq(get_unchecked(si_keys, 0), String_from("a")))
+
+    let i_fn = HashMap::new<i32, fn(i32) -> i32>()
+    let _ = i_fn.insert(7, double)
+    let i_fn_keys = i_fn.keys()
+    assert(len(i_fn_keys) == 1)
+    assert(get_unchecked(i_fn_keys, 0) == 7)
+
+    let s_fn = HashMap::new<String, fn(i32) -> i32>()
+    let _ = s_fn.insert(String_from("k"), double)
+    let s_fn_keys = s_fn.keys()
+    assert(len(s_fn_keys) == 1)
+
+    // Deferred K/V inside a generic body resolves to the same per-combo
+    // adapters at monomorphization.
+    assert(key_count(i_fn) == 1)
+    assert(key_count(s_fn) == 1)
+    assert(key_count(ii) == 2)
+
+    // for-in over fn-valued maps iterates the key snapshot.
+    let mut total = 0
+    for k in i_fn {
+        total = total + k
+    }
+    assert(total == 7)
+    let mut seen = 0
+    for k in s_fn {
+        seen = seen + len(k)
+    }
+    assert(seen == 1)
+    stdio::println("OK")
+}

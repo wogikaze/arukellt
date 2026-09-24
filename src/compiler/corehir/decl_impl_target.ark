@@ -35,15 +35,12 @@ fn impl_target_type_name(target: AstNode) -> String {
     type_ann_node::type_ann_child_count(target) > 2 {
         let key_node = type_ann_node::type_ann_child_at(target, 1)
         let value_node = type_ann_node::type_ann_child_at(target, 2)
-        let key_name = type_ann_node::type_ann_name(key_node)
-        let value_name = type_ann_node::type_ann_name(value_node)
-        if type_ann_node::type_ann_is_named(key_node) &&
-        type_ann_node::type_ann_is_named(value_node) &&
-        !impl_type_param_name(clone(key_name)) &&
-        !impl_type_param_name(clone(value_name)) {
+        let key_key = impl_inst_arg_key(key_node)
+        let value_key = impl_inst_arg_key(value_node)
+        if len(key_key) > 0 && len(value_key) > 0 {
             return concat(
                 String_from("HashMap_"),
-                concat(clone(key_name), concat(String_from("_"), clone(value_name)))
+                concat(clone(key_key), concat(String_from("_"), clone(value_key)))
             )
         }
     }

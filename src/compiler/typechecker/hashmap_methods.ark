@@ -64,7 +64,7 @@ fn infer_builtin_hashmap_method(
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 2, value_ty)
     }
     if !hashmap_api::validate_hashmap_method(env, concat(String_from("HashMap::"), method_name), recv_ty) {
-        return hashmap_method_return_type(clone(method_name), value_ty)
+        return hashmap_method_return_type(clone(method_name), key_ty, value_ty)
     }
     let resolved_types = Vec::new<TypeInfo>()
     push(resolved_types, key_ty)
@@ -72,7 +72,7 @@ fn infer_builtin_hashmap_method(
     let mono_name = concat(String_from("HashMap::"), method_name)
     let mangled_name = mono::record_mono_instance(env, clone(mono_name), resolved_types)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_name, mangled_name)
-    hashmap_method_return_type(method_name, value_ty)
+    hashmap_method_return_type(method_name, key_ty, value_ty)
 }
 
 fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
@@ -85,7 +85,8 @@ fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
 fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
     if explicit_args == 0 {
         return eq(clone(method_name), String_from("len")) ||
-        eq(clone(method_name), String_from("is_empty"))
+        eq(clone(method_name), String_from("is_empty")) ||
+        eq(clone(method_name), String_from("keys"))
     }
     if explicit_args == 1 {
         eq(clone(method_name), String_from("get")) ||
@@ -112,7 +113,12 @@ fn unify_hashmap_method_arg(
     unify::unify(env, expected_ty, arg_ty)
 }
 
-fn hashmap_method_return_type(method_name: String, value_ty: TypeInfo) -> TypeInfo {
+fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    if eq(clone(method_name), String_from("keys")) {
+        let mut keys_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(keys_vec, key_ty)
+        return keys_vec
+    }
     if eq(clone(method_name), String_from("contains_key")) ||
     eq(clone(method_name), String_from("len")) {
         if eq(clone(method_name), String_from("len")) {

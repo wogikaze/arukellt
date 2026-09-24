@@ -877,6 +877,7 @@ run:stdlib_hashmap/hashmap_hardening.ark
 run:stdlib_hashmap/hashmap_i32_string.ark
 run:stdlib_hashmap/hashmap_insert.ark
 run:stdlib_hashmap/hashmap_insert_return.ark
+run:stdlib_hashmap/hashmap_keys_generic.ark
 run:stdlib_hashmap/hashmap_parity_edges.ark
 run:stdlib_hashmap/hashmap_remove.ark
 run:stdlib_hashmap/hashmap_size_direct.ark
@@ -2206,6 +2207,7 @@ t3-compile:stdlib_hashmap/hashmap_generic_demo.ark
 t3-compile:stdlib_hashmap/hashmap_i32_string.ark
 t3-compile:stdlib_hashmap/hashmap_insert.ark
 t3-compile:stdlib_hashmap/hashmap_insert_return.ark
+t3-compile:stdlib_hashmap/hashmap_keys_generic.ark
 t3-compile:stdlib_hashmap/hashmap_parity_edges.ark
 t3-compile:stdlib_hashmap/hashmap_remove.ark
 t3-compile:stdlib_hashmap/hashmap_size_direct.ark
@@ -2669,6 +2671,7 @@ t3-run:stdlib_hashmap/hashmap_methods_generic.ark
 t3-run:stdlib_hashmap/hashmap_i32_string.ark
 t3-run:stdlib_hashmap/hashmap_insert.ark
 t3-run:stdlib_hashmap/hashmap_insert_return.ark
+t3-run:stdlib_hashmap/hashmap_keys_generic.ark
 t3-run:stdlib_hashmap/hashmap_parity_edges.ark
 t3-run:stdlib_hashmap/hashmap_remove.ark
 t3-run:stdlib_hashmap/hashmap_size_direct.ark

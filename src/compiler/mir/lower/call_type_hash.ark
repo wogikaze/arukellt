@@ -194,6 +194,15 @@ fn is_hash_vec_i32_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_keys") {
         return true
     }
+    if callee_eq(clone(callee_name), "hashmap_i32_fn_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_keys") {
+        return true
+    }
     if callee_eq(clone(callee_name), "hashmap_values") {
         return true
     }
@@ -271,6 +280,15 @@ fn is_hash_vec_string_result(callee_name: String) -> bool {
         return true
     }
     if callee_eq(clone(callee_name), "hash_map::hashmap_str_str_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hashmap_str_fn_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_keys") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_keys") {
         return true
     }
     if callee_eq(clone(callee_name), "HashMap_String_i32_keys") {
