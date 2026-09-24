@@ -174,9 +174,12 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
 - Arbitrary item-generic adapters: the `MapIter<T, U>` / `FilterIter<T>` /
   `MapFilterIter<T, U>` / `FilterMapIter<T>` / `TakeIter<I>` family is
   item-generic and shared by the i32 and String lanes, but
-  `FilterIter<T>::map` stays `T -> T` (no method-level generics) and the
-  `StringSkip*` adapters remain concrete until skip compositions can spell
-  `fn(I::Item) -> U`. Owner: #860 compiler generics boundary.
+  `FilterIter<T>::map` stays `T -> T` (no method-level generics). The skip
+  compositions now share the item-generic `SkipIter<I>` / `SkipMapIter<I>` /
+  `SkipFilterIter<I>` adapters whose callbacks spell `fn(I::Item) -> I::Item`;
+  the former concrete `StringSkip*` types are removed. A map callback that
+  changes the item type (`fn(I::Item) -> U`) still needs method-level
+  generics. Owner: #860 compiler generics boundary.
 - HashMap iterator coverage: generic `HashMap<K,V>` has no keys/entries
   enumeration intrinsic on either backend, so `for x in hashmap_iter` is
   not yet expressible. Owner: #691 (new intrinsic work on GC and linear
@@ -218,7 +221,7 @@ The first non-numeric item lane is `Vec<String> -> StringIter`. The
 `iter().take(1).collect()` pipeline. `iter()` and `into_iter()` both enter the
 same `StringIter` producer boundary, while `take` preserves the item through
 `TakeIter<StringIter>`. The `skip(n).take(m)` composition uses
-`TakeIter<StringSkipIter>`
+`TakeIter<SkipIter<StringIter>>`
 and applies skip state before the bounded pull. GC component and linear-memory
 Wasm compilation, validation, and runtime assertions pass with the same source
 behavior. The lowering selects a typed `Option::Some` payload layout for the

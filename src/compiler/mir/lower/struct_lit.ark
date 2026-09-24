@@ -258,6 +258,12 @@ fn struct_lit_split_colon_top(name: String) -> Vec<String> {
         if !at_end && (ch == 62 || ch == 41) {
             depth = depth - 1
         }
+        // `Owner::Assoc` projections stay one segment: the double colon is
+        // a name qualifier, not a type-spelling separator (#860/#691).
+        if !at_end && ch == 58 && i + 1 < n && byte_at(clone(name), i + 1) == 58 {
+            i = i + 2
+            continue
+        }
         if (at_end || ch == 58 || ch == 59) && depth == 0 {
             push(result, substring(clone(name), seg_start, i))
             seg_start = i + 1
@@ -351,7 +357,12 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, args: 
                     return false
                 }
             } else if !eq(clone(f_seg), clone(v_seg)) {
-                if struct_lit_type_is_composite(clone(f_seg)) {
+                // `X::Assoc` declared leaf: a projection binds no
+                // parameter here; the derived layout resolves it through
+                // the owner's impl (#860/#691).
+                if contains(clone(f_seg), String_from("::")) {
+                    // compatible — keep checking the remaining segments
+                } else if struct_lit_type_is_composite(clone(f_seg)) {
                     if !struct_lit_unify_segments(clone(f_seg), clone(v_seg), params, args, bound) {
                         return false
                     }
@@ -383,6 +394,11 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, args: 
             }
             k = k + 1
         }
+        return true
+    }
+    // A bare `X::Assoc` declared type binds no parameter; the derived
+    // layout resolves it through the owner's impl (#860/#691).
+    if contains(clone(f), String_from("::")) {
         return true
     }
     !struct_lit_field_type_mentions_params(f, params)

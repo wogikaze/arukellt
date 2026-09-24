@@ -3,6 +3,7 @@ use corehir::kinds
 use corehir::type_id
 use corehir::type_table
 use mir::lower::ctx_struct_storage
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
@@ -168,6 +169,16 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
     if len(scalar) > 0 {
         return concat(prefix, scalar)
+    }
+    // `Owner::Item` projections (fnsig:VecIter::Item;...,
+    // option:SkipIter<StringIter>::Item) resolve through the owner's
+    // Iterator::next signature before the enum/container fallthroughs
+    // (#860/#691).
+    if contains(clone(type_name), String_from("::")) {
+        let resolved = ctx_mono_type_params::ctx_resolve_field_type_projections(ctx, clone(type_name))
+        if !eq(clone(resolved), clone(type_name)) {
+            return gc_struct_field_sig_for_type(ctx, resolved, field_idx)
+        }
     }
     // Enum-typed fields must use the GC enum open type (gcref14), not the
     // all-i32 generic struct slot derived from byte size (#726 TomlValStep).

@@ -178,7 +178,14 @@ fn resolve_fnsig_segment(ctx: LowerCtx, seg: String, mono_suffix: String, has_mo
         return seg
     }
     if contains(clone(seg), String_from(":")) || contains(clone(seg), String_from("<")) {
-        return ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, seg)
+        let resolved_name = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(seg))
+        // `X::Item` projections resolve through the owner's Iterator::next
+        // signature once the head is concrete (#860/#691).
+        let assoc = ctx_mono_type_params::ctx_resolve_assoc_projection_type(ctx, clone(seg))
+        if len(assoc) > 0 {
+            return assoc
+        }
+        return resolved_name
     }
     seg
 }

@@ -213,7 +213,14 @@ fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
         ctx_struct_storage::ctx_struct_push_field(
             ctx,
             fname,
-            ctx_substitute_generic_field_type(fty, params, args)
+            // Token substitution turns `fn(I::Item) -> I::Item` into
+            // `fnsig:VecIter::Item;VecIter::Item`; resolve the remaining
+            // Owner::Item projections through the owner's Iterator::next
+            // signature so emit sees a concrete callback type (#860/#691).
+            ctx_mono_type_params::ctx_resolve_field_type_projections(
+                ctx,
+                ctx_substitute_generic_field_type(fty, params, args)
+            )
         )
         fi = fi + 1
     }

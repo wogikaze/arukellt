@@ -950,7 +950,7 @@ source-wrapping `TakeIter<StringIter>` adapter; the fixture verifies its
 lazy bounded `collect` path without introducing an integer item
 representation.
 `StringIter::skip(n).take(m)` composes the same state transitions through
-`TakeIter<StringSkipIter>`: skip is applied before the bounded pull, with the
+`TakeIter<SkipIter<StringIter>>`: skip is applied before the bounded pull, with the
 `String` item type preserved throughout.
 The GC component and linear-memory Wasm artifacts validate and run with the
 same assertions. The `for` lowering chooses the typed `Option::Some` payload
@@ -1010,7 +1010,9 @@ each owning predicate receives a cloned handle before the value proceeds to
 the next callback. Their `collect`, `Vec::from_iter`, and generic
 `T: IntoIterator` `for` paths are verified on both targets.
 The item-preserving String lane also supports `skip(n).map(f)` and
-`skip(n).filter(g)` through `StringSkipMapIter` and `StringSkipFilterIter`.
+`skip(n).filter(g)` through `SkipMapIter<StringIter>` and
+`SkipFilterIter<StringIter>`, the same item-generic adapters the i32 lane
+uses at `VecIter`.
 Both adapters consume the skipped source items before dispatching a callback;
 the filter predicate receives a cloned handle and an accepted original item is
 yielded. Their `collect`, `Vec::from_iter`, and generic `T: IntoIterator`

@@ -5,9 +5,11 @@
 // resolution can construct `ConcreteType::method` instead of `?T::method`.
 
 use mir::lower::ctx_current_storage
+use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
 use mir::lower::return_typeinfo_names
 use mir::lower_kinds
+use mir::mono
 use mir::function_locals_view
 use mir::local_access
 use mir::lower::ctx_api_module
@@ -615,7 +617,14 @@ fn ctx_resolve_fnsig_segment(ctx: LowerCtx, seg: String) -> String {
         return direct
     }
     if contains(clone(seg), String_from(":")) || contains(clone(seg), String_from("<")) {
-        return ctx_resolve_mono_type_name(ctx, seg)
+        let resolved_name = ctx_resolve_mono_type_name(ctx, clone(seg))
+        // `X::Item` projections resolve through the owner's Iterator::next
+        // signature once the head is concrete (#860/#691).
+        let assoc = ctx_resolve_assoc_projection_type(ctx, clone(seg))
+        if len(assoc) > 0 {
+            return assoc
+        }
+        return resolved_name
     }
     seg
 }
@@ -801,4 +810,249 @@ fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
         j = j + 1
     }
     ctx_set_mono_type_params(ctx, names, types)
+}
+
+// ---------------------------------------------------------------------------
+// Associated-type projection resolution (Owner::Item)
+// ---------------------------------------------------------------------------
+
+// `Owner::Item` resolves through the owner's Iterator::next signature:
+// `next` returns `Option<Item>`, so the Option payload recorded in the
+// function index is the item type. Concrete impls (VecIter::next) and
+// monomorphized ones (SkipIter<StringIter>::next) both live in the
+// function index (#860/#691).
+fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
+    let owner = ctx_assoc_owner_base_name(owner_name)
+    if len(owner) == 0 {
+        return String_new()
+    }
+    let mut rt = ctx_assoc_next_return_type_name(ctx, concat(clone(owner), String_from("::next")))
+    if len(rt) == 0 {
+        rt = ctx_assoc_next_return_type_name(ctx, concat(clone(owner), String_from("__next")))
+    }
+    if len(rt) == 0 {
+        let candidates = ctx_assoc_mono_next_names(clone(owner))
+        let mut ci = 0
+        while ci < len(candidates) {
+            let found = ctx_assoc_next_return_type_name(ctx, get_unchecked(candidates, ci))
+            if len(found) > 0 {
+                rt = found
+                ci = len(candidates)
+            }
+            ci = ci + 1
+        }
+    }
+    ctx_option_payload_type_name(rt)
+}
+
+// Normalize an owner spelling for the function-index lookup: strip the
+// `?` mono-body marker and unwrap `struct:Name:size` / `enum:Name`
+// shells so the bare constructor name remains.
+fn ctx_assoc_owner_base_name(owner_name: String) -> String {
+    let mut name = clone(owner_name)
+    if starts_with(clone(name), String_from("?")) {
+        name = substring(name, 1, len(name))
+    }
+    if starts_with(clone(name), String_from("struct:")) || starts_with(clone(name), String_from("enum:")) {
+        let inner = substring(clone(name), index_of(clone(name), String_from(":")) + 1, len(name))
+        let tail = index_of(clone(inner), String_from(":"))
+        if tail > 0 {
+            return substring(inner, 0, tail)
+        }
+        return inner
+    }
+    name
+}
+
+fn ctx_assoc_next_return_type_name(ctx: LowerCtx, fn_name: String) -> String {
+    let idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
+    if idx >= 0 {
+        return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, idx)
+    }
+    let qidx = ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(fn_name))
+    if qidx >= 0 {
+        return ctx_fn_index::ctx_qualified_fn_return_type_name_at(ctx, qidx)
+    }
+    String_new()
+}
+
+// Candidate mangled `next` names for a generic-instantiation owner.
+// `Base<args>` spells `Base__next__arg` per mono instance; the underscore
+// spelling `Base_arg` tries the raw rest and the `__`-separated form.
+fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
+    let names = Vec::new<String>()
+    let lt = index_of(clone(owner), String_from("<"))
+    if lt > 0 && ends_with(clone(owner), String_from(">")) {
+        let base = substring(clone(owner), 0, lt)
+        let args = ctx_split_top_level_type_args(substring(clone(owner), lt + 1, len(owner) - 1))
+        let mut mangled = concat(base, String_from("__next"))
+        let mut ai = 0
+        while ai < len(args) {
+            let arg = ctx_trim_type_arg_ws(get_unchecked(args, ai))
+            mangled = concat(mangled, concat(String_from("__"), mono::mono_safe_name(arg)))
+            ai = ai + 1
+        }
+        push(names, mangled)
+        return names
+    }
+    let us = index_of(clone(owner), String_from("_"))
+    if us > 0 {
+        let base = substring(clone(owner), 0, us)
+        let rest = substring(clone(owner), us + 1, len(owner))
+        push(names, concat(concat(base, String_from("__next__")), clone(rest)))
+        // An underscore owner can hide a `__` argument boundary inside a
+        // single `_` run (MapIter_String_i32 -> MapIter__next__String__i32).
+        let mut separated = String_new()
+        let mut i = 0
+        let n = len(rest)
+        while i < n {
+            if byte_at(clone(rest), i) == 95 {
+                separated = concat(separated, String_from("__"))
+            } else {
+                separated = concat(separated, substring(clone(rest), i, i + 1))
+            }
+            i = i + 1
+        }
+        push(names, concat(concat(base, String_from("__next__")), separated))
+    }
+    names
+}
+
+// `option:X` / `Option_X` / `Option<X>` / `Option:X` -> X; anything
+// else returns empty so non-Option signatures never resolve.
+fn ctx_option_payload_type_name(rt: String) -> String {
+    if starts_with(clone(rt), String_from("option:")) {
+        return substring(rt, 7, len(rt))
+    }
+    if starts_with(clone(rt), String_from("Option<")) && ends_with(clone(rt), String_from(">")) {
+        return substring(rt, 7, len(rt) - 1)
+    }
+    if starts_with(clone(rt), String_from("Option_")) {
+        return substring(rt, 7, len(rt))
+    }
+    if starts_with(clone(rt), String_from("Option:")) {
+        return substring(rt, 7, len(rt))
+    }
+    String_new()
+}
+
+// `X::Assoc` segment -> concrete type. The head may still be a type
+// variable inside a mono body (resolved through the mono map) or an
+// already-concrete owner. Only `Item` resolves today — it is the only
+// associated type spelled inside callback signatures (#860/#691).
+fn ctx_resolve_assoc_projection_type(ctx: LowerCtx, seg: String) -> String {
+    let sep = find_last_double_colon(clone(seg))
+    if sep < 0 {
+        return String_new()
+    }
+    let assoc = substring(clone(seg), sep + 2, len(seg))
+    if !eq(clone(assoc), String_from("Item")) {
+        return String_new()
+    }
+    let mut owner = substring(clone(seg), 0, sep)
+    let head = ctx_resolve_mono_type_param(ctx, clone(owner))
+    if len(head) > 0 {
+        owner = head
+    }
+    ctx_resolve_iterator_item_type(ctx, owner)
+}
+
+fn find_last_double_colon(name: String) -> i32 {
+    let mut found = 0 - 1
+    let mut i = 0
+    while i + 1 < len(name) {
+        if byte_at(clone(name), i) == 58 && byte_at(clone(name), i + 1) == 58 {
+            found = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    found
+}
+
+fn assoc_ident_char(ch: i32) -> bool {
+    (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch == 95
+}
+
+// Resolve `Owner::Item` projections embedded anywhere in a field type
+// spelling (fnsig:/vec:/option: segments). Parameter substitution turns
+// `fn(I::Item) -> I::Item` into `fnsig:VecIter::Item;VecIter::Item`;
+// each projection resolves through the owner's Iterator::next signature
+// so downstream consumers see a concrete type. Unresolved projections
+// keep their spelling so partially bound instantiations degrade as
+// before (#860/#691).
+fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
+    if !contains(clone(ft), String_from("::")) {
+        return ft
+    }
+    let n = len(ft)
+    // out_start: first un-emitted byte. outer_start: start of the current
+    // depth-0 type segment (after the last top-level `:`/`;`). inner_start:
+    // start of the current angle-bracket argument (after `<`/`,`).
+    let mut out = String_new()
+    let mut out_start = 0
+    let mut outer_start = 0
+    let mut inner_start = 0
+    let mut depth = 0
+    let mut i = 0
+    while i < n {
+        let ch = byte_at(clone(ft), i)
+        if ch == 60 || ch == 40 {
+            depth = depth + 1
+            inner_start = i + 1
+            i = i + 1
+            continue
+        }
+        if ch == 62 || ch == 41 {
+            depth = depth - 1
+            i = i + 1
+            continue
+        }
+        if ch == 44 && depth > 0 {
+            inner_start = i + 1
+            i = i + 1
+            continue
+        }
+        if ch == 44 && depth == 0 {
+            outer_start = i + 1
+            i = i + 1
+            continue
+        }
+        if ch == 58 && i + 1 < n && byte_at(clone(ft), i + 1) == 58 {
+            let owner_start = if depth > 0 { inner_start } else { outer_start }
+            let owner = substring(clone(ft), owner_start, i)
+            let mut assoc_end = i + 2
+            while assoc_end < n && assoc_ident_char(byte_at(clone(ft), assoc_end)) {
+                assoc_end = assoc_end + 1
+            }
+            let assoc = substring(clone(ft), i + 2, assoc_end)
+            let mut resolved = String_new()
+            if eq(clone(assoc), String_from("Item")) {
+                resolved = ctx_resolve_iterator_item_type(ctx, clone(owner))
+            }
+            out = concat(out, substring(clone(ft), out_start, owner_start))
+            if len(resolved) > 0 {
+                out = concat(out, resolved)
+            } else {
+                out = concat(out, clone(owner))
+                out = concat(out, String_from("::"))
+                out = concat(out, assoc)
+            }
+            out_start = assoc_end
+            outer_start = assoc_end
+            inner_start = assoc_end
+            i = assoc_end
+            continue
+        }
+        if ch == 58 && depth == 0 {
+            outer_start = i + 1
+        }
+        if ch == 59 && depth == 0 {
+            outer_start = i + 1
+        }
+        i = i + 1
+    }
+    out = concat(out, substring(clone(ft), out_start, n))
+    out
 }
