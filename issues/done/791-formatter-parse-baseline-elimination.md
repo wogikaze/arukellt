@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-13
-Updated: 2026-07-13
+Updated: 2026-09-25
 ID: 791
 Track: tooling-contract
 Depends on: "785"
@@ -94,3 +94,20 @@ its re-wiring or removal is out of #791 scope.
   `lines_ge_200=2`, `thin_wrappers=1748` → PASS.
 - A second `quality full` is running for the end-to-end receipt; result
   will be recorded before this issue moves to done.
+
+## Progress receipt — 2026-09-25 (quality full result + close review)
+
+- Second `quality full` completed: `fmt: checked=1976 failed=0
+  baseline-skipped=0`, `lint: checked=1976 failed=0 baseline-skipped=0`,
+  comment policy / editorconfig / quality contract / ark code quality
+  gates / touched-code ratchet all PASS. The run's only FAIL was
+  `repository structure` CQ-STRUCT-009 — a `project-state.toml`
+  fixture_manifest_count drift (3003 vs manifest 3006) introduced by the
+  #872 copy-capture snapshot fixtures, unrelated to this issue's scope.
+- Commit `6755b0b4c` syncs the count; `quality structure` re-verified
+  PASS, `docs regenerate` / `docs check` PASS.
+- Close review verdict: APPROVE. All five acceptance items are covered by
+  repository evidence: per-file fmt/lint receipts plus full-repo
+  fmt 1976/0 and lint 1976/0 with `baseline-skipped=0`, s2 bootstrap
+  rebuild, baseline file deleted (structure.py treats absence as zero
+  exceptions), and no formatter skips in the full gate.

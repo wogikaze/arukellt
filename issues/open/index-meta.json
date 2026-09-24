@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-22T18:14:29Z",
+  "generated_at": "2026-09-24T19:16:48Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -422,20 +422,18 @@
       }
     },
     {
-      "id": "791",
-      "path": "791-formatter-parse-baseline-elimination.md",
-      "title": "791 — Eliminate the Ark canonical parser baseline",
-      "track": "tooling-contract",
+      "id": "814",
+      "path": "814-formatter-parser-exceptions.md",
+      "title": "814 — Formatter/parser exceptions (23 files)",
+      "track": "code-quality",
       "status": "open",
       "depends_on": [
-        "785"
+        "791"
       ],
-      "blocks_issue_ids": [
-        "814"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 5
+        "unchecked": 0
       },
       "orchestration": {
         "class": "ready",
@@ -734,25 +732,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 852
-      }
-    },
-    {
-      "id": "814",
-      "path": "814-formatter-parser-exceptions.md",
-      "title": "814 — Formatter/parser exceptions (23 files)",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "791"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
       }
     },
     {

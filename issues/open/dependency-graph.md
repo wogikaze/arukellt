@@ -27,7 +27,7 @@ graph LR
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
-  I791["791 791 — Eliminate the Ark canonical parser baseline"]
+  I814["814 814 — Formatter/parser exceptions (23 files)"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
@@ -42,7 +42,6 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
-  I814["814 814 — Formatter/parser exceptions (23 files)"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
@@ -70,7 +69,6 @@ graph LR
   I715 --> I719
   I715 --> I799
   I729 --> I865
-  I791 --> I814
   I851 --> I850
   I682 --> I683
   I698 --> I699
@@ -129,7 +127,7 @@ graph LR
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: 865
 - **760** depends on: none; blocks: none
-- **791** depends on: 785; blocks: 814
+- **814** depends on: 791; blocks: none
 - **815** depends on: none; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **825** depends on: 823; blocks: none
@@ -144,7 +142,6 @@ graph LR
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **865** depends on: 729; blocks: 875
-- **814** depends on: 791; blocks: none
 - **850** depends on: 851; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
