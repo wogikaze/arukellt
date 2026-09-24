@@ -916,11 +916,11 @@ conversion and `next()` sequence as their equivalent local-binding forms.
 Concrete source dispatch remains static; this does not imply dynamic dispatch
 for an unregistered source. A generic function bounded by `Iterator` may use
 its parameter directly as a `for` source. After monomorphization, the
-`iterator_vec_iter_for_loop.ark` fixture verifies `T = VecIter` through the
+`iterator_vec_iter_for_loop.ark` fixture verifies `T = VecIter<i32>` through the
 same identity `IntoIterator::into_iter` and canonical `next` sequence.
 The corresponding generic `T: IntoIterator` case is also monomorphized for
 concrete `Vec<i32>` sources; the same fixture verifies `Vec::into_iter` before
-`VecIter::next`.
+`VecIter<i32>::next`.
 `iterator_range_basic.ark` extends this evidence to direct `Range` and
 `RangeInclusive` expressions, preserving half-open and closed-range item
 sequences through the same generic `for` contract.
@@ -934,23 +934,23 @@ implements `IteratorSum<i32, i32>` and `IteratorFold<i32, i32>` for the concrete
 numeric adapters. A consumer call is legal only when the receiver satisfies
 the corresponding capability trait. A non-numeric iterator is not required to
 invent a numeric result or to pack its item into an integer: for example,
-`StringIter.sum()` is rejected during type checking with E0200 rather than
+`VecIter<String>.sum()` is rejected during type checking with E0200 rather than
 lowering to a runtime stub or trap. The negative contract is pinned by
 `selfhost/iterator_string_numeric_consumer.ark`.
 
 `Vec<String>` implements `IntoIterator` through the item-preserving
-`StringIter` adapter. `iterator_string.ark` verifies direct and generic
+`VecIter<String>` adapter. `iterator_string.ark` verifies direct and generic
 `Iterator`/`IntoIterator` calls for `next`, `collect`, and `count`, concrete
 `Vec<String>::iter()` and `Vec<String>::from_iter`, method-shaped `collect`,
 and direct `for` iteration. `iter()` and `into_iter()` select the same
-`StringIter` producer boundary; the former is the canonical collection method
+`VecIter<String>` producer boundary; the former is the canonical collection method
 entry point and does not reinterpret String references as numeric payloads.
-`StringIter::take(n)` keeps the same item-preserving contract through the
-source-wrapping `TakeIter<StringIter>` adapter; the fixture verifies its
+`VecIter<String>::take(n)` keeps the same item-preserving contract through the
+source-wrapping `TakeIter<VecIter<String>>` adapter; the fixture verifies its
 lazy bounded `collect` path without introducing an integer item
 representation.
-`StringIter::skip(n).take(m)` composes the same state transitions through
-`TakeIter<SkipIter<StringIter>>`: skip is applied before the bounded pull, with the
+`VecIter<String>::skip(n).take(m)` composes the same state transitions through
+`TakeIter<SkipIter<VecIter<String>>>`: skip is applied before the bounded pull, with the
 `String` item type preserved throughout.
 The GC component and linear-memory Wasm artifacts validate and run with the
 same assertions. The `for` lowering chooses the typed `Option::Some` payload
@@ -958,9 +958,9 @@ layout for the iterator item, so a String reference is never read through the
 numeric i32 payload layout.
 
 The String producer also supports lazy callback adapters through the
-item-generic adapter types shared with the i32 lane. `StringIter::map`
+item-generic adapter types shared with the i32 lane. `VecIter<String>::map`
 accepts `fn(String) -> String` and returns `MapIter<String, String>`;
-`StringIter::filter` accepts `fn(String) -> bool` and returns
+`VecIter<String>::filter` accepts `fn(String) -> bool` and returns
 `FilterIter<String>`. Both retain `Iterator::Item = String` and delegate
 collection to the canonical `Iterator::collect` path. The positive contract is
 pinned by `stdlib_trait/iterator_string_callbacks.ark`. Because a callback owns
@@ -1010,9 +1010,9 @@ each owning predicate receives a cloned handle before the value proceeds to
 the next callback. Their `collect`, `Vec::from_iter`, and generic
 `T: IntoIterator` `for` paths are verified on both targets.
 The item-preserving String lane also supports `skip(n).map(f)` and
-`skip(n).filter(g)` through `SkipMapIter<StringIter>` and
-`SkipFilterIter<StringIter>`, the same item-generic adapters the i32 lane
-uses at `VecIter`.
+`skip(n).filter(g)` through `SkipMapIter<VecIter<String>>` and
+`SkipFilterIter<VecIter<String>>`, the same item-generic adapters the i32 lane
+uses at `VecIter<i32>`.
 Both adapters consume the skipped source items before dispatching a callback;
 the filter predicate receives a cloned handle and an accepted original item is
 yielded. Their `collect`, `Vec::from_iter`, and generic `T: IntoIterator`

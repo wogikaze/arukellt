@@ -85,11 +85,11 @@ the range fixture verifies `for item in core::range_new(2, 5)` and
 Concrete source dispatch remains static, and unregistered sources still require
 the corresponding concrete trait implementation. A generic function bounded by
 `Iterator` can use its parameter directly as a `for` source; after
-monomorphization, `iterator_vec_iter_for_loop.ark` verifies the `VecIter` case
+monomorphization, `iterator_vec_iter_for_loop.ark` verifies the `VecIter<i32>` case
 on both backends. Generic sources without a checked iteration obligation remain
 outside this migration step.
 The same fixture covers a generic `T: IntoIterator` function instantiated with
-`Vec<i32>`; lowering calls `Vec::into_iter` and then the canonical `VecIter::next`
+`Vec<i32>`; lowering calls `Vec::into_iter` and then the canonical `VecIter<i32>::next`
 sequence on both backends.
 `iterator_range_basic.ark` also instantiates that generic `for` consumer with
 half-open and closed range expressions, preserving their distinct boundaries.
@@ -99,13 +99,13 @@ are rejected during type checking with E0200. The negative contract is pinned
 by `tests/fixtures/selfhost/for_deny_non_iterable.ark` and its
 `.selfhost.diag` golden; unresolved generic sources remain deferred until
 their concrete obligation is available.
-`FromIterator` dispatches the `VecIter`, `RangeIter`, and
+`FromIterator` dispatches the `VecIter<i32>`, `RangeIter`, and
 `RangeInclusiveIter` sources statically. A generic consumer can now return
 `Vec<T::Item>` for the currently implemented `i32`-backed iterator types;
 the compiler resolves that projection during monomorphization and emits the
 same concrete aggregate representation on both Wasm targets. Adding iterator
 implementations for other item representations is now demonstrated by the
-concrete `StringIter` lane, while numeric consumers remain capability-bounded
+concrete `VecIter<String>` lane, while numeric consumers remain capability-bounded
 to the current `i32` implementations. `Iterator` itself is item-preserving:
 `IteratorSum<Item, Output>` and `IteratorFold<Item, Accumulator>` carry the
 numeric consumer contracts separately. The current
@@ -118,9 +118,9 @@ and [#860](../../issues/open/860-iterator-unification-integration.md). The
 all thirteen monomorphic `std::seq` helpers are deprecated under the
 manifest contract (see [Currently Deprecated APIs](#currently-deprecated-apis)).
 Calls to `sum` and `fold` now require the matching numeric capability at
-type-check time. The item-preserving `StringIter` lane therefore remains
+type-check time. The item-preserving `VecIter<String>` lane therefore remains
 valid for `next`, `collect`, `count`, and bounded adapters, while an accidental
-`StringIter.sum()` is rejected with E0200; it is not accepted and deferred to
+`VecIter<String>.sum()` is rejected with E0200; it is not accepted and deferred to
 an invalid backend stub. See
 `tests/fixtures/selfhost/iterator_string_numeric_consumer.ark` for the
 negative migration contract.
@@ -213,15 +213,15 @@ linear-memory `wasm32`. This is an implementation migration receipt, not a
 manifest-level deprecation: the deprecation boundary still requires the
 method-level manifest contract described above.
 
-The first non-numeric item lane is `Vec<String> -> StringIter`. The
+The first non-numeric item lane is `Vec<String> -> VecIter<String>`. The
 `stdlib_trait/iterator_string.ark` fixture checks direct `next`, generic
 `Iterator` and `IntoIterator` consumers, item-preserving `collect` and
 `count`, `Vec<String>::iter()` and `Vec<String>::from_iter`, method-shaped
 `collect`, direct `for` iteration, and the bounded
 `iter().take(1).collect()` pipeline. `iter()` and `into_iter()` both enter the
-same `StringIter` producer boundary, while `take` preserves the item through
-`TakeIter<StringIter>`. The `skip(n).take(m)` composition uses
-`TakeIter<SkipIter<StringIter>>`
+same `VecIter<String>` producer boundary, while `take` preserves the item through
+`TakeIter<VecIter<String>>`. The `skip(n).take(m)` composition uses
+`TakeIter<SkipIter<VecIter<String>>>`
 and applies skip state before the bounded pull. GC component and linear-memory
 Wasm compilation, validation, and runtime assertions pass with the same source
 behavior. The lowering selects a typed `Option::Some` payload layout for the
@@ -231,9 +231,9 @@ claim that every collection or adapter has become item-generic.
 
 The String lane now also has lazy callback adapters through the item-generic
 adapter types shared with the i32 lane:
-`StringIter::map(fn(String) -> String)` returns
+`VecIter<String>::map(fn(String) -> String)` returns
 `MapIter<String, String>`, and
-`StringIter::filter(fn(String) -> bool)` returns `FilterIter<String>`. The
+`VecIter<String>::filter(fn(String) -> bool)` returns `FilterIter<String>`. The
 `stdlib_trait/iterator_string_callbacks.ark` fixture checks both adapters and
 their canonical `collect` path on GC and linear-memory Wasm. The filter adapter
 clones the callback argument because the callback owns its `String` input; the

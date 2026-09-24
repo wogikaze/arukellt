@@ -36,7 +36,7 @@
 ///
 /// | Type        | Status | Notes                                  |
 /// |-------------|--------|----------------------------------------|
-/// | VecIter     | impl   | Adapter over `Vec<i32>`                |
+/// | VecIter<T>  | impl   | Item-generic adapter over `Vec<T>`      |
 /// | RangeIter   | impl   | Adapter over `Range`                   |
 /// | RangeInclusiveIter | impl | Adapter over `RangeInclusive`      |
 /// | MapIter<T,U> | impl | Lazy map adapter over `Vec<T>`           |
@@ -202,75 +202,81 @@ fn all_iterator_i32<T: Iterator>(it: T, f: fn(i32) -> bool) -> bool {
     all
 }
 // ---------------------------------------------------------------------------
-// VecIter — lazy adapter over Vec<i32>
+// VecIter<i32> — item-generic lazy adapter over Vec<T>
 // ---------------------------------------------------------------------------
 
-/// Lazy iterator over the elements of a `Vec<i32>`.
+/// Lazy iterator over the elements of a `Vec<T>`.
 ///
 /// Holds a reference to the source vector and a current index. Each `next`
 /// call advances the index and returns the next element, or `None` when the
-/// end is reached.
-pub struct VecIter {
-    vec: Vec<i32>,
+/// end is reached. Item-generic so the i32 and String lanes share one
+/// adapter (#860/#691).
+pub struct VecIter<T> {
+    vec: Vec<T>,
     index: i32,
     length: i32,
 }
 
-/// Construct a `VecIter` over `v`. The iterator borrows `v` by handle.
-pub fn vec_iter(v: Vec<i32>) -> VecIter {
+/// Construct a `VecIter<i32>` over `v`. The iterator borrows `v` by handle.
+pub fn vec_iter(v: Vec<i32>) -> VecIter<i32> {
     v.iter()
 }
 
 /// Return the canonical lazy iterator for a `Vec<i32>`.
 impl Vec<i32> {
-    fn iter(self: Vec<i32>) -> VecIter {
+    fn iter(self: Vec<i32>) -> VecIter<i32> {
         VecIter { vec: self, index: 0, length: len(self) }
     }
 }
 
-impl VecIter {
+impl VecIter<T> {
     /// Returns true when no more elements remain.
-    fn is_empty(self: VecIter) -> bool {
+    fn is_empty(self: VecIter<T>) -> bool {
         self.index >= self.length
     }
 
-    /// Lazily transform the remaining elements with `f`.
-    fn map(self: VecIter, f: fn(i32) -> i32) -> MapIter<i32, i32> {
+    /// Lazily transform the remaining elements with `f`. Method-level
+    /// generics are unsupported, so the callback stays `T -> T` (#860).
+    fn map(self: VecIter<T>, f: fn(T) -> T) -> MapIter<T, T> {
         MapIter { vec: self.vec, index: self.index, length: self.length, f: f }
     }
 
     /// Lazily keep the remaining elements accepted by `f`.
-    fn filter(self: VecIter, f: fn(i32) -> bool) -> FilterIter<i32> {
+    fn filter(self: VecIter<T>, f: fn(T) -> bool) -> FilterIter<T> {
         FilterIter { vec: self.vec, index: self.index, length: self.length, f: f }
     }
 
     /// Lazily limit the remaining elements to `n` values.
-    fn take(self: VecIter, n: i32) -> TakeIter<VecIter> {
+    fn take(self: VecIter<T>, n: i32) -> TakeIter<VecIter<T>> {
         TakeIter { iter: self, remaining: n }
     }
 
     /// Lazily skip `n` values from the remaining elements.
-    fn skip(self: VecIter, n: i32) -> SkipIter<VecIter> {
+    fn skip(self: VecIter<T>, n: i32) -> SkipIter<VecIter<T>> {
         SkipIter { iter: self, to_skip: n }
     }
+}
 
+/// i32-only adapters whose item type is fixed by the concrete `UniqueIter`
+/// and `RevIter` state types.
+impl VecIter<i32> {
     /// Lazily yield each remaining element the first time it appears.
-    fn unique(self: VecIter) -> UniqueIter {
+    fn unique(self: VecIter<i32>) -> UniqueIter {
         UniqueIter { vec: self.vec, index: self.index, length: self.length, seen: Vec::new<i32>() }
     }
 
     /// Lazily yield the remaining elements in reverse order.
-    fn rev(self: VecIter) -> RevIter {
+    fn rev(self: VecIter<i32>) -> RevIter {
         RevIter { vec: self.vec, index: self.index, length: self.length }
     }
 }
 
-impl Iterator for VecIter {
-    type Item = i32
+impl Iterator for VecIter<T> {
+    type Item = T
 
-    fn next(self: VecIter) -> Option<i32> {
+    fn next(self: VecIter<T>) -> Option<T> {
         if self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
+            let val: T = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
             Some(val)
         } else {
@@ -278,21 +284,21 @@ impl Iterator for VecIter {
         }
     }
 
-    fn collect(self: VecIter) -> Vec<i32> {
+    fn collect(self: VecIter<T>) -> Vec<T> {
         collect_iterator(self)
     }
 
-    fn count(self: VecIter) -> i32 {
+    fn count(self: VecIter<T>) -> i32 {
         count_iterator(self)
     }
 
 }
 
-impl IntoIterator for VecIter {
-    type Item = i32
-    type IntoIter = VecIter
+impl IntoIterator for VecIter<T> {
+    type Item = T
+    type IntoIter = VecIter<T>
 
-    fn into_iter(self: VecIter) -> VecIter {
+    fn into_iter(self: VecIter<T>) -> VecIter<T> {
         self
     }
 }
@@ -300,106 +306,30 @@ impl IntoIterator for VecIter {
 /// Convert a `Vec<i32>` into the canonical lazy iterator over its elements.
 impl IntoIterator for Vec<i32> {
     type Item = i32
-    type IntoIter = VecIter
+    type IntoIter = VecIter<i32>
 
-    fn into_iter(self: Vec<i32>) -> VecIter {
+    fn into_iter(self: Vec<i32>) -> VecIter<i32> {
         vec_iter(self)
     }
 }
 
 // ---------------------------------------------------------------------------
-// StringIter — item-preserving iterator over Vec<String>
+// Vec<String> iteration — the same item-generic VecIter<T> adapter
 // ---------------------------------------------------------------------------
 
-/// Lazy iterator over the elements of a `Vec<String>`.
-pub struct StringIter {
-    vec: Vec<String>,
-    index: i32,
-    length: i32,
-}
-
-/// Construct a `StringIter` over `v` for the `Vec<String>` conversion impl.
-fn string_iter(v: Vec<String>) -> StringIter {
-    StringIter { vec: v, index: 0, length: len(v) }
-}
-
 impl Vec<String> {
-    fn iter(self: Vec<String>) -> StringIter {
-        string_iter(self)
-    }
-}
-
-impl StringIter {
-    fn map(self: StringIter, f: fn(String) -> String) -> MapIter<String, String> {
-        MapIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            f: f,
-        }
-    }
-
-    fn filter(self: StringIter, f: fn(String) -> bool) -> FilterIter<String> {
-        FilterIter {
-            vec: self.vec,
-            index: self.index,
-            length: self.length,
-            f: f,
-        }
-    }
-
-    fn take(self: StringIter, n: i32) -> TakeIter<StringIter> {
-        TakeIter {
-            iter: self,
-            remaining: n,
-        }
-    }
-
-    fn skip(self: StringIter, n: i32) -> SkipIter<StringIter> {
-        SkipIter {
-            iter: self,
-            to_skip: n,
-        }
-    }
-}
-
-impl Iterator for StringIter {
-    type Item = String
-
-    fn next(self: StringIter) -> Option<String> {
-        if self.index < self.length {
-            let value: String = get_unchecked(self.vec, self.index)
-            self.index = self.index + 1
-            Some(value)
-        } else {
-            None
-        }
-    }
-
-    fn collect(self: StringIter) -> Vec<String> {
-        collect_iterator(self)
-    }
-
-    fn count(self: StringIter) -> i32 {
-        count_iterator(self)
-    }
-}
-
-impl IntoIterator for StringIter {
-    type Item = String
-    type IntoIter = StringIter
-
-    fn into_iter(self: StringIter) -> StringIter {
-        self
+    /// Return the canonical lazy iterator for a `Vec<String>`.
+    fn iter(self: Vec<String>) -> VecIter<String> {
+        VecIter { vec: self, index: 0, length: len(self) }
     }
 }
 
 impl IntoIterator for Vec<String> {
     type Item = String
-    type IntoIter = StringIter
+    type IntoIter = VecIter<String>
 
-    fn into_iter(self: Vec<String>) -> StringIter {
-        string_iter(self)
+    fn into_iter(self: Vec<String>) -> VecIter<String> {
+        self.iter()
     }
 }
 
@@ -734,7 +664,7 @@ pub struct TakeIter<I> {
 }
 
 /// Construct a `TakeIter` over `v` limited to `n` elements.
-pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter<VecIter> {
+pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter<VecIter<i32>> {
     vec_iter(v).take(n)
 }
 
@@ -786,7 +716,7 @@ pub struct SkipIter<I> {
 }
 
 /// Construct a `SkipIter` over `v` that drops the first `n` elements.
-pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter<VecIter> {
+pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter<VecIter<i32>> {
     vec_iter(v).skip(n)
 }
 
@@ -960,7 +890,7 @@ pub struct ChainIter<I> {
 }
 
 /// Construct a `ChainIter` over two vectors.
-pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter<VecIter> {
+pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter<VecIter<i32>> {
     ChainIter {
         first: vec_iter(first),
         second: vec_iter(second),
@@ -1016,7 +946,7 @@ pub struct EnumerateIter<I> {
 }
 
 /// Construct an `EnumerateIter` over `v`.
-pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter<VecIter> {
+pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter<VecIter<i32>> {
     EnumerateIter { iter: vec_iter(v), index: 0 }
 }
 
@@ -1066,7 +996,7 @@ pub struct ZipIter<A, B> {
 }
 
 /// Construct a `ZipIter` over two vectors. Iteration stops at the shorter length.
-pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter<VecIter, VecIter> {
+pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter<VecIter<i32>, VecIter<i32>> {
     ZipIter { first: vec_iter(first), second: vec_iter(second) }
 }
 
@@ -1210,14 +1140,14 @@ impl Iterator for RevIter {
 // These capabilities are intentionally separate from `Iterator`: a
 // non-numeric item type must not acquire an invented sum or fold meaning just
 // to satisfy the producer protocol.
-impl IteratorSum<i32, i32> for VecIter {
-    fn sum(self: VecIter) -> i32 {
+impl IteratorSum<i32, i32> for VecIter<i32> {
+    fn sum(self: VecIter<i32>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for VecIter {
-    fn fold(self: VecIter, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for VecIter<i32> {
+    fn fold(self: VecIter<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -1320,75 +1250,75 @@ impl IteratorFold<i32, i32> for TakeIter<FilterIter<i32>> {
 
 // Capability traits stay per-instantiation: a parametric impl would
 // claim numeric aggregation for non-numeric sources such as
-// TakeIter<StringIter>, which ADR-076 reserves to i32 lanes.
-impl IteratorSum<i32, i32> for TakeIter<VecIter> {
-    fn sum(self: TakeIter<VecIter>) -> i32 {
+// TakeIter<VecIter<String>>, which ADR-076 reserves to i32 lanes.
+impl IteratorSum<i32, i32> for TakeIter<VecIter<i32>> {
+    fn sum(self: TakeIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for TakeIter<VecIter> {
-    fn fold(self: TakeIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for TakeIter<VecIter<i32>> {
+    fn fold(self: TakeIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for SkipIter<VecIter> {
-    fn sum(self: SkipIter<VecIter>) -> i32 {
+impl IteratorSum<i32, i32> for SkipIter<VecIter<i32>> {
+    fn sum(self: SkipIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for SkipIter<VecIter> {
-    fn fold(self: SkipIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for SkipIter<VecIter<i32>> {
+    fn fold(self: SkipIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for TakeIter<SkipIter<VecIter>> {
-    fn sum(self: TakeIter<SkipIter<VecIter>>) -> i32 {
+impl IteratorSum<i32, i32> for TakeIter<SkipIter<VecIter<i32>>> {
+    fn sum(self: TakeIter<SkipIter<VecIter<i32>>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for TakeIter<SkipIter<VecIter>> {
-    fn fold(self: TakeIter<SkipIter<VecIter>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for TakeIter<SkipIter<VecIter<i32>>> {
+    fn fold(self: TakeIter<SkipIter<VecIter<i32>>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for SkipMapIter<VecIter> {
-    fn sum(self: SkipMapIter<VecIter>) -> i32 {
+impl IteratorSum<i32, i32> for SkipMapIter<VecIter<i32>> {
+    fn sum(self: SkipMapIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for SkipMapIter<VecIter> {
-    fn fold(self: SkipMapIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for SkipMapIter<VecIter<i32>> {
+    fn fold(self: SkipMapIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for SkipFilterIter<VecIter> {
-    fn sum(self: SkipFilterIter<VecIter>) -> i32 {
+impl IteratorSum<i32, i32> for SkipFilterIter<VecIter<i32>> {
+    fn sum(self: SkipFilterIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for SkipFilterIter<VecIter> {
-    fn fold(self: SkipFilterIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for SkipFilterIter<VecIter<i32>> {
+    fn fold(self: SkipFilterIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
 
-impl IteratorSum<i32, i32> for ChainIter<VecIter> {
-    fn sum(self: ChainIter<VecIter>) -> i32 {
+impl IteratorSum<i32, i32> for ChainIter<VecIter<i32>> {
+    fn sum(self: ChainIter<VecIter<i32>>) -> i32 {
         sum_iterator_i32(self)
     }
 }
 
-impl IteratorFold<i32, i32> for ChainIter<VecIter> {
-    fn fold(self: ChainIter<VecIter>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+impl IteratorFold<i32, i32> for ChainIter<VecIter<i32>> {
+    fn fold(self: ChainIter<VecIter<i32>>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
         fold_iterator_i32(self, init, f)
     }
 }
@@ -1423,14 +1353,14 @@ impl IteratorFold<i32, i32> for RevIter {
 
 // Like the numeric consumers, equality over items is a capability of the
 // concrete item type rather than part of the producer contract.
-impl IteratorContains<i32> for VecIter {
-    fn contains(self: VecIter, target: i32) -> bool {
+impl IteratorContains<i32> for VecIter<i32> {
+    fn contains(self: VecIter<i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for VecIter {
-    fn count_eq(self: VecIter, target: i32) -> i32 {
+impl IteratorCountEq<i32> for VecIter<i32> {
+    fn count_eq(self: VecIter<i32>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
@@ -1531,74 +1461,74 @@ impl IteratorCountEq<i32> for TakeIter<FilterIter<i32>> {
     }
 }
 
-impl IteratorContains<i32> for TakeIter<VecIter> {
-    fn contains(self: TakeIter<VecIter>, target: i32) -> bool {
+impl IteratorContains<i32> for TakeIter<VecIter<i32>> {
+    fn contains(self: TakeIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for TakeIter<VecIter> {
-    fn count_eq(self: TakeIter<VecIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for TakeIter<VecIter<i32>> {
+    fn count_eq(self: TakeIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for SkipIter<VecIter> {
-    fn contains(self: SkipIter<VecIter>, target: i32) -> bool {
+impl IteratorContains<i32> for SkipIter<VecIter<i32>> {
+    fn contains(self: SkipIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for SkipIter<VecIter> {
-    fn count_eq(self: SkipIter<VecIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for SkipIter<VecIter<i32>> {
+    fn count_eq(self: SkipIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for TakeIter<SkipIter<VecIter>> {
-    fn contains(self: TakeIter<SkipIter<VecIter>>, target: i32) -> bool {
+impl IteratorContains<i32> for TakeIter<SkipIter<VecIter<i32>>> {
+    fn contains(self: TakeIter<SkipIter<VecIter<i32>>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for TakeIter<SkipIter<VecIter>> {
-    fn count_eq(self: TakeIter<SkipIter<VecIter>>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for TakeIter<SkipIter<VecIter<i32>>> {
+    fn count_eq(self: TakeIter<SkipIter<VecIter<i32>>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for SkipMapIter<VecIter> {
-    fn contains(self: SkipMapIter<VecIter>, target: i32) -> bool {
+impl IteratorContains<i32> for SkipMapIter<VecIter<i32>> {
+    fn contains(self: SkipMapIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for SkipMapIter<VecIter> {
-    fn count_eq(self: SkipMapIter<VecIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for SkipMapIter<VecIter<i32>> {
+    fn count_eq(self: SkipMapIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for SkipFilterIter<VecIter> {
-    fn contains(self: SkipFilterIter<VecIter>, target: i32) -> bool {
+impl IteratorContains<i32> for SkipFilterIter<VecIter<i32>> {
+    fn contains(self: SkipFilterIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for SkipFilterIter<VecIter> {
-    fn count_eq(self: SkipFilterIter<VecIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for SkipFilterIter<VecIter<i32>> {
+    fn count_eq(self: SkipFilterIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
 
-impl IteratorContains<i32> for ChainIter<VecIter> {
-    fn contains(self: ChainIter<VecIter>, target: i32) -> bool {
+impl IteratorContains<i32> for ChainIter<VecIter<i32>> {
+    fn contains(self: ChainIter<VecIter<i32>>, target: i32) -> bool {
         contains_iterator_i32(self, target)
     }
 }
 
-impl IteratorCountEq<i32> for ChainIter<VecIter> {
-    fn count_eq(self: ChainIter<VecIter>, target: i32) -> i32 {
+impl IteratorCountEq<i32> for ChainIter<VecIter<i32>> {
+    fn count_eq(self: ChainIter<VecIter<i32>>, target: i32) -> i32 {
         count_eq_iterator_i32(self, target)
     }
 }
@@ -1755,8 +1685,8 @@ impl IntoIterator for RevIter {
 // collect — drain an iterator into a Vec<i32>
 // ---------------------------------------------------------------------------
 
-/// Drain a `VecIter` into a new `Vec<i32>`.
-pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
+/// Drain a `VecIter<i32>` into a new `Vec<i32>`.
+pub fn collect_vec_iter(it: VecIter<i32>) -> Vec<i32> {
     it.collect()
 }
 
@@ -1771,17 +1701,17 @@ pub fn collect_filter_iter(it: FilterIter<i32>) -> Vec<i32> {
 }
 
 /// Drain a `TakeIter` into a new `Vec<i32>`.
-pub fn collect_take_iter(it: TakeIter<VecIter>) -> Vec<i32> {
+pub fn collect_take_iter(it: TakeIter<VecIter<i32>>) -> Vec<i32> {
     it.collect()
 }
 
 /// Drain a `SkipIter` into a new `Vec<i32>`.
-pub fn collect_skip_iter(it: SkipIter<VecIter>) -> Vec<i32> {
+pub fn collect_skip_iter(it: SkipIter<VecIter<i32>>) -> Vec<i32> {
     it.collect()
 }
 
 /// Drain a `ChainIter` into a new `Vec<i32>`.
-pub fn collect_chain_iter(it: ChainIter<VecIter>) -> Vec<i32> {
+pub fn collect_chain_iter(it: ChainIter<VecIter<i32>>) -> Vec<i32> {
     it.collect()
 }
 
@@ -1794,9 +1724,9 @@ pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
 // FromIterator impl for Vec<i32>
 // ---------------------------------------------------------------------------
 
-/// `FromIterator<i32>` impl for `Vec<i32>` — drains a `VecIter`.
-impl FromIterator<VecIter> for Vec<i32> {
-    fn from_iter(it: VecIter) -> Vec<i32> {
+/// `FromIterator<i32>` impl for `Vec<i32>` — drains a `VecIter<i32>`.
+impl FromIterator<VecIter<i32>> for Vec<i32> {
+    fn from_iter(it: VecIter<i32>) -> Vec<i32> {
         it.collect()
     }
 }
@@ -1816,22 +1746,22 @@ impl FromIterator<RangeInclusiveIter> for Vec<i32> {
 }
 
 /// `FromIterator<SkipMapIter>` impl for `Vec<i32>` — maps after skip.
-impl FromIterator<SkipMapIter<VecIter>> for Vec<i32> {
-    fn from_iter(it: SkipMapIter<VecIter>) -> Vec<i32> {
+impl FromIterator<SkipMapIter<VecIter<i32>>> for Vec<i32> {
+    fn from_iter(it: SkipMapIter<VecIter<i32>>) -> Vec<i32> {
         it.collect()
     }
 }
 
 /// `FromIterator<SkipFilterIter>` impl for `Vec<i32>` — filters after skip.
-impl FromIterator<SkipFilterIter<VecIter>> for Vec<i32> {
-    fn from_iter(it: SkipFilterIter<VecIter>) -> Vec<i32> {
+impl FromIterator<SkipFilterIter<VecIter<i32>>> for Vec<i32> {
+    fn from_iter(it: SkipFilterIter<VecIter<i32>>) -> Vec<i32> {
         it.collect()
     }
 }
 
-/// `FromIterator<StringIter>` impl for `Vec<String>` — preserves each item.
-impl FromIterator<StringIter> for Vec<String> {
-    fn from_iter(it: StringIter) -> Vec<String> {
+/// `FromIterator<VecIter<String>>` impl for `Vec<String>` — preserves each item.
+impl FromIterator<VecIter<String>> for Vec<String> {
+    fn from_iter(it: VecIter<String>) -> Vec<String> {
         it.collect()
     }
 }
@@ -1892,16 +1822,16 @@ impl FromIterator<TakeIter<FilterMapIter<String>>> for Vec<String> {
     }
 }
 
-/// `FromIterator<SkipMapIter<StringIter>>` impl for `Vec<String>` — maps after skip.
-impl FromIterator<SkipMapIter<StringIter>> for Vec<String> {
-    fn from_iter(it: SkipMapIter<StringIter>) -> Vec<String> {
+/// `FromIterator<SkipMapIter<VecIter<String>>>` impl for `Vec<String>` — maps after skip.
+impl FromIterator<SkipMapIter<VecIter<String>>> for Vec<String> {
+    fn from_iter(it: SkipMapIter<VecIter<String>>) -> Vec<String> {
         it.collect()
     }
 }
 
-/// `FromIterator<SkipFilterIter<StringIter>>` impl for `Vec<String>` — filters after skip.
-impl FromIterator<SkipFilterIter<StringIter>> for Vec<String> {
-    fn from_iter(it: SkipFilterIter<StringIter>) -> Vec<String> {
+/// `FromIterator<SkipFilterIter<VecIter<String>>>` impl for `Vec<String>` — filters after skip.
+impl FromIterator<SkipFilterIter<VecIter<String>>> for Vec<String> {
+    fn from_iter(it: SkipFilterIter<VecIter<String>>) -> Vec<String> {
         it.collect()
     }
 }

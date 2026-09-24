@@ -1,5 +1,6 @@
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_mono
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
@@ -130,6 +131,13 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
             ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, cleaned)
         )
         return
+    }
+    // `Name<args>` instantiation spellings (VecIter<i32>) register their
+    // substituted layout lazily. Derive it here so a call result whose
+    // declared return type is a generic instantiation still resolves to a
+    // struct reference instead of falling back to a scalar local (#860).
+    if contains(clone(cleaned), String_from("<")) && ends_with(clone(cleaned), String_from(">")) {
+        let _derived = ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, clone(cleaned))
     }
     let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, cleaned)
     if len(resolved) > 0 {

@@ -112,7 +112,7 @@ fn main() {
     let chained = iter::collect_chain_i32(v, a)
     assert(len(chained) == 7)
     assert(get_unchecked(chained, 5) == 10)
-    // range / VecIter / for-loop remain covered by sibling fixtures;
+    // range / VecIter<i32> / for-loop remain covered by sibling fixtures;
     // they hit independent GC local-typing bugs outside call_indirect typing.
     stdio::println("OK")
 }

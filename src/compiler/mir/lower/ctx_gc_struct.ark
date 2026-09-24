@@ -171,7 +171,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
         return concat(prefix, scalar)
     }
     // `Owner::Item` projections (fnsig:VecIter::Item;...,
-    // option:SkipIter<StringIter>::Item) resolve through the owner's
+    // option:SkipIter<VecIter<String>>::Item) resolve through the owner's
     // Iterator::next signature before the enum/container fallthroughs
     // (#860/#691).
     if contains(clone(type_name), String_from("::")) {

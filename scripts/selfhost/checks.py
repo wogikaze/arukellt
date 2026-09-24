@@ -3761,7 +3761,7 @@ pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String
 // `Owner::Item` resolves through the owner's Iterator::next signature:
 // `next` returns `Option<Item>`, so the Option payload recorded in the
 // function index is the item type. Concrete impls (VecIter::next) and
-// monomorphized ones (SkipIter<StringIter>::next) both live in the
+// monomorphized ones (SkipIter<VecIter<String>>::next) both live in the
 // function index (#860/#691).
 fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
     let owner = ctx_assoc_owner_base_name(owner_name)

@@ -6,10 +6,10 @@ struct GenTakeIter<I> {
     remaining: i32,
 }
 
-impl Iterator for GenTakeIter<VecIter> {
+impl Iterator for GenTakeIter<VecIter<i32>> {
     type Item = i32
 
-    fn next(self: GenTakeIter<VecIter>) -> Option<i32> {
+    fn next(self: GenTakeIter<VecIter<i32>>) -> Option<i32> {
         if self.remaining <= 0 {
             return Option::None
         }
@@ -23,7 +23,7 @@ impl Iterator for GenTakeIter<VecIter> {
         }
     }
 
-    fn collect(self: GenTakeIter<VecIter>) -> Vec<i32> {
+    fn collect(self: GenTakeIter<VecIter<i32>>) -> Vec<i32> {
         let out: Vec<i32> = Vec::new<i32>()
         for item in self {
             out.push(item)
@@ -31,7 +31,7 @@ impl Iterator for GenTakeIter<VecIter> {
         out
     }
 
-    fn count(self: GenTakeIter<VecIter>) -> i32 {
+    fn count(self: GenTakeIter<VecIter<i32>>) -> i32 {
         let mut n = 0
         for item in self {
             n = n + 1
@@ -40,19 +40,19 @@ impl Iterator for GenTakeIter<VecIter> {
     }
 }
 
-impl IntoIterator for GenTakeIter<VecIter> {
+impl IntoIterator for GenTakeIter<VecIter<i32>> {
     type Item = i32
-    type IntoIter = GenTakeIter<VecIter>
+    type IntoIter = GenTakeIter<VecIter<i32>>
 
-    fn into_iter(self: GenTakeIter<VecIter>) -> GenTakeIter<VecIter> {
+    fn into_iter(self: GenTakeIter<VecIter<i32>>) -> GenTakeIter<VecIter<i32>> {
         self
     }
 }
 
-impl Iterator for GenTakeIter<StringIter> {
+impl Iterator for GenTakeIter<VecIter<String>> {
     type Item = String
 
-    fn next(self: GenTakeIter<StringIter>) -> Option<String> {
+    fn next(self: GenTakeIter<VecIter<String>>) -> Option<String> {
         if self.remaining <= 0 {
             return Option::None
         }
@@ -66,7 +66,7 @@ impl Iterator for GenTakeIter<StringIter> {
         }
     }
 
-    fn collect(self: GenTakeIter<StringIter>) -> Vec<String> {
+    fn collect(self: GenTakeIter<VecIter<String>>) -> Vec<String> {
         let out: Vec<String> = Vec::new<String>()
         for item in self {
             out.push(item)
@@ -74,7 +74,7 @@ impl Iterator for GenTakeIter<StringIter> {
         out
     }
 
-    fn count(self: GenTakeIter<StringIter>) -> i32 {
+    fn count(self: GenTakeIter<VecIter<String>>) -> i32 {
         let mut n = 0
         for item in self {
             n = n + 1
@@ -92,19 +92,19 @@ fn main() {
     v.push(7)
     v.push(8)
     v.push(9)
-    let it: GenTakeIter<VecIter> = GenTakeIter { iter: v.into_iter(), remaining: 2 }
+    let it: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v.into_iter(), remaining: 2 }
     let collected = it.collect()
     stdio::println((collected.len()).to_string())
 
     let v2: Vec<i32> = Vec::new<i32>()
     v2.push(3)
     v2.push(4)
-    let it2: GenTakeIter<VecIter> = GenTakeIter { iter: v2.into_iter(), remaining: 5 }
+    let it2: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v2.into_iter(), remaining: 5 }
     stdio::println((it2.count()).to_string())
 
     let v3: Vec<i32> = Vec::new<i32>()
     v3.push(11)
-    let it3: GenTakeIter<VecIter> = GenTakeIter { iter: v3.into_iter(), remaining: 1 }
+    let it3: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v3.into_iter(), remaining: 1 }
     let first = first_i32(it3)
     match first {
         Option::Some(x) => stdio::println((x).to_string())
@@ -114,7 +114,7 @@ fn main() {
     let sv: Vec<String> = Vec::new<String>()
     sv.push(String_from("ab"))
     sv.push(String_from("cd"))
-    let sit: GenTakeIter<StringIter> = GenTakeIter { iter: sv.into_iter(), remaining: 2 }
+    let sit: GenTakeIter<VecIter<String>> = GenTakeIter { iter: sv.into_iter(), remaining: 2 }
     let scollected = sit.collect()
     stdio::println((scollected.len()).to_string())
 
@@ -122,7 +122,7 @@ fn main() {
     v4.push(5)
     v4.push(6)
     v4.push(7)
-    let fit: GenTakeIter<VecIter> = GenTakeIter { iter: v4.into_iter(), remaining: 2 }
+    let fit: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v4.into_iter(), remaining: 2 }
     let mut total = 0
     for item in fit {
         total = total + item

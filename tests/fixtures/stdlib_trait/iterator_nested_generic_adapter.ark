@@ -43,12 +43,12 @@ fn main() -> i32 {
     v.push(7)
     let w: Vec<i32> = Vec::new<i32>()
     w.push(9)
-    let it: Forward<VecIter> = Forward { inner: Inner { iter: v.into_iter() } }
+    let it: Forward<VecIter<i32>> = Forward { inner: Inner { iter: v.into_iter() } }
     match it.next() {
         Some(x) => stdio::println(x.to_string()),
         None => stdio::println("none"),
     }
-    let it2: Local<VecIter> = Local { iter: w.into_iter() }
+    let it2: Local<VecIter<i32>> = Local { iter: w.into_iter() }
     match it2.next() {
         Some(x) => stdio::println(x.to_string()),
         None => stdio::println("none"),

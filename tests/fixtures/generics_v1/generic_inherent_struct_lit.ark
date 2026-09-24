@@ -1,7 +1,7 @@
 // An inherent method on a generic shell (Skip<I>) constructs another
 // generic struct (SkipMap<I>) from a field value whose local type carries
 // the storage spelling struct:Name:id. The literal must still derive the
-// instantiated layout SkipMap<VecIter> so wasm32-gc struct.new picks the
+// instantiated layout SkipMap<VecIter<i32>> so wasm32-gc struct.new picks the
 // named GC type instead of the unsubstituted declaration.
 use std::core::iter
 use std::host::stdio
@@ -37,9 +37,9 @@ impl Iterator for Skip<I> {
     }
 }
 
-impl Iterator for SkipMap<VecIter> {
+impl Iterator for SkipMap<VecIter<i32>> {
     type Item = i32
-    fn next(self: SkipMap<VecIter>) -> Option<i32> {
+    fn next(self: SkipMap<VecIter<i32>>) -> Option<i32> {
         while self.to_skip > 0 {
             let nxt = self.iter.next()
             match nxt {
@@ -73,13 +73,13 @@ fn main() -> i32 {
     v.push(2)
     v.push(3)
     v.push(4)
-    let it: Skip<VecIter> = Skip { iter: v.into_iter(), to_skip: 2 }
+    let it: Skip<VecIter<i32>> = Skip { iter: v.into_iter(), to_skip: 2 }
     let a = it.next()
     match a {
         Option::Some(x) => stdio::println((x).to_string())
         Option::None => stdio::println("none_a")
     }
-    let it2: Skip<VecIter> = Skip { iter: v.into_iter(), to_skip: 1 }
+    let it2: Skip<VecIter<i32>> = Skip { iter: v.into_iter(), to_skip: 1 }
     let m = it2.map(double)
     let b = m.next()
     match b {

@@ -317,54 +317,54 @@ impl HashMap<K, V> {
 // map-specific iterator state type.
 impl IntoIterator for HashMap<i32, i32> {
     type Item = i32
-    type IntoIter = VecIter
+    type IntoIter = VecIter<i32>
 
-    fn into_iter(self: HashMap<i32, i32>) -> VecIter {
+    fn into_iter(self: HashMap<i32, i32>) -> VecIter<i32> {
         hashmap_i32_i32_keys(self).iter()
     }
 }
 
 impl IntoIterator for HashMap<String, i32> {
     type Item = String
-    type IntoIter = StringIter
+    type IntoIter = VecIter<String>
 
-    fn into_iter(self: HashMap<String, i32>) -> StringIter {
+    fn into_iter(self: HashMap<String, i32>) -> VecIter<String> {
         hashmap_str_i32_keys(self).iter()
     }
 }
 
 impl IntoIterator for HashMap<i32, String> {
     type Item = i32
-    type IntoIter = VecIter
+    type IntoIter = VecIter<i32>
 
-    fn into_iter(self: HashMap<i32, String>) -> VecIter {
+    fn into_iter(self: HashMap<i32, String>) -> VecIter<i32> {
         hashmap_i32_str_keys(self).iter()
     }
 }
 
 impl IntoIterator for HashMap<String, String> {
     type Item = String
-    type IntoIter = StringIter
+    type IntoIter = VecIter<String>
 
-    fn into_iter(self: HashMap<String, String>) -> StringIter {
+    fn into_iter(self: HashMap<String, String>) -> VecIter<String> {
         hashmap_str_str_keys(self).iter()
     }
 }
 
 impl IntoIterator for HashMap<i32, fn(i32) -> i32> {
     type Item = i32
-    type IntoIter = VecIter
+    type IntoIter = VecIter<i32>
 
-    fn into_iter(self: HashMap<i32, fn(i32) -> i32>) -> VecIter {
+    fn into_iter(self: HashMap<i32, fn(i32) -> i32>) -> VecIter<i32> {
         hashmap_i32_fn_keys(self).iter()
     }
 }
 
 impl IntoIterator for HashMap<String, fn(i32) -> i32> {
     type Item = String
-    type IntoIter = StringIter
+    type IntoIter = VecIter<String>
 
-    fn into_iter(self: HashMap<String, fn(i32) -> i32>) -> StringIter {
+    fn into_iter(self: HashMap<String, fn(i32) -> i32>) -> VecIter<String> {
         hashmap_str_fn_keys(self).iter()
     }
 }

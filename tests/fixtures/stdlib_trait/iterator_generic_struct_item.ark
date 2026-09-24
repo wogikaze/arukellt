@@ -47,13 +47,13 @@ fn main() -> i32 {
     v.push(7)
     v.push(8)
     v.push(9)
-    let it: EnumI<VecIter> = EnumI { iter: v.into_iter(), index: 0 }
+    let it: EnumI<VecIter<i32>> = EnumI { iter: v.into_iter(), index: 0 }
     let items = it.collect()
     stdio::println((len(items)).to_string())
     let p0 = get_unchecked(items, 0)
     stdio::println((p0.first).to_string())
     stdio::println((p0.second).to_string())
-    let it2: EnumI<VecIter> = EnumI { iter: v.into_iter(), index: 0 }
+    let it2: EnumI<VecIter<i32>> = EnumI { iter: v.into_iter(), index: 0 }
     for p in it2 {
         stdio::println((p.first * 100 + p.second).to_string())
     }

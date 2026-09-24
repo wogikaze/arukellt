@@ -383,7 +383,7 @@ fn mir_is_vec_string_iteration_method(method_name: String) -> bool {
 }
 
 fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
-    eq(clone(type_name), String_from("StringIter")) ||
+    eq(clone(type_name), String_from("VecIter_String")) ||
     eq(clone(type_name), String_from("MapIter_String_String")) ||
     eq(clone(type_name), String_from("FilterIter_String")) ||
     eq(clone(type_name), String_from("TakeIter_MapIter_String_String")) ||
@@ -392,8 +392,8 @@ fn mir_is_vec_string_from_iter_source(type_name: String) -> bool {
     eq(clone(type_name), String_from("FilterMapIter_String")) ||
     eq(clone(type_name), String_from("TakeIter_MapFilterIter_String_String")) ||
     eq(clone(type_name), String_from("TakeIter_FilterMapIter_String")) ||
-    eq(clone(type_name), String_from("SkipMapIter_StringIter")) ||
-    eq(clone(type_name), String_from("SkipFilterIter_StringIter"))
+    eq(clone(type_name), String_from("SkipMapIter_VecIter_String")) ||
+    eq(clone(type_name), String_from("SkipFilterIter_VecIter_String"))
 }
 
 // Concrete HashMap<K, V> locals carry the hashmap:<pair> or HashMap_K_V
