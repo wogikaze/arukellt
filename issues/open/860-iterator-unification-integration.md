@@ -1349,3 +1349,56 @@ acceptance boxes complete.
 - Remaining #860 residuals: #691 adapter migration to source-generic
   or item-generic form can now use `fn(T) -> U` fields; the final
   residual-zero audit once #691 closes. #860 is not closed.
+
+## Progress receipt — 2026-09-24 (Owner::Item projections; item-generic Skip adapters)
+
+- `7906a462d` resolves associated-type projections of the form
+  `Owner::Item` inside field and fnsig type spellings. Parameter
+  substitution turned `fn(I::Item) -> I::Item` into
+  `fnsig:VecIter::Item;VecIter::Item`, whose segments never resolved —
+  on wasm32-gc the callback func type fell back to an unrelated
+  signature and the core module failed validation
+  (`call_ref`/`local` type mismatch in the monomorphized
+  `SkipMap3__next__VecIter`). The resolver reads the item type from
+  the owner's `Iterator::next` signature in the function index
+  (`Option<Item>` payload), covering concrete impls
+  (`VecIter::next`) and monomorphized ones
+  (`SkipIter__next__StringIter`). `ctx_resolve_fnsig_segment` (plus
+  the `mono_param_subst` mirror) falls back to the projection
+  resolver, `ctx_derive_generic_struct_layout` resolves projections
+  in substituted field spellings, `gc_struct_field_sig_for_type`
+  resolves before the enum/container fallthroughs, and
+  `struct_lit` treats `::` as a name qualifier rather than a
+  segment separator. The bootstrap overlay stub in
+  `scripts/selfhost/checks.py` received the same helpers in
+  flattened form so the fix reaches the s2 compiler.
+- Stdlib: `SkipMapIter<I>` and `SkipFilterIter<I>` are now item-generic
+  (`map_f: fn(I::Item) -> I::Item`, `filter_f: fn(I::Item) -> bool`)
+  with generic `Iterator`/`IntoIterator` impls;
+  `StringIter::skip(n)` returns `SkipIter<StringIter>` and the
+  concrete `StringSkipIter`/`StringSkipMapIter`/
+  `StringSkipFilterIter` types and their impls are removed.
+  `Vec<String>` gains `FromIterator<SkipMapIter<StringIter>>` and
+  `FromIterator<SkipFilterIter<StringIter>>`. The filter predicate
+  receives a cloned handle so the accepted original is still yielded,
+  matching the String-lane ownership contract.
+- Verified on rebuilt s2: a probe struct
+  `SkipMap3<I> { iter: I, to_skip: i32, map_f: fn(I::Item) -> I::Item }`
+  now emits a valid wasm32-gc component and prints `2`/`bbb` for the
+  `VecIter` and `StringIter` instantiations (previously invalid
+  core Wasm); the linear-memory build prints the same values.
+  Fixture batch on wasm32-gc components: `iterator_string_callbacks`,
+  `iterator_adapters`, `iterator_string`, `iterator_skip_basic`,
+  `iterator_skip_zero`, `iterator_skip_more_than_len`,
+  `iterator_query_consumers` all PASS; the first three also PASS on
+  linear wasm32. `verify lane` exits 0 (comment policy, editorconfig,
+  quality contract, touched-code ratchet, lint all PASS).
+  `docs/language/spec.md` and `docs/stdlib/migration-guidance.md`
+  now name the item-generic adapters.
+- Remaining #860 residuals: `FilterIter<T>::map` stays `T -> T`
+  (needs method-level generics for `fn(I::Item) -> U`),
+  `impl<K,V> IntoIterator for HashMap<K,V>` (needs unified
+  `VecIter<T>`), `MirInst_call` arg0=-1 design, the RFC-011
+  residual-zero audit once #691 closes, and `verify quick` remains
+  blocked by unrelated pre-existing gates (#652, #765, MIR
+  reachability baseline, T3 memory64). #860 is not closed.
