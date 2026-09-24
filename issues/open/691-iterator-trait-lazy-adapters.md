@@ -420,6 +420,45 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-24 (HashMap::keys() and fn-valued map iteration)
+
+- Commit `04d70d644` adds the source-level `HashMap::keys()` method and
+  completes `for k in map` over every supported pair, including the GC-only
+  fn-valued families `HashMap<i32, fn(i32) -> i32>` and
+  `HashMap<String, fn(i32) -> i32>`.
+- `keys()` is a generic method that monomorphizes to the per-combo
+  `hashmap_<family>_keys` adapter; the typechecker returns `Vec<K>` and the
+  MIR rewrite resolves the family from the receiver's `hashmap:<pair>` local
+  type. `HashMap::new<K, fn>` callees now spell the fn type argument as the
+  `mono_type_key` form (`fn_i32_i32_`) so the constructor rewrite fires
+  instead of binding the self-recursive `HashMap__new__K__V` template.
+- Concrete `impl IntoIterator for HashMap<K, fn>` targets register under the
+  shared `fnref` owner key (`HashMap_i32_fnref`, `HashMap_String_fnref`),
+  matching the impl_inst_arg_key convention; previously both fn impls collided
+  on the bare `HashMap` owner and for-in emitted no loop (unconsumed ref on
+  the wasm stack). `mir_hashmap_impl_owner_name` and
+  `mir_hashmap_decl_owner_name` resolve `hashmap:i32fn`/`hashmap:strfn`
+  and spelled `HashMap<K, fn(...)>` locals to those owners.
+- `?HashMap:K:V` params inside monomorphized bodies now substitute through
+  the instance's recorded TypeInfo args (`mono_subst_hashmap_param`), so a
+  generic `fn key_count<K, V>(m: HashMap<K, V>)` instantiates with the real
+  `hashmap:i32fn`/`hashmap:strfn` layout instead of the `enum:HashMap`
+  catch-all (structref param + unreachable body).
+- Fixture `stdlib_hashmap/hashmap_keys_generic.ark` (run / t3-compile /
+  t3-run) covers `keys()` on all four GC-supported pairs, both fn-valued
+  pairs, a generic `key_count<K, V>` body, and `for k in` over fn-valued
+  maps; it compiles, validates, and runs `OK` as a wasm32-gc component.
+  Fn-valued maps stay GC-only per #833/#838 (linear-memory emits unreachable
+  by design). `verify lane` passes; stdlib_hashmap/collections fixture runs
+  show only pre-existing failures (`test::assert_eq_str` gap,
+  `hashset_i32_difference` return-type bug).
+- Remaining residuals: true generic `impl<K, V> IntoIterator for HashMap<K, V>`
+  (needs a unified generic VecIter<T>), `FilterIter<T>::map` T->U (needs
+  method-level generics, #860), `StringSkip*` generic spelling, the
+  `MirInst_call` arg0=-1 design question, the RFC-011 residual audit, and
+  `verify quick` remains blocked by unrelated failures. This is not a close
+  receipt.
+
 ## Progress receipt — 2026-09-24 (x.clone() on unbound type variables)
 
 - Commit `99212875d` keeps the receiver type for `x.clone()` on an unbound
