@@ -1438,3 +1438,45 @@ acceptance boxes complete.
   `verify quick` remains blocked by unrelated pre-existing gates
   (#652, #765, MIR reachability baseline, T3 memory64). #860 is not
   closed.
+
+## Progress receipt — 2026-09-24 (parametric IntoIterator for HashMap<K,V>)
+
+- Commit `4342a3144` replaces the six per-pair `IntoIterator` impls
+  with one `impl<K,V> IntoIterator for HashMap<K,V>`
+  (`type Item = K`, `type IntoIter = VecIter<K>`). The body snapshots
+  `self.keys()` into a `Vec<K>` and builds the shared `VecIter<K>`
+  literal, so every supported pair — including fn-valued maps —
+  reaches for-in through a single parametric impl.
+- Compiler pipeline fixes that made the parametric impl emit
+  correctly: the E0215 overlap check now compares constructor heads
+  by tag when `TypeInfo` names are empty (a parametric HashMap impl
+  no longer collides with unrelated builtin impls); desugared
+  for-calls record the builtin owner name plus the
+  per-instantiation owner spelling; `hashmap:` params in the
+  signature registry resolve each segment positionally through the
+  `MonoInstance` TypeInfo args; `hashmap:K:V`/`?HashMap:K:V` params
+  substitute through the same mono path; and
+  `HashMap<i32,i32>` angle spellings normalize onto the
+  `hashmap:<pair>` family alias for method rewrites.
+- Root-cause fix worth noting: `ctx_set_func_param_type` also syncs
+  the `MirLocal` record, so the earlier var-preserving guard still
+  erased `?HashMap:K:V` before `ctx_collect_type_var_names` ran —
+  the ordinal mono map came up empty and `self.keys()` lowered as
+  `?HashMap:K:V::keys` (fid=-1). New `ctx_set_func_param_sig_type`
+  writes only the signature record; the local keeps the var
+  spelling until mono substitution rewrites all three views
+  consistently.
+- Verified on rebuilt s2: `iterator_hashmap_keys.ark` passes on
+  wasm32-gc component and wasm32 linear with identical assertions;
+  `hashmap_keys_generic.ark` (fn-valued maps, generic
+  `key_count<K,V>` param, for-in over fn pairs) passes on
+  wasm32-gc. `verify lane` clean. Filtered fixture-parity
+  (stdlib_hashmap + stdlib_trait) shows 29 failures that reproduce
+  identically on the baseline build — pre-existing, not from this
+  unit. fn-valued HashMap constructors still trap on linear wasm32
+  (pre-existing storage limitation, also on baseline).
+- Remaining #860 residuals: `FilterIter<T>::map` stays `T -> T`
+  (needs method-level generics), `MirInst_call` arg0=-1 design,
+  the RFC-011 residual-zero audit once #691 closes, and
+  `verify quick` remains blocked by unrelated pre-existing gates.
+  #860 is not closed.

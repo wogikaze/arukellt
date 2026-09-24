@@ -420,6 +420,37 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-24 (parametric IntoIterator for HashMap<K,V>)
+
+- Commit `4342a3144` replaces the six per-pair `IntoIterator` impls
+  with one `impl<K,V> IntoIterator for HashMap<K,V>`
+  (`type Item = K`, `type IntoIter = VecIter<K>`). `self.keys()`
+  monomorphizes to the per-family keys adapter; fn-valued pairs are
+  covered by the same impl, so `for k in map` now works for every
+  supported HashMap combination through a single source-level
+  impl.
+- Compiler fixes in the same commit: E0215 overlap check compares
+  constructor heads by tag for nameless builtin self types;
+  for-desugar records the builtin and per-instantiation owner
+  spellings; `hashmap:`/`?HashMap:K:V` params resolve through the
+  MonoInstance TypeInfo args in the signature registry and mono
+  substitution; `HashMap<i32,i32>` angle spellings normalize onto
+  the `hashmap:<pair>` family alias; and a new
+  `ctx_set_func_param_sig_type` lets the signature record take the
+  concrete alias without erasing the var-carrying local type name
+  the ordinal mono map collects from.
+- Verified on rebuilt s2: `iterator_hashmap_keys.ark` passes on
+  wasm32-gc component and wasm32 linear with identical assertions;
+  `hashmap_keys_generic.ark` (generic `key_count<K,V>` param,
+  fn-valued maps, for-in over fn pairs) passes on wasm32-gc.
+  `verify lane` clean; the 29 filtered fixture-parity failures
+  reproduce identically on the baseline build (pre-existing).
+  fn-valued HashMap constructors still trap on linear wasm32 —
+  pre-existing storage limitation, not from this unit.
+- This does not close #691: `FilterIter<T>::map` still needs
+  method-level generics, and the RFC-011 residual-zero audit stays
+  open.
+
 ## Progress receipt — 2026-09-24 (unified VecIter<T>; StringIter retired)
 
 - Commit `78809ce46` makes `VecIter` item-generic
