@@ -59,3 +59,41 @@ RFC-011: **8 (closure/collection)**。
   typing/parser prerequisite only; managed closure environments, collection
   lowering, and the representative negative fixture remain open, so #872 is
   not closed.
+
+## Progress receipt — 2026-09-25 (capture-escape diagnostic E0220)
+
+- Commit `865aca4d5` turns every capturing-closure escape into a compile-time
+  diagnostic instead of the previous invalid-Wasm / runtime-trap outcome.
+  Borrow captures keep the semantic error E0213; move and Copy captures —
+  legal per ADR-061 but not yet implemented as managed environments — get the
+  new capability diagnostic E0220, whose removal condition is this issue's
+  managed-env lowering.
+- Covered positions: call and method-call arguments plus method receivers
+  (chokepoint in `infer_call_expr` / `infer_method_call_expr`, so unresolved
+  and builtin calls are checked identically), explicit `return`, block tail
+  expressions, `let` init expressions that are not a literal closure (alias,
+  block, if/match, aggregates — only a literal init registers the binding for
+  capture supply), tuple-destructure init, and assignment right-hand sides.
+  Bindings track `has_captures` so aliased values stay rejected downstream.
+- Verified on s2 (`selfhost build-compiler`): `clo_esc`/`clo_ret_branch`/
+  `clo_hof`/`clo_map`/`probe_*` now fail with E0220 at the escape site,
+  `clo_map_str` keeps E0213, and the existing diag fixtures
+  `closure_borrow_{callback,conflict,return,store}` and
+  `closure_move_after_capture` still produce E0213/E0214/E0212. Positive
+  cases that must keep working do: `clo_cap` prints 15, non-capturing
+  `docs/examples/closure.ark` prints 42, and
+  `benchmarks/bench_cpu_closure_map.ark` (direct calls only) prints 6017000.
+- `python3 scripts/manager.py verify lane` passed (comment policy,
+  editorconfig, quality contract 24 rules, touched-code ratchet, lint
+  checked=13 failed=0). `src/compiler/diagnostics/codes.ark` had its
+  pre-existing `pub pub pub` corruption repaired so it parses under the
+  canonical formatter; its `docs/data/ark-formatter-baseline.toml` exception
+  was removed.
+- Residuals: `let g = f` rebinding through a *new* let is rejected, but
+  re-assignment `g = f` where `f` has captures is flagged at the assignment
+  while a pre-existing `g` binding keeps its flags only approximately;
+  `for`-source and comprehension positions inherit coverage through the
+  call chokepoint. Managed closure environments (the actual acceptance
+  criterion), collection GC lowering, and the representative fixture remain
+  open, so #872 is not closed. The same diagnostic now fires for the
+  linear-memory target, which shares the bare-funcref limitation (#874).
