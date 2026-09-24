@@ -248,6 +248,9 @@ diag:diagnostics/closure_borrow_callback.ark
 diag:diagnostics/closure_borrow_store.ark
 diag:diagnostics/closure_borrow_conflict.ark
 diag:diagnostics/closure_move_after_capture.ark
+diag:diagnostics/closure_capture_escape_arg.ark
+diag:diagnostics/closure_capture_escape_return.ark
+diag:diagnostics/closure_capture_escape_store.ark
 diag:diagnostics/non_exhaustive.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/parse_missing_rbrace.ark
