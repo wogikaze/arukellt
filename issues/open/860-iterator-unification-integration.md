@@ -1402,3 +1402,39 @@ acceptance boxes complete.
   residual-zero audit once #691 closes, and `verify quick` remains
   blocked by unrelated pre-existing gates (#652, #765, MIR
   reachability baseline, T3 memory64). #860 is not closed.
+
+## Progress receipt — 2026-09-24 (unified VecIter<T>; StringIter retired)
+
+- Commit `78809ce46` unifies the producer adapters: `VecIter` is now
+  item-generic (`VecIter<T> { vec: Vec<T>, index, length }`), serving
+  the i32 lane at `VecIter<i32>` and the String lane at
+  `VecIter<String>`. `StringIter` and its dedicated impls are
+  removed; `Vec<String>::iter`/`into_iter` return the shared type.
+  All adapter composition (`TakeIter<VecIter<T>>`,
+  `SkipIter<VecIter<T>>`, `SkipMapIter<VecIter<String>>`), the i32
+  capability impls, drain helpers, `FromIterator` targets, and the
+  HashMap `IntoIterator` impls moved to the instantiated spellings.
+  `unique`/`rev` stay on a concrete `impl VecIter<i32>` block
+  because `UniqueIter`/`RevIter` remain i32-fixed.
+- Compiler: `mark_call_result_from_return_type_name` now derives
+  `Name<args>` generic-struct layouts on demand. A call declared to
+  return `VecIter<i32>` previously reached the lookup-only registry
+  before lazy derivation ran; the result local fell back to i64 and
+  the wasm32-gc module failed validation. Any declared
+  generic-instantiation return type now resolves to its struct
+  reference regardless of lowering order.
+- Verified on rebuilt s2: 21 fixtures compile and run on wasm32-gc
+  components (full `stdlib_trait/iterator_*` batch, `generics_v1`
+  iterator fixtures, `stdlib_seq`, `stdlib_hashmap`); 10 also pass
+  on linear wasm32 with identical assertions. The numeric-consumer
+  diagnostic reads `VecIter does not implement IteratorSum`.
+  `verify lane` and `docs check` pass (docs regeneration also
+  cleared pre-existing registry drift).
+- Remaining #860 residuals: `FilterIter<T>::map` stays `T -> T`
+  (needs method-level generics for `fn(I::Item) -> U`),
+  `impl<K,V> IntoIterator for HashMap<K,V>` (now unblocked — a
+  parametric impl can return `VecIter<K>`), `MirInst_call` arg0=-1
+  design, the RFC-011 residual-zero audit once #691 closes, and
+  `verify quick` remains blocked by unrelated pre-existing gates
+  (#652, #765, MIR reachability baseline, T3 memory64). #860 is not
+  closed.

@@ -420,6 +420,47 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-24 (unified VecIter<T>; StringIter retired)
+
+- Commit `78809ce46` makes `VecIter` item-generic
+  (`VecIter<T> { vec: Vec<T>, index, length }`) so the i32 and String
+  lanes share one producer adapter — the same shape the
+  `generic_struct_vec_field` fixture proved for `GenVecIter<T>`.
+  `Vec<i32>::iter`/`into_iter` produce `VecIter<i32>`,
+  `Vec<String>` produces `VecIter<String>`, and the concrete
+  `StringIter` type plus the `string_iter` helper are removed.
+  `VecIter<T>` methods stay item-generic (`map`/`filter`/`take`/
+  `skip`/`is_empty`); `unique`/`rev` remain on a concrete
+  `impl VecIter<i32>` block because `UniqueIter`/`RevIter` are
+  still i32-fixed state types. Every adapter, capability
+  (`IteratorSum`/`Fold`/`Contains`/`CountEq`), drain helper, and
+  `FromIterator` impl target moved to the instantiated spellings
+  (`VecIter<i32>`, `SkipIter<VecIter<i32>>`,
+  `SkipMapIter<VecIter<String>>`, ...), and the HashMap
+  `IntoIterator` impls return `VecIter<i32>`/`VecIter<String>`.
+- One compiler fix was required: `fn f() -> VecIter<i32>` call results
+  hit the lookup-only layout registry before the lazy generic
+  derivation ran, so the result local fell back to i64 and the GC
+  module failed validation (`local.set` i64 <- ref). 
+  `mark_call_result_from_return_type_name` now derives `Name<args>`
+  layouts on demand via `ctx_derive_generic_struct_layout` before the
+  registry lookup, so any declared generic-instantiation return type
+  resolves to its struct reference.
+- Verified on rebuilt s2: 21 fixtures compile and run on wasm32-gc
+  components (all `stdlib_trait/iterator_*`, `generics_v1`
+  generic-struct iterator fixtures, `stdlib_seq` delegation,
+  `stdlib_hashmap/hashmap_keys_generic`); 10 of them also pass on
+  linear wasm32. The numeric-consumer diagnostic now reads `VecIter
+  does not implement IteratorSum` (`.diag` updated). `verify lane`
+  and `docs check` pass — regenerating docs also cleared a
+  pre-existing registry drift (3000 manifest entries).
+- Remaining residuals: true generic `impl<K, V> IntoIterator for
+  HashMap<K, V>` is now unblocked (a parametric impl can return
+  `VecIter<K>`), `FilterIter<T>::map` T->U (needs method-level
+  generics, #860), the `MirInst_call` arg0=-1 design question, the
+  RFC-011 residual audit, and `verify quick` remains blocked by
+  unrelated failures. This is not a close receipt.
+
 ## Progress receipt — 2026-09-24 (HashMap::keys() and fn-valued map iteration)
 
 - Commit `04d70d644` adds the source-level `HashMap::keys()` method and
