@@ -44,9 +44,10 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let cap_body = ast_node::node_child_at(node, cap_child_count - 1)
         closure_free::closure_collect_free(ctx, cap_body, node, caps)
     }
-    let packed = closure_capture_args::closure_pack_caps(caps)
-    let extra = len(caps)
     let synth = closure_registry::closure_next_synth_name(ctx)
+    let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
+    let packed = closure_capture_args::closure_pack_caps(supply_caps)
+    let extra = len(caps)
     let mf = mir_emit_closure_fn(ctx, synth, node, caps)
     closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
 }

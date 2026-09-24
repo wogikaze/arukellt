@@ -1,5 +1,7 @@
 use mir::function_locals_view
 use mir::local_access
+use mir::inst_local_set
+use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
@@ -87,4 +89,44 @@ fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>
         ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(cname), pvt, cap_type))
         ci = ci + 1
     }
+}
+
+fn mir_closure_vt_is_snapshot_copy(vt: i32) -> bool {
+    vt == value_types::VT_I32() ||
+    vt == value_types::VT_I64() ||
+    vt == value_types::VT_F64() ||
+    vt == value_types::VT_F32() ||
+    vt == value_types::VT_V128()
+}
+
+// ADR-061 shared-copy capture: a Copy binding is copied at the capture point,
+// so the closure must not observe a later reassignment of the source local.
+// Scalar captures are snapshotted into hidden locals at the literal position
+// and the packed supply names point at the snapshots. Non-Copy captures keep
+// the source-local name: borrow captures read the live local (they cannot
+// escape, E0213) and move captures read a slot whose source is already dead.
+fn mir_closure_snapshot_copy_captures(ctx: LowerCtx, caps: Vec<String>, scope: String) -> Vec<String> {
+    let out = Vec::new<String>()
+    let cap_n = len(caps)
+    let mut ci = 0
+    while ci < cap_n {
+        let cname = clone(get_unchecked(caps, ci))
+        let li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(cname))
+        if li < 0 || !mir_closure_vt_is_snapshot_copy(ctx_api_local_types::ctx_local_vt(ctx, li)) {
+            push(out, cname)
+            ci = ci + 1
+            continue
+        }
+        let vt = ctx_api_local_types::ctx_local_vt(ctx, li)
+        let snap_name = concat(concat("__capsnap_", clone(scope)), concat("_", to_string(ci)))
+        let snap = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(snap_name), vt)
+        let cap_type = mir_closure_lookup_capture_type(ctx, li)
+        if len(cap_type) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, snap, cap_type)
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(snap, li))
+        push(out, snap_name)
+        ci = ci + 1
+    }
+    out
 }

@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn main() {
+    let mut y: i32 = 5
+    let f = |x: i32| -> i32 {
+        x + y
+    }
+    y = 10
+    // Copy capture keeps the capture-time value; the reassignment is independent.
+    stdio::println((f(0)).to_string())
+    let g = |x: i32| -> i32 {
+        x + y
+    }
+    stdio::println((g(0)).to_string())
+}
