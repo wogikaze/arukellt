@@ -37,18 +37,6 @@ fn MirLocal_type_kind(local: MirLocal, table: TypeTable) -> i32 {
     local_record::mir_local_type_kind(local, table)
 }
 
-fn MirLocal_type_name_from_table(local: MirLocal, table: TypeTable) -> String {
-    local_record::mir_local_type_name_from_table(local, table)
-}
-
-fn MirLocal_is_string_type(local: MirLocal, table: TypeTable) -> bool {
-    local_record::mir_local_is_string_type(local, table)
-}
-
-fn MirLocal_is_string_or_untyped(local: MirLocal, table: TypeTable) -> bool {
-    local_record::mir_local_is_string_or_untyped(local, table)
-}
-
 fn MirLocal_variant_slot(local: MirLocal) -> i32 {
     local_record::mir_local_variant_slot(local)
 }

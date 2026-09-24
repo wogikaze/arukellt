@@ -41,10 +41,6 @@ fn MirBlock_inst_func_id(block: MirBlock, idx: i32) -> i32 {
     get_unchecked(block.func_ids, idx)
 }
 
-fn MirBlock_inst_type_id(block: MirBlock, idx: i32) -> i32 {
-    get_unchecked(block.type_ids, idx)
-}
-
 fn MirBlock_inst_str_val(block: MirBlock, idx: i32) -> String {
     let str_id = get_unchecked(block.str_ids, idx)
     if str_id < 0 || str_id >= len(block.str_pool) {

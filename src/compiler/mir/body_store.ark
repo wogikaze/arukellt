@@ -685,10 +685,6 @@ fn MirModule_body_store_return_variant_slot(m: MirModule, idx: i32) -> i32 {
     get_unchecked(m.body_store_return_variant_slots, idx)
 }
 
-fn MirModule_replace_function_body(m: MirModule, idx: i32, f: MirFunction) {
-    MirModule_store_function_body(m, idx, f)
-}
-
 fn mir_body_set_slot(
     m: MirModule,
     idx: i32,
