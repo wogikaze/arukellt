@@ -47,7 +47,6 @@
 | `docs/data/code-quality-rules.toml` | internal (SSOT input) | hand-maintained | Executable code-quality rule registry |
 | `docs/data/tooling-inventory.toml` | internal (SSOT input) | hand-maintained | Canonical formatter/linter ownership by file family |
 | `docs/data/ark-code-quality-baseline.toml` | internal (SSOT input) | hand-maintained via checker | Ark structural metric ratchet ceilings |
-| `docs/data/ark-formatter-baseline.toml` | internal (SSOT input) | hand-maintained | Content-addressed temporary formatter parse exceptions |
 | `docs/data/docs-gate-config.toml` | internal (SSOT input) | hand-maintained | Documentation hard-gate policy and ratchets |
 | `docs/capability-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From capabilities.toml |
 | `docs/data/cli-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From cli-surface.toml |

@@ -479,28 +479,31 @@ def quality_contract_findings(root: Path) -> list[Finding]:
             findings.append(_finding("CQ-STRUCT-009", ".github/workflows/ci.yml", f"{job}: quality policy bypasses manager.py", "tooling"))
 
     formatter_baseline_path = root / "docs/data/ark-formatter-baseline.toml"
-    try:
-        formatter_baseline = _load_toml(formatter_baseline_path)
-        for field in ("owner", "issue", "removal_condition", "recheck_after"):
-            if not formatter_baseline.get(field):
-                findings.append(_finding("CQ-STRUCT-009", str(formatter_baseline_path.relative_to(root)), f"formatter baseline missing metadata: {field}", "compiler-tooling"))
-        issue = formatter_baseline.get("issue")
-        if issue and not any(any((root / state).glob(f"{issue}-*.md")) for state in ("issues/open", "issues/done")):
-            findings.append(_finding("CQ-STRUCT-009", str(formatter_baseline_path.relative_to(root)), f"formatter baseline issue does not exist: {issue}", "compiler-tooling"))
-        exception_paths: set[str] = set()
-        for exception in formatter_baseline.get("exceptions", []):
-            path = exception.get("path", "")
-            if not path or path in exception_paths:
-                findings.append(_finding("CQ-STRUCT-009", str(formatter_baseline_path.relative_to(root)), f"duplicate or empty formatter exception: {path}", "compiler-tooling"))
-                continue
-            exception_paths.add(path)
-            source = root / path
-            if not source.is_file():
-                findings.append(_finding("CQ-STRUCT-009", path, "formatter exception path does not exist", "compiler-tooling"))
-            elif hashlib.sha256(source.read_bytes()).hexdigest() != exception.get("sha256"):
-                findings.append(_finding("CQ-STRUCT-009", path, "formatter exception hash is stale", "compiler-tooling"))
-    except ValueError as exc:
-        findings.append(_finding("CQ-STRUCT-009", "docs/data/ark-formatter-baseline.toml", str(exc), "compiler-tooling"))
+    # A missing baseline file is the desired end state of issue #791: zero
+    # formatter exceptions. Only validate metadata when the file exists.
+    if formatter_baseline_path.is_file():
+        try:
+            formatter_baseline = _load_toml(formatter_baseline_path)
+            for field in ("owner", "issue", "removal_condition", "recheck_after"):
+                if not formatter_baseline.get(field):
+                    findings.append(_finding("CQ-STRUCT-009", str(formatter_baseline_path.relative_to(root)), f"formatter baseline missing metadata: {field}", "compiler-tooling"))
+            issue = formatter_baseline.get("issue")
+            if issue and not any(any((root / state).glob(f"{issue}-*.md")) for state in ("issues/open", "issues/done")):
+                findings.append(_finding("CQ-STRUCT-009", str(formatter_baseline_path.relative_to(root)), f"formatter baseline issue does not exist: {issue}", "compiler-tooling"))
+            exception_paths: set[str] = set()
+            for exception in formatter_baseline.get("exceptions", []):
+                path = exception.get("path", "")
+                if not path or path in exception_paths:
+                    findings.append(_finding("CQ-STRUCT-009", str(formatter_baseline_path.relative_to(root)), f"duplicate or empty formatter exception: {path}", "compiler-tooling"))
+                    continue
+                exception_paths.add(path)
+                source = root / path
+                if not source.is_file():
+                    findings.append(_finding("CQ-STRUCT-009", path, "formatter exception path does not exist", "compiler-tooling"))
+                elif hashlib.sha256(source.read_bytes()).hexdigest() != exception.get("sha256"):
+                    findings.append(_finding("CQ-STRUCT-009", path, "formatter exception hash is stale", "compiler-tooling"))
+        except ValueError as exc:
+            findings.append(_finding("CQ-STRUCT-009", "docs/data/ark-formatter-baseline.toml", str(exc), "compiler-tooling"))
 
     ruleset_path = root / ".github/rulesets/master-quality.json"
     if ruleset_path.is_file():
