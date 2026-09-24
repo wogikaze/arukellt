@@ -75,3 +75,22 @@ here — it is the ~70min full gate; the per-file evidence above covers every
 formerly-excepted file. `manifest_doc_site.ark` remains orphan dead code
 (kept: it is the in-compiler reference for re-wiring `doc --html`); tracking
 its re-wiring or removal is out of #791 scope.
+
+## Progress receipt — 2026-09-25 (quality full ratchet repair)
+
+- First `quality full` run: fmt `checked=1976 failed=0 baseline-skipped=0`,
+  lint `checked=1976 failed=0 baseline-skipped=0` — the formatter-baseline
+  removal itself is fully green. The run failed only on the unrelated
+  code-quality ratchet: `lines_ge_200 3 > 2` (a 214-char call added by
+  an earlier #860 commit) and `thin_wrappers 1754 > 1749` (net +5 drift
+  across ~860 branch commits).
+- Commit `6cfdc2a3b` restores both ceilings in code (the baseline file is
+  intentionally not raised — `with_inventory` forbids count increases):
+  six zero-caller pure forwarders removed
+  (`MirLocal_type_name_from_table`, `MirLocal_is_string_type`,
+  `MirLocal_is_string_or_untyped`, `MirBlock_inst_type_id`,
+  `MirModule_replace_function_body`, `corehir_body_expr_count`) and the
+  long line wrapped. Standalone `check-ark-code-quality.py` now reports
+  `lines_ge_200=2`, `thin_wrappers=1748` → PASS.
+- A second `quality full` is running for the end-to-end receipt; result
+  will be recorded before this issue moves to done.

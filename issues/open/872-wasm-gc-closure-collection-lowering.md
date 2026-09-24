@@ -95,5 +95,47 @@ RFC-011: **8 (closure/collection)**。
   `for`-source and comprehension positions inherit coverage through the
   call chokepoint. Managed closure environments (the actual acceptance
   criterion), collection GC lowering, and the representative fixture remain
-  open, so #872 is not closed. The same diagnostic now fires for the
-  linear-memory target, which shares the bare-funcref limitation (#874).
+ open, so #872 is not closed. The same diagnostic now fires for the
+ linear-memory target, which shares the bare-funcref limitation (#874).
+
+## Progress receipt — 2026-09-25 (Copy-capture snapshot at literal)
+
+- Implementation commit `da7296a13` (worktree-verified as `1d3a443bf`)
+  fixes a spec divergence found while scoping env lowering: the lowering
+  packed source-local names as call-supply captures, so a Copy binding
+  reassigned between closure-literal evaluation and the call leaked its
+  new value into the closure. ADR-061 shared-copy capture requires the
+  capture-time value (spec: "Copy bindings are copied independently of
+  the capture mode"). Scalar Copy captures (i32/i64/f64/f32/v128) are now
+  snapshotted into hidden `__capsnap_<synth>_<i>` locals emitted at the
+  literal position; the packed supply names point at the snapshots while
+  the closure body keeps the original names for its capture params.
+  Non-Copy captures keep the source-local name — borrow captures read
+  the live local (correct: they cannot escape, E0213) and move captures
+  read a slot whose source is already dead. VT_FUNCREF captures were
+  deliberately left on the live-read path: the typechecker treats `fn`
+  values as non-Copy borrows (E0214 fires on reassignment), so live-read
+  is the conforming semantics.
+- Positive fixture: `tests/fixtures/closure_capture/copy_capture_snapshot.ark`
+  prints `5` (closure sees capture-time value after `y = 10`) then `10`
+  (a second literal sees the reassigned value); registered as `run:`,
+  `t3-compile:`, and `t3-run:`.
+- Verification: wasm32-gc component and wasm32 linear runs of the probe
+  print `5`/`10`; all existing closure fixtures unchanged
+  (`capture_struct` 35/hello 42, `borrow_local`, `move_local`,
+  `bench_cpu_closure_map` 6017000, `docs/examples/closure.ark` 42);
+  escape diagnostics unchanged (move-capture escape E0220, borrow
+  escape E0213); `verify lane` PASS on the worktree; fixture gate
+  `closure_capture` 4/4 compile+validate+execute PASS on both the
+  worktree and main-tree s2 rebuilds.
+- Design note for the remaining env work: this slice introduces the
+  capture-slot discipline a managed env needs — env slots are the same
+  capture-time values. The uniform pair ABI (`fn` value =
+  `{funcref, env}` with env as hidden arg0) is the next slice; it must
+  also cover named-function coercion thunks (verified today
+  `apply(add1, 41)` works via bare `ref.func`).
+- Residuals: i64/f64 captures already produce invalid core Wasm on
+  master (pre-existing emitter bug, reproduced without this change);
+  the snapshot covers them so the fix inherits correct semantics.
+  Managed env representation, `fn` pair ABI, mutable-borrow env cells,
+  and the representative escape fixture remain open; #872 stays open.
