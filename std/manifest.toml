@@ -3554,7 +3554,7 @@ module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
 params = ["Vec<i32>", "i32", "fn(i32, i32) -> Option<i32>"]
-returns = "ScanIter"
+returns = "ScanIter<i32>"
 doc = "Lazy scan adapter; threads a state through f and yields each intermediate result until f returns None."
 
 [[functions]]
@@ -3643,7 +3643,7 @@ name = "collect_scan_iter"
 module = "std::core::iter"
 doc_category = "iter"
 stability = "provisional"
-params = ["ScanIter"]
+params = ["ScanIter<i32>"]
 returns = "Vec<i32>"
 doc = "Drain a ScanIter into a new Vec<i32> via Iterator::collect."
 

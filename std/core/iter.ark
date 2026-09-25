@@ -287,6 +287,13 @@ impl VecIter<T> {
         let s = if n <= 0 { 1 } else { n }
         StepByIter { vec: self.vec, index: self.index, length: self.length, step: s }
     }
+
+    /// Lazily thread a state through `f`, yielding each intermediate
+    /// result. Stops and stays exhausted once `f` returns `None`
+    /// (Rust `scan` semantics).
+    fn scan(self: VecIter<T>, init: T, f: fn(T, T) -> Option<T>) -> ScanIter<T> {
+        ScanIter { vec: self.vec, index: self.index, length: self.length, state: init, f: f }
+    }
 }
 
 /// i32-only adapters whose item type is fixed by the concrete `UniqueIter`
@@ -300,14 +307,6 @@ impl VecIter<i32> {
     /// Lazily yield the remaining elements in reverse order.
     fn rev(self: VecIter<i32>) -> RevIter {
         RevIter { vec: self.vec, index: self.index, length: self.length }
-    }
-
-    /// Lazily thread a state through `f`, yielding each intermediate
-    /// result. Stops and stays exhausted once `f` returns `None`
-    /// (Rust `scan` semantics). i32-only while generic fn-field
-    /// structs remain a lowering gap (#882).
-    fn scan(self: VecIter<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter {
-        ScanIter { vec: self.vec, index: self.index, length: self.length, state: init, f: f }
     }
 }
 
@@ -1289,45 +1288,41 @@ impl Iterator for StepByIter<T> {
 }
 
 // ---------------------------------------------------------------------------
-// ScanIter — lazy scan adapter (i32-only; see UniqueIter/RevIter for the
-// concrete-adapter precedent)
+// ScanIter — lazy scan adapter
 // ---------------------------------------------------------------------------
 
 /// Lazy iterator that threads a state through `f` and yields each
 /// intermediate result. Iteration ends when the source is exhausted or
 /// `f` returns `None`; once ended the adapter stays at the end, matching
-/// Rust's fused `scan` behavior. Kept i32-only for now: a generic
-/// `fn(T, T) -> Option<T>` field inside `ScanIter<T>` lowers to an empty
-/// method body today (bare-T field reads in generic impls), so the concrete
-/// adapter is the shippable shape on both backends (#882 tracks the gap).
-pub struct ScanIter {
-    vec: Vec<i32>,
+/// Rust's fused `scan` behavior.
+pub struct ScanIter<T> {
+    vec: Vec<T>,
     index: i32,
     length: i32,
-    state: i32,
-    f: fn(i32, i32) -> Option<i32>,
+    state: T,
+    f: fn(T, T) -> Option<T>,
 }
 
 /// Construct a `ScanIter` over `v` with initial state `init`.
-pub fn scan_iter(v: Vec<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter {
+pub fn scan_iter(v: Vec<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter<i32> {
     vec_iter(v).scan(init, f)
 }
 
-impl ScanIter {
+impl ScanIter<T> {
     /// Lazily limit the scanned stream to `n` items.
-    fn take(self: ScanIter, n: i32) -> TakeIter<ScanIter> {
+    fn take(self: ScanIter<T>, n: i32) -> TakeIter<ScanIter<T>> {
         TakeIter { iter: self, remaining: n }
     }
 }
 
-impl Iterator for ScanIter {
-    type Item = i32
+impl Iterator for ScanIter<T> {
+    type Item = T
 
-    fn next(self: ScanIter) -> Option<i32> {
-        let mut out: Option<i32> = None
+    fn next(self: ScanIter<T>) -> Option<T> {
+        let mut out: Option<T> = None
         if self.index < self.length {
-            let item: i32 = get_unchecked(self.vec, self.index)
-            let stepped: Option<i32> = (self.f)(self.state, item)
+            let item: T = get_unchecked(self.vec, self.index)
+            let stepped: Option<T> = (self.f)(self.state, item)
             match stepped {
                 Some(v) => {
                     self.state = v
@@ -1342,15 +1337,15 @@ impl Iterator for ScanIter {
         out
     }
 
-    fn collect(self: ScanIter) -> Vec<i32> {
-        let out: Vec<i32> = Vec::new<i32>()
+    fn collect(self: ScanIter<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
         for item in self {
             push(out, item)
         }
         out
     }
 
-    fn count(self: ScanIter) -> i32 {
+    fn count(self: ScanIter<T>) -> i32 {
         let mut n = 0
         for item in self {
             n = n + 1
@@ -2056,7 +2051,7 @@ pub fn collect_step_by_iter(it: StepByIter<i32>) -> Vec<i32> {
 }
 
 /// Drain a `ScanIter` into a new `Vec<i32>`.
-pub fn collect_scan_iter(it: ScanIter) -> Vec<i32> {
+pub fn collect_scan_iter(it: ScanIter<i32>) -> Vec<i32> {
     it.collect()
 }
 

@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 383 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 76 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 84 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 322 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 17 | Superseded — see migration guidance. |
 
@@ -616,19 +616,24 @@ let input = read_to_string()
 | `collect_chain_iter` | `(ChainIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a ChainIter into a new Vec<i32> via Iterator::collect. |
 | `collect_filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Filter v with f and collect into a new Vec<i32> — the lazy-pipeline replacement for std::seq::filter… |
 | `collect_filter_iter` | `(FilterIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a FilterIter into a new Vec<i32> via Iterator::collect. |
+| `collect_flat_map_iter` | `(FlatMapIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a FlatMapIter into a new Vec<i32> via Iterator::collect. |
 | `collect_map_filter_i32` | `(Vec<i32>, fn(i32) -> i32, fn(i32) -> bool) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Map then filter in a single lazy pass — no intermediate Vec allocation. |
 | `collect_map_filter_take_i32` | `(Vec<i32>, fn(i32) -> i32, fn(i32) -> bool, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Map, filter, then take in a single lazy pass — the canonical v.iter().map(f).filter(g).take(n).colle… |
 | `collect_map_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Map f over v and collect into a new Vec<i32> — the lazy-pipeline replacement for std::seq::map_i32_i… |
 | `collect_map_iter` | `(MapIter<i32, i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a MapIter into a new Vec<i32> via Iterator::collect. |
+| `collect_peek_iter` | `(PeekIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a PeekIter into a new Vec<i32> via Iterator::collect. |
 | `collect_range_i32` | `(Range) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Collect a half-open Range into a new Vec<i32>. |
 | `collect_range_iter` | `(RangeIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a RangeIter into a new Vec<i32> via Iterator::collect. |
+| `collect_scan_iter` | `(ScanIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a ScanIter into a new Vec<i32> via Iterator::collect. |
 | `collect_skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Skip the first n elements of v — the lazy-pipeline replacement for std::seq::skip_i32. |
 | `collect_skip_iter` | `(SkipIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a SkipIter into a new Vec<i32> via Iterator::collect. |
+| `collect_step_by_iter` | `(StepByIter<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a StepByIter into a new Vec<i32> via Iterator::collect. |
 | `collect_take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Take the first n elements of v — the lazy-pipeline replacement for std::seq::take_i32. |
 | `collect_take_iter` | `(TakeIter<VecIter>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a TakeIter into a new Vec<i32> via Iterator::collect. |
 | `collect_vec_iter` | `(VecIter) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Drain a VecIter into a new Vec<i32> via Iterator::collect. |
 | `enumerate_iter` | `(Vec<i32>) -> EnumerateIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy enumerate adapter; yields Pair<i32, i32> index/value items. |
 | `filter_iter` | `(Vec<i32>, fn(i32) -> bool) -> FilterIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy filter adapter (canonical form: v.iter().filter(f)). |
+| `flat_map_iter` | `(Vec<i32>, fn(i32) -> Vec<i32>) -> FlatMapIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy flat_map adapter; expands each element through f into a Vec and drains the produced items in or… |
 | `iter_all_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Return true if all elements of v satisfy f. |
 | `iter_any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Return true if any element of v satisfies f. |
 | `iter_contains_i32` | `(Vec<i32>, i32) -> bool` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Return true if v contains target via IteratorContains — the lazy-pipeline replacement for std::seq::… |
@@ -639,10 +644,13 @@ let input = read_to_string()
 | `iter_sum_i32` | `(Vec<i32>) -> i32` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Sum all elements of v via IteratorSum — the lazy-pipeline replacement for std::seq::sum_i32. |
 | `iter_unique_i32` | `(Vec<i32>) -> Vec<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Yield first occurrences in source order via UniqueIter — the lazy-pipeline replacement for std::seq:… |
 | `map_iter` | `(Vec<i32>, fn(i32) -> i32) -> MapIter<i32, i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy map adapter (canonical form: v.iter().map(f)). |
+| `peek_iter` | `(Vec<i32>) -> PeekIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy peekable adapter; peek() inspects the upcoming item without consuming it. |
 | `range_inclusive_iter` | `(RangeInclusive) -> RangeInclusiveIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator over a closed RangeInclusive. |
 | `range_iter` | `(Range) -> RangeIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct a lazy iterator over a half-open Range. |
 | `rev_iter` | `(Vec<i32>) -> RevIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy reverse adapter (canonical form: v.iter().rev()). |
+| `scan_iter` | `(Vec<i32>, i32, fn(i32, i32) -> Option<i32>) -> ScanIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy scan adapter; threads a state through f and yields each intermediate result until f returns Non… |
 | `skip_iter` | `(Vec<i32>, i32) -> SkipIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy skip adapter (canonical form: v.iter().skip(n)). |
+| `step_by_iter` | `(Vec<i32>, i32) -> StepByIter<i32>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Lazy step_by adapter; yields every n-th element, clamping non-positive steps to 1. |
 | `take_iter` | `(Vec<i32>, i32) -> TakeIter<VecIter>` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy take adapter (canonical form: v.iter().take(n)). |
 | `unique_iter` | `(Vec<i32>) -> UniqueIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Compatibility constructor for the lazy unique adapter (canonical form: v.iter().unique()). |
 | `vec_iter` | `(Vec<i32>) -> VecIter` | `std::core::iter` | `provisional` | `functional` | `builtin` | no | - | Construct the canonical lazy VecIter over v (same as v.iter()). |

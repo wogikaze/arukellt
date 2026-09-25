@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 781
+- **Canonical names:** 789
 - **Historical/deprecated names:** 17
-- **Total entries:** 798
+- **Total entries:** 806
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -159,14 +159,18 @@ Current public API names, sorted alphabetically.
 | `collect_chain_iter` | `std::core::iter` | `provisional` | Iter |
 | `collect_filter_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_filter_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_flat_map_iter` | `std::core::iter` | `provisional` | Iter |
 | `collect_map_filter_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_map_filter_take_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_map_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_map_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_peek_iter` | `std::core::iter` | `provisional` | Iter |
 | `collect_range_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_range_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_scan_iter` | `std::core::iter` | `provisional` | Iter |
 | `collect_skip_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_skip_iter` | `std::core::iter` | `provisional` | Iter |
+| `collect_step_by_iter` | `std::core::iter` | `provisional` | Iter |
 | `collect_take_i32` | `std::core::iter` | `provisional` | Iter |
 | `collect_take_iter` | `std::core::iter` | `provisional` | Iter |
 | `collect_vec_iter` | `std::core::iter` | `provisional` | Iter |
@@ -261,6 +265,7 @@ Current public API names, sorted alphabetically.
 | `find_toml_section` | `std::toml` | `experimental` | Toml |
 | `find_toml_value` | `std::toml` | `experimental` | Toml |
 | `flag` | `std::cli` | `stable` | Cli |
+| `flat_map_iter` | `std::core::iter` | `provisional` | Iter |
 | `floor` | `std::simd::f32x4` | `experimental` | Simd |
 | `flush` | `std::io` | `stable` | Io |
 | `fold_f64_f64` | `prelude` | `stable` | Collections |
@@ -532,6 +537,7 @@ Current public API names, sorted alphabetically.
 | `parse_i32` | `prelude` | `stable` | Conversion |
 | `parse_i64` | `prelude` | `stable` | Conversion |
 | `parse_int_at` | `std::json` | `experimental` | Json |
+| `peek_iter` | `std::core::iter` | `provisional` | Iter |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
 | `position` | `std::io` | `stable` | Io |
@@ -600,6 +606,7 @@ Current public API names, sorted alphabetically.
 | `rope_new` | `std::text::rope` | `experimental` | Text |
 | `rope_slice` | `std::text::rope` | `experimental` | Text |
 | `rope_to_string` | `std::text::rope` | `experimental` | Text |
+| `scan_iter` | `std::core::iter` | `provisional` | Iter |
 | `section_code` | `std::wasm` | `experimental` | Wasm |
 | `section_data` | `std::wasm` | `experimental` | Wasm |
 | `section_element` | `std::wasm` | `experimental` | Wasm |
@@ -664,6 +671,7 @@ Current public API names, sorted alphabetically.
 | `stdin` | `std::io` | `stable` | Io |
 | `stdout` | `std::io` | `stable` | Io |
 | `stem` | `std::path` | `stable` | Path |
+| `step_by_iter` | `std::core::iter` | `provisional` | Iter |
 | `String_from` | `prelude` | `stable` | String |
 | `string_from_bytes` | `std::bytes` | `stable` | Bytes |
 | `String_new` | `prelude` | `stable` | String |
@@ -977,14 +985,18 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `collect_chain_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_filter_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_filter_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_flat_map_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_map_filter_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_map_filter_take_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_map_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_map_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_peek_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_range_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_range_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_scan_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_skip_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_skip_iter` | ✅ `provisional` | `std::core::iter` | Iter |
+| `collect_step_by_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_take_i32` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_take_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `collect_vec_iter` | ✅ `provisional` | `std::core::iter` | Iter |
@@ -1083,6 +1095,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `find_toml_section` | ✅ `experimental` | `std::toml` | Toml |
 | `find_toml_value` | ✅ `experimental` | `std::toml` | Toml |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
+| `flat_map_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_f64_f64` | ✅ `stable` | `prelude` | Collections |
@@ -1359,6 +1372,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_int_at` | ✅ `experimental` | `std::json` | Json |
+| `peek_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
 | `position` | ✅ `stable` | `std::io` | Io |
@@ -1427,6 +1441,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `rope_new` | ✅ `experimental` | `std::text::rope` | Text |
 | `rope_slice` | ✅ `experimental` | `std::text::rope` | Text |
 | `rope_to_string` | ✅ `experimental` | `std::text::rope` | Text |
+| `scan_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `section_code` | ✅ `experimental` | `std::wasm` | Wasm |
 | `section_data` | ✅ `experimental` | `std::wasm` | Wasm |
 | `section_element` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1494,6 +1509,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stdin` | ✅ `stable` | `std::io` | Io |
 | `stdout` | ✅ `stable` | `std::io` | Io |
 | `stem` | ✅ `stable` | `std::path` | Path |
+| `step_by_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `string_from_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `String_new` | ✅ `stable` | `prelude` | String |
