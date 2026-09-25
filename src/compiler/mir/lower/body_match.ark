@@ -1,6 +1,7 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
+use mir::lower_kinds
 use mir::value_types
 use mir::lower::body_match_arm_last
 use mir::lower::body_match_arm_nonlast
@@ -12,7 +13,19 @@ fn lower_match_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return 0 - 1
     }
     let scrutinee = ast_node::node_child_at(node, 0)
-    let scrut_idx = lower_expr(ctx, scrutinee)
+    // Resolve a named scrutinee to its local without emitting, mirroring
+    // lower_core_match. lower_expr on an identifier emits local.get, but
+    // every match consumer (tag probe, payload binds) re-reads the local by
+    // index, so the pushed copy is orphaned; at function top level return
+    // masks it, but inside if/loop blocks it leaves a value on the stack
+    // and produces invalid Wasm (#874).
+    let mut scrut_idx = 0 - 1
+    if ast_node::node_kind_is(scrutinee, lower_kinds::NK_IDENT()) {
+        scrut_idx = ctx_lookup_local(ctx, ast_node::node_text(scrutinee))
+    }
+    if scrut_idx < 0 {
+        scrut_idx = lower_expr(ctx, scrutinee)
+    }
     let result = ctx_fresh_local(ctx, value_types::VT_I32())
     let payload_info = match::mir_prepare_match_payload(ctx, node, child_count, scrut_idx)
     let mut arm = 1

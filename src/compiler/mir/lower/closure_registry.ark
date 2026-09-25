@@ -81,6 +81,30 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
     // counts only the user-visible closure params.
     let closure_params = function_param_view::MirFunction_param_count(mf) - cap_count
     if closure_params >= 2 {
+        // Mirrors the fn(...) -> T annotation rule in type_ann_node: keep the
+        // fnref2 bucket for i32-family returns, but a named non-scalar return
+        // spells fnsig:<params>;<ret> so indirect-call dests carry the real
+        // type instead of collapsing to i32 (and i64 on GC) (#874/#881).
+        let ret_seg_multi = function_return_view::MirFunction_return_type_name(mf)
+        if len(ret_seg_multi) > 0 && !type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_multi)) {
+            let mut params = String_new()
+            let mut pi = 0
+            while pi < closure_params {
+                if pi > 0 {
+                    params = concat(params, String_from(","))
+                }
+                let mut pseg = local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(mf, pi))
+                if len(pseg) == 0 {
+                    pseg = String_from("i32")
+                }
+                params = concat(params, pseg)
+                pi = pi + 1
+            }
+            return concat(
+                String_from("fnsig:"),
+                concat(clone(params), concat(String_from(";"), ret_seg_multi))
+            )
+        }
         return "fnref2"
     }
     // fnsig:<param>;<return> keeps the result type reachable at indirect

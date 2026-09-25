@@ -63,6 +63,29 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         )
     }
     if type_ann_child_count(node) >= 2 {
+        // Two-or-more-param callbacks keep the legacy fnref2 bucket while the
+        // return is i32-family so fold/map signatures are unchanged. A named
+        // non-scalar return needs the fnsig spelling so an indirect call's
+        // dest local carries the real type; fnref2 drops it, which made
+        // call_ref results land in i64 locals on GC (#874/#881).
+        if type_ann_return_count(node) == 1 {
+            let result_name = fn_sig_segment_name(type_ann_return_at(node, 0))
+            if len(result_name) > 0 && !fn_sig_segment_is_i32_family(clone(result_name)) {
+                let mut params = String_new()
+                let mut pi = 0
+                while pi < type_ann_child_count(node) {
+                    if pi > 0 {
+                        params = concat(params, String_from(","))
+                    }
+                    params = concat(params, fn_sig_segment_name(type_ann_child_at(node, pi)))
+                    pi = pi + 1
+                }
+                return concat(
+                    String_from("fnsig:"),
+                    concat(clone(params), concat(String_from(";"), result_name))
+                )
+            }
+        }
         return String_from("fnref2")
     }
     String_from("fnref")

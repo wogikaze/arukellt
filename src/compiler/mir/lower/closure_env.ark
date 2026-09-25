@@ -455,8 +455,17 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
     vk = concat(vk, ";")
     if dest >= 0 {
         let dvt = ctx_api_local_types::ctx_local_vt(ctx, dest)
-        nk = concat(nk, closure_pair_seg_norm(ctx_api_local_types::ctx_get_local_type(ctx, dest), dvt))
-        vk = concat(vk, i32_to_string(dvt))
+        let dname = ctx_api_local_types::ctx_get_local_type(ctx, dest)
+        if len(dname) > 0 {
+            // Only assert a return segment when the dest local carries a real
+            // type name. Bucketed callee spellings (fnref*, fn) have no
+            // return info, so the indirect temp keeps vt without a name —
+            // emitting "~<vt>" there pinned a wrong ret to every thunk key
+            // and Option-returning multi-param calls fell to the i32 binary
+            // fallback (#881 / #874).
+            nk = concat(nk, closure_pair_seg_norm(clone(dname), dvt))
+            vk = concat(vk, i32_to_string(dvt))
+        }
     }
     concat(type_name, concat("|", concat(nk, concat("|", vk))))
 }
