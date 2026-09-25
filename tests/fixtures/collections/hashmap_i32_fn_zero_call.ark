@@ -1,6 +1,10 @@
 use std::collections::hash_fn
 use std::host::stdio
 
+struct FnHolder {
+    f: fn() -> i32,
+}
+
 fn answer() -> i32 {
     42
 }
@@ -17,4 +21,6 @@ fn main() {
         None => stdio::println("missing"),
     }
     stdio::println(apply0(answer).to_string())
+    let h = FnHolder { f: answer }
+    stdio::println((h.f)().to_string())
 }

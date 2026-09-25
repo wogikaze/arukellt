@@ -2,11 +2,15 @@ use mir::lower::ast_node
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_fn_index
+use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_lookup
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::inst_local_set
 use mir::lower::struct_lit
+use mir::lower::value_variants
 use mir::value_types
 
 fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
@@ -37,7 +41,12 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let fc = ast_node::node_child_count(field)
             if fc >= 1 {
                 let init = ast_node::node_child_at(field, 0)
-                let val_idx = lower_expr(ctx, init)
+                let mut val_idx = 0 - 1
+                if mir_struct_lit_field_fn_ident(ctx, clone(struct_name), ast_node::node_text(field), init) {
+                    val_idx = value_variants::lower_function_value(ctx, ast_node::node_text(init))
+                } else {
+                    val_idx = lower_expr(ctx, init)
+                }
                 // Field sets run after struct.new, so the stack-composed
                 // value must land in its local now; otherwise the linear
                 // store policy leaves it under the next producer.
@@ -72,4 +81,24 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         emit_i = emit_i + 1
     }
     struct_lit::mir_emit_struct_get_local(ctx, dest)
+}
+
+// A bare function name initialising a fn-typed field must lower to the fn
+// pair; otherwise a 0-param ident emits a call and stores the i32 result
+// into the fn slot (#883).
+fn mir_struct_lit_field_fn_ident(ctx: LowerCtx, struct_name: String, field_name: String, init: AstNode) -> bool {
+    if !ast_node::node_kind_is(init, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(init)) >= 0 {
+        return false
+    }
+    if ctx_fn_index::ctx_fn_index_find(ctx, ast_node::node_text(init)) < 0 {
+        return false
+    }
+    let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), clone(field_name))
+    if fi_idx < 0 {
+        return false
+    }
+    struct_lit::mir_struct_field_type_is_fn(ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(struct_name), fi_idx))
 }

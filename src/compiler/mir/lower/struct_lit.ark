@@ -427,6 +427,14 @@ fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
     dest
 }
 
+// fn-typed struct field type names use the same spelling set as the
+// aggregate/call paths: "fn", "fnref*", "fn(...)" (#883).
+fn mir_struct_field_type_is_fn(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fn("))
+}
+
 fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
     let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     struct_lit_copy::mir_copy_struct_base_fields(ctx, canon, dest, base_idx)

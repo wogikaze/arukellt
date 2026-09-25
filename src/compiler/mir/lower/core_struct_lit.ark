@@ -1,16 +1,19 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::inst_local_set
+use mir::lower::core_names
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_aggregate
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_literals
 use mir::lower::struct_lit
+use mir::lower::value_variants
 use mir::value_types
 
 fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
@@ -43,6 +46,8 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
             let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), clone(field_name))
             if core_expr_shape_atoms::mir_core_expr_is_int(val_expr) && fi_idx >= 0 && ctx_struct_layout::ctx_struct_field_is_i64(ctx, clone(struct_name), fi_idx) {
                 val_idx = core_literals::lower_core_int_literal_forced_i64(ctx, val_expr)
+            } else if core_struct_lit_field_is_fn_ident(ctx, clone(struct_name), fi_idx, val_expr) {
+                val_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(val_expr))
             } else {
                 val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
             }
@@ -78,4 +83,20 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
         emit_i = emit_i + 1
     }
     struct_lit::mir_emit_struct_get_local(ctx, dest)
+}
+
+// A bare function name initialising a fn-typed field must lower to the fn
+// pair; otherwise a 0-param ident emits a call and stores the i32 result
+// into the fn slot (#883).
+fn core_struct_lit_field_is_fn_ident(ctx: LowerCtx, struct_name: String, fi_idx: i32, val_expr: CoreHirExpr) -> bool {
+    if fi_idx < 0 || !core_expr_shape_atoms::mir_core_expr_is_ident(val_expr) {
+        return false
+    }
+    if core_names::mir_core_lookup_local(ctx, val_expr) >= 0 {
+        return false
+    }
+    if core_names::mir_function_parameter_count(ctx, core_expr_shape_accessors::mir_core_expr_text(val_expr)) < 0 {
+        return false
+    }
+    struct_lit::mir_struct_field_type_is_fn(ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(struct_name), fi_idx))
 }
