@@ -139,3 +139,52 @@ RFC-011: **8 (closure/collection)**。
   the snapshot covers them so the fix inherits correct semantics.
   Managed env representation, `fn` pair ABI, mutable-borrow env cells,
   and the representative escape fixture remain open; #872 stays open.
+
+## Progress receipt — 2026-09-25 (managed {fnptr, env} pair ABI)
+
+- Commit `859a721fb` (worktree-verified as `87daa6524`) lands the
+  uniform pair ABI: every `fn` value is a `__fnpair {funcref, structref}`
+  record. `__fnpair` is a fixed GC type (`gc_fnpair_offset` = 26) so
+  `Vec<fn>`/`HashMap<_,fn>` element arrays reference it as a backward
+  type index, and lazy named-struct registration dedups to the same
+  canon index — signatures, locals, fields, and container elements all
+  resolve to one storage type.
+- Escaping move closures keep a shared per-literal env struct; direct
+  calls keep the `(params..., captures...)` signature while fn-typed
+  calls go through synthesized env trampolines (`struct.get env` →
+  args → `struct.get fnptr` → `ref.cast` → `call_ref`). Named-fn
+  coercion produces `__fnthunk_<name>` pairs; closure params now read
+  their type annotations instead of hardcoded VT_I32.
+- Fixed-offset renumbering: inserting `__fnpair` at offset 26 shifted
+  `A_fnref`→27, Vec<fn> header→28, `A_ref14`→29, Vec<enum>→30,
+  HashMap<i32,String,fn>→31/32; all sig strings, layout-plan offsets,
+  MIR `_refN` suffixes, and emit-side offset helpers updated to match.
+- `inst_store` treats `CALL_REF` as a stack call for tee/drop
+  decisions — call_ref results feeding println/next-call args were
+  SKIP-stored leaving null dest locals (runtime null-ref trap).
+- Mutable-rebind captures that escape now error `E0213` (honest
+  fallback per ADR-061 until env cells exist); bare-ident rebind targets
+  are pinned to `capture_mutable_borrow`. Copy/move captures escape
+  freely — `move || { v.push(x) }` and field writes stay move
+  captures since the shared env ref persists writes.
+- Fixture conversions: stale E0220 diagnostics
+  `closure_capture_escape_store`/`_arg` became positive run fixtures
+  `closure_capture/escape_store.ark` (15) and `escape_arg.ark` (121);
+  `closure_capture_escape_return` stays diag as `E0213`.
+  `fixture_manifest_count` synced to 3006.
+- Verification: `vec_fn_push_call` prints 10; fixture gates
+  `closure_capture` 6/6, `functions` 15/15, `collections` 14/14,
+  `enums` 10/10, `generics` 7/7, `scalar` 19/19, `control` 13/13
+  PASS on both worktree and main-tree s2 rebuilds; `verify lane` PASS
+  (comment policy, editorconfig, quality contract, ratchet, lint 37/0).
+- Residuals: mutable-rebind env cells still pending (counter-style
+  escape → E0213 until cells exist); `fn()->String` and ≥2-param fn
+  type names still bucket to `fnref`/`fnref2` losing the exact
+  signature; `closure_param_type_is_fnref` is duplicated across two
+  lowering files; linear-memory pair path is implemented but not yet
+  exercised end-to-end (#874 owns parity); env allocation happens per
+  literal evaluation (no caching). `ownership/adt_probe`,
+  `match_extensions/struct_pattern`, `question_mark/error_ecosystem`,
+  `generics_v1/test_enum_return` fail identically on master —
+  pre-existing, unrelated to this change. #872 stays open pending
+  linear parity (#874) and cross-backend parity evidence (#875).
