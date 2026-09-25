@@ -1054,6 +1054,47 @@ RFC-011: **8 (fallback lowering)**。
   (currently `unreachable`), closure environments, and the move/borrow
   parity audit remain open; #874 stays open.
 
+## Progress receipt — 2026-09-25 (HashMap<*,fn> flat runtime on linear)
+
+Commit: `65aa79141` (worktree `94cceab55`)
+
+- `emit_hm_if_new` / `emit_hm_sf_new` and the `if`/`sf` slot get/set
+  now emit the shared flat `Vec<i32>` hashmap helpers on non-GC targets
+  instead of `unreachable`: a fn value is one i32 pair pointer under
+  the managed closure ABI, so the existing runtime carries it unchanged.
+- `hashmap_internal_builtin_alias` now maps `__hm_if_new` and
+  `__hm_sf_new` to `hashmap_new`, matching `si`/`is`/`ss`.
+- Loader fix for every adapter entry path: `load_stdlib_module` injects
+  the `std::collections::hash` module edge when `hash_map`,
+  `hash_string`, `hash_fn`, or `hash_str_fn` load. The adapters cannot
+  spell that dependency as `use std::collections::hash` because the
+  short name collides with `use std::core::hash`. Without it the flat
+  runtime body was never in the module, so `resolve_fn_index("hashmap_new")`
+  emitted `call 8` (the `random_get` import) and the module failed
+  validation — this also unbroke the pre-existing
+  `hash_string::hashmap_str_i32_new` qualified-call path on linear.
+- New e2e coverage: `test_hashmap_fn_value_uses_flat_runtime` compiles
+  `hashmap_i32_fn_call` and `hashmap_string_fn_call` on
+  wasm32/wasi-p1/memory32, asserts the emitted module retains
+  `func \$hashmap_new`, and runs both to `10`.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (6.5s)
+  python3 scripts/manager.py verify lane                   PASS (DONE=0)
+  test_hashmap_fn_value_uses_flat_runtime                  PASS
+  wasm32 linear compile+run: hashmap_i32_fn_call/mut_get/builtin  10/10/10
+  wasm32 linear compile+run: hashmap_string_fn_call              10
+  wasm32 linear compile+run: qualified hashmap_str_i32_new probe 7
+  wasm32-gc component compile+run: i32_fn and si probe      10 / 7
+  arukellt-selfhost.sh fmt (4 changed .ark)                PASS
+  ```
+
+- Remaining in #874: exact pointer-field descriptors (conservative scan
+  per ADR-075), mutable-rebind env cells (E0213 until cells exist),
+  `fn()->String` / ≥2-param fn type-name bucketing (`fnref`/`fnref2`),
+  and the move/borrow parity audit.
+
 ## Progress receipt — 2026-09-25 (closure env pair on fallback heap)
 
 - Implementation commit `09921ff94` keeps `VT_FUNCREF` alive through
