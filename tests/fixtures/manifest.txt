@@ -459,6 +459,7 @@ run:generics/identity_i32.ark
 run:generics/identity_string.ark
 run:generics/option_generic.ark
 run:generics/result_generic.ark
+run:generics/struct_option_vec_fn_fields.ark
 run:generics/two_params.ark
 run:generics/vec_generic.ark
 run:generics_v1/generic_inherent_struct_lit.ark
@@ -2149,6 +2150,7 @@ t3-compile:generics/identity_i32.ark
 t3-compile:generics/identity_string.ark
 t3-compile:generics/option_generic.ark
 t3-compile:generics/result_generic.ark
+t3-compile:generics/struct_option_vec_fn_fields.ark
 t3-compile:generics/two_params.ark
 t3-compile:generics/vec_generic.ark
 t3-compile:generics_v1/generic_method_call.ark
@@ -2604,6 +2606,7 @@ t3-run:generics/identity_i32.ark
 t3-run:generics/identity_string.ark
 t3-run:generics/option_generic.ark
 t3-run:generics/result_generic.ark
+t3-run:generics/struct_option_vec_fn_fields.ark
 t3-run:generics/two_params.ark
 t3-run:generics/vec_generic.ark
 t3-run:generics_v1/generic_inherent_struct_lit.ark

@@ -83,7 +83,10 @@ fn mir_struct_lit_instance_name(ctx: LowerCtx, base_name: String, field_names: V
                 return canon
             }
             if !struct_lit_unify_segments(clone(ft), clone(val_ty), params, args, bound) {
-                return canon
+                if !struct_lit_fn_field_already_bound(clone(ft), clone(val_ty), params, bound) &&
+                !struct_lit_enum_field_already_bound(clone(ft), clone(val_ty), params, bound) {
+                    return canon
+                }
             }
         }
         i = i + 1
@@ -417,6 +420,75 @@ fn struct_lit_split_params(joined: String) -> Vec<String> {
         i = i + 1
     }
     params
+}
+
+// Fallback for fn-typed fields whose opaque pair type (fnref / fnref2 /
+// fnsig value spellings) cannot align segment-wise with a declared
+// fnsig:/fn( field type.  The pair ABI accepts any fn value, so the
+// binding only needs the struct's type parameters to already be bound by
+// other fields — e.g. ScanBox<T>.f: fnsig:T,T;option:T with vec:vec:i32
+// and state:i32 (#881).
+fn struct_lit_fn_field_already_bound(ft: String, vt: String, params: Vec<String>, bound: Vec<bool>) -> bool {
+    if !struct_lit_decl_is_fn_value(clone(ft)) || !struct_lit_decl_is_fn_value(clone(vt)) {
+        return false
+    }
+    struct_lit_params_bound(clone(ft), params, bound)
+}
+
+// Same fallback for enum-typed fields: variant literals type their local
+// as enum:<EnumName> (enum:Option for None/Some), not the field's
+// option:/result:/enum: spelling, so segment unify cannot bind.  The
+// value is compatible when the enum head matches and every declared
+// parameter is already bound by other fields (#881).
+fn struct_lit_enum_field_already_bound(ft: String, vt: String, params: Vec<String>, bound: Vec<bool>) -> bool {
+    if !struct_lit_enum_head_matches(clone(ft), clone(vt)) {
+        return false
+    }
+    struct_lit_params_bound(clone(ft), params, bound)
+}
+
+fn struct_lit_enum_head_matches(ft: String, vt: String) -> bool {
+    if starts_with(clone(ft), String_from("option:")) {
+        return eq(clone(vt), String_from("enum:Option"))
+    }
+    if starts_with(clone(ft), String_from("result:")) {
+        return eq(clone(vt), String_from("enum:Result"))
+    }
+    if starts_with(clone(ft), String_from("enum:")) {
+        let want = substring(clone(ft), 5, len(ft))
+        return eq(clone(vt), concat(String_from("enum:"), want))
+    }
+    false
+}
+
+// Every type-parameter token mentioned in ft must already be bound.
+fn struct_lit_params_bound(ft: String, params: Vec<String>, bound: Vec<bool>) -> bool {
+    let n = len(ft)
+    let mut i = 0
+    while i < n {
+        let ch = byte_at(clone(ft), i)
+        if !struct_lit_ident_char(ch) {
+            i = i + 1
+        } else {
+            let start = i
+            while i < n && struct_lit_ident_char(byte_at(clone(ft), i)) {
+                i = i + 1
+            }
+            let tok = substring(clone(ft), start, i)
+            let pi = struct_lit_param_index(clone(params), clone(tok))
+            if pi >= 0 && (pi >= len(bound) || !get_unchecked(bound, pi)) {
+                return false
+            }
+        }
+    }
+    true
+}
+
+fn struct_lit_decl_is_fn_value(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fnsig:")) ||
+    starts_with(clone(type_name), String_from("fn("))
 }
 
 fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
