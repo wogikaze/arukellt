@@ -469,6 +469,7 @@ run:generics_v1/generic_three_param.ark
 run:generics_v1/generic_struct.ark
 run:generics_v1/generic_struct_impl.ark
 run:generics_v1/generic_struct_vec_field.ark
+run:generics_v1/generic_fn_field_option_step.ark
 run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_generic_call.ark
 run:generics_v1/nested_generics.ark
@@ -2607,6 +2608,7 @@ t3-run:generics_v1/generic_three_param.ark
 t3-run:generics_v1/generic_struct.ark
 t3-run:generics_v1/generic_struct_impl.ark
 t3-run:generics_v1/generic_struct_vec_field.ark
+t3-run:generics_v1/generic_fn_field_option_step.ark
 t3-run:generics_v1/mir_specialization.ark
 t3-run:generics_v1/nested_generic_call.ark
 t3-run:generics_v1/nested_generics.ark

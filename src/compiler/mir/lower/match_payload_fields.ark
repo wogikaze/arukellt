@@ -14,6 +14,7 @@ use mir::lower::match_payload_field_type
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_mono
+use mir::lower::ctx_mono_type_params
 use mir::value_types
 fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool) {
     let variant_name = ast_node::node_text(pat)
@@ -207,9 +208,23 @@ fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: 
     }
     let current_type = ctx_get_local_type(ctx, bind_local)
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
-    let elem_ty = mir_payload_elem_type_from_scrut(scrut_type, is_some_or_ok)
+    let mut elem_ty = mir_payload_elem_type_from_scrut(clone(scrut_type), is_some_or_ok)
     if len(elem_ty) == 0 {
         return
+    }
+    // Inside a monomorphized body the scrutinee keeps the generic spelling
+    // (option:T / Option_T). Resolve the payload element and the bind's
+    // declared name through the mono map so Some(v) binds get the concrete
+    // payload type and vt instead of the unresolved parameter (#882).
+    let resolved_elem = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(elem_ty))
+    if len(resolved_elem) > 0 {
+        elem_ty = resolved_elem
+    }
+    let resolved_current = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(current_type))
+    let weak_check_type = if len(resolved_current) > 0 {
+        resolved_current
+    } else {
+        clone(current_type)
     }
     if eq(clone(elem_ty), String_from("fnref")) ||
     eq(clone(elem_ty), String_from("fn")) ||
@@ -221,7 +236,7 @@ fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: 
     // Override empty / unresolved / stale scalar placeholders. Generic
     // Option/Result lowering often leaves bind locals as "i32" or "string"
     // before the scrutinee type (e.g. result:JsonValue:…) is known.
-    if !mir_payload_bind_type_is_weak(clone(current_type), is_err) {
+    if !mir_payload_bind_type_is_weak(clone(weak_check_type), is_err) {
         return
     }
     let mut set_type = mir_infer_payload_set_type(ctx, clone(elem_ty))

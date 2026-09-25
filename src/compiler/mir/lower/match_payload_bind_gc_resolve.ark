@@ -6,6 +6,14 @@ use mir::lower::ctx_struct_layout
 
 fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, field_idx: i32, bind_local: i32) -> String {
     let mut bind_type_name = ctx_get_local_type(ctx, bind_local)
+    // A bind declared as `T` inside a monomorphized body must use the
+    // concrete argument so variant-layout matching compares real payload
+    // types instead of the parameter name (#882).
+    let resolved_bind = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(bind_type_name))
+    if len(resolved_bind) > 0 {
+        bind_type_name = resolved_bind
+        ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+    }
     // When the bind already has a concrete payload type (from scrutinee
     // inference), select the matching Option/Result layout instead of the
     // first same-named Some/Ok/Err registration.
