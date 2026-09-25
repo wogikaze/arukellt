@@ -74,7 +74,7 @@ concrete-struct shape (#874 fn-pair ABI) passes on both backends.
       \`struct.get\`-equivalent read and runs on both targets
 - [x] \`self.<method>(...)\` inside a generic impl resolves to the
       monomorphized sibling and runs on both targets
-- [ ] A generic struct with an \`fn(T, ...) -> R\` field invoked through
+- [x] A generic struct with an \`fn(T, ...) -> R\` field invoked through
       \`(self.f)(...)\` validates on wasm32-gc and runs with output
       identical to linear
 - [ ] \`ScanIter<T>\` can be expressed generically (the i32-only
@@ -120,3 +120,40 @@ concrete-struct shape (#874 fn-pair ABI) passes on both backends.
   enum payload lowering gap the pinned bootstrap works around with the
   structural Box/Slice overlay. Acceptance D (generic `ScanIter<T>`)
   depends on it. This is not a close receipt.
+
+## Progress receipt — 2026-09-26 (mono-resolved Option payload binds)
+
+- Commit `6e284a174` teaches `mir_infer_payload_bind_type` and
+  `emit_payload_field_bind_gc_resolve_type` to resolve the payload
+  element type and the bind's declared name through
+  `ctx_resolve_mono_type_name`. A monomorphized body keeps generic
+  spellings on its locals (`stepped : Option_T`, `v : T`); the
+  extracted element `T` was never mapped, so the bind stayed
+  `VT_GC_REF` named `T` and selected the `_f1_ref0`
+  `Option::Some` variant (self-enum-ref payload) instead of the
+  concrete `_f1_i32` layout.
+- Acceptance C verified end-to-end: `AccBox<T> { state: T, f: fn(T, T) -> Option<T> }`
+  with `(self.f)(self.state, x)` followed by a `match` on the
+  result validates under `wasm-tools validate --features gc,function-references,memory64`
+  and runs identically on both targets (prints 15).
+- Positive fixture
+  `tests/fixtures/generics_v1/generic_fn_field_option_step.ark`
+  registered as `run:` and `t3-run:` (manifest count 3008 → 3010).
+- `verify lane` green on the implementation commit. A 228-fixture
+  compile+validate batch (generics, generics_v1, iterator, stdlib_trait,
+  ownership, match_extensions, enums) shows 28 failures, all reproduced
+  identically on the pre-change s2 at the same byte offsets
+  (ord/partial_ord/debug/eq i64 lanes, read_write, seek, adt_probe,
+  struct_pattern, test_enum_return, and others), so none are attributed
+  here.
+- Residual: `ScanBox<T>`-shaped literals where scalar fields precede
+  the `fn` field still fail wasm32-gc validation — the fn-value
+  temporary is typed as the enum base ref instead of the fnpair struct
+  (`expected (ref null $type), found (ref (exact $type))`). That is
+  the fn-value aggregate-slot typing tracked in #883, not this issue's
+  Option-payload path. Acceptance D (generic `ScanIter<T>`) depends
+  on it plus the `Option<T>` record-field gap in #881. This is not
+  a close receipt.
+
+
+
