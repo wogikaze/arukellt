@@ -457,6 +457,37 @@ full adapter fixture matrix as a fallback parity gate.
   (`flat_map` to `U != T`), manifest-level `std::seq` deprecation, and
   the final RFC-011 residual audit remain open. This is not a close receipt.
 
+## Progress receipt — 2026-09-25 (lazy PeekIter adapter)
+
+- Commit `519f5c4c6` adds `PeekIter<T>` (`VecIter<T>::peekable`,
+  `peek_iter`, `collect_peek_iter`), another adapter from the Rust
+  baseline list. `peek()` caches the upcoming element in a single-slot
+  Vec; `next()` drains the cache before advancing the upstream Vec
+  snapshot, so repeated peeks return the same item.
+- Discovered constraint (recorded in the struct doc comment): an
+  `Option<T>` record field materializes under a different type index
+  than the `None` literal at the struct-literal init site on wasm32-gc,
+  so `peeked: Option<T>` produced an invalid core module. The cache is
+  a single-slot `Vec<T>` instead. A dedicated child issue may be needed
+  if Option record fields are expected to work generally.
+- New fixture `tests/fixtures/stdlib_trait/iterator_peek_basic.ark`
+  covers repeated peek caching, peek/next interleaving, exhaustion
+  returning `None`, and drained `collect` order on both backends.
+  The stale-cache case (peek-after-drain returning a consumed item) is
+  asserted — it caught the first implementation's flag bug.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py verify lane                  PASS (DONE=0)
+  wasm32-gc component compile+run (peek fixture)          PASS
+  wasm32 linear wasi-p1/memory32 compile+run              PASS
+  arukellt-selfhost.sh fmt (iter.ark, fixture)            PASS
+  ```
+
+- Not a close receipt: method-level generics, manifest-level `std::seq`
+  deprecation, remaining adapters (`step_by`/`inspect`/`scan`/`fuse`),
+  and the final RFC-011 residual audit remain open.
+
 ## Progress receipt — 2026-09-24 (parametric IntoIterator for HashMap<K,V>)
 
 - Commit `4342a3144` replaces the six per-pair `IntoIterator` impls
