@@ -5,9 +5,13 @@ use mir::lower::call_arg_i64
 use mir::lower::call_args
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit
+use mir::lower::call_rewrite_vec
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_index
 use mir::lower::literals
+use mir::lower::loop_vec
+use mir::lower::struct_lit
 use mir::lower::value_variants
 use corehir::type_ann_node
 
@@ -72,126 +76,151 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             } else {
                 arg_idx = lower_expr(ctx, arg)
             }
-        } else if mir_arg_is_fn_value_for_param(ctx, clone(callee_name), arg, param_idx) {
-            arg_idx = value_variants::lower_function_value(ctx, ast_node::node_text(arg))
+        } else if mir_arg_is_fn_value_for_param(ctx, clone(callee_name), arg, param_idx) ||
+            mir_push_arg_is_fn_value(ctx, clone(callee_name), arg, param_idx, first_arg_idx) {
+                arg_idx = value_variants::lower_function_value(ctx, ast_node::node_text(arg))
+            } else {
+                arg_idx = lower_expr(ctx, arg)
+            }
+            if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
+                arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
+            }
+            arg_idx = lower_direct_call_print_convert(ctx, is_println, a, arg, arg_idx)
+            // Capture pre-stage receiver for GC void mutators (push_char).
+            if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
+                receiver_writeback = arg_idx
+            }
+            if stage_call_args && arg_idx >= 0 {
+                arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
+            }
+            if a == 1 {
+                first_arg_idx = arg_idx
+            }
+            if a == 2 {
+                second_arg_idx = arg_idx
+            }
+            a = a + 1
+        }
+        call_emit::mir_emit_direct_call(
+            ctx,
+            callee_name,
+            child_count - 1,
+            first_arg_idx,
+            second_arg_idx,
+            staged_arg_locals,
+            stage_call_args,
+            ast_node::node_span_start(node),
+            lane_immediate,
+            receiver_writeback
+        )
+    }
+
+    fn lower_direct_call_callee_name(callee: AstNode) -> String {
+        let callee_name = ast_node::node_text(callee)
+        if eq(clone(callee_name), "HashMap::new") {
+            return mir_hashmap_constructor_name(callee)
+        }
+        if !eq(clone(callee_name), "Vec::new") &&
+        !eq(clone(callee_name), "Vec::with_capacity") {
+            return callee_name
+        }
+        if ast_node::node_child_count(callee) < 2 {
+            return callee_name
+        }
+        let element_type = ast_node::node_child_at(callee, 1)
+        if !type_ann_node::type_ann_is_named(element_type) {
+            return callee_name
+        }
+        let element_name = ast_node::node_text(element_type)
+        if len(element_name) == 0 || contains(clone(element_name), "::") {
+            return callee_name
+        }
+        let constructor = if eq(clone(callee_name), "Vec::new") {
+            "Vec__new__"
         } else {
-            arg_idx = lower_expr(ctx, arg)
+            "Vec__with_capacity__"
         }
-        if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
-            arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
-        }
-        arg_idx = lower_direct_call_print_convert(ctx, is_println, a, arg, arg_idx)
-        // Capture pre-stage receiver for GC void mutators (push_char).
-        if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
-            receiver_writeback = arg_idx
-        }
-        if stage_call_args && arg_idx >= 0 {
-            arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
-        }
-        if a == 1 {
-            first_arg_idx = arg_idx
-        }
-        if a == 2 {
-            second_arg_idx = arg_idx
-        }
-        a = a + 1
+        concat(constructor, element_name)
     }
-    call_emit::mir_emit_direct_call(
-        ctx,
-        callee_name,
-        child_count - 1,
-        first_arg_idx,
-        second_arg_idx,
-        staged_arg_locals,
-        stage_call_args,
-        ast_node::node_span_start(node),
-        lane_immediate,
-        receiver_writeback
-    )
-}
 
-fn lower_direct_call_callee_name(callee: AstNode) -> String {
-    let callee_name = ast_node::node_text(callee)
-    if eq(clone(callee_name), "HashMap::new") {
-        return mir_hashmap_constructor_name(callee)
-    }
-    if !eq(clone(callee_name), "Vec::new") &&
-    !eq(clone(callee_name), "Vec::with_capacity") {
-        return callee_name
-    }
-    if ast_node::node_child_count(callee) < 2 {
-        return callee_name
-    }
-    let element_type = ast_node::node_child_at(callee, 1)
-    if !type_ann_node::type_ann_is_named(element_type) {
-        return callee_name
-    }
-    let element_name = ast_node::node_text(element_type)
-    if len(element_name) == 0 || contains(clone(element_name), "::") {
-        return callee_name
-    }
-    let constructor = if eq(clone(callee_name), "Vec::new") {
-        "Vec__new__"
-    } else {
-        "Vec__with_capacity__"
-    }
-    concat(constructor, element_name)
-}
-
-fn mir_hashmap_constructor_name(callee: AstNode) -> String {
-    if ast_node::node_child_count(callee) < 3 {
-        return "HashMap::new"
-    }
-    let key_node = ast_node::node_child_at(callee, 1)
-    let value_node = ast_node::node_child_at(callee, 2)
-    let key_name = mir_hashmap_ctor_type_arg_name(key_node)
-    let value_name = mir_hashmap_ctor_type_arg_name(value_node)
-    if len(key_name) == 0 || len(value_name) == 0 ||
-    contains(clone(key_name), "::") || contains(clone(value_name), "::") {
-        return "HashMap::new"
-    }
-    concat(
-        "HashMap__new__",
-        concat(key_name, concat("__", value_name))
-    )
-}
-
-// Type-argument spelling for `HashMap::new<K, V>` callees. fn(i32) -> i32
-// is not a named annotation; spell it the way mono_type_key does so the
-// constructor rewrite sees the same name the mono instance carries (#691).
-fn mir_hashmap_ctor_type_arg_name(node: AstNode) -> String {
-    if type_ann_node::type_ann_is_named(node) {
-        return type_ann_node::type_ann_name(node)
-    }
-    if type_ann_node::type_ann_is_i32_i32_fn(node) {
-        return String_from("fn_i32_i32_")
-    }
-    String_new()
-}
-
-fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg: AstNode, arg_idx: i32) -> i32 {
-    if is_println && a == 1 && arg_idx >= 0 {
-        let needs_convert = call_args::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
-        if needs_convert {
-            return call_args::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
+    fn mir_hashmap_constructor_name(callee: AstNode) -> String {
+        if ast_node::node_child_count(callee) < 3 {
+            return "HashMap::new"
         }
+        let key_node = ast_node::node_child_at(callee, 1)
+        let value_node = ast_node::node_child_at(callee, 2)
+        let key_name = mir_hashmap_ctor_type_arg_name(key_node)
+        let value_name = mir_hashmap_ctor_type_arg_name(value_node)
+        if len(key_name) == 0 || len(value_name) == 0 ||
+        contains(clone(key_name), "::") || contains(clone(value_name), "::") {
+            return "HashMap::new"
+        }
+        concat(
+            "HashMap__new__",
+            concat(key_name, concat("__", value_name))
+        )
     }
-    arg_idx
-}
 
-// Bare function names at fn-typed parameters must lower to fn-pair values.
-// The frontend resolves a 0-param ident by its result type, which would
-// otherwise emit a call and store the i32 result into the fn slot (#883).
-fn mir_arg_is_fn_value_for_param(ctx: LowerCtx, callee_name: String, arg: AstNode, param_idx: i32) -> bool {
-    if !ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) {
-        return false
+    // Type-argument spelling for `HashMap::new<K, V>` callees. fn(i32) -> i32
+    // is not a named annotation; spell it the way mono_type_key does so the
+    // constructor rewrite sees the same name the mono instance carries (#691).
+    fn mir_hashmap_ctor_type_arg_name(node: AstNode) -> String {
+        if type_ann_node::type_ann_is_named(node) {
+            return type_ann_node::type_ann_name(node)
+        }
+        if type_ann_node::type_ann_is_i32_i32_fn(node) {
+            return String_from("fn_i32_i32_")
+        }
+        String_new()
     }
-    let arg_name = ast_node::node_text(arg)
-    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(arg_name)) >= 0 {
-        return false
+
+    fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg: AstNode, arg_idx: i32) -> i32 {
+        if is_println && a == 1 && arg_idx >= 0 {
+            let needs_convert = call_args::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
+            if needs_convert {
+                return call_args::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
+            }
+        }
+        arg_idx
     }
-    if ctx_fn_index::ctx_fn_index_find(ctx, clone(arg_name)) < 0 {
-        return false
+
+    // Bare function names at fn-typed parameters must lower to fn-pair values.
+    // The frontend resolves a 0-param ident by its result type, which would
+    // otherwise emit a call and store the i32 result into the fn slot (#883).
+    fn mir_arg_is_fn_value_for_param(ctx: LowerCtx, callee_name: String, arg: AstNode, param_idx: i32) -> bool {
+        if !ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) {
+            return false
+        }
+        let arg_name = ast_node::node_text(arg)
+        if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(arg_name)) >= 0 {
+            return false
+        }
+        if ctx_fn_index::ctx_fn_index_find(ctx, clone(arg_name)) < 0 {
+            return false
+        }
+        call_arg_i64::mir_callee_param_is_funcref(ctx, callee_name, param_idx)
     }
-    call_arg_i64::mir_callee_param_is_funcref(ctx, callee_name, param_idx)
-}
+
+    // Bare fn names pushed onto Vec<fn...> must lower to fn pairs.  The
+    // generic push spine reports the element param as T, so the expected
+    // type comes from the receiver local's Vec element type (#884).
+    fn mir_push_arg_is_fn_value(ctx: LowerCtx, callee_name: String, arg: AstNode, param_idx: i32, vec_idx: i32) -> bool {
+        if param_idx != 1 || vec_idx < 0 {
+            return false
+        }
+        if !call_rewrite_vec::is_vec_push_callee(callee_name) {
+            return false
+        }
+        if !ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) {
+            return false
+        }
+        let arg_name = ast_node::node_text(arg)
+        if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(arg_name)) >= 0 {
+            return false
+        }
+        if ctx_fn_index::ctx_fn_index_find(ctx, clone(arg_name)) < 0 {
+            return false
+        }
+        let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, vec_idx)
+        struct_lit::struct_lit_decl_is_fn_value(loop_vec::mir_vec_element_type_name(vec_type))
+    }

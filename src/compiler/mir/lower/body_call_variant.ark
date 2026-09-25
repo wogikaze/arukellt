@@ -7,6 +7,11 @@ use mir::lower::ctx_types
 use mir::inst_local_set
 use mir::value_types
 use mir::lower::variants
+use mir::lower::ast_node
+use mir::lower::ctx_fn_index
+use mir::lower::struct_lit
+use mir::lower::value_variants
+use mir::lower_kinds
 
 fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, var_tag: i32) -> i32 {
     let mut payload_locals = Vec::new<i32>()
@@ -15,7 +20,11 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
     let mut pa = 1
     while pa < child_count {
         let parg = ast_node::node_child_at(node, pa)
-        let p_idx = lower_expr(ctx, parg)
+        let p_idx = if mir_variant_arg_is_fn_value(ctx, node, parg) {
+            value_variants::lower_function_value(ctx, ast_node::node_text(parg))
+        } else {
+            lower_expr(ctx, parg)
+        }
         let p_vt = ctx_local_vt(ctx, p_idx)
         let save_local = ctx_fresh_local(ctx, p_vt)
         let src_type = ctx_api_local_types::ctx_get_local_type(ctx, p_idx)
@@ -64,4 +73,117 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         raw_name
     }
     variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, variant_name)
+}
+
+// `Some(answer)` / `Ok(answer)` / `Err(answer)` inside an enum-typed
+// expected position must store the fn pair, not the scalar result of an
+// implicit call.  The generic enum erase the declared payload type, so
+// the fn expectation comes from `ctx.expected_struct_inst` spellings:
+// `Option_<t>`/`option:<t>` and `Result_<t>_<e>`/`result:<t>:<e>` (#884).
+fn mir_variant_arg_is_fn_value(ctx: LowerCtx, node: AstNode, parg: AstNode) -> bool {
+    if !ast_node::node_kind_is(parg, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    if !mir_expected_enum_payload_is_fn(ctx, ast_node::node_text(ast_node::node_child_at(node, 0))) {
+        return false
+    }
+    let parg_name = ast_node::node_text(parg)
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(parg_name)) >= 0 {
+        return false
+    }
+    ctx_fn_index::ctx_fn_index_find(ctx, parg_name) >= 0
+}
+
+fn mir_expected_enum_payload_is_fn(ctx: LowerCtx, callee_name: String) -> bool {
+    let is_err = eq(clone(callee_name), "Err") || ends_with(clone(callee_name), "::Err")
+    let is_some_or_ok = eq(clone(callee_name), "Some") || ends_with(clone(callee_name), "::Some") ||
+    eq(clone(callee_name), "Ok") || ends_with(clone(callee_name), "::Ok")
+    if !is_err && !is_some_or_ok {
+        return false
+    }
+    let want_index = if is_err { 2 } else { 1 }
+    struct_lit::struct_lit_decl_is_fn_value(mir_expected_enum_type_arg(clone(ctx.expected_struct_inst), want_index))
+}
+
+// Extract the which-th (1-based) type argument from an enum inst
+// spelling: "Option_<a>"/"option:<a>"/"Option<a>" and
+// "Result_<a>_<b>"/"result:<a>:<b>"/"Result<a, b>" use the head's own
+// separator ("_" or ":") or top-level commas inside angle brackets.
+fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
+    if starts_with(clone(expected), String_from("Option<")) && ends_with(clone(expected), String_from(">")) {
+        if which == 1 {
+            return substring(expected, 7, len(expected) - 1)
+        }
+        return String_new()
+    }
+    if starts_with(clone(expected), String_from("Result<")) && ends_with(clone(expected), String_from(">")) {
+        let inner = substring(clone(expected), 7, len(expected) - 1)
+        let parts = mir_expected_enum_split_args(inner)
+        if which >= 1 && which <= len(parts) {
+            return get_unchecked(parts, which - 1)
+        }
+        return String_new()
+    }
+    let mut args = String_new()
+    let mut sep = 0
+    if starts_with(clone(expected), "Option_") || starts_with(clone(expected), "Result_") {
+        args = substring(clone(expected), 7, len(expected))
+        sep = 95
+    } else if starts_with(clone(expected), "option:") || starts_with(clone(expected), "result:") {
+        args = substring(clone(expected), 7, len(expected))
+        sep = 58
+    } else {
+        return String_new()
+    }
+    let n = len(args)
+    let mut seg_start = 0
+    let mut index = 1
+    let mut i = 0
+    while i <= n {
+        if i == n || byte_at(clone(args), i) == sep {
+            if index == which {
+                return substring(clone(args), seg_start, i)
+            }
+            seg_start = i + 1
+            index = index + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// Split "Result<A, B>" argument text on top-level commas.  Unlike
+// ctx_split_top_level_type_args this also treats "->" as atomic and
+// tracks parens, so an "fn(A,B) -> R" argument does not split on its
+// parameter comma and its arrow does not close the angle depth.
+fn mir_expected_enum_split_args(inner: String) -> Vec<String> {
+    let args = Vec::new<String>()
+    let mut angle_depth = 0
+    let mut paren_depth = 0
+    let mut seg_start = 0
+    let n = len(inner)
+    let mut i = 0
+    while i <= n {
+        if i < n {
+            let ch = byte_at(clone(inner), i)
+            if ch == 60 {
+                angle_depth = angle_depth + 1
+            }
+            if ch == 62 && (i == 0 || byte_at(clone(inner), i - 1) != 45) {
+                angle_depth = angle_depth - 1
+            }
+            if ch == 40 {
+                paren_depth = paren_depth + 1
+            }
+            if ch == 41 {
+                paren_depth = paren_depth - 1
+            }
+        }
+        if (i == n || byte_at(clone(inner), i) == 44) && angle_depth == 0 && paren_depth == 0 {
+            push(args, substring(clone(inner), seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    args
 }

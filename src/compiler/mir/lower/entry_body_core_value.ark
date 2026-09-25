@@ -1,9 +1,34 @@
 use mir::lower::core_body
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_jumps
 use mir::lower::entry_core_body
+use mir::lower::value_variants
+use corehir::expr_predicates
+use corehir::kinds
 
 fn mir_lower_entry_body_core_value(ctx: LowerCtx, body: MirLowerEntryCoreBody) -> i32 {
     if !entry_core_body::mir_entry_core_body_is_supported(body) {
         return 0 - 2
     }
-    core_body::lower_core_expr(ctx, entry_core_body::mir_entry_core_body_exprs(body), entry_core_body::mir_entry_core_body_root(body))
+    let exprs = entry_core_body::mir_entry_core_body_exprs(body)
+    let root_index = entry_core_body::mir_entry_core_body_root(body)
+    // A bare fn name in tail position is the implicit return value; with a
+    // funcref return type it must lower to the fn pair, not `call name()`
+    // (#884).
+    let tail_expr = mir_core_body_tail_expr(exprs, get_unchecked(exprs, root_index))
+    if core_jumps::mir_core_return_expr_is_fn_value(ctx, tail_expr) {
+        return value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(tail_expr))
+    }
+    core_body::lower_core_expr(ctx, exprs, root_index)
+}
+
+// The function-body result is the outer block's last child (or the root
+// itself when the body is a single expression).
+fn mir_core_body_tail_expr(exprs: Vec<CoreHirExpr>, root_expr: CoreHirExpr) -> CoreHirExpr {
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(root_expr)
+    if expr_predicates::expr_kind_is(root_expr, commands::COREHIR_EXPR_BLOCK()) && child_count >= 1 {
+        let tail_index = core_expr_shape_accessors::mir_core_expr_child(root_expr, child_count - 1)
+        return get_unchecked(exprs, tail_index)
+    }
+    root_expr
 }

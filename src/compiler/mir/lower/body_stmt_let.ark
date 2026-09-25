@@ -1,7 +1,10 @@
 use mir::lower::ast_node
 use mir::lower::ann_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_fn_index
 use mir::lower::stmt_let
 use mir::lower::stmt_let_tuple
+use mir::lower::value_variants
 use mir::lower_kinds
 
 fn lower_let_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
@@ -29,10 +32,34 @@ fn lower_let_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             )
             ctx.expected_struct_inst = shaped
         }
-        pre_val_idx = lower_expr(ctx, pre_init)
+        if mir_let_init_is_fn_value(ctx, node, pre_init) {
+            pre_val_idx = value_variants::lower_function_value(ctx, ast_node::node_text(pre_init))
+        } else {
+            pre_val_idx = lower_expr(ctx, pre_init)
+        }
         ctx.expected_struct_inst = saved_expected
         vt = stmt_let::mir_adjust_let_vt_from_init(ctx, vt, node, pre_val_idx)
     }
     stmt_let::mir_finish_let_stmt(ctx, node, vt, pre_val_idx, pre_init_kind)
     0 - 1
+}
+
+// Bare function names at a `fn(...) -> R` let annotation must lower to
+// fn-pair values; the frontend resolves a 0-param ident by its result
+// type, which would emit a call and store the scalar result (#884).
+fn mir_let_init_is_fn_value(ctx: LowerCtx, node: AstNode, init: AstNode) -> bool {
+    if ast_node::node_type_ann_count(node) < 1 {
+        return false
+    }
+    if !ast_node::node_kind_is(ast_node::node_type_ann_at(node, 0), lower_kinds::NK_TYPE_FN()) {
+        return false
+    }
+    if !ast_node::node_kind_is(init, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    let init_name = ast_node::node_text(init)
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(init_name)) >= 0 {
+        return false
+    }
+    ctx_fn_index::ctx_fn_index_find(ctx, init_name) >= 0
 }

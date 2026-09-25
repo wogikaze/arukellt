@@ -1,6 +1,34 @@
 use mir::lower::body
+use mir::lower::ast_node
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_fn_index
 use mir::lower::legacy_body
+use mir::lower::value_variants
+use mir::lower_kinds
+use mir::value_types
 
 fn mir_lower_legacy_body_value(ctx: LowerCtx, body: MirLowerLegacyBody) -> i32 {
-    body::lower_expr(ctx, legacy_body::mir_legacy_body_node(body))
+    let node = legacy_body::mir_legacy_body_node(body)
+    if mir_legacy_tail_is_fn_value(ctx, node) {
+        return value_variants::lower_function_value(ctx, ast_node::node_text(node))
+    }
+    body::lower_expr(ctx, node)
+}
+
+// A bare fn name in tail position is the implicit return value; with a
+// funcref return type it must lower to the fn pair, not `call name()`
+// (#884).
+fn mir_legacy_tail_is_fn_value(ctx: LowerCtx, node: AstNode) -> bool {
+    if ctx_api_function_frame::ctx_current_return_type(ctx) != value_types::VT_FUNCREF() {
+        return false
+    }
+    if !ast_node::node_kind_is(node, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    let node_name = ast_node::node_text(node)
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(node_name)) >= 0 {
+        return false
+    }
+    ctx_fn_index::ctx_fn_index_find(ctx, node_name) >= 0
 }

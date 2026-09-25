@@ -4,7 +4,11 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
 use mir::inst_local_set
+use mir::lower::body_call_variant
+use mir::lower::core_expr_shape_atoms
+use mir::lower::core_names
 use mir::lower::core_expr_shape_accessors
+use mir::lower::value_variants
 use mir::lower::variants
 use mir::value_types
 
@@ -27,7 +31,13 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
     let mut total_bytes = 4
     let mut pa = 1
     while pa < child_count {
-        let p_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, pa))
+        let parg_index = core_expr_shape_accessors::mir_core_expr_child(expr, pa)
+        let parg_expr = get_unchecked(exprs, parg_index)
+        let p_idx = if mir_core_variant_arg_is_fn_value(ctx, clone(variant_name), parg_expr) {
+            value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(parg_expr))
+        } else {
+            lower_core_expr(ctx, exprs, parg_index)
+        }
         let p_vt = ctx_api_local_types::ctx_local_vt(ctx, p_idx)
         let save_local = ctx_api_local_alloc::ctx_fresh_local(ctx, p_vt)
         let src_type = ctx_api_local_types::ctx_get_local_type(ctx, p_idx)
@@ -58,4 +68,23 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         total_bytes = struct_bytes
     }
     variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, clone(variant_name))
+}
+
+// `Some(answer)` / `Ok(answer)` / `Err(answer)` inside an enum-typed
+// expected position must store the fn pair, not the scalar result of an
+// implicit 0-param call.  Mirrors mir_variant_arg_is_fn_value on the AST
+// path; the fn expectation is decoded from ctx.expected_struct_inst
+// (#884).
+fn mir_core_variant_arg_is_fn_value(ctx: LowerCtx, variant_name: String, parg: CoreHirExpr) -> bool {
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(parg) {
+        return false
+    }
+    if !body_call_variant::mir_expected_enum_payload_is_fn(ctx, variant_name) {
+        return false
+    }
+    let parg_name = core_expr_shape_accessors::mir_core_expr_text(parg)
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(parg_name)) >= 0 {
+        return false
+    }
+    core_names::mir_function_parameter_count(ctx, parg_name) >= 0
 }

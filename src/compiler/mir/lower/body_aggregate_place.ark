@@ -6,8 +6,12 @@ use mir::lower::binary_emit
 use mir::lower::binary_type_names
 use mir::lower::body_aggregate_assign_field
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_fn_exists
+use mir::lower::ctx_fn_index
+use mir::lower::value_variants
+use mir::value_types
 
 fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
@@ -15,7 +19,11 @@ fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let target = ast_node::node_child_at(node, 0)
         let value = ast_node::node_child_at(node, 1)
         if ast_node::node_kind_is(target, lower_kinds::NK_IDENT()) {
-            let val_idx = lower_expr(ctx, value)
+            let val_idx = if mir_assign_value_is_fn_pair(ctx, target, value) {
+                value_variants::lower_function_value(ctx, ast_node::node_text(value))
+            } else {
+                lower_expr(ctx, value)
+            }
             assign::mir_emit_ident_assign(ctx, ast_node::node_text(target), val_idx)
         }
         if ast_node::node_kind_is(target, lower_kinds::NK_FIELD_ACCESS()) {
@@ -65,4 +73,21 @@ fn lower_index_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return aggregate::mir_emit_array_index(ctx, base_idx, index_idx)
     }
     0 - 1
+}
+
+// `f = answer` where f is a fn-valued local must store the fn pair,
+// not the scalar result of an implicit 0-param call (#884).
+fn mir_assign_value_is_fn_pair(ctx: LowerCtx, target: AstNode, value: AstNode) -> bool {
+    if !ast_node::node_kind_is(value, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    let target_idx = ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(target))
+    if target_idx < 0 || ctx_api_local_types::ctx_local_vt(ctx, target_idx) != value_types::VT_FUNCREF() {
+        return false
+    }
+    let value_name = ast_node::node_text(value)
+    if ctx_api_local_alloc::ctx_lookup_local(ctx, clone(value_name)) >= 0 {
+        return false
+    }
+    ctx_fn_index::ctx_fn_index_find(ctx, value_name) >= 0
 }

@@ -8,8 +8,12 @@ use mir::inst_local_set
 use mir::lower::core_bindings_type
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_calls
+use mir::lower::core_expr_shape_atoms
+use mir::lower::core_names
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_mono
+use mir::lower::struct_lit
+use mir::lower::value_variants
 use mir::value_types
 
 fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
@@ -24,7 +28,13 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         // saved/restored so nested initializers cannot leak it.
         let saved_expected = clone(ctx.expected_struct_inst)
         ctx.expected_struct_inst = clone(resolved_type_name)
-        val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+        let init_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
+        let init_expr = get_unchecked(exprs, init_index)
+        if mir_core_let_init_is_fn_value(ctx, init_expr, clone(resolved_type_name)) {
+            val_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(init_expr))
+        } else {
+            val_idx = lower_core_expr(ctx, exprs, init_index)
+        }
         ctx.expected_struct_inst = saved_expected
     }
     let mut vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
@@ -33,6 +43,11 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
     }
     if vt == 0 {
         vt = value_types::VT_I32()
+    }
+    // A `fn(...) -> R` annotation makes the binding a fn-pair slot, so the
+    // local must be VT_FUNCREF to receive the lowered pair (#884).
+    if struct_lit::struct_lit_decl_is_fn_value(clone(resolved_type_name)) {
+        vt = value_types::VT_FUNCREF()
     }
     let local_idx = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(binding_name), vt)
     // The initializer is the authoritative storage type for an unannotated
@@ -89,4 +104,21 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         }
     }
     0 - 1
+}
+
+// Bare function names at a `fn(...) -> R` let annotation lower to fn-pair
+// values; the frontend resolves a 0-param ident by its result type,
+// which would emit a call and store the scalar result (#884).
+fn mir_core_let_init_is_fn_value(ctx: LowerCtx, init_expr: CoreHirExpr, resolved_type_name: String) -> bool {
+    if !struct_lit::struct_lit_decl_is_fn_value(resolved_type_name) {
+        return false
+    }
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(init_expr) {
+        return false
+    }
+    if core_names::mir_core_lookup_local(ctx, init_expr) >= 0 {
+        return false
+    }
+    let init_name = core_expr_shape_accessors::mir_core_expr_text(init_expr)
+    core_names::mir_function_parameter_count(ctx, init_name) >= 0
 }

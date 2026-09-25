@@ -26,6 +26,14 @@ fn mir_local_vt_from_type_name(type_name: String) -> i32 {
     eq(clone(type_name), "Result") {
         return value_types::VT_GC_REF()
     }
+    // fnref-family spellings (fnref/fnref2/fnrefss/fnrefsb/fnsig:/fn)
+    // mark a callback ABI local, which must keep the pair-ABI value type
+    // so stores into it do not expect a scalar (#884).
+    if eq(clone(type_name), "fn") ||
+    starts_with(clone(type_name), "fnref") ||
+    starts_with(clone(type_name), "fnsig:") {
+        return value_types::VT_FUNCREF()
+    }
     value_types::VT_I32()
 }
 

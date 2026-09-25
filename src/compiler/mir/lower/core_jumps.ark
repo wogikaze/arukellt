@@ -1,7 +1,12 @@
 use mir::lower::ctx_api_loop_query
+use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
+use mir::lower::core_names
 use mir::lower::control
+use mir::lower::value_variants
+use mir::value_types
 
 fn lower_core_break(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if ctx_api_loop_query::ctx_loop_break_available(ctx) {
@@ -21,10 +26,33 @@ fn lower_core_continue(ctx: LowerCtx) -> i32 {
 
 fn lower_core_return(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) >= 1 {
-        let val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+        let ret_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
+        let ret_expr = get_unchecked(exprs, ret_index)
+        let val_idx = if mir_core_return_expr_is_fn_value(ctx, ret_expr) {
+            value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(ret_expr))
+        } else {
+            lower_core_expr(ctx, exprs, ret_index)
+        }
         control::mir_emit_return_value(ctx, val_idx)
     } else {
         control::mir_emit_return_void(ctx)
     }
     0 - 1
+}
+
+// `return answer` inside a `-> fn(...) -> R` body must lower the bare fn
+// name to a fn pair; otherwise a 0-param ident lowers to `call answer()`
+// and the scalar lands in the funcref return slot (#884).
+fn mir_core_return_expr_is_fn_value(ctx: LowerCtx, expr: CoreHirExpr) -> bool {
+    if ctx_api_function_frame::ctx_current_return_type(ctx) != value_types::VT_FUNCREF() {
+        return false
+    }
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
+        return false
+    }
+    if core_names::mir_core_lookup_local(ctx, expr) >= 0 {
+        return false
+    }
+    let expr_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    core_names::mir_function_parameter_count(ctx, expr_name) >= 0
 }
