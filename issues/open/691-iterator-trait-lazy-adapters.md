@@ -420,6 +420,43 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-25 (lazy FlatMapIter adapter)
+
+- Commit `4fb40501d` adds `FlatMapIter<T>`, the `flat_map` lazy adapter
+  missing from the Rust baseline list. It follows the concrete Vec-snapshot
+  state pattern used by `MapIter`/`FilterIter`: the inner buffer appends
+  each produced `Vec<T>` behind a walking cursor, so the stream stays lazy
+  while avoiding a concatenated upfront allocation.
+- `VecIter<T>::flat_map(f: fn(T) -> Vec<T>)` is item-preserving — the
+  method-level-generics limitation already documented for `FilterIter::map`
+  applies, so `flat_map` is `T -> Vec<T>` only. `FlatMapIter<T>` composes
+  with `TakeIter` for the standard `.take(n)` pipeline.
+- An upstream-generic `FlatMapIter<I>` storing `Vec<I::Item>` and
+  `fn(I::Item) -> Vec<I::Item>` fields was tried first and reverted: the
+  `Vec<I::Item>` field form emitted an invalid linear module and wrong
+  values on GC, so the landed shape keeps the proven concrete field types.
+- New fixture `tests/fixtures/stdlib_trait/iterator_flat_map_basic.ark`
+  covers sequential `next` expansion, empty inner vectors being skipped,
+  zero-valued produced items, drained `collect` order, and the
+  `iter().flat_map(dup).take(3).collect()` receiver pipeline. It compiles,
+  validates, and runs identically on wasm32-gc component and
+  wasm32/wasi-p1/memory32.
+- Manifest gains `flat_map_iter` and `collect_flat_map_iter` provisional
+  entries next to the other adapter constructors/drains.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py verify lane                  PASS (DONE=0)
+  wasm32-gc component compile+run (flat_map fixture)      PASS
+  wasm32 linear wasi-p1/memory32 compile+run              PASS
+  arukellt-selfhost.sh fmt (iter.ark, fixture)            PASS
+  ```
+
+- This adds one more adapter from the required-work list. Arbitrary item
+  representations beyond the i32/String lanes, method-level generics
+  (`flat_map` to `U != T`), manifest-level `std::seq` deprecation, and
+  the final RFC-011 residual audit remain open. This is not a close receipt.
+
 ## Progress receipt — 2026-09-24 (parametric IntoIterator for HashMap<K,V>)
 
 - Commit `4342a3144` replaces the six per-pair `IntoIterator` impls
