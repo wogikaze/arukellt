@@ -15,25 +15,25 @@ Scoring criteria (0-5 each, total 25):
 | 2 | 865 | 865 — Hygienic desugaring と f-string lowering を実装する | language-v2 | 1 | 0 | 5 | 5 | 4 | 15 |
 | 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
 | 4 | 723 | Wasm Exception Handling (`exnref`) 統合の検討 | language-design | 0 | 0 | 4 | 5 | 5 | 14 |
-| 5 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
-| 6 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 5 | 0 | 1 | 3 | 3 | 12 |
-| 7 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 4 | 5 | 3 | 12 |
-| 8 | 860 | 860 — Iterator Trait 体系を統合完了する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
-| 9 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
-| 10 | 875 | 875 — wasm32-gc / fallback の意味論 parity を証明する | language-v2 | 3 | 0 | 1 | 5 | 2 | 11 |
-| 11 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
-| 12 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
-| 13 | 718 | 718 — Stdlib free-function → method/trait migration inventory | stdlib-api | 0 | 0 | 4 | 3 | 3 | 10 |
-| 14 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
-| 15 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
-| 16 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 1 | 0 | 1 | 5 | 3 | 10 |
-| 17 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
-| 18 | 872 | 872 — Wasm GC closure / collection lowering を完成する | language-v2 | 2 | 0 | 1 | 5 | 2 | 10 |
-| 19 | 874 | 874 — fallback managed-value lowering を実装する | language-v2 | 2 | 0 | 1 | 5 | 2 | 10 |
-| 20 | 878 | 878 — Language v2 compatibility migration を完了する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |
-| 21 | 881 | 881 — Option<T> record field と literal の GC type index を一致させる | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
-| 22 | 882 | 882 — generic impl method bodies: bare-T field reads, sibli... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
-| 23 | 883 | 883 — fn values in aggregate slots: GC field-init type inde... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
+| 5 | 882 | 882 — generic impl method bodies: bare-T field reads, sibli... | language-v2 | 0 | 0 | 4 | 5 | 5 | 14 |
+| 6 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
+| 7 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 5 | 0 | 1 | 3 | 3 | 12 |
+| 8 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 4 | 5 | 3 | 12 |
+| 9 | 860 | 860 — Iterator Trait 体系を統合完了する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
+| 10 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
+| 11 | 875 | 875 — wasm32-gc / fallback の意味論 parity を証明する | language-v2 | 3 | 0 | 1 | 5 | 2 | 11 |
+| 12 | 881 | 881 — Option<T> record field と literal の GC type index を一致させる | language-v2 | 1 | 0 | 1 | 5 | 4 | 11 |
+| 13 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
+| 14 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
+| 15 | 718 | 718 — Stdlib free-function → method/trait migration inventory | stdlib-api | 0 | 0 | 4 | 3 | 3 | 10 |
+| 16 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
+| 17 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
+| 18 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 1 | 0 | 1 | 5 | 3 | 10 |
+| 19 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
+| 20 | 872 | 872 — Wasm GC closure / collection lowering を完成する | language-v2 | 2 | 0 | 1 | 5 | 2 | 10 |
+| 21 | 874 | 874 — fallback managed-value lowering を実装する | language-v2 | 2 | 0 | 1 | 5 | 2 | 10 |
+| 22 | 878 | 878 — Language v2 compatibility migration を完了する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |
+| 23 | 884 | 884 — bare 0-param fn names still auto-call at scalar posit... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
 | 24 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
 | 25 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
 | 26 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |

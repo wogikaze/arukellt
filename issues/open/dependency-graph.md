@@ -35,7 +35,6 @@ graph LR
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I881["881 881 — Option<T> record field と literal の GC type index を一致させる"]
   I882["882 882 — generic impl method bodies: bare-T field reads, sibling calls, fn-typed fields"]
-  I883["883 883 — fn values in aggregate slots: GC field-init type index / linear 0-param indirect call"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -46,6 +45,7 @@ graph LR
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
+  I884["884 884 — bare 0-param fn names still auto-call at scalar positions and generic-erased slots"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I872["872 872 — Wasm GC closure / collection lowering を完成する"]
@@ -73,6 +73,7 @@ graph LR
   I715 --> I799
   I729 --> I865
   I851 --> I850
+  I881 --> I884
   I682 --> I683
   I698 --> I699
   I860 --> I872
@@ -136,9 +137,8 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **881** depends on: none; blocks: none
+- **881** depends on: none; blocks: 884
 - **882** depends on: none; blocks: none
-- **883** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
@@ -149,6 +149,7 @@ graph LR
 - **799** depends on: 715, 796, 797; blocks: none
 - **865** depends on: 729; blocks: 875
 - **850** depends on: 851; blocks: none
+- **884** depends on: 881; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879

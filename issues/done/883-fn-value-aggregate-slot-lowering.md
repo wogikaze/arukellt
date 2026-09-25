@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-25
-Updated: 2026-09-25
+Updated: 2026-09-26
 ID: 883
 Parent: 874
 Track: language-v2
@@ -64,7 +64,7 @@ fixes, so this is a pre-existing linear defect, not a regression.
 
 - [x] A record literal storing a multi-param fn value validates and runs
       on wasm32-gc regardless of the field's position
-- [ ] A zero-param fn value retrieved from \`HashMap<i32,fn()->i32>\`
+- [x] A zero-param fn value retrieved from \`HashMap<i32,fn()->i32>\`
       invokes correctly on wasm32 linear and wasm32-gc
 - [x] No regression on the existing fn-pair probe fleet or the
       \`closure_capture\` fixtures
@@ -112,10 +112,51 @@ Evidence:
 
 Residuals:
 
-- B remains open: \`HashMap<i32,fn()->i32>\` zero-param indirect call
-  traps on wasm32 linear (pre-existing, artifact byte-identical to
-  before the fn-pair fixes).
 - Generic \`Vec<T>\` record fields (ScanBox<T>.vec) still fail GC
   validation — field gets erased-generic \`{array structref,i32}\`
   layout vs concrete \`Vec<i32>\`.  Same family as #881; second
   repro noted there.
+
+## Progress receipt — 2026-09-26 (B done; issue closing)
+
+Commits: \`b52fb54fd\`, \`a8077fcd3\` on
+\`docs/adr-058-language-v2-semantics\`.
+
+B is fixed at the call-arg lowering layer, plus the struct-literal
+extension of the same coercion family:
+
+- Root cause: the frontend resolves a bare 0-param function name by its
+  result type (CoreHIR idents default to VT_I32 with no expected-type
+  context), so both arg loops (CoreHIR \`core_call_direct_args\`, AST
+\`body_call_direct\`) emitted \`call answer()\` and stored the i32
+  result into the fn-value slot.  On linear the indirect call then read
+  a garbage elem-table entry → \`indirect call type mismatch\`.
+- \`call_arg_i64\`: extracted \`mir_callee_param_mvt\` (spine lookup
+  + short-name fallback) shared with the i64 decision; added
+\`mir_callee_param_is_funcref\`.
+- \`core_call_direct_args\` / \`body_call_direct\`: a bare ident
+  naming a function (not a local) at a signature-spine fn-typed param
+  now lowers via \`lower_function_value\` (\`__fnthunk_<name>\` +
+  fn pair).
+- \`core_struct_lit\` / \`body_struct_lit\`: same guard for struct
+  literal field inits via \`struct_lit::mir_struct_field_type_is_fn\`
+  (declared field type check).  \`Holder { f: answer }\` then
+\`(h.f)()\` works; a 0-param field fn value validates on GC too.
+
+Evidence:
+
+- Fixture \`tests/fixtures/collections/hashmap_i32_fn_zero_call.ark\`
+  (run + t3-compile + t3-run): hashmap get→\`(f())\` invoke,
+\`apply0(answer)\` param pass, and \`FnHolder { f: answer }\` →
+\`(h.f)()\`.  Prints 42/42/42 identically on wasm32 linear memory32
+  and wasm32-gc component; wasm-tools validate --features all clean on
+  both backends.
+- Regression: functions 16/16, closure_capture 6/6, collections 15/15
+  compile-validates; stdlib_trait FAIL=25 — identical pre-existing
+  failure list (i64 typecheck + Ordering enum) as the #883-A baseline.
+- verify lane PASS (quality changed).
+
+Residuals moved to #884 (not this issue's scope): bare 0-param fn names
+still auto-call at scalar positions (\`let f: fn()->i32 = answer\`,
+return, assign — verified still trapping) and at generic-erased slots
+(\`Some(answer)\`, T-typed fields — blocked by the #881 family).
