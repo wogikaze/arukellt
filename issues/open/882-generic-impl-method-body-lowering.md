@@ -70,9 +70,9 @@ concrete-struct shape (#874 fn-pair ABI) passes on both backends.
 
 ## Acceptance
 
-- [ ] A generic impl method returning \`self.<T-field>\` emits a
+- [x] A generic impl method returning \`self.<T-field>\` emits a
       \`struct.get\`-equivalent read and runs on both targets
-- [ ] \`self.<method>(...)\` inside a generic impl resolves to the
+- [x] \`self.<method>(...)\` inside a generic impl resolves to the
       monomorphized sibling and runs on both targets
 - [ ] A generic struct with an \`fn(T, ...) -> R\` field invoked through
       \`(self.f)(...)\` validates on wasm32-gc and runs with output
@@ -86,3 +86,37 @@ concrete-struct shape (#874 fn-pair ABI) passes on both backends.
 - positive fixtures for each reproduction on wasm32 linear and
   wasm32-gc
 - no regression on the existing fn-pair probe fleet
+
+
+## Progress receipt — 2026-09-25 (literal-driven generic-arg inference)
+
+- Commit `fba962c16` adds `module_structs::infer_generic_literal_args`:
+  an unannotated literal on a generic struct (e.g. `ScanBox { state: 7 }`)
+  now unifies each field value against the declared generic field type and
+  attaches the resolved arguments to the literal's `TypeInfo`. The
+  previous bare-name result left `it.get()` unable to bind `T`, so no
+  mono instance was recorded and calls targeted the un-emitted generic
+  template — the empty MIR body behind reproductions A and B.
+- Acceptance A verified: `self.state` (`T` read) and a let-bound
+  equivalent both run on wasm32 linear and wasm32-gc.
+- Acceptance B verified: `self.get()` from `get_twice` inside the same
+  generic impl resolves to the monomorphized sibling
+  (`ScanBox__get__i32` emitted and called) on both targets; a
+  `ScanBox<String>` instantiation and a two-parameter `Pair<A, B>`
+  literal also pass.
+- Positive fixture `tests/fixtures/generics_v1/generic_inferred_struct_lit.ark`
+  registered as `run:` and `t3-run:` (manifest count 3006 → 3008);
+  output 7/hi/two/9 identical on linear and GC component runs.
+- `verify lane` green on the implementation commit; a 238-fixture
+  regression batch (structs/generics/ownership/iterator/stdlib_trait)
+  against this s2 shows 29 failures, all reproduced identically on the
+  pre-change s2 baseline (rmw_noop, enum_return, buf_read, debug/eq/ord
+  i64 lanes, io_copy, seek, and others), so none are attributed here.
+- Acceptance C remains open: a generic struct with an
+  `fn(T, T) -> Option<T>` field still fails `wasm-tools validate` on
+  wasm32-gc (`expected i64, found (ref null $type)`); the `Option<T>`
+  variant payload in a monomorphized body keeps the unresolved self-enum
+  ref instead of the substituted item type. This is the same generic
+  enum payload lowering gap the pinned bootstrap works around with the
+  structural Box/Slice overlay. Acceptance D (generic `ScanIter<T>`)
+  depends on it. This is not a close receipt.
