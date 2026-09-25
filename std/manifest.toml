@@ -3522,6 +3522,15 @@ returns = "ZipIter<VecIter, VecIter>"
 doc = "Lazy zip over two vectors, stopping at the shorter length; yields Pair<i32, i32> items."
 
 [[functions]]
+name = "flat_map_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>", "fn(i32) -> Vec<i32>"]
+returns = "FlatMapIter<i32>"
+doc = "Lazy flat_map adapter; expands each element through f into a Vec and drains the produced items in order."
+
+[[functions]]
 name = "collect_vec_iter"
 module = "std::core::iter"
 doc_category = "iter"
@@ -3574,6 +3583,15 @@ stability = "provisional"
 params = ["ChainIter<VecIter>"]
 returns = "Vec<i32>"
 doc = "Drain a ChainIter into a new Vec<i32> via Iterator::collect."
+
+[[functions]]
+name = "collect_flat_map_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["FlatMapIter<i32>"]
+returns = "Vec<i32>"
+doc = "Drain a FlatMapIter into a new Vec<i32> via Iterator::collect."
 
 [[functions]]
 name = "collect_range_iter"

@@ -1,0 +1,84 @@
+use std::core::iter
+use std::test
+
+fn dup(n: i32) -> Vec<i32> {
+    let v: Vec<i32> = Vec::new<i32>()
+    push(v, n)
+    push(v, n * 10)
+    v
+}
+
+fn empty(_n: i32) -> Vec<i32> {
+    Vec::new<i32>()
+}
+
+fn main() {
+    let v: Vec<i32> = Vec::new<i32>()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+
+    let it = iter::flat_map_iter(v, dup)
+    match it.next() {
+        Some(x) => test::assert_eq_i32(x, 1),
+        None => panic("expected Some"),
+    }
+    match it.next() {
+        Some(x) => test::assert_eq_i32(x, 10),
+        None => panic("expected Some"),
+    }
+    match it.next() {
+        Some(x) => test::assert_eq_i32(x, 2),
+        None => panic("expected Some"),
+    }
+
+    // Empty inner vectors are skipped without ending the stream.
+    let it2 = iter::flat_map_iter(v, empty)
+    match it2.next() {
+        Some(_) => panic("expected None"),
+        None => {}
+    }
+
+    let ev: Vec<i32> = Vec::new<i32>()
+    push(ev, 0)
+    push(ev, 2)
+    let it3 = iter::flat_map_iter(ev, dup)
+    match it3.next() {
+        Some(x) => test::assert_eq_i32(x, 0),
+        None => panic("expected Some"),
+    }
+    match it3.next() {
+        Some(x) => test::assert_eq_i32(x, 0),
+        None => panic("expected Some"),
+    }
+    match it3.next() {
+        Some(x) => test::assert_eq_i32(x, 2),
+        None => panic("expected Some"),
+    }
+    match it3.next() {
+        Some(x) => test::assert_eq_i32(x, 20),
+        None => panic("expected Some"),
+    }
+    match it3.next() {
+        Some(_) => panic("expected None"),
+        None => {}
+    }
+
+    // Drained collect preserves expansion order.
+    let w: Vec<i32> = Vec::new<i32>()
+    push(w, 3)
+    let drained = iter::collect_flat_map_iter(iter::flat_map_iter(w, dup))
+    test::assert_eq_i32(len(drained), 2)
+    test::assert_eq_i32(get_unchecked(drained, 0), 3)
+    test::assert_eq_i32(get_unchecked(drained, 1), 30)
+
+    // Receiver pipeline composes with take.
+    let z: Vec<i32> = Vec::new<i32>()
+    push(z, 1)
+    push(z, 2)
+    let taken = z.iter().flat_map(dup).take(3).collect()
+    test::assert_eq_i32(len(taken), 3)
+    test::assert_eq_i32(get_unchecked(taken, 0), 1)
+    test::assert_eq_i32(get_unchecked(taken, 1), 10)
+    test::assert_eq_i32(get_unchecked(taken, 2), 2)
+}

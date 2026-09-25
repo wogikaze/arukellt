@@ -255,6 +255,20 @@ impl VecIter<T> {
     fn skip(self: VecIter<T>, n: i32) -> SkipIter<VecIter<T>> {
         SkipIter { iter: self, to_skip: n }
     }
+
+    /// Lazily expand each remaining element through `f` into a `Vec<T>`
+    /// and yield the produced items in order. Method-level generics are
+    /// unsupported, so the callback stays `T -> Vec<T>` (#860).
+    fn flat_map(self: VecIter<T>, f: fn(T) -> Vec<T>) -> FlatMapIter<T> {
+        FlatMapIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            inner: Vec::new<T>(),
+            inner_index: 0,
+            f: f,
+        }
+    }
 }
 
 /// i32-only adapters whose item type is fixed by the concrete `UniqueIter`
@@ -1036,6 +1050,82 @@ impl Iterator for ZipIter<A, B> {
 }
 
 // ---------------------------------------------------------------------------
+// FlatMapIter — lazy flat_map adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that expands each source element through `f` into a
+/// `Vec<T>` and yields the produced items in order. The inner buffer is
+/// appended to as each element expands and `inner_index` walks it, so the
+/// stream stays lazy even though produced items accumulate behind the
+/// cursor. Like `MapIter`/`FilterIter`, the upstream state is a concrete
+/// Vec snapshot; generic-upstream composition goes through `TakeIter` and
+/// the other `I`-parameterized adapters (#691).
+pub struct FlatMapIter<T> {
+    vec: Vec<T>,
+    index: i32,
+    length: i32,
+    inner: Vec<T>,
+    inner_index: i32,
+    f: fn(T) -> Vec<T>,
+}
+
+/// Construct a `FlatMapIter` over `v` with expander `f`.
+pub fn flat_map_iter(v: Vec<i32>, f: fn(i32) -> Vec<i32>) -> FlatMapIter<i32> {
+    vec_iter(v).flat_map(f)
+}
+
+impl FlatMapIter<T> {
+    /// Lazily limit the flattened stream to `n` items.
+    fn take(self: FlatMapIter<T>, n: i32) -> TakeIter<FlatMapIter<T>> {
+        TakeIter { iter: self, remaining: n }
+    }
+}
+
+impl Iterator for FlatMapIter<T> {
+    type Item = T
+
+    fn next(self: FlatMapIter<T>) -> Option<T> {
+        let mut out: Option<T> = None
+        let mut done: bool = false
+        while !done {
+            if self.inner_index < len(self.inner) {
+                let v: T = get_unchecked(self.inner, self.inner_index)
+                self.inner_index = self.inner_index + 1
+                out = Some(v)
+                done = true
+            } else if self.index < self.length {
+                let outer: T = get_unchecked(self.vec, self.index)
+                self.index = self.index + 1
+                let produced: Vec<T> = (self.f)(outer)
+                for item in produced {
+                    push(self.inner, item)
+                }
+            } else {
+                done = true
+            }
+        }
+        out
+    }
+
+    fn collect(self: FlatMapIter<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
+        for item in self {
+            push(out, item)
+        }
+        out
+    }
+
+    fn count(self: FlatMapIter<T>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
+    }
+
+}
+
+// ---------------------------------------------------------------------------
 // UniqueIter — lazy first-occurrence adapter over Vec<i32>
 // ---------------------------------------------------------------------------
 
@@ -1712,6 +1802,11 @@ pub fn collect_skip_iter(it: SkipIter<VecIter<i32>>) -> Vec<i32> {
 
 /// Drain a `ChainIter` into a new `Vec<i32>`.
 pub fn collect_chain_iter(it: ChainIter<VecIter<i32>>) -> Vec<i32> {
+    it.collect()
+}
+
+/// Drain a `FlatMapIter` into a new `Vec<i32>`.
+pub fn collect_flat_map_iter(it: FlatMapIter<i32>) -> Vec<i32> {
     it.collect()
 }
 
