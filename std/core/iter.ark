@@ -305,7 +305,7 @@ impl VecIter<i32> {
     /// Lazily thread a state through `f`, yielding each intermediate
     /// result. Stops and stays exhausted once `f` returns `None`
     /// (Rust `scan` semantics). i32-only while generic fn-field
-    /// structs remain a lowering gap (#881).
+    /// structs remain a lowering gap (#882).
     fn scan(self: VecIter<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter {
         ScanIter { vec: self.vec, index: self.index, length: self.length, state: init, f: f }
     }
@@ -1299,7 +1299,7 @@ impl Iterator for StepByIter<T> {
 /// Rust's fused `scan` behavior. Kept i32-only for now: a generic
 /// `fn(T, T) -> Option<T>` field inside `ScanIter<T>` lowers to an empty
 /// method body today (bare-T field reads in generic impls), so the concrete
-/// adapter is the shippable shape on both backends (#881 tracks the gap).
+/// adapter is the shippable shape on both backends (#882 tracks the gap).
 pub struct ScanIter {
     vec: Vec<i32>,
     index: i32,

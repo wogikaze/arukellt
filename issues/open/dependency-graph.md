@@ -34,6 +34,8 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I881["881 881 — Option<T> record field と literal の GC type index を一致させる"]
+  I882["882 882 — generic impl method bodies: bare-T field reads, sibling calls, fn-typed fields"]
+  I883["883 883 — fn values in aggregate slots: GC field-init type index / linear 0-param indirect call"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -135,6 +137,8 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **881** depends on: none; blocks: none
+- **882** depends on: none; blocks: none
+- **883** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

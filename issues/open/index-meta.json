@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-25T06:10:33Z",
+  "generated_at": "2026-09-25T11:54:49Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -554,6 +554,40 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 691
+      }
+    },
+    {
+      "id": "882",
+      "path": "882-generic-impl-method-body-lowering.md",
+      "title": "882 — generic impl method bodies: bare-T field reads, sibling calls, fn-typed fields",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 691
+      }
+    },
+    {
+      "id": "883",
+      "path": "883-fn-value-aggregate-slot-lowering.md",
+      "title": "883 — fn values in aggregate slots: GC field-init type index / linear 0-param indirect call",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 874
       }
     },
     {
