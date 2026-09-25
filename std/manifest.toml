@@ -3531,6 +3531,15 @@ returns = "FlatMapIter<i32>"
 doc = "Lazy flat_map adapter; expands each element through f into a Vec and drains the produced items in order."
 
 [[functions]]
+name = "peek_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>"]
+returns = "PeekIter<i32>"
+doc = "Lazy peekable adapter; peek() inspects the upcoming item without consuming it."
+
+[[functions]]
 name = "collect_vec_iter"
 module = "std::core::iter"
 doc_category = "iter"
@@ -3592,6 +3601,15 @@ stability = "provisional"
 params = ["FlatMapIter<i32>"]
 returns = "Vec<i32>"
 doc = "Drain a FlatMapIter into a new Vec<i32> via Iterator::collect."
+
+[[functions]]
+name = "collect_peek_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["PeekIter<i32>"]
+returns = "Vec<i32>"
+doc = "Drain a PeekIter into a new Vec<i32> via Iterator::collect."
 
 [[functions]]
 name = "collect_range_iter"

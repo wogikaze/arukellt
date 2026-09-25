@@ -269,6 +269,17 @@ impl VecIter<T> {
             f: f,
         }
     }
+
+    /// Wrap the remaining elements so the next item can be inspected with
+    /// `peek` before it is consumed.
+    fn peekable(self: VecIter<T>) -> PeekIter<T> {
+        PeekIter {
+            vec: self.vec,
+            index: self.index,
+            length: self.length,
+            peeked: Vec::new<T>(),
+        }
+    }
 }
 
 /// i32-only adapters whose item type is fixed by the concrete `UniqueIter`
@@ -1126,6 +1137,86 @@ impl Iterator for FlatMapIter<T> {
 }
 
 // ---------------------------------------------------------------------------
+// PeekIter — lazy peekable adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that allows inspecting the next item without consuming it.
+/// `peek` caches the upcoming element in a single-slot Vec; `next`
+/// drains the cache first, so the upstream Vec snapshot advances at most
+/// once per yielded item. The cache is a Vec rather than `Option<T>`
+/// because an `Option<T>` record field materializes under a different
+/// type index than the `None` literal at the init site on wasm32-gc,
+/// which fails validation (#691).
+pub struct PeekIter<T> {
+    vec: Vec<T>,
+    index: i32,
+    length: i32,
+    peeked: Vec<T>,
+}
+
+/// Construct a `PeekIter` over `v`.
+pub fn peek_iter(v: Vec<i32>) -> PeekIter<i32> {
+    vec_iter(v).peekable()
+}
+
+impl PeekIter<T> {
+    /// Return the next item without consuming it, caching it for `next`.
+    /// Repeated `peek` calls return the same cached item until `next`
+    /// drains it.
+    fn peek(self: PeekIter<T>) -> Option<T> {
+        if len(self.peeked) == 0 && self.index < self.length {
+            push(self.peeked, get_unchecked(self.vec, self.index))
+            self.index = self.index + 1
+        }
+        if len(self.peeked) > 0 {
+            Some(get_unchecked(self.peeked, 0))
+        } else {
+            None
+        }
+    }
+
+    /// Lazily limit the peekable stream to `n` items.
+    fn take(self: PeekIter<T>, n: i32) -> TakeIter<PeekIter<T>> {
+        TakeIter { iter: self, remaining: n }
+    }
+}
+
+impl Iterator for PeekIter<T> {
+    type Item = T
+
+    fn next(self: PeekIter<T>) -> Option<T> {
+        if len(self.peeked) > 0 {
+            let v: T = get_unchecked(self.peeked, 0)
+            self.peeked = Vec::new<T>()
+            Some(v)
+        } else if self.index < self.length {
+            let v: T = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: PeekIter<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
+        for item in self {
+            push(out, item)
+        }
+        out
+    }
+
+    fn count(self: PeekIter<T>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
+    }
+
+}
+
+// ---------------------------------------------------------------------------
 // UniqueIter — lazy first-occurrence adapter over Vec<i32>
 // ---------------------------------------------------------------------------
 
@@ -1807,6 +1898,11 @@ pub fn collect_chain_iter(it: ChainIter<VecIter<i32>>) -> Vec<i32> {
 
 /// Drain a `FlatMapIter` into a new `Vec<i32>`.
 pub fn collect_flat_map_iter(it: FlatMapIter<i32>) -> Vec<i32> {
+    it.collect()
+}
+
+/// Drain a `PeekIter` into a new `Vec<i32>`.
+pub fn collect_peek_iter(it: PeekIter<i32>) -> Vec<i32> {
     it.collect()
 }
 
