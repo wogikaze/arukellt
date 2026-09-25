@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-25T17:06:32Z",
+  "generated_at": "2026-09-25T17:24:24Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -540,25 +540,6 @@
       }
     },
     {
-      "id": "881",
-      "path": "881-option-record-field-type-index-gc.md",
-      "title": "881 — Option<T> record field と literal の GC type index を一致させる",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "884"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 691
-      }
-    },
-    {
       "id": "882",
       "path": "882-generic-impl-method-body-lowering.md",
       "title": "882 — generic impl method bodies: bare-T field reads, sibling calls, fn-typed fields",
@@ -573,6 +554,25 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 691
+      }
+    },
+    {
+      "id": "884",
+      "path": "884-zero-param-fn-name-coercion-positions.md",
+      "title": "884 — bare 0-param fn names still auto-call at scalar positions and generic-erased slots",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "881"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 874
       }
     },
     {
@@ -787,25 +787,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
-      }
-    },
-    {
-      "id": "884",
-      "path": "884-zero-param-fn-name-coercion-positions.md",
-      "title": "884 — bare 0-param fn names still auto-call at scalar positions and generic-erased slots",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "881"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 874
       }
     },
     {
