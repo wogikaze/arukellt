@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-24T19:16:48Z",
+  "generated_at": "2026-09-25T06:10:33Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -537,6 +537,23 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
+      }
+    },
+    {
+      "id": "881",
+      "path": "881-option-record-field-type-index-gc.md",
+      "title": "881 — Option<T> record field と literal の GC type index を一致させる",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 691
       }
     },
     {
