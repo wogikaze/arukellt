@@ -1140,3 +1140,36 @@ Commit: `65aa79141` (worktree `94cceab55`)
   `__core_string_len_impl` (probe: captured Vec + Vec param), mutable
   rebind env cells (E0213), exact pointer-field descriptors, and the
   move/borrow parity audit; #874 stays open.
+
+## Progress receipt — 2026-09-25 (fn-pair indirect call lowering fixes)
+
+- Commit `c3e63d813` fixes three MIR/backend defects exposed by the
+  fn-pair probe fleet on the managed fnptr+env ABI:
+  - `closure_pair_call_hint` appends the `~<vt>` return segment only when
+    the destination local carries a real type name; thunk keys no longer
+    pin a wrong return, so `fn(*,*) -> Option<*>` stops falling back to
+    the i32 binary path.
+  - `lower_match_expr` resolves a named scrutinee via
+    `ctx_lookup_local` without emitting `local.get`, mirroring
+    `lower_core_match`; the orphan push had made AST-path `match` inside
+    `if`/blocks emit "values remaining on stack at end of block" for
+    sources using indirect-call `(expr)(args)` syntax.
+  - `type_ann_function_ref_name` / `closure_funcref_type_name` emit
+    `fnsig:<p1>,<p2>;<ret>` for two-or-more-parameter functions with
+    non-i32-family returns instead of `fnref2`, which dropped the return
+    type and produced GC `call_ref` ref results stored into i64 dest
+    locals (invalid core). i32-family two-param functions keep `fnref2`
+    to preserve the #807 fold-callback ABI; hint matching only inspects
+    the nk/vk segments, so existing keys stay valid.
+- Positive coverage: probes smv2/3/4/6/7/8/9/26, fn2gen2, fn2field,
+  fn2i32, fn2vec, fn1opt, and hm_fn2 compile and run identically on the
+  wasm32 linear core; smv26, fn2field, fn2i32, and fn1opt validate as GC
+  core, and the smv26 GC component runs `1|3|6|fused`.
+- Verification: `python3 scripts/manager.py verify lane` PASS on the
+  merge branch.
+- Still open: `HashMap<i32,fn()->i32>` zero-param `(f())` indirect calls
+  trap "indirect call type mismatch" (pre-existing linear defect),
+  generic-impl indirect-call destination typing with unresolved `T`,
+  generic-impl bare-`T` field reads and sibling method calls, mutable
+  rebind env cells (E0213), exact pointer-field descriptors, and the
+  move/borrow parity audit; #874 stays open.

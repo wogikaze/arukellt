@@ -420,6 +420,38 @@ full adapter fixture matrix as a fallback parity gate.
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
 
+## Progress receipt — 2026-09-25 (lazy step_by and scan adapters)
+
+- Commit `8e4f2c1a6` adds two lazy adapters to `std::core::iter`: generic
+  `StepByIter<T>` behind `VecIter<T>::step_by` (a non-positive step is
+  clamped to 1 so the adapter cannot stall) and concrete i32-only
+  `ScanIter` behind `VecIter<i32>::scan` with Rust fused semantics (the
+  adapter yields each intermediate accumulator and stays exhausted once
+  `f` returns `None`). `StepByIter` composes further through
+  `TakeIter<StepByIter<T>>`.
+- Generic `ScanIter<T>` is intentionally deferred: a
+  `fn(T, T) -> Option<T>` field inside a generic struct reads back as an
+  empty method body today (bare-`T` field reads in generic impls), so the
+  concrete adapter is the shippable shape on both backends, matching the
+  `UniqueIter`/`RevIter` precedent. The in-tree comment cites the
+  tracking gap.
+- New free functions `step_by_iter`, `collect_step_by_iter`,
+  `scan_iter`, and `collect_scan_iter` are registered in
+  `std/manifest.toml`.
+- Positive coverage: `tests/fixtures/stdlib_trait/iterator_step_scan.ark`
+  exercises stepped iteration, step clamping, partial-sum `scan`, fused
+  exhaustion, and `map`/`scan`/`collect` composition; it compiles,
+  validates, and runs with identical output on the wasm32 linear core and
+  the wasm32-gc component paths.
+- Verification: `python3 scripts/manager.py verify lane` PASS and targeted
+  `fmt` clean on the merge branch.
+- Still open: `FilterIter::map` item-type change (`T -> U`) needs
+  method-level generics; `inspect`/`fuse` adapters, arbitrary item
+  representations (generic `Option<T>` record fields — #881 — and generic
+  fn-typed fields in generic impls), manifest-level `std::seq`
+  deprecation, and the final RFC-011 residual audit remain open. This is
+  not a close receipt.
+
 ## Progress receipt — 2026-09-25 (lazy FlatMapIter adapter)
 
 - Commit `4fb40501d` adds `FlatMapIter<T>`, the `flat_map` lazy adapter

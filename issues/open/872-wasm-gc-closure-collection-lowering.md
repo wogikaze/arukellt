@@ -188,3 +188,18 @@ RFC-011: **8 (closure/collection)**。
   `generics_v1/test_enum_return` fail identically on master —
   pre-existing, unrelated to this change. #872 stays open pending
   linear parity (#874) and cross-backend parity evidence (#875).
+
+## Progress receipt — 2026-09-25 (fnsig for multi-param non-scalar returns)
+
+- Commit `c3e63d813` (shared with #874) resolves part of the previous
+  residual: two-or-more-parameter functions with non-i32-family returns
+  now emit `fnsig:<p1>,<p2>;<ret>` funcref type names instead of
+  `fnref2`, so a GC `call_ref` returning a ref is no longer stored into
+  an i64 dest local (invalid core). i32-family two-param functions keep
+  `fnref2` for the #807 fold-callback ABI.
+- GC core validation passes for the fn2field / fn2i32 / fn1opt probes and
+  the smv26 GC component runs with output matching linear.
+- Still open: `fn() -> String` and other i32-family buckets still lose
+  the exact signature, generic-impl fn-typed fields with unresolved `T`
+  remain mis-typed on the dest side, env cells for mutable rebind, and
+  the full parity audit; #872 stays open.
