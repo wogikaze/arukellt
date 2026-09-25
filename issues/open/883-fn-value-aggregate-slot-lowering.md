@@ -62,11 +62,11 @@ fixes, so this is a pre-existing linear defect, not a regression.
 
 ## Acceptance
 
-- [ ] A record literal storing a multi-param fn value validates and runs
+- [x] A record literal storing a multi-param fn value validates and runs
       on wasm32-gc regardless of the field's position
 - [ ] A zero-param fn value retrieved from \`HashMap<i32,fn()->i32>\`
       invokes correctly on wasm32 linear and wasm32-gc
-- [ ] No regression on the existing fn-pair probe fleet or the
+- [x] No regression on the existing fn-pair probe fleet or the
       \`closure_capture\` fixtures
 
 ## Required evidence
@@ -74,3 +74,48 @@ fixes, so this is a pre-existing linear defect, not a regression.
 - implementation commit SHA
 - positive fixtures for both reproductions
 - validate output for the GC core module
+
+## Progress receipt — 2026-09-26 (A done; B open)
+
+Commit: \`f56c263a3\` on \`docs/adr-058-language-v2-semantics\`.
+
+A is fixed by two independent root causes, both verified:
+
+- \`mir/lower/stmt_let_store.ark\` — \`sync_let_local_type_name\`
+  only propagated initializer type names longer than 1 char, so a
+  let-bound record named e.g. \`B\` lost its ctx type.
+  Field-access callees \`(it.f)(a,b)\` then could not find the fn
+  field and lowered to an unresolved \`call f fid=-1\` (drop/drop/
+  unreachable + i64 Option dest).
+- \`wasm/code_ref_locals_block_scan.ark\` — \`local_set_source_local\`
+  read \`MirInst_dest\` of the producer inst for stack-valued
+  LOCAL_SETs, but \`MIR_STRUCT_SET\` packs field_idx * 100000 +
+  byte_size into dest and \`MIR_GC_STRUCT_SET\` stores the value
+  local there.  The fn-pair temp after scalar fields inherited an
+  unrelated local's storage type (array i8), mistyping every downstream
+  ref.cast/struct.set.  Now mirrors inst_dispatch_local's reload table
+  (STRUCT_SET→arg0, GC_STRUCT_SET→arg1).
+
+Evidence:
+
+- New fixture \`tests/fixtures/functions/struct_fn_field_call.ark\`
+  (run + t3-compile + t3-run in manifest): sum2 stored at field
+  positions last/first/mid, invoked via \`(it.f)(a,b)\`.
+  wasm-tools validate clean on wasm32-gc; prints 7/3/30 identically on
+  wasm32-gc component and wasm32 linear memory32.
+- Probes: c_read (store + read-back) validates + runs 0 on both
+  targets; generic \`ScanBox<T>.next(5)\` probe (\`(self.f)\` inside
+  impl) validates and runs 5 on both.
+- Regression: 4-dir batch (functions, closure_capture, collections,
+  stdlib_trait) = 219 compile-validates, 25 FAIL — identical list on
+  baseline s2 without the change; verify lane PASS.
+
+Residuals:
+
+- B remains open: \`HashMap<i32,fn()->i32>\` zero-param indirect call
+  traps on wasm32 linear (pre-existing, artifact byte-identical to
+  before the fn-pair fixes).
+- Generic \`Vec<T>\` record fields (ScanBox<T>.vec) still fail GC
+  validation — field gets erased-generic \`{array structref,i32}\`
+  layout vs concrete \`Vec<i32>\`.  Same family as #881; second
+  repro noted there.
