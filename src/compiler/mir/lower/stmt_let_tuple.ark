@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_layout
 use mir::lower_kinds
 use mir::inst_local_get
@@ -162,7 +163,10 @@ fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 
     eq(clone(key), "unit") || eq(clone(key), "()") {
         return value_types::VT_I32()
     }
-    if eq(clone(key), "fnref") || eq(clone(key), "fn") || starts_with(clone(key), "fn(") {
+    // Fn-valued keys follow the same spelling set as struct field decls
+    // (fnref*, fnsig:<p>;<r>, fn(...) and bare fn) so a destructured binding
+    // keeps the pair-ABI vt instead of collapsing to a generic ref (#874).
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(key)) {
         return value_types::VT_FUNCREF()
     }
     if starts_with(clone(key), "vec:") ||

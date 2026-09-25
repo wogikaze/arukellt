@@ -138,7 +138,11 @@ fn tuple_field_vts_need_named_gc_struct(ctx: LowerCtx, field_vts: Vec<i32>, fiel
     let mut ti = 0
     while ti < field_count {
         let field_vt = get_unchecked(field_vts, ti)
-        if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
+        // fn-valued fields need the named tuple:fnref,... layout on every
+        // backend — destructured bindings recover their fn type from the
+        // field key, and an anonymous tuple demotes them to i32 (#874).
+        if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() ||
+        field_vt == value_types::VT_FUNCREF() {
             return true
         }
         ti = ti + 1

@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark"
 COLLECT_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_entry_collect.ark"
 HASHMAP_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_hashmap_survives.ark"
+ESCAPE_STORE_FIXTURE = ROOT / "tests/fixtures/closure_capture/escape_store.ark"
+MOVE_LOCAL_FIXTURE = ROOT / "tests/fixtures/closure_capture/move_local.ark"
 FUNCTION_DEFINITION = re.compile(r"^\s+\(func .*?\(;([0-9]+);\)", re.MULTILINE)
 MAIN_DEFINITION = re.compile(r"^\s+\(func \$main \(;([0-9]+);\)", re.MULTILINE)
 GLOBAL_DEFINITION = re.compile(r"^\s+\(global \(;", re.MULTILINE)
@@ -325,6 +327,39 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
             "linear_gc_entry_collect_probe.wasm",
         )
         self.assertEqual(stdout.strip().splitlines()[-1], "1", stdout)
+
+    def test_closure_pair_env_lowers_to_fallback_heap(self) -> None:
+        # The managed {fnptr, env} pair ABI (#872) must behave identically on
+        # the linear fallback: captured values are boxed into a heap env
+        # record, pairs survive storage in aggregates, and indirect calls go
+        # through call_indirect with the env as arg0 (#874).
+        for fixture, output_name, expected in (
+            (ESCAPE_STORE_FIXTURE, "linear_gc_escape_store.wasm", "15"),
+            (MOVE_LOCAL_FIXTURE, "linear_gc_move_local.wasm", "move:4"),
+        ):
+            with self.subTest(fixture=fixture.name):
+                artifact = self.compile_linear_fixture(fixture, output_name)
+                wat = self.print_artifact(artifact)
+                self.assertNotIn("struct.", wat)
+                self.assertNotIn("array.", wat)
+                executed = subprocess.run(
+                    [
+                        "wasmtime",
+                        "run",
+                        "--wasm",
+                        "gc",
+                        "--wasm",
+                        "function-references",
+                        "--dir=.",
+                        str(artifact),
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(executed.returncode, 0, executed.stderr)
+                self.assertEqual(executed.stdout.strip(), expected)
 
 
 if __name__ == "__main__":

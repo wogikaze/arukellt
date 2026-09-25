@@ -14,9 +14,13 @@ fn emit_let_initializer_store(ctx: LowerCtx, node: AstNode, vt: i32, local_idx: 
     let mut binding_vt = vt
     if ta_count == 0 {
         let initializer_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+        // FUNCREF propagates like the other non-i32 value types so a
+        // let-bound fn value keeps its pair-ABI marker on both backends
+        // (#874).
         if initializer_vt == value_types::VT_F64() ||
         initializer_vt == value_types::VT_I64() ||
-        initializer_vt == value_types::VT_GC_REF() {
+        initializer_vt == value_types::VT_GC_REF() ||
+        initializer_vt == value_types::VT_FUNCREF() {
             binding_vt = initializer_vt
             ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, initializer_vt)
         }
