@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-25T17:37:37Z",
+  "generated_at": "2026-09-25T18:20:44Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -537,25 +537,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "884",
-      "path": "884-zero-param-fn-name-coercion-positions.md",
-      "title": "884 — bare 0-param fn names still auto-call at scalar positions and generic-erased slots",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "881"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 874
       }
     },
     {
