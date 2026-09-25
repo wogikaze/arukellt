@@ -448,6 +448,7 @@ run:collections/hashmap_i32_fn_builtin.ark
 run:collections/hashmap_i32_string_builtin.ark
 run:collections/hashmap_string_fn_call.ark
 run:collections/hashmap_string_fn_builtin.ark
+run:collections/hashmap_i32_fn_zero_call.ark
 run:collections/result_vec_fn.ark
 run:functions/multiple_params.ark
 run:functions/pub_fn.ark
@@ -2136,6 +2137,7 @@ t3-compile:collections/hashmap_i32_fn_builtin.ark
 t3-compile:collections/hashmap_i32_string_builtin.ark
 t3-compile:collections/hashmap_string_fn_call.ark
 t3-compile:collections/hashmap_string_fn_builtin.ark
+t3-compile:collections/hashmap_i32_fn_zero_call.ark
 t3-compile:collections/result_vec_fn.ark
 t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
@@ -2591,6 +2593,7 @@ t3-run:collections/hashmap_i32_fn_builtin.ark
 t3-run:collections/hashmap_i32_string_builtin.ark
 t3-run:collections/hashmap_string_fn_call.ark
 t3-run:collections/hashmap_string_fn_builtin.ark
+t3-run:collections/hashmap_i32_fn_zero_call.ark
 t3-run:collections/result_vec_fn.ark
 t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark

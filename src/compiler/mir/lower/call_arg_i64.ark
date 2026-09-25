@@ -79,14 +79,16 @@ fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
     false
 }
 
-// 1 = i64, 0 = known non-i64, -1 = spine unavailable / lookup miss.
-fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: i32) -> i32 {
+// Resolved param MVT for callee at param_idx (0-based), invalid when the
+// signature spine is unavailable or has no entry.  Path-spelled callees
+// retry with the unqualified short name.
+fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> MirValueType {
     if param_idx < 0 {
-        return 0 - 1
+        return typed_mir_compat::mvt_invalid()
     }
     let m = ctx_api_module::ctx_current_module(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {
-        return 0 - 1
+        return typed_mir_compat::mvt_invalid()
     }
     let mut param_mvt = spine_lookup::function_param_mvt(m, clone(callee_name), param_idx)
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
@@ -95,14 +97,34 @@ fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: 
             param_mvt = spine_lookup::function_param_mvt(m, short, param_idx)
         }
     }
+    param_mvt
+}
+
+// 1 = i64, 0 = known non-i64, -1 = spine unavailable / lookup miss.
+fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: i32) -> i32 {
+    let param_mvt = mir_callee_param_mvt(ctx, clone(callee_name), param_idx)
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
         return 0 - 1
     }
+    let m = ctx_api_module::ctx_current_module(ctx)
     let table = module_spine::MirModule_type_table(m)
     if legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt) == value_types::VT_I64() {
         return 1
     }
     0
+}
+
+// True when callee param at param_idx is a fn value per signature spine.
+// Bare function-name args must then lower to fn pairs rather than 0-param
+// calls (#883).
+fn mir_callee_param_is_funcref(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
+    let param_mvt = mir_callee_param_mvt(ctx, clone(callee_name), param_idx)
+    if typed_mir_compat::mvt_is_invalid(param_mvt) {
+        return false
+    }
+    let m = ctx_api_module::ctx_current_module(ctx)
+    let table = module_spine::MirModule_type_table(m)
+    legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt) == value_types::VT_FUNCREF()
 }
 
 fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {

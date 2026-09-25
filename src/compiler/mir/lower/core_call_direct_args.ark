@@ -12,6 +12,7 @@ use mir::lower::core_expr_shape_ops
 use mir::lower::core_literals
 use mir::lower::core_names
 use mir::lower_kinds
+use mir::lower::value_variants
 
 fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
@@ -115,6 +116,8 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
                 } else {
                     arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
                 }
+            } else if mir_core_arg_is_fn_value_for_param(ctx, clone(callee_name), arg_expr, param_idx) {
+                arg_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(arg_expr))
             } else {
                 arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
             }
@@ -151,4 +154,21 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
             }
         }
         call_result
+    }
+
+    // Bare function names at fn-typed parameters must lower to fn-pair values.
+    // The frontend resolves a 0-param ident by its result type, which would
+    // otherwise emit a call and store the i32 result into the fn slot (#883).
+    fn mir_core_arg_is_fn_value_for_param(ctx: LowerCtx, callee_name: String, arg_expr: CoreHirExpr, param_idx: i32) -> bool {
+        if !core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) {
+            return false
+        }
+        if core_names::mir_core_lookup_local(ctx, arg_expr) >= 0 {
+            return false
+        }
+        let arg_name = core_expr_shape_accessors::mir_core_expr_text(arg_expr)
+        if core_names::mir_function_parameter_count(ctx, clone(arg_name)) < 0 {
+            return false
+        }
+        call_arg_i64::mir_callee_param_is_funcref(ctx, callee_name, param_idx)
     }

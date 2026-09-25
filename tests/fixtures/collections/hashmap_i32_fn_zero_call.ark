@@ -1,0 +1,20 @@
+use std::collections::hash_fn
+use std::host::stdio
+
+fn answer() -> i32 {
+    42
+}
+
+fn apply0(f: fn() -> i32) -> i32 {
+    f()
+}
+
+fn main() {
+    let m = hash_fn::hashmap_i32_fn_new()
+    let _ = hash_fn::hashmap_i32_fn_set(m, 1, answer)
+    match hash_fn::hashmap_i32_fn_get(m, 1) {
+        Some(f) => stdio::println((f()).to_string()),
+        None => stdio::println("missing"),
+    }
+    stdio::println(apply0(answer).to_string())
+}
