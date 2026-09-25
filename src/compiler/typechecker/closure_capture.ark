@@ -15,6 +15,7 @@ struct ClosureCaptureSummary {
     names: Vec<String>,
     modes: Vec<i32>,
     nodes: Vec<AstNode>,
+    rebinds: Vec<i32>,
     include_copy: bool,
 }
 
@@ -29,6 +30,7 @@ fn ClosureCaptureSummary_new() -> ClosureCaptureSummary {
         names: Vec::new<String>(),
         modes: Vec::new<i32>(),
         nodes: Vec::new<AstNode>(),
+        rebinds: Vec::new<i32>(),
         include_copy: false,
     }
 }
@@ -73,13 +75,16 @@ fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: As
         return
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
-        add_capture(env, scope, closure, node, false, summary)
+        add_capture(env, scope, closure, node, false, false, summary)
         return
     }
     let kind = ast_access::node_kind(node)
     if kind == kinds::NK_ASSIGN() {
         if ast_access::node_child_count(node) >= 1 {
-            scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary)
+            let target = ast_access::node_child_at(node, 0)
+            // Bare "name = value" rebinds the captured place; a
+            // "name.field = value" target mutates through the held ref.
+            scan_capture_target(env, scope, closure, target, summary, ast_access::node_kind_is(target, kinds::NK_IDENT()))
         }
         if ast_access::node_child_count(node) >= 2 {
             scan_capture_expr(env, scope, closure, ast_access::node_child_at(node, 1), summary)
@@ -88,7 +93,7 @@ fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: As
     }
     if kind == kinds::NK_METHOD_CALL() && is_mutating_method(ast_access::node_text(node)) {
         if ast_access::node_child_count(node) > 0 {
-            scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary)
+            scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary, false)
         }
         let child_count = ast_access::node_child_count(node)
         let mut i = 1
@@ -106,14 +111,14 @@ fn scan_capture_expr(env: TypeEnv, scope: LocalScope, closure: AstNode, node: As
     }
 }
 
-fn scan_capture_target(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, summary: ClosureCaptureSummary) {
+fn scan_capture_target(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, summary: ClosureCaptureSummary, is_rebind: bool) {
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
-        add_capture(env, scope, closure, node, true, summary)
+        add_capture(env, scope, closure, node, true, is_rebind, summary)
         return
     }
     let child_count = ast_access::node_child_count(node)
     if child_count > 0 {
-        scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary)
+        scan_capture_target(env, scope, closure, ast_access::node_child_at(node, 0), summary, false)
     }
 }
 
@@ -123,7 +128,7 @@ fn is_mutating_method(name: String) -> bool {
     eq(clone(name), "remove") || eq(clone(name), "clear")
 }
 
-fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, is_mutable_use: bool, summary: ClosureCaptureSummary) {
+fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode, is_mutable_use: bool, is_rebind: bool, summary: ClosureCaptureSummary) {
     let name = ast_access::node_text(node)
     if closure_name_is_local(closure, clone(name)) {
         return
@@ -137,21 +142,45 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         return
     }
     let mut mode = capture_shared_borrow()
-    if ast_access::node_is_move(closure) {
+    // A move capture that the body rebinds (name = expr) cannot persist the
+    // new value through a by-value env field; until env cells exist the
+    // capture is treated as a mutable borrow so escape is rejected (E0213,
+    // ADR-061 fallback). Mutating through a moved ref (field set, mutating
+    // method) stays a move capture: the env shares the ref, so writes land.
+    if is_mutable_use && is_rebind {
+        mode = capture_mutable_borrow()
+    } else if ast_access::node_is_move(closure) {
         mode = capture_move()
     } else if is_mutable_use {
         mode = capture_mutable_borrow()
     } else if is_copy_capture {
-        // A Copy capture is not a borrow, but as a funcref argument it is
-        // still an extra parameter the backend cannot supply at escape
-        // positions — report the capability diagnostic, not E0213 (#872).
+        // Copy captures ride in the managed env record, so they classify
+        // as move for escape purposes (#872).
         mode = capture_move()
     }
+    // A rebind (name = expr) pins the capture to mutable borrow: a by-value
+    // env field cannot persist the new value until env cells exist
+    // (ADR-061 fallback), and later reads must not upgrade it back to move.
+    let rebind_use = is_mutable_use && is_rebind
     let existing = capture_name_index(summary, clone(name))
     if existing < 0 {
         push(summary.names, clone(name))
         push(summary.modes, mode)
         push(summary.nodes, node)
+        if rebind_use {
+            push(summary.rebinds, 1)
+        } else {
+            push(summary.rebinds, 0)
+        }
+        return
+    }
+    if rebind_use {
+        set(summary.modes, existing, capture_mutable_borrow())
+        set(summary.nodes, existing, node)
+        set(summary.rebinds, existing, 1)
+        return
+    }
+    if get_unchecked(summary.rebinds, existing) == 1 {
         return
     }
     let previous = get_unchecked(summary.modes, existing)
@@ -344,22 +373,66 @@ fn value_has_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
     false
 }
 
+fn closure_summary_has_borrow(summary: ClosureCaptureSummary) -> bool {
+    let mut i = 0
+    while i < len(summary.modes) {
+        let mode = get_unchecked(summary.modes, i)
+        if mode == capture_shared_borrow() || mode == capture_mutable_borrow() {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+// Whether a value contains a closure whose env would hold borrow captures
+// (#872). Bindings marked with this cannot flow to escape positions —
+// their env snapshot would go stale against the live local.
+fn value_has_borrow_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        let summary = closure_escape_summary(env, scope, node)
+        return closure_summary_has_borrow(summary)
+    }
+    if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
+        let name = ast_access::node_text(node)
+        return scope::scope_binding_has_borrow_captures(scope, clone(name))
+    }
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_BLOCK() {
+        let child_count = ast_access::node_child_count(node)
+        if child_count == 0 {
+            return false
+        }
+        return value_has_borrow_captures(env, scope, ast_access::node_child_at(node, child_count - 1))
+    }
+    if kind != kinds::NK_TUPLE() && kind != kinds::NK_ARRAY_LIT() &&
+    kind != kinds::NK_ARRAY_REPEAT() && kind != kinds::NK_STRUCT_LIT() &&
+    kind != kinds::NK_EXPR_STMT() {
+        return false
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        if value_has_borrow_captures(env, scope, ast_access::node_child_at(node, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 fn closure_capture_escape(env: TypeEnv, scope: LocalScope, node: AstNode) {
     let witness = capture_escape_witness(env, scope, node)
     if witness.mode == 0 {
         return
     }
     let span = diag_record::DiagnosticSpan_from_raw(witness.span_start, witness.span_end)
-    // A capturing closure lowered to a bare funcref cannot carry its
-    // environment: borrow captures are rejected semantically (E0213), while
-    // move captures are legal but still unimplemented as managed
-    // environments, so they get the capability diagnostic (E0220, #872).
-    let mut message = "borrowed closure capture cannot escape its enclosing function"
-    let mut code = codes::DIAG_TYPE_CLOSURE_BORROW_ESCAPE()
-    if witness.mode == capture_move() {
-        message = "capturing closure cannot be passed, returned, or stored as a function value yet (managed closure environments are not implemented)"
-        code = codes::DIAG_TYPE_CLOSURE_CAPTURE_ESCAPE()
-    }
+    // Managed closure environments (#872) carry move and Copy captures in
+    // the fn pair's env record, so they may escape freely. Borrow captures
+    // would observe a stale snapshot of a live local and stay semantic
+    // errors (E0213).
+    let message = "borrowed closure capture cannot escape its enclosing function"
+    let code = codes::DIAG_TYPE_CLOSURE_BORROW_ESCAPE()
     let diag = diag_mod::Diagnostic_new(
         code,
         diag_mod::SEV_ERROR(),
@@ -390,12 +463,12 @@ fn capture_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> Cap
                 span_end: ast_access::node_span_end(node),
             }
         }
-        // A binding that holds a move-capturing closure is legal to create
-        // but still cannot flow to a position where the backend cannot
-        // supply the captures.
-        if scope::scope_binding_has_captures(scope, clone(name)) {
+        // A binding whose closure captured by borrow keeps an env snapshot
+        // of a live local; escaping it would observe stale state (E0213).
+        // Move/Copy captures travel inside the pair env and escape freely.
+        if scope::scope_binding_has_borrow_captures(scope, clone(name)) {
             return CaptureEscape {
-                mode: capture_move(),
+                mode: capture_shared_borrow(),
                 span_start: ast_access::node_span_start(node),
                 span_end: ast_access::node_span_end(node),
             }
@@ -435,7 +508,9 @@ fn summary_escape_witness(summary: ClosureCaptureSummary) -> CaptureEscape {
     let mut i = 0
     while i < len(summary.modes) {
         let mode = get_unchecked(summary.modes, i)
-        if mode != 0 {
+        // Only borrow captures block escape: move/Copy captures are packed
+        // into the managed env record (#872).
+        if mode == capture_shared_borrow() || mode == capture_mutable_borrow() {
             let node = get_unchecked(summary.nodes, i)
             return CaptureEscape {
                 mode: mode,

@@ -13,6 +13,7 @@ use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_locals_struct
 use wasm::sections_type_plan
+use wasm::sections_types_gc
 use mir::function_identity
 use mir::function_locals_view
 use mir::function_return_view
@@ -39,111 +40,6 @@ fn current_local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     local_access::MirLocal_type_name(
         function_locals_view::MirFunction_local_at(f, local_idx)
     )
-}
-
-fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
-    let typed_callback_idx = call_indirect::typed_string_callback_type_idx(
-        ctx,
-        clone(type_name)
-    )
-    if typed_callback_idx >= 0 {
-        return typed_callback_idx
-    }
-    if eq(clone(type_name), String_from("fnrefss")) {
-        return call_indirect::resolve_indirect_type_idx(
-            ctx,
-            0 - 1,
-            1,
-            value_types::VT_GC_REF(),
-            value_types::VT_GC_REF()
-        )
-    }
-    if eq(clone(type_name), String_from("fnrefsb")) {
-        return call_indirect::resolve_indirect_type_idx(
-            ctx,
-            0 - 1,
-            1,
-            value_types::VT_I32(),
-            value_types::VT_GC_REF()
-        )
-    }
-    // `fnsig:<param>;<return>` locals resolve through the same callback
-    // slots as their bucket equivalents when the signature is covered,
-    // else through the MirFunction signature search (#860).
-    if starts_with(clone(type_name), String_from("fnsig:")) {
-        let fnsig_idx = call_indirect::resolve_fnsig_local_type_idx(ctx, clone(type_name))
-        if fnsig_idx >= 0 {
-            return fnsig_idx
-        }
-    }
-    // Binary fold callbacks: fn(i32, i32) -> i32 → type index for (i32,i32)->i32.
-    if contains(clone(type_name), String_from(",")) || starts_with(clone(type_name), String_from("fnref2")) {
-        return call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 2, value_types::VT_I32(), value_types::VT_I32())
-    }
-    call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
-}
-
-fn resolve_fnref_local_type_idx_for_local(
-    ctx: SelfEmitCtx,
-    f: MirFunction,
-    local_idx: i32,
-    type_name: String
-) -> i32 {
-    let producer_type_idx = find_fnref_producer_type_idx(ctx, f, local_idx, 0)
-    if producer_type_idx >= 0 {
-        return producer_type_idx
-    }
-    resolve_fnref_local_type_idx(ctx, type_name)
-}
-
-fn find_fnref_producer_type_idx(
-    ctx: SelfEmitCtx,
-    f: MirFunction,
-    local_idx: i32,
-    depth: i32
-) -> i32 {
-    if depth > 8 {
-        return 0 - 1
-    }
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_REF_FUNC() &&
-            inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                let fn_idx = inst_ctx::resolve_fn_index(
-                    ctx,
-                    inst_accessors_literals::MirInst_str_val(inst)
-                )
-                let exact_type_idx = ctx_record::SelfEmitCtx_fn_type_index(ctx, fn_idx)
-                if exact_type_idx >= 0 {
-                    return exact_type_idx
-                }
-            }
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
-            inst_accessors_operands::MirInst_arg0(inst) == local_idx {
-                let source_idx = inst_accessors_operands::MirInst_arg1(inst)
-                if source_idx >= 0 {
-                    let source_type_idx = find_fnref_producer_type_idx(
-                        ctx,
-                        f,
-                        source_idx,
-                        depth + 1
-                    )
-                    if source_type_idx >= 0 {
-                        return source_type_idx
-                    }
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    0 - 1
 }
 
 fn is_string_byte_vec_fn(f: MirFunction) -> bool {
@@ -283,17 +179,23 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         }
         Option::None => {}
     }
-    // Typed funcref locals: non-null `(ref $callback)` — unary map/filter or
-    // binary fold from the local's fn(...) type name (#807).
+    // rawfnref temps hold a bare funcref: the ref.func result before it is
+    // stored into a __fnpair record (#872).
+    if eq(clone(type_name), String_from("rawfnref")) {
+        writer_core::emit_byte(body, constants::WASM_FUNCREF())
+        return true
+    }
+    // fn values are {fnptr, env} pairs under the managed closure ABI
+    // (#872): nullable __fnpair refs. The pair record is a fixed GC type
+    // (gc_fnpair_offset), so it is always in scope on GC targets.
     if vt == value_types::VT_FUNCREF() ||
     eq(clone(type_name), String_from("fnref")) ||
     eq(clone(type_name), String_from("fnref2")) ||
     starts_with(clone(type_name), String_from("fnref")) ||
     starts_with(clone(type_name), String_from("fnsig:")) ||
     starts_with(clone(type_name), String_from("fn(")) {
-        let type_idx = resolve_fnref_local_type_idx_for_local(ctx, f, local_idx, clone(type_name))
-        writer_core::emit_byte(body, constants::WASM_REF())
-        writer_core::emit_leb128_s(body, type_idx)
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_fnpair_offset())
         return true
     }
     // Assert/loop temps may keep an open-enum type_name after local reuse while

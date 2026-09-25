@@ -73,6 +73,8 @@ pub struct LowerCtx {
     closure_bind_caps: Vec<String>,
     closure_bind_extra: Vec<i32>,
     closure_bind_identity: Vec<bool>,
+    // Named functions already lifted to __fnthunk_<name> pair shims.
+    closure_thunk_names: Vec<String>,
     local_type_start: i32,
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,

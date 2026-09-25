@@ -23,6 +23,9 @@ struct VarBinding {
     has_shared_borrow: bool,
     has_mutable_borrow: bool,
     has_captures: bool,
+    // The bound value is a closure whose env holds borrow captures (#872);
+    // such bindings cannot flow to escape positions (E0213).
+    has_borrow_captures: bool,
 }
 
 struct LocalScope {
@@ -49,6 +52,7 @@ fn VarBinding_new_with_flags(name: String, ty: TypeInfo, is_mutable: bool, is_co
         has_shared_borrow: false,
         has_mutable_borrow: false,
         has_captures: false,
+        has_borrow_captures: false,
     }
 }
 
@@ -68,6 +72,7 @@ fn VarBinding_new_scheme_with_flags(name: String, scheme: TypeScheme, is_mutable
         has_shared_borrow: false,
         has_mutable_borrow: false,
         has_captures: false,
+        has_borrow_captures: false,
     }
 }
 
@@ -128,6 +133,14 @@ fn VarBinding_has_captures(binding: VarBinding) -> bool {
 
 fn VarBinding_set_has_captures(binding: VarBinding, has_caps: bool) {
     binding.has_captures = has_caps
+}
+
+fn VarBinding_has_borrow_captures(binding: VarBinding) -> bool {
+    binding.has_borrow_captures
+}
+
+fn VarBinding_set_has_borrow_captures(binding: VarBinding, has_borrow_caps: bool) {
+    binding.has_borrow_captures = has_borrow_caps
 }
 
 fn LocalScope_binding_count(scope: LocalScope) -> i32 {

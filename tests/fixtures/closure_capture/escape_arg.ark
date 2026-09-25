@@ -1,3 +1,5 @@
+use std::host::stdio
+
 fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
     f(x)
 }
@@ -7,5 +9,6 @@ fn main() {
     let add = move |n: i32| -> i32 {
         n + base
     }
-    let _ = apply(add, 21)
+    // A move closure passed as a fn argument escapes its scope (#872).
+    stdio::println((apply(add, 21)).to_string())
 }

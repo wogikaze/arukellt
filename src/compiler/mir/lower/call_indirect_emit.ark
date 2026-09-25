@@ -1,6 +1,10 @@
 use mir::inst_call_ref
 use mir::inst_local_get
 use mir::lower::ast_node
+use mir::lower::call_args
+use mir::lower::call_emit_staged
+use mir::lower::closure_env
+use mir::lower::core_call_args
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
@@ -96,26 +100,41 @@ fn mark_fnsig_callback_result_type(ctx: LowerCtx, callee_type_name: String, dest
 fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
     let callee_type_name = ctx_api_local_types::ctx_get_local_type(ctx, callee_local)
-    let mut first_arg_vt = 0 - 1
+    // Pair ABI (#872): env is pushed before the user args so the stack is
+    // (env, args..., fnptr) when the call consumes it.
+    closure_env::closure_emit_pair_env_arg(ctx, callee_local)
+    let arg_lis = Vec::new<i32>()
     let mut a = 1
     while a < child_count {
-        let arg_local = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
-        if a == 1 && arg_local >= 0 {
-            first_arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_local)
+        let arg_li = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        if arg_li >= 0 {
+            // Stage each arg like direct calls: the copy consumes a name
+            // arg's just-pushed value and reloads literal/call-result temps,
+            // so every staged local can be pushed unconditionally below.
+            core_call_args::mir_core_stage_call_arg(ctx, arg_lis, arg_li)
         }
         a = a + 1
     }
-    let mut dest = 0 - 1
-    let mut dest_vt = value_types::VT_VOID()
-    if arg_count != 0 {
-        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
-        call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
-        mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
-        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
-    }
-    // Class A/B: typed funcref + call_ref. Class C keeps MIR_CALL_INDIRECT elsewhere.
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt, callee_type_name))
+    // Zero-arg calls need a dest too: without one the call result stays on
+    // the stack untyped and expression consumers (println arg, let rhs)
+    // store it into a local of the wrong type (#872).
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
+    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+    mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
+    let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, false)
+    // The fnptr field read leaves a raw funcref/table-index on the stack;
+    // the emitter casts/narrows it to the trampoline signature.
+    closure_env::closure_emit_pair_fnptr(ctx, callee_local)
+    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(
+            callee_local,
+            0 - 1,
+            arg_count + 1,
+            dest,
+            dest_vt,
+            closure_env::closure_env_ref_vt(ctx),
+            closure_env::closure_pair_call_hint(ctx, callee_type_name, arg_lis, dest)
+        ))
     dest
 }
 
@@ -123,25 +142,31 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
 fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
     let callee_type_name = ctx_api_local_types::ctx_get_local_type(ctx, callee_local)
-    let mut first_arg_vt = 0 - 1
+    closure_env::closure_emit_pair_env_arg(ctx, callee_local)
+    let arg_lis = Vec::new<i32>()
     let mut a = 1
     while a < child_count {
         let arg = ast_node::node_child_at(node, a)
-        let arg_local = lower_expr(ctx, arg)
-        if a == 1 && arg_local >= 0 {
-            first_arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_local)
+        let arg_li = lower_expr(ctx, arg)
+        if arg_li >= 0 {
+            call_args::mir_stage_call_arg(ctx, arg_lis, arg_li)
         }
         a = a + 1
     }
-    let mut dest = 0 - 1
-    let mut dest_vt = value_types::VT_VOID()
-    if arg_count != 0 {
-        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
-        call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
-        mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
-        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
-    }
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt, callee_type_name))
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
+    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+    mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
+    let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, false)
+    closure_env::closure_emit_pair_fnptr(ctx, callee_local)
+    ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(
+            callee_local,
+            0 - 1,
+            arg_count + 1,
+            dest,
+            dest_vt,
+            closure_env::closure_env_ref_vt(ctx),
+            closure_env::closure_pair_call_hint(ctx, callee_type_name, arg_lis, dest)
+        ))
     dest
 }

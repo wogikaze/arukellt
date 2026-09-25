@@ -1,6 +1,7 @@
 use mir::typeinfo_shape
 use mir::lower::return_typeinfo_names
 use mir::value_types
+use corehir::type_ann_node
 
 fn mir_return_tag_from_type_info(ty: TypeInfo) -> i32 {
     typeinfo_shape::mir_type_info_tag(ty)
@@ -27,6 +28,9 @@ fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
         11 => value_types::VT_GC_REF(),
         12 => value_types::VT_GC_REF(),
         13 => value_types::VT_GC_REF(),
+        // TY_FN: every fn value is the {fnptr, env} pair, so the MIR value
+        // type is FUNCREF even though the TypeInfo name is empty (#872).
+        20 => value_types::VT_FUNCREF(),
         21 => value_types::VT_GC_REF(),
         22 => value_types::VT_GC_REF(),
         23 => value_types::VT_GC_REF(),
@@ -97,8 +101,47 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         },
         22 => return_typeinfo_names::mir_enum_return_type_name_from_type_info(ty),
         23 => return_typeinfo_names::mir_tuple_return_type_name_from_type_info(ty),
+        // TY_FN TypeInfos carry their signature in type args
+        // ([params..., return]); mirror type_ann_function_ref_name so a
+        // fn(A) -> R return spells fnsig:<A>;<R> and indirect-call
+        // results keep their value type through the pair ABI (#872).
+        20 => mir_fn_return_type_name_from_type_info(ty),
         _ => "",
     }
+}
+
+// Return-type spelling for a TY_FN TypeInfo. Type args are the parameter
+// types with the return type last (resolve_type_fn_node); the segment
+// names reuse the generic-inst arg spelling, which keeps nested fn types
+// opaque as fnref — the same collapse the annotation path performs.
+fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    let argc = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    if argc == 2 {
+        let pseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
+            typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+        )
+        let rseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
+            typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
+        )
+        if eq(clone(pseg), String_from("String")) && eq(clone(rseg), String_from("String")) {
+            return String_from("fnrefss")
+        }
+        if eq(clone(pseg), String_from("String")) && eq(clone(rseg), String_from("bool")) {
+            return String_from("fnrefsb")
+        }
+        if type_ann_node::fn_sig_segment_is_i32_family(clone(pseg)) &&
+        type_ann_node::fn_sig_segment_is_i32_family(clone(rseg)) {
+            return String_from("fnref")
+        }
+        return concat(
+            String_from("fnsig:"),
+            concat(clone(pseg), concat(String_from(";"), rseg))
+        )
+    }
+    if argc > 2 {
+        return String_from("fnref2")
+    }
+    String_from("fnref")
 }
 
 fn mir_return_type_name_is_fnref(type_name: String) -> bool {

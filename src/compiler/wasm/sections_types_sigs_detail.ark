@@ -904,28 +904,40 @@ fn build_param_type_sig(
     mir: MirModule
 ) -> String {
     let p_type_name = local_access::MirLocal_type_name(p)
-    // `fnsig:<param>;<return>` callback params embed a concrete signature.
-    // Segments resolve to func-sig tokens here (mir is available) so the
-    // emitted type section can reference the exact callback type (#860).
-    // This must run before the generic funcref branch: fnsig locals also
-    // carry VT_FUNCREF and would otherwise collapse to the i32 ABI slot.
-    if starts_with(clone(p_type_name), String_from("fnsig:")) {
-        if !emit_target::is_gc_target(clone(target)) {
-            return String_from("i32")
+    // Uniform env param of pair-ABI trampolines/thunks (#872). On GC it is
+    // a plain structref so every closure env type fits one call signature;
+    // on linear it is an i32 record pointer.
+    if eq(clone(p_type_name), String_from("structref")) {
+        if emit_target::is_gc_target(clone(target)) {
+            return String_from("structref")
         }
-        let fnsig_sig = fnsig_param_sig_from_mir(clone(p_type_name), clone(target), mir)
-        if len(fnsig_sig) > 0 {
-            return fnsig_sig
-        }
-        return funcref_param_sig_for_target(String_from("fnref"), clone(target), memory64)
+        return String_from("i32")
     }
-    // Typed funcref params encode as atomic segments (no underscores) so
-    // type_sig_param_segments keeps them intact (#831). Binary fold callbacks
-    // use fnref2 → WASI i32_i32_1i32; unary map/filter keep fnref (#807).
-    if eq(clone(p_type_name), String_from("fnref")) ||
+    // fn values are {fnptr, env} pairs under the managed closure ABI
+    // (#872): one shared __fnpair struct type covers every callback
+    // signature, replacing the per-signature funcref slots. The legacy
+    // paths below remain as fallbacks when no pair record exists.
+    if starts_with(clone(p_type_name), String_from("fnsig:")) ||
+    eq(clone(p_type_name), String_from("fnref")) ||
     starts_with(clone(p_type_name), String_from("fnref")) ||
     local_access::MirLocal_val_type(p) == value_types::VT_FUNCREF() ||
     starts_with(clone(p_type_name), String_from("fn(")) {
+        if emit_target::is_gc_target(clone(target)) {
+            let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
+            if pair_slot >= 0 {
+                return concat(String_from("gcsref"), i32_to_string(pair_slot))
+            }
+        }
+        if starts_with(clone(p_type_name), String_from("fnsig:")) {
+            if !emit_target::is_gc_target(clone(target)) {
+                return String_from("i32")
+            }
+            let fnsig_sig = fnsig_param_sig_from_mir(clone(p_type_name), clone(target), mir)
+            if len(fnsig_sig) > 0 {
+                return fnsig_sig
+            }
+            return funcref_param_sig_for_target(String_from("fnref"), clone(target), memory64)
+        }
         return funcref_param_sig_for_target(clone(p_type_name), clone(target), memory64)
     }
     // `fnsig:<param>;<return>` callback params embed a concrete signature.
@@ -1076,12 +1088,19 @@ fn build_return_type_value_sig(
     memory64: bool,
     mir: MirModule
 ) -> String {
-    // Funcref returns must stay (ref $sig), not GC structref (#832).
+    // fn returns carry the same {fnptr, env} pair as params (#872).
     if eq(clone(return_type_name), String_from("fnref")) ||
     starts_with(clone(return_type_name), String_from("fnref")) ||
+    starts_with(clone(return_type_name), String_from("fnsig:")) ||
     eq(clone(return_type_name), String_from("fn")) ||
     starts_with(clone(return_type_name), String_from("fn(")) ||
     return_type == value_types::VT_FUNCREF() {
+        if emit_target::is_gc_target(clone(target)) {
+            let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
+            if pair_slot >= 0 {
+                return concat(String_from("gcsref"), i32_to_string(pair_slot))
+            }
+        }
         return funcref_return_sig_for_target(clone(target), memory64)
     }
     let typed_sig = sections_types_gc_plan::typed_function_return_sig(mir, clone(uf.name), clone(target))

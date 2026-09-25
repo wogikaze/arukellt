@@ -201,13 +201,7 @@ fn vec_element_storage_type_from_receiver(
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) {
-        return Option::Some(call_indirect::resolve_indirect_type_idx(
-                ctx,
-                0 - 1,
-                1,
-                value_types::VT_I32(),
-                value_types::VT_I32()
-            ))
+        return Option::Some(code_ref_locals_infer_dest::fn_element_storage_type(ctx))
     }
     if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx) {
         let nested = nested_vec_element_storage_type(f, dest, ctx)
@@ -228,13 +222,7 @@ fn vec_element_storage_type_from_receiver(
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(receiver_elem)) {
-            return Option::Some(call_indirect::resolve_indirect_type_idx(
-                    ctx,
-                    0 - 1,
-                    1,
-                    value_types::VT_I32(),
-                    value_types::VT_I32()
-                ))
+            return Option::Some(code_ref_locals_infer_dest::fn_element_storage_type(ctx))
         }
         if is_nested_vec_element_name(clone(receiver_elem)) {
             let nested = nested_vec_element_storage_type(f, dest, ctx)
@@ -246,25 +234,13 @@ fn vec_element_storage_type_from_receiver(
             }
         }
         if starts_with(clone(receiver_tn), String_from("vec:fn")) {
-            return Option::Some(call_indirect::resolve_indirect_type_idx(
-                    ctx,
-                    0 - 1,
-                    1,
-                    value_types::VT_I32(),
-                    value_types::VT_I32()
-                ))
+            return Option::Some(code_ref_locals_infer_dest::fn_element_storage_type(ctx))
         }
         let copied_storage = copied_storage_type_from_source(f, receiver, ctx, 0)
         match copied_storage {
             Option::Some(copied_type) => {
                 if copied_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) {
-                    return Option::Some(call_indirect::resolve_indirect_type_idx(
-                            ctx,
-                            0 - 1,
-                            1,
-                            value_types::VT_I32(),
-                            value_types::VT_I32()
-                        ))
+                    return Option::Some(code_ref_locals_infer_dest::fn_element_storage_type(ctx))
                 }
             }
             Option::None => {}
@@ -339,13 +315,7 @@ fn nested_vec_element_storage_type(
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem_name)) {
-        return Option::Some(call_indirect::resolve_indirect_type_idx(
-                ctx,
-                0 - 1,
-                1,
-                value_types::VT_I32(),
-                value_types::VT_I32()
-            ))
+        return Option::Some(code_ref_locals_infer_dest::fn_element_storage_type(ctx))
     }
     if starts_with(clone(dest_name), String_from("vec:")) ||
     starts_with(clone(dest_name), String_from("Vec_")) {

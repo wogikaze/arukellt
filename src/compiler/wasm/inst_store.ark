@@ -18,7 +18,7 @@ fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_
         // Discarded CALL results must not remain under later local.get arg loads.
         // Only CALL/WIT — never LOCAL_GET (loop i < n is get; get; ge_s).
         let cur = inst_accessors_shape::MirInst_op(inst)
-        if cur == mir_opcodes::MIR_CALL() || cur == mir_opcodes::MIR_WIT_CALL() {
+        if cur == mir_opcodes::MIR_CALL() || cur == mir_opcodes::MIR_WIT_CALL() || cur == mir_opcodes::MIR_CALL_REF() {
             if !call_result_next_consumes_stack(next_op, next_arg0, next_arg1) {
                 if dest < 0 || is_unused_lower_core_expr_before_next_call(inst, dest, next_op, next_arg0, next2_op) {
                     writer_core::emit_byte(w, opcodes::OP_DROP())

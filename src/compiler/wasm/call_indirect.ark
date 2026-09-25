@@ -1,5 +1,6 @@
 use mir::function_param_view
 use mir::function_return_view
+use mir::local_access
 use mir::block_inst_access
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
@@ -15,11 +16,175 @@ use wasm::sections_types_gc
 use wasm::writer_core
 use mir::opcodes as mir_opcodes
 
+// Hint segments 3/4 written by closure_pair_call_hint: the nk/vk signature
+// keys that identify the trampoline carrying this call's exact wasm type.
+fn call_ref_hint_seg3(hint: String) -> String {
+    let first = index_of(clone(hint), String_from("|"))
+    if first < 0 {
+        return String_new()
+    }
+    let rest = substring(clone(hint), first + 1, len(hint))
+    let second = index_of(clone(rest), String_from("|"))
+    if second < 0 {
+        return String_new()
+    }
+    let seg = substring(clone(rest), second + 1, len(rest))
+    let third = index_of(clone(seg), String_from("|"))
+    if third < 0 {
+        return seg
+    }
+    substring(clone(seg), 0, third)
+}
+
+fn call_ref_hint_seg4(hint: String) -> String {
+    let first = index_of(clone(hint), String_from("|"))
+    if first < 0 {
+        return String_new()
+    }
+    let rest = substring(clone(hint), first + 1, len(hint))
+    let second = index_of(clone(rest), String_from("|"))
+    if second < 0 {
+        return String_new()
+    }
+    let seg = substring(clone(rest), second + 1, len(rest))
+    let third = index_of(clone(seg), String_from("|"))
+    if third < 0 {
+        return String_new()
+    }
+    substring(clone(seg), third + 1, len(seg))
+}
+
+// A pair-ABI trampoline is a generated function whose first param is the
+// uniform env slot, marked by the internal "structref" type name that no
+// user function can declare.
+fn fn_is_pair_trampoline(f: MirFunction) -> bool {
+    if function_param_view::MirFunction_param_count(f) == 0 {
+        return false
+    }
+    eq(
+        local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(f, 0)),
+        String_from("structref")
+    )
+}
+
+// Same normalization as closure_pair_seg_norm so producer/call-site keys
+// agree on container spellings.
+fn pair_seg_norm(name: String, vt: i32) -> String {
+    if len(name) == 0 {
+        return concat("~", i32_to_string(vt))
+    }
+    if starts_with(clone(name), "Vec<") && ends_with(clone(name), ">") {
+        return concat("vec:", substring(name, 4, len(name) - 1))
+    }
+    if starts_with(clone(name), "Option<") && ends_with(clone(name), ">") {
+        return concat("option:", substring(name, 7, len(name) - 1))
+    }
+    name
+}
+
+// "nk:<segs>;<ret>" (use_names) or "vk:<vts>;<vt>" over params[1..] + ret
+// — param 0 is the env slot and never part of the user-visible signature.
+fn pair_tramp_sig_key(f: MirFunction, use_names: bool) -> String {
+    let mut key = if use_names {
+        String_from("nk:")
+    } else {
+        String_from("vk:")
+    }
+    let pc = function_param_view::MirFunction_param_count(f)
+    let mut i = 1
+    while i < pc {
+        if i > 1 {
+            key = concat(key, ",")
+        }
+        let p = function_param_view::MirFunction_param_at(f, i)
+        let pvt = local_access::MirLocal_val_type(p)
+        if use_names {
+            key = concat(key, pair_seg_norm(local_access::MirLocal_type_name(p), pvt))
+        } else {
+            key = concat(key, i32_to_string(pvt))
+        }
+        i = i + 1
+    }
+    key = concat(key, ";")
+    let rvt = function_return_view::MirFunction_return_type(f)
+    if use_names {
+        key = concat(key, pair_seg_norm(function_return_view::MirFunction_return_type_name(f), rvt))
+    } else {
+        key = concat(key, i32_to_string(rvt))
+    }
+    key
+}
+
+// Param segments must match exactly; an empty call-site return segment is
+// a wildcard for ignored results.
+fn pair_key_matches(hint_key: String, cand_key: String) -> bool {
+    if len(hint_key) == 0 || len(cand_key) == 0 {
+        return false
+    }
+    let hp = index_of(clone(hint_key), String_from(";"))
+    let cp = index_of(clone(cand_key), String_from(";"))
+    if hp < 0 || cp < 0 {
+        return eq(hint_key, cand_key)
+    }
+    if !eq(substring(clone(hint_key), 0, hp), substring(clone(cand_key), 0, cp)) {
+        return false
+    }
+    let hret = substring(clone(hint_key), hp + 1, len(hint_key))
+    if len(hret) == 0 {
+        return true
+    }
+    eq(hret, substring(clone(cand_key), cp + 1, len(cand_key)))
+}
+
+// Resolve the wasm type index of the (env, params...) -> ret trampoline
+// matching this call. Pass 1 uses the precise name key, pass 2 the
+// value-type key; -1 defers to the legacy arity scan.
+fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
+    let nk = call_ref_hint_seg3(clone(hint))
+    let vk = call_ref_hint_seg4(clone(hint))
+    if len(nk) == 0 && len(vk) == 0 {
+        return 0 - 1
+    }
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
+    let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
+    let n = len(functions)
+    if len(nk) > 0 {
+        let mut fi = 0
+        while fi < n {
+            let f = get_unchecked(functions, fi)
+            if fn_is_pair_trampoline(f) && fi < len(fn_type_map) {
+                if pair_key_matches(clone(nk), pair_tramp_sig_key(f, true)) {
+                    return get_unchecked(fn_type_map, fi)
+                }
+            }
+            fi = fi + 1
+        }
+    }
+    if len(vk) > 0 {
+        let mut fi = 0
+        while fi < n {
+            let f = get_unchecked(functions, fi)
+            if fn_is_pair_trampoline(f) && fi < len(fn_type_map) {
+                if pair_key_matches(clone(vk), pair_tramp_sig_key(f, false)) {
+                    return get_unchecked(fn_type_map, fi)
+                }
+            }
+            fi = fi + 1
+        }
+    }
+    0 - 1
+}
+
 fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     let dest_vt = inst_accessors_shape::MirInst_val_type(inst)
     let first_arg_vt = parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(inst))
-    let type_idx = resolve_indirect_type_idx(ctx, inst_accessors_operands::MirInst_arg1(inst), arg_count, dest_vt, first_arg_vt)
+    // Pair ABI (#872): the nk/vk hint keys pin the exact (env, args...)
+    // signature; the fnptr table index is already on the stack.
+    let mut type_idx = call_ref_pair_key_type_idx(ctx, inst_accessors_literals::MirInst_str_val(inst))
+    if type_idx < 0 {
+        type_idx = resolve_indirect_type_idx(ctx, inst_accessors_operands::MirInst_arg1(inst), arg_count, dest_vt, first_arg_vt)
+    }
     // Under Memory64, the funcref table index is stored as a widened i64
     // scalar but the call_indirect instruction requires an i32 index.
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
@@ -59,7 +224,14 @@ fn parse_call_ref_type_name_hint(hint: String) -> String {
     let mut i = 0
     while i < n {
         if byte_at(hint, i) == 124 {
-            return substring(hint, i + 1, n)
+            let rest = substring(clone(hint), i + 1, n)
+            // Pair-ABI hints append |nk:...|vk:... after the type name
+            // (#872); the type-name segment ends at the next '|'.
+            let second = index_of(clone(rest), String_from("|"))
+            if second < 0 {
+                return rest
+            }
+            return substring(clone(rest), 0, second)
         }
         i = i + 1
     }

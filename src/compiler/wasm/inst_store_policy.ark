@@ -49,20 +49,26 @@ fn should_tee_store_early(inst: MirInst, next_op: i32, next_arg1: i32) -> bool {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         return true
     }
-    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
-        return true
-    }
-    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+    if store_op_is_stack_call(inst_accessors_shape::MirInst_op(inst)) && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         return true
     }
     false
+}
+
+// MIR_CALL_REF produces a stack result exactly like MIR_CALL — the fn-pair
+// ABI lowers indirect calls to call_ref on GC and call_indirect on linear
+// (#872). Every store rule that treats a direct call as a stack producer
+// must cover it, or the destination local stays uninitialized when the
+// result is reloaded (println arg staging, callee reload, copy chains).
+fn store_op_is_stack_call(op: i32) -> bool {
+    op == opcodes::MIR_CALL() || op == opcodes::MIR_WIT_CALL() || op == opcodes::MIR_CALL_REF()
 }
 
 fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     // Funcref CALL results are reloaded via local.get before call_ref; never
     // leave them on the stack under following CONST/arg loads (#832).
     let cur_op = inst_accessors_shape::MirInst_op(inst)
-    if (cur_op == opcodes::MIR_CALL() || cur_op == opcodes::MIR_WIT_CALL()) &&
+    if store_op_is_stack_call(cur_op) &&
     inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_FUNCREF() {
         return false
     }
@@ -114,14 +120,14 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
         // reads an uninitialized temp (#832). Do not apply this to LOCAL_GET /
         // CONST_STRING; those rely on leaving the value on the stack (#730).
         let cur = inst_accessors_shape::MirInst_op(inst)
-        if (cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL()) &&
+        if store_op_is_stack_call(cur) &&
         (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) &&
         next_arg0 == inst_accessors_operands::MirInst_dest(inst) {
             return false
         }
         return true
     }
-    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() || inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() {
+    if store_op_is_stack_call(inst_accessors_shape::MirInst_op(inst)) {
         if next_op == opcodes::MIR_LOCAL_GET() && next_arg0 == inst_accessors_operands::MirInst_dest(inst) {
             if next2_op == opcodes::MIR_CALL() ||
             next2_op == opcodes::MIR_WIT_CALL() ||
@@ -163,7 +169,7 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                 // call's local.get args (expect_token then skip_newlines).
                 // Scalar CALL results (len/len/ne, float_val/make_float_lit)
                 // stay on the stack for composition.
-                if cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL() {
+                if store_op_is_stack_call(cur) {
                     // String concat materializes via call_text_core force-SET/TEE.
                     // Other CALL results: SKIP for numeric stack composition
                     // (array elem load then LOCAL_GET+SET then ne); SET only for

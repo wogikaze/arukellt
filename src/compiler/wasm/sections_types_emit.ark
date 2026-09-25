@@ -30,9 +30,14 @@ fn emit_canon_type_entries(
                         emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map, canon_types, memory64)
                     } else {
                         if eq(clone(csig), String_from("A_fnref")) {
-                            // Nullable (ref null $sig) so array.new_default works (#832).
+                            // Vec<fn>/HashMap<_, fn> elements are nullable
+                            // __fnpair refs under the managed closure ABI
+                            // (#872). The pair record is the fixed type at
+                            // gc_fnpair_offset, so this is a backward
+                            // reference. Nullable so array.new_default works
+                            // (#832).
                             writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
-                            let type_idx = find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
+                            let type_idx = gc_type_base + sections_types_gc::gc_fnpair_offset()
                             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
                             writer_core::emit_leb128_s(type_sec, type_idx)
                             writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
@@ -183,6 +188,14 @@ fn emit_struct_field_type(
             writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
             return
         }
+    }
+    // Nullable abstract structref field (the __fnpair env slot, #872).
+    // Must stay nullable so struct.new_default can initialize it.
+    if eq(clone(ft), String_from("structref")) {
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        return
     }
     if starts_with(clone(ft), String_from("ref")) {
         let offset_str = substring(ft, 3, len(ft))

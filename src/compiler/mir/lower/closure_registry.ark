@@ -1,12 +1,17 @@
 use mir::lower::ctx_fn_mono
+use corehir::type_ann_node
+use mir::local_access
 use mir::lower::ctx_api_local_alloc
-use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
+use mir::lower::ctx_gc_struct
+use mir::lower::body_closure_capture
+use mir::lower::closure_env
+use mir::lower::ctx_call_edges
 use mir::lower::ctx_types
 use mir::function_return_view
 use mir::function_param_view
 use mir::function_identity
-use mir::inst_ref_func
 use mir::lower::closure_storage
 use mir::value_types
 
@@ -30,13 +35,40 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     ctx_api_module::ctx_push_module_function(ctx, mf)
     ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), "")
     closure_storage::closure_storage_set_pending_bind(ctx, function_identity::MirFunction_name(mf), packed, extra)
-    // Immediate closure values (`bench(..., || {})`) must carry a real
-    // funcref. A placeholder i32 0 used to compile but crashed at the first
-    // CALL_INDIRECT, and also dropped synthetic functions from reachability.
-    let dest = ctx_fresh_local(ctx, value_types::VT_FUNCREF())
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, closure_funcref_type_name(mf))
-    ctx_emit(ctx, inst_ref_func::MirInst_ref_func(function_identity::MirFunction_name(mf), dest))
-    dest
+    // Managed env pair ABI (#872): the fn value is a {fnptr, env} record.
+    // The env holds the supply captures (the same locals the direct-call
+    // path passes as trailing args); a <synth>_env trampoline unpacks it
+    // for indirect calls so both call paths observe identical semantics.
+    let synth = function_identity::MirFunction_name(mf)
+    let type_name = closure_funcref_type_name(mf, extra)
+    let cap_names = closure_env::closure_split_packed(packed)
+    let cap_vts = Vec::new<i32>()
+    let cap_types = Vec::new<String>()
+    let mut ci = 0
+    while ci < len(cap_names) {
+        let li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(get_unchecked(cap_names, ci)))
+        if li >= 0 {
+            push(cap_vts, ctx_api_local_types::ctx_local_vt(ctx, li))
+            push(cap_types, body_closure_capture::mir_closure_lookup_capture_type(ctx, li))
+        } else {
+            push(cap_vts, value_types::VT_I32())
+            push(cap_types, String_new())
+        }
+        ci = ci + 1
+    }
+    let env_name = closure_env::closure_env_type_name(clone(synth))
+    ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
+    closure_env::closure_register_env_type(ctx, clone(env_name), cap_types)
+    let env_local = closure_env::closure_emit_env_alloc(ctx, clone(env_name), cap_names, cap_vts)
+    let closure_param_count = function_param_view::MirFunction_param_count(mf) - extra
+    let tramp = closure_env::closure_synth_env_trampoline(ctx, synth, mf, env_name, cap_vts, closure_param_count)
+    // The trampoline's own call edge is dropped by the edge-frame
+    // bookkeeping (same as synthetic fn bodies), so keep the synthetic
+    // function reachable from the producing frame explicitly.
+    ctx_call_edges::ctx_edge_record_name(ctx, clone(synth))
+    let pair = closure_env::closure_emit_pair(ctx, env_local, clone(tramp))
+    ctx_api_local_types::ctx_set_local_type(ctx, pair, clone(type_name))
+    pair
 }
 
 fn closure_register_identity(ctx: LowerCtx) -> i32 {
@@ -44,11 +76,49 @@ fn closure_register_identity(ctx: LowerCtx) -> i32 {
     0 - 1
 }
 
-fn closure_funcref_type_name(mf: MirFunction) -> String {
-    if function_param_view::MirFunction_param_count(mf) >= 2 {
+fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
+    // mf params are (closure_params..., captures...); the fn value's arity
+    // counts only the user-visible closure params.
+    let closure_params = function_param_view::MirFunction_param_count(mf) - cap_count
+    if closure_params >= 2 {
         return "fnref2"
     }
-    "fnref"
+    // fnsig:<param>;<return> keeps the result type reachable at indirect
+    // call sites (mark_fnsig_callback_result_type); scalar-only
+    // signatures stay on the legacy buckets, mirroring the annotation
+    // spelling rules. Zero-param closures spell fnsig:;<return> so a
+    // ref-returning thunk still types its call result (#872).
+    let mut ret_seg = function_return_view::MirFunction_return_type_name(mf)
+    if len(ret_seg) == 0 {
+        // No name means the signature never carried one; keep the legacy
+        // bucket rather than emitting a fnsig with an empty segment.
+        return "fnref"
+    }
+    if closure_params == 0 {
+        if len(ret_seg) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
+            return "fnref"
+        }
+        return concat(String_from("fnsig:;"), ret_seg)
+    }
+    let param = function_param_view::MirFunction_param_at(mf, 0)
+    let mut param_seg = local_access::MirLocal_type_name(param)
+    if len(param_seg) == 0 {
+        param_seg = "i32"
+    }
+    if eq(clone(param_seg), String_from("String")) && eq(clone(ret_seg), String_from("String")) {
+        return String_from("fnrefss")
+    }
+    if eq(clone(param_seg), String_from("String")) && eq(clone(ret_seg), String_from("bool")) {
+        return String_from("fnrefsb")
+    }
+    if type_ann_node::fn_sig_segment_is_i32_family(clone(param_seg)) &&
+    type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
+        return String_from("fnref")
+    }
+    concat(
+        String_from("fnsig:"),
+        concat(clone(param_seg), concat(String_from(";"), ret_seg))
+    )
 }
 
 fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {

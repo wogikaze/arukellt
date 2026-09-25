@@ -8,6 +8,7 @@ use wasm::emit_target
 use wasm::inst_store
 use wasm::opcodes
 use wasm::writer_core
+use wasm::writer_gc
 
 fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     // Linear-memory Wasm keeps the ADR-033 table ABI. Typed call_ref is the
@@ -29,15 +30,22 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
     } else {
         current_type_name
     }
-    let type_idx = call_indirect::resolve_call_ref_type_idx(
-        ctx,
-        callee_type_name,
-        callee_local,
-        arg_count,
-        dest_vt,
-        first_arg_vt
-    )
-    // Stack: args..., funcref. No Memory64 index narrowing (unlike call_indirect).
+    // Pair ABI (#872): the stack top is the raw funcref field of __fnpair;
+    // the nk/vk hint keys pin the exact (env, args...) -> ret signature.
+    let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, clone(raw_hint))
+    if type_idx < 0 {
+        type_idx = call_indirect::resolve_call_ref_type_idx(
+            ctx,
+            callee_type_name,
+            callee_local,
+            arg_count,
+            dest_vt,
+            first_arg_vt
+        )
+    }
+    // Stack: env, args..., funcref. ref.cast narrows the generic funcref
+    // field to the concrete trampoline signature for call_ref.
+    writer_gc::emit_gc_ref_cast(w, type_idx)
     writer_core::emit_byte(w, opcodes::OP_CALL_REF())
     writer_core::emit_leb128_u(w, type_idx)
     inst_store::emit_store_result_if_needed(

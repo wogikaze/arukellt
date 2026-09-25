@@ -38,13 +38,13 @@ fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32
     if kind == kinds::TYPE_KIND_OPTION() ||
     kind == kinds::TYPE_KIND_RESULT() ||
     kind == kinds::TYPE_KIND_ENUM() {
-        return 29
+        return 30
     }
     if kind == kinds::TYPE_KIND_PRIMITIVE() {
         if eq(clone(name), "v128") || eq(clone(name), "V128") { return 21 }
         if eq(clone(name), "i64") || eq(clone(name), "I64") { return 22 }
         if eq(clone(name), "f64") || eq(clone(name), "F64") { return 23 }
-        if gc_layout_plan_name_is_fn(clone(name)) { return 27 }
+        if gc_layout_plan_name_is_fn(clone(name)) { return 28 }
         if gc_layout_plan_name_is_i32(name) { return 10 }
     }
     // Nested containers and user aggregates use the structref-array Vec layout.
@@ -68,7 +68,7 @@ fn gc_layout_plan_vec_offset_from_name(name: String) -> i32 {
         return 23
     }
     if starts_with(clone(name), "vec:fn") || starts_with(clone(name), "Vec<fn") {
-        return 27
+        return 28
     }
     if starts_with(clone(name), "vec:Option") ||
     starts_with(clone(name), "vec:Result") ||
@@ -77,7 +77,7 @@ fn gc_layout_plan_vec_offset_from_name(name: String) -> i32 {
     starts_with(clone(name), "vec:enum:") ||
     starts_with(clone(name), "Vec<Option") ||
     starts_with(clone(name), "Vec<Result") {
-        return 29
+        return 30
     }
     if starts_with(clone(name), "vec:Vec") ||
     starts_with(clone(name), "vec:vec:") {
@@ -114,14 +114,14 @@ fn gc_layout_plan_hashmap_offset_from_types(
     if key_string && value_i32 { return 16 }
     if key_i32 && value_string { return 17 }
     if key_string && value_string { return 18 }
-    if key_i32 && value_fn { return 30 }
-    if key_string && value_fn { return 31 }
+    if key_i32 && value_fn { return 31 }
+    if key_string && value_fn { return 32 }
     16
 }
 
 fn gc_layout_plan_hashmap_offset_from_name(name: String) -> i32 {
-    if starts_with(clone(name), "hashmap:i32fn") { return 30 }
-    if starts_with(clone(name), "hashmap:strfn") { return 31 }
+    if starts_with(clone(name), "hashmap:i32fn") { return 31 }
+    if starts_with(clone(name), "hashmap:strfn") { return 32 }
     if starts_with(clone(name), "hashmap:i32str") ||
     starts_with(clone(name), "hashmap:i32:String") { return 17 }
     if starts_with(clone(name), "hashmap:strstr") ||

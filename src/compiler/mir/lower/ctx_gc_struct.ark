@@ -41,6 +41,21 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     ctx_intern_gc_struct_type(ctx, struct_name)
 }
 
+// The shared fn-pair record {fnptr, env} (#872). Registered lazily so
+// modules without fn values keep their existing type section; fn-typed
+// fields resolve to gcsref<slot> of this record on GC targets.
+fn ctx_ensure_fnpair_struct(ctx: LowerCtx) -> i32 {
+    if !ctx.is_gc_target {
+        return 0 - 1
+    }
+    let existing = ctx_gc_struct_slot(ctx, "__fnpair")
+    if existing >= 0 {
+        return existing
+    }
+    ctx_register_gc_struct(ctx, "__fnpair", "GS_f0_funcref_f1_structref")
+    ctx_gc_struct_slot(ctx, "__fnpair")
+}
+
 fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
@@ -160,11 +175,14 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     if len(type_name) == 0 {
         return concat(prefix, String_from("_i32"))
     }
-    // `fnsig:<param>;<return>` fields embed the concrete callback
-    // signature so emit_struct_field_type can pick the exact func type
-    // instead of the legacy i32-ABI funcref slot (#860/#691).
-    if starts_with(clone(type_name), String_from("fnsig:")) {
-        return concat(prefix, gc_struct_fnsig_suffix(ctx, clone(type_name)))
+    // fn-valued fields hold a {fnptr, env} pair under the managed closure
+    // ABI (#872): one shared __fnpair struct type instead of per-signature
+    // funcref slots. This covers fnref/fnref2/fnrefss/fnrefsb/fnsig:/fn(.
+    if gc_struct_field_type_is_fn_value(clone(type_name)) {
+        let pair_slot = ctx_ensure_fnpair_struct(ctx)
+        if pair_slot >= 0 {
+            return concat(prefix, concat(String_from("_gcsref"), i32_to_string(pair_slot)))
+        }
     }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
     if len(scalar) > 0 {
@@ -258,6 +276,21 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
     }
     false
 }
+
+// fn-valued field type names (pair-ABI storage, #872). Mirrors the local
+// type-name detection used by mir_is_funcref_local.
+fn gc_struct_field_type_is_fn_value(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fnref2")) ||
+    eq(clone(type_name), String_from("fnrefss")) ||
+    eq(clone(type_name), String_from("fnrefsb")) ||
+    eq(clone(type_name), String_from("fn")) {
+        return true
+    }
+    starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fnsig:")) ||
+    starts_with(clone(type_name), String_from("fn("))
+}
 // Map container type names to the fixed GC type-section offsets used by
 // sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
 fn gc_struct_container_ref_suffix(type_name: String) -> String {
@@ -279,25 +312,25 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
         return String_from("_ref23")
     }
-    // Vec<fn> / funcref array header (gcref27). Must win over structref (#832).
+    // Vec<fn> / fnpair array header (gcref28). Must win over structref (#832/#872).
     if eq(clone(type_name), String_from("vec:fnref")) ||
     eq(clone(type_name), String_from("vec:fn")) ||
     starts_with(clone(type_name), String_from("vec:fn(")) {
-        return String_from("_ref27")
+        return String_from("_ref28")
     }
-    // Vec<Option/Result/enum> open-enum array header (gcref29).
+    // Vec<Option/Result/enum> open-enum array header (gcref30).
     if starts_with(clone(type_name), String_from("vec:Option_")) ||
     starts_with(clone(type_name), String_from("vec:Result_")) ||
     starts_with(clone(type_name), String_from("vec:option:")) ||
     starts_with(clone(type_name), String_from("vec:result:")) ||
     starts_with(clone(type_name), String_from("vec:enum:")) {
-        return String_from("_ref29")
-    }
-    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
         return String_from("_ref30")
     }
-    if starts_with(clone(type_name), String_from("hashmap:strfn")) {
+    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
         return String_from("_ref31")
+    }
+    if starts_with(clone(type_name), String_from("hashmap:strfn")) {
+        return String_from("_ref32")
     }
     if starts_with(clone(type_name), String_from("hashmap:i32str")) {
         return String_from("_ref17")
@@ -333,14 +366,14 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         if eq(clone(elem), String_from("fnref")) ||
         eq(clone(elem), String_from("fn")) ||
         starts_with(clone(elem), String_from("fn(")) {
-            return String_from("_ref27")
+            return String_from("_ref28")
         }
         if starts_with(clone(elem), String_from("Option")) ||
         starts_with(clone(elem), String_from("Result")) ||
         starts_with(clone(elem), String_from("option:")) ||
         starts_with(clone(elem), String_from("result:")) ||
         starts_with(clone(elem), String_from("enum:")) {
-            return String_from("_ref29")
+            return String_from("_ref30")
         }
         return String_from("_ref25")
     }
@@ -349,14 +382,14 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         if eq(clone(elem), String_from("fnref")) ||
         eq(clone(elem), String_from("fn")) ||
         starts_with(clone(elem), String_from("fn(")) {
-            return String_from("_ref27")
+            return String_from("_ref28")
         }
         if starts_with(clone(elem), String_from("Option")) ||
         starts_with(clone(elem), String_from("Result")) ||
         starts_with(clone(elem), String_from("option:")) ||
         starts_with(clone(elem), String_from("result:")) ||
         starts_with(clone(elem), String_from("enum:")) {
-            return String_from("_ref29")
+            return String_from("_ref30")
         }
         if !(eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))) {
             if !eq(clone(elem), String_from("String")) && !eq(clone(elem), String_from("string")) {

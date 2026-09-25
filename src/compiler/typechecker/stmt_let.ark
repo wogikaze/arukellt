@@ -97,6 +97,9 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
         ast_access::node_child_count(node) > 0 &&
         closure_capture::value_has_captures(env, scope, ast_access::node_child_at(node, 0)) {
             scope::scope_mark_has_captures(scope, clone(bind_name), true)
+            if closure_capture::value_has_borrow_captures(env, scope, ast_access::node_child_at(node, 0)) {
+                scope::scope_mark_has_borrow_captures(scope, clone(bind_name), true)
+            }
         }
         contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }

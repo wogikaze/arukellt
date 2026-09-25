@@ -1,0 +1,13 @@
+use std::host::stdio
+
+fn main() {
+    let base = 10
+    let add = move |n: i32| -> i32 {
+        n + base
+    }
+    // A move closure stored into an aggregate escapes its scope: the pair
+    // env keeps the captured value alive (#872).
+    let stored = (add, 1)
+    let (f, x) = stored
+    stdio::println((f(x + 4)).to_string())
+}

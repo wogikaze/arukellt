@@ -5,6 +5,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::sections_types_gc
 use wasm::writer_core
 
 fn scratch_i32_local_count() -> i32 { 12 }
@@ -144,7 +145,9 @@ fn emit_linear_root_frame_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_fnref_scratch_local_decls(body: WasmWriter, count: i32, ctx: SelfEmitCtx) {
-    let type_idx = call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
+    // Pair ABI (#872): fn-valued temps are nullable __fnpair refs. The pair
+    // record is a fixed GC type (gc_fnpair_offset), so it is always in scope.
+    let type_idx = ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_fnpair_offset()
     let mut i = 0
     while i < count {
         writer_core::emit_leb128_u(body, 1)

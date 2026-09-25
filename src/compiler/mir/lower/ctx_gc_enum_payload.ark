@@ -20,13 +20,13 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
             }
         }
         let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-        let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+        let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
         if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
             return name_slot
         }
     }
     let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
 }

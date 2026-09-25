@@ -1,7 +1,0 @@
-fn main() {
-    let base = 10
-    let add = move |n: i32| -> i32 {
-        n + base
-    }
-    let _stored = (add, 1)
-}

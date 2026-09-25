@@ -5,7 +5,7 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::value_types
 
-fn gc_enum_field_sig_for_vt(vt: i32) -> String {
+fn gc_enum_field_sig_for_vt(ctx: LowerCtx, vt: i32) -> String {
     if vt == value_types::VT_F64() {
         return "_f1_f64"
     }
@@ -13,6 +13,11 @@ fn gc_enum_field_sig_for_vt(vt: i32) -> String {
         return "_f1_i64"
     }
     if vt == value_types::VT_FUNCREF() {
+        // Pair ABI (#872): fn payloads hold a {fnptr, env} __fnpair ref.
+        let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
+        if pair_slot >= 0 {
+            return concat("_f1_gcsref", i32_to_string(pair_slot))
+        }
         return "_f1_fnref"
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
@@ -21,10 +26,10 @@ fn gc_enum_field_sig_for_vt(vt: i32) -> String {
     "_f1_i32"
 }
 
-fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
+fn ctx_gc_enum_payload_field_sigs_from_vts(ctx: LowerCtx, payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
-        sig = text::builder_append(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
+        sig = text::builder_append(sig, gc_enum_field_sig_for_vt(ctx, get_unchecked(payload_vts, i)))
     }
     sig
 }
@@ -36,7 +41,7 @@ fn ctx_gc_enum_payload_field_sigs_typed(ctx: LowerCtx, payload_vts: Vec<i32>, ty
         if i == 0 && should_use_typed_payload_field_sig(vt, clone(type_name)) {
             sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(type_name)))
         } else {
-            sig = text::builder_append(sig, gc_enum_field_sig_for_vt(vt))
+            sig = text::builder_append(sig, gc_enum_field_sig_for_vt(ctx, vt))
         }
     }
     sig
@@ -165,6 +170,14 @@ fn gc_enum_field_sig_for_type_ctx(ctx: LowerCtx, type_name: String) -> String {
     let mut lookup = clone(bare)
     if starts_with(clone(bare), "enum:") {
         return "_f1_ref14"
+    }
+    // fn payloads hold a {fnptr, env} __fnpair ref under the pair ABI
+    // (#872), sharing the storage mapping with declared struct fields.
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(bare)) {
+        let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
+        if pair_slot >= 0 {
+            return concat("_f1_gcsref", i32_to_string(pair_slot))
+        }
     }
     // Bare enum names (Inner, AppError) share the open-enum ABI; do not bind
     // them to a layout gc_struct slot even when one exists under the same name.

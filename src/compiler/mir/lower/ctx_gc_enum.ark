@@ -158,7 +158,7 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
 
 fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
     let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, field_sigs)
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0

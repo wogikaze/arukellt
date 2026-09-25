@@ -11,27 +11,27 @@ fn gc_vec_struct_ref_type_sig() -> String {
 }
 
 fn gc_fnref_array_offset() -> i32 {
-    26
-}
-
-fn gc_vec_fnref_offset() -> i32 {
     27
 }
 
-fn gc_vec_fnref_type_sig() -> String {
-    "gcref27"
-}
-
-fn gc_enum_ref_array_offset() -> i32 {
+fn gc_vec_fnref_offset() -> i32 {
     28
 }
 
-fn gc_vec_enum_ref_offset() -> i32 {
+fn gc_vec_fnref_type_sig() -> String {
+    "gcref28"
+}
+
+fn gc_enum_ref_array_offset() -> i32 {
     29
 }
 
+fn gc_vec_enum_ref_offset() -> i32 {
+    30
+}
+
 fn gc_vec_enum_ref_type_sig() -> String {
-    "gcref29"
+    "gcref30"
 }
 
 fn gc_vec_elem_name_is_fnref(elem: String) -> bool {

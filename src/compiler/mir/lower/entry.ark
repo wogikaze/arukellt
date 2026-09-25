@@ -3,6 +3,7 @@ use mir::lower::ctx_call_edges
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_gc_struct_order
+use mir::lower::closure_env
 use mir::lower::decl_source
 use mir::lower::entry_context
 use mir::lower::entry_decls
@@ -76,6 +77,11 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     input.source_text = String_new()
     mir_body_source::mir_body_source_release(corehir_mod::view_body_source(view))
     let late_structs = ctx_gc_struct::ctx_gc_struct_count(ctx) - sealed_structs
+    // fn-typed signatures without a produced pair value still need the
+    // shared __fnpair record for their param/return/field types (#872).
+    if closure_env::closure_module_uses_fn_types(ctx) {
+        ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
+    }
     let late_enums = ctx_gc_enum::ctx_gc_enum_variant_count(ctx) - sealed_enums
     ctx_gc_struct::ctx_flush_gc_structs_from(ctx, sealed_structs)
     ctx_gc_enum::ctx_flush_gc_enum_variants_from(ctx, sealed_enums)

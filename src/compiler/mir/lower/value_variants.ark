@@ -4,10 +4,10 @@ use mir::lower::ctx_api_variants
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
+use mir::lower::closure_env
 use mir::lower::ctx_fn_index
 use mir::lower::core_names
 use mir::lower::ctx_types
-use mir::inst_ref_func
 use mir::value_types
 use mir::lower::variants
 
@@ -49,10 +49,11 @@ fn lower_atomic_function(ctx: LowerCtx, node: AstNode) -> i32 {
 }
 
 fn lower_function_value(ctx: LowerCtx, fn_name: String) -> i32 {
-    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, core_names::mir_fnref_type_name_for_function(ctx, clone(fn_name)))
-    ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(fn_name, dest))
-    dest
+    let type_name = core_names::mir_fnref_type_name_for_function(ctx, clone(fn_name))
+    let tramp = closure_env::closure_ensure_fn_thunk(ctx, clone(fn_name))
+    let pair = closure_env::closure_emit_pair(ctx, 0 - 1, clone(tramp))
+    ctx_api_local_types::ctx_set_local_type(ctx, pair, clone(type_name))
+    pair
 }
 
 fn lower_atomic_ident_variant(ctx: LowerCtx, node: AstNode) -> i32 {
