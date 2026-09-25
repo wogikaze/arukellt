@@ -1053,3 +1053,49 @@ RFC-011: **8 (fallback lowering)**。
   remains conservative per ADR-075), `HashMap<*,fn>` on linear
   (currently `unreachable`), closure environments, and the move/borrow
   parity audit remain open; #874 stays open.
+
+## Progress receipt — 2026-09-25 (closure env pair on fallback heap)
+
+- Implementation commit `09921ff94` keeps `VT_FUNCREF` alive through
+  `let` bindings and tuple fields so a fn value stays a managed
+  `{fnptr, env}` pair on `wasm32`. Previously `mir_adjust_let_vt_from_init`
+  and `emit_let_initializer_store` only propagated F64/I64/GC_REF, so
+  `let g = add` or a `(add, 1)` tuple demoted the pair to i32: the tuple
+  was never named, destructured bindings lost the fn type, and the call
+  lowered to a direct `MIR_CALL` that fell back to `unreachable`. The fix
+  propagates FUNCREF in both let paths, lets FUNCREF fields trigger the
+  named `tuple:` layout, and routes tuple field-vt recovery through the
+  canonical `gc_struct_field_type_is_fn_value` predicate (now `pub`) so
+  `fnsig:<p>;<r>` / `fnref*` keys are recognised.
+- Normative contract: [ADR-075](../../docs/adr/ADR-075-language-v2-linear-memory-tracing-runtime.md)
+  and RFC-011 section 8. No new public API or ABI; the linear trampoline
+  and `call_indirect` path already expected this layout.
+- Positive coverage: a new `test_closure_pair_env_lowers_to_fallback_heap`
+  case in `test_linear_gc_runtime_e2e.py` compiles and runs
+  `closure_capture/escape_store.ark` (tuple-destructured fn call, prints
+  `15`) and `closure_capture/move_local.ark` (String capture, prints
+  `move:4`) on `wasm32`/`wasi-p1`/`memory32`. All six
+  `closure_capture` fixtures were also executed manually on linear and
+  match their `.expected` goldens; the same probe set produces identical
+  output on `wasm32-gc`.
+- Diagnostic coverage: `diagnostics/closure_capture_escape_return.ark`
+  still rejects with `E0213` (rebind escape); mutable-capture counters
+  keep their diagnostic until env cells exist.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS
+  python3 scripts/manager.py verify lane                    PASS
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (new test ok)
+  wasm32 wasi-p1/memory32 run: 14 probes + 6 fixtures       PASS
+  wasm32-gc component run: 13 probes                        PASS
+  targeted fmt (5 .ark files)                               PASS
+  ```
+
+- This receipt covers `let`-bound fn values, tuple storage, and
+  destructure/call parity on the fallback. Still open: `HashMap<*,fn>`
+  on linear (`unreachable`), a pre-existing linear miscompile where a
+  `Vec<i32>` closure param loses its type name so `len(x)` resolves to
+  `__core_string_len_impl` (probe: captured Vec + Vec param), mutable
+  rebind env cells (E0213), exact pointer-field descriptors, and the
+  move/borrow parity audit; #874 stays open.
