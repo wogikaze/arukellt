@@ -3540,6 +3540,24 @@ returns = "PeekIter<i32>"
 doc = "Lazy peekable adapter; peek() inspects the upcoming item without consuming it."
 
 [[functions]]
+name = "step_by_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>", "i32"]
+returns = "StepByIter<i32>"
+doc = "Lazy step_by adapter; yields every n-th element, clamping non-positive steps to 1."
+
+[[functions]]
+name = "scan_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["Vec<i32>", "i32", "fn(i32, i32) -> Option<i32>"]
+returns = "ScanIter"
+doc = "Lazy scan adapter; threads a state through f and yields each intermediate result until f returns None."
+
+[[functions]]
 name = "collect_vec_iter"
 module = "std::core::iter"
 doc_category = "iter"
@@ -3610,6 +3628,24 @@ stability = "provisional"
 params = ["PeekIter<i32>"]
 returns = "Vec<i32>"
 doc = "Drain a PeekIter into a new Vec<i32> via Iterator::collect."
+
+[[functions]]
+name = "collect_step_by_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["StepByIter<i32>"]
+returns = "Vec<i32>"
+doc = "Drain a StepByIter into a new Vec<i32> via Iterator::collect."
+
+[[functions]]
+name = "collect_scan_iter"
+module = "std::core::iter"
+doc_category = "iter"
+stability = "provisional"
+params = ["ScanIter"]
+returns = "Vec<i32>"
+doc = "Drain a ScanIter into a new Vec<i32> via Iterator::collect."
 
 [[functions]]
 name = "collect_range_iter"

@@ -280,6 +280,13 @@ impl VecIter<T> {
             peeked: Vec::new<T>(),
         }
     }
+
+    /// Lazily yield every `n`-th remaining element. A non-positive step
+    /// is clamped to 1 so the adapter cannot stall the stream.
+    fn step_by(self: VecIter<T>, n: i32) -> StepByIter<T> {
+        let s = if n <= 0 { 1 } else { n }
+        StepByIter { vec: self.vec, index: self.index, length: self.length, step: s }
+    }
 }
 
 /// i32-only adapters whose item type is fixed by the concrete `UniqueIter`
@@ -293,6 +300,14 @@ impl VecIter<i32> {
     /// Lazily yield the remaining elements in reverse order.
     fn rev(self: VecIter<i32>) -> RevIter {
         RevIter { vec: self.vec, index: self.index, length: self.length }
+    }
+
+    /// Lazily thread a state through `f`, yielding each intermediate
+    /// result. Stops and stays exhausted once `f` returns `None`
+    /// (Rust `scan` semantics). i32-only while generic fn-field
+    /// structs remain a lowering gap (#881).
+    fn scan(self: VecIter<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter {
+        ScanIter { vec: self.vec, index: self.index, length: self.length, state: init, f: f }
     }
 }
 
@@ -1217,6 +1232,135 @@ impl Iterator for PeekIter<T> {
 }
 
 // ---------------------------------------------------------------------------
+// StepByIter — lazy step_by adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields every `step`-th element of the source. The
+/// constructor clamps non-positive steps to 1, so the index always advances
+/// and the adapter cannot loop forever.
+pub struct StepByIter<T> {
+    vec: Vec<T>,
+    index: i32,
+    length: i32,
+    step: i32,
+}
+
+/// Construct a `StepByIter` over `v` yielding every `n`-th element.
+pub fn step_by_iter(v: Vec<i32>, n: i32) -> StepByIter<i32> {
+    vec_iter(v).step_by(n)
+}
+
+impl StepByIter<T> {
+    /// Lazily limit the stepped stream to `n` items.
+    fn take(self: StepByIter<T>, n: i32) -> TakeIter<StepByIter<T>> {
+        TakeIter { iter: self, remaining: n }
+    }
+}
+
+impl Iterator for StepByIter<T> {
+    type Item = T
+
+    fn next(self: StepByIter<T>) -> Option<T> {
+        if self.index < self.length {
+            let v: T = get_unchecked(self.vec, self.index)
+            self.index = self.index + self.step
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    fn collect(self: StepByIter<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
+        for item in self {
+            push(out, item)
+        }
+        out
+    }
+
+    fn count(self: StepByIter<T>) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
+    }
+
+}
+
+// ---------------------------------------------------------------------------
+// ScanIter — lazy scan adapter (i32-only; see UniqueIter/RevIter for the
+// concrete-adapter precedent)
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that threads a state through `f` and yields each
+/// intermediate result. Iteration ends when the source is exhausted or
+/// `f` returns `None`; once ended the adapter stays at the end, matching
+/// Rust's fused `scan` behavior. Kept i32-only for now: a generic
+/// `fn(T, T) -> Option<T>` field inside `ScanIter<T>` lowers to an empty
+/// method body today (bare-T field reads in generic impls), so the concrete
+/// adapter is the shippable shape on both backends (#881 tracks the gap).
+pub struct ScanIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    state: i32,
+    f: fn(i32, i32) -> Option<i32>,
+}
+
+/// Construct a `ScanIter` over `v` with initial state `init`.
+pub fn scan_iter(v: Vec<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter {
+    vec_iter(v).scan(init, f)
+}
+
+impl ScanIter {
+    /// Lazily limit the scanned stream to `n` items.
+    fn take(self: ScanIter, n: i32) -> TakeIter<ScanIter> {
+        TakeIter { iter: self, remaining: n }
+    }
+}
+
+impl Iterator for ScanIter {
+    type Item = i32
+
+    fn next(self: ScanIter) -> Option<i32> {
+        let mut out: Option<i32> = None
+        if self.index < self.length {
+            let item: i32 = get_unchecked(self.vec, self.index)
+            let stepped: Option<i32> = (self.f)(self.state, item)
+            match stepped {
+                Some(v) => {
+                    self.state = v
+                    self.index = self.index + 1
+                    out = Some(v)
+                }
+                None => {
+                    self.index = self.length
+                }
+            }
+        }
+        out
+    }
+
+    fn collect(self: ScanIter) -> Vec<i32> {
+        let out: Vec<i32> = Vec::new<i32>()
+        for item in self {
+            push(out, item)
+        }
+        out
+    }
+
+    fn count(self: ScanIter) -> i32 {
+        let mut n = 0
+        for item in self {
+            n = n + 1
+        }
+        n
+    }
+
+}
+
+// ---------------------------------------------------------------------------
 // UniqueIter — lazy first-occurrence adapter over Vec<i32>
 // ---------------------------------------------------------------------------
 
@@ -1903,6 +2047,16 @@ pub fn collect_flat_map_iter(it: FlatMapIter<i32>) -> Vec<i32> {
 
 /// Drain a `PeekIter` into a new `Vec<i32>`.
 pub fn collect_peek_iter(it: PeekIter<i32>) -> Vec<i32> {
+    it.collect()
+}
+
+/// Drain a `StepByIter` into a new `Vec<i32>`.
+pub fn collect_step_by_iter(it: StepByIter<i32>) -> Vec<i32> {
+    it.collect()
+}
+
+/// Drain a `ScanIter` into a new `Vec<i32>`.
+pub fn collect_scan_iter(it: ScanIter) -> Vec<i32> {
     it.collect()
 }
 
