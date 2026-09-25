@@ -1,0 +1,42 @@
+use std::host::stdio
+
+pub struct FnLast {
+    index: i32,
+    length: i32,
+    state: i32,
+    f: fn(i32, i32) -> Option<i32>,
+}
+
+pub struct FnFirst {
+    f: fn(i32, i32) -> Option<i32>,
+    index: i32,
+    state: i32,
+}
+
+pub struct FnMid {
+    index: i32,
+    f: fn(i32, i32) -> Option<i32>,
+    state: i32,
+}
+
+fn sum2(a: i32, b: i32) -> Option<i32> {
+    Some(a + b)
+}
+
+fn main() {
+    let a = FnLast { index: 0, length: 3, state: 0, f: sum2 }
+    match (a.f)(2, 5) {
+        Some(x) => stdio::println(x.to_string()),
+        None => stdio::println("none"),
+    }
+    let b = FnFirst { f: sum2, index: 0, state: 1 }
+    match (b.f)(1, 2) {
+        Some(x) => stdio::println(x.to_string()),
+        None => stdio::println("none"),
+    }
+    let c = FnMid { index: 0, f: sum2, state: 7 }
+    match (c.f)(10, 20) {
+        Some(x) => stdio::println(x.to_string()),
+        None => stdio::println("none"),
+    }
+}

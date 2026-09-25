@@ -1,7 +1,6 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
-use mir::lower::ctx_types
 use mir::inst_convert
 use mir::inst_local_set
 use mir::lower::expr_types
@@ -86,7 +85,7 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
         return
     }
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-    if len(init_type) > 1 {
+    if len(init_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
     }
     if ta_count == 0 && len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) == 0 {

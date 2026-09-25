@@ -556,8 +556,20 @@ fn local_set_source_local(block: MirBlock, inst_index: i32, inst: MirInst) -> i3
         return 0 - 1
     }
     let producer = block_inst_access::MirBlock_inst_at(block, inst_index - 1)
-    if inst_accessors_shape::MirInst_op(producer) == opcodes::MIR_LOCAL_GET() {
+    let producer_op = inst_accessors_shape::MirInst_op(producer)
+    if producer_op == opcodes::MIR_LOCAL_GET() {
         return inst_accessors_operands::MirInst_arg0(producer)
+    }
+    // Field stores leave their tee'd receiver on the stack, so a stack-valued
+    // LOCAL_SET that follows one copies the store's base local — the same
+    // operand inst_dispatch_local reloads.  Do not read dest here:
+    // MIR_STRUCT_SET packs field_idx * 100000 + byte_size into it and
+    // MIR_GC_STRUCT_SET keeps the stored value local there (#883).
+    if producer_op == opcodes::MIR_STRUCT_SET() {
+        return inst_accessors_operands::MirInst_arg0(producer)
+    }
+    if producer_op == opcodes::MIR_GC_STRUCT_SET() {
+        return inst_accessors_operands::MirInst_arg1(producer)
     }
     inst_accessors_operands::MirInst_dest(producer)
 }
