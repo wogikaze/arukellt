@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-25
-Updated: 2026-09-25
+Updated: 2026-09-26
 ID: 882
 Parent: 691
 Track: language-v2
@@ -77,7 +77,7 @@ concrete-struct shape (#874 fn-pair ABI) passes on both backends.
 - [x] A generic struct with an \`fn(T, ...) -> R\` field invoked through
       \`(self.f)(...)\` validates on wasm32-gc and runs with output
       identical to linear
-- [ ] \`ScanIter<T>\` can be expressed generically (the i32-only
+- [x] \`ScanIter<T>\` can be expressed generically (the i32-only
       \`ScanIter\` workaround in \`std/core/iter.ark\` becomes removable)
 
 ## Required evidence
@@ -155,5 +155,55 @@ concrete-struct shape (#874 fn-pair ABI) passes on both backends.
   on it plus the `Option<T>` record-field gap in #881. This is not
   a close receipt.
 
+## Progress receipt — 2026-09-26 (D done; issue closing)
+
+Commit: \`9ed271f83\` on \`docs/adr-058-language-v2-semantics\`.
+
+D verified: the i32-only \`ScanIter\` workaround is removed and
+\`ScanIter<T>\` is expressed generically.
+
+- \`fn scan\` moved from \`impl VecIter<i32>\` into
+  \`impl VecIter<T>\` (\`init: T\`,
+  \`f: fn(T, T) -> Option<T>\`, returning \`ScanIter<T>\`).
+- \`pub struct ScanIter<T>\` carries \`vec: Vec<T>\`,
+  \`state: T\`, \`f: fn(T, T) -> Option<T>\`;
+  \`impl ScanIter<T>\` and \`impl Iterator for ScanIter<T>\`
+  (\`Item = T\`) replace the concrete impls.
+- The i32 convenience surface is unchanged: \`scan_iter\`,
+  \`collect_scan_iter\`, and \`v.iter().scan(...)\` keep
+  their existing call shapes with \`ScanIter<i32>\` results
+  (manifest.toml + generated stdlib docs synced).
+
+Evidence:
+
+- Existing fixture \`tests/fixtures/stdlib_trait/iterator_step_scan.ark\`
+  (\`iter::scan_iter(v, 0, running_sum)\` + fused-exhaustion
+  checks) validates on wasm32-gc and runs identically on wasm32-gc
+  component and wasm32 linear memory32.
+- New fixture \`tests/fixtures/iterator/generic_scan_iter.ark\`
+  (run + t3-compile + t3-run): \`Vec<String>\` scan with a
+  \`fn(String, String) -> Option<String>\` fold — prints
+  \`a ab abcc none4\` identically on both targets;
+  wasm-tools validate clean.  This exercises the full generic path:
+  \`state: T\` field read, the fn-typed field call
+  \`(self.f)(self.state, item)\`, and the \`Option<T>\`
+  match inside a monomorphized body.
+- Regression: iterator 2/2, generics 8/8, functions 16/16,
+  collections 15/15, closure_capture 6/6 compile-validates;
+  stdlib_trait FAIL=25 - identical pre-existing failure list.
+- verify lane PASS (quality changed).
+- \`docs regenerate\` PASS; the run also repaired a pre-existing
+  fixture-remainder drift (\`fixture_not_in_last_harness_snapshot\`
+  had not been bumped alongside \`fixture_manifest_count\` in
+  earlier fixture commits; canonical value is count-observed=1434).
+
+Residuals:
+
+- Binary \`+\` on \`String\` operands (no \`Add\` impl)
+  compiles and diverges between backends - concat on wasm32-gc,
+  pointer arithmetic on linear.  Filed as #885; the fixture uses
+  \`concat\`, the supported spelling.
+- \`PeekIter<T>\`'s Vec-based \`peeked\` workaround
+  remains (unblocked by #881, optional revert).
 
 

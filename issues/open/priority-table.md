@@ -15,13 +15,13 @@ Scoring criteria (0-5 each, total 25):
 | 2 | 865 | 865 — Hygienic desugaring と f-string lowering を実装する | language-v2 | 1 | 0 | 5 | 5 | 4 | 15 |
 | 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
 | 4 | 723 | Wasm Exception Handling (`exnref`) 統合の検討 | language-design | 0 | 0 | 4 | 5 | 5 | 14 |
-| 5 | 882 | 882 — generic impl method bodies: bare-T field reads, sibli... | language-v2 | 0 | 0 | 4 | 5 | 5 | 14 |
-| 6 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
-| 7 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 5 | 0 | 1 | 3 | 3 | 12 |
-| 8 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 4 | 5 | 3 | 12 |
-| 9 | 860 | 860 — Iterator Trait 体系を統合完了する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
-| 10 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
-| 11 | 875 | 875 — wasm32-gc / fallback の意味論 parity を証明する | language-v2 | 3 | 0 | 1 | 5 | 2 | 11 |
+| 5 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
+| 6 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 5 | 0 | 1 | 3 | 3 | 12 |
+| 7 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 4 | 5 | 3 | 12 |
+| 8 | 860 | 860 — Iterator Trait 体系を統合完了する | language-v2 | 3 | 0 | 1 | 5 | 3 | 12 |
+| 9 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
+| 10 | 875 | 875 — wasm32-gc / fallback の意味論 parity を証明する | language-v2 | 3 | 0 | 1 | 5 | 2 | 11 |
+| 11 | 885 | 885 — binary + on non-Add operands compiles with divergent ... | language-v2 | 0 | 0 | 1 | 5 | 5 | 11 |
 | 12 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
 | 13 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
 | 14 | 718 | 718 — Stdlib free-function → method/trait migration inventory | stdlib-api | 0 | 0 | 4 | 3 | 3 | 10 |
