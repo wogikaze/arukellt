@@ -152,7 +152,12 @@ fn emit_hm_if_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
             writer_gc::emit_gc_ref_as_non_null(w)
         }
     } else {
-        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        // Pair pointers are i32-wide on linear, so fn values share the flat
+        // slot load path with the other map types (#874).
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_map)
+        intrinsic_hashmap_str_lm_helpers::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -185,7 +190,15 @@ fn emit_hm_if_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
             s_val
         )
     } else {
-        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_val)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_idx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_map)
+        intrinsic_hashmap_str_lm_helpers::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
 }
@@ -219,7 +232,10 @@ fn emit_hm_sf_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
             writer_gc::emit_gc_ref_as_non_null(w)
         }
     } else {
-        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_map)
+        intrinsic_hashmap_str_lm_helpers::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -260,7 +276,15 @@ fn emit_hm_sf_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
             s_val
         )
     } else {
-        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_val)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_idx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, s_map)
+        intrinsic_hashmap_str_lm_helpers::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
 }

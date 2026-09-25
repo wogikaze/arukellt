@@ -14,6 +14,21 @@ pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
     // Stdlib modules may import sealed raw APIs.
     load_imported_modules_at(mod_decls, ".", ".", state, true)
+    if stdlib_adapter_needs_flat_hashmap(clone(stdlib_path)) {
+        // __hm_*_new calls inside these adapter bodies lower to a call of
+        // hash::hashmap_new on linear targets. The adapters cannot spell the
+        // dependency as `use std::collections::hash` because its short name
+        // collides with `use std::core::hash`, so the module edge is
+        // injected here for every load path (#874).
+        load_stdlib_module("std::collections::hash", state)
+    }
+}
+
+fn stdlib_adapter_needs_flat_hashmap(stdlib_path: String) -> bool {
+    eq(clone(stdlib_path), "std::collections::hash_map") ||
+    eq(clone(stdlib_path), "std::collections::hash_string") ||
+    eq(clone(stdlib_path), "std::collections::hash_fn") ||
+    eq(clone(stdlib_path), "std::collections::hash_str_fn")
 }
 
 pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {

@@ -38,6 +38,8 @@ fn hashmap_builtin_alias(name: String) -> String {
 fn hashmap_internal_builtin_alias(name: String) -> String {
     if eq(clone(name), "__hm_si_new") ||
     eq(clone(name), "__hm_is_new") ||
+    eq(clone(name), "__hm_if_new") ||
+    eq(clone(name), "__hm_sf_new") ||
     eq(clone(name), "__hm_ss_new") {
         return "hashmap_new"
     }

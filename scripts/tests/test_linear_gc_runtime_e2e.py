@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "tests/fixtures/target_capability/wasm32_same_source.ark"
 COLLECT_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_entry_collect.ark"
 HASHMAP_FIXTURE = ROOT / "tests/fixtures/target_capability/linear_gc_hashmap_survives.ark"
+HASHMAP_I32_FN_FIXTURE = ROOT / "tests/fixtures/collections/hashmap_i32_fn_call.ark"
+HASHMAP_STRING_FN_FIXTURE = ROOT / "tests/fixtures/collections/hashmap_string_fn_call.ark"
 ESCAPE_STORE_FIXTURE = ROOT / "tests/fixtures/closure_capture/escape_store.ark"
 MOVE_LOCAL_FIXTURE = ROOT / "tests/fixtures/closure_capture/move_local.ark"
 FUNCTION_DEFINITION = re.compile(r"^\s+\(func .*?\(;([0-9]+);\)", re.MULTILINE)
@@ -360,6 +362,36 @@ class LinearGcRuntimeE2eTest(unittest.TestCase):
                 )
                 self.assertEqual(executed.returncode, 0, executed.stderr)
                 self.assertEqual(executed.stdout.strip(), expected)
+
+    def test_hashmap_fn_value_uses_flat_runtime(self) -> None:
+        # HashMap<*, fn> slots store {fnptr, env} pair pointers, so on linear
+        # the __hm_*f_new intrinsics call the shared flat Vec<i32> hashmap_new
+        # body. The adapter modules cannot `use std::collections::hash`
+        # (its short name collides with std::core::hash), so the loader
+        # injects that module edge; without it the emitted call resolves to
+        # an import and the module fails validation (#874).
+        for fixture, output_name in (
+            (HASHMAP_I32_FN_FIXTURE, "linear_gc_hashmap_i32_fn.wasm"),
+            (HASHMAP_STRING_FN_FIXTURE, "linear_gc_hashmap_string_fn.wasm"),
+        ):
+            with self.subTest(fixture=fixture.name):
+                artifact = self.compile_linear_fixture(fixture, output_name)
+                wat = self.print_artifact(artifact)
+                self.assertIn("(func $hashmap_new", wat)
+                executed = subprocess.run(
+                    [
+                        "wasmtime",
+                        "run",
+                        "--dir=.",
+                        str(artifact),
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(executed.returncode, 0, executed.stderr)
+                self.assertEqual(executed.stdout.strip(), "10")
 
 
 if __name__ == "__main__":

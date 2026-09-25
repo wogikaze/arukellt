@@ -104,8 +104,20 @@ fn emit_hm_if_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_if_new_gc(w, ctx)
     } else {
-        // Funcref value ABI is GC-only (#833); LM path is not defined.
-        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        // A fn value is a {fnptr, env} pair pointer under the managed
+        // closure ABI (#872): one i32 slot on linear, so the shared flat
+        // hashmap runtime works unchanged (#874).
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, "hashmap_new")
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_core::emit_leb128_u(
+            w,
+            function_indices::defined_function_index(
+                fn_idx,
+                ctx_record::SelfEmitCtx_target(ctx),
+                ctx_record::SelfEmitCtx_wasi_version(ctx),
+                wit_import_count
+            )
+        )
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -125,8 +137,18 @@ fn emit_hm_sf_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_sf_new_gc(w, ctx)
     } else {
-        // Funcref value ABI is GC-only (#838); LM path is not defined.
-        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        // Same pair-pointer storage as HashMap<i32,fn> on linear (#874).
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, "hashmap_new")
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_core::emit_leb128_u(
+            w,
+            function_indices::defined_function_index(
+                fn_idx,
+                ctx_record::SelfEmitCtx_target(ctx),
+                ctx_record::SelfEmitCtx_wasi_version(ctx),
+                wit_import_count
+            )
+        )
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
