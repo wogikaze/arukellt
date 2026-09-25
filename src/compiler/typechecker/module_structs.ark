@@ -1,12 +1,17 @@
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
+use typechecker::call_generic_common
+use typechecker::call_generic_resolve
 use typechecker::contract_struct_info
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::infer_env_scope
 use typechecker::instantiate
 use typechecker::module_enums
 use typechecker::names
 use typechecker::types
+use typechecker::unify
 
 // Register struct declarations into the typecheck env so field-access
 // expressions can recover a concrete field type. MIR owns the layout copy;
@@ -90,4 +95,120 @@ fn recv_type_args(recv_ty: TypeInfo) -> Vec<TypeInfo> {
         i = i + 1
     }
     args
+}
+
+// An unannotated `ScanBox { state: 7 }` literal used to keep the bare
+// `ScanBox` type, so a later `it.get()` could not bind `T` and recorded no
+// mono instance — the call then targeted the un-emitted generic template
+// (empty MIR body, #882). Infer the arguments by unifying each literal
+// field value against the declared generic field type. Any parameter left
+// unbound (or bound to UNKNOWN) keeps the bare name so partial literals
+// keep their previous shape.
+fn infer_generic_literal_args(env: TypeEnv, aggregate_ty: TypeInfo, node: AstNode, val_tys: Vec<TypeInfo>) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(aggregate_ty) != commands::TY_STRUCT() {
+        return aggregate_ty
+    }
+    if contract_type_access::TypeInfo_type_arg_count(aggregate_ty) > 0 {
+        return aggregate_ty
+    }
+    let lit_name = contract_type_access::TypeInfo_name(aggregate_ty)
+    // An explicit `Name<args>` spelling is authoritative; skip inference.
+    if index_of(clone(lit_name), "<") >= 0 {
+        return aggregate_ty
+    }
+    let base_name = names::unqualified_type_name(clone(lit_name))
+    let def_count = len(env.struct_defs)
+    let mut di = 0
+    while di < def_count {
+        let def = get_unchecked(env.struct_defs, di)
+        if !eq(contract_struct_info::StructInfo_name(def), clone(base_name)) {
+            di = di + 1
+            continue
+        }
+        let type_params = contract_struct_info::StructInfo_type_params(def)
+        if len(type_params) == 0 {
+            return aggregate_ty
+        }
+        let infer_env = infer_env_scope::borrow_generic_infer_env()
+        let var_types = Vec::new<TypeInfo>()
+        let mut pi = 0
+        while pi < len(type_params) {
+            push(var_types, unify::fresh_var(infer_env))
+            pi = pi + 1
+        }
+        let lit_field_count = ast_access::node_child_count(node)
+        let mut fi = 0
+        while fi < lit_field_count {
+            let field = ast_access::node_child_at(node, fi)
+            let decl_idx = contract_struct_info::StructInfo_field_index(def, ast_access::node_text(field))
+            if decl_idx >= 0 && fi < len(val_tys) {
+                let field_ty = contract_struct_info::StructInfo_field_type_at(def, decl_idx)
+                if struct_lit_ty_mentions_params(clone(field_ty), clone(type_params)) {
+                    let inst_ty = instantiate::instantiate_type(field_ty, clone(type_params), clone(var_types))
+                    // Field value types can carry vars bound in the real env
+                    // (e.g. a generic call result); resolve them there first
+                    // so the scratch env only sees concrete or param types.
+                    let val_ty = unify::resolve_type_deep(env, get_unchecked(val_tys, fi))
+                    let _unified = unify::unify(infer_env, inst_ty, val_ty)
+                }
+            }
+            fi = fi + 1
+        }
+        if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, clone(var_types)) {
+            return aggregate_ty
+        }
+        let resolved = call_generic_common::resolve_type_args(infer_env, var_types)
+        let mut ri = 0
+        while ri < len(resolved) {
+            let arg_ty = get_unchecked(resolved, ri)
+            if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() {
+                return aggregate_ty
+            }
+            // A surviving TYPE_VAR is only valid when it names one of the
+            // struct's own parameters (a literal inside a generic body can
+            // legitimately produce Box<T>); a stray inference var would leak
+            // into mono keys, so keep the bare name instead.
+            if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_TYPE_VAR() &&
+            !struct_lit_name_in_params(contract_type_access::TypeInfo_name(arg_ty), clone(type_params)) {
+                return aggregate_ty
+            }
+            ri = ri + 1
+        }
+        let mut ai = 0
+        while ai < len(resolved) {
+            contract_type_mutation::TypeInfo_push_type_arg(aggregate_ty, get_unchecked(resolved, ai))
+            ai = ai + 1
+        }
+        return aggregate_ty
+    }
+    aggregate_ty
+}
+
+fn struct_lit_name_in_params(name: String, params: Vec<String>) -> bool {
+    let mut pi = 0
+    while pi < len(params) {
+        if eq(clone(name), clone(get_unchecked(params, pi))) {
+            return true
+        }
+        pi = pi + 1
+    }
+    false
+}
+
+// Declared field types were built with `resolve_type_ann_node_generic`, so a
+// type parameter appears as a TY_TYPE_VAR whose name matches a param entry;
+// container fields mention params through their type arguments.
+fn struct_lit_ty_mentions_params(ty: TypeInfo, params: Vec<String>) -> bool {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        return struct_lit_name_in_params(contract_type_access::TypeInfo_name(ty), params)
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut ai = 0
+    while ai < arg_count {
+        if struct_lit_ty_mentions_params(contract_type_access::TypeInfo_type_arg_at(ty, ai), clone(params)) {
+            return true
+        }
+        ai = ai + 1
+    }
+    false
 }
