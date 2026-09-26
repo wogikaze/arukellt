@@ -1233,3 +1233,68 @@ Commit: `65aa79141` (worktree `94cceab55`)
   (adapter path still carries them), mutable-rebind env cells (E0213),
   exact pointer-field descriptors (conservative scan per ADR-075), and
   the move/borrow parity audit; #874 stays open.
+
+## Progress receipt — 2026-09-26 (mutable-rebind env cells)
+
+- Implementation: a move (or borrow) closure that rebinds a captured name
+  (`name = expr`) now owns a mutable slot in its `__env` record instead
+  of a by-value snapshot, implementing the env-cell fallback for ADR-061
+  semantics on both backends.
+  - `mir/lower/closure_cells.ark` (new) registers per-synth env cells and
+    emits the load-in/flush-out discipline: the synth signature gains a
+    trailing `__env` param, each rebound capture local is initialized
+    from its env field at entry, and every `MIR_RETURN` through
+    `ctx_emit` first flushes the local back to the field so writes
+    persist across indirect calls. Entries key on (owning function name,
+    local index) because local indices are per-function.
+  - `closure_free::closure_collect_rebind_flags` (AST) and
+    `core_closure_free::core_closure_collect_rebind_flags` (CoreHIR)
+    flag captures whose body assigns to them by plain name; field/index
+    mutation is ref sharing, not a rebind, and nested closures are a
+    different frame so the walk stops at closure nodes.
+  - The `<synth>_env` trampoline passes `__env` as a trailing argument
+    for indirect calls; the named direct-call path
+    (`body_call_closure`/`core_call_closure`) pushes the bound env
+    record local recorded in the closure bind registry, so both call
+    shapes supply the cell storage identically.
+  - `wasm/inst_struct_record::emit_struct_set` no longer unconditionally
+    `local.tee`s the cast base: `local.tee` re-pushes the local's
+    *declared* type, which broke `struct.set` whenever the base local is
+    declared `structref` (the pair-ABI `__env` param). The tee is kept
+    only when the local's declared ref type equals the cast target; the
+    cast value alone otherwise feeds `struct.set`.
+  - Typechecker: rebind inside a move closure stays `capture_move()`
+    (env cell, escapes freely); rebind inside a non-move closure stays
+    `capture_mutable_borrow()`, so a borrowed rebind that escapes is
+    still E0213.
+- Positive coverage: `tests/fixtures/closure_capture/move_rebind_cell.ark`
+  (new `run:` fixture) increments a moved counter across three indirect
+  calls and across a second instance, printing `1\\n2\\n3\\n1\\n4`
+  identically on the wasm32 linear core and the wasm32-gc component. A
+  local `let c = move ||` probe exercises the direct-call path
+  (`1\\n2\\n0`), and a non-move `||` rebind probe compiles and runs
+  `1\\n0`: the closure cell persists the write while the borrowed
+  source is untouched.
+- Diagnostic coverage: `tests/fixtures/diagnostics/closure_capture_escape_return.ark`
+  now uses a non-move `||` rebind escaping through a bound name and still
+  produces `error[E0213|typecheck]`. (The bare `||` tail form cannot
+  capture enclosing names at all — resolver E0100 — a pre-existing parse
+  limitation outside this issue's scope.)
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (41.2s)
+  closure_capture fixtures on wasm32 (7 run)              PASS (7/7)
+  wasm32-gc compile + wasm-tools validate (7)             PASS (7/7)
+  move_rebind_cell GC component run                       PASS (1/2/3/1/4)
+  borrow/move direct-call probes linear + GC              PASS
+  E0213 diag fixture                                      PASS
+  fmt on changed files                                    PASS (18 files)
+  quality changed (fmt failed=0, lint ratchet failed=0)   PASS
+  ```
+
+- Remaining in #874: `impl HashMap<K, V>`/`Vec<T>` mono bodies
+  (adapter path still carries them), borrow-rebind write-through to the
+  source binding (env snapshots cannot reach it; requires a source-pointer
+  capture design), exact pointer-field descriptors (conservative scan per
+  ADR-075), and the move/borrow parity audit; #874 stays open.
