@@ -4,6 +4,18 @@ use mir::opcodes
 use mir::types
 use mir::value_types
 
+// MIR_CALL operand contract:
+// - arg0 is an *optional* receiver hint, not a general first-arg slot. It is
+//   recorded only for callees whose emit path needs the receiver identity
+//   (printlike / get_unchecked / push-style vec mutation; see call_emit.ark).
+// - arg0 < 0 is load-bearing: len/is_empty and other stack-compose calls must
+//   keep their args on the wasm operand stack, and STRUCT_GET -> CALL
+//   composition only folds when CALL.arg0 < 0 (#807 / #834). Do not record a
+//   receiver "for completeness" — it changes emitted code.
+// - arg1 is the SIMD lane immediate for MirInst_call_with_lane; -1 otherwise.
+// - Consumers that need the receiver when arg0 < 0 back-scan the staged
+//   LOCAL_GETs (stdlib_resolve_call_receiver_local in mir_opt).
+
 fn MirInst_call(callee: String, arg_count: i32, dest: i32) -> MirInstDraft {
     MirInst_call_with_val_type(callee, arg_count, dest, value_types::VT_VOID())
 }
