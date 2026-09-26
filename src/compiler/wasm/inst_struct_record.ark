@@ -220,8 +220,17 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let base_local = inst_accessors_operands::MirInst_arg0(inst)
         writer_core::emit_local_get(w, base_local)
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
-        writer_core::emit_leb128_u(w, base_local)
+        // local.tee re-pushes the local's DECLARED type, so it is only safe
+        // when the base local is declared as this exact ref type. A generic
+        // structref base (the pair-ABI __env param threaded into env-cell
+        // flush stores, #874) would replace the cast result with structref
+        // and leave struct.set without a typed ref. Skipping the tee keeps
+        // the cast value on the stack, which struct.set consumes directly.
+        if ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base_local) ==
+        gc_type_idx {
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+            writer_core::emit_leb128_u(w, base_local)
+        }
         let value_local = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_local_get(w, value_local)
         let val_type = inst_accessors_shape::MirInst_val_type(inst)

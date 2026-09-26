@@ -380,6 +380,7 @@ run:associated_fn/vec_new.ark
 run:closure_capture/capture_struct.ark
 run:closure_capture/borrow_local.ark
 run:closure_capture/move_local.ark
+run:closure_capture/move_rebind_cell.ark
 run:closure_capture/copy_capture_snapshot.ark
 run:closure_capture/escape_store.ark
 run:closure_capture/escape_arg.ark

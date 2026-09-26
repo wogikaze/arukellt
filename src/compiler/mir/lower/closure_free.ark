@@ -56,3 +56,51 @@ fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<Stri
         push(acc, n)
     }
 }
+
+// Flags parallel to caps: 1 when the closure body rebinds that capture
+// with a plain name assignment. A rebound move capture is stored in an
+// env cell so writes survive across calls (#874). Nested closures are a
+// different frame: their own captures are collected separately, so the
+// walk stops at NK_CLOSURE. Field/method mutation targets the shared
+// env ref and does not need a cell.
+fn closure_collect_rebind_flags(clos: AstNode, caps: Vec<String>) -> Vec<i32> {
+    let flags = Vec::new<i32>()
+    let mut i = 0
+    while i < len(caps) {
+        push(flags, 0)
+        i = i + 1
+    }
+    let child_count = ast_node::node_child_count(clos)
+    if child_count == 0 {
+        return flags
+    }
+    closure_mark_rebind(ast_node::node_child_at(clos, child_count - 1), caps, flags)
+    flags
+}
+
+fn closure_mark_rebind(node: AstNode, caps: Vec<String>, flags: Vec<i32>) {
+    if ast_node::node_kind_is(node, lower_kinds::NK_CLOSURE()) {
+        return
+    }
+    if ast_node::node_kind_is(node, lower_kinds::NK_ASSIGN()) &&
+    ast_node::node_child_count(node) >= 1 {
+        let target = ast_node::node_child_at(node, 0)
+        if ast_node::node_kind_is(target, lower_kinds::NK_IDENT()) {
+            let name = ast_node::node_text(target)
+            let mut ci = 0
+            while ci < len(caps) {
+                if eq(get_unchecked(caps, ci), clone(name)) {
+                    set(flags, ci, 1)
+                    ci = len(caps)
+                }
+                ci = ci + 1
+            }
+        }
+    }
+    let child_count = ast_node::node_child_count(node)
+    let mut i = 0
+    while i < child_count {
+        closure_mark_rebind(ast_node::node_child_at(node, i), caps, flags)
+        i = i + 1
+    }
+}

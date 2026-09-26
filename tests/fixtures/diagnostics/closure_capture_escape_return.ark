@@ -1,9 +1,10 @@
 fn make_counter() -> fn() -> i32 {
     let mut count = 0
-    move || {
+    let c = || {
         count = count + 1
         count
     }
+    c
 }
 
 fn main() {

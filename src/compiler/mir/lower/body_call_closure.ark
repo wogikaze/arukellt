@@ -8,6 +8,7 @@ use mir::lower::ctx_fn_return_vt
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::inst_call
+use mir::inst_local_get
 use mir::value_types
 
 fn try_lower_closure_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
@@ -39,9 +40,17 @@ fn try_lower_closure_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         return 0 - 1
     }
     closure_capture_args::closure_emit_captured_args(ctx, packed)
+    // Env-cell closures take the __env record as a trailing direct-call
+    // argument: the trampoline passes it for indirect calls, so the named
+    // call path pushes the same env local here (#874).
+    let env_li = closure_registry::ctx_closure_env_local_at(ctx, clo_ix)
+    if env_li >= 0 {
+        ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
+    }
+    let env_arg = if env_li >= 0 { 1 } else { 0 }
     let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))
     let c_dest = ctx_fresh_local(ctx, dest_vt)
-    ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra, c_dest))
+    ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra + env_arg, c_dest))
     call_type_fallback::mark_fallback_call_result_type(ctx, clone(synth), c_dest)
     c_dest
 }

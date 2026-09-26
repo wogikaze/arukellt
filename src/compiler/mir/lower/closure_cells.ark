@@ -1,0 +1,144 @@
+use mir::function_identity
+use mir::inst_draft
+use mir::inst_struct_get
+use mir::inst_struct_set
+use mir::local_factory
+use mir::lower::closure_env
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_current_storage
+use mir::opcodes
+
+// Env-cell captures (#874, ADR-061): a move closure that rebinds a captured
+// name (name = expr) owns a mutable slot in its __env record instead of a
+// by-value snapshot. The synth keeps the capture as an ordinary trailing
+// parameter local; the trampoline passes the __env record as an extra
+// trailing argument. At bind time each cell capture is initialized from its
+// env field, and every MIR_RETURN through ctx_emit first flushes the local
+// back to the field, so writes persist across indirect calls. Entries key
+// on (owning function name, local index) because local indices are
+// per-function — a nested closure body lowering under a different frame
+// name never matches the parent's cells.
+
+fn ctx_register_env_cell(ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
+    push(ctx.cell_fn_names, fn_name)
+    push(ctx.cell_local_indices, local_idx)
+    push(ctx.cell_env_locals, env_local)
+    push(ctx.cell_env_names, env_name)
+    push(ctx.cell_offsets, offset)
+    push(ctx.cell_field_indices, field_idx)
+    push(ctx.cell_totals, total)
+    push(ctx.cell_vts, vt)
+}
+
+// Struct stores writing every cell local back to its env field. Non-empty
+// only for MIR_RETURN inside a function that owns cells; the empty vec for
+// every other inst keeps the ctx_emit hot path to a single opcode compare.
+fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
+    let out = Vec::new<MirInstDraft>()
+    if inst_draft::MirInstDraft_op(inst) != opcodes::MIR_RETURN() {
+        return out
+    }
+    if len(ctx.cell_fn_names) == 0 {
+        return out
+    }
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let fn_name = function_identity::MirFunction_name(func)
+    let mut i = 0
+    while i < len(ctx.cell_fn_names) {
+        if eq(get_unchecked(ctx.cell_fn_names, i), clone(fn_name)) {
+            push(out, inst_struct_set::MirInst_struct_set_named_idx(
+                    get_unchecked(ctx.cell_env_locals, i),
+                    get_unchecked(ctx.cell_local_indices, i),
+                    clone(get_unchecked(ctx.cell_env_names, i)),
+                    get_unchecked(ctx.cell_offsets, i),
+                    get_unchecked(ctx.cell_field_indices, i),
+                    get_unchecked(ctx.cell_totals, i),
+                    get_unchecked(ctx.cell_vts, i)
+                ))
+        }
+        i = i + 1
+    }
+    out
+}
+
+// Bind the trailing __env param for a synth whose closure owns env cells,
+// register each rebound capture as a cell, and emit the entry loads
+// (cap local initialized from env.field). Returns 0 when no capture is
+// rebound so the caller can keep the plain
+// (closure_params..., captures...) signature. Shared by the AST and
+// CoreHIR capture-binding paths.
+fn ctx_bind_closure_env_cells(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, rebind_flags: Vec<i32>, env_name: String) -> i32 {
+    let cap_n = len(caps)
+    let mut has_cell = 0
+    let mut i = 0
+    while i < cap_n {
+        if get_unchecked(rebind_flags, i) != 0 {
+            has_cell = 1
+        }
+        i = i + 1
+    }
+    if has_cell == 0 {
+        return 0
+    }
+    let env_vt = closure_env::closure_env_ref_vt(ctx)
+    let total = closure_env::closure_env_byte_size(cap_vts)
+    // The __env param carries the generic structref spelling — the same
+    // convention the env trampoline uses — so the pair ABI passes a plain
+    // struct ref and each field op resolves through the inst's named env
+    // type, not the local's declared type.
+    let env_li = ctx_api_local_alloc::ctx_alloc_local(ctx, "__env", env_vt)
+    ctx_api_local_types::ctx_set_local_type(ctx, env_li, "structref")
+    ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new("__env", env_vt, "structref"))
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let fn_name = function_identity::MirFunction_name(func)
+    let mut off = 0
+    let mut ci = 0
+    while ci < cap_n {
+        let cvt = get_unchecked(cap_vts, ci)
+        if get_unchecked(rebind_flags, ci) != 0 {
+            let cap_li = ctx_api_local_alloc::ctx_lookup_local(
+                ctx,
+                clone(get_unchecked(caps, ci))
+            )
+            ctx_register_env_cell(
+                ctx,
+                clone(fn_name),
+                cap_li,
+                env_li,
+                clone(env_name),
+                off,
+                ci,
+                total,
+                cvt
+            )
+            ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
+                    env_li,
+                    clone(env_name),
+                    off,
+                    ci,
+                    total,
+                    cvt,
+                    cap_li
+                ))
+        }
+        off = off + closure_env::closure_env_slot_width(cvt)
+        ci = ci + 1
+    }
+    1
+}
+
+// 1 when any rebind flag is set, so callers can pass the env-cell presence
+// to the trampoline and arity computations.
+fn ctx_has_env_cell(rebind_flags: Vec<i32>) -> i32 {
+    let mut i = 0
+    while i < len(rebind_flags) {
+        if get_unchecked(rebind_flags, i) != 0 {
+            return 1
+        }
+        i = i + 1
+    }
+    0
+}

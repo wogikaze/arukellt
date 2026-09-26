@@ -3,6 +3,7 @@ use mir::block_inst_access
 use mir::function_block_queries
 use mir::inst_draft
 use mir::function_block_mutation
+use mir::lower::closure_cells
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_typed_mir_sync
@@ -11,6 +12,15 @@ use mir::module_block_pool
 use mir::opcodes
 
 fn ctx_emit(ctx: LowerCtx, inst: MirInstDraft) {
+    // Env-cell flush: in a closure that owns rebind cells, every return
+    // first writes each cell local back to its __env field so mutations
+    // persist across indirect calls (#874).
+    let flush = closure_cells::ctx_env_cell_flush(ctx, inst)
+    let mut ri = 0
+    while ri < len(flush) {
+        ctx_emit(ctx, get_unchecked(flush, ri))
+        ri = ri + 1
+    }
     let identified = call_func_id::mir_inst_attach_func_id_if_call(ctx, inst)
     let enriched = ctx_typed_mir_sync::ctx_enrich_inst_result_types(ctx, identified)
     ctx_call_edges::ctx_edge_record_inst(ctx, enriched)

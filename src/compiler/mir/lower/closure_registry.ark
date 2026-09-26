@@ -31,16 +31,15 @@ fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
     closure_clear_pending_bind(ctx)
 }
 
-fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32) -> i32 {
+fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32, has_env_cell: i32) -> i32 {
     ctx_api_module::ctx_push_module_function(ctx, mf)
     ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), "")
-    closure_storage::closure_storage_set_pending_bind(ctx, function_identity::MirFunction_name(mf), packed, extra)
     // Managed env pair ABI (#872): the fn value is a {fnptr, env} record.
     // The env holds the supply captures (the same locals the direct-call
     // path passes as trailing args); a <synth>_env trampoline unpacks it
     // for indirect calls so both call paths observe identical semantics.
     let synth = function_identity::MirFunction_name(mf)
-    let type_name = closure_funcref_type_name(mf, extra)
+    let type_name = closure_funcref_type_name(mf, extra + has_env_cell)
     let cap_names = closure_env::closure_split_packed(packed)
     let cap_vts = Vec::new<i32>()
     let cap_types = Vec::new<String>()
@@ -60,8 +59,14 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
     closure_env::closure_register_env_type(ctx, clone(env_name), cap_types)
     let env_local = closure_env::closure_emit_env_alloc(ctx, clone(env_name), cap_names, cap_vts)
-    let closure_param_count = function_param_view::MirFunction_param_count(mf) - extra
-    let tramp = closure_env::closure_synth_env_trampoline(ctx, synth, mf, env_name, cap_vts, closure_param_count)
+    // env_local is registered only when the synth owns cells: a direct
+    // name(...) call passes it as the trailing __env arg (#874).
+    let bind_env = if has_env_cell != 0 { env_local } else { 0 - 1 }
+    closure_storage::closure_storage_set_pending_bind(ctx, clone(synth), clone(packed), extra, bind_env)
+    // mf params are (closure_params..., captures..., __env?): subtract the
+    // captures and the trailing env param to recover the user arity.
+    let closure_param_count = function_param_view::MirFunction_param_count(mf) - extra - has_env_cell
+    let tramp = closure_env::closure_synth_env_trampoline(ctx, synth, mf, env_name, cap_vts, closure_param_count, has_env_cell)
     // The trampoline's own call edge is dropped by the edge-frame
     // bookkeeping (same as synthetic fn bodies), so keep the synthetic
     // function reachable from the producing frame explicitly.
@@ -167,6 +172,10 @@ fn ctx_closure_caps_at(ctx: LowerCtx, index: i32) -> String {
 
 fn ctx_closure_extra_at(ctx: LowerCtx, index: i32) -> i32 {
     closure_storage::closure_storage_bind_extra_at(ctx, index)
+}
+
+fn ctx_closure_env_local_at(ctx: LowerCtx, index: i32) -> i32 {
+    closure_storage::closure_storage_bind_env_at(ctx, index)
 }
 
 fn ctx_closure_is_identity(ctx: LowerCtx, index: i32) -> bool {

@@ -1,7 +1,7 @@
 use mir::function_locals_view
 use mir::local_access
 use mir::inst_local_set
-use mir::lower::ctx_api_emit
+use mir::lower::closure_cells
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
@@ -75,7 +75,7 @@ fn mir_closure_capture_types(ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
     cap_types
 }
 
-fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>) {
+fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>, rebind_flags: Vec<i32>, env_name: String) {
     let cap_n = len(caps)
     let mut ci = 0
     while ci < cap_n {
@@ -89,6 +89,11 @@ fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>
         ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(cname), pvt, cap_type))
         ci = ci + 1
     }
+    // The synth signature gains a trailing __env param when any capture is
+    // rebound: the rebound move captures live in the caller-owned env record
+    // (env cells, #874), so the body reads the field at entry and every
+    // return flushes the local back via closure_cells::ctx_env_cell_flush.
+    closure_cells::ctx_bind_closure_env_cells(ctx, caps, cap_vts, rebind_flags, env_name)
 }
 
 fn mir_closure_vt_is_snapshot_copy(vt: i32) -> bool {

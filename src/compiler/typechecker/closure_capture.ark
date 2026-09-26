@@ -142,13 +142,19 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         return
     }
     let mut mode = capture_shared_borrow()
-    // A move capture that the body rebinds (name = expr) cannot persist the
-    // new value through a by-value env field; until env cells exist the
-    // capture is treated as a mutable borrow so escape is rejected (E0213,
-    // ADR-061 fallback). Mutating through a moved ref (field set, mutating
-    // method) stays a move capture: the env shares the ref, so writes land.
+    // A rebind (name = expr) inside a move closure targets an owned env-cell
+    // slot, so it stays a move capture and escapes like any move capture
+    // (#874). The same rebind in a non-move closure is a mutable borrow:
+    // writes must reach the live source, which env cells cannot represent,
+    // so escape is still rejected (E0213, ADR-061 fallback). Mutating
+    // through a moved ref (field set, mutating method) stays a move
+    // capture: the env shares the ref, so writes land.
+    let mut rebind_mode = capture_mutable_borrow()
+    if ast_access::node_is_move(closure) {
+        rebind_mode = capture_move()
+    }
     if is_mutable_use && is_rebind {
-        mode = capture_mutable_borrow()
+        mode = rebind_mode
     } else if ast_access::node_is_move(closure) {
         mode = capture_move()
     } else if is_mutable_use {
@@ -158,9 +164,8 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         // as move for escape purposes (#872).
         mode = capture_move()
     }
-    // A rebind (name = expr) pins the capture to mutable borrow: a by-value
-    // env field cannot persist the new value until env cells exist
-    // (ADR-061 fallback), and later reads must not upgrade it back to move.
+    // A rebind pins the capture to rebind_mode: it must not be upgraded
+    // back by later reads of the same name.
     let rebind_use = is_mutable_use && is_rebind
     let existing = capture_name_index(summary, clone(name))
     if existing < 0 {
@@ -175,7 +180,7 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         return
     }
     if rebind_use {
-        set(summary.modes, existing, capture_mutable_borrow())
+        set(summary.modes, existing, rebind_mode)
         set(summary.nodes, existing, node)
         set(summary.rebinds, existing, 1)
         return

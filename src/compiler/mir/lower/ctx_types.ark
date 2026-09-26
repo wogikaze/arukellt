@@ -68,17 +68,36 @@ pub struct LowerCtx {
     closure_last_caps: String,
     closure_last_extra: i32,
     closure_last_identity: bool,
+    // Env record local of the last bound closure, or -1 when the synth has
+    // no env cell. A direct name(...) call passes it as the trailing __env
+    // argument so cell reads/flushes observe the pair's env (#874).
+    closure_last_env: i32,
     closure_bind_names: Vec<String>,
     closure_bind_synth: Vec<String>,
     closure_bind_caps: Vec<String>,
     closure_bind_extra: Vec<i32>,
     closure_bind_identity: Vec<bool>,
+    closure_bind_env: Vec<i32>,
     // Named functions already lifted to __fnthunk_<name> pair shims.
     closure_thunk_names: Vec<String>,
     // Forward-referenced names whose __fnthunk_ shim could not be emitted
     // yet because their MirFunction body had not been pushed. Drained by
     // closure_flush_pending_fn_thunks before reachability runs.
     pending_fn_thunks: Vec<String>,
+    // Env-cell captures: a move closure that rebinds a captured name owns a
+    // mutable slot in its __env record: the synth gains a trailing __env
+    // param, each cell local is loaded from its field at entry, and every
+    // return flushes the local back so writes persist across indirect
+    // calls. Entries are scoped by owning function name because local
+    // indices are per-function (#874, ADR-061).
+    cell_fn_names: Vec<String>,
+    cell_local_indices: Vec<i32>,
+    cell_env_locals: Vec<i32>,
+    cell_env_names: Vec<String>,
+    cell_offsets: Vec<i32>,
+    cell_field_indices: Vec<i32>,
+    cell_totals: Vec<i32>,
+    cell_vts: Vec<i32>,
     local_type_start: i32,
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,

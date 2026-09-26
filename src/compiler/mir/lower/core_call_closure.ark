@@ -6,6 +6,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_types
 use mir::inst_call
+use mir::inst_local_get
 use mir::lower::core_expr_shape_accessors
 use mir::value_types
 
@@ -35,9 +36,16 @@ fn lower_core_closure_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         return 0 - 1
     }
     closure_capture_args::closure_emit_captured_args(ctx, packed)
+    // Mirrors try_lower_closure_call: env-cell closures take the bound
+    // env record as a trailing argument on the direct-call path (#874).
+    let env_li = closure_registry::ctx_closure_env_local_at(ctx, clo_ix)
+    if env_li >= 0 {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
+    }
+    let env_arg = if env_li >= 0 { 1 } else { 0 }
     let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))
     let c_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra, c_dest))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra + env_arg, c_dest))
     call_type_fallback::mark_fallback_call_result_type(ctx, clone(synth), c_dest)
     c_dest
 }

@@ -1,0 +1,19 @@
+use std::host::stdio
+
+fn make_counter() -> fn() -> i32 {
+    let mut count = 0
+    move || {
+        count = count + 1
+        count
+    }
+}
+
+fn main() {
+    let c = make_counter()
+    stdio::println((c()).to_string())
+    stdio::println((c()).to_string())
+    stdio::println((c()).to_string())
+    let d = make_counter()
+    stdio::println((d()).to_string())
+    stdio::println((c()).to_string())
+}

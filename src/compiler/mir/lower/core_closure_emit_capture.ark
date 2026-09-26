@@ -1,5 +1,6 @@
 use mir::function_locals_view
 use mir::local_access
+use mir::lower::closure_cells
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
@@ -73,7 +74,7 @@ fn core_closure_capture_types(ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
     cap_types
 }
 
-fn core_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>) {
+fn core_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>, rebind_flags: Vec<i32>, env_name: String) {
     let cap_n = len(caps)
     let mut ci = 0
     while ci < cap_n {
@@ -87,4 +88,7 @@ fn core_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32
         ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(cname), pvt, cap_type))
         ci = ci + 1
     }
+    // Trailing __env param + cell registration when a capture is rebound
+    // (env cells, #874); mirrors mir_emit_closure_captures.
+    closure_cells::ctx_bind_closure_env_cells(ctx, caps, cap_vts, rebind_flags, env_name)
 }

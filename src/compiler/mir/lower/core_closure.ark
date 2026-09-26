@@ -1,4 +1,5 @@
 use mir::lower::closure_capture_args
+use mir::lower::closure_cells
 use mir::lower::closure_registry
 use mir::lower::body_closure_capture
 use mir::lower::core_closure_emit
@@ -17,8 +18,9 @@ fn lower_core_closure(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
-    let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps)
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
+    let rebind_flags = core_closure_free::core_closure_collect_rebind_flags(exprs, expr, caps)
+    let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, rebind_flags)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags))
 }
 
 fn is_identity_core_closure(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {

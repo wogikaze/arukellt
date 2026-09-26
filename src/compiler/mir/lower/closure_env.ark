@@ -311,8 +311,10 @@ fn closure_trampoline_return_call(ctx: LowerCtx, callee: String, arg_count: i32,
 
 // <synth>_env: (env, closure_params...) -> ret. Unpacks each capture
 // field and tail-calls the synthetic function with
-// (closure_params..., captures...).
-fn closure_synth_env_trampoline(ctx: LowerCtx, synth: String, mf: MirFunction, env_name: String, cap_vts: Vec<i32>, closure_param_count: i32) -> String {
+// (closure_params..., captures...). When the closure owns env cells the
+// synth also takes __env as a trailing argument so its body can read
+// and flush the mutable capture slots (#874).
+fn closure_synth_env_trampoline(ctx: LowerCtx, synth: String, mf: MirFunction, env_name: String, cap_vts: Vec<i32>, closure_param_count: i32, has_env_cell: i32) -> String {
     let tramp = closure_tramp_name(synth)
     let saved = closure_trampoline_frame_begin(ctx, clone(tramp))
     let param_lis = closure_trampoline_push_params(ctx, mf, closure_param_count)
@@ -346,7 +348,10 @@ fn closure_synth_env_trampoline(ctx: LowerCtx, synth: String, mf: MirFunction, e
     }
     let ret_vt = function_return_view::MirFunction_return_type(mf)
     let ret_name = function_return_view::MirFunction_return_type_name(mf)
-    closure_trampoline_return_call(ctx, clone(synth), closure_param_count + cap_n, ret_vt, clone(ret_name))
+    if has_env_cell != 0 {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
+    }
+    closure_trampoline_return_call(ctx, clone(synth), closure_param_count + cap_n + has_env_cell, ret_vt, clone(ret_name))
     closure_trampoline_frame_finish(ctx, saved, clone(tramp), ret_vt, ret_name)
     tramp
 }

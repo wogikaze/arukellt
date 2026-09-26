@@ -6,6 +6,8 @@ use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_types
 use mir::function_return_mutation
 use mir::lower::body_closure_capture
+use mir::lower::closure_cells
+use mir::lower::closure_env
 use mir::lower::body_closure_context
 use mir::lower::body_closure_params
 use mir::lower::body_closure_return
@@ -13,7 +15,7 @@ use mir::lower::closure_return_type
 use mir::lower_kinds
 use mir::value_types
 
-fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>) -> MirFunction {
+fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>, rebind_flags: Vec<i32>) -> MirFunction {
     let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let cap_vts = body_closure_capture::mir_closure_capture_vts(ctx, caps)
     let cap_types = body_closure_capture::mir_closure_capture_types(ctx, caps)
@@ -21,7 +23,7 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
     let child_count = ast_node::node_child_count(clos)
     let body = ast_node::node_child_at(clos, child_count - 1)
     body_closure_params::mir_emit_closure_params(ctx, clos, child_count)
-    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts, cap_types)
+    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts, cap_types, rebind_flags, closure_env::closure_env_type_name(clone(synth)))
     let res = body_closure_return::mir_emit_closure_return(ctx, body)
     let mut fret = ctx_api_local_frame::ctx_current_function(ctx)
     closure_return_type::mir_set_closure_return_from_local(ctx, fret, res)
@@ -48,8 +50,9 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
-    let mf = mir_emit_closure_fn(ctx, synth, node, caps)
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
+    let rebind_flags = closure_free::closure_collect_rebind_flags(node, caps)
+    let mf = mir_emit_closure_fn(ctx, synth, node, caps, rebind_flags)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags))
 }
 
 fn is_identity_closure(node: AstNode) -> bool {

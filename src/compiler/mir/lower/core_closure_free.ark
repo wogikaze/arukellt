@@ -4,6 +4,7 @@ use mir::lower::core_closure_free_acc
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_expr_shape_calls
+use mir::lower::core_expr_shape_ops
 
 fn core_closure_is_param_name(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, name: String) -> bool {
     let c = core_expr_shape_accessors::mir_core_expr_child_count(clos)
@@ -52,4 +53,50 @@ fn core_closure_collect_caps(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreH
         core_closure_collect_free(ctx, exprs, cap_body, clos, caps)
     }
     caps
+}
+
+// Flags parallel to caps: 1 when the body rebinds that capture with a
+// plain name assignment. Mirrors closure_free::closure_collect_rebind_flags
+// for the CoreHIR path (#874).
+fn core_closure_collect_rebind_flags(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, caps: Vec<String>) -> Vec<i32> {
+    let flags = Vec::new<i32>()
+    let mut i = 0
+    while i < len(caps) {
+        push(flags, 0)
+        i = i + 1
+    }
+    let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
+    if child_count == 0 {
+        return flags
+    }
+    let body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, child_count - 1))
+    core_closure_mark_rebind(exprs, body, caps, flags)
+    flags
+}
+
+fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Vec<String>, flags: Vec<i32>) {
+    if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
+        return
+    }
+    if core_expr_shape_ops::mir_core_expr_is_assign(expr) {
+        // CoreHIR ASSIGN carries the plain target name in node text;
+        // field/index targets leave it empty (ref mutation, not a rebind).
+        let name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        if len(name) > 0 {
+            let mut ci = 0
+            while ci < len(caps) {
+                if eq(get_unchecked(caps, ci), clone(name)) {
+                    set(flags, ci, 1)
+                    ci = len(caps)
+                }
+                ci = ci + 1
+            }
+        }
+    }
+    let cc = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+    let mut i = 0
+    while i < cc {
+        core_closure_mark_rebind(exprs, get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i)), caps, flags)
+        i = i + 1
+    }
 }
