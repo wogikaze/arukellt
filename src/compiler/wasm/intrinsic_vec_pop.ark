@@ -6,6 +6,7 @@ use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
+use wasm::intrinsic_vec_access
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsic_vec_pop_gc
 
@@ -14,6 +15,7 @@ fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_pop_gc::emit_vec_pop_gc(w, inst, ctx)
     }
+    let elem_kind = intrinsic_vec_access::lm_get_unchecked_elem_kind(ctx, inst)
     let s_vec_pop = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_optptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -28,17 +30,70 @@ fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 127)
-    emit_vec_pop_some(w, s_vec_pop, s_newlen, s_optptr)
+    emit_vec_pop_some(w, s_vec_pop, s_newlen, s_optptr, elem_kind)
     writer_core::emit_byte(w, opcodes::OP_ELSE())
     emit_vec_pop_none(w, s_optptr)
     writer_core::emit_byte(w, opcodes::OP_END())
     return true
 }
 
-fn emit_vec_pop_some(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32) {
+fn emit_vec_pop_some(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32, elem_kind: i32) {
     emit_vec_pop_decrement_len(w, s_vec_pop, s_newlen)
+    if elem_kind != 0 {
+        emit_vec_pop_some_wide(w, s_vec_pop, s_newlen, s_optptr, elem_kind)
+        return
+    }
     emit_vec_pop_load_value(w, s_vec_pop, s_newlen)
     emit_vec_pop_some_payload(w, s_newlen, s_optptr)
+}
+
+// i64/f64 elements use an 8-byte stride and the 12-byte Option record
+// ({tag:i32, payload:8B}) — the same layout emit_i64_ok_result writes for
+// Result<i64> — so match payload reads stay consistent (#874).
+fn emit_vec_pop_some_wide(w: WasmWriter, s_vec_pop: i32, s_newlen: i32, s_optptr: i32, elem_kind: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 12)
+    helpers_core_heap::emit_heap_alloc_from_stack(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_optptr)
+    writer_core::emit_local_get(w, s_optptr)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    // payload address first, then the element value, so no wide local is needed
+    writer_core::emit_local_get(w, s_optptr)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_local_get(w, s_vec_pop)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_local_get(w, s_newlen)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    if elem_kind == 1 {
+        writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    }
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    if elem_kind == 1 {
+        writer_core::emit_byte(w, opcodes::OP_I64_STORE())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    }
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_local_get(w, s_optptr)
 }
 
 fn emit_vec_pop_decrement_len(w: WasmWriter, s_vec_pop: i32, s_newlen: i32) {

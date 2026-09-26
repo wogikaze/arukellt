@@ -1714,3 +1714,60 @@ corrupted the heap on stores).
   descriptor lowering, the written move/borrow parity audit summary,
   `v.pop()` on non-i32 vectors (generic shell signature limit), and
   unannotated tuple-element `Vec::new<(A, B)>` turbofish; #874 stays open.
+
+
+## Progress — Vec::pop returns Option<T> on both backends (2026-09-27)
+
+`v.pop()` was broken for every element type: `impl Vec<T>::pop` declared
+`-> i32` and the emitters produced garbage for non-i32 elements. Without
+`use std::collections::vec`, `v.pop()` on `Vec<i64>`/`Vec<fn>`/
+`Vec<String>` resolved through the concrete prelude `pop(Vec<i32>)`
+signature and failed typecheck (`type mismatch: i32 vs <elem>`).
+
+- `std/collections/vec.ark`: `fn pop(self) -> i32` →
+  `fn pop(self) -> Option<T>`, matching the manifest
+  `pop(Vec<T>) -> Option<T>` contract and the `vec_pop` intrinsic.
+- `typechecker/call_method.ark`: `pop` joins the builtin Vec method
+  table (arity 0) and returns `Option<elem>` — the same rule `get`
+  uses — so no-import method calls typecheck for every element kind.
+- `mir/lower/call_type_vec.ark`: `mark_vec_get_result_type` renamed to
+  `mark_vec_option_elem_result_type` and now also fires for pop callees
+  (`pop`, `Vec::pop*`, `pop__*`, and the normalized `vec_pop`/
+  `vec_pop__*`), registering the `option:<elem>` local type and the
+  element-typed `Option::Some` payload variant before emit.
+- `wasm/intrinsic_vec_pop_gc.ark`: the GC Some branch now dispatches on
+  element kind exactly like `vec_get` — reusing
+  `emit_vec_get_gc_some_ref` (String / structref / fnref incl. the
+  __fnpair cast) and `emit_vec_get_gc_some_scalar` (`_f1_i32` /
+  `_f1_i64` / `_f1_f64`). The old i32-only path and the broken
+  String branch (dropped the value, pushed a null placeholder) are gone.
+- `wasm/intrinsic_vec_pop.ark`: LM pop dispatches on
+  `lm_get_unchecked_elem_kind` — i64/f64 elements read with an 8-byte
+  stride and wrap into the 12-byte `{tag:i32, payload:8B}` Option
+  record (same layout `emit_i64_ok_result` writes for `Result<i64>`);
+  i32/bool/ref elements keep the 8-byte path.
+- New fixture `tests/fixtures/collections/vec_pop_kinds.ark`
+  (i32/i64/f64/String/fn/struct pop + empty-None) registered as both
+  `run:` and `t3-run:`; output identical on both backends.
+- Verified probes: Vec<i32>/i64/f64/String/fn/Pair `v.pop()` and free
+  `pop(v)` — identical results on wasm32 and wasm32-gc, including
+  Some payload extraction by match.
+- Discovered sibling gap (pre-existing, out of scope): with
+  `use std::collections::vec`, `Vec::new<T>` lowers through the impl
+  body `raw::raw_array_new` and loses element specialization on GC —
+  `Vec<i64>` push/get/pop trap while `Vec<i32>` works. That is the
+  impl-ctor CoreOp path, not pop-specific; recorded here for tracking.
+- Verification receipts:
+
+      python3 scripts/manager.py selfhost build-compiler   PASS
+      vec_pop_kinds run both backends                      PASS (identical)
+      vi_pop2 / vfn_pop / p_s / p_i64 / p_min2 / p_f64 /
+        p_rec / p_c probes — wasm32 and wasm32-gc          PASS (identical)
+      collections fixture gate (18 compile+validate, 1 run) PASS
+      fmt on changed files                                 PASS
+
+- Remaining in #874: exact pointer-field descriptors (conservative
+  payload scan per ADR-075 §3 still bootstrap-permitted), HashMap
+  descriptor lowering, the written move/borrow parity audit summary,
+  the impl-path `Vec::new<T>` element-specialization gap above, and
+  unannotated tuple-element `Vec::new<(A, B)>` turbofish; #874 stays open.

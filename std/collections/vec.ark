@@ -34,8 +34,8 @@ impl Vec<T> {
         push(self, x)
     }
 
-    /// Removes and returns the last element, or -1 if empty.
-    fn pop(self) -> i32 {
+    /// Removes and returns the last element, or None when empty.
+    fn pop(self) -> Option<T> {
         vec_pop(self)
     }
 

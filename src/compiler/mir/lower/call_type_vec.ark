@@ -133,7 +133,14 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         set_ref_vt_for_elem_type(ctx, dest, String_from("f64"))
     }
     if eq(clone(callee_name), "vec_get") {
-        mark_vec_get_result_type(ctx, dest, first_arg_idx)
+        mark_vec_option_elem_result_type(ctx, dest, first_arg_idx)
+    }
+    // is_vec_pop_callee covers pop / Vec::pop* spellings; post-rewrite callees
+    // arrive already normalized as vec_pop / vec_pop__T (#874).
+    if call_rewrite_vec::is_vec_pop_callee(clone(callee_name)) ||
+    eq(clone(callee_name), "vec_pop") ||
+    starts_with(clone(callee_name), "vec_pop__") {
+        mark_vec_option_elem_result_type(ctx, dest, first_arg_idx)
     }
 }
 
@@ -220,7 +227,7 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
     }
 }
 
-fn mark_vec_get_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+fn mark_vec_option_elem_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
