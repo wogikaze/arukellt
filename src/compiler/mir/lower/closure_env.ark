@@ -397,6 +397,14 @@ fn closure_ensure_fn_thunk(ctx: LowerCtx, fn_name: String) -> String {
     }
     let fi = closure_find_module_function(ctx, clone(fn_name))
     if fi < 0 {
+        // Forward reference: the target body is not pushed yet. The
+        // callee edge must still be recorded from the coercing frame or
+        // reachability prunes a function the emitted ref.func names.
+        // The shim itself is synthesized by
+        // closure_flush_pending_fn_thunks once every body is pushed.
+        ctx_call_edges::ctx_edge_record_name(ctx, clone(fn_name))
+        push(ctx.closure_thunk_names, clone(fn_name))
+        push(ctx.pending_fn_thunks, fn_name)
         return thunk
     }
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -407,6 +415,25 @@ fn closure_ensure_fn_thunk(ctx: LowerCtx, fn_name: String) -> String {
     ctx_call_edges::ctx_edge_record_name(ctx, clone(fn_name))
     push(ctx.closure_thunk_names, fn_name)
     out
+}
+
+// Synthesize __fnthunk_ shims for names that were coerced to fn values
+// before their MirFunction body was pushed (forward references). Runs
+// after all decl bodies are pushed but before reachability pruning so
+// each shim's own edge frame still lands in the recorded-edge stream.
+fn closure_flush_pending_fn_thunks(ctx: LowerCtx) {
+    let mut i = 0
+    while i < len(ctx.pending_fn_thunks) {
+        let fn_name = clone(get_unchecked(ctx.pending_fn_thunks, i))
+        let fi = closure_find_module_function(ctx, clone(fn_name))
+        if fi >= 0 {
+            let m = ctx_current_storage::ctx_current_module_value(ctx)
+            let target = module_functions::MirModule_function_at(m, fi)
+            closure_synth_fn_thunk(ctx, clone(fn_name), target)
+        }
+        i = i + 1
+    }
+    ctx.pending_fn_thunks = Vec::new<String>()
 }
 
 // ---- pair call hints ----

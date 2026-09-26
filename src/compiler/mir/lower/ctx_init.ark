@@ -49,6 +49,7 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         closure_bind_names: Vec::new<String>(), closure_bind_synth: Vec::new<String>(),
         closure_bind_caps: Vec::new<String>(), closure_bind_extra: Vec::new<i32>(), closure_bind_identity: Vec::new<bool>(),
         closure_thunk_names: Vec::new<String>(),
+        pending_fn_thunks: Vec::new<String>(),
         local_type_start: 0,
         mono_call_starts: Vec::new<i32>(), mono_call_span_sources: Vec::new<String>(),
         mono_call_span_targets: Vec::new<String>(),

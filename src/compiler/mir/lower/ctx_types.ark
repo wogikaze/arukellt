@@ -75,6 +75,10 @@ pub struct LowerCtx {
     closure_bind_identity: Vec<bool>,
     // Named functions already lifted to __fnthunk_<name> pair shims.
     closure_thunk_names: Vec<String>,
+    // Forward-referenced names whose __fnthunk_ shim could not be emitted
+    // yet because their MirFunction body had not been pushed. Drained by
+    // closure_flush_pending_fn_thunks before reachability runs.
+    pending_fn_thunks: Vec<String>,
     local_type_start: i32,
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,

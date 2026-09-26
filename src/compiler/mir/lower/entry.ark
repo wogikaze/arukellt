@@ -76,6 +76,10 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     input.wit_paths = Vec::new<String>()
     input.source_text = String_new()
     mir_body_source::mir_body_source_release(corehir_mod::view_body_source(view))
+    // Forward-referenced __fnthunk_ shims are emitted now that every
+    // decl body is pushed; their edge frames join the recorded stream
+    // before reachability consumes it.
+    closure_env::closure_flush_pending_fn_thunks(ctx)
     let late_structs = ctx_gc_struct::ctx_gc_struct_count(ctx) - sealed_structs
     // fn-typed signatures without a produced pair value still need the
     // shared __fnpair record for their param/return/field types (#872).

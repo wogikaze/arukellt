@@ -1,8 +1,10 @@
 // Reachability queue-BFS (#823): export root CALL callees survive; dead fn pruned.
 // REF_FUNC edges are covered by scripts/tests/test_mir_reachability_bfs.py
 // (funcref emit still fails wasm-tools validate on this target — see tail_call_ref).
+// ADR-071: only "export" marks a decl for the component export surface;
+// "pub" is source-level visibility and does not root reachability.
 
-pub fn exported_entry(x: i32) -> i32 {
+export fn exported_entry(x: i32) -> i32 {
     via_call(x)
 }
 
