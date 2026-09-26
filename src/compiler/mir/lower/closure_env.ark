@@ -101,7 +101,15 @@ fn closure_split_packed(packed: String) -> Vec<String> {
     let L = len(packed)
     while i <= L {
         if i == L || byte_at(packed, i) == 44 {
-            push(out, substring(packed, start, i))
+            // Skip empty segments: an empty packed string must yield no
+            // capture names. Without this guard, a zero-capture closure gets
+            // a phantom "" capture, which allocates a bogus i32 env field and
+            // makes the env trampoline append one extra call argument the
+            // synthetic function does not declare (#872).
+            let piece = substring(packed, start, i)
+            if len(piece) > 0 {
+                push(out, piece)
+            }
             start = i + 1
         }
         i = i + 1
