@@ -33,51 +33,17 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #857 — `?` / conversion / Error sentinel を整理する — RFC 13, 19 — depends: 694, 856
 - [x] #858 — 演算子 Trait へ統一し magic method を退役する — RFC 14 — depends: 856
 - [x] #859 — 公開 API を generic Trait 面へ統一する — RFC 15, 16, 18, 26 — depends: 856
-- [ ] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
-  - Progress (not done, 2026-09-20): `b0849dee4` adds the concrete
-    `MapTakeIter` composition and verifies GC/linear parity. `6c92fa741`
-    extends the generic
-    `for` evidence to a composed `MapFilterTakeIter` source and verifies
-    identity `IntoIterator` plus canonical `next` on both backends. `e9ee279b5`
-    extends the generic
-    `for` fixture to `Range` and `RangeInclusive` direct expressions and
-    verifies separate monomorphized `into_iter`/`next` sequences on both
-    backends. `5492a9d81` extends the generic
-    `for` fixture with `sum_into_for<T: IntoIterator>` and verifies the
-    monomorphized `Vec<i32>` source through `Vec::into_iter` and canonical
-    `VecIter::next` on both GC and linear Wasm. `c50043518` adds a generic
-    `sum_for<T: Iterator>` fixture and verifies monomorphized `VecIter`
-    lowering through identity `IntoIterator::into_iter` and canonical `next`
-    on both GC and linear Wasm. `8384f8115` routes the eager map/filter
-    compatibility helpers through the same lazy adapter and canonical
-    `collect` path. `33a604056` routes concrete local
-    `for` sources with a registered `IntoIterator` implementation through
-    `IntoIterator::into_iter` and canonical `next` in both AST and CoreHir
-    lowering. Vec, Range, and RangeInclusive direct-for fixtures pass current
-    source GC component and linear Wasm compile/validate/runtime checks.
-    `0a6cb7b81` adds and verifies the concrete method-shaped
-    `iter().map(...).filter(...).take(...).collect()` pipeline on both
-    backends, including the nested CoreHir method-lowering fix. Generic item
-    representations, additional adapter composition, unresolved generic or
-    unregistered source expressions, the required negative/diagnostic fixture,
-    and the final RFC-011 residual audit remain open. `c064cb46a` additionally routes
-    direct concrete call/method `for` sources through the same AST/CoreHir
-    `IntoIterator` and canonical `next` path; both target receipts pass.
-    `5a1408aac` adds the concrete `FilterTakeIter` composition and verifies
-    lazy collection plus generic `IntoIterator` lowering on GC and linear Wasm.
-    `317583de9` adds the concrete `SkipTakeIter` composition and verifies
-    skip-before-take collection plus generic `IntoIterator` lowering on both
-    Wasm backends. `d31cb9ec3` routes the concrete `std::seq` compatibility
-    wrappers through canonical `std::core::iter` consumers and verifies
-    identical GC/linear output plus WAT call targets for map/filter/take/skip/
-    fold. Arbitrary item representations, broader adapter composition,
-    manifest-level deprecation, and the RFC-011 residual audit remain open.
-    `da440bc97` extends the concrete String lane with skip-before-callback
-    `map`/`filter` adapters and verifies `collect`, `Vec::from_iter`, and
-    generic `IntoIterator` consumption on both targets. `0115f6619` adds the
-    corresponding numeric `Vec<i32>` adapters, including `FromIterator` and
-    numeric `sum` capability evidence. These are bounded iterator receipts;
-    they do not complete #691/#860 or the arbitrary item-generic boundary.
+- [x] #860 — Iterator Trait 体系を統合完了する — RFC 37 — depends: 691, 856
+  - Done (2026-09-26): unified trait surface per ADR-076 — `Iterator`/
+    `IntoIterator`/`FromIterator` responsibilities fixed, all thirteen
+    `std::seq` helpers deprecated and delegating to the lazy pipeline,
+    `Iterator::collect` canonical, desugared `for` proven equivalent
+    to handwritten `next()` (`iterator_desugar_equiv.ark`), and the
+    refreshed RFC-011 item 37 residual audit shows no #860-owned
+    residual. Remaining items transferred to tracked issues: #887
+    (method-level generics), #888 (HashMap entry enumeration), #878
+    (structural `next()` compat fallback, prelude HOF). See
+    [the close receipt](../done/860-iterator-unification-integration.md).
 - [x] #864 — let-generalization / value restriction を形式化する — RFC 27 — depends: 856
 
 ### Numeric / text / syntax
@@ -426,6 +392,7 @@ graph TD
 - [x] #857: `d6ce3f5d4ee1e8ca82fdbff7292579a30e7edaf3`; ADR-063; `?` conversion and Error sentinel boundary, with positive and diagnostic fixtures and GC/linear targeted receipts. See [#857](../done/857-question-mark-conversion-error-sentinel.md).
 - [x] #858: `31c76ce33`; ADR-065; canonical operator Trait mapping, coherence-aware typechecking, generic/builtin/user-defined fixtures, and GC/linear parity receipts. The canonical compiler rebuild remains blocked by the pre-existing #854 generic-enum mismatch; targeted quality/docs/ADR gates pass. See [#858](../done/858-operator-traits-magic-method-retirement.md).
 - [x] #859: `fd50e0f45` plus follow-ups `2bfeeede3` and `10fdbe597`; ADR-066; canonical generic `HashMap<K,V>` constructor/method API, static typed adapters for six supported pairs, internal-only `Any` boundary, and explicit compatibility removal conditions. The positive HashMap fixture compiles and validates on both `wasm32-gc` and `wasm32` fallback with the current s2 artifact; the fallback artifact runs successfully, and the default GC P2 component packages, validates, and runs successfully. The unsupported `bool,bool` pair produces the expected diagnostic, while `build-compiler` and the docs example gate pass through the guarded source-only bootstrap overlay. See [#859](../done/859-generic-public-api-any-hashmap.md).
+- [x] #860: `e1d9e4e93`, `a197f6056`, `69f073d96` plus the long #860 receipt chain; ADR-076 (ACCEPTED); unified `Iterator`/`IntoIterator`/`FromIterator` surface with item-generic `VecIter<T>`, deprecated `std::seq` delegation, canonical `collect`, desugared/handwritten equivalence evidence, and a refreshed RFC-011 item 37 audit with no #860-owned residual. `verify quick` 150/151 — sole failure is the #686-owned T3 gate (last validate-fail is the #872 `any_i32` pair-ABI gap); per precedent the gate is recorded, not claimed green. Out-of-scope residuals transferred to #887, #888, and #878. See [#860](../done/860-iterator-unification-integration.md).
 - [x] #862: `a720c2cc7`; ADR-068; integer/float edge semantics, source evaluation order, place-before-RHS lowering, side-effect and diagnostic fixtures, and GC/linear compile/validate/runtime parity. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted shim receipt is explicitly not a canonical rebuild. See [#862](../done/862-arithmetic-edge-and-evaluation-order.md).
 - [x] #863: `e4becb596`; ADR-069; valid UTF-8 and Unicode scalar contract, byte/scalar API split, strict/lossy UTF-8 conversion, boundary-aware slicing, `char_at` compatibility migration, and GC/linear parity fixtures. The canonical compiler rebuild remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch; the targeted current-source s2 receipt is explicit and does not claim a canonical rebuild. See [#863](../done/863-string-unicode-semantics.md).
 - [x] #864: `f9393be42`; ADR-070; immutable non-expansive let generalization, environment-aware TypeScheme subtraction, mutable/expansive negative fixtures, and GC/linear targeted runtime parity. `selfhost diag-parity` and `verify lane` pass; full current fixture parity remains an existing 176-failure backlog, and the canonical compiler rebuild remains blocked by #854. See [#864](864-let-generalization-value-restriction.md).

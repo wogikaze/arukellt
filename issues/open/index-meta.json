@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-26T08:06:22Z",
+  "generated_at": "2026-09-26T08:13:15Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -512,24 +512,89 @@
       }
     },
     {
-      "id": "860",
-      "path": "860-iterator-unification-integration.md",
-      "title": "860 — Iterator Trait 体系を統合完了する",
+      "id": "872",
+      "path": "872-wasm-gc-closure-collection-lowering.md",
+      "title": "872 — Wasm GC closure / collection lowering を完成する",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "691",
-        "856"
+        "855",
+        "859",
+        "860",
+        "871"
       ],
       "blocks_issue_ids": [
-        "872",
-        "874",
-        "877",
-        "887"
+        "875",
+        "879"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "874",
+      "path": "874-fallback-managed-value-lowering.md",
+      "title": "874 — fallback managed-value lowering を実装する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "854",
+        "855",
+        "859",
+        "860",
+        "873"
+      ],
+      "blocks_issue_ids": [
+        "875",
+        "879"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "887",
+      "path": "887-method-level-generics.md",
+      "title": "887 — Method-level generics (`fn m<U>` on generic/非 generic types)",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "856",
+        "860"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "888",
+      "path": "888-hashmap-entry-enumeration.md",
+      "title": "888 — HashMap entry (key+value) enumeration",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "860"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -706,70 +771,34 @@
       }
     },
     {
-      "id": "872",
-      "path": "872-wasm-gc-closure-collection-lowering.md",
-      "title": "872 — Wasm GC closure / collection lowering を完成する",
+      "id": "875",
+      "path": "875-cross-backend-semantic-parity.md",
+      "title": "875 — wasm32-gc / fallback の意味論 parity を証明する",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "855",
-        "859",
-        "860",
-        "871"
+        "857",
+        "858",
+        "861",
+        "862",
+        "863",
+        "864",
+        "865",
+        "867",
+        "868",
+        "869",
+        "871",
+        "872",
+        "874"
       ],
       "blocks_issue_ids": [
-        "875",
+        "877",
+        "878",
         "879"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "874",
-      "path": "874-fallback-managed-value-lowering.md",
-      "title": "874 — fallback managed-value lowering を実装する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "854",
-        "855",
-        "859",
-        "860",
-        "873"
-      ],
-      "blocks_issue_ids": [
-        "875",
-        "879"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "887",
-      "path": "887-method-level-generics.md",
-      "title": "887 — Method-level generics (`fn m<U>` on generic/非 generic types)",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856",
-        "860"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -844,66 +873,6 @@
       }
     },
     {
-      "id": "875",
-      "path": "875-cross-backend-semantic-parity.md",
-      "title": "875 — wasm32-gc / fallback の意味論 parity を証明する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "857",
-        "858",
-        "861",
-        "862",
-        "863",
-        "864",
-        "865",
-        "867",
-        "868",
-        "869",
-        "871",
-        "872",
-        "874"
-      ],
-      "blocks_issue_ids": [
-        "877",
-        "878",
-        "879"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "710",
-      "path": "710-stdlib-linear-collections-type-surface.md",
-      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "697",
-        "701",
-        "707",
-        "709"
-      ],
-      "blocks_issue_ids": [
-        "711"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
-      }
-    },
-    {
       "id": "877",
       "path": "877-executable-normative-semantics.md",
       "title": "877 — normative examples と操作的意味論を実行可能にする",
@@ -975,19 +944,20 @@
       }
     },
     {
-      "id": "711",
-      "path": "711-stdlib-docs-rich-reference-quality.md",
-      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
-      "track": "stdlib-docs",
+      "id": "710",
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "track": "stdlib-api",
       "status": "open",
       "depends_on": [
-        "681",
-        "709",
-        "710"
+        "691",
+        "697",
+        "701",
+        "707",
+        "709"
       ],
       "blocks_issue_ids": [
-        "712",
-        "713"
+        "711"
       ],
       "acceptance": {
         "checked": 0,
@@ -995,7 +965,7 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {
@@ -1022,6 +992,49 @@
       }
     },
     {
+      "id": "711",
+      "path": "711-stdlib-docs-rich-reference-quality.md",
+      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
+      "track": "stdlib-docs",
+      "status": "open",
+      "depends_on": [
+        "681",
+        "709",
+        "710"
+      ],
+      "blocks_issue_ids": [
+        "712",
+        "713"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+      }
+    },
+    {
+      "id": "852",
+      "path": "852-language-v2-semantics-full-implementation.md",
+      "title": "852 — 言語 v2 意味論再設計 umbrella",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "880"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 34,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": 880
+      }
+    },
+    {
       "id": "712",
       "path": "712-llm-code-quality-signal-gates.md",
       "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
@@ -1041,25 +1054,6 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "852",
-      "path": "852-language-v2-semantics-full-implementation.md",
-      "title": "852 — 言語 v2 意味論再設計 umbrella",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "880"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 32,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": 880
       }
     },
     {

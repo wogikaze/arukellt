@@ -188,13 +188,13 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   callback and passes on both backends. Earlier bare-`T` fn-typed field
   concerns were resolved by the #881 Option-record-field type-index fix.
 - HashMap entry (key+value) enumeration and live-order guarantees
-  remain open; key-only `for` is done. Owner: #860 for any
-  intrinsic-free surface extension; a new map-specific enumeration
-  intrinsic needs its own issue.
+  remain open; key-only `for` is done. Entry enumeration is new API
+  surface tracked by #888.
 - Generic `for` source dispatch: a source whose iteration obligation is
   not statically resolved stays rejected; the structural `next()`
-  fallback for custom iterators remains as the compatibility path.
-  Owner: #860 / #878 migration boundary.
+  fallback for custom iterators (`iterator/custom_iterator.ark`)
+  remains only as the compatibility path whose removal boundary is #878's
+  compat-layer orphan-entry acceptance.
 - Prelude monomorphic higher-order functions have no lazy replacement yet;
   they stay `stable` until iterator coverage or an explicit eager decision
   exists. Owner: #718 / #878.

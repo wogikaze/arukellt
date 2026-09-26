@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-23
+Updated: 2026-09-26
 ID: 860
 Parent: 852
 Track: language-v2
@@ -24,11 +24,27 @@ RFC-011: **37**。
 
 ## Acceptance
 
-- [ ] Iterator/IntoIterator/FromIterator の責務を固定する
-- [ ] eager helper と lazy adapter の重複を解消する
-- [ ] `collect` を canonical Trait path にする
-- [ ] desugared iteration と手書き Iterator を同値にする
-- [ ] #691 完了後に RFC item 37 の残差を 0 にする
+- [x] Iterator/IntoIterator/FromIterator の責務を固定する — ADR-076
+      (ACCEPTED) producer/consumer split; traits defined in
+      `std/core/iter.ark`
+- [x] eager helper と lazy adapter の重複を解消する — all thirteen
+      `std::seq` helpers carry `deprecated` + `deprecated_by` targets
+      and delegate to the lazy pipeline (#691 close receipt)
+- [x] `collect` を canonical Trait path にする — `Iterator::collect`
+      is the single traversal; `FromIterator` targets and compat
+      helpers delegate to it
+- [x] desugared iteration と手書き Iterator を同値にする —
+      `stdlib_trait/iterator_desugar_equiv.ark` asserts identical
+      output from manual `next()` and `for` on a custom
+      `Iterator` impl; generic `sum_for<T: Iterator>` /
+      `T: IntoIterator` consumers share the monomorphized path on
+      both backends
+- [x] #691 完了後に RFC item 37 の残差を 0 にする — refreshed audit in
+      `docs/stdlib/migration-guidance.md`: every former #860-owned
+      residual is verified done (generic `ScanIter<T>`,
+      `MirInst_call` arg0 contract) or transferred to a tracked issue
+      (#887 method-level generics, #888 entry enumeration, #878
+      compat-fallback boundary, #718/#878 prelude HOF)
 
 ## Required evidence
 
@@ -39,9 +55,9 @@ RFC-011: **37**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-20
 
@@ -1507,3 +1523,49 @@ acceptance boxes complete.
   (needs method-level generics), `MirInst_call` arg0=-1 design,
   the RFC-011 residual-zero audit, and the `$any_i32` pair-ABI
   validate-fail owned by #872. #860 is not closed.
+
+## Close receipt — 2026-09-26
+
+Issue-owned acceptance items are complete on repository evidence:
+
+- **責務固定**: ADR-076 (ACCEPTED) fixes the producer/consumer split;
+  `Iterator` (`Item`, `next`, `collect`, `count`),
+  `IntoIterator`, `FromIterator<T>`, and the numeric capability
+  traits live in `std/core/iter.ark`.
+- **eager/lazy 重複解消**: all thirteen monomorphic `std::seq`
+  helpers are `deprecated` with `deprecated_by` targets and delegate
+  to the lazy pipeline; `std::core::iter` is registered in
+  `std/manifest.toml`.
+- **canonical `collect`**: `Iterator::collect` is the single
+  traversal; compat helpers and `FromIterator` targets share it.
+- **desugared ≡ handwritten**: `iterator_desugar_equiv.ark` asserts
+  identical output from manual `next()` and `for` over a custom
+  `Iterator` impl; generic consumers monomorphize the same path on
+  wasm32-gc and wasm32.
+- **残差ゼロ**: the refreshed RFC-011 item 37 audit
+  (`docs/stdlib/migration-guidance.md`, 2026-09-26) shows no
+  #860-owned residual. Resolutions this session: generic
+  `ScanIter<T>` verified on the String lane on both backends
+  (new fixture `iterator_scan_string.ark`, manifest 3037);
+  `MirInst_call` arg0 tri-state contract documented
+  (`a197f6056`); `Head<Args>` enum-instance sig/local resolution
+  fixed (`e1d9e4e93`). Transfers with tracking: method-level
+  generics → #887, HashMap entry enumeration → #888, structural
+  `next()` compat-fallback boundary → #878, prelude monomorphic HOF
+  → #718/#878.
+
+Verification for close (2026-09-26):
+
+- `python3 scripts/manager.py verify quick` → 150/151. The sole
+  failure is the #686-owned T3 WASM validation gate (469 pass, 1
+  validate-fail, 27 compile-fail, 19 skip). The validate-fail is the
+  `test_syntax/basic` `$any_i32` pair-ABI signature gap diagnosed in
+  #872; the compile-fails map to #695 (`Ordering` enum on GC),
+  #854/i64 numeric widening, #871 (`Error` supertrait), and #686
+  (`t3/string_gc`) — none are iterator-surface work. Per the
+  #861/#873/#691 precedent this issue does not claim that gate green.
+- `python3 scripts/manager.py verify lane` PASS;
+  `python3 scripts/manager.py docs check` 4/4 PASS;
+  `check-false-done-hygiene.py` PASS; `fmt --check` clean on the
+  touched `.ark` files.
+- Dependencies `#691` and `#856` are both in `issues/done/`.
