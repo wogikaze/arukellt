@@ -181,7 +181,7 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   `SkipFilterIter<I>` adapters whose callbacks spell `fn(I::Item) -> I::Item`;
   the former concrete `StringSkip*` types are removed. A map callback that
   changes the item type (`fn(I::Item) -> U`) still needs method-level
-  generics. Owner: #860 compiler generics boundary.
+  generics, a compiler pipeline feature tracked by #887.
 - Generic `ScanIter<T>` is now verified beyond the i32 lane:
   `tests/fixtures/stdlib_trait/iterator_scan_string.ark` exercises
   `VecIter<String>::scan` with a `fn(String, String) -> Option<String>`

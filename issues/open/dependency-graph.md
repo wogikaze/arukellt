@@ -43,6 +43,7 @@ graph LR
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I872["872 872 — Wasm GC closure / collection lowering を完成する"]
   I874["874 874 — fallback managed-value lowering を実装する"]
+  I887["887 887 — Method-level generics (`fn m<U>` on generic/非 generic types)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
@@ -66,6 +67,7 @@ graph LR
   I851 --> I850
   I860 --> I872
   I860 --> I874
+  I860 --> I887
   I682 --> I683
   I698 --> I699
   I695 --> I709
@@ -123,7 +125,7 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **860** depends on: 691, 856; blocks: 872, 874, 877
+- **860** depends on: 691, 856; blocks: 872, 874, 877, 887
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
@@ -134,6 +136,7 @@ graph LR
 - **850** depends on: 851; blocks: none
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879
 - **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879
+- **887** depends on: 856, 860; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
