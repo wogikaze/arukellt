@@ -1671,3 +1671,46 @@ empty operand stack; the GC target produced an invalid core module.
   (conservative scan per ADR-075), and the move/borrow parity audit;
   `v.pop()` on non-i32 vectors and unannotated `Vec::new<(A, B)>` tuple
   turbofish remain out of scope; #874 stays open.
+
+## Progress — bounds/error parity for unchecked Vec access (2026-09-27)
+
+ADR-075 §4 requires identical bounds/error observable semantics on both
+targets. `get_unchecked`/`v.set` out-of-bounds previously diverged: the GC
+backend traps via `array.get`/`array.set`, while the linear-memory emit
+read/wrote raw memory past the element block (returned `0`, silently
+corrupted the heap on stores).
+
+- `intrinsic_vec_access::emit_vec_trap_if_oob` is the shared LM bounds
+  trap: `idx >= vec.len` (unsigned, so negative indices trap too) lowers
+  to `if unreachable end` before the element access.
+- Wired into `emit_get_unchecked` (covers `get_unchecked`,
+  `vec.get_unchecked*`, `raw.array_get_unchecked`) and `emit_vec_set`
+  (covers `v.set`, `vec.set`, `raw.array_set_unchecked`) — all operate on
+  the `{len, cap, data}` raw-array layout, so the `len` read at offset 0
+  is valid for every callee that reaches the LM path.
+- Verified: `get_unchecked(v, 100)` on `Vec<i32>` — LM now traps
+  (`unreachable`) after printing the in-bounds element, matching the GC
+  component's `out of bounds array access` trap on the same source.
+  `v.set(50, 1)` traps identically on both backends; in-bounds set/get
+  unchanged (`9`).
+- Regression sweep: ~68 LM fixtures across collections/, functions/,
+  generics/, structs/ unchanged (only pre-existing `rmw_noop` t3-only
+  compilefail). All six `closure_capture` fixtures (borrow/move/rebind/
+  copy/struct) verified identical output on both backends this session —
+  move/borrow capture parity holds.
+- Verification receipts:
+
+      python3 scripts/manager.py selfhost build-compiler   PASS
+      python3 scripts/manager.py verify lane               PASS
+      wasm32 run: oob_unchecked (7 + trap), oob_set (9 + trap)  PASS
+      wasm32-gc run: oob_unchecked, oob_set — trap            PASS (same observable)
+      closure_capture x6 both backends                       PASS (identical)
+      LM fixture sweep (68 files)                            PASS (rmw_noop
+        pre-existing only)
+      fmt on changed files                                   PASS
+
+- Remaining in #874: exact pointer-field descriptors (conservative
+  payload scan per ADR-075 §3 still bootstrap-permitted), HashMap
+  descriptor lowering, the written move/borrow parity audit summary,
+  `v.pop()` on non-i32 vectors (generic shell signature limit), and
+  unannotated tuple-element `Vec::new<(A, B)>` turbofish; #874 stays open.

@@ -69,6 +69,7 @@ fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_vec_access_setup(w, s_idx, s_vec2)
+    emit_vec_trap_if_oob(w, s_idx, s_vec2)
     helpers_core::emit_local_get(w, s_vec2)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 8)
@@ -321,6 +322,23 @@ fn emit_vec_get_if_in_bounds(w: WasmWriter, s_idx: i32, s_vec: i32) {
     writer_core::emit_byte(w, 73)
     writer_core::emit_byte(w, 4)
     writer_core::emit_byte(w, 127)
+}
+
+// Unchecked element access traps when the index is out of bounds, matching
+// the GC backend's array.get/array.set trap. ADR-075 requires identical
+// bounds/error semantics across targets — a silent out-of-range linear
+// load/store would diverge observably (#874).
+fn emit_vec_trap_if_oob(w: WasmWriter, s_idx: i32, s_vec: i32) {
+    writer_core::emit_local_get(w, s_idx)
+    writer_core::emit_local_get(w, s_vec)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+    writer_core::emit_byte(w, opcodes::OP_END())
 }
 
 fn emit_vec_get_some_i32(w: WasmWriter, s_idx: i32, s_vec: i32, s_res: i32) {

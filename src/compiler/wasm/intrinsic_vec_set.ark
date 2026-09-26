@@ -6,6 +6,7 @@ use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::intrinsic_vec_access
 use wasm::intrinsic_vec_set_gc
 use wasm::intrinsic_vec_type
 use mir::inst_accessors_literals
@@ -72,6 +73,9 @@ fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: boo
     writer_core::emit_leb128_u(w, s_idx_set)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_vec_set)
+    // OOB must trap like the GC array.set — a silent store past the data
+    // block corrupts the linear heap and diverges across targets (#874).
+    intrinsic_vec_access::emit_vec_trap_if_oob(w, s_idx_set, s_vec_set)
     writer_core::emit_local_get(w, s_vec_set)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 8)
