@@ -1,5 +1,6 @@
 use mir::lower::call_type_fallback
 use mir::lower::closure_capture_args
+use mir::lower::closure_cells
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -45,7 +46,10 @@ fn lower_core_closure_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     let env_arg = if env_li >= 0 { 1 } else { 0 }
     let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))
     let c_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra + env_arg, c_dest))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(synth), child_count - 1 + extra + env_arg, c_dest))
+    // Refresh mut-borrowed source locals from their env cells, mirroring
+    // try_lower_closure_call (#874, ADR-061).
+    closure_cells::ctx_emit_closure_writeback(ctx, synth)
     call_type_fallback::mark_fallback_call_result_type(ctx, clone(synth), c_dest)
     c_dest
 }

@@ -7,6 +7,7 @@ use mir::lower::ctx_api_module
 use mir::lower::ctx_gc_struct
 use mir::lower::body_closure_capture
 use mir::lower::closure_env
+use mir::lower::closure_cells
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_types
 use mir::function_return_view
@@ -31,7 +32,7 @@ fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
     closure_clear_pending_bind(ctx)
 }
 
-fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32, has_env_cell: i32) -> i32 {
+fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32, has_env_cell: i32, wb_caps: Vec<String>, wb_rebinds: Vec<i32>, wb_is_move: i32) -> i32 {
     ctx_api_module::ctx_push_module_function(ctx, mf)
     ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), "")
     // Managed env pair ABI (#872): the fn value is a {fnptr, env} record.
@@ -63,6 +64,40 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     // name(...) call passes it as the trailing __env arg (#874).
     let bind_env = if has_env_cell != 0 { env_local } else { 0 - 1 }
     closure_storage::closure_storage_set_pending_bind(ctx, clone(synth), clone(packed), extra, bind_env)
+    // Mutable-borrow write-through (#874, ADR-061): in a non-move
+    // closure a rebound capture is a mutable borrow, so the env cell is
+    // the shared place the borrow aliases. After every direct call the
+    // source local must be refreshed from that field; move captures own
+    // the cell outright, so they register no write-back pairs.
+    if wb_is_move == 0 && env_local >= 0 {
+        let env_total = closure_env::closure_env_byte_size(cap_vts)
+        let mut wb_off = 0
+        let mut wi = 0
+        while wi < len(cap_names) {
+            let cvt = get_unchecked(cap_vts, wi)
+            if wi < len(wb_rebinds) && get_unchecked(wb_rebinds, wi) != 0 {
+                let src_li = ctx_api_local_alloc::ctx_lookup_local(
+                    ctx,
+                    clone(get_unchecked(wb_caps, wi))
+                )
+                if src_li >= 0 {
+                    closure_cells::ctx_register_env_writeback(
+                        ctx,
+                        clone(synth),
+                        src_li,
+                        env_local,
+                        clone(env_name),
+                        wb_off,
+                        wi,
+                        env_total,
+                        cvt
+                    )
+                }
+            }
+            wb_off = wb_off + closure_env::closure_env_slot_width(cvt)
+            wi = wi + 1
+        }
+    }
     // mf params are (closure_params..., captures..., __env?): subtract the
     // captures and the trailing env param to recover the user arity.
     let closure_param_count = function_param_view::MirFunction_param_count(mf) - extra - has_env_cell

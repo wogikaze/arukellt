@@ -52,7 +52,8 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let extra = len(caps)
     let rebind_flags = closure_free::closure_collect_rebind_flags(node, caps)
     let mf = mir_emit_closure_fn(ctx, synth, node, caps, rebind_flags)
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags))
+    let is_move = if ast_node::node_is_move(node) { 1 } else { 0 }
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags), caps, rebind_flags, is_move)
 }
 
 fn is_identity_closure(node: AstNode) -> bool {

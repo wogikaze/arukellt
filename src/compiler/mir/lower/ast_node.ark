@@ -12,6 +12,8 @@ fn node_text(node: AstNode) -> String { ast::ast_node_text(node) }
 fn node_span_start(node: AstNode) -> i32 { ast::ast_node_span_start(node) }
 fn node_op(node: AstNode) -> i32 { ast::ast_node_op(node) }
 
+fn node_is_move(node: AstNode) -> bool { ast::ast_node_is_move(node) }
+
 fn node_int_val(node: AstNode) -> i32 { ast::ast_node_int_val(node) }
 fn node_float_val(node: AstNode) -> f64 { ast::ast_node_float_val(node) }
 

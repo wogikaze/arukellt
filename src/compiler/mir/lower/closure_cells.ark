@@ -142,3 +142,45 @@ fn ctx_has_env_cell(rebind_flags: Vec<i32>) -> i32 {
     }
     0
 }
+
+// Record that a direct call to `synth` must refresh `src_li` — the
+// enclosing function's source local — from `env_local`'s field after the
+// call returns. Non-move closures cannot leave their enclosing function
+// (borrow captures cannot escape, E0213), so every reachable call site is
+// a direct name(...) call in the same frame; the write-back runs there
+// once per rebind capture.
+fn ctx_register_env_writeback(ctx: LowerCtx, synth: String, src_li: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
+    push(ctx.wb_synths, synth)
+    push(ctx.wb_src_lis, src_li)
+    push(ctx.wb_env_lis, env_local)
+    push(ctx.wb_env_names, env_name)
+    push(ctx.wb_offsets, offset)
+    push(ctx.wb_field_indices, field_idx)
+    push(ctx.wb_totals, total)
+    push(ctx.wb_vts, vt)
+}
+
+// Emit `src_li := env.field` for each write-back pair registered on
+// `synth`. Called right after the direct `call $synth` so the mut-borrowed
+// source local observes the cell's flushed value (ADR-061 section 1: a
+// rebind capture mutates the source's place).
+fn ctx_emit_closure_writeback(ctx: LowerCtx, synth: String) {
+    if len(ctx.wb_synths) == 0 {
+        return
+    }
+    let mut i = 0
+    while i < len(ctx.wb_synths) {
+        if eq(get_unchecked(ctx.wb_synths, i), clone(synth)) {
+            ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
+                    get_unchecked(ctx.wb_env_lis, i),
+                    clone(get_unchecked(ctx.wb_env_names, i)),
+                    get_unchecked(ctx.wb_offsets, i),
+                    get_unchecked(ctx.wb_field_indices, i),
+                    get_unchecked(ctx.wb_totals, i),
+                    get_unchecked(ctx.wb_vts, i),
+                    get_unchecked(ctx.wb_src_lis, i)
+                ))
+        }
+        i = i + 1
+    }
+}

@@ -138,7 +138,13 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
         return
     }
     let is_copy_capture = scope::scope_binding_is_copy(scope, clone(name))
-    if is_copy_capture && !summary.include_copy {
+    // A non-move rebind of a Copy binding is a mutable borrow, not a
+    // shared-copy read: it must stay in the apply summary so the source is
+    // marked and assign/borrow-conflict diagnostics fire (#874, ADR-061).
+    // Move-closure Copy captures are still skipped: a Copy move capture
+    // must not consume its source.
+    if is_copy_capture && !summary.include_copy &&
+    (!(is_mutable_use && is_rebind) || ast_access::node_is_move(closure)) {
         return
     }
     let mut mode = capture_shared_borrow()

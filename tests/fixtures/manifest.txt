@@ -384,6 +384,7 @@ run:closure_capture/move_rebind_cell.ark
 run:closure_capture/copy_capture_snapshot.ark
 run:closure_capture/escape_store.ark
 run:closure_capture/escape_arg.ark
+run:closure_capture/borrow_rebind_cell.ark
 run:control/break_continue.ark
 run:control/if_basic.ark
 run:control/if_else.ark

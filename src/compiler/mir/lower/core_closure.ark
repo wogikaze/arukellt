@@ -20,7 +20,9 @@ fn lower_core_closure(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     let extra = len(caps)
     let rebind_flags = core_closure_free::core_closure_collect_rebind_flags(exprs, expr, caps)
     let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, rebind_flags)
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags))
+    // CoreHIR closures are generated without `move`; every rebind capture
+    // is a mutable borrow, so write-back pairs are always registered.
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags), caps, rebind_flags, 0)
 }
 
 fn is_identity_core_closure(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {

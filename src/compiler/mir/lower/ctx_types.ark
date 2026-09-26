@@ -98,6 +98,21 @@ pub struct LowerCtx {
     cell_field_indices: Vec<i32>,
     cell_totals: Vec<i32>,
     cell_vts: Vec<i32>,
+    // Borrow-rebind write-back pairs: after a direct call to a non-move
+    // closure that rebinds a capture, each rebound source local is
+    // refreshed from its env field so later reads of the source observe
+    // the mutation (mutable-borrow write-through, #874, ADR-061). Entries
+    // are keyed by synth name; source/env local indices belong to the
+    // enclosing function, which is the only frame that can reach the
+    // non-escaping borrow closure's call sites.
+    wb_synths: Vec<String>,
+    wb_src_lis: Vec<i32>,
+    wb_env_lis: Vec<i32>,
+    wb_env_names: Vec<String>,
+    wb_offsets: Vec<i32>,
+    wb_field_indices: Vec<i32>,
+    wb_totals: Vec<i32>,
+    wb_vts: Vec<i32>,
     local_type_start: i32,
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,
