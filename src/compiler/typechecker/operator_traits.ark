@@ -1,5 +1,6 @@
 use typechecker::contract_type_access
 use typechecker::kinds
+use typechecker::names
 use typechecker::trait_bounds
 use typechecker::types
 use typechecker::unify
@@ -107,29 +108,54 @@ fn enforce_operator_trait(
         report_missing_operator_bound(env, symbol, trait_name, resolved_ty)
         return
     }
-    if is_builtin_operator_type(resolved_ty) {
+    if is_builtin_operator_type(resolved_ty, clone(trait_name)) {
         return
     }
     let bound = types::resolve_type_name(clone(trait_name))
     if trait_bounds::type_satisfies_trait_bound(env, resolved_ty, bound) {
         return
     }
-    let type_name = contract_type_access::TypeInfo_name(resolved_ty)
+    let type_name = names::type_display_name(resolved_ty)
     report_missing_operator_impl(env, symbol, trait_name, type_name)
 }
 
 // Primitive operators have a direct MIR opcode fast path. Their stdlib impls
 // document the same protocol, but requiring the imported declaration here
-// would make scalar syntax depend on module visibility.
-fn is_builtin_operator_type(ty: TypeInfo) -> bool {
+// would make scalar syntax depend on module visibility. The bypass is per
+// protocol family: only types with real backend semantics may skip the
+// trait-impl check. Non-numeric scalars have no arithmetic opcodes, so
+// String + String must fall through to the Add registry and error when no
+// impl exists — accepting it made the backends diverge (gc concat vs
+// linear pointer arithmetic) (#885).
+fn is_builtin_operator_type(ty: TypeInfo, trait_name: String) -> bool {
     let tag = contract_type_access::TypeInfo_tag(ty)
+    if eq(clone(trait_name), String_from("Eq")) || eq(clone(trait_name), String_from("Ord")) {
+        return tag == commands::TY_I32() ||
+        tag == commands::TY_I64() ||
+        tag == commands::TY_F64() ||
+        tag == commands::TY_F32() ||
+        tag == commands::TY_BOOL() ||
+        tag == commands::TY_CHAR() ||
+        tag == commands::TY_STRING()
+    }
+    if eq(clone(trait_name), String_from("Not")) {
+        return tag == commands::TY_BOOL() ||
+        tag == commands::TY_I32() ||
+        tag == commands::TY_I64()
+    }
+    if eq(clone(trait_name), String_from("BitAnd")) ||
+    eq(clone(trait_name), String_from("BitOr")) ||
+    eq(clone(trait_name), String_from("BitXor")) ||
+    eq(clone(trait_name), String_from("Shl")) ||
+    eq(clone(trait_name), String_from("Shr")) ||
+    eq(clone(trait_name), String_from("BitNot")) {
+        return tag == commands::TY_I32() || tag == commands::TY_I64()
+    }
+    // Arithmetic family (Add/Sub/Mul/Div/Rem/Neg): numeric scalars only.
     tag == commands::TY_I32() ||
     tag == commands::TY_I64() ||
     tag == commands::TY_F64() ||
-    tag == commands::TY_F32() ||
-    tag == commands::TY_BOOL() ||
-    tag == commands::TY_CHAR() ||
-    tag == commands::TY_STRING()
+    tag == commands::TY_F32()
 }
 
 fn report_missing_operator_bound(

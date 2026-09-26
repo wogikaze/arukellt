@@ -1,0 +1,6 @@
+use std::host::stdio
+
+fn main() {
+    let c = String_from("x") + String_from("y")
+    stdio::println(c)
+}

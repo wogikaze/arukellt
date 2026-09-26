@@ -250,6 +250,7 @@ diag:diagnostics/closure_borrow_conflict.ark
 diag:diagnostics/closure_move_after_capture.ark
 diag:diagnostics/closure_capture_escape_return.ark
 diag:diagnostics/non_exhaustive.ark
+diag:diagnostics/operator_add_no_impl.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/parse_missing_rbrace.ark
 diag:diagnostics/prefer_use_import.ark
