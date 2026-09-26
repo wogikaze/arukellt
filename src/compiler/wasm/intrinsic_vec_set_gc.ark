@@ -13,6 +13,8 @@ use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_set_gc_layout
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
+use wasm::ctx_record
+use wasm::sections_types_gc
 
 fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     // GC Vec set
@@ -34,8 +36,17 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
-    let array_type = intrinsic_vec_set_gc_layout::vec_set_array_type(ctx, is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
-    let s_val = intrinsic_vec_set_gc_layout::vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
+    let mut array_type = intrinsic_vec_set_gc_layout::vec_set_array_type(ctx, is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
+    let mut s_val = intrinsic_vec_set_gc_layout::vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
+    // fnref elements are {fnptr, env} pair refs: they need a ref-typed
+    // spill and the fnref element array — the i32 value scratch rejects a
+    // ref value outright (#874).
+    let is_fnref_elem = intrinsic_vec_type::resolve_array_type_for_call(ctx, clone(callee), inst) ==
+    ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
+    if is_fnref_elem {
+        array_type = ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
+        s_val = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    }
 
     // Step 1: Save value, idx, vec_ref → scratches (do not drop vec).
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -57,7 +68,14 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     writer_core::emit_local_get(w, s_idx)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, s_val)
-    if is_vec_sref || is_vec_string || is_vec_i64 || is_vec_f64 {
+    if is_fnref_elem {
+        // The structref scratch erases the concrete __fnpair type the
+        // element array expects — re-cast like the get path does (#874).
+        let fnpair_gc_type = ctx_record::SelfEmitCtx_gc_type_base(ctx) +
+        sections_types_gc::gc_fnpair_offset()
+        writer_gc::emit_gc_ref_cast(w, fnpair_gc_type)
+    }
+    if is_vec_sref || is_vec_string || is_vec_i64 || is_vec_f64 || is_fnref_elem {
         writer_gc::emit_gc_array_set(w, array_type)
     } else {
         writer_gc::emit_gc_array_set_i32(w, array_type)

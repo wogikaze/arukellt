@@ -30,6 +30,11 @@ fn ctx_emit(ctx: LowerCtx, inst: MirInstDraft) {
 }
 
 fn ctx_current_block_ends_with_control_return(ctx: LowerCtx) -> bool {
+    let op = ctx_current_block_last_inst_op(ctx)
+    op == opcodes::MIR_RETURN() || op == opcodes::MIR_UNREACHABLE()
+}
+
+fn ctx_current_block_last_inst_op(ctx: LowerCtx) -> i32 {
     let f = ctx_current_storage::ctx_current_func_value(ctx)
     let block = function_block_queries::MirFunction_block_at(
         f,
@@ -37,10 +42,9 @@ fn ctx_current_block_ends_with_control_return(ctx: LowerCtx) -> bool {
     )
     let count = block_inst_access::MirBlock_inst_count(block)
     if count <= 0 {
-        return false
+        return 0 - 1
     }
-    let op = block_inst_access::MirBlock_inst_op(block, count - 1)
-    op == opcodes::MIR_RETURN() || op == opcodes::MIR_UNREACHABLE()
+    block_inst_access::MirBlock_inst_op(block, count - 1)
 }
 
 fn ctx_alloc_block(ctx: LowerCtx) -> i32 {

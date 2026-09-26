@@ -11,7 +11,8 @@ fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let receiver_is_composed = ast_node::node_kind_is(receiver, lower_kinds::NK_METHOD_CALL()) ||
         ast_node::node_kind_is(receiver, lower_kinds::NK_CALL())
         let receiver_idx = lower_expr(ctx, receiver)
-        if receiver_is_composed && receiver_idx >= 0 {
+        if (receiver_is_composed && receiver_idx >= 0) ||
+        method::mir_method_arg_leaves_no_stack(ctx, receiver_idx) {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(receiver_idx))
         }
         let callee_name = method::mir_initial_method_callee(ctx, ast_node::node_text(node), receiver_idx)
@@ -22,7 +23,8 @@ fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let arg_is_composed = ast_node::node_kind_is(arg, lower_kinds::NK_METHOD_CALL()) ||
             ast_node::node_kind_is(arg, lower_kinds::NK_CALL())
             let method_arg_idx = lower_expr(ctx, arg)
-            if arg_is_composed && method_arg_idx >= 0 {
+            if (arg_is_composed && method_arg_idx >= 0) ||
+            method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {
                 ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
             }
             if a == 1 {

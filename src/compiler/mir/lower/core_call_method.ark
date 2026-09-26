@@ -14,7 +14,8 @@ fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     let receiver_is_composed = core_expr_shape_calls::mir_core_expr_is_method_call(receiver_expr) ||
     core_expr_shape_calls::mir_core_expr_is_call(receiver_expr)
     let receiver_idx = lower_core_expr(ctx, exprs, receiver_expr_index)
-    if receiver_is_composed && receiver_idx >= 0 {
+    if (receiver_is_composed && receiver_idx >= 0) ||
+    method::mir_method_arg_leaves_no_stack(ctx, receiver_idx) {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(receiver_idx))
     }
     let callee_name = method::mir_initial_method_callee(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), receiver_idx)
@@ -31,7 +32,8 @@ fn lower_core_method_first_arg(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         let arg_is_composed = core_expr_shape_calls::mir_core_expr_is_method_call(method_arg_expr) ||
         core_expr_shape_calls::mir_core_expr_is_call(method_arg_expr)
         let method_arg_idx = lower_core_expr(ctx, exprs, method_arg_expr_index)
-        if arg_is_composed && method_arg_idx >= 0 {
+        if (arg_is_composed && method_arg_idx >= 0) ||
+        method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
         }
         if a == 1 {

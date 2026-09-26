@@ -3,6 +3,8 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_mono_type_params
 use mir::lower::method_emit
 use mir::lower::method_resolve
+use mir::lower::ctx_locals_emit
+use mir::opcodes
 
 fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i32) -> String {
     let mut struct_name = ""
@@ -62,4 +64,21 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
 
 fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
     method_emit::mir_emit_method_call(ctx, callee_name, arg_count, first_arg_idx)
+}
+
+// Method-call operands are stack-passed: every producer must leave its
+// value. Record-literal, fnpair, and variant constructions terminate in a
+// side-effecting SET op whose result lives only in a MIR local, so the
+// call underflows its operand stack. Resolved real calls recover via
+// prev_arg0 in call_fallback_resolved, but core-op intrinsic emits
+// (e.g. `__core_vec_push_i32_impl` -> inlined vec_push) have no such
+// recovery. The caller re-pushes the result local for these.
+fn mir_method_arg_leaves_no_stack(ctx: LowerCtx, arg_idx: i32) -> bool {
+    if arg_idx < 0 {
+        return false
+    }
+    let last_op = ctx_locals_emit::ctx_current_block_last_inst_op(ctx)
+    last_op == opcodes::MIR_STRUCT_SET() ||
+    last_op == opcodes::MIR_ARRAY_SET() ||
+    last_op == opcodes::MIR_GC_STRUCT_SET()
 }

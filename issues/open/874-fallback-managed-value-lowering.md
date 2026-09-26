@@ -1597,3 +1597,77 @@ Commit: `65aa79141` (worktree `94cceab55`)
   to `Vec__new__i32` by the same #845 mechanism and remains
   out of scope here; #874 stays open.
 
+
+## Progress — Vec<fn> method-call operand stack contract (2026-09-27)
+
+Method calls whose arguments lower to local-materialized constructions
+(fnpair for a bare fn name, record literals, variant payloads) produced
+invalid Wasm on BOTH backends: `v.push(double)`, `v.set(0, triple)`, and
+even `v.len()`/`v.is_empty()` when a fn-valued arg appeared earlier in the
+same statement stream. LM emitted `local.set` into scratch slots with an
+empty operand stack; the GC target produced an invalid core module.
+
+- Root cause: `lower_core_method_call` (CoreHIR) and
+  `lower_method_call_expr` (AST) push each operand via its producer inst.
+  A `STRUCT_SET`/`GC_STRUCT_SET`/`ARRAY_SET`-terminated arg leaves nothing
+  on the stack, so the call short by one operand. Resolved real calls
+  recover the last arg via `prev_op == MIR_STRUCT_SET -> local.get
+  prev_arg0` (call_fallback_resolved), but core-op intrinsic emits
+  (`__core_vec_push_i32_impl` -> inlined vec_push, `raw_array_set_unchecked`,
+  `raw_array_len`, `vec_get`, `is_empty`) have no such recovery.
+- Fix: `method::mir_method_arg_leaves_no_stack` checks whether the current
+  block's last emitted inst is a side-effecting SET op via the new
+  `ctx_locals_emit::ctx_current_block_last_inst_op` (also refactors
+  `ctx_current_block_ends_with_control_return` onto it — no new thin
+  wrapper). Both method-call paths emit `local.get arg_idx` after such
+  args and receivers, matching the existing `arg_is_composed` re-push
+  convention.
+- GC `v.set` element store: `emit_vec_set_gc` now detects `vec:fnref`
+  through `resolve_array_type_for_call` (`is_fnref_elem`), spills the
+  value into the structref scratch instead of the i64/i32 value scratch
+  ("expected i64, found (ref null $fnpair)"), re-casts to the `__fnpair`
+  GC type before `array.set` on `fnref_array_type` — the mirror of the
+  get path's re-cast.
+- Positive coverage: new run+t3-run fixture
+  `tests/fixtures/collections/vec_fn_methods.ark` (expected
+  `2 false 15 12 3`) exercises `v.push(fn)` x2, `v.len`, `v.is_empty`,
+  `v.set(i, fn)`, `v.get` + indirect call, and `v.push(local_fn_var)` —
+  identical output on wasm32 linear core and wasm32-gc component.
+- Checked-and-not-bugs, recorded for the audit trail:
+  - `v.pop()` on `Vec<fn>` (and `Vec<String>`) fails typecheck because
+    the generic shell signature `fn pop(self) -> i32` cannot express
+    non-i32 elements. General `impl Vec<T>` limitation, not a fallback
+    parity gap; the v2 contract would need `pop -> Option<T>` before fn
+    vectors can pop.
+  - `for k in m` on `HashMap<i32, fn>` requires the
+    `std::collections::hash_map` import — the
+    `impl IntoIterator for HashMap<K, V>` lives there, not in
+    `hash_fn`. With both imports the fn-valued map iterates correctly
+    (`total = 10` over keys 3 and 7, identical on both backends);
+    `m.keys()` alone also works (`len = 2`).
+- Regression sweep: ~68 LM fixtures across collections/, functions/,
+  generics/, structs/ all pass (only pre-existing failure:
+  `structs/rmw_noop` — a t3-run-only fixture whose deprecated
+  immutable-field assignment the current typecheck rejects; unrelated).
+- Verification receipts:
+
+      python3 scripts/manager.py selfhost build-compiler   PASS
+      python3 scripts/manager.py verify lane               PASS
+      wasm32 linear run: vec_fn_methods fixture,
+        vfs_len/vfs1/vfs_get_only/vfs_set_only/vfs_ie,
+        vrec_push, vf_localfn, vi_push, hm_fn_keys,
+        hm_fn_iter2, hm_fn_ops, hm_strfn_ops, hm_ii_methods,
+        vec_fn_get, vec_fn_get2, option_vec_fn, result_vec_fn,
+        vec_option_i32, vec_string_println_get,
+        option_fn_return_boundary, vec_fn_param_get        PASS
+      wasm32-gc component run: same set                    PASS (identical)
+      LM fixture sweep (68 files, 4 dirs)                  PASS except
+        pre-existing rmw_noop compilefail
+      fmt on changed files                                 PASS
+
+- Remaining in #874: `impl HashMap<K, V>`/`Vec<T>` mono bodies are still
+  carried by the adapter path (method-call arg stack fix above covers
+  the user-visible dispatch), exact pointer-field descriptors
+  (conservative scan per ADR-075), and the move/borrow parity audit;
+  `v.pop()` on non-i32 vectors and unannotated `Vec::new<(A, B)>` tuple
+  turbofish remain out of scope; #874 stays open.
