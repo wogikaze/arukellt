@@ -1363,3 +1363,38 @@ Commit: `65aa79141` (worktree `94cceab55`)
   (adapter path still carries them), exact pointer-field descriptors
   (conservative scan per ADR-075), and the move/borrow parity audit;
   #874 stays open.
+
+## Progress receipt — 2026-09-26 (declared single-letter type names on GC)
+
+ - Implementation commit `00d898d18` fixes a type-param heuristic that
+   collided with legal declared names (`struct P`, `enum E`): any
+   single-letter spelling was treated as an unsubstituted type param,
+   so the wasm32-gc layout plan emitted i32-array locals and field ops
+   for structref values and produced modules wasm-tools rejected.
+   Registered struct/enum names now win over the heuristic in
+   `gc_struct` field signature fallback, ctx struct-field GC-ref
+   detection, vec element MIR value typing, GC layout plan vec
+   offsets, vec local inference (typename + callee-return paths), and
+   intrinsic array/vec type resolution for new/push/access/set/pop/
+   grow. The linear fallback was already correct and is unchanged.
+ - Positive coverage: `vec:P` push + `get_unchecked` and a `Vec<P>`
+   function parameter now emit GC modules that validate and print
+   `4\n5` / `8` on the wasm32-gc component, identical to the wasm32
+   linear core. Closure captures (`sf`..`sf5`, `sf_min`), nested
+   struct field reads (`nested_p`), and `P` parameters (`param_p`)
+   all remain GC-valid.
+ - Known gap (separate from this fix): `for p in ps` over `Vec<P>`
+   is a correct typecheck rejection — std only ships
+   `IntoIterator for Vec<i32>` / `Vec<String>`; `IntoIterator for
+   Vec<T>` is tracked under #697/#710.
+ - Verification receipts:
+
+   ```text
+   python3 scripts/manager.py selfhost build-compiler   PASS (39s)
+   python3 scripts/manager.py verify lane              PASS (exit 0)
+   wasm32-gc validate + run: vecp, vecp_param          PASS
+   wasm32-gc validate: sf, sf2-sf5, sf_min, nested_p,
+     param_p                                          PASS
+   wasm32 linear run: vecp, vecp_param,
+     generic_struct_vec_field                         PASS (4/5, 8, 60/4)
+   ```
