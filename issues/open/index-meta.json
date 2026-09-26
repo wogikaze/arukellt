@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-26T05:16:19Z",
+  "generated_at": "2026-09-26T07:27:57Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -177,32 +177,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "691",
-      "path": "691-iterator-trait-lazy-adapters.md",
-      "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "688",
-        "707"
-      ],
-      "blocks_issue_ids": [
-        "697",
-        "703",
-        "709",
-        "710",
-        "860"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch"
       }
     },
     {
@@ -538,6 +512,30 @@
       }
     },
     {
+      "id": "860",
+      "path": "860-iterator-unification-integration.md",
+      "title": "860 — Iterator Trait 体系を統合完了する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "856"
+      ],
+      "blocks_issue_ids": [
+        "872",
+        "874",
+        "877"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -598,30 +596,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": 686
-      }
-    },
-    {
-      "id": "860",
-      "path": "860-iterator-unification-integration.md",
-      "title": "860 — Iterator Trait 体系を統合完了する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "856"
-      ],
-      "blocks_issue_ids": [
-        "872",
-        "874",
-        "877"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {
@@ -731,46 +705,6 @@
       }
     },
     {
-      "id": "683",
-      "path": "683-user-facing-executable-example-audit.md",
-      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [
-        "679",
-        "682"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "872",
       "path": "872-wasm-gc-closure-collection-lowering.md",
       "title": "872 — Wasm GC closure / collection lowering を完成する",
@@ -819,6 +753,46 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 852
+      }
+    },
+    {
+      "id": "683",
+      "path": "683-user-facing-executable-example-audit.md",
+      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
+      "track": "docs-audit",
+      "status": "open",
+      "depends_on": [
+        "679",
+        "682"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
+      "status": "open",
+      "depends_on": [
+        "649",
+        "698"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {

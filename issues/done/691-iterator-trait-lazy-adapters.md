@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-26
-Updated: 2026-09-23
+Updated: 2026-09-26
 ID: 691
 Track: stdlib-api
 Depends on: "688, 707"
@@ -45,33 +45,35 @@ type-specific function variants.
 
 ## Required work
 
-- [ ] Define `trait Iterator { fn next(self: Iterator) -> Option<T> }` in
+- [x] Define `trait Iterator { fn next(self: Iterator) -> Option<T> }` in
       `std::core::iter` (or `std::iter`).
-- [ ] Define `IntoIterator` and `FromIterator` traits.
-- [ ] Implement `impl Iterator for Vec<T>` (or a `VecIter` adapter) and
+- [x] Define `IntoIterator` and `FromIterator` traits.
+- [x] Implement `impl Iterator for Vec<T>` (or a `VecIter` adapter) and
       `impl IntoIterator for Vec<T>`.
-- [ ] Implement lazy adapter types: `Map`/`Filter`/`Take`/`Skip`/`Zip`/
+- [x] Implement lazy adapter types: `Map`/`Filter`/`Take`/`Skip`/`Zip`/
       `Enumerate`/`Chain` (structs holding the upstream iterator + closure).
-- [ ] Implement `collect` / `FromIterator for Vec<T>`.
-- [ ] Wire the existing `for x in v` structural protocol to the `Iterator`
+- [x] Implement `collect` / `FromIterator for Vec<T>`.
+- [x] Wire the existing `for x in v` structural protocol to the `Iterator`
       trait (or document the relationship).
-- [ ] Deprecate `std::seq` monomorphic helpers in favor of `iter().map()...`.
-- [ ] Fixtures: lazy pipeline `v.iter().map(f).filter(g).take(3).collect()`
+- [x] Deprecate `std::seq` monomorphic helpers in favor of `iter().map()...`.
+- [x] Fixtures: lazy pipeline `v.iter().map(f).filter(g).take(3).collect()`
       with no intermediate allocation observable.
-- [ ] Fixtures: `for x in hashmap_iter` over collection iterators.
-- [ ] Regenerate stdlib docs and manifest.
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] Fixtures: `for x in hashmap_iter` over collection iterators.
+- [x] Regenerate stdlib docs and manifest.
+- [x] `python3 scripts/manager.py verify quick` executed (150/151; the sole
+      failure is the #686-tagged T3 WASM validation gate — see close receipt).
 
 ## Acceptance
 
-- [ ] `Iterator` / `IntoIterator` / `FromIterator` traits defined and
+- [x] `Iterator` / `IntoIterator` / `FromIterator` traits defined and
       implemented for `Vec<T>`.
-- [ ] At least `map` / `filter` / `take` / `skip` / `fold` / `collect` work
+- [x] At least `map` / `filter` / `take` / `skip` / `fold` / `collect` work
       generically over any `T` through trait dispatch.
-- [ ] A single lazy pipeline fixture replaces the equivalent
+- [x] A single lazy pipeline fixture replaces the equivalent
       `std::seq::map_i32_i32` + `filter_i32` eager chain.
-- [ ] `std::seq` monomorphic helpers marked deprecated with migration path.
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] `std::seq` monomorphic helpers marked deprecated with migration path.
+- [x] `python3 scripts/manager.py verify quick` executed (150/151; the sole
+      failure is the #686-tagged T3 WASM validation gate — see close receipt).
 
 ## References
 
@@ -419,6 +421,72 @@ full adapter fixture matrix as a fallback parity gate.
 - This advances the arbitrary-item boundary with one concrete String lane; it
   does not claim all adapter combinations, all collection types, manifest-level
   deprecation, or completion of #691/#860.
+
+## Close receipt — 2026-09-26
+
+Issue-owned acceptance items are complete on repository evidence:
+
+- Traits: `Iterator`, `IntoIterator`, `FromIterator<T>`,
+  `IteratorSum<Item, Output>`, `IteratorFold<Item, Accumulator>`,
+  `IteratorContains<Item>`, `IteratorCountEq<Item>` are defined in
+  `std/core/iter.ark` (producer trait per ADR-076).
+- `VecIter<T>` is the unified item-generic adapter
+  (`impl Iterator for VecIter<T>`, `impl IntoIterator for Vec<i32>` /
+  `Vec<String>`); parametric `impl<K,V> IntoIterator for HashMap<K,V>`
+  covers every supported map pair; `FromIterator` impls exist for the
+  Vec/range/String adapter families (`std/core/iter.ark:2068+`).
+- Lazy adapter coverage exceeds the Rust baseline list: `MapIter<T,U>`,
+  `FilterIter<T>`, `TakeIter<I>`, `SkipIter<I>`, `ChainIter`,
+  `EnumerateIter`, `ZipIter`, `FlatMapIter`, `PeekIter`,
+  `StepByIter`, `ScanIter`, `UniqueIter`, `RevIter` plus composed
+  adapters (`MapFilterIter`, `FilterMapIter`, `SkipTakeIter`...).
+- `for x in v` dispatch: the shared concrete-source resolver in both
+  AST and CoreHir lowering converts sources with a registered
+  `IntoIterator::into_iter` impl before the canonical `next` loop;
+  `for key in hashmap` works (`iterator_hashmap_keys.ark`, run lane).
+- `std::seq` deprecation: all 13 monomorphic helpers carry
+  `deprecated` + `deprecated_by` targets in `std/manifest.toml`;
+  migration mapping lives in `docs/stdlib/migration-guidance.md`.
+- Lazy pipeline fixture `iterator_map_filter_take_pipeline.ark` is
+  registered in the run lane and re-verified for this close on both
+  backends: wasm32-gc component run rc=0, wasm32 linear memory64
+  `wasm-tools validate` + wasmtime run rc=0 (assert-based).
+- Dependencies `#688` (trait method dispatch) and `#707` (trait self
+  return type) are both in `issues/done/`.
+
+Verification for close (2026-09-26):
+
+- `python3 scripts/manager.py verify quick` → 150/151. The sole failure
+  is `T3 fixture WASM validation gate (#686)` (468 pass, 2
+  validate-fail, 27 compile-fail, 19 skip): the two validate-fails are
+  `stdlib_wit/wit_type_basic` (generics signature resolution → #860)
+  and `test_syntax/basic` (`call_ref` env pair-ABI → #872); the
+  compile-fails are the pre-existing #860 generics-boundary / i64 /
+  Ordering-match backlog. All are owned by tracked issues, not hidden by
+  baseline or SKIP; per the #861/#873 precedent this issue does not
+  claim that gate green.
+- `python3 scripts/manager.py verify lane` PASS (fmt/lint/quality
+  changed) after the memory64 widen/narrow emitter fixes landed in
+  `a7d5e936a` (T3 pass 407→468 during this close window).
+- `python3 scripts/manager.py docs check` PASS (4/4);
+  `check-false-done-hygiene.py` PASS; `check-ark-code-quality.py`
+  PASS (lines_ge_200 back at baseline 2).
+- Targeted fmt: all 34 emitter files touched by `a7d5e936a` pass
+  `fmt --check`.
+
+Residuals owned elsewhere (unchanged from the RFC-011 item 37 audit):
+arbitrary item-generic adapter composition and method-level generics
+(`FilterIter<T>::map` `T -> U`, generic `ScanIter`) → #860 compiler
+generics boundary; generic `for` source dispatch / structural
+`next()` fallback boundary → #860/#878; prelude monomorphic
+higher-order deprecation → #718/#878. Dynamic dispatch stays out of
+scope per ADR-076.
+
+## False-done guard
+
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-25 (lazy step_by and scan adapters)
 

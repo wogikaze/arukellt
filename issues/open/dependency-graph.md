@@ -15,7 +15,6 @@ graph LR
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I686["686 Wasm GC Selfhost Implementation"]
-  I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
@@ -33,19 +32,19 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
+  I860["860 860 — Iterator Trait 体系を統合完了する"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
-  I860["860 860 — Iterator Trait 体系を統合完了する"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
-  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I872["872 872 — Wasm GC closure / collection lowering を完成する"]
   I874["874 874 — fallback managed-value lowering を実装する"]
+  I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
+  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
@@ -60,25 +59,20 @@ graph LR
   I680 --> I682
   I686 --> I698
   I686 --> I801
-  I691 --> I860
-  I691 --> I697
   I695 --> I697
-  I691 --> I703
   I695 --> I703
   I715 --> I719
   I715 --> I799
   I851 --> I850
-  I682 --> I683
-  I698 --> I699
   I860 --> I872
   I860 --> I874
-  I691 --> I709
+  I682 --> I683
+  I698 --> I699
   I695 --> I709
   I697 --> I709
   I703 --> I709
   I872 --> I875
   I874 --> I875
-  I691 --> I710
   I697 --> I710
   I709 --> I710
   I860 --> I877
@@ -112,7 +106,6 @@ graph LR
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: 698, 801
-- **691** depends on: 688, 707; blocks: 697, 703, 709, 710, 860
 - **693** depends on: 688, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
 - **702** depends on: 688, 700, 692; blocks: none
@@ -130,19 +123,19 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
+- **860** depends on: 691, 856; blocks: 872, 874, 877
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
-- **860** depends on: 691, 856; blocks: 872, 874, 877
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
-- **683** depends on: 679, 682; blocks: none
-- **699** depends on: 649, 698; blocks: none
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879
 - **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879
+- **683** depends on: 679, 682; blocks: none
+- **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
