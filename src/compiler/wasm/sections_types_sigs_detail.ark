@@ -1007,6 +1007,13 @@ fn build_param_type_sig(
             return concat(String_from("gcsref"), i32_to_string(slot))
         }
     }
+    // 'Head<Args>' enum instantiations (e.g. Box<WitType>): same open-enum
+    // arm as the return path; without it a generic enum param falls to the
+    // VT_GC_REF single-field-struct fallback (#860).
+    if emit_target::is_gc_target(clone(target)) &&
+    p2_return_type_name_is_enum_instance(clone(p_type_name), mir) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
     if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("string")) || eq(clone(p_type_name), String_from("String"))) {
         return sections_types_gc::gc_string_type_sig()
     }
@@ -1162,6 +1169,14 @@ fn build_return_type_value_sig(
     if len(registered) > 0 {
         return registered
     }
+    // 'Head<Args>' enum instantiations (e.g. Box<WitType>): the head names a
+    // registered enum, so the value is an open-enum ref. Without this arm the
+    // name falls to the VT_GC_REF fallback, which emits the single-i32-field
+    // struct that cannot hold the variant value (#860).
+    if emit_target::is_gc_target(clone(target)) &&
+    p2_return_type_name_is_enum_instance(clone(return_type_name), mir) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
     let generic_ret_sig = build_generic_type_var_sig(
         clone(uf.name),
         clone(return_type_name),
@@ -1197,6 +1212,25 @@ fn return_type_name_is_enum_family(type_name: String) -> bool {
         return true
     }
     p2_is_result_type_name(type_name)
+}
+
+// True for 'Head<Args>' return names whose head registers enum variants
+// (e.g. Box<WitType> has the Box::Owned variant). Concrete gc_struct slots
+// are checked first and cannot be enum types, so this arm only sees names
+// that would otherwise reach the generic-VT fallback.
+fn p2_return_type_name_is_enum_instance(type_name: String, mir: MirModule) -> bool {
+    let n = len(type_name)
+    let mut i = 0
+    while i < n {
+        if byte_at(type_name, i) == 60 {
+            if i == 0 {
+                return false
+            }
+            return p2_enum_has_variants(substring(type_name, 0, i), mir)
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn gc_struct_sig_is_enum_open_box(sig_or_gcsref: String, mir: MirModule) -> bool {

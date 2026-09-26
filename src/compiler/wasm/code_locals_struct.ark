@@ -52,9 +52,46 @@ fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, typ
         emit_gc_enum_open_local(body, ctx)
         return true
     }
+    // 'Head<Args>' enum instantiations (e.g. Box<WitType>): the head names a
+    // registered enum so the local is the open-enum ref, not the VT_GC_REF
+    // fallback's i8-array default (#860).
+    if local_type_name_is_enum_instance(clone(type_name), ctx) {
+        emit_gc_enum_open_local(body, ctx)
+        return true
+    }
     if code_ref_locals_infer_dest::local_has_multiple_enum_variant_types(f, local_idx, ctx) {
         emit_gc_enum_open_local(body, ctx)
         return true
+    }
+    false
+}
+
+// True for 'Head<Args>' local type names whose head registers enum variants
+// (e.g. Box<WitType> has the Box::Owned variant in this module).
+fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool {
+    let n = len(type_name)
+    let mut head_end = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(type_name, i) == 60 {
+            head_end = i
+            i = n
+        }
+        i = i + 1
+    }
+    if head_end <= 0 {
+        return false
+    }
+    let head = substring(type_name, 0, head_end)
+    let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let mut vi = 0
+    while vi < len(names) {
+        let variant = get_unchecked(names, vi)
+        if starts_with(clone(variant), concat(clone(head), String_from("::"))) ||
+        contains(clone(variant), concat(String_from("::"), concat(clone(head), String_from("::")))) {
+            return true
+        }
+        vi = vi + 1
     }
     false
 }
