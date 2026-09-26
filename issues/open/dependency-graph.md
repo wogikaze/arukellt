@@ -41,7 +41,6 @@ graph LR
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
-  I865["865 865 — Hygienic desugaring と f-string lowering を実装する"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
@@ -68,7 +67,6 @@ graph LR
   I695 --> I703
   I715 --> I719
   I715 --> I799
-  I729 --> I865
   I851 --> I850
   I682 --> I683
   I698 --> I699
@@ -78,7 +76,6 @@ graph LR
   I695 --> I709
   I697 --> I709
   I703 --> I709
-  I865 --> I875
   I872 --> I875
   I874 --> I875
   I691 --> I710
@@ -125,7 +122,7 @@ graph LR
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
-- **729** depends on: 843; blocks: 865
+- **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none
 - **814** depends on: 791; blocks: none
 - **815** depends on: none; blocks: none
@@ -141,7 +138,6 @@ graph LR
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
-- **865** depends on: 729; blocks: 875
 - **850** depends on: 851; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none

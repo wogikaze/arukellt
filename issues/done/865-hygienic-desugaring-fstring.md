@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-20
+Updated: 2026-09-26
 ID: 865
 Parent: 852
 Track: language-v2
@@ -77,3 +77,53 @@ RFC-011: **28, 29**。
   `Status: open`; this receipt does not silently remove or reinterpret that
   dependency. Move this issue to `issues/done/` after #729 is resolved or the
   dependency is explicitly re-triaged with repository evidence.
+
+## Progress receipt — 2026-09-26 (issue closing)
+
+Commits: implementation \`9783627b5\` + \`b83d87ccf\`
+(2026-09-20); closure-emit repair \`83a7923c0\` (this receipt).
+Branch \`docs/adr-058-language-v2-semantics\`.
+
+Dependency re-triage (recorded explicitly per the close rule above):
+the \`Depends on: 729\` edge is re-triaged with repository
+evidence. The declared dependency was meaningful while acceptance
+item 1 — the canonical lang-item mechanism — was undecided. ADR-077
+settled it with compiler-owned receiver/method-reference lowering,
+which runs on the existing binding machinery; nothing in
+\`9783627b5\` / \`b83d87ccf\` touches
+\`data/core-ops.toml\`, the SignatureRegistry, or the alias
+machinery #818 owns. The remaining #729 child #818 is further gated
+on #698 for the portable-SIMD \`legacy_emitter\` carve-out, so the
+edge would hold a verified v2 leaf hostage to an unrelated registry
+epic. #865 is closed; if the #729 close-gate later finds desugaring
+still rides on removed legacy machinery, that is a mechanical
+follow-up, not a semantics change — the contract lives in ADR-077,
+not in the binding layer.
+
+Evidence (re-verified on current stage-2, 2026-09-26):
+
+- \`string_interp/fstring_hygiene.ark\`: wasm32 linear compiles
+  and runs \`left\` / \`right\` / \`iteration\` /
+  \`7\` / \`8\` / \`fstring_hygiene ok\`; wasm32-gc
+  component compiles, validates, and runs identically.
+- \`string_interp/fstring_basic.ark\`, \`fstring_expr.ark\`,
+  \`fstring_debug_specifier.ark\`: wasm32-gc components compile
+  and run with expected output.
+- \`diagnostics/fstring_embedded_unresolved.ark\`: still errors
+  \`E0100: undefined name: unknown_value\` inside the
+  interpolation.
+- Gate: \`python3 scripts/manager.py verify lane\` PASS (comment
+  policy, semantic-debt, lint smoke, ratchet, editorconfig, quality
+  contract, fmt, lint ratchet).
+
+Regression found and fixed during this review: every
+\`__closure_*_env\` trampoline on wasm32-gc pushed the unpacked
+env field as one extra call argument whenever the closure captured
+nothing, because \`closure_split_packed("")\` returned a single
+empty capture name. The phantom \`i32\` env field made
+capture-less closure modules invalid (wasm type mismatch: ref vs
+i64). \`83a7923c0\` skips empty segments in
+\`closure_split_packed\`; \`closure_basic\`,
+\`closure_capture\`, \`capture_struct\`,
+\`higher_order\`, and the full fstring suite now validate and run
+on both targets. Filed under #872 scope.
