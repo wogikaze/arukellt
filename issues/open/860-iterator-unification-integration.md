@@ -1480,3 +1480,30 @@ acceptance boxes complete.
   the RFC-011 residual-zero audit once #691 closes, and
   `verify quick` remains blocked by unrelated pre-existing gates.
   #860 is not closed.
+
+## Progress receipt — 2026-09-26 (enum-instance sig/local resolution)
+
+- Commit `e1d9e4e93` resolves `Head<Args>` generic enum
+  instantiations (e.g. `Box<WitType>`) in the wasm-gc emitter. Such
+  names previously fell through to the VT_GC_REF fallback in both
+  `build_param_type_sig`/`build_return_type_value_sig` and
+  `emit_gc_local_enum_like`, producing the single-i32-field struct
+  that cannot hold a variant value. New head-name checks against the
+  registered enum variants
+  (`p2_return_type_name_is_enum_instance`,
+  `local_type_name_is_enum_instance`) return the open-enum gc sig on
+  both paths.
+- Verified: `tests/fixtures/stdlib_wit/wit_type_basic.ark` now
+  compiles, `wasm-tools validate` passes, and the component runs with
+  the expected output. T3 wasm-validate count is 469 with a single
+  remaining failure — `test_syntax/basic` func 19 `$any_i32`, a
+  pair-ABI signature-synthesis gap diagnosed and recorded in #872
+  (uninvoked `fn(i32) -> bool` param call falls back to a wrong
+  `(i64, i64) -> i64` ref.cast).
+- `verify lane` passed on the emitter diff (lint 2/0, ratchet clean).
+- #691 closed this session (`c9c07cc4e`), so the RFC-011
+  residual-zero audit is now unblocked.
+- Remaining #860 residuals: `FilterIter<T>::map` stays `T -> T`
+  (needs method-level generics), `MirInst_call` arg0=-1 design,
+  the RFC-011 residual-zero audit, and the `$any_i32` pair-ABI
+  validate-fail owned by #872. #860 is not closed.

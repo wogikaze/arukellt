@@ -203,3 +203,28 @@ RFC-011: **8 (closure/collection)**。
   the exact signature, generic-impl fn-typed fields with unresolved `T`
   remain mis-typed on the dest side, env cells for mutable rebind, and
   the full parity audit; #872 stays open.
+
+## Diagnosis note — 2026-09-26 (uninvoked fn-typed param call_ref, `any_i32`)
+
+- Last remaining T3 wasm-validate failure after the #860 enum-instance
+  sig fix: `tests/fixtures/test_syntax/basic.ark` func 19 `$any_i32`
+  (retained prelude code that is never invoked from `main`).
+- Symptom: `f(elem)` inside `any_i32` lowers to a `call_ref` that
+  pushes env (structref) + arg (i64) + funcref, then `ref.cast`s to
+  `(ref null 13)` — the `(i64, i64) -> i64` signature. The callee is
+  declared `fn(i32) -> bool`, so the expected pair-call shape is
+  `(structref, i64) -> i64`.
+- Root cause: the pair-call hint `5|fnref|nk:i32;|vk:1;` queries
+  `call_ref_pair_key_type_idx` for a matching `__fnthunk` trampoline,
+  but `any_i32` is never invoked, so no `__fnthunk` for
+  `fn(i32) -> bool` was synthesized. The fallback
+  `resolve_indirect_type_idx` → `find_binary_i32_callback_type_memory64`
+  then picked `add`'s `(i64, i64) -> i64` signature, which does not
+  match the pushed stack shape.
+- Note: type 69 `(structref, i64) -> i64` already exists in the module
+  (slice_get's signature) but the MIR vt keys mismatch (i32 vs i64), so
+  it is not selected.
+- Fix direction: either synthesize the pair-call signature in the type
+  section when no trampoline exists for the declared fn type, or register
+  a trampoline for every signature-typed param call site regardless of
+  reachability. This is #872 pair-ABI scope, not #860.
