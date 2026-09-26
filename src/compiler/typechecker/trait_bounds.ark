@@ -39,7 +39,13 @@ fn type_satisfies_trait_bound_at_depth(
     if match_count != 1 {
         return false
     }
-    if depth >= len(env.trait_defs) {
+    // Fuel for cyclic supertrait chains: a simple path through the declared
+    // traits has at most trait_defs nodes, so any chain deeper than that has
+    // revisited a trait. The guard must not reject the top-level call itself
+    // when the registry is empty — an impl can satisfy a bound even when the
+    // trait declaration is not in scope (ADR-065: operator legality must not
+    // depend on importing std::core::ops) (#886).
+    if depth > len(env.trait_defs) {
         return false
     }
     let trait_info = trait_info_for_name(
