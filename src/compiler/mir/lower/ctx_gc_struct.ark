@@ -169,6 +169,30 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     }
     String_new()
 }
+// A field spelling that names a declared aggregate. Single-letter user
+// type names (struct P, enum E) collide with the unsubstituted-type-param
+// heuristics, so declared types must win before the i32 fallbacks apply.
+pub fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    ctx_struct_field_type::ctx_struct_layout_exists(ctx, clone(type_name)) ||
+    ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name))
+}
+
+// vec:X / Vec<X> element spelling; empty when the container has no single
+// element segment (hashmap:, Vec_, and nested spellings stay with the
+// suffix fn, which maps them before the type-param check).
+fn gc_struct_vec_elem_spelling(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return substring(clone(type_name), 4, len(type_name))
+    }
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        return substring(clone(type_name), 4, len(type_name) - 1)
+    }
+    String_new()
+}
+
 fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
     let prefix = concat(String_from("_f"), i32_to_string(field_idx))
     // Empty field types are discriminant/_tag slots on enum layouts — i32, not
@@ -186,7 +210,15 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
         }
     }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
-    if len(scalar) > 0 {
+    // A single-letter spelling is also a legal user type name (struct P,
+    // enum E): when it names a declared aggregate the scalar suffix is the
+    // unsubstituted-type-param fallback, which must not claim the field.
+    // Collapsing a ref field to _i32 dedupes the env/struct layout onto the
+    // all-i32 shell and makes later struct.get/struct.set invalid (#874).
+    let param_fallback_on_declared = len(scalar) > 0 &&
+    gc_struct_field_type_is_type_param(clone(type_name)) &&
+    gc_struct_field_name_is_declared(ctx, clone(type_name))
+    if len(scalar) > 0 && !param_fallback_on_declared {
         return concat(prefix, scalar)
     }
     // `Owner::Item` projections (fnsig:VecIter::Item;...,
@@ -207,6 +239,14 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     // Container fields: pick the concrete GC vec/map type when the
     // element type is known (Vec<String> ≠ Vec<i32>; #726 TomlKeyStep).
     if gc_struct_field_type_is_container(clone(type_name)) {
+        // A declared element name keeps the structref-array layout; the
+        // type-param fallback inside the suffix fn would demote vec:P to
+        // the dead-shell i32 array even though P is a real struct.
+        let elem = gc_struct_vec_elem_spelling(clone(type_name))
+        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) &&
+        gc_struct_field_name_is_declared(ctx, clone(elem)) {
+            return concat(prefix, String_from("_ref25"))
+        }
         return concat(prefix, gc_struct_container_ref_suffix(clone(type_name)))
     }
     // Struct-typed field: ensure the nested layout has a named GC slot even

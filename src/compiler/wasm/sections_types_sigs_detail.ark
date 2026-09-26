@@ -151,7 +151,7 @@ fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> Str
     if eq(clone(seg), String_from("String")) || eq(clone(seg), String_from("string")) {
         return sections_types_gc::gc_string_type_sig()
     }
-    let coll = sections_types_gc_plan::collection_type_sig(clone(seg), clone(target))
+    let coll = sections_types_gc_plan::collection_type_sig(mir, clone(seg), clone(target))
     if len(coll) > 0 {
         return coll
     }
@@ -952,7 +952,7 @@ fn build_param_type_sig(
     // the structref-array vec layout. Typed spine often still has the flat
     // Vec<i32> alias, which makes count__Vec_i32_ take the wrong param (#808).
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
-        let nested_coll = sections_types_gc_plan::collection_type_sig(clone(p_type_name), clone(target))
+        let nested_coll = sections_types_gc_plan::collection_type_sig(mir, clone(p_type_name), clone(target))
         if eq(clone(nested_coll), sections_types_gc_phase7::gc_vec_struct_ref_type_sig()) {
             return nested_coll
         }
@@ -971,7 +971,7 @@ fn build_param_type_sig(
     }
     // Check vec:/hashmap: before the override: the __String override would
     // incorrectly type Vec<String> and HashMap params as plain String.
-    let coll_sig = sections_types_gc_plan::collection_type_sig(clone(p_type_name), clone(target))
+    let coll_sig = sections_types_gc_plan::collection_type_sig(mir, clone(p_type_name), clone(target))
     if len(coll_sig) > 0 {
         return coll_sig
     }
@@ -1135,7 +1135,7 @@ fn build_return_type_value_sig(
         return typed_sig
     }
     // vec:/hashmap: return types use the same mapping as params.
-    let coll_sig = sections_types_gc_plan::collection_type_sig(clone(return_type_name), clone(target))
+    let coll_sig = sections_types_gc_plan::collection_type_sig(mir, clone(return_type_name), clone(target))
     if len(coll_sig) > 0 {
         return coll_sig
     }

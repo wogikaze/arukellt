@@ -205,7 +205,8 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     }
     if starts_with(clone(ret_name), "vec:") {
         let elem = substring(clone(ret_name), 4, len(ret_name))
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
+        ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
         }
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))

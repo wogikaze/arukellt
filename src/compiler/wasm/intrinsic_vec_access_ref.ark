@@ -42,7 +42,8 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     }
     if starts_with(clone(tname), "vec:") {
         let elem = substring(clone(tname), 4, len(tname))
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
+        ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }
         if eq(clone(elem), "String") || eq(clone(elem), "string") {

@@ -28,3 +28,18 @@ fn SelfEmitCtx_vec_enum_ref_type(ctx: SelfEmitCtx) -> i32 {
 fn gc_vec_elem_is_struct_ref(elem: String) -> bool {
     sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem)
 }
+
+// A vec element spelling that names a registered GC struct. Single-letter
+// struct names collide with the unsubstituted-type-param heuristic inside
+// gc_vec_elem_name_is_struct_ref, so the registry must win.
+fn gc_vec_elem_is_registered_struct(ctx: SelfEmitCtx, elem: String) -> bool {
+    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+    let mut i = 0
+    while i < len(names) {
+        if eq(clone(get_unchecked(names, i)), clone(elem)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}

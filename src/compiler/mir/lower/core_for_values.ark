@@ -21,7 +21,7 @@ fn lower_core_for_values(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     let end_local = loop_vec::mir_emit_vec_len_saved(ctx, vec_local)
     let idx_var = loop_conditions::mir_emit_zero_local(ctx)
     let elem_type = loop_vec::mir_vec_element_type_name(clone(vec_type))
-    let iter_vt = loop_vec::mir_vec_element_vt(clone(elem_type))
+    let iter_vt = loop_vec::mir_vec_element_vt(ctx, clone(elem_type))
     let iter_var = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), iter_vt)
     if len(elem_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, iter_var, elem_type)

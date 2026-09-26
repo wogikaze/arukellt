@@ -27,7 +27,7 @@ fn mir_struct_iterator_iter_var(ctx: LowerCtx, iter_name: String, next_callee: S
 }
 
 fn mir_struct_iterator_payload_vt(ctx: LowerCtx, payload_type: String) -> i32 {
-    let payload_vt = loop_vec::mir_vec_element_vt(payload_type)
+    let payload_vt = loop_vec::mir_vec_element_vt(ctx, payload_type)
     if payload_vt == value_types::VT_GC_REF() && !ctx_gc_enum::ctx_is_gc_target(ctx) {
         return value_types::VT_REF()
     }

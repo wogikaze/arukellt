@@ -110,7 +110,10 @@ fn array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
         if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx)
         }
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || eq(clone(elem), String_from("Vec")) || starts_with(clone(elem), String_from("vec:")) {
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
+        eq(clone(elem), String_from("Vec")) ||
+        starts_with(clone(elem), String_from("vec:")) ||
+        ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
         }
         return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)

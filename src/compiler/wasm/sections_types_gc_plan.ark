@@ -3,6 +3,7 @@ use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_info_to_mir_value
 use corehir::type_table
+use mir::module_gc_struct
 use mir::module_spine
 use mir::spine_lookup
 use wasm::emit_target
@@ -45,7 +46,7 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
     }
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, mvt)
     if len(alias) > 0 {
-        return collection_type_sig(alias, target)
+        return collection_type_sig(mir, alias, target)
     }
     String_new()
 }
@@ -62,7 +63,7 @@ fn is_legacy_generic_struct_name(name: String) -> bool {
     false
 }
 
-fn collection_type_sig(type_name: String, target: String) -> String {
+fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> String {
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
     }
@@ -91,7 +92,8 @@ fn collection_type_sig(type_name: String, target: String) -> String {
         }
         if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) ||
         eq(clone(elem), "Vec") ||
-        starts_with(clone(elem), "vec:") {
+        starts_with(clone(elem), "vec:") ||
+        module_gc_struct::MirModule_gc_struct_slot(mir, clone(elem)) >= 0 {
             return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
         }
         return sections_types_gc::gc_vec_type_sig()

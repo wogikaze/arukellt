@@ -306,7 +306,8 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             }
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             let elem_name = substring(clone(type_name), 4, len(type_name))
-            if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+            if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) ||
+            ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem_name)) {
                 writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
             } else {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
@@ -387,7 +388,8 @@ fn emit_vec_struct_ref_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmi
     if vec_elem_is_nested_container_name(clone(elem_name)) {
         return false
     }
-    if !ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+    if !ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) &&
+    !ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem_name)) {
         return false
     }
     writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -400,7 +402,8 @@ fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i3
         return false
     }
     let elem_name = substring(clone(type_name), 4, len(type_name))
-    if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+    if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) ||
+    ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem_name)) {
         return inferred_gc != ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     }
     false

@@ -4,6 +4,7 @@ use mir::lower::ctx_types
 use mir::inst_call
 use mir::inst_local_get
 use mir::lower::loop_conditions
+use mir::lower::ctx_gc_struct
 use mir::value_types
 
 fn mir_is_vec_type_name(vec_type: String) -> bool {
@@ -23,7 +24,7 @@ fn mir_vec_element_type_name(vec_type: String) -> String {
     "i32"
 }
 
-fn mir_vec_element_vt(elem_type: String) -> i32 {
+fn mir_vec_element_vt(ctx: LowerCtx, elem_type: String) -> i32 {
     if eq(clone(elem_type), "i64") || eq(clone(elem_type), "I64") {
         return value_types::VT_I64()
     }
@@ -42,6 +43,11 @@ fn mir_vec_element_vt(elem_type: String) -> i32 {
     if len(elem_type) == 1 {
         let ch = byte_at(elem_type, 0)
         if ch >= 65 && ch <= 90 {
+            // A declared single-letter element type (struct P) is a ref,
+            // not an unsubstituted-param scalar.
+            if ctx_gc_struct::gc_struct_field_name_is_declared(ctx, clone(elem_type)) {
+                return value_types::VT_GC_REF()
+            }
             return value_types::VT_I32()
         }
     }

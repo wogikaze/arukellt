@@ -92,7 +92,8 @@ fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Opti
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
     let elem_name = substring(clone(type_name), 4, len(type_name))
-    if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+    if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) ||
+    ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem_name)) {
         return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
     }
     Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))

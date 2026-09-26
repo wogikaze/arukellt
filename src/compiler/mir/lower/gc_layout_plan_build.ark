@@ -4,6 +4,7 @@ use corehir::kinds
 use corehir::type_id
 use corehir::type_table
 use mir::gc_layout_plan
+use mir::lower::aggregate_field
 use mir::gc_layout_plan_validator
 use mir::module_gc_enum
 use mir::module_gc_layout_plan
@@ -51,7 +52,47 @@ fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32
     25
 }
 
-fn gc_layout_plan_vec_offset_from_name(name: String) -> i32 {
+// The element name of a vec: / Vec< / Vec_ spelling, empty when the
+// container has no single element segment.
+fn gc_layout_plan_vec_elem_name(name: String) -> String {
+    if starts_with(clone(name), String_from("vec:")) {
+        return substring(clone(name), 4, len(name))
+    }
+    if starts_with(clone(name), String_from("Vec<")) && ends_with(clone(name), String_from(">")) {
+        return substring(clone(name), 4, len(name) - 1)
+    }
+    String_new()
+}
+
+// The element name resolves to a declared aggregate entry in the type
+// table. Single-letter struct names (vec:P) collide with the
+// unsubstituted-type-param spelling, so a registered struct/enum name
+// must win over the dead-shell i32 fallback.
+fn gc_layout_plan_elem_is_declared_aggregate(table: TypeTable, elem: String) -> bool {
+    if len(elem) == 0 {
+        return false
+    }
+    let count = type_table::TypeTable_entry_count(table)
+    let mut i = 0
+    while i < count {
+        let e = type_table::TypeTable_entry_at(table, i)
+        let k = type_table::type_entry_kind(e)
+        if k == kinds::TYPE_KIND_STRUCT() || k == kinds::TYPE_KIND_ENUM() {
+            let en = type_table::type_entry_name(e)
+            if eq(clone(en), clone(elem)) {
+                return true
+            }
+            if starts_with(clone(en), String_from("struct:")) &&
+            eq(aggregate_field::strip_struct_type_prefix(en), clone(elem)) {
+                return true
+            }
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn gc_layout_plan_vec_offset_from_name(table: TypeTable, name: String) -> i32 {
     if starts_with(clone(name), "vec:String") ||
     starts_with(clone(name), "vec:string") ||
     starts_with(clone(name), "Vec<String>") ||
@@ -86,6 +127,12 @@ fn gc_layout_plan_vec_offset_from_name(name: String) -> i32 {
     if starts_with(clone(name), "Vec<") &&
     !(contains(clone(name), "i32") || contains(clone(name), "I32") ||
         contains(clone(name), "bool") || contains(clone(name), "char")) {
+        return 25
+    }
+    if gc_layout_plan_elem_is_declared_aggregate(
+        table,
+        gc_layout_plan_vec_elem_name(clone(name))
+    ) {
         return 25
     }
     10
@@ -151,7 +198,7 @@ fn gc_layout_plan_fixed_offset_for_entry(table: TypeTable, entry: TypeEntry) -> 
             )
             if typed >= 0 { return typed }
         }
-        return gc_layout_plan_vec_offset_from_name(type_table::type_entry_name(entry))
+        return gc_layout_plan_vec_offset_from_name(table, type_table::type_entry_name(entry))
     }
     if kind == kinds::TYPE_KIND_HASHMAP() {
         if type_table::type_entry_type_param_count(entry) == 2 {
