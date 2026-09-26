@@ -145,7 +145,7 @@ lazy `TakeIter<FilterIter>` adapter and a generic `T: IntoIterator` consumer
 on both targets. This remains concrete `Vec<i32>` evidence, not a claim for
 arbitrary item representations or adapter combinations.
 
-### RFC-011 item 37 residual audit (2026-09-23)
+### RFC-011 item 37 residual audit (refreshed 2026-09-26)
 
 RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
 `FromIterator` share one trait surface. Audited against the current tree:
@@ -153,21 +153,23 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
 **Done and verified on both `wasm32-gc` and `wasm32`:**
 
 - `Iterator` (`Item`, `next`, `collect`, `count`), `IntoIterator`,
-  `FromIterator<T>`, and the `IteratorSum` / `IteratorFold` capability
-  traits are defined in `std::core::iter` (ADR-076 producer/consumer split).
+  `FromIterator<T>`, and the `IteratorSum` / `IteratorFold` /
+  `IteratorContains` / `IteratorCountEq` capability traits are defined in
+  `std::core::iter` (ADR-076 producer/consumer split).
 - Concrete lanes: `Vec<i32>`, `Vec<String>`, `Range`, `RangeInclusive`
-  implement `IntoIterator`; lazy adapters exist for the i32 and String
-  lanes (map/filter/take/skip plus enumerated compositions, chain,
-  enumerate, zip); `collect` is the canonical trait path
-  (`Vec<Self::Item>`).
+  implement `IntoIterator` through the unified item-generic
+  `VecIter<T>`; lazy adapters now cover map/filter/take/skip, the
+  enumerated compositions, chain, enumerate, zip, flat_map, peek,
+  step_by, scan (i32-instantiated), unique, and rev; `collect` is the
+  canonical trait path (`Vec<Self::Item>`).
+- `for key in map` iterates every supported HashMap pair through the
+  parametric `impl<K,V> IntoIterator for HashMap<K,V>` (keys snapshot
+  into `VecIter<K>`); #691 closed with all thirteen `std::seq`
+  helpers carrying `deprecated` + `deprecated_by` targets.
 - `for` lowering dispatches concrete `IntoIterator` sources through the
   same conversion + canonical `next` sequence as handwritten consumers;
   generic `T: Iterator` / `T: IntoIterator` consumers monomorphize to the
   same path. Non-iterable sources are rejected with E0200.
-- All thirteen monomorphic `std::seq` helpers are `deprecated` with
-  `deprecated_by` targets and delegate to the lazy pipeline or the
-  generic `Ord`-based algorithms;
-  `std::core::iter` is registered in `std/manifest.toml`.
 
 **Residual (open, with owner):**
 
@@ -180,13 +182,15 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   the former concrete `StringSkip*` types are removed. A map callback that
   changes the item type (`fn(I::Item) -> U`) still needs method-level
   generics. Owner: #860 compiler generics boundary.
-- HashMap iterator coverage: `for key in map` now works on both backends
-  through the parametric `impl<K,V> IntoIterator for HashMap<K,V>`
-  (snapshot via `HashMap::keys()` into `VecIter<K>`; fixture
-  `iterator_hashmap_keys.ark` covers i32/i32, String/i32, and i32/String
-  lanes). Entry (key+value) enumeration and live-order guarantees remain
-  open. Owner: #860 for any intrinsic-free surface extension; a new
-  map-specific enumeration intrinsic needs its own issue.
+- Generic `ScanIter<T>` is now verified beyond the i32 lane:
+  `tests/fixtures/stdlib_trait/iterator_scan_string.ark` exercises
+  `VecIter<String>::scan` with a `fn(String, String) -> Option<String>`
+  callback and passes on both backends. Earlier bare-`T` fn-typed field
+  concerns were resolved by the #881 Option-record-field type-index fix.
+- HashMap entry (key+value) enumeration and live-order guarantees
+  remain open; key-only `for` is done. Owner: #860 for any
+  intrinsic-free surface extension; a new map-specific enumeration
+  intrinsic needs its own issue.
 - Generic `for` source dispatch: a source whose iteration obligation is
   not statically resolved stays rejected; the structural `next()`
   fallback for custom iterators remains as the compatibility path.
@@ -194,9 +198,10 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
 - Prelude monomorphic higher-order functions have no lazy replacement yet;
   they stay `stable` until iterator coverage or an explicit eager decision
   exists. Owner: #718 / #878.
-- `verify quick` exit 0 is blocked by unrelated pre-existing gates
-  (#652 WIT parser, #765 docs CI, MIR reachability baseline, T3
-  memory64 emitter), not by iterator work.
+- `verify quick` exit 0 is blocked by the #686-owned T3 WASM
+  validation gate, whose last validate-fail is the `any_i32` pair-ABI
+  signature gap owned by #872; its 27 compile-fails are the
+  pre-existing generics-boundary / i64 / Ordering-match backlog.
 
 Dynamic dispatch (`dyn Trait`) is intentionally out of scope per ADR-076.
 It also covers `iter().skip(n).take(m).collect()` through `TakeIter<SkipIter>` and a

@@ -1792,6 +1792,7 @@ run:stdlib_trait/iterator_query_consumers.ark
 run:stdlib_trait/iterator_range_basic.ark
 run:stdlib_trait/iterator_range_empty.ark
 run:stdlib_trait/iterator_range_single.ark
+run:stdlib_trait/iterator_scan_string.ark
 run:stdlib_trait/iterator_skip_basic.ark
 run:stdlib_trait/iterator_skip_more_than_len.ark
 run:stdlib_trait/iterator_skip_zero.ark
@@ -2359,6 +2360,7 @@ t3-compile:stdlib_trait/iterator_generic_struct_item.ark
 t3-compile:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-compile:stdlib_trait/iterator_peek_basic.ark
 t3-compile:stdlib_trait/iterator_query_consumers.ark
+t3-compile:stdlib_trait/iterator_scan_string.ark
 t3-compile:stdlib_trait/iterator_step_scan.ark
 t3-compile:stdlib_trait/iterator_string_callbacks.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
@@ -2837,6 +2839,7 @@ t3-run:stdlib_trait/iterator_generic_struct_item.ark
 t3-run:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-run:stdlib_trait/iterator_peek_basic.ark
 t3-run:stdlib_trait/iterator_query_consumers.ark
+t3-run:stdlib_trait/iterator_scan_string.ark
 t3-run:stdlib_trait/iterator_step_scan.ark
 t3-run:stdlib_trait/iterator_string_callbacks.ark
 t3-run:stdlib_trait/read_write.ark

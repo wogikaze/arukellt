@@ -1,0 +1,18 @@
+use std::core::iter
+use std::test
+
+fn concat_str(a: String, b: String) -> Option<String> {
+    Some(concat(a, b))
+}
+
+fn main() {
+    let v: Vec<String> = Vec::new<String>()
+    push(v, String_from("a"))
+    push(v, String_from("b"))
+    let it = v.iter()
+    let scanned = it.scan(String_from(""), concat_str)
+    let out = scanned.collect()
+    test::assert_eq_i32(len(out), 2)
+    test::assert_eq_string(get_unchecked(out, 0), "a")
+    test::assert_eq_string(get_unchecked(out, 1), "ab")
+}
