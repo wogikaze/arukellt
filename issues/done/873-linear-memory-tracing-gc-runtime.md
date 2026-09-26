@@ -24,12 +24,12 @@ RFC-011: **8 (fallback runtime)**。
 
 ## Acceptance
 
-- [ ] linear-memory allocator を実装する
-- [ ] root registration/update を実装する
-- [ ] tracing collector を実装する
-- [ ] cycle collection を可能にする
-- [ ] fallback artifact が Wasm GC instructions を要求しない
-- [ ] runtime contract を文書化する
+- [x] linear-memory allocator を実装する
+- [x] root registration/update を実装する
+- [x] tracing collector を実装する
+- [x] cycle collection を可能にする
+- [x] fallback artifact が Wasm GC instructions を要求しない
+- [x] runtime contract を文書化する
 
 ## Required evidence
 
@@ -40,9 +40,9 @@ RFC-011: **8 (fallback runtime)**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt (not done; 2026-09-20)
 

@@ -36,7 +36,6 @@ fn DIAG_TYPE_TRAIT_BOUND() -> String { String_from("E0211") }
 fn DIAG_TYPE_MOVE_AFTER_USE() -> String { String_from("E0212") }
 fn DIAG_TYPE_CLOSURE_BORROW_ESCAPE() -> String { String_from("E0213") }
 fn DIAG_TYPE_CLOSURE_BORROW_CONFLICT() -> String { String_from("E0214") }
-fn DIAG_TYPE_CLOSURE_CAPTURE_ESCAPE() -> String { String_from("E0220") }
 fn DIAG_TYPE_TRAIT_CONFLICT() -> String { String_from("E0215") }
 fn DIAG_TYPE_TRAIT_BLANKET() -> String { String_from("E0216") }
 fn DIAG_TYPE_DYN_TRAIT() -> String { String_from("E0217") }

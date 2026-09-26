@@ -24,11 +24,11 @@ RFC-011: **42, 43**。
 
 ## Acceptance
 
-- [ ] stable/provisional/experimental/unimplemented を一意に定義する
-- [ ] current-state と future proposal を分離する
-- [ ] ADR-014/ADR-018 と spec labels を同期する
-- [ ] 未実装 proposal を stable 表示しない
-- [ ] docs consistency で drift を検出する
+- [x] stable/provisional/experimental/unimplemented を一意に定義する
+- [x] current-state と future proposal を分離する
+- [x] ADR-014/ADR-018 と spec labels を同期する
+- [x] 未実装 proposal を stable 表示しない
+- [x] docs consistency で drift を検出する
 
 ## Required evidence
 
@@ -39,9 +39,9 @@ RFC-011: **42, 43**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Completion receipt — 2026-09-23
 

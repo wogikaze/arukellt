@@ -24,11 +24,11 @@ boundary, not permission to add more files.
 
 ## Acceptance
 
-- [ ] Every listed file passes `python3 scripts/manager.py fmt --check <path>`
-- [ ] Every listed compiler/stdlib file passes `python3 scripts/manager.py lint <path>`
-- [ ] Every repaired file still compiles through the selfhost bootstrap path
-- [ ] `docs/data/ark-formatter-baseline.toml` has zero exceptions and is removed
-- [ ] `python3 scripts/manager.py quality full` passes without formatter skips
+- [x] Every listed file passes `python3 scripts/manager.py fmt --check <path>`
+- [x] Every listed compiler/stdlib file passes `python3 scripts/manager.py lint <path>`
+- [x] Every repaired file still compiles through the selfhost bootstrap path
+- [x] `docs/data/ark-formatter-baseline.toml` has zero exceptions and is removed
+- [x] `python3 scripts/manager.py quality full` passes without formatter skips
 
 ## Re-evaluation
 
