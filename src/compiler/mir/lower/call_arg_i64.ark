@@ -5,6 +5,7 @@ use mir::module_spine
 use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::value_types
+use wasm::hash_aliases
 
 // True when callee param at param_idx (0-based) is i64 per signature spine.
 // Used to force bare int literals to CONST_I64 / extend i32 locals before call.
@@ -95,6 +96,23 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
         let short = mir_callee_short_name(clone(callee_name))
         if !eq(clone(short), clone(callee_name)) {
             param_mvt = spine_lookup::function_param_mvt(m, short, param_idx)
+        }
+    }
+    if typed_mir_compat::mvt_is_invalid(param_mvt) {
+        // Builtin spellings (HashMap_i32_fn_insert and friends) are rewritten
+        // to their stdlib adapter callee at emit time, so the spine only knows
+        // the adapter's signature.  Resolve the same alias here or bare fn
+        // args lose their fn-typed parameter slot and lower to 0-param calls
+        // (#874).
+        let alias = hash_aliases::hashmap_builtin_alias(clone(callee_name))
+        if !eq(clone(alias), clone(callee_name)) {
+            param_mvt = spine_lookup::function_param_mvt(m, alias, param_idx)
+            if typed_mir_compat::mvt_is_invalid(param_mvt) {
+                let alias_short = mir_callee_short_name(clone(alias))
+                if !eq(clone(alias_short), clone(alias)) {
+                    param_mvt = spine_lookup::function_param_mvt(m, alias_short, param_idx)
+                }
+            }
         }
     }
     param_mvt

@@ -128,6 +128,18 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
                 self_vt = value_types::VT_GC_REF()
             }
         }
+        // An unannotated self param on a generic impl head still needs the
+        // declared Holder<T> spelling: the ordinal mono map
+        // (ctx_setup_mono_type_params_by_ordinal) collects type-variable
+        // names from param spellings, and a bare Holder drops T so ?T span
+        // rewrites cannot concretize inside the body (#874).
+        let impl_params = ctx_struct_mono::ctx_generic_struct_params(ctx, clone(struct_name))
+        if len(impl_params) > 0 {
+            self_type_name = concat(
+                clone(struct_name),
+                concat(String_from("<"), concat(impl_params, String_from(">")))
+            )
+        }
         // Bare Vec / HashMap / HashSet without element annotation → i32 vec.
         if eq(clone(struct_name), "Vec") || eq(clone(struct_name), "HashMap") || eq(clone(struct_name), "HashSet") {
             self_vt = value_types::VT_GC_REF()

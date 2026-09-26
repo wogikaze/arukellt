@@ -130,7 +130,15 @@ fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String
     // Associated Vec::new__T / with_capacity__T lower via wasm name fallback
     // (no MIR body). Still register the span rewrite so call sites get the
     // mangled callee for mark_vec / layout (#845).
-    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {
+    // Template spellings (Take__next__?I, Holder__read__?T) are not callable
+    // functions either: they exist so ctx_mono_concretize_span_target can map
+    // them through the enclosing instance's type-variable bindings at lookup
+    // time. Dropping them here sends generic-impl sibling calls to the bare
+    // template name, which is pruned and emits unreachable (#874).
+    let accept = contains(clone(target), String_from("?")) ||
+    ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) ||
+    is_vec_ctor_mono_target(clone(target))
+    if !accept {
         return
     }
     ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, source, target)
