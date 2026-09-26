@@ -10,6 +10,7 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_size
 use mir::module_gc_struct
 use mir::module_spine
+use wasm::sections_types_gc_phase7
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
 }
@@ -376,6 +377,11 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         starts_with(clone(elem), String_from("enum:")) {
             return String_from("_ref30")
         }
+        // Unsubstituted type params keep the dead-shell i32-vec layout;
+        // a generic shell's param/variant ABI is Vec<i32> (#872 as_slice).
+        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) {
+            return String_from("_ref10")
+        }
         return String_from("_ref25")
     }
     if starts_with(clone(type_name), String_from("vec:")) {
@@ -391,6 +397,9 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         starts_with(clone(elem), String_from("result:")) ||
         starts_with(clone(elem), String_from("enum:")) {
             return String_from("_ref30")
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) {
+            return String_from("_ref10")
         }
         if !(eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))) {
             if !eq(clone(elem), String_from("String")) && !eq(clone(elem), String_from("string")) {

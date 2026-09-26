@@ -24,7 +24,9 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
+use wasm::intrinsic_vec_type
 use wasm::sections_types_gc
+use wasm::sections_types_gc_phase7
 
 fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
     let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
@@ -60,6 +62,18 @@ fn is_get_unchecked_callee_name(name: String) -> bool {
     starts_with(clone(name), "get_unchecked__") ||
     starts_with(clone(name), "vec_get_unchecked__") ||
     starts_with(clone(name), "__intrinsic_get_unchecked__")
+}
+
+fn raw_array_new_call_callee(name: String) -> bool {
+    eq(clone(name), String_from("raw_array_new")) ||
+    eq(clone(name), String_from("raw::raw_array_new")) ||
+    ends_with(clone(name), String_from("::raw_array_new"))
+}
+
+fn raw_vec_passthrough_call_callee(name: String) -> bool {
+    eq(clone(name), String_from("raw_array_grow")) ||
+    eq(clone(name), String_from("raw::raw_array_grow")) ||
+    ends_with(clone(name), String_from("::raw_array_grow"))
 }
 
 fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
@@ -499,6 +513,34 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
+        // Sealed raw_array_new carries no element evidence and its dest
+        // defaults to vec:i32 at lowering; the enclosing function's declared
+        // Vec return is the only sound element type (#872 __core_vec_new_f64).
+        if raw_array_new_call_callee(clone(callee)) {
+            let raw_ret = sections_types_gc_phase7::gc_normalize_vec_type_name(
+                function_return_view::MirFunction_return_type_name(f)
+            )
+            if starts_with(clone(raw_ret), String_from("vec:")) {
+                let from_raw_ret = code_ref_locals_infer_callee::resolve_gc_type_from_return_type_name(ctx, raw_ret)
+                match from_raw_ret {
+                    Option::Some(_raw_t) => {
+                        return from_raw_ret
+                    }
+                    Option::None => {}
+                }
+            }
+        }
+        // vec-in→vec-out raw calls (raw_array_grow) keep their vec argument's
+        // concrete element type; the callee's declared Vec<T> return is an
+        // unresolved type param that would pin the dest to the i32-vec
+        // dead-shell layout (#872 __core_string_push_part).
+        if raw_vec_passthrough_call_callee(clone(callee)) {
+            let vec_src = intrinsic_vec_type::find_call_source_local(ctx, clone(callee), inst)
+            let vec_vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, vec_src)
+            if vec_vt >= 0 {
+                return Option::Some(vec_vt)
+            }
+        }
         // clone(T)->T: use arg0's GC type before string-intrinsic fallback (#730).
         if post_pass_callee_lookup::is_generic_clone_intrinsic(clone(callee)) {
             let arg_storage = clone_arg_gc_storage_type(

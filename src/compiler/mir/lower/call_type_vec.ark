@@ -107,6 +107,13 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
+    // raw_array_grow returns the same vec kind as its vec argument; the sealed
+    // CoreOp keeps a declared Vec<T> whose unresolved type param would pin the
+    // dest to the i32-vec dead-shell layout (#872 __core_string_push_part).
+    if eq(clone(callee_name), "raw_array_grow") ||
+    ends_with(clone(callee_name), "::raw_array_grow") {
+        mark_vec_push_result_type(ctx, dest, first_arg_idx)
+    }
     if eq(clone(callee_name), "vec_is_empty") || eq(clone(callee_name), "is_empty") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
