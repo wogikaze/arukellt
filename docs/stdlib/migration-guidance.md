@@ -180,10 +180,13 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   the former concrete `StringSkip*` types are removed. A map callback that
   changes the item type (`fn(I::Item) -> U`) still needs method-level
   generics. Owner: #860 compiler generics boundary.
-- HashMap iterator coverage: generic `HashMap<K,V>` has no keys/entries
-  enumeration intrinsic on either backend, so `for x in hashmap_iter` is
-  not yet expressible. Owner: #691 (new intrinsic work on GC and linear
-  emitters).
+- HashMap iterator coverage: `for key in map` now works on both backends
+  through the parametric `impl<K,V> IntoIterator for HashMap<K,V>`
+  (snapshot via `HashMap::keys()` into `VecIter<K>`; fixture
+  `iterator_hashmap_keys.ark` covers i32/i32, String/i32, and i32/String
+  lanes). Entry (key+value) enumeration and live-order guarantees remain
+  open. Owner: #860 for any intrinsic-free surface extension; a new
+  map-specific enumeration intrinsic needs its own issue.
 - Generic `for` source dispatch: a source whose iteration obligation is
   not statically resolved stays rejected; the structural `next()`
   fallback for custom iterators remains as the compatibility path.

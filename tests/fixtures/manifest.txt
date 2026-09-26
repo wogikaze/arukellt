@@ -1770,6 +1770,7 @@ run:stdlib_trait/iterator_filter_all_pass.ark
 run:stdlib_trait/iterator_filter_basic.ark
 run:stdlib_trait/iterator_filter_empty.ark
 run:stdlib_trait/iterator_filter_none_pass.ark
+run:stdlib_trait/iterator_flat_map_basic.ark
 run:stdlib_trait/iterator_fold_empty.ark
 run:stdlib_trait/iterator_fold_product.ark
 run:stdlib_trait/iterator_fold_sum.ark
@@ -1784,6 +1785,7 @@ run:stdlib_trait/iterator_map_identity.ark
 run:stdlib_trait/iterator_map_negative.ark
 run:stdlib_trait/iterator_negative_values.ark
 run:stdlib_trait/iterator_nested_generic_adapter.ark
+run:stdlib_trait/iterator_peek_basic.ark
 run:stdlib_trait/iterator_property_filter_subset.ark
 run:stdlib_trait/iterator_property_map_length.ark
 run:stdlib_trait/iterator_query_consumers.ark
@@ -1793,6 +1795,7 @@ run:stdlib_trait/iterator_range_single.ark
 run:stdlib_trait/iterator_skip_basic.ark
 run:stdlib_trait/iterator_skip_more_than_len.ark
 run:stdlib_trait/iterator_skip_zero.ark
+run:stdlib_trait/iterator_step_scan.ark
 run:stdlib_trait/iterator_stress_100.ark
 run:stdlib_trait/iterator_string.ark
 run:stdlib_trait/iterator_string_callbacks.ark
@@ -2350,10 +2353,13 @@ t3-compile:stdlib_trait/io_backward_compat.ark
 t3-compile:stdlib_trait/io_copy.ark
 t3-compile:stdlib_trait/iterator_adapters.ark
 t3-compile:stdlib_trait/iterator_desugar_equiv.ark
+t3-compile:stdlib_trait/iterator_flat_map_basic.ark
 t3-compile:stdlib_trait/iterator_generic_fn_field.ark
 t3-compile:stdlib_trait/iterator_generic_struct_item.ark
 t3-compile:stdlib_trait/iterator_nested_generic_adapter.ark
+t3-compile:stdlib_trait/iterator_peek_basic.ark
 t3-compile:stdlib_trait/iterator_query_consumers.ark
+t3-compile:stdlib_trait/iterator_step_scan.ark
 t3-compile:stdlib_trait/iterator_string_callbacks.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
 t3-compile:stdlib_trait/ord_trait.ark
@@ -2825,10 +2831,13 @@ t3-run:stdlib_trait/io_backward_compat.ark
 t3-run:stdlib_trait/io_copy.ark
 t3-run:stdlib_trait/iterator_adapters.ark
 t3-run:stdlib_trait/iterator_desugar_equiv.ark
+t3-run:stdlib_trait/iterator_flat_map_basic.ark
 t3-run:stdlib_trait/iterator_generic_fn_field.ark
 t3-run:stdlib_trait/iterator_generic_struct_item.ark
 t3-run:stdlib_trait/iterator_nested_generic_adapter.ark
+t3-run:stdlib_trait/iterator_peek_basic.ark
 t3-run:stdlib_trait/iterator_query_consumers.ark
+t3-run:stdlib_trait/iterator_step_scan.ark
 t3-run:stdlib_trait/iterator_string_callbacks.ark
 t3-run:stdlib_trait/read_write.ark
 t3-run:stdlib_trait/seek.ark
