@@ -228,3 +228,28 @@ RFC-011: **8 (closure/collection)**。
   section when no trampoline exists for the declared fn type, or register
   a trampoline for every signature-typed param call site regardless of
   reachability. This is #872 pair-ABI scope, not #860.
+
+## Progress receipt — 2026-09-26 (basic.ark fully validates on wasm32-gc)
+
+The diagnosis above was implemented plus three further latent emitter
+classes fixed; `tests/fixtures/test_syntax/basic.ark` now compiles and
+validates clean under `wasm-tools validate --features gc`, and the T3
+WASM validation gate reports **0 validate-fail** (471 pass / 27
+compile-fail — all E0200/E0208 frontend typecheck on v2-in-flight
+fixture sources, owned by #852/#878, unrelated to the emitter).
+
+- Commit `6bc92f2bf`: call_ref pair-ABI signatures are collected per
+  MIR_CALL_REF site into the type section, so a non-thunked
+  `fn(i32)->bool` no longer casts to an arity-guessed `(i64,i64)->i64`.
+- Commit `28fa64ba0`: vec element-type resolution repaired end-to-end —
+  raw_array_new consults the enclosing Vec return, unsubstituted `vec:T`
+  fields keep the i32-vec dead-shell convention, and raw_array_grow
+  propagates the vec argument's concrete type through dest marking and
+  ref-local producer inference (fixes funcs 22/27/47).
+- Commit `c256fa70b`: memory64 scalar-const widening in raw_array_grow
+  storage (6 sites via emit_i32_const) and a missing array-set index
+  narrow in String::lines' inline literal materialization.
+
+Acceptance still open: managed closure env cells, collection GC lowering
+breadth, and the representative pair-ABI fixture; these commits are
+prerequisite validation repair, not closure.
