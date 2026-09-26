@@ -1298,3 +1298,68 @@ Commit: `65aa79141` (worktree `94cceab55`)
   source binding (env snapshots cannot reach it; requires a source-pointer
   capture design), exact pointer-field descriptors (conservative scan per
   ADR-075), and the move/borrow parity audit; #874 stays open.
+
+## Progress receipt — 2026-09-26 (mutable-borrow write-through)
+
+- Implementation commit `ea37fe1b1` completes the rebind-capture
+  semantics for ADR-061: a non-move closure that rebinds a captured
+  name (`name = expr`) is a mutable borrow, and the env cell is the
+  shared place the borrow aliases, so every call's writes now reach
+  the source local on both backends.
+  - `closure_registry::closure_register_synth_fn` records per-synth
+    write-back pairs (source local, env local/type, field offset/index)
+    at env-alloc time for non-move closures only; move captures own the
+    cell outright and register none.
+  - `closure_cells::ctx_emit_closure_writeback` emits
+    `src_li := env.field` right after the direct `call $synth` in both
+    `try_lower_closure_call` (AST) and `lower_core_closure_call`
+    (CoreHIR). Borrow captures cannot escape (E0213), so direct calls
+    are the only reachable call sites; aliases (`let g = c`),
+    assignment RHS, aggregate stores, and if-produced closure values
+    all remain E0213.
+  - Typechecker: a non-move rebind of a `Copy` binding now stays in
+    the apply summary instead of hitting the `include_copy` early
+    return, so `apply_borrow_capture` marks the source and the conflict
+    machinery works for `Copy` captures: owner assignment to a
+    mut-borrowed source errors E0214 (`check_assignment_target`), a
+    second mutable capture errors E0214, and ident-position uses in
+    call args/method receivers/let-init/return error E0213. Reads
+    through composite positions (binary exprs, `let y = count * k`)
+    remain legal and observe the written-back value. Move-closure `Copy`
+    captures still skip the summary because a `Copy` move capture must
+    not consume its source.
+- Positive coverage: `tests/fixtures/closure_capture/borrow_rebind_cell.ark`
+  (new `run:` fixture) prints `1\n3\n30` identically on the wasm32
+  linear core and the wasm32-gc component. Probes confirm `(c)()`
+  writes back (prints `1`), mixed captures (`count` rebind + `base`
+  shared-read) print `200`, and `HashMap`/Vec/String fixture breadth
+  is unchanged (8 collections + option fixtures compile and validate
+  on wasm32-gc, 9/9 compile+run on wasm32).
+- Diagnostic coverage: owner-assign while borrowed → E0214
+  (`cannot assign to borrowed capture`), second mutable capture →
+  E0214 (`cannot create a mutable capture while the value is
+  borrowed`), `let g = c` alias and `if {c} else {d}` → E0213, and
+  `closure_capture_escape_return` still produces `error[E0213|typecheck]`.
+- Known limits (recorded, not fixed): a mut-borrowed source is
+  intentionally locked for the whole enclosing function — only
+  composite-position reads observe it; NLL-style borrow shortening is
+  deferred by ADR-061. An unbound borrow-rebind literal in call
+  position (`(|| {count = count + 1})()`) lowers through the indirect
+  path and does not write back; it has no bind entry to refresh, so
+  the stale read remains possible there.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (26.3s)
+  python3 scripts/manager.py verify lane                   PASS (exit 0)
+  closure_capture fixtures on wasm32 (8 run)               PASS (8/8)
+  wasm32-gc compile + wasm-tools validate (8)              PASS (8/8)
+  borrow_rebind_cell GC component run                      PASS (1/3/30)
+  E0213/E0214 diag fixtures and probes                     PASS
+  fmt on changed files                                     PASS (11 files)
+  ```
+
+- Remaining in #874: `impl HashMap<K, V>`/`Vec<T>` mono bodies
+  (adapter path still carries them), exact pointer-field descriptors
+  (conservative scan per ADR-075), and the move/borrow parity audit;
+  #874 stays open.
