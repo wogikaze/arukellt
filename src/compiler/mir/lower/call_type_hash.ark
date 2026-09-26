@@ -37,7 +37,13 @@ fn is_hashmap_adapter_option_fn(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_remove") ||
     callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_get") ||
     callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_insert") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_remove")
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_remove") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_get") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_insert") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_remove") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_get") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_insert") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_remove")
 }
 
 fn is_hashmap_adapter_len(callee_name: String) -> bool {
@@ -46,7 +52,9 @@ fn is_hashmap_adapter_len(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_len") ||
     callee_eq(clone(callee_name), "hash_map::hashmap_str_str_len") ||
     callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_len") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_len")
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_len") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_len") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_len")
 }
 
 fn is_hashmap_adapter_bool(callee_name: String) -> bool {
@@ -61,7 +69,11 @@ fn is_hashmap_adapter_bool(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_is_empty") ||
     callee_eq(clone(callee_name), "hash_map::hashmap_str_str_is_empty") ||
     callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_is_empty") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_is_empty")
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_is_empty") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_contains") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_contains") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_is_empty") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_is_empty")
 }
 
 fn is_hashmap_si32_new(callee_name: String) -> bool {

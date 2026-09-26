@@ -18,7 +18,8 @@ fn constrain_generic_fn_args(
     sig: FnSig,
     infer_env: TypeEnv,
     var_names: Vec<String>,
-    var_types: Vec<TypeInfo>
+    var_types: Vec<TypeInfo>,
+    arg_types: Vec<TypeInfo>
 ) {
     let arg_count = ast_access::node_child_count(node) - 1
     let param_count = contract_fn_sig::FnSig_param_count(sig)
@@ -48,6 +49,7 @@ fn constrain_generic_fn_args(
                 arg_ty = fn_ty
             }
         }
+        push(arg_types, clone(arg_ty))
         let param_ty = contract_fn_sig::FnSig_param_at(sig, a)
         let inst_param = instantiate::instantiate_type(param_ty, var_names, var_types)
         let projected_param = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_param)

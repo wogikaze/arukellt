@@ -5,11 +5,13 @@ use typechecker::call_generic_resolve
 use typechecker::call_generic_turbofish
 use typechecker::associated_types
 use typechecker::contract_fn_sig
+use typechecker::contract_type_access
 use typechecker::infer_env_scope
 use typechecker::instantiate
 use typechecker::hashmap_api
 use typechecker::mono
 use typechecker::traits
+use typechecker::unify
 
 fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, fn_name: String) -> TypeInfo {
     let infer_env = infer_env_scope::borrow_generic_infer_env()
@@ -23,7 +25,21 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
         infer_env,
         var_types
     )
-    call_generic_fn_args::constrain_generic_fn_args(env, scope, fn_sigs, enum_defs, node, sig, infer_env, var_names, var_types)
+    let arg_types = Vec::new<TypeInfo>()
+    call_generic_fn_args::constrain_generic_fn_args(env, scope, fn_sigs, enum_defs, node, sig, infer_env, var_names, var_types, arg_types)
+    // infer_env is scratch, so speculation diagnostics vanish with it:
+    // set(m, k, v) on a HashMap adopted prelude::set<T>(Vec<T>) and lowered
+    // to a map-corrupting Vec store (#874). The callee sig is already
+    // chosen, so surviving unify errors are genuine mismatches. Re-issue
+    // them against env only when every argument is already concrete;
+    // arguments that still own type variables mark the call as deferred.
+    if infer_env.error_count > 0 && generic_call_args_concrete(arg_types) {
+        let mut speculation_error = 0
+        while speculation_error < infer_env.error_count {
+            unify::type_error(env, clone(get_unchecked(infer_env.errors, speculation_error)))
+            speculation_error = speculation_error + 1
+        }
+    }
     let inst_ret = instantiate::instantiate_type(contract_fn_sig::FnSig_return_type(sig), var_names, var_types)
     let projected_ret = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_ret)
     let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, projected_ret)
@@ -40,4 +56,20 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     mono::record_mono_return_type(env, clone(mangled_name), ret_ty)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name)
     ret_ty
+}
+
+fn generic_call_args_concrete(arg_types: Vec<TypeInfo>) -> bool {
+    let count = len(arg_types)
+    let mut i = 0
+    while i < count {
+        let arg_ty = get_unchecked(arg_types, i)
+        if associated_types::type_contains_var(clone(arg_ty)) {
+            return false
+        }
+        if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() {
+            return false
+        }
+        i = i + 1
+    }
+    true
 }

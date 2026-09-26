@@ -146,3 +146,20 @@ pub fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
     }
     result
 }
+
+/// Insert a function value and return the previous value if present.
+/// Same module-residence contract as `hash_fn::hashmap_i32_fn_insert`:
+/// `HashMap::insert` rewrites for this family resolve here (#874).
+pub fn hashmap_str_fn_insert(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String,
+    value: fn(i32) -> i32
+) -> Option<fn(i32) -> i32> {
+    let old: Option<fn(i32) -> i32> = hashmap_str_fn_get(m, key)
+    let _stored: bool = hashmap_str_fn_set(m, key, value)
+    old
+}
+
+pub fn hashmap_str_fn_is_empty(m: HashMap<String, fn(i32) -> i32>) -> bool {
+    hashmap_str_fn_len(m) == 0
+}

@@ -71,6 +71,11 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
             (
                 !eq(clone(arg_ty), String_from("Vec")) &&
                 !starts_with(clone(arg_ty), String_from("vec:")) &&
+                // HashMap receivers are managed refs too, but is_empty on
+                // them must reach the hashmap adapter rewrite below, not
+                // String::is_empty (#874).
+                !starts_with(clone(arg_ty), String_from("HashMap")) &&
+                len(call_rewrite_hashmap::hashmap_family_for_type(clone(arg_ty))) == 0 &&
                 (
                     ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_REF() ||
                     ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_GC_REF()

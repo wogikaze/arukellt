@@ -89,7 +89,7 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
         eq(clone(method_name), String_from("keys"))
     }
     if explicit_args == 1 {
-        eq(clone(method_name), String_from("get")) ||
+        return eq(clone(method_name), String_from("get")) ||
         eq(clone(method_name), String_from("contains_key")) ||
         eq(clone(method_name), String_from("remove"))
     }

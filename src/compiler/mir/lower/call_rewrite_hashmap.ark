@@ -18,10 +18,10 @@ fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
         return String_from("hash_map::hashmap_str_str_new")
     }
     if hashmap_constructor_matches(clone(callee_name), "i32", "fn") {
-        return String_from("hash_map::hashmap_i32_fn_new")
+        return String_from("hash_fn::hashmap_i32_fn_new")
     }
     if hashmap_constructor_matches(clone(callee_name), "String", "fn") {
-        return String_from("hash_map::hashmap_str_fn_new")
+        return String_from("hash_str_fn::hashmap_str_fn_new")
     }
     String_new()
 }
@@ -56,7 +56,9 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
 }
 
 fn mir_hashmap_target_is_adapter(callee_name: String) -> bool {
-    starts_with(clone(callee_name), String_from("hash_map::hashmap_"))
+    starts_with(clone(callee_name), String_from("hash_map::hashmap_")) ||
+    starts_with(clone(callee_name), String_from("hash_fn::hashmap_")) ||
+    starts_with(clone(callee_name), String_from("hash_str_fn::hashmap_"))
 }
 
 fn hashmap_constructor_matches(callee_name: String, key_name: String, value_name: String) -> bool {
@@ -142,12 +144,12 @@ fn hashmap_family_for_type(type_name: String) -> String {
     if eq(clone(normalized), String_from("hashmap:i32fn")) ||
     eq(clone(normalized), String_from("HashMap_i32_fn")) ||
     eq(clone(normalized), String_from("HashMap_i32_fnref")) {
-        return String_from("hash_map::hashmap_i32_fn")
+        return String_from("hash_fn::hashmap_i32_fn")
     }
     if eq(clone(normalized), String_from("hashmap:strfn")) ||
     eq(clone(normalized), String_from("HashMap_String_fn")) ||
     eq(clone(normalized), String_from("HashMap_String_fnref")) {
-        return String_from("hash_map::hashmap_str_fn")
+        return String_from("hash_str_fn::hashmap_str_fn")
     }
     String_new()
 }
@@ -251,11 +253,11 @@ fn hashmap_family_for_callee(callee_name: String) -> String {
     }
     if ends_with(clone(callee_name), String_from("__i32__fn")) ||
     ends_with(mono_names::mono_safe_name(clone(callee_name)), String_from("__i32__fn_i32_i32_")) {
-        return String_from("hash_map::hashmap_i32_fn")
+        return String_from("hash_fn::hashmap_i32_fn")
     }
     if ends_with(clone(callee_name), String_from("__String__fn")) ||
     ends_with(mono_names::mono_safe_name(clone(callee_name)), String_from("__String__fn_i32_i32_")) {
-        return String_from("hash_map::hashmap_str_fn")
+        return String_from("hash_str_fn::hashmap_str_fn")
     }
     String_new()
 }
