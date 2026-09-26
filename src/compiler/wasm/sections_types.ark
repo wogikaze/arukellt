@@ -50,6 +50,13 @@ fn emit_type_section(
     } else {
         0
     }
+    let pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
+        functions,
+        fn_count,
+        clone(target),
+        memory64
+    )
+    let pair_sig_count = len(pair_sigs)
     let type_sigs = build_type_sigs(
         mir,
         functions,
@@ -58,14 +65,15 @@ fn emit_type_section(
         clone(target),
         clone(wasi_version),
         memory64,
-        bindings
+        bindings,
+        pair_sigs
     )
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
     let linear_gc_enabled = emit_target::is_linear_memory_target(clone(target))
     let linear_gc_sig_count = if linear_gc_enabled { 8 } else { 0 }
-    let p2_runtime_start = len(type_map) - 2 - linear_gc_sig_count
+    let p2_runtime_start = len(type_map) - 2 - linear_gc_sig_count - pair_sig_count
     let p2_realloc_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
         get_unchecked(type_map, p2_runtime_start)
     } else {
@@ -117,6 +125,13 @@ fn emit_type_section(
         gc_struct_count,
         enum_variant_count
     )
+    // Pair-call signatures occupy the last pair_sig_count type_map slots.
+    let pair_call_type_map = Vec::new<i32>()
+    let mut pci = len(type_map) - pair_sig_count
+    while pci < len(type_map) {
+        push(pair_call_type_map, get_unchecked(type_map, pci))
+        pci = pci + 1
+    }
     let plan = sections_type_plan::build_type_section_plan(
         type_map,
         num_host_types,
@@ -134,7 +149,9 @@ fn emit_type_section(
         p2_library_wrapper_count,
         p2_realloc_type_idx,
         p2_initialize_type_idx,
-        linear_gc_type_map
+        linear_gc_type_map,
+        pair_sigs,
+        pair_call_type_map
     )
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
@@ -244,7 +261,8 @@ fn build_type_sigs(
     target: String,
     wasi_version: String,
     memory64: bool,
-    bindings: Vec<resolver::wit_import_bind::WitImportBinding>
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    pair_sigs: Vec<String>
 ) -> Vec<String> {
     let type_sigs = Vec::new<String>()
     sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version))
@@ -287,6 +305,15 @@ fn build_type_sigs(
     }
     sections_types_sigs::append_p2_runtime_type_sigs(type_sigs, clone(wasi_version))
     sections_types_sigs::append_linear_gc_type_sigs(type_sigs, clone(target))
+    // Pair-ABI call-site signatures (#872): registered last so their canon
+    // indices never shift host/GC/function regions; dedup maps them onto an
+    // existing canon type whenever a program function already carries the
+    // same (env, args...) -> ret signature.
+    let mut psi = 0
+    while psi < len(pair_sigs) {
+        push(type_sigs, get_unchecked(pair_sigs, psi))
+        psi = psi + 1
+    }
     type_sigs
 }
 

@@ -13,6 +13,7 @@ use wasm::inst_store
 use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::opcodes
 use wasm::sections_types_gc
+use wasm::sections_type_plan
 use wasm::writer_core
 use mir::opcodes as mir_opcodes
 
@@ -192,6 +193,113 @@ fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     writer_core::emit_leb128_u(w, type_idx)
     writer_core::emit_leb128_u(w, 0)
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, indirect_type_returns_value(ctx, type_idx, dest_vt))
+}
+
+// ---- pair-call signature registration (#872) ----
+// When no __fnthunk exists for a call site's declared signature (e.g. a
+// retained-but-never-invoked helper like any_i32 whose fn-typed param is
+// only called, never produced), the nk/vk key search cannot resolve the
+// (env, args...) -> ret type index. The type section therefore registers
+// one func type per scalar pair-call signature found in the module so the
+// emitter can resolve the exact cast target instead of arity-guessing a
+// program function.
+
+fn pair_sig_parse_vt(seg: String) -> i32 {
+    let n = len(seg)
+    if n == 0 {
+        return 0 - 1
+    }
+    let mut value = 0
+    let mut i = 0
+    while i < n {
+        let d = byte_at(seg, i)
+        if d < 48 || d > 57 {
+            return 0 - 1
+        }
+        value = value * 10 + (d - 48)
+        i = i + 1
+    }
+    value
+}
+
+// Scalar argument kinds that can be pinned to a canonical wasm sig without
+// knowing the concrete ref type. Ref-family args (4/5/8) and v128 (7) keep
+// the existing name/trampoline resolution because their cast type needs the
+// exact declared shape.
+fn pair_call_sig_vt_is_scalar(vt: i32) -> bool {
+    vt == value_types::VT_I32() ||
+    vt == value_types::VT_I64() ||
+    vt == value_types::VT_F64() ||
+    vt == value_types::VT_F32() ||
+    vt == 30
+}
+
+// "<structref, args...> -> ret" func-sig for a pair-ABI call site, or "" when
+// the hint has no vk key or any segment is not a scalar value type. The env
+// slot is always structref under the uniform pair ABI.
+fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool) -> String {
+    let vk = call_ref_hint_seg4(clone(hint))
+    if !starts_with(clone(vk), String_from("vk:")) {
+        return String_new()
+    }
+    let body = substring(clone(vk), 3, len(vk))
+    let sep = index_of(clone(body), String_from(";"))
+    if sep < 0 {
+        return String_new()
+    }
+    let params_part = substring(clone(body), 0, sep)
+    let ret_part = substring(clone(body), sep + 1, len(body))
+    let mut sig = String_from("structref")
+    let n = len(params_part)
+    if n > 0 {
+        let mut seg_start = 0
+        let mut i = 0
+        while i <= n {
+            if i == n || byte_at(params_part, i) == 44 {
+                let seg = substring(clone(params_part), seg_start, i)
+                let vt = pair_sig_parse_vt(seg)
+                if !pair_call_sig_vt_is_scalar(vt) {
+                    return String_new()
+                }
+                sig = concat(sig, String_from("_"))
+                sig = concat(sig, sections_type_plan::val_type_to_target_sig(vt, true, memory64))
+                seg_start = i + 1
+            }
+            i = i + 1
+        }
+    }
+    let mut ret_vt = 0 - 1
+    if len(ret_part) > 0 {
+        ret_vt = pair_sig_parse_vt(ret_part)
+        if ret_vt >= 0 && !pair_call_sig_vt_is_scalar(ret_vt) {
+            return String_new()
+        }
+    }
+    if ret_vt < 0 {
+        ret_vt = dest_vt
+    }
+    if ret_vt == value_types::VT_VOID() {
+        return concat(sig, String_from("_0"))
+    }
+    if !pair_call_sig_vt_is_scalar(ret_vt) {
+        return String_new()
+    }
+    concat(sig, concat(String_from("_1"), sections_type_plan::val_type_to_target_sig(ret_vt, true, memory64)))
+}
+
+// Emit-side lookup for the registered pair-call signatures.
+fn call_ref_pair_sig_type_idx(ctx: SelfEmitCtx, sig: String) -> i32 {
+    let sigs = ctx_record::SelfEmitCtx_pair_call_sigs(ctx)
+    let map = ctx_record::SelfEmitCtx_pair_call_type_map(ctx)
+    let n = len(sigs)
+    let mut i = 0
+    while i < n {
+        if eq(clone(sig), clone(get_unchecked(sigs, i))) && i < len(map) {
+            return get_unchecked(map, i)
+        }
+        i = i + 1
+    }
+    0 - 1
 }
 
 fn parse_first_arg_vt_hint(hint: String) -> i32 {

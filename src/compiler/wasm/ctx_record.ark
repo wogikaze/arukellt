@@ -100,6 +100,10 @@ pub struct SelfEmitCtx {
     call_reloc_offs: Vec<i32>,
     call_reloc_fids: Vec<i32>,
     call_reloc_used: i32,
+    // Registered pair-ABI call-site signatures and their canon type
+    // indices (#872); parallel vectors, empty outside GC targets.
+    pair_call_sigs: Vec<String>,
+    pair_call_type_map: Vec<i32>,
 }
 
 fn SelfEmitCtx_new(
@@ -213,6 +217,8 @@ fn SelfEmitCtx_new(
         call_reloc_offs: Vec::new<i32>(),
         call_reloc_fids: Vec::new<i32>(),
         call_reloc_used: 0,
+        pair_call_sigs: Vec::new<String>(),
+        pair_call_type_map: Vec::new<i32>(),
     }
 }
 
@@ -617,6 +623,19 @@ fn SelfEmitCtx_fn_type_refs(ctx: SelfEmitCtx) -> FuncTypeRefs {
 
 fn SelfEmitCtx_set_fn_type_refs(ctx: SelfEmitCtx, table: FuncTypeRefs) {
     ctx.fn_type_refs = table
+}
+
+fn SelfEmitCtx_pair_call_sigs(ctx: SelfEmitCtx) -> Vec<String> {
+    ctx.pair_call_sigs
+}
+
+fn SelfEmitCtx_pair_call_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.pair_call_type_map
+}
+
+fn SelfEmitCtx_set_pair_call_sig_types(ctx: SelfEmitCtx, sigs: Vec<String>, type_map: Vec<i32>) {
+    ctx.pair_call_sigs = sigs
+    ctx.pair_call_type_map = type_map
 }
 
 fn SelfEmitCtx_signature_registry(ctx: SelfEmitCtx) -> SignatureRegistry {

@@ -34,6 +34,19 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
     // the nk/vk hint keys pin the exact (env, args...) -> ret signature.
     let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, clone(raw_hint))
     if type_idx < 0 {
+        // No trampoline carries this signature; fall back to the exact
+        // pair-call signature registered in the type section instead of
+        // arity-guessing a program function (#872).
+        let pair_sig = call_indirect::pair_call_sig_from_hint(
+            clone(raw_hint),
+            dest_vt,
+            ctx_record::SelfEmitCtx_memory64(ctx)
+        )
+        if len(pair_sig) > 0 {
+            type_idx = call_indirect::call_ref_pair_sig_type_idx(ctx, pair_sig)
+        }
+    }
+    if type_idx < 0 {
         type_idx = call_indirect::resolve_call_ref_type_idx(
             ctx,
             callee_type_name,

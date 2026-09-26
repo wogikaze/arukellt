@@ -1,7 +1,13 @@
 use mir::module_wit_imports
+use mir::function_block_queries
+use mir::block_inst_access
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use wasm::call_indirect
 use wasm::emit_target
 use wasm::sections_types_sigs_detail
 use wasm::sections_exports
+use mir::opcodes as mir_opcodes
 
 fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let mut i = 0
@@ -76,6 +82,61 @@ fn append_function_type_sigs(
         )
         ui = ui + 1
     }
+}
+
+// Pair-ABI call-site signatures (#872). A signature-typed param call whose
+// declared (env, args...) -> ret shape has no __fnthunk trampoline still
+// needs a valid ref.cast target: emit resolves these registered types by
+// exact sig instead of arity-guessing a program function. Collected only
+// for the GC target; scalar-only per pair_call_sig_from_hint.
+fn collect_pair_call_type_sigs(
+    functions: Vec<MirFunction>,
+    fn_count: i32,
+    target: String,
+    memory64: bool
+) -> Vec<String> {
+    let sigs = Vec::new<String>()
+    if !emit_target::is_gc_target(clone(target)) {
+        return sigs
+    }
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        let bc = function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        while bi < bc {
+            let block = function_block_queries::MirFunction_block_at(f, bi)
+            let ic = block_inst_access::MirBlock_inst_count(block)
+            let mut ii = 0
+            while ii < ic {
+                let inst = block_inst_access::MirBlock_inst_at(block, ii)
+                if inst_accessors_shape::MirInst_op(inst) == mir_opcodes::MIR_CALL_REF() {
+                    let sig = call_indirect::pair_call_sig_from_hint(
+                        inst_accessors_literals::MirInst_str_val(inst),
+                        inst_accessors_shape::MirInst_val_type(inst),
+                        memory64
+                    )
+                    if len(sig) > 0 {
+                        let mut seen = false
+                        let mut si = 0
+                        while si < len(sigs) {
+                            if eq(clone(sig), clone(get_unchecked(sigs, si))) {
+                                seen = true
+                            }
+                            si = si + 1
+                        }
+                        if !seen {
+                            push(sigs, clone(sig))
+                        }
+                    }
+                }
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+        fi = fi + 1
+    }
+    sigs
 }
 
 fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32, wasi_version: String) {

@@ -16,6 +16,10 @@ pub struct TypeSectionPlan {
     gc_struct_base: i32,
     gc_struct_type_map: Vec<i32>,
     fn_type_refs: FuncTypeRefs,
+    // Registered pair-ABI call-site signatures and their canon type
+    // indices (#872). Parallel vectors: sig string -> canon type index.
+    pair_call_sigs: Vec<String>,
+    pair_call_type_map: Vec<i32>,
 }
 
 // For every type-section entry, the `(ref null T)` type index of each param
@@ -90,7 +94,9 @@ fn TypeSectionPlan_new(
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_base: i32,
-    gc_struct_type_map: Vec<i32>
+    gc_struct_type_map: Vec<i32>,
+    pair_call_sigs: Vec<String>,
+    pair_call_type_map: Vec<i32>
 ) -> TypeSectionPlan {
     TypeSectionPlan {
         host_type_map: host_type_map,
@@ -109,7 +115,9 @@ fn TypeSectionPlan_new(
         gc_enum_variant_type_map: gc_enum_variant_type_map,
         gc_struct_base: gc_struct_base,
         gc_struct_type_map: gc_struct_type_map,
-        fn_type_refs: FuncTypeRefs_new()
+        fn_type_refs: FuncTypeRefs_new(),
+        pair_call_sigs: pair_call_sigs,
+        pair_call_type_map: pair_call_type_map
     }
 }
 
@@ -185,6 +193,14 @@ fn TypeSectionPlan_gc_struct_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     plan.gc_struct_type_map
 }
 
+fn TypeSectionPlan_pair_call_sigs(plan: TypeSectionPlan) -> Vec<String> {
+    plan.pair_call_sigs
+}
+
+fn TypeSectionPlan_pair_call_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.pair_call_type_map
+}
+
 fn build_type_section_plan(
     type_map: Vec<i32>,
     num_host_types: i32,
@@ -202,7 +218,9 @@ fn build_type_section_plan(
     p2_library_wrapper_count: i32,
     p2_realloc_type_idx: i32,
     p2_initialize_type_idx: i32,
-    linear_gc_type_map: Vec<i32>
+    linear_gc_type_map: Vec<i32>,
+    pair_call_sigs: Vec<String>,
+    pair_call_type_map: Vec<i32>
 ) -> TypeSectionPlan {
     let host_type_map = build_host_type_map(type_map, num_host_types)
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
@@ -246,7 +264,9 @@ fn build_type_section_plan(
         gc_enum_variant_base,
         gc_enum_variant_type_map,
         gc_struct_base,
-        gc_struct_type_map
+        gc_struct_type_map,
+        pair_call_sigs,
+        pair_call_type_map
     )
 }
 

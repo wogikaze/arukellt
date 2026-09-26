@@ -126,6 +126,14 @@ fn type_plan_fn_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     sections_type_plan::TypeSectionPlan_fn_type_map(plan)
 }
 
+fn type_plan_pair_call_sigs(plan: TypeSectionPlan) -> Vec<String> {
+    sections_type_plan::TypeSectionPlan_pair_call_sigs(plan)
+}
+
+fn type_plan_pair_call_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_pair_call_type_map(plan)
+}
+
 fn type_plan_fn_type_refs(plan: TypeSectionPlan) -> FuncTypeRefs {
     sections_type_plan::TypeSectionPlan_fn_type_refs(plan)
 }
