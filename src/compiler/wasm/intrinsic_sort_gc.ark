@@ -72,9 +72,9 @@ fn emit_sort_gc_outer_i32(w: WasmWriter, s_arr: i32, s_len: i32, s_outer: i32, s
     helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    emit_sort_gc_load_val(w, s_arr, s_outer, s_inner, s_val, arr_type)
+    emit_sort_gc_load_val(w, s_arr, s_outer, s_inner, s_val, arr_type, true)
     emit_sort_gc_shift_i32(w, s_arr, s_inner, s_val, arr_type)
-    emit_sort_gc_store_val(w, s_arr, s_inner, s_val, arr_type)
+    emit_sort_gc_store_val(w, s_arr, s_inner, s_val, arr_type, true)
     emit_sort_gc_outer_advance(w, s_outer)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
@@ -87,9 +87,9 @@ fn emit_sort_gc_outer_i64(w: WasmWriter, s_arr: i32, s_len: i32, s_outer: i32, s
     helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    emit_sort_gc_load_val(w, s_arr, s_outer, s_inner, s_val, arr_type)
+    emit_sort_gc_load_val(w, s_arr, s_outer, s_inner, s_val, arr_type, false)
     emit_sort_gc_shift_i64(w, s_arr, s_inner, s_val, arr_type)
-    emit_sort_gc_store_val(w, s_arr, s_inner, s_val, arr_type)
+    emit_sort_gc_store_val(w, s_arr, s_inner, s_val, arr_type, false)
     emit_sort_gc_outer_advance(w, s_outer)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
@@ -102,19 +102,25 @@ fn emit_sort_gc_outer_f64(w: WasmWriter, s_arr: i32, s_len: i32, s_outer: i32, s
     helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    emit_sort_gc_load_val(w, s_arr, s_outer, s_inner, s_val, arr_type)
+    emit_sort_gc_load_val(w, s_arr, s_outer, s_inner, s_val, arr_type, false)
     emit_sort_gc_shift_f64(w, s_arr, s_inner, s_val, arr_type)
-    emit_sort_gc_store_val(w, s_arr, s_inner, s_val, arr_type)
+    emit_sort_gc_store_val(w, s_arr, s_inner, s_val, arr_type, false)
     emit_sort_gc_outer_advance(w, s_outer)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
 // Load val = arr[outer], inner = outer - 1
-fn emit_sort_gc_load_val(w: WasmWriter, s_arr: i32, s_outer: i32, s_inner: i32, s_val: i32, arr_type: i32) {
+// elem_is_i32: i32 elements must widen to the Memory64 scalar local;
+// i64/f64/ref elements already match the slot width.
+fn emit_sort_gc_load_val(w: WasmWriter, s_arr: i32, s_outer: i32, s_inner: i32, s_val: i32, arr_type: i32, elem_is_i32: bool) {
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_outer)
-    writer_gc::emit_gc_array_get(w, arr_type)
+    if elem_is_i32 {
+        writer_gc::emit_gc_array_get_i32(w, arr_type)
+    } else {
+        writer_gc::emit_gc_array_get(w, arr_type)
+    }
     helpers_core::emit_local_set(w, s_val)
     helpers_core::emit_local_get(w, s_outer)
     string_gc_helpers::emit_gc_i32_const(w, 1)
@@ -131,7 +137,7 @@ fn emit_sort_gc_shift_i32(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, a
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
     helpers_core::emit_local_get(w, s_val)
     helpers_numeric_i32::emit_i32_le_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
@@ -194,14 +200,19 @@ fn emit_sort_gc_shift_body(w: WasmWriter, s_arr: i32, s_inner: i32, arr_type: i3
 }
 
 // Store arr[inner+1] = val
-fn emit_sort_gc_store_val(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, arr_type: i32) {
+// elem_is_i32: the widened i64 scalar must narrow back for an i32 array.
+fn emit_sort_gc_store_val(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, arr_type: i32, elem_is_i32: bool) {
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_inner)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_val)
-    writer_gc::emit_gc_array_set(w, arr_type)
+    if elem_is_i32 {
+        writer_gc::emit_gc_array_set_i32(w, arr_type)
+    } else {
+        writer_gc::emit_gc_array_set(w, arr_type)
+    }
 }
 
 // outer = outer + 1

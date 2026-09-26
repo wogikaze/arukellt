@@ -12,6 +12,7 @@ use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::intrinsics::helpers_numeric_i64_arith
 use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::intrinsics::helpers_numeric_i64_convert
@@ -149,7 +150,9 @@ fn emit_fs_read_loop_p2(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core_heap::emit_heap_advance_uncommitted(w)
     helpers_core::emit_local_get(w, s_offset)
     helpers_core::emit_local_get(w, s_chunk)
-    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    if !writer_core::writer_memory64(w) {
+        helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    }
     helpers_numeric_i64_arith::emit_i64_add(w)
     helpers_core::emit_local_set(w, s_offset)
     helpers_core::emit_local_get(w, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6))
@@ -158,6 +161,7 @@ fn emit_fs_read_loop_p2(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_memory::emit_i32_load_default(w)
     helpers_core::emit_local_set(w, s_eof)
     helpers_core::emit_local_get(w, s_eof)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_br_if(w, 1)
     helpers_control::emit_br(w, 0)
     helpers_control::emit_end(w)

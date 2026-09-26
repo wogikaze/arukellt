@@ -6,6 +6,7 @@ use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::writer_gc
 use wasm::string_gc_helpers
 
@@ -73,9 +74,11 @@ fn emit_reverse_String_gc_swap_loop(w: WasmWriter, s_arr: i32, s_lo: i32, s_hi: 
     helpers_core::emit_local_get(w, s_lo)
     writer_gc::emit_gc_array_get(w, arr_type)
     helpers_core::emit_local_set(w, s_tmp)
-    // arr[lo] = arr[hi]
+    // arr[lo] = arr[hi]: destination index must be a true i32 for array.set;
+    // ref elements need no value narrowing.
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_lo)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_hi)
     writer_gc::emit_gc_array_get(w, arr_type)
@@ -83,6 +86,7 @@ fn emit_reverse_String_gc_swap_loop(w: WasmWriter, s_arr: i32, s_lo: i32, s_hi: 
     // arr[hi] = tmp
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_hi)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_tmp)
     writer_gc::emit_gc_array_set(w, arr_type)
     // lo = lo + 1, hi = hi - 1

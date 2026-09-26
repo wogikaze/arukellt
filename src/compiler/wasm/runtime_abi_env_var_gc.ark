@@ -15,6 +15,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::opcodes
 use wasm::string_gc_helpers
 use wasm::writer_core
@@ -74,6 +75,7 @@ fn emit_env_var_gc_scan_p2(
     helpers_core::emit_local_set(w, loop_i)
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, found)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, loop_i)
     helpers_core::emit_local_get(w, env_count)
@@ -263,6 +265,7 @@ fn emit_env_var_gc_scan(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len
 
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, found)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, loop_i)
     helpers_core::emit_local_get(w, env_count)

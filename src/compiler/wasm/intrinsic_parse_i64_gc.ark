@@ -9,6 +9,7 @@ use wasm::result_helpers
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::intrinsics::helpers_numeric_i64_arith
 use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::intrinsics::helpers_numeric_i64_convert
@@ -101,10 +102,13 @@ fn emit_parse_i64_gc_digit_loop(
     helpers_core::emit_local_tee(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 48)
     helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 57)
     helpers_numeric_i32::emit_i32_gt_s(w)
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
     helpers_numeric_i32::emit_i32_or(w)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
     // Trailing junk: clear ok, br 2 out of (block+loop). Depths from this
     // `if`: 0=if, 1=loop, 2=block. Cleared ok prevents post-loop Ok (#807).
@@ -119,7 +123,9 @@ fn emit_parse_i64_gc_digit_loop(
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 48)
     helpers_numeric_i32::emit_i32_sub(w)
-    helpers_numeric_i64_convert::emit_i64_extend_i32_s(w)
+    if !writer_core::writer_memory64(w) {
+        helpers_numeric_i64_convert::emit_i64_extend_i32_s(w)
+    }
     helpers_numeric_i64_arith::emit_i64_add(w)
     helpers_core::emit_local_set(w, s_acc)
     helpers_numeric_i32::emit_i32_const(w, 1)
@@ -132,8 +138,10 @@ fn emit_parse_i64_gc_digit_loop(
     helpers_control::emit_block_loop_footer(w)
 
     helpers_core::emit_local_get(w, s_ok)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
     helpers_core::emit_local_get(w, s_neg)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
     helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_core::emit_local_get(w, s_acc)
@@ -154,6 +162,7 @@ fn emit_parse_i64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i
     )
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_acc)
     writer_gc::emit_gc_struct_new(w, type_idx)
     writer_gc::emit_gc_ref_cast(w, open_type)
@@ -166,6 +175,7 @@ fn emit_parse_i64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result:
         let s_err = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
         emit_parse_gc_invalid_integer_string(w, ctx, s_err)
         helpers_numeric_i32::emit_i32_const(w, 1)
+        helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
         helpers_core::emit_local_get(w, s_err)
         writer_gc::emit_gc_struct_new(w, err_type)
         writer_gc::emit_gc_ref_cast(w, open_type)
@@ -182,14 +192,15 @@ fn emit_parse_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: 
     let msg_len = len(msg)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     helpers_numeric_i32::emit_i32_const(w, msg_len)
-    writer_gc::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_new_from_widened(w, string_type)
     helpers_core::emit_local_set(w, s_err)
     let mut ei = 0
     while ei < msg_len {
         helpers_core::emit_local_get(w, s_err)
         helpers_numeric_i32::emit_i32_const(w, ei)
+        helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
         helpers_numeric_i32::emit_i32_const(w, byte_at(msg, ei))
-        writer_gc::emit_gc_array_set(w, string_type)
+        writer_gc::emit_gc_array_set_i32(w, string_type)
         ei = ei + 1
     }
 }

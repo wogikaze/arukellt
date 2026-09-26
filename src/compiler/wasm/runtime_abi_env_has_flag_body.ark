@@ -10,6 +10,7 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::emit_target
 use wasm::ctx_record
 
@@ -109,6 +110,7 @@ fn emit_has_flag_loop_body_p2(
     helpers_numeric_i32::emit_i32_ge_u(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, s_found)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, s_argv)
     helpers_core::emit_local_get(w, s_i)

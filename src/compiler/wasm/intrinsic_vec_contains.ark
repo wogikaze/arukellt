@@ -80,7 +80,7 @@ fn emit_contains_i32_gc_loop(w: WasmWriter, s_arr: i32, s_i: i32, s_len: i32, s_
     // if arr[i] == needle: found = 1; break
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_i)
-    writer_gc::emit_gc_array_get(w, arr_type)
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
     helpers_core::emit_local_get(w, s_needle)
     string_gc_helpers::emit_gc_i32_eq(w)
     string_gc_helpers::emit_gc_if_void(w)

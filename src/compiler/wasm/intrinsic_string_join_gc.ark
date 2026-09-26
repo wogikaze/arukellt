@@ -6,6 +6,7 @@ use wasm::writer_gc
 use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC target: join Vec<String> with separator into a new String.
 // Two passes: (1) compute total length, (2) allocate and copy.
@@ -83,7 +84,7 @@ fn emit_join_gc_count_pass(w: WasmWriter, s_arr: i32, s_len: i32, s_sep_len: i32
     // if i > 0: total += sep_len
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    string_gc_helpers::emit_gc_i32_gt_s(w)
     string_gc_helpers::emit_gc_if_void(w)
     helpers_core::emit_local_get(w, s_total)
     helpers_core::emit_local_get(w, s_sep_len)
@@ -135,7 +136,7 @@ fn emit_join_gc_copy_separator(w: WasmWriter, s_dst: i32, s_sep: i32, s_sep_len:
     // if i > 0: copy separator
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    string_gc_helpers::emit_gc_i32_gt_s(w)
     string_gc_helpers::emit_gc_if_void(w)
 
     // k = 0
@@ -153,6 +154,7 @@ fn emit_join_gc_copy_separator(w: WasmWriter, s_dst: i32, s_sep: i32, s_sep_len:
     helpers_core::emit_local_get(w, s_pos)
     helpers_core::emit_local_get(w, s_k)
     helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_sep)
     helpers_core::emit_local_get(w, s_k)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
@@ -196,6 +198,7 @@ fn emit_join_gc_copy_element(w: WasmWriter, s_dst: i32, s_arr: i32, s_pos: i32, 
     helpers_core::emit_local_get(w, s_pos)
     helpers_core::emit_local_get(w, s_k)
     helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_i)
     writer_gc::emit_gc_array_get(w, arr_type)

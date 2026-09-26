@@ -128,6 +128,7 @@ fn emit_split_gc_fill_chars(
     helpers_core::emit_local_set(w, s_src)
     helpers_core::emit_local_get(w, s_arr)
     string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_src)
     writer_gc::emit_gc_array_set(w, arr_type)
     string_gc_helpers::emit_gc_i32_const(w, 1)

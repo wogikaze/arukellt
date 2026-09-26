@@ -12,7 +12,10 @@ use wasm::writer_gc
 use wasm::writer_numbers
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
-use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Real GC parse_f64 for finish_decimal_number / float lex (#834).
 // Copies the String into linear memory, reuses the LM digit scanner, then
@@ -33,12 +36,9 @@ fn emit_parse_f64_gc_init_state(w: WasmWriter, s_str: i32, s_len_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_str)
     writer_core::emit_local_get(w, s_str)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_memory::emit_i32_load_default(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_len_local)
     emit_parse_f64_gc_zero_result(w)
@@ -47,8 +47,7 @@ fn emit_parse_f64_gc_init_state(w: WasmWriter, s_str: i32, s_len_local: i32) {
 }
 
 fn emit_parse_f64_gc_zero_result(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_PF_RESULT())
     writer_core::emit_byte(w, opcodes::OP_F64_CONST())
     writer_numbers::emit_f64(w, 0.0)
     writer_core::emit_byte(w, opcodes::OP_F64_STORE())
@@ -65,8 +64,7 @@ fn emit_parse_f64_gc_zero_flags(w: WasmWriter) {
 }
 
 fn emit_parse_f64_gc_store_i32_flag(w: WasmWriter, addr: i32, value: i32) {
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, addr)
+    helpers_io_layout::emit_scratch_addr(w, addr)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, value)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
@@ -76,34 +74,27 @@ fn emit_parse_f64_gc_store_i32_flag(w: WasmWriter, addr: i32, value: i32) {
 
 fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i32) {
     writer_core::emit_local_get(w, s_len_local)
-    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    helpers_numeric_i32::emit_i32_eqz(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_ERR(), 1)
     writer_core::emit_byte(w, opcodes::OP_END())
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, constants::SCRATCH_P_ERR())
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_P_ERR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_eqz(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     writer_core::emit_local_get(w, s_str)
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 45)
-    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 45)
+    helpers_numeric_i32::emit_i32_eq(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_NEG(), 1)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_I(), 1)
     writer_core::emit_local_get(w, s_len_local)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_LE_U())
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_or_widened_op(w, opcodes::OP_I32_LE_U(), opcodes::OP_I64_LE_U())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_ERR(), 1)
@@ -115,11 +106,7 @@ fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i
 fn emit_parse_f64_finalize_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_result = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, constants::SCRATCH_P_ERR())
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_P_ERR())
     helpers_control::emit_if_empty(w)
     emit_parse_f64_gc_err(w, ctx, s_gc)
     helpers_core::emit_local_set(w, s_result)
@@ -139,9 +126,9 @@ fn emit_parse_f64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx) {
     let ok_suffix = String_from("_f1_f64")
     let ok_type = result_helpers::find_result_variant_type_by_suffix(ctx, ok_name, ok_suffix)
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
-    helpers_io_const::emit_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, constants::SCRATCH_PF_RESULT())
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_PF_RESULT())
     writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
     writer_core::emit_byte(w, 3)
     writer_core::emit_byte(w, 0)
@@ -160,18 +147,20 @@ fn emit_parse_f64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_gc: i32) {
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     let message = "parse error: invalid float"
     let message_len = len(message)
-    helpers_io_const::emit_i32_const(w, message_len)
-    writer_gc::emit_gc_array_new(w, string_type)
+    helpers_numeric_i32::emit_i32_const(w, message_len)
+    writer_gc::emit_gc_array_new_from_widened(w, string_type)
     helpers_core::emit_local_set(w, s_gc)
     let mut i = 0
     while i < message_len {
         helpers_core::emit_local_get(w, s_gc)
-        helpers_io_const::emit_i32_const(w, i)
-        helpers_io_const::emit_i32_const(w, byte_at(message, i))
+        helpers_numeric_i32::emit_i32_const(w, i)
+        helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+        helpers_numeric_i32::emit_i32_const(w, byte_at(message, i))
         writer_gc::emit_gc_array_set_i32(w, string_type)
         i = i + 1
     }
-    helpers_io_const::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_gc)
     writer_gc::emit_gc_ref_cast(w, string_type)
     writer_gc::emit_gc_struct_new(w, type_idx)

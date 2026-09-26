@@ -5,6 +5,7 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::string_gc_helpers
 use wasm::intrinsic_string_split_gc_count
 use wasm::intrinsic_string_split_gc_fill
@@ -37,6 +38,7 @@ fn emit_split_chars_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_arr)
     helpers_core::emit_local_get(w, s_arr)
     string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
     writer_core::emit_leb128_u(w, vec_type)
@@ -200,6 +202,7 @@ fn emit_split_gc_alloc_vec(w: WasmWriter, s_count: i32, s_arr: i32, s_vec: i32, 
     helpers_core::emit_local_set(w, s_arr)
     helpers_core::emit_local_get(w, s_arr)
     string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
     writer_core::emit_leb128_u(w, vec_type)

@@ -66,8 +66,8 @@ fn emit_seq_i32_reduce_gc(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, c
     helpers_core::emit_local_get(w, s_acc)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_i)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    writer_core::emit_byte(w, combine_opcode)
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
+    emit_seq_i32_combine_gc(w, combine_opcode)
     helpers_core::emit_local_set(w, s_acc)
 
     // i = i + 1
@@ -80,6 +80,16 @@ fn emit_seq_i32_reduce_gc(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, c
 
     helpers_core::emit_local_get(w, s_acc)
     return true
+}
+
+// The caller picks the raw i32 opcode; under Memory64 the widened i64 lanes
+// need the matching i64 lowering from the numeric helpers.
+fn emit_seq_i32_combine_gc(w: WasmWriter, combine_opcode: i32) {
+    if combine_opcode == opcodes::OP_I32_MUL() {
+        helpers_numeric_i32::emit_i32_mul(w)
+        return
+    }
+    helpers_numeric_i32::emit_i32_add(w)
 }
 
 fn emit_seq_i32_reduce(w: WasmWriter, ctx: SelfEmitCtx, initial_value: i32, combine_opcode: i32) -> bool {

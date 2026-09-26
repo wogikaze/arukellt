@@ -1,19 +1,29 @@
 use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::writer_core
+use wasm::intrinsics::helpers_numeric_i32
+
+// The if result carries the i32 scalar: i32 on memory32, widened i64 on
+// Memory64 where all i32 source values live in i64 lanes.
+fn emit_scalar_i32_result_blocktype(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, 126)
+        return
+    }
+    writer_core::emit_byte(w, 127)
+}
 
 fn emit_abs(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
     writer_core::emit_leb128_u(w, s0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_lt_s(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
-    writer_core::emit_byte(w, 127)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
+    emit_scalar_i32_result_blocktype(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
     writer_core::emit_local_get(w, s0)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    helpers_numeric_i32::emit_i32_sub(w)
     writer_core::emit_byte(w, opcodes::OP_ELSE())
     writer_core::emit_local_get(w, s0)
     writer_core::emit_byte(w, opcodes::OP_END())
@@ -31,7 +41,7 @@ fn emit_min(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_local_get(w, s1)
     writer_core::emit_local_get(w, s0)
     writer_core::emit_local_get(w, s1)
-    writer_core::emit_byte(w, opcodes::OP_I32_LE_S())
+    helpers_numeric_i32::emit_i32_le_s(w)
     writer_core::emit_byte(w, opcodes::OP_SELECT())
     return true
 }
@@ -47,7 +57,7 @@ fn emit_max(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_local_get(w, s1)
     writer_core::emit_local_get(w, s0)
     writer_core::emit_local_get(w, s1)
-    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    helpers_numeric_i32::emit_i32_ge_s(w)
     writer_core::emit_byte(w, opcodes::OP_SELECT())
     return true
 }
@@ -64,7 +74,7 @@ fn emit_clamp(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_leb128_u(w, s0)
     writer_core::emit_local_get(w, s0)
     writer_core::emit_local_get(w, s1)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    helpers_numeric_i32::emit_i32_lt_s(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     writer_core::emit_local_get(w, s1)
@@ -73,7 +83,7 @@ fn emit_clamp(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_END())
     writer_core::emit_local_get(w, s0)
     writer_core::emit_local_get(w, s2)
-    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    helpers_numeric_i32::emit_i32_gt_s(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     writer_core::emit_local_get(w, s2)

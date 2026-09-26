@@ -54,6 +54,7 @@ fn emit_case_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32
     // dest[i] = s_ch
     helpers_core::emit_local_get(w, g1)
     helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_ch)
     string_gc_helpers::emit_gc_array_set(w, string_type)
 

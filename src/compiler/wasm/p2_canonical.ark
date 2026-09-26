@@ -10,6 +10,7 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32_arith
 use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::opcodes
 use wasm::sections_types_gc
 use wasm::sections_types_sigs_detail
@@ -858,6 +859,7 @@ fn emit_variant_new(
     string_local: i32
 ) {
     helpers_numeric_i32_const::emit_i32_const(w, tag)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     if len(payload_field) > 0 {
         if eq(clone(payload_field), String_from("ref0")) && string_local >= 0 {
             writer_core::emit_local_get(w, string_local)
@@ -872,9 +874,11 @@ fn emit_variant_new(
 
 fn emit_variant_new_bool(w: WasmWriter, type_idx: i32, tag: i32, source_local: i32, dest_local: i32) {
     helpers_numeric_i32_const::emit_i32_const(w, tag)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, source_local)
     helpers_numeric_i32_const::emit_i32_const(w, 1)
     helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_gc::emit_gc_struct_new(w, type_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest_local)

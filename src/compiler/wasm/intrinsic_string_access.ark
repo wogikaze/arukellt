@@ -8,6 +8,7 @@ use wasm::writer_gc
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // Handler for: text::is_empty
 fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -23,6 +24,9 @@ fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         helpers_memory::emit_string_len_from_stack(w)
     }
     helpers_numeric_i32::emit_i32_eqz(w)
+    // The bool feeds caller-side local.set; compare results push raw i32 and
+    // must widen under Memory64.
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
     return true
 }
 
