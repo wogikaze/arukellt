@@ -1504,3 +1504,96 @@ Commit: `65aa79141` (worktree `94cceab55`)
   (adapter path still carries them), exact pointer-field descriptors
   (conservative scan per ADR-075), and the move/borrow parity audit;
   #874 stays open.
+
+## Progress receipt — 2026-09-27 (Vec<fn> GC lowering: params, turbofish ctor, get elem)
+
+- Root cause (concrete params): `mir_param_type_is_option_fnref`
+  (mir/lower/params_fn.ark) kept a loose `ends_with(":fnref")` clause
+  for #831-era Option<fn> spellings. For `fn fetch(v: Vec<fn(i32) -> i32>)`
+  the param local type `vec:fnref` matched the suffix and was rewritten
+  to `option:fnref`, so `find_call_source_local` saw no vec-typed
+  receiver and `emit_vec_get_gc` fell back to the i32 vec layout —
+  invalid core Wasm (expected i64, found ref) on wasm32-gc and a
+  `call callee=g` trap on wasm32. The clause is now gated by
+  `mir_param_type_is_option_container` (option:/Option:/Option_/Option<
+  prefixes), which also stops `result:*:fnref` and `hashmap:*:fnref`
+  params from being rewritten to option:fnref.
+- Param spelling: `param_shape_local.ark`
+  `fn_param_local_type_name` and `method_param_local_type_name` Vec
+  branches now return the explicit `vec:fnref` key for TYPE_FN /
+  named-fnref elements instead of relying on `decl_ann_name` text,
+  matching the HashMap/Option fn-element handling already in place.
+- Signature substitution: `signature_registry_entry.ark`
+  `sig_reg_subst_mono_param_type_name` gained `mono_instances` and a
+  `sig_reg_subst_via_mono_instance` helper. Mangles whose
+  `extract_mono_suffix` is rejected (fn signatures flatten to
+  `fn_<params>_<ret>_`, which `is_valid_mono_type_key` rejects) now
+  resolve vec:/option:/bare-var params through the recorded
+  MonoInstance type args via `mir_type_info_to_mono_key`, so
+  `fetch_generic<T>(v: Vec<T>) -> Option<T>` instantiates
+  `vec:fnref`/`option:fnref` in the signature exactly like the
+  resolved locals.
+- Return names: `return_typeinfo_names.ark`
+  `mir_vec_return_type_name_from_type_info` maps the TY_FN (20)
+  element tag to `vec:fnref`; the bootstrap overlay stub
+  `stub_vec_mono_key` in scripts/selfhost/checks.py received the
+  identical branch (the overlay replaces ctx_mono_type_params for
+  stage-2 builds, so the twin patch is mandatory).
+- GC element read: `wasm/intrinsic_vec_access.ark`
+  `emit_vec_get_gc_some`/`emit_vec_get_gc_some_ref` gained the
+  `is_fnref_elem` case — fnref arrays take the ref `array.get`,
+  the Some variant suffix comes from
+  `find_gcsref_suffix_for_struct("__fnpair")` (the registered sig is
+  `_f1_gcsref<slot>`, not a literal `_f1_fnref`), and the payload is
+  re-cast to the `__fnpair` GC type before `struct.new` because the
+  structref scratch erases the concrete type.
+- Turbofish ctor: `corehir/body_call_direct.ark`
+  `corehir_direct_call_callee_name` spells `Vec::new<fn(A) -> R>` /
+  `Vec::with_capacity<fn>` as `Vec__new__fnref` /
+  `Vec__with_capacity__fnref`. fn/tuple turbofish elements record no
+  mono instance by design (#845), so the unused-specialization
+  fallback had been renaming the callee to `Vec__new__i32` and
+  marking both temps `vec:i32` — the GC module failed validation and
+  the linear run trapped at the indirect call. The suffix now feeds
+  `mark_vec_call_result_type` the real element key.
+- AST-let mirror: `mir/lower/stmt_let_finish.ark`
+  `apply_vec_ctor_fn_turbofish_name` restores `vec:fnref` +
+  `VT_GC_REF` on the binding and the ctor temp for an unannotated
+  `let v = Vec::new<fn..>()`, matching what the annotated
+  `let v: Vec<fn>` path produces (the managed-heap marker both
+  backends key on).
+- Positive coverage: new run+t3-run fixture
+  `tests/fixtures/collections/vec_fn_param_get.ark` (expected
+  `10 12 14`) exercises a concrete `fetch(v: Vec<fn>) -> Option<fn>`
+  (the clobbered-param case), a monomorphized `fetch_generic<T>`
+  (mono-instance substitution), and the unannotated
+  `let w = Vec::new<fn..>()` turbofish + `get_unchecked` +
+  indirect call — identical output on the wasm32 linear core and the
+  wasm32-gc component.
+- Regression coverage: `option_vec_fn`/`result_vec_fn` (`10`),
+  `vec_option_i32` (`7`), `vec_string_println_get` (`hi`),
+  `stdlib_hashmap/option_fn_return_boundary` (`14 14 0 6`),
+  `hm_fn_ops` (`6 true false 1 8 0 true`),
+  `hm_strfn_ops` (`10 true 12`), `hm_ii_methods` (`2 10`),
+  `vec_fn_get`/`vec_fn_get2` probes (`10 12`) — all identical on
+  both backends.
+- Verification receipts:
+
+    python3 scripts/manager.py selfhost build-compiler   PASS
+    python3 scripts/manager.py verify lane               PASS
+      (ark lint smoke, touched-code ratchet 7 files, lint ratchet)
+    wasm32 linear run: vec_fn_param_get, option_vec_fn,
+      result_vec_fn, vec_option_i32,
+      vec_string_println_get, option_fn_return_boundary,
+      hm_fn_ops, hm_strfn_ops, hm_ii_methods,
+      vec_fn_get, vec_fn_get2                          PASS
+    wasm32-gc component run: same eleven               PASS (identical)
+    fmt on changed files                               PASS (8 files)
+
+- Remaining in #874: `impl HashMap<K, V>`/`Vec<T>` mono bodies
+  (adapter path still carries them), exact pointer-field descriptors
+  (conservative scan per ADR-075), and the move/borrow parity audit;
+  the unannotated `Vec::new<(A, B)>` tuple turbofish still falls back
+  to `Vec__new__i32` by the same #845 mechanism and remains
+  out of scope here; #874 stays open.
+

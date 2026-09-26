@@ -4,6 +4,8 @@ use corehir::expr_predicates
 use corehir::expr_node_access
 use corehir::expr_node_predicates
 use corehir::type_ann_node
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 
 fn corehir_call_callee_supported(callee: AstNode) -> bool {
     // Call-expression callees (id(f)(x), get_unchecked(fs,0)(x)) lower via call_ref (#832).
@@ -60,6 +62,15 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
         return callee_name
     }
     let element_type = expr_node_access::expr_child_at(callee, 1)
+    // fn turbofish elements record no mono instance (#845); spell the
+    // constructor suffix fnref anyway so vec:fnref reaches the result
+    // local instead of the i32 specialization fallback (#874).
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(element_type)) {
+        if eq(clone(callee_name), "Vec::new") {
+            return String_from("Vec__new__fnref")
+        }
+        return String_from("Vec__with_capacity__fnref")
+    }
     if !type_ann_node::type_ann_is_named(element_type) {
         return callee_name
     }

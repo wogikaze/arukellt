@@ -454,6 +454,7 @@ run:collections/hashmap_string_fn_call.ark
 run:collections/hashmap_string_fn_builtin.ark
 run:collections/hashmap_i32_fn_zero_call.ark
 run:collections/result_vec_fn.ark
+run:collections/vec_fn_param_get.ark
 run:functions/multiple_params.ark
 run:functions/pub_fn.ark
 run:functions/recursive.ark
@@ -2613,6 +2614,7 @@ t3-run:collections/hashmap_string_fn_call.ark
 t3-run:collections/hashmap_string_fn_builtin.ark
 t3-run:collections/hashmap_i32_fn_zero_call.ark
 t3-run:collections/result_vec_fn.ark
+t3-run:collections/vec_fn_param_get.ark
 t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark
 t3-run:functions/recursive.ark

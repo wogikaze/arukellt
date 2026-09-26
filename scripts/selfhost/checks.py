@@ -3067,6 +3067,7 @@ fn stub_vec_mono_key(ty: TypeInfo) -> String {
     if elem_tag == mir_lower_kinds::TY_F64() { return String_from("vec:f64") }
     if elem_tag == mir_lower_kinds::TY_STRING() { return String_from("vec:String") }
     if elem_tag == mir_lower_kinds::TY_VEC() { return String_from("vec:Vec") }
+    if elem_tag == mir_lower_kinds::TY_FN() { return String_from("vec:fnref") }
     if elem_tag == mir_lower_kinds::TY_STRUCT() || elem_tag == mir_lower_kinds::TY_ENUM() {
         return concat(String_from("vec:"), mir_type_info_to_mono_key(elem))
     }

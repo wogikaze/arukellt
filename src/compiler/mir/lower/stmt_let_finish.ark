@@ -9,6 +9,7 @@ use mir::lower::ctx_types
 use mir::lower::ann_types
 use mir::lower::stmt_let_closure
 use mir::lower::stmt_let_store
+use mir::lower_kinds
 use mir::value_types
 
 fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, pre_init_kind: i32) {
@@ -19,6 +20,47 @@ fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, 
     if child_count >= 1 {
         stmt_let_store::emit_let_initializer_store(ctx, node, vt, local_idx, pre_val_idx, pre_init_kind, ta_count)
         stmt_let_closure::flush_let_closure_binding(ctx, node, pre_init_kind)
+        apply_vec_ctor_fn_turbofish_name(ctx, node, local_idx, pre_val_idx, ta_count)
+    }
+}
+
+// `let v = Vec::new<fn(A) -> R>()` records no mono instance for the fn
+// element (fn/tuple turbofish skips recording per #845), so the unused-
+// specialization fallback can rename the callee to Vec__new__i32 and mark
+// both temps vec:i32. The turbofish type argument is the authoritative
+// element spelling; restore vec:fnref on the binding and the constructor
+// temp so emit picks the fn-pair array layout on wasm32-gc (#874).
+fn apply_vec_ctor_fn_turbofish_name(ctx: LowerCtx, node: AstNode, local_idx: i32, val_idx: i32, ta_count: i32) {
+    if ta_count > 0 {
+        return
+    }
+    let init = ast_node::node_child_at(node, 0)
+    if ast_node::node_child_count(init) < 1 {
+        return
+    }
+    let callee = ast_node::node_child_at(init, 0)
+    let callee_name = ast_node::node_text(callee)
+    if !eq(clone(callee_name), "Vec::new") &&
+    !eq(clone(callee_name), "Vec::with_capacity") &&
+    !eq(clone(callee_name), "Vec__new") &&
+    !eq(clone(callee_name), "Vec__with_capacity") {
+        return
+    }
+    if ast_node::node_child_count(callee) < 2 {
+        return
+    }
+    let elem = ast_node::node_child_at(callee, 1)
+    if !ast_node::node_kind_is(elem, lower_kinds::NK_TYPE_FN()) {
+        return
+    }
+    ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("vec:fnref"))
+    // Mirror the annotated `let v: Vec<fn>` path: fn-element vecs are
+    // managed heaps on both backends, so the binding and the constructor
+    // temp take VT_GC_REF rather than the legacy i32/ref vec slots (#874).
+    ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
+    if val_idx >= 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, val_idx, String_from("vec:fnref"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
     }
 }
 

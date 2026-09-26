@@ -145,7 +145,7 @@ fn sig_reg_params_from_fn_info_mono(
             type_name = local_name
         }
         if len(mangled) > 0 {
-            type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled))
+            type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled), mono_instances)
         }
         if starts_with(clone(type_name), String_from("hashmap:")) ||
         starts_with(clone(type_name), String_from("?HashMap:")) {
@@ -166,10 +166,14 @@ fn sig_reg_params_from_fn_info_mono(
         result
     }
 
-    fn sig_reg_subst_mono_param_type_name(type_name: String, mangled: String) -> String {
+    fn sig_reg_subst_mono_param_type_name(type_name: String, mangled: String, mono_instances: Vec<MonoInstance>) -> String {
         let suffix = mono_suffix_parse::extract_mono_suffix(clone(mangled))
         if len(suffix) == 0 {
-            return type_name
+            // Mangle keys that is_valid_mono_type_key rejects: fn(A) -> R
+            // flattens to fn_<params>_<ret>_ with lowercase + underscores,
+            // still resolve through the recorded MonoInstance type args so
+            // Vec<fn(i32) -> i32> params spell vec:fnref (#874).
+            return sig_reg_subst_via_mono_instance(type_name, mangled, mono_instances)
         }
         if starts_with(clone(type_name), "vec:") {
             let elem = substring(clone(type_name), 4, len(type_name))
@@ -219,6 +223,64 @@ fn sig_reg_params_from_fn_info_mono(
             return get_unchecked(keys, idx)
         }
         get_unchecked(keys, 0)
+    }
+
+    // Substitute a generic param type name through the recorded MonoInstance
+    // type args when the mangled suffix is not a parseable mono key (fn
+    // signatures flatten to fn_<params>_<ret>_ which is_valid_mono_type_key
+    // rejects). The substitution key is mir_type_info_to_mono_key, the same
+    // spelling the enclosing body map records, so vec:fnref reaches the
+    // signature exactly like the resolved locals do (#874).
+    fn sig_reg_subst_via_mono_instance(type_name: String, mangled: String, mono_instances: Vec<MonoInstance>) -> String {
+        if len(type_name) == 0 || len(mangled) == 0 || len(mono_instances) == 0 {
+            return type_name
+        }
+        let inst = mono_instance_build::mono_find_instance(mono_instances, clone(mangled))
+        if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
+            return type_name
+        }
+        if starts_with(clone(type_name), "vec:") {
+            let elem = substring(clone(type_name), 4, len(type_name))
+            if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+                return type_name
+            }
+            let key = sig_reg_mono_instance_arg_key(inst, clone(elem))
+            if len(key) > 0 {
+                return concat("vec:", key)
+            }
+            return type_name
+        }
+        if starts_with(clone(type_name), "option:") {
+            let elem = substring(clone(type_name), 7, len(type_name))
+            if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+                return type_name
+            }
+            let key = sig_reg_mono_instance_arg_key(inst, clone(elem))
+            if len(key) > 0 {
+                return concat("option:", key)
+            }
+            return type_name
+        }
+        if fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
+            let key = sig_reg_mono_instance_arg_key(inst, clone(type_name))
+            if len(key) > 0 {
+                return key
+            }
+        }
+        type_name
+    }
+
+    fn sig_reg_mono_instance_arg_key(inst: MonoInstance, type_var: String) -> String {
+        let mut var = clone(type_var)
+        if starts_with(clone(var), "?") {
+            var = substring(var, 1, len(var))
+        }
+        let idx = mono_suffix_parse::mono_type_var_to_index(var)
+        if idx < 0 || idx >= type_contracts::MonoInstance_type_arg_count(inst) {
+            return String_new()
+        }
+        let ty = type_contracts::MonoInstance_type_arg_at(inst, idx)
+        mir_type_info_to_mono_key(ty)
     }
 
     fn sig_reg_params_from_method_info(

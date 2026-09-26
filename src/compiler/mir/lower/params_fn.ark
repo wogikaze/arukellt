@@ -164,7 +164,18 @@ fn mir_param_type_is_option_fnref(type_name: String) -> bool {
     eq(clone(type_name), String_from("option:fnref")) ||
     eq(clone(type_name), String_from("Option:fnref")) ||
     eq(clone(type_name), String_from("Option:fn")) ||
-    ends_with(clone(type_name), String_from(":fnref"))
+    (ends_with(clone(type_name), String_from(":fnref")) && mir_param_type_is_option_container(clone(type_name)))
+}
+
+fn mir_param_type_is_option_container(type_name: String) -> bool {
+    // The loose :fnref suffix clause is only valid for Option-family
+    // spellings.  Without the prefix gate, vec:fnref / result:*:fnref
+    // params were rewritten to option:fnref and lost their container
+    // identity before GC vec emission could see it (#874).
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("Option<"))
 }
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {

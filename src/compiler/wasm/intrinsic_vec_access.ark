@@ -15,6 +15,7 @@ use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
+use wasm::sections_types_gc
 use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_access_gc
 use wasm::intrinsics::helpers_core
@@ -152,18 +153,21 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
     let is_struct_ref_elem = array_type == struct_ref_array_type
     let is_i64_elem = array_type == ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
     let is_f64_elem = array_type == ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
+    // fnref arrays hold {fnptr, env} pair refs; they take the ref element
+    // read and the _f1_fnref Some variant, never the i32 scalar tail (#874).
+    let is_fnref_elem = array_type == ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
     // Read element via GC array access
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
     helpers_core::emit_local_get(w, s_idx)
-    if !is_vec_string && !is_struct_ref_elem && !is_i64_elem && !is_f64_elem {
+    if !is_vec_string && !is_struct_ref_elem && !is_i64_elem && !is_f64_elem && !is_fnref_elem {
         writer_gc::emit_gc_array_get_i32(w, array_type)
     } else {
         writer_gc::emit_gc_array_get(w, array_type)
     }
-    if is_vec_string || is_struct_ref_elem {
-        emit_vec_get_gc_some_ref(w, ctx, s_opt, is_struct_ref_elem, is_vec_string, enum_type, callee, inst)
+    if is_vec_string || is_struct_ref_elem || is_fnref_elem {
+        emit_vec_get_gc_some_ref(w, ctx, s_opt, is_struct_ref_elem, is_vec_string, is_fnref_elem, enum_type, callee, inst)
         return
     }
     if is_i64_elem {
@@ -179,10 +183,21 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
     emit_vec_get_gc_some_scalar(w, ctx, s_opt, s_idx, "_f1_i32", enum_type)
 }
 
-fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_struct_ref_elem: bool, is_vec_string: bool, enum_type: i32, callee: String, inst: MirInst) {
+fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_struct_ref_elem: bool, is_vec_string: bool, is_fnref_elem: bool, enum_type: i32, callee: String, inst: MirInst) {
     // Ref payload: cast structref elems to concrete type, then wrap in
     // Option::Some with a matching ref field (#726 display_trait_vec).
     let mut some_suffix = "_f1_ref0"
+    if is_fnref_elem {
+        // {fnptr, env} pair payloads bind the __fnpair gcsref Some variant
+        // — the same sig spelling the enum field-sig path emits for fn
+        // payloads — so Option<fn> match binds the identical variant (#874).
+        let fnpair_suffix = intrinsic_vec_access_gc::find_gcsref_suffix_for_struct(ctx, String_from("__fnpair"))
+        if len(fnpair_suffix) > 0 {
+            some_suffix = fnpair_suffix
+        } else {
+            some_suffix = "_f1_fnref"
+        }
+    }
     if is_struct_ref_elem {
         let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
         if len(elem_name) > 0 {
@@ -235,6 +250,12 @@ fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_stru
                 writer_gc::emit_gc_ref_cast(w, elem_gc_type2)
             }
         }
+    }
+    if is_fnref_elem {
+        // Same re-cast for the pair ABI: the structref scratch erases the
+        // concrete __fnpair type that the gcsref Some field expects (#874).
+        let fnpair_gc_type = ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_fnpair_offset()
+        writer_gc::emit_gc_ref_cast(w, fnpair_gc_type)
     }
     writer_gc::emit_gc_ref_as_non_null(w)
     writer_gc::emit_gc_struct_new(w, some_type_idx)

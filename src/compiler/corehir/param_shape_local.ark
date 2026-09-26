@@ -62,6 +62,10 @@ fn fn_param_local_type_name(node: AstNode) -> String {
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
+            decl_ann_name::decl_ann_is_name(elem, String_from("fnref")) {
+                return String_from("vec:fnref")
+            }
             return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
@@ -146,6 +150,10 @@ fn method_param_local_type_name(node: AstNode) -> String {
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
+            decl_ann_name::decl_ann_is_name(elem, String_from("fnref")) {
+                return String_from("vec:fnref")
+            }
             return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {

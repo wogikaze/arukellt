@@ -33,6 +33,12 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if elem_tag == 10 {
         return String_from("vec:Vec")
     }
+    // TY_FN elems carry an empty name and their signature in type args;
+    // the canonical vec elem key is fnref so Vec<fn(A) -> R> selects the
+    // fn-pair array layout instead of the i32-family vec (#874).
+    if elem_tag == 20 {
+        return String_from("vec:fnref")
+    }
     // Struct/enum elems (TomlField, TomlValue, JsonField, …) must keep
     // their names — collapsing to vec:i32 breaks Result::Ok(Vec) match
     // payload typing (#726 toml/json).
