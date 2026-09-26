@@ -1173,3 +1173,63 @@ Commit: `65aa79141` (worktree `94cceab55`)
   generic-impl bare-`T` field reads and sibling method calls, mutable
   rebind env cells (E0213), exact pointer-field descriptors, and the
   move/borrow parity audit; #874 stays open.
+
+## Progress receipt — 2026-09-26 (generic-impl mono bodies + builtin-alias fn params)
+
+- Implementation commit `056e22a32` closes the two defects behind the
+  generic-impl/`HashMap<i32,fn()->i32>` gaps on the fallback:
+  - `impl_self_param_sig` (typechecker) binds an unannotated `self`
+    parameter to the resolved impl-head type `G<T>` for inherent impls
+    on user generic types, so a `G<i32>` receiver instantiates the impl
+    type variables, records the mono site, and emits the substituted
+    body. Vec and HashMap impls keep untyped self: their surface is
+    dispatched to specialized adapters, and `impl HashMap<K, V>`
+    methods are self-recursive shims that must stay off the mono path.
+  - `mir_bind_method_self_param` restores the declared `Holder<T>`
+    spelling for an unannotated self local on a generic impl head so
+    the ordinal mono map and span-rewrite concretization see `T`.
+  - `ctx_register_mono_span_rewrite` now accepts `?`-template
+    targets: they are not callable functions, but
+    `ctx_mono_concretize_span_target` maps them through the enclosing
+    instance's bindings at lookup time. Generic-impl sibling calls
+    (`self.read()` inside `impl Holder<T>`) previously fell through
+    to the bare template name, which reachability pruned, emitting
+    `unreachable`.
+  - `mir_callee_param_mvt` retries through `hashmap_builtin_alias`
+    (plus the short-name fallback) because builtin spellings such as
+    `HashMap_i32_fn_insert` are rewritten to adapter callees at emit
+    time. Bare fn args now keep the fn-typed parameter slot instead of
+    lowering to 0-param calls, which was the linear
+    `HashMap<i32,fn()->i32>` `(f())` trap.
+- Positive coverage: `tests/fixtures/collections/hashmap_i32_fn_zero_call.ark`
+  runs `42\n42\n42` on the wasm32 linear core (the stored 0-param fn
+  reached through `Option<fn>` match binding, a direct `apply0` call,
+  and a struct field). Probes for `impl Holder<T>` exercise bare-`T`
+  field reads (`read`/`read2` → `41\n41`), a `fn(T) -> T`
+  parameter (`apply(inc)` → `42`), and `?T` field writes plus
+  sibling calls (`set`/`replace` → `20\n20\n30`), all identical on
+  the wasm32 linear core and the wasm32-gc component. The fixture fleet
+  passes on wasm32: 8 collections fn/hashmap fixtures, 6
+  closure_capture fixtures, and 9 generics fixtures.
+- Known-limit recorded: storing `fn(i32) -> i32` and then invoking it
+  with zero arguments still traps "indirect call type mismatch" at
+  runtime. `option_fn_type()` erases the signature, so the arity
+  mismatch cannot be diagnosed statically; the trap is the correct
+  runtime behavior for a genuine signature mismatch.
+- Verification receipts:
+
+  ```text
+  python3 scripts/manager.py selfhost build-compiler        PASS (25.1s)
+  python3 scripts/manager.py verify lane                   PASS (exit 0)
+  python3 scripts/tests/test_linear_gc_runtime_contract.py  PASS (5 tests)
+  python3 scripts/tests/test_linear_gc_runtime_e2e.py       PASS (5 tests)
+  wasm32 fixture runs (collections fn/hashmap 8, closure 6,
+    generics 9)                                          PASS (23/23)
+  wasm32-gc component probe runs (gi_h, gi_write)         PASS
+  targeted fmt (4 changed .ark files)                     PASS
+  ```
+
+- Remaining in #874: `impl HashMap<K, V>`/`Vec<T>` mono bodies
+  (adapter path still carries them), mutable-rebind env cells (E0213),
+  exact pointer-field descriptors (conservative scan per ADR-075), and
+  the move/borrow parity audit; #874 stays open.
