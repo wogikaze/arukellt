@@ -30,7 +30,9 @@ def _static_evidence() -> tuple[int, str]:
     required = [
         REPO_ROOT / "src/compiler/parser/imports_wit.ark",
         REPO_ROOT / "src/compiler/parser/imports_local.ark",
-        REPO_ROOT / "src/compiler/parser/imports_wit_validate.ark",
+        # ADR-071 folded inline validation into compiler::wit_identity;
+        # the former parser/imports_wit_validate.ark no longer exists.
+        REPO_ROOT / "src/compiler/compiler/wit_identity.ark",
         REPO_ROOT / "src/compiler/parser/self_check_issue652.ark",
         REPO_ROOT / "tests/fixtures/wit_import/main.ark",
         REPO_ROOT / "tests/fixtures/wit_import/parse/with_alias.ark",
@@ -57,6 +59,13 @@ def _static_evidence() -> tuple[int, str]:
     )
     if "IMPORT_KIND_WIT" not in self_check or "IMPORT_KIND_LOCAL" not in self_check:
         return 1, "self_check_issue652.ark lacks import kind assertions"
+    imports_wit = (REPO_ROOT / "src/compiler/parser/imports_wit.ark").read_text(
+        encoding="utf-8"
+    )
+    if "IMPORT_KIND_WIT" not in imports_wit:
+        return 1, "imports_wit.ark no longer marks WIT imports with IMPORT_KIND_WIT"
+    if "wit_identifier_error" not in imports_wit:
+        return 1, "imports_wit.ark no longer validates package ids via wit_identity"
     return 0, ""
 
 
