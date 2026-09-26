@@ -1398,3 +1398,109 @@ Commit: `65aa79141` (worktree `94cceab55`)
    wasm32 linear run: vecp, vecp_param,
      generic_struct_vec_field                         PASS (4/5, 8, 60/4)
    ```
+
+## Progress receipt — 2026-09-27 (HashMap method-call lowering)
+
+- Implementation commit c2b7711d7 repairs three linked defects in
+  HashMap method calls on both backends.
+  1. typechecker/hashmap_methods.ark had a missing return on the
+     1-arg arity branch, so m.get / m.contains_key / m.remove never
+     took the builtin HashMap path; m.get(1) fell through to the
+     concrete prelude::get(Vec<i32>) and died with E0200 Vec vs ?.
+     len/insert survived only because their branches did return.
+  2. Generic method/free-fn speculation ran unify in a scratch
+     infer_env and discarded its diagnostics. m.set(1, v) on a
+     HashMap adopted prelude::set<T>(Vec<T>): T resolved through
+     the value arg, the call type-checked, and MIR emitted a Vec
+     store that silently corrupted the flat map (or an invalid fn
+     store). Surviving speculation errors are now re-issued against
+     the real env when the receiver (method path) or all arguments
+     (free-fn path) are concrete; deferred type-var receivers keep
+     the quiet return. m.set is now E0200; Vec::set on real vectors
+     is unchanged.
+  3. The i32,fn and String,fn families pointed their method rewrites
+     at hash_map::hashmap_*_fn_* adapters, but hash_map is only
+     loaded when the user imports it, so fn-valued maps compiled
+     but never linked the callee (drop/unreachable fallback =>
+     invalid wasm on both backends). Families now retarget to the
+     hash_fn / hash_str_fn modules callers must already import to
+     construct the map; hashmap_i32_fn_insert /
+     hashmap_str_fn_insert and the is_empty adapters were added
+     there, and call_type_hash learned the new spellings.
+     m.is_empty() also no longer takes the String::is_empty
+     preference for HashMap-typed receivers.
+- Positive coverage: a new ops probe exercises insert/get/
+  contains_key/remove/len/is_empty on HashMap<i32, fn(i32)->i32>
+  and HashMap<String, fn(i32)->i32>; it prints
+  6/true/false/1/8/0/true and 10/true/12 identically on the wasm32
+  linear component and the wasm32-gc component. hm_ii_methods
+  (i32,i32 family) still prints 2/10.
+- Negative coverage: m.set(1, 5) and m.set(1, double) on
+  HashMap<i32, fn> now fail E0200 instead of corrupting the map;
+  v.set(1, 99) on Vec<i32> still compiles and runs.
+- Known limits (recorded, not fixed): the E0200 message still
+  renders HashMap receivers as ? (display-name gap); free-fn calls
+  with type-var arguments keep the quiet deferral by design; the
+  hashmap_builtin_alias HashMap_i32_fn_insert -> _set bool/Option
+  asymmetry was left alone pending a dedicated look.
+- Verification receipts:
+
+    python3 scripts/manager.py selfhost build-compiler   PASS (33-42s x3)
+    wasm32 component run: hm_fn_ops, hm_strfn_ops,
+      hm_ii_methods                                    PASS
+    wasm32-gc component run: hm_fn_ops, hm_strfn_ops,
+      hm_get                                           PASS (identical)
+    E0200 on m.set (HashMap<i32,fn>, i32/fn values)    PASS
+    Vec::set regression probe                          PASS
+    fmt on changed files                               PASS (9 files)
+
+## Progress receipt — 2026-09-27 (Option<fn> return variant typing)
+
+- Implementation: `mir_type_info_to_mono_key`
+  (mir/lower/ctx_mono_type_params.ark) now collapses a TY_FN inner
+  argument to the canonical `fnref` mono key, and `mir/lower_kinds.ark`
+  gained `TY_FN() -> 20`. The bootstrap overlay stub in
+  scripts/selfhost/checks.py (`_patch_bootstrap_stub_static_dispatch`)
+  received the identical branch — the overlay replaces the whole
+  ctx_mono_type_params module for stage-2 builds, so a source-only edit
+  never reaches s2; the twin patch is mandatory.
+- Root cause: a function returning `Option<fn(A) -> R>` recorded the
+  fn-index return name `option:` (empty inner key). Callers binding
+  the result in `match` typed the scrutinee as an untyped `option:`,
+  so `mir_payload_elem_type_from_scrut` selected the generic
+  enum-base Some variant while `hashmap_i32_fn_get` had allocated the
+  {fnptr, env} pair variant — `ref.cast` trapped on wasm32-gc and the
+  linear backend cast to the wrong variant tag as well. Generic
+  `fetch<K, V> -> Option<V>` hit the same path: `option:?V`
+  mono-substituted `?V` through `mir_type_info_to_mono_key`, which now
+  also yields `option:fnref` for fn type args.
+- Positive coverage: new run fixture
+  `tests/fixtures/stdlib_hashmap/option_fn_return_boundary.ark`
+  exercises a concrete `Option<fn(i32) -> i32>` return, the same value
+  through a monomorphized `fetch<K, V>`, the None arm, and a direct
+  `m.get` match — prints `14/14/0/6` identically on the wasm32 linear
+  core and the wasm32-gc component. Probes `hm_concrete_fn` and
+  `hm_generic_fn` print `14` on both backends (previously cast
+  failure on GC).
+- Regression coverage: `hm_fn_ops` (`6 true false 1 8 0 true`),
+  `hm_strfn_ops` (`10 true 12`), `hm_ii_methods` (`2 10`) unchanged
+  on wasm32-gc; `selfhost-fixture-test.py --filter-dir stdlib_hashmap`
+  PASS=87/90. The three failures are pre-existing and unrelated:
+  `typed_i32_str_basic`/`typed_str_str_basic` fail E0100 on
+  `test::assert_eq_str` (missing std member) and
+  `hashmap_typed_remove_extend` fails E0200 on a
+  `hashset_i32_difference` Vec-vs-HashSet signature bug.
+- Verification receipts:
+
+    python3 scripts/manager.py selfhost build-compiler   PASS
+    wasm32 linear run: option_fn_return_boundary,
+      hm_concrete_fn, hm_generic_fn                    PASS (identical)
+    wasm32-gc component run: same three + regression
+      probes                                           PASS (identical)
+    stdlib_hashmap fixture dir run                     PASS (87/90, 3 pre-existing)
+    fmt on changed files                               PASS (4 files)
+
+- Remaining in #874: `impl HashMap<K, V>`/`Vec<T>` mono bodies
+  (adapter path still carries them), exact pointer-field descriptors
+  (conservative scan per ADR-075), and the move/borrow parity audit;
+  #874 stays open.

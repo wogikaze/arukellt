@@ -3143,6 +3143,12 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         }
         return name
     }
+    // TY_FN carries an empty TypeInfo name; collapse to the canonical
+    // fnref key so Option<fn(A) -> R> spells "option:fnref" and match
+    // payload typing binds the fnref Some variant (#874).
+    if tag == mir_lower_kinds::TY_FN() {
+        return String_from("fnref")
+    }
     let name = mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
     if len(name) > 0 {
         return name

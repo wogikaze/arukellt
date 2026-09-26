@@ -75,6 +75,14 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         }
         return name
     }
+    // TY_FN carries an empty TypeInfo name; its signature lives in
+    // type args. Collapse nested fn types to the canonical fnref key so
+    // Option<fn(i32) -> i32> returns name "option:fnref" and match payload
+    // typing finds the fnref Some variant instead of an untyped option:
+    // scrutinee (#874).
+    if tag == lower_kinds::TY_FN() {
+        return String_from("fnref")
+    }
     let name = type_contracts::TypeInfo_name(ty)
     if len(name) > 0 {
         return name

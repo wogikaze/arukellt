@@ -924,6 +924,7 @@ run:stdlib_hashmap/insert_zero_key.ark
 run:stdlib_hashmap/insert_zero_value.ark
 run:stdlib_hashmap/keys_empty.ark
 run:stdlib_hashmap/keys_snapshot.ark
+run:stdlib_hashmap/option_fn_return_boundary.ark
 run:stdlib_hashmap/property_disjoint_commutativity.ark
 run:stdlib_hashmap/property_get_after_resize.ark
 run:stdlib_hashmap/property_insert_idempotent.ark

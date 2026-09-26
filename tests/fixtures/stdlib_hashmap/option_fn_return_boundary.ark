@@ -1,0 +1,43 @@
+// Issue #874: Option<fn> return values must keep the fnref payload variant
+// when they cross a function boundary. `HashMap<i32, fn(i32) -> i32>::get`
+// allocates `Some` with the {fnptr, env} pair payload; a bare `option:`
+// scrutinee type made match cast to the generic enum-base variant and
+// trap at runtime on both backends.
+use std::collections::hash_fn
+use std::host::stdio
+
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn fetch_concrete(m: HashMap<i32, fn(i32) -> i32>, k: i32) -> Option<fn(i32) -> i32> {
+    m.get(k)
+}
+
+fn fetch_generic<K, V>(m: HashMap<K, V>, k: K) -> Option<V> {
+    m.get(k)
+}
+
+fn apply_or_zero(f: Option<fn(i32) -> i32>, x: i32) -> i32 {
+    match f {
+        Option::Some(g) => g(x),
+        Option::None => 0,
+    }
+}
+
+fn main() {
+    let m = hash_fn::hashmap_i32_fn_new()
+    let _ = m.insert(1, double)
+
+    // Option<fn> produced inside one function, matched in the caller.
+    stdio::println(apply_or_zero(fetch_concrete(m, 1), 7).to_string())
+    // The same through a monomorphized generic wrapper.
+    stdio::println(apply_or_zero(fetch_generic(m, 1), 7).to_string())
+    // Missing key keeps the None arm reachable.
+    stdio::println(apply_or_zero(fetch_concrete(m, 9), 7).to_string())
+    // Direct get still binds the fnref payload in-place.
+    match m.get(1) {
+        Option::Some(f) => stdio::println((f(3)).to_string()),
+        Option::None => stdio::println("none"),
+    }
+}
