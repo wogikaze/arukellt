@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T09:21:19Z",
+  "generated_at": "2026-09-27T09:26:17Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -509,31 +509,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "877",
-      "path": "877-executable-normative-semantics.md",
-      "title": "877 — normative examples と操作的意味論を実行可能にする",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "857",
-        "858",
-        "860",
-        "875",
-        "876"
-      ],
-      "blocks_issue_ids": [
-        "880"
-      ],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
       }
     },
     {

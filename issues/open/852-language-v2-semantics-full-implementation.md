@@ -308,7 +308,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 - [x] #876 — stability / current-state / redesign の分類を整合する — RFC 42, 43 — depends: none
   - Receipt: `404ab8252`; ADR-014 canonical definitions now cited by the maturity matrix and the classifications TOML; spec.md provisional markers added for 2.9 / 6.4 / 6.5; TOML 2.8 renumbered to Let-Generalization (TypeScheme) with a new 2.9 Traits and Impl Blocks (v1) row; `check_spec_stability_marker_sync` wired into docs consistency detects label drift, section-renumber name drift, missing spec sections, and marker rows without TOML coverage; 13 unit tests cover parse/inheritance/normalization/drift. See [#876](../done/876-stability-current-state-spec-labels.md).
-- [ ] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876
+- [x] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876 — done 2026-09-27 (`0f8e97eea`); GC emit gap split to #894 (open)
   - Progress (not done, 2026-09-27): observable-semantics registry
     landed (`docs/data/observable-semantics.toml` — 29 rules, 7/7 RFC-011
     domains verified, generated normative doc + independent checker);

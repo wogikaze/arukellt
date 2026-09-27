@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
 Updated: 2026-09-27
 ID: 877
@@ -39,9 +39,9 @@ RFC-011: **44, 45**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-27
 
@@ -104,3 +104,28 @@ All 6 run fixtures verified component-compile + wasmtime output match;
 - Stale doc syntax fixed in place: spec.md fn(x) { x } -> |x| x;
   memory-model.md Vec_new_i32() -> Vec::new<i32>(); type-system.md
   [i32; 3] array annotation dropped (unparseable) -> literal form.
+
+## Close receipt — 2026-09-27
+
+Issue-close-review APPROVE (self-review vs false-done criteria):
+
+- implementation commit: `0f8e97eea`
+- normative example -> fixture: 6 run fixtures RUN-OK + 6/6 cross-backend
+  parity (.build/parity/report-877.json); 3 check-only + 1 compile-error
+  registered; 10 spec.md blocks + 5 other normative blocks fixture-linked;
+  41 remaining markers all kind="grammar-fragment" (permanent notation).
+- skip discipline: full docs/ run `10 pass, 0 fail, 275 skip,
+  0 marker-fail, 0 marker-warn`; reason/owner/exit enforced, expired
+  skips FAIL inside normative-class docs.
+- observable semantics: docs/data/observable-semantics.toml — 29 rules,
+  7/7 RFC-011 domains verified; generated normative doc + independent
+  checker `check-observable-semantics.py` (PASS).
+- CI wiring: verify quick gate entry + docs check group
+  (5/5 PASS) + verification-commands.toml entries.
+- verification run: docs check 5/5, verify lane PASS (0 fails),
+  fmt 10/10 new fixtures.
+- tracked remainders: #894 (wasm32-gc emit for multi-clause groups —
+  removal condition = upgrade clause_guards + multi_clause_functions to
+  run: when emit validates), #891 (escape env cells — provisional rule
+  tracking), grammar-fragment markers carry explicit kind+reason.
+- parent #852 checklist updated with evidence.
