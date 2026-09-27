@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("{\"a\":1,\"b\":true,\"c\":null,\"d\":\"str\"}") {
         Result::Ok(v) => {
@@ -30,6 +30,6 @@ fn main() {
                 None => panic("expected key d"),
             }
         },
-        Result::Err(e) => panic(concat("parse multi-object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse multi-object failed: ", json::parse_error_message(e))),
     }
 }

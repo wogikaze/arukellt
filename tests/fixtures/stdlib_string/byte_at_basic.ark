@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{byte_at}
 fn main() {
     let s = String_from("ABC")
     test::assert_eq_i32(byte_at(s, 0), 65)

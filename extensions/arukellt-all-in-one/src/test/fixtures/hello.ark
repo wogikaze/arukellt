@@ -1,3 +1,4 @@
 // Minimal .ark fixture for extension tests
+use std::host::stdio
 let x = 42
-print(x)
+stdio::print(x)

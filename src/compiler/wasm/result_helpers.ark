@@ -2,6 +2,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 
 // Prefer `_f1_ref0` (String payload) over name-only first match (`_f1_i32`).
+use std::prelude::{clone, ends_with, eq}
 fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)

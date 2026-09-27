@@ -1,6 +1,6 @@
+use std::prelude::{clone, contains, ends_with, eq, starts_with}
 use wasm::emit_target
 use wasm::sections_types_gc
-
 fn gc_param_is_scalar_type_name(type_name: String) -> bool {
     eq(clone(type_name), "i32") ||
     eq(clone(type_name), "i64") ||

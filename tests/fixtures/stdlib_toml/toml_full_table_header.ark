@@ -1,7 +1,8 @@
 // Issue #705: Full TOML 1.0 table header parsing.
 use std::host::stdio
 use std::toml
-
+use std::prelude::{eq}
+use std::text
 fn main() {
     // Table header + key=value entries
     let input = String_from("[server]\nhost = \"localhost\"\nport = 8080")
@@ -33,7 +34,7 @@ fn main() {
             }
         },
         Result::Err(e) => {
-            stdio::println(concat(String_from("parse error: "), e))
+            stdio::println(text::concat(String_from("parse error: "), e))
             assert(false)
         },
     }

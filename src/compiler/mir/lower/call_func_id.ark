@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use corehir::function_id
 use corehir::signature_registry
 use corehir::core_op_binding
@@ -7,7 +8,6 @@ use mir::inst_draft
 use mir::opcodes
 use mir::lower::ctx_current_storage
 use mir::module_spine
-
 fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInstDraft, symbol: String) -> MirInstDraft {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{parse_i32, to_string}
 fn parse_positive(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
     if n < 0 {

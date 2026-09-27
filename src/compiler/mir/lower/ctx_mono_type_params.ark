@@ -18,10 +18,12 @@ use mir::type_contracts
 // Convert a TypeInfo to a monomorphization type key string.
 // Primitive types (i32, f64, etc.) carry only a tag with an empty name,
 // so we must use the tag to produce the correct key.
+use std::prelude::{args, byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
+use std::text
 fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     let tag = type_contracts::TypeInfo_tag(ty)
     if tag == lower_kinds::TY_TYPE_VAR() {
-        return concat("?", type_contracts::TypeInfo_name(ty))
+        return text::concat("?", type_contracts::TypeInfo_name(ty))
     }
     if tag == lower_kinds::TY_I32() { return "i32" }
     if tag == lower_kinds::TY_I64() { return "i64" }
@@ -68,16 +70,16 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         // layout instead of the unsubstituted declaration.
         let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
         if arg_count > 0 && !contains(clone(name), String_from("<")) {
-            let mut out = concat(clone(name), String_from("<"))
+            let mut out = text::concat(clone(name), String_from("<"))
             let mut ai = 0
             while ai < arg_count {
                 if ai > 0 {
-                    out = concat(out, String_from(","))
+                    out = text::concat(out, String_from(","))
                 }
-                out = concat(out, mir_type_info_to_mono_key(type_contracts::TypeInfo_type_arg_at(ty, ai)))
+                out = text::concat(out, mir_type_info_to_mono_key(type_contracts::TypeInfo_type_arg_at(ty, ai)))
                 ai = ai + 1
             }
-            return concat(out, String_from(">"))
+            return text::concat(out, String_from(">"))
         }
         return name
     }
@@ -186,14 +188,14 @@ fn ctx_register_projection_arg_pairs(ctx: LowerCtx, generic_name: String, concre
 fn ctx_projection_canonical_wrapper(name: String) -> String {
     if starts_with(clone(name), String_from("Vec<")) &&
     ends_with(clone(name), String_from(">")) {
-        return concat(
+        return text::concat(
             String_from("vec:"),
             substring(clone(name), 4, len(name) - 1)
         )
     }
     if starts_with(clone(name), String_from("Option<")) &&
     ends_with(clone(name), String_from(">")) {
-        return concat(
+        return text::concat(
             String_from("Option_"),
             substring(clone(name), 7, len(name) - 1)
         )
@@ -201,7 +203,7 @@ fn ctx_projection_canonical_wrapper(name: String) -> String {
     // Local-type spellings use option:payload; canonicalizing lets declared
     // Option_Pair / option:Pair pairs share the Option_ segment path (#860).
     if starts_with(clone(name), String_from("option:")) {
-        return concat(
+        return text::concat(
             String_from("Option_"),
             substring(clone(name), 7, len(name))
         )
@@ -576,7 +578,7 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
         let elem = substring(clone(type_name), 4, len(type_name))
         let concrete_elem = ctx_resolve_mono_type_param(ctx, clone(elem))
         if len(concrete_elem) > 0 {
-            return concat("vec:", concrete_elem)
+            return text::concat("vec:", concrete_elem)
         }
     }
     // `fnsig:<param>;<return>` spellings resolve segment by segment so a
@@ -608,9 +610,9 @@ fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
             if !eq(clone(resolved), clone(seg)) {
                 changed = true
             }
-            out = concat(out, resolved)
+            out = text::concat(out, resolved)
             if i < n {
-                out = concat(out, String_from(";"))
+                out = text::concat(out, String_from(";"))
             }
             seg_start = i + 1
         }
@@ -655,16 +657,16 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
         if i == n || byte_at(clone(name), i) == 58 {
             let seg = substring(clone(name), seg_start, i)
             if seg_index == 0 {
-                out = concat(clone(seg), String_from("<"))
+                out = text::concat(clone(seg), String_from("<"))
             } else {
                 let concrete = ctx_resolve_mono_type_param(ctx, clone(seg))
                 if len(concrete) == 0 {
                     return String_new()
                 }
                 if seg_index > 1 {
-                    out = concat(out, String_from(","))
+                    out = text::concat(out, String_from(","))
                 }
-                out = concat(out, concrete)
+                out = text::concat(out, concrete)
             }
             seg_index = seg_index + 1
             seg_start = i + 1
@@ -674,7 +676,7 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
     if seg_index <= 1 {
         return String_new()
     }
-    concat(out, String_from(">"))
+    text::concat(out, String_from(">"))
 }
 
 // "Pair<T,vec:U>" -> "Pair<String,vec:i32>". Arguments that are already
@@ -698,7 +700,7 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
     let args = ctx_split_top_level_type_args(
         substring(clone(type_name), lt + 1, len(type_name) - 1)
     )
-    let mut out = concat(base, String_from("<"))
+    let mut out = text::concat(base, String_from("<"))
     let mut arg_index = 0
     while arg_index < len(args) {
         let arg = ctx_trim_type_arg_ws(get_unchecked(args, arg_index))
@@ -710,15 +712,15 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
             concrete = arg
         }
         if arg_index > 0 {
-            out = concat(out, String_from(","))
+            out = text::concat(out, String_from(","))
         }
-        out = concat(out, concrete)
+        out = text::concat(out, concrete)
         arg_index = arg_index + 1
     }
     if arg_index == 0 {
         return String_new()
     }
-    concat(out, String_from(">"))
+    text::concat(out, String_from(">"))
 }
 
 // Base-name projection lookup for Name<...> queries. An exact Pair ->
@@ -840,9 +842,9 @@ fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
     if len(owner) == 0 {
         return String_new()
     }
-    let mut rt = ctx_assoc_next_return_type_name(ctx, concat(clone(owner), String_from("::next")))
+    let mut rt = ctx_assoc_next_return_type_name(ctx, text::concat(clone(owner), String_from("::next")))
     if len(rt) == 0 {
-        rt = ctx_assoc_next_return_type_name(ctx, concat(clone(owner), String_from("__next")))
+        rt = ctx_assoc_next_return_type_name(ctx, text::concat(clone(owner), String_from("__next")))
     }
     if len(rt) == 0 {
         let candidates = ctx_assoc_mono_next_names(clone(owner))
@@ -899,11 +901,11 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
     if lt > 0 && ends_with(clone(owner), String_from(">")) {
         let base = substring(clone(owner), 0, lt)
         let args = ctx_split_top_level_type_args(substring(clone(owner), lt + 1, len(owner) - 1))
-        let mut mangled = concat(base, String_from("__next"))
+        let mut mangled = text::concat(base, String_from("__next"))
         let mut ai = 0
         while ai < len(args) {
             let arg = ctx_trim_type_arg_ws(get_unchecked(args, ai))
-            mangled = concat(mangled, concat(String_from("__"), mono::mono_safe_name(arg)))
+            mangled = text::concat(mangled, text::concat(String_from("__"), mono::mono_safe_name(arg)))
             ai = ai + 1
         }
         push(names, mangled)
@@ -913,7 +915,7 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
     if us > 0 {
         let base = substring(clone(owner), 0, us)
         let rest = substring(clone(owner), us + 1, len(owner))
-        push(names, concat(concat(base, String_from("__next__")), clone(rest)))
+        push(names, text::concat(text::concat(base, String_from("__next__")), clone(rest)))
         // An underscore owner can hide a `__` argument boundary inside a
         // single `_` run (MapIter_String_i32 -> MapIter__next__String__i32).
         let mut separated = String_new()
@@ -921,13 +923,13 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
         let n = len(rest)
         while i < n {
             if byte_at(clone(rest), i) == 95 {
-                separated = concat(separated, String_from("__"))
+                separated = text::concat(separated, String_from("__"))
             } else {
-                separated = concat(separated, substring(clone(rest), i, i + 1))
+                separated = text::concat(separated, substring(clone(rest), i, i + 1))
             }
             i = i + 1
         }
-        push(names, concat(concat(base, String_from("__next__")), separated))
+        push(names, text::concat(text::concat(base, String_from("__next__")), separated))
     }
     names
 }
@@ -1045,13 +1047,13 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
             if eq(clone(assoc), String_from("Item")) {
                 resolved = ctx_resolve_iterator_item_type(ctx, clone(owner))
             }
-            out = concat(out, substring(clone(ft), out_start, owner_start))
+            out = text::concat(out, substring(clone(ft), out_start, owner_start))
             if len(resolved) > 0 {
-                out = concat(out, resolved)
+                out = text::concat(out, resolved)
             } else {
-                out = concat(out, clone(owner))
-                out = concat(out, String_from("::"))
-                out = concat(out, assoc)
+                out = text::concat(out, clone(owner))
+                out = text::concat(out, String_from("::"))
+                out = text::concat(out, assoc)
             }
             out_start = assoc_end
             outer_start = assoc_end
@@ -1067,6 +1069,6 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
         }
         i = i + 1
     }
-    out = concat(out, substring(clone(ft), out_start, n))
+    out = text::concat(out, substring(clone(ft), out_start, n))
     out
 }

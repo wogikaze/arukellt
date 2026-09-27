@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{unwrap_or}
 fn main() {
     let a: Option<i32> = None
     test::assert_eq_i32(unwrap_or(a, -1), -1)

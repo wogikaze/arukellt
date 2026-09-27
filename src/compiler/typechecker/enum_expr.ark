@@ -1,8 +1,9 @@
+use std::prelude::{byte_at, clone, ends_with, eq, substring}
+use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_enum_info
 use typechecker::contract_type_constructors
-
 fn infer_enum_variant_path(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if !ast_expr_predicates::node_is_path(node) {
         return unknown_type()
@@ -100,7 +101,7 @@ fn enum_names_match(declared_name: String, enum_name: String) -> bool {
     if eq(clone(declared_name), clone(enum_name)) {
         return true
     }
-    ends_with(clone(declared_name), concat("::", clone(enum_name)))
+    ends_with(clone(declared_name), text::concat("::", clone(enum_name)))
 }
 
 fn unknown_type() -> TypeInfo {

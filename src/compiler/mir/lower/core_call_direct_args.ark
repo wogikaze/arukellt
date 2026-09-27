@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_emit
@@ -17,7 +18,6 @@ use mir::lower::loop_vec
 use mir::lower::struct_lit
 use mir::lower_kinds
 use mir::lower::value_variants
-
 fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     if eq(clone(callee_name), "String_from") && child_count == 2 {

@@ -1,9 +1,9 @@
 use std::text
 use std::json
+use std::prelude::{clone, index_of, to_string}
 use fmt::import_block
 use lsp::organize_imports_detect
 use lsp::positions
-
 fn build_semantic_fix_edit(
     title: String,
     kind: String,

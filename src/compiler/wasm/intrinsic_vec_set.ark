@@ -12,6 +12,7 @@ use wasm::intrinsic_vec_type
 use mir::inst_accessors_literals
 
 // Element kind for LM Vec storage: 0 = i32 (4-byte), 1 = i64, 2 = f64 (8-byte).
+use std::prelude::{clone, eq}
 fn lm_vec_elem_kind(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let elem = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)

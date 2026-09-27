@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use wasm::constants
 use mir::module_strings
-
 struct EmitStringTablePlan {
     string_offsets: Vec<i32>,
     string_lengths: Vec<i32>,

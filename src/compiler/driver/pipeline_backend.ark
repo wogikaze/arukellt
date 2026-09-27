@@ -1,5 +1,6 @@
 use std::host::clock
 use std::host::stdio
+use std::prelude::{clone, eq}
 use compiler::phases
 use driver::config_record
 use driver::errors_phase
@@ -18,7 +19,6 @@ use loader::module_decls
 use mir_opt::optimize_module
 use mir::module_functions
 use mir::mod as mir_api
-
 fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let frontend = pipeline_frontend::run_frontend(source, config)
     if pipeline_frontend::frontend_result_should_return(frontend) {

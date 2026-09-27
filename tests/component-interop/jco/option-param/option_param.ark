@@ -1,5 +1,6 @@
 // Component interop smoke test: option<s32> parameter canonical ABI is name-independent.
 
+use std::prelude::{unwrap_or}
 export fn value_or_zero(v: Option<i32>) -> i32 {
     unwrap_or(v, 0)
 }

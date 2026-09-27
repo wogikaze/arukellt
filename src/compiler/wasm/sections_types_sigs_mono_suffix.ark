@@ -1,7 +1,7 @@
 // Mono type suffix parsing and type-key helpers.
 
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use wasm::sections_types_gc
-
 fn extract_mono_suffix(fn_name: String) -> String {
     let name_len = len(fn_name)
     // Collect all "__" positions

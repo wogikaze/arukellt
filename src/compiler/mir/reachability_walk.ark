@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with, values}
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::inst_record
@@ -14,7 +15,6 @@ use corehir::function_id
 use corehir::signature_registry
 use mir::module_spine
 use wasm::hash_aliases
-
 fn mir_edge_header_len() -> i32 {
     10
 }

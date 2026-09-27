@@ -1,7 +1,7 @@
 // Property: gcd is commutative — gcd(a, b) == gcd(b, a).
 use std::core::math
 use std::test
-
+use std::prelude::{values}
 fn main() {
     let values = [0, 1, 12, 8, 15, 25, 7, 13, 100, 0]
     let mut i = 0

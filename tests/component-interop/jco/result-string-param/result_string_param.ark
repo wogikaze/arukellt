@@ -1,5 +1,6 @@
 // Component interop smoke test: result<s32, string> parameter canonical ABI.
 
+use std::prelude::{unwrap_or}
 export fn result_or_default(r: Result<i32, String>) -> i32 {
     unwrap_or(r, -5)
 }

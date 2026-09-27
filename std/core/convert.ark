@@ -2,6 +2,7 @@
 //
 // Unified namespace for type conversions (wraps existing intrinsics).
 
+use std::text
 /// Trait for types that can be converted to a human-readable string
 /// representation.
 ///
@@ -156,7 +157,7 @@ impl Debug for char {
 /// best-effort scalar impl (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md).
 impl Debug for String {
     fn fmt_debug(self: String) -> String {
-        concat("\"", concat(self, "\""))
+        text::concat("\"", text::concat(self, "\""))
     }
 }
 

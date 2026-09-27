@@ -6,7 +6,7 @@
 use std::host::clock
 use std::host::env
 use std::host::stdio
-
+use std::text
 fn main() {
     // ── Host clock contract ──
     let t_ns = clock::monotonic_now()
@@ -27,7 +27,7 @@ fn main() {
     // ── Host env contract ──
     let ac = env::arg_count()
     assert(ac >= 0)
-    stdio::println(concat("env:args:", (ac).to_string()))
+    stdio::println(text::concat("env:args:", (ac).to_string()))
 
     // var may return None on targets without environ support
     match env::var("PATH") {

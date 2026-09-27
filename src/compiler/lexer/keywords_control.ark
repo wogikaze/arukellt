@@ -1,5 +1,5 @@
+use std::prelude::{eq}
 use lexer::tokens
-
 pub fn keyword_kind_control(word: String) -> i32 {
     if eq(word, "if") {
         return tokens::TK_IF()

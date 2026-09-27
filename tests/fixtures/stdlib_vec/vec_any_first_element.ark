@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{any_i32}
 fn is_five(x: i32) -> bool {
     x == 5
 }

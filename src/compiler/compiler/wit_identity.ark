@@ -1,6 +1,8 @@
 // Canonical Layer C WIT identity validation and rendering.
 // Source-module paths intentionally remain outside this namespace.
 
+use std::prelude::{byte_at, clone, substring}
+use std::text
 fn wit_identity_find(s: String, ch: i32, from: i32) -> i32 {
     let mut i = from
     while i < len(s) {
@@ -164,7 +166,7 @@ pub fn wit_identifier_version(id: String) -> String {
 }
 
 pub fn wit_identifier_path(package: String, interface: String) -> String {
-    concat(clone(package), concat("/", clone(interface)))
+    text::concat(clone(package), text::concat("/", clone(interface)))
 }
 
 pub fn wit_identifier_canonical(package: String, interface: String, version: String) -> String {
@@ -172,7 +174,7 @@ pub fn wit_identifier_canonical(package: String, interface: String, version: Str
     if len(version) == 0 {
         return path
     }
-    concat(path, concat("@", clone(version)))
+    text::concat(path, text::concat("@", clone(version)))
 }
 
 pub fn wit_identifier_default_alias(id: String) -> String {

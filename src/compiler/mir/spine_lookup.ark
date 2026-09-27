@@ -2,6 +2,7 @@
 // so that callers (ctx_typed_mir_sync, verify_call, call_fallback) stay under
 // the direct import fan-out limit (13).
 
+use std::prelude::{clone}
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -15,7 +16,6 @@ use mir::module_spine
 use mir::opcodes
 use mir::typed_mir_compat
 use mir::value_types
-
 fn spine_populated(m: MirModule) -> bool {
     module_spine::MirModule_signature_spine_populated(m)
 }

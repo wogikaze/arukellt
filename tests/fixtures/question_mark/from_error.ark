@@ -10,6 +10,7 @@ use std::host::stdio
 //
 // The From<String> for AppError impl wraps the string in AppError::Io.
 
+use std::prelude::{eq}
 enum AppError {
     Io(String),
     Parse,

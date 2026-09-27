@@ -1,7 +1,7 @@
+use std::prelude::{byte_at, clone, eq, index_of, substring}
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
-
 struct ResolvedSignature {
     found: bool,
     label: String,

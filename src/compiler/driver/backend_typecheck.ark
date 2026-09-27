@@ -1,4 +1,5 @@
 use std::host::clock
+use std::prelude::{clone}
 use collections::vec_extend
 use compiler::phases
 use compiler::session_typecheck_query
@@ -11,7 +12,6 @@ use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
 use lint::checks as lint_checks
 use lint::registry as lint_registry
-
 struct DriverTypecheckResult {
     should_return: bool,
     result: CompileResult,

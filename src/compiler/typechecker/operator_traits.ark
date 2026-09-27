@@ -8,6 +8,8 @@ use typechecker::unify_env
 
 // Canonical protocol names used by language syntax. Keep this table aligned
 // with ADR-065; operator syntax must not search an inherent method namespace.
+use std::prelude::{clone, eq}
+use std::text
 fn binary_trait_name(op: i32) -> String {
     if op == kinds::OP_ADD() { return "Add" }
     if op == kinds::OP_SUB() { return "Sub" }
@@ -165,15 +167,15 @@ fn report_missing_operator_bound(
     operand_ty: TypeInfo
 ) {
     let type_name = contract_type_access::TypeInfo_name(operand_ty)
-    let message = concat(
+    let message = text::concat(
         String_from("operator `"),
-        concat(
+        text::concat(
             clone(symbol),
-            concat(
+            text::concat(
                 "` requires ",
-                concat(
+                text::concat(
                     clone(trait_name),
-                    concat(" bound for ", clone(type_name))
+                    text::concat(" bound for ", clone(type_name))
                 )
             )
         )
@@ -187,13 +189,13 @@ fn report_missing_operator_impl(
     trait_name: String,
     type_name: String
 ) {
-    let message = concat(
+    let message = text::concat(
         String_from("operator `"),
-        concat(
+        text::concat(
             clone(symbol),
-            concat(
+            text::concat(
                 "` requires ",
-                concat(clone(trait_name), concat(" for ", clone(type_name)))
+                text::concat(clone(trait_name), text::concat(" for ", clone(type_name)))
             )
         )
     )

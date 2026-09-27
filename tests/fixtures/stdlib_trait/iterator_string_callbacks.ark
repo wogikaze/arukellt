@@ -1,6 +1,6 @@
 use std::core::iter
 use std::test
-
+use std::prelude::{clone}
 fn map_identity(value: String) -> String {
     clone(value)
 }

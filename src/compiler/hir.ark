@@ -11,6 +11,7 @@ use hir::node_value_record
 use hir::self_check
 use hir::type_contracts
 use hir::types_format
+use std::text
 
 /// Exercises trait bounds and implementation records and returns a deterministic summary.
 pub fn trait_hir_self_check() -> String {
@@ -22,9 +23,9 @@ fn main() {
     let ty_i32 = type_contracts::HirType_simple(commands::TY_I32())
     let ty_string = type_contracts::HirType_simple(commands::TY_STRING())
     let ty_point = type_contracts::HirType_named(commands::TY_STRUCT(), "Point")
-    stdio::println(concat("type: ", types_format::type_name(ty_i32)))
-    stdio::println(concat("type: ", types_format::type_name(ty_string)))
-    stdio::println(concat("type: ", types_format::type_name(ty_point)))
+    stdio::println(text::concat("type: ", types_format::type_name(ty_i32)))
+    stdio::println(text::concat("type: ", types_format::type_name(ty_string)))
+    stdio::println(text::concat("type: ", types_format::type_name(ty_point)))
     let lit = node_record::HirNode_new(commands::HIR_INT_LIT(), type_contracts::HirType_simple(commands::TY_I32()))
     node_value_record::hir_node_set_int_val(lit, 42)
     let stmt = node_record::HirNode_new(commands::HIR_EXPR_STMT(), type_contracts::HirType_simple(commands::TY_UNIT()))

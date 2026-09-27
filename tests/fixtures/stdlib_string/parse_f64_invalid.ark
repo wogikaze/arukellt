@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{parse_f64}
 fn main() {
     let r: Result<f64, String> = parse_f64(String_from("not-a-number"))
     match r {

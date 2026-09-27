@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use corehir::core_op_id
 use corehir::core_op_registry
 use corehir::core_op_registry_generated
@@ -7,7 +8,6 @@ use corehir::signature_entry
 use corehir::signature_registry
 use corehir::function_id
 use mir::inst_record
-
 struct EffectiveLoweringDecision {
     core_op_canonical_id: String,
     lowering_kind: i32,

@@ -1,5 +1,6 @@
 // T2 freestanding — println must coerce i32 locals, not treat them as string pointers.
+use std::host::stdio
 fn main() {
     let x = 42
-    println(x)
+    stdio::println(x)
 }

@@ -1,6 +1,6 @@
+use std::prelude::{eq}
 use hir::type_contracts
 use hir::kinds
-
 fn types_equal(a: HirType, b: HirType) -> bool {
     let atag = type_contracts::HirType_tag(a)
     let btag = type_contracts::HirType_tag(b)

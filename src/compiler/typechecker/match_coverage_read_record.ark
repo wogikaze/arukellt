@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use typechecker::match_coverage_record
-
 fn MatchCoverage_has_wildcard(coverage: MatchCoverage) -> bool {
     coverage.has_wildcard
 }

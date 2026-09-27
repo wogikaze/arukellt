@@ -1,10 +1,10 @@
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt_simd
 use mir::lower::ctx_gc_enum
 use mir::lower::mono_return_vt
 use mir::value_types
-
 fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     // Host clock APIs are always i64. Prefer this over fn_index: a wrong i32
     // dest makes binary `/ 1000000i64` insert extend_i32_s on a real i64 load.

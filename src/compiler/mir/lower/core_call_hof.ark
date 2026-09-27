@@ -1,3 +1,4 @@
+use std::prelude::{clone, starts_with}
 use mir::lower_kinds
 use mir::lower::hof_call_plan
 use mir::lower::hof_call_classify
@@ -7,7 +8,6 @@ use mir::lower::ctx_types
 use mir::inst_local_set
 use mir::lower::core_expr_shape_accessors
 use mir::lower::hof
-
 fn lower_core_hof_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let hof_callee_text = core_expr_shape_accessors::mir_core_expr_text(expr)

@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq, replace}
 fn main() {
     let s = String_from("hello")
     let once = replace(s, String_from("zz"), String_from("QQ"))

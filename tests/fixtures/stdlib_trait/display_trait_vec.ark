@@ -1,4 +1,5 @@
 use std::host::stdio
+use std::text
 
 /// User-defined Display trait verifying trait method dispatch on Vec<Struct> elements.
 trait Display {
@@ -12,7 +13,7 @@ struct Token {
 
 impl Display for Token {
     fn to_string(self: Token) -> String {
-        concat(concat(concat(concat("Token(", to_string(self.kind)), ", \""), self.value), "\")")
+        text::concat(text::concat(text::concat(text::concat("Token(", to_string(self.kind)), ", \""), self.value), "\")")
     }
 }
 

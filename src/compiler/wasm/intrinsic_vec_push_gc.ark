@@ -3,6 +3,7 @@
 //                              (field (mut i32)))
 //   push: read data+len → growth check → array.set → struct.set 1
 
+use std::prelude::{clone, eq, starts_with}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -17,7 +18,6 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 use mir::opcodes as mir_opcodes
-
 fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)

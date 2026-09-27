@@ -1,4 +1,6 @@
 use std::host::stdio
+use std::prelude::{clone, eq, to_string}
+use std::text
 use mir::function_block_queries
 use mir::function_identity
 use mir::module_functions
@@ -7,7 +9,6 @@ use mir::verify_call
 use mir::verify_local
 use mir::verify_report
 use mir::verify_spine
-
 fn verify_mir_warn_only(m: MirModule) -> MirVerifyReport {
     verify_mir_warn_only_verbose(m, false)
 }
@@ -52,7 +53,7 @@ fn verify_report_print_largest_function(m: MirModule) {
         }
         fi = fi + 1
     }
-    stdio::eprintln(concat("mir-verify: largest function ", concat(max_name, concat(" = ", to_string(max_count)))))
+    stdio::eprintln(text::concat("mir-verify: largest function ", text::concat(max_name, text::concat(" = ", to_string(max_count)))))
 }
 
 fn verify_mir(m: MirModule) -> i32 {

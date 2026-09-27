@@ -1,3 +1,4 @@
+use std::prelude::{byte_at}
 fn corehir_int_lit_has_small_suffix(text: String, n: i32) -> bool {
     if n >= 2 {
         let last = byte_at(text, n - 1)

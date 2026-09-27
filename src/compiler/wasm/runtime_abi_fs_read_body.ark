@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, ends_with, eq}
 use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_record
@@ -19,7 +20,6 @@ use wasm::intrinsics::helpers_numeric_i64_convert
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
-
 fn emit_fs_read_open_error(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_fs_read_open_error_message(w, ctx)
     emit_fs_read_result_pair(w, 1, ctx)

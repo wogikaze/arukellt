@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq}
 use resolver::bindings_pattern
 use resolver::scope_define
 use resolver::ast_access
 use resolver::kinds
-
 fn resolve_let(ctx: ResolveCtx, node: AstNode) {
     let binding_name = ast_access::node_text(node)
     let is_tuple_destructure = eq(clone(binding_name), "__tuple_destructure")

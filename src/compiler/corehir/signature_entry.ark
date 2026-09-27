@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::core_op_id
-
 struct SignatureEntry {
     id: FunctionId,
     base_name: String,

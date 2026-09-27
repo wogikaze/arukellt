@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
@@ -6,7 +7,6 @@ use mir::lower::core_expr_shape_calls
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
 use mir::value_types
-
 fn mir_core_print_call_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> bool {
     let cn = core_expr_shape_accessors::mir_core_expr_text(arg)
     if core_call_arg_names::mir_core_call_string_result_name(clone(cn)) {

@@ -9,6 +9,7 @@ use mir::lower::ctx_types
 
 // When MIR_LOWER_TRACE=1 in the environment, lower_to_mir prints five integers per phase:
 // phase, len(params), len(locals), len(blocks), return_type tag.
+use std::prelude::{to_string}
 fn MIR_LOWER_TRACE() -> i32 {
     // Env override disabled on wasm32-gc until Option-from-env::var locals
     // validate; use MIR_LOWER_TRACE_FORCE for source-level enable.

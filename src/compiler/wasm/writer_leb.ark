@@ -1,5 +1,5 @@
+use std::prelude::{i64_to_i32}
 use wasm::writer_core
-
 fn emit_leb128_u(w: writer_core::WasmWriter, v: i32) {
     let mut val = v
     if val < 0 {

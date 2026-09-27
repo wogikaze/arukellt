@@ -1,3 +1,5 @@
+use std::prelude::{clone, ends_with, eq, starts_with}
+use std::text
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
@@ -13,7 +15,6 @@ use mir::inst_struct_set
 use mir::inst_gc_struct
 use mir::lower::variant_payload_fields
 use mir::value_types
-
 fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, total_bytes: i32, variant_name: String) -> i32 {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         return lower_gc_payload_variant_from_locals(ctx, tag, payload_locals, payload_vts, clone(variant_name))
@@ -29,7 +30,7 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
 fn set_linear_enum_type(ctx: LowerCtx, dest: i32, variant_name: String) {
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(variant_name)
     if len(enum_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("enum:", enum_name))
     }
 }
 
@@ -52,7 +53,7 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, dest_slot)
             let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(clone(variant_name))
             if len(enum_name) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("enum:", enum_name))
             }
             ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, dest_slot))
             emit_variant_tag_field(ctx, dest, tag, dest_slot)
@@ -69,7 +70,7 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
     ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, type_slot)
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(clone(variant_name))
     if len(enum_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("enum:", enum_name))
     }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
     emit_variant_tag_field(ctx, dest, tag, type_slot)
@@ -126,7 +127,7 @@ fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: Strin
             return type_name
         }
         if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name)) {
-            return concat("enum:", type_name)
+            return text::concat("enum:", type_name)
         }
     }
     let layout_result = gc_payload_typed_variant_from_layout(ctx, clone(variant_name), clone(type_name), vt)
@@ -187,7 +188,7 @@ fn gc_payload_typed_variant_from_layout(ctx: LowerCtx, variant_name: String, typ
                 if starts_with(clone(layout_type), "enum:") {
                     return layout_type
                 }
-                return concat("enum:", clone(layout_type))
+                return text::concat("enum:", clone(layout_type))
             }
             if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() || ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), 1) {
                 if len(layout_type) > 0 && !gc_payload_is_scalar_type_name(clone(layout_type)) {

@@ -1,10 +1,10 @@
+use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_typevar
 use typechecker::contract_env_vars_record
 use typechecker::unify
-
 fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeInfo> {
     let resolved_type_args = Vec::new<TypeInfo>()
     for rv in 0..len(var_types) {

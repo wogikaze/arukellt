@@ -1,22 +1,22 @@
 use std::host::stdio
 use std::json
-
+use std::text
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => stdio::println(json::stringify(v)),
-        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
     }
     match json::parse("true") {
         Result::Ok(v) => stdio::println(json::stringify(v)),
-        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
     }
     match json::parse("123") {
         Result::Ok(v) => stdio::println(json::stringify(v)),
-        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
     }
     match json::parse("\"world\"") {
         Result::Ok(v) => stdio::println(json::stringify(v)),
-        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
     }
     stdio::println(json::json_encode_string("hello"))
     stdio::println(json::json_encode_string("a\"b"))

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{unwrap}
 fn main() {
     let x: Option<i32> = Some(42)
     stdio::println((unwrap(x)).to_string())

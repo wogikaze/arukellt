@@ -1,7 +1,7 @@
 use std::collections::hash_map
 use std::collections::hash_set
 use std::host::stdio
-
+use std::prelude::{assert_eq}
 fn expect_some_i32(v: Option<i32>, expected: i32) {
     match v {
         Option::Some(x) => assert_eq(x, expected),

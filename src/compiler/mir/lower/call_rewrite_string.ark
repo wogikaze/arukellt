@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq}
 use mir::lower::call_rewrite_method
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::value_types
-
 struct MirStringCallRewrite {
     callee_name: String,
     return_local: i32,

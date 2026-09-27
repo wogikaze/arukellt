@@ -1,11 +1,12 @@
 use std::test
-
+use std::prelude::{split}
+use std::text
 fn main() {
     let mut s = String_from("")
     let mut i = 0
     while i < 10 {
-        s = concat(s, (i).to_string())
-        s = concat(s, String_from(","))
+        s = text::concat(s, (i).to_string())
+        s = text::concat(s, String_from(","))
         i = i + 1
     }
     let parts = split(s, String_from(","))

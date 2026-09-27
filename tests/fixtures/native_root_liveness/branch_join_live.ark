@@ -1,10 +1,11 @@
+use std::text
 fn main() -> i32 {
     let left = String_from("left")
     let right = String_from("right")
     let pick = if len(left) > 0 { left } else { right }
     let mut i = 0
     while i < 16 {
-        let junk = concat(String_from("j"), String_from("k"))
+        let junk = text::concat(String_from("j"), String_from("k"))
         let _n = len(junk)
         i = i + 1
     }

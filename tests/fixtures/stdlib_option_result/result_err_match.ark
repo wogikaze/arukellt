@@ -1,9 +1,9 @@
 use std::host::stdio
-
+use std::text
 fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
         Result::Ok(val) => stdio::println((val).to_string()),
-        Result::Err(e) => stdio::println(concat(String_from("error: "), e)),
+        Result::Err(e) => stdio::println(text::concat(String_from("error: "), e)),
     }
 }

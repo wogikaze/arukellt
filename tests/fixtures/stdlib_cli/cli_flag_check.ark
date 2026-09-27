@@ -1,6 +1,6 @@
 use std::cli
 use std::host::stdio
-
+use std::prelude::{args}
 fn main() {
     stdio::println((cli::arg_count()).to_string())
     stdio::println((cli::has_flag("--verbose")).to_string())

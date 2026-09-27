@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{unwrap_or}
 fn main() {
     test::assert_eq_i32(unwrap_or(Ok(33), 0), 33)
     test::assert_eq_i32(unwrap_or(Ok(0), 99), 0)

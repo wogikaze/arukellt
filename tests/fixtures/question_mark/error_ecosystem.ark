@@ -1,7 +1,8 @@
 use std::error
 use std::host::stdio
 use std::io
-
+use std::prelude::{parse_i32}
+use std::text
 enum AppError {
     Io(String),
     Parse(String),
@@ -22,8 +23,8 @@ impl From<String> for AppError {
 impl Display for AppError {
     fn to_string(self: AppError) -> String {
         match self {
-            AppError::Io(message) => concat("io: ", message),
-            AppError::Parse(message) => concat("parse: ", message),
+            AppError::Io(message) => text::concat("io: ", message),
+            AppError::Parse(message) => text::concat("parse: ", message),
         }
     }
 }

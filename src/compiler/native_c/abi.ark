@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq, starts_with}
+use std::text
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::signature_entry
@@ -6,7 +8,6 @@ use corehir::type_table
 use mir::local_record
 use mir::value_types
 use native_c::enum_abi
-
 fn native_c_scalar_type_name(name: String) -> String {
     if eq(clone(name), "i8") { return "int8_t" }
     if eq(clone(name), "i16") { return "int16_t" }
@@ -140,7 +141,7 @@ fn native_c_funcref_typedef_name(table: TypeTable, signature: SignatureEntry) ->
     if len(parameters) == 0 || len(results) == 0 {
         return String_new()
     }
-    concat(String_from("ark_fnptr__P_"), concat(parameters, concat(String_from("__R_"), results)))
+    text::concat(String_from("ark_fnptr__P_"), text::concat(parameters, text::concat(String_from("__R_"), results)))
 }
 
 fn native_c_funcref_typedef_decl(
@@ -162,24 +163,24 @@ fn native_c_funcref_typedef_decl(
         params = String_new()
         let mut index = 0
         while index < param_count {
-            if index > 0 { params = concat(params, String_from(", ")) }
+            if index > 0 { params = text::concat(params, String_from(", ")) }
             let param_type = native_c_type_for_value(
                 table,
                 signature_entry::signature_entry_param_at(signature, index),
                 heap_enum_flags
             )
             if len(param_type) == 0 { return String_new() }
-            params = concat(params, param_type)
+            params = text::concat(params, param_type)
             index = index + 1
         }
     }
-    concat(
+    text::concat(
         String_from("typedef "),
-        concat(
+        text::concat(
             return_type,
-            concat(
+            text::concat(
                 String_from(" (*"),
-                concat(typedef_name, concat(String_from(")("), concat(params, String_from(");\n"))))
+                text::concat(typedef_name, text::concat(String_from(")("), text::concat(params, String_from(");\n"))))
             )
         )
     )
@@ -212,7 +213,7 @@ fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String 
     } else {
         "r"
     }
-    concat(prefix, i32_to_string(raw_type_id))
+    text::concat(prefix, i32_to_string(raw_type_id))
 }
 
 fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureEntry) -> String {
@@ -223,10 +224,10 @@ fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureE
     let mut encoding = String_new()
     let mut index = 0
     while index < count {
-        if index > 0 { encoding = concat(encoding, "_") }
+        if index > 0 { encoding = text::concat(encoding, "_") }
         let part = native_c_type_encoding(table, signature_entry::signature_entry_param_at(signature, index))
         if len(part) == 0 { return String_new() }
-        encoding = concat(encoding, part)
+        encoding = text::concat(encoding, part)
         index = index + 1
     }
     encoding
@@ -240,10 +241,10 @@ fn native_c_signature_result_encoding(table: TypeTable, signature: SignatureEntr
     let mut encoding = String_new()
     let mut index = 0
     while index < count {
-        if index > 0 { encoding = concat(encoding, "_") }
+        if index > 0 { encoding = text::concat(encoding, "_") }
         let part = native_c_type_encoding(table, signature_entry::signature_entry_return_at(signature, index))
         if len(part) == 0 { return String_new() }
-        encoding = concat(encoding, part)
+        encoding = text::concat(encoding, part)
         index = index + 1
     }
     encoding
@@ -255,11 +256,11 @@ fn native_c_function_symbol(table: TypeTable, function_id_raw: i32, signature: S
     if len(parameters) == 0 || len(results) == 0 {
         return String_new()
     }
-    concat(
+    text::concat(
         "ark_f_",
-        concat(
+        text::concat(
             i32_to_string(function_id_raw),
-            concat("__P_", concat(parameters, concat("__R_", results)))
+            text::concat("__P_", text::concat(parameters, text::concat("__R_", results)))
         )
     )
 }
@@ -299,10 +300,10 @@ fn native_c_signature_parameters(
             heap_enum_flags
         )
         if len(c_type) == 0 { return String_new() }
-        if index > 0 { parameters = concat(parameters, ", ") }
-        parameters = concat(
+        if index > 0 { parameters = text::concat(parameters, ", ") }
+        parameters = text::concat(
             parameters,
-            concat(c_type, concat(" ark_v_", i32_to_string(index)))
+            text::concat(c_type, text::concat(" ark_v_", i32_to_string(index)))
         )
         index = index + 1
     }

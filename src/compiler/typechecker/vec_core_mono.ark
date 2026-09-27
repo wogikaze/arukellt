@@ -3,10 +3,10 @@
 //! Free-function and method calls that lower through `vec.len` / `vec.push` /
 //! etc. must instantiate `__core_vec_*_impl` before `normal_call` resolution,
 //! otherwise the unspecialized `Vec<T>` shell reaches GC emit.
+use std::prelude::{clone, eq}
 use typechecker::contract_type_access
 use typechecker::kinds
 use typechecker::mono
-
 fn record_vec_core_fallback_mono(env: TypeEnv, fallback_symbol: String, recv_ty: TypeInfo) {
     if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_VEC() {
         return

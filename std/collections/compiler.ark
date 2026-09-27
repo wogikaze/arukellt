@@ -12,6 +12,7 @@
 //
 // Layout of backing Vec<i32>: [count, value_0, value_1, ...]
 // ArenaId = i32 index (monotonically increasing).
+use std::prelude::{eq}
 pub fn arena_new() -> Vec<i32> {
     let a: Vec<i32> = Vec::new<i32>()
     push(a, 0)

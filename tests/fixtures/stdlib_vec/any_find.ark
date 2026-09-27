@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{any_i32, find_i32}
 fn is_even(x: i32) -> bool {
     x % 2 == 0
 }

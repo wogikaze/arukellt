@@ -1,12 +1,13 @@
+use std::prelude::{to_string}
+use std::text
 use typechecker::contract_typevar_record
 use typechecker::contract_type_access
-
 fn TypeVar_new(id: i32, bound: TypeInfo) -> TypeVar {
     contract_typevar_record::TypeVar_new(id, bound)
 }
 
 fn TypeVar_name(tv: TypeVar) -> String {
-    concat("t", to_string(contract_typevar_record::type_var_id(tv)))
+    text::concat("t", to_string(contract_typevar_record::type_var_id(tv)))
 }
 
 fn TypeVar_bound_name(tv: TypeVar) -> String {

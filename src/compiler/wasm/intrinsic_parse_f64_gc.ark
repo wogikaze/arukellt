@@ -21,6 +21,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // Copies the String into linear memory, reuses the LM digit scanner, then
 // wraps SCRATCH_PF_RESULT as Result::Ok(_f1_f64) or Result::Err(String).
 
+use std::prelude::{byte_at}
 fn emit_parse_f64_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_str = runtime_abi_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
     let s_len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)

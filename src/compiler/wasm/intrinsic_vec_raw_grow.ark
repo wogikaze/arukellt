@@ -1,5 +1,6 @@
 //! Target lowering for the sealed `raw_array_grow` / `raw_array_set_len` /
 //! `raw_array_new` primitives.
+use std::prelude::{clone, contains, eq}
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
@@ -17,7 +18,6 @@ use wasm::writer_core
 use wasm::writer_gc
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
-
 fn lm_grow_elem_stride(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     // Mirror typed set/get: i64/f64 lanes are 8 bytes; default scalar is 4 (#822).
     let callee = inst_accessors_literals::MirInst_str_val(inst)

@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_record
-
 pub struct MirInst {
     home: MirBlock,
     index: i32,

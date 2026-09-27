@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, f64_bits_hi, f64_bits_lo, i32_to_i64}
 use wasm::writer_core
-
 fn parse_decimal_as_i64_emitter(text: String) -> i64 {
     let n = len(text)
     let mut result: i64 = 0

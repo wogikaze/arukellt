@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 pub fn is_sealed_raw_api_path(path: String) -> bool {
     if eq(clone(path), "std::core::raw") {
         return true
@@ -16,9 +18,9 @@ pub fn sealed_raw_api_stdlib_path(path: String) -> String {
 }
 
 pub fn sealed_raw_api_reject_message(path: String) -> String {
-    concat(
+    text::concat(
         "error: module `",
-        concat(
+        text::concat(
             clone(path),
             "` is a sealed stdlib raw API (RFC-006); user code cannot import it"
         )

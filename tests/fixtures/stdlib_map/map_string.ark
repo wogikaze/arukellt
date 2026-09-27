@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{map_String_String, to_upper}
 fn to_upper_wrapper(s: String) -> String {
     to_upper(s)
 }

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     stdio::println(to_string(42))
     stdio::println(to_string(9001i64))

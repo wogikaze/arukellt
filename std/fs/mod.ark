@@ -21,6 +21,7 @@
 //! `is_readable_file`) are available on both `wasm32` (WASI P1) and `wasm32-gc` (WASI P2) targets.
 //! Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
 //! supported on any target.
+use std::text
 /// Reads the entire contents of a file into a UTF-8 string.
 ///
 /// Returns `Err` if the file does not exist, the path is not readable,
@@ -85,7 +86,7 @@ pub fn is_dir(path: String) -> bool {
 /// **Not yet supported.** Returns an error because the current WASI intrinsic
 /// layer does not expose directory iteration.
 pub fn read_dir(path: String) -> Result<Vec<String>, String> {
-    Result::Err(concat("directory listing not yet supported: ", path))
+    Result::Err(text::concat("directory listing not yet supported: ", path))
 }
 
 /// Query file metadata for a given path.
@@ -93,5 +94,5 @@ pub fn read_dir(path: String) -> Result<Vec<String>, String> {
 /// **Not yet supported.** Returns an error because the current WASI intrinsic
 /// layer does not expose `path_filestat_get`.
 pub fn metadata(path: String) -> Result<String, String> {
-    Result::Err(concat("metadata not yet supported: ", path))
+    Result::Err(text::concat("metadata not yet supported: ", path))
 }

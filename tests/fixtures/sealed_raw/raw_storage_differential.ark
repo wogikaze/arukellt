@@ -1,11 +1,11 @@
 use std::host::stdio
-
+use std::prelude::{byte_at, clone}
 fn main() {
     let bytes = Vec::with_capacity<i32>(2)
     push(bytes, 79)
     push(bytes, 75)
     let text = __intrinsic_string_from_bytes(bytes)
-    stdio::print(char_at(clone(text), 0))
+    stdio::print(byte_at(clone(text), 0))
     stdio::print(len(clone(text)))
     stdio::print(len(String_new()))
 }

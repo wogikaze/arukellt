@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::text
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -11,7 +13,6 @@ use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
 use wasm::sections_types_gc_phase7
 use mir::opcodes as mir_opcodes
-
 fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     if local_idx < 0 {
         return ""
@@ -96,7 +97,7 @@ fn resolve_vec_type_from_constructor(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
                 let callee = inst_accessors_literals::MirInst_str_val(inst)
                 let elem = constructor_element_name(clone(callee))
                 if len(elem) > 0 {
-                    return resolve_vec_type_from_type_name(ctx, concat(String_from("vec:"), elem))
+                    return resolve_vec_type_from_type_name(ctx, text::concat(String_from("vec:"), elem))
                 }
                 if is_raw_array_new_call_name(clone(callee)) {
                     let fn_ret = raw_ctor_fn_return_vec_type_name(ctx)
@@ -130,7 +131,7 @@ fn resolve_array_type_from_constructor(ctx: SelfEmitCtx, dest_local: i32) -> i32
                 if len(elem) > 0 {
                     return resolve_array_type_from_type_name(
                         ctx,
-                        concat(String_from("vec:"), elem)
+                        text::concat(String_from("vec:"), elem)
                     )
                 }
                 if is_raw_array_new_call_name(clone(callee)) {
@@ -221,7 +222,7 @@ fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     let local_name = clone(tname)
     let mut tname = sections_types_gc_phase7::gc_normalize_vec_type_name(tname)
     if starts_with(clone(local_name), String_from("array:")) {
-        tname = concat(String_from("vec:"), substring(local_name, 6, len(local_name)))
+        tname = text::concat(String_from("vec:"), substring(local_name, 6, len(local_name)))
     }
     if eq(clone(tname), "vec:String") {
         return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)

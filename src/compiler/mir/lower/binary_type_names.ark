@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::value_types
-
 fn mir_is_primitive_operator_type(type_name: String) -> bool {
     if len(type_name) == 0 {
         return true

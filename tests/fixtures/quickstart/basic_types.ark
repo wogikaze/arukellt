@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let n: i32 = 42
     let b: bool = true

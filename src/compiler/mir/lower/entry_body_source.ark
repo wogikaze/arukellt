@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::entry_body_core_source
 use mir::lower::entry_core_body
 use mir::lower::entry_fallback_body
@@ -9,7 +10,6 @@ use corehir::decl_member_collections
 use corehir::frontend_ast_node
 use corehir::body_table
 use corehir::mir_body_source
-
 struct MirLowerEntryBodySource {
     entry_view: MirLowerEntryView,
     fallback_source: MirLowerFallbackSource,

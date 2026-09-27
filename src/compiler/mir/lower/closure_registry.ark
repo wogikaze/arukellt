@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use mir::lower::ctx_fn_mono
 use corehir::type_ann_node
 use mir::local_access
@@ -15,7 +17,6 @@ use mir::function_param_view
 use mir::function_identity
 use mir::lower::closure_storage
 use mir::value_types
-
 fn closure_clear_pending_bind(ctx: LowerCtx) {
     closure_storage::closure_storage_clear_pending_bind(ctx)
 }
@@ -131,18 +132,18 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
             let mut pi = 0
             while pi < closure_params {
                 if pi > 0 {
-                    params = concat(params, String_from(","))
+                    params = text::concat(params, String_from(","))
                 }
                 let mut pseg = local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(mf, pi))
                 if len(pseg) == 0 {
                     pseg = String_from("i32")
                 }
-                params = concat(params, pseg)
+                params = text::concat(params, pseg)
                 pi = pi + 1
             }
-            return concat(
+            return text::concat(
                 String_from("fnsig:"),
-                concat(clone(params), concat(String_from(";"), ret_seg_multi))
+                text::concat(clone(params), text::concat(String_from(";"), ret_seg_multi))
             )
         }
         return "fnref2"
@@ -162,7 +163,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
         if len(ret_seg) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
             return "fnref"
         }
-        return concat(String_from("fnsig:;"), ret_seg)
+        return text::concat(String_from("fnsig:;"), ret_seg)
     }
     let param = function_param_view::MirFunction_param_at(mf, 0)
     let mut param_seg = local_access::MirLocal_type_name(param)
@@ -179,9 +180,9 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
     type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
         return String_from("fnref")
     }
-    concat(
+    text::concat(
         String_from("fnsig:"),
-        concat(clone(param_seg), concat(String_from(";"), ret_seg))
+        text::concat(clone(param_seg), text::concat(String_from(";"), ret_seg))
     )
 }
 

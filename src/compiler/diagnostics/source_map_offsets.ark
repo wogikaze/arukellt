@@ -1,6 +1,6 @@
 use std::text
+use std::prelude::{byte_at, clone, to_string}
 use diagnostics::record
-
 pub fn offset_to_line(source: String, offset: i32) -> i32 {
     let n = len(source)
     let mut line: i32 = 1

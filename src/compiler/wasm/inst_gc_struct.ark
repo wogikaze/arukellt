@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -11,7 +12,6 @@ use wasm::ctx_record
 use wasm::code_ref_locals
 use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::sections_types_gc
-
 fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type: i32, local_idx: i32) -> bool {
     if !writer_core::writer_memory64(w) {
         return false

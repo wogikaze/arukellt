@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
+use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
@@ -9,7 +11,6 @@ use mir::lower::call_type_fallback
 use mir::lower::call_rewrite_vec
 use mir::value_types
 use wasm::sections_types_gc_phase7
-
 fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     let mut effective = clone(callee_name)
     if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) {
@@ -41,12 +42,12 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
             elem = decode_mono_vec_element_projection(elem)
             let resolved_vec_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
                 ctx,
-                concat(String_from("vec:"), clone(elem))
+                text::concat(String_from("vec:"), clone(elem))
             )
             if starts_with(clone(resolved_vec_type), String_from("vec:")) {
                 elem = substring(resolved_vec_type, 4, len(resolved_vec_type))
             }
-            let mut set_ty = concat(String_from("vec:"), elem)
+            let mut set_ty = text::concat(String_from("vec:"), elem)
             if eq(clone(elem), String_from("Vec_String")) || eq(clone(elem), String_from("Vec_string")) {
                 set_ty = String_from("vec:Vec_String")
             }
@@ -215,11 +216,11 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
             } else if eq(clone(elem_ty), String_from("Vec")) {
                 set_ty = String_from("vec:String")
             } else if starts_with(clone(elem_ty), String_from("Vec_")) {
-                set_ty = concat(String_from("vec:"), substring(elem_ty, 4, len(elem_ty)))
+                set_ty = text::concat(String_from("vec:"), substring(elem_ty, 4, len(elem_ty)))
             } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(elem_ty)) {
                 // Bare TomlValue/JsonValue must become enum:* so locals and
                 // array.get casts use enum-open, not string fallback (#726).
-                set_ty = concat(String_from("enum:"), clone(elem_ty))
+                set_ty = text::concat(String_from("enum:"), clone(elem_ty))
             }
             ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
             set_ref_vt_for_elem_type(ctx, dest, set_ty)
@@ -235,7 +236,7 @@ fn mark_vec_option_elem_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32
             let elem_ty = substring(vec_type, elem_start, len(vec_type))
             // dest is Option<T> (the container), not T — always a GC ref.
             // set_ref_vt_for_elem_type would wrongly set VT_I32 for option:i32.
-            let opt_ty = concat(String_from("option:"), elem_ty)
+            let opt_ty = text::concat(String_from("option:"), elem_ty)
             ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(opt_ty))
             call_type_fallback::set_ref_vt_for_type_name(ctx, dest, opt_ty)
             // Ensure Option::Some payload variant matches the element type
@@ -424,8 +425,8 @@ fn decode_mono_vec_element_projection(elem: String) -> String {
     if separator < 0 {
         return elem
     }
-    concat(
+    text::concat(
         substring(clone(elem), 0, separator),
-        concat(String_from("::"), substring(elem, separator + 2, len(elem)))
+        text::concat(String_from("::"), substring(elem, separator + 2, len(elem)))
     )
 }

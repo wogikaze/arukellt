@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use loader::module_state_loading
 use loader::module_state_modules
 use loader::module_file_load_stdlib

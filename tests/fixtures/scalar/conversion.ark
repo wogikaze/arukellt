@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{i32_to_u8, i8_to_i32, u16_to_i32, u32_to_u64, u8_to_i32}
 fn main() {
     let a: u8 = 255u8
     let a_i32: i32 = u8_to_i32(a)

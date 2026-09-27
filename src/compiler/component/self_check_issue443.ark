@@ -1,5 +1,5 @@
+use std::prelude::{clone, contains}
 use component::compose_wit_validate
-
 fn issue443_compose_wit_match_self_check() -> bool {
     let ok = compose_wit_validate::validate_plug_surfaces(
         "tests/component-interop/compose/fixtures/provider-match.wasm",

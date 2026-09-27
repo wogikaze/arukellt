@@ -9,6 +9,7 @@ use corehir::type_table
 // Find a registered `From<E_source> for E_target` method by canonical trait id
 // and the source/target type names carried on SignatureEntry params/returns.
 // Returns the mangled callee name, or empty when no impl matches.
+use std::prelude::{clone, eq}
 fn signature_registry_lookup_from_conversion(
     registry: SignatureRegistry,
     table: TypeTable,

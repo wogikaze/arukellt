@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{ends_with}
 fn main() {
     let s = String_from("hello")
     test::assert_true(ends_with(s, String_from("")))

@@ -1,3 +1,5 @@
+use std::prelude::{clone}
+use std::text
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
@@ -6,7 +8,6 @@ use wasm::writer_string
 use wasm::emit_target
 use wasm::sections_wit_imports
 use mir::module_wit_imports
-
 fn emit_import_section(
     out: WasmWriter,
     host_type_map: Vec<i32>,
@@ -69,7 +70,7 @@ fn emit_wasi_import_entries(
 }
 
 fn p2_module_name(interface_name: String) -> String {
-    concat("cm32p2|wasi:", concat(interface_name, "@0.2"))
+    text::concat("cm32p2|wasi:", text::concat(interface_name, "@0.2"))
 }
 
 fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {

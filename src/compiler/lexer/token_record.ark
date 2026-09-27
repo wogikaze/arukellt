@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 pub struct Token {
     kind: i32,
     text: String,

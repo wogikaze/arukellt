@@ -1,3 +1,4 @@
+use std::prelude::{clone, contains, ends_with, eq, starts_with}
 use mir::lower::call_arg_i64
 use mir::lower::call_mono
 use mir::lower::call_mono_by_type
@@ -9,7 +10,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_convert
 use mir::value_types
-
 struct MirCallRewrite {
     callee_name: String,
     return_local: i32,

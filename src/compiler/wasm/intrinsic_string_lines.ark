@@ -11,6 +11,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 // GC implementation of String::lines. Normalize CRLF first, then reuse the
 // exact delimiter splitting implementation so empty lines and trailing lines
 // retain the same behavior as String::split.
+use std::prelude::{byte_at, clone}
 fn emit_lines(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return false

@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::text
-
+use std::prelude::{to_lower, to_upper}
 fn main() {
     stdio::println(to_lower("HELLO"))
     stdio::println(to_upper("hello"))

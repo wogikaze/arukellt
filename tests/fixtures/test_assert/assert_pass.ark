@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{assert_eq, assert_eq_i64, assert_eq_str, assert_ne}
 fn main() {
     assert(true)
     assert_eq(1 + 1, 2)

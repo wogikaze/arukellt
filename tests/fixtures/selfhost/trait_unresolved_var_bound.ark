@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
 trait Foo {
     fn id(x: i32) -> i32,
 }

@@ -13,6 +13,7 @@ use std::collections::hash_fn
 use std::collections::hash_string
 use std::collections::hash_str_fn
 use std::core::iter
+use std::prelude::{clone, eq}
 
 /// Create a new HashMap<i32, i32> (alias for HashMap_i32_i32_new).
 pub fn hashmap_i32_i32_new() -> HashMap<i32, i32> {

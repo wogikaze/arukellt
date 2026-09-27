@@ -1,10 +1,10 @@
 use std::text
+use std::prelude::{byte_at, clone, index_of, starts_with, substring}
 use fmt::import_block
 use fmt::parse_gate
 use resolver
 use resolver::ast_access
 use resolver::ast_decl_predicates
-
 struct PruneImportEntry {
     line_start: i32,
     line_end: i32,
@@ -80,7 +80,7 @@ fn import_is_used(path: String, body: String) -> bool {
         return contains_ident_usage(clone(body), sym)
     }
     let short = resolver::use_module_short_name(clone(path))
-    let needle = concat(clone(short), "::")
+    let needle = text::concat(clone(short), "::")
     if index_of(clone(body), needle) >= 0 {
         return true
     }
@@ -168,8 +168,8 @@ fn import_block_bounds(entries: Vec<PruneImportEntry>) -> import_block::ImportBl
 fn apply_pruned_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
     let block = import_block_bounds(entries)
     let pruned = pruned_import_text(clone(text), entries)
-    concat(
-        concat(substring(clone(text), 0, import_block::ImportBlockSpan_start(block)), pruned),
+    text::concat(
+        text::concat(substring(clone(text), 0, import_block::ImportBlockSpan_start(block)), pruned),
         substring(text, import_block::ImportBlockSpan_end(block), len(text))
     )
 }

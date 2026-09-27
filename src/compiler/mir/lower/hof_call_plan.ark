@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use mir::lower_kinds
-
 struct MirHofCallPlan {
     kind: i32,
     min_children: i32,

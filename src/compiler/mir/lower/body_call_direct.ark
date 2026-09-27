@@ -1,3 +1,5 @@
+use std::prelude::{clone, contains, eq}
+use std::text
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::binary_cast
@@ -14,7 +16,6 @@ use mir::lower::loop_vec
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use corehir::type_ann_node
-
 fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     // Funcref parameter call: f(x) where f: fn(i32) -> i32
     if ast_node::node_kind_is(callee, lower_kinds::NK_IDENT()) {
@@ -140,7 +141,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         } else {
             "Vec__with_capacity__"
         }
-        concat(constructor, element_name)
+        text::concat(constructor, element_name)
     }
 
     fn mir_hashmap_constructor_name(callee: AstNode) -> String {
@@ -155,9 +156,9 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         contains(clone(key_name), "::") || contains(clone(value_name), "::") {
             return "HashMap::new"
         }
-        concat(
+        text::concat(
             "HashMap__new__",
-            concat(key_name, concat("__", value_name))
+            text::concat(key_name, text::concat("__", value_name))
         )
     }
 

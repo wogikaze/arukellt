@@ -1,11 +1,11 @@
 use std::host::process
 use std::host::stdio
+use std::prelude::{clone}
 use driver::file
 use driver::result_record
 use main::args_record
 use main::compile_core
 use main::output
-
 fn cmd_compile_all(opts: CliOptions) {
     if !compile_core::validate_wit_paths(opts) {
         process::exit(1)

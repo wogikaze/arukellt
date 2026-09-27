@@ -1,8 +1,9 @@
+use std::prelude::{to_string}
+use std::text
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use mir::opcodes
-
 fn mir_op_to_wat(inst: MirInst) -> String {
     let value_op = mir_value_op_to_wat(inst)
     if len(value_op) > 0 {
@@ -24,21 +25,21 @@ fn mir_op_to_wat(inst: MirInst) -> String {
     if len(aggregate_op) > 0 {
         return aggregate_op
     }
-    concat(";; unknown op ", to_string(inst_accessors_shape::MirInst_op(inst)))
+    text::concat(";; unknown op ", to_string(inst_accessors_shape::MirInst_op(inst)))
 }
 
 fn mir_value_op_to_wat(inst: MirInst) -> String {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CONST_I32() {
-        return concat("i32.const ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return text::concat("i32.const ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CONST_I64() {
-        return concat("i64.const ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return text::concat("i64.const ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
-        return concat("local.get ", to_string(inst_accessors_operands::MirInst_arg0(inst)))
+        return text::concat("local.get ", to_string(inst_accessors_operands::MirInst_arg0(inst)))
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() {
-        return concat("local.set ", to_string(inst_accessors_operands::MirInst_dest(inst)))
+        return text::concat("local.set ", to_string(inst_accessors_operands::MirInst_dest(inst)))
     }
     ""
 }
@@ -94,7 +95,7 @@ fn mir_arith_op_to_wat(inst: MirInst) -> String {
 
 fn mir_call_op_to_wat(inst: MirInst) -> String {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
-        return concat("call ", to_string(inst_accessors_operands::MirInst_arg0(inst)))
+        return text::concat("call ", to_string(inst_accessors_operands::MirInst_arg0(inst)))
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
         return "return"
@@ -104,10 +105,10 @@ fn mir_call_op_to_wat(inst: MirInst) -> String {
 
 fn mir_control_op_to_wat(inst: MirInst) -> String {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR() {
-        return concat("br ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return text::concat("br ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR_IF() {
-        return concat("br_if ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
+        return text::concat("br_if ", to_string(inst_accessors_literals::MirInst_int_val(inst)))
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BLOCK() {
         return "block"

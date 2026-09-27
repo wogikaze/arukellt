@@ -1,5 +1,6 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
+use std::text
 fn maybe_value(flag: bool) -> Option<i32> {
     if flag {
         Some(7)
@@ -11,7 +12,7 @@ fn maybe_value(flag: bool) -> Option<i32> {
 fn main() {
     match maybe_value(true) {
         Some(n) => {
-            stdio::println(concat(String_from("some="), to_string(n)))
+            stdio::println(text::concat(String_from("some="), to_string(n)))
         },
         None => {
             stdio::println(String_from("none"))
@@ -20,7 +21,7 @@ fn main() {
     let ok: Result<i32, String> = Ok(9)
     match ok {
         Ok(n) => {
-            stdio::println(concat(String_from("ok="), to_string(n)))
+            stdio::println(text::concat(String_from("ok="), to_string(n)))
         },
         Err(err) => {
             stdio::eprintln(err)

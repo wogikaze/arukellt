@@ -1,5 +1,6 @@
 // Compiler WIT AST-view facade — package/interface callable and binding surfaces (#663, #664, #672).
 
+use std::prelude::{clone}
 struct WitParsedFunc {
     wit_name: String,
     ark_name: String,

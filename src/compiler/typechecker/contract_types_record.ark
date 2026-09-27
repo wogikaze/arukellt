@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 struct TypeInfo {
     tag: i32,
     name: String,

@@ -1,8 +1,9 @@
 use std::host::stdio
-
+use std::prelude::{to_lower, to_upper}
+use std::text
 fn main() {
     let s = String_from("hello")
-    let t = concat(s, String_from(" world"))
+    let t = text::concat(s, String_from(" world"))
     let upper = to_upper(s)
     let lower = to_lower(s)
     stdio::println(t)

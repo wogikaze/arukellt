@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::opcodes
@@ -9,7 +10,6 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
-
 fn emit_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_wpos = ctx_scratch::SelfEmitCtx_scratch_base(ctx)

@@ -2,7 +2,7 @@
 // Verifies: calling a generic fn like identity<T>(x: T) -> T with an i32
 //           argument infers T=i32 and produces the correct return type.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn identity<T>(x: T) -> T {
     x
 }

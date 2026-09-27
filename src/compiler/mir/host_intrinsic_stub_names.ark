@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 fn host_intrinsic_stub_count() -> i32 {
     // read_to_string / write_string / write_bytes / read_dir / metadata are
     // stdlib Ark bodies — do not treat them as GC unreachable stubs (#807).

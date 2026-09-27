@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, eq, starts_with, substring, values}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id

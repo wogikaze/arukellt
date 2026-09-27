@@ -1,9 +1,9 @@
 use std::text
 use std::json
+use std::prelude::{clone, to_string}
 use analysis
 use analysis::diagnostic_record
 use lsp::diag_position
-
 fn phase_code(phase: i32) -> String {
     if phase == analysis::PHASE_LEX() {
         return String_from("ark.lex")

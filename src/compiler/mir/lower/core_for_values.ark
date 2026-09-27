@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::loop_scope
 use mir::lower::loop_conditions
 use mir::lower::loop_vec
@@ -5,7 +6,6 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
-
 fn lower_core_for_values(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
         return 0 - 1

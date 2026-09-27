@@ -4,7 +4,7 @@
 //! still load those modules do not require the previous compiler to know `__hm_sf_*`.
 
 use std::core::hash
-
+use std::prelude::{eq}
 pub fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
     __hm_sf_new()
 }

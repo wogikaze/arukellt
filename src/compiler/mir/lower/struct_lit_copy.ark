@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -5,7 +6,6 @@ use mir::inst_struct_get
 use mir::inst_struct_set
 use mir::inst_local_get
 use mir::value_types
-
 fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
     let total_fields = ctx_struct_field_count(ctx, clone(struct_name))
     let byte_size = ctx_struct_byte_size(ctx, clone(struct_name))

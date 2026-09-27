@@ -1,8 +1,8 @@
+use std::prelude::{clone, ends_with, eq, starts_with}
 use wasm::ctx_record
 use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
-
 fn SelfEmitCtx_is_vec_string_context(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)

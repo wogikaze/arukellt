@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_some}
 fn main() {
     test::assert_true(is_some(Some(1)))
     test::assert_true(is_some(Some(0)))

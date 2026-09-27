@@ -1,13 +1,14 @@
 use std::json
+use std::prelude::{clone, contains, eq}
+use std::text
 use lsp::state_record
-
 fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
     let raw = json::json_get_str(clone(body), clone(key))
     if len(raw) == 0 {
-        if contains(clone(body), concat(concat(String_from("\""), clone(key)), String_from("\":false"))) {
+        if contains(clone(body), text::concat(text::concat(String_from("\""), clone(key)), String_from("\":false"))) {
             return false
         }
-        if contains(clone(body), concat(concat(String_from("\""), clone(key)), String_from("\":true"))) {
+        if contains(clone(body), text::concat(text::concat(String_from("\""), clone(key)), String_from("\":true"))) {
             return true
         }
         return default_value

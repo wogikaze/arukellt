@@ -17,6 +17,7 @@ use diagnostics::mod as diag_mod
 
 // Register declarations before impls so arity and associated-item checks use
 // the same local trait registry as obligation solving.
+use std::prelude::{args, byte_at, clone, eq, to_string}
 fn register_trait_decls(env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0
@@ -111,9 +112,9 @@ fn register_trait_impl_entry(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_CONFLICT(),
-                concat(
+                text::concat(
                     String_from("overlapping trait impl: duplicate impl of "),
-                    concat(clone(trait_name), concat(" for ", shown))
+                    text::concat(clone(trait_name), text::concat(" for ", shown))
                 )
             )
             return
@@ -134,9 +135,9 @@ fn register_trait_impl_entry(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_CONFLICT(),
-                concat(
+                text::concat(
                     String_from("overlapping trait impl: parametric impl conflicts on "),
-                    concat(clone(trait_name), concat(" for ", shown))
+                    text::concat(clone(trait_name), text::concat(" for ", shown))
                 )
             )
             return
@@ -182,7 +183,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_BLANKET(),
-                concat(
+                text::concat(
                     String_from("blanket trait impl is not allowed for user code: "),
                     clone(trait_name)
                 )
@@ -224,15 +225,15 @@ fn validate_trait_supertraits(env: TypeEnv) {
             let super_ty = types::resolve_type_name(clone(super_name))
             if !trait_bounds::type_satisfies_trait_bound(env, self_ty, super_ty) {
                 let displayed_self = names::type_display_name(self_ty)
-                let message = concat(
+                let message = text::concat(
                     String_from("trait `"),
-                    concat(
+                    text::concat(
                         clone(trait_name),
-                        concat(
+                        text::concat(
                             "` requires supertrait `",
-                            concat(
+                            text::concat(
                                 clone(super_name),
-                                concat("` for ", displayed_self)
+                                text::concat("` for ", displayed_self)
                             )
                         )
                     )
@@ -286,9 +287,9 @@ fn register_impl_associated_types(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                concat(
+                text::concat(
                     String_from("associated type `"),
-                    concat(clone(assoc_name), "` is not declared by trait")
+                    text::concat(clone(assoc_name), "` is not declared by trait")
                 )
             )
             i = i + 1
@@ -298,9 +299,9 @@ fn register_impl_associated_types(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                concat(
+                text::concat(
                     String_from("associated type `"),
-                    concat(clone(assoc_name), "` requires an impl definition")
+                    text::concat(clone(assoc_name), "` requires an impl definition")
                 )
             )
             i = i + 1
@@ -312,9 +313,9 @@ fn register_impl_associated_types(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                concat(
+                text::concat(
                     String_from("duplicate associated type definition: `"),
-                    concat(clone(assoc_name), "`")
+                    text::concat(clone(assoc_name), "`")
                 )
             )
         } else {
@@ -347,9 +348,9 @@ fn require_associated_type_definitions(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                concat(
+                text::concat(
                     String_from("impl is missing associated type `"),
-                    concat(clone(name), "`")
+                    text::concat(clone(name), "`")
                 )
             )
         }
@@ -408,15 +409,15 @@ fn validate_trait_arity(env: TypeEnv, trait_name: String, actual: i32) -> bool {
     report_trait_error(
         env,
         codes::DIAG_TYPE_TRAIT_ARITY(),
-        concat(
+        text::concat(
             String_from("trait `"),
-            concat(
+            text::concat(
                 clone(trait_name),
-                concat(
+                text::concat(
                     "` expects ",
-                    concat(
+                    text::concat(
                         to_string(expected),
-                        concat(" type argument(s), found ", to_string(actual))
+                        text::concat(" type argument(s), found ", to_string(actual))
                     )
                 )
             )

@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{map_i64_i64}
 fn double(x: i64) -> i64 {
     x * 2
 }

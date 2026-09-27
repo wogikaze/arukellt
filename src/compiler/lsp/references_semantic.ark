@@ -1,5 +1,6 @@
 use std::host::fs
 use std::text
+use std::prelude::{clone, to_string}
 use analysis::symbol_references
 use analysis::symbols
 use lsp::feature_request
@@ -8,7 +9,6 @@ use lsp::responses_navigation
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_paths
-
 fn read_uri_text(uri: String) -> String {
     let path = symbol_index_paths::uri_to_file_path(uri)
     if len(path) == 0 {
@@ -30,7 +30,7 @@ fn append_location(items: String, uri: String, text: String, start: i32, end: i3
     if len(items) == 0 {
         return loc
     }
-    concat(concat(items, ","), loc)
+    text::concat(text::concat(items, ","), loc)
 }
 
 fn build_reference_response(id: i32, items: String) -> String {
@@ -66,7 +66,7 @@ fn append_highlight(items: String, text: String, start: i32, end: i32) -> String
     if len(items) == 0 {
         return item
     }
-    concat(concat(items, ","), item)
+    text::concat(text::concat(items, ","), item)
 }
 
 fn indexed_symbol_references(state: LspState, name: String, cursor_uri: String, cursor_text: String, cursor_offset: i32) -> String {

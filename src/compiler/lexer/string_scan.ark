@@ -1,3 +1,4 @@
+use std::prelude::{byte_at}
 fn string_literal_has_escape(lex: Lexer) -> bool {
     let mut scan = lex.pos
     while scan < lex.src_len {

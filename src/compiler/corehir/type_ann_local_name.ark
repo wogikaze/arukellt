@@ -1,8 +1,9 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::type_ann_node
 use corehir::hashmap_type_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
-
 fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
@@ -20,7 +21,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 // struct spelling so emit picks the GC-ref element layout and
                 // destructure can recover field names (#888).
                 if type_ann_node::type_ann_is_tuple(elem_ty) {
-                    return concat(
+                    return text::concat(
                         String_from("vec:"),
                         type_ann_node::type_ann_tuple_local_name(elem_ty)
                     )
@@ -30,10 +31,10 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 if type_ann_node::type_ann_is_generic(elem_ty) {
                     let shaped = type_ann_shape_local_type_name(elem_ty, 0)
                     if len(shaped) > 0 {
-                        return concat("vec:", shaped)
+                        return text::concat("vec:", shaped)
                     }
                 }
-                return concat("vec:", type_ann_node::type_ann_name(elem_ty))
+                return text::concat("vec:", type_ann_node::type_ann_name(elem_ty))
             }
             return "vec"
         }
@@ -43,7 +44,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 let val = type_ann_node::type_ann_child_at(ann, 2)
                 let k_name = type_ann_node::type_ann_name(key)
                 let v_name = type_ann_node::type_ann_name(val)
-                return concat("hashmap:", hashmap_type_name::hashmap_type_alias(k_name, v_name))
+                return text::concat("hashmap:", hashmap_type_name::hashmap_type_alias(k_name, v_name))
             }
             return "hashmap:"
         }
@@ -86,12 +87,12 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 if type_ann_node::type_ann_is_generic(some_ty) {
                     let shaped = type_ann_shape_local_type_name(some_ty, 0)
                     if len(shaped) > 0 {
-                        return concat("Option_", shaped)
+                        return text::concat("Option_", shaped)
                     }
                 }
                 let some_name = type_ann_node::type_ann_name(some_ty)
                 if len(some_name) > 0 {
-                    return concat("Option_", some_name)
+                    return text::concat("Option_", some_name)
                 }
             }
             return "enum:Option"
@@ -152,10 +153,10 @@ fn type_ann_shape_result_local_type_name(ann: AstNode, ok_name: String) -> Strin
         let err_ty = type_ann_node::type_ann_child_at(ann, 2)
         let err_name = type_ann_shape_local_type_arg(err_ty)
         if len(err_name) > 0 {
-            return concat("Result_", concat(normalized_ok_name, concat("_", err_name)))
+            return text::concat("Result_", text::concat(normalized_ok_name, text::concat("_", err_name)))
         }
     }
-    concat("Result_", normalized_ok_name)
+    text::concat("Result_", normalized_ok_name)
 }
 
 // Canonical Name<arg,arg> spelling for user generic local type names.
@@ -170,7 +171,7 @@ fn type_ann_generic_inst_local_name(ann: AstNode) -> String {
     if arg_count < 2 {
         return String_new()
     }
-    let mut out = concat(ann_name, String_from("<"))
+    let mut out = text::concat(ann_name, String_from("<"))
     let mut i = 1
     while i < arg_count {
         let arg_name = type_ann_shape_local_type_arg(type_ann_node::type_ann_child_at(ann, i))
@@ -178,10 +179,10 @@ fn type_ann_generic_inst_local_name(ann: AstNode) -> String {
             return String_new()
         }
         if i > 1 {
-            out = concat(out, String_from(","))
+            out = text::concat(out, String_from(","))
         }
-        out = concat(out, arg_name)
+        out = text::concat(out, arg_name)
         i = i + 1
     }
-    concat(out, String_from(">"))
+    text::concat(out, String_from(">"))
 }

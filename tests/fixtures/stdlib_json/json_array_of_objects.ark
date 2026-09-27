@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("[{\"id\":1},{\"id\":2}]") {
         Result::Ok(v) => {
@@ -25,6 +25,6 @@ fn main() {
                 None => panic("expected element 1"),
             }
         },
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
 }

@@ -1,11 +1,11 @@
 use std::host::fs
+use std::prelude::{byte_at, clone, eq, substring}
 use compiler::session_parse
 use lsp::state_docs
 use lsp::state_record
 use lsp::symbol_index_paths
 use loader::load
 use resolver
-
 fn ark_stem_from_path(path: String) -> String {
     let n = len(path)
     let mut last_slash = 0 - 1

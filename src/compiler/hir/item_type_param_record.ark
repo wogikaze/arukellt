@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use hir::type_contracts_record
-
 struct HirTraitBound {
     trait_ty: HirType,
 }

@@ -16,6 +16,8 @@ use mir::lower::ctx_types
 
 // Comma-joined declared type parameter names for a generic struct base,
 // or "" when base is not a registered generic struct.
+use std::prelude::{args, byte_at, clone, eq, starts_with, substring}
+use std::text
 fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_struct_names)
     let mut i = 0
@@ -129,7 +131,7 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
     while i < n {
         let ch = byte_at(clone(ft), i)
         if !type_ident_char(ch) {
-            out = concat(out, substring(clone(ft), i, i + 1))
+            out = text::concat(out, substring(clone(ft), i, i + 1))
             i = i + 1
             continue
         }
@@ -142,14 +144,14 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
         let mut pi = 0
         while pi < len(params) {
             if pi < len(args) && eq(get_unchecked(params, pi), clone(tok)) {
-                out = concat(out, clone(get_unchecked(args, pi)))
+                out = text::concat(out, clone(get_unchecked(args, pi)))
                 replaced = true
                 pi = len(params)
             }
             pi = pi + 1
         }
         if !replaced {
-            out = concat(out, tok)
+            out = text::concat(out, tok)
         }
     }
     out

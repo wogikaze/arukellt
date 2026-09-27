@@ -1,12 +1,13 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
-
+use std::prelude::{clone}
+use std::text
 fn transform_line(line: String) -> Result<String, String> {
     if len(line) == 0 {
         Err(String_from("empty-line"))
     } else {
-        Ok(concat(String_from("OK:"), line))
+        Ok(text::concat(String_from("OK:"), line))
     }
 }
 

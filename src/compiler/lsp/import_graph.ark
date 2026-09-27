@@ -1,6 +1,7 @@
+use std::prelude::{byte_at, clone, eq, index_of}
+use std::text
 use compiler::session_parse
 use loader::module_import_paths
-
 fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
     let n = len(paths)
     let mut i = 0
@@ -22,11 +23,11 @@ pub fn is_path_imported(text: String, import_path: String) -> bool {
 }
 
 pub fn stdlib_import_path(module_path: String, symbol_name: String) -> String {
-    concat(module_path, concat("::", symbol_name))
+    text::concat(module_path, text::concat("::", symbol_name))
 }
 
 pub fn build_use_statement(import_path: String) -> String {
-    concat("use ", concat(import_path, "\n"))
+    text::concat("use ", text::concat(import_path, "\n"))
 }
 
 pub fn first_use_insert_offset(text: String) -> i32 {

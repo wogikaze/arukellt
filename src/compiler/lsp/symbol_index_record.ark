@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 pub struct IndexedSymbol {
     uri: String,
     name: String,

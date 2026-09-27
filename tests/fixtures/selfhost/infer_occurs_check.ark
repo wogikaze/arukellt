@@ -1,7 +1,7 @@
 // Test: selfhost typechecker occurs check in bind_var prevents self-referential types.
 // Exercises: normal type inference works correctly with occurs check installed.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn double(n: i32) -> i32 {
     n * 2
 }

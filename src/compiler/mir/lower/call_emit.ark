@@ -1,3 +1,4 @@
+use std::prelude::{clone, ends_with, eq, starts_with}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_call
@@ -9,7 +10,6 @@ use mir::lower::call_rewrite
 use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::value_types
-
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
     if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_replace_lane")) {
         return true

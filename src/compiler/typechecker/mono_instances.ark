@@ -1,4 +1,5 @@
 use std::text
+use std::prelude::{clone, eq, substring}
 use collections::name_index
 use typechecker::associated_types
 use typechecker::contract_fn_sig
@@ -14,14 +15,13 @@ use typechecker::mono_key
 use typechecker::trait_method_record
 use typechecker::names
 use typechecker::types
-
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)
     let count = len(resolved_types)
     let mut i = 0
     while i < count {
         let ty = get_unchecked(resolved_types, i)
-        mangled = text::builder_append(mangled, concat("__", mono_key::mono_type_key(ty)))
+        mangled = text::builder_append(mangled, text::concat("__", mono_key::mono_type_key(ty)))
         i = i + 1
     }
     record_template_site_if_generic(env, clone(fn_name), clone(mangled), clone(resolved_types))
@@ -297,9 +297,9 @@ fn propagate_impl_methods_mono(env: TypeEnv, impl_info: TraitImplInfo, receiver:
             // A method with its own type parameters cannot be resolved
             // from the receiver alone; its call sites record directly.
             if contract_fn_sig::FnSig_type_param_count(sig) <= trait_param_count {
-                let method_fn = concat(
+                let method_fn = text::concat(
                     clone(owner_name),
-                    concat("::", contract_trait_method_record::trait_method_entry_method_name(entry))
+                    text::concat("::", contract_trait_method_record::trait_method_entry_method_name(entry))
                 )
                 // Only impl-defined methods have a body to monomorphize;
                 // trait defaults live under the trait's own owner name and

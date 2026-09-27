@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::closure_capture_args
 use mir::lower::closure_cells
 use mir::lower::closure_registry
@@ -6,7 +7,6 @@ use mir::lower::core_closure_emit
 use mir::lower::core_closure_free
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
-
 fn lower_core_closure(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if is_identity_core_closure(exprs, expr) {
         // A single funcref type cannot serve both scalar and GC-reference

@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, contains, substring}
 use lsp::feature_request
 use lsp::feature_symbol
 use lsp::framing
@@ -9,7 +10,6 @@ use lsp::stdlib_definition
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
 use lsp::symbol_index_search
-
 fn lookup_short_name(text: String, offset: i32) -> String {
     let lookup_name = qualified_name::lookup_name_at_offset(clone(text), offset)
     if len(lookup_name) == 0 {

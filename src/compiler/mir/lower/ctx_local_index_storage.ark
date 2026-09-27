@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone}
 fn ctx_local_index_push(ctx: LowerCtx, name: String, index: i32) {
     push(ctx.local_names, clone(name))
     push(ctx.local_indices, index)

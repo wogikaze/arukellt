@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::text
 enum List {
     Nil,
     Cons(i32, List),
@@ -17,7 +17,7 @@ fn list_to_string(list: List) -> String {
     match list {
         List::Nil => String_from("nil"),
         List::Cons(head, tail) => {
-            concat(concat((head).to_string(), String_from(" -> ")), list_to_string(tail))
+            text::concat(text::concat((head).to_string(), String_from(" -> ")), list_to_string(tail))
         },
     }
 }

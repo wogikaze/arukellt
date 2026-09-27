@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use component
 use component::wit_parse_resource
-
 fn issue473_resource_parse_self_check() -> bool {
     if !wit_parse_resource::wit_is_own_type("own<handle>") {
         return false

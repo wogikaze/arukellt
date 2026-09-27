@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq, starts_with}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
 use mir::value_types
-
 fn mvt_from_legacy_vt(val_type: i32, type_name: String) -> MirValueType {
     mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), legacy_vt_to_repr(val_type, clone(type_name)), legacy_vt_to_nullability(val_type, clone(type_name)))
 }

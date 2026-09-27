@@ -1,7 +1,7 @@
+use std::prelude::{clone, starts_with}
 use lsp::positions
 use lsp::source_text
 use lsp::symbol_index_lookup
-
 fn is_stdlib_uri(uri: String) -> bool {
     starts_with(clone(uri), "file://std/")
 }

@@ -1,10 +1,10 @@
+use std::prelude::{byte_len}
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_locals
 use wasm::intrinsics::helpers_io_memory
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::constants
-
 fn emit_iov_from_string_local(w: WasmWriter, string_local: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_IOV())
     helpers_io_locals::emit_local_get(w, string_local)

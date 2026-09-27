@@ -1,8 +1,8 @@
 use std::text
 use std::json
+use std::prelude::{clone, to_string}
 use lsp::import_graph
 use lsp::positions
-
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
     let mut out = String_from("{\"label\":")
     out = text::builder_append(out, json::quote_string(label))
@@ -44,5 +44,5 @@ pub fn append_item(items: String, item: String) -> String {
     if len(items) == 0 {
         return item
     }
-    concat(concat(items, String_from(",")), item)
+    text::concat(text::concat(items, String_from(",")), item)
 }

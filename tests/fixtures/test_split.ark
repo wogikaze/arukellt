@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::text
-
+use std::prelude::{format_i32}
 fn main() {
     let parts = text::split(String_from("hello,world"), String_from(","))
     let n = len(parts)

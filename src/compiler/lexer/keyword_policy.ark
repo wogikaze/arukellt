@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 pub fn is_contextual_keyword(word: String) -> bool {
     eq(clone(word), "test") ||
     eq(clone(word), "move") ||

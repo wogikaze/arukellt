@@ -3,7 +3,7 @@
 //           bool literal → bool, binary arithmetic infers operand type,
 //           let binding infers type from initializer expression.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let x = 1 + 2
     stdio::println(to_string(x))

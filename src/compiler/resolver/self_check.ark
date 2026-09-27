@@ -1,16 +1,17 @@
 use std::host::stdio
+use std::prelude::{to_string}
+use std::text
 use lexer::scan
 use parser::core_api_token
 use parser::decl
 use resolver::context
 use resolver::program
-
 fn parse_decls(src: String) -> Vec<AstNode> {
     let tokens = scan::tokenize(src)
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     if len(p.errors) != 0 {
-        stdio::println(concat("Resolver parse errors: ", to_string(len(p.errors))))
+        stdio::println(text::concat("Resolver parse errors: ", to_string(len(p.errors))))
     }
     decls
 }
@@ -20,7 +21,7 @@ fn main() {
     let ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), Vec::new<String>())
     let error_count = context::ResolveCtx_reported_error_count(ctx)
     if error_count != 0 {
-        stdio::println(concat("Resolver errors: ", to_string(error_count)))
+        stdio::println(text::concat("Resolver errors: ", to_string(error_count)))
         return
     }
     stdio::println("Resolver OK.")

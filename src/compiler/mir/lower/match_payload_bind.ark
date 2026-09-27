@@ -1,3 +1,4 @@
+use std::prelude::{clone, starts_with}
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::inst_local_get
@@ -11,7 +12,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::value_types
-
 fn mir_emit_match_ident_bind(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, scrut_idx)
     let bind_local = ctx_alloc_local(ctx, ast_node::node_text(pat), bind_vt)

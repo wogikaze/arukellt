@@ -18,6 +18,7 @@ use loader::ast_serialize_parse
 
 // ── Byte buffer helpers ──────────────────────────────────────────────
 
+use std::prelude::{byte_at, clone, to_string}
 fn buf_push_i32(buf: Vec<i32>, val: i32) {
     push(buf, val & 255)
     push(buf, (val >> 8) & 255)

@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use lexer::tokens
 use parser::core_api_cursor
 use parser::token_state
-
 fn has_next_clause(p: Parser, name: String) -> bool {
     let saved = p.pos
     // A semicolon is an item terminator, so it must not be erased while

@@ -1,3 +1,4 @@
+use std::prelude::{clone, contains, eq}
 fn is_native_target(target: String) -> bool {
     is_native_cpp_target(clone(target)) || is_native_llvm_target(target)
 }

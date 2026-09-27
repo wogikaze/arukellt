@@ -2,7 +2,7 @@
 //!
 //! Representation-sensitive helpers go through `std::core::raw` (RFC-006).
 use std::core::raw
-
+use std::prelude::{to_lowercase}
 pub fn concat(a: String, b: String) -> String {
     __core_string_concat_impl(a, b)
 }

@@ -1,6 +1,6 @@
 use std::fs
 use std::test
-
+use std::prelude::{contains}
 fn main() {
     match fs::metadata("some_path") {
         Result::Ok(_) => panic("expected error"),

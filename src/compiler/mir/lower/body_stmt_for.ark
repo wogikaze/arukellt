@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -14,7 +15,6 @@ use mir::lower_kinds
 use mir::value_types
 use mir::inst_call
 use mir::inst_local_get
-
 fn lower_for_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 2 {

@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_identity
@@ -5,7 +6,6 @@ use mir::function_param_view
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::opcodes
-
 fn stdlib_inline_instruction_budget() -> i32 { 24 }
 
 fn stdlib_inline_code_size_budget() -> i32 { 192 }

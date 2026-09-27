@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
-
 fn resolve_primitive_type_name(name: String) -> TypeInfo {
     if eq(clone(name), "i32") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_I32())

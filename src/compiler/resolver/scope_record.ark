@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone}
 use resolver::symbol_record
-
 struct Scope {
     symbols: Vec<Symbol>,
     names: Vec<String>,

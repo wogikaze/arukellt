@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use mir::mono_instance_shape
 use mir::type_contracts
-
 fn mono_instance_is_marker(mi: MonoInstance) -> bool {
     mono_instance_shape::mir_mono_instance_is_marker(mi)
 }

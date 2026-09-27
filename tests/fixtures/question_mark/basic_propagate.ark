@@ -5,6 +5,7 @@ use std::host::stdio
 // needed — `expr?` desugars to
 //   match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }
 // and From<String> for String is the identity impl.
+use std::prelude::{parse_i32}
 fn parse_and_double(s: String) -> Result<i32, String> {
     let n: i32 = parse_i32(s)?
     Ok(n * 2)

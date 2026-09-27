@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, split, substring}
 struct DocFnEntry {
     name: String,
     module: String,

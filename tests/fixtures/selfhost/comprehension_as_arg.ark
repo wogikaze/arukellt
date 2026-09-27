@@ -1,6 +1,6 @@
 // Test: array comprehension used inline as a function argument
 use std::host::stdio
-
+use std::prelude::{values}
 fn sum_vec(v: Vec<i32>) -> i32 {
     let mut s = 0
     for x in values(v) {

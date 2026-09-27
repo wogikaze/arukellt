@@ -1,8 +1,10 @@
+use std::prelude::{byte_at, clone, ends_with, index_of, starts_with, substring}
+use std::text
 pub fn file_path_to_uri(path: String) -> String {
     if starts_with(clone(path), "file://") {
         return path
     }
-    concat("file://", path)
+    text::concat("file://", path)
 }
 
 pub fn uri_to_file_path(uri: String) -> String {
@@ -33,7 +35,7 @@ fn extract_workspace_folder_uri(body: String) -> String {
 }
 
 pub fn extract_json_string_field(body: String, key: String) -> String {
-    let key_pat = concat(concat("\"", clone(key)), "\"")
+    let key_pat = text::concat(text::concat("\"", clone(key)), "\"")
     let pos = index_of(clone(body), key_pat)
     if pos < 0 {
         return String_new()
@@ -72,9 +74,9 @@ pub fn join_path(base: String, rel: String) -> String {
         return rel
     }
     if ends_with(clone(base), "/") {
-        return concat(base, rel)
+        return text::concat(base, rel)
     }
-    concat(concat(base, "/"), rel)
+    text::concat(text::concat(base, "/"), rel)
 }
 
 pub fn resolve_relative_path(base: String, rel: String) -> String {
@@ -92,7 +94,7 @@ pub fn resolve_relative_path(base: String, rel: String) -> String {
 }
 
 pub fn find_dependency_path(content: String, dep_name: String) -> String {
-    let needle = concat(clone(dep_name), " = { path = \"")
+    let needle = text::concat(clone(dep_name), " = { path = \"")
     let pos = index_of(clone(content), needle)
     if pos < 0 {
         return String_new()

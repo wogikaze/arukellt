@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone, eq, substring}
 use mir::lower::ctx_fn_index
-
 fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
     if found >= 0 {

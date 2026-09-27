@@ -1,6 +1,6 @@
 // Test: array comprehension — [expr for x in iter if filter] (map + filter)
 use std::host::stdio
-
+use std::prelude::{values}
 fn main() {
     let xs: Vec<i32> = Vec::new<i32>()
     push(xs, 1)

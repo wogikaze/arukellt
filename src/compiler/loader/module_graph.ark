@@ -1,3 +1,4 @@
+use std::prelude::{clone, contains, eq}
 use loader::module_state_loading
 use loader::module_import_paths
 use loader::module_local_decls
@@ -9,7 +10,6 @@ use loader::module_state
 use loader::module_state_errors
 use loader::module_stdlib_decls
 use loader::wit_manifest
-
 pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
     // Stdlib modules may import sealed raw APIs.

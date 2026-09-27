@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::function_identity
 use mir::source_location_record
 use wasm::ctx_record
@@ -5,7 +6,6 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::writer_string
-
 fn emit_debug_source_map_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32, opt_level: i32, strip_debug: bool, source_file: String) {
     if strip_debug || opt_level >= 2 {
         return

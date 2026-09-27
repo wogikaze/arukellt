@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{eq}
 fn safe_parse(s: String) -> i32 {
     let r: Result<i32, String> = if eq(s, "0") { Ok(0) } else { Err(String_from("bad")) }
     match r { Result::Ok(v) => v, Result::Err(e) => -1 }

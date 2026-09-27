@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use corehir::core_op_id
 use corehir::core_op_binding
 use corehir::core_op_registry_generated
@@ -13,7 +14,6 @@ use wasm::call_scalar
 use wasm::call_parse
 use wasm::call_vec
 use wasm::call_simd
-
 fn core_op_dispatch_use_registry() -> bool {
     true
 }

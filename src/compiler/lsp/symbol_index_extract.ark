@@ -1,7 +1,8 @@
+use std::prelude::{clone}
+use std::text
 use lsp::kinds
 use lsp::symbol_index_record
 use parser::ast
-
 fn node_kind(node: AstNode) -> i32 {
     ast::ast_node_kind(node)
 }
@@ -47,19 +48,19 @@ fn node_is_impl_decl(node: AstNode) -> bool {
 }
 
 fn render_fn_detail(name: String) -> String {
-    concat(concat("fn ", clone(name)), "()")
+    text::concat(text::concat("fn ", clone(name)), "()")
 }
 
 fn render_struct_detail(name: String) -> String {
-    concat("struct ", name)
+    text::concat("struct ", name)
 }
 
 fn render_enum_detail(name: String) -> String {
-    concat("enum ", name)
+    text::concat("enum ", name)
 }
 
 fn render_trait_detail(name: String) -> String {
-    concat("trait ", name)
+    text::concat("trait ", name)
 }
 
 fn node_decl_name_span_start(node: AstNode) -> i32 {

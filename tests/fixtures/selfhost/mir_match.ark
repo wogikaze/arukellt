@@ -2,7 +2,7 @@
 // Exercises: integer literal arms, wildcard pattern, match as expression,
 //            nested if/else chain lowering for multiple arms.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn grade(score: i32) -> i32 {
     match score {
         90 => 4,

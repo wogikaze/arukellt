@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_ok}
 fn validate(n: i32) -> Result<i32, String> {
     if n > 0 { Ok(n) } else { Err(String_from("must be positive")) }
 }

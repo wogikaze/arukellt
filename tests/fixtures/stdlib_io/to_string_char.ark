@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let ch: char = 'A'
     stdio::println(to_string(ch))

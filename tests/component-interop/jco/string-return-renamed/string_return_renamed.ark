@@ -1,7 +1,8 @@
 // Component interop smoke test: string result canonical ABI is name-independent.
 
+use std::text
 export fn describe_count(n: i32) -> String {
-    concat(String_from("count="), (n).to_string())
+    text::concat(String_from("count="), (n).to_string())
 }
 
 fn main() {

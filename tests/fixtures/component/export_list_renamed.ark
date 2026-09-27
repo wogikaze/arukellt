@@ -1,4 +1,5 @@
 // Export with Vec<i32> should not depend on the specific function name used by the smoke fixture.
+use std::prelude::{unwrap}
 export fn head_or_zero(v: Vec<i32>) -> i32 {
     if len(v) > 0 {
         unwrap(get(v, 0))

@@ -1,7 +1,7 @@
+use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
-
 fn set_stdlib_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
     ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {

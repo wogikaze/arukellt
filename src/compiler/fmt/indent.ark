@@ -1,5 +1,5 @@
 use std::text
-
+use std::prelude::{byte_at, clone, index_of, lines, substring}
 struct FmtIndentScan {
     opens: i32,
     closes: i32,
@@ -75,7 +75,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
             prefix = text::builder_append(prefix, "    ")
             d = d + 1
         }
-        push(out, concat(prefix, trimmed))
+        push(out, text::concat(prefix, trimmed))
         if closes_else {
             indent = line_indent + 1
         } else {

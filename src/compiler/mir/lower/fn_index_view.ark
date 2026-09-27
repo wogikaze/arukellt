@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, substring}
 use corehir::mir_signature_method
 use corehir::mod
 use mir::lower::decl_source
@@ -9,7 +10,6 @@ use mir::lower::signature_registry_build
 use mir::lower::fn_index_source
 use mir::lower::signature_spine
 use mir::module_spine
-
 fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirModule) -> MirLowerFnIndex {
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{clamp_i32}
 fn main() {
     stdio::println((clamp_i32(5, 0, 10)).to_string())
     stdio::println((clamp_i32(-3, 0, 10)).to_string())

@@ -17,6 +17,7 @@ use wasm::emit_target
 // div/mod (exact for scaled < 2^53) and assembled with the decimal point k
 // digits from the right.  k may be 0 so integer-valued f64 render as `5`
 // (fixtures / stdlib_string construct_from_f64 expect no trailing `.0`).
+use std::prelude::{clone}
 fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_wpos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)

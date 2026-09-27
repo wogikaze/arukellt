@@ -1,9 +1,9 @@
+use std::text
 use mir::function_local_alloc
 use mir::function_local_mutation
 use mir::function_locals_view
 use mir::local_access
 use mir::local_factory
-
 fn stdlib_inline_build_local_map(caller: MirFunction, callee: MirFunction) -> Vec<i32> {
     let local_map = Vec::new<i32>()
     let count = function_locals_view::MirFunction_local_count(callee)
@@ -12,12 +12,12 @@ fn stdlib_inline_build_local_map(caller: MirFunction, callee: MirFunction) -> Ve
         let source = function_locals_view::MirFunction_local_at(callee, index)
         let mapped = function_local_alloc::alloc_local(
             caller,
-            concat("_inl_", local_access::MirLocal_name(source)),
+            text::concat("_inl_", local_access::MirLocal_name(source)),
             local_access::MirLocal_val_type(source)
         )
         let copied = local_factory::MirLocal_copy_with_ssa(
             source,
-            concat("_inl_", local_access::MirLocal_ssa_name(source)),
+            text::concat("_inl_", local_access::MirLocal_ssa_name(source)),
             local_access::MirLocal_ssa_version(source)
         )
         function_local_mutation::MirFunction_set_local(caller, mapped, copied)

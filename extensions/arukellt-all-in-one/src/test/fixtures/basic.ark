@@ -1,7 +1,7 @@
 use std::host::stdio
-
+use std::text
 fn greet(name: String) -> String {
-    let msg = concat("Hello, ", name)
+    let msg = text::concat("Hello, ", name)
     msg
 }
 

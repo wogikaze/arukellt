@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -13,7 +14,6 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::value_types
 use mir::opcodes as mir_opcodes
-
 fn lower_core_literal_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_int(expr) {
         if core_expr_shape_accessors::mir_core_expr_val_type(expr) == value_types::VT_I64() {

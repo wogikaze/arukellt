@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{fold_f64_f64}
 fn add(acc: f64, x: f64) -> f64 {
     acc + x
 }

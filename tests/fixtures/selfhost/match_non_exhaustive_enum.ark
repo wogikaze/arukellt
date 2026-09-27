@@ -1,7 +1,7 @@
 // Test: selfhost typechecker detects non-exhaustive match on user-defined enum.
 // Exercises: match on Direction enum missing West variant (exhaustiveness check).
 use std::host::stdio
-
+use std::prelude::{to_string}
 enum Direction {
     North,
     South,

@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("[1,2]") {
         Result::Ok(v) => {
@@ -11,10 +11,10 @@ fn main() {
             test::assert_false(json::is_string(v))
             test::assert_false(json::is_object(v))
         },
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
     match json::parse("[]") {
         Result::Ok(v) => test::assert_true(json::is_array(v)),
-        Result::Err(e) => panic(concat("parse empty array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse empty array failed: ", json::parse_error_message(e))),
     }
 }

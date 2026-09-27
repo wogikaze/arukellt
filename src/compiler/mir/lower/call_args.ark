@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::legacy_vt_compat
 use mir::lower::call_arg_print_convert
 use mir::lower::call_arg_print_needs
@@ -10,7 +11,6 @@ use mir::inst_local_set
 use mir::module_spine
 use mir::typed_mir_compat
 use mir::value_types
-
 fn mir_is_printlike_callee(name: String) -> bool {
     eq(clone(name), "stdio::println") ||
     eq(clone(name), "println") ||

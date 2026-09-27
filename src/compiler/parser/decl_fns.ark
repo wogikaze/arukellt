@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use lexer::tokens
 use parser::core_ast_children
 use parser::core_ast_factory
@@ -12,7 +13,6 @@ use parser::kinds
 use parser::stmt
 use parser::token_state
 use parser::types
-
 fn parse_fn_decl(p: Parser) -> AstNode {
     let node = fn_sig::parse_fn_decl_header(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_EQ() {

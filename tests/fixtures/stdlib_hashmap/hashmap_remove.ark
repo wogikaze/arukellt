@@ -1,6 +1,6 @@
 use std::collections::hash
 use std::host::stdio
-
+use std::prelude::{assert_eq}
 fn expect_some(v: Option<i32>, expected: i32) {
     match v {
         Option::Some(x) => assert_eq(x, expected),

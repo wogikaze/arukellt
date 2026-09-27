@@ -24,6 +24,7 @@
 // Trait definitions
 // ---------------------------------------------------------------------------
 
+use std::prelude::{clone}
 /// Trait for lazy, pull-based iteration over a sequence of `T` values.
 ///
 /// `next` returns `Option::Some(item)` for each successive element or

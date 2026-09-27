@@ -2,6 +2,7 @@ use collections::name_index
 use wasm::ctx_record
 
 // Kept in sync with ctx_gc_type.ark (flat overlay may load either module).
+use std::prelude::{clone}
 fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     let struct_idx = name_index::name_index_get(
         ctx_record::SelfEmitCtx_gc_struct_name_index(ctx),

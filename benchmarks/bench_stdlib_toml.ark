@@ -3,11 +3,11 @@
 // on simple key-value TOML with string/int/bool scalars and array values.
 use std::host::stdio
 use std::toml
-
+use std::text
 pub fn main() {
-    let simple_toml = concat(
+    let simple_toml = text::concat(
         "name = \"bench\"\n",
-        concat("count = 42\n", "active = true\n")
+        text::concat("count = 42\n", "active = true\n")
     )
     let array_toml = "tags = [\"a\", \"b\", \"c\"]\n"
 

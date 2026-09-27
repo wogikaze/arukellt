@@ -7,7 +7,7 @@ fn emit_wat_functions(mir: MirModule, out: String, fn_count: i32, fi: i32) -> St
         return out
     }
     let f = module_functions::MirModule_function_at(mir, fi)
-    let next = concat(out, wat_functions::emit_wat_function(f))
+    let next = text::concat(out, wat_functions::emit_wat_function(f))
     return emit_wat_functions(mir, next, fn_count, fi + 1)
 }
 

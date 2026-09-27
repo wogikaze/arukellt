@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use hir::item_function_core_record
 use hir::item_type_param_record
 use hir::type_contracts_record
-
 struct HirTraitDecl {
     name: String,
     methods: Vec<HirFunction>,

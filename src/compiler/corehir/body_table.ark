@@ -3,6 +3,7 @@ use corehir::expr_raw
 
 // Frozen versioned CoreHIR body artifact. Mutation is owned exclusively by
 // body_builder and the completed artifact is validated by body_validator.
+use std::prelude::{clone}
 struct CoreHirBodyTable {
     schema_version: i32,
     exprs: Vec<CoreHirExpr>,

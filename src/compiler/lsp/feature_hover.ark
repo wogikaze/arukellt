@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, contains, substring}
+use std::text
 use analysis::symbols
 use analysis::ident_span
 use lsp::feature_request
@@ -9,16 +11,15 @@ use lsp::qualified_name
 use lsp::responses
 use lsp::stdlib_definition
 use lsp::symbol_index_lookup
-
 fn render_index_hover_markdown(detail: String, doc: String, minimal: bool) -> String {
     if minimal {
         return detail
     }
     let mut out = "```ark\n"
-    out = concat(out, detail)
-    out = concat(out, "\n```")
+    out = text::concat(out, detail)
+    out = text::concat(out, "\n```")
     if len(doc) > 0 {
-        out = concat(out, concat("\n\n", doc))
+        out = text::concat(out, text::concat("\n\n", doc))
     }
     out
 }

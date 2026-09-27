@@ -1,5 +1,6 @@
+use std::text
 fn vec_type_name(elem_name: String) -> String {
-    concat("Vec<", concat(elem_name, ">"))
+    text::concat("Vec<", text::concat(elem_name, ">"))
 }
 
 fn vec_type_name_empty() -> String {
@@ -7,7 +8,7 @@ fn vec_type_name_empty() -> String {
 }
 
 fn option_type_name(elem_name: String) -> String {
-    concat("Option<", concat(elem_name, ">"))
+    text::concat("Option<", text::concat(elem_name, ">"))
 }
 
 fn option_type_name_empty() -> String {
@@ -15,7 +16,7 @@ fn option_type_name_empty() -> String {
 }
 
 fn future_type_name(elem_name: String) -> String {
-    concat("Future<", concat(elem_name, ">"))
+    text::concat("Future<", text::concat(elem_name, ">"))
 }
 
 fn future_type_name_empty() -> String {
@@ -23,7 +24,7 @@ fn future_type_name_empty() -> String {
 }
 
 fn stream_type_name(elem_name: String) -> String {
-    concat("Stream<", concat(elem_name, ">"))
+    text::concat("Stream<", text::concat(elem_name, ">"))
 }
 
 fn stream_type_name_empty() -> String {

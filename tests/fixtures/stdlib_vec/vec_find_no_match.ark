@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{find_i32}
 fn is_large(x: i32) -> bool {
     x > 100
 }

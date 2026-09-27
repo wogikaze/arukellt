@@ -1,18 +1,18 @@
 use std::host::process
 use std::host::stdio
 use std::text
+use std::prelude::{to_string}
 use mir::opcodes
 use mir::block_phi_access
 use mir::dump_format_types
 use mir::dump_format_phi
 use mir::function_block_queries
 use mir::phi_access
-
 fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt: i32) -> MirPhi {
     let block = function_block_queries::MirFunction_block_at(f, block_id)
     let actual_count = block_phi_access::MirBlock_phi_count(block)
     if actual_count != 1 {
-        let mut msg = concat("phi check failed for bb", to_string(block_id))
+        let mut msg = text::concat("phi check failed for bb", to_string(block_id))
         msg = text::builder_append(msg, ": expected phi count=1 actual=")
         msg = text::builder_append(msg, to_string(actual_count))
         stdio::eprintln(msg)
@@ -20,7 +20,7 @@ fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expe
     }
     let phi = block_phi_access::MirBlock_phi_at(block, 0)
     if phi_access::MirPhi_op(phi) != opcodes::MIR_PHI() || phi_access::MirPhi_dest(phi) != expected_dest || phi_access::MirPhi_val_type(phi) != expected_vt {
-        let mut msg = concat("phi check failed for bb", to_string(block_id))
+        let mut msg = text::concat("phi check failed for bb", to_string(block_id))
         msg = text::builder_append(msg, ": expected dest=%")
         msg = text::builder_append(msg, to_string(expected_dest))
         msg = text::builder_append(msg, " type=")

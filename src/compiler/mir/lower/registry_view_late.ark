@@ -20,6 +20,7 @@ use corehir::mod as corehir_mod
 // insert of the compiler-overlay late set (tick 166 first emit) grew hello
 // from 2312B to 2341B. A full Option/Result/Vec walk (tick 165) added
 // unused payloads and broke s2=s3. Only tuples plus ref14/ref25 Ok/Some.
+use std::prelude::{clone, eq, starts_with}
 fn mir_register_view_late_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
     if !ctx_gc_struct::ctx_is_gc_target(ctx) {
         return

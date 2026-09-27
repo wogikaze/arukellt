@@ -1,5 +1,5 @@
 use std::text
-
+use std::prelude::{to_string}
 fn mir_format_block_ids(ids: Vec<i32>) -> String {
     let count = len(ids)
     let mut out = "["
@@ -11,7 +11,7 @@ fn mir_format_block_ids(ids: Vec<i32>) -> String {
         out = text::builder_append(out, to_string(get_unchecked(ids, i)))
         i = i + 1
     }
-    concat(out, "]")
+    text::concat(out, "]")
 }
 
 fn mir_format_edge(edge: i32) -> String {
@@ -22,5 +22,5 @@ fn mir_format_edge(edge: i32) -> String {
 }
 
 fn mir_format_edges(succ0: i32, succ1: i32) -> String {
-    concat("[", concat(mir_format_edge(succ0), concat(",", concat(mir_format_edge(succ1), "]"))))
+    text::concat("[", text::concat(mir_format_edge(succ0), text::concat(",", text::concat(mir_format_edge(succ1), "]"))))
 }

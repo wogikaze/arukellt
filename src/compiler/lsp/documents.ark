@@ -1,4 +1,5 @@
 use std::json
+use std::prelude::{clone}
 use analysis
 use lsp::diagnostics
 use lsp::framing
@@ -10,7 +11,6 @@ use lsp::symbol_index
 use lsp::symbol_index_stdlib
 use lsp::symbol_index_update
 use lsp::project_resolve_modules
-
 pub fn handle_did_open(state: LspState, body: String) {
     let uri = json::json_get_str(clone(body), String_from("uri"))
     let text = json::json_get_str(clone(body), String_from("text"))

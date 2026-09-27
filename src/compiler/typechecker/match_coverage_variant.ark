@@ -1,7 +1,7 @@
+use std::prelude::{byte_at, clone, ends_with, eq, substring}
 use typechecker::ast_access
 use typechecker::match_coverage_mark_record
 use typechecker::match_coverage_record
-
 fn ident_looks_like_unit_variant(pat: AstNode) -> bool {
     let pat_name = ast_access::node_text(pat)
     eq(clone(pat_name), String_from("Some")) ||

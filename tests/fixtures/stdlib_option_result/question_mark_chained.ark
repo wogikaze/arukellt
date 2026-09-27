@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{parse_i32}
 fn step1(s: String) -> Result<i32, String> {
     let v: i32 = parse_i32(s)?
     Ok(v + 1)

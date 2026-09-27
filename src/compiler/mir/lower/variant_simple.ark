@@ -1,3 +1,5 @@
+use std::prelude::{clone}
+use std::text
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
@@ -9,7 +11,6 @@ use mir::inst_struct_set
 use mir::inst_gc_struct
 use mir::inst_const_i32
 use mir::value_types
-
 fn lower_variant_value(ctx: LowerCtx, variant_name: String, tag: i32) -> i32 {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         return lower_gc_variant_value(ctx, clone(variant_name), tag)
@@ -29,7 +30,7 @@ fn lower_gc_variant_value(ctx: LowerCtx, variant_name: String, tag: i32) -> i32 
     ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, type_slot)
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(clone(variant_name))
     if len(enum_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("enum:", enum_name))
     }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
     let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
@@ -51,6 +52,6 @@ fn lower_empty_payload_variant(ctx: LowerCtx, variant_name: String, tag: i32) ->
 fn set_linear_enum_type(ctx: LowerCtx, dest: i32, variant_name: String) {
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(variant_name)
     if len(enum_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, concat("enum:", enum_name))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("enum:", enum_name))
     }
 }

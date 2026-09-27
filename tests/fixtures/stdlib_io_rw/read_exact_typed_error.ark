@@ -1,7 +1,7 @@
 use std::bytes
 use std::host::stdio
 use std::io
-
+use std::text
 fn main() {
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 72)
@@ -12,7 +12,7 @@ fn main() {
         Result::Ok(_) => stdio::println("unexpected-ok"),
         Result::Err(err) => match err {
             io::IoError::UnexpectedEof(msg) => stdio::println(msg),
-            io::IoError::Other(msg) => stdio::println(concat("other:", msg)),
+            io::IoError::Other(msg) => stdio::println(text::concat("other:", msg)),
         },
     }
 }

@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use parser::ast_node_record
-
 fn corehir_node_kind(node: AstNode) -> i32 {
     node.kind
 }

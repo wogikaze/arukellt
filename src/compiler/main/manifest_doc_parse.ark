@@ -1,8 +1,8 @@
 use std::toml
+use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
 use lsp::symbol_index_paths
 use lsp::symbol_index_stdlib
 use main::manifest_doc_record
-
 struct DocParseFnState {
     name: String,
     module: String,

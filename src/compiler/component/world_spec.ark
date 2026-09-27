@@ -1,6 +1,6 @@
 use std::text
+use std::prelude::{clone, eq}
 use component::constants_world_spec
-
 fn world_spec_kind(world: String) -> i32 {
     if eq(clone(world), "wasi:cli/command") { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }
     constants_world_spec::WORLD_KIND_NONE()
@@ -19,7 +19,7 @@ fn world_spec_world_name(world: String) -> String {
 fn world_spec_parse_error(world: String) -> String {
     if len(world) == 0 { return String_new() }
     if world_spec_kind(clone(world)) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
-    concat("unknown world `", concat(clone(world), "` (supported: wasi:cli/command)"))
+    text::concat("unknown world `", text::concat(clone(world), "` (supported: wasi:cli/command)"))
 }
 
 fn world_spec_emit_use_block(world: String) -> String {

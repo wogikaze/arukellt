@@ -1,5 +1,7 @@
 // WIT resource / own / borrow type parsing helpers (#473).
 
+use std::prelude::{byte_at, index_of, starts_with, substring}
+use std::text
 fn wit_trim_ws(text: String) -> String {
     let n = len(text)
     let mut start = 0
@@ -47,9 +49,9 @@ fn wit_borrow_inner_name(text: String) -> String {
 }
 
 fn wit_own_type_text(resource_name: String) -> String {
-    concat("own<", concat(resource_name, ">"))
+    text::concat("own<", text::concat(resource_name, ">"))
 }
 
 fn wit_borrow_type_text(resource_name: String) -> String {
-    concat("borrow<", concat(resource_name, ">"))
+    text::concat("borrow<", text::concat(resource_name, ">"))
 }

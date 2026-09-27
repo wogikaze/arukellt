@@ -1,5 +1,5 @@
 use std::text
-
+use std::prelude::{to_string}
 fn dap_init_resp(seq: i32, request_seq: i32) -> String {
     let mut body = "{\"seq\":"
     body = text::builder_append(body, to_string(seq))

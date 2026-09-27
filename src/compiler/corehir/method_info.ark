@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::param
 use corehir::semantic_trait_id
 use corehir::value_types
-
 struct CoreHirMethodInfo {
     impl_decl_index: i32,
     method_index: i32,

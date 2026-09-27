@@ -5,6 +5,7 @@
 //! and LEB128 encoding utilities.
 //!
 //! All APIs are Experimental and may change in v4+.
+use std::prelude::{max, min}
 pub fn wasm_magic() -> Vec<i32> {
     let b: Vec<i32> = Vec::new<i32>()
     push(b, 0)

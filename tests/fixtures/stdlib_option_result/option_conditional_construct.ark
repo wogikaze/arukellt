@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_none, is_some}
 fn maybe(opt: bool, v: i32) -> Option<i32> {
     if opt { Some(v) } else { None }
 }

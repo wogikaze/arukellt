@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use corehir::mir_value_type
 use mir::typed_mir_compat
-
 pub struct MirInstDraft {
     op: i32,
     dest: i32,

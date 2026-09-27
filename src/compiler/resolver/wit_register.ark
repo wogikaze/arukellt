@@ -1,5 +1,7 @@
 // WIT import registration helpers (#663, #664, #670, #672).
 
+use std::prelude::{clone}
+use std::text
 use component::wit_parse_text
 use resolver::register_exports
 use resolver::scope_define
@@ -7,7 +9,6 @@ use resolver::scope_error
 use resolver::scope_lookup
 use resolver::wit_surface
 use resolver::wit_type_map
-
 fn wit_ensure_module_alias_at(ctx: ResolveCtx, alias: String, span_start: i32, span_end: i32) {
     let existing = scope_lookup::lookup(ctx, clone(alias))
     if existing < 0 {
@@ -45,7 +46,7 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
         register_exports::register_module_export(ctx, clone(alias), clone(en.ark_name), commands::SYM_ENUM(), true)
         for vi in 0..len(en.variant_ark_names) {
             let variant = get_unchecked(en.variant_ark_names, vi)
-            let qual_variant = concat(clone(en.ark_name), concat("::", clone(variant)))
+            let qual_variant = text::concat(clone(en.ark_name), text::concat("::", clone(variant)))
             register_exports::register_module_export(ctx, clone(alias), qual_variant, commands::SYM_VARIANT(), true)
         }
     }
@@ -57,7 +58,7 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
         register_exports::register_module_export(ctx, clone(alias), clone(variant.ark_name), commands::SYM_STRUCT(), true)
         for ci in 0..len(variant.case_ark_names) {
             let case_name = get_unchecked(variant.case_ark_names, ci)
-            let qualified = concat(clone(variant.ark_name), concat("::", clone(case_name)))
+            let qualified = text::concat(clone(variant.ark_name), text::concat("::", clone(case_name)))
             register_exports::register_module_export(ctx, clone(alias), qualified, commands::SYM_VARIANT(), true)
         }
     }
@@ -73,5 +74,5 @@ fn wit_binding_type_sig(func: wit_parse_text::WitParsedFunc, doc: wit_parse_text
 }
 
 fn wit_binding_qualified_name(alias: String, func: wit_parse_text::WitParsedFunc) -> String {
-    concat(clone(alias), concat("::", clone(func.ark_name)))
+    text::concat(clone(alias), text::concat("::", clone(func.ark_name)))
 }

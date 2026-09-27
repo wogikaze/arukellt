@@ -2,7 +2,7 @@
 // A block expression initializer prevents generalization. The binding
 // has a concrete type annotation, so mismatched use produces a type error.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     // Block expression is NOT a syntactic value -> x is NOT generalized
     let x: i32 = {

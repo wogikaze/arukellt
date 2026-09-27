@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::text
 struct Point {
     x: i32,
     y: i32,
@@ -11,13 +11,13 @@ trait Display {
 
 impl Display for Point {
     fn to_string(self: Point) -> String {
-        concat(concat(concat(concat("(", to_string(self.x)), ", "), to_string(self.y)), ")")
+        text::concat(text::concat(text::concat(text::concat("(", to_string(self.x)), ", "), to_string(self.y)), ")")
     }
 }
 
 fn main() {
     let p = Point { x: 3, y: 4 }
     stdio::println(to_string(p))
-    let msg = concat("Point is ", to_string(p))
+    let msg = text::concat("Point is ", to_string(p))
     stdio::println(msg)
 }

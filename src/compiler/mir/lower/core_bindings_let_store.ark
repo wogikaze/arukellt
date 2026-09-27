@@ -1,10 +1,10 @@
+use std::prelude::{clone, starts_with}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::inst_convert
 use mir::inst_local_set
 use mir::value_types
-
 fn lower_core_let_store_value(ctx: LowerCtx, local_idx: i32, val_idx: i32, type_name: String) -> i32 {
     if val_idx < 0 {
         return val_idx

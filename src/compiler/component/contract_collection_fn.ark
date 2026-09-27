@@ -1,6 +1,6 @@
+use std::prelude::{eq}
 use component::contract_collection_types
 use component::contract_helpers
-
 fn component_fn_is_vec_i32_to_i32(f: ComponentExportFunc) -> bool {
     if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), "i32") {
         return contract_collection_types::component_param_type_is_vec_i32(f, 0)

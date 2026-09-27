@@ -6,6 +6,7 @@
 //! GC/LM representation differences are absorbed by the CoreOp / target
 //! intrinsic handlers behind these entry points (see RFC-006 D5).
 
+use std::prelude::{byte_at, eq, values}
 /// Allocates a new empty raw array with the requested capacity hint.
 ///
 /// Lowered by `raw.array_new` target_intrinsic (#822). The shell exists for

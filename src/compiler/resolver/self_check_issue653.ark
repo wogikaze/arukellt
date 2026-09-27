@@ -1,5 +1,6 @@
 // Resolver/typecheck self-checks for issue #653 (WIT import resolver + MIR).
 
+use std::prelude::{clone, eq}
 use lexer::scan
 use parser::core_api_token
 use parser::decl
@@ -9,7 +10,6 @@ use component
 use resolver::wit_type_map
 use typechecker::contract_result_state
 use typechecker::entry
-
 fn issue653_parse_source(src: String) -> Vec<AstNode> {
     let tokens = scan::tokenize(src)
     let p = core_api_token::Parser_new(tokens)

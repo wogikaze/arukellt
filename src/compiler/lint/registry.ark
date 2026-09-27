@@ -2,9 +2,9 @@
 // Defines all lint rules with id, severity, category, and description.
 // Used by `arukellt lint --list` and severity override filtering.
 use std::text
+use std::prelude::{clone, eq}
 use diagnostics::codes
 use diagnostics::severity
-
 fn LINT_ALLOW() -> i32 {
     0
 }

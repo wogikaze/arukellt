@@ -4,9 +4,11 @@
 
 use std::core::iter
 use std::test
-
+use std::prelude::{clone, to_string}
+use std::host::stdio
+use std::text
 fn itos(value: i32) -> String {
-    concat("n", to_string(value))
+    text::concat("n", to_string(value))
 }
 
 fn slen(value: String) -> i32 {
@@ -51,10 +53,10 @@ fn main() {
     test::assert_eq_i32(len(copied), 2)
     test::assert_eq_string(get_unchecked(copied, 1), "cdef")
 
-    println(get_unchecked(strings, 0))
-    println(get_unchecked(strings, 1))
-    println(to_string(get_unchecked(lengths, 0)))
-    println(to_string(get_unchecked(lengths, 1)))
-    println(to_string(get_unchecked(filtered, 1)))
-    println(get_unchecked(copied, 1))
+    stdio::println(get_unchecked(strings, 0))
+    stdio::println(get_unchecked(strings, 1))
+    stdio::println(to_string(get_unchecked(lengths, 0)))
+    stdio::println(to_string(get_unchecked(lengths, 1)))
+    stdio::println(to_string(get_unchecked(filtered, 1)))
+    stdio::println(get_unchecked(copied, 1))
 }

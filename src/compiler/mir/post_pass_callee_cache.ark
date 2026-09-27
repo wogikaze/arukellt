@@ -14,6 +14,7 @@ use mir::opcodes
 // Linear scan of every MirFunction on each CALL (× fixpoint iterations) was
 // the dominant cost of lower.propagate on selfhost-scale modules (#829).
 
+use std::prelude::{byte_at, clone, substring}
 struct CalleePropCache {
     by_name: NameIndex,
     by_bare: NameIndex,

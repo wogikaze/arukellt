@@ -1,6 +1,6 @@
 // Test: immutable non-expansive values generalize, while environment types stay monomorphic.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let id = |x| x
     let number: i32 = id(42)

@@ -1,6 +1,6 @@
+use std::prelude::{byte_at}
 use mir::lower::closure_capture_args_pack
 use mir::lower::closure_capture_args_segment
-
 fn closure_pack_caps(caps: Vec<String>) -> String {
     closure_capture_args_pack::closure_pack_caps(caps)
 }

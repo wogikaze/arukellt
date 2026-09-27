@@ -1,6 +1,7 @@
 use std::text
 
 // `<`, `>`, `,`, `:`, ` ` cannot appear in a mangled mono function name.
+use std::prelude::{byte_at, substring}
 fn is_mono_unsafe_char(ch: i32) -> bool {
     ch == 60 || ch == 62 || ch == 44 || ch == 58 || ch == 32
 }

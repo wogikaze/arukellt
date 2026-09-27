@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use compiler::phases
 use diagnostics::record
 use driver::result_record
 use diagnostics::mod as diag_mod
-
 pub fn enrich_diagnostic(source: String, source_file: String, diag: Diagnostic) -> String {
     let span = record::diagnostic_span(diag)
     let start = record::diagnostic_span_start(span)

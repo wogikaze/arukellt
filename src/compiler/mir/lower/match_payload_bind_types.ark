@@ -1,4 +1,6 @@
 // MIR match payload bind types.
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
@@ -7,7 +9,6 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
 use mir::lower::match_payload_field_type
 use mir::value_types
-
 fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, payload_type_name: String) {
     if bind_vt != value_types::VT_GC_REF() {
         return
@@ -30,7 +31,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
             return
         }
         if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(payload_type_name)) {
-            ctx_set_local_type(ctx, bind_local, concat("enum:", payload_type_name))
+            ctx_set_local_type(ctx, bind_local, text::concat("enum:", payload_type_name))
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             return
         }
@@ -57,7 +58,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         return
     }
     if len(field_type) > 0 && ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(field_type)) {
-        ctx_set_local_type(ctx, bind_local, concat("enum:", field_type))
+        ctx_set_local_type(ctx, bind_local, text::concat("enum:", field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
@@ -71,7 +72,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_field)) {
             ctx_set_local_type(ctx, bind_local, derived_field)
         } else {
-            ctx_set_local_type(ctx, bind_local, concat("enum:", field_type))
+            ctx_set_local_type(ctx, bind_local, text::concat("enum:", field_type))
         }
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
@@ -90,11 +91,11 @@ fn normalize_payload_vec_type_name(field_type: String) -> String {
     }
     if starts_with(clone(field_type), "Vec<") && ends_with(clone(field_type), ">") {
         let inner = substring(clone(field_type), 4, len(field_type) - 1)
-        return concat("vec:", inner)
+        return text::concat("vec:", inner)
     }
     if starts_with(clone(field_type), "Vec_") {
         let inner = substring(clone(field_type), 4, len(field_type))
-        return concat("vec:", inner)
+        return text::concat("vec:", inner)
     }
     String_new()
 }
@@ -114,10 +115,10 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
     }
     if starts_with(clone(elem_ty), "Vec<") && ends_with(clone(elem_ty), ">") {
         let inner = substring(clone(elem_ty), 4, len(elem_ty) - 1)
-        return concat("vec:", inner)
+        return text::concat("vec:", inner)
     }
     if starts_with(clone(elem_ty), "Vec_") {
-        return concat("vec:", substring(clone(elem_ty), 4, len(elem_ty)))
+        return text::concat("vec:", substring(clone(elem_ty), 4, len(elem_ty)))
     }
     elem_ty
 }

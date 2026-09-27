@@ -1,26 +1,27 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
+use std::text
 struct Point {
     x: i32,
     y: i32,
 }
 
 fn main() {
-    let text = concat(String_from("ab"), String_from("c"))
+    let text = text::concat(String_from("ab"), String_from("c"))
     let mut numbers = Vec::new<i32>()
     push(numbers, 1)
     push(numbers, 2)
     let point = Point { x: 3, y: 4 }
     stdio::println(
-        concat(
+        text::concat(
             text,
-            concat(
+            text::concat(
                 String_from("|"),
-                concat(
+                text::concat(
                     to_string(len(numbers)),
-                    concat(
+                    text::concat(
                         String_from("|"),
-                        concat(to_string(point.x), concat(String_from(","), to_string(point.y)))
+                        text::concat(to_string(point.x), text::concat(String_from(","), to_string(point.y)))
                     )
                 )
             )

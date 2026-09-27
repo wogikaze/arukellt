@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
-
 fn mark_hash_type_ref(ctx: LowerCtx, dest: i32, type_name: String) {
     ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {

@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone}
 use main::kinds
-
 fn parse_command(name: String) -> i32 {
     let ascii_cmd = parse_ascii_core_command(name)
     if ascii_cmd != kinds::CMD_UNKNOWN() {

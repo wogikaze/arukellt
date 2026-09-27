@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use typechecker::kinds
 use diagnostics::codes
 use typechecker::ast_access
@@ -12,7 +13,6 @@ use typechecker::ownership_types
 use typechecker::closure_capture
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
-
 fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let bind_name = ast_access::node_text(node)
     if eq(clone(bind_name), "__tuple_destructure") {

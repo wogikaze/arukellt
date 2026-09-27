@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use typechecker::kinds
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
@@ -5,7 +6,6 @@ use typechecker::contract_type_mutation
 use typechecker::types
 use typechecker::builtins_hash
 use typechecker::builtins_simd
-
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }

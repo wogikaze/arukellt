@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use resolver::impl_target
 use resolver::scope_define
 use resolver::scope_lookup
@@ -5,7 +6,6 @@ use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::register_use
 use corehir::decl_impl_target
-
 fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0

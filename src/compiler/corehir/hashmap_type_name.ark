@@ -2,6 +2,8 @@
 // MirValueType encoding. Kept free of TypeInfo/TypeTable so type_ann_* can
 // call it without pulling the typed-spine overlay into annotation lowering.
 
+use std::prelude::{clone, eq, starts_with}
+use std::text
 fn hashmap_type_alias(k_name: String, v_name: String) -> String {
     if eq(clone(k_name), "String") && eq(clone(v_name), "i32") {
         return "si32"
@@ -30,5 +32,5 @@ fn hashmap_type_alias(k_name: String, v_name: String) -> String {
     ) {
         return "strfn"
     }
-    concat(concat(k_name, ":"), v_name)
+    text::concat(text::concat(k_name, ":"), v_name)
 }

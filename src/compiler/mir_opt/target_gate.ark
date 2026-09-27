@@ -1,3 +1,4 @@
+use std::prelude::{clone, contains}
 fn mir_opt_is_t3_target(target: String) -> bool {
     contains(clone(target), "-p2")
 }

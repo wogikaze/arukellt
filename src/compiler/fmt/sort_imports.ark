@@ -1,9 +1,9 @@
 use std::text
+use std::prelude::{byte_at, clone, starts_with, substring}
 use fmt::import_block
 use fmt::parse_gate
 use resolver::ast_access
 use resolver::ast_decl_predicates
-
 struct FmtImportEntry {
     line_start: i32,
     line_end: i32,
@@ -141,8 +141,8 @@ fn fmt_apply_sorted_imports(text: String, entries: Vec<FmtImportEntry>) -> Strin
     }
     let block = fmt_import_block_bounds(entries)
     let sorted = fmt_sorted_import_text(clone(text), entries)
-    concat(
-        concat(substring(clone(text), 0, import_block::ImportBlockSpan_start(block)), sorted),
+    text::concat(
+        text::concat(substring(clone(text), 0, import_block::ImportBlockSpan_start(block)), sorted),
         substring(text, import_block::ImportBlockSpan_end(block), len(text))
     )
 }

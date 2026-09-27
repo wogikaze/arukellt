@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::function_locals_view
 use mir::function_param_view
 use mir::function_local_mutation
@@ -7,7 +8,6 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_type_storage
 use mir::lower::ctx_typed_mir_sync
 use mir::value_types
-
 fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
     ctx_local_type_storage::ctx_local_type_push(ctx, local_idx, type_name)
     let func = ctx_current_storage::ctx_current_func_value(ctx)

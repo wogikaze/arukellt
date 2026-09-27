@@ -1,6 +1,7 @@
 use std::host::process
 use std::host::stdio
-
+use std::prelude::{clone, to_string}
+use std::text
 struct PhiArg {
     pred_block: i32,
     version: i32,
@@ -42,9 +43,9 @@ fn block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
 
 fn format_ssa_value(ssa_name: String, version: i32) -> String {
     let mut out = String_from("%")
-    out = concat(out, ssa_name)
-    out = concat(out, String_from("."))
-    concat(out, to_string(version))
+    out = text::concat(out, ssa_name)
+    out = text::concat(out, String_from("."))
+    text::concat(out, to_string(version))
 }
 
 fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa_name: String, dest_vt: i32) -> Phi {
@@ -70,16 +71,16 @@ fn format_phi(phi: Phi) -> String {
     let arg0 = get_unchecked(phi.args, 0)
     let arg1 = get_unchecked(phi.args, 1)
     let mut out = String_from("phi ")
-    out = concat(out, format_ssa_value(clone(phi.ssa_name), phi.dest_version))
-    out = concat(out, String_from(" = [bb"))
-    out = concat(out, to_string(arg0.pred_block))
-    out = concat(out, String_from(" -> "))
-    out = concat(out, format_ssa_value(clone(phi.ssa_name), arg0.version))
-    out = concat(out, String_from(", bb"))
-    out = concat(out, to_string(arg1.pred_block))
-    out = concat(out, String_from(" -> "))
-    out = concat(out, format_ssa_value(clone(phi.ssa_name), arg1.version))
-    out = concat(out, String_from("] : i32"))
+    out = text::concat(out, format_ssa_value(clone(phi.ssa_name), phi.dest_version))
+    out = text::concat(out, String_from(" = [bb"))
+    out = text::concat(out, to_string(arg0.pred_block))
+    out = text::concat(out, String_from(" -> "))
+    out = text::concat(out, format_ssa_value(clone(phi.ssa_name), arg0.version))
+    out = text::concat(out, String_from(", bb"))
+    out = text::concat(out, to_string(arg1.pred_block))
+    out = text::concat(out, String_from(" -> "))
+    out = text::concat(out, format_ssa_value(clone(phi.ssa_name), arg1.version))
+    out = text::concat(out, String_from("] : i32"))
     out
 }
 
@@ -93,8 +94,8 @@ fn main() {
     push(else_block.dom_frontier, join_block.id)
     let phi = try_insert_simple_join_phi(join_block, then_block, else_block, String_from("join_val"), 1)
     stdio::println(String_from("diamond join bb3"))
-    stdio::println(concat(String_from("const.i32 -> "), format_ssa_value(String_from("join_val"), 1)))
-    stdio::println(concat(String_from("const.i32 -> "), format_ssa_value(String_from("join_val"), 2)))
+    stdio::println(text::concat(String_from("const.i32 -> "), format_ssa_value(String_from("join_val"), 1)))
+    stdio::println(text::concat(String_from("const.i32 -> "), format_ssa_value(String_from("join_val"), 2)))
     stdio::println(format_phi(phi))
     stdio::println(String_from("MIR phi insertion smoke OK."))
 }

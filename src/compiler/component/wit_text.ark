@@ -1,12 +1,12 @@
 use std::host::fs
 use std::text
+use std::prelude::{byte_at, clone, contains, eq, to_string}
 use component::wit_decl
 use component::wit_names
 use component::wit_type_defs
 use component::wit_types
 use component::world_spec
 use resolver::wit_import_bind
-
 fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
     emit_wit_text_from_decls_with_world(decls, String_new(), Vec::new<String>())
 }
@@ -14,14 +14,14 @@ fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
 fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
     let package_name = if len(clone(world)) > 0 { "arukellt:app" } else { "arukellt:generated" }
     let world_name = world_spec::world_spec_world_name(clone(world))
-    let mut out = concat("package ", concat(package_name, ";\n\nworld "))
+    let mut out = text::concat("package ", text::concat(package_name, ";\n\nworld "))
     out = text::builder_append(out, world_name)
     out = text::builder_append(out, " {\n")
     out = text::builder_append(out, world_spec::world_spec_emit_use_block(clone(world)))
     out = text::builder_append(out, emit_wit_imports(wit_paths, decls))
     out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
     out = text::builder_append(out, emit_wit_func_exports_with_world(decls, clone(world)))
-    return concat(out, "}\n")
+    return text::concat(out, "}\n")
 }
 
 fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
@@ -31,7 +31,7 @@ fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
         let binding = get_unchecked(bindings, i)
         let import_id = wit_import_bind::wit_import_binding_wit_import_id(binding)
         if len(import_id) > 0 {
-            let line = concat("    import ", concat(import_id, ";\n"))
+            let line = text::concat("    import ", text::concat(import_id, ";\n"))
             if !contains(clone(out), clone(line)) {
                 out = text::builder_append(out, line)
             }
@@ -44,7 +44,7 @@ fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
     let mut out = "package arukellt:generated;\n\nworld arukellt {\n"
     out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
     out = text::builder_append(out, emit_wit_func_exports(decls))
-    concat(out, "}\n")
+    text::concat(out, "}\n")
 }
 
 fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> String {
@@ -63,7 +63,7 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
             } else {
                 if wit_decl::wit_func_is_export(f) {
                     let export_name = wit_names::wit_export_name(fname)
-                    let export_key = concat("export ", concat(clone(export_name), ":"))
+                    let export_key = text::concat("export ", text::concat(clone(export_name), ":"))
                     if !contains(clone(out), clone(export_key)) {
                         out = text::builder_append(out, "    export ")
                         out = text::builder_append(out, export_name)
@@ -90,7 +90,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                 for pi in 0..wit_decl::wit_func_param_count(f) {
                     if pi > 0 { out = text::builder_append(out, ", ") }
                     let pname = wit_decl::wit_func_param_name_at(f, pi)
-                    if len(clone(pname)) > 0 { out = text::builder_append(out, pname) } else { out = text::builder_append(out, concat("arg", to_string(pi))) }
+                    if len(clone(pname)) > 0 { out = text::builder_append(out, pname) } else { out = text::builder_append(out, text::concat("arg", to_string(pi))) }
                     out = text::builder_append(out, ": ")
                     if eq(clone(fname), "flip_read") {
                         out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
@@ -148,14 +148,14 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
         let read_result = fs::read_to_string(clone(path))
         match read_result {
             Result::Err(e) => {
-                return concat("unable to read WIT file ", concat(clone(path), concat(": ", e)))
+                return text::concat("unable to read WIT file ", text::concat(clone(path), text::concat(": ", e)))
             },
             Result::Ok(source) => {
                 if contains(clone(source), "future<") {
-                    return concat("E0402 unsupported WIT import type `future<T>` in ", clone(path))
+                    return text::concat("E0402 unsupported WIT import type `future<T>` in ", clone(path))
                 }
                 if contains(clone(source), "stream<") {
-                    return concat("E0402 unsupported WIT import type `stream<T>` in ", clone(path))
+                    return text::concat("E0402 unsupported WIT import type `stream<T>` in ", clone(path))
                 }
             },
         }

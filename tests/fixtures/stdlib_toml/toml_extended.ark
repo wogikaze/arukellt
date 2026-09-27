@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::toml
-
+use std::text
 fn main() {
     let doc = "name = \"arukellt\"\nversion = \"0.1.0\"\nenabled = true\ncount = 42"
     match toml::toml_parse(doc) {
@@ -35,7 +35,7 @@ fn main() {
             let keys = toml::toml_table_keys(table)
             stdio::println((len(keys)).to_string())
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(text::concat("error:", e)),
     }
 }
 // toml_parse recognises a valid key=value document

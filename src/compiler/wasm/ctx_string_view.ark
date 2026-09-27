@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use wasm::ctx_record
-
 fn SelfEmitCtx_string_offset_count(ctx: SelfEmitCtx) -> i32 {
     len(ctx.string_offsets)
 }

@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     // Parse a large array and verify element access at start, middle, end
     match json::parse("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]") {
@@ -27,6 +27,6 @@ fn main() {
                 None => panic("expected element at 19"),
             }
         },
-        Result::Err(e) => panic(concat("parse large array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse large array failed: ", json::parse_error_message(e))),
     }
 }

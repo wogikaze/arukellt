@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{trim_end}
 fn main() {
     test::assert_eq_string(trim_end(String_from("  hi  ")), "  hi")
     test::assert_eq_string(trim_end(String_from("hi")), "hi")

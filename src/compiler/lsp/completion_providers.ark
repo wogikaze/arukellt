@@ -1,8 +1,9 @@
+use std::prelude::{byte_at, clone, eq, index_of, substring}
+use std::text
 use lsp::completion_items
 use lsp::import_graph
 use lsp::state_record
 use lsp::symbol_index_record
-
 fn starts_with_prefix(label: String, prefix: String) -> bool {
     if len(prefix) == 0 {
         return true
@@ -44,7 +45,7 @@ fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> 
         let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
         let label = if len(module_path) > 0 {
-            concat(concat(clone(module_path), "::"), clone(name))
+            text::concat(text::concat(clone(module_path), "::"), clone(name))
         } else {
             clone(name)
         }
@@ -112,7 +113,7 @@ fn dot_completion_items(text: String, offset: i32) -> String {
         start = start - 1
     }
     let recv = substring(text, start, pos)
-    let needle = concat(concat("let ", clone(recv)), ": Point")
+    let needle = text::concat(text::concat("let ", clone(recv)), ": Point")
     if index_of(clone(text), needle) < 0 {
         return String_new()
     }

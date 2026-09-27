@@ -1,6 +1,7 @@
 use std::host::stdio
 use std::json
-
+use std::prelude::{eq}
+use std::text
 fn main() {
     // String with escape sequences: encode and verify output matches golden value
     let tab    = json::json_encode_string("a\tb")
@@ -24,7 +25,7 @@ fn main() {
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
     }
     // Differential golden: encode then verify exact JSON token
     let golden = "\"a\\tb\""

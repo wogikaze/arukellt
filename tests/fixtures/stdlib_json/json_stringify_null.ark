@@ -1,9 +1,9 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => test::assert_eq_string(json::stringify(v), "null"),
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
 }

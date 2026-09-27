@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use typechecker::ast_access
 use typechecker::contract_env_record
 use typechecker::kinds
@@ -6,7 +8,6 @@ use typechecker::scope
 use diagnostics::codes
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
-
 fn capture_shared_borrow() -> i32 { 1 }
 fn capture_mutable_borrow() -> i32 { 2 }
 fn capture_move() -> i32 { 3 }
@@ -539,7 +540,7 @@ fn report_capture_conflict(env: TypeEnv, node: AstNode, name: String, reason: St
         ast_access::node_span_start(node),
         ast_access::node_span_end(node)
     )
-    let message = concat(reason, concat(": `", concat(name, "`")))
+    let message = text::concat(reason, text::concat(": `", text::concat(name, "`")))
     let diag = diag_mod::Diagnostic_new(
         codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
         diag_mod::SEV_ERROR(),

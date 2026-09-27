@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("{\"a\":1,\"b\":2,\"c\":3,\"d\":4,\"e\":5,\"f\":6,\"g\":7,\"h\":8}") {
         Result::Ok(v) => {
@@ -26,6 +26,6 @@ fn main() {
                 None => panic("expected key d"),
             }
         },
-        Result::Err(e) => panic(concat("parse large object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse large object failed: ", json::parse_error_message(e))),
     }
 }

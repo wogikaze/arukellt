@@ -1,9 +1,9 @@
+use std::prelude::{clone, i32_to_i64}
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::emit_target
-
 fn emit_memory_section(out: WasmWriter, target: String) {
     let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {

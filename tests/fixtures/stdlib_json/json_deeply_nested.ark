@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("{\"a\":{\"b\":{\"c\":{\"d\":42}}}}") {
         Result::Ok(v) => {
@@ -21,6 +21,6 @@ fn main() {
                 None => panic("expected key a"),
             }
         },
-        Result::Err(e) => panic(concat("parse deeply nested failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse deeply nested failed: ", json::parse_error_message(e))),
     }
 }

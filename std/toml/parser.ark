@@ -30,6 +30,8 @@
 //! - `\uXXXX` surrogate pairs are decoded as ASCII-only (matching std::json).
 
 // ─── TomlValue type ──────────────────────────────────────────────────────────
+use std::prelude::{byte_at, eq, i64_to_i32, slice}
+use std::text
 pub enum TomlValue {
     String(String),
     Integer(i64),
@@ -177,43 +179,43 @@ fn toml_decode_basic_content(s: String) -> String {
         if c == 92 && i + 1 < n {
             let nxt = byte_at(s, i + 1)
             if nxt == 34 {
-                result = concat(result, "\"")
+                result = text::concat(result, "\"")
                 i = i + 2
             } else {
                 if nxt == 92 {
-                    result = concat(result, "\\")
+                    result = text::concat(result, "\\")
                     i = i + 2
                 } else {
                     if nxt == 110 {
-                        result = concat(result, "\n")
+                        result = text::concat(result, "\n")
                         i = i + 2
                     } else {
                         if nxt == 116 {
-                            result = concat(result, "\t")
+                            result = text::concat(result, "\t")
                             i = i + 2
                         } else {
                             if nxt == 114 {
-                                result = concat(result, "\r")
+                                result = text::concat(result, "\r")
                                 i = i + 2
                             } else {
                                 if nxt == 98 {
-                                    result = concat(result, char_to_string(8))
+                                    result = text::concat(result, char_to_string(8))
                                     i = i + 2
                                 } else {
                                     if nxt == 102 {
-                                        result = concat(result, char_to_string(12))
+                                        result = text::concat(result, char_to_string(12))
                                         i = i + 2
                                     } else {
                                         if nxt == 117 {
-                                            result = concat(result, toml_decode_unicode(s, i + 1, 4))
+                                            result = text::concat(result, toml_decode_unicode(s, i + 1, 4))
                                             i = i + 6
                                         } else {
                                             if nxt == 85 {
-                                                result = concat(result, toml_decode_unicode(s, i + 1, 8))
+                                                result = text::concat(result, toml_decode_unicode(s, i + 1, 8))
                                                 i = i + 10
                                             } else {
                                                 // Unknown escape: keep the escaped char literally.
-                                                result = concat(result, slice(s, i + 1, i + 2))
+                                                result = text::concat(result, slice(s, i + 1, i + 2))
                                                 i = i + 2
                                             }
                                         }
@@ -225,7 +227,7 @@ fn toml_decode_basic_content(s: String) -> String {
                 }
             }
         } else {
-            result = concat(result, slice(s, i, i + 1))
+            result = text::concat(result, slice(s, i, i + 1))
             i = i + 1
         }
     }
@@ -952,10 +954,10 @@ fn toml_stringify_table(fields: Vec<TomlField>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = concat(out, "\n")
+            out = text::concat(out, "\n")
         }
         let f = get_unchecked(fields, i)
-        out = concat(out, concat(f.key, concat(" = ", toml_stringify(f.value))))
+        out = text::concat(out, text::concat(f.key, text::concat(" = ", toml_stringify(f.value))))
         i = i + 1
     }
     out
@@ -967,12 +969,12 @@ fn toml_stringify_array(items: Vec<TomlValue>) -> String {
     let mut i = 0
     while i < n {
         if i > 0 {
-            out = concat(out, ", ")
+            out = text::concat(out, ", ")
         }
-        out = concat(out, toml_stringify(get_unchecked(items, i)))
+        out = text::concat(out, toml_stringify(get_unchecked(items, i)))
         i = i + 1
     }
-    concat(out, "]")
+    text::concat(out, "]")
 }
 
 // ─── Value extractors ────────────────────────────────────────────────────────

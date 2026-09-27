@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{repeat}
 fn main() {
     let s = String_from("abc")
     let n = 4

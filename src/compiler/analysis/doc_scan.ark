@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, substring}
+use std::text
 fn line_start(text: String, offset: i32) -> i32 {
     let mut pos = offset
     while pos > 0 {
@@ -70,7 +72,7 @@ fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
     let mut out = get_unchecked(docs, n - 1)
     let mut i = n - 2
     while i >= 0 {
-        out = concat(concat(get_unchecked(docs, i), "\n"), out)
+        out = text::concat(text::concat(get_unchecked(docs, i), "\n"), out)
         i = i - 1
     }
     out

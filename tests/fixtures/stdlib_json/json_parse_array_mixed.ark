@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("[1,\"two\",true,null]") {
         Result::Ok(v) => {
@@ -30,6 +30,6 @@ fn main() {
                 None => panic("expected element at 3"),
             }
         },
-        Result::Err(e) => panic(concat("parse mixed array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse mixed array failed: ", json::parse_error_message(e))),
     }
 }

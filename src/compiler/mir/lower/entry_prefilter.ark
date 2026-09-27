@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use collections::name_index
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_expr_kind
-
 fn mir_prefilter_mark(index: NameIndex, name: String) {
     if len(name) == 0 {
         return

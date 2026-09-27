@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_some}
 fn main() {
     let v1: Option<i32> = Some(1)
     let v2: Option<i32> = Some(0)

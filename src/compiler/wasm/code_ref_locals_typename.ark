@@ -1,9 +1,9 @@
 // GC type from type names.
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
-
 fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
     let hm = infer_hashmap_gc_type_from_type_name(clone(type_name), ctx)
     match hm {

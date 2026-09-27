@@ -1,6 +1,6 @@
 use std::core::convert
 use std::test
-
+use std::prelude::{to_string}
 fn main() {
     test::assert_eq_string(to_string(42), "42")
     test::assert_eq_string(to_string(0), "0")

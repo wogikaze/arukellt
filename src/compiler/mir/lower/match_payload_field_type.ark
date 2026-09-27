@@ -1,9 +1,9 @@
+use std::prelude::{clone, contains, eq, starts_with}
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_types
 use mir::value_types
-
 fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {
     mir_payload_field_vt_for_payload(ctx, variant_name, field_idx, scrut_ok_is_f64, scrut_ok_is_i64, String_new())
 }

@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use hir::kinds
-
 struct HirType {
     tag: i32,
     name: String,

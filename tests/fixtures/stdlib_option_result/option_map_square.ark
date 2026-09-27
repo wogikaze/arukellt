@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{map_option_i32_i32}
 fn square(x: i32) -> i32 { x * x }
 fn main() {
     let a: Option<i32> = Some(7)

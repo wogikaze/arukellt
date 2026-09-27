@@ -7,7 +7,7 @@ use std::core::error
 use std::wit::ast
 use std::wit::types
 use std::wit::world
-
+use std::prelude::{byte_at, eq, slice}
 pub fn parse_full(source: String) -> WitNode {
     ast::parse(source)
 }

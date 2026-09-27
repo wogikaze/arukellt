@@ -1,8 +1,8 @@
 use std::host::process
+use std::prelude::{clone}
 use main::args_record
 use main::doc_usage
 use main::manifest_doc
-
 pub fn cmd_doc(opts: CliOptions) {
     let symbol = args_record::cli_input_file(opts)
     if len(symbol) == 0 {

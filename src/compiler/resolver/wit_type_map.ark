@@ -1,10 +1,10 @@
 // WIT type mapping — WIT surface types to Arukellt type names (#653, #664, #671, #672).
 
 use std::text
+use std::prelude::{args, byte_at, clone, eq, index_of, starts_with, substring}
 use component::wit_names_import
 use component::wit_parse_flags
 use component::wit_parse_text
-
 fn wit_primitive_to_ark(wit_type: String) -> String {
     let t = wit_trim_type(wit_type)
     if wit_parse_flags::wit_is_flags_type(clone(t)) { return "i32" }
@@ -124,7 +124,7 @@ fn wit_generic_args(t: String) -> Vec<String> {
 }
 
 fn wit_render_ark_generic(base: String, args: Vec<String>, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
-    let mut out = concat(base, "<")
+    let mut out = text::concat(base, "<")
     for i in 0..len(args) {
         if i > 0 { out = text::builder_append(out, ",") }
         out = text::builder_append(out, wit_type_to_ark(get_unchecked(args, i), clone(alias), doc))
@@ -148,16 +148,16 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
     if starts_with(clone(t), "future<") { return wit_render_ark_generic("Future", wit_generic_args(t), alias, doc) }
     if starts_with(clone(t), "stream<") { return wit_render_ark_generic("Stream", wit_generic_args(t), alias, doc) }
     let rec_idx = wit_record_index(rec_wit, clone(t))
-    if rec_idx >= 0 { return concat(clone(alias), concat("::", clone(get_unchecked(rec_ark, rec_idx)))) }
+    if rec_idx >= 0 { return text::concat(clone(alias), text::concat("::", clone(get_unchecked(rec_ark, rec_idx)))) }
     let enum_idx = wit_enum_index(enum_wit, clone(t))
-    if enum_idx >= 0 { return concat(clone(alias), concat("::", clone(get_unchecked(enum_ark, enum_idx)))) }
+    if enum_idx >= 0 { return text::concat(clone(alias), text::concat("::", clone(get_unchecked(enum_ark, enum_idx)))) }
     let variant_idx = wit_enum_index(variant_wit, clone(t))
-    if variant_idx >= 0 { return concat(clone(alias), concat("::", clone(get_unchecked(variant_ark, variant_idx)))) }
+    if variant_idx >= 0 { return text::concat(clone(alias), text::concat("::", clone(get_unchecked(variant_ark, variant_idx)))) }
     let primitive = wit_primitive_to_ark(clone(t))
     if !eq(clone(primitive), clone(t)) { return primitive }
     // Named aliases/resources that are not primitives still need a stable module-qualified
     // binding name. The resolver can refine the symbol kind when a declaration exists.
-    concat(clone(alias), concat("::", wit_names_import::wit_record_type_name(t)))
+    text::concat(clone(alias), text::concat("::", wit_names_import::wit_record_type_name(t)))
 }
 
 fn wit_generic_inner(t: String) -> String {
@@ -199,8 +199,8 @@ fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wi
     let ret = wit_trim_type(ret_wit_type)
     if len(ret) == 0 {
         if len(sig) == 0 { return "0" }
-        return concat(sig, "_0")
+        return text::concat(sig, "_0")
     }
     if len(sig) > 0 { sig = text::builder_append(sig, "_") }
-    concat(sig, concat("1", wit_type_to_valtype(ret, doc)))
+    text::concat(sig, text::concat("1", wit_type_to_valtype(ret, doc)))
 }

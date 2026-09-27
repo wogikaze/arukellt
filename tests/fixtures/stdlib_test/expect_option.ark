@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::test
-
+use std::prelude::{assert_eq}
 fn main() {
     let some_val: Option<i32> = Some(99)
     let v = test::expect_some_i32(some_val)

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{abs, max, min}
 fn main() {
     stdio::println(abs(-5))
     stdio::println(abs(3))

@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::simd::f32x4
-
+use std::prelude::{f32_to_string}
 fn main() {
     let a = f32x4::splat(1.0f32)
     let b = f32x4::splat(2.0f32)

@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use mir::function_core_record
 use mir::types_function
-
 fn MirFunction_return_type(f: MirFunction) -> i32 {
     f.return_type
 }

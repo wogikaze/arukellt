@@ -1,7 +1,7 @@
 use std::json::parser
+use std::prelude::{byte_at, clone, substring}
 use lsp::completion_providers
 use lsp::positions
-
 fn is_ident_char(ch: i32) -> bool {
     if ch >= 97 && ch <= 122 {
         return true

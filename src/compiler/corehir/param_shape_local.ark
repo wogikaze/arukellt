@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq}
+use std::text
 use corehir::decl_ann_children
 use corehir::type_ann_local_name
 use corehir::decl_ann_name
@@ -5,7 +7,6 @@ use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::param_shape_node
 use corehir::type_ann_node
-
 fn param_named_local_type_name(ann: AstNode) -> String {
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
@@ -70,9 +71,9 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             // decl_ann_name on a tuple node is empty and collapses the elem
             // to i32 (#888).
             if decl_ann_name::decl_ann_is_tuple(elem) {
-                return concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
+                return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
             }
-            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return text::concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
@@ -97,14 +98,14 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
                 return String_from("Option_i32")
             }
-            return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
+            return text::concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
-            return concat(
+            return text::concat(
                 String_from("result:"),
-                concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                text::concat(decl_ann_name::decl_ann_name(ok_ty), text::concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
             )
         }
         let generic_user_type = generic_user_type_local_name(ann)
@@ -161,9 +162,9 @@ fn method_param_local_type_name(node: AstNode) -> String {
                 return String_from("vec:fnref")
             }
             if decl_ann_name::decl_ann_is_tuple(elem) {
-                return concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
+                return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
             }
-            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return text::concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
@@ -187,14 +188,14 @@ fn method_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
                 return String_from("Option_i32")
             }
-            return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
+            return text::concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
-            return concat(
+            return text::concat(
                 String_from("result:"),
-                concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                text::concat(decl_ann_name::decl_ann_name(ok_ty), text::concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
             )
         }
         let generic_user_type = generic_user_type_local_name(ann)
@@ -231,11 +232,11 @@ fn generic_user_type_local_name(ann: AstNode) -> String {
         // spelling so field access derives the substituted layout.
         return type_ann_local_name::type_ann_generic_inst_local_name(ann)
     }
-    let mut marker = concat(String_from("?"), clone(name))
+    let mut marker = text::concat(String_from("?"), clone(name))
     i = 1
     while i < arg_count {
         let arg_name = decl_ann_name::decl_ann_name(decl_ann_children::decl_ann_child_at(ann, i))
-        marker = concat(marker, concat(String_from(":"), arg_name))
+        marker = text::concat(marker, text::concat(String_from(":"), arg_name))
         i = i + 1
     }
     marker

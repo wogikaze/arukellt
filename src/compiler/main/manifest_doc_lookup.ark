@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone, contains, eq, substring}
 use main::manifest_doc_record
-
 fn doc_last_segment(path: String) -> String {
     let n = len(path)
     let mut i = n - 1

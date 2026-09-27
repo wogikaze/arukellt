@@ -3,6 +3,8 @@
 // in one file, recommend importing via `use` and calling the short name.
 // Type/enum qualifiers (PascalCase::...) are excluded.
 
+use std::prelude::{byte_at, clone, eq, index_of}
+use std::text
 use diagnostics::codes
 use diagnostics::record
 use parser::ast
@@ -10,7 +12,6 @@ use resolver::ast_access
 use resolver::ast_expr_predicates
 use resolver::paths
 use diagnostics::mod as diag_mod
-
 fn prefer_use_import_threshold() -> i32 { 3 }
 
 fn is_module_style_qualified_path(path: String) -> bool {
@@ -103,7 +104,7 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         }
         let uses = count_same_path(paths, clone(path))
         if uses >= threshold {
-            let msg = concat(concat("qualified path `", clone(path)), "` used repeatedly; prefer `use` and call the short name")
+            let msg = text::concat(text::concat("qualified path `", clone(path)), "` used repeatedly; prefer `use` and call the short name")
             let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }

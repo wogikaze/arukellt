@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("{\"n\":null,\"b\":true,\"i\":42,\"f\":3.14,\"s\":\"str\",\"a\":[1],\"o\":{\"k\":1}}") {
         Result::Ok(v) => {
@@ -33,6 +33,6 @@ fn main() {
                 None => panic("expected key o"),
             }
         },
-        Result::Err(e) => panic(concat("parse all-types object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse all-types object failed: ", json::parse_error_message(e))),
     }
 }

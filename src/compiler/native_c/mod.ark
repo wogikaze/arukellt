@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq}
+use std::text
 use corehir::function_id
 use corehir::core_op_id
 use corehir::core_op_registry_generated
@@ -24,7 +26,6 @@ use native_c::enum_abi
 use native_c::function_emitter
 use native_c::hof_call
 use native_c_capabilities_generated
-
 pub struct NativeCEmitResult {
     success: bool,
     source: String,
@@ -57,13 +58,13 @@ pub fn native_c_emit_result_diagnostic(result: NativeCEmitResult) -> String {
 fn native_c_target_capability_diagnostic(op: i32, function_name: String) -> String {
     let opcode_name = native_c_capabilities_generated::native_c_capability_opcode_name(op)
     let status = native_c_capabilities_generated::native_c_capability_status_detail(op)
-    concat(
+    text::concat(
         "target `native-cpp` does not support MIR opcode ",
-        concat(
+        text::concat(
             opcode_name,
-            concat(
+            text::concat(
                 " in function `",
-                concat(function_name, concat("` (", concat(status, ")")))
+                text::concat(function_name, text::concat("` (", text::concat(status, ")")))
             )
         )
     )
@@ -90,17 +91,17 @@ fn native_c_validate_capabilities(mir_module: MirModule) -> String {
                 let core_op_index = core_op_call::mir_call_core_op_index(mir_module, instruction)
                 if core_op_index >= 0 &&
                 !native_c_capabilities_generated::native_c_core_capability_is_supported(core_op_index) {
-                    return concat(
+                    return text::concat(
                         String_from("target `native-cpp` does not support CoreOp `"),
-                        concat(
+                        text::concat(
                             core_op_registry_generated::core_op_registry_canonical_id_at(core_op_index),
-                            concat(
+                            text::concat(
                                 String_from("` in function `"),
-                                concat(
+                                text::concat(
                                     clone(function_name),
-                                    concat(
+                                    text::concat(
                                         String_from("` ("),
-                                        concat(
+                                        text::concat(
                                             native_c_capabilities_generated::native_c_core_capability_status_detail(core_op_index),
                                             String_from(")")
                                         )
@@ -210,33 +211,33 @@ fn native_c_validate_function_signature(
 ) -> String {
     let parameter_count = function_param_view::MirFunction_param_count(function)
     if parameter_count != signature_entry::signature_entry_param_count(signature) {
-        return concat(
+        return text::concat(
             String_from("compiler ICE: native-cpp signature parameter mismatch for FunctionId "),
             i32_to_string(function_id_raw)
         )
     }
     if function_locals_view::MirFunction_local_count(function) < parameter_count {
-        return concat(
+        return text::concat(
             String_from("compiler ICE: native-cpp function locals omit parameters for FunctionId "),
             i32_to_string(function_id_raw)
         )
     }
     if signature_entry::signature_entry_return_count(signature) > 1 {
-        return concat(
+        return text::concat(
             String_from("target `native-cpp` does not yet support multiple results in function `"),
-            concat(function_identity::MirFunction_name(function), String_from("`"))
+            text::concat(function_identity::MirFunction_name(function), String_from("`"))
         )
     }
     let table = module_spine::MirModule_type_table(mir_module)
     let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     if len(abi::native_c_signature_return_type(table, signature, heap_enum_flags)) == 0 {
-        return concat(
+        return text::concat(
             String_from("compiler ICE: native-cpp cannot lower result signature for FunctionId "),
             i32_to_string(function_id_raw)
         )
     }
     if len(abi::native_c_signature_parameters(table, signature, heap_enum_flags)) == 0 {
-        return concat(
+        return text::concat(
             String_from("compiler ICE: native-cpp cannot lower parameter signature for FunctionId "),
             i32_to_string(function_id_raw)
         )
@@ -254,9 +255,9 @@ fn native_c_function_declaration(
     let resolved_id = native_c_resolve_function_id(mir_module, function, function_index)
     if !function_id::function_id_is_valid(resolved_id) {
         return NativeCEmitResult_err(
-            concat(
+            text::concat(
                 String_from("target `native-cpp` does not support MIR function `"),
-                concat(
+                text::concat(
                     function_name,
                     String_from("` (missing FunctionId; closure or overlay callee)")
                 )
@@ -278,20 +279,20 @@ fn native_c_function_declaration(
     let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
     if len(symbol) == 0 {
         return NativeCEmitResult_err(
-            concat(
+            text::concat(
                 String_from("compiler ICE: native-cpp cannot mangle signature for FunctionId "),
                 i32_to_string(function_id_raw)
             )
         )
     }
-    let mut source = concat(
+    let mut source = text::concat(
         abi::native_c_signature_return_type(table, signature, heap_enum_flags),
-        concat(
+        text::concat(
             String_from(" "),
-            concat(symbol, concat(String_from("("), concat(abi::native_c_signature_parameters(table, signature, heap_enum_flags), String_from(")"))))
+            text::concat(symbol, text::concat(String_from("("), text::concat(abi::native_c_signature_parameters(table, signature, heap_enum_flags), String_from(")"))))
         )
     )
-    if include_semicolon { source = concat(source, String_from(";")) }
+    if include_semicolon { source = text::concat(source, String_from(";")) }
     NativeCEmitResult_ok(source)
 }
 
@@ -311,17 +312,17 @@ fn native_c_emit_function(
     if !function_emitter::native_c_function_emit_success(body) {
         return NativeCEmitResult_err(function_emitter::native_c_function_emit_diagnostic(body))
     }
-    let mut source = concat(
+    let mut source = text::concat(
         String_from("/* FunctionId: "),
-        concat(
+        text::concat(
             i32_to_string(function_id::FunctionId_raw(resolved_id)),
             String_from(" */\n")
         )
     )
-    source = concat(source, concat(native_c_emit_result_source(declaration), String_from(" {\n")))
-    source = concat(source, function_emitter::native_c_function_emit_source(body))
-    source = concat(source, String_from("}\n"))
-    source = concat(source, function_emitter::native_c_function_root_liveness_marker(body))
+    source = text::concat(source, text::concat(native_c_emit_result_source(declaration), String_from(" {\n")))
+    source = text::concat(source, function_emitter::native_c_function_emit_source(body))
+    source = text::concat(source, String_from("}\n"))
+    source = text::concat(source, function_emitter::native_c_function_root_liveness_marker(body))
     NativeCEmitResult_ok(source)
 }
 
@@ -373,7 +374,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
         if !native_c_emit_result_success(declaration) { return declaration }
         native_c_append_bytes(
             source_bytes,
-            concat(native_c_emit_result_source(declaration), String_from("\n"))
+            text::concat(native_c_emit_result_source(declaration), String_from("\n"))
         )
         function_index = function_index + 1
     }
@@ -429,7 +430,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     native_c_append_bytes(source_bytes, String_from("    ark_rt_init(argc, argv);\n"))
     native_c_append_bytes(
         source_bytes,
-        concat(String_from("    (void)"), concat(main_symbol, String_from("();\n")))
+        text::concat(String_from("    (void)"), text::concat(main_symbol, String_from("();\n")))
     )
     native_c_append_bytes(source_bytes, String_from("    ark_rt_shutdown();\n"))
     native_c_append_bytes(source_bytes, String_from("    return 0;\n}\n"))

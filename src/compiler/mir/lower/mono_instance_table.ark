@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::type_id
-
 struct MonoInstanceId {
     raw: i32,
 }

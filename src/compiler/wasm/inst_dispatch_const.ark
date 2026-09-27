@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use wasm::inst_accessors_facade
 use mir::inst_accessors_operands
 use mir::function_identity
@@ -12,7 +13,6 @@ use wasm::inst_store
 use wasm::intrinsics::helpers_numeric_i32_const
 use wasm::opcodes
 use wasm::writer_core
-
 fn try_emit_const_or_get_inst(
     w: WasmWriter,
     inst: MirInst,

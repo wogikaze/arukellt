@@ -1,3 +1,5 @@
+use std::prelude::{clone, ends_with, eq, starts_with, substring}
+use std::text
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -17,7 +19,6 @@ use mir::module_spine
 use mir::opcodes
 use mir_opt::stdlib_inline_eligibility
 use mir_opt::stdlib_inline_rewrite
-
 fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
     let count = module_functions::MirModule_function_count(m)
     let mut index = 0
@@ -172,7 +173,7 @@ fn stdlib_specialize_vec_fallback(
         }
         return fallback
     }
-    let specialized = concat(clone(fallback), concat(String_from("__"), suffix))
+    let specialized = text::concat(clone(fallback), text::concat(String_from("__"), suffix))
     let specialized_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
     if function_id::FunctionId_raw(specialized_id) >= 0 {
         return specialized

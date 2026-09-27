@@ -1,10 +1,10 @@
 use std::host::stdio
-
+use std::text
 fn main() {
     let mut s: String = String_from("")
     let mut i: i32 = 0
     while i < 100 {
-        s = concat(s, String_from("x"))
+        s = text::concat(s, String_from("x"))
         i = i + 1
     }
     stdio::println((len(s)).to_string())

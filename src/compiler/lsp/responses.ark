@@ -1,9 +1,10 @@
+use std::prelude::{to_string}
+use std::text
 use lsp::positions
 use lsp::responses_lifecycle
 use lsp::responses_navigation
 use lsp::responses_symbol
 use lsp::symbol_index_record
-
 pub fn build_initialize_response(id: i32) -> String {
     responses_lifecycle::build_initialize_response(id)
 }
@@ -18,8 +19,8 @@ pub fn build_null_response(id: i32) -> String {
 
 pub fn build_empty_array_response(id: i32) -> String {
     let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
-    body = concat(body, to_string(id))
-    body = concat(body, ",\"result\":[]}")
+    body = text::concat(body, to_string(id))
+    body = text::concat(body, ",\"result\":[]}")
     body
 }
 

@@ -1,6 +1,6 @@
 // Test: a block result stays monomorphic even when it contains a closure type.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let id = {
         let inner = |x| x

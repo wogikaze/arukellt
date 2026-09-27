@@ -1,5 +1,7 @@
+use std::prelude::{eq}
+use std::text
 fn wrap(label: String) -> String {
-    concat(String_from("ok:"), label)
+    text::concat(String_from("ok:"), label)
 }
 
 fn main() -> i32 {

@@ -1,3 +1,5 @@
+use std::prelude::{args, clone, eq}
+use std::text
 use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_span_fields
@@ -12,12 +14,11 @@ use parser::state_record
 use parser::token_state
 use parser::type_token_predicates
 use parser::types
-
 pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1
     let seg = expect_token(p, tokens::TK_IDENT())
     let node = AstNode_new(kinds::NK_PATH(), core_ast_span_fields::AstNode_span(lhs))
-    core_ast_text_fields::AstNode_set_text(node, concat(core_ast_text_fields::AstNode_text(lhs), concat("::", token_state::Token_text(seg))))
+    core_ast_text_fields::AstNode_set_text(node, text::concat(core_ast_text_fields::AstNode_text(lhs), text::concat("::", token_state::Token_text(seg))))
     core_ast_children::AstNode_push_child(node, lhs)
     if expr_prefix_struct_probe::next_prefix_is_struct_lit(p) {
         let lit = expr_prefix_struct_fields::parse_struct_lit_fields(p, seg)

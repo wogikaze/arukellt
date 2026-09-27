@@ -1,6 +1,6 @@
 use std::host::fs
+use std::prelude::{clone}
 use loader::module_paths
-
 struct DriverLoadedSource {
     path: String,
     source: String,

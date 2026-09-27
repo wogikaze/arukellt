@@ -1,6 +1,8 @@
 use std::host::stdio
 use std::host::fs
 use std::host::process
+use std::prelude::{byte_at, clone, contains, eq, substring, to_string}
+use std::text
 use main::args_record
 use main::commands
 use main::kinds
@@ -11,7 +13,6 @@ use driver::result_record
 use main::output
 use driver::file
 use diagnostics::mod as diag_mod
-
 pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
     let config = config_record::DriverConfig_default()
     configure_target_axes(opts, config, clone(emit_mode))
@@ -131,12 +132,12 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
     match write_result {
         Result::Ok(_) => {
             if !json_mode {
-                stdio::eprintln(concat("wrote ", concat(to_string(len(bytes)), concat(" bytes to ", clone(path)))))
+                stdio::eprintln(text::concat("wrote ", text::concat(to_string(len(bytes)), text::concat(" bytes to ", clone(path)))))
             }
             true
         },
         Result::Err(e) => {
-            stdio::eprintln(concat("error writing output: ", e))
+            stdio::eprintln(text::concat("error writing output: ", e))
             false
         },
     }
@@ -157,7 +158,7 @@ fn wasm_path_for_all(opts: CliOptions) -> String {
     if args_record::cli_has_output_file(opts) {
         return args_record::cli_output_file(opts)
     }
-    concat(stem_from_input(args_record::cli_input_file(opts)), ".wasm")
+    text::concat(stem_from_input(args_record::cli_input_file(opts)), ".wasm")
 }
 
 fn component_path_for_all(opts: CliOptions) -> String {
@@ -167,12 +168,12 @@ fn component_path_for_all(opts: CliOptions) -> String {
         if n > 5 {
             let ext = substring(clone(out), n - 5, n)
             if eq(ext, ".wasm") {
-                return concat(substring(out, 0, n - 5), ".component.wasm")
+                return text::concat(substring(out, 0, n - 5), ".component.wasm")
             }
         }
-        return concat(out, ".component.wasm")
+        return text::concat(out, ".component.wasm")
     }
-    concat(stem_from_input(args_record::cli_input_file(opts)), ".component.wasm")
+    text::concat(stem_from_input(args_record::cli_input_file(opts)), ".component.wasm")
 }
 
 pub fn cmd_compile_single(opts: CliOptions) {
@@ -208,7 +209,7 @@ fn print_compile_success(input_file: String, result: CompileResult, json_mode: b
         stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
         return
     }
-    stdio::eprintln(concat("compilation succeeded (phase ", concat(to_string(result_record::compile_result_phase_reached(result)), ")")))
+    stdio::eprintln(text::concat("compilation succeeded (phase ", text::concat(to_string(result_record::compile_result_phase_reached(result)), ")")))
 }
 
 fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) {
@@ -220,7 +221,7 @@ fn handle_single_compile_success(opts: CliOptions, input_file: String, result: C
         return
     }
     if !json_mode {
-        stdio::println(concat("ok: ", concat(to_string(result_record::compile_result_output_byte_count(result)), " bytes")))
+        stdio::println(text::concat("ok: ", text::concat(to_string(result_record::compile_result_output_byte_count(result)), " bytes")))
     }
 }
 
@@ -233,7 +234,7 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(concat("error: unable to read WIT file ", concat(clone(path), concat(": ", e))))
+                stdio::eprintln(text::concat("error: unable to read WIT file ", text::concat(clone(path), text::concat(": ", e))))
                 return false
             },
         }
@@ -284,7 +285,7 @@ fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
             true
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: unable to read input file "), concat(clone(input_file), concat(String_from(": "), e))))
+            stdio::eprintln(text::concat(String_from("error: unable to read input file "), text::concat(clone(input_file), text::concat(String_from(": "), e))))
             false
         },
     }

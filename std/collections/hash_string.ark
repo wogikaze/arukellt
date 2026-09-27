@@ -5,7 +5,7 @@
 //! struct with parallel arrays (T3).
 
 use std::core::hash
-
+use std::prelude::{clone, eq}
 fn hm_si_clear_slots(m: HashMap<String, i32>, cap: i32) {
     __hm_si_set_size(m, 0)
     let mut i: i32 = 0

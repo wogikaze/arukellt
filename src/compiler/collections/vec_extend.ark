@@ -11,6 +11,7 @@ use typechecker::contract_mono
 
 // ── Primitive element types (no clone needed) ──────────────────────────
 
+use std::prelude::{clone}
 pub fn Vec_extend_i32(dst: Vec<i32>, src: Vec<i32>) {
     let n = len(src)
     let mut i = 0

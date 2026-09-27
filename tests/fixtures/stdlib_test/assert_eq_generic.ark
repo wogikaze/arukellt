@@ -3,7 +3,7 @@ use std::core::convert
 use std::host::stdio
 use std::test
 use std::text::fmt
-
+use std::text
 struct Point {
     x: i32,
     y: i32,
@@ -17,7 +17,7 @@ impl Eq for Point {
 
 impl Debug for Point {
     fn fmt_debug(self: Point) -> String {
-        concat("Point { x: ", concat((self.x).to_string(), concat(", y: ", concat((self.y).to_string(), " }"))))
+        text::concat("Point { x: ", text::concat((self.x).to_string(), text::concat(", y: ", text::concat((self.y).to_string(), " }"))))
     }
 }
 

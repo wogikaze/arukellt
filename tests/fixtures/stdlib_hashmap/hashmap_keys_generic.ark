@@ -5,7 +5,7 @@
 // bodies with deferred K/V type variables. `for k in map` iterates the
 // key snapshot through IntoIterator.
 use std::host::stdio
-
+use std::prelude::{eq}
 fn double(n: i32) -> i32 {
     n * 2
 }

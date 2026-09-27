@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::text
 use corehir::param
 use corehir::type_info_to_mir_value
 use mir::function_identity
@@ -17,7 +19,6 @@ use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::types
 use mir::value_types
-
 fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     if !param::param_is_bindable(param) {
         return
@@ -195,7 +196,7 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
-        let mt = concat(String_from("enum:"), p_type_name)
+        let mt = text::concat(String_from("enum:"), p_type_name)
         push(result, mt)
         push(result, clone(mt))
         return result
@@ -206,7 +207,7 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
-        let mt = concat(String_from("?"), clone(p_type_name))
+        let mt = text::concat(String_from("?"), clone(p_type_name))
         push(result, mt)
         push(result, clone(mt))
         return result
@@ -219,25 +220,25 @@ fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
         return type_name
     }
     if starts_with(clone(type_name), String_from("Option_")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option:")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("?Option:")) {
-        return concat(String_from("option:"), substring(type_name, 8, len(type_name)))
+        return text::concat(String_from("option:"), substring(type_name, 8, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
     }
     if starts_with(clone(type_name), String_from("Result:")) {
-        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+        return text::concat(String_from("result:"), substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("?Result:")) {
-        return concat(String_from("result:"), substring(type_name, 8, len(type_name)))
+        return text::concat(String_from("result:"), substring(type_name, 8, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Result_")) {
-        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+        return text::concat(String_from("result:"), substring(type_name, 7, len(type_name)))
     }
     String_new()
 }

@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
@@ -5,7 +7,6 @@ use corehir::signature_registry
 use corehir::type_table
 use corehir::core_op_binding
 use mir::host_intrinsic_stub_names
-
 fn sig_reg_register_host_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
     let stub_count = host_intrinsic_stub_names::host_intrinsic_stub_count()
     let mut missing = 0
@@ -107,6 +108,6 @@ fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
         i = i + 1
     }
     if diff > 0 {
-        stdio::eprintln(concat("sig-reg: host intrinsic stub diff count=", i32_to_string(diff)))
+        stdio::eprintln(text::concat("sig-reg: host intrinsic stub diff count=", i32_to_string(diff)))
     }
 }

@@ -1,8 +1,8 @@
 use std::host::fs
+use std::prelude::{clone}
 use lsp::state_docs
 use lsp::state_record
 use lsp::symbol_index_paths
-
 pub fn text_for_uri(state: LspState, uri: String) -> String {
     let store = state_record::lsp_state_doc_store(state)
     let from_store = state_docs::lsp_doc_store_lookup_text(store, clone(uri))

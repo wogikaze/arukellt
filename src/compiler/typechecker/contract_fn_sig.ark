@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use typechecker::contract_type_param_bounds
 use typechecker::contract_types_record
-
 struct FnSig {
     name: String,
     param_types: Vec<TypeInfo>,

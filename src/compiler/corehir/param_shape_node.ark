@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use corehir::decl_ann_member
 use corehir::frontend_ast_identity
 use corehir::frontend_expr_kind
-
 fn param_is_ident(node: AstNode) -> bool {
     frontend_expr_kind::corehir_kind_is_expr_ident(frontend_ast_identity::corehir_node_kind(node))
 }

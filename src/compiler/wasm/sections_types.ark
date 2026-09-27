@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, starts_with}
 use mir::module_wit_imports
 use mir::module_gc_enum
 use mir::module_gc_struct
@@ -12,7 +13,6 @@ use wasm::sections_exports
 use wasm::writer_core
 use wasm::writer_sections
 use collections::name_index
-
 struct TypeCanonPlan { canon_types: Vec<String>, type_map: Vec<i32> }
 
 fn emit_type_section(

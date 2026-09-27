@@ -28,6 +28,7 @@ use corehir::mod as corehir_mod
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.
 // Export-only dedupe (wasm/sections_exports.ark) handles overlay name collisions.
 
+use std::prelude::{clone}
 fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>, prune_enabled: bool) -> MirModule {
     let timing = entry_timing::mir_lower_phase_timing_enabled(input.report_phase_timing)
     let t_enter = entry_timing::mir_lower_phase_now()

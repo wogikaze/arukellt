@@ -1,3 +1,4 @@
+use std::text
 enum Opt {
     Some(i32),
     None,
@@ -8,7 +9,7 @@ fn describe(Opt::Some(_): Opt) -> String = "small"
 fn describe(Opt::None: Opt) -> String = "none"
 
 fn main() {
-    __intrinsic_print(concat(describe(Opt::Some(42)), "\n"))
-    __intrinsic_print(concat(describe(Opt::Some(5)), "\n"))
-    __intrinsic_print(concat(describe(Opt::None), "\n"))
+    __intrinsic_print(text::concat(describe(Opt::Some(42)), "\n"))
+    __intrinsic_print(text::concat(describe(Opt::Some(5)), "\n"))
+    __intrinsic_print(text::concat(describe(Opt::None), "\n"))
 }

@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_ok}
 fn main() {
     test::assert_true(is_ok(Ok(1)))
     test::assert_true(is_ok(Ok(0)))

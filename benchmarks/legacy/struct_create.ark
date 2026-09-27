@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Point {
     x: i32,
     y: i32,
@@ -9,6 +10,6 @@ fn make_point(a: i32, b: i32) -> Point {
 
 fn main() {
     let p = make_point(100, 200)
-    println((p.x).to_string())
-    println((p.y).to_string())
+    stdio::println((p.x).to_string())
+    stdio::println((p.y).to_string())
 }

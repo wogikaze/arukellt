@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_struct_storage
-
 fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) -> String {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut offset = 0

@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::text
-
+use std::prelude::{slice}
 fn main() {
     let ascii = "hello"
     stdio::println((len(ascii)).to_string())

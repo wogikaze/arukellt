@@ -1,3 +1,5 @@
+use std::prelude::{values}
+use std::text
 fn main() {
     let xs: Vec<i32> = Vec::new<i32>()
     push(xs, 1)
@@ -10,5 +12,5 @@ fn main() {
     for v in values(filtered) {
         sum = sum + v
     }
-    __intrinsic_print(concat((sum).to_string(), "\n"))
+    __intrinsic_print(text::concat((sum).to_string(), "\n"))
 }

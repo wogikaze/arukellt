@@ -14,6 +14,7 @@ use wasm::hash_aliases
 // Pre-#823 fixpoint walk kept for A/B measurement only.
 // Enable with MIR_REACHABILITY_LEGACY_FIXPOINT=1 on a clock-capable artifact.
 
+use std::prelude::{clone, eq}
 fn mir_reachability_legacy_enabled() -> bool {
     // wasm32-gc: match on env::var(Option) currently mis-types the Option
     // local as String and fails module validate. Legacy walk stays off until

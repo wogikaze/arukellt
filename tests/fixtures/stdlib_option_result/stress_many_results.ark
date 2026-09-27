@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_ok}
 fn main() {
     let mut ok_count: i32 = 0
     for i in 0..50 {

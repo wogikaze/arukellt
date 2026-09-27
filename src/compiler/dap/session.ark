@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use dap::framing
 use dap::handlers
 use dap::state
-
 fn run_dap_session(input: String) -> String {
     let state = state::DapState_new()
     let n = len(input)

@@ -1,9 +1,9 @@
+use std::prelude::{clone}
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
 use mir::mono
 use mir::mono_instance_shape
 use mir::type_contracts
-
 fn mir_register_mono_rewrites(ctx: LowerCtx, mono_instances: Vec<MonoInstance>) {
     let mono_site_count = len(mono_instances)
     let mut mono_site_i = 0

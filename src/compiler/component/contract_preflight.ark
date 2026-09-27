@@ -1,9 +1,10 @@
+use std::prelude::{clone, eq}
+use std::text
 use component::contract
 use component::wit_text
 use component::world_spec
 use component::wit_decl
 use corehir::export_surface
-
 fn preflight_wit_imports(wit_paths: Vec<String>) -> String { wit_text::validate_wit_import_surface(wit_paths) }
 
 fn validate_export(surface: CoreHirExportSurface) -> String {
@@ -37,7 +38,7 @@ fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: V
     if len(world) > 0 && world_spec::world_spec_is_cli_command(clone(world)) {
         let export_roots = wit_text::collect_export_roots(decls)
         if !world_spec_export_roots_satisfy_run(export_roots, decls) {
-            return concat("world `", concat(clone(world), "` requires export `wasi:cli/run/run`, but no matching function found"))
+            return text::concat("world `", text::concat(clone(world), "` requires export `wasi:cli/run/run`, but no matching function found"))
         }
     }
     if eq(clone(config_emit_mode), "component") { return contract::validate_export_surface(decls) }

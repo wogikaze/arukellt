@@ -1,8 +1,8 @@
+use std::prelude::{clone, contains, eq}
 use compiler::session
 use corehir::export_surface
 use driver::checked_program
 use driver::config_record
-
 fn lower_report_phase_timing(config: DriverConfig) -> i32 {
     if config_record::config_show_timing(config) {
         return 1

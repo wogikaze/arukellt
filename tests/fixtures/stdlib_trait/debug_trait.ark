@@ -7,7 +7,7 @@
 use std::host::stdio
 use std::core::convert
 use std::text::fmt
-
+use std::prelude::{eq}
 fn main() {
     // Debug for i32 — mirrors Display.
     assert(eq(fmt::format_debug(42), String_from("42")))

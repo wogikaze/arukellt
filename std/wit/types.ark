@@ -2,6 +2,8 @@
 //!
 //! Compound `WitType` variants use `Box` for recursive shapes.
 
+use std::prelude::{Box, Box_new, clone, eq, unbox}
+use std::text
 pub enum WitType {
     Bool,
     U8,
@@ -196,8 +198,8 @@ pub fn wit_type_from_ast(ty: WitType) -> String {
         WitType::F64 => "f64",
         WitType::Char => "char",
         WitType::String => "string",
-        WitType::List(inner) => concat("list<", concat(wit_type_from_ast(unbox(inner)), ">")),
-        WitType::Option(inner) => concat("option<", concat(wit_type_from_ast(unbox(inner)), ">")),
+        WitType::List(inner) => text::concat("list<", text::concat(wit_type_from_ast(unbox(inner)), ">")),
+        WitType::Option(inner) => text::concat("option<", text::concat(wit_type_from_ast(unbox(inner)), ">")),
         WitType::Tuple(_) => "tuple",
         WitType::Record(_) => "record",
         WitType::Variant(_) => "variant",

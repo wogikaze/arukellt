@@ -1,7 +1,7 @@
 // Property: abs(abs(x)) == abs(x) for all x.
 use std::core::math
 use std::test
-
+use std::prelude::{values}
 fn main() {
     let values = [0, 1, -1, 42, -42, 100, -100, 7, -7]
     let mut i = 0

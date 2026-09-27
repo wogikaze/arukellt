@@ -9,6 +9,7 @@ use wasm::hash_aliases
 
 // True when callee param at param_idx (0-based) is i64 per signature spine.
 // Used to force bare int literals to CONST_I64 / extend i32 locals before call.
+use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
 fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
     let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
     // 1 = i64, 0 = not i64, -1 = spine miss

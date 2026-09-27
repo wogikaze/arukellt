@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{fold_i64_i64}
 fn add(acc: i64, x: i64) -> i64 {
     acc + x
 }

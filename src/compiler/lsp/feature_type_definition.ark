@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, contains, substring}
 use lsp::feature_request
 use lsp::feature_symbol
 use lsp::framing
@@ -6,7 +7,6 @@ use lsp::qualified_name
 use lsp::responses
 use lsp::source_text
 use lsp::symbol_index_lookup
-
 pub fn handle_type_definition(state: LspState, body: String) {
     let sym = feature_symbol::resolve_symbol_request(state, clone(body))
     if feature_symbol::symbol_request_found(sym) {

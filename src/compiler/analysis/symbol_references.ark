@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use compiler::session_parse
 use compiler::session_resolve_query
 use resolver::ref_record
 use resolver::ref_sites
-
 struct ReferenceLocation {
     start: i32,
     end: i32,

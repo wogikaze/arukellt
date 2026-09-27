@@ -7,6 +7,8 @@ use typechecker::unify
 // are statically specialized. Keep that representation boundary explicit: a
 // type variable is deferred to the enclosing generic body, while a concrete
 // unsupported pair is rejected before it can create a mono instance.
+use std::prelude::{byte_at, clone, eq, starts_with}
+use std::text
 fn validate_hashmap_constructor(env: TypeEnv, fn_name: String, type_args: Vec<TypeInfo>) -> bool {
     if !is_hashmap_api_name(clone(fn_name)) {
         return true
@@ -47,13 +49,13 @@ fn validate_hashmap_pair(env: TypeEnv, key_ty: TypeInfo, value_ty: TypeInfo) -> 
     }
     let key_name = hashmap_type_name(key_ty)
     let value_name = hashmap_type_name(value_ty)
-    let message = concat(
+    let message = text::concat(
         String_from("unsupported HashMap type pair: "),
-        concat(
+        text::concat(
             key_name,
-            concat(
+            text::concat(
                 String_from(", "),
-                concat(value_name, String_from("; supported pairs are i32/String keys with i32, String, or fn(i32) -> i32 values"))
+                text::concat(value_name, String_from("; supported pairs are i32/String keys with i32, String, or fn(i32) -> i32 values"))
             )
         )
     )

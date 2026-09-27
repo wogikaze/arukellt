@@ -1,3 +1,5 @@
+use std::prelude::{clone, contains, eq}
+use std::text
 use corehir::expr_factory
 use corehir::expr_builder_calls
 use corehir::expr_predicates
@@ -6,7 +8,6 @@ use corehir::expr_node_predicates
 use corehir::type_ann_node
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
-
 fn corehir_call_callee_supported(callee: AstNode) -> bool {
     // Call-expression callees (id(f)(x), get_unchecked(fs,0)(x)) lower via call_ref (#832).
     expr_node_predicates::expr_is_ident(callee) ||
@@ -83,7 +84,7 @@ fn corehir_direct_call_callee_name(callee: AstNode) -> String {
     } else {
         "Vec__with_capacity__"
     }
-    concat(constructor, element_name)
+    text::concat(constructor, element_name)
 }
 
 fn corehir_hashmap_constructor_name(callee: AstNode) -> String {
@@ -98,9 +99,9 @@ fn corehir_hashmap_constructor_name(callee: AstNode) -> String {
     contains(clone(key_name), "::") || contains(clone(value_name), "::") {
         return "HashMap::new"
     }
-    concat(
+    text::concat(
         "HashMap__new__",
-        concat(key_name, concat("__", value_name))
+        text::concat(key_name, text::concat("__", value_name))
     )
 }
 

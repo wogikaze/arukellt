@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use corehir::decl_ann_name
 use corehir::return_ann_shape
 use corehir::value_types
-
 fn return_value_type_tag(node: AstNode) -> i32 {
     let child_count = return_ann_shape::return_ann_child_count(node)
     if child_count <= 0 {

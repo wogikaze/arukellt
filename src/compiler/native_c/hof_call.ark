@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq, substring}
+use std::text
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -11,7 +13,6 @@ use mir::module_spine
 use mir::opcodes
 use native_c::abi
 use native_c::enum_abi
-
 struct NativeCHofEmit {
     handled: bool,
     expression: String,
@@ -151,9 +152,9 @@ fn native_c_emit_ref_func(mir_module: MirModule, instruction: MirInst) -> Native
     let function_id_raw = native_c_hof_resolve_function_id(mir_module, instruction)
     if function_id_raw < 0 {
         return native_c_hof_error(
-            concat(
+            text::concat(
                 String_from("target `native-cpp` cannot resolve zero-capture function reference `"),
-                concat(inst_record::mir_inst_str_val(instruction), String_from("`"))
+                text::concat(inst_record::mir_inst_str_val(instruction), String_from("`"))
             )
         )
     }
@@ -178,9 +179,9 @@ fn native_c_emit_ref_func(mir_module: MirModule, instruction: MirInst) -> Native
     // C parses `(intptr_t)(typedef)symbol` as a cast of the typedef name, then
     // a discarded symbol expression. Double-parens force a function cast.
     native_c_hof_expression(
-        concat(
+        text::concat(
             String_from("(intptr_t)(("),
-            concat(typedef_name, concat(String_from(")"), concat(symbol, String_from(")"))))
+            text::concat(typedef_name, text::concat(String_from(")"), text::concat(symbol, String_from(")"))))
         )
     )
 }
@@ -228,26 +229,26 @@ fn native_c_emit_call_indirect(
             String_from("target `native-cpp` cannot type zero-capture indirect call")
         )
     }
-    let mut call = concat(
+    let mut call = text::concat(
         String_from("(("),
-        concat(
+        text::concat(
             typedef_name,
-            concat(
+            text::concat(
                 String_from(")"),
-                concat(String_from("ark_v_"), concat(i32_to_string(callee_local), String_from(")(")))
+                text::concat(String_from("ark_v_"), text::concat(i32_to_string(callee_local), String_from(")(")))
             )
         )
     )
     let mut argument_index = 0
     while argument_index < arg_count {
-        if argument_index > 0 { call = concat(call, String_from(", ")) }
-        call = concat(
+        if argument_index > 0 { call = text::concat(call, String_from(", ")) }
+        call = text::concat(
             call,
-            concat(String_from("ark_v_"), i32_to_string(get_unchecked(argument_locals, argument_index)))
+            text::concat(String_from("ark_v_"), i32_to_string(get_unchecked(argument_locals, argument_index)))
         )
         argument_index = argument_index + 1
     }
-    call = concat(call, String_from(")"))
+    call = text::concat(call, String_from(")"))
     native_c_hof_expression(call)
 }
 
@@ -279,7 +280,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
                     push(emitted_names, clone(typedef_name))
                     let decl = abi::native_c_funcref_typedef_decl(table, signature, heap_enum_flags)
                     if len(decl) > 0 {
-                        out = concat(out, decl)
+                        out = text::concat(out, decl)
                     }
                 }
             }

@@ -1,11 +1,12 @@
 // WIT import document loading and lookup (#653, #664).
 
+use std::prelude::{clone}
+use std::text
 use component::wit_parse_import
 use component::wit_parse_text
 use component::wit_parse_text_scan
 use compiler::wit_identity
 use resolver::wit_type_map
-
 fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInterface> {
     let docs = Vec::new<WitParsedInterface>()
     for i in 0..len(paths) {
@@ -41,7 +42,7 @@ fn wit_component_interface_id(doc: wit_parse_text::WitParsedInterface) -> String
     if len(version) == 0 {
         return interface_id
     }
-    concat(interface_id, concat("@", wit_parse_text_scan::wit_component_version_txt(version)))
+    text::concat(interface_id, text::concat("@", wit_parse_text_scan::wit_component_version_txt(version)))
 }
 
 fn wit_import_id(doc: wit_parse_text::WitParsedInterface) -> String {
@@ -82,5 +83,5 @@ fn wit_func_ret_ark_type(func: wit_parse_text::WitParsedFunc, alias: String, doc
 }
 
 fn wit_binding_key(interface_id: String, wit_func_name: String) -> String {
-    concat(clone(interface_id), concat("\x1f", clone(wit_func_name)))
+    text::concat(clone(interface_id), text::concat("\x1f", clone(wit_func_name)))
 }

@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use wasm::constants
-
 fn is_gc_target(target: String) -> bool {
     eq(clone(target), "wasm32-gc")
 }

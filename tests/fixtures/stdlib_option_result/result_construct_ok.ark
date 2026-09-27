@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_err, is_ok}
 fn main() {
     let r: Result<i32, i32> = Ok(42)
     test::assert_true(is_ok(r))

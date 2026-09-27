@@ -1,10 +1,10 @@
+use std::prelude::{clone, eq}
 use collections::vec_extend
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_env_record
 use typechecker::contract_type_access
 use typechecker::mono_instances
-
 fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
     let src_instances = contract_env_mono_record::type_env_mono_instances(src)
     let count = len(src_instances)

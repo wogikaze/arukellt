@@ -6,13 +6,14 @@
 //   SubF{N}_S_...   - final subtype of type at index {N} with struct body S_...
 //   SubF_GS_f...    - final struct with no supertype (user-defined structs)
 
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::text
 use mir::module_gc_enum
 use mir::module_gc_struct
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 use wasm::sections_type_plan
-
 fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
@@ -205,7 +206,7 @@ fn gc_struct_type_sig_from_byte_size(byte_size: i32) -> String {
             field_count + 1
         }
     }
-    concat("gcref", i32_to_string(offset))
+    text::concat("gcref", i32_to_string(offset))
 }
 
 fn gc_vec_type_sig() -> String {
@@ -271,7 +272,7 @@ fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
 
 fn gc_struct_sig_as_final(sig: String) -> String {
     if starts_with(clone(sig), "GS_f") {
-        return concat("SubF_", sig)
+        return text::concat("SubF_", sig)
     }
     sig
 }

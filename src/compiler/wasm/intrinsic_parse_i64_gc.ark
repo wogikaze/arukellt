@@ -16,6 +16,7 @@ use wasm::intrinsics::helpers_numeric_i64_convert
 
 // GC parse_i64: scan String (array i8) and build Result<i64, String>.
 // Must not reuse parse_i32_gc — Ok payload would be i32 and trap on match (#807).
+use std::prelude::{byte_at}
 fn emit_parse_i64_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let _inst = inst
     let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)

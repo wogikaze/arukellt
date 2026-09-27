@@ -1,6 +1,7 @@
 // GC ref producer inference.
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 use mir::inst_record
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -27,7 +28,6 @@ use wasm::inst_ctx
 use wasm::intrinsic_vec_type
 use wasm::sections_types_gc
 use wasm::sections_types_gc_phase7
-
 fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
     let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
     let indexed = inst_ctx::resolve_fn_index(ctx, clone(callee))

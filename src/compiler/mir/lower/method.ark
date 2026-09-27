@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq, starts_with, substring}
+use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_mono_type_params
@@ -5,7 +7,6 @@ use mir::lower::method_emit
 use mir::lower::method_resolve
 use mir::lower::ctx_locals_emit
 use mir::opcodes
-
 fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i32) -> String {
     let mut struct_name = ""
     if receiver_idx >= 0 {
@@ -49,7 +50,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // same collision rule as HashMap_K_V.
     struct_name = method_resolve::mir_inst_owner_name(clone(struct_name))
     if len(struct_name) > 0 {
-        return concat(clone(struct_name), concat("::", clone(method_name)))
+        return text::concat(clone(struct_name), text::concat("::", clone(method_name)))
     }
     method_name
 }

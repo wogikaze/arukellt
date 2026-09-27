@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -11,7 +12,6 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_gc_struct
 use mir::value_types
-
 fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     let is_gc = ctx_gc_enum::ctx_is_gc_target(ctx)
     // `?` operand is always a Result/Option container; promote before

@@ -1,5 +1,6 @@
 // Minimal .ark smoke program for runtime Wasm debugging (#638).
+use std::host::stdio
 fn main() {
     let x = 42
-    print(x)
+    stdio::print(x)
 }

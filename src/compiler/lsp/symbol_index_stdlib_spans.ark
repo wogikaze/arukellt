@@ -1,9 +1,9 @@
 use std::host::fs
+use std::prelude::{clone, eq}
 use compiler::session_parse
 use lsp::symbol_index_extract
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
-
 struct SourceSpan {
     found: bool,
     start: i32,

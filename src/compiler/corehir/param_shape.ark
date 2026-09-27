@@ -1,9 +1,9 @@
+use std::prelude::{clone}
 use corehir::param
 use corehir::param_shape_local
 use corehir::param_shape_node
 use corehir::param_shape_value
 use corehir::type_ann_param_name
-
 fn param_type_name(node: AstNode) -> String {
     if param_shape_node::param_has_type_ann(clone(node)) {
         return type_ann_param_name::type_ann_shape_param_type_name(param_shape_node::param_type_ann(node))

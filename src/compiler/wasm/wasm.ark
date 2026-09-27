@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use wasm::writer_core
 use wasm::wasm_sections
 use wasm::emit_target
-
 fn emit_wasm_module(
     mir: MirModule,
     target: String,

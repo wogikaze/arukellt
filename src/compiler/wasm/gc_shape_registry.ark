@@ -2,8 +2,8 @@
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 
 use std::text
+use std::prelude::{byte_at, clone, eq, to_string}
 use mir::value_types
-
 pub struct GcShapeRegistry {
     struct_names: Vec<String>,
     struct_field_types: Vec<String>,
@@ -76,7 +76,7 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
 }
 
 fn GcShapeRegistry_array_sig(reg: GcShapeRegistry, idx: i32) -> String {
-    concat("A_", val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
+    text::concat("A_", val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
 }
 
 fn GcShapeRegistry_total_gc_type_count(reg: GcShapeRegistry) -> i32 {

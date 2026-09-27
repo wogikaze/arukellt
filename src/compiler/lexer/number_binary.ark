@@ -1,5 +1,5 @@
+use std::prelude::{substring}
 use lexer::number_suffix
-
 fn lex_binary_number(lex: Lexer, start: i32) -> Token {
     lex.pos = lex.pos + 2
     let mut val: i32 = 0

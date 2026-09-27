@@ -19,6 +19,7 @@ use wasm::writer_core
 // HOST_ABI_GC_REF for intrinsics that return a GC reference directly,
 // and HOST_ABI_LINEAR_MEMORY_PTR for intrinsics that return an i32
 // pointer into linear memory which must be converted to a GC ref.
+use std::prelude::{clone, eq}
 fn host_intrinsic_abi_kind(name: String) -> i32 {
     // Scalar intrinsics: return plain numeric values, no GC ref needed.
     if eq(clone(name), String_from("clock_now")) {

@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::random
-
+use std::prelude::{assert_eq}
 fn main() {
     let v = Vec::new<i32>()
     push(v, 10)

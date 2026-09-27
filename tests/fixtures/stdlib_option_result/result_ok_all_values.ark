@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_ok}
 fn main() {
     let r1: Result<i32, i32> = Ok(1)
     let r2: Result<i32, i32> = Ok(0)

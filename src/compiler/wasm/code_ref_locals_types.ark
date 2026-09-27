@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 fn is_gc_container_type_name(type_name: String) -> bool {
     if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") {
         return true

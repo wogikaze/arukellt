@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq, index_of, substring}
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_variants_builtin
-
 fn ctx_strip_first_path_segment(name: String) -> String {
     let pos = index_of(clone(name), String_from("::"))
     if pos < 0 {

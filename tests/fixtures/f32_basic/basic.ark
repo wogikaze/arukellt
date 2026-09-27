@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{f32_to_string}
 fn add_f32(a: f32, b: f32) -> f32 {
     a + b
 }

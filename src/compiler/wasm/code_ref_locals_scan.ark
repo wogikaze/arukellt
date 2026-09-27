@@ -1,4 +1,5 @@
 // GC ref local scan helpers.
+use std::prelude::{clone, eq, starts_with}
 use mir::block_inst_access
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -9,7 +10,6 @@ use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
-
 fn is_function_local_gc_cache_active(ctx: SelfEmitCtx) -> bool {
     len(ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)) > 0
 }

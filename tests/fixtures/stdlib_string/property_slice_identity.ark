@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq, slice}
 fn main() {
     let s = String_from("identity")
     test::assert_true(eq(slice(s, 0, len(s)), s))

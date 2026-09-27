@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 fn main() -> i32 {
     let keep = String_from("alive")
     let mut i = 0

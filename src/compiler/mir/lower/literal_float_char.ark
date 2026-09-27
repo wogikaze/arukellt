@@ -1,3 +1,4 @@
+use std::prelude::{byte_at}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -6,7 +7,6 @@ use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::inst_const_f64
 use mir::value_types
-
 fn lower_char_literal(ctx: LowerCtx, node: AstNode) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(ast_node::node_int_val(node), dest))

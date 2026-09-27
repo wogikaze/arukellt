@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, contains, eq, starts_with}
+use std::text
 use wasm::call_resolve
 use wasm::opcodes
 use mir::function_identity
@@ -12,7 +14,6 @@ use mir::module_functions
 use wasm::emit_target
 use wasm::sections_types_sigs_detail
 use component::wit_names
-
 struct ExportSectionPlan {
     export_count: i32,
     main_idx: i32,
@@ -356,10 +357,10 @@ fn emit_p2_library_function_exports(
     } else {
         wasm_function_export_index(function_idx, clone(target), clone(wasi_version), wit_import_count)
     }
-    writer_string::emit_string(export_sec, concat("cm32p2||", clone(wit_name)))
+    writer_string::emit_string(export_sec, text::concat("cm32p2||", clone(wit_name)))
     writer_core::emit_byte(export_sec, 0)
     writer_core::emit_leb128_u(export_sec, function_export_idx)
-    writer_string::emit_string(export_sec, concat("cm32p2||", concat(clone(wit_name), "_post")))
+    writer_string::emit_string(export_sec, text::concat("cm32p2||", text::concat(clone(wit_name), "_post")))
     writer_core::emit_byte(export_sec, 0)
     writer_core::emit_leb128_u(
         export_sec,

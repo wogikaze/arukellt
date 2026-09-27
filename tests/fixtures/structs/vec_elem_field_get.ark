@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{clone}
 struct Rec {
     wit_name: String,
 }

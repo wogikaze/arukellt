@@ -2,7 +2,7 @@
 // Verifies: generic functions called with distinct type args create distinct
 //           mono instances; unused generic instantiations are excluded from codegen.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn identity<T>(x: T) -> T {
     x
 }

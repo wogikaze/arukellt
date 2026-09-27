@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq}
 fn main() {
     let a: String = String_from("test")
     let b: String = String_from("test")

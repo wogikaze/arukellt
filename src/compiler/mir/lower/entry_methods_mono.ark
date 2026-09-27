@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::entry_emit_method
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_method
@@ -7,7 +8,6 @@ use mir::lower::ctx_gc_enum
 use mir::type_contracts
 use mir::value_types
 use mir::mono
-
 fn mir_emit_method_mono_bodies(
     ctx: LowerCtx,
     body_input: MirLowerEntryBodyInput,

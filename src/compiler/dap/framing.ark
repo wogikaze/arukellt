@@ -1,5 +1,6 @@
 use std::json
-
+use std::prelude::{byte_at, clone, index_of, substring, to_string}
+use std::text
 struct DapFrameResult {
     body: String,
     next: i32,
@@ -7,8 +8,8 @@ struct DapFrameResult {
 }
 
 fn dap_frame(body: String) -> String {
-    let header = concat("Content-Length: ", concat(to_string(len(clone(body))), "\r\n\r\n"))
-    concat(header, body)
+    let header = text::concat("Content-Length: ", text::concat(to_string(len(clone(body))), "\r\n\r\n"))
+    text::concat(header, body)
 }
 
 fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {

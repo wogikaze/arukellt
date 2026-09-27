@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::local_access
 use mir::block_inst_access
 use mir::function_block_queries
@@ -9,7 +10,6 @@ use wasm::function_indices
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
-
 fn module_has_funcref_values(mir: MirModule) -> bool {
     if module_has_funcref_params(mir) {
         return true

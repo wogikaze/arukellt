@@ -1,7 +1,7 @@
 // Test: non-exhaustive match on enum produces diagnostic.
 // The match on Direction is missing the West arm — non-exhaustive.
 use std::host::stdio
-
+use std::prelude::{to_string}
 enum Direction {
     North,
     South,

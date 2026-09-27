@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, index_of, starts_with, substring}
 use mir::inst_call_ref
 use mir::inst_local_get
 use mir::lower::ast_node
@@ -12,7 +13,6 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::call_emit_dest
 use mir::lower::call_types
 use mir::value_types
-
 fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     if ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_FUNCREF() {
         return true

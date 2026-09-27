@@ -3,7 +3,7 @@
 // rather than the direct NK_CALL cases already exercised by the other
 // generics_v1 fixtures.
 use std::host::stdio
-
+use std::prelude::{to_string}
 struct Picker {
     token: i32,
 }

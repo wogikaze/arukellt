@@ -1,5 +1,6 @@
 use std::text
 use std::json
+use std::prelude::{clone, to_string}
 use lsp::feature_request
 use lsp::framing
 use lsp::positions
@@ -7,7 +8,6 @@ use lsp::responses
 use lsp::state_record
 use lsp::state_docs
 use lsp::source_text
-
 pub fn handle_selection_range(state: LspState, body: String) {
     let req_id = json::json_get_int(clone(body), String_from("id"))
     let uri = json::json_get_str(clone(body), String_from("uri"))

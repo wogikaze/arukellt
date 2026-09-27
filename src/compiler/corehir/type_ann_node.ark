@@ -1,7 +1,8 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
-
 fn type_ann_name(node: AstNode) -> String {
     frontend_ast_identity::corehir_node_text(node)
 }
@@ -54,11 +55,11 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         fn_sig_segment_is_i32_family(clone(result_name)) {
             return String_from("fnref")
         }
-        return concat(
+        return text::concat(
             String_from("fnsig:"),
-            concat(
+            text::concat(
                 fn_sig_segment_name(param),
-                concat(String_from(";"), fn_sig_segment_name(result))
+                text::concat(String_from(";"), fn_sig_segment_name(result))
             )
         )
     }
@@ -75,14 +76,14 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
                 let mut pi = 0
                 while pi < type_ann_child_count(node) {
                     if pi > 0 {
-                        params = concat(params, String_from(","))
+                        params = text::concat(params, String_from(","))
                     }
-                    params = concat(params, fn_sig_segment_name(type_ann_child_at(node, pi)))
+                    params = text::concat(params, fn_sig_segment_name(type_ann_child_at(node, pi)))
                     pi = pi + 1
                 }
-                return concat(
+                return text::concat(
                     String_from("fnsig:"),
-                    concat(clone(params), concat(String_from(";"), result_name))
+                    text::concat(clone(params), text::concat(String_from(";"), result_name))
                 )
             }
         }
@@ -98,7 +99,7 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         if len(ret_seg_zero) == 0 || fn_sig_segment_is_i32_family(clone(ret_seg_zero)) {
             return String_from("fnref")
         }
-        return concat(String_from("fnsig:;"), ret_seg_zero)
+        return text::concat(String_from("fnsig:;"), ret_seg_zero)
     }
     String_from("fnref")
 }
@@ -132,46 +133,46 @@ fn fn_sig_segment_name(node: AstNode) -> String {
     if type_ann_is_generic(node) {
         let seg_name = type_ann_name(node)
         if eq(clone(seg_name), String_from("Vec")) && type_ann_child_count(node) >= 2 {
-            return concat(
+            return text::concat(
                 String_from("vec:"),
                 fn_sig_segment_name(type_ann_child_at(node, 1))
             )
         }
         if eq(clone(seg_name), String_from("Option")) && type_ann_child_count(node) >= 2 {
-            return concat(
+            return text::concat(
                 String_from("option:"),
                 fn_sig_segment_name(type_ann_child_at(node, 1))
             )
         }
         if eq(clone(seg_name), String_from("Result")) && type_ann_child_count(node) >= 3 {
-            return concat(
+            return text::concat(
                 String_from("result:"),
-                concat(
+                text::concat(
                     fn_sig_segment_name(type_ann_child_at(node, 1)),
-                    concat(String_from(":"), fn_sig_segment_name(type_ann_child_at(node, 2)))
+                    text::concat(String_from(":"), fn_sig_segment_name(type_ann_child_at(node, 2)))
                 )
             )
         }
         if type_ann_child_count(node) >= 2 {
-            let mut out = concat(clone(seg_name), String_from("<"))
+            let mut out = text::concat(clone(seg_name), String_from("<"))
             let mut gi = 1
             while gi < type_ann_child_count(node) {
                 if gi > 1 {
-                    out = concat(out, String_from(","))
+                    out = text::concat(out, String_from(","))
                 }
-                out = concat(out, fn_sig_segment_name(type_ann_child_at(node, gi)))
+                out = text::concat(out, fn_sig_segment_name(type_ann_child_at(node, gi)))
                 gi = gi + 1
             }
-            return concat(out, String_from(">"))
+            return text::concat(out, String_from(">"))
         }
         return seg_name
     }
     if type_ann_is_tuple(node) && type_ann_child_count(node) == 2 {
-        return concat(
+        return text::concat(
             String_from("Tuple:"),
-            concat(
+            text::concat(
                 fn_sig_segment_name(type_ann_child_at(node, 0)),
-                concat(String_from(":"), fn_sig_segment_name(type_ann_child_at(node, 1)))
+                text::concat(String_from(":"), fn_sig_segment_name(type_ann_child_at(node, 1)))
             )
         )
     }
@@ -219,9 +220,9 @@ fn type_ann_tuple_local_name(node: AstNode) -> String {
     let mut i = 0
     while i < count {
         if i > 0 {
-            name = concat(name, String_from(","))
+            name = text::concat(name, String_from(","))
         }
-        name = concat(name, type_ann_tuple_field_key_name(type_ann_child_at(node, i)))
+        name = text::concat(name, type_ann_tuple_field_key_name(type_ann_child_at(node, i)))
         i = i + 1
     }
     name

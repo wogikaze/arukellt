@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("[[1,2],[3,4]]") {
         Result::Ok(v) => {
@@ -28,6 +28,6 @@ fn main() {
                 None => panic("expected outer element 1"),
             }
         },
-        Result::Err(e) => panic(concat("parse nested array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse nested array failed: ", json::parse_error_message(e))),
     }
 }

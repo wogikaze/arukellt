@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{is_empty, slice}
 fn main() {
     let s = String_from("hello")
     let sub = slice(s, 2, 2)

@@ -1,5 +1,5 @@
+use std::prelude::{eq}
 use lexer::tokens
-
 pub fn keyword_kind_literal(word: String) -> i32 {
     if eq(word, "true") {
         return tokens::TK_BOOL()

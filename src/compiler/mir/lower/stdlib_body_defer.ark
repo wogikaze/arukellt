@@ -6,6 +6,7 @@ use corehir::param
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
 // #821/#822 after the #820 inliner exists. Pure Ark helpers (e.g. contains_i32)
 // are not listed here and are lowered normally.
+use std::prelude::{clone, ends_with, eq, starts_with}
 fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
     let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
     if core_op_id::core_op_id_is_some(coid) {

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{is_empty, split}
 fn count_words(s: String) -> i32 {
     if is_empty(s) {
         return 0

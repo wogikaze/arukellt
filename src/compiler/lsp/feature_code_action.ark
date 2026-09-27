@@ -1,5 +1,6 @@
 use std::text
 use std::json
+use std::prelude::{clone, eq, to_string}
 use analysis::ident_span
 use analysis::symbols
 use lsp::feature_request
@@ -11,7 +12,6 @@ use lsp::responses
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
-
 fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
@@ -45,7 +45,7 @@ fn build_import_actions_json(state: LspState, uri: String, text: String, name: S
             if len(module_path) > 0 {
                 let import_path = import_graph::stdlib_import_path(clone(module_path), clone(name))
                 if !import_graph::is_path_imported(clone(text), clone(import_path)) {
-                    let title = concat(concat(String_from("Import '"), clone(import_path)), String_from("'"))
+                    let title = text::concat(text::concat(String_from("Import '"), clone(import_path)), String_from("'"))
                     if len(actions) > 0 {
                         actions = text::builder_append(actions, String_from(","))
                     }

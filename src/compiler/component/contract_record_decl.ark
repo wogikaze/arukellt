@@ -1,6 +1,6 @@
+use std::prelude::{eq}
 use component::type_node
 use component::wit_decl
-
 fn component_decl_is_point_shape(d: AstNode) -> bool {
     let decl = wit_decl::wit_decl_from_node(d)
     if wit_decl::wit_decl_is_record(decl) && eq(wit_decl::wit_decl_name(decl), "Point") {

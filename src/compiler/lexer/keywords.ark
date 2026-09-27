@@ -1,10 +1,10 @@
+use std::prelude::{clone}
 use lexer::keyword_policy
 use lexer::keywords_control
 use lexer::keywords_decl
 use lexer::keywords_literals
 use lexer::keywords_module
 use lexer::tokens
-
 const KEYWORD_CLASS_IDENTIFIER: i32 = 0
 const KEYWORD_CLASS_HARD: i32 = 1
 const KEYWORD_CLASS_CONTEXTUAL: i32 = 2

@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::reachability_prune
 use mir::reachability_roots
 use mir::reachability_walk
@@ -5,7 +6,6 @@ use mir::reachability_index
 use mir::reachability_legacy
 use mir::module_functions
 use mir::types
-
 fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
     mir_prune_unreachable_with_roots_for_target(m, extra_roots, String_new())
 }

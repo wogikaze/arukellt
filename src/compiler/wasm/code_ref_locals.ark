@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::function_return_view
 use mir::function_locals_view
 use mir::local_access
@@ -7,7 +8,6 @@ use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_scan
 use wasm::code_ref_locals_infer_dest
-
 fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
         return false

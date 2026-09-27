@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::test
-
+use std::prelude::{assert_eq, assert_eq_str}
 fn main() {
     let ok_result: Result<i32, String> = Ok(42)
     let v = test::expect_ok_i32(ok_result)

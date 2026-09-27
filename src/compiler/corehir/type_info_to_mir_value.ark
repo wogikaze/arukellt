@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq, starts_with}
+use std::text
 use corehir::mir_value_type
 use corehir::kinds
 use corehir::type_contracts
@@ -7,7 +9,6 @@ use corehir::type_info_to_type_id
 use corehir::type_table
 use corehir::value_types
 use corehir::hashmap_type_name
-
 fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
     let type_id = type_info_to_type_id::type_info_to_type_id(table, ty)
     let tag = type_contracts::TypeInfo_tag(ty)
@@ -240,7 +241,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(elem_name) == 0 {
             return String_new()
         }
-        return concat(String_from("vec:"), elem_name)
+        return text::concat(String_from("vec:"), elem_name)
     }
     if kind == kinds::TYPE_KIND_OPTION() && arg_count == 1 {
         let inner = type_table::type_entry_type_param_at(entry, 0)
@@ -248,7 +249,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(inner_name) == 0 {
             return String_new()
         }
-        return concat(String_from("option:"), inner_name)
+        return text::concat(String_from("option:"), inner_name)
     }
     if kind == kinds::TYPE_KIND_RESULT() && arg_count == 2 {
         let ok = type_table::type_entry_type_param_at(entry, 0)
@@ -258,7 +259,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(ok_name) == 0 || len(err_name) == 0 {
             return String_new()
         }
-        return concat(concat(String_from("result:"), ok_name), concat(String_from(":"), err_name))
+        return text::concat(text::concat(String_from("result:"), ok_name), text::concat(String_from(":"), err_name))
     }
     if kind == kinds::TYPE_KIND_HASHMAP() && arg_count == 2 {
         let k = type_table::type_entry_type_param_at(entry, 0)
@@ -268,7 +269,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(k_name) == 0 || len(v_name) == 0 {
             return String_new()
         }
-        return concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
+        return text::concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
     }
     name
 }

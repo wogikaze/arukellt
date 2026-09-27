@@ -6,6 +6,7 @@
 //! be loaded by the bootstrap compiler without overflowing the call
 //! stack.
 
+use std::prelude::{byte_at, clone, substring}
 /// Find character `ch` in `s` starting at offset `from`.  Returns -1 if
 /// not found.
 pub fn wit_find_char(s: String, ch: i32, from: i32) -> i32 {

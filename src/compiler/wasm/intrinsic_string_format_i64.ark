@@ -13,6 +13,7 @@ use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::intrinsic_string_format_i64_digit_loop
 
 // Handler for: i64_to_string, text::format_i64, convert::i64_to_string
+use std::prelude::{clone, contains}
 fn emit_i64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_val64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_wpos64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)

@@ -7,6 +7,7 @@ use std::host::stdio
 // and From<String> for String is the identity impl, so errors
 // propagate unchanged through the call chain.
 
+use std::prelude::{eq, parse_i32}
 fn parse_num(s: String) -> Result<i32, String> {
     parse_i32(s)
 }

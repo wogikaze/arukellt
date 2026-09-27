@@ -1,6 +1,8 @@
 // Extracted from call_fallback.ark to reduce import fan-out.
 // Opcode constants inlined to avoid extra import (values from mir::opcodes).
 
+use std::prelude::{clone, starts_with, substring}
+use std::text
 use mir::function_param_view
 use corehir::function_id
 use corehir::signature_entry
@@ -21,7 +23,6 @@ use wasm::registry_return_audit
 use wasm::registry_return_resolve
 use wasm::inst_locals
 use wasm::sections_type_plan
-
 fn try_emit_resolved_fallback_call(
     w: WasmWriter,
     callee: String,
@@ -162,7 +163,7 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
     } else {
         clone(param_type_name)
     }
-    let prefix = concat(clone(bare), "::")
+    let prefix = text::concat(clone(bare), "::")
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
     while ei < len(ev_names) {

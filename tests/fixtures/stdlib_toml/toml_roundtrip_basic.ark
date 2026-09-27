@@ -1,5 +1,7 @@
 use std::host::stdio
 use std::toml
+use std::prelude::{eq}
+use std::text
 
 /// Parity/differential: basic table round-trip.
 ///
@@ -18,6 +20,6 @@ fn main() {
                 stdio::println("roundtrip mismatch")
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(text::concat("error:", e)),
     }
 }

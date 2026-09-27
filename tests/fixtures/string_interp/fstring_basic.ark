@@ -1,12 +1,13 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
+use std::text
 fn main() {
     let name: String = String_from("world")
-    stdio::println(concat(concat("Hello, ", to_string(name)), "!"))
+    stdio::println(text::concat(text::concat("Hello, ", to_string(name)), "!"))
     let x: i32 = 42
-    stdio::println(concat(concat("The answer is ", to_string(x)), "."))
+    stdio::println(text::concat(text::concat("The answer is ", to_string(x)), "."))
     let flag: bool = true
-    stdio::println(concat("flag is ", to_string(flag)))
+    stdio::println(text::concat("flag is ", to_string(flag)))
     let pi: f64 = 3.14
-    stdio::println(concat("pi = ", to_string(pi)))
+    stdio::println(text::concat("pi = ", to_string(pi)))
 }

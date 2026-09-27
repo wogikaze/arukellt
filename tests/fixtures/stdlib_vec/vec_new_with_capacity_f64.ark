@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{is_empty}
 fn main() {
     let v: Vec<f64> = Vec::with_capacity<f64>(16)
     test::assert_eq_i32(len(v), 0)

@@ -1,4 +1,5 @@
 use std::text
+use std::prelude::{clone}
 use analysis::diagnostic_record
 use analysis::snapshot_state_record
 use compiler::diag_facade
@@ -13,7 +14,6 @@ use corehir::mod
 use loader::load
 use parser::program
 use lint::checks as lint_checks
-
 fn lex_diag_code_string(code: i32) -> String {
     if code == 1 {
         return "LEX0001"
@@ -108,7 +108,7 @@ fn session_record_parse_warnings(snap: AnalysisSnapshot, parse_result: ParseResu
         let code = diag_record::diagnostic_code(warning)
         let message = diag_record::diagnostic_message(warning)
         let span = diag_record::diagnostic_span(warning)
-        let full_message = concat(clone(code), concat("|", clone(message)))
+        let full_message = text::concat(clone(code), text::concat("|", clone(message)))
         snapshot_state_record::snapshot_push(
             snap,
             diagnostic_record::AnalysisDiagnostic_new(
@@ -156,7 +156,7 @@ fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, 
         let span = diag_record::diagnostic_span(w)
         let start = diag_record::diagnostic_span_start(span)
         let end = diag_record::diagnostic_span_end(span)
-        let full_msg = concat(clone(code), concat("|", clone(msg)))
+        let full_msg = text::concat(clone(code), text::concat("|", clone(msg)))
         snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
         li = li + 1
     }
@@ -171,7 +171,7 @@ fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, 
         let span = diag_record::diagnostic_span(w)
         let start = diag_record::diagnostic_span_start(span)
         let end = diag_record::diagnostic_span_end(span)
-        let full_msg = concat(clone(code), concat("|", clone(msg)))
+        let full_msg = text::concat(clone(code), text::concat("|", clone(msg)))
         snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
         ti = ti + 1
     }

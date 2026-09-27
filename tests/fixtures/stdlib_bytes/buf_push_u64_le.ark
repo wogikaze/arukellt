@@ -1,6 +1,6 @@
 use std::bytes
 use std::test
-
+use std::prelude::{i32_to_i64}
 fn main() {
     let buf: Vec<i32> = bytes::buf_new()
     bytes::buf_push_u64_le(buf, i32_to_i64(1))

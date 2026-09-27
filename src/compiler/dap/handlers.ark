@@ -1,7 +1,7 @@
 use std::json
+use std::prelude::{clone, eq}
 use dap::responses
 use dap::state
-
 fn dap_handle(state: DapState, body: String) {
     let command = json::json_get_str(clone(body), String_from("command"))
     let msg_type = json::json_get_str(clone(body), String_from("type"))

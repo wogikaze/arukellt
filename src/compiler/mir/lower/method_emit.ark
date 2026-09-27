@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, index_of, starts_with, substring}
 use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
 use mir::lower::call_emit_dest
@@ -9,7 +10,6 @@ use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::inst_call
 use mir::value_types
-
 fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(clone(callee_name))
     if eq(clone(bare_method), "to_string") {

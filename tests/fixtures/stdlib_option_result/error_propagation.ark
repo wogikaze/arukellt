@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{eq, is_err}
 fn inner(s: String) -> Result<i32, String> {
     if eq(s, "ok") { Ok(1) } else { Err(String_from("inner fail")) }
 }

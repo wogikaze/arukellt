@@ -26,6 +26,8 @@
 //! the other functions are typed with `IoError` for API consistency.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
+use std::prelude::{byte_at}
+use std::text
 /// Typed error for I/O operations.
 pub enum IoError {
     /// Not enough data was available to fulfill a read request.
@@ -45,7 +47,7 @@ pub fn io_error_message(err: IoError) -> String {
 /// Display implementation for the typed I/O error surface.
 impl Display for IoError {
     fn to_string(self: IoError) -> String {
-        concat("IoError: ", io_error_message(self))
+        text::concat("IoError: ", io_error_message(self))
     }
 }
 

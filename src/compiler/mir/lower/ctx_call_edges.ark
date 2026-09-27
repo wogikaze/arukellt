@@ -11,6 +11,7 @@ use wasm::hash_aliases
 // Unused LowerCtx.fn_indices / gc_type_base hold CALL edges. Adding a field
 // to MirFunction makes wasm32 KEEP_CLOCK self-emit trap in NameIndex_new.
 // Official 10s path is stub clocks; edge_names is only extra LowerCtx storage.
+use std::prelude::{clone, eq}
 fn ctx_edge_stack_slots() -> i32 {
     8
 }

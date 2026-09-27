@@ -1,3 +1,4 @@
+use std::prelude::{substring}
 fn escaped_string_fragment(lex: Lexer, esc: i32) -> String {
     if esc == 110 {
         return "\n"

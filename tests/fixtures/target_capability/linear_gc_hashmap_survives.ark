@@ -6,6 +6,7 @@ use std::test
 // Entries inserted before (and during) the churn loop must still resolve
 // after the watermark-gated collections that fire inside churn's entry.
 
+use std::text
 fn churn(slots: i32) -> i32 {
     let mut junk: Vec<i32> = Vec::with_capacity<i32>(slots)
     push(junk, slots)
@@ -14,7 +15,7 @@ fn churn(slots: i32) -> i32 {
 
 fn main() {
     let m = HashMap_new_String_String()
-    HashMap_String_String_insert(m, concat("gree", "ting"), concat("hel", "lo"))
+    HashMap_String_String_insert(m, text::concat("gree", "ting"), text::concat("hel", "lo"))
     HashMap_String_String_insert(m, "farewell", "goodbye")
     HashMap_String_String_insert(m, "color", "red")
     HashMap_String_String_insert(m, "color", "blue")
@@ -23,13 +24,13 @@ fn main() {
     while i < 160 {
         let _n = churn(262144)
         if i == 80 {
-            HashMap_String_String_insert(m, "late", concat("va", "lue"))
+            HashMap_String_String_insert(m, "late", text::concat("va", "lue"))
         }
         i = i + 1
     }
 
     test::assert_eq_i32(HashMap_String_String_len(m), 4)
-    match HashMap_String_String_get(m, concat("gree", "ting")) {
+    match HashMap_String_String_get(m, text::concat("gree", "ting")) {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
         None => panic("expected Some(hello)"),
     }

@@ -1,4 +1,5 @@
 // i8x16 (except extract_lane_s/u, all_true, bitmask -> i32)
+use std::prelude::{clone, eq}
 fn simd_return_i8x16(name: String) -> bool {
     if eq(clone(name), "__simd_i8x16_splat") { return true }
     if eq(clone(name), "__simd_i8x16_replace_lane") { return true }

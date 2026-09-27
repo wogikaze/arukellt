@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{contains}
 fn main() {
     let s = String_from("hello world")
     test::assert_true(contains(s, String_from("hello")))

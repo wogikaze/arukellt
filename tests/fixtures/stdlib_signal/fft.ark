@@ -1,9 +1,9 @@
 use std::host::stdio
 use std::signal
-
+use std::text
 fn assert_close(actual: f64, expected: f64) {
     if !signal::approx_eq(actual, expected, 0.001) {
-        panic(concat("expected ", concat((expected).to_string(), concat(", got ", (actual).to_string()))))
+        panic(text::concat("expected ", text::concat((expected).to_string(), text::concat(", got ", (actual).to_string()))))
     }
 }
 

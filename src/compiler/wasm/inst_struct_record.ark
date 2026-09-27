@@ -4,6 +4,7 @@
 //            cannot be determined from MIR instruction alone; GC-typed structs
 //            like Vec use explicit writer_gc calls in intrinsic files).
 
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
@@ -24,7 +25,6 @@ use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use wasm::sections_types_gc
-
 fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type: i32, local_idx: i32) -> bool {
     if !writer_core::writer_memory64(w) {
         return false

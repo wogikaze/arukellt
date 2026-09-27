@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use hir::item_param_record
 use hir::item_type_param_record
 use hir::node_record
 use hir::type_contracts_record
-
 struct HirFunction {
     name: String,
     params: Vec<HirParam>,

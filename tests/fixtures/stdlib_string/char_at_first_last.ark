@@ -1,7 +1,7 @@
 use std::test
-
+use std::prelude::{byte_at}
 fn main() {
     let s = String_from("hello")
-    test::assert_eq_i32(char_at(s, 0), 104)
-    test::assert_eq_i32(char_at(s, 4), 111)
+    test::assert_eq_i32(byte_at(s, 0), 104)
+    test::assert_eq_i32(byte_at(s, 4), 111)
 }

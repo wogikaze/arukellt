@@ -1,8 +1,8 @@
 use std::text
 use std::json
+use std::prelude::{clone, to_string}
 use lsp::positions
 use lsp::symbol_index_record
-
 fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
     let start = positions::offset_to_position(clone(text), decl_start)
     let end = positions::offset_to_position(clone(text), decl_end)
@@ -47,7 +47,7 @@ fn append_symbol_information(items: String, item: String) -> String {
     if len(items) == 0 {
         return item
     }
-    concat(concat(items, String_from(",")), item)
+    text::concat(text::concat(items, String_from(",")), item)
 }
 
 pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record::IndexedSymbol>, source_texts: Vec<String>) -> String {

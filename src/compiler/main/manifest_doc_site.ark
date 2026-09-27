@@ -1,6 +1,6 @@
 use std::text
+use std::prelude::{replace}
 use main::manifest_doc_record
-
 fn doc_site_escape(raw: String) -> String {
     let mut out = replace(raw, String_from("&"), String_from("&amp;"))
     out = replace(out, String_from("<"), String_from("&lt;"))
@@ -10,15 +10,15 @@ fn doc_site_escape(raw: String) -> String {
 }
 
 fn doc_site_signature(e: manifest_doc_record::DocFnEntry) -> String {
-    concat(
+    text::concat(
         String_from("fn "),
-        concat(
+        text::concat(
             manifest_doc_record::DocFnEntry_name(e),
-            concat(
+            text::concat(
                 String_from("("),
-                concat(
+                text::concat(
                     manifest_doc_record::DocFnEntry_params(e),
-                    concat(String_from(") -> "), manifest_doc_record::DocFnEntry_returns(e))
+                    text::concat(String_from(") -> "), manifest_doc_record::DocFnEntry_returns(e))
                 )
             )
         )
@@ -45,7 +45,7 @@ fn doc_site_card(e: manifest_doc_record::DocFnEntry) -> String {
     let sig = doc_site_escape(doc_site_signature(e))
     let doc = doc_site_escape(manifest_doc_record::DocFnEntry_doc(e))
     let target = doc_site_escape(doc_site_target_badge(e))
-    let search = doc_site_escape(concat(name, concat(String_from(" "), concat(module, concat(String_from(" "), sig)))))
+    let search = doc_site_escape(text::concat(name, text::concat(String_from(" "), text::concat(module, text::concat(String_from(" "), sig)))))
     let mut out = String_from("<article class=\"api-card\" data-module=\"")
     out = text::builder_append(out, module)
     out = text::builder_append(out, String_from("\" data-stability=\""))
@@ -77,7 +77,7 @@ fn doc_site_card(e: manifest_doc_record::DocFnEntry) -> String {
 
 fn doc_site_module_link(name: String) -> String {
     let safe = doc_site_escape(name)
-    concat(String_from("<a href=\"#\" data-module-filter=\""), concat(safe, concat(String_from("\">"), concat(safe, String_from("</a>\n")))))
+    text::concat(String_from("<a href=\"#\" data-module-filter=\""), text::concat(safe, text::concat(String_from("\">"), text::concat(safe, String_from("</a>\n")))))
 }
 
 fn doc_site_header() -> String {

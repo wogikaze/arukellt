@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::random
-
+use std::prelude::{assert_eq}
 fn main() {
     assert_eq(random::seeded_range(99, 10, 20), 19)
     assert_eq(random::seeded_range(99, 10, 10), 10)

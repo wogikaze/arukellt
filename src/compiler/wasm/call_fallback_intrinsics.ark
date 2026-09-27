@@ -1,6 +1,7 @@
 // Intrinsic fallback for a Call-kind core_op whose implementation symbol was
 // removed by DCE. Resolve the spelling to a CoreOp handler before emitting.
 
+use std::prelude::{clone, contains, ends_with, starts_with}
 use corehir::core_op_binding
 use corehir::core_op_id
 use corehir::core_op_registry_generated
@@ -26,7 +27,6 @@ use wasm::intrinsic_vec_numeric
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_memory
 use wasm::runtime_abi_env_args
-
 fn try_emit_clone_intrinsic(
     w: WasmWriter,
     callee: String,

@@ -1,6 +1,7 @@
 use std::host::fs
+use std::prelude::{clone, ends_with, eq, index_of, substring}
+use std::text
 use component::wit_parse_flags
-
 struct ComposeWitFuncSig {
     name: String,
     signature: String,
@@ -26,9 +27,9 @@ fn ComposeWitWorld_empty() -> ComposeWitWorld {
 fn compose_wit_sidecar_for_wasm(wasm_path: String) -> String {
     if ends_with(clone(wasm_path), ".wasm") {
         let base = substring(wasm_path, 0, len(wasm_path) - 5)
-        return concat(base, ".wit")
+        return text::concat(base, ".wit")
     }
-    concat(wasm_path, ".wit")
+    text::concat(wasm_path, ".wit")
 }
 
 fn compose_wit_normalize_sig(sig: String) -> String {
@@ -105,25 +106,25 @@ fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider
         // typed as String and fails validate (#730).
         let export_idx = compose_wit_find_export(provider_exports, clone(imp.name))
         if export_idx < 0 {
-            return concat(
+            return text::concat(
                 "error: compose conflict: socket import '",
-                concat(
+                text::concat(
                     clone(imp.name),
-                    concat("' has no matching provider export", String_new())
+                    text::concat("' has no matching provider export", String_new())
                 )
             )
         }
         let exp = get_unchecked(provider_exports, export_idx)
         if !eq(clone(imp.signature), clone(exp.signature)) {
-            return concat(
+            return text::concat(
                 "error: compose conflict: import/export type mismatch for '",
-                concat(
+                text::concat(
                     clone(imp.name),
-                    concat(
+                    text::concat(
                         "': socket expects ",
-                        concat(
+                        text::concat(
                             clone(imp.signature),
-                            concat(
+                            text::concat(
                                 " but provider exports ",
                                 clone(exp.signature)
                             )
@@ -159,13 +160,13 @@ fn validate_plug_surfaces(provider_wasm: String, socket_wasm: String) -> String 
         return String_new()
     }
     if provider_has && !socket_has {
-        return concat(
+        return text::concat(
             "error: compose conflict: missing WIT sidecar for socket component: ",
             clone(socket_wit)
         )
     }
     if !provider_has && socket_has {
-        return concat(
+        return text::concat(
             "error: compose conflict: missing WIT sidecar for provider component: ",
             clone(provider_wit)
         )

@@ -8,6 +8,7 @@ use resolver
 
 // Explicit FunctionId.raw → MirFunction index. Never assume raw == mir index:
 // SignatureRegistry also holds core-op aliases without Mir bodies (#823).
+use std::prelude::{clone, eq}
 struct MirReachabilityIndex {
     name_to_mir: NameIndex,
     fid_to_mir: Vec<i32>,

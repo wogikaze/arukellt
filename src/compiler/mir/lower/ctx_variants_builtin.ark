@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
-
 fn ctx_register_builtin_variant_tags(ctx: LowerCtx) {
     ctx_variant_storage::ctx_variant_push_tag(ctx, "Some", 0)
     ctx_variant_storage::ctx_variant_push_tag(ctx, "None", 1)

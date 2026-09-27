@@ -1,7 +1,8 @@
 use std::host::stdio
 use std::test
+use std::text
 fn make_error(msg: String, ctx: String) -> Result<i32, String> {
-    Err(concat(concat(msg, String_from(" in ")), ctx))
+    Err(text::concat(text::concat(msg, String_from(" in ")), ctx))
 }
 fn main() {
     let r = make_error(String_from("fail"), String_from("ctx"))

@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("[1,2,3]") {
         Result::Ok(v) => {
@@ -17,6 +17,6 @@ fn main() {
                 None => panic("expected Some for valid index 0"),
             }
         },
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
 }

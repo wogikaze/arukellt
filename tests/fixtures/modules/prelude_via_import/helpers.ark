@@ -1,5 +1,6 @@
+use std::text
 pub fn greet(name: String) -> String {
-    concat(String_from("hello "), name)
+    text::concat(String_from("hello "), name)
 }
 
 pub fn make_vec() -> Vec<i32> {

@@ -1,7 +1,7 @@
 use std::component::canonical
 use std::host::stdio
 use std::core::error
-
+use std::prelude::{slice}
 fn main() {
     let scratch = canonical::canonical_scratch_new()
     match canonical::canonical_lower_string(scratch, String_from("hi")) {

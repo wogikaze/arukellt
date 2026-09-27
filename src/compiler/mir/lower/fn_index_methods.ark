@@ -1,10 +1,10 @@
+use std::prelude::{clone}
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_method_return_type
 use mir::lower::fn_index_source
 use mir::mono
 use mir::type_contracts
 use mir::value_types
-
 fn mir_index_impl_methods(
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,

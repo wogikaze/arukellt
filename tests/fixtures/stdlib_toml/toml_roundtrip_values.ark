@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::toml
+use std::text
 
 /// Parity/differential: value-level round-trip for each primitive type.
 ///
@@ -34,6 +35,6 @@ fn main() {
                 None => stdio::println("missing ratio"),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", e)),
+        Result::Err(e) => stdio::println(text::concat("error:", e)),
     }
 }

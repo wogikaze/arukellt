@@ -13,6 +13,7 @@
 
 // ── i32 ↔ i32 Bimap ─────────────────────────────────────────────────────────
 
+use std::prelude::{remove_i32}
 /// Create a new empty `Bimap<i32, i32>`.
 pub fn bimap_i32_i32_new() -> Vec<i32> {
     Vec::new<i32>()

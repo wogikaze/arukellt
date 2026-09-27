@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{byte_len}
 fn main() {
     test::assert_eq_i32(byte_len(String_from("hello")), 5)
     test::assert_eq_i32(byte_len(String_from("")), 0)

@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use typechecker::ast_access
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
@@ -6,7 +8,6 @@ use typechecker::hashmap_api
 use typechecker::mono
 use typechecker::types
 use typechecker::unify
-
 fn infer_hashmap_constructor_call(env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
     if !eq(ast_access::node_text(callee), String_from("HashMap::new")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
@@ -63,13 +64,13 @@ fn infer_builtin_hashmap_method(
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 2, value_ty)
     }
-    if !hashmap_api::validate_hashmap_method(env, concat(String_from("HashMap::"), method_name), recv_ty) {
+    if !hashmap_api::validate_hashmap_method(env, text::concat(String_from("HashMap::"), method_name), recv_ty) {
         return hashmap_method_return_type(clone(method_name), key_ty, value_ty)
     }
     let resolved_types = Vec::new<TypeInfo>()
     push(resolved_types, key_ty)
     push(resolved_types, value_ty)
-    let mono_name = concat(String_from("HashMap::"), method_name)
+    let mono_name = text::concat(String_from("HashMap::"), method_name)
     let mangled_name = mono::record_mono_instance(env, clone(mono_name), resolved_types)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_name, mangled_name)
     hashmap_method_return_type(method_name, key_ty, value_ty)

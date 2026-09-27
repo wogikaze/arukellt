@@ -2,6 +2,7 @@
 //! impl sig is not yet in `fn_sigs` (prelude may not have loaded
 //! `std::collections::vec`). Still record mono so MIR rewrite can mark
 //! `vec:Elem` without a let annotation (#845).
+use std::prelude::{clone, eq}
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_type_access
@@ -9,7 +10,6 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::mono
 use typechecker::types
-
 fn is_vec_associated_ctor_name(name: String) -> bool {
     eq(clone(name), String_from("Vec::new")) ||
     eq(clone(name), String_from("Vec::with_capacity"))

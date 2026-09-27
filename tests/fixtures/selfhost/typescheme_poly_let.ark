@@ -1,7 +1,7 @@
 // Test: selfhost TypeScheme let-generalization for polymorphic closure bindings
 // A let-bound closure used at multiple types proves each call gets fresh vars
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let id = |x| x
     let a: i32 = id(42)

@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use corehir::body_table
-
 fn corehir_body_artifact_root_valid(table: CoreHirBodyTable, root: i32) -> bool {
     root == 0 - 1 ||
     (root >= 0 && root < body_table::corehir_body_table_expr_count(table))

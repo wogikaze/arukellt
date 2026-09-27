@@ -1,8 +1,8 @@
+use std::prelude::{clone, contains, eq}
 use corehir::export_surface
 use corehir::decl_node_identity
 use corehir::frontend_decl_kind
 use corehir::frontend_ast_identity
-
 fn should_export_func(name: String) -> bool {
     if eq(clone(name), "main") || eq(clone(name), "_start") {
         return false

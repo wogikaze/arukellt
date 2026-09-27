@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use main::args_record
-
 pub fn parse_cache_dir_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {

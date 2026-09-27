@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with, substring}
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
@@ -8,7 +9,6 @@ use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use mir::inst_accessors_operands
-
 fn vec_ref_dest_storage_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     if dest < 0 {

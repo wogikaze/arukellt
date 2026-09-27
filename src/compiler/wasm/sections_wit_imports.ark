@@ -1,10 +1,11 @@
 // Wasm WIT import section entries (#654).
 
+use std::prelude::{clone}
+use std::text
 use resolver::wit_import_bind
 use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_string
-
 fn emit_wit_import_entries(
     import_sec: WasmWriter,
     bindings: Vec<wit_import_bind::WitImportBinding>,
@@ -25,7 +26,7 @@ fn emit_wit_import_entries(
 
 fn wit_import_module_name(binding: wit_import_bind::WitImportBinding, wasi_version: String) -> String {
     if emit_target::is_p2_wasi(clone(wasi_version)) {
-        return concat("cm32p2|", wit_import_bind::wit_import_binding_component_interface_id(binding))
+        return text::concat("cm32p2|", wit_import_bind::wit_import_binding_component_interface_id(binding))
     }
     wit_import_bind::wit_import_binding_interface_id(binding)
 }

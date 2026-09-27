@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{is_empty}
 fn main() {
     test::assert_true(is_empty(String_new()))
     test::assert_true(is_empty(String_from("")))

@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
+use std::text
 use wasm::constants
 use wasm::opcodes
 use wasm::sections_type_plan
@@ -5,7 +7,6 @@ use wasm::sections_types_gc
 use wasm::sections_types_sig_parse
 use wasm::sections_types_sigs_detail
 use wasm::writer_core
-
 fn emit_canon_type_entries(
     type_sec: WasmWriter,
     canon_types: Vec<String>,
@@ -432,7 +433,7 @@ fn find_fnsig_type_idx(canon_types: Vec<String>, type_name: String, memory64: bo
     if len(param_tok) == 0 || len(ret_tok) == 0 {
         return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
     }
-    let wanted = concat(param_tok, concat(String_from("_1"), ret_tok))
+    let wanted = text::concat(param_tok, text::concat(String_from("_1"), ret_tok))
     let n = len(canon_types)
     let mut i = 0
     while i < n {

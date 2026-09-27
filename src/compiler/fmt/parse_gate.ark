@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use compiler::session_frontend_query
 use parser
-
 struct FmtParseGate {
     decls: Vec<AstNode>,
     errors: Vec<Diagnostic>,

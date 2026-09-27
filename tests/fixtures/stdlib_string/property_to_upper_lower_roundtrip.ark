@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq, to_lower, to_upper}
 fn main() {
     let s = String_from("RoundTrip")
     let up = to_upper(s)

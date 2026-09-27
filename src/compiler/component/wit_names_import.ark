@@ -7,7 +7,7 @@
 // that call `names::pascal_case` still validate.
 
 use std::text
-
+use std::prelude::{byte_at, substring}
 fn wit_kebab_to_snake(name: String) -> String {
     let mut out = String_from("")
     let n = len(name)

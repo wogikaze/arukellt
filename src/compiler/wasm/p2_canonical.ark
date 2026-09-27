@@ -20,6 +20,8 @@ use wasm::writer_gc
 // Convert the compiler's private GC string representation to standard32
 // canonical ABI values at a core-module export boundary. The component linker
 // consumes these exports directly; no component adapter module is involved.
+use std::prelude::{clone, contains, eq, starts_with}
+use std::text
 fn emit_library_wrapper_body(
     w: WasmWriter,
     f: MirFunction,
@@ -601,16 +603,16 @@ fn emit_struct_input_conversion(
 }
 
 fn p2_variant_family_matches(family: String, variant_name: String) -> bool {
-    starts_with(clone(variant_name), concat(clone(family), String_from("::"))) ||
+    starts_with(clone(variant_name), text::concat(clone(family), String_from("::"))) ||
     contains(
         clone(variant_name),
-        concat(String_from("::"), concat(clone(family), String_from("::")))
+        text::concat(String_from("::"), text::concat(clone(family), String_from("::")))
     )
 }
 
 fn p2_variant_name_matches(family: String, variant: String, name: String) -> bool {
-    let wanted = concat(clone(family), concat(String_from("::"), clone(variant)))
-    eq(clone(name), clone(wanted)) || contains(clone(name), concat(String_from("::"), clone(wanted)))
+    let wanted = text::concat(clone(family), text::concat(String_from("::"), clone(variant)))
+    eq(clone(name), clone(wanted)) || contains(clone(name), text::concat(String_from("::"), clone(wanted)))
 }
 
 fn p2_variant_type_named(

@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::lower::ann_shape
 use mir::value_types
-
 fn mir_param_type_name_from_ann(ty: AstNode) -> String {
     ann_shape::mir_param_type_name_from_ann_shape(ty)
 }

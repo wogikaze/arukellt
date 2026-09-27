@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::host::env
-
+use std::prelude::{values}
 fn main() {
     let values = env::args()
     let mut i = 0

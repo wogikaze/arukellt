@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::associated_types
@@ -20,7 +22,6 @@ use typechecker::trait_method_registry
 use typechecker::trait_method_record
 use typechecker::type_names
 use typechecker::vec_core_mono
-
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
@@ -73,7 +74,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     // so that impl-block methods are resolved to the correct signature.
     let recv_type_name = type_name_for_mangling(recv_ty)
     if len(recv_type_name) > 0 {
-        let mangled = concat(clone(recv_type_name), concat(String_from("::"), clone(method_name)))
+        let mangled = text::concat(clone(recv_type_name), text::concat(String_from("::"), clone(method_name)))
         let mangled_sig = sigs::lookup_fn_sig(env, fn_sigs, mangled)
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
@@ -85,7 +86,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_STRUCT() {
             let bare_recv = names::unqualified_type_name(contract_type_access::TypeInfo_name(recv_ty))
             if len(bare_recv) > 0 && !eq(clone(recv_type_name), clone(bare_recv)) {
-                let shell = concat(clone(bare_recv), concat(String_from("::"), clone(method_name)))
+                let shell = text::concat(clone(bare_recv), text::concat(String_from("::"), clone(method_name)))
                 let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
                 if contract_fn_sig::FnSig_has_name(shell_sig) {
                     return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
@@ -98,7 +99,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         // pair receivers keep resolving the canonical API.
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_HASHMAP() &&
         !eq(clone(recv_type_name), String_from("HashMap")) {
-            let shell = concat(String_from("HashMap::"), clone(method_name))
+            let shell = text::concat(String_from("HashMap::"), clone(method_name))
             let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
             if contract_fn_sig::FnSig_has_name(shell_sig) {
                 return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, shell_sig, recv_ty, child_count)
@@ -389,9 +390,9 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
                 contract_type_access::TypeInfo_type_arg_at(ty, 1)
             )
             if len(key_name) > 0 && len(value_name) > 0 {
-                return concat(
+                return text::concat(
                     String_from("HashMap_"),
-                    concat(clone(key_name), concat(String_from("_"), clone(value_name)))
+                    text::concat(clone(key_name), text::concat(String_from("_"), clone(value_name)))
                 )
             }
         }
@@ -441,12 +442,12 @@ fn struct_inst_owner_name(ty: TypeInfo) -> String {
             return String_new()
         }
         if len(suffix) > 0 {
-            suffix = concat(suffix, String_from("_"))
+            suffix = text::concat(suffix, String_from("_"))
         }
-        suffix = concat(suffix, key)
+        suffix = text::concat(suffix, key)
         i = i + 1
     }
-    concat(clone(base), concat(String_from("_"), suffix))
+    text::concat(clone(base), text::concat(String_from("_"), suffix))
 }
 
 // Owner-key spelling for one concrete type argument. Type variables return
@@ -472,7 +473,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
         if len(elem_key) == 0 {
             return String_new()
         }
-        return concat(String_from("Vec_"), elem_key)
+        return text::concat(String_from("Vec_"), elem_key)
     }
     if tag == commands::TY_HASHMAP() {
         if contract_type_access::TypeInfo_type_arg_count(ty) < 2 {
@@ -483,9 +484,9 @@ fn inst_arg_key(ty: TypeInfo) -> String {
         if len(key_key) == 0 || len(value_key) == 0 {
             return String_new()
         }
-        return concat(
+        return text::concat(
             String_from("HashMap_"),
-            concat(clone(key_key), concat(String_from("_"), value_key))
+            text::concat(clone(key_key), text::concat(String_from("_"), value_key))
         )
     }
     if tag == commands::TY_OPTION() {
@@ -496,7 +497,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
         if len(some_key) == 0 {
             return String_new()
         }
-        return concat(String_from("Option_"), some_key)
+        return text::concat(String_from("Option_"), some_key)
     }
     if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
         let name = names::unqualified_type_name(contract_type_access::TypeInfo_name(ty))
@@ -515,12 +516,12 @@ fn inst_arg_key(ty: TypeInfo) -> String {
                 return String_new()
             }
             if len(inner) > 0 {
-                inner = concat(inner, String_from("_"))
+                inner = text::concat(inner, String_from("_"))
             }
-            inner = concat(inner, key)
+            inner = text::concat(inner, key)
             i = i + 1
         }
-        return concat(clone(name), concat(String_from("_"), inner))
+        return text::concat(clone(name), text::concat(String_from("_"), inner))
     }
     String_new()
 }

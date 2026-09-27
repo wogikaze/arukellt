@@ -1,5 +1,5 @@
 use std::text
-
+use std::prelude::{clone}
 fn closure_pack_caps(caps: Vec<String>) -> String {
     let mut s = String_new()
     let c = len(caps)

@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::core_op_id
 use corehir::core_op_registry_generated
 use corehir::kinds
-
 struct CoreOpEntry {
     id: CoreOpId,
     canonical_id: String,

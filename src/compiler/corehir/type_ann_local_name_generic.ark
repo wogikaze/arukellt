@@ -1,5 +1,6 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::type_ann_node
-
 fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
     if eq(clone(ann_name), "Vec") {
@@ -8,15 +9,15 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
             if type_ann_node::type_ann_is_generic(elem_ty) && eq(clone(type_ann_node::type_ann_name(elem_ty)), "Vec") {
                 let inner = type_ann_shape_local_type_name(elem_ty, 0)
                 if len(inner) > 0 {
-                    return concat("vec:", inner)
+                    return text::concat("vec:", inner)
                 }
             }
             // Vec<(A, B)> keeps the tuple:<k,...> element spelling;
             // type_ann_name on a tuple node is empty (#888).
             if type_ann_node::type_ann_is_tuple(elem_ty) {
-                return concat("vec:", type_ann_node::type_ann_tuple_local_name(elem_ty))
+                return text::concat("vec:", type_ann_node::type_ann_tuple_local_name(elem_ty))
             }
-            return concat("vec:", type_ann_node::type_ann_name(elem_ty))
+            return text::concat("vec:", type_ann_node::type_ann_name(elem_ty))
         }
         return "vec"
     }
@@ -32,12 +33,12 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
             if type_ann_node::type_ann_is_generic(ok_ty) {
                 let shaped = type_ann_shape_local_type_name(ok_ty, 0)
                 if len(shaped) > 0 {
-                    return concat("Result_", shaped)
+                    return text::concat("Result_", shaped)
                 }
             }
             let ok_name = type_ann_node::type_ann_name(ok_ty)
             if len(ok_name) > 0 {
-                return concat("Result_", ok_name)
+                return text::concat("Result_", ok_name)
             }
         }
         return "enum:Result"
@@ -57,12 +58,12 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
             if type_ann_node::type_ann_is_generic(some_ty) {
                 let shaped = type_ann_shape_local_type_name(some_ty, 0)
                 if len(shaped) > 0 {
-                    return concat("Option_", shaped)
+                    return text::concat("Option_", shaped)
                 }
             }
             let some_name = type_ann_node::type_ann_name(some_ty)
             if len(some_name) > 0 {
-                return concat("Option_", some_name)
+                return text::concat("Option_", some_name)
             }
         }
         return "enum:Option"

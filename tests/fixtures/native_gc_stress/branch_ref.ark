@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 fn main() -> i32 {
     let left = String_from("left")
     let right = String_from("right")

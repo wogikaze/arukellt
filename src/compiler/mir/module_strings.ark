@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use mir::module_record
 use mir::types
-
 fn MirModule_string_constants(m: MirModule) -> Vec<String> {
     m.string_constants
 }

@@ -1,4 +1,5 @@
 use std::text
+use std::prelude::{args, byte_at, clone, eq, index_of, substring}
 use typechecker::ast_access
 use typechecker::contract_associated_type
 use typechecker::contract_fn_sig
@@ -14,7 +15,6 @@ use typechecker::trait_method_record
 use typechecker::types
 use typechecker::names
 use typechecker::unify
-
 fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig {
     let ann_count = ast_access::node_type_ann_count(impl_node)
     if ann_count < 2 {
@@ -229,7 +229,7 @@ fn unresolved_projection_for_receiver(receiver: TypeInfo, assoc_name: String) ->
     let receiver_name = contract_type_access::TypeInfo_name(receiver)
     contract_type_constructors::TypeInfo_named(
         commands::TY_STRUCT(),
-        concat(clone(receiver_name), concat("::", assoc_name))
+        text::concat(clone(receiver_name), text::concat("::", assoc_name))
     )
 }
 

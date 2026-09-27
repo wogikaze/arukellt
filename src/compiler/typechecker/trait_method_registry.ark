@@ -4,6 +4,7 @@
 // bounds can resolve `x.method()` calls against the trait's method
 // signature when the receiver type is a type variable.
 
+use std::prelude::{clone, eq}
 use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::contract_env_record
@@ -14,7 +15,6 @@ use typechecker::contract_type_constructors
 use typechecker::kinds
 use typechecker::names
 use typechecker::sigs
-
 fn register_trait_method_sigs(env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0

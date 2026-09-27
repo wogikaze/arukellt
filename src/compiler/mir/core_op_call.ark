@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use corehir::core_op_id
 use corehir::core_op_binding
 use corehir::core_op_registry_generated
@@ -7,7 +8,6 @@ use corehir::signature_registry
 use mir::inst_draft
 use mir::inst_record
 use mir::module_spine
-
 fn mir_call_core_op_index_from_fid(m: MirModule, fid_raw: i32) -> i32 {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return 0 - 1

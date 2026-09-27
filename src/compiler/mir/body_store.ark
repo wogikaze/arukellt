@@ -26,6 +26,7 @@ use mir::phi_record
 // The byte stream contains scalar instruction fields and CFG metadata; names
 // are module string IDs, and f64 literals live in the parallel float pool.
 
+use std::prelude::{clone, values}
 fn mir_body_schema_magic() -> i32 {
     851
 }

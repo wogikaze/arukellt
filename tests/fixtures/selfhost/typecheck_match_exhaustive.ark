@@ -2,7 +2,7 @@
 // Exercises: match on bool with true/false arms, match with wildcard arm,
 //            match as expression assigned to a variable.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn classify_bool(b: bool) -> i32 {
     match b {
         true => 1,

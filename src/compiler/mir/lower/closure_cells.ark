@@ -22,6 +22,7 @@ use mir::opcodes
 // per-function — a nested closure body lowering under a different frame
 // name never matches the parent's cells.
 
+use std::prelude::{clone, eq}
 fn ctx_register_env_cell(ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
     push(ctx.cell_fn_names, fn_name)
     push(ctx.cell_local_indices, local_idx)

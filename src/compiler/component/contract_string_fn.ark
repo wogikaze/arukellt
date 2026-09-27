@@ -1,5 +1,5 @@
+use std::prelude::{eq}
 use component::contract_helpers
-
 fn component_fn_is_string_unary(f: ComponentExportFunc) -> bool {
     contract_helpers::component_export_param_count_is(f, 1) &&
     eq(contract_helpers::component_export_param_type_name_at(f, 0), "String") &&

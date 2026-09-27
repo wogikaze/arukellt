@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use mir::module_record
-
 fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {
     len(m.gc_struct_sigs)
 }

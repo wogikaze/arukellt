@@ -1,3 +1,4 @@
+use std::prelude::{clone, starts_with, substring}
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_gc_enum
@@ -5,7 +6,6 @@ use mir::lower::ctx_types
 use mir::lower::loop_conditions
 use mir::lower::loop_vec
 use mir::value_types
-
 fn mir_struct_iterator_iter_ptr(ctx: LowerCtx, struct_type: String) -> i32 {
     let iter_ptr = ctx_fresh_local(ctx, value_types::VT_I32())
     loop_conditions::mir_save_stack_to_local(ctx, iter_ptr)

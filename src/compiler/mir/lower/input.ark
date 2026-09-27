@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use mir::lower::entry_body_source
 use corehir::body
-
 struct MirLowerInput {
     view: CoreHirMirView,
     body_source: MirLowerEntryBodySource,

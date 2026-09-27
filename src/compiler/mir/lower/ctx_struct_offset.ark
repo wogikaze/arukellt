@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_struct_size
-
 fn ctx_struct_field_offset(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut offset = 0

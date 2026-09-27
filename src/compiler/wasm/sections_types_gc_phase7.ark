@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use std::text
 fn gc_struct_ref_array_offset() -> i32 {
     24
 }
@@ -130,7 +132,7 @@ fn gc_normalize_vec_element_name(elem: String) -> String {
         normalized = substring(normalized, 0, len(normalized) - 1)
     }
     if starts_with(clone(normalized), "?_") {
-        return concat("Option_", substring(normalized, 2, len(normalized)))
+        return text::concat("Option_", substring(normalized, 2, len(normalized)))
     }
     normalized
 }
@@ -138,15 +140,15 @@ fn gc_normalize_vec_element_name(elem: String) -> String {
 fn gc_normalize_vec_type_name(type_name: String) -> String {
     if starts_with(clone(type_name), "vec:") {
         let elem = substring(clone(type_name), 4, len(type_name))
-        return concat("vec:", gc_normalize_vec_element_name(elem))
+        return text::concat("vec:", gc_normalize_vec_element_name(elem))
     }
     if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
         let elem = substring(clone(type_name), 4, len(type_name) - 1)
-        return concat("vec:", gc_normalize_vec_element_name(elem))
+        return text::concat("vec:", gc_normalize_vec_element_name(elem))
     }
     if starts_with(clone(type_name), "Vec_") {
         let elem = substring(clone(type_name), 4, len(type_name))
-        return concat("vec:", gc_normalize_vec_element_name(elem))
+        return text::concat("vec:", gc_normalize_vec_element_name(elem))
     }
     if eq(clone(type_name), "Vec") {
         return "vec:i32"

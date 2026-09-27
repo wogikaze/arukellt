@@ -1,4 +1,5 @@
 use std::text
+use std::prelude::{to_string}
 use analysis::diagnostic_record
 use analysis::snapshot_state_record
 use compiler::session_analyze_pipeline

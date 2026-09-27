@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use resolver::scope_define
 use resolver::ast_pattern_predicates
 use resolver::ast_access
 use resolver::kinds
-
 fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
     if ast_pattern_predicates::node_is_pat_ident(pat) {
         let name = ast_access::node_text(pat)

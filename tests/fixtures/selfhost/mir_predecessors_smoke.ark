@@ -2,7 +2,8 @@
 // Exercises deterministic predecessor computation from succ0/succ1 on a
 // small diamond CFG without widening into full CFG lowering or SSA.
 use std::host::stdio
-
+use std::prelude::{to_string}
+use std::text
 struct Block {
     succ0: i32,
     succ1: i32,
@@ -61,12 +62,12 @@ fn format_preds(preds: Vec<i32>) -> String {
     let mut i = 0
     while i < count {
         if i > 0 {
-            out = concat(out, String_from(","))
+            out = text::concat(out, String_from(","))
         }
-        out = concat(out, to_string(get_unchecked(preds, i)))
+        out = text::concat(out, to_string(get_unchecked(preds, i)))
         i = i + 1
     }
-    concat(out, String_from("]"))
+    text::concat(out, String_from("]"))
 }
 
 fn main() {
@@ -86,7 +87,7 @@ fn main() {
     let mut i = 0
     while i < len(blocks) {
         let block = get_unchecked(blocks, i)
-        stdio::println(concat(concat(String_from("bb"), to_string(i)), concat(String_from(" preds="), format_preds(block.preds))))
+        stdio::println(text::concat(text::concat(String_from("bb"), to_string(i)), text::concat(String_from(" preds="), format_preds(block.preds))))
         i = i + 1
     }
 }

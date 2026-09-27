@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use analysis::diagnostic_record
-
 pub struct AnalysisSnapshot {
     uri: String,
     decl_count: i32,

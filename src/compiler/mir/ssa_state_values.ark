@@ -1,10 +1,10 @@
+use std::prelude::{clone}
 use mir::function_locals_view
 use mir::function_local_mutation
 use mir::local_factory
 use mir::ssa_phi
 use mir::ssa_state_slots
 use mir::ssa_state_types
-
 fn mir_ssa_append_value_slot(f: MirFunction, original_local: i32, ssa_name: String, ssa_version: i32) -> i32 {
     let source = function_locals_view::MirFunction_local_at(f, original_local)
     let idx = function_locals_view::MirFunction_local_count(f)

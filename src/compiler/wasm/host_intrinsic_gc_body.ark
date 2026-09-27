@@ -7,6 +7,7 @@
 // function index itself is also a valid GC entry point (HostIntrinsicSpec
 // adapter role).
 
+use std::prelude::{clone, eq}
 use mir::block_inst_mutation
 use mir::function_identity
 use mir::host_intrinsic_stub_names
@@ -18,7 +19,6 @@ use wasm::runtime_abi_env_var
 use wasm::runtime_abi_env_var_gc
 use wasm::runtime_abi_stdio_read_gc
 use wasm::intrinsics::helpers_core
-
 fn try_emit_host_intrinsic_gc_adapter_body(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) -> bool {
     let name = function_identity::MirFunction_name(f)
     if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(name)) {

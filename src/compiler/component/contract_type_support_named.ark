@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq}
 use component::contract_allows_numeric_tuple_query
 use component::contract_allows_record_query
 use component::contract_allows_string_query
 use component::type_node
-
 fn component_named_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
     let name = type_node::type_node_text(ty)
     if component_named_primitive_type_supported(clone(name)) {

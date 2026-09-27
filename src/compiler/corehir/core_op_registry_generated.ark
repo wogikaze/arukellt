@@ -1,8 +1,9 @@
 // Generated from data/core-ops.toml by scripts/gen/generate-core-ops-registry.py.
 // Compact table + index. Do not edit by hand.
 
+use std::prelude::{byte_at, clone, eq, substring}
+use std::text
 use corehir::table_blob
-
 fn core_op_registry_entry_count() -> i32 {
     295
 }
@@ -132,7 +133,7 @@ fn core_op_registry_canonical_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -327,7 +328,7 @@ fn core_op_registry_target_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -435,7 +436,7 @@ fn core_op_registry_runtime_symbol_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -651,7 +652,7 @@ fn core_op_registry_mir_operation_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -723,7 +724,7 @@ fn core_op_registry_legacy_handler_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -819,7 +820,7 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -2102,7 +2103,7 @@ fn core_op_registry_lookup_index(name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ char_at(name, hi)
+        hash = hash * fnv_prime ^ byte_at(name, hi)
         if hash < 0 {
             hash = 0 - hash
         }

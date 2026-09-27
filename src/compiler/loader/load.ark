@@ -1,8 +1,8 @@
+use std::prelude::{clone, contains}
 use loader::module_graph
 use loader::module_state
 use loader::module_state_modules
 use driver::config_record
-
 pub fn load_prelude_modules() -> Vec<ModuleDecls> {
     let state = module_state::LoadState_new()
     module_graph::load_stdlib_module("std::prelude", state)

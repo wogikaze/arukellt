@@ -1,8 +1,8 @@
+use std::prelude::{byte_at}
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
 use wasm::writer_sections
-
 fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
     let final_str_count = len(strings)
     if final_str_count > 0 {

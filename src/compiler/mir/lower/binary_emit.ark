@@ -1,3 +1,5 @@
+use std::prelude::{clone}
+use std::text
 use mir::lower::binary_type_select
 use mir::lower::binary_type_names
 use mir::lower::call_type_fallback
@@ -11,7 +13,6 @@ use mir::inst_local_get
 use mir::inst_op
 use mir::opcodes
 use mir::value_types
-
 fn mir_emit_overloaded_binary_call(ctx: LowerCtx, callee: String) -> i32 {
     let ret_vt = ctx_fn_return_vt(ctx, clone(callee))
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
@@ -53,7 +54,7 @@ fn mir_emit_order_projection(ctx: LowerCtx, source: i32, mir_op: i32) -> i32 {
         return source
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(source))
-    mir_emit_overloaded_unary_call(ctx, concat("Ordering::", method))
+    mir_emit_overloaded_unary_call(ctx, text::concat("Ordering::", method))
 }
 
 fn mir_order_projection_method(mir_op: i32) -> String {

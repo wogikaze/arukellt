@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -19,7 +20,6 @@ use mir::module_functions
 use mir::module_spine
 use mir::lower::variants
 use mir::value_types
-
 fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
 }

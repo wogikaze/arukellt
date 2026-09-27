@@ -9,6 +9,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsic_string_case_gc
 
 // Handler for: to_uppercase, to_upper, text::to_upper, text::to_uppercase
+use std::prelude::{to_upper}
 fn emit_to_upper(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         intrinsic_string_case_gc::emit_case_gc(w, inst, ctx, 97, 122, true)

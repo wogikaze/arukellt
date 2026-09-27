@@ -1,3 +1,5 @@
+use std::prelude::{clone, ends_with, eq, is_err, starts_with, substring}
+use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -155,7 +157,7 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
         if starts_with(clone(scrut_type), String_from("enum:Result:")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
                 match_payload_bind_types::extract_first_result_type_param(
-                    concat(String_from("result:"), substring(scrut_type, 12, len(scrut_type)))
+                    text::concat(String_from("result:"), substring(scrut_type, 12, len(scrut_type)))
                 )
             )
         }
@@ -170,7 +172,7 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
     }
     if starts_with(clone(scrut_type), String_from("enum:Result:")) {
         return match_payload_bind_types::extract_second_result_type_param(
-            concat(String_from("result:"), substring(scrut_type, 12, len(scrut_type)))
+            text::concat(String_from("result:"), substring(scrut_type, 12, len(scrut_type)))
         )
     }
     String_new()
@@ -215,7 +217,7 @@ fn mir_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
                 if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived)) {
                     set_type = derived
                 } else {
-                    set_type = concat(String_from("enum:"), clone(elem_ty))
+                    set_type = text::concat(String_from("enum:"), clone(elem_ty))
                 }
             }
         }

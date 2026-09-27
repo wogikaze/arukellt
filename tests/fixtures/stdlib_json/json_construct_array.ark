@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     let items = json::json_arr_new()
     push(items, json::json_i32(1))
@@ -17,6 +17,6 @@ fn main() {
             },
             None => panic("expected element at 1"),
         },
-        Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("re-parse failed: ", json::parse_error_message(e))),
     }
 }

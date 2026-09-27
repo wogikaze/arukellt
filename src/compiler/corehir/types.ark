@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use corehir::value_types
-
 fn corehir_vt_from_type_name(type_name: String) -> i32 {
     if eq(clone(type_name), "f64") {
         return value_types::VT_F64()

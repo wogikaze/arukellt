@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq, join, split}
 fn main() {
     let s = String_from("a-b-c-d")
     let parts = split(s, String_from("-"))

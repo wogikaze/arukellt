@@ -1,7 +1,8 @@
+use std::text
 fn main() {
     let source = String_from("store:")
     let format = |n: i32| -> String {
-        concat(source, n.to_string())
+        text::concat(source, n.to_string())
     }
     let stored = (format, 1)
 }

@@ -1,6 +1,6 @@
+use std::text
 use hir::type_contracts
 use hir::kinds
-
 fn named_type_name(ty: HirType) -> String {
     if type_contracts::HirType_tag(ty) == commands::TY_RESULT() {
         return "Result"
@@ -18,7 +18,7 @@ fn named_type_name(ty: HirType) -> String {
         return type_contracts::HirType_name(ty)
     }
     if type_contracts::HirType_tag(ty) == commands::TY_TYPE_VAR() {
-        return concat("?", type_contracts::HirType_name(ty))
+        return text::concat("?", type_contracts::HirType_name(ty))
     }
     if type_contracts::HirType_tag(ty) == commands::TY_TRAIT() {
         return type_contracts::HirType_name(ty)

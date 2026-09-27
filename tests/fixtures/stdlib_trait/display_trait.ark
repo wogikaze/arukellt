@@ -1,4 +1,5 @@
 use std::host::stdio
+use std::text
 
 /// User-defined Display trait demonstrating trait-based string conversion.
 /// This mirrors the `Display` trait defined in `std::core::convert`.
@@ -13,7 +14,7 @@ struct Point {
 
 impl Display for Point {
     fn to_string(self: Point) -> String {
-        concat(concat(concat(concat("(", to_string(self.x)), ", "), to_string(self.y)), ")")
+        text::concat(text::concat(text::concat(text::concat("(", to_string(self.x)), ", "), to_string(self.y)), ")")
     }
 }
 

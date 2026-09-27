@@ -1,12 +1,13 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use std::prelude::{clone}
+use std::text
 use main::manifest_doc_fuzzy
 use main::manifest_doc_lookup
 use main::manifest_doc_parse
 use main::manifest_doc_record
 use main::manifest_doc_render
-
 fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
     // ARUKELLT_MANIFEST env override disabled on wasm32-gc until Option/Result
     // locals from env::var validate; default manifest path only.
@@ -17,7 +18,7 @@ fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
             manifest_doc_parse::doc_parse_manifest(content)
         },
         Result::Err(e) => {
-            stdio::eprintln(concat("error: could not load stdlib manifest: ", e))
+            stdio::eprintln(text::concat("error: could not load stdlib manifest: ", e))
             process::exit(1)
             manifest_doc_record::DocManifestTable_new(Vec::new<DocFnEntry>(), Vec::new<DocModuleEntry>())
         },
@@ -36,14 +37,14 @@ pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
         return
     }
     if len(hits) == 0 {
-        stdio::eprintln(concat("error: symbol '", concat(clone(symbol), "' not found")))
+        stdio::eprintln(text::concat("error: symbol '", text::concat(clone(symbol), "' not found")))
         let candidates = manifest_doc_fuzzy::doc_find_closest(table, clone(symbol), 3)
         if len(candidates) > 0 {
             stdio::eprintln("")
             stdio::eprintln("Did you mean?")
             let mut ci = 0
             while ci < len(candidates) {
-                stdio::eprintln(concat("  ", get_unchecked(candidates, ci)))
+                stdio::eprintln(text::concat("  ", get_unchecked(candidates, ci)))
                 ci = ci + 1
             }
         }

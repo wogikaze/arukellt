@@ -1,6 +1,6 @@
 use std::host::stdio
-
+use std::text
 fn main() {
     let text = stdio::read_stdin()
-    stdio::println(concat(String_from("in="), text))
+    stdio::println(text::concat(String_from("in="), text))
 }

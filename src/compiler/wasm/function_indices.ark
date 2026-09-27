@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use wasm::emit_target
 use wasm::constants
-
 fn defined_function_index(function_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
     function_idx + emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
 }

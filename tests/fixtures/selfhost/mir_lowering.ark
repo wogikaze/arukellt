@@ -3,7 +3,7 @@
 //            let bindings, return, while loops, if expressions,
 //            break, continue, nested control flow
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }

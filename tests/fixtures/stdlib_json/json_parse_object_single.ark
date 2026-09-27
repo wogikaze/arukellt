@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("{\"key\":\"value\"}") {
         Result::Ok(v) => {
@@ -13,6 +13,6 @@ fn main() {
                 None => panic("expected key \"key\""),
             }
         },
-        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse object failed: ", json::parse_error_message(e))),
     }
 }

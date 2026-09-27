@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 fn vec_has(v: Vec<String>, name: String) -> bool {
     let count = len(v)
     let mut i = 0

@@ -4,6 +4,7 @@ use typechecker::contract_types_record
 // inference. Field types keep the declaration's type parameters as
 // TY_TYPE_VAR; instantiate_type binds them to the receiver's concrete
 // arguments at the access site.
+use std::prelude::{clone, eq}
 struct StructInfo {
     name: String,
     type_params: Vec<String>,

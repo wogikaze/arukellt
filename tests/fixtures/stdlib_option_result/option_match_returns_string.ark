@@ -1,8 +1,9 @@
 use std::host::stdio
 use std::test
+use std::text
 fn describe(o: Option<i32>) -> String {
     match o {
-        Option::Some(v) => concat(String_from("value="), (v).to_string()),
+        Option::Some(v) => text::concat(String_from("value="), (v).to_string()),
         None => String_from("empty"),
     }
 }

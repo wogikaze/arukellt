@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
 use mir::lower::core_closure_free_acc
@@ -5,7 +6,6 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_expr_shape_calls
 use mir::lower::core_expr_shape_ops
-
 fn core_closure_is_param_name(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, name: String) -> bool {
     let c = core_expr_shape_accessors::mir_core_expr_child_count(clos)
     if c <= 1 {

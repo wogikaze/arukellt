@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 /// StringBuilder — efficient string building through append operations.
 ///
 /// The builder accumulates string fragments and produces a final String

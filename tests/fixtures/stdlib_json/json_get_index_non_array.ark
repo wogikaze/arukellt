@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("42") {
         Result::Ok(v) => {
@@ -9,7 +9,7 @@ fn main() {
                 None => {},
             }
         },
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
     match json::parse("{\"a\":1}") {
         Result::Ok(v) => {
@@ -18,6 +18,6 @@ fn main() {
                 None => {},
             }
         },
-        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse object failed: ", json::parse_error_message(e))),
     }
 }

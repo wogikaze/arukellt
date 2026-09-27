@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 pub struct FrameResult {
     body: String,
     next: i32,

@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use resolver::ref_index
 use resolver::scope_record
-
 struct ResolveCtx {
     scopes: Vec<Scope>,
     current_depth: i32,

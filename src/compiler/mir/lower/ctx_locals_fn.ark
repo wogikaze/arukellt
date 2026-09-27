@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
@@ -8,7 +9,6 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_gc_enum
 use mir::local_mutation
 use mir::value_types
-
 fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     function_param_mutation::MirFunction_push_param(f, ml)

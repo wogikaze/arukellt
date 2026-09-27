@@ -6,7 +6,8 @@
 //   Vec<String>-> ["a", "b"]
 use std::host::stdio
 use std::text::fmt
-
+use std::prelude::{eq}
+use std::text
 fn main() {
     // Empty Vec<i32> -> "[]"
     let empty: Vec<i32> = Vec::new<i32>()
@@ -29,7 +30,7 @@ fn main() {
     let vf: Vec<f64> = Vec::new<f64>()
     push(vf, 1.5)
     push(vf, 2.5)
-    let expected_f = concat("[", concat((1.5).to_string(), concat(", ", concat((2.5).to_string(), "]"))))
+    let expected_f = text::concat("[", text::concat((1.5).to_string(), text::concat(", ", text::concat((2.5).to_string(), "]"))))
     assert(eq(fmt::debug_format_vec_f64(vf), expected_f))
 
     // Vec<String> -> ["a", "b"] (elements quoted via Debug for String)

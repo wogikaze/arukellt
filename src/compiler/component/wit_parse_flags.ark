@@ -1,7 +1,7 @@
 // WIT flags type parsing helpers (#651).
 
 use std::text
-
+use std::prelude::{byte_at, index_of, starts_with, substring}
 fn wit_trim_ws(text: String) -> String {
     let n = len(text)
     let mut start = 0
@@ -66,5 +66,5 @@ fn wit_flags_type_text(member_names: Vec<String>) -> String {
         }
         out = text::builder_append(out, get_unchecked(member_names, i))
     }
-    concat(out, "}")
+    text::concat(out, "}")
 }

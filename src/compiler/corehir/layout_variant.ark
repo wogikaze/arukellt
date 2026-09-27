@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 struct CoreHirLayoutVariant {
     name: String,
     payload_type_names: Vec<String>,

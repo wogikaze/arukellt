@@ -5,6 +5,7 @@
 // Call-time mangled-name reverse lookup is forbidden (#843); spine /
 // MonoInstanceTable is the source of truth.
 
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
@@ -15,7 +16,6 @@ use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_info_to_mir_value
-
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)

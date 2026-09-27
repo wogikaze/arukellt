@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -15,7 +16,6 @@ use mir::lower::ctx_struct_mono
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use mir::value_types
-
 fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let binding_name = core_expr_shape_accessors::mir_core_expr_text(expr)

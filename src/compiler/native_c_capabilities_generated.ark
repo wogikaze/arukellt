@@ -2,9 +2,10 @@
 // Run scripts/check/check-native-cpp-capabilities.py --write-generated.
 // Compact table + index for CoreOp capabilities. Do not edit by hand.
 
+use std::prelude::{substring}
+use std::text
 use corehir::table_blob
 use mir::opcodes
-
 fn native_c_capability_opcode_name(op: i32) -> String {
     if op == opcodes::MIR_CONST_I32() {
         return "MIR_CONST_I32"
@@ -204,7 +205,7 @@ fn native_c_capability_opcode_name(op: i32) -> String {
     if op == opcodes::MIR_REF_FUNC() {
         return "MIR_REF_FUNC"
     }
-    concat("MIR_OPCODE_", i32_to_string(op))
+    text::concat("MIR_OPCODE_", i32_to_string(op))
 }
 
 fn native_c_capability_status_detail(op: i32) -> String {
@@ -653,7 +654,7 @@ fn native_c_core_capability_status_row_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out

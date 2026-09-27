@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use diagnostics::source_map_offsets
-
 pub struct LspPosition {
     line: i32,
     character: i32,

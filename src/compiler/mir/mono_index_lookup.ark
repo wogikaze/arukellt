@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use mir::mono_index_types
-
 fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
     let count = mono_index_types::mono_index_name_count(idx)
     let mut i = 0

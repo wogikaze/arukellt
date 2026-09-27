@@ -17,6 +17,7 @@ use typechecker::unify
 // expressions can recover a concrete field type. MIR owns the layout copy;
 // this table only needs names, declaration type parameters, and annotated
 // field types.
+use std::prelude::{args, clone, eq, index_of}
 fn register_struct_decls(env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0

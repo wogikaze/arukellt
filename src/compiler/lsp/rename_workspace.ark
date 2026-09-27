@@ -1,8 +1,8 @@
 use std::text
 use std::json
+use std::prelude::{clone, to_string}
 use analysis::symbol_references
 use lsp::positions
-
 fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
@@ -20,7 +20,7 @@ fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text:
     if len(edits) == 0 {
         return item
     }
-    concat(concat(edits, String_from(",")), item)
+    text::concat(text::concat(edits, String_from(",")), item)
 }
 
 fn append_uri_edits(changes: String, uri: String, edits: String) -> String {
@@ -34,7 +34,7 @@ fn append_uri_edits(changes: String, uri: String, edits: String) -> String {
     if len(changes) == 0 {
         return entry
     }
-    concat(concat(changes, String_from(",")), entry)
+    text::concat(text::concat(changes, String_from(",")), entry)
 }
 
 pub fn collect_workspace_changes(state: LspState, req_uri: String, req_text: String, offset: i32, new_name: String) -> String {

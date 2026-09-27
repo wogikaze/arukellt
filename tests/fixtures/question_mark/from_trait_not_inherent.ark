@@ -4,6 +4,7 @@ use std::host::stdio
 // The source and target error types are identical, so ? must propagate the
 // Err identity; a name-based fallback would still hit assert(false).
 
+use std::prelude::{eq}
 enum AppError {
     Io(String),
     Parse,

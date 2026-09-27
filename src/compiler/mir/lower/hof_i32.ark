@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -7,7 +8,6 @@ use mir::value_types
 use mir::lower::hof_loop
 use mir::lower::hof_loop_steps
 use mir::lower::hof_results
-
 fn mir_lower_hof_i32(
     ctx: LowerCtx,
     hof_callee_text: String,

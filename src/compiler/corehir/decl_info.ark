@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use corehir::kinds
 use corehir::fn_info
-
 struct CoreHirDeclInfo {
     kind: i32,
     name: String,

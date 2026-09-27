@@ -1,4 +1,5 @@
 use std::text
+use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
@@ -10,7 +11,6 @@ use mir::inst_struct_set
 use mir::inst_local_get
 use mir::value_types
 use mir::lower::ctx_api_local_types
-
 fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
     let child_count = len(field_locals)
     // Empty tuple `()` is the unit value. Represent it as i32 0 so
@@ -65,7 +65,7 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
     }
     // Value lives in `dest`; callers load via local_set_from / return_value.
     if len(struct_name) > 0 {
-        let type_name = concat("struct:", concat(clone(struct_name), concat(":", i32_to_string(total_bytes))))
+        let type_name = text::concat("struct:", text::concat(clone(struct_name), text::concat(":", i32_to_string(total_bytes))))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     } else if len(tuple_name) > 0 {
         // Anonymous small-int tuples (LM path) still record the tuple:<k,...>
@@ -81,11 +81,11 @@ fn tuple_name_keys_from_field_locals(ctx: LowerCtx, field_locals: Vec<i32>, fiel
     let mut i = 0
     while i < field_count {
         if i > 0 {
-            name = concat(name, String_from(","))
+            name = text::concat(name, String_from(","))
         }
         let local_type = ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(field_locals, i))
         let key = tuple_key_from_local_type(local_type, get_unchecked(field_vts, i))
-        name = concat(name, key)
+        name = text::concat(name, key)
         i = i + 1
     }
     name
@@ -138,9 +138,9 @@ fn tuple_struct_name_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32>, field_co
     let mut ti = 0
     while ti < field_count {
         if ti > 0 {
-            name = concat(name, ",")
+            name = text::concat(name, ",")
         }
-        name = concat(name, tuple_field_mono_key(get_unchecked(field_vts, ti)))
+        name = text::concat(name, tuple_field_mono_key(get_unchecked(field_vts, ti)))
         ti = ti + 1
     }
     let _ = total_bytes
@@ -194,17 +194,17 @@ fn tuple_gc_sig_from_field_vts(field_vts: Vec<i32>, field_count: i32) -> String 
 }
 
 fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
-    let prefix = concat("_f", i32_to_string(field_idx))
+    let prefix = text::concat("_f", i32_to_string(field_idx))
     if field_vt == value_types::VT_F64() {
-        return concat(prefix, "_f64")
+        return text::concat(prefix, "_f64")
     }
     if field_vt == value_types::VT_I64() {
-        return concat(prefix, "_i64")
+        return text::concat(prefix, "_i64")
     }
     if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
-        return concat(prefix, "_ref0")
+        return text::concat(prefix, "_ref0")
     }
-    concat(prefix, "_i32")
+    text::concat(prefix, "_i32")
 }
 
 fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
@@ -225,8 +225,8 @@ fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
     if sep <= 0 {
         return String_new()
     }
-    let keys = concat(substring(rest, 0, sep), concat(String_from(","), substring(rest, sep + 1, len(rest))))
-    concat(String_from("tuple:"), keys)
+    let keys = text::concat(substring(rest, 0, sep), text::concat(String_from(","), substring(rest, sep + 1, len(rest))))
+    text::concat(String_from("tuple:"), keys)
 }
 
 fn ctx_register_tuple_gc_struct_from_param_name(ctx: LowerCtx, param_type_name: String) -> i32 {
@@ -254,7 +254,7 @@ fn tuple_type_name_from_param_alias(ctx: LowerCtx, param_type_name: String) -> S
         return String_new()
     }
     ctx_gc_struct::ctx_register_gc_struct(ctx, clone(wasm_name), sig)
-    concat("struct:", concat(wasm_name, concat(":", i32_to_string(tuple_byte_size_from_keys(keys)))))
+    text::concat("struct:", text::concat(wasm_name, text::concat(":", i32_to_string(tuple_byte_size_from_keys(keys)))))
 }
 
 fn tuple_byte_size_from_keys(keys: String) -> i32 {
@@ -316,7 +316,7 @@ fn ctx_register_tuple_gc_struct_from_keys(ctx: LowerCtx, keys: String) -> i32 {
     if len(sig) <= 2 {
         return 0
     }
-    ctx_gc_struct::ctx_register_gc_struct(ctx, concat(String_from("tuple:"), keys), sig)
+    ctx_gc_struct::ctx_register_gc_struct(ctx, text::concat(String_from("tuple:"), keys), sig)
     1
 }
 
@@ -329,9 +329,9 @@ fn ctx_register_tuple_gc_struct_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32
     let mut i = 0
     while i < field_count {
         if i > 0 {
-            keys = concat(keys, ",")
+            keys = text::concat(keys, ",")
         }
-        keys = concat(keys, tuple_field_mono_key(get_unchecked(field_vts, i)))
+        keys = text::concat(keys, tuple_field_mono_key(get_unchecked(field_vts, i)))
         i = i + 1
     }
     ctx_register_tuple_gc_struct_from_keys(ctx, keys)
@@ -384,39 +384,39 @@ fn tuple_field_key_at(keys: String, index: i32) -> String {
 }
 
 fn tuple_gc_field_sig_for_key(ctx: LowerCtx, key: String, field_idx: i32) -> String {
-    let prefix = concat("_f", i32_to_string(field_idx))
+    let prefix = text::concat("_f", i32_to_string(field_idx))
     if eq(clone(key), "f64") || eq(clone(key), "F64") {
-        return concat(prefix, "_f64")
+        return text::concat(prefix, "_f64")
     }
     if eq(clone(key), "i64") || eq(clone(key), "I64") || eq(clone(key), "u64") {
-        return concat(prefix, "_i64")
+        return text::concat(prefix, "_i64")
     }
     if eq(clone(key), "f32") || eq(clone(key), "F32") {
-        return concat(prefix, "_f32")
+        return text::concat(prefix, "_f32")
     }
     if eq(clone(key), "i32") || eq(clone(key), "I32") ||
     eq(clone(key), "bool") || eq(clone(key), "char") ||
     eq(clone(key), "u8") || eq(clone(key), "u16") ||
     eq(clone(key), "u32") || eq(clone(key), "i16") ||
     eq(clone(key), "unit") || eq(clone(key), "()") {
-        return concat(prefix, "_i32")
+        return text::concat(prefix, "_i32")
     }
     if eq(clone(key), "String") || eq(clone(key), "string") {
-        return concat(prefix, "_ref0")
+        return text::concat(prefix, "_ref0")
     }
     // fn-valued fields hold a {fnptr, env} pair under the managed closure
     // ABI (#872): the shared __fnpair struct slot, not the open enum base.
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(key)) {
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return concat(prefix, concat(String_from("_gcsref"), i32_to_string(pair_slot)))
+            return text::concat(prefix, text::concat(String_from("_gcsref"), i32_to_string(pair_slot)))
         }
-        return concat(prefix, "_ref14")
+        return text::concat(prefix, "_ref14")
     }
     if starts_with(clone(key), "vec:") ||
     starts_with(clone(key), "Vec<") ||
     starts_with(clone(key), "Vec_") {
-        return concat(prefix, tuple_gc_vec_field_ref_suffix(clone(key)))
+        return text::concat(prefix, tuple_gc_vec_field_ref_suffix(clone(key)))
     }
     if starts_with(clone(key), "option:") ||
     starts_with(clone(key), "Option:") ||
@@ -424,18 +424,18 @@ fn tuple_gc_field_sig_for_key(ctx: LowerCtx, key: String, field_idx: i32) -> Str
     starts_with(clone(key), "result:") ||
     starts_with(clone(key), "Result:") ||
     starts_with(clone(key), "Result_") {
-        return concat(prefix, "_ref14")
+        return text::concat(prefix, "_ref14")
     }
     if len(key) == 1 {
         let ch = byte_at(key, 0)
         if ch >= 65 && ch <= 90 {
-            return concat(prefix, "_i32")
+            return text::concat(prefix, "_i32")
         }
     }
     // Named structs and enums share the open GC base type. This keeps tuple
     // signatures independent of declaration order while preserving a GC ref
     // slot for values such as WitType and Point.
-    concat(prefix, "_ref14")
+    text::concat(prefix, "_ref14")
 }
 
 fn tuple_gc_vec_field_ref_suffix(type_name: String) -> String {

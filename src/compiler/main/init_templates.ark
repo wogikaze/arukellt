@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::text
-
+use std::prelude::{clone, eq}
 pub fn init_list_templates() {
     stdio::println("minimal    - Minimal Hello World project (default)")
     stdio::println("cli        - CLI tool with argument parsing")
@@ -71,10 +71,10 @@ pub fn init_template_ark_toml(project_name: String, template: String) -> String 
 }
 
 pub fn init_template_print_next_steps(project_name: String, template: String) {
-    stdio::eprintln(concat("Initialized Arukellt project in ", concat(clone(project_name), concat(" (template: ", concat(clone(template), ")")))))
+    stdio::eprintln(text::concat("Initialized Arukellt project in ", text::concat(clone(project_name), text::concat(" (template: ", text::concat(clone(template), ")")))))
     stdio::eprintln("")
     stdio::eprintln("Next steps:")
-    stdio::eprintln(concat("  cd ", clone(project_name)))
+    stdio::eprintln(text::concat("  cd ", clone(project_name)))
     stdio::eprintln("  arukellt check main.ark        # type-check")
     stdio::eprintln("  arukellt run main.ark          # run the program")
     if eq(clone(template), "with-tests") {

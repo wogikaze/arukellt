@@ -1,6 +1,7 @@
+use std::prelude::{clone}
+use std::text
 use diagnostics::record
 use main::output_json
-
 pub fn phase_error_tag(phase: i32) -> String {
     if phase == 1 {
         return "error[E0001|lex]: "
@@ -24,11 +25,11 @@ pub fn phase_error_tag(phase: i32) -> String {
 }
 
 pub fn format_error(file: String, msg: String) -> String {
-    concat(clone(file), concat(": error: ", msg))
+    text::concat(clone(file), text::concat(": error: ", msg))
 }
 
 pub fn format_error_phased(file: String, phase: i32, msg: String) -> String {
-    concat(clone(file), concat(": ", concat(phase_error_tag(phase), msg)))
+    text::concat(clone(file), text::concat(": ", text::concat(phase_error_tag(phase), msg)))
 }
 
 pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {

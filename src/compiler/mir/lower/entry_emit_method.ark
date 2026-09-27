@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_frame
@@ -12,7 +13,6 @@ use mir::lower::entry_body_result
 use mir::lower::entry_params
 use mir::lower::ctx_struct_layout
 use mir::source_location_record
-
 fn mir_emit_method_body(
     ctx: LowerCtx,
     body_input: MirLowerEntryBodyInput,

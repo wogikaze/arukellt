@@ -1,4 +1,5 @@
 // Wasm emitter context data record.
+use std::prelude::{byte_at, clone, eq, substring}
 use corehir::signature_registry
 use mir::local_write_index
 use corehir::type_table
@@ -8,7 +9,6 @@ use wasm::call_resolve
 use wasm::gc_layout_table
 use wasm::sections_type_plan
 use collections::name_index
-
 pub struct SelfEmitCtx {
     functions: Vec<MirFunction>,
     function_name_lengths: Vec<i32>,

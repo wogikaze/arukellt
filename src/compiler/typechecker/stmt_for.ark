@@ -17,6 +17,8 @@ use typechecker::unify
 // A `for` source is accepted when its concrete type participates in either
 // the conversion protocol or the iterator protocol. Range syntax is a
 // built-in source form and is lowered separately from those trait calls.
+use std::prelude::{clone, eq}
+use std::text
 fn check_for_source(
     env: TypeEnv,
     scope: LocalScope,
@@ -57,7 +59,7 @@ fn check_for_source(
     let source_name = names::type_display_name(resolved_source_ty)
     unify::type_error(
         env,
-        concat(
+        text::concat(
             String_from("non-iterable source: expected IntoIterator or Iterator, found "),
             source_name
         )
@@ -148,7 +150,7 @@ fn record_for_method_mono(
     if len(owner_name) == 0 {
         owner_name = for_desugar_builtin_owner_name(owner_ty)
     }
-    let fn_name = concat(clone(owner_name), concat("::", clone(method)))
+    let fn_name = text::concat(clone(owner_name), text::concat("::", clone(method)))
     let sig = sigs::lookup_fn_sig(env, fn_sigs, clone(fn_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         return unknown
@@ -204,7 +206,7 @@ fn record_for_method_mono(
         mono::record_mono_call_site(
             env,
             span,
-            concat(clone(inst_owner), concat(String_from("::"), clone(method))),
+            text::concat(clone(inst_owner), text::concat(String_from("::"), clone(method))),
             clone(mangled)
         )
     }
@@ -246,7 +248,7 @@ fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
     }
     unify::type_error(
         env,
-        concat(
+        text::concat(
             String_from("non-iterable source: expected IntoIterator or Iterator bound, found "),
             var_name
         )
@@ -261,7 +263,7 @@ fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -
     let next_sig = sigs::lookup_fn_sig(
         env,
         fn_sigs,
-        concat(clone(source_name), String_from("::next"))
+        text::concat(clone(source_name), String_from("::next"))
     )
     if !contract_fn_sig::FnSig_has_name(next_sig) {
         return false

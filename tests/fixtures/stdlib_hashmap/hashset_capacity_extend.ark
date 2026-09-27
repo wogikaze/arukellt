@@ -1,6 +1,6 @@
 use std::collections::hash
 use std::host::stdio
-
+use std::prelude::{assert_eq}
 fn main() {
     let s = hash::hashset_new()
     assert(hash::hashset_is_empty(s))

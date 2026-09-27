@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone, index_of, substring}
 use lsp::framing_record
-
 fn parse_frame(input: String, pos: i32) -> FrameResult {
     let n = len(input)
     let mut p = pos

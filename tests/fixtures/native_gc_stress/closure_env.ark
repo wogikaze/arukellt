@@ -1,6 +1,7 @@
 // Environment-equivalent: nested frames keep an outer String live while
 // callees allocate temporary payloads (no MIR_CALL_INDIRECT).
 
+use std::prelude::{eq}
 fn inner(label: String) -> i32 {
     let _tmp = String_from("inner-temp")
     len(label)

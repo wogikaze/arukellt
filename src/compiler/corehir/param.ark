@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 struct CoreHirParam {
     name: String,
     value_type: i32,

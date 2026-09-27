@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::entry_body_source
 use mir::lower::entry_body_input
 use mir::lower::entry_core_body

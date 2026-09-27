@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_err}
 fn main() {
     let r: Result<i32, String> = Err(String_from("fail"))
     test::assert_true(is_err(r))

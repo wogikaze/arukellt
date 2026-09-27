@@ -1,7 +1,7 @@
+use std::prelude::{byte_at}
 use lexer::tokens
 use lexer::char_escape
 use lexer::char_token
-
 fn lexer_char_continuation(byte: i32) -> bool {
     byte >= 128 && byte <= 191
 }

@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::type_table
@@ -7,7 +9,6 @@ use mir::lower::mono_instance_table
 use mir::lower::mono_suffix_parse
 use mir::mono_names
 use mir::type_contracts
-
 fn mono_instance_table_register_from_instances(
     table: MonoInstanceTable,
     type_table: TypeTable,
@@ -76,7 +77,7 @@ fn mono_type_var_name_at(index: i32) -> String {
     if index == 2 { return "U" }
     if index == 3 { return "V" }
     if index == 4 { return "W" }
-    concat("T", i32_to_string(index))
+    text::concat("T", i32_to_string(index))
 }
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {

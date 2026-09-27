@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, contains, eq, substring, to_string}
+use std::text
 use mir::function_identity
 use mir::function_block_queries
 use mir::block_inst_access
@@ -6,7 +8,6 @@ use mir::inst_accessors_literals
 use mir::opcodes
 use resolver
 use collections::name_index
-
 fn mir_function_inst_count(f: MirFunction) -> i32 {
     let mut total = 0
     let block_count = function_block_queries::MirFunction_block_count(f)
@@ -258,8 +259,8 @@ fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_nam
         let sole = mir_function_sole_call_target(f)
         let stem = mir_module_stem_from_qualified(clone(sole))
         if len(stem) > 0 {
-            return concat(stem, concat("__", clone(short_name)))
+            return text::concat(stem, text::concat("__", clone(short_name)))
         }
     }
-    concat(concat(clone(short_name), "__"), to_string(seen_count))
+    text::concat(text::concat(clone(short_name), "__"), to_string(seen_count))
 }

@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::text
 use corehir::param
 use corehir::type_info_to_mir_value
 use mir::function_identity
@@ -18,7 +20,6 @@ use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::types
 use mir::value_types
-
 fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam) {
     if !param::param_is_bindable(param) {
         return
@@ -70,11 +71,11 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
         }
     } else {
         if starts_with(clone(p_type_name), "Option:") {
-            mir_type_name = concat("option:", substring(p_type_name, 7, len(p_type_name)))
+            mir_type_name = text::concat("option:", substring(p_type_name, 7, len(p_type_name)))
             sig_type_name = clone(mir_type_name)
             pvt = value_types::VT_GC_REF()
         } else if starts_with(clone(p_type_name), "Result:") {
-            mir_type_name = concat("result:", substring(p_type_name, 7, len(p_type_name)))
+            mir_type_name = text::concat("result:", substring(p_type_name, 7, len(p_type_name)))
             sig_type_name = clone(mir_type_name)
             pvt = value_types::VT_GC_REF()
         } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
@@ -84,7 +85,7 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
             let named = mir_method_resolve_named_user_type(clone(p_type_name))
             if len(named) > 0 {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = concat("?", clone(named))
+                mir_type_name = text::concat("?", clone(named))
                 sig_type_name = clone(mir_type_name)
             }
         }
@@ -135,9 +136,9 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
         // rewrites cannot concretize inside the body (#874).
         let impl_params = ctx_struct_mono::ctx_generic_struct_params(ctx, clone(struct_name))
         if len(impl_params) > 0 {
-            self_type_name = concat(
+            self_type_name = text::concat(
                 clone(struct_name),
-                concat(String_from("<"), concat(impl_params, String_from(">")))
+                text::concat(String_from("<"), text::concat(impl_params, String_from(">")))
             )
         }
         // Bare Vec / HashMap / HashSet without element annotation → i32 vec.

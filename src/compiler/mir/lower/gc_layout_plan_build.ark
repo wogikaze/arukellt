@@ -1,5 +1,7 @@
 use std::host::process
 use std::host::stdio
+use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
+use std::text
 use corehir::kinds
 use corehir::type_id
 use corehir::type_table
@@ -11,7 +13,6 @@ use mir::module_gc_layout_plan
 use mir::module_gc_struct
 use mir::module_spine
 use wasm::emit_target
-
 fn gc_layout_plan_name_is_fn(name: String) -> bool {
     eq(clone(name), "fn") ||
     eq(clone(name), "fnref") ||
@@ -292,7 +293,7 @@ fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
         return found
     }
     if !starts_with(clone(name), "struct:") {
-        let prefixed = concat("struct:", clone(name))
+        let prefixed = text::concat("struct:", clone(name))
         let prefixed_id = gc_layout_plan_find_named_type(
             table,
             kinds::TYPE_KIND_STRUCT(),
@@ -357,7 +358,7 @@ fn gc_layout_plan_type_id_for_variant_slot(
     sig: String
 ) -> TypeId {
     let kind = gc_layout_plan_variant_type_kind(clone(name))
-    let intern_name = concat(name, concat("#", sig))
+    let intern_name = text::concat(name, text::concat("#", sig))
     let found = gc_layout_plan_find_named_type(table, kind, clone(intern_name))
     if type_id::type_id_is_valid(found) {
         return found
@@ -395,7 +396,7 @@ fn gc_layout_plan_bind_struct_slots(
         let tid = gc_layout_plan_type_id_for_struct_slot(table, clone(name))
         if !type_id::type_id_is_valid(tid) {
             stdio::eprintln(
-                concat("compiler ICE: GC struct slot has no semantic TypeId: ", name)
+                text::concat("compiler ICE: GC struct slot has no semantic TypeId: ", name)
             )
             process::exit(1)
         }
@@ -422,7 +423,7 @@ fn gc_layout_plan_bind_enum_variant_slots(
         let tid = gc_layout_plan_type_id_for_variant_slot(table, clone(name), sig)
         if !type_id::type_id_is_valid(tid) {
             stdio::eprintln(
-                concat(
+                text::concat(
                     "compiler ICE: GC enum variant slot has no semantic TypeId: ",
                     name
                 )

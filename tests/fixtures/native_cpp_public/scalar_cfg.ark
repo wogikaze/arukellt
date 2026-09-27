@@ -1,5 +1,6 @@
 use std::host::stdio
-
+use std::prelude::{to_string}
+use std::text
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
@@ -14,6 +15,6 @@ fn main() {
     if total == 3 {
         stdio::println(String_from("scalar-ok"))
     } else {
-        stdio::println(concat(String_from("bad="), to_string(total)))
+        stdio::println(text::concat(String_from("bad="), to_string(total)))
     }
 }

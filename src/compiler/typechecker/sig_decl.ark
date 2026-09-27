@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use collections::vec_extend
 use typechecker::kinds
 use typechecker::ast_access
@@ -5,7 +6,6 @@ use typechecker::contract_fn_sig
 use typechecker::contract_type_constructors
 use typechecker::sig_bounds
 use typechecker::types
-
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }

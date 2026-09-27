@@ -1,6 +1,7 @@
 use std::host::process
 use std::host::stdio
-
+use std::prelude::{to_string}
+use std::text
 fn MIR_PHI() -> i32 {
     73
 }
@@ -38,23 +39,23 @@ fn mir_value_type_name(vt: i32) -> String {
 
 fn mir_format_phi(phi: MirPhi) -> String {
     let mut out = String_from("phi %")
-    out = concat(out, to_string(phi.dest))
-    out = concat(out, String_from(" = ["))
+    out = text::concat(out, to_string(phi.dest))
+    out = text::concat(out, String_from(" = ["))
     let arg_count = len(phi.args)
     let mut i = 0
     while i < arg_count {
         let arg = get_unchecked(phi.args, i)
         if i > 0 {
-            out = concat(out, String_from(", "))
+            out = text::concat(out, String_from(", "))
         }
-        out = concat(out, String_from("bb"))
-        out = concat(out, to_string(arg.pred_block))
-        out = concat(out, String_from(" -> %"))
-        out = concat(out, to_string(arg.local))
+        out = text::concat(out, String_from("bb"))
+        out = text::concat(out, to_string(arg.pred_block))
+        out = text::concat(out, String_from(" -> %"))
+        out = text::concat(out, to_string(arg.local))
         i = i + 1
     }
-    out = concat(out, String_from("] : "))
-    concat(out, mir_value_type_name(phi.val_type))
+    out = text::concat(out, String_from("] : "))
+    text::concat(out, mir_value_type_name(phi.val_type))
 }
 
 fn ensure(ok: bool, msg: String) {
@@ -76,7 +77,7 @@ fn run_phi_representation_smoke() {
     stdio::eprintln(String_from("    bb1: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
     stdio::eprintln(String_from("    bb2: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
     stdio::eprintln(String_from("    bb3: phis=1 instructions=1 succs=[-,-] preds=[1,2] idom=0 df=[]"))
-    stdio::eprintln(concat(String_from("      "), mir_format_phi(phi)))
+    stdio::eprintln(text::concat(String_from("      "), mir_format_phi(phi)))
     stdio::eprintln(String_from("      return -> %3"))
     stdio::println(String_from("MIR phi representation self-check OK."))
 }

@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use typechecker::contract_types_record
-
 struct TraitAssociatedTypeInfo {
     trait_name: String,
     self_ty: TypeInfo,

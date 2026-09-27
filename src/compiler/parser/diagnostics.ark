@@ -1,10 +1,10 @@
+use std::text
 use diagnostics::codes
 use diagnostics::record
 use lexer::tokens
 use parser::cursor
 use parser::token_state
 use diagnostics::mod as diag_mod
-
 fn parser_token_kind_name(kind: i32) -> String {
     if kind == tokens::TK_RBRACE() {
         return "RBrace"
@@ -39,7 +39,7 @@ fn parser_expected_code(expected: i32) -> String {
 
 fn parser_push_expected_token_error(p: Parser, expected: i32, actual: i32, tok: Token) {
     let expected_name = parser_token_kind_name(expected)
-    let message = concat("expected `", concat(expected_name, "`"))
+    let message = text::concat("expected `", text::concat(expected_name, "`"))
     let diag = record::Diagnostic_new_parse(parser_expected_code(expected), message, token_state::Token_start(tok), token_state::Token_end(tok))
     push(p.errors, diag)
 }

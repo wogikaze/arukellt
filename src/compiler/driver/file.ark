@@ -1,10 +1,11 @@
+use std::prelude::{clone}
+use std::text
 use loader::module_paths
 use loader::wit_manifest
 use driver::config_record
 use driver::pipeline_backend
 use driver::result_record
 use driver::source_file
-
 fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     let cloned_path = clone(path)
     let merged_wit_paths = wit_manifest::merge_wit_paths_for_source(clone(cloned_path), config_record::config_wit_paths(config))
@@ -17,7 +18,7 @@ fn compile_file(path: String, config: DriverConfig) -> CompileResult {
             pipeline_backend::compile_source(source, config)
         },
         Result::Err(e) => {
-            result_record::CompileResult_err(0, concat("failed to read file: ", e))
+            result_record::CompileResult_err(0, text::concat("failed to read file: ", e))
         },
     }
 }

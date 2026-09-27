@@ -2,6 +2,7 @@
 // GC target: is_empty → struct.get vec_type 1 (len) → eqz
 // For String arguments: is_empty → array.len → eqz
 
+use std::prelude::{clone, eq}
 use wasm::writer_gc
 use wasm::ctx_record
 use wasm::intrinsic_vec_type
@@ -15,7 +16,6 @@ use mir::function_block_queries
 use mir::function_locals_view
 use mir::local_access
 use mir::opcodes as mir_opcodes
-
 fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref or string_ref]
     // After: widened bool (i64 under Memory64, i32 otherwise)

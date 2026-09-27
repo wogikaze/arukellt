@@ -2,6 +2,7 @@
 // Syntax paths (operators, `?`) reference these ids directly and must not
 // depend on import scope or bare trait-name string matching at use sites.
 
+use std::prelude::{clone, eq}
 fn SEMANTIC_TRAIT_ID_NONE() -> i32 {
     0 - 1
 }

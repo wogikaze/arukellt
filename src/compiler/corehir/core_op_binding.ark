@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::core_op_binding_generated
 use corehir::core_op_id
 use corehir::core_op_registry
-
 fn core_op_binding_lookup_canonical(canonical: String) -> CoreOpId {
     if len(canonical) == 0 {
         return core_op_id::CORE_OP_ID_NONE()

@@ -1,8 +1,8 @@
 use std::core::iter
 use std::test
-
+use std::text
 fn concat_str(a: String, b: String) -> Option<String> {
-    Some(concat(a, b))
+    Some(text::concat(a, b))
 }
 
 fn main() {

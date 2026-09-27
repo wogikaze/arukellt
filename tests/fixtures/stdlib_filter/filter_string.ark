@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{filter_String}
 fn is_long(s: String) -> bool {
     len(s) > 3
 }

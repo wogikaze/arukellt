@@ -1,9 +1,10 @@
 // Future<T> type annotation
+use std::host::stdio
 fn make_future() -> Future<i32> {
     42
 }
 
 fn main() {
     let x: Future<i32> = make_future()
-    print(x)
+    stdio::print(x)
 }

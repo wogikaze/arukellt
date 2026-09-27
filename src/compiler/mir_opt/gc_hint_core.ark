@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_inst_access
@@ -10,7 +11,6 @@ use mir::opcodes
 use mir::types
 use mir_opt::loop_regions
 use mir_opt::summary_record
-
 pub struct GcHintAnnotateResult {
     instructions: Vec<MirInstDraft>,
     annotated: i32,

@@ -4,7 +4,8 @@
 
 use std::collections::compiler
 use std::core::error
-
+use std::prelude::{byte_at, slice, values}
+use std::text
 const CANONICAL_SCRATCH_BASE: i32 = 256
 const CANONICAL_SCRATCH_LIMIT: i32 = 65280
 
@@ -77,7 +78,7 @@ pub fn canonical_lift_string_at(scratch: Vec<i32>, ptr: i32, slen: i32) -> Resul
     let mut i = 0
     while i < slen {
         let b = scratch_read_byte(scratch, ptr + i)
-        out = concat(out, char_to_string(b))
+        out = text::concat(out, char_to_string(b))
         i = i + 1
     }
     Ok(out)

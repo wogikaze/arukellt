@@ -4,6 +4,8 @@
 //! The full JSON parser with `pub enum JsonValue` lives in
 //! `std/json/parser.ark` (loaded as `std::json::parser`).
 
+use std::prelude::{byte_at, index_of, slice, substring}
+use std::text
 /// Result of a streaming string parse.
 pub struct JsonStrResult {
     value: String,
@@ -52,28 +54,28 @@ pub fn json_escape(s: String) -> String {
             out = concat(out, "\\\"")
         } else {
             if c == 92 {
-                out = concat(out, "\\\\")
+                out = text::concat(out, "\\\\")
             } else {
                 if c == 10 {
-                    out = concat(out, "\\n")
+                    out = text::concat(out, "\\n")
                 } else {
                     if c == 13 {
-                        out = concat(out, "\\r")
+                        out = text::concat(out, "\\r")
                     } else {
                         if c == 9 {
-                            out = concat(out, "\\t")
+                            out = text::concat(out, "\\t")
                         } else {
                             if c == 8 {
-                                out = concat(out, "\\b")
+                                out = text::concat(out, "\\b")
                             } else {
                                 if c == 12 {
-                                    out = concat(out, "\\f")
+                                    out = text::concat(out, "\\f")
                                 } else {
                                     if c < 32 {
-                                        out = concat(out, "\\u00")
-                                        out = concat(out, json_hex_byte(c))
+                                        out = text::concat(out, "\\u00")
+                                        out = text::concat(out, json_hex_byte(c))
                                     } else {
-                                        out = concat(out, slice(s, i, i + 1))
+                                        out = text::concat(out, slice(s, i, i + 1))
                                     }
                                 }
                             }
@@ -90,7 +92,7 @@ pub fn json_escape(s: String) -> String {
 /// Quote and escape `s` as a JSON string literal (including surrounding quotes).
 /// Replaces the former LSP `json_escape::quote_string` helper.
 pub fn quote_string(s: String) -> String {
-    concat("\"", concat(json_escape(s), "\""))
+    text::concat("\"", text::concat(json_escape(s), "\""))
 }
 
 /// Return the lowercase hex nibble for `n` (0–15).
@@ -106,7 +108,7 @@ pub fn json_hex_nibble(n: i32) -> String {
 pub fn json_hex_byte(b: i32) -> String {
     let hi = (b / 16) & 15
     let lo = b & 15
-    concat(json_hex_nibble(hi), json_hex_nibble(lo))
+    text::concat(json_hex_nibble(hi), json_hex_nibble(lo))
 }
 
 /// Parse a decimal integer (optionally signed) starting at `pos`, skipping
@@ -176,7 +178,7 @@ pub fn parse_content_length(header_block: String) -> i32 {
 /// simple substring search and does not validate JSON structure — callers
 /// must subsequently skip whitespace and expect `:` before the value.
 pub fn find_key_pos(json: String, key: String, from: i32) -> i32 {
-    let needle = concat("\"", concat(key, "\""))
+    let needle = text::concat("\"", text::concat(key, "\""))
     let n = len(json)
     let nlen = len(needle)
     if from >= n {
@@ -354,13 +356,13 @@ pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
         let c = byte_at(s, p)
         if c == 34 {
             if span_start < p {
-                out = concat(out, substring(s, span_start, p))
+                out = text::concat(out, substring(s, span_start, p))
             }
             return JsonStrResult_new(out, p + 1, true)
         }
         if c == 92 {
             if span_start < p {
-                out = concat(out, substring(s, span_start, p))
+                out = text::concat(out, substring(s, span_start, p))
             }
             p = p + 1
             if p >= n {
@@ -370,7 +372,7 @@ pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
             if !decoded.ok {
                 return JsonStrResult_new(out, p, false)
             }
-            out = concat(out, decoded.value)
+            out = text::concat(out, decoded.value)
             p = p + decoded.advance
             span_start = p
         } else {

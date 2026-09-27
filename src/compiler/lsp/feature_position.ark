@@ -1,5 +1,5 @@
 use std::json
-
+use std::prelude::{byte_at, clone}
 fn extract_position_field(body: String, key: String) -> i32 {
     let p = json::find_key_pos(clone(body), String_from("position"), 0)
     if p < 0 {

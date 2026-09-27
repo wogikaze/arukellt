@@ -35,6 +35,7 @@ use corehir::type_info_to_mir_value
 // #829: CalleePropCache makes per-CALL callee lookup O(1) instead of scanning
 // the whole MirModule (and each callee body) on every fixpoint iteration.
 
+use std::prelude::{clone, eq, starts_with}
 fn mir_module_propagate_local_types(m: MirModule) {
     mir_module_propagate_local_types_report(m, 0)
 }

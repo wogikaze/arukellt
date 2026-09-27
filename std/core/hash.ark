@@ -11,6 +11,7 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
+use std::prelude::{byte_at, f64_bits_hi, f64_bits_lo}
 /// Trait for types that can be hashed to an `i32` hash value.
 ///
 /// The hash value must be non-negative and deterministic: the same value must

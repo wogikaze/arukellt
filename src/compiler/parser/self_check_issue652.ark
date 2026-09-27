@@ -1,3 +1,5 @@
+use std::prelude::{eq, to_string}
+use std::text
 use lexer::scan
 use parser::ast_kind_fields
 use parser::core_api_token
@@ -7,7 +9,6 @@ use parser::core_ast_type_ann
 use parser::decl
 use parser::kinds
 use parser::state_record
-
 fn issue652_parse_source(src: String) -> Parser {
     let tokens = scan::tokenize(src)
     core_api_token::Parser_new(tokens)
@@ -49,7 +50,7 @@ fn issue652_parser_self_check() -> String {
         return "issue652 parser fail: unexpected parse errors"
     }
     if len(decls) != 3 {
-        return concat("issue652 parser fail: decl count=", to_string(len(decls)))
+        return text::concat("issue652 parser fail: decl count=", to_string(len(decls)))
     }
     let wit_alias = issue652_assert_wit_import(get_unchecked(decls, 0), "test:host/math", "host")
     if len(wit_alias) > 0 {

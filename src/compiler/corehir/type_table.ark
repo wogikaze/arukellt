@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::type_id
 use corehir::kinds
 use collections::name_index
-
 fn type_id_is_valid(id: TypeId) -> bool {
     type_id::type_id_is_valid(id)
 }

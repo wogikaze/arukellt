@@ -4,6 +4,7 @@ use std::host::stdio
 // get_unchecked resolves (local ann Option_Vec previously left bare Vec →
 // drop/unreachable). Use get_unchecked because free get returns Option<T>.
 
+use std::prelude::{to_string}
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     push(v, 1)

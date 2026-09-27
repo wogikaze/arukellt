@@ -5,6 +5,7 @@ use wasm::gc_layout_table
 
 // GC layout resolution is TypeId-only. Name/fallback counters no longer exist;
 // conflict remains a hard compiler ICE.
+use std::text
 fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     let table = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
     let typed_count = gc_layout_table::gc_layout_table_typed_lookup_count(table)
@@ -12,11 +13,11 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     if typed_count <= 0 && conflict_count <= 0 {
         return
     }
-    let line = concat(
+    let line = text::concat(
         "gc-layout-audit: summary typed=",
-        concat(
+        text::concat(
             i32_to_string(typed_count),
-            concat(
+            text::concat(
                 " name=0 fallback=0 conflict=",
                 i32_to_string(conflict_count)
             )

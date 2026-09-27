@@ -2,6 +2,8 @@ use resolver::ast_access
 use parser::kinds
 
 // Return the concrete type that owns methods in an impl block.
+use std::prelude::{byte_at, clone, eq}
+use std::text
 fn impl_self_type_name(decl: AstNode) -> String {
     let ann_count = ast_access::node_type_ann_count(decl)
     if ann_count >= 2 {
@@ -32,9 +34,9 @@ fn impl_target_type_name(target: AstNode) -> String {
         let key_key = impl_inst_arg_key(key_node)
         let value_key = impl_inst_arg_key(value_node)
         if len(key_key) > 0 && len(value_key) > 0 {
-            return concat(
+            return text::concat(
                 String_from("HashMap_"),
-                concat(clone(key_key), concat(String_from("_"), clone(value_key)))
+                text::concat(clone(key_key), text::concat(String_from("_"), clone(value_key)))
             )
         }
     }
@@ -48,9 +50,9 @@ fn impl_target_type_name(target: AstNode) -> String {
     !eq(clone(target_name), String_from("HashMap")) {
         let inst_suffix = impl_inst_arg_suffix(target)
         if len(inst_suffix) > 0 {
-            return concat(
+            return text::concat(
                 clone(target_name),
-                concat(String_from("_"), inst_suffix)
+                text::concat(String_from("_"), inst_suffix)
             )
         }
     }
@@ -77,9 +79,9 @@ fn impl_inst_arg_suffix(target: AstNode) -> String {
             return String_new()
         }
         if len(suffix) > 0 {
-            suffix = concat(suffix, String_from("_"))
+            suffix = text::concat(suffix, String_from("_"))
         }
-        suffix = concat(suffix, key)
+        suffix = text::concat(suffix, key)
         i = i + 1
     }
     suffix
@@ -99,7 +101,7 @@ fn impl_inst_arg_key(arg: AstNode) -> String {
         if len(inner) == 0 {
             return String_new()
         }
-        return concat(clone(base), concat(String_from("_"), inner))
+        return text::concat(clone(base), text::concat(String_from("_"), inner))
     }
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_FN()) {
         return String_from("fnref")

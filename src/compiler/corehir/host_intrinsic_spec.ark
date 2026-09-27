@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
-
 struct HostIntrinsicSpec {
     name: String,
     abi_kind: i32,

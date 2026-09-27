@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::inst_const_string
 use mir::inst_local_get
@@ -12,7 +13,6 @@ use mir::lower::value_literals
 use mir::lower::value_patterns
 use mir::lower::value_variants
 use mir::value_types
-
 fn lower_atomic_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let literal = value_literals::lower_atomic_literal(ctx, node)
     if literal != 0 - 2 {

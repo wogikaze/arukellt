@@ -1,5 +1,5 @@
+use std::prelude::{eq}
 use component::contract_helpers
-
 pub struct ComponentNumericScan {
     has_f32_unary: bool,
     has_f32_binary: bool,

@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::json
-
+use std::text
 fn main() {
     // Differential test: parse then stringify, compare against known-correct golden output
     // Golden: {"a":1,"b":false,"c":null}
@@ -36,10 +36,10 @@ fn main() {
                 Result::Ok(v2) => {
                     stdio::println((json::is_object(v2)).to_string())
                 },
-                Result::Err(e) => stdio::println(concat("differential re-parse error:", json::parse_error_message(e))),
+                Result::Err(e) => stdio::println(text::concat("differential re-parse error:", json::parse_error_message(e))),
             }
         },
-        Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
     }
 }
 // differential test: mixed-type object stringify output re-parses correctly

@@ -1,4 +1,5 @@
 use std::host::stdio
+use std::text
 use mir::block_inst_access
 use mir::block_inst_mutation
 use mir::function_block_queries
@@ -7,7 +8,6 @@ use mir::module_spine
 use mir::types
 use mir_opt::stdlib_inline
 use mir_opt::stdlib_resolve_translation_validation
-
 fn stdlib_resolve_normal_calls_validated(m: MirModule) -> i32 {
     let registry = module_spine::MirModule_signature_registry(m)
     let function_count = module_functions::MirModule_function_count(m)
@@ -44,7 +44,7 @@ fn stdlib_resolve_normal_calls_validated(m: MirModule) -> i32 {
         function_index = function_index + 1
     }
     if failures > 0 {
-        stdio::eprintln(concat(
+        stdio::eprintln(text::concat(
                 String_from("mir-opt translation validation rejected stdlib call-target block(s): "),
                 i32_to_string(failures)
             ))

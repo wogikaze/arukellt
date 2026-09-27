@@ -9,6 +9,8 @@
 //! `ast_kind`, `ast_name`, and other accessor helpers.
 
 use std::wit::types
+use std::prelude::{byte_at, clone, eq, index_of, slice, substring, values}
+use std::text
 
 // ─── AST node type ───────────────────────────────────────────────
 
@@ -378,9 +380,9 @@ fn wit_import_serialized_string_list(values: Vec<String>) -> String {
     let mut out = String_new()
     for i in 0..len(values) {
         if i > 0 {
-            out = concat(out, String_from("~"))
+            out = text::concat(out, String_from("~"))
         }
-        out = concat(out, clone(get_unchecked(values, i)))
+        out = text::concat(out, clone(get_unchecked(values, i)))
     }
     out
 }
@@ -389,9 +391,9 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
     let mut out = String_new()
     for i in 0..len(params) {
         if i > 0 {
-            out = concat(out, String_from("~"))
+            out = text::concat(out, String_from("~"))
         }
-        out = concat(out, types::wit_type_from_ast(get_unchecked(params, i).ty))
+        out = text::concat(out, types::wit_type_from_ast(get_unchecked(params, i).ty))
     }
     out
 }
@@ -408,9 +410,9 @@ fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
     let mut out = String_new()
     for i in 0..len(fields) {
         if i > 0 {
-            out = concat(out, String_from("~"))
+            out = text::concat(out, String_from("~"))
         }
-        out = concat(out, types::wit_type_from_ast(get_unchecked(fields, i).ty))
+        out = text::concat(out, types::wit_type_from_ast(get_unchecked(fields, i).ty))
     }
     out
 }
@@ -431,24 +433,24 @@ fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> 
     let mut out = String_new()
     for i in 0..len(cases) {
         if i > 0 {
-            out = concat(out, String_from("~"))
+            out = text::concat(out, String_from("~"))
         }
         let payload = match get_unchecked(cases, i).ty {
             Option::Some(ty) => types::wit_type_from_ast(ty),
             Option::None => String_new(),
         }
-        out = concat(out, payload)
+        out = text::concat(out, payload)
     }
     out
 }
 
 fn wit_import_serialized_entry(kind: String, name: String, first: String, second: String) -> String {
-    let mut entry = concat(String_from(";"), concat(kind, String_from("|")))
-    entry = concat(entry, name)
-    entry = concat(entry, String_from("|"))
-    entry = concat(entry, first)
-    entry = concat(entry, String_from("|"))
-    concat(entry, concat(second, String_from(";")))
+    let mut entry = text::concat(String_from(";"), text::concat(kind, String_from("|")))
+    entry = text::concat(entry, name)
+    entry = text::concat(entry, String_from("|"))
+    entry = text::concat(entry, first)
+    entry = text::concat(entry, String_from("|"))
+    text::concat(entry, text::concat(second, String_from(";")))
 }
 
 /// Parse a canonical WIT document and seal its import metadata inside the
@@ -462,11 +464,11 @@ pub fn parse_import_text(source: String) -> String {
 fn wit_import_serialized_interface(package: String, name: String, items: Vec<WitNode>) -> String {
     let package_name = wit_import_package_name(clone(package))
     let package_version = wit_import_package_version(package)
-    let mut out = concat(String_from("header|"), package_name)
-    out = concat(out, String_from("|"))
-    out = concat(out, package_version)
-    out = concat(out, String_from("|"))
-    out = concat(out, concat(name, String_from(";")))
+    let mut out = text::concat(String_from("header|"), package_name)
+    out = text::concat(out, String_from("|"))
+    out = text::concat(out, package_version)
+    out = text::concat(out, String_from("|"))
+    out = text::concat(out, text::concat(name, String_from(";")))
     for i in 0..len(items) {
         match get_unchecked(items, i) {
             WitNode::Func(func_name, params, result) => {
@@ -474,7 +476,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     Option::Some(ty) => types::wit_type_from_ast(ty),
                     Option::None => String_new(),
                 }
-                out = concat(out, wit_import_serialized_entry(
+                out = text::concat(out, wit_import_serialized_entry(
                         String_from("func"),
                         func_name,
                         wit_import_serialized_param_types(params),
@@ -482,7 +484,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     ))
             },
             WitNode::Record(record_name, fields) => {
-                out = concat(out, wit_import_serialized_entry(
+                out = text::concat(out, wit_import_serialized_entry(
                         String_from("record"),
                         record_name,
                         wit_import_serialized_field_names(fields),
@@ -490,7 +492,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     ))
             },
             WitNode::Enum(enum_name, variants) => {
-                out = concat(out, wit_import_serialized_entry(
+                out = text::concat(out, wit_import_serialized_entry(
                         String_from("enum"),
                         enum_name,
                         wit_import_serialized_enum_variants(variants),
@@ -498,7 +500,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
                     ))
             },
             WitNode::Variant(variant_name, cases) => {
-                out = concat(out, wit_import_serialized_entry(
+                out = text::concat(out, wit_import_serialized_entry(
                         String_from("variant"),
                         variant_name,
                         wit_import_serialized_variant_names(cases),
@@ -763,7 +765,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(concat("own<", concat(types::wit_type_from_ast(inner), ">"))), i)
+            return (types::WitType::Resource(text::concat("own<", text::concat(types::wit_type_from_ast(inner), ">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
@@ -775,7 +777,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(concat("borrow<", concat(types::wit_type_from_ast(inner), ">"))), i)
+            return (types::WitType::Resource(text::concat("borrow<", text::concat(types::wit_type_from_ast(inner), ">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
@@ -787,22 +789,22 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         }
         let (first, p7) = p_type(s, i + 1)
         i = p_skip_ws_comments(s, p7)
-        let mut rendered = concat(constructor, "<")
-        rendered = concat(rendered, types::wit_type_from_ast(first))
+        let mut rendered = text::concat(constructor, "<")
+        rendered = text::concat(rendered, types::wit_type_from_ast(first))
         if i < n && byte_at(s, i) == 44 {
             let (second, p8) = p_type(s, i + 1)
-            rendered = concat(rendered, concat(", ", types::wit_type_from_ast(second)))
+            rendered = text::concat(rendered, text::concat(", ", types::wit_type_from_ast(second)))
             i = p_skip_ws_comments(s, p8)
         }
         if i < n && byte_at(s, i) == 62 {
             i = i + 1
         }
-        return (types::WitType::Resource(concat(rendered, ">")), i)
+        return (types::WitType::Resource(text::concat(rendered, ">")), i)
     }
     // Preserve package-qualified type references for the resolver.
     if i < n && byte_at(s, i) == 58 {
         let (suffix, p9) = p_path(s, i)
-        return (types::WitType::Resource(concat(word, suffix)), p9)
+        return (types::WitType::Resource(text::concat(word, suffix)), p9)
     }
     let fallback_type = p_type_name(word)
     return (fallback_type, i)
@@ -1156,7 +1158,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         return (func_node, func_pos)
     }
     // Skip unknown token
-    let error = WitNode::Error(concat(String_from("unknown declaration: "), kw))
+    let error = WitNode::Error(text::concat(String_from("unknown declaration: "), kw))
     return (error, p1)
 }
 

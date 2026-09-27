@@ -2,7 +2,7 @@
 // Verifies: the selfhost typechecker treats Vec<i32> and Vec<String> as different
 //           types (distinct monomorphizations), and basic Vec operations work.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn main() {
     let mut vi: Vec<i32> = Vec::new<i32>()
     push(vi, 1)

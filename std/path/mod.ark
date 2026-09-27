@@ -10,21 +10,22 @@
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::text
+use std::prelude::{byte_at, eq, slice}
 
 /// Joins two path segments with a single `/` separator.
 pub fn join(base: String, child: String) -> String {
     if text::is_empty(base) {
-        concat("", child)
+        text::concat("", child)
     } else {
         if text::is_empty(child) {
-            concat("", base)
+            text::concat("", base)
         } else {
             let base_len = len(base)
             let last_char = slice(base, base_len - 1, base_len)
             if eq(last_char, "/") {
-                concat(base, child)
+                text::concat(base, child)
             } else {
-                concat(concat(base, "/"), child)
+                text::concat(text::concat(base, "/"), child)
             }
         }
     }
@@ -34,7 +35,7 @@ pub fn join(base: String, child: String) -> String {
 pub fn file_name(p: String) -> String {
     let idx = last_index_of(p, "/")
     if idx < 0 {
-        concat("", p)
+        text::concat("", p)
     } else {
         slice(p, idx + 1, len(p))
     }
@@ -60,13 +61,13 @@ pub fn with_extension(p: String, ext: String) -> String {
         if text::is_empty(ext) {
             base
         } else {
-            concat(concat(base, "."), ext)
+            text::concat(text::concat(base, "."), ext)
         }
     } else {
         if text::is_empty(ext) {
-            concat("", p)
+            text::concat("", p)
         } else {
-            concat(concat(p, "."), ext)
+            text::concat(text::concat(p, "."), ext)
         }
     }
 }
@@ -134,7 +135,7 @@ pub fn normalize(p: String) -> String {
     }
     let joined = __intrinsic_join(out, "/")
     if is_absolute(p) {
-        concat("/", joined)
+        text::concat("/", joined)
     } else {
         joined
     }

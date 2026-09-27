@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with, substring}
 use collections::name_index
 use wasm::ctx_record
 use wasm::ctx_gc_type_locals
@@ -7,7 +8,6 @@ use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
 use wasm::sections_types_gc_phase7
-
 fn SelfEmitCtx_i32_array_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1
 }

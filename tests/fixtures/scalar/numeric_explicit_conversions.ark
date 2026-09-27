@@ -2,7 +2,7 @@
 // backends. Literal suffixes select the source type before conversion.
 use std::core::convert
 use std::host::process
-
+use std::prelude::{f32_to_f64, f64_to_f32}
 fn expect_some(value: Option<i32>, expected: i32) {
     match value {
         Some(actual) => {

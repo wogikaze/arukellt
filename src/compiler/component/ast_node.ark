@@ -1,6 +1,6 @@
+use std::prelude::{eq}
 use parser::ast
 use parser::kinds
-
 fn node_kind(node: AstNode) -> i32 {
     ast::ast_node_kind(node)
 }

@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::lower::ast_node
 use mir::lower::ann_types
 use mir::lower::ctx_api_local_alloc
@@ -8,7 +9,6 @@ use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::local_factory
 use mir::value_types
-
 fn mir_emit_closure_params(ctx: LowerCtx, clos: AstNode, child_count: i32) {
     let mut pi = 0
     while pi + 1 < child_count {

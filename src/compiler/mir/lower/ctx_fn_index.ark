@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use collections::name_index
 use corehir::frontend_decl_kind
 use corehir::frontend_ast_node
-
 fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
     len(ctx.fn_names)
 }

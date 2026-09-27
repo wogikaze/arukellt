@@ -1,10 +1,10 @@
+use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
 use typechecker::contract_type_mutation
 use typechecker::contract_typevar
 use typechecker::contract_env_vars_record
-
 fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
     resolve_type_depth(env, ty, 0)
 }

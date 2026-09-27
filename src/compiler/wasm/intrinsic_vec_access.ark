@@ -4,6 +4,7 @@
 //   get_unchecked: local.set idx → struct.get vec_type 0 (data) → local.get idx → array.get A_i32
 //   vec_get: bounds check + struct.get + array.get
 
+use std::prelude::{clone, eq, starts_with}
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -22,7 +23,6 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
-
 fn lm_get_unchecked_elem_kind(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     // Mirror intrinsic_vec_set LM typing so raw.array_get_unchecked and
     // sealed-raw Ark bodies can load i64/f64 lanes (#822).

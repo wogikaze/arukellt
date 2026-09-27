@@ -1,5 +1,7 @@
 use std::host::clock
 use std::host::stdio
+use std::prelude::{clone, i64_to_i32, to_string}
+use std::text
 use wasm::code
 use wasm::ctx_gc_type
 use wasm::ctx_record
@@ -20,7 +22,6 @@ use mir::module_gc_enum
 use mir::module_spine
 use wasm::sections_exports
 use wasm::sections_type_plan
-
 fn emit_section_note(enabled: i32, label: String, t_start: i64) -> i64 {
     let t_end = clock::monotonic_now()
     if enabled == 0 {
@@ -29,9 +30,9 @@ fn emit_section_note(enabled: i32, label: String, t_start: i64) -> i64 {
     let diff = t_end - t_start
     let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] emit.",
-            concat(clone(label), concat(": ", concat(to_string(ms), "ms")))
+            text::concat(clone(label), text::concat(": ", text::concat(to_string(ms), "ms")))
         )
     )
     t_end

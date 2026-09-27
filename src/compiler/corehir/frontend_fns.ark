@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::decl_node_identity
 use corehir::decl_children
 use corehir::decl_member_collections
@@ -5,7 +7,6 @@ use corehir::decl_node
 use corehir::fn_info
 use corehir::param_shape
 use corehir::raw_dto
-
 fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
     let mut entry_main_decl_index = 0 - 1
     let decl_count = len(decls)
@@ -42,7 +43,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
         if decl_index >= decl_start && decl_index < decl_end {
             let module_name = clone(module_info.name)
             if !eq(clone(module_name), "<main>") {
-                return concat(module_name, concat("::", fn_name))
+                return text::concat(module_name, text::concat("::", fn_name))
             }
             return String_new()
         }

@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{filter_i32, map_i32_i32, to_string}
 fn double(x: i32) -> i32 {
     x * 2
 }

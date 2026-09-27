@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use hir::node_record
-
 fn hir_node_tag(node: HirNode) -> i32 {
     node.tag
 }

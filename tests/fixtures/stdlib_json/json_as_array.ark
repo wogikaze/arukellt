@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("[1,2,3]") {
         Result::Ok(v) => {
@@ -26,7 +26,7 @@ fn main() {
                 None => {},
             }
         },
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
     // Type mismatch: non-array is not an array
     match json::parse("{\"a\":1}") {
@@ -37,6 +37,6 @@ fn main() {
                 None => {},
             }
         },
-        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse object failed: ", json::parse_error_message(e))),
     }
 }

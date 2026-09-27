@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{split}
 fn main() {
     let s = String_from("hello")
     let parts = split(s, String_from(","))

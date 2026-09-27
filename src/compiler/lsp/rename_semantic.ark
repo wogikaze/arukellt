@@ -1,5 +1,6 @@
 use std::text
 use std::json
+use std::prelude::{clone, substring, to_string}
 use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
@@ -8,7 +9,6 @@ use lsp::feature_request
 use lsp::positions
 use lsp::rename_workspace
 use lsp::responses
-
 fn null_result(id: i32) -> String {
     responses::build_null_response(id)
 }

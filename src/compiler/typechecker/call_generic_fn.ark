@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use typechecker::ast_access
 use typechecker::call_generic_common
 use typechecker::call_generic_fn_args
@@ -12,7 +13,6 @@ use typechecker::hashmap_api
 use typechecker::mono
 use typechecker::traits
 use typechecker::unify
-
 fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, fn_name: String) -> TypeInfo {
     let infer_env = infer_env_scope::borrow_generic_infer_env()
     let var_names = Vec::new<String>()

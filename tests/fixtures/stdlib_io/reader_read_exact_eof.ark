@@ -1,7 +1,7 @@
 use std::bytes
 use std::io
 use std::test
-
+use std::prelude::{contains}
 fn main() {
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 72)

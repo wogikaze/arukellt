@@ -1,3 +1,5 @@
+use std::prelude::{clone, ends_with, eq, starts_with, substring}
+use std::text
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -11,7 +13,6 @@ use mir::local_access
 use mir::opcodes
 use mir::types
 use mir_opt::translation_validation
-
 fn stdlib_resolve_validator_receiver_local(
     before: Vec<MirInst>,
     call_index: i32,
@@ -105,7 +106,7 @@ fn stdlib_resolve_validator_expected_target(
         return fallback
     }
 
-    let specialized = concat(clone(fallback), concat(String_from("__"), clone(suffix)))
+    let specialized = text::concat(clone(fallback), text::concat(String_from("__"), clone(suffix)))
     let specialized_id = signature_registry::signature_registry_lookup_by_mangled(
         registry,
         clone(specialized)

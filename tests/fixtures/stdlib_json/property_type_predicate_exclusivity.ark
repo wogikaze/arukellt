@@ -4,7 +4,7 @@
 // is_number, is_string, is_array, is_object returns true.
 use std::json
 use std::test
-
+use std::text
 fn check_exactly_one(v: json::JsonValue) {
     let mut count: i32 = 0
     if json::is_null(v) { count = count + 1 }
@@ -19,26 +19,26 @@ fn check_exactly_one(v: json::JsonValue) {
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => check_exactly_one(v),
-        Result::Err(e) => panic(concat("parse null failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse null failed: ", json::parse_error_message(e))),
     }
     match json::parse("true") {
         Result::Ok(v) => check_exactly_one(v),
-        Result::Err(e) => panic(concat("parse true failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse true failed: ", json::parse_error_message(e))),
     }
     match json::parse("42") {
         Result::Ok(v) => check_exactly_one(v),
-        Result::Err(e) => panic(concat("parse 42 failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse 42 failed: ", json::parse_error_message(e))),
     }
     match json::parse("\"str\"") {
         Result::Ok(v) => check_exactly_one(v),
-        Result::Err(e) => panic(concat("parse str failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse str failed: ", json::parse_error_message(e))),
     }
     match json::parse("[1]") {
         Result::Ok(v) => check_exactly_one(v),
-        Result::Err(e) => panic(concat("parse array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse array failed: ", json::parse_error_message(e))),
     }
     match json::parse("{\"a\":1}") {
         Result::Ok(v) => check_exactly_one(v),
-        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse object failed: ", json::parse_error_message(e))),
     }
 }

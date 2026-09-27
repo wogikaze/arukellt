@@ -1,10 +1,10 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use mir::opcodes
 use mir::value_types
 use wasm::constants
-
 fn store_result_action(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> i32 {
     if should_skip_store_precondition(inst) {
         return constants::STORE_ACTION_SKIP()

@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
@@ -8,7 +9,6 @@ use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::lower::loop_conditions
 use mir::value_types
-
 fn mir_emit_struct_iterator_payload(ctx: LowerCtx, opt_local: i32, iter_var: i32) {
     let payload_vt = ctx_api_local_types::ctx_local_vt(ctx, iter_var)
     if ctx_gc_enum::ctx_is_gc_target(ctx) {

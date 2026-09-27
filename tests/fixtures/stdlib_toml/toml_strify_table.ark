@@ -1,7 +1,7 @@
 use std::host::stdio
 use std::toml
 use std::test
-
+use std::prelude::{contains}
 fn main() {
     let t = toml::toml_parse("name = \"x\"\nport = 80")
     match t {

@@ -1,6 +1,6 @@
 use std::core::hash
 use std::test
-
+use std::prelude::{values}
 fn main() {
     // Same input always produces same hash
     let values = [1, 100, 999, -5, 0, 2147483647]

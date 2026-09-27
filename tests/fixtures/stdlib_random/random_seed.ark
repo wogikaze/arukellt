@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::random
-
+use std::prelude::{assert_eq}
 fn main() {
     let a = random::seeded_random(12345)
     let b = random::seeded_random(12345)

@@ -1,9 +1,9 @@
 use std::text
+use std::prelude::{eq}
 use component::type_node
 use component::wit_decl
 use component::wit_names
 use component::wit_types
-
 fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
     let mut out = ""
     for i in 0..len(decls) {
@@ -49,7 +49,7 @@ fn emit_wit_record_type_def(d: ComponentWitDecl) -> String {
         out = text::builder_append(out, ",\n")
         fi = fi + 1
     }
-    concat(out, "  }\n\n")
+    text::concat(out, "  }\n\n")
 }
 
 fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
@@ -70,7 +70,7 @@ fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
         out = text::builder_append(out, ",\n")
         fi = fi + 1
     }
-    concat(out, "  }\n\n")
+    text::concat(out, "  }\n\n")
 }
 
 fn wit_export_flags_type_name() -> String {
@@ -82,7 +82,7 @@ fn wit_export_resource_type_name() -> String {
 }
 
 fn wit_export_own_handle_type() -> String {
-    concat("own<", concat(wit_export_resource_type_name(), ">"))
+    text::concat("own<", text::concat(wit_export_resource_type_name(), ">"))
 }
 
 fn component_decl_is_perms_flags_shape(d: AstNode) -> bool {
@@ -118,7 +118,7 @@ fn emit_wit_flags_type_def(d: AstNode) -> String {
         out = text::builder_append(out, ",\n")
         fi = fi + 1
     }
-    concat(out, "  }\n\n")
+    text::concat(out, "  }\n\n")
 }
 
 fn emit_wit_enum_type_def(d: ComponentWitDecl) -> String {
@@ -143,5 +143,5 @@ fn emit_wit_enum_type_def(d: ComponentWitDecl) -> String {
         out = text::builder_append(out, ",\n")
         vi = vi + 1
     }
-    concat(out, "  }\n\n")
+    text::concat(out, "  }\n\n")
 }

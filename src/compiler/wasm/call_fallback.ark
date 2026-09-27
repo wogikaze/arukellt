@@ -1,9 +1,9 @@
+use std::prelude::{clone}
 use wasm::opcodes
 use wasm::writer_core
 use wasm::call_fallback_resolved
 use wasm::call_fallback_intrinsics
 use mir::inst_accessors_literals
-
 fn emit_fallback_call(
     w: WasmWriter,
     callee: String,

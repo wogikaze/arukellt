@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{parse_i64}
 fn main() {
     let r1: Result<i64, String> = parse_i64(String_from("42"))
     match r1 {

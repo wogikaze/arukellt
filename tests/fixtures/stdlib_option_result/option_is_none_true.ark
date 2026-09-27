@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_none}
 fn main() {
     test::assert_true(is_none(None))
     stdio::println("ok")

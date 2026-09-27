@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -10,7 +12,6 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_struct_get
 use mir::value_types
-
 fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
     let child_count = ast_node::node_child_count(node)
     if child_count < 2 {
@@ -130,9 +131,9 @@ fn tuple_struct_name_from_byte_size(byte_size_str: String) -> String {
     let mut i = 0
     while i < field_count {
         if i > 0 {
-            name = concat(name, ",")
+            name = text::concat(name, ",")
         }
-        name = concat(name, "i32")
+        name = text::concat(name, "i32")
         i = i + 1
     }
     name

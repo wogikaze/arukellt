@@ -1,6 +1,6 @@
 use std::bytes
 use std::host::stdio
-
+use std::prelude::{eq}
 fn main() {
     let b: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(b, 77)

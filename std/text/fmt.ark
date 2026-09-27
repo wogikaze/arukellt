@@ -4,6 +4,7 @@
 //! This module owns the formatting equivalents and monomorphic helpers for
 //! container types that cannot yet receive generic trait implementations.
 use std::core::convert
+use std::text
 
 /// Formats an `i32` as a decimal string.
 pub fn format_i32(n: i32) -> String {
@@ -91,7 +92,7 @@ pub fn format_debug<T: Debug>(value: T) -> String {
 /// `write!(buf, "{:?}", value)` equivalent — appends the `Debug` rendering of
 /// `value` to `buf` and returns the updated buffer.
 pub fn write_debug_to<T: Debug>(buf: String, value: T) -> String {
-    concat(buf, value.fmt_debug())
+    text::concat(buf, value.fmt_debug())
 }
 
 // ── Vec<T> Debug helpers ────────────────────────────────────────────────────

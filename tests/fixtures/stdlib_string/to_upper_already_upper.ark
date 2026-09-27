@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{to_upper}
 fn main() {
     let s = String_from("ALREADY UPPER")
     test::assert_eq_string(to_upper(s), "ALREADY UPPER")

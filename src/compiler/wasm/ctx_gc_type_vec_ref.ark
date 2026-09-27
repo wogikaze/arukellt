@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use wasm::ctx_record
 use wasm::sections_types_gc_phase7
-
 fn SelfEmitCtx_struct_ref_array_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc_phase7::gc_struct_ref_array_offset()
 }

@@ -1,3 +1,5 @@
+use std::prelude::{clone}
+use std::text
 use mir::opcodes
 use mir::lower::binary_method
 use mir::lower::binary_type_names
@@ -10,7 +12,6 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_types
 use mir::lower_kinds
 use mir::inst_op
-
 fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
     let ov_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
         ctx,
@@ -21,7 +22,7 @@ fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
     if can_use_trait_overload {
         let ov_method = binary_method::mir_unary_operator_method_name(op)
         if len(ov_method) > 0 {
-            let ov_callee = concat(clone(ov_type), concat("::", clone(ov_method)))
+            let ov_callee = text::concat(clone(ov_type), text::concat("::", clone(ov_method)))
             if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
                 return binary_emit::mir_emit_overloaded_unary_call(ctx, ov_callee)
             }

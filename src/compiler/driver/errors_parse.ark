@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use compiler::phases
 use driver::errors_phase
 use driver::result_record
-
 pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diagnostic>, warnings: Vec<Diagnostic>) -> CompileResult {
     let parse_error_count = len(errors)
     let mut result = result_record::CompileResult_new(false, phases::PHASE_PARSE(), parse_error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())

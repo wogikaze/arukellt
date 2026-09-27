@@ -1,9 +1,9 @@
+use std::prelude::{clone, eq, starts_with}
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::kinds
 use corehir::type_table
 use mir::value_types
-
 fn legacy_vt_from_mir_value_type(table: TypeTable, mvt: MirValueType) -> i32 {
     let repr = mir_value_type::mir_value_type_repr(mvt)
     let tid = mir_value_type::mir_value_type_type_id(mvt)

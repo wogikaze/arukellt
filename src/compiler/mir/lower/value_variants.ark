@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::ctx_api_variants
@@ -10,7 +11,6 @@ use mir::lower::core_names
 use mir::lower::ctx_types
 use mir::value_types
 use mir::lower::variants
-
 fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_PATH()) {
         let raw_name = ast_node::node_text(node)

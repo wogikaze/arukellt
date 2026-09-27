@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{clone}
 fn main() {
     let s = String_from("original")
     let c = clone(s)

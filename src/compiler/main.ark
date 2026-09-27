@@ -5,11 +5,11 @@
 use std::host::env
 use std::host::process
 use std::host::stdio
+use std::text
 use main::args_record
 use main::args_parse
 use main::dispatch
 use main::usage
-
 fn main() {
     let argv = env::args()
     let opts = args_parse::parse_args(argv)
@@ -22,7 +22,7 @@ fn main() {
         return
     }
     if args_record::cli_has_error(opts) {
-        stdio::eprintln(concat("error: ", args_record::cli_error_msg(opts)))
+        stdio::eprintln(text::concat("error: ", args_record::cli_error_msg(opts)))
         process::exit(2)
         return
     }

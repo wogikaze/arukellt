@@ -1,6 +1,7 @@
 use std::host::clock
 use std::host::stdio
-
+use std::prelude::{clone, i64_to_i32, to_string}
+use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override disabled on wasm32-gc until Option-from-env::var locals
     // validate; --time / report_flag remains the supported enable path.
@@ -29,9 +30,9 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
     }
     let ms = mir_lower_phase_ms(t_start, t_end)
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] lower.",
-            concat(clone(label), concat(": ", concat(to_string(ms), "ms")))
+            text::concat(clone(label), text::concat(": ", text::concat(to_string(ms), "ms")))
         )
     )
 }
@@ -41,9 +42,9 @@ fn mir_lower_gc_late_note(enabled: i32, late_structs: i32, late_enums: i32) {
         return
     }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] lower.gc_late: structs=",
-            concat(to_string(late_structs), concat(" enums=", to_string(late_enums)))
+            text::concat(to_string(late_structs), text::concat(" enums=", to_string(late_enums)))
         )
     )
 }
@@ -53,9 +54,9 @@ fn mir_lower_prefilter_note(enabled: i32, keep: i32, skip: i32) {
         return
     }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] lower.prefilter: would_keep=",
-            concat(to_string(keep), concat(" would_skip=", to_string(skip)))
+            text::concat(to_string(keep), text::concat(" would_skip=", to_string(skip)))
         )
     )
 }
@@ -65,9 +66,9 @@ fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
         return
     }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] lower.reachability_fns: before=",
-            concat(to_string(before), concat(" after=", to_string(after)))
+            text::concat(to_string(before), text::concat(" after=", to_string(after)))
         )
     )
 }
@@ -83,20 +84,20 @@ fn mir_lower_phase_mir_size(
         return
     }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] lower.reachability_blocks: before=",
-            concat(
+            text::concat(
                 to_string(blocks_before),
-                concat(" after=", to_string(blocks_after))
+                text::concat(" after=", to_string(blocks_after))
             )
         )
     )
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] lower.reachability_insts: before=",
-            concat(
+            text::concat(
                 to_string(insts_before),
-                concat(" after=", to_string(insts_after))
+                text::concat(" after=", to_string(insts_after))
             )
         )
     )

@@ -1,6 +1,7 @@
+use std::prelude::{byte_at, clone, substring}
+use std::text
 use analysis::ident_span
 use analysis::symbols
-
 struct IdentSlice {
     text: String,
     start: i32,
@@ -69,14 +70,14 @@ pub fn lookup_name_at_offset(text: String, offset: i32) -> String {
                 if len(qual) == 0 {
                     qual = part.text
                 } else {
-                    qual = concat(part.text, concat("::", qual))
+                    qual = text::concat(part.text, text::concat("::", qual))
                 }
                 qual_end = part.start
             }
         }
     }
     if len(qual) > 0 {
-        return concat(qual, concat("::", name))
+        return text::concat(qual, text::concat("::", name))
     }
     name
 }

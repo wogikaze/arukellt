@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use typechecker::contract_mono
 use typechecker::contract_typed_fn
 use typechecker::contract_types_record
-
 struct TypeCheckResult {
     error_count: i32,
     errors: Vec<String>,

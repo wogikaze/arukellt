@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     let fields = json::json_obj_new()
     push(fields, json::json_field("name", json::json_str("alice")))
@@ -16,6 +16,6 @@ fn main() {
             },
             None => panic("expected key name"),
         },
-        Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("re-parse failed: ", json::parse_error_message(e))),
     }
 }

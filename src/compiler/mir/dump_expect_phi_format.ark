@@ -1,10 +1,10 @@
 use std::host::process
 use std::host::stdio
 use std::text
+use std::prelude::{clone, eq}
 use mir::block_phi_access
 use mir::dump_format_phi
 use mir::function_block_queries
-
 fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected: String) {
     if block_id < 0 || block_id >= function_block_queries::MirFunction_block_count(f) {
         stdio::eprintln("phi format check failed: block out of range")

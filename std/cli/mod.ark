@@ -4,6 +4,8 @@
 //! `Vec<String>` (typically produced by `env::args()` or `parse_args()`).
 //! Functions without an explicit `args` parameter read from the process
 //! argument vector directly.
+use std::prelude::{args, slice, values}
+use std::text
 /// Returns the full process argument vector (excluding argv[0]).
 pub fn parse_args() -> Vec<String> {
     __intrinsic_args()
@@ -61,7 +63,7 @@ pub fn flag(args: Vec<String>, name: String) -> bool {
 /// - `--flag=value`  (embedded `=`)
 pub fn option(args: Vec<String>, name: String) -> Option<String> {
     let n = len(args)
-    let prefix = concat(name, "=")
+    let prefix = text::concat(name, "=")
     let prefix_len = len(prefix)
     let mut i = 0
     while i < n {

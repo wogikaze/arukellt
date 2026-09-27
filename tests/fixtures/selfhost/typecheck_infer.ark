@@ -2,7 +2,7 @@
 // Exercises: int literal → i32, float literal → f64, binary arithmetic,
 //            let binding inference, bool literal → bool, chained binops.
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }

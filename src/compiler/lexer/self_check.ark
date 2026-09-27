@@ -1,25 +1,25 @@
 use std::host::stdio
+use std::text
 use lexer::tokens
 use lexer::names
 use lexer::scan
 use lexer::token_state
-
 fn print_token_fields(kind: i32, text: String, int_val: i32, float_val: f64) {
     let kind_str = names::token_kind_name(kind)
     if kind == tokens::TK_IDENT() || kind == tokens::TK_STRING() || kind == tokens::TK_ERROR() || kind == tokens::TK_RESERVED() {
-        stdio::println(concat(concat(concat(kind_str, "("), text), ")"))
+        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), text), ")"))
         return
     }
     if kind == tokens::TK_INT() {
-        stdio::println(concat(concat(concat(kind_str, "("), i32_to_string(int_val)), ")"))
+        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), i32_to_string(int_val)), ")"))
         return
     }
     if kind == tokens::TK_FLOAT() {
-        stdio::println(concat(concat(concat(kind_str, "("), f64_to_string(float_val)), ")"))
+        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), f64_to_string(float_val)), ")"))
         return
     }
     if kind == tokens::TK_BOOL() {
-        stdio::println(concat(concat(concat(kind_str, "("), text), ")"))
+        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), text), ")"))
         return
     }
     if kind == tokens::TK_NEWLINE() {

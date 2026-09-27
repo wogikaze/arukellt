@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{repeat}
 fn main() {
     test::assert_eq_string(repeat(String_from("ab"), 3), "ababab")
     test::assert_eq_string(repeat(String_from("x"), 5), "xxxxx")

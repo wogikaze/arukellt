@@ -1,5 +1,7 @@
 use std::host::clock
 use std::host::stdio
+use std::prelude::{clone, i64_to_i32, to_string}
+use std::text
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_identity
@@ -22,7 +24,6 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::linear_gc_runtime
-
 fn emit_function_inst_count(f: MirFunction) -> i32 {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut total = 0
@@ -46,17 +47,17 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
         return false
     }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] emit.slow_fn: idx=",
-            concat(
+            text::concat(
                 to_string(idx),
-                concat(
+                text::concat(
                     " insts=",
-                    concat(
+                    text::concat(
                         to_string(emit_function_inst_count(f)),
-                        concat(
+                        text::concat(
                             " ms=",
-                            concat(to_string(ms), concat(" ", function_identity::MirFunction_name(f)))
+                            text::concat(to_string(ms), text::concat(" ", function_identity::MirFunction_name(f)))
                         )
                     )
                 )

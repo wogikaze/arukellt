@@ -1,7 +1,7 @@
 use std::json
+use std::prelude::{clone}
 use lsp::framing
 use lsp::rename_semantic
-
 pub fn handle_prepare_rename(state: LspState, body: String) {
     let id = json::json_get_int(clone(body), String_from("id"))
     framing::append_framed(state, rename_semantic::build_prepare_rename_response_for_request(state, clone(body), id))

@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq}
 use compiler::session_parse
 use lsp::state_record
 use lsp::symbol_index_extract
 use lsp::symbol_index_record
-
 pub fn symbol_index_clear_project(state: LspState) {
     state.symbol_symbols = Vec::new<IndexedSymbol>()
     state.symbol_indexed_uris = Vec::new<String>()

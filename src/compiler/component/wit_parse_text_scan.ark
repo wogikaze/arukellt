@@ -3,6 +3,7 @@
 // full compiler compile, which left String wrappers as drop+unreachable
 // (`expected ref, found i32` at wit_trim_txt).
 
+use std::prelude::{byte_at, clone, index_of, substring}
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
     let n = len(s)
     let mut i = from

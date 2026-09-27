@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -7,7 +8,6 @@ use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 use mir::opcodes as mir_opcodes
-
 fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) {
     if !result_on_stack {
         return

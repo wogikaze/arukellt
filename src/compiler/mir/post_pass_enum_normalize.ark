@@ -12,6 +12,7 @@ use mir::typed_mir_sync_module
 // When a local receives values from more than one enum variant slot,
 // clear variant_slot and keep an open enum type_name so local declaration
 // (enum_open) matches stores without ref.cast to a specific variant.
+use std::prelude::{clone, contains, eq, starts_with}
 fn mir_function_normalize_multi_variant_locals(f: MirFunction, table: TypeTable) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
     // normalize_local_to_open_enum only retypes locals; it adds no writes, so

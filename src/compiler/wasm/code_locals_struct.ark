@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
+use std::text
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
@@ -87,8 +89,8 @@ fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool
     let mut vi = 0
     while vi < len(names) {
         let variant = get_unchecked(names, vi)
-        if starts_with(clone(variant), concat(clone(head), String_from("::"))) ||
-        contains(clone(variant), concat(String_from("::"), concat(clone(head), String_from("::")))) {
+        if starts_with(clone(variant), text::concat(clone(head), String_from("::"))) ||
+        contains(clone(variant), text::concat(String_from("::"), text::concat(clone(head), String_from("::")))) {
             return true
         }
         vi = vi + 1

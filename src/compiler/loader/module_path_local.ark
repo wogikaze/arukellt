@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq, substring}
+use std::text
 pub fn path_parent_dir(path: String) -> String {
     let n = len(path)
     let mut last_slash = 0 - 1
@@ -28,22 +30,22 @@ pub fn module_path_to_file_stem(path: String) -> String {
     let mut seg_start = 0
     while i < n {
         if byte_at(path, i) == 58 && i + 1 < n && byte_at(path, i + 1) == 58 {
-            result = concat(clone(result), concat(substring(clone(path), seg_start, i), "/"))
+            result = text::concat(clone(result), text::concat(substring(clone(path), seg_start, i), "/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    concat(clone(result), substring(clone(path), seg_start, n))
+    text::concat(clone(result), substring(clone(path), seg_start, n))
 }
 
 pub fn module_stem_to_mod_path(base_dir: String, stem: String) -> String {
-    concat(clone(base_dir), concat("/", concat(clone(stem), "/mod.ark")))
+    text::concat(clone(base_dir), text::concat("/", text::concat(clone(stem), "/mod.ark")))
 }
 
 pub fn module_stem_to_file_path(base_dir: String, stem: String) -> String {
-    concat(clone(base_dir), concat("/", concat(clone(stem), ".ark")))
+    text::concat(clone(base_dir), text::concat("/", text::concat(clone(stem), ".ark")))
 }
 test mod "local_path" {
     test "parent" { assert(eq(path_parent_dir("a/b/c.ark"), "a/b")) }

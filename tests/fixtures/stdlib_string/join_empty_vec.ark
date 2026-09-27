@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{is_empty, join}
 fn main() {
     let parts: Vec<String> = Vec::new<String>()
     let r = join(parts, String_from(","))

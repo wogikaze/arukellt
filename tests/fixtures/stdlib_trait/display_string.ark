@@ -1,6 +1,6 @@
 use std::core::convert
 use std::test
-
+use std::prelude::{to_string}
 fn main() {
     test::assert_eq_string(to_string(String_from("hello")), "hello")
     test::assert_eq_string(to_string(String_from("")), "")

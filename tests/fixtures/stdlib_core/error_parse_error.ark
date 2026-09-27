@@ -1,6 +1,6 @@
 use std::core::error
 use std::test
-
+use std::prelude::{contains}
 fn main() {
     let e = Error::ParseError { kind: "integer", input: "abc" }
     let msg = error::error_message(e)

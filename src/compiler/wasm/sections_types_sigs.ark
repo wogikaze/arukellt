@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::module_wit_imports
 use mir::function_block_queries
 use mir::block_inst_access
@@ -8,7 +9,6 @@ use wasm::emit_target
 use wasm::sections_types_sigs_detail
 use wasm::sections_exports
 use mir::opcodes as mir_opcodes
-
 fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let mut i = 0
     while i < module_wit_imports::wit_import_count(bindings) {

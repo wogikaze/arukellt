@@ -3,7 +3,7 @@
 //            loop { break } with plain exit,
 //            break with no value (loop terminated by condition).
 use std::host::stdio
-
+use std::prelude::{to_string}
 fn sum_range(n: i32) -> i32 {
     let mut total = 0
     for i in 0..n {

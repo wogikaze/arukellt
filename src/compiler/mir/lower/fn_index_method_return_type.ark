@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::lower::mono_suffix_parse
 use mir::lower_kinds
 use mir::type_contracts
 use mir::value_types
-
 fn method_generic_return_type_from_name(type_name: String, has_mono_variants: bool) -> TypeInfo {
     if len(type_name) == 0 && has_mono_variants {
         return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), "T", Vec::new<TypeInfo>())

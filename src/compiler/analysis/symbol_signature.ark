@@ -1,7 +1,7 @@
 use std::text
+use std::prelude::{clone, eq}
 use parser::ast
 use parser::kinds
-
 fn AT_NK_FN_DECL() -> i32 { kinds::NK_FN_DECL() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }
 fn AT_NK_STRUCT_DECL() -> i32 { kinds::NK_STRUCT_DECL() }
@@ -67,12 +67,12 @@ pub fn render_signature(decl: AstNode) -> String {
         }
         sig = text::builder_append(sig, ")")
         let ret = fn_return_type_text(decl)
-        if len(ret) > 0 { sig = text::builder_append(sig, concat(" -> ", ret)) }
+        if len(ret) > 0 { sig = text::builder_append(sig, text::concat(" -> ", ret)) }
         return sig
     }
-    if node_is_struct_decl(decl) { return concat("struct ", node_text(decl)) }
-    if node_is_enum_decl(decl) { return concat("enum ", node_text(decl)) }
-    if node_is_let(decl) { return concat("let ", node_text(decl)) }
+    if node_is_struct_decl(decl) { return text::concat("struct ", node_text(decl)) }
+    if node_is_enum_decl(decl) { return text::concat("enum ", node_text(decl)) }
+    if node_is_let(decl) { return text::concat("let ", node_text(decl)) }
     node_text(decl)
 }
 
@@ -80,7 +80,7 @@ pub fn enrich_signature_for_decl(decl: AstNode, name: String, kind: i32, base_si
     if kind == AT_NK_LET() {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return concat(concat("let ", clone(name)), concat(": ", ty))
+            return text::concat(text::concat("let ", clone(name)), text::concat(": ", ty))
         }
     }
     base_sig
@@ -90,7 +90,7 @@ pub fn use_site_signature(decl: AstNode, name: String) -> String {
     if node_is_let(decl) {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return concat(concat(clone(name), ": "), ty)
+            return text::concat(text::concat(clone(name), ": "), ty)
         }
     }
     String_new()

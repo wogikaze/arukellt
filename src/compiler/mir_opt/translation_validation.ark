@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_inst_access
@@ -7,7 +8,6 @@ use mir::inst_accessors_shape
 use mir::inst_draft
 use mir::inst_record
 use mir::types
-
 fn mir_translation_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
     type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(a)) ==
     type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&

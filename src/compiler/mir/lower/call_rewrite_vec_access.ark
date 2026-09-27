@@ -1,7 +1,8 @@
+use std::prelude::{clone, contains, starts_with}
+use std::text
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::mono_suffix_parse
-
 fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_get2 = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
@@ -39,5 +40,5 @@ fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i
     // Infer only for rewrite decisions. Do not overwrite the receiver local:
     // a wrong mono suffix (get_unchecked__String) would poison Vec<Struct>
     // params as vec:String and break structref array.get casts (wit_find).
-    concat(String_from("vec:"), mono_suffix)
+    text::concat(String_from("vec:"), mono_suffix)
 }

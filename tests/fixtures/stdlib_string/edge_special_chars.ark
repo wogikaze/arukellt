@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{contains}
 fn main() {
     let s = String_from("a.b,c!d@e")
     test::assert_eq_i32(len(s), 9)

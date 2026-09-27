@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{map_i32_i32}
 fn identity(x: i32) -> i32 {
     x
 }

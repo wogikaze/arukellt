@@ -1,11 +1,12 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use std::prelude::{clone}
+use std::text
 use analysis
 use dap
 use lsp
 use main::args_record
-
 pub fn cmd_ide_analyze(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     let read_result = fs::read_to_string(clone(input_file))
@@ -15,7 +16,7 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
             stdio::print(analysis::snapshot_summary(snap))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat("error reading input: ", e))
+            stdio::eprintln(text::concat("error reading input: ", e))
             process::exit(1)
         },
     }
@@ -33,7 +34,7 @@ pub fn cmd_dap(opts: CliOptions) {
             stdio::print(dap::run_dap_session(text))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat("error reading input: ", e))
+            stdio::eprintln(text::concat("error reading input: ", e))
             process::exit(1)
         },
     }
@@ -51,7 +52,7 @@ pub fn cmd_lsp(opts: CliOptions) {
             stdio::print(lsp::run_session(text))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat("error reading input: ", e))
+            stdio::eprintln(text::concat("error reading input: ", e))
             process::exit(1)
         },
     }

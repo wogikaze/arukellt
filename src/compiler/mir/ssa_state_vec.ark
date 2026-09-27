@@ -1,3 +1,4 @@
+use std::prelude::{values}
 fn mir_i32_vec_filled(count: i32, value: i32) -> Vec<i32> {
     let out = Vec::new<i32>()
     let mut i = 0

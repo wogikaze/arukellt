@@ -1,7 +1,7 @@
+use std::prelude::{byte_at}
 use corehir::expr_factory
 use corehir::kinds
 use corehir::value_types
-
 fn corehir_expr_ident(text: String, span_start: i32) -> CoreHirExpr {
     expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_IDENT(), text, 0, 0.0, value_types::VT_I32(), String_new(), span_start, Vec::new<i32>())
 }

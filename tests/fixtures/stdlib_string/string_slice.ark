@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{slice}
 fn main() {
     let s: String = String_from("hello world")
     let sub: String = slice(s, 0, 5)

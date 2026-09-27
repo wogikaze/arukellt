@@ -3,10 +3,10 @@
 // structured JSON data (nested objects, arrays, scalars).
 use std::host::stdio
 use std::json
-
+use std::text
 fn main() {
     // Build a JSON object string
-    let json_str = concat(
+    let json_str = text::concat(
         "{\"name\":\"bench\",\"count\":42,\"active\":true,\"tags\":[\"a\",\"b\",\"c\"],\"meta\":{\"v\":1}}",
         ""
     )

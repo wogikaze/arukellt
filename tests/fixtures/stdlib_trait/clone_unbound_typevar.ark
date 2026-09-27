@@ -4,7 +4,7 @@
 // unbound `T` the method form must preserve the receiver's concrete type
 // instead of resolving to the String-shaped prelude signature.
 use std::host::stdio
-
+use std::prelude::{clone}
 struct Pair {
     a: i32,
     b: i32,

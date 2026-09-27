@@ -1,5 +1,5 @@
+use std::prelude::{clone, eq}
 use mir::lower::ctx_struct_storage
-
 fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut si = 0

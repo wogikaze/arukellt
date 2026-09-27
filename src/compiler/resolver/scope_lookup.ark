@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use resolver::scope_record
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
-
 fn lookup(ctx: ResolveCtx, name: String) -> i32 {
     let sym = find_symbol(ctx, name)
     if scope_stack_symbols::Symbol_decl_index(sym) >= 0 {

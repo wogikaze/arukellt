@@ -1,3 +1,4 @@
+use std::prelude::{clone, contains, starts_with}
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
@@ -6,7 +7,6 @@ use mir::lower::ctx_types
 use mir::inst_structured_control
 use mir::inst_local_set
 use mir::value_types
-
 fn mir_begin_if_expr(ctx: LowerCtx) -> i32 {
     let result = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_structured_control::MirInst_if())

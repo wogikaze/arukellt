@@ -1,7 +1,7 @@
+use std::prelude::{clone}
 use resolver::ast_access
 use resolver::ast_decl_predicates
 use resolver::paths
-
 fn push_import_decl_paths(paths: Vec<String>, decl: AstNode) {
     let num_children = ast_access::node_child_count(decl)
     let decl_path = ast_access::node_text(decl)

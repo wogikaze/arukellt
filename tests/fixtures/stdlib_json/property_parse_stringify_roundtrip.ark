@@ -4,7 +4,7 @@
 // of a parsed value produces the same stringified text.
 use std::json
 use std::test
-
+use std::text
 fn check_roundtrip(raw: String) {
     match json::parse(raw) {
         Result::Ok(v) => {
@@ -14,10 +14,10 @@ fn check_roundtrip(raw: String) {
                     let s2 = json::stringify(v2)
                     test::assert_eq_string(s1, s2)
                 },
-                Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+                Result::Err(e) => panic(text::concat("re-parse failed: ", json::parse_error_message(e))),
             }
         },
-        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
     }
 }
 

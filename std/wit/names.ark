@@ -10,6 +10,7 @@
 //! - `pascal_case`   — kebab-case / snake_case → PascalCase
 
 use std::text
+use std::prelude::{byte_at, clone, substring}
 
 /// Convert an Arukellt identifier (snake_case or PascalCase) to WIT
 /// kebab-case.
@@ -112,7 +113,7 @@ pub fn capitalize_first(name: String) -> String {
     }
     let first = byte_at(name, 0)
     if first >= 97 && first <= 122 {
-        concat(char_to_string(first - 32), substring(name, 1, len(name)))
+        text::concat(char_to_string(first - 32), substring(name, 1, len(name)))
     } else {
         clone(name)
     }

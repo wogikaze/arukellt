@@ -1,9 +1,9 @@
 use std::text
+use std::prelude::{byte_at, clone, contains, eq, substring}
 use component::constants_wit_values
 use mir::function_return_view
 use mir::local_access
 use mir::value_types
-
 fn comp_export_name(name: String) -> String {
     let mut out = String_from("")
     let n = len(name)

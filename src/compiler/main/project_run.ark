@@ -1,6 +1,8 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use std::prelude::{clone, eq, substring, to_string}
+use std::text
 use compiler::session_parse
 use driver::config_record
 use driver::file
@@ -10,7 +12,6 @@ use main::compile_core
 use main::output
 use parser::ast
 use parser::kinds as parser_kinds
-
 fn build_run_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
     compile_core::configure_target_axes(opts, config, "wasm")
@@ -43,21 +44,21 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
     if base_len > 4 {
         let ext = substring(base, base_len - 4, base_len)
         if eq(ext, ".ark") {
-            return concat(substring(base, 0, base_len - 4), ".wasm")
+            return text::concat(substring(base, 0, base_len - 4), ".wasm")
         }
     }
-    concat(clone(base), ".wasm")
+    text::concat(clone(base), ".wasm")
 }
 
 fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
     let write_result = fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
-            stdio::eprintln(concat("compiled ", concat(clone(input_file), concat(" -> ", clone(out_path)))))
+            stdio::eprintln(text::concat("compiled ", text::concat(clone(input_file), text::concat(" -> ", clone(out_path)))))
             stdio::eprintln("run: execute with `wasmtime <output.wasm>`")
         },
         Result::Err(e) => {
-            stdio::eprintln(concat("error writing output: ", e))
+            stdio::eprintln(text::concat("error writing output: ", e))
             process::exit(1)
         },
     }
@@ -103,20 +104,20 @@ fn exit_test_failure() {
 }
 
 fn print_test_start(input_file: String) {
-    stdio::eprintln(concat("testing ", input_file))
+    stdio::eprintln(text::concat("testing ", input_file))
 }
 
 fn print_test_pass(input_file: String, test_count: i32) {
-    stdio::println(concat("  PASS  ", concat(input_file, concat("  (", concat(to_string(test_count), " tests)")))))
+    stdio::println(text::concat("  PASS  ", text::concat(input_file, text::concat("  (", text::concat(to_string(test_count), " tests)")))))
 }
 
 fn print_test_fail(input_file: String, result: CompileResult) {
-    stdio::println(concat("  FAIL  ", clone(input_file)))
+    stdio::println(text::concat("  FAIL  ", clone(input_file)))
     let err_count = result_record::compile_result_error_count(result)
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln(concat("    ", clone(msg)))
+        stdio::eprintln(text::concat("    ", clone(msg)))
         i = i + 1
     }
 }
@@ -194,15 +195,15 @@ fn make_test_prefix(prefix: String, name: String) -> String {
     if len(clone(prefix)) == 0 {
         return name
     }
-    concat(prefix, concat("::", name))
+    text::concat(prefix, text::concat("::", name))
 }
 
 fn print_test_entry(prefix: String, name: String) {
     if len(clone(prefix)) == 0 {
-        stdio::eprintln(concat("  test  ", name))
+        stdio::eprintln(text::concat("  test  ", name))
         return
     }
-    stdio::eprintln(concat("  test  ", concat(prefix, concat("::", name))))
+    stdio::eprintln(text::concat("  test  ", text::concat(prefix, text::concat("::", name))))
 }
 
 // ADR-041 Phase 1: in-file test adoption should not fail on pre-existing stdlib lint.

@@ -1,11 +1,11 @@
 use std::host::stdio
-
+use std::prelude::{byte_at}
 fn count_chars(s: String, c: i32) -> i32 {
     let n: i32 = len(s)
     let mut count: i32 = 0
     let mut i: i32 = 0
     while i < n {
-        if char_at(s, i) == c {
+        if byte_at(s, i) == c {
             count = count + 1
         }
         i = i + 1

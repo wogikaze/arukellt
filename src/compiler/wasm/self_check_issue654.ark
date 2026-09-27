@@ -1,7 +1,7 @@
 // Self-check for #654 — WIT import Wasm emit wiring.
 
+use std::prelude::{eq}
 use resolver::wit_import_bind
-
 fn issue654_assert_wit_emit_sources() -> String {
     let bindings = Vec::new<WitImportBinding>()
     push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", "host::add"))

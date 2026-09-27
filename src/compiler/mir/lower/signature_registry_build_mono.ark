@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
@@ -12,7 +13,6 @@ use mir::lower::signature_registry_entry
 use mir::mono
 use corehir::core_op_id
 use corehir::type_contracts
-
 fn sig_reg_index_mono_variants(
     table: TypeTable,
     registry: SignatureRegistry,

@@ -1,3 +1,4 @@
+use std::prelude::{eq}
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::scope
@@ -6,7 +7,6 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::closure_capture
 use typechecker::types
-
 fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let closure_scope = scope::scope_child(scope)
     let child_count = ast_access::node_child_count(node)

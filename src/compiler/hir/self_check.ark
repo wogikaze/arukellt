@@ -1,9 +1,9 @@
+use std::prelude::{eq}
 use hir::kinds
 use hir::items
 use hir::node_record
 use hir::type_contracts
 use hir::types_format
-
 pub fn trait_hir_self_check() -> String {
     let foo_trait = type_contracts::HirType_named(commands::TY_TRAIT(), "Foo")
     let self_ty = type_contracts::HirType_named(commands::TY_STRUCT(), "MyStruct")

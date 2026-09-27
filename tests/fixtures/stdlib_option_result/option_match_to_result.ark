@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_err, is_ok}
 fn option_to_result(o: Option<i32>) -> Result<i32, String> {
     match o {
         Option::Some(v) => Ok(v),

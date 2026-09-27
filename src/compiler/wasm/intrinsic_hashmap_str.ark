@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use wasm::intrinsic_hashmap_str_new
 use wasm::intrinsic_hashmap_str_meta
 use wasm::intrinsic_hashmap_str_slot
-
 fn try_emit_hashmap_str_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) -> bool {
     if try_emit_hm_si_call(w, clone(callee), inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
         return true

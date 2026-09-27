@@ -24,7 +24,7 @@
 //! Each node occupies `256 + 2` slots.
 
 use std::collections::vec
-
+use std::prelude::{byte_at}
 const HEADER_LEN: i32 = 3
 const CHILDREN_PER_NODE: i32 = 256
 const NODE_SLOTS: i32 = 258   // 256 children + has_value + value

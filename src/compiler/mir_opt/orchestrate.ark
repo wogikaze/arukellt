@@ -6,6 +6,7 @@
 // The wasm32-gc path gates loop_unroll and licm until they are independently
 // verified GC-safe. gc_hint is enabled on all targets.
 
+use std::prelude::{clone}
 use mir::module_functions
 use mir::types
 use mir_opt::async_lower
@@ -14,7 +15,6 @@ use mir_opt::licm
 use mir_opt::loop_unroll
 use mir_opt::stdlib_resolve_validated
 use mir_opt::target_gate
-
 fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     let m = async_lower::async_lower_optimize_module(m)
     // stdlib call expansion is intentionally disabled until an independent

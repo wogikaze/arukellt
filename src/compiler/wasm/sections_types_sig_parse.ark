@@ -1,3 +1,5 @@
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::text
 fn parse_sub_super_offset(sig: String) -> i32 {
     let plus = find_type_sig_char(sig, 43)
     if plus < 0 {
@@ -36,9 +38,9 @@ fn parse_sub_struct_sig(sig: String) -> String {
         let body_start = s_start + 3
         let at = find_type_sig_char(sig, 64)
         if at >= body_start {
-            return concat("GS_", substring(clone(sig), body_start, at))
+            return text::concat("GS_", substring(clone(sig), body_start, at))
         }
-        return concat("GS_", substring(clone(sig), body_start, len(sig)))
+        return text::concat("GS_", substring(clone(sig), body_start, len(sig)))
     }
     "GS_f0_i32"
 }

@@ -1,9 +1,9 @@
+use std::prelude::{clone, eq}
 use typechecker::kinds
 use typechecker::ast_type_predicates
 use typechecker::ast_access
 use typechecker::contract_type_mutation
 use typechecker::type_names
-
 fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
     if ast_access::node_kind_is(ann, kinds::NK_TYPE_TUPLE()) {
         return resolve_type_tuple_node_generic(ann, type_params)

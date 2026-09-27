@@ -1,3 +1,4 @@
+use std::prelude::{byte_at}
 fn corehir_int_lit_is_base_prefixed(text: String, n: i32) -> bool {
     if n >= 2 && byte_at(text, 0) == 48 {
         let marker = byte_at(text, 1)

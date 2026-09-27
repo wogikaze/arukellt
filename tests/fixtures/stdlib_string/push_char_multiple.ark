@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq, push_char}
 fn main() {
     let mut s = String_from("hi")
     push_char(s, '!')

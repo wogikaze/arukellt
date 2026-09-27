@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{contains}
 pub fn cmd_targets() {
     stdio::println("Available targets:")
     stdio::println(target_contract_generated::target_display_line("wasm32"))

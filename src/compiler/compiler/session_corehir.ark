@@ -5,6 +5,7 @@ use mir
 // program. Both the driver pipeline and LSP analysis go through these
 // functions, so compile and analyze share one build_checked_program path.
 
+use std::prelude::{clone, eq}
 fn session_lower_mir_fallback(all_decls: Vec<AstNode>) -> MirLowerFallbackSource {
     let legacy_decls = Vec::new<MirLowerLegacyDecl>()
     for i in 0..len(all_decls) {

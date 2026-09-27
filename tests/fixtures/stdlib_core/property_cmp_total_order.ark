@@ -2,7 +2,7 @@
 // Less, Equal, Greater holds, and cmp(a,b) == Equal iff a == b.
 use std::core::cmp
 use std::test
-
+use std::prelude::{values}
 fn check_pair(a: i32, b: i32) {
     let result = a.cmp(b)
     // Exactly one variant

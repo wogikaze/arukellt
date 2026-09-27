@@ -1,4 +1,6 @@
 use std::host::clock
+use std::prelude::{clone, to_string}
+use std::text
 use compiler::phases
 use driver::result_record
 use driver::config_record
@@ -10,7 +12,6 @@ use driver::errors
 use driver::errors_parse
 use parser::program
 use component
-
 fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
     let t0 = clock::monotonic_now()
     let parsed = run_lex_parse(clone(source), config, t0)
@@ -52,7 +53,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
         // Canonical i64 zeros. Stub overlay (fields→i32) narrows `0i64`→`0`
         // in scripts/selfhost/checks.py so bootstrap still type-checks.
         return frontend_stop(
-            result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), " lexer error(s)")),
+            result_record::CompileResult_err(phases::PHASE_LEX(), text::concat(to_string(lex_errors), " lexer error(s)")),
             t0,
             0i64,
             0i64,

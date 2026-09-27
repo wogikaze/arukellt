@@ -1,10 +1,11 @@
+use std::prelude::{clone, eq}
+use std::text
 use resolver::scope_lookup
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::scope_define
 use resolver::paths
 use resolver::ctx_record
-
 fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
     let existing_use = scope_lookup::lookup(ctx, clone(use_path))
@@ -90,6 +91,6 @@ fn register_use_func_alias(ctx: ResolveCtx, child_path: String, child_short: Str
     if len(clone(parent_short)) == 0 {
         return
     }
-    let alias_target = concat(clone(parent_short), concat("::", clone(child_short)))
+    let alias_target = text::concat(clone(parent_short), text::concat("::", clone(child_short)))
     ctx_record::resolve_ctx_add_use_alias(ctx, child_short, alias_target)
 }

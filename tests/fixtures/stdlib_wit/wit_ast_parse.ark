@@ -3,7 +3,7 @@ use std::host::stdio
 use std::wit::ast
 use std::wit::parser
 use std::wit::types
-
+use std::prelude::{contains, eq}
 fn main() {
     // Parse a simple world declaration
     let src = String_from("world hello { }")

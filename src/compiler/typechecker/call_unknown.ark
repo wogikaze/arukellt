@@ -1,3 +1,5 @@
+use std::prelude::{clone, to_string}
+use std::text
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::builtins
@@ -5,7 +7,6 @@ use typechecker::call_args
 use typechecker::contract_type_access
 use typechecker::scope
 use typechecker::unify
-
 fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, fn_ty: TypeInfo) -> TypeInfo {
     let type_arg_count = contract_type_access::TypeInfo_type_arg_count(fn_ty)
     if type_arg_count < 1 {
@@ -16,9 +17,9 @@ fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig
     if actual_arg_count != expected_arg_count {
         unify::type_error_bad_arity(
             env,
-            concat(
+            text::concat(
                 String_from("wrong number of arguments for local function value: expected "),
-                concat(to_string(expected_arg_count), concat(String_from(", found "), to_string(actual_arg_count)))
+                text::concat(to_string(expected_arg_count), text::concat(String_from(", found "), to_string(actual_arg_count)))
             )
         )
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, actual_arg_count)

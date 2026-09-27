@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -11,7 +12,6 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_op
 use mir::value_types
-
 fn emit_hof_map_step(ctx: LowerCtx, fn_name: String, result_local: i32, elem_local: i32, mapped_type: i32, push_name: String) {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(elem_local))
     let mapped_local = ctx_api_local_alloc::ctx_fresh_local(ctx, mapped_type)

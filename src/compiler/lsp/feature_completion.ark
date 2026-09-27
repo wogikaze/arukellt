@@ -1,8 +1,8 @@
 use std::json
+use std::prelude::{clone}
 use lsp::completion
 use lsp::feature_request
 use lsp::framing
-
 pub fn handle_completion(state: LspState, body: String) {
     let id = json::json_get_int(clone(body), String_from("id"))
     let req = feature_request::read_text_position_request(state, clone(body))

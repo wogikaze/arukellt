@@ -1,9 +1,9 @@
+use std::prelude::{clone}
 use mir::function_factory
 use mir::source_location_record
 use mir::lower::ctx_types
 use wasm::emit_target
 use collections::name_index
-
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
     LowerCtx_new_for_target(m, String_new(), String_new(), Vec::new<SourceLocation>())
 }

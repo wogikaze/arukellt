@@ -1,10 +1,10 @@
+use std::prelude::{byte_at, clone, eq, substring}
 use mir::function_identity
 use wasm::call_resolve
 use wasm::ctx_record
 use wasm::ctx_vec_locals
 use wasm::hash_aliases
 use collections::name_index
-
 fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
     let count = ctx_vec_locals::SelfEmitCtx_vec_local_count(ctx)
     let mut i = 0

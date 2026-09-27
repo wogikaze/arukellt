@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone, eq}
 use lexer::error_codes
-
 fn classify_lex_error_text(text: String) -> i32 {
     let first = if len(text) > 0 { byte_at(text, 0) } else { 0 }
     if len(text) == 1 && first != 0 {

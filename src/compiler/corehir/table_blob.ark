@@ -1,6 +1,7 @@
 // Hex-packed i32 tables for generated CoreOp data.
 // `_at` indexes a static chunk; it does not rebuild a Vec.
 
+use std::prelude::{byte_at}
 fn table_blob_hex_nibble(code: i32) -> i32 {
     if code >= 48 && code <= 57 {
         return code - 48

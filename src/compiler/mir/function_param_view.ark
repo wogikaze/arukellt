@@ -1,7 +1,7 @@
+use std::prelude::{byte_at, clone, starts_with, substring}
 use mir::function_core_record
 use mir::local_record
 use mir::types_function
-
 fn MirFunction_param_count(f: MirFunction) -> i32 {
     len(f.params)
 }

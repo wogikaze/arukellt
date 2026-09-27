@@ -2,7 +2,7 @@
 // `std::wit::names::kebab_name` edges in a full compiler compile.
 
 use std::text
-
+use std::prelude::{byte_at, clone, eq, substring}
 fn wit_kebab_name(name: String) -> String {
     let mut out = String_from("")
     let n = len(name)
@@ -36,7 +36,7 @@ fn wit_export_name(name: String) -> String {
 fn wit_type_name(name: String) -> String {
     let kebab = wit_kebab_name(name)
     if wit_type_name_is_reserved(clone(kebab)) {
-        return concat(String_from("ark-"), kebab)
+        return text::concat(String_from("ark-"), kebab)
     }
     kebab
 }

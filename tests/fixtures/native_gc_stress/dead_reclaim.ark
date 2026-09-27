@@ -1,8 +1,10 @@
+use std::prelude::{eq}
+use std::text
 fn main() -> i32 {
     let keep = String_from("keep")
     let mut i = 0
     while i < 4000 {
-        let junk = concat(String_from("dead-payload-0123456789"), String_from("x"))
+        let junk = text::concat(String_from("dead-payload-0123456789"), String_from("x"))
         let _n = len(junk)
         i = i + 1
     }

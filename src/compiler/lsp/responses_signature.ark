@@ -1,6 +1,6 @@
 use std::text
 use std::json
-
+use std::prelude::{to_string}
 fn append_param_labels(items: String, params: Vec<String>) -> String {
     let n = len(params)
     let mut i = 0

@@ -1,8 +1,8 @@
 use std::host::stdio
-
+use std::text
 fn describe(opt: Option<i32>) -> String {
     match opt {
-        Option::Some(val) => concat(String_from("got "), (val).to_string()),
+        Option::Some(val) => text::concat(String_from("got "), (val).to_string()),
         None => String_from("nothing"),
     }
 }

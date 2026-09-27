@@ -1,5 +1,5 @@
+use std::prelude::{byte_at}
 use lexer::char_class
-
 fn try_eat_type_suffix(lex: Lexer) -> i32 {
     if lex.pos + 3 <= lex.src_len {
         let c0 = byte_at(lex.src, lex.pos)

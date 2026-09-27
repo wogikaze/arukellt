@@ -1,20 +1,21 @@
+use std::prelude::{eq, to_string}
+use std::text
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
 use parser::core_ast_op_fields
 use parser::kinds
 use parser::core_ast_children
 use parser::self_check_issue499_parse
-
 fn issue499_parser_block_body_lexer_integration_self_check() -> String {
     let src = "fn main() { let f = |x| { x + 1 } }"
     let parse = self_check_issue499_parse::parse_issue499_source(src)
     let decls = self_check_issue499_parse::issue499_parse_decls(parse)
     let error_count = self_check_issue499_parse::issue499_parse_error_count(parse)
     if error_count != 0 {
-        return concat("issue499 block body fail: parse errors=", to_string(error_count))
+        return text::concat("issue499 block body fail: parse errors=", to_string(error_count))
     }
     if len(decls) != 1 {
-        return concat("issue499 block body fail: decl count=", to_string(len(decls)))
+        return text::concat("issue499 block body fail: decl count=", to_string(len(decls)))
     }
     let fn_decl = get_unchecked(decls, 0)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {

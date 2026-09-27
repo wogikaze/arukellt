@@ -4,6 +4,8 @@ use mir::mono_names
 // HashMap's source-level generic methods are semantic shells. Lower each
 // supported pair to the existing typed adapter so GC and linear-memory targets
 // share the same operation and Option/bool result contract.
+use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
+use std::text
 fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
     if hashmap_constructor_matches(clone(callee_name), "i32", "i32") {
         return String_from("hash_map::hashmap_i32_i32_new")
@@ -42,7 +44,7 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
         return String_new()
     }
     if eq(clone(method), String_from("contains_key")) {
-        return concat(clone(family), String_from("_contains"))
+        return text::concat(clone(family), String_from("_contains"))
     }
     if eq(clone(method), String_from("insert")) ||
     eq(clone(method), String_from("get")) ||
@@ -52,7 +54,7 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
     eq(clone(method), String_from("values")) ||
     eq(clone(method), String_from("entries")) ||
     eq(clone(method), String_from("is_empty")) {
-        return concat(clone(family), concat(String_from("_"), method))
+        return text::concat(clone(family), text::concat(String_from("_"), method))
     }
     String_new()
 }
@@ -64,13 +66,13 @@ fn mir_hashmap_target_is_adapter(callee_name: String) -> bool {
 }
 
 fn hashmap_constructor_matches(callee_name: String, key_name: String, value_name: String) -> bool {
-    let suffix = concat(
+    let suffix = text::concat(
         String_from("__"),
-        concat(key_name, concat(String_from("__"), value_name))
+        text::concat(key_name, text::concat(String_from("__"), value_name))
     )
-    let safe_prefix = concat(String_from("HashMap__new"), suffix)
-    let source_prefix = concat(String_from("HashMap::new"), suffix)
-    let legacy_safe_prefix = concat(String_from("HashMap_new"), suffix)
+    let safe_prefix = text::concat(String_from("HashMap__new"), suffix)
+    let source_prefix = text::concat(String_from("HashMap::new"), suffix)
+    let legacy_safe_prefix = text::concat(String_from("HashMap_new"), suffix)
     eq(clone(callee_name), safe_prefix) ||
     eq(clone(callee_name), source_prefix) ||
     eq(clone(callee_name), legacy_safe_prefix) ||
@@ -83,15 +85,15 @@ fn hashmap_constructor_matches_sig(callee_name: String, key_name: String, value_
     if !eq(clone(value_name), String_from("fn")) {
         return false
     }
-    let suffix = concat(
+    let suffix = text::concat(
         String_from("__"),
-        concat(key_name, String_from("__fn_i32_i32_"))
+        text::concat(key_name, String_from("__fn_i32_i32_"))
     )
     // The incoming name may still carry the raw fn<i32,i32> spelling or the
     // HashMap:: prefix; normalize once so every variant compares equal.
     let safe = mono_names::mono_safe_name(callee_name)
-    eq(clone(safe), concat(String_from("HashMap__new"), clone(suffix))) ||
-    eq(clone(safe), concat(String_from("HashMap_new"), suffix))
+    eq(clone(safe), text::concat(String_from("HashMap__new"), clone(suffix))) ||
+    eq(clone(safe), text::concat(String_from("HashMap_new"), suffix))
 }
 
 fn hashmap_method_name(callee_name: String) -> String {
@@ -177,7 +179,7 @@ fn hashmap_pair_alias_for_type_name(type_name: String) -> String {
     if len(key) == 0 || len(val) == 0 {
         return type_name
     }
-    concat(String_from("hashmap:"), concat(key, val))
+    text::concat(String_from("hashmap:"), text::concat(key, val))
 }
 
 // Index of the comma separating the two HashMap type arguments, skipping

@@ -1,5 +1,7 @@
 // WIT import registration in resolver scope (#653, #663, #670).
 
+use std::prelude::{clone, eq}
+use std::text
 use resolver::scope_lookup
 use resolver::scope_define
 use resolver::scope_error
@@ -7,7 +9,6 @@ use resolver::register_exports
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::wit_register
-
 fn wit_seen_name(items: Vec<String>, name: String) -> bool {
     for i in 0..len(items) {
         if eq(get_unchecked(items, i), clone(name)) {
@@ -30,10 +31,10 @@ fn register_wit_imports(ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstN
             let span_start = ast_access::node_span_start(d)
             let span_end = ast_access::node_span_end(d)
             if len(alias) > 0 && wit_seen_name(seen_aliases, clone(alias)) {
-                scope_error::resolve_duplicate_symbol(ctx, concat("WIT import alias `", concat(clone(alias), "`")), span_start, span_end)
+                scope_error::resolve_duplicate_symbol(ctx, text::concat("WIT import alias `", text::concat(clone(alias), "`")), span_start, span_end)
             } else {
                 if wit_seen_name(seen_packages, clone(package_id)) {
-                    scope_error::resolve_duplicate_symbol(ctx, concat("WIT package `", concat(clone(package_id), "`")), span_start, span_end)
+                    scope_error::resolve_duplicate_symbol(ctx, text::concat("WIT package `", text::concat(clone(package_id), "`")), span_start, span_end)
                 } else {
                     if len(alias) > 0 {
                         push(seen_aliases, clone(alias))

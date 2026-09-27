@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{eq}
 fn main() {
     test::assert_false(eq(String_from("ab"), String_from("abc")))
     test::assert_false(eq(String_from("hello"), String_from("hi")))

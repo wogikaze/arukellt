@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_none, is_some}
 fn main() {
     let a: Option<i32> = None
     test::assert_true(is_none(a))

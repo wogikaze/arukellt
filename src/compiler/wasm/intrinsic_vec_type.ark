@@ -5,6 +5,8 @@
 // that looks at the preceding MIR_LOCAL_GET in the block to find the source
 // local, then uses the local's type_name to pick the correct GC struct type.
 
+use std::prelude::{clone, eq, starts_with, substring}
+use std::text
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -17,7 +19,6 @@ use wasm::ctx_record
 use wasm::intrinsic_vec_type_new
 use wasm::sections_types_gc_phase7
 use mir::opcodes as mir_opcodes
-
 fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     intrinsic_vec_type_new::resolve_vec_type_for_new_dest(ctx, dest_local)
 }
@@ -32,7 +33,7 @@ fn resolve_array_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if starts_with(clone(local_name), String_from("array:")) {
         // Array literals use a separate marker because their value is the
         // backing array itself, unlike Vec<T>'s one-field header.
-        tname = concat(String_from("vec:"), substring(local_name, 6, len(local_name)))
+        tname = text::concat(String_from("vec:"), substring(local_name, 6, len(local_name)))
     }
     let resolved = array_type_from_type_name(ctx, clone(tname))
     if resolved >= 0 {

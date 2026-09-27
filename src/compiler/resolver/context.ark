@@ -1,9 +1,9 @@
+use std::prelude::{clone, eq}
 use resolver::builtins
 use resolver::scope_stack_scopes
 use resolver::scope_define
 use resolver::kinds
 use resolver::ctx_record
-
 fn ResolveCtx_new() -> ResolveCtx {
     ResolveCtx_new_for_target_and_host("wasm32-gc", "wasi-p2")
 }

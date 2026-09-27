@@ -1,10 +1,10 @@
+use std::prelude::{clone}
 use corehir::mir_value_type
 use corehir::type_id
 use mir::block_record
 use mir::inst_draft
 use mir::inst_record
 use mir::types
-
 fn MirBlock_inst_count(block: MirBlock) -> i32 {
     block.inst_count
 }

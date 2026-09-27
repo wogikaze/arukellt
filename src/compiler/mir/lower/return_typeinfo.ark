@@ -1,8 +1,9 @@
+use std::prelude::{clone, eq, starts_with}
+use std::text
 use mir::typeinfo_shape
 use mir::lower::return_typeinfo_names
 use mir::value_types
 use corehir::type_ann_node
-
 fn mir_return_tag_from_type_info(ty: TypeInfo) -> i32 {
     typeinfo_shape::mir_type_info_tag(ty)
 }
@@ -127,7 +128,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         if len(ret_seg_zero) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_zero)) {
             return String_from("fnref")
         }
-        return concat(String_from("fnsig:;"), ret_seg_zero)
+        return text::concat(String_from("fnsig:;"), ret_seg_zero)
     }
     if argc == 2 {
         let pseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
@@ -146,9 +147,9 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         type_ann_node::fn_sig_segment_is_i32_family(clone(rseg)) {
             return String_from("fnref")
         }
-        return concat(
+        return text::concat(
             String_from("fnsig:"),
-            concat(clone(pseg), concat(String_from(";"), rseg))
+            text::concat(clone(pseg), text::concat(String_from(";"), rseg))
         )
     }
     if argc > 2 {
@@ -165,7 +166,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
             let mut unresolved = false
             while pi < argc - 1 {
                 if pi > 0 {
-                    params = concat(params, String_from(","))
+                    params = text::concat(params, String_from(","))
                 }
                 let pseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
                     typeinfo_shape::mir_type_info_type_arg_at(ty, pi)
@@ -173,13 +174,13 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
                 if len(pseg) == 0 {
                     unresolved = true
                 }
-                params = concat(params, pseg)
+                params = text::concat(params, pseg)
                 pi = pi + 1
             }
             if !unresolved {
-                return concat(
+                return text::concat(
                     String_from("fnsig:"),
-                    concat(clone(params), concat(String_from(";"), ret_seg_multi))
+                    text::concat(clone(params), text::concat(String_from(";"), ret_seg_multi))
                 )
             }
         }

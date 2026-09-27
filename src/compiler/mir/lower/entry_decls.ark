@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 use corehir::mir_signature_method
 use corehir::mod
 use mir::lower::decl_source
@@ -8,7 +9,6 @@ use mir::lower::entry_prefilter
 use mir::lower::entry_timing
 use mir::lower::fn_index
 use mir::mono
-
 fn mir_emit_view_decls(
     ctx: LowerCtx,
     view: CoreHirMirView,

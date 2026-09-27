@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{contains, repeat, replace}
 fn main() {
     let s = repeat(String_from("a."), 30)
     let r = replace(s, String_from("."), String_from("-"))

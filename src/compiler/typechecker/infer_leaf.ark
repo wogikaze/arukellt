@@ -1,10 +1,10 @@
+use std::prelude::{byte_at, clone}
 use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
 use typechecker::contract_env_record
 use typechecker::int_lit_suffix
 use typechecker::scope
-
 fn infer_leaf_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_int_lit(node) {
         let raw_text = ast_access::node_text(node)

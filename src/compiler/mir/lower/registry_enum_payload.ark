@@ -1,10 +1,11 @@
+use std::prelude::{clone, to_string}
+use std::text
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
 use corehir::layout_decl_payload
 use corehir::layout_variant
-
 fn mir_enum_has_payload(decl: CoreHirLayoutDecl) -> bool {
     layout_decl_payload::layout_decl_has_payload(decl)
 }
@@ -20,7 +21,7 @@ fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant
         let effective_name = if len(field_name) > 0 {
             field_name
         } else {
-            concat("_", to_string(pfi))
+            text::concat("_", to_string(pfi))
         }
         // Normalize Vec</Result</Option< so GC enum sigs and match binds
         // see vec:/result:/option: prefixes (#726 toml Table / json Result).

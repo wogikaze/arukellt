@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::text
+use std::prelude::{to_string}
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
 use parser::core_ast_literal_fields
@@ -7,7 +8,6 @@ use parser::kinds
 use parser::core_ast_children
 use parser::core_types
 use parser::names
-
 fn node_kind_name(kind: i32) -> String {
     names::node_kind_name(kind)
 }
@@ -21,13 +21,13 @@ fn print_ast(node: AstNode, depth: i32) {
     }
     let node_kind = ast_kind_fields::AstNode_kind(node)
     let kind_str = node_kind_name(node_kind)
-    let mut line = concat(indent, kind_str)
+    let mut line = text::concat(indent, kind_str)
     let node_text = core_ast_text_fields::AstNode_text(node)
     if len(node_text) > 0 {
-        line = text::builder_append(line, concat("(", concat(node_text, ")")))
+        line = text::builder_append(line, text::concat("(", text::concat(node_text, ")")))
     }
     if node_kind == kinds::NK_INT_LIT() {
-        line = text::builder_append(line, concat("(", concat(to_string(core_ast_literal_fields::AstNode_int_val(node)), ")")))
+        line = text::builder_append(line, text::concat("(", text::concat(to_string(core_ast_literal_fields::AstNode_int_val(node)), ")")))
     }
     stdio::println(line)
     let mut i = 0

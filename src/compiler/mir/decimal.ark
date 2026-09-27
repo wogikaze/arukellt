@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, i32_to_i64}
 fn parse_decimal_as_i64(text: String) -> i64 {
     let n = len(text)
     let mut result: i64 = 0

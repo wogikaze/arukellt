@@ -1,6 +1,6 @@
+use std::prelude::{clone, eq}
 use mir::lower_kinds
 use mir::lower::hof_call_plan
-
 fn mir_classify_hof_call(callee: String) -> MirHofCallPlan {
     let i64_plan = mir_classify_hof_i64_call(clone(callee))
     if !hof_call_plan::mir_hof_call_plan_is_none(i64_plan) {

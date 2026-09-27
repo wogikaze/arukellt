@@ -1,6 +1,6 @@
 use std::json
 use std::test
-
+use std::text
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => {
@@ -8,6 +8,6 @@ fn main() {
             test::assert_false(json::is_bool(v))
             test::assert_false(json::is_string(v))
         },
-        Result::Err(e) => panic(concat("parse null failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic(text::concat("parse null failed: ", json::parse_error_message(e))),
     }
 }

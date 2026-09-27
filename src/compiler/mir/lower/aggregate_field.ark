@@ -12,6 +12,7 @@ use mir::value_types
 // Strip "struct:TypeName:byte_size" → "TypeName" so struct layout lookups
 // (ctx_field_index, ctx_struct_byte_size, etc.) match the registered name.
 // Passes through non-"struct:" type names unchanged.
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
 fn strip_struct_type_prefix(type_name: String) -> String {
     if !starts_with(clone(type_name), "struct:") {
         return type_name

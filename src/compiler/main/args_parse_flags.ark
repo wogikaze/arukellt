@@ -1,6 +1,6 @@
+use std::prelude::{clone}
 use main::args_record
 use main::commands
-
 pub fn parse_flag_option(opts: CliOptions, arg: String) -> bool {
     if commands::cli_str_eq(clone(arg), "--help") {
         args_record::cli_set_show_help(opts, true)

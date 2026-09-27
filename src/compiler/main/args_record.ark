@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use main::kinds
-
 struct CliOptions {
     command: i32,
     component_action: i32,

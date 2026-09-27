@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with}
 use mir::function_locals_view
 use mir::local_access
 use mir::lower::closure_cells
@@ -9,7 +10,6 @@ use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
 use mir::value_types
-
 fn core_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {
     let mut cap_type = String_new()
     if cli < 0 {

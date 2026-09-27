@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
@@ -7,7 +8,6 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::token_state
 use parser::types
-
 fn parse_regular_fn_params(p: Parser, node: AstNode) {
     core_api_expect::expect_token(p, tokens::TK_LPAREN())
     let mut first = true

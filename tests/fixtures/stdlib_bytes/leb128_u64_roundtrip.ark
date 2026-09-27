@@ -1,6 +1,6 @@
 use std::bytes
 use std::test
-
+use std::prelude::{i32_to_i64}
 fn main() {
     let enc: Vec<i32> = bytes::leb128_encode_u64(i32_to_i64(300))
     let c: Vec<i32> = bytes::cursor_new(enc)

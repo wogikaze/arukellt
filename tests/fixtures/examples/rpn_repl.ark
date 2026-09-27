@@ -1,6 +1,9 @@
 // T2 RPN REPL — interactive stdin loop.
 // Empty stdin on the GC host (#807). Do not name this `read_stdin` — that
 // symbol collides with a core_op and the body is lowered to unreachable.
+use std::prelude::{byte_at, eq, parse_i32, substring, trim}
+use std::host::stdio
+use std::text
 fn read_line_from_host() -> String {
     ""
 }
@@ -9,15 +12,15 @@ enum RpnOp { Invalid, Add, Sub, Mul }
 
 fn is_ascii_ws(c: i32) -> bool { c == 32 || c == 9 || c == 13 }
 
-fn print_error(msg: String) { println(concat("error: ", msg)) }
+fn print_error(msg: String) { stdio::println(text::concat("error: ", msg)) }
 
 fn print_stack_count_error(count: i32) {
-    print("error: stack has ")
-    print((count).to_string())
-    println(" values")
+    stdio::print("error: stack has ")
+    stdio::print((count).to_string())
+    stdio::println(" values")
 }
 
-fn print_result(val: i32) { println(concat("ok: result = ", (val).to_string())) }
+fn print_result(val: i32) { stdio::println(text::concat("ok: result = ", (val).to_string())) }
 
 fn operator_from_token(tok: String) -> RpnOp {
     if eq(tok, "+") { RpnOp::Add }
@@ -44,7 +47,7 @@ fn process_token(stack: Vec<i32>, tok: String) -> Vec<i32> {
     match operator_from_token(tok) {
         RpnOp::Invalid => match parse_i32(tok) {
             Result::Ok(val) => { push(stack, val); stack }
-            Result::Err(_) => { print_error(concat("invalid token: ", tok)); stack }
+            Result::Err(_) => { print_error(text::concat("invalid token: ", tok)); stack }
         }
         op => apply_op(stack, op),
     }
@@ -53,7 +56,7 @@ fn process_token(stack: Vec<i32>, tok: String) -> Vec<i32> {
 fn token_end(line: String, start: i32, line_len: i32) -> i32 {
     let mut end: i32 = start + 1
     while end < line_len {
-        if is_ascii_ws(char_at(line, end)) { return end }
+        if is_ascii_ws(byte_at(line, end)) { return end }
         end = end + 1
     }
     line_len
@@ -63,9 +66,9 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
     let sp: i32 = len(stack)
     if sp == 1 {
         let val: i32 = get_unchecked(stack, 0)
-        println((val).to_string())
+        stdio::println((val).to_string())
         print_result(val)
-    } else { if sp > 1 { println(input_trimmed); print_stack_count_error(sp) } }
+    } else { if sp > 1 { stdio::println(input_trimmed); print_stack_count_error(sp) } }
     }
 
     fn eval_line(line: String) {
@@ -74,7 +77,7 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
         let line_len: i32 = len(input_trimmed)
         let mut i: i32 = 0
         while i < line_len {
-            if is_ascii_ws(char_at(input_trimmed, i)) { i = i + 1 }
+            if is_ascii_ws(byte_at(input_trimmed, i)) { i = i + 1 }
             else {
                 let start: i32 = i
                 let end: i32 = token_end(input_trimmed, start, line_len)
@@ -86,14 +89,14 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
     }
 
     fn main() {
-        println("RPN REPL")
-        println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
-        println("")
+        stdio::println("RPN REPL")
+        stdio::println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
+        stdio::println("")
         let mut running: bool = true
         while running {
-            print("> ")
+            stdio::print("> ")
             let input: String = read_line_from_host()
-            if len(trim(input)) == 0 { println("bye"); running = false }
+            if len(trim(input)) == 0 { stdio::println("bye"); running = false }
             else { eval_line(input) }
         }
     }

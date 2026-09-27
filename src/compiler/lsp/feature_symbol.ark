@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use analysis::symbols
 use analysis::symbol_types
 use lsp::feature_request
 use lsp::positions
-
 struct LspSymbolRequest {
     id: i32,
     uri: String,

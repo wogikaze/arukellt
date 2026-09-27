@@ -1,3 +1,5 @@
+use std::prelude::{clone, to_string}
+use std::text
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::associated_types
@@ -8,7 +10,6 @@ use typechecker::instantiate
 use typechecker::sigs
 use typechecker::type_names
 use typechecker::unify
-
 fn constrain_generic_fn_args(
     env: TypeEnv,
     scope: LocalScope,
@@ -28,9 +29,9 @@ fn constrain_generic_fn_args(
         let fname = contract_fn_sig::FnSig_name(sig)
         unify::type_error_bad_arity(
             env,
-            concat(
+            text::concat(
                 String_from("wrong number of arguments for `"),
-                concat(clone(fname), concat(String_from("`: expected "), concat(to_string(param_count), concat(String_from(", found "), to_string(arg_count)))))
+                text::concat(clone(fname), text::concat(String_from("`: expected "), text::concat(to_string(param_count), text::concat(String_from(", found "), to_string(arg_count)))))
             )
         )
     }

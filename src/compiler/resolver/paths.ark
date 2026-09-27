@@ -1,3 +1,4 @@
+use std::prelude::{byte_at, clone, index_of, substring}
 fn path_module_part(path: String) -> String {
     let pos = index_of(clone(path), "::")
     if pos < 0 {

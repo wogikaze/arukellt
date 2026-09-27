@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::random
-
+use std::prelude::{assert_eq}
 fn main() {
     let a = random::seeded_random(1)
     assert_eq(a, 270369)

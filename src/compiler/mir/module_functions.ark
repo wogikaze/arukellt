@@ -1,10 +1,11 @@
 use std::host::stdio
+use std::prelude::{clone, eq, to_string}
+use std::text
 use mir::function_core_record
 use mir::module_record
 use mir::function_block_queries
 use mir::function_locals_view
 use mir::block_inst_access
-
 fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
     m.functions
 }
@@ -97,15 +98,15 @@ fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
         return
     }
     stdio::eprintln(
-        concat(
+        text::concat(
             "[arukellt] mir.counts: functions=",
-            concat(
+            text::concat(
                 to_string(MirModule_function_count(m)),
-                concat(
+                text::concat(
                     " locals=",
-                    concat(
+                    text::concat(
                         to_string(MirModule_local_count(m)),
-                        concat(" insts=", to_string(MirModule_inst_count(m)))
+                        text::concat(" insts=", to_string(MirModule_inst_count(m)))
                     )
                 )
             )

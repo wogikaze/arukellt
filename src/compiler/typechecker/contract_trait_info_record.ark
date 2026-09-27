@@ -1,3 +1,4 @@
+use std::prelude::{clone}
 struct TraitInfo {
     name: String,
     type_param_count: i32,

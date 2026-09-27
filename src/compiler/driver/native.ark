@@ -1,3 +1,5 @@
+use std::prelude::{byte_at}
+use std::text
 pub fn native_output_bytes_from_string(text: String) -> Vec<i32> {
     let out = Vec::new<i32>()
     let text_len = len(text)
@@ -11,10 +13,10 @@ pub fn native_output_bytes_from_string(text: String) -> Vec<i32> {
 
 pub fn emit_native_llvm_scaffold(_mir: MirModule) -> Vec<i32> {
     let asm = "; Arukellt native-llvm scaffold (#641)\n"
-    let asm = concat(asm, ".text\n")
-    let asm = concat(asm, ".globl main\n")
-    let asm = concat(asm, "main:\n")
-    let asm = concat(asm, "    xor %eax, %eax\n")
-    let asm = concat(asm, "    ret\n")
+    let asm = text::concat(asm, ".text\n")
+    let asm = text::concat(asm, ".globl main\n")
+    let asm = text::concat(asm, "main:\n")
+    let asm = text::concat(asm, "    xor %eax, %eax\n")
+    let asm = text::concat(asm, "    ret\n")
     native_output_bytes_from_string(asm)
 }

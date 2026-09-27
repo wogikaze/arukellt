@@ -1,7 +1,7 @@
 use std::json
+use std::prelude::{clone}
 use lsp::formatting
 use lsp::framing
-
 pub fn handle_formatting(state: LspState, body: String) {
     let id = json::json_get_int(clone(body), String_from("id"))
     framing::append_framed(state, formatting::build_formatting_response_for_request(state, clone(body), id))

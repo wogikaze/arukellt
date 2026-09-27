@@ -2,8 +2,9 @@
 // legacy_binding_patterns + std/manifest.toml.
 // Compact table + index. Do not edit by hand.
 
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::text
 use corehir::table_blob
-
 fn core_op_binding_count() -> i32 {
     539
 }
@@ -210,7 +211,7 @@ fn core_op_binding_callee_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -401,7 +402,7 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = concat(out, substring(piece, local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
@@ -568,7 +569,7 @@ fn core_op_binding_lookup_callee(name: String) -> i32 {
     let name_len = len(name)
     let mut hi = 0
     while hi < name_len {
-        hash = hash * fnv_prime ^ char_at(name, hi)
+        hash = hash * fnv_prime ^ byte_at(name, hi)
         if hash < 0 {
             hash = 0 - hash
         }

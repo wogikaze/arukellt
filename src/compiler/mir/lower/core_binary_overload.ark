@@ -1,3 +1,5 @@
+use std::prelude::{clone}
+use std::text
 use mir::lower::ctx_fn_exists
 use mir::lower::binary_method
 use mir::lower::binary_type_names
@@ -6,7 +8,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
-
 fn try_lower_overloaded_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, mir_op: i32, l_idx: i32) -> i32 {
     let ov_ltype = ctx_mono_type_params::ctx_resolve_mono_type_name(
         ctx,
@@ -20,7 +21,7 @@ fn try_lower_overloaded_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     if len(ov_method) <= 0 {
         return 0 - 1
     }
-    let ov_callee = concat(clone(ov_ltype), concat("::", clone(ov_method)))
+    let ov_callee = text::concat(clone(ov_ltype), text::concat("::", clone(ov_method)))
     if ctx_fn_exists::ctx_fn_exists(ctx, clone(ov_callee)) == 0 {
         return 0 - 1
     }

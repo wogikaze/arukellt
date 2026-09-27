@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{fold_i32_i32}
 fn add(acc: i32, x: i32) -> i32 {
     acc + x
 }

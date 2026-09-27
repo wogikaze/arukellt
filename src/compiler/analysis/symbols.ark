@@ -1,4 +1,5 @@
 use std::text
+use std::prelude::{clone, eq}
 use analysis::doc_scan
 use analysis::ident_span
 use analysis::symbol_signature
@@ -9,7 +10,6 @@ use parser::ast
 use parser::kinds
 use resolver::ref_record
 use resolver::ref_sites
-
 fn AT_NK_IDENT() -> i32 { kinds::NK_IDENT() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }
 fn AT_NK_FN_DECL() -> i32 { kinds::NK_FN_DECL() }
@@ -188,6 +188,6 @@ pub fn render_hover_markdown(info: symbol_types::SymbolInfo, minimal: bool) -> S
     out = text::builder_append(out, symbol_types::symbol_info_signature(info))
     out = text::builder_append(out, "\n```")
     let doc = symbol_types::symbol_info_doc(info)
-    if len(doc) > 0 { out = text::builder_append(out, concat("\n\n", doc)) }
+    if len(doc) > 0 { out = text::builder_append(out, text::concat("\n\n", doc)) }
     out
 }

@@ -1,8 +1,8 @@
+use std::prelude::{clone}
 use mir::lower::entry_view_fn
 use mir::lower::entry_view_method
 use mir::lower::params_fn
 use mir::lower::params_method
-
 fn mir_bind_top_level_params(ctx: LowerCtx, entry_view: MirLowerEntryView, fn_info_index: i32, param_count: i32) {
     mir_bind_top_level_params_from(ctx, entry_view, fn_info_index, param_count, 0)
 }

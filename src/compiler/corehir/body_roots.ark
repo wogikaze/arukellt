@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use corehir::body
 use corehir::body_builder
 use corehir::decl_children
@@ -5,7 +6,6 @@ use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::frontend_ast_node
 use corehir::frontend_kind_map
-
 fn lower_fn_contracts(builder: CoreHirBodyTable, decl: AstNode) -> i32 {
     let start = body_builder::corehir_body_builder_begin_fn_contracts(builder)
     let annotation_count = frontend_ast_node::corehir_node_type_ann_count(decl)

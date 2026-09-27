@@ -4,7 +4,7 @@
 //   - whole-file reads return String errors
 use std::host::fs
 use std::host::stdio
-
+use std::prelude::{trim}
 fn main() {
     // ── is_readable_file (probe, same as old exists) ──
     // present.txt exists in the fixture dir

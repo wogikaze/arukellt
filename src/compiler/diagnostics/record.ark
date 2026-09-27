@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use diagnostics::severity
-
 struct DiagnosticSpan {
     file: String,
     line: i32,

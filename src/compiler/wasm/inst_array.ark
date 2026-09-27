@@ -2,6 +2,7 @@
 // GC target: use array.new_default/get/set for all arrays.
 // Linear-memory target: bump allocator + i32 load/store.
 
+use std::prelude::{clone, eq}
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::opcodes
@@ -17,7 +18,6 @@ use wasm::linear_root_lowering
 use wasm::intrinsics::helpers_core_heap
 use mir::function_locals_view
 use mir::local_access
-
 fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = intrinsic_vec_type::resolve_array_type_for_new_dest(

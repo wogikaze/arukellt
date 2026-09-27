@@ -1,5 +1,5 @@
+use std::prelude::{byte_at, clone, eq, substring}
 use typechecker::contract_types_record
-
 struct EnumInfo {
     name: String,
     variant_names: Vec<String>,

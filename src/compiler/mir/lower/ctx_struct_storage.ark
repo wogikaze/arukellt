@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use collections::name_index
-
 fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
     len(ctx.struct_names)
 }

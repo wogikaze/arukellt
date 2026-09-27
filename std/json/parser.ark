@@ -20,6 +20,8 @@
 //!   under #704.
 
 use std::json
+use std::prelude::{byte_at, eq, slice}
+use std::text
 
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
@@ -39,7 +41,7 @@ pub fn json_stringify_bool(val: bool) -> String {
 /// Stringify a string by wrapping it in double quotes.
 /// NOTE: does not escape special characters — use `json_encode_string` instead.
 pub fn json_stringify_string(val: String) -> String {
-    concat("\"", concat(val, "\""))
+    text::concat("\"", text::concat(val, "\""))
 }
 
 /// Return the JSON null literal.
@@ -928,38 +930,38 @@ fn json_decode_string(s: String) -> String {
                 i = i + 2
             } else {
                 if nxt == 92 {
-                    result = concat(result, "\\")
+                    result = text::concat(result, "\\")
                     i = i + 2
                 } else {
                     if nxt == 110 {
-                        result = concat(result, "\n")
+                        result = text::concat(result, "\n")
                         i = i + 2
                     } else {
                         if nxt == 116 {
-                            result = concat(result, "\t")
+                            result = text::concat(result, "\t")
                             i = i + 2
                         } else {
                             if nxt == 114 {
-                                result = concat(result, "\r")
+                                result = text::concat(result, "\r")
                                 i = i + 2
                             } else {
                                 if nxt == 98 {
-                                    result = concat(result, char_to_string(8))
+                                    result = text::concat(result, char_to_string(8))
                                     i = i + 2
                                 } else {
                                     if nxt == 102 {
-                                        result = concat(result, char_to_string(12))
+                                        result = text::concat(result, char_to_string(12))
                                         i = i + 2
                                     } else {
                                         if nxt == 47 {
-                                            result = concat(result, "/")
+                                            result = text::concat(result, "/")
                                             i = i + 2
                                         } else {
                                             if nxt == 117 && i + 5 < n {
-                                                result = concat(result, json_decode_unicode_ascii(s, i + 1))
+                                                result = text::concat(result, json_decode_unicode_ascii(s, i + 1))
                                                 i = i + 6
                                             } else {
-                                                result = concat(result, slice(s, i + 1, i + 2))
+                                                result = text::concat(result, slice(s, i + 1, i + 2))
                                                 i = i + 2
                                             }
                                         }
@@ -971,7 +973,7 @@ fn json_decode_string(s: String) -> String {
                 }
             }
         } else {
-            result = concat(result, slice(s, i, i + 1))
+            result = text::concat(result, slice(s, i, i + 1))
             i = i + 1
         }
     }
@@ -991,31 +993,31 @@ pub fn json_encode_string(s: String) -> String {
     while i < n {
         let c = byte_at(s, i)
         if c == 34 {
-            result = concat(result, "\\\"")
+            result = text::concat(result, "\\\"")
         } else {
             if c == 92 {
-                result = concat(result, "\\\\")
+                result = text::concat(result, "\\\\")
             } else {
                 if c == 10 {
-                    result = concat(result, "\\n")
+                    result = text::concat(result, "\\n")
                 } else {
                     if c == 13 {
-                        result = concat(result, "\\r")
+                        result = text::concat(result, "\\r")
                     } else {
                         if c == 9 {
-                            result = concat(result, "\\t")
+                            result = text::concat(result, "\\t")
                         } else {
                             if c == 8 {
-                                result = concat(result, "\\b")
+                                result = text::concat(result, "\\b")
                             } else {
                                 if c == 12 {
-                                    result = concat(result, "\\f")
+                                    result = text::concat(result, "\\f")
                                 } else {
                                     if c < 32 {
-                                        result = concat(result, "\\u00")
-                                        result = concat(result, json_hex_byte(c))
+                                        result = text::concat(result, "\\u00")
+                                        result = text::concat(result, json_hex_byte(c))
                                     } else {
-                                        result = concat(result, slice(s, i, i + 1))
+                                        result = text::concat(result, slice(s, i, i + 1))
                                     }
                                 }
                             }
@@ -1026,7 +1028,7 @@ pub fn json_encode_string(s: String) -> String {
         }
         i = i + 1
     }
-    concat(result, "\"")
+    text::concat(result, "\"")
 }
 
 // ─── Streaming parser utilities ──────────────────────────────────────────────

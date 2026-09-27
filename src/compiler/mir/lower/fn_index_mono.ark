@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::fn_index_method_return_type
 use mir::lower::return_typeinfo
 use mir::lower_kinds
@@ -5,7 +6,6 @@ use mir::mono
 use mir::mono_names
 use mir::type_contracts
 use mir::typeinfo_shape
-
 fn mir_index_mono_variants(
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,

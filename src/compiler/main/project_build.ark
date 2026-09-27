@@ -2,6 +2,8 @@ use std::host::fs
 use std::toml
 use std::host::process
 use std::host::stdio
+use std::prelude::{clone, to_string}
+use std::text
 use driver::config_record
 use driver::file
 use driver::result_record
@@ -9,7 +11,6 @@ use main::args_record
 use main::compile_core
 use main::output
 use main::project_run
-
 fn build_project_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
     compile_core::configure_target_axes(opts, config, args_record::cli_emit_mode(opts))
@@ -34,7 +35,7 @@ fn exit_missing_build_entry() {
 }
 
 fn exit_build_manifest_read_error(manifest_path: String, error: String) {
-    stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), error))))
+    stdio::eprintln(text::concat(String_from("error: cannot read "), text::concat(clone(manifest_path), text::concat(String_from(": "), error))))
     process::exit(1)
 }
 
@@ -46,13 +47,13 @@ fn exit_project_compile_error(entry: String, result: CompileResult) {
 fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: String) {
     if manifest_has_pkg_name(info) {
         stdio::eprintln(
-            concat(
+            text::concat(
                 String_from("building "),
-                concat(manifest_pkg_name(info), concat(String_from(" v"), concat(manifest_pkg_version(info), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))
+                text::concat(manifest_pkg_name(info), text::concat(String_from(" v"), text::concat(manifest_pkg_version(info), text::concat(String_from(" ("), text::concat(clone(entry), String_from(")"))))))
             )
         )
     } else {
-        stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+        stdio::eprintln(text::concat(String_from("building "), text::concat(clone(manifest_path), text::concat(String_from(" (entry: "), text::concat(clone(entry), String_from(")"))))))
     }
 }
 
@@ -61,7 +62,7 @@ fn build_output_path(opts: CliOptions, info: ProjectBuildManifest) -> String {
         return args_record::cli_output_file(opts)
     }
     if manifest_has_pkg_name(info) {
-        return concat(manifest_pkg_name(info), String_from(".wasm"))
+        return text::concat(manifest_pkg_name(info), String_from(".wasm"))
     }
     String_from("output.wasm")
 }
@@ -72,14 +73,14 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
     match write_result {
         Result::Ok(_) => {
             stdio::eprintln(
-                concat(
+                text::concat(
                     String_from("built "),
-                    concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(byte_count), String_from(" bytes)"))))))
+                    text::concat(clone(entry), text::concat(String_from(" -> "), text::concat(clone(out_path), text::concat(String_from(" ("), text::concat(to_string(byte_count), String_from(" bytes)"))))))
                 )
             )
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error writing output: "), e))
+            stdio::eprintln(text::concat(String_from("error writing output: "), e))
             process::exit(1)
         },
     }

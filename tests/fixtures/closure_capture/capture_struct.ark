@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::text
 struct Point {
     x: i32,
     y: i32,
@@ -13,7 +13,7 @@ fn main() {
     stdio::println((f(5)).to_string())
     let s = String_from("hello ")
     let g = |x: i32| -> String {
-        concat(s, (x).to_string())
+        text::concat(s, (x).to_string())
     }
     stdio::println(g(42))
 }

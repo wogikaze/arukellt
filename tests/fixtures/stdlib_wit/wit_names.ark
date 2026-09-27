@@ -1,7 +1,7 @@
 // Issue #706: WIT naming helpers — kebab_name, kebab_to_snake, pascal_case.
 use std::host::stdio
 use std::wit::names
-
+use std::prelude::{eq}
 fn main() {
     // kebab_name: snake_case → kebab-case
     assert(eq(names::kebab_name(String_from("my_func")), String_from("my-func")))

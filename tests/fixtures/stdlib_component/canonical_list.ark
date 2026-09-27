@@ -1,7 +1,7 @@
 use std::component::canonical
 use std::host::stdio
 use std::core::error
-
+use std::prelude::{slice, values}
 fn main() {
     let scratch = canonical::canonical_scratch_new()
     let values = Vec::new<i32>()

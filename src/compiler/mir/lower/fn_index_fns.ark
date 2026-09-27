@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 use mir::lower::stdlib_body_defer
-
 fn mir_index_top_level_fn(
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,

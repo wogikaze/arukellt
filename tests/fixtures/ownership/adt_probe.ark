@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{Box_new, as_slice, slice_get, slice_len, unbox, values}
 fn main() {
     let boxed = Box_new(42)
     let moved = boxed

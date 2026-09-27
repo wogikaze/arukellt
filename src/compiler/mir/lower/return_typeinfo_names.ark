@@ -1,6 +1,7 @@
+use std::prelude::{clone, contains, eq, starts_with}
+use std::text
 use mir::typeinfo_shape
 use mir::lower_kinds
-
 fn mir_mono_key_for_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_tag(ty) == lower_kinds::TY_VEC() {
         let vec_name = mir_vec_return_type_name_from_type_info(ty)
@@ -49,9 +50,9 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let mut ti = 0
         while ti < fcount {
             if ti > 0 {
-                tname = concat(tname, String_from(","))
+                tname = text::concat(tname, String_from(","))
             }
-            tname = concat(
+            tname = text::concat(
                 tname,
                 mir_type_info_to_mono_key(typeinfo_shape::mir_type_info_type_arg_at(vec_elem, ti))
             )
@@ -64,7 +65,7 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     // payload typing (#726 toml/json).
     let n = typeinfo_shape::mir_type_info_name(vec_elem)
     if len(n) > 0 {
-        return concat(String_from("vec:"), n)
+        return text::concat(String_from("vec:"), n)
     }
     String_from("vec:i32")
 }
@@ -140,9 +141,9 @@ fn mir_tuple_inner_name_from_type_info(ty: TypeInfo) -> String {
     while i < arg_count {
         let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
         if i > 0 {
-            name = concat(name, String_from(","))
+            name = text::concat(name, String_from(","))
         }
-        name = concat(name, mir_type_info_to_mono_key(elem))
+        name = text::concat(name, mir_type_info_to_mono_key(elem))
         i = i + 1
     }
     name
@@ -170,12 +171,12 @@ fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
         while i < arg_count {
             let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
             if i > 0 {
-                name = concat(name, String_from(","))
+                name = text::concat(name, String_from(","))
             }
             if typeinfo_shape::mir_type_info_tag(elem) == 30 {
-                name = concat(name, typeinfo_shape::mir_type_info_name(elem))
+                name = text::concat(name, typeinfo_shape::mir_type_info_name(elem))
             } else {
-                name = concat(name, mir_type_info_to_mono_key(elem))
+                name = text::concat(name, mir_type_info_to_mono_key(elem))
             }
             i = i + 1
         }
@@ -184,7 +185,7 @@ fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
     // Keep element keys for all tuples (not only GC-ref elems) so component
     // adapters can emit the correct WIT tuple shape (#810).
     let inner = mir_tuple_inner_name_from_type_info(ty)
-    concat(String_from("struct:"), concat(inner, concat(String_from(":"), i32_to_string(byte_size))))
+    text::concat(String_from("struct:"), text::concat(inner, text::concat(String_from(":"), i32_to_string(byte_size))))
 }
 
 fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {
@@ -193,7 +194,7 @@ fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {
     }
     let inner = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
     let inner_key = mir_type_info_to_mono_key(inner)
-    concat(String_from("option:"), inner_key)
+    text::concat(String_from("option:"), inner_key)
 }
 
 // Build a return type name for Result types.  Produces "Result_<ok>_<err>"
@@ -206,12 +207,12 @@ fn mir_result_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let err_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
         let ok_key = mir_mono_key_for_type_info(ok_arg)
         let err_key = mir_mono_key_for_type_info(err_arg)
-        return concat(String_from("Result_"), concat(ok_key, concat(String_from("_"), err_key)))
+        return text::concat(String_from("Result_"), text::concat(ok_key, text::concat(String_from("_"), err_key)))
     }
     if arg_count == 1 {
         let ok_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
         let ok_key = mir_mono_key_for_type_info(ok_arg)
-        return concat(String_from("Result_"), ok_key)
+        return text::concat(String_from("Result_"), ok_key)
     }
     String_from("Result")
 }
@@ -221,7 +222,7 @@ fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if eq(clone(name), String_from("Result")) {
         return mir_result_return_type_name_from_type_info(ty)
     }
-    concat(String_from("enum:"), name)
+    text::concat(String_from("enum:"), name)
 }
 
 // Return type name for a user struct (TY_STRUCT). Concrete generic
@@ -248,19 +249,19 @@ fn mir_struct_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if arg_count <= 0 || contains(clone(name), String_from("<")) {
         return name
     }
-    let mut out = concat(clone(name), String_from("<"))
+    let mut out = text::concat(clone(name), String_from("<"))
     let mut i = 0
     while i < arg_count {
         if i > 0 {
-            out = concat(out, String_from(","))
+            out = text::concat(out, String_from(","))
         }
-        out = concat(
+        out = text::concat(
             out,
             mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, i))
         )
         i = i + 1
     }
-    concat(out, String_from(">"))
+    text::concat(out, String_from(">"))
 }
 
 // Local-type spelling for one type argument inside a Name<...>
@@ -272,7 +273,7 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
     let tag = mir_return_tag_from_type_info(ty)
     let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
     if tag == lower_kinds::TY_TYPE_VAR() {
-        return concat(
+        return text::concat(
             String_from("?"),
             typeinfo_shape::mir_type_info_name(ty)
         )
@@ -281,7 +282,7 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
         if arg_count <= 0 {
             return String_from("vec")
         }
-        return concat(
+        return text::concat(
             String_from("vec:"),
             mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
         )
@@ -290,7 +291,7 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
         if arg_count <= 0 {
             return String_from("Option")
         }
-        return concat(
+        return text::concat(
             String_from("Option_"),
             mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
         )
@@ -303,13 +304,13 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
             let err_name = mir_generic_inst_arg_type_name(
                 typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
             )
-            return concat(
+            return text::concat(
                 String_from("Result_"),
-                concat(ok_name, concat(String_from("_"), err_name))
+                text::concat(ok_name, text::concat(String_from("_"), err_name))
             )
         }
         if arg_count == 1 {
-            return concat(
+            return text::concat(
                 String_from("Result_"),
                 mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
             )
@@ -327,7 +328,7 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
     tag == lower_kinds::TY_ENUM() ||
     tag == 24 {
         if eq(clone(name), String_from("Vec")) && arg_count > 0 {
-            return concat(
+            return text::concat(
                 String_from("vec:"),
                 mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, 0))
             )
@@ -336,19 +337,19 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
             return mir_hashmap_return_type_name_from_type_info(ty)
         }
         if arg_count > 0 && !contains(clone(name), String_from("<")) {
-            let mut nested = concat(clone(name), String_from("<"))
+            let mut nested = text::concat(clone(name), String_from("<"))
             let mut i = 0
             while i < arg_count {
                 if i > 0 {
-                    nested = concat(nested, String_from(","))
+                    nested = text::concat(nested, String_from(","))
                 }
-                nested = concat(
+                nested = text::concat(
                     nested,
                     mir_generic_inst_arg_type_name(typeinfo_shape::mir_type_info_type_arg_at(ty, i))
                 )
                 i = i + 1
             }
-            return concat(nested, String_from(">"))
+            return text::concat(nested, String_from(">"))
         }
         return name
     }

@@ -1,4 +1,6 @@
 use std::host::stdio
+use std::prelude::{clone, contains, substring, to_string}
+use std::text
 use corehir::fn_info
 use corehir::raw_decls
 use corehir::raw_dto
@@ -7,7 +9,6 @@ use driver::config_record
 use driver::typed_corehir_contract_render
 use driver::typed_corehir_render_diagnostics
 use driver::verified_core_render_primitives
-
 fn typed_corehir_main_module_index(program: CoreHirRawProgram) -> i32 {
     let modules = raw_record::raw_program_modules(program)
     let fn_infos = raw_decls::program_fn_infos(program)
@@ -38,9 +39,9 @@ fn typed_corehir_render_type(type_id: i32, pointer_width: i32) -> String {
     if n < 1 {
         return rendered
     }
-    concat(
+    text::concat(
         substring(rendered, 0, n - 1),
-        concat(",\"bits\":", concat(to_string(bits), ",\"signed\":true}"))
+        text::concat(",\"bits\":", text::concat(to_string(bits), ",\"signed\":true}"))
     )
 }
 
@@ -62,19 +63,19 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
     let source_decl_end = source_decl_start + raw_dto::CoreHirModuleInfo_decl_count(source_module)
 
     let mut out = "{\"schema\":\"arukellt-typed-corehir\",\"schema_version\":1,\"generator\":\"arukellt-selfhost\",\"module\":"
-    out = concat(out, verified_core_render_primitives::vc_quote(module_name))
-    out = concat(out, ",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"compiler-current\",\"floating_point\":\"ieee754\",\"pointer_width\":")
-    out = concat(out, concat(to_string(pointer_width), "}"))
-    out = concat(out, ",\"types\":[")
+    out = text::concat(out, verified_core_render_primitives::vc_quote(module_name))
+    out = text::concat(out, ",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"compiler-current\",\"floating_point\":\"ieee754\",\"pointer_width\":")
+    out = text::concat(out, text::concat(to_string(pointer_width), "}"))
+    out = text::concat(out, ",\"types\":[")
     let mut type_id = 0
     while type_id < verified_core_render_primitives::vc_type_count() {
         if type_id > 0 {
-            out = concat(out, ",")
+            out = text::concat(out, ",")
         }
-        out = concat(out, typed_corehir_render_type(type_id, pointer_width))
+        out = text::concat(out, typed_corehir_render_type(type_id, pointer_width))
         type_id = type_id + 1
     }
-    out = concat(out, "],\"functions\":[")
+    out = text::concat(out, "],\"functions\":[")
 
     let fn_infos = raw_decls::program_fn_infos(program)
     let mut first_function = true
@@ -90,9 +91,9 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
                 return ""
             }
             if !first_function {
-                out = concat(out, ",")
+                out = text::concat(out, ",")
             }
-            out = concat(out, rendered)
+            out = text::concat(out, rendered)
             first_function = false
         }
         function_index = function_index + 1
@@ -101,6 +102,6 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         stdio::eprintln("TypedCoreHIR reject: no functions in entry main module")
         return ""
     }
-    out = concat(out, "]}")
+    out = text::concat(out, "]}")
     out
 }

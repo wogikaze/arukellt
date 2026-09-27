@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq, starts_with, substring}
 use wasm::constants
 use wasm::ctx_record
 use wasm::call_indirect
@@ -28,7 +29,6 @@ use wasm::writer_core
 use wasm::sections_types_gc_phase7
 use wasm::intrinsic_vec_type
 use wasm::inst_ctx
-
 fn current_local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     let f = ctx_record::SelfEmitCtx_function_at(
         ctx,

@@ -2,6 +2,7 @@
 // Replaces body-scan infer_local_storage_gc_type: field ABI and Result/Option
 // base type_names decide storage, not producer rescans.
 
+use std::prelude::{clone, eq, starts_with, substring}
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
@@ -27,7 +28,6 @@ use wasm::code_ref_locals_infer_callee
 use wasm::code_ref_locals_infer_dest
 use wasm::sections_types_gc
 use wasm::intrinsic_vec_type
-
 fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let field_idx = inst_accessors_literals::MirInst_int_val(inst)

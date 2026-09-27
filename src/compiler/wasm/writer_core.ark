@@ -6,6 +6,7 @@ use wasm::opcodes
 // is the static type of the value on top of the operand stack immediately
 // after the last `local.get` / `ref.cast`; it is only meaningful while
 // `ref_top_end == len(bytes)`, i.e. nothing was emitted since.
+use std::prelude::{i64_to_i32}
 pub struct WasmWriter {
     bytes: Vec<i32>,
     memory64: bool,

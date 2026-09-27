@@ -1,11 +1,12 @@
 // WIT import binding collection for MIR and Wasm emit (#653, #706).
 
+use std::prelude::{clone, eq}
+use std::text
 use component::wit_parse_text
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::wit_register
 use resolver::wit_surface
-
 struct WitImportBinding {
     type_sig: String,
     interface_id: String,
@@ -88,20 +89,20 @@ fn wit_push_bindings_for_import(bindings: Vec<WitImportBinding>, wit_paths: Vec<
         return
     }
     if eq(clone(package_id), "test:host/math") {
-        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", concat(clone(alias), "::add")))
+        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", text::concat(clone(alias), "::add")))
         return
     }
     if eq(clone(package_id), "test:doc/parse") {
-        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", concat(clone(alias), "::parse_markdown")))
+        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", text::concat(clone(alias), "::parse_markdown")))
         return
     }
     if eq(clone(package_id), "test:host/host") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", concat(clone(alias), "::set_perms")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", text::concat(clone(alias), "::set_perms")))
         return
     }
     if eq(clone(package_id), "test:host/handles") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", concat(clone(alias), "::take")))
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", concat(clone(alias), "::peek")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", text::concat(clone(alias), "::take")))
+        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", text::concat(clone(alias), "::peek")))
     }
 }
 

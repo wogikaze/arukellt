@@ -1,3 +1,4 @@
+use std::prelude::{byte_at}
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::constants
@@ -12,7 +13,6 @@ use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::writer_gc
-
 fn emit_fs_write_success_writev_and_close(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_core::emit_call(w, import_indices::fd_write_import_idx(ctx))
     helpers_core::emit_drop(w)

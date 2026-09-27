@@ -1,5 +1,7 @@
 // Extracted from sections_types_sigs.ark
 
+use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring}
+use std::text
 use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
@@ -13,7 +15,6 @@ use wasm::sections_types_gc_override
 use wasm::sections_types_gc_phase7
 use wasm::sections_types_gc_plan
 use wasm::sections_types_sigs_mono
-
 fn is_hash_container_type_name(type_name: String) -> bool {
     if eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) || eq(clone(type_name), String_from("Vec")) {
         return true
@@ -110,9 +111,9 @@ fn fnsig_param_sig_from_mir(type_name: String, target: String, mir: MirModule) -
     if len(param_tok) == 0 || len(ret_tok) == 0 {
         return String_new()
     }
-    concat(
+    text::concat(
         String_from("fnsig:"),
-        concat(param_tok, concat(String_from(";"), ret_tok))
+        text::concat(param_tok, text::concat(String_from(";"), ret_tok))
     )
 }
 
@@ -164,7 +165,7 @@ fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> Str
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(seg))
     if slot >= 0 {
-        return concat(String_from("gcsref"), i32_to_string(slot))
+        return text::concat(String_from("gcsref"), i32_to_string(slot))
     }
     String_new()
 }
@@ -316,10 +317,10 @@ fn p2_enum_type_name(type_name: String) -> String {
 
 fn p2_enum_variant_matches(enum_name: String, variant_name: String) -> bool {
     let enum_name = p2_enum_type_name(clone(enum_name))
-    starts_with(clone(variant_name), concat(clone(enum_name), String_from("::"))) ||
+    starts_with(clone(variant_name), text::concat(clone(enum_name), String_from("::"))) ||
     contains(
         clone(variant_name),
-        concat(String_from("::"), concat(clone(enum_name), String_from("::")))
+        text::concat(String_from("::"), text::concat(clone(enum_name), String_from("::")))
     )
 }
 
@@ -549,26 +550,26 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
         if eq(clone(inner), String_from("bool")) {
             return String_from("i32")
         }
-        return concat(String_from("i32_"), p2_value_canonical_sig(clone(inner), value_type, mir))
+        return text::concat(String_from("i32_"), p2_value_canonical_sig(clone(inner), value_type, mir))
     }
     if p2_is_result_type_name(clone(type_name)) {
         let ok = p2_value_canonical_sig(p2_type_argument(clone(type_name), 0), value_type, mir)
         let err = p2_value_canonical_sig(p2_type_argument(clone(type_name), 1), value_type, mir)
         if eq(clone(ok), clone(err)) {
-            return concat(String_from("i32_"), ok)
+            return text::concat(String_from("i32_"), ok)
         }
         if eq(clone(ok), String_from("i32_i32")) || eq(clone(err), String_from("i32_i32")) {
             return String_from("i32_i32_i32")
         }
-        return concat(String_from("i32_"), ok)
+        return text::concat(String_from("i32_"), ok)
     }
     if p2_is_tuple_type_name(clone(type_name)) {
         let sig = String_new()
         let mut i = 0
         while len(p2_type_argument(clone(type_name), i)) > 0 {
-            sig = concat(
+            sig = text::concat(
                 clone(sig),
-                concat(p2_value_canonical_sig(p2_type_argument(clone(type_name), i), value_type, mir), "_")
+                text::concat(p2_value_canonical_sig(p2_type_argument(clone(type_name), i), value_type, mir), "_")
             )
             i = i + 1
         }
@@ -581,14 +582,14 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
         let sig = String_new()
         let mut i = 0
         while i < len(fields) {
-            sig = concat(clone(sig), concat(p2_field_canonical_sig(get_unchecked(fields, i)), "_"))
+            sig = text::concat(clone(sig), text::concat(p2_field_canonical_sig(get_unchecked(fields, i)), "_"))
             i = i + 1
         }
         return substring(sig, 0, len(sig) - 1)
     }
     let payload = p2_enum_payload_sigs(clone(type_name), mir)
     if len(payload) > 0 {
-        return concat(String_from("i32_"), p2_field_canonical_sig(get_unchecked(payload, 0)))
+        return text::concat(String_from("i32_"), p2_field_canonical_sig(get_unchecked(payload, 0)))
     }
     p2_value_canonical_sig(clone(type_name), value_type, mir)
 }
@@ -823,23 +824,23 @@ fn p2_canonical_function_type_sig(f: MirFunction, mir: MirModule) -> String {
     let mut pi = 0
     while pi < param_count {
         let param = function_param_view::MirFunction_param_at(f, pi)
-        sig = concat(
+        sig = text::concat(
             clone(sig),
-            concat(p2_canonical_param_type_sig(param, mir), "_")
+            text::concat(p2_canonical_param_type_sig(param, mir), "_")
         )
         pi = pi + 1
     }
     let return_type = function_return_view::MirFunction_return_type(f)
     if return_type == value_types::VT_VOID() {
-        return concat(clone(sig), "0")
+        return text::concat(clone(sig), "0")
     }
     let return_type_name = function_return_view::MirFunction_return_type_name(f)
     if p2_is_string_type_name(clone(return_type_name)) ||
     p2_return_type_is_compound(clone(return_type_name)) ||
     !p2_is_supported_scalar_type(return_type) {
-        return concat(clone(sig), "1i32")
+        return text::concat(clone(sig), "1i32")
     }
-    concat(clone(sig), concat("1", p2_scalar_type_sig(return_type)))
+    text::concat(clone(sig), text::concat("1", p2_scalar_type_sig(return_type)))
 }
 
 fn p2_post_type_sig_for_function(f: MirFunction, function_sig: String) -> String {
@@ -867,7 +868,7 @@ fn p2_post_type_sig_for_function(f: MirFunction, function_sig: String) -> String
     if eq(clone(result_sig), "0") {
         return "0"
     }
-    concat(substring(clone(result_sig), 1, len(result_sig)), "_0")
+    text::concat(substring(clone(result_sig), 1, len(result_sig)), "_0")
 }
 
 fn build_return_type_sig(
@@ -882,7 +883,7 @@ fn build_return_type_sig(
     if return_type == 0 {
         return String_from("0")
     }
-    concat(String_from("1"), build_return_type_value_sig(uf, return_type, return_type_name, target, wasi_version, memory64, mir))
+    text::concat(String_from("1"), build_return_type_value_sig(uf, return_type, return_type_name, target, wasi_version, memory64, mir))
 }
 
 fn is_string_byte_vec_param_fn(fn_name: String) -> bool {
@@ -925,7 +926,7 @@ fn build_param_type_sig(
         if emit_target::is_gc_target(clone(target)) {
             let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
             if pair_slot >= 0 {
-                return concat(String_from("gcsref"), i32_to_string(pair_slot))
+                return text::concat(String_from("gcsref"), i32_to_string(pair_slot))
             }
         }
         if starts_with(clone(p_type_name), String_from("fnsig:")) {
@@ -1004,7 +1005,7 @@ fn build_param_type_sig(
     if emit_target::is_gc_target(clone(target)) && len(p_type_name) > 0 {
         let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(p_type_name))
         if slot >= 0 {
-            return concat(String_from("gcsref"), i32_to_string(slot))
+            return text::concat(String_from("gcsref"), i32_to_string(slot))
         }
     }
     // 'Head<Args>' enum instantiations (e.g. Box<WitType>): same open-enum
@@ -1105,7 +1106,7 @@ fn build_return_type_value_sig(
         if emit_target::is_gc_target(clone(target)) {
             let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
             if pair_slot >= 0 {
-                return concat(String_from("gcsref"), i32_to_string(pair_slot))
+                return text::concat(String_from("gcsref"), i32_to_string(pair_slot))
             }
         }
         return funcref_return_sig_for_target(clone(target), memory64)
@@ -1264,7 +1265,7 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
     if slot >= 0 {
-        let gcsref = concat(String_from("gcsref"), i32_to_string(slot))
+        let gcsref = text::concat(String_from("gcsref"), i32_to_string(slot))
         if gc_struct_sig_is_enum_open_box(clone(gcsref), mir) {
             return String_new()
         }
@@ -1284,7 +1285,7 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
         let bare = substring(return_type_name, colon_pos + 1, name_len)
         let bare_slot = module_gc_struct::MirModule_gc_struct_slot(mir, bare)
         if bare_slot >= 0 {
-            let gcsref = concat(String_from("gcsref"), i32_to_string(bare_slot))
+            let gcsref = text::concat(String_from("gcsref"), i32_to_string(bare_slot))
             if gc_struct_sig_is_enum_open_box(clone(gcsref), mir) {
                 return String_new()
             }
@@ -1319,7 +1320,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(struct_name))
     if slot >= 0 {
         // Use "gcsref" + slot as placeholder; resolved during emission via gc_struct_type_map.
-        return concat(String_from("gcsref"), i32_to_string(slot))
+        return text::concat(String_from("gcsref"), i32_to_string(slot))
     }
     // Fallback: extract byte_size and use size-based heuristic.
     let mut byte_size = 0

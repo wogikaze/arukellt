@@ -1,5 +1,5 @@
+use std::prelude::{eq}
 use component::ast_node
-
 struct ComponentTypeNode {
     node: AstNode,
 }

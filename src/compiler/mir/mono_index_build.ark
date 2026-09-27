@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use mir::mono_instance_shape
 use mir::mono_index_types
 use mir::type_contracts
-
 fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
     let count = len(instances)
     let idx = mono_index_types::mono_index_new()

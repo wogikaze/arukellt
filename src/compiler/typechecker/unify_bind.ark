@@ -1,10 +1,11 @@
+use std::prelude::{clone, eq}
+use std::text
 use typechecker::kinds
 use typechecker::contract_type_access
 use typechecker::contract_typevar
 use typechecker::contract_env_vars_record
 use typechecker::unify_env
 use typechecker::unify_resolve
-
 fn occurs_in_type(env: TypeEnv, var_name: String, ty: TypeInfo) -> bool {
     occurs_in_type_depth(env, var_name, ty, 0)
 }
@@ -37,7 +38,7 @@ fn occurs_in_type_depth(env: TypeEnv, var_name: String, ty: TypeInfo, depth: i32
 
 fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
     if occurs_in_type(env, clone(var_name), ty) {
-        unify_env::type_error(env, concat("occurs check failed: ", concat(clone(var_name), " appears in its own type")))
+        unify_env::type_error(env, text::concat("occurs check failed: ", text::concat(clone(var_name), " appears in its own type")))
         return
     }
     let count = contract_env_vars_record::type_env_var_count(env)

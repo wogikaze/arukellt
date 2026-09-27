@@ -1,8 +1,8 @@
+use std::prelude::{clone, eq}
 use lsp::kinds
 use lsp::state_record
 use lsp::symbol_index_record
 use lsp::symbol_index_stdlib_spans
-
 struct IndexDefinition {
     found: bool,
     uri: String,

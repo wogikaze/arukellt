@@ -1,5 +1,5 @@
 use std::host::stdio
-
+use std::prelude::{max}
 fn main() {
     let max: i32 = 2147483647
     let wrapped: i32 = max + 1

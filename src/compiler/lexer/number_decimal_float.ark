@@ -1,5 +1,5 @@
+use std::prelude::{eq, substring}
 use lexer::char_class
-
 fn scan_decimal_float_parts(lex: Lexer) -> bool {
     let mut is_float = false
     if lex.pos < lex.src_len && peek(lex) == 46 {

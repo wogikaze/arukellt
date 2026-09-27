@@ -1,5 +1,6 @@
 use std::host::stdio
 use std::test
+use std::prelude::{is_some}
 fn make_some(v: i32) -> Option<i32> {
     Some(v)
 }

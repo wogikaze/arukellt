@@ -1,7 +1,7 @@
+use std::prelude::{clone, eq}
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_type_constructors
-
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }

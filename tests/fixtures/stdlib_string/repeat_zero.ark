@@ -1,5 +1,5 @@
 use std::test
-
+use std::prelude::{is_empty, repeat}
 fn main() {
     let r = repeat(String_from("ab"), 0)
     test::assert_eq_i32(len(r), 0)

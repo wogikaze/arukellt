@@ -1,7 +1,8 @@
 use std::host::env
 use std::host::fs
 use std::host::process
-
+use std::prelude::{trim}
+use std::host::stdio
 fn main() {
     match fs::read_to_string("tests/fixtures/stdlib_fs/present.txt") {
         Result::Err(_) => panic("read failed"),
@@ -22,5 +23,5 @@ fn main() {
         Result::Err(_) => {
         },
     }
-    println("host surface ok")
+    stdio::println("host surface ok")
 }

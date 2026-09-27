@@ -1,25 +1,26 @@
 use std::host::stdio
+use std::prelude::{to_string}
+use std::text
 use lexer::scan
 use parser::core_api_token
 use parser::decl
 use resolver::program
 use typechecker::contract_result_state
 use typechecker::entry
-
 fn main() {
     let src = "fn main() { let x: i32 = 1 }"
     let tokens = scan::tokenize(src)
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     if len(p.errors) != 0 {
-        stdio::println(concat("TypeChecker parse errors: ", to_string(len(p.errors))))
+        stdio::println(text::concat("TypeChecker parse errors: ", to_string(len(p.errors))))
         return
     }
     let resolve_ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), Vec::new<String>())
     let result = entry::typecheck_module(decls, resolve_ctx, Vec::new<String>())
     let error_count = contract_result_state::typecheck_result_error_count(result)
     if error_count != 0 {
-        stdio::println(concat("TypeChecker errors: ", to_string(error_count)))
+        stdio::println(text::concat("TypeChecker errors: ", to_string(error_count)))
         return
     }
     stdio::println("TypeChecker OK.")

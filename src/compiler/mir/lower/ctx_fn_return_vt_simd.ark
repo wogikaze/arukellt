@@ -1,3 +1,4 @@
+use std::prelude::{clone, ends_with, eq, starts_with}
 fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
     if starts_with(clone(bare_name), "__simd_v128_") {
         if eq(clone(bare_name), "__simd_v128_any_true") {

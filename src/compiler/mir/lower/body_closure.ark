@@ -1,3 +1,4 @@
+use std::prelude::{clone, eq}
 use mir::lower::ast_node
 use mir::lower::closure_free
 use mir::lower::closure_capture_args
@@ -14,7 +15,6 @@ use mir::lower::body_closure_return
 use mir::lower::closure_return_type
 use mir::lower_kinds
 use mir::value_types
-
 fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>, rebind_flags: Vec<i32>) -> MirFunction {
     let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let cap_vts = body_closure_capture::mir_closure_capture_vts(ctx, caps)

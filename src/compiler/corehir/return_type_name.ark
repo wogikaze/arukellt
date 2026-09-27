@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use corehir::decl_ann_children
 use corehir::type_ann_node
 use corehir::type_ann_local_name
@@ -5,7 +7,6 @@ use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::return_ann_shape
-
 fn return_index_type_name(node: AstNode) -> String {
     let child_count = return_ann_shape::return_ann_child_count(node)
     if child_count <= 0 {
@@ -42,9 +43,9 @@ fn return_index_type_name(node: AstNode) -> String {
             // Vec<(A, B)> returns keep the tuple:<k,...> element spelling
             // (#888).
             if decl_ann_name::decl_ann_is_tuple(elem) {
-                return concat("vec:", type_ann_node::type_ann_tuple_local_name(elem))
+                return text::concat("vec:", type_ann_node::type_ann_tuple_local_name(elem))
             }
-            return concat("vec:", decl_ann_name::decl_ann_name(elem))
+            return text::concat("vec:", decl_ann_name::decl_ann_name(elem))
         }
         if eq(clone(name), "Option") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem_opt = decl_ann_children::decl_ann_child_at(ret, 1)
@@ -52,7 +53,7 @@ fn return_index_type_name(node: AstNode) -> String {
             eq(decl_ann_name::decl_ann_name(elem_opt), "fnref") {
                 return "option:fnref"
             }
-            return concat("option:", decl_ann_name::decl_ann_name(elem_opt))
+            return text::concat("option:", decl_ann_name::decl_ann_name(elem_opt))
         }
         if eq(clone(name), "HashMap") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ret, 1)

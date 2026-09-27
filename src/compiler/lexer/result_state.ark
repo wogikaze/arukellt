@@ -1,5 +1,5 @@
+use std::prelude::{clone}
 use lexer::token_record
-
 pub struct LexDiagnostic {
     code: i32,
     message: String,
