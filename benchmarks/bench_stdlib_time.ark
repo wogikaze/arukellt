@@ -39,7 +39,7 @@ fn bench_measurement_pattern() {
 }
 
 pub fn main() {
-    let mut checksum: i64 = 0
+    let mut checksum: i64 = 0i64
     let mut iter: i32 = 0
     while iter < 200 {
         checksum = checksum + bench_duration_creation()

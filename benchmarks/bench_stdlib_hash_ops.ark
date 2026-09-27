@@ -1,30 +1,33 @@
 // Stdlib benchmark: hash map insert/get with String keys and i32 values.
-// Exercises std::collections::hash hashmap_str_* hot paths: insert,
-// get (Option<i32>), contains, remove, plus hashmap_keys/values/clear.
-use std::collections::hash
+// Exercises the canonical generic HashMap<String, i32> method surface
+// (insert/get/contains_key/remove/len), which lowers to the __hm_si
+// intrinsic adapters. NOTE: the intrinsic table does not grow past its
+// initial capacity (16), so inserts beyond that are silently dropped —
+// tracked as #895; the expected output encodes correct-map semantics.
 use std::host::stdio
 use std::text
 fn main() {
-    let m = hash::hashmap_new()
+    let m = HashMap::new<String, i32>()
     let mut checksum: i32 = 0
     let mut i: i32 = 0
 
     // Insert 100 entries (String key, i32 value)
     while i < 100 {
         let key = text::concat("key_", (i).to_string())
-        let prev = hash::hashmap_str_set(m, key, i * 7)
-        if prev {
-            checksum = checksum + 1000
+        let prev = m.insert(key, i * 7)
+        match prev {
+            Option::Some(_) => checksum = checksum + 1000,
+            None => {},
         }
         i = i + 1
     }
-    checksum = checksum + hash::hashmap_size(m)
+    checksum = checksum + m.len()
 
     // Get each entry
     i = 0
     while i < 100 {
         let key = text::concat("key_", (i).to_string())
-        match hash::hashmap_str_get(m, key) {
+        match m.get(key) {
             Option::Some(v) => checksum = checksum + v,
             None => checksum = checksum + 10000,
         }
@@ -35,7 +38,7 @@ fn main() {
     i = 0
     while i < 100 {
         let key = text::concat("key_", (i).to_string())
-        if hash::hashmap_str_contains(m, key) {
+        if m.contains_key(key) {
             checksum = checksum + 1
         }
         i = i + 1
@@ -45,7 +48,7 @@ fn main() {
     i = 0
     while i < 100 {
         let key = text::concat("key_", (i).to_string())
-        match hash::hashmap_str_remove(m, key) {
+        match m.remove(key) {
             Option::Some(_) => checksum = checksum + 2,
             None => checksum = checksum + 20000,
         }
@@ -53,7 +56,7 @@ fn main() {
     }
 
     // Remaining size
-    checksum = checksum + hash::hashmap_size(m)
+    checksum = checksum + m.len()
 
     stdio::println((checksum).to_string())
 }

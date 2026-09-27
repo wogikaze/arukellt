@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T11:10:59Z",
+  "generated_at": "2026-09-27T13:21:00Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -584,6 +584,40 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 852
+      }
+    },
+    {
+      "id": "895",
+      "path": "895-hashmap-intrinsic-family-growth.md",
+      "title": "895 — HashMap intrinsic ファミリの容量成長（growth/rehash）が存在しない",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 879
+      }
+    },
+    {
+      "id": "896",
+      "path": "896-linear-gc-metadata-arena-exhaustion.md",
+      "title": "896 — linear GC metadata arena が collect 発火前に枯渇し unreachable で trap する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 874
       }
     },
     {

@@ -2,7 +2,7 @@
 // Exercises std::json::parse, json_get, json_as_*, and stringify on
 // structured JSON data (nested objects, arrays, scalars).
 use std::host::stdio
-use std::json
+use std::json::parser
 use std::text
 fn main() {
     // Build a JSON object string
@@ -15,18 +15,18 @@ fn main() {
     let mut iter: i32 = 0
     while iter < 50 {
         // Parse
-        match json::parse(json_str) {
+        match parser::parse(json_str) {
             Result::Ok(val) => {
                 // Object field access
-                let name = json::json_get(val, "name")
+                let name = parser::json_get(val, "name")
                 match name {
                     Option::Some(_) => sum = sum + 1,
                     None => sum = sum + 10,
                 }
-                let count = json::json_get(val, "count")
+                let count = parser::json_get(val, "count")
                 match count {
                     Option::Some(cv) => {
-                        let n = json::json_as_i32(cv)
+                        let n = parser::json_as_i32(cv)
                         match n {
                             Option::Some(v) => sum = sum + v,
                             None => sum = sum + 100,
@@ -34,10 +34,10 @@ fn main() {
                     },
                     None => sum = sum + 200,
                 }
-                let active = json::json_get(val, "active")
+                let active = parser::json_get(val, "active")
                 match active {
                     Option::Some(av) => {
-                        let b = json::json_as_bool(av)
+                        let b = parser::json_as_bool(av)
                         match b {
                             Option::Some(v) => if v { sum = sum + 7 } else { sum = sum + 70 },
                             None => sum = sum + 300,
@@ -46,13 +46,13 @@ fn main() {
                     None => sum = sum + 400,
                 }
                 // Nested access
-                let meta = json::json_get(val, "meta")
+                let meta = parser::json_get(val, "meta")
                 match meta {
                     Option::Some(mv) => {
-                        let v = json::json_get(mv, "v")
+                        let v = parser::json_get(mv, "v")
                         match v {
                             Option::Some(vv) => {
-                                let n = json::json_as_i32(vv)
+                                let n = parser::json_as_i32(vv)
                                 match n {
                                     Option::Some(x) => sum = sum + x,
                                     None => sum = sum + 500,
@@ -64,8 +64,8 @@ fn main() {
                     None => sum = sum + 700,
                 }
                 // Stringify
-                let _ = json::stringify(val)
-                let _ = json::stringify_pretty(val, 2)
+                let _ = parser::stringify(val)
+                let _ = parser::stringify_pretty(val, 2)
             },
             Result::Err(_) => sum = sum + 1000,
         }
