@@ -5,15 +5,16 @@
 >
 > **v2 policy**: [ADR-072](../adr/ADR-072-language-v2-prelude-and-keyword-policy.md)
 
-The v2 contract defines a small stable set of symbols, while the current
-resolver still auto-imports a broader legacy set during the migration tracked
-by #878. This page distinguishes those contracts rather than treating every
-legacy entry as a new stability promise.
+The v2 contract defines a small stable set of symbols. The resolver now
+auto-imports only that stable set; every other `pub` prelude decl stays
+available through an explicit `use std::prelude::{name}` selective import
+(enforced by #878). This page distinguishes those contracts rather than
+treating every legacy entry as a new stability promise.
 
 ## Tiny Prelude (stdlib design epoch 3)
 
 The following symbols form the v2 stable Prelude. They are available without
-an explicit `use` statement after the legacy migration boundary is removed.
+an explicit `use` statement.
 
 ### Compiler-builtin types and constructors
 
@@ -45,8 +46,9 @@ not have a second manifest or resolver entry.
 
 The intrinsic compatibility group (`len`, `push`, `pop`, `get`, `set`, and
 `get_unchecked`) remains explicit in the manifest policy for existing compiler
-and stdlib code. Other `prelude = true` entries are legacy auto-imports until
-#878 migrates their call sites and resolver registration.
+and stdlib code. Other `prelude = true` entries are no longer auto-imported:
+bare calls fail with E0100 and a migration hint, and the name resolves only
+through `use std::prelude::{name}` or its canonical replacement module.
 
 ## Legacy compatibility and migration
 

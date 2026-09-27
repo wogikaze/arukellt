@@ -1,6 +1,9 @@
+use std::prelude::{clone, eq, starts_with, substring}
+use std::text
 use resolver::scope_lookup
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
+use resolver::prelude_stable
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::scope_define
@@ -8,7 +11,6 @@ use resolver::kinds
 use resolver::modules
 use resolver::register_exports
 use resolver::paths
-
 fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = len(modules)
     let mut mi = 0
@@ -45,7 +47,7 @@ fn register_prelude_module_bare_names(ctx: ResolveCtx, m: ModuleDecls) {
     while di < mdecl_count {
         let d = modules::module_decl_at(m, di)
         let is_pub = ast_access::node_is_pub(d)
-        if is_pub {
+        if is_pub && prelude_stable::is_stable_prelude_name(ast_access::node_text(d)) {
             let symbol_name = ast_access::node_text(d)
             let existing = scope_lookup::lookup(ctx, clone(symbol_name))
             if existing < 0 {
@@ -99,7 +101,13 @@ fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
 
 fn register_imported_enum_exports(ctx: ResolveCtx, module_name: String, enum_decl: AstNode, enum_name: String, is_pub: bool) {
     register_exports::register_module_export(ctx, clone(module_name), clone(enum_name), commands::SYM_ENUM(), is_pub)
-    // Bare enum name enables `Error::Variant` after `use std::core::error`.
+    // Bare enum name enables Error::Variant after 'use std::core::error'.
+    // Prelude enums outside the v2 stable set keep only the qualified
+    // prelude::Name registration; the bare name needs 'use std::prelude::{Name}'.
+    if eq(clone(module_name), "prelude") && !prelude_stable::is_stable_prelude_name(clone(enum_name)) {
+        register_variants_only(ctx, module_name, enum_decl, enum_name, is_pub)
+        return
+    }
     let existing_bare = scope_lookup::lookup(ctx, clone(enum_name))
     if existing_bare < 0 {
         scope_define::define_with_vis(ctx, clone(enum_name), commands::SYM_ENUM(), is_pub)
@@ -109,12 +117,31 @@ fn register_imported_enum_exports(ctx: ResolveCtx, module_name: String, enum_dec
     while vi < child_count {
         let variant = ast_access::node_child_at(enum_decl, vi)
         let variant_name = ast_access::node_text(variant)
-        let bare_variant = concat(clone(enum_name), concat(String_from("::"), clone(variant_name)))
+        let bare_variant = text::concat(clone(enum_name), text::concat(String_from("::"), clone(variant_name)))
         let existing_variant = scope_lookup::lookup(ctx, clone(bare_variant))
         if existing_variant < 0 {
             scope_define::define_with_vis(ctx, clone(bare_variant), commands::SYM_VARIANT(), is_pub)
         }
         // `module::Enum::Variant` for fully qualified constructor paths.
+        register_exports::register_module_export(ctx, clone(module_name), clone(bare_variant), commands::SYM_VARIANT(), is_pub)
+        vi = vi + 1
+    }
+}
+
+// Variant registration for prelude enums whose bare name is gated out of the
+// auto-import set: qualified prelude::Enum::Variant paths stay usable while
+// Enum::Variant still resolves once the enum is explicitly imported.
+fn register_variants_only(ctx: ResolveCtx, module_name: String, enum_decl: AstNode, enum_name: String, is_pub: bool) {
+    let child_count = ast_access::node_child_count(enum_decl)
+    let mut vi = 0
+    while vi < child_count {
+        let variant = ast_access::node_child_at(enum_decl, vi)
+        let variant_name = ast_access::node_text(variant)
+        let bare_variant = text::concat(clone(enum_name), text::concat(String_from("::"), clone(variant_name)))
+        let existing_variant = scope_lookup::lookup(ctx, clone(bare_variant))
+        if existing_variant < 0 {
+            scope_define::define_with_vis(ctx, clone(bare_variant), commands::SYM_VARIANT(), is_pub)
+        }
         register_exports::register_module_export(ctx, clone(module_name), clone(bare_variant), commands::SYM_VARIANT(), is_pub)
         vi = vi + 1
     }
@@ -184,9 +211,9 @@ fn collect_pub_use_edges(m: ModuleDecls, module_name: String, edge_targets: Vec<
 fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) -> bool {
     let source_root = paths::path_module_part(clone(source_module))
     let selected_symbol = paths::path_symbol_part(clone(source_module))
-    let module_prefix = concat(clone(source_root), "::")
+    let module_prefix = text::concat(clone(source_root), "::")
     let module_prefix_len = len(clone(module_prefix))
-    let selected_prefix = concat(clone(source_module), "::")
+    let selected_prefix = text::concat(clone(source_module), "::")
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
     let mut defined_any = false
@@ -201,7 +228,7 @@ fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module
         }
         if matches_source && scope_stack_symbols::Symbol_is_pub(sym) {
             let suffix = substring(clone(sym_name), module_prefix_len, len(clone(sym_name)))
-            let qualified = concat(clone(target_module), concat("::", clone(suffix)))
+            let qualified = text::concat(clone(target_module), text::concat("::", clone(suffix)))
             let existing = scope_lookup::lookup(ctx, clone(qualified))
             if existing < 0 {
                 let kind = scope_stack_symbols::Symbol_kind(sym)

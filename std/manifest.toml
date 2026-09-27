@@ -32,10 +32,10 @@ minimum_complete_releases = 1
 
 [prelude_policy]
 # The v2 contract is intentionally smaller than the legacy auto-import set.
-# `legacy_auto_import` remains true until the compatibility migration tracked by
-# issue #878 removes the broad resolver registration boundary.
+# `legacy_auto_import` was removed by #878: only the stable set below is
+# auto-imported; all other prelude decls require `use std::prelude::{name}`.
 language_version = "v2"
-legacy_auto_import = true
+legacy_auto_import = false
 stable_types = ["Option", "Result", "String", "Vec"]
 stable_values = ["Some", "None", "Ok", "Err"]
 lexical_literals = ["true", "false"]
@@ -593,28 +593,6 @@ prelude = true
 stability = "stable"
 doc_category = "control"
 
-# ── Vec constructors ─────────────────────────
-
-# NOTE: Vec_with_capacity_* are in the prelude function registry but lack a
-# typechecker function signature.
-[[functions]]
-name = "Vec_with_capacity_i32"
-kind = "builtin"
-params = ["i32"]
-returns = "Vec<i32>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_with_capacity_String"
-kind = "builtin"
-params = ["i32"]
-returns = "Vec<String>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
 # ── Vec operations (direct builtins) ─────────
 
 [[functions]]
@@ -975,15 +953,8 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: unwrap_or_else is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "unwrap_or_else"
-kind = "builtin"
-params = ["Option<T>", "fn() -> T"]
-returns = "T"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
+# NOTE: unwrap_or_else was removed from the prelude surface; bare calls now
+# report E0100 with the resolver::removed_names hint.
 
 [[functions]]
 name = "is_some"
@@ -1023,45 +994,8 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: ok_or is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "ok_or"
-kind = "builtin"
-params = ["Option<T>", "E"]
-returns = "Result<T, E>"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: ok is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "ok"
-kind = "builtin"
-params = ["Result<T, E>"]
-returns = "Option<T>"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: err is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "err"
-kind = "builtin"
-params = ["Result<T, E>"]
-returns = "Option<E>"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: expect is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "expect"
-kind = "builtin"
-params = ["Option<T>", "String"]
-returns = "T"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
+# NOTE: ok_or / ok / err / expect were removed from the prelude surface; bare
+# calls now report E0100 with resolver::removed_names hints.
 
 [[functions]]
 name = "map_option_i32_i32"
@@ -1390,6 +1324,189 @@ stability = "stable"
 name = "i16"
 prelude = true
 
+
+# ── Compat-only prelude decls (recorded for #878) ────────────────────
+# These decls exist in std/prelude.ark but were missing from the manifest.
+# They are part of the legacy auto-import boundary, not the v2 stable set.
+
+[[types]]
+name = "Box"
+prelude = true
+stability = "provisional"
+generic_params = ["T"]
+
+[[types]]
+name = "Slice"
+prelude = true
+stability = "provisional"
+generic_params = ["T"]
+
+[[functions]]
+name = "abs"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_abs"
+params = ["i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "min"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_min"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "max"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_max"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "sqrt"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sqrt"
+params = ["f64"]
+returns = "f64"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+[[functions]]
+name = "f32_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f32_to_string"
+params = ["f32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "convert"
+
+[[functions]]
+name = "format_bool"
+kind = "prelude_wrapper"
+params = ["bool"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "format_i32"
+kind = "builtin"
+params = ["i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "lines"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_lines"
+params = ["String"]
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "pad_left"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_pad_left"
+params = ["String", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "pad_right"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_pad_right"
+params = ["String", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "repeat"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_repeat"
+params = ["String", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "trim_start"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_trim_start"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "trim_end"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_trim_end"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "args"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_args"
+params = []
+returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "host_env"
+
+[[functions]]
+name = "exit"
+kind = "builtin"
+params = ["i32"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "host_process"
+
+[[functions]]
+name = "print"
+kind = "builtin"
+params = ["String"]
+returns = "()"
+prelude = true
+stability = "deprecated"
+deprecated_by = "std::host::stdio::print"
+doc_category = "host_stdio"
+
+[[functions]]
+name = "println"
+kind = "builtin"
+params = ["String"]
+returns = "()"
+prelude = true
+stability = "deprecated"
+deprecated_by = "std::host::stdio::println"
+doc_category = "host_stdio"
 
 # ── std::core Types (v3) ─────────────
 [[types]]

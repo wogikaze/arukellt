@@ -5,6 +5,7 @@
 // ── Deprecated module paths (use std::io → use std::host::stdio) ───────
 
 // Returns a non-empty replacement message if the `use` path is deprecated.
+use std::prelude::{clone, eq}
 pub fn deprecated_use_message(path: String) -> String {
     if eq(clone(path), "std::io") {
         return "module `std::io` has moved to `std::host::stdio`"
@@ -24,35 +25,15 @@ pub fn deprecated_use_message(path: String) -> String {
     String_new()
 }
 
-// ── Deprecated bare prelude calls (println → stdio::println) ───────────
+// ── Deprecated bare prelude calls ──────────────────────────────────────
 
-// Returns a non-empty replacement message if the bare function name is deprecated.
-pub fn deprecated_call_message(name: String) -> String {
-    if eq(clone(name), "println") {
-        return "import `use std::host::stdio` and call `stdio::println(...)`"
-    }
-    if eq(clone(name), "print") {
-        return "import `use std::host::stdio` and call `stdio::print(...)`"
-    }
-    if eq(clone(name), "eprintln") {
-        return "import `use std::host::stdio` and call `stdio::eprintln(...)`"
-    }
-    if eq(clone(name), "read_to_string") {
-        return "import `use std::host::stdio` and call `stdio::read_stdin()`"
-    }
-    // Deprecated prelude free functions (issue #718, ADR-036)
-    if eq(clone(name), "i32_to_string") {
-        return "use `x.to_string()` (inherent method on i32) instead"
-    }
-    if eq(clone(name), "i64_to_string") {
-        return "use `x.to_string()` (inherent method on i64) instead"
-    }
-    if eq(clone(name), "f64_to_string") {
-        return "use `x.to_string()` (inherent method on f64) instead"
-    }
-    if eq(clone(name), "bool_to_string") {
-        return "use `x.to_string()` (inherent method on bool) instead"
-    }
+// Returns a non-empty replacement message if the bare function name is
+// deprecated.  Under the v2 prelude contract every deprecated bare
+// prelude name is gated: it fails name resolution with E0100 plus a
+// resolver::removed_names migration hint before lint runs, so this table
+// is intentionally empty.  Keep the dispatch point so a future
+// deprecated-but-still-resolvable bare name has a documented home.
+pub fn deprecated_call_message(_name: String) -> String {
     String_new()
 }
 
@@ -78,33 +59,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
 
 fn deprecated_math_qualified_message(path: String) -> String {
     // std::core::math functions
-    if eq(clone(path), "math::abs") {
-        return "use `x.abs()` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::abs_i32") {
-        return "use `x.abs()` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::min") {
-        return "use `a.min(b)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::min_i32") {
-        return "use `a.min(b)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::max") {
-        return "use `a.max(b)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::max_i32") {
-        return "use `a.max(b)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::sqrt") {
-        return "use `x.sqrt()` (inherent method on f64) instead"
-    }
-    if eq(clone(path), "math::clamp") {
-        return "use `x.clamp(lo, hi)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "math::pow_i32") {
-        return "use `base.pow(exp)` (inherent method on i32) instead"
-    }
     if eq(clone(path), "math::is_power_of_two") {
         return "use `n.is_power_of_two()` (Integer trait) instead"
     }
@@ -124,61 +78,33 @@ fn deprecated_math_qualified_message(path: String) -> String {
 }
 
 fn deprecated_cmp_qualified_message(path: String) -> String {
-    // std::core::cmp functions
-    if eq(clone(path), "cmp::cmp") {
-        return "use `a.cmp(b)` (Ord trait method) instead"
-    }
-    if eq(clone(path), "cmp::min") {
-        return "use `a.min(b)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "cmp::max") {
-        return "use `a.max(b)` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "cmp::clamp") {
-        return "use `x.clamp(lo, hi)` (inherent method on i32) instead"
-    }
+    // std::core::cmp free functions were removed; unresolved qualified calls
+    // surface as E0100 paths, so no live warning entries remain here.
     String_new()
 }
 
 fn deprecated_convert_qualified_message(path: String) -> String {
-    // std::core::convert functions
-    if eq(clone(path), "convert::i32_to_string") {
-        return "use `x.to_string()` (inherent method on i32) instead"
-    }
-    if eq(clone(path), "convert::i64_to_string") {
-        return "use `x.to_string()` (inherent method on i64) instead"
-    }
-    if eq(clone(path), "convert::f64_to_string") {
-        return "use `x.to_string()` (inherent method on f64) instead"
-    }
-    if eq(clone(path), "convert::bool_to_string") {
-        return "use `x.to_string()` (inherent method on bool) instead"
-    }
+    // std::core::convert *_to_string free functions were removed; unresolved
+    // calls surface as E0100 with the resolver::removed_names hint.
     String_new()
 }
 
 fn deprecated_hash_qualified_message(path: String) -> String {
-    // std::core::hash functions
-    if eq(clone(path), "hash::hash_i32") {
-        return "use `value.hash()` (Hash trait method) instead"
-    }
-    if eq(clone(path), "hash::hash_string") {
-        return "use `value.hash()` (Hash trait method) instead"
-    }
-    if eq(clone(path), "hash::hash_combine") {
-        return "use `combine(h1, h2)` instead"
-    }
+    // std::core::hash only exposes 'combine'; removed names are covered by
+    // resolver::removed_names instead of this live-call table.
     String_new()
 }
 
 test mod "deprecated" {
     test "io" { assert(len(deprecated_use_message("std::io")) > 0) }
     test "fs" { assert(len(deprecated_use_message("std::fs")) > 0) }
-    test "println" { assert(len(deprecated_call_message("println")) > 0) }
-    test "i32_to_string" { assert(len(deprecated_call_message("i32_to_string")) > 0) }
-    test "math_abs_i32" { assert(len(deprecated_qualified_call_message("math::abs_i32")) > 0) }
+    test "gated_prelude_names_not_double_warned" {
+        // Gated prelude names fail resolution with E0100; W0009 must not
+        // also fire on the same name.
+        assert(len(deprecated_call_message("println")) == 0)
+        assert(len(deprecated_call_message("concat")) == 0)
+        assert(len(deprecated_call_message("char_at")) == 0)
+    }
     test "math_popcount" { assert(len(deprecated_qualified_call_message("math::popcount")) > 0) }
-    test "cmp_cmp" { assert(len(deprecated_qualified_call_message("cmp::cmp")) > 0) }
-    test "hash_i32" { assert(len(deprecated_qualified_call_message("hash::hash_i32")) > 0) }
     test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
 }

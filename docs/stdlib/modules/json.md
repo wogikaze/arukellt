@@ -49,7 +49,7 @@ The full JSON parser with `pub enum JsonValue` lives in
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `JsonStrResult` | `struct` | Result of a streaming string parse. |
+| `JsonStrResult` | `struct` | - |
 | `JsonEscapeResult` | `struct` | Result of decoding one JSON string escape sequence. |
 
 ### `std::json` — Public API

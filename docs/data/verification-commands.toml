@@ -336,6 +336,14 @@ purpose = "Issue #877 gate: validate docs/data/observable-semantics.toml — sch
 coverage = ["docs/data/observable-semantics.toml", "tests/fixtures/manifest.txt", "issue-877"]
 
 [[commands]]
+id = "compat_orphan_audit"
+canonical = "python3 scripts/check/check-compat-orphans.py"
+aliases = []
+alias_status = "none"
+purpose = "Issue #878 gate: audit the language-v2 compat layer for orphans — deprecated_by targets resolve, deprecation windows exist, lint tables only cover live calls, removed-name hints only cover unreachable names, manifest-deprecated prelude names are diagnosed, prelude decls are manifest-recorded"
+coverage = ["std/manifest.toml", "std/prelude.ark", "src/compiler/lint/deprecated_table.ark", "src/compiler/resolver/removed_names.ark", "issue-878"]
+
+[[commands]]
 id = "doc_example_check"
 canonical = "python3 scripts/check/check-doc-examples.py docs/"
 aliases = []

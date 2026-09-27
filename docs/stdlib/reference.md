@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 383 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 391 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 84 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 322 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 17 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
 
 ## Prelude Types
 
@@ -28,6 +28,8 @@
 | `u64` | - | yes |
 | `i8` | - | yes |
 | `i16` | - | yes |
+| `Box` | T | yes |
+| `Slice` | T | yes |
 | `Error` | - | no |
 | `Ordering` | - | no |
 | `Range` | - | no |
@@ -150,8 +152,6 @@
 | `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
 | `any_f64` | `(Vec<f64>, fn(f64) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_f64` | - |
 | `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
@@ -372,6 +372,7 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `f32_to_string` | `(f32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_string` | - |
 | `i32_to_u32` | `(i32) -> u32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
 
 ## Core
@@ -444,6 +445,7 @@ Expected output: `42`
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
+| `args` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_args` | - |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `functional` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
@@ -498,6 +500,7 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `exit` | `(i32) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `id` | `() -> Result<i32, String>` | `std::host::process` | `stable` | `functional` | `builtin` | no | - | Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style pro… |
 
@@ -525,7 +528,9 @@ let n = random::random_i32_range(1, 7)
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
+| ~~`print`~~ ⚠️ Deprecated → `std::host::stdio::print` | `(String) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
+| ~~`println`~~ ⚠️ Deprecated → `std::host::stdio::println` | `(String) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
 | `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
 
@@ -697,8 +702,12 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `abs` | `(i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
 | `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
 | `gcd` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_gcd` | - |
+| `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_max` | - |
+| `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
+| `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
 
 ## Numeric
 
@@ -711,8 +720,6 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
@@ -720,11 +727,8 @@ let input = read_to_string()
 | `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
 | `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
 ## Path
 
@@ -944,10 +948,16 @@ let input = read_to_string()
 | `contains_string` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
+| `format_bool` | `(bool) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
+| `format_i32` | `(i32) -> String` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
 | `is_empty` | `(String) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
+| `lines` | `(String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_lines` | - |
+| `pad_left` | `(String, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_pad_left` | - |
+| `pad_right` | `(String, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_pad_right` | - |
 | `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_push_char` | Append a Unicode scalar encoded as canonical UTF-8. |
+| `repeat` | `(String, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_repeat` | - |
 | `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
 | `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
@@ -958,6 +968,8 @@ let input = read_to_string()
 | `to_upper` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
 | `to_uppercase` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
 | `trim` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
+| `trim_end` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_end` | - |
+| `trim_start` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_start` | - |
 
 ### `concat` — `prelude`
 
@@ -1178,7 +1190,7 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **17 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **19 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1193,6 +1205,8 @@ Expected output: `hello world`
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`print`~~ | `std::host::stdio::print` | [migration-guidance.md](migration-guidance.md) |
+| ~~`println`~~ | `std::host::stdio::println` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | [migration-guidance.md](migration-guidance.md) |

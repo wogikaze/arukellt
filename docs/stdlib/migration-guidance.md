@@ -13,9 +13,15 @@ replacement is documented as available only after its manifest entry,
 implementation, and both-target fixture evidence exist. Roadmap examples use
 the eventual method/trait shape but are explicitly marked as planned below.
 
-Deprecated APIs continue to compile and run and emit **W0009** warnings from
-the post-resolve lint pass. They will be removed in a future major
-version per the [Stability Policy](stability-policy.md#deprecation-process).
+Deprecated module-qualified APIs continue to compile and run and emit
+**W0009** warnings from the post-resolve lint pass. Deprecated bare prelude
+bindings (`char_at`, `concat`, `print`, `println`) are gated under the
+ADR-072 v2 prelude contract: a bare call fails name resolution with
+**E0100** plus a migration hint instead of reaching lint. They remain
+callable during the window through an explicit `use std::prelude::{name}`
+import or their canonical replacement. All deprecated entries will be
+removed in a future major version per the
+[Stability Policy](stability-policy.md#deprecation-process).
 
 ---
 

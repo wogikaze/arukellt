@@ -42,7 +42,7 @@ Supports RFC 4180 quoted fields and basic multi-row documents.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Split a single CSV line on commas (no quote handling). |
+| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | ✅ functional | - |
 | `csv_parse_row` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Parse a single CSV line into fields, handling RFC 4180 quoted fields. |
 | `csv_stringify_row` | `(Vec<String>) -> String` | `experimental` | ✅ functional | Serialize a row of fields back to a CSV line. |
 | `csv_count_rows` | `(String) -> i32` | `experimental` | ✅ functional | Count the number of non-empty lines in a CSV string. |

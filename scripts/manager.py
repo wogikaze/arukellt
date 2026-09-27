@@ -57,6 +57,7 @@ from selfhost.checks import (  # noqa: E402
 )
 from selfhost.native_executor import run_native_executor  # noqa: E402
 from docs_domain.checks import (  # noqa: E402
+    run_compat_orphans,
     run_consistency,
     run_deprecated_api_scan,
     run_examples,
@@ -4670,6 +4671,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-observable-semantics.py",
         ),
         (
+            "compat layer orphan audit (#878)",
+            "python3 scripts/check/check-compat-orphans.py",
+        ),
+        (
             "deprecated API scan in docs (H8)",
             "python3 scripts/check/check-deprecated-api-in-docs.py --strict",
         ),
@@ -7752,6 +7757,7 @@ def cmd_docs_check(args: argparse.Namespace) -> int:
         ("doc examples", run_examples),
         ("deprecated API scan", run_deprecated_api_scan),
         ("observable semantics registry", run_observable_semantics),
+        ("compat layer orphan audit", run_compat_orphans),
     ]
     with _cf.ThreadPoolExecutor() as executor:
         futures = {executor.submit(fn, root, dry_run): label for label, fn in checks}

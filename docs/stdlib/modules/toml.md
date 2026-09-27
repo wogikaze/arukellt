@@ -53,7 +53,7 @@ the bootstrap compiler stubbing the entire module.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `toml_parse_line` | `(String) -> String` | `experimental` | ✅ functional | Filter a single TOML source line: returns the line unchanged for key=value |
+| `toml_parse_line` | `(String) -> String` | `experimental` | ✅ functional | - |
 | `toml_find_section` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the body of a TOML section [section] from content. |
 | `toml_find_value` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the string value of key = "value" from a TOML content block. |
 | `find_toml_section` | `(String, String) -> String` | `experimental` | ✅ functional | - |

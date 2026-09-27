@@ -175,7 +175,7 @@ supported on any target.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `read_string` | `(String) -> Result<String, String>` | `stable` | ✅ functional | Reads the entire contents of a file into a UTF-8 string. |
+| `read_string` | `(String) -> Result<String, String>` | `stable` | ✅ functional | - |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ functional | Writes a UTF-8 string to a file, creating or truncating it. |
 | `exists` | `(String) -> bool` | `stable` | ✅ functional | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
 | `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | Read probe — the new recommended name for the probe check. |

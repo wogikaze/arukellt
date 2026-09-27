@@ -12,6 +12,8 @@ helpers are included alongside any other deprecated public entry.
 |-----|--------|-----------|-------------|------------------|------------------|--------|
 | `char_at` | `prelude` | `deprecated` | `byte_at` | `0.1.0` | `1.0.0` | Return the raw byte at a byte index. Use byte_at for the explicit compatibility API. |
 | `concat` | `prelude` | `deprecated` | `std::text::concat` | `0.1.0` | `1.0.0` | Concatenate two strings and return the result. |
+| `print` | `prelude` | `deprecated` | `std::host::stdio::print` | `0.1.0` | `1.0.0` | Superseded API |
+| `println` | `prelude` | `deprecated` | `std::host::stdio::println` | `0.1.0` | `1.0.0` | Superseded API |
 | `get_var` | `std::env` | `deprecated` | `var` | `0.1.0` | `1.0.0` | Alias for env::var. Use var instead. |
 | `exists` | `std::host::fs` | `deprecated` | `is_readable_file` | `0.1.0` | `1.0.0` | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query. |
 | `binary_search` | `std::seq` | `deprecated` | `std::seq::binary_search_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
@@ -28,4 +30,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `std::core::iter::collect_take_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collect_take_i32(v, n). |
 | `unique` | `std::seq` | `deprecated` | `std::core::iter::iter_unique_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_unique_i32(v). |
 
-Total deprecated public entries: **17**.
+Total deprecated public entries: **19**.

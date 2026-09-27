@@ -1,0 +1,33 @@
+// The v2 stable prelude set (ADR-072). register_imported consults this table
+// to decide which std::prelude declarations keep bare-name auto-import.
+// Every other prelude declaration requires an explicit
+// 'use std::prelude::{name}' at the call site.
+// Keep in sync with [prelude_policy] stable_functions +
+// intrinsic_compatibility_functions in std/manifest.toml;
+// scripts/check/check-compat-orphans.py verifies both directions.
+pub fn is_stable_prelude_name(name: String) -> bool {
+    eq(clone(name), "panic") || eq(clone(name), "assert") ||
+    eq(clone(name), "String_from") || eq(clone(name), "String_new") ||
+    eq(clone(name), "char_to_string") || eq(clone(name), "len") ||
+    eq(clone(name), "push") || eq(clone(name), "pop") ||
+    eq(clone(name), "get") || eq(clone(name), "set") ||
+    eq(clone(name), "get_unchecked")
+}
+
+test mod "prelude_stable" {
+    test "stable fns" {
+        assert(is_stable_prelude_name("panic"))
+        assert(is_stable_prelude_name("String_from"))
+        assert(is_stable_prelude_name("char_to_string"))
+    }
+    test "intrinsic compat" {
+        assert(is_stable_prelude_name("len"))
+        assert(is_stable_prelude_name("get_unchecked"))
+    }
+    test "legacy names are not stable" {
+        assert(!is_stable_prelude_name("concat"))
+        assert(!is_stable_prelude_name("eq"))
+        assert(!is_stable_prelude_name("clone"))
+        assert(!is_stable_prelude_name("Box"))
+    }
+}

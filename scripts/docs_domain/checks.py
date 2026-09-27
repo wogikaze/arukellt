@@ -41,6 +41,11 @@ def run_observable_semantics(root: Path, dry_run: bool) -> tuple[int, str]:
     return _exec(cmd, root, dry_run)
 
 
+def run_compat_orphans(root: Path, dry_run: bool) -> tuple[int, str]:
+    cmd = ["python3", "scripts/check/check-compat-orphans.py"]
+    return _exec(cmd, root, dry_run)
+
+
 def run_regenerate(
     root: Path, dry_run: bool, check_only: bool = False
 ) -> tuple[int, str]:
