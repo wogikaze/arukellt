@@ -288,6 +288,13 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     validate and run with `75\n24`; the full cyclic/closure/collection,
     diagnostic, artifact, and performance parity audit remains open. See
     [#875](875-cross-backend-semantic-parity.md).
+  - Progress (not done, 2026-09-27): canonical
+    `check-cross-backend-parity.py` gate added; first full matrix run
+    221 fixtures — parity=211, diverge=1 (filed #892),
+    diverge-from-expected=1 (stale expected corrected), compile-fail
+    gc=8 (pre-existing E0200/E0208 owned by #852/#878), wasm32=0.
+    See [#875](875-cross-backend-semantic-parity.md).
+- [ ] #892 — wasm32 linear の enum pattern dispatch diverge — depends: none (child of #875)
 
 ### Spec / migration / close
 

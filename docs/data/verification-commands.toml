@@ -318,3 +318,11 @@ aliases = []
 alias_status = "none"
 purpose = "Forbid regression vs native-cpp fixture coverage baseline (ICE/crash/rates)"
 coverage = ["native-cpp", "adr-050"]
+
+[[commands]]
+id = "cross_backend_parity"
+canonical = "python3 scripts/check/check-cross-backend-parity.py"
+aliases = []
+alias_status = "none"
+purpose = "Issue #875 audit: compile each selected run: fixture as a wasm32-gc WASI-P2 component and a wasm32 linear core module, execute both under wasmtime, and compare normalized stdout; emits a JSON receipt with artifact SHA-256 and toolchain versions"
+coverage = ["tests/fixtures/manifest.txt", "wasm32-gc", "wasm32", "issue-875"]

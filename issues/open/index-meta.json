@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T07:42:31Z",
+  "generated_at": "2026-09-27T08:06:42Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -564,6 +564,23 @@
       }
     },
     {
+      "id": "892",
+      "path": "892-linear-enum-pattern-dispatch-divergence.md",
+      "title": "892 — wasm32 linear の enum pattern dispatch が wasm32-gc と diverge する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 875
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -930,7 +947,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 36,
-        "unchecked": 12
+        "unchecked": 13
       },
       "orchestration": {
         "class": "blocked-by-upstream",

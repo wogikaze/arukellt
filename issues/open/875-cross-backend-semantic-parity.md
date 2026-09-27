@@ -96,3 +96,48 @@ RFC-011: **8–45 parity**。
 - This receipt is limited to enum payload branch lowering. Cyclic/shared
   graph parity, closure/collection coverage, negative parity expansion,
   complete artifact comparison, and performance evidence remain open.
+
+## Progress receipt — 2026-09-27 (cross-backend parity harness + first full matrix)
+
+- New canonical gate: `scripts/check/check-cross-backend-parity.py`
+  (registered as `cross_backend_parity` in
+  `docs/data/verification-commands.toml`). Each selected `run:`
+  fixture is compiled twice — `wasm32-gc` WASI-P2 component and
+  `wasm32` linear core — executed under wasmtime, and compared on
+  normalized stdout + exit code; output also checked against
+  `.expected` when present. The JSON receipt records per-fixture
+  artifact SHA-256 + byte sizes, compiler hash, and toolchain versions.
+- First full run over the curated RFC-011 semantic matrix
+  (26 domains: closures, collections, enums/ADT, structs, generics,
+  numeric, operators/evaluation, string interp, control flow,
+  ownership, question_mark, traits, match extensions, iterators):
+  **221 fixtures in 830s — parity=211, diverge=1,
+  diverge-from-expected=1, compile-fail:gc=8, compile-fail:wasm32=0.**
+- Compile fails: all 8 are the known E0200/E0208 frontend typecheck
+  gaps on v2-in-flight sources (`i64_lit`, `mixed_types`,
+  `error_ecosystem`, `struct_pattern`, `test_enum_return`,
+  `comprehension_guard`, `lambda_pattern`,
+  `use_destructure_multi`) — owned by #852/#878, unrelated to backend
+  parity. Notably **zero** compile-fail on the wasm32 linear path —
+  every fixture the frontend accepts compiles on both emitters.
+- Real divergence found: `lang_uplift/guard_const_enum_destructure`
+  — GC prints `big/small/none`, linear traps rc=134 on the
+  `Opt::None` multi-clause pattern (memory fault at -4). Minimized:
+  payload-less enum variants in multi-clause param patterns and in
+  tuple-position match patterns miscompile on linear. Filed as **#892**
+  (Priority 1, blocks this issue's closure/ADT parity claim).
+- `trait/operator_overload` diverge-from-expected was stale
+  `.expected` (missing the two newer println lines); both backends
+  agree on `4 6 2 2 1 1 1` — expected file corrected, not a
+  compiler bug.
+- Toolchain receipt: wasmtime `46.0.1 (823d1b8f2 2026-06-24)`,
+  wasm-tools `1.252.0`, compiler
+  `arukellt-s2-runtime.wasm` sha256
+  `f0828eb694fae66b56558a663d6dfc43920262ef651ed536cd4193d0a5e81916`.
+  Full JSON: `.build/parity/report.json` (ephemeral; regenerate via
+  the canonical command).
+- Acceptance status: closure/ADT/collection parity holds across the
+  matrix except the #892 divergence; numeric/evaluation/string lanes
+  show parity everywhere they compile; cyclic/shared graph parity and
+  the capability-error-limit audit remain open; #875 stays open
+  pending #892 and the remaining audit axes.
