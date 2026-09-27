@@ -526,6 +526,36 @@ def compute_percentiles(samples_ms: list[float]) -> dict[str, float | None]:
     }
 
 
+def _gc_artifact(target: str) -> bool:
+    """wasm32-gc produces a component artifact that needs Wasmtime feature
+    flags to run (GC + function-references) and a preopen for host imports."""
+    return target == "wasm32-gc"
+
+
+def _artifact_suffix(target: str) -> str:
+    return ".component.wasm" if _gc_artifact(target) else ".wasm"
+
+
+def _compile_emit_args(target: str) -> list[str]:
+    return ["--emit", "component"] if _gc_artifact(target) else []
+
+
+def _wasmtime_argv(
+    wasmtime_bin: str,
+    runtime_args: tuple[str, ...],
+    wasm_path: Path,
+    target: str,
+) -> list[str]:
+    args = list(runtime_args)
+    if _gc_artifact(target):
+        if not args or args[0] != "run":
+            args.insert(0, "run")
+        args[1:1] = ["--wasm", "gc", "--wasm", "function-references"]
+        if not any(a.startswith("--dir") for a in args):
+            args.append("--dir=.")
+    return [wasmtime_bin, *args, str(wasm_path)]
+
+
 def measure_compile(
     compiler: Path,
     case: BenchmarkCase,
@@ -535,7 +565,7 @@ def measure_compile(
     time_bin: str | None,
     work_dir: Path,
 ) -> dict[str, Any]:
-    wasm_path = work_dir / f"{case.name}.wasm"
+    wasm_path = work_dir / f"{case.name}{_artifact_suffix(target)}"
     samples: list[dict[str, Any]] = []
     phase_samples: dict[str, list[float]] = {}
     last_output: dict[str, Any] | None = None
@@ -551,6 +581,7 @@ def measure_compile(
                 "--time",
                 "--target",
                 target,
+                *_compile_emit_args(target),
                 "-o",
                 rel(wasm_path),
                 case.source,
@@ -616,6 +647,7 @@ def measure_runtime(
     wasmtime_bin: str | None,
     time_bin: str | None,
     runtime_args: tuple[str, ...] = (),
+    target: str = DEFAULT_TARGET,
 ) -> dict[str, Any]:
     if wasmtime_bin is None:
         return {
@@ -630,7 +662,7 @@ def measure_runtime(
             "correctness": "skipped",
             "command": None,
         }
-    runtime_cmd = [wasmtime_bin, *runtime_args, str(wasm_path)]
+    runtime_cmd = _wasmtime_argv(wasmtime_bin, runtime_args, wasm_path, target)
     warmup_cmd = runtime_cmd
     for _ in range(warmups):
         warm = run_measured(warmup_cmd, cwd=ROOT, time_bin=time_bin)
@@ -746,13 +778,14 @@ def measure_startup_probe(
     startup_source = ROOT / "benchmarks" / "legacy" / "startup.ark"
     if not startup_source.exists() or wasmtime_bin is None:
         return None
-    wasm_path = work_dir / "startup-probe.wasm"
+    wasm_path = work_dir / f"startup-probe{_artifact_suffix(target)}"
     compile_out = run_measured(
         [
             str(compiler),
             "compile",
             "--target",
             target,
+            *_compile_emit_args(target),
             "-o",
             rel(wasm_path),
             rel(startup_source),
@@ -762,7 +795,7 @@ def measure_startup_probe(
     )
     if compile_out["returncode"] != 0 or not wasm_path.exists():
         return None
-    runtime_cmd = [wasmtime_bin, str(wasm_path)]
+    runtime_cmd = _wasmtime_argv(wasmtime_bin, (), wasm_path, target)
     probe_samples: list[float] = []
     for _ in range(latency_iterations):
         out = run_measured(runtime_cmd, cwd=ROOT, time_bin=time_bin)
@@ -848,6 +881,7 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
                     wasmtime_bin=wasmtime_bin,
                     time_bin=time_bin,
                     runtime_args=case.runtime_args,
+                    target=args.target,
                 )
                 # Annotate with startup overhead and derived guest execution time.
                 if startup_ms is not None and runtime_result["status"] == "ok":
@@ -1242,6 +1276,7 @@ def measure_scaling(
                     wasmtime_bin=wasmtime_bin,
                     time_bin=time_bin,
                     runtime_args=case.runtime_args,
+                    target=target,
                 )
             else:
                 runtime_result = {"status": "compile_error", "median_ms": None}
