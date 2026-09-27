@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T22:47:47Z",
+  "generated_at": "2026-09-27T23:17:58Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -569,23 +569,6 @@
       }
     },
     {
-      "id": "895",
-      "path": "895-hashmap-intrinsic-family-growth.md",
-      "title": "895 — HashMap intrinsic ファミリの容量成長（growth/rehash）が存在しない",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 879
-      }
-    },
-    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -765,7 +748,7 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 47,
+        "checked": 48,
         "unchecked": 6
       },
       "orchestration": {
