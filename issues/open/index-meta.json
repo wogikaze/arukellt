@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T03:45:52Z",
+  "generated_at": "2026-09-27T04:16:45Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -551,8 +551,7 @@
       ],
       "blocks_issue_ids": [
         "875",
-        "879",
-        "889"
+        "879"
       ],
       "acceptance": {
         "checked": 0,
@@ -800,25 +799,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "889",
-      "path": "889-impl-path-vec-new-element-specialization.md",
-      "title": "889 — impl-path Vec::new<T> loses element specialization on wasm32-gc",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "874"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
