@@ -32,7 +32,7 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I879["879 879 — Wasm GC / fallback の性能・サイズ receipt を取得する"]
+  I880["880 880 — Language v2 最終 close audit を実施する"]
   I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
   I893["893 893 — match アームの tuple パターンが両経路で未実装"]
   I894["894 894 — wasm32-gc emit: 複数 multi-clause 関数群で invalid core Wasm"]
@@ -46,11 +46,10 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I880["880 880 — Language v2 最終 close audit を実施する"]
+  I852["852 852 — 言語 v2 意味論再設計 umbrella"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
-  I852["852 852 — 言語 v2 意味論再設計 umbrella"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -63,13 +62,12 @@ graph LR
   I715 --> I719
   I715 --> I799
   I851 --> I850
-  I879 --> I880
+  I880 --> I852
   I682 --> I683
   I698 --> I699
   I695 --> I709
   I697 --> I709
   I703 --> I709
-  I880 --> I852
   I697 --> I710
   I709 --> I710
   I681 --> I711
@@ -110,7 +108,7 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **879** depends on: 871, 872, 874, 875; blocks: 880
+- **880** depends on: 877, 878, 879; blocks: 852
 - **891** depends on: none; blocks: none
 - **893** depends on: none; blocks: none
 - **894** depends on: none; blocks: none
@@ -124,11 +122,10 @@ graph LR
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
-- **880** depends on: 877, 878, 879; blocks: 852
+- **852** depends on: 880; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
-- **852** depends on: 880; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713

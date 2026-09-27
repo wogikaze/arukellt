@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T13:21:00Z",
+  "generated_at": "2026-09-27T14:47:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -512,23 +512,22 @@
       }
     },
     {
-      "id": "879",
-      "path": "879-wasm-gc-fallback-benchmarks.md",
-      "title": "879 — Wasm GC / fallback の性能・サイズ receipt を取得する",
+      "id": "880",
+      "path": "880-language-v2-final-close-audit.md",
+      "title": "880 — Language v2 最終 close audit を実施する",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "871",
-        "872",
-        "874",
-        "875"
+        "877",
+        "878",
+        "879"
       ],
       "blocks_issue_ids": [
-        "880"
+        "852"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 9
+        "unchecked": 10
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -790,26 +789,22 @@
       }
     },
     {
-      "id": "880",
-      "path": "880-language-v2-final-close-audit.md",
-      "title": "880 — Language v2 最終 close audit を実施する",
+      "id": "852",
+      "path": "852-language-v2-semantics-full-implementation.md",
+      "title": "852 — 言語 v2 意味論再設計 umbrella",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "877",
-        "878",
-        "879"
+        "880"
       ],
-      "blocks_issue_ids": [
-        "852"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 10
+        "checked": 42,
+        "unchecked": 8
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
+        "class": "blocked-by-upstream",
+        "upstream_notes": 880
       }
     },
     {
@@ -877,25 +872,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
-      }
-    },
-    {
-      "id": "852",
-      "path": "852-language-v2-semantics-full-implementation.md",
-      "title": "852 — 言語 v2 意味論再設計 umbrella",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "880"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 41,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": 880
       }
     },
     {

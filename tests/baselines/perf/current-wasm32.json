@@ -1,0 +1,2081 @@
+{
+  "schema_version": "arukellt-bench-v1",
+  "generated_at": "2026-09-27T14:22:24+00:00",
+  "mode": "full",
+  "mode_description": "default local benchmark profile",
+  "target": "wasm32",
+  "thresholds": {
+    "compile_ms": 20,
+    "run_ms": 10,
+    "binary_bytes": 15
+  },
+  "compiler": {
+    "path": "scripts/run/arukellt-selfhost.sh"
+  },
+  "environment": {
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2"
+  },
+  "tooling": {
+    "wasmtime": {
+      "name": "wasmtime",
+      "available": true,
+      "path": "/home/wogikaze/.wasmtime/bin/wasmtime"
+    },
+    "hyperfine": {
+      "name": "hyperfine",
+      "available": true,
+      "path": "/usr/bin/hyperfine"
+    },
+    "time": {
+      "name": "/usr/bin/time",
+      "available": true,
+      "path": "/usr/bin/time"
+    },
+    "wasm-objdump": {
+      "name": "wasm-objdump",
+      "available": true,
+      "path": "/usr/bin/wasm-objdump"
+    }
+  },
+  "benchmarks": [
+    {
+      "name": "fib",
+      "source": "benchmarks/legacy/fib.ark",
+      "expected": "benchmarks/legacy/fib.expected",
+      "description": "Iterative Fibonacci(35)",
+      "tags": [
+        "cpu-bound",
+        "loop",
+        "scalar"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7472.468,
+          7038.12,
+          7204.194,
+          7344.955,
+          6983.377
+        ],
+        "median_ms": 7204.194,
+        "stddev_ms": 204.956,
+        "cv_pct": 2.84,
+        "variance_unstable": false,
+        "max_rss_kb": 170456,
+        "binary_bytes": 2220,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/fib.wasm benchmarks/legacy/fib.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 11,
+          "memory": 4,
+          "global": 50,
+          "export": 25,
+          "code": 1418,
+          "custom_total": 241,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          11.237,
+          8.922,
+          9.231,
+          12.146,
+          9.126,
+          12.168,
+          12.646,
+          8.946,
+          10.515,
+          12.196,
+          9.692,
+          11.346,
+          10.312,
+          8.01,
+          11.819,
+          12.65,
+          36.886,
+          10.566,
+          10.498,
+          15.116
+        ],
+        "median_ms": 10.902,
+        "p50_ms": 10.902,
+        "p95_ms": 16.205,
+        "p99_ms": 32.75,
+        "stddev_ms": 6.05,
+        "cv_pct": 49.58,
+        "variance_unstable": true,
+        "max_rss_kb": 17662,
+        "stdout": "9227465\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/fib.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170456,
+        "runtime_rss_peak_kb": 17662,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "binary_tree",
+      "source": "benchmarks/legacy/binary_tree.ark",
+      "expected": "benchmarks/legacy/binary_tree.expected",
+      "description": "Recursive node counting (depth 20)",
+      "tags": [
+        "recursion-heavy",
+        "allocation-light",
+        "call-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7732.683,
+          7223.69,
+          7109.916,
+          6965.536,
+          7204.611
+        ],
+        "median_ms": 7204.611,
+        "stddev_ms": 289.932,
+        "cv_pct": 4.0,
+        "variance_unstable": false,
+        "max_rss_kb": 170428,
+        "binary_bytes": 2238,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/binary_tree.wasm benchmarks/legacy/binary_tree.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 11,
+          "memory": 4,
+          "global": 50,
+          "export": 33,
+          "code": 1393,
+          "custom_total": 275,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          112.626,
+          121.419,
+          100.563,
+          110.664,
+          106.568,
+          106.971,
+          118.371,
+          115.594,
+          106.061,
+          118.553,
+          112.438,
+          112.08,
+          114.252,
+          119.805,
+          120.301,
+          120.791,
+          114.703,
+          116.182,
+          118.876,
+          127.387
+        ],
+        "median_ms": 115.148,
+        "p50_ms": 115.148,
+        "p95_ms": 121.717,
+        "p99_ms": 126.253,
+        "stddev_ms": 6.418,
+        "cv_pct": 5.59,
+        "variance_unstable": true,
+        "max_rss_kb": 17698,
+        "stdout": "2097151\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/binary_tree.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 104.145
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170428,
+        "runtime_rss_peak_kb": 17698,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "vec_ops",
+      "source": "benchmarks/legacy/vec_ops.ark",
+      "expected": "benchmarks/legacy/vec_ops.expected",
+      "description": "Vec push/sum/contains (1k elements)",
+      "tags": [
+        "allocation-heavy",
+        "container",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6956.071,
+          7091.719,
+          6835.755,
+          7176.344,
+          7332.825
+        ],
+        "median_ms": 7091.719,
+        "stddev_ms": 192.577,
+        "cv_pct": 2.72,
+        "variance_unstable": false,
+        "max_rss_kb": 170428,
+        "binary_bytes": 3671,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/vec_ops.wasm benchmarks/legacy/vec_ops.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 11,
+          "memory": 4,
+          "global": 50,
+          "export": 34,
+          "code": 2629,
+          "custom_total": 409,
+          "data": 110,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          9.453,
+          8.647,
+          10.56,
+          9.073,
+          8.288,
+          9.712,
+          9.769,
+          8.577,
+          11.265,
+          8.182,
+          11.081,
+          7.506,
+          10.035,
+          21.679,
+          18.756,
+          9.9,
+          16.685,
+          9.738,
+          10.332,
+          28.109
+        ],
+        "median_ms": 9.835,
+        "p50_ms": 9.835,
+        "p95_ms": 22.001,
+        "p99_ms": 26.887,
+        "stddev_ms": 5.315,
+        "cv_pct": 44.79,
+        "variance_unstable": true,
+        "max_rss_kb": 17734,
+        "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/vec_ops.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170428,
+        "runtime_rss_peak_kb": 17734,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "string_concat",
+      "source": "benchmarks/legacy/string_concat.ark",
+      "expected": "benchmarks/legacy/string_concat.expected",
+      "description": "String concat in loop (100 iterations)",
+      "tags": [
+        "string-heavy",
+        "allocation-heavy",
+        "gc-pressure"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7115.066,
+          7019.3,
+          7051.708,
+          7361.563,
+          6925.79
+        ],
+        "median_ms": 7051.708,
+        "stddev_ms": 164.084,
+        "cv_pct": 2.31,
+        "variance_unstable": false,
+        "max_rss_kb": 170444,
+        "binary_bytes": 2483,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/string_concat.wasm benchmarks/legacy/string_concat.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 78,
+          "import": 322,
+          "function": 12,
+          "memory": 4,
+          "global": 50,
+          "export": 50,
+          "code": 1587,
+          "custom_total": 287,
+          "data": 58,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          8.787,
+          9.805,
+          8.347,
+          8.789,
+          8.866,
+          9.651,
+          10.518,
+          7.844,
+          9.385,
+          10.546,
+          7.659,
+          10.674,
+          8.962,
+          7.98,
+          7.212,
+          9.858,
+          9.349,
+          8.139,
+          10.903,
+          9.834
+        ],
+        "median_ms": 9.155,
+        "p50_ms": 9.155,
+        "p95_ms": 10.685,
+        "p99_ms": 10.859,
+        "stddev_ms": 1.077,
+        "cv_pct": 11.76,
+        "variance_unstable": true,
+        "max_rss_kb": 17764,
+        "stdout": "100\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/string_concat.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170444,
+        "runtime_rss_peak_kb": 17764,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "parse_tree_distance",
+      "source": "benchmarks/bench_parse_tree_distance.ark",
+      "expected": "benchmarks/bench_parse_tree_distance.expected",
+      "description": "Packed-tree distance validator on a 1200-node star matrix",
+      "tags": [
+        "parse",
+        "allocation-heavy",
+        "container",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7003.519,
+          6784.834,
+          7180.734,
+          6837.516,
+          6668.799
+        ],
+        "median_ms": 6837.516,
+        "stddev_ms": 200.018,
+        "cv_pct": 2.9,
+        "variance_unstable": false,
+        "max_rss_kb": 170436,
+        "binary_bytes": 12689,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/parse_tree_distance.wasm benchmarks/bench_parse_tree_distance.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 85,
+          "import": 322,
+          "function": 14,
+          "memory": 4,
+          "global": 50,
+          "export": 76,
+          "code": 9663,
+          "custom_total": 2329,
+          "data": 111,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          635.77,
+          557.614,
+          588.241,
+          504.075,
+          488.55,
+          502.786,
+          515.093,
+          545.53,
+          584.163,
+          589.897,
+          585.749,
+          552.501,
+          529.849,
+          557.764,
+          492.678,
+          532.05,
+          503.978,
+          502.115,
+          632.71,
+          600.825
+        ],
+        "median_ms": 549.015,
+        "p50_ms": 549.015,
+        "p95_ms": 632.863,
+        "p99_ms": 635.189,
+        "stddev_ms": 45.987,
+        "cv_pct": 8.36,
+        "variance_unstable": true,
+        "max_rss_kb": 26268,
+        "stdout": "Yes\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime run --dir=. /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/parse_tree_distance.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 538.012
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170436,
+        "runtime_rss_peak_kb": 26268,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "enum_dispatch",
+      "source": "benchmarks/bench_cpu_enum_dispatch.ark",
+      "expected": "benchmarks/bench_cpu_enum_dispatch.expected",
+      "description": "Enum variant dispatch via match (100,000 iterations, 5 variants)",
+      "tags": [
+        "cpu-bound",
+        "match-heavy",
+        "allocation-heavy",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6810.954,
+          7055.559,
+          7434.666,
+          7128.96,
+          7131.798
+        ],
+        "median_ms": 7128.96,
+        "stddev_ms": 222.826,
+        "cv_pct": 3.13,
+        "variance_unstable": false,
+        "max_rss_kb": 170360,
+        "binary_bytes": 3853,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/enum_dispatch.wasm benchmarks/bench_cpu_enum_dispatch.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 11,
+          "memory": 4,
+          "global": 50,
+          "export": 26,
+          "code": 2687,
+          "custom_total": 603,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/enum_dispatch.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:    0x99d - <unknown>!<wasm function 12>",
+          "    1:    0x2b7 - <unknown>!area",
+          "    2:    0x6af - <unknown>!main",
+          "    2: wasm trap: wasm `unreachable` instruction executed",
+          ""
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/enum_dispatch.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170360,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "struct_graph",
+      "source": "benchmarks/bench_memory_struct_graph.ark",
+      "expected": "benchmarks/bench_memory_struct_graph.expected",
+      "description": "Nested struct allocation with recursive graph traversal (depth 10, 20 roots)",
+      "tags": [
+        "allocation-heavy",
+        "struct-heavy",
+        "recursion-heavy",
+        "container"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6960.182,
+          7574.287,
+          6986.688,
+          7133.775,
+          6923.396
+        ],
+        "median_ms": 6986.688,
+        "stddev_ms": 268.533,
+        "cv_pct": 3.77,
+        "variance_unstable": false,
+        "max_rss_kb": 170428,
+        "binary_bytes": 4232,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/struct_graph.wasm benchmarks/bench_memory_struct_graph.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 15,
+          "memory": 4,
+          "global": 50,
+          "export": 79,
+          "code": 2890,
+          "custom_total": 714,
+          "data": 56,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/struct_graph.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:    0xaa1 - <unknown>!<wasm function 16>",
+          "    1:    0x252 - <unknown>!make_vec2",
+          "    2:    0x352 - <unknown>!make_rect",
+          "    3:    0x54b - <unknown>!make_bbox",
+          "    4:    0x6b4 - <unknown>!graph_sum"
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/struct_graph.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170428,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "error_chain",
+      "source": "benchmarks/bench_compute_error_chain.ark",
+      "expected": "benchmarks/bench_compute_error_chain.expected",
+      "description": "Result/error propagation chain (50,000 iterations, ~20% Err paths)",
+      "tags": [
+        "cpu-bound",
+        "error-heavy",
+        "match-heavy",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6899.619,
+          6943.148,
+          6779.426,
+          6618.599,
+          6960.895
+        ],
+        "median_ms": 6899.619,
+        "stddev_ms": 142.738,
+        "cv_pct": 2.09,
+        "variance_unstable": false,
+        "max_rss_kb": 170412,
+        "binary_bytes": 4628,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/error_chain.wasm benchmarks/bench_compute_error_chain.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 13,
+          "memory": 4,
+          "global": 50,
+          "export": 56,
+          "code": 3253,
+          "custom_total": 742,
+          "data": 86,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/error_chain.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:    0xc43 - <unknown>!<wasm function 17>",
+          "    1:    0xec8 - <unknown>!<wasm function 20>",
+          "    2:    0x30b - <unknown>!safe_div",
+          "    3:    0x60e - <unknown>!compute_step",
+          "    4:    0x91d - <unknown>!main"
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/error_chain.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170412,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "closure_map",
+      "source": "benchmarks/bench_cpu_closure_map.ark",
+      "expected": "benchmarks/bench_cpu_closure_map.expected",
+      "description": "Closure capture and map over 2,000-element Vec (cpu-bound, allocation-light)",
+      "tags": [
+        "cpu-bound",
+        "closure-heavy",
+        "iteration",
+        "allocation-light"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6977.334,
+          6957.019,
+          6657.299,
+          6976.71,
+          6882.167
+        ],
+        "median_ms": 6957.019,
+        "stddev_ms": 135.875,
+        "cv_pct": 1.97,
+        "variance_unstable": false,
+        "max_rss_kb": 170376,
+        "binary_bytes": 4120,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/closure_map.wasm benchmarks/bench_cpu_closure_map.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 74,
+          "import": 322,
+          "function": 14,
+          "table": 4,
+          "memory": 4,
+          "global": 50,
+          "export": 19,
+          "element": 11,
+          "code": 2873,
+          "custom_total": 662,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          9.599,
+          9.684,
+          9.831,
+          9.597,
+          10.443,
+          11.426,
+          10.666,
+          10.224,
+          11.929,
+          12.495,
+          13.803,
+          9.434,
+          10.365,
+          11.141,
+          11.034,
+          10.458,
+          9.628,
+          9.925,
+          7.502,
+          8.534
+        ],
+        "median_ms": 10.294,
+        "p50_ms": 10.294,
+        "p95_ms": 12.56,
+        "p99_ms": 13.554,
+        "stddev_ms": 1.38,
+        "cv_pct": 13.29,
+        "variance_unstable": true,
+        "max_rss_kb": 17794,
+        "stdout": "6017000\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/closure_map.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170376,
+        "runtime_rss_peak_kb": 17794,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "http_parser",
+      "source": "benchmarks/bench_application_http_parser.ark",
+      "expected": "benchmarks/bench_application_http_parser.expected",
+      "description": "HTTP header line parser \u2014 enum dispatch and struct allocation (20,000 headers)",
+      "tags": [
+        "application",
+        "enum-heavy",
+        "match-heavy",
+        "struct-heavy",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7574.011,
+          7572.997,
+          7456.562,
+          7122.576,
+          6985.576
+        ],
+        "median_ms": 7456.562,
+        "stddev_ms": 271.798,
+        "cv_pct": 3.7,
+        "variance_unstable": false,
+        "max_rss_kb": 170456,
+        "binary_bytes": 3933,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/http_parser.wasm benchmarks/bench_application_http_parser.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 12,
+          "memory": 4,
+          "global": 50,
+          "export": 49,
+          "code": 2693,
+          "custom_total": 653,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/http_parser.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:    0xa0b - <unknown>!<wasm function 16>",
+          "    1:    0xc90 - <unknown>!<wasm function 19>",
+          "    2:    0x549 - <unknown>!parse_header",
+          "    3:    0x807 - <unknown>!main",
+          "    2: wasm trap: wasm `unreachable` instruction executed"
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/http_parser.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170456,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "log_processor",
+      "source": "benchmarks/bench_application_log_processor.ark",
+      "expected": "benchmarks/bench_application_log_processor.expected",
+      "description": "Log line processor \u2014 Vec iteration, enum severity dispatch (5,000 records)",
+      "tags": [
+        "application",
+        "enum-heavy",
+        "allocation-heavy",
+        "iteration",
+        "match-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          8474.121,
+          7945.871,
+          7114.657,
+          8136.177,
+          7479.493
+        ],
+        "median_ms": 7945.871,
+        "stddev_ms": 537.734,
+        "cv_pct": 6.87,
+        "variance_unstable": true,
+        "max_rss_kb": 170428,
+        "binary_bytes": 4338,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/log_processor.wasm benchmarks/bench_application_log_processor.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 12,
+          "memory": 4,
+          "global": 50,
+          "export": 45,
+          "code": 3077,
+          "custom_total": 678,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/log_processor.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:    0xb37 - <unknown>!<wasm function 13>",
+          "    1:    0x297 - <unknown>!classify",
+          "    2:    0x68d - <unknown>!main",
+          "    2: wasm trap: wasm `unreachable` instruction executed",
+          ""
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/log_processor.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170428,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "config_loader",
+      "source": "benchmarks/bench_application_config_loader.ark",
+      "expected": "benchmarks/bench_application_config_loader.expected",
+      "description": "Config loader \u2014 nested structs, Result error handling (10,000 entries)",
+      "tags": [
+        "application",
+        "struct-heavy",
+        "error-heavy",
+        "match-heavy",
+        "allocation-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          9358.546,
+          9137.884,
+          9540.004,
+          7507.026,
+          7220.196
+        ],
+        "median_ms": 9137.884,
+        "stddev_ms": 1099.5,
+        "cv_pct": 12.86,
+        "variance_unstable": true,
+        "max_rss_kb": 170376,
+        "binary_bytes": 4920,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/config_loader.wasm benchmarks/bench_application_config_loader.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 67,
+          "import": 322,
+          "function": 12,
+          "memory": 4,
+          "global": 50,
+          "export": 48,
+          "code": 3461,
+          "custom_total": 857,
+          "data": 64,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/config_loader.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:    0xd0a - <unknown>!<wasm function 16>",
+          "    1:    0xf8f - <unknown>!<wasm function 19>",
+          "    2:    0x600 - <unknown>!parse_entry",
+          "    3:    0x9c2 - <unknown>!main",
+          "    2: wasm trap: wasm `unreachable` instruction executed"
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/config_loader.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170376,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "data_pipeline",
+      "source": "benchmarks/bench_application_data_pipeline.ark",
+      "expected": "benchmarks/bench_application_data_pipeline.expected",
+      "description": "Data pipeline \u2014 closure filter, closure map, Vec iteration (3,000 records)",
+      "tags": [
+        "application",
+        "closure-heavy",
+        "allocation-heavy",
+        "iteration",
+        "container"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7696.211,
+          7120.088,
+          8129.485,
+          7478.022,
+          7862.669
+        ],
+        "median_ms": 7696.211,
+        "stddev_ms": 383.206,
+        "cv_pct": 5.0,
+        "variance_unstable": false,
+        "max_rss_kb": 170316,
+        "binary_bytes": 5560,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/data_pipeline.wasm benchmarks/bench_application_data_pipeline.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 74,
+          "import": 322,
+          "function": 14,
+          "table": 4,
+          "memory": 4,
+          "global": 50,
+          "export": 19,
+          "element": 11,
+          "code": 4039,
+          "custom_total": 936,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          11.12,
+          10.634,
+          11.181,
+          9.626,
+          10.619,
+          10.695,
+          10.381,
+          10.467,
+          10.131,
+          9.892,
+          10.169,
+          13.021,
+          9.551,
+          13.878,
+          10.732,
+          10.378,
+          12.626,
+          10.471,
+          10.116,
+          12.874
+        ],
+        "median_ms": 10.545,
+        "p50_ms": 10.545,
+        "p95_ms": 13.064,
+        "p99_ms": 13.715,
+        "stddev_ms": 1.207,
+        "cv_pct": 11.04,
+        "variance_unstable": true,
+        "max_rss_kb": 17766,
+        "stdout": "1800\n239600\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/data_pipeline.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170316,
+        "runtime_rss_peak_kb": 17766,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "template_engine",
+      "source": "benchmarks/bench_application_template_engine.ark",
+      "expected": "benchmarks/bench_application_template_engine.expected",
+      "description": "Template engine \u2014 HashMap<String,String>, recursive expansion, string ops",
+      "tags": [
+        "application",
+        "string-heavy",
+        "container",
+        "recursion-heavy",
+        "gc-pressure"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7234.185,
+          7258.944,
+          7587.839,
+          7587.915,
+          6918.344
+        ],
+        "median_ms": 7258.944,
+        "stddev_ms": 281.026,
+        "cv_pct": 3.84,
+        "variance_unstable": false,
+        "max_rss_kb": 170448,
+        "binary_bytes": 12722,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/template_engine.wasm benchmarks/bench_application_template_engine.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 109,
+          "import": 322,
+          "function": 22,
+          "memory": 4,
+          "global": 50,
+          "export": 204,
+          "code": 9530,
+          "custom_total": 2155,
+          "data": 289,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          8.845,
+          10.178,
+          9.46,
+          9.173,
+          12.911,
+          9.343,
+          9.221,
+          12.13,
+          9.019,
+          10.42,
+          10.443,
+          12.464,
+          10.146,
+          12.248,
+          10.682,
+          11.768,
+          10.45,
+          12.092,
+          10.361,
+          10.34
+        ],
+        "median_ms": 10.39,
+        "p50_ms": 10.39,
+        "p95_ms": 12.486,
+        "p99_ms": 12.826,
+        "stddev_ms": 1.266,
+        "cv_pct": 11.96,
+        "variance_unstable": true,
+        "max_rss_kb": 17762,
+        "stdout": "Hello Benchmark, welcome to Arukellt!\nHello Benchmark, World!\n{unknown}\nplain text\nHello Benchmark, welcome to Arukellt! and Hello Benchmark!\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/template_engine.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170448,
+        "runtime_rss_peak_kb": 17762,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "file_io",
+      "source": "benchmarks/bench_io_file_io.ark",
+      "expected": "benchmarks/bench_io_file_io.expected",
+      "description": "File I/O \u2014 repeated host fs write/read with string payload checksums",
+      "tags": [
+        "io-bound",
+        "string-heavy",
+        "allocation-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6941.062,
+          6657.221,
+          7510.314,
+          7055.134,
+          7136.375
+        ],
+        "median_ms": 7055.134,
+        "stddev_ms": 310.249,
+        "cv_pct": 4.39,
+        "variance_unstable": false,
+        "max_rss_kb": 170428,
+        "binary_bytes": 6752,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/file_io.wasm benchmarks/bench_io_file_io.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 94,
+          "import": 322,
+          "function": 15,
+          "memory": 4,
+          "global": 50,
+          "export": 92,
+          "code": 5242,
+          "custom_total": 717,
+          "data": 180,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          19.171,
+          22.472,
+          24.633,
+          20.817,
+          20.479,
+          15.609,
+          18.232,
+          15.175,
+          17.074,
+          17.228,
+          14.568,
+          17.241,
+          15.833,
+          16.609,
+          14.725,
+          18.113,
+          15.3,
+          15.498,
+          14.715,
+          16.056
+        ],
+        "median_ms": 16.842,
+        "p50_ms": 16.842,
+        "p95_ms": 22.58,
+        "p99_ms": 24.222,
+        "stddev_ms": 2.782,
+        "cv_pct": 15.92,
+        "variance_unstable": true,
+        "max_rss_kb": 19330,
+        "stdout": "11090\n221800\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime run --dir=/tmp /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/file_io.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 5.839
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170428,
+        "runtime_rss_peak_kb": 19330,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "json_parse",
+      "source": "benchmarks/bench_stdlib_json_parse.ark",
+      "expected": "benchmarks/bench_stdlib_json_parse.expected",
+      "description": "JSON parse/access/stringify \u2014 std::json parse, json_get, stringify (50 iterations)",
+      "tags": [
+        "stdlib",
+        "json",
+        "allocation-heavy",
+        "string-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6888.22,
+          7035.911,
+          7151.213,
+          7913.844,
+          8357.213
+        ],
+        "median_ms": 7151.213,
+        "stddev_ms": 634.954,
+        "cv_pct": 8.5,
+        "variance_unstable": true,
+        "max_rss_kb": 170444,
+        "binary_bytes": 59616,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/json_parse.wasm benchmarks/bench_stdlib_json_parse.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 133,
+          "import": 322,
+          "function": 51,
+          "memory": 4,
+          "global": 50,
+          "export": 754,
+          "code": 45680,
+          "custom_total": 12090,
+          "data": 492,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/json_parse.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:   0xb4d3 - <unknown>!<wasm function 52>",
+          "    1:   0x2531 - <unknown>!parse_value_at",
+          "    2:   0x43eb - <unknown>!parse_value_at",
+          "    3:   0x4c5a - <unknown>!parse",
+          "    4:   0xac91 - <unknown>!main"
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/json_parse.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170444,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "text_ops",
+      "source": "benchmarks/bench_stdlib_text_ops.ark",
+      "expected": "benchmarks/bench_stdlib_text_ops.expected",
+      "description": "Text operations \u2014 std::text split, join, replace, case, trim, contains (200 iterations)",
+      "tags": [
+        "stdlib",
+        "text",
+        "string-heavy",
+        "gc-pressure"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7939.126,
+          7385.686,
+          7324.178,
+          7923.813,
+          7524.851
+        ],
+        "median_ms": 7524.851,
+        "stddev_ms": 293.943,
+        "cv_pct": 3.86,
+        "variance_unstable": false,
+        "max_rss_kb": 170432,
+        "binary_bytes": 10051,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/text_ops.wasm benchmarks/bench_stdlib_text_ops.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 106,
+          "import": 322,
+          "function": 26,
+          "memory": 4,
+          "global": 50,
+          "export": 299,
+          "code": 7711,
+          "custom_total": 1346,
+          "data": 150,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          10.768,
+          10.438,
+          18.894,
+          12.299,
+          10.234,
+          11.33,
+          16.407,
+          15.833,
+          11.69,
+          12.897,
+          11.474,
+          9.95,
+          12.651,
+          13.363,
+          8.989,
+          12.072,
+          10.172,
+          10.822,
+          10.144,
+          9.951
+        ],
+        "median_ms": 11.402,
+        "p50_ms": 11.402,
+        "p95_ms": 16.531,
+        "p99_ms": 18.421,
+        "stddev_ms": 2.496,
+        "cv_pct": 20.77,
+        "variance_unstable": true,
+        "max_rss_kb": 17824,
+        "stdout": "25000\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/text_ops.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.399
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170432,
+        "runtime_rss_peak_kb": 17824,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "hash_ops",
+      "source": "benchmarks/bench_stdlib_hash_ops.ark",
+      "expected": "benchmarks/bench_stdlib_hash_ops.expected",
+      "description": "Hash map ops \u2014 std::collections::hash insert/get/contains/remove on 100 entries",
+      "tags": [
+        "stdlib",
+        "hash",
+        "allocation-heavy",
+        "container"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          8141.313,
+          8638.146,
+          8292.526,
+          7694.53,
+          8348.521
+        ],
+        "median_ms": 8292.526,
+        "stddev_ms": 346.009,
+        "cv_pct": 4.21,
+        "variance_unstable": false,
+        "max_rss_kb": 280956,
+        "binary_bytes": 15911,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/hash_ops.wasm benchmarks/bench_stdlib_hash_ops.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 108,
+          "import": 322,
+          "function": 30,
+          "memory": 4,
+          "global": 50,
+          "export": 392,
+          "code": 12032,
+          "custom_total": 2875,
+          "data": 61,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          13.304,
+          9.795,
+          11.625,
+          11.616,
+          10.638,
+          10.125,
+          10.083,
+          9.871,
+          9.791,
+          11.638,
+          10.626,
+          11.686,
+          9.892,
+          12.459,
+          11.324,
+          10.221,
+          12.689,
+          11.666,
+          11.08,
+          15.495
+        ],
+        "median_ms": 11.202,
+        "p50_ms": 11.202,
+        "p95_ms": 13.414,
+        "p99_ms": 15.079,
+        "stddev_ms": 1.433,
+        "cv_pct": 12.7,
+        "variance_unstable": true,
+        "max_rss_kb": 17822,
+        "stdout": "1680896\n",
+        "correctness": "fail",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/hash_ops.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.199
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 280956,
+        "runtime_rss_peak_kb": 17822,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "toml_ops",
+      "source": "benchmarks/bench_stdlib_toml.ark",
+      "expected": "benchmarks/bench_stdlib_toml.expected",
+      "description": "TOML parse/access/stringify \u2014 std::toml parse, toml_get, stringify (100 iterations)",
+      "tags": [
+        "stdlib",
+        "toml",
+        "string-heavy",
+        "allocation-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7313.75,
+          8302.612,
+          7453.321,
+          7101.82,
+          6828.053
+        ],
+        "median_ms": 7313.75,
+        "stddev_ms": 557.007,
+        "cv_pct": 7.53,
+        "variance_unstable": true,
+        "max_rss_kb": 170416,
+        "binary_bytes": 84667,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/toml_ops.wasm benchmarks/bench_stdlib_toml.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 134,
+          "import": 322,
+          "function": 69,
+          "memory": 4,
+          "global": 50,
+          "export": 1251,
+          "code": 64846,
+          "custom_total": 16776,
+          "data": 1175,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "error",
+        "reason": "warmup execution failed",
+        "iterations": 0,
+        "warmups": 1,
+        "samples_ms": [],
+        "median_ms": null,
+        "max_rss_kb": null,
+        "stdout": "",
+        "stderr_head": [
+          "Error: failed to run main module `/home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/toml_ops.wasm`",
+          "",
+          "Caused by:",
+          "    0: failed to invoke command default",
+          "    1: error while executing at wasm backtrace:",
+          "    0:  0x101b5 - <unknown>!<wasm function 70>",
+          "    1:   0x3689 - <unknown>!toml_find_basic_string_end",
+          "    2:   0x38c5 - <unknown>!toml_parse_basic_string_at",
+          "    3:   0x8826 - <unknown>!toml_parse_value_at",
+          "    4:   0x9206 - <unknown>!toml_parse_array_at"
+        ],
+        "correctness": "failed",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/toml_ops.wasm"
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170416,
+        "runtime_rss_peak_kb": null,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    },
+    {
+      "name": "time_ops",
+      "source": "benchmarks/bench_stdlib_time.ark",
+      "expected": "benchmarks/bench_stdlib_time.expected",
+      "description": "Time ops \u2014 std::time duration creation, arithmetic, clock measurement pattern (200 iterations)",
+      "tags": [
+        "stdlib",
+        "time",
+        "cpu-bound"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7093.234,
+          6749.3,
+          6986.716,
+          7240.846,
+          6620.098
+        ],
+        "median_ms": 6986.716,
+        "stddev_ms": 252.416,
+        "cv_pct": 3.64,
+        "variance_unstable": false,
+        "max_rss_kb": 170436,
+        "binary_bytes": 3780,
+        "command": "/home/wogikaze/wgkz/arukellt/scripts/run/arukellt-selfhost.sh compile --time --target wasm32 -o .build/arukellt-bench-c8hrochx/time_ops.wasm benchmarks/bench_stdlib_time.ark",
+        "phase_ms": {
+          "lex": 0.0,
+          "parse": 0.0,
+          "resolve": 0.0,
+          "typecheck": 0.0,
+          "lower": 0.0,
+          "mir_opt": 0.0,
+          "mir_verify": 0.0,
+          "emit": 0.0,
+          "total": 0.0
+        },
+        "wasm_sections": {
+          "type": 71,
+          "import": 322,
+          "function": 17,
+          "memory": 4,
+          "global": 50,
+          "export": 159,
+          "code": 2190,
+          "custom_total": 883,
+          "data": 48,
+          "symbol_attribution": "unavailable"
+        }
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 20,
+        "warmups": 1,
+        "samples_ms": [
+          9.661,
+          10.41,
+          8.726,
+          9.915,
+          8.156,
+          9.336,
+          8.764,
+          8.505,
+          9.32,
+          10.367,
+          9.667,
+          8.701,
+          9.398,
+          8.805,
+          9.338,
+          8.787,
+          8.77,
+          10.244,
+          10.811,
+          9.548
+        ],
+        "median_ms": 9.337,
+        "p50_ms": 9.337,
+        "p95_ms": 10.43,
+        "p99_ms": 10.735,
+        "stddev_ms": 0.722,
+        "cv_pct": 7.71,
+        "variance_unstable": true,
+        "max_rss_kb": 17934,
+        "stdout": "800802000000\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /home/wogikaze/wgkz/arukellt/.build/arukellt-bench-c8hrochx/time_ops.wasm",
+        "startup_ms": 11.003,
+        "guest_ms": 0.0
+      },
+      "memory": {
+        "compiler_rss_peak_kb": 170436,
+        "runtime_rss_peak_kb": 17934,
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": "wasmtime CLI does not expose GC pause telemetry; collect via --profile or future WASM GC instrumentation",
+        "alloc_note": "live-set and allocation-rate metrics require runtime instrumentation not available via standard wasmtime CLI; only RSS peak is collected"
+      }
+    }
+  ]
+}
