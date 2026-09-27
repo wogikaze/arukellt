@@ -28,6 +28,9 @@ fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstN
 
 fn lower_single_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
+    if match::mir_pat_is_string_literal(pat) {
+        return match::mir_emit_string_pattern_compare(ctx, compare_idx, pat)
+    }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
     let pat_idx = lower_expr(ctx, pat)
     let cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())

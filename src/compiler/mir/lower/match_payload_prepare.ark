@@ -1,12 +1,20 @@
 use std::prelude::{clone, eq, starts_with}
+use std::text
 use mir::lower::ast_node
+use mir::function_return_view
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_lookup
 use mir::lower_kinds
 use mir::lower::ctx_gc_enum
 use mir::lower::call_type_fallback
+use mir::lower::match_arms
+use mir::lower::match_payload_field_type
+use mir::lower::param_sig_infer
 use mir::inst_struct_get
 use mir::inst_gc_struct
 use mir::inst_local_get
@@ -47,6 +55,7 @@ fn mir_match_payload_info_compare_idx(info: MirMatchPayloadInfo) -> i32 {
 fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32) -> MirMatchPayloadInfo {
     let is_payload_match = mir_match_has_payload_pattern(node, child_count)
     let has_variant_arm = mir_match_has_variant_pattern(node, child_count)
+    mir_fix_unresolved_scrutinee_type(ctx, node, child_count, scrut_idx, has_variant_arm)
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
     let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") ||
     eq(clone(scrut_type), "Option_f64") ||
@@ -166,4 +175,228 @@ fn mir_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
     tag_local
+}
+
+// An unannotated fn parameter reaches MIR as a scalar local, but the match
+// arms prove its managed type: variant patterns need an enum ref, string
+// literal patterns a String ref, and ident.field guards a struct ref.
+// Stamp that type back into the signature/local records so the emitted
+// func type agrees with the body (#894).
+fn mir_fix_unresolved_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i32, scrut_idx: i32, has_variant_arm: bool) {
+    if scrut_idx < 0 {
+        return
+    }
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return
+    }
+    if len(ctx_get_local_type(ctx, scrut_idx)) > 0 {
+        return
+    }
+    if has_variant_arm {
+        let inferred = mir_match_option_scrutinee_type(ctx, node, child_count)
+        if len(inferred) > 0 {
+            param_sig_infer::mir_stamp_scrutinee_type(ctx, scrut_idx, inferred)
+        } else {
+            param_sig_infer::mir_stamp_scrutinee_type(ctx, scrut_idx, "enum:open")
+        }
+        return
+    }
+    if mir_match_has_string_literal_pattern(node, child_count) {
+        param_sig_infer::mir_stamp_scrutinee_type(ctx, scrut_idx, "String")
+        return
+    }
+    let owner = mir_match_guard_struct_owner(ctx, node, child_count)
+    if len(owner) > 0 {
+        param_sig_infer::mir_stamp_scrutinee_type(ctx, scrut_idx, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, owner))
+        return
+    }
+    // A plain binding arm that returns its own bind (s => s) returns the
+    // scrutinee itself, so an annotated ref return type pins the scrutinee's
+    // signature type as well (#894 fn id(s) -> String = s).
+    let aliased = mir_match_bind_return_scrutinee_type(ctx, node, child_count)
+    if len(aliased) > 0 {
+        param_sig_infer::mir_stamp_scrutinee_type(ctx, scrut_idx, aliased)
+    }
+}
+
+fn mir_match_has_string_literal_pattern(node: AstNode, child_count: i32) -> bool {
+    let mut arm_scan = 1
+    while arm_scan < child_count {
+        let scan_arm = ast_node::node_child_at(node, arm_scan)
+        if ast_node::node_child_count(scan_arm) > 0 {
+            let scan_pat = ast_node::node_child_at(scan_arm, 0)
+            if mir_pat_or_has_string_literal(scan_pat) {
+                return true
+            }
+        }
+        arm_scan = arm_scan + 1
+    }
+    false
+}
+
+fn mir_pat_or_has_string_literal(pat: AstNode) -> bool {
+    if match_arms::mir_pat_is_string_literal(pat) {
+        return true
+    }
+    if !ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
+        return false
+    }
+    let alt_count = ast_node::node_child_count(pat)
+    let mut or_oi = 0
+    while or_oi < alt_count {
+        if match_arms::mir_pat_is_string_literal(ast_node::node_child_at(pat, or_oi)) {
+            return true
+        }
+        or_oi = or_oi + 1
+    }
+    false
+}
+
+fn mir_match_guard_struct_owner(ctx: LowerCtx, node: AstNode, child_count: i32) -> String {
+    let mut arm_scan = 1
+    while arm_scan < child_count {
+        let scan_arm = ast_node::node_child_at(node, arm_scan)
+        if ast_node::node_child_count(scan_arm) == 3 {
+            let scan_pat = ast_node::node_child_at(scan_arm, 0)
+            if ast_node::node_kind_is(scan_pat, lower_kinds::NK_PAT_IDENT()) && mir_pat_is_plain_binding(ctx, scan_pat) {
+                let guard = ast_node::node_child_at(scan_arm, 1)
+                let owner = mir_guard_ident_field_owner(ctx, guard, ast_node::node_text(scan_pat))
+                if len(owner) > 0 {
+                    return owner
+                }
+            }
+        }
+        arm_scan = arm_scan + 1
+    }
+    String_new()
+}
+
+// Recover an Option scrutinee's element type when a payload bind flows
+// straight into the function result: unwrap(Option::Some(v)) -> i32 = v
+// implies option:i32, so the Some payload bind must select the i32-payload
+// variant layout the caller constructed (#894). User enum variants do not
+// need this: their declared payload field types are already concrete.
+fn mir_match_option_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i32) -> String {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let rtn = function_return_view::MirFunction_return_type_name(f)
+    if !mir_option_elem_name_is_usable(clone(rtn)) {
+        return String_new()
+    }
+    let mut arm_scan = 1
+    while arm_scan < child_count {
+        let scan_arm = ast_node::node_child_at(node, arm_scan)
+        if mir_arm_is_option_bind_return(scan_arm) {
+            return text::concat(String_from("option:"), rtn)
+        }
+        arm_scan = arm_scan + 1
+    }
+    String_new()
+}
+
+fn mir_option_elem_name_is_usable(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return true
+    }
+    match_payload_field_type::mir_payload_scalar_type_name(type_name)
+}
+
+fn mir_arm_is_option_bind_return(arm: AstNode) -> bool {
+    let arm_cc = ast_node::node_child_count(arm)
+    if arm_cc < 1 {
+        return false
+    }
+    let pat = ast_node::node_child_at(arm, 0)
+    if !ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) || ast_node::node_child_count(pat) != 1 {
+        return false
+    }
+    if !mir_variant_owner_is_option(ast_node::node_text(pat)) {
+        return false
+    }
+    let bind_pat = ast_node::node_child_at(pat, 0)
+    if !ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_IDENT()) && !ast_node::node_kind_is(bind_pat, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    let body = ast_node::node_child_at(arm, arm_cc - 1)
+    if !ast_node::node_kind_is(body, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    eq(clone(ast_node::node_text(body)), clone(ast_node::node_text(bind_pat)))
+}
+
+fn mir_variant_owner_is_option(variant_name: String) -> bool {
+    let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    starts_with(normalized, String_from("Option::"))
+}
+
+// Canonical scrutinee type when an arm binds the scrutinee and returns the
+// binding unchanged. Only ref-typed returns are interesting: a scalar
+// return keeps the default i64 signature, which is already valid.
+fn mir_match_bind_return_scrutinee_type(ctx: LowerCtx, node: AstNode, child_count: i32) -> String {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let rt = function_return_view::MirFunction_return_type(f)
+    if rt != value_types::VT_GC_REF() && rt != value_types::VT_REF() {
+        return String_new()
+    }
+    let rtn = function_return_view::MirFunction_return_type_name(f)
+    if len(rtn) == 0 {
+        return String_new()
+    }
+    let mut arm_scan = 1
+    while arm_scan < child_count {
+        let scan_arm = ast_node::node_child_at(node, arm_scan)
+        if mir_arm_is_bind_return_ident(ctx, scan_arm) {
+            return ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn)
+        }
+        arm_scan = arm_scan + 1
+    }
+    String_new()
+}
+
+fn mir_arm_is_bind_return_ident(ctx: LowerCtx, arm: AstNode) -> bool {
+    let arm_cc = ast_node::node_child_count(arm)
+    if arm_cc < 1 {
+        return false
+    }
+    let pat = ast_node::node_child_at(arm, 0)
+    if !ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) || !mir_pat_is_plain_binding(ctx, pat) {
+        return false
+    }
+    let body = ast_node::node_child_at(arm, arm_cc - 1)
+    if !ast_node::node_kind_is(body, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    eq(clone(ast_node::node_text(body)), clone(ast_node::node_text(pat)))
+}
+
+fn mir_pat_is_plain_binding(ctx: LowerCtx, pat: AstNode) -> bool {
+    let name = ast_node::node_text(pat)
+    if mir_ident_is_unit_variant_name(clone(name)) {
+        return false
+    }
+    ctx_api_variants::ctx_variant_tag(ctx, name) < 0
+}
+
+// Find the struct that owns the field a guard reads through a bound
+// scrutinee (pt.x > 0 → field x → owner Point). Nested field bases
+// (a.b.c) recurse until the access rooted in the binding ident is found.
+fn mir_guard_ident_field_owner(ctx: LowerCtx, expr: AstNode, bind_name: String) -> String {
+    if ast_node::node_kind_is(expr, lower_kinds::NK_FIELD_ACCESS()) {
+        let base = ast_node::node_child_at(expr, 0)
+        if ast_node::node_kind_is(base, lower_kinds::NK_IDENT()) && eq(clone(ast_node::node_text(base)), clone(bind_name)) {
+            return ctx_struct_lookup::ctx_field_owner_struct_name(ctx, ast_node::node_text(expr))
+        }
+    }
+    let cc = ast_node::node_child_count(expr)
+    let mut ci = 0
+    while ci < cc {
+        let owner = mir_guard_ident_field_owner(ctx, ast_node::node_child_at(expr, ci), clone(bind_name))
+        if len(owner) > 0 {
+            return owner
+        }
+        ci = ci + 1
+    }
+    String_new()
 }

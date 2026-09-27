@@ -2,11 +2,13 @@ use mir::lower::ctx_api_loop_state
 use mir::lower::ctx_api_loop_query
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::param_sig_infer
 use mir::inst_return
 use mir::inst_branch
 use mir::inst_local_set
 
 fn mir_emit_return_value(ctx: LowerCtx, val_idx: i32) {
+    param_sig_infer::mir_stamp_param_from_return_type(ctx, val_idx)
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_value(val_idx))
 }
 

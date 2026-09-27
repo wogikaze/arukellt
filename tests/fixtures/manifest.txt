@@ -38,10 +38,8 @@ check-only:wit_import/check/record_enum_general.ark
 check-only:wit_import/check/record_field.ark
 check-only:spec_examples/panic_unreachable.ark
 # Issue #877 — normative spec examples connected to fixtures.
-# clause_guards / multi_clause_functions stay check-only until #894
-# (wasm32-gc emit for multiple multi-clause groups) is fixed.
-check-only:spec_examples/clause_guards.ark
-check-only:spec_examples/multi_clause_functions.ark
+run:spec_examples/clause_guards.ark
+run:spec_examples/multi_clause_functions.ark
 compile-error:component/export_enum_color_bad_shape.ark
 compile-error:component/export_non_function.ark
 compile-error:component/export_enum_color_bad_shape_order.ark
@@ -2736,6 +2734,8 @@ t3-run:scalar/gc_hint_short_lived.ark
 t3-run:scalar/const_i32.ark
 t3-run:scalar/numeric_explicit_conversions.ark
 t3-run:sealed_raw/raw_storage_differential.ark
+t3-run:spec_examples/clause_guards.ark
+t3-run:spec_examples/multi_clause_functions.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_env/env_var_lookup.ark
 t3-compile:stdlib_env/env_var_or_default.ark

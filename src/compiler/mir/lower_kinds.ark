@@ -54,6 +54,11 @@ fn NK_PAT_STRUCT() -> i32 { 74 }
 fn NK_PAT_TUPLE() -> i32 { 75 }
 fn NK_PAT_OR() -> i32 { 76 }
 
+// Pattern literal sub-tags (AstNode.op on NK_PAT_LITERAL). The parser marks
+// cooked string literal patterns so lowering can distinguish them from the
+// int literal 0, which shares the same int_val/text shape (#894).
+fn PAT_LITERAL_OP_STRING() -> i32 { 1 }
+
 // Type-annotation node kinds.
 fn NK_TYPE_FN() -> i32 { 92 }
 fn NK_TYPE_TUPLE() -> i32 { 93 }

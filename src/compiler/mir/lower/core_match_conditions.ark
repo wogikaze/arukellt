@@ -7,26 +7,40 @@ use mir::inst_structured_control
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_patterns
+use mir::lower::match
 use mir::value_types
 
 fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
     let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut or_oi = 0
+    let mut or_prev_cmp = 0 - 1
     while or_oi < alt_count {
         let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
-        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
-        let alt_idx = core_match_patterns::lower_core_pattern_value(ctx, or_alt)
-        let or_cmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, alt_idx))
+        let mut or_cmp = 0 - 1
+        if core_match_patterns::mir_core_pat_is_string_literal(or_alt) {
+            or_cmp = match::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(or_alt))
+        } else {
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+            let alt_idx = core_match_patterns::lower_core_pattern_value(ctx, or_alt)
+            or_cmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, alt_idx))
+        }
         if or_oi > 0 {
-            let or_dummy = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-            ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_dummy, or_cmp, or_cmp))
+            let or_acc = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_acc, or_prev_cmp, or_cmp))
+            or_prev_cmp = or_acc
+        } else {
+            or_prev_cmp = or_cmp
         }
         or_oi = or_oi + 1
     }
 }
 
 fn core_emit_value_pattern_condition(ctx: LowerCtx, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
+    if core_match_patterns::mir_core_pat_is_string_literal(pat) {
+        let _str_cmp = match::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(pat))
+        return
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
     let pat_idx = core_match_patterns::lower_core_pattern_value(ctx, pat)
     let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())

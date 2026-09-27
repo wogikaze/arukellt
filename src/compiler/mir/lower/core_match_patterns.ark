@@ -35,6 +35,14 @@ fn lower_core_pattern_value(ctx: LowerCtx, pat: CoreHirExpr) -> i32 {
     0 - 1
 }
 
+// String literal patterns carry the "pat:string" marker in type_name; a
+// cooked string keeps int_val 0, so without the mark they compare as the
+// integer 0 instead of by content (#894).
+fn mir_core_pat_is_string_literal(pat: CoreHirExpr) -> bool {
+    core_expr_shape_patterns::mir_core_expr_is_pat_literal(pat) &&
+    eq(core_expr_shape_accessors::mir_core_expr_type_name(pat), "pat:string")
+}
+
 fn core_emit_match_ident_bind(ctx: LowerCtx, pat: CoreHirExpr, scrut_idx: i32) {
     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, scrut_idx)
     let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(pat), bind_vt)

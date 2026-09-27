@@ -43,3 +43,23 @@ fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
     }
     0
 }
+
+fn ctx_field_owner_struct_name(ctx: LowerCtx, field_name: String) -> String {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        let mut fi = 0
+        while fi < fc {
+            let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
+            if eq(clone(fn_name), clone(field_name)) {
+                return ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+            }
+            fi = fi + 1
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    String_new()
+}

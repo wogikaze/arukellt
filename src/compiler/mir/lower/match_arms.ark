@@ -1,10 +1,18 @@
+use std::prelude::{clone}
 use mir::lower::ast_node
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_module
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_gc_enum
 use mir::lower_kinds
 use mir::lower::ctx_types
+use mir::inst_call
+use mir::inst_const_string
+use mir::inst_local_get
 use mir::inst_structured_control
+use mir::value_types
 
 fn mir_match_is_catchall(ctx: LowerCtx, pat: AstNode) -> bool {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_WILDCARD()) {
@@ -39,4 +47,27 @@ fn mir_emit_match_guard_begin(ctx: LowerCtx) {
 fn mir_emit_match_guard_end(ctx: LowerCtx) {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
+}
+
+fn mir_pat_is_string_literal(pat: AstNode) -> bool {
+    ast_node::node_kind_is(pat, lower_kinds::NK_PAT_LITERAL()) &&
+    ast_node::node_op(pat) == lower_kinds::PAT_LITERAL_OP_STRING()
+}
+
+// A string literal pattern compares by content, not by pointer or tag. The
+// eq intrinsic is backend-agnostic: on wasm32-gc it loops over GC array
+// bytes, on linear wasm32 over the encoded string in memory (#894).
+fn mir_emit_string_pattern_compare(ctx: LowerCtx, compare_idx: i32, pat: AstNode) -> i32 {
+    mir_emit_string_pattern_compare_text(ctx, compare_idx, ast_node::node_text(pat))
+}
+
+fn mir_emit_string_pattern_compare_text(ctx: LowerCtx, compare_idx: i32, pat_text: String) -> i32 {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+    let str_idx = ctx_api_module::ctx_intern_string(ctx, clone(pat_text))
+    let str_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) { value_types::VT_GC_REF() } else { value_types::VT_REF() }
+    let str_local = ctx_api_local_alloc::ctx_fresh_local(ctx, str_vt)
+    ctx_emit(ctx, inst_const_string::MirInst_const_string_indexed(clone(pat_text), str_local, str_idx))
+    let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_call::MirInst_call("__intrinsic_string_eq", 2, cmp_dest))
+    cmp_dest
 }

@@ -10,6 +10,10 @@ fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
     ctx_struct_lookup_index::ctx_field_index_any(ctx, field_name)
 }
 
+fn ctx_field_owner_struct_name(ctx: LowerCtx, field_name: String) -> String {
+    ctx_struct_lookup_index::ctx_field_owner_struct_name(ctx, field_name)
+}
+
 fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
     ctx_struct_lookup_meta::ctx_struct_field_count(ctx, struct_name)
 }

@@ -14,15 +14,24 @@ fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirM
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
     let alt_count = ast_node::node_child_count(pat)
     let mut or_oi = 0
+    let mut or_prev_cmp = 0 - 1
     while or_oi < alt_count {
         let or_alt = ast_node::node_child_at(pat, or_oi)
-        ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
-        lower_expr(ctx, or_alt)
-        let or_cmp = ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, or_cmp))
+        let mut or_cmp = 0 - 1
+        if match::mir_pat_is_string_literal(or_alt) {
+            or_cmp = match::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
+        } else {
+            ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+            let or_pat_idx = lower_expr(ctx, or_alt)
+            or_cmp = ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, or_pat_idx))
+        }
         if or_oi > 0 {
-            let or_dummy = ctx_fresh_local(ctx, value_types::VT_I32())
-            ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_dummy, or_cmp, or_cmp))
+            let or_acc = ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_acc, or_prev_cmp, or_cmp))
+            or_prev_cmp = or_acc
+        } else {
+            or_prev_cmp = or_cmp
         }
         or_oi = or_oi + 1
     }

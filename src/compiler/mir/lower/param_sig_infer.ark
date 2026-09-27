@@ -1,0 +1,58 @@
+use std::prelude::{clone}
+use mir::function_param_view
+use mir::function_return_view
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_locals_fn
+use mir::lower::ctx_struct_layout
+use mir::value_types
+
+// Signature back-patch for parameters whose type annotation was omitted.
+// Unannotated parameters are bound as scalar VT_I32 when the function frame
+// opens. Once body lowering proves a managed type (match patterns, return
+// position), the signature record must be re-stamped or the emitted func
+// type stays i64 while the body produces a GC ref (#894).
+
+fn mir_scrutinee_is_fn_param(ctx: LowerCtx, local_idx: i32) -> bool {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    local_idx >= 0 && local_idx < function_param_view::MirFunction_param_count(f)
+}
+
+fn mir_stamp_scrutinee_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
+    if mir_scrutinee_is_fn_param(ctx, local_idx) {
+        ctx_locals_fn::ctx_set_func_param_type(ctx, local_idx, value_types::VT_GC_REF(), clone(type_name))
+    }
+    // ctx_set_func_param_type only rewrites the MirLocal/signature records;
+    // the local-type side table keeps its stale empty entry and wins the
+    // ctx_get_local_type scan. Push the resolved name there as well so
+    // payload inference and field access observe the stamp.
+    ctx_api_local_types::ctx_set_local_type(ctx, local_idx, type_name)
+    ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
+}
+
+fn mir_stamp_param_from_return_type(ctx: LowerCtx, val_idx: i32) {
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return
+    }
+    if !mir_scrutinee_is_fn_param(ctx, val_idx) {
+        return
+    }
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, val_idx)) > 0 {
+        return
+    }
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let rt = function_return_view::MirFunction_return_type(f)
+    if rt != value_types::VT_GC_REF() && rt != value_types::VT_REF() {
+        return
+    }
+    let rtn = function_return_view::MirFunction_return_type_name(f)
+    if len(rtn) == 0 {
+        return
+    }
+    let canonical = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn)
+    if len(canonical) == 0 {
+        return
+    }
+    mir_stamp_scrutinee_type(ctx, val_idx, canonical)
+}
