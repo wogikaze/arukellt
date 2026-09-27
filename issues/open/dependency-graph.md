@@ -32,7 +32,8 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I872["872 872 — Wasm GC closure / collection lowering を完成する"]
+  I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
+  I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -41,17 +42,16 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
-  I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
-  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
-  I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I877["877 877 — normative examples と操作的意味論を実行可能にする"]
   I878["878 878 — Language v2 compatibility migration を完了する"]
   I879["879 879 — Wasm GC / fallback の性能・サイズ receipt を取得する"]
-  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
+  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
+  I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I880["880 880 — Language v2 最終 close audit を実施する"]
-  I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I852["852 852 — 言語 v2 意味論再設計 umbrella"]
+  I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
@@ -62,25 +62,23 @@ graph LR
   I715 --> I719
   I715 --> I799
   I851 --> I850
-  I872 --> I875
+  I875 --> I877
+  I875 --> I878
+  I875 --> I879
   I682 --> I683
   I698 --> I699
   I695 --> I709
   I697 --> I709
   I703 --> I709
-  I875 --> I877
-  I875 --> I878
-  I872 --> I879
-  I875 --> I879
-  I697 --> I710
-  I709 --> I710
   I877 --> I880
   I878 --> I880
   I879 --> I880
+  I697 --> I710
+  I709 --> I710
+  I880 --> I852
   I681 --> I711
   I709 --> I711
   I710 --> I711
-  I880 --> I852
   I709 --> I712
   I711 --> I712
   I709 --> I713
@@ -116,7 +114,8 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **872** depends on: 855, 859, 860, 871; blocks: 875, 879
+- **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
+- **891** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
@@ -125,16 +124,15 @@ graph LR
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
-- **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
-- **683** depends on: 679, 682; blocks: none
-- **699** depends on: 649, 698; blocks: none
-- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **877** depends on: 857, 858, 860, 875, 876; blocks: 880
 - **878** depends on: 875, 876; blocks: 880
 - **879** depends on: 871, 872, 874, 875; blocks: 880
-- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **683** depends on: 679, 682; blocks: none
+- **699** depends on: 649, 698; blocks: none
+- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **880** depends on: 877, 878, 879; blocks: 852
-- **711** depends on: 681, 709, 710; blocks: 712, 713
+- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **852** depends on: 880; blocks: none
+- **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none

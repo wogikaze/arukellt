@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T06:38:50Z",
+  "generated_at": "2026-09-27T07:42:31Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -512,19 +512,29 @@
       }
     },
     {
-      "id": "872",
-      "path": "872-wasm-gc-closure-collection-lowering.md",
-      "title": "872 — Wasm GC closure / collection lowering を完成する",
+      "id": "875",
+      "path": "875-cross-backend-semantic-parity.md",
+      "title": "875 — wasm32-gc / fallback の意味論 parity を証明する",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "855",
-        "859",
-        "860",
-        "871"
+        "857",
+        "858",
+        "861",
+        "862",
+        "863",
+        "864",
+        "865",
+        "867",
+        "868",
+        "869",
+        "871",
+        "872",
+        "874"
       ],
       "blocks_issue_ids": [
-        "875",
+        "877",
+        "878",
         "879"
       ],
       "acceptance": {
@@ -534,6 +544,23 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 852
+      }
+    },
+    {
+      "id": "891",
+      "path": "891-borrow-capture-escape-env-cells.md",
+      "title": "891 — mutable-borrow capture escape の env cell 昇格",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 872
       }
     },
     {
@@ -706,34 +733,70 @@
       }
     },
     {
-      "id": "875",
-      "path": "875-cross-backend-semantic-parity.md",
-      "title": "875 — wasm32-gc / fallback の意味論 parity を証明する",
+      "id": "877",
+      "path": "877-executable-normative-semantics.md",
+      "title": "877 — normative examples と操作的意味論を実行可能にする",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
         "857",
         "858",
-        "861",
-        "862",
-        "863",
-        "864",
-        "865",
-        "867",
-        "868",
-        "869",
-        "871",
-        "872",
-        "874"
+        "860",
+        "875",
+        "876"
       ],
       "blocks_issue_ids": [
-        "877",
-        "878",
-        "879"
+        "880"
       ],
       "acceptance": {
         "checked": 0,
         "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "878",
+      "path": "878-language-v2-compatibility-migration.md",
+      "title": "878 — Language v2 compatibility migration を完了する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "875",
+        "876"
+      ],
+      "blocks_issue_ids": [
+        "880"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "879",
+      "path": "879-wasm-gc-fallback-benchmarks.md",
+      "title": "879 — Wasm GC / fallback の性能・サイズ receipt を取得する",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [
+        "871",
+        "872",
+        "874",
+        "875"
+      ],
+      "blocks_issue_ids": [
+        "880"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -808,70 +871,22 @@
       }
     },
     {
-      "id": "877",
-      "path": "877-executable-normative-semantics.md",
-      "title": "877 — normative examples と操作的意味論を実行可能にする",
+      "id": "880",
+      "path": "880-language-v2-final-close-audit.md",
+      "title": "880 — Language v2 最終 close audit を実施する",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "857",
-        "858",
-        "860",
-        "875",
-        "876"
+        "877",
+        "878",
+        "879"
       ],
       "blocks_issue_ids": [
-        "880"
+        "852"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "878",
-      "path": "878-language-v2-compatibility-migration.md",
-      "title": "878 — Language v2 compatibility migration を完了する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "875",
-        "876"
-      ],
-      "blocks_issue_ids": [
-        "880"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "879",
-      "path": "879-wasm-gc-fallback-benchmarks.md",
-      "title": "879 — Wasm GC / fallback の性能・サイズ receipt を取得する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "871",
-        "872",
-        "874",
-        "875"
-      ],
-      "blocks_issue_ids": [
-        "880"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
+        "unchecked": 10
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -904,26 +919,22 @@
       }
     },
     {
-      "id": "880",
-      "path": "880-language-v2-final-close-audit.md",
-      "title": "880 — Language v2 最終 close audit を実施する",
+      "id": "852",
+      "path": "852-language-v2-semantics-full-implementation.md",
+      "title": "852 — 言語 v2 意味論再設計 umbrella",
       "track": "language-v2",
       "status": "open",
       "depends_on": [
-        "877",
-        "878",
-        "879"
+        "880"
       ],
-      "blocks_issue_ids": [
-        "852"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 10
+        "checked": 36,
+        "unchecked": 12
       },
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
+        "class": "blocked-by-upstream",
+        "upstream_notes": 880
       }
     },
     {
@@ -948,25 +959,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
-      }
-    },
-    {
-      "id": "852",
-      "path": "852-language-v2-semantics-full-implementation.md",
-      "title": "852 — 言語 v2 意味論再設計 umbrella",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "880"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 35,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": 880
       }
     },
     {

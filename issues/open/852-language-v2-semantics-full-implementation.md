@@ -119,8 +119,16 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     fixtures validate and run with matching stdout on both targets, and the
     non-exhaustive enum diagnostic is rejected before backend emission. See
     [#871](../done/871-wasm-gc-aggregate-lowering.md).
-- [ ] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
-  - Progress (not done, 2026-09-20): `104b108d2` preserves typed closure parameter/return annotations and fixes the typed capturing `closure_map` workload. GC component and linear core artifacts validate and run with matching `6017000`; managed closure environments, collection lowering, and negative coverage remain open. See [#872](872-wasm-gc-closure-collection-lowering.md).
+- [x] #872 — Wasm GC closure / collection lowering を完成する — RFC 8 (closure/collection) — depends: 855, 859, 860, 871
+  - Done (2026-09-27): managed closure env (`__fnpair` pair ABI + env
+    cells for move/Copy captures, proven by the capture fixtures),
+    collection managed parts for the full element-class matrix,
+    generic-element boxing policy pinned in ADR-080, zero
+    language-runtime helper imports on GC modules, `fn() -> R`
+    signature gap fixed end-to-end (`fnsig:;<ret>`), and the
+    `fn_zero_param_ref_return` representative fixture on both backends.
+    Residual: escaping mutable-borrow capture stays E0213 → #891.
+    See [#872](../done/872-wasm-gc-closure-collection-lowering.md).
 - [ ] #891 — mutable-borrow capture escape の env cell 昇格 — ADR-061 fallback の解除 — depends: none (child of #872)
 - [x] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
   - Receipt: runtime foundation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; compiler root-frame integration `aed3af031`; full managed-local write coverage `f3c56bbef`; watermark-gated automatic collection at function entry `2aaadcbf4`; source-level survival fixtures `b2144f1c1`, `449bb5651`. Allocator, root registration/update, tracing collector, and cycle collection are implemented and probe- plus source-verified; linear artifacts contain no Wasm GC instructions. `verify quick` remains red only on unrelated pre-existing #652/#765/#823/T3-memory64 baseline checks (unchanged by this work). See [#873](../done/873-linear-memory-tracing-gc-runtime.md).

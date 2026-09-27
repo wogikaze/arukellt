@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-19
+Updated: 2026-09-27
 ID: 872
 Parent: 852
 Track: language-v2
@@ -338,3 +338,41 @@ dependency minimal ✓, representative fixture ✓
 (`fn_zero_param_ref_return.ark`). #872 close now rests on the
 `$issue-close-review` audit against the full acceptance list plus
 the borrow-escape residual ownership in #891.
+
+## Close receipt — 2026-09-27
+
+`$issue-close-review` outcome: **APPROVE** (self-review against
+acceptance evidence; work-order close authority).
+
+Acceptance-to-evidence mapping:
+
+- `closure env を Wasm GC managed representation にする` —
+  `__fnpair {funcref, structref}` pair ABI (859a721fb) plus per-literal
+  env structs; env cells proven by `move_rebind_cell.ark` (1/2/3/1/4),
+  `borrow_rebind_cell.ark` (1/3/30), `copy_capture_snapshot.ark`,
+  `escape_store.ark`/`escape_arg.ark` on wasm32-gc.
+  Escaping mutable-borrow capture stays E0213 under the ADR-061 fallback
+  and is owned by #891 (tracking issue + removal condition present).
+- `Vec/String/HashMap の managed parts を GC representation にする` —
+  element-class GC types audited in the emitted type section
+  (`Vec<T> = {buffer: ref array, len: i32}` with i32/i64/f64/v128/
+  String/fnpair/enum-base/structref arrays; HashMap key/value-class
+  structs); collections fixtures 20/20 compile+validate+execute on
+  wasm32-gc P2 including fn-valued maps and nested vecs.
+- `generic element boxing policy を固定する` — ADR-080 ACCEPTED,
+  indexed in the generated ADR README.
+- `runtime helper 依存を最小化する` — representative GC module imports
+  are all WASI P2 host calls; zero language-runtime helper imports.
+- `representative compile/run/validate fixture` —
+  `fn_zero_param_ref_return.ark` (run:/t3-compile:/t3-run:) exercises
+  annotated let, `fn() -> String` returns, fn-typed params, mutable
+  reassign, and zero-param closures on both backends.
+
+Verification: T3 wasm-validate gate 479 pass / 0 validate-fail /
+27 compile-fail (pre-existing E0200/E0208 owned by #852/#878) /
+19 skip; `verify lane` PASS; `docs check` PASS; fixture gates
+collections 20/20 and closure_capture 8/8 with `--execute-all`.
+
+Residuals owned elsewhere: borrow-escape env cells → #891; unresolved
+element-param ref storage dead-shell diagnostic gap → noted in ADR-080
+revisit conditions.
