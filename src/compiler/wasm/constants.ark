@@ -34,13 +34,30 @@ fn GLOBAL_LINEAR_GC_ROOT_LIMIT() -> i32 { 4 }
 fn GLOBAL_LINEAR_GC_METADATA_CURSOR() -> i32 { 5 }
 fn GLOBAL_LINEAR_GC_LAST_TOP() -> i32 { 6 }
 fn GLOBAL_LINEAR_GC_ALLOC_WATERMARK() -> i32 { 7 }
-fn LINEAR_GC_METADATA_BYTES() -> i32 { 65536 }
+// Shared arena for allocation records (bumped upward from the arena base) and
+// root slots (grown downward from heap_start). Records are committed
+// monotonically between collections, so the arena must cover the program's
+// live record count plus the churn since the last sweep; 64 MiB gives
+// ~4M records, which keeps small-allocation workloads far from the guard.
+fn LINEAR_GC_METADATA_BYTES() -> i32 { 67108864 }
 fn LINEAR_GC_ALLOCATION_RECORD_BYTES() -> i32 { 16 }
 fn LINEAR_GC_ROOT_SLOT_BYTES() -> i32 { 4 }
+// Free bytes remaining in the shared arena below which a function entry runs
+// the collector even under the payload watermark. Sweeping then refills the
+// free list, and commit_top/alloc reuse those records instead of bumping the
+// cursor. Sized generously so a single activation's allocation burst cannot
+// jump the margin before the next entry safepoint.
+fn LINEAR_GC_PRESSURE_FREE_BYTES() -> i32 { 4194304 }
 // Bytes of payload allocated since the last collection before a function
 // entry runs the collector. Keeps steady-state programs from paying a full
 // mark-sweep on every call while still bounding garbage growth.
 fn LINEAR_GC_COLLECT_THRESHOLD_BYTES() -> i32 { 67108864 }
+// WASI proc_exit status used when the shared arena genuinely runs out (every
+// committed record is live or the root stack itself overflows the arena).
+// Distinct codes make the failure identifiable from the process exit status
+// instead of a bare `unreachable` trap (#896).
+fn LINEAR_GC_OOM_EXIT_METADATA() -> i32 { 120 }
+fn LINEAR_GC_OOM_EXIT_ROOTS() -> i32 { 121 }
 
 // Private linear runtime function ordinals. The function section emits these
 // in this order after user, wrapper, P2, and library functions.

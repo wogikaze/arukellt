@@ -280,3 +280,38 @@ move/borrow parity は引き続き未完了である。
 - unannotated Vec::new<(A,B)> turbofish: #888 の tuple type-name
   経路で解消済み。Option<tuple> payload ABI の共通欠陥は #890 へ
   移管。
+
+---
+
+## #896 metadata arena exhaustion（2026-09-28）
+
+`bench_stdlib_json_parse` をはじめ allocation-heavy な wasm32 linear
+workload が `unreachable` で落ちる障害を解消した。原因は metadata
+arena の構造的枯渇: `LINEAR_GC_METADATA_BYTES` が 64 KiB
+（約 4096 record）しかなく、collect の唯一の発火条件が payload
+watermark（64 MiB）だったため、小さな record を多数確保する
+workload では watermark 到達前に record slot が尽きて
+`commit_top`/`root_push` の guard が trap していた。
+
+対応は 3 点。第一に arena を 64 MiB へ拡大し
+（`LINEAR_GC_METADATA_BYTES`、live set ~4M records 相当）、
+第二に entry safepoint の発火条件へ metadata pressure を追加した
+（`root_cursor - metadata_cursor < LINEAR_GC_PRESSURE_FREE_BYTES`
+かつ free list 空のとき collect。watermark 以外の発火経路で、
+operand stack の空いている同じ safepoint を使うため健全性の根拠は
+不変）。第三に `commit_top` が free list head を record として
+再利用するようにし、bump-only だった metadata cursor の単調増加を
+止めた（reused record の旧 payload range は tracking から外れる
+bounded leak — 16-byte slot 節約の対価として受容）。
+
+真の枯渇（全 record live、あるいは root stack が arena を踏む）時は
+bare `unreachable` をやめ、`proc_exit`（P2 は exit import）を
+status `LINEAR_GC_OOM_EXIT_METADATA`=120 /
+`LINEAR_GC_OOM_EXIT_ROOTS`=121 で呼ぶ documented OOM 規約にした。
+
+証拠: `bench_stdlib_json_parse` が wasm32 linear で 50 反復を完走し
+`2550`（wasm32-gc と parity）。fixture
+`linear_gc_metadata_pressure.ark`（旧 arena 容量を大きく超える小
+record churn で live data 存活）を `run:`/`t3-run:` に登録。e2e
+`test_linear_gc_runtime_e2e` 5 件と contract test は現行 contract を
+維持したまま PASS。wasm32-gc 経路は不変。

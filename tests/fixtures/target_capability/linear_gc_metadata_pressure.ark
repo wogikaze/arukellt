@@ -1,0 +1,31 @@
+use std::test
+
+// #896 / ADR-075: the shared metadata arena used to trap at ~4096 committed
+// records regardless of payload size. Churning small allocations now reuses
+// swept records via the free list and pressure-gated entry collection, so
+// the loop commits far more records than the old arena could hold while the
+// kept strings stay reachable through main's root slots.
+
+use std::text
+
+fn churn(tag: String) -> i32 {
+    let mut parts: Vec<String> = Vec::new<String>()
+    push(parts, tag)
+    push(parts, String_from("-junk"))
+    len(parts)
+}
+
+fn main() {
+    let mut keep: Vec<String> = Vec::new<String>()
+    let mut i = 0
+    while i < 20000 {
+        let _n = churn(text::concat(String_from("k-"), i.to_string()))
+        if i % 5000 == 0 {
+            push(keep, text::concat(String_from("alive-"), i.to_string()))
+        }
+        i = i + 1
+    }
+    test::assert_eq_i32(len(keep), 4)
+    test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
+    test::assert_eq_string(get_unchecked(keep, 3), String_from("alive-15000"))
+}

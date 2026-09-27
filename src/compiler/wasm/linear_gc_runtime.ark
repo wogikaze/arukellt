@@ -8,13 +8,15 @@ use wasm::writer_core
 // types so the bootstrap can track today's raw String/Vec layouts until #874
 // supplies exact managed-value descriptors.
 
-fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32) {
+// exit_index is the WASI proc_exit/P2-exit import used to report genuine
+// arena exhaustion as an identifiable exit status instead of a bare trap.
+fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32, exit_index: i32) {
     if ordinal == constants::LINEAR_GC_ROOT_FRAME_ENTER() {
         emit_linear_gc_runtime_root_frame_enter_body(w)
         return
     }
     if ordinal == constants::LINEAR_GC_ROOT_PUSH() {
-        emit_linear_gc_runtime_root_push_body(w)
+        emit_linear_gc_runtime_root_push_body(w, exit_index)
         return
     }
     if ordinal == constants::LINEAR_GC_ROOT_UPDATE() {
@@ -26,7 +28,7 @@ fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32) {
         return
     }
     if ordinal == constants::LINEAR_GC_COMMIT_TOP() {
-        emit_linear_gc_runtime_commit_top_body(w)
+        emit_linear_gc_runtime_commit_top_body(w, exit_index)
         return
     }
     if ordinal == constants::LINEAR_GC_MARK_CANDIDATE() {
@@ -57,7 +59,15 @@ fn emit_linear_gc_runtime_root_frame_enter_body(w: WasmWriter) {
     emit_end(w)
 }
 
-fn emit_linear_gc_runtime_root_push_body(w: WasmWriter) {
+// Terminates the instance with a documented OOM status. proc_exit never
+// returns; the trailing unreachable keeps the block well-typed regardless.
+fn emit_linear_gc_oom(w: WasmWriter, exit_index: i32, code: i32) {
+    emit_i32_const(w, code)
+    emit_call(w, exit_index)
+    emit_unreachable(w)
+}
+
+fn emit_linear_gc_runtime_root_push_body(w: WasmWriter, exit_index: i32) {
     emit_local_decls(w, 1)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
     emit_i32_const(w, constants::LINEAR_GC_ROOT_SLOT_BYTES())
@@ -68,7 +78,7 @@ fn emit_linear_gc_runtime_root_push_body(w: WasmWriter) {
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
     emit_i32_le_u(w)
     emit_if_empty(w)
-    emit_unreachable(w)
+    emit_linear_gc_oom(w, exit_index, constants::LINEAR_GC_OOM_EXIT_ROOTS())
     emit_end(w)
 
     emit_local_get(w, 1)
@@ -95,7 +105,12 @@ fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
     emit_end(w)
 }
 
-fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter) {
+// Records the just-bumped [last_top, top) payload. When the free list holds a
+// swept record it is reused in place: its old payload range becomes untracked
+// (a bounded leak), which keeps the metadata cursor from growing on every
+// commit. Only an empty free list bumps the cursor, and only a truly
+// exhausted arena reaches the OOM exit.
+fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32) {
     emit_local_decls(w, 3)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
     emit_local_set(w, 1)
@@ -106,6 +121,11 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter) {
     emit_i32_le_u(w)
     emit_br_if(w, 0)
 
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
+    emit_local_set(w, 2)
+    emit_local_get(w, 2)
+    emit_i32_eqz(w)
+    emit_if_empty(w)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
     emit_local_set(w, 2)
     emit_local_get(w, 2)
@@ -116,7 +136,14 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter) {
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
     emit_i32_gt_u(w)
     emit_if_empty(w)
-    emit_unreachable(w)
+    emit_linear_gc_oom(w, exit_index, constants::LINEAR_GC_OOM_EXIT_METADATA())
+    emit_end(w)
+    emit_local_get(w, 3)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_else(w)
+    emit_local_get(w, 2)
+    emit_i32_load(w, 0)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
     emit_end(w)
 
     emit_local_get(w, 2)
@@ -139,8 +166,6 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter) {
     emit_i32_store(w, 0)
     emit_local_get(w, 2)
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
-    emit_local_get(w, 3)
-    emit_global_set(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
     emit_local_get(w, 0)
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
     emit_end(w)

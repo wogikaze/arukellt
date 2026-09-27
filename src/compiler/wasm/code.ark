@@ -12,6 +12,7 @@ use mir::module_wit_imports
 use wasm::code_body
 use wasm::ctx_record
 use wasm::function_indices
+use wasm::import_indices
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
@@ -252,7 +253,12 @@ fn emit_code_section(
         let mut runtime_idx = 0
         while runtime_idx < linear_gc_runtime_count {
             let size_off = emit_sized_code_body_begin(code_sec)
-            linear_gc_runtime::emit_runtime_body(code_sec, runtime_idx, runtime_base)
+            linear_gc_runtime::emit_runtime_body(
+                code_sec,
+                runtime_idx,
+                runtime_base,
+                import_indices::proc_exit_import_idx(ctx)
+            )
             emit_sized_code_body_end(code_sec, size_off)
             runtime_idx = runtime_idx + 1
         }
