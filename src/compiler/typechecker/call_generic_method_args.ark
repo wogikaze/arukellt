@@ -1,5 +1,8 @@
 use typechecker::ast_access
+use typechecker::ast_expr_predicates
 use typechecker::associated_types
+use typechecker::call_generic_fn_args
+use typechecker::contract_type_access
 use typechecker::contract_fn_sig
 use typechecker::instantiate
 use typechecker::unify
@@ -24,7 +27,19 @@ fn constrain_generic_method_args(
     let mut a = 0
     while a < explicit_args {
         let arg_node = ast_access::node_child_at(node, a + 1)
-        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        let mut arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        // A bare function name passed as a callback argument infers
+        // TY_UNKNOWN because top-level functions are not scope bindings.
+        // Recover the declared signature so fn(T) -> U method parameters
+        // bind their own item type variables — the same recovery the
+        // generic free-function path applies (#887 / #860).
+        if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() &&
+        ast_expr_predicates::node_is_ident(arg_node) {
+            let fn_ty = call_generic_fn_args::fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(arg_node))
+            if contract_type_access::TypeInfo_tag(fn_ty) == commands::TY_FN() {
+                arg_ty = fn_ty
+            }
+        }
         let pty = contract_fn_sig::FnSig_param_at(sig, a + 1)
         let inst_pt = instantiate::instantiate_type(pty, var_names, var_types)
         let projected_pt = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_pt)

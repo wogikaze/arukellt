@@ -240,6 +240,7 @@ diag:diagnostics/immutable_mutation.ark
 diag:diagnostics/mismatched_arms.ark
 diag:diagnostics/missing_annotation.ark
 diag:diagnostics/missing_brace.ark
+diag:diagnostics/method_generic_unresolved_var.ark
 diag:diagnostics/mutable_sharing.ark
 diag:diagnostics/ownership_move_after_use.ark
 diag:diagnostics/adt_move_after_use.ark
@@ -1793,6 +1794,7 @@ run:stdlib_trait/iterator_map_filter_pipeline.ark
 run:stdlib_trait/iterator_map_filter_take_pipeline.ark
 run:stdlib_trait/iterator_map_identity.ark
 run:stdlib_trait/iterator_map_negative.ark
+run:stdlib_trait/iterator_map_type_change.ark
 run:stdlib_trait/iterator_negative_values.ark
 run:stdlib_trait/iterator_nested_generic_adapter.ark
 run:stdlib_trait/iterator_peek_basic.ark
@@ -2368,6 +2370,7 @@ t3-compile:stdlib_trait/iterator_desugar_equiv.ark
 t3-compile:stdlib_trait/iterator_flat_map_basic.ark
 t3-compile:stdlib_trait/iterator_generic_fn_field.ark
 t3-compile:stdlib_trait/iterator_generic_struct_item.ark
+t3-compile:stdlib_trait/iterator_map_type_change.ark
 t3-compile:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-compile:stdlib_trait/iterator_peek_basic.ark
 t3-compile:stdlib_trait/iterator_query_consumers.ark
@@ -2853,6 +2856,7 @@ t3-run:stdlib_trait/iterator_desugar_equiv.ark
 t3-run:stdlib_trait/iterator_flat_map_basic.ark
 t3-run:stdlib_trait/iterator_generic_fn_field.ark
 t3-run:stdlib_trait/iterator_generic_struct_item.ark
+t3-run:stdlib_trait/iterator_map_type_change.ark
 t3-run:stdlib_trait/iterator_nested_generic_adapter.ark
 t3-run:stdlib_trait/iterator_peek_basic.ark
 t3-run:stdlib_trait/iterator_query_consumers.ark

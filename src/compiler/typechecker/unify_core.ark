@@ -22,10 +22,24 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         return a
     }
     if a_tag == commands::TY_TYPE_VAR() {
+        // An already-bound variable must unify against its binding, not
+        // silently rebind. Rebinding let fn(T) -> U parameters accept a
+        // callback that disagreed with an earlier binding, which compiled
+        // the call and then trapped at runtime (#887).
+        let resolved_a = unify_resolve::resolve_type(env, a)
+        if contract_type_access::TypeInfo_tag(resolved_a) != commands::TY_TYPE_VAR() ||
+        !eq(contract_type_access::TypeInfo_name(resolved_a), contract_type_access::TypeInfo_name(a)) {
+            return unify(env, resolved_a, b)
+        }
         unify_bind::bind_var(env, contract_type_access::TypeInfo_name(a), b)
         return b
     }
     if b_tag == commands::TY_TYPE_VAR() {
+        let resolved_b = unify_resolve::resolve_type(env, b)
+        if contract_type_access::TypeInfo_tag(resolved_b) != commands::TY_TYPE_VAR() ||
+        !eq(contract_type_access::TypeInfo_name(resolved_b), contract_type_access::TypeInfo_name(b)) {
+            return unify(env, a, resolved_b)
+        }
         unify_bind::bind_var(env, contract_type_access::TypeInfo_name(b), a)
         return a
     }

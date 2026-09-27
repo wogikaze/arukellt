@@ -109,7 +109,7 @@ Traitは `Self`、関連型、型引数、coherence、blanket implementationを�
 | 34 | multi-clause関数 | 複数節の関数をどの構文単位としてまとめるかを明示する。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) で改行 separator と semicolon 終端を採択。 |
 | 35 | `where` | pattern match後のmulti-clauseで、`where` の束縛範囲を一貫させる。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) で評価順序と scope を採択し、fixture を追加。 |
 | 36 | セミコロン | 改行、式、blockの終端規則を組み合わせたときの曖昧さをなくす。 | [ADR-073](../adr/ADR-073-language-v2-multiclause-where-semicolon-grammar.md) と normative spec へ反映。 |
-| 37 | Iterator | eager helper、lazy adapter、`IntoIterator`、`FromIterator`を共通のTrait面へ統一する。 | ADR-036とRFC-004に統合する。 |
+| 37 | Iterator | eager helper、lazy adapter、`IntoIterator`、`FromIterator`を共通のTrait面へ統一する。 | ADR-036とRFC-004に統合する。メソッド型パラメータ（`fn m<U>`）の構文・推論・診断は [ADR-079](../adr/ADR-079-language-v2-method-level-generics.md) で採択し、`VecIter<T>::map<U>` / `FilterIter<T>::map<U>` が item 型を変えられる。 |
 | 38 | name mangling | name manglingを言語仕様から外し、backendとABIの実装詳細に限定する。 | ADR-071 / ADR-006のABI分類と整合し、language spec の具体形式を削除済み。 |
 | 39 | target名 | メモリ方式、WASI profile、出力形式の能力を一つのtarget名に詰め込まない。 | [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) で target identity、host、memory、artifact を独立設定に採択。 |
 | 40 | `wasm32-gc` とMemory64 | GC、memory width、host profile、Component boundaryの既定値を別々の設定として説明する。 | [ADR-074](../adr/ADR-074-language-v2-target-capability-configuration.md) で `--memory-width` と capability matrix を採択。ADR-013、ADR-035、current-state と同期する。 |

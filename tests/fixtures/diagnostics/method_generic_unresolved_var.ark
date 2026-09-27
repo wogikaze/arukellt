@@ -1,0 +1,20 @@
+//! A method-level type parameter that no argument position can bind is
+//! reported instead of silently skipping monomorphisation (#887).
+
+struct Box2<T> {
+    item: T,
+}
+
+impl Box2<T> {
+    fn pick<U>(self: Box2<T>, d: i32) -> U {
+        // U appears only in the return type, so a call on a concrete
+        // receiver cannot infer it. The recursive body keeps the
+        // signature itself well-formed.
+        self.pick(d)
+    }
+}
+
+fn main() {
+    let b = Box2 { item: 3 }
+    let x = b.pick(1)
+}

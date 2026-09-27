@@ -1,0 +1,60 @@
+//! Method-level generics (#887): `VecIter<T>::map<U>` and
+//! `FilterIter<T>::map<U>` accept `fn(T) -> U` callbacks, so a lazy
+//! pipeline can change the item type on both backends.
+
+use std::core::iter
+use std::test
+
+fn itos(value: i32) -> String {
+    concat("n", to_string(value))
+}
+
+fn slen(value: String) -> i32 {
+    len(value)
+}
+
+fn non_empty(value: String) -> bool {
+    len(value) > 0
+}
+
+fn same(value: String) -> String {
+    clone(value)
+}
+
+fn main() {
+    // i32 -> String
+    let v: Vec<i32> = Vec::new<i32>()
+    push(v, 7)
+    push(v, 42)
+    let strings = v.iter().map(itos).collect()
+    test::assert_eq_i32(len(strings), 2)
+    test::assert_eq_string(get_unchecked(strings, 0), "n7")
+    test::assert_eq_string(get_unchecked(strings, 1), "n42")
+
+    // String -> i32
+    let w: Vec<String> = Vec::new<String>()
+    push(w, String_from("ab"))
+    push(w, String_from("cdef"))
+    let lengths = w.iter().map(slen).collect()
+    test::assert_eq_i32(len(lengths), 2)
+    test::assert_eq_i32(get_unchecked(lengths, 0), 2)
+    test::assert_eq_i32(get_unchecked(lengths, 1), 4)
+
+    // filter-then-map also carries a method-level item type parameter.
+    let filtered = w.iter().filter(non_empty).map(slen).collect()
+    test::assert_eq_i32(len(filtered), 2)
+    test::assert_eq_i32(get_unchecked(filtered, 1), 4)
+
+    // T -> T still works through the renamed FilterMapIter<T, U> impl,
+    // including the Vec<String> from_iter path.
+    let copied: Vec<String> = Vec::from_iter(w.iter().filter(non_empty).map(same))
+    test::assert_eq_i32(len(copied), 2)
+    test::assert_eq_string(get_unchecked(copied, 1), "cdef")
+
+    println(get_unchecked(strings, 0))
+    println(get_unchecked(strings, 1))
+    println(to_string(get_unchecked(lengths, 0)))
+    println(to_string(get_unchecked(lengths, 1)))
+    println(to_string(get_unchecked(filtered, 1)))
+    println(get_unchecked(copied, 1))
+}
