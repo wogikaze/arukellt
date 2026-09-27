@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T08:26:38Z",
+  "generated_at": "2026-09-27T08:29:30Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -561,23 +561,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": 872
-      }
-    },
-    {
-      "id": "892",
-      "path": "892-linear-enum-pattern-dispatch-divergence.md",
-      "title": "892 — wasm32 linear の enum pattern dispatch が wasm32-gc と diverge する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 875
       }
     },
     {

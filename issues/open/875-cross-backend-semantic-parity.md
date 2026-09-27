@@ -141,3 +141,36 @@ RFC-011: **8–45 parity**。
   show parity everywhere they compile; cyclic/shared graph parity and
   the capability-error-limit audit remain open; #875 stays open
   pending #892 and the remaining audit axes.
+
+## Progress receipt — 2026-09-27 (#892 fixed, focused re-audit green)
+
+- #892 root-caused and fixed in `3cef5f4f1`: two independent lowering
+  defects in the shared MIR match paths — (a) CoreHIR guarded
+  non-catchall arms chained the next arm inside the guard else, leaving
+  the pattern compare with no else (discriminant miss -> unbound match
+  result -> wasm32 null-deref); fixed by mirroring the legacy
+  matched-local shape. (b) linear compare_idx was only promoted to the
+  tag local when an arm had a *payload* pattern, so matches over
+  payload-enum unit variants (`Opt::None`) compared record pointer to
+  tag constant; both `mir_prepare_match_payload` and
+  `core_prepare_match_payload` now promote whenever an arm names a
+  payload-enum variant.
+- Focused re-audit on the match/enum matrix slice
+  (`enums/`, `match_extensions/`, `control/match_*`,
+  `lang_uplift/guard_const_enum_destructure`):
+  **20 fixtures in 50.9s — parity=19, diverge=0,
+  compile-fail:gc=1** (`match_extensions/struct_pattern.ark`, the
+  pre-existing E0200 unknown-enum typecheck gap, unchanged).
+  `guard_const_enum_destructure` now prints `big/small/none` on BOTH
+  backends; `match_guard` prints `positive/large some` on both.
+  Receipt: `.build/parity/report-892.json`.
+- New regression fixture `enums/match_payload_enum_unit_arm.ark`
+  (run + t3-compile + t3-run) covers unit-variant arms of a payload
+  enum — the wrong-arm class previously invisible to gates.
+- Tuple-position match arms were verified to be a shared
+  unimplemented feature on BOTH backends and both lowering paths
+  (invalid wasm either way) — reclassified as non-divergence and
+  split to **#893**; it does not block #892's closure.
+- #875 remains open for the full-matrix re-run (confirm zero diverge
+  across all 221), cyclic/shared graph parity, and the
+  capability-error-limit audit.

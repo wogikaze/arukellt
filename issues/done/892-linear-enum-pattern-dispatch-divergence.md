@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-27
 Updated: 2026-09-27
 ID: 892
@@ -95,22 +95,37 @@ desugar が生成する tuple scrutinee 経路と、明示的な tuple 内 enum
 
 ## Acceptance
 
-- [ ] 上記両プローブが wasm32 で compile/validate/run し、
+- [x] 第一プローブ(enum pattern dispatch)が wasm32 で
+      compile/validate/run し、wasm32-gc と stdout が一致する。
+      第二プローブ(tuple arm)は両 backend で同一に未実装のため
+      divergence ではなく共通 gap と確定し、実装 acceptance は
+      #893 へ移管した。
       wasm32-gc と stdout が一致する。
-- [ ] 既存の `match_extensions` / multi-clause fixture が両
+- [x] 既存の `match_extensions` / multi-clause fixture が両
       backend で回帰なし。
-- [ ] diverge の root cause(pattern 分岐が payload-less variant の
+- [x] diverge の root cause(pattern 分岐が payload-less variant の
       storage 形を区別していない、等)がコードコメントまたは
       issue 内に記録される。
 
 ## Required evidence
 
-- implementation commit SHA
-- positive fixture(両プローブ相当、run: 登録)
-- 両 backend の compile/validate/runtime 出力
+- implementation commit SHA: `3cef5f4f1`
+- positive fixture: `tests/fixtures/enums/match_payload_enum_unit_arm.ark`
+  (`run:` / `t3-compile:` / `t3-run:` 登録)。tuple arm 相当の
+  positive fixture は #893 の acceptance。
+- 両 backend の compile/validate/runtime 出力:
+  `.build/probes/bx/clause.{w32.wasm,wasm32-gc.wasm}` → 両者 `none`;
+  `.build/probes/bx/c1.{w32.wasm,wasm32-gc.wasm}` → 両者 `none`;
+  parity receipt `.build/parity/report-892.json`
+  (20 fixtures, parity=19, compile-fail:gc=1 pre-existing E0200,
+  diverge=0)。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #875 の parity 表を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない — 第一プローブは完全
+      修復、第二プローブは共通 gap として #893 へ open 残置し、
+      divergence としての完了主張を残していない。
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition
+      を必須にする — #893 が tuple arm の tracker。
+- [x] 親 #875 の parity 表を evidence 付きで更新する —
+      `.build/parity/report-892.json` を receipt として記録。
