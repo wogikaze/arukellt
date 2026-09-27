@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T21:08:08Z",
+  "generated_at": "2026-09-27T21:11:33Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -603,40 +603,6 @@
       }
     },
     {
-      "id": "896",
-      "path": "896-linear-gc-metadata-arena-exhaustion.md",
-      "title": "896 — linear GC metadata arena が collect 発火前に枯渇し unreachable で trap する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 874
-      }
-    },
-    {
-      "id": "897",
-      "path": "897-qualified-name-signature-collision.md",
-      "title": "897 — 修飾名呼び出しの signature 衝突と修飾型注釈の型同一性欠陥",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 896
-      }
-    },
-    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -816,8 +782,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 42,
-        "unchecked": 8
+        "checked": 46,
+        "unchecked": 6
       },
       "orchestration": {
         "class": "blocked-by-upstream",

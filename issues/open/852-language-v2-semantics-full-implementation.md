@@ -58,7 +58,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
   - Receipt: completed in `a720c2cc7`; ADR-068, RFC-011, and the language spec are synchronized. Integer/float edge rules and place-before-RHS evaluation are covered by positive, diagnostic, and GC/linear runtime fixtures. Canonical `build-compiler` remains blocked by the pre-existing #854 `unbox`/`slice_get` bootstrap mismatch; the targeted shim receipt is explicitly not a canonical rebuild.
 - [x] #863 — String / Unicode semantics を確定する — RFC 24 — depends: 854
   - Receipt: completed in `e4becb596`; ADR-069 and RFC-011 item 24 are synchronized. Valid UTF-8 String/scalar semantics, byte/scalar API separation, strict/lossy UTF-8 construction, boundary-aware slicing, and `char_at` migration are covered by positive/diagnostic fixtures. Current-source `wasm32-gc` and `wasm32` targeted compile/validate/runtime parity passes; canonical bootstrap remains blocked by the pre-existing #854 `unbox`/`slice_get` mismatch.
-- [ ] #865 — Hygienic desugaring と f-string lowering を実装する — RFC 28, 29 — depends: 729
+- [x] #865 — Hygienic desugaring と f-string lowering を実装する — RFC 28, 29 — depends: 729
   - Progress (implementation complete, close blocked by upstream, 2026-09-20):
     `9783627b5` plus fixture equivalence follow-up `b83d87ccf`; ADR-077,
     RFC-011 items 28–29, language spec, and current-state are synchronized.
@@ -132,7 +132,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [ ] #891 — mutable-borrow capture escape の env cell 昇格 — ADR-061 fallback の解除 — depends: none (child of #872)
 - [x] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
   - Receipt: runtime foundation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; compiler root-frame integration `aed3af031`; full managed-local write coverage `f3c56bbef`; watermark-gated automatic collection at function entry `2aaadcbf4`; source-level survival fixtures `b2144f1c1`, `449bb5651`. Allocator, root registration/update, tracing collector, and cycle collection are implemented and probe- plus source-verified; linear artifacts contain no Wasm GC instructions. `verify quick` remains red only on unrelated pre-existing #652/#765/#823/T3-memory64 baseline checks (unchanged by this work). See [#873](../done/873-linear-memory-tracing-gc-runtime.md).
-- [ ] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
+- [x] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
   - Progress (not done, 2026-09-20): `6f480e71e` connects fallback
     struct/array/Vec allocation constructors to the private tracing allocator;
     enum and Vec representative fixtures validate and run on the fallback,
@@ -324,7 +324,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     [#877](877-executable-normative-semantics.md).
 - [x] #878 — Language v2 compatibility migration を完了する — RFC migration — depends: 875, 876
 - [x] #879 — Wasm GC / fallback の性能・サイズ receipt を取得する — RFC performance — depends: 871, 872, 874, 875
-  - Done (2026-09-27): paired 20-workload receipt `tests/baselines/perf/current-wasm32{,-gc}.json` + `docs/history/benchmarks/benchmark-879-{wasm32,wasm32-gc}.md` (`ad393e064`, `1fca2e1d9`, `72429718a`). gc: 20/20 run, 19/20 correctness; linear: 12/20 run, 8 allocation-heavy traps. Residuals: #895 (intrinsic HashMap growth), #896 (linear GC metadata arena exhaustion).
+  - Done (2026-09-27): paired 20-workload receipt `tests/baselines/perf/current-wasm32{,-gc}.json` + `docs/history/benchmarks/benchmark-879-{wasm32,wasm32-gc}.md` (`ad393e064`, `1fca2e1d9`, `72429718a`). gc: 20/20 run, 19/20 correctness; linear: 12/20 run, 8 allocation-heavy traps. Residual: #895 (intrinsic HashMap growth). #896 done 2026-09-28 (`96b099b26`).
   - Progress (not done, 2026-09-20): `f499fccad` makes the benchmark gate fail closed and records a current-s2 `wasm32` run in `tests/baselines/perf/current.json`. The fixed 20-workload run has 7 compile errors, 6 runtime errors, and 1 correctness failure; the historic 15-entry baseline remains unchanged. `104b108d2` adds targeted GC/linear `closure_map` compile/validate/runtime parity at `6017000`; complete paired measurements and runtime allocation/GC telemetry remain open. See [#879](879-wasm-gc-fallback-benchmarks.md).
 - [ ] #880 — Language v2 最終 close audit を実施する — RFC final — depends: 877, 878, 879
 
@@ -440,3 +440,6 @@ graph TD
 - [x] #887: `b11f9bdbd`, `8d2e8867a`; ADR-079; method-level type parameters (`fn m<U>`) with per-call inference, bound-variable unification (no silent rebind), `cannot infer type parameter` diagnostics for undetermined method params, and `VecIter<T>::map<U>`/`FilterIter<T>::map<U>` item-type-changing adapters. Positive fixture runs identically on wasm32-gc component and linear wasm32 (`n7 n42 2 4 4 cdef`); T3 gate 478/27/19 matches the HEAD pre-existing failure set. See [#887](../done/887-method-level-generics.md).
 
 - [x] #878: `c77b5880d`, `9a9e7c47e`, `082ed31f6`, `d5328bb5f`; ADR-072/ADR-067 (operator leg via #858/ADR-065); prelude auto-import gate flipped to the ADR-072 stable set with `legacy_auto_import = false`; E0100 removed/gated-name hints (36 specific + 104 gated), E0200 numeric-pair conversion hints, E0212 clone/borrow move message, W0101 legacy-import warning; 1575 tracked .ark files migrated to explicit imports; compat-orphan audit wired into verify quick + docs check (clean); `selfhost fixpoint` produced s3 under the flipped gate; verify quick 146/153 with only pre-existing non-#878 failures (#686 T3 gate, #765 docs markers, done-issue checkboxes). See [#878](../done/878-language-v2-compatibility-migration.md).
+
+- [x] #896: `96b099b26`; ADR-075 runtime follow-up; metadata arena 64 KiB→64 MiB, pressure-gated entry collect independent of payload watermark, free-list record reuse in commit_top, documented proc_exit OOM statuses (120/121). bench_stdlib_json_parse runs 50 iterations on wasm32 linear returning 2550 (gc parity); stage-3 wasm32 self-compile and s3 compile complete; new fixture linear_gc_metadata_pressure. See [#896](../done/896-linear-gc-metadata-arena-exhaustion.md).
+- [x] #897: `05b6acd64`; qualified mod::f/mod::CONST calls bind to the owning module's FnSig via qualified index keys, '-> mod::T' annotations resolve to leaf-name identity, and compiler sources migrated to v2 strictness (let mut field writes, i64 literals, prelude imports, overlay cache v5). Stage-3 self-compile completes phase 6. See [#897](../done/897-qualified-name-signature-collision.md).

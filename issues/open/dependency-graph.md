@@ -37,8 +37,6 @@ graph LR
   I893["893 893 — match アームの tuple パターンが両経路で未実装"]
   I894["894 894 — wasm32-gc emit: 複数 multi-clause 関数群で invalid core Wasm"]
   I895["895 895 — HashMap intrinsic ファミリの容量成長（growth/rehash）が存在しない"]
-  I896["896 896 — linear GC metadata arena が collect 発火前に枯渇し unreachable で trap する"]
-  I897["897 897 — 修飾名呼び出しの signature 衝突と修飾型注釈の型同一性欠陥"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -114,8 +112,6 @@ graph LR
 - **893** depends on: none; blocks: none
 - **894** depends on: none; blocks: none
 - **895** depends on: none; blocks: none
-- **896** depends on: none; blocks: none
-- **897** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

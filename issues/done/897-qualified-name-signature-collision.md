@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-28
 Updated: 2026-09-28
 ID: 897
@@ -59,10 +59,10 @@ return-type mismatch を引く。
 
 ## Acceptance
 
-- [ ] module-qualified な `mod::f` / `mod::CONST` 呼び出しが
+- [x] module-qualified な `mod::f` / `mod::CONST` 呼び出しが
       所属 module の `FnSig` に束縛される（bare-name 衝突時も）。
-- [ ] `-> mod::T` 型注釈が `T` と同じ型 identity に解決される。
-- [ ] stage-3 self-compile が `compilation succeeded (phase 6)`
+- [x] `-> mod::T` 型注釈が `T` と同じ型 identity に解決される。
+- [x] stage-3 self-compile が `compilation succeeded (phase 6)`
       で完走し、bootstrap wasm が生成される。
 
 ## Required evidence
@@ -73,4 +73,33 @@ return-type mismatch を引く。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
+- [x] Acceptance の一部だけで done にしない
+
+## Done (2026-09-28)
+
+Implementation commit: `05b6acd64`.
+
+- `ResolveCtx` が loaded `ModuleDecls` を保持し、typechecker は
+  module 保有の fn/const decl へ `mod::name` 修飾 key を
+  `fn_sig_index` に登録（impl method と entry decl は従来通り
+  bare first-wins）。qualified call が所属 module の `FnSig` に
+  束縛されることを stage-3 で検証。
+- `resolve_type_name` が leaf name へ落としてから
+  primitive/container/alias を解決し、`-> mod::T` が `T` と
+  同じ identity を返す（`names::unqualified_type_name` と整合）。
+- compiler source の v2 strictness 違反を一括修復:
+  record field 書き込みは `let mut`、i64 literal suffix、
+  `emit_result_if_needed` arity、bootstrap overlay の
+  prelude 明示 import（overlay cache v5）。
+
+Evidence:
+
+- flat overlay での stage-3 self-compile が
+  `compilation succeeded (phase 6)` で完走し 10.3 MB の
+  bootstrap wasm を生成（以前は `parse_full` が `json::parse`
+  の FnSig に誤束縛されて失敗）。
+- 生成された s3（wasm32 linear）が hello-world プログラムを
+  compile できた。
+- `verify lane` PASS（touched-code thin-wrapper 注記は
+  advisory — context.ark / resolver_errors.ark は既存 facade
+  規約に沿った module boundary wrapper）。
