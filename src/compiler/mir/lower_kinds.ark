@@ -56,6 +56,7 @@ fn NK_PAT_OR() -> i32 { 76 }
 
 // Type-annotation node kinds.
 fn NK_TYPE_FN() -> i32 { 92 }
+fn NK_TYPE_TUPLE() -> i32 { 93 }
 
 // Binary operator tags.
 fn OP_ADD() -> i32 { 1 }

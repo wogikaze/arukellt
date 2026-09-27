@@ -24,12 +24,13 @@ fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, 
     }
 }
 
-// `let v = Vec::new<fn(A) -> R>()` records no mono instance for the fn
-// element (fn/tuple turbofish skips recording per #845), so the unused-
-// specialization fallback can rename the callee to Vec__new__i32 and mark
-// both temps vec:i32. The turbofish type argument is the authoritative
-// element spelling; restore vec:fnref on the binding and the constructor
-// temp so emit picks the fn-pair array layout on wasm32-gc (#874).
+// `let v = Vec::new<fn(A) -> R>()` / `Vec::new<(A, B)>()` records no mono
+// instance for fn/tuple elements (fn/tuple turbofish skips recording per
+// #845), so the unused-specialization fallback can rename the callee to
+// Vec__new__i32 and mark both temps vec:i32. The turbofish type argument is
+// the authoritative element spelling; restore vec:fnref / vec:tuple:* on the
+// binding and the constructor temp so emit picks the ref-element array
+// layout on wasm32-gc (#874, #888).
 fn apply_vec_ctor_fn_turbofish_name(ctx: LowerCtx, node: AstNode, local_idx: i32, val_idx: i32, ta_count: i32) {
     if ta_count > 0 {
         return
@@ -50,6 +51,20 @@ fn apply_vec_ctor_fn_turbofish_name(ctx: LowerCtx, node: AstNode, local_idx: i32
         return
     }
     let elem = ast_node::node_child_at(callee, 1)
+    if ast_node::node_kind_is(elem, lower_kinds::NK_TYPE_TUPLE()) {
+        let tuple_name = ann_types::mir_local_type_name_from_ann(elem, 0)
+        if len(tuple_name) == 0 {
+            return
+        }
+        let vec_ty = concat(String_from("vec:"), tuple_name)
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(vec_ty))
+        ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
+        if val_idx >= 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(vec_ty))
+            ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
+        }
+        return
+    }
     if !ast_node::node_kind_is(elem, lower_kinds::NK_TYPE_FN()) {
         return
     }

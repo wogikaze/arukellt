@@ -58,6 +58,18 @@ pub fn hashmap_i32_i32_keys(m: HashMap<i32, i32>) -> Vec<i32> {
     HashMap_i32_i32_keys(m)
 }
 
+/// Return a Vec<i32> of all values currently in a HashMap<i32, i32>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_i32_values(m: HashMap<i32, i32>) -> Vec<i32> {
+    HashMap_i32_i32_values(m)
+}
+
+/// Return a Vec<(i32, i32)> snapshot of all entries in a HashMap<i32, i32>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_i32_entries(m: HashMap<i32, i32>) -> Vec<(i32, i32)> {
+    HashMap_i32_i32_entries(m)
+}
+
 /// Create a new HashMap<String, i32>.
 pub fn hashmap_str_i32_new() -> HashMap<String, i32> {
     hash_string::hashmap_str_i32_new()
@@ -99,6 +111,18 @@ pub fn hashmap_str_i32_is_empty(m: HashMap<String, i32>) -> bool {
 /// Bucket order is implementation-defined; callers must not rely on it.
 pub fn hashmap_str_i32_keys(m: HashMap<String, i32>) -> Vec<String> {
     hash_string::hashmap_str_i32_keys(m)
+}
+
+/// Return a Vec<i32> of all values currently in a HashMap<String, i32>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_i32_values(m: HashMap<String, i32>) -> Vec<i32> {
+    hash_string::hashmap_str_i32_values(m)
+}
+
+/// Return a Vec<(String, i32)> snapshot of all entries in a HashMap<String, i32>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_i32_entries(m: HashMap<String, i32>) -> Vec<(String, i32)> {
+    hash_string::hashmap_str_i32_entries(m)
 }
 
 /// Create a new HashMap<i32, String>.
@@ -146,6 +170,18 @@ pub fn hashmap_i32_str_keys(m: HashMap<i32, String>) -> Vec<i32> {
     hash_string::hashmap_i32_str_keys(m)
 }
 
+/// Return a Vec<String> of all values currently in a HashMap<i32, String>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_str_values(m: HashMap<i32, String>) -> Vec<String> {
+    hash_string::hashmap_i32_str_values(m)
+}
+
+/// Return a Vec<(i32, String)> snapshot of all entries in a HashMap<i32, String>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_str_entries(m: HashMap<i32, String>) -> Vec<(i32, String)> {
+    hash_string::hashmap_i32_str_entries(m)
+}
+
 /// Create a new HashMap<String, String>.
 pub fn hashmap_str_str_new() -> HashMap<String, String> {
     hash_string::hashmap_str_str_new()
@@ -190,14 +226,50 @@ pub fn hashmap_str_str_keys(m: HashMap<String, String>) -> Vec<String> {
     hash_string::hashmap_str_str_keys(m)
 }
 
+/// Return a Vec<String> of all values currently in a HashMap<String, String>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_str_values(m: HashMap<String, String>) -> Vec<String> {
+    hash_string::hashmap_str_str_values(m)
+}
+
+/// Return a Vec<(String, String)> snapshot of all entries in a HashMap<String, String>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_str_entries(m: HashMap<String, String>) -> Vec<(String, String)> {
+    hash_string::hashmap_str_str_entries(m)
+}
+
 /// Return a Vec<i32> of all keys currently in a HashMap<i32, fn>.
 pub fn hashmap_i32_fn_keys(m: HashMap<i32, fn(i32) -> i32>) -> Vec<i32> {
     hash_fn::hashmap_i32_fn_keys(m)
 }
 
+/// Return a Vec<fn(i32) -> i32> of all values in a HashMap<i32, fn>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_fn_values(m: HashMap<i32, fn(i32) -> i32>) -> Vec<fn(i32) -> i32> {
+    hash_fn::hashmap_i32_fn_values(m)
+}
+
+/// Return a Vec<(i32, fn(i32) -> i32)> snapshot of all entries.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_i32_fn_entries(m: HashMap<i32, fn(i32) -> i32>) -> Vec<(i32, fn(i32) -> i32)> {
+    hash_fn::hashmap_i32_fn_entries(m)
+}
+
 /// Return a Vec<String> of all keys currently in a HashMap<String, fn>.
 pub fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
     hash_str_fn::hashmap_str_fn_keys(m)
+}
+
+/// Return a Vec<fn(i32) -> i32> of all values in a HashMap<String, fn>.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_fn_values(m: HashMap<String, fn(i32) -> i32>) -> Vec<fn(i32) -> i32> {
+    hash_str_fn::hashmap_str_fn_values(m)
+}
+
+/// Return a Vec<(String, fn(i32) -> i32)> snapshot of all entries.
+/// Bucket order is implementation-defined; callers must not rely on it.
+pub fn hashmap_str_fn_entries(m: HashMap<String, fn(i32) -> i32>) -> Vec<(String, fn(i32) -> i32)> {
+    hash_str_fn::hashmap_str_fn_entries(m)
 }
 
 /// Create a new HashMap<i32, fn(i32) -> i32>.

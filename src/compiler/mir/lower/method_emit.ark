@@ -4,6 +4,8 @@ use mir::lower::call_emit_dest
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
+use mir::lower::call_args
+use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::inst_call
 use mir::value_types
@@ -39,7 +41,24 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
     if dest >= 0 {
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
-    ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))
+    // Record the vec/receiver local on get_unchecked/push-style calls so GC
+    // emit and mir_opt fallback resolution read arg0 instead of scanning
+    // staged args — non-contiguous staging (tuple/record arg construction
+    // interleaves LOCAL_GETs) otherwise resolves the wrong local (#888).
+    // Same contract as mir_emit_direct_call; len/is_empty stay unrecorded
+    // for STRUCT_GET→CALL stack-compose (#807 / #834).
+    if first_arg_idx >= 0 && (
+        call_args::mir_is_printlike_callee(clone(callee_name)) ||
+        call_type_vec::is_get_unchecked_callee(clone(callee_name)) ||
+        eq(clone(callee_name), String_from("push")) ||
+        eq(clone(callee_name), String_from("vec_push")) ||
+        eq(clone(callee_name), String_from("push_char")) ||
+        starts_with(clone(callee_name), String_from("push__"))
+    ) {
+        ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))
+    } else {
+        ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))
+    }
     if dest < 0 {
         return 0 - 1
     }

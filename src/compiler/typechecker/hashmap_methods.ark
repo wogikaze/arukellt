@@ -86,7 +86,9 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
     if explicit_args == 0 {
         return eq(clone(method_name), String_from("len")) ||
         eq(clone(method_name), String_from("is_empty")) ||
-        eq(clone(method_name), String_from("keys"))
+        eq(clone(method_name), String_from("keys")) ||
+        eq(clone(method_name), String_from("values")) ||
+        eq(clone(method_name), String_from("entries"))
     }
     if explicit_args == 1 {
         return eq(clone(method_name), String_from("get")) ||
@@ -118,6 +120,19 @@ fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: T
         let mut keys_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
         contract_type_mutation::TypeInfo_push_type_arg(keys_vec, key_ty)
         return keys_vec
+    }
+    if eq(clone(method_name), String_from("values")) {
+        let mut values_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(values_vec, value_ty)
+        return values_vec
+    }
+    if eq(clone(method_name), String_from("entries")) {
+        let mut entry_ty = contract_type_constructors::TypeInfo_simple(commands::TY_TUPLE())
+        contract_type_mutation::TypeInfo_push_type_arg(entry_ty, key_ty)
+        contract_type_mutation::TypeInfo_push_type_arg(entry_ty, value_ty)
+        let mut entries_vec = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(entries_vec, entry_ty)
+        return entries_vec
     }
     if eq(clone(method_name), String_from("contains_key")) ||
     eq(clone(method_name), String_from("len")) {

@@ -69,6 +69,23 @@ fn vec_string_type() -> TypeInfo {
     v
 }
 
+fn vec_fn_type() -> TypeInfo {
+    let mut v = simple_type(commands::TY_VEC())
+    contract_type_mutation::TypeInfo_push_type_arg(v, simple_type(kinds::TY_FN()))
+    v
+}
+
+// entries() returns Vec<(K, V)>: the pair is a tuple TypeInfo whose type args
+// are the key and value types, matching resolve_type_tuple_node_generic.
+fn vec_entry_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    let mut entry = simple_type(commands::TY_TUPLE())
+    contract_type_mutation::TypeInfo_push_type_arg(entry, key_ty)
+    contract_type_mutation::TypeInfo_push_type_arg(entry, value_ty)
+    let mut v = simple_type(commands::TY_VEC())
+    contract_type_mutation::TypeInfo_push_type_arg(v, entry)
+    v
+}
+
 fn hashmap_new_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "HashMap_i32_i32_new") || eq(clone(name), "HashMap_new_i32_i32") {
         return hashmap_i32_i32_type()
@@ -132,6 +149,47 @@ fn hashmap_keys_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "HashMap_String_i32_keys") || eq(clone(name), "HashMap_String_String_keys") {
         return vec_string_type()
     }
+    if eq(clone(name), "HashMap_i32_fn_keys") {
+        return vec_i32_type()
+    }
+    if eq(clone(name), "HashMap_String_fn_keys") {
+        return vec_string_type()
+    }
+    simple_type(commands::TY_UNKNOWN())
+}
+
+fn hashmap_values_return_type(name: String) -> TypeInfo {
+    if eq(clone(name), "HashMap_i32_i32_values") || eq(clone(name), "HashMap_String_i32_values") {
+        return vec_i32_type()
+    }
+    if eq(clone(name), "HashMap_i32_String_values") || eq(clone(name), "HashMap_String_String_values") {
+        return vec_string_type()
+    }
+    if eq(clone(name), "HashMap_i32_fn_values") || eq(clone(name), "HashMap_String_fn_values") {
+        return vec_fn_type()
+    }
+    simple_type(commands::TY_UNKNOWN())
+}
+
+fn hashmap_entries_return_type(name: String) -> TypeInfo {
+    if eq(clone(name), "HashMap_i32_i32_entries") {
+        return vec_entry_type(simple_type(commands::TY_I32()), simple_type(commands::TY_I32()))
+    }
+    if eq(clone(name), "HashMap_String_i32_entries") {
+        return vec_entry_type(simple_type(commands::TY_STRING()), simple_type(commands::TY_I32()))
+    }
+    if eq(clone(name), "HashMap_i32_String_entries") {
+        return vec_entry_type(simple_type(commands::TY_I32()), simple_type(commands::TY_STRING()))
+    }
+    if eq(clone(name), "HashMap_String_String_entries") {
+        return vec_entry_type(simple_type(commands::TY_STRING()), simple_type(commands::TY_STRING()))
+    }
+    if eq(clone(name), "HashMap_i32_fn_entries") {
+        return vec_entry_type(simple_type(commands::TY_I32()), simple_type(kinds::TY_FN()))
+    }
+    if eq(clone(name), "HashMap_String_fn_entries") {
+        return vec_entry_type(simple_type(commands::TY_STRING()), simple_type(kinds::TY_FN()))
+    }
     simple_type(commands::TY_UNKNOWN())
 }
 
@@ -147,6 +205,14 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     let keys_ty = hashmap_keys_return_type(clone(name))
     if contract_type_access::TypeInfo_tag(keys_ty) != commands::TY_UNKNOWN() {
         return keys_ty
+    }
+    let values_ty = hashmap_values_return_type(clone(name))
+    if contract_type_access::TypeInfo_tag(values_ty) != commands::TY_UNKNOWN() {
+        return values_ty
+    }
+    let entries_ty = hashmap_entries_return_type(clone(name))
+    if contract_type_access::TypeInfo_tag(entries_ty) != commands::TY_UNKNOWN() {
+        return entries_ty
     }
     if eq(clone(name), "HashMap_i32_i32_len") ||
     eq(clone(name), "HashMap_String_i32_len") ||

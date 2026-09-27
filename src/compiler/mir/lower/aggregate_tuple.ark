@@ -90,6 +90,17 @@ fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
     if len(type_name) == 0 {
         return tuple_field_mono_key(field_vt)
     }
+    // Canonical element keys: a String-typed local reads "string" here while
+    // annotations and param spellings produce "String"; fn-typed locals carry
+    // fn/fnref/fnsig spellings. Vec<(K,V)> entries adapters derive the vec
+    // element name from the annotation, so the literal-built struct must pick
+    // the same tuple:* name (#888).
+    if eq(clone(type_name), "string") || eq(clone(type_name), "str") {
+        return "String"
+    }
+    if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(type_name)) {
+        return "fnref"
+    }
     if starts_with(clone(type_name), String_from("enum:")) {
         return substring(type_name, 5, len(type_name))
     }

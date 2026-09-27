@@ -7,6 +7,15 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         if eq(clone(ann_name), "Vec") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
+                // Vec<(A, B)> elements are heap tuples; keep the tuple:<a,b>
+                // struct spelling so emit picks the GC-ref element layout and
+                // destructure can recover field names (#888).
+                if type_ann_node::type_ann_is_tuple(elem_ty) {
+                    return concat(
+                        String_from("vec:"),
+                        type_ann_node::type_ann_tuple_local_name(elem_ty)
+                    )
+                }
                 // Shape nested Option/Result so Vec<Option<i32>> → vec:Option_i32
                 // (bare vec:Option falls through to the i32-vec layout).
                 if type_ann_node::type_ann_is_generic(elem_ty) {
@@ -81,6 +90,9 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         // User-defined generic types (Pair<String>, MapIter<I>) keep their
         // argument list so MIR lowering can derive the substituted layout.
         return type_ann_generic_inst_local_name(ann)
+    }
+    if type_ann_node::type_ann_is_tuple(ann) {
+        return type_ann_node::type_ann_tuple_local_name(ann)
     }
     if eq(clone(ann_name), "Vec") {
         return "vec"

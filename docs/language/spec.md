@@ -1690,11 +1690,22 @@ by the subsequent borrow/closure work.
 | `m.remove(k: K) -> Option<V>` | Remove and return the previous value |
 | `m.len() -> i32` | Number of entries |
 | `m.is_empty() -> bool` | Whether the map has no entries |
+| `m.keys() -> Vec<K>` | Eager snapshot of all keys |
+| `m.values() -> Vec<V>` | Eager snapshot of all values |
+| `m.entries() -> Vec<(K, V)>` | Eager snapshot of all key/value pairs |
 
 The current concrete adapter set supports `i32` and `String` keys with `i32`, `String`,
 or `fn(i32) -> i32` values, for the six key/value pairs listed in
 [ADR-066](../adr/ADR-066-language-v2-generic-public-api.md). A concrete pair outside that
 set is a typecheck error; it is not erased to `Any`.
+
+`keys()`, `values()`, and `entries()` materialize a `Vec` snapshot of the pairs
+present at the call: inserts or removals performed afterwards do not appear in an
+already returned vec. Element order inside the snapshot follows the internal
+bucket order and is implementation-defined; programs must not depend on it
+(identical runs may permute). Iterate the returned `Vec` positionally, e.g.
+`let (k, v) = es.get_unchecked(i)` inside a `while` loop, or destructure each
+pair after fetching it.
 
 The compiler statically monomorphizes the same source API for `wasm32-gc` and the `wasm32`
 linear-memory fallback. Existing type-suffixed builtins remain compatibility entries during

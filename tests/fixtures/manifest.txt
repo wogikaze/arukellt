@@ -303,6 +303,7 @@ diag:diagnostics/error_supertrait_missing.ark
 diag:selfhost/trait_overlapping_impl.ark
 diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
+diag:diagnostics/hashmap_entries_unsupported_pair.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/typescheme_deny_no_generalize.ark
 diag:selfhost/typescheme_environment_monomorphic.ark
@@ -454,6 +455,7 @@ run:collections/hashmap_string_fn_call.ark
 run:collections/hashmap_string_fn_builtin.ark
 run:collections/hashmap_i32_fn_zero_call.ark
 run:collections/result_vec_fn.ark
+run:collections/hashmap_entries_values.ark
 run:collections/vec_fn_param_get.ark
 run:collections/vec_fn_methods.ark
 run:collections/vec_pop_kinds.ark
@@ -2616,6 +2618,7 @@ t3-run:collections/hashmap_string_fn_call.ark
 t3-run:collections/hashmap_string_fn_builtin.ark
 t3-run:collections/hashmap_i32_fn_zero_call.ark
 t3-run:collections/result_vec_fn.ark
+t3-run:collections/hashmap_entries_values.ark
 t3-run:collections/vec_fn_param_get.ark
 t3-run:collections/vec_fn_methods.ark
 t3-run:collections/vec_pop_kinds.ark

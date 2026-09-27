@@ -309,6 +309,90 @@ fn is_hash_vec_string_result(callee_name: String) -> bool {
     callee_eq(callee_name, "HashMap_String_String_keys")
 }
 
+// values()/entries() snapshot adapters: the callee name fixes the Vec
+// element spelling (value type for values, tuple:<K>,<V> for entries).
+// Covers the HashMap_K_V_* mono names, the hash_map::/hash_*:: adapter
+// wrappers, and the bare raw-table names (#888).
+fn hash_snapshot_vec_type_name(callee_name: String) -> String {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_values") ||
+    callee_eq(clone(callee_name), "HashMap_i32_i32_values") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_values") ||
+    callee_eq(clone(callee_name), "hash::hashmap_i32_i32_values") ||
+    callee_eq(clone(callee_name), "hashmap_str_i32_values") ||
+    callee_eq(clone(callee_name), "HashMap_String_i32_values") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_values") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_values") {
+        return "vec:i32"
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_str_values") ||
+    callee_eq(clone(callee_name), "HashMap_i32_String_values") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_values") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_values") ||
+    callee_eq(clone(callee_name), "hashmap_str_str_values") ||
+    callee_eq(clone(callee_name), "HashMap_String_String_values") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_values") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_values") {
+        return "vec:String"
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_fn_values") ||
+    callee_eq(clone(callee_name), "HashMap_i32_fn_values") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_values") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_values") ||
+    callee_eq(clone(callee_name), "hashmap_str_fn_values") ||
+    callee_eq(clone(callee_name), "HashMap_String_fn_values") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_values") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_values") {
+        return "vec:fnref"
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_entries") ||
+    callee_eq(clone(callee_name), "HashMap_i32_i32_entries") ||
+    callee_eq(clone(callee_name), "hashmap_entry_pairs") ||
+    callee_eq(clone(callee_name), "hash::hashmap_entry_pairs") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_entries") ||
+    callee_eq(clone(callee_name), "hash::hashmap_i32_i32_entries") {
+        return "vec:tuple:i32,i32"
+    }
+    if callee_eq(clone(callee_name), "hashmap_str_i32_entries") ||
+    callee_eq(clone(callee_name), "HashMap_String_i32_entries") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_entries") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_entries") {
+        return "vec:tuple:String,i32"
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_str_entries") ||
+    callee_eq(clone(callee_name), "HashMap_i32_String_entries") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_entries") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_entries") {
+        return "vec:tuple:i32,String"
+    }
+    if callee_eq(clone(callee_name), "hashmap_str_str_entries") ||
+    callee_eq(clone(callee_name), "HashMap_String_String_entries") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_entries") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_entries") {
+        return "vec:tuple:String,String"
+    }
+    if callee_eq(clone(callee_name), "hashmap_i32_fn_entries") ||
+    callee_eq(clone(callee_name), "HashMap_i32_fn_entries") ||
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_entries") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_entries") {
+        return "vec:tuple:i32,fnref"
+    }
+    if callee_eq(clone(callee_name), "hashmap_str_fn_entries") ||
+    callee_eq(clone(callee_name), "HashMap_String_fn_entries") ||
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_entries") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_entries") {
+        return "vec:tuple:String,fnref"
+    }
+    if callee_eq(clone(callee_name), "HashMap_i32_fn_keys") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_keys") {
+        return "vec:i32"
+    }
+    if callee_eq(clone(callee_name), "HashMap_String_fn_keys") ||
+    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_keys") {
+        return "vec:String"
+    }
+    String_new()
+}
+
 fn is_option_i32_hash_query(callee_name: String) -> bool {
     if is_hashmap_adapter_option_i32(clone(callee_name)) {
         return true
@@ -556,6 +640,10 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     }
     if is_hash_vec_string_result(clone(callee_name)) {
         mark_hash_type_ref(ctx, dest, "vec:String")
+    }
+    let snapshot_ty = hash_snapshot_vec_type_name(clone(callee_name))
+    if len(snapshot_ty) > 0 {
+        mark_hash_type_ref(ctx, dest, snapshot_ty)
     }
     if callee_eq(clone(callee_name), "hashset_str_new") || callee_eq(clone(callee_name), "hash_map::hashset_str_new") {
         mark_hash_type_ref(ctx, dest, "vec:String")

@@ -16,6 +16,7 @@ use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
+use wasm::sections_types_gc_phase7
 use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
@@ -205,6 +206,15 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     }
     if starts_with(clone(ret_name), "vec:") {
         let elem = substring(clone(ret_name), 4, len(ret_name))
+        // Mirror emit_explicit_vec_gc_type: fnref elements live in the
+        // dedicated fnpair array and enum-like elements in the enum-ref
+        // array. The bare default below is the i32-element vec.
+        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
+            return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
+            return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx))
+        }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, clone(elem)) {
             return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))

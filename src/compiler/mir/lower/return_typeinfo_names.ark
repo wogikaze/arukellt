@@ -39,6 +39,26 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if elem_tag == 20 {
         return String_from("vec:fnref")
     }
+    // TY_TUPLE elems carry field types in type args; keep the tuple:<k,...>
+    // spelling so Vec<(K, V)> signature returns / annotated bindings pick
+    // the GC-ref element layout and tuple destructure finds field names
+    // (#888). Without this the nameless elem collapses to vec:i32.
+    if elem_tag == 23 {
+        let fcount = typeinfo_shape::mir_type_info_type_arg_count(vec_elem)
+        let mut tname = String_from("vec:tuple:")
+        let mut ti = 0
+        while ti < fcount {
+            if ti > 0 {
+                tname = concat(tname, String_from(","))
+            }
+            tname = concat(
+                tname,
+                mir_type_info_to_mono_key(typeinfo_shape::mir_type_info_type_arg_at(vec_elem, ti))
+            )
+            ti = ti + 1
+        }
+        return tname
+    }
     // Struct/enum elems (TomlField, TomlValue, JsonField, …) must keep
     // their names — collapsing to vec:i32 breaks Result::Ok(Vec) match
     // payload typing (#726 toml/json).

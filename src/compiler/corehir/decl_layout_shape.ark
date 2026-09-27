@@ -84,6 +84,11 @@ fn decl_layout_type_name(ann: AstNode) -> String {
         if type_ann_node::type_ann_is_name(ann, "Vec") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let elem = type_ann_node::type_ann_child_at(ann, 1)
+                // Struct fields typed Vec<(A, B)> keep tuple:<k,...> so
+                // layout metadata does not collapse the elem to i32 (#888).
+                if type_ann_node::type_ann_is_tuple(elem) {
+                    return concat("vec:", type_ann_node::type_ann_tuple_local_name(elem))
+                }
                 return concat("vec:", decl_layout_type_name(elem))
             }
             return "vec"

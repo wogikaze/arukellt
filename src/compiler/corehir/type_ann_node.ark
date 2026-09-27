@@ -195,3 +195,33 @@ fn type_ann_is_tuple(node: AstNode) -> bool {
 fn type_ann_is_name(node: AstNode, expected: String) -> bool {
     eq(type_ann_name(node), expected)
 }
+
+// Tuple element spelling shared by `Vec<(A, B)>` annotations on locals,
+// parameters, and signature types. Field keys reuse the fnsig segment
+// spellings (fn values -> fnref, String keys capitalized) so the
+// literal-built GC struct and every annotation-derived local type resolve
+// to the same tuple:<a,b> name (#888).
+fn type_ann_tuple_local_name(node: AstNode) -> String {
+    let count = type_ann_child_count(node)
+    let mut name = String_from("tuple:")
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            name = concat(name, String_from(","))
+        }
+        name = concat(name, type_ann_tuple_field_key_name(type_ann_child_at(node, i)))
+        i = i + 1
+    }
+    name
+}
+
+fn type_ann_tuple_field_key_name(field: AstNode) -> String {
+    if type_ann_is_tuple(field) {
+        return type_ann_tuple_local_name(field)
+    }
+    let key = fn_sig_segment_name(field)
+    if eq(clone(key), String_from("string")) || eq(clone(key), String_from("str")) {
+        return String_from("String")
+    }
+    key
+}

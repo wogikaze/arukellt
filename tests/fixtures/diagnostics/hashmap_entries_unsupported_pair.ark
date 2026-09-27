@@ -1,0 +1,12 @@
+// HashMap::entries()/values() is defined for the six supported pairs only.
+// A Vec value payload is outside the adapter set and must diagnose (#888).
+use std::host::stdio
+
+fn main() {
+    let m = HashMap::new<i32, Vec<i32>>()
+    let v: Vec<i32> = Vec::new<i32>()
+    v.push(7)
+    m.insert(1, v)
+    let es = m.entries()
+    stdio::println(es.len().to_string())
+}

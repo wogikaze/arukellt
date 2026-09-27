@@ -1,4 +1,5 @@
 use corehir::decl_ann_children
+use corehir::type_ann_node
 use corehir::type_ann_local_name
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
@@ -38,6 +39,11 @@ fn return_index_type_name(node: AstNode) -> String {
     if decl_ann_name::decl_ann_is_generic(ret) {
         if eq(clone(name), "Vec") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ret, 1)
+            // Vec<(A, B)> returns keep the tuple:<k,...> element spelling
+            // (#888).
+            if decl_ann_name::decl_ann_is_tuple(elem) {
+                return concat("vec:", type_ann_node::type_ann_tuple_local_name(elem))
+            }
             return concat("vec:", decl_ann_name::decl_ann_name(elem))
         }
         if eq(clone(name), "Option") && decl_ann_children::decl_ann_child_count(ret) >= 2 {

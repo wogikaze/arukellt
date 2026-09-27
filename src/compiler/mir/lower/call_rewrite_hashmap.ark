@@ -49,6 +49,8 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
     eq(clone(method), String_from("remove")) ||
     eq(clone(method), String_from("len")) ||
     eq(clone(method), String_from("keys")) ||
+    eq(clone(method), String_from("values")) ||
+    eq(clone(method), String_from("entries")) ||
     eq(clone(method), String_from("is_empty")) {
         return concat(clone(family), concat(String_from("_"), method))
     }
@@ -112,6 +114,8 @@ fn is_hashmap_method_leaf(name: String) -> bool {
     eq(clone(name), String_from("remove")) ||
     eq(clone(name), String_from("len")) ||
     eq(clone(name), String_from("keys")) ||
+    eq(clone(name), String_from("values")) ||
+    eq(clone(name), String_from("entries")) ||
     eq(clone(name), String_from("is_empty"))
 }
 

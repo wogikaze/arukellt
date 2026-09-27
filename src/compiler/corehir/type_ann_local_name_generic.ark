@@ -11,6 +11,11 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
                     return concat("vec:", inner)
                 }
             }
+            // Vec<(A, B)> keeps the tuple:<k,...> element spelling;
+            // type_ann_name on a tuple node is empty (#888).
+            if type_ann_node::type_ann_is_tuple(elem_ty) {
+                return concat("vec:", type_ann_node::type_ann_tuple_local_name(elem_ty))
+            }
             return concat("vec:", type_ann_node::type_ann_name(elem_ty))
         }
         return "vec"
