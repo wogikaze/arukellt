@@ -32,7 +32,6 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I878["878 878 — Language v2 compatibility migration を完了する"]
   I879["879 879 — Wasm GC / fallback の性能・サイズ receipt を取得する"]
   I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
   I893["893 893 — match アームの tuple パターンが両経路で未実装"]
@@ -62,7 +61,6 @@ graph LR
   I715 --> I719
   I715 --> I799
   I851 --> I850
-  I878 --> I880
   I879 --> I880
   I682 --> I683
   I698 --> I699
@@ -110,7 +108,6 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **878** depends on: 875, 876; blocks: 880
 - **879** depends on: 871, 872, 874, 875; blocks: 880
 - **891** depends on: none; blocks: none
 - **893** depends on: none; blocks: none

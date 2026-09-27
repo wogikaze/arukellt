@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T09:26:17Z",
+  "generated_at": "2026-09-27T11:10:59Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -512,28 +512,6 @@
       }
     },
     {
-      "id": "878",
-      "path": "878-language-v2-compatibility-migration.md",
-      "title": "878 — Language v2 compatibility migration を完了する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "875",
-        "876"
-      ],
-      "blocks_issue_ids": [
-        "880"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
       "id": "879",
       "path": "879-wasm-gc-fallback-benchmarks.md",
       "title": "879 — Wasm GC / fallback の性能・サイズ receipt を取得する",
@@ -878,8 +856,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 38,
-        "unchecked": 11
+        "checked": 41,
+        "unchecked": 9
       },
       "orchestration": {
         "class": "blocked-by-upstream",
