@@ -280,7 +280,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     descriptors, linear `HashMap<*,fn>`, closure environments, and
     full parity remain open. See
     [#874](874-fallback-managed-value-lowering.md).
-- [ ] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
+- [x] #875 — wasm32-gc / fallback の意味論 parity を証明する — RFC 8–45 parity — depends: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874
   - Progress (not done, 2026-09-20): `fc98aa717` adds a targeted enum
     payload-branch parity receipt. Struct-variant literals now infer the enum
     base and mixed `Shape::Circle` / `Shape::Rect` branches lower through
@@ -294,7 +294,15 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     diverge-from-expected=1 (stale expected corrected), compile-fail
     gc=8 (pre-existing E0200/E0208 owned by #852/#878), wasm32=0.
     See [#875](875-cross-backend-semantic-parity.md).
-- [ ] #892 — wasm32 linear の enum pattern dispatch diverge — depends: none (child of #875)
+  - Done (2026-09-27): #892 fixed in `3cef5f4f1` (CoreHIR guarded-arm
+    chaining + linear unit-variant tag compare); post-fix full matrix
+    222 fixtures — parity=214, diverge=0, compile-fail:gc=8 (all
+    target-independent frontend gaps). `integration/` slice 6/6 parity
+    incl. new cyclic_graph_walk fixture. Capability-error-limit audit:
+    only emit/contract-table boundaries, zero source-level target
+    rejections. Receipt: report-875-post892.json. See
+    [#875](../done/875-cross-backend-semantic-parity.md).
+- [x] #892 — wasm32 linear の enum pattern dispatch diverge — done 2026-09-27 (3cef5f4f1); tuple arms split to #893 (open)
 
 ### Spec / migration / close
 

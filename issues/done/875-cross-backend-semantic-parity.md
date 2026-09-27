@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-20
+Updated: 2026-09-27
 ID: 875
 Parent: 852
 Track: language-v2
@@ -24,11 +24,11 @@ RFC-011: **8–45 parity**。
 
 ## Acceptance
 
-- [ ] cyclic/shared graph を両 backend で一致させる
-- [ ] closure/ADT/collection の結果を一致させる
-- [ ] numeric/evaluation/Unicode fixture を一致させる
-- [ ] target error を真の capability 差に限定する
-- [ ] artifact hash/runtime/tool versions を receipt に保存する
+- [x] cyclic/shared graph を両 backend で一致させる
+- [x] closure/ADT/collection の結果を一致させる
+- [x] numeric/evaluation/Unicode fixture を一致させる
+- [x] target error を真の capability 差に限定する
+- [x] artifact hash/runtime/tool versions を receipt に保存する
 
 ## Required evidence
 
@@ -174,3 +174,65 @@ RFC-011: **8–45 parity**。
 - #875 remains open for the full-matrix re-run (confirm zero diverge
   across all 221), cyclic/shared graph parity, and the
   capability-error-limit audit.
+
+## Progress receipt — 2026-09-27 (capability-error-limit audit)
+
+- Emit-level target errors are all generated from the target contract
+  table (`target_contract_generated::target_allows_emit_kind` /
+  `target_allows_host_profile`) plus the component/world gates in
+  `driver/emit` + `component/world_spec`: `--emit component` requires
+  wasm32-gc + memory32 + wasi-p2, `--world` requires wasm32-gc, and
+  wasi-p3 is a declared host profile with an explicit
+  not-yet-implemented error. Verified directly:
+  `compile --target wasm32 --emit component` ->
+  `target `wasm32` does not support emit `component`; allowed: wasm, wat`.
+  These are true capability boundaries (component model / WIT / host
+  profile / memory width), not source-semantics rejections.
+- Source-level capability diagnostics `E0303`/`E0304` and
+  `E0120`-`E0124` are declared in `diagnostics/codes.ark` but have
+  zero emission sites in `src/compiler/**` — no source construct is
+  rejected purely by target choice, matching RFC-011 item 9
+  (GC 有無は backend capability で通常コードの合法性を変えない)。
+- The 8 `compile-fail:gc` matrix entries were re-verified on wasm32:
+  all fail with identical frontend diagnostics (`E0100` test_enum_return,
+  `E0200` i64_lit/mixed_types/comprehension_guard/struct_pattern,
+  `E0208` lambda_pattern, `E0211` error_ecosystem,
+  plus use_destructure_multi) — target-independent typecheck gaps owned
+  by #852/#878, not capability divergence. (The parity harness labels
+  them compile-fail:gc because it short-circuits on the GC compile;
+  the wasm32 side rejects identically.)
+
+## Close receipt — 2026-09-27 (full matrix green, all axes covered)
+
+- **Matrix**: post-#892 full re-run
+  `python3 scripts/check/check-cross-backend-parity.py
+  --out .build/parity/report-875-post892.json`:
+  **222 fixtures in 485.9s — parity=214, diverge=0,
+  diverge-from-expected=0, compile-fail:gc=8 (all pre-existing
+  target-independent frontend diagnostics), compile-fail:wasm32=0.**
+  Zero semantic divergence across the curated RFC-011 domain matrix
+  (closures, collections, enums/ADT, structs, generics, numeric,
+  operators/evaluation, strings, control flow, ownership,
+  question_mark, traits, match extensions, iterators).
+- **cyclic/shared graph**: `integration/` slice (not in the curated
+  matrix) audited separately: 6/6 parity
+  (`.build/parity/report-875-integration.json`) including the new
+  `integration/cyclic_graph_walk.ark` (functional digraph with a back
+  edge -> deterministic '0 1 2 3 4 / cycle at 2' on both backends) and
+  `linked_list.ark` (recursive-ADT tail sharing). Shared mutable state
+  is covered by `closure_capture/*` (8/8 in matrix, env cells) and
+  `stdlib_hashmap` stress fixtures. True pointer cycles are
+  inexpressible in the ownership model (no assignable self-referential
+  fields), so source-level cyclic code is observable only through
+  shared DAGs, index/edge graphs, and shared env cells — all parity.
+- **target error**: emit-level capability boundaries only
+  (contract-table emit kinds, component/world/memory-width/host
+  profile gates); zero source-level capability rejections
+  (E0303/E0304/E0120-E0124 declared, never fired); the 8 compile-fail
+  entries verified identical on wasm32 (frontend gaps, not capability).
+- **Artifact/tool receipt**: report JSONs record per-fixture
+  gc-component + w32-core SHA-256/bytes, compiler sha256
+  (`3f53e522…` post-#892 s2), wasmtime `46.0.1 (823d1b8f2 2026-06-24)`,
+  wasm-tools `1.252.0`.
+- Implementation commits: `8e98ad139` (harness),
+  `3cef5f4f1` (#892 lowering fixes), `85ab0e727` (cyclic fixture).
