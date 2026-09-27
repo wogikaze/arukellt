@@ -1,0 +1,43 @@
+// Vec<T> construction through the inherent impl path
+// (use std::collections::vec) honors an explicit zero capacity on
+// wasm32-gc, so the first push must grow to a non-empty backing array
+// instead of trapping.
+
+use std::host::stdio
+use std::collections::vec
+
+fn main() {
+    let vi = Vec::new<i64>()
+    vi.push(42_i64)
+    vi.push(7_i64)
+    stdio::println(vi.len().to_string())
+    match vi.get(0) {
+        Option::Some(x) => stdio::println(x.to_string()),
+        Option::None => stdio::println("none"),
+    }
+    match vi.get(1) {
+        Option::Some(x) => stdio::println(x.to_string()),
+        Option::None => stdio::println("none"),
+    }
+    match vi.pop() {
+        Option::Some(x) => stdio::println(x.to_string()),
+        Option::None => stdio::println("none"),
+    }
+    stdio::println(vi.len().to_string())
+
+    let vf = Vec::new<f64>()
+    vf.push(1.5)
+    vf.push(2.25)
+    stdio::println(vf.len().to_string())
+    match vf.get(1) {
+        Option::Some(x) => stdio::println(x.to_string()),
+        Option::None => stdio::println("none"),
+    }
+
+    let vc = Vec::with_capacity<i64>(0)
+    vc.push(9_i64)
+    match vc.get(0) {
+        Option::Some(x) => stdio::println(x.to_string()),
+        Option::None => stdio::println("none"),
+    }
+}
