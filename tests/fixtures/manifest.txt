@@ -517,6 +517,7 @@ run:host/process/exit_from_branch.ark
 run:host/process/exit_nonzero.ark
 run:host/process/exit_zero.ark
 run:integration/calculator.ark
+run:integration/cyclic_graph_walk.ark
 run:integration/fibonacci.ark
 run:integration/linked_list.ark
 run:integration/sort_vec.ark
@@ -2200,6 +2201,7 @@ t3-compile:hello/hello.ark
 t3-compile:hello/multi_print.ark
 t3-compile:hello/print_int.ark
 t3-compile:integration/calculator.ark
+t3-compile:integration/cyclic_graph_walk.ark
 t3-compile:integration/fibonacci.ark
 t3-compile:integration/sort_vec.ark
 t3-compile:integration/word_counter.ark
@@ -2679,6 +2681,7 @@ t3-run:host/process/exit_from_branch.ark
 t3-run:host/process/exit_nonzero.ark
 t3-run:host/process/exit_zero.ark
 t3-run:integration/calculator.ark
+t3-run:integration/cyclic_graph_walk.ark
 t3-run:integration/fibonacci.ark
 t3-run:integration/word_counter.ark
 t3-run:iterator/custom_iterator.ark

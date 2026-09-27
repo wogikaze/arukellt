@@ -1,0 +1,27 @@
+use std::host::stdio
+use std::collections::hash
+
+fn main() {
+    // Functional digraph: node -> successor. 2 -> 3 -> 4 -> 2 is a cycle.
+    let next = hash::hashmap_new()
+    hash::hashmap_set(next, 0, 1)
+    hash::hashmap_set(next, 1, 2)
+    hash::hashmap_set(next, 2, 3)
+    hash::hashmap_set(next, 3, 4)
+    hash::hashmap_set(next, 4, 2)
+    hash::hashmap_set(next, 5, 6)
+
+    // Walk from 0 until a node repeats: shared heap state across two maps.
+    let visited = hash::hashmap_new()
+    let mut node = 0
+    let mut out = String_from("")
+    let mut steps = 0
+    while !hash::hashmap_contains(visited, node) && steps < 10 {
+        hash::hashmap_set(visited, node, 1)
+        out = concat(out, concat((node).to_string(), String_from(" ")))
+        node = hash::hashmap_get(next, node)
+        steps = steps + 1
+    }
+    stdio::println(out)
+    stdio::println(concat(String_from("cycle at "), (node).to_string()))
+}
