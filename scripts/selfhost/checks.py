@@ -2980,7 +2980,8 @@ def _flatten_compiler_imports(text: str) -> str:
 _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
 _FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
 # v2: stage-2 bootstrap skips full MIR verify (see _patch_bootstrap_skip_mir_verify).
-_FLAT_OVERLAY_DISK_CACHE_VERSION = 3
+# v4: static-dispatch stub names Option<(A, B)> as option:tuple:k1,k2 (#890).
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 4
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
@@ -3093,6 +3094,26 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     if tag == mir_lower_kinds::TY_UNIT() { return String_from("()") }
     if tag == 23 && mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty) == 0 {
         return String_from("unit")
+    }
+    // Non-empty tuples keep their element keys so Option<(A, B)> names
+    // "option:tuple:i32,i32" and Some binds can recover the tuple payload
+    // instead of collapsing to an untyped option: (#890). Mirrors
+    // ctx_mono_type_params::mir_type_info_to_mono_key.
+    if tag == 23 {
+        let tuple_count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
+        let mut tuple_name = String_from("tuple:")
+        let mut ti = 0
+        while ti < tuple_count {
+            if ti > 0 {
+                tuple_name = concat(tuple_name, String_from(","))
+            }
+            tuple_name = concat(
+                tuple_name,
+                mir_type_info_to_mono_key(mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, ti))
+            )
+            ti = ti + 1
+        }
+        return tuple_name
     }
     if tag == mir_lower_kinds::TY_VEC() {
         return stub_vec_mono_key(ty)

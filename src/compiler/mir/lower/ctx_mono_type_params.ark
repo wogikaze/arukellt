@@ -36,6 +36,12 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     if tag == lower_kinds::TY_TUPLE() && type_contracts::TypeInfo_type_arg_count(ty) == 0 {
         return "unit"
     }
+    if tag == lower_kinds::TY_TUPLE() {
+        // Non-empty tuples keep their element keys so Option<(A, B)> names
+        // "option:tuple:i32,i32" and Some binds can recover the tuple payload
+        // instead of collapsing to an untyped option: (#890).
+        return return_typeinfo_names::mir_tuple_inner_name_from_type_info(ty)
+    }
     if tag == lower_kinds::TY_VEC() {
         let vec_name = return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
         if len(vec_name) > 0 {

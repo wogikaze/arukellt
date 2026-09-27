@@ -1,0 +1,48 @@
+// Option<(A, B)> payload ABI (#890). The mono key keeps tuple element
+// keys (option:tuple:k1,k2) so Some binds recover a typed tuple on both
+// wasm32-gc and wasm32; tuple sub-patterns and let-destructure read
+// per-field value types from the tuple:<k,...> layout name.
+
+use std::host::stdio
+
+fn mk_ints() -> Option<(i32, i32)> {
+    Some((7, 8))
+}
+
+fn mk_mixed() -> Option<(String, i32)> {
+    Some(("hi", 42))
+}
+
+fn main() {
+    match mk_ints() {
+        Some(p) => {
+            let (a, b) = p
+            stdio::println((a + b).to_string())
+        }
+        None => stdio::println("none"),
+    }
+    match mk_mixed() {
+        Some((s, n)) => stdio::println(concat(s, n.to_string())),
+        None => stdio::println("none"),
+    }
+
+    // Single-entry map: HashMap bucket order cannot affect the golden.
+    let m = HashMap::new<String, i32>()
+    m.insert("k", 17)
+    let es = m.entries()
+    match es.get(0) {
+        Some((k, v)) => stdio::println(concat(k, v.to_string())),
+        None => stdio::println("none"),
+    }
+    match es.pop() {
+        Some(p) => {
+            let (k, v) = p
+            stdio::println(concat(k, v.to_string()))
+        }
+        None => stdio::println("none"),
+    }
+
+    let t = (3, 4)
+    let (x, y) = t
+    stdio::println((x * y).to_string())
+}

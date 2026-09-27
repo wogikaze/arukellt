@@ -1,5 +1,8 @@
 use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
+use mir::lower::aggregate_tuple
+use mir::lower::stmt_let_tuple
 use mir::inst_struct_get
 use mir::inst_gc_struct
 use mir::inst_local_get
@@ -39,6 +42,10 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             bi = bi + 1
             continue
         }
+        // A tuple sub-pattern (Some((k, v))) binds the whole payload to an
+        // unnamed temp first; each element ident is destructured from it
+        // after the payload read lands (#890 Vec<(K, V)>::get match).
+        let is_tuple_bind = ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_TUPLE())
         let hint_for_field = if bi == 0 {
             clone(payload_hint)
         } else {
@@ -52,7 +59,12 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             scrut_ok_is_i64,
             clone(hint_for_field)
         )
-        let bind_local = ctx_alloc_local(ctx, ast_node::node_text(bind_pat), bind_vt)
+        let mut bind_local = 0 - 1
+        if is_tuple_bind {
+            bind_local = ctx_api_local_alloc::ctx_fresh_local(ctx, bind_vt)
+        } else {
+            bind_local = ctx_alloc_local(ctx, ast_node::node_text(bind_pat), bind_vt)
+        }
         if bind_vt == value_types::VT_FUNCREF() {
             ctx_set_local_type(ctx, bind_local, String_from("fnref"))
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_FUNCREF())
@@ -67,6 +79,9 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             mir_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)
         }
         emit_payload_field_bind(ctx, clone(variant_name), scrut_idx, bind_local, bind_vt, bi)
+        if is_tuple_bind {
+            stmt_let_tuple::emit_tuple_pattern_ident_binds(ctx, bind_pat, bind_local)
+        }
         bi = bi + 1
     }
 }
@@ -174,6 +189,16 @@ fn mir_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
     let mut set_type = clone(elem_ty)
     if !match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
         if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
+            if starts_with(clone(elem_ty), "tuple:") {
+                // Tuple payloads keep the tuple:<k,...> layout name and must
+                // have the GC struct registered before emit resolves the
+                // Some-bind local type (#890 Option<(A, B)>).
+                aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(
+                    ctx,
+                    substring(clone(elem_ty), 6, len(elem_ty))
+                )
+                return set_type
+            }
             if !starts_with(clone(elem_ty), String_from("vec:")) &&
             !starts_with(clone(elem_ty), String_from("Vec<")) &&
             !starts_with(clone(elem_ty), String_from("Vec_")) &&

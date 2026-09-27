@@ -1,5 +1,6 @@
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
+use mir::lower::aggregate_tuple
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_struct_layout
@@ -134,6 +135,16 @@ fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
     let mut set_type = clone(elem_ty)
     if !core_match_payload_bind_types::core_payload_scalar_type_name(clone(elem_ty)) {
         if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
+            if starts_with(clone(elem_ty), "tuple:") {
+                // Tuple payloads keep the tuple:<k,...> layout name and must
+                // have the GC struct registered before emit resolves the
+                // Some-bind local type (#890 Option<(A, B)>).
+                aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(
+                    ctx,
+                    substring(clone(elem_ty), 6, len(elem_ty))
+                )
+                return set_type
+            }
             if !starts_with(clone(elem_ty), "vec:") &&
             !starts_with(clone(elem_ty), "Vec<") &&
             !starts_with(clone(elem_ty), "Vec_") &&

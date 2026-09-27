@@ -18,7 +18,19 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
     }
     let pat = ast_node::node_child_at(node, 0)
     let init = ast_node::node_child_at(node, 1)
-    let tuple_local = lower_expr(ctx, init)
+    // A bare-identifier init must resolve to its local without lowering:
+    // lower_expr emits local.get for the value, and nothing consumes that
+    // pushed copy, so it leaks onto the operand stack — inside a match arm
+    // the block then fails validation, and at function top level it is
+    // swallowed by the epilogue's frame-leave call and corrupts root-frame
+    // bookkeeping (#890).
+    let mut tuple_local = 0 - 1
+    if ast_node::node_kind_is(init, lower_kinds::NK_IDENT()) {
+        tuple_local = ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(init))
+    }
+    if tuple_local < 0 {
+        tuple_local = lower_expr(ctx, init)
+    }
     if tuple_local < 0 {
         return
     }
@@ -26,6 +38,12 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
     if pat_kind != lower_kinds::NK_PAT_TUPLE() {
         return
     }
+    emit_tuple_pattern_ident_binds(ctx, pat, tuple_local)
+}
+
+// Bind each PAT_IDENT child of a tuple pattern to the matching field of
+// tuple_local. Shared by let-destructure and Some((a, b)) payload binds.
+fn emit_tuple_pattern_ident_binds(ctx: LowerCtx, pat: AstNode, tuple_local: i32) {
     let elem_count = ast_node::node_child_count(pat)
     let total_bytes = elem_count * 4
     let tuple_type = ctx_api_local_types::ctx_get_local_type(ctx, tuple_local)

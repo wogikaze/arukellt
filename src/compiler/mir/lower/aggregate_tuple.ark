@@ -23,7 +23,11 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
         return dest
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
-    let struct_name = tuple_struct_name_from_locals(ctx, field_locals, field_vts, child_count, total_bytes)
+    let tuple_name = tuple_name_keys_from_field_locals(ctx, field_locals, field_vts, child_count)
+    let mut struct_name = String_new()
+    if tuple_field_vts_need_named_gc_struct(ctx, field_vts, child_count) {
+        struct_name = clone(tuple_name)
+    }
     if len(struct_name) > 0 {
         let sig = tuple_gc_sig_from_type_keys(ctx, substring(struct_name, 6, len(struct_name)))
         ctx_gc_struct::ctx_register_gc_struct(ctx, clone(struct_name), sig)
@@ -63,14 +67,16 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
     if len(struct_name) > 0 {
         let type_name = concat("struct:", concat(clone(struct_name), concat(":", i32_to_string(total_bytes))))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
+    } else if len(tuple_name) > 0 {
+        // Anonymous small-int tuples (LM path) still record the tuple:<k,...>
+        // key name so tuple-let destructure recovers each field's value type
+        // instead of defaulting non-first fields to a GC ref (#890).
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, tuple_name)
     }
     dest
 }
 
-fn tuple_struct_name_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, field_count: i32, total_bytes: i32) -> String {
-    if !tuple_field_vts_need_named_gc_struct(ctx, field_vts, field_count) {
-        return String_new()
-    }
+fn tuple_name_keys_from_field_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, field_count: i32) -> String {
     let mut name = String_from("tuple:")
     let mut i = 0
     while i < field_count {
@@ -82,7 +88,6 @@ fn tuple_struct_name_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vt
         name = concat(name, key)
         i = i + 1
     }
-    let _ = total_bytes
     name
 }
 
