@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T04:23:42Z",
+  "generated_at": "2026-09-27T05:36:52Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -550,25 +550,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "890",
-      "path": "890-option-tuple-abi.md",
-      "title": "890 — Option<tuple> payload produces invalid wasm on both backends",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "860"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
