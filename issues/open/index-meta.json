@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T05:36:52Z",
+  "generated_at": "2026-09-27T06:38:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -537,26 +537,6 @@
       }
     },
     {
-      "id": "887",
-      "path": "887-method-level-generics.md",
-      "title": "887 — Method-level generics (`fn m<U>` on generic/非 generic types)",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "856",
-        "860"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -981,7 +961,7 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 34,
+        "checked": 35,
         "unchecked": 12
       },
       "orchestration": {
