@@ -75,6 +75,7 @@
 | [ADR-076-language-v2-iterator-consumer-boundary.md](ADR-076-language-v2-iterator-consumer-boundary.md) | ADR-076: Language v2 Iterator の producer / consumer 責務境界 | Iterator は Self::Item を associated type として持つ producer であり、 wasm32-gc と linear-memory wasm32 の両方で同じ source-level iteration semantics を提供する必要がある。 |
 | [ADR-077-language-v2-hygienic-desugaring.md](ADR-077-language-v2-hygienic-desugaring.md) | ADR-077: Language v2 の hygienic desugaring 境界 | トラック: language-v2 Issue: #865 |
 | [ADR-078-language-v2-parametric-trait-impl.md](ADR-078-language-v2-parametric-trait-impl.md) | ADR-078: Language v2 の parametric trait impl | ADR-062 は「type variable を含む user impl は blanket impl とみなし、初期 v2 では 拒否する」と定めた。この規則は impl<T> Trait for T のような真の blanket impl （self 型が裸の型変数）を防ぎ、coherence と termination を registry 契約で保証する |
+| [ADR-079-language-v2-method-level-generics.md](ADR-079-language-v2-method-level-generics.md) | ADR-079: Language v2 メソッド型パラメータ（method-level generics） | これまで impl VecIter<T> のメソッドシグネチャに現れる型変数はすべて impl ヘッダで束縛されていた。fn map(self: VecIter<T>, f: fn(T) -> U) のようなメソッド固有の型変数 U は書けず、コールバックが item 型を変える lazy adapter は MapIter<T, U> の literal 構築を利用者へ強いるしかなかった。VecIter<T>::map や FilterIter<T>::map が T -> T に固定されていたのはこの型システム上の欠落であり、RFC-011 item 37 の残差として #887 に引き継がれていた。 |
 
 ## 提案
 
