@@ -37,6 +37,7 @@ graph LR
   I879["879 879 — Wasm GC / fallback の性能・サイズ receipt を取得する"]
   I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
   I893["893 893 — match アームの tuple パターンが両経路で未実装"]
+  I894["894 894 — wasm32-gc emit: 複数 multi-clause 関数群で invalid core Wasm"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -116,6 +117,7 @@ graph LR
 - **879** depends on: 871, 872, 874, 875; blocks: 880
 - **891** depends on: none; blocks: none
 - **893** depends on: none; blocks: none
+- **894** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

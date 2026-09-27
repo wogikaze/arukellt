@@ -35,7 +35,7 @@ conversion の明示 API であり、`?` の error propagation は canonical `Fr
 だけを使う。`Error` は compiler sentinel ではなく、通常のユーザー定義
 error payload として利用できる。
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- fixture: question_mark/basic_propagate.ark -->
 ```ark
 fn parse_twice(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
@@ -78,7 +78,7 @@ typed な dynamic source object と `dyn Error` はまだ提供していませ�
 
 ## panic
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: spec_examples/panic_unreachable.ark -->
 ```ark
 panic(String_from("unreachable"))
 ```
@@ -90,7 +90,7 @@ panic(String_from("unreachable"))
 
 現行 stdlib wrapper では、たとえば以下のような形が多いです。
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 Result<String, String>
 Result<(), String>

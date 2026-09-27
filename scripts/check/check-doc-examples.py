@@ -8,17 +8,38 @@ Usage:
 - Skips blocks immediately preceded by an HTML comment <!-- skip-doc-check -->.
 - Runs `arukellt check <snippet> --target wasm32` on each block.
 - Reports failures as "FAIL: <file> block <N>: <error>".
-- Exits 0 if all non-skipped blocks pass, non-zero otherwise.
+- Exits 0 if all non-skipped blocks pass and every marker is valid.
+
+Marker contract (issue #877 — normative example discipline):
+
+- `<!-- skip-doc-check reason="..." owner="..." expires="YYYY-MM-DD" -->`
+  is a deferral: it MUST carry a non-empty `reason`, an `owner`, and
+  an exit condition — `expires="YYYY-MM-DD"` or `exit="..."`.
+- `<!-- skip-doc-check kind="grammar-fragment" reason="..." -->`
+  (also `kind="invalid-example"` / `kind="notation"`) marks permanent
+  notation rather than deferred work: `reason` is required, owner and
+  exit condition are not.
+- `<!-- fixture: path.ark -->` declares the example is verified by the
+  fixture harness: the path MUST exist under tests/fixtures/ and be
+  registered in tests/fixtures/manifest.txt.
+- An expired `expires` fails under docs/language/ (the normative
+  surface owned by #877) and warns elsewhere.
 """
 from __future__ import annotations
 
 import argparse
+import datetime
 import os
 import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # python < 3.11
+    import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 TMP_DIR = ROOT / ".build" / "doc-examples"
@@ -35,11 +56,129 @@ SKIP_COMMENT_PATTERN = re.compile(
 FIXTURE_COMMENT_PATTERN = re.compile(
     r"<!--\s*fixture:\s*[\w/.-]+\s*-->", re.IGNORECASE
 )
+HTML_COMMENT_PATTERN = re.compile(r"<!--.*?-->", re.DOTALL)
+ATTR_PATTERN = re.compile(r'(\w+)="([^"]*)"')
+DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+# Skip kinds that denote permanent notation rather than deferred work.
+# They are exempt from the owner/exit requirements (issue #877).
+NOTATION_KINDS = {"grammar-fragment", "invalid-example", "notation"}
+
+FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
+FIXTURES_ROOT = ROOT / "tests" / "fixtures"
+NORMATIVE_DOC_PREFIX = "docs/language/"
+CLASSIFICATIONS_TOML = ROOT / "docs" / "data" / "language-doc-classifications.toml"
+
+
+def load_normative_docs() -> set[str]:
+    """docs/language/<file> paths classified normative by ADR-018 registry.
+
+    Expired skips hard-fail only inside the normative surface (#877);
+    explanatory/transitional docs warn instead while their owners catch up.
+    """
+    result: set[str] = set()
+    if not CLASSIFICATIONS_TOML.exists():
+        return result
+    data = tomllib.loads(CLASSIFICATIONS_TOML.read_text(encoding="utf-8"))
+    for entry in data.get("docs", []):
+        if entry.get("class") == "normative":
+            result.add(NORMATIVE_DOC_PREFIX + str(entry.get("file", "")))
+    return result
 
 # Files listed in .generated-files are auto-generated and must not have
 # <!-- skip-doc-check --> comments added by hand (they'd be overwritten).
 # We read the manifest and skip those files entirely.
 _GENERATED_FILES_MANIFEST = ROOT / ".generated-files"
+
+
+def load_manifest_paths() -> set[str]:
+    """Fixture paths registered in tests/fixtures/manifest.txt (any kind)."""
+    paths: set[str] = set()
+    if not FIXTURE_MANIFEST.exists():
+        return paths
+    for line in FIXTURE_MANIFEST.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or ":" not in line:
+            continue
+        paths.add(line.split(":", 1)[1].strip())
+    return paths
+
+
+def validate_marker(
+    comment: str,
+    rel: Path | str,
+    manifest_paths: set[str],
+    today: str,
+    normative_docs: set[str],
+    failures: list[str],
+    warnings: list[str],
+) -> None:
+    """Validate one skip-doc-check / fixture marker against the #877 contract."""
+    if "skip-doc-check" in comment:
+        attrs = dict(ATTR_PATTERN.findall(comment))
+        kind = attrs.get("kind", "")
+        if not attrs.get("reason", "").strip():
+            failures.append(f"{rel}: skip-doc-check missing non-empty reason=")
+        if kind not in NOTATION_KINDS:
+            if not attrs.get("owner", "").strip():
+                failures.append(f"{rel}: skip-doc-check missing owner=")
+            expires = attrs.get("expires", "").strip()
+            if not expires and not attrs.get("exit", "").strip():
+                failures.append(
+                    f"{rel}: skip-doc-check missing exit condition "
+                    "(expires= or exit=)"
+                )
+            elif expires:
+                if not DATE_PATTERN.match(expires):
+                    failures.append(
+                        f"{rel}: skip-doc-check expires= must be YYYY-MM-DD"
+                    )
+                elif expires < today:
+                    msg = f"{rel}: skip-doc-check expired {expires}"
+                    if str(rel) in normative_docs:
+                        failures.append(msg)
+                    else:
+                        warnings.append(msg)
+    for fixture_match in re.finditer(r"fixture:\s*([\w/.-]+)", comment):
+        fixture_rel = fixture_match.group(1)
+        if fixture_rel not in manifest_paths:
+            failures.append(
+                f"{rel}: fixture: {fixture_rel} not registered in "
+                "tests/fixtures/manifest.txt"
+            )
+        elif not (FIXTURES_ROOT / fixture_rel).exists():
+            failures.append(f"{rel}: fixture: {fixture_rel} does not exist")
+
+
+def validate_file_markers(
+    md_path: Path,
+    rel: Path | str,
+    manifest_paths: set[str],
+    today: str,
+    normative_docs: set[str],
+    failures: list[str],
+    warnings: list[str],
+    seen: set[tuple[str, int]],
+) -> None:
+    """Validate every marker comment that precedes an ```ark block.
+
+    The marker zone mirrors the skip heuristic (last 800 chars before
+    the block); each marker comment is validated once via `seen` (keyed by file and position).
+    """
+    text = md_path.read_text(encoding="utf-8")
+    for m in BLOCK_PATTERN.finditer(text):
+        zone = text[: m.start()].rstrip()[-800:]
+        for cm in HTML_COMMENT_PATTERN.finditer(zone):
+            key = (str(md_path), m.start() + cm.start())
+            comment = cm.group(0)
+            if key in seen or (
+                "skip-doc-check" not in comment and "fixture:" not in comment
+            ):
+                continue
+            seen.add(key)
+            validate_marker(
+                comment, rel, manifest_paths, today,
+                normative_docs, failures, warnings,
+            )
 
 
 def load_generated_files() -> set[Path]:
@@ -160,6 +299,12 @@ def main() -> int:
     pass_count = 0
     fail_count = 0
     skip_count = 0
+    marker_failures: list[str] = []
+    marker_warnings: list[str] = []
+    manifest_paths = load_manifest_paths()
+    today = datetime.date.today().isoformat()
+    normative_docs = load_normative_docs()
+    seen_markers: set[tuple[str, int]] = set()
 
     for md in sorted(docs_dir.rglob("*.md")):
         # Skip auto-generated files — their code blocks can't have
@@ -168,11 +313,15 @@ def main() -> int:
             skip_count += sum(1 for _ in BLOCK_PATTERN.finditer(md.read_text(encoding="utf-8")))
             continue
 
+        rel = md.relative_to(ROOT) if md.is_relative_to(ROOT) else md
+        validate_file_markers(
+            md, rel, manifest_paths, today, normative_docs,
+            marker_failures, marker_warnings, seen_markers,
+        )
+
         blocks = extract_blocks(md)
         if not blocks:
             continue
-
-        rel = md.relative_to(ROOT) if md.is_relative_to(ROOT) else md
 
         for idx, code, should_skip in blocks:
             if should_skip:
@@ -192,10 +341,16 @@ def main() -> int:
                     for line in error_output.splitlines():
                         print(f"  {line}")
 
+    for msg in marker_failures:
+        print(f"MARKER-FAIL: {msg}")
+    for msg in marker_warnings:
+        print(f"MARKER-WARN: {msg}")
     print(
-        f"\nDoc example check: {pass_count} pass, {fail_count} fail, {skip_count} skip"
+        f"\nDoc example check: {pass_count} pass, {fail_count} fail, "
+        f"{skip_count} skip, {len(marker_failures)} marker-fail, "
+        f"{len(marker_warnings)} marker-warn"
     )
-    return 0 if fail_count == 0 else 1
+    return 0 if fail_count == 0 and not marker_failures else 1
 
 
 if __name__ == "__main__":

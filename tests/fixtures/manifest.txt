@@ -36,6 +36,12 @@ check-only:wit_import/ark_manifest/main.ark
 check-only:wit_import/check/call_add.ark
 check-only:wit_import/check/record_enum_general.ark
 check-only:wit_import/check/record_field.ark
+check-only:spec_examples/panic_unreachable.ark
+# Issue #877 — normative spec examples connected to fixtures.
+# clause_guards / multi_clause_functions stay check-only until #894
+# (wasm32-gc emit for multiple multi-clause groups) is fixed.
+check-only:spec_examples/clause_guards.ark
+check-only:spec_examples/multi_clause_functions.ark
 compile-error:component/export_enum_color_bad_shape.ark
 compile-error:component/export_non_function.ark
 compile-error:component/export_enum_color_bad_shape_order.ark
@@ -94,6 +100,7 @@ compile-error:selfhost/fn_multiclause_mixed_arity.ark
 compile-error:selfhost/fn_multiclause_multi_param.ark
 compile-error:selfhost/fn_multiclause_semicolon_boundary.ark
 compile-error:selfhost/fn_multiclause_where_unresolved.ark
+compile-error:spec_examples/multi_clause_pub.ark
 compile-error:wit_import/types/future-negative/main.ark
 compile-error:wit_import/types/stream-negative/main.ark
 component-compile:component/export_add.ark
@@ -643,6 +650,13 @@ run:simd_gc_storage/v128_array_element.ark
 run:simd_gc_storage/v128_struct_field.ark
 run:simd_lowering/t1_scalar_expansion.ark
 run:simd_lowering/v128_type_check.ark
+# Issue #877 — normative doc examples connected to executable fixtures
+run:spec_examples/array_comprehension.ark
+run:spec_examples/memory_model_move.ark
+run:spec_examples/numeric_literal_suffixes.ark
+run:spec_examples/syntax_let_mut_fn.ark
+run:spec_examples/type_annotations.ark
+run:spec_examples/where_clause_magnitude.ark
 run:stdlib_bimap/bimap_basic.ark
 run:stdlib_bytes/base64.ark
 run:stdlib_bytes/base64_decode_padding.ark

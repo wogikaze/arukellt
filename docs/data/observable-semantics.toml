@@ -1,0 +1,264 @@
+# Observable semantics registry — the single specification system for
+# Arukellt's observable language rules (RFC-011 item 45 / issue #877).
+#
+# Each [[rules]] entry is one observable contract: what a source program
+# must compute, reject, or print, independent of backend. Rules are
+# anchored to fixtures that prove them on the fixture harness (both
+# wasm32-gc and wasm32 linear via the cross-backend parity matrix,
+# issue #875).
+#
+# Fields:
+#   id          unique snake_case rule id
+#   domain      one of: alias | copy | evaluation | numeric | unicode |
+#               closure | trait   (RFC-011 item 45 domain list)
+#   statement   the observable contract in one sentence
+#   fixtures    run/check-only fixtures proving the rule (relative to
+#               tests/fixtures/); MUST be registered in manifest.txt
+#   diagnostics optional diag/compile-error fixtures proving rejections
+#   adrs        ACCEPTED ADRs that norm the rule
+#   status      verified | provisional | unimplemented
+#   issue       tracking issue — REQUIRED unless status = "verified"
+#
+# Checked by scripts/check/check-observable-semantics.py; rendered into
+# docs/language/observable-semantics.md by scripts/gen/generate-docs.py.
+
+[[rules]]
+id = "alias_move_after_use_value"
+domain = "alias"
+statement = "Moving a value into a let/call ends the source binding; using it afterwards is a compile-time error."
+fixtures = ["ownership/copy_and_mutability.ark"]
+diagnostics = ["diagnostics/ownership_move_after_use.ark"]
+adrs = ["ADR-059"]
+status = "verified"
+
+[[rules]]
+id = "alias_move_after_use_adt"
+domain = "alias"
+statement = "Enum/struct values follow the same move rule; using an ADT after move is a diagnostic, not a silent alias."
+fixtures = ["ownership/adt_probe.ark"]
+diagnostics = ["diagnostics/adt_move_after_use.ark"]
+adrs = ["ADR-059", "ADR-060"]
+status = "verified"
+
+[[rules]]
+id = "alias_shared_graph_traversal"
+domain = "alias"
+statement = "Shared DAG edges (multiple references to one node) traverse identically on every backend, including back edges reported by user code."
+fixtures = ["integration/cyclic_graph_walk.ark", "integration/linked_list.ark"]
+adrs = ["ADR-059", "ADR-075"]
+status = "verified"
+
+[[rules]]
+id = "alias_struct_vec_elements"
+domain = "alias"
+statement = "Struct elements inside a Vec keep observable field values across pushes, rebuilds, and aliased element access."
+fixtures = ["structs/vec_in_struct_alias_live.ark", "structs/vec_in_struct_rebuild3.ark", "structs/vec_elem_field_get.ark"]
+adrs = ["ADR-059"]
+status = "verified"
+
+[[rules]]
+id = "copy_scalar_implicit"
+domain = "copy"
+statement = "Scalar values (int/float/bool/char) copy implicitly on let/argument passing; the source stays usable."
+fixtures = ["operators/arithmetic.ark", "scalar/type_annotation.ark"]
+adrs = ["ADR-059"]
+status = "verified"
+
+[[rules]]
+id = "copy_struct_clone"
+domain = "copy"
+statement = "Struct clone produces an independent value: mutating the clone leaves the source fields unchanged."
+fixtures = ["structs/struct_clone.ark", "structs/struct_clone_pass_to_fn.ark"]
+adrs = ["ADR-059", "ADR-060"]
+status = "verified"
+
+[[rules]]
+id = "copy_capture_snapshot"
+domain = "copy"
+statement = "Capturing a value by copy snapshots it: later source mutation does not change the closure-observed value."
+fixtures = ["closure_capture/copy_capture_snapshot.ark"]
+adrs = ["ADR-061"]
+status = "verified"
+
+[[rules]]
+id = "evaluation_operand_order"
+domain = "evaluation"
+statement = "Operands evaluate left-to-right; observable side effects (calls, prints) happen in source order."
+fixtures = ["operators/evaluation_order.ark"]
+adrs = ["ADR-068"]
+status = "verified"
+
+[[rules]]
+id = "evaluation_short_circuit"
+domain = "evaluation"
+statement = "&& and || short-circuit: the right operand effects are skipped when the result is already decided."
+fixtures = ["operators/short_circuit.ark", "operators/logical.ark"]
+adrs = ["ADR-068"]
+status = "verified"
+
+[[rules]]
+id = "evaluation_precedence"
+domain = "evaluation"
+statement = "Operator precedence and associativity follow the grammar table, not evaluation order."
+fixtures = ["operators/precedence.ark", "operators/comparison.ark"]
+adrs = ["ADR-068"]
+status = "verified"
+
+[[rules]]
+id = "evaluation_loop_control"
+domain = "evaluation"
+statement = "break/continue/loop-value and while/for iteration observe identical control order on both backends."
+fixtures = ["control/loop_break_value.ark", "control/nested_loops.ark", "for_loops/for_values.ark"]
+adrs = ["ADR-068"]
+status = "verified"
+
+[[rules]]
+id = "numeric_suffix_literals"
+domain = "numeric"
+statement = "Typed literal suffixes (1i64, 1.0f64, hex) fix the literal type without implicit conversion."
+fixtures = ["scalar/suffix_literals.ark", "scalar/hex_literal.ark"]
+adrs = ["ADR-067"]
+status = "verified"
+
+[[rules]]
+id = "numeric_explicit_conversion"
+domain = "numeric"
+statement = "Cross-width numeric conversion is explicit; no implicit promotion matrix exists between distinct numeric types."
+fixtures = ["scalar/numeric_explicit_conversions.ark", "scalar/conversion.ark"]
+diagnostics = ["diagnostics/arithmetic_mixed_comparison.ark"]
+adrs = ["ADR-067"]
+status = "verified"
+
+[[rules]]
+id = "numeric_sign_and_width"
+domain = "numeric"
+statement = "i8/i16/u8/u16/u32/u64 preserve signedness and width in arithmetic, comparison, and extension."
+fixtures = ["scalar/i8_sign.ark", "scalar/sign_extend.ark", "scalar/u16_arithmetic.ark", "scalar/u32_arithmetic.ark", "scalar/u64_basic.ark"]
+adrs = ["ADR-067"]
+status = "verified"
+
+[[rules]]
+id = "numeric_overflow"
+domain = "numeric"
+statement = "Overflow behaviour is defined per operator/width and identical on both backends (no target-dependent wrap)."
+fixtures = ["scalar/u8_overflow.ark", "operators/overflow.ark", "operators/arithmetic_edges.ark"]
+adrs = ["ADR-067", "ADR-068"]
+status = "verified"
+
+[[rules]]
+id = "numeric_float"
+domain = "numeric"
+statement = "f32/f64 literals, locals, and arithmetic observe IEEE-754 results within the determinism contract."
+fixtures = ["scalar/f32_basic.ark", "scalar/f32_local.ark", "variables/f64_lit.ark"]
+adrs = ["ADR-067"]
+status = "verified"
+
+[[rules]]
+id = "unicode_utf8_bytes"
+domain = "unicode"
+statement = "String storage is UTF-8; byte-level views (to_utf8, byte length) observe the canonical encoding."
+fixtures = ["stdlib_text/utf8_byte_semantics.ark", "stdlib_text/to_utf8_bytes_basic.ark"]
+adrs = ["ADR-069"]
+status = "verified"
+
+[[rules]]
+id = "unicode_scalar_values"
+domain = "unicode"
+statement = "char is a Unicode scalar value; surrogate range and out-of-range codepoints are rejected, never silently encoded."
+fixtures = ["stdlib_text/unicode_scalar_semantics.ark", "variables/char_lit.ark"]
+diagnostics = ["diagnostics/unicode_codepoint_option_mismatch.ark"]
+adrs = ["ADR-069"]
+status = "verified"
+
+[[rules]]
+id = "unicode_utf8_roundtrip"
+domain = "unicode"
+statement = "from_utf8(to_utf8(s)) round-trips valid strings byte-for-byte on both backends."
+fixtures = ["stdlib_text/utf8_roundtrip.ark", "stdlib_text/from_utf8_basic.ark"]
+adrs = ["ADR-069"]
+status = "verified"
+
+[[rules]]
+id = "unicode_string_equality"
+domain = "unicode"
+statement = "String equality is scalar-content equality, not identity; interpolation results compare by content."
+fixtures = ["operators/string_eq.ark", "string_interp/fstring_basic.ark"]
+adrs = ["ADR-069"]
+status = "verified"
+
+[[rules]]
+id = "closure_copy_capture"
+domain = "closure"
+statement = "Copy capture stores a snapshot in the environment; the closure cannot observe later source mutation."
+fixtures = ["closure_capture/copy_capture_snapshot.ark", "closure_capture/capture_struct.ark"]
+adrs = ["ADR-061"]
+status = "verified"
+
+[[rules]]
+id = "closure_move_capture"
+domain = "closure"
+statement = "Move capture transfers the cell into the environment; rebinding the source local does not leak into the closure."
+fixtures = ["closure_capture/move_local.ark", "closure_capture/move_rebind_cell.ark"]
+diagnostics = ["diagnostics/closure_move_after_capture.ark"]
+adrs = ["ADR-061"]
+status = "verified"
+
+[[rules]]
+id = "closure_borrow_capture"
+domain = "closure"
+statement = "Borrow capture shares the local cell; writes through one handle are observed by the other while the borrow is live."
+fixtures = ["closure_capture/borrow_local.ark", "closure_capture/borrow_rebind_cell.ark"]
+diagnostics = ["diagnostics/closure_borrow_conflict.ark"]
+adrs = ["ADR-061"]
+status = "verified"
+
+[[rules]]
+id = "closure_escape_boundaries"
+domain = "closure"
+statement = "Escaping captures (storing/returning closures over cells) keep observable values; rejected escapes are diagnostics."
+fixtures = ["closure_capture/escape_store.ark", "closure_capture/escape_arg.ark"]
+diagnostics = ["diagnostics/closure_borrow_return.ark", "diagnostics/closure_borrow_store.ark", "diagnostics/closure_borrow_callback.ark"]
+adrs = ["ADR-061"]
+status = "provisional"
+issue = "#891"
+
+[[rules]]
+id = "trait_inherent_dispatch"
+domain = "trait"
+statement = "Inherent impl methods resolve statically and observe receiver/argument semantics identically on both backends."
+fixtures = ["trait/trait_impl.ark", "trait/method_chain.ark"]
+adrs = ["ADR-062"]
+status = "verified"
+
+[[rules]]
+id = "trait_method_dispatch"
+domain = "trait"
+statement = "Trait method calls resolve to the impl selected by the receiver type; dispatch result is target-independent."
+fixtures = ["generics_v1/trait_method_dispatch.ark", "generics_v1/trait_method_resolve.ark", "generics_v1/trait_dispatch_stdlib.ark"]
+adrs = ["ADR-062"]
+status = "verified"
+
+[[rules]]
+id = "trait_bound_enforcement"
+domain = "trait"
+statement = "Generic trait bounds are enforced at call sites; a missing impl is a diagnostic, never a runtime fallback."
+fixtures = ["generics_v1/trait_bound.ark", "generics_v1/parametric_trait_impl.ark"]
+diagnostics = ["diagnostics/trait_def.ark"]
+adrs = ["ADR-062"]
+status = "verified"
+
+[[rules]]
+id = "trait_operator_overload"
+domain = "trait"
+statement = "Operator traits (Add/Sub/Neg/Index) desugar to trait calls with identical operand order and result."
+fixtures = ["operator_overload/add_complex.ark", "operator_overload/sub_vec.ark", "operator_overload/neg_wrapper.ark", "operator_overload/index_custom.ark"]
+adrs = ["ADR-065", "ADR-062"]
+status = "verified"
+
+[[rules]]
+id = "trait_from_conversion"
+domain = "trait"
+statement = "From-based conversion (including ? error conversion) applies the resolved impl, not ad-hoc coercion."
+fixtures = ["from_trait/from_auto_convert.ark", "question_mark/from_error.ark"]
+adrs = ["ADR-039", "ADR-062"]
+status = "verified"

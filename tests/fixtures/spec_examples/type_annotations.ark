@@ -1,0 +1,7 @@
+use std::host::stdio
+fn main() {
+    let n: i32 = 42
+    let s: String = String_from("hello")
+    stdio::println((n).to_string())
+    stdio::println(s)
+}

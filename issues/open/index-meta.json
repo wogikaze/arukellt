@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T08:46:21Z",
+  "generated_at": "2026-09-27T09:21:19Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -528,8 +528,8 @@
         "880"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 8
+        "checked": 5,
+        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -614,6 +614,23 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 875
+      }
+    },
+    {
+      "id": "894",
+      "path": "894-gc-emit-multi-clause-groups-invalid-wasm.md",
+      "title": "894 — wasm32-gc emit: 複数 multi-clause 関数群で invalid core Wasm",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 852
       }
     },
     {

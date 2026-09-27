@@ -1,0 +1,5 @@
+// pub-prefixed multi-clause groups are rejected today: each pub fn is
+// resolved as a separate definition, so the group collides with itself.
+pub fn is_zero(0) -> bool = true
+pub fn is_zero(_) -> bool = false
+fn main() {}

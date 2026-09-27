@@ -36,6 +36,11 @@ def run_deprecated_api_scan(root: Path, dry_run: bool) -> tuple[int, str]:
     return _exec(cmd, root, dry_run)
 
 
+def run_observable_semantics(root: Path, dry_run: bool) -> tuple[int, str]:
+    cmd = ["python3", "scripts/check/check-observable-semantics.py"]
+    return _exec(cmd, root, dry_run)
+
+
 def run_regenerate(
     root: Path, dry_run: bool, check_only: bool = False
 ) -> tuple[int, str]:

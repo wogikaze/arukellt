@@ -333,7 +333,7 @@ enum Either<L, R> { Left(L), Right(R) }
 
 Type parameter bounds are supported by the current trait system:
 
-<!-- skip-doc-check reason="bounded-generic example awaits fixture extraction" owner="#461" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 fn print_value<T: Display>(x: T) { … }
 ```
@@ -408,7 +408,7 @@ parameter from quantifying that outer type.
 <!-- fixture: selfhost/typescheme_poly_let.ark -->
 ```ark
 // `id` is a non-expansive closure -> generalized
-let id = fn(x) { x }
+let id = |x| x
 
 // Each call gets fresh type variables
 let a: i32 = id(42)     // fresh t0, unified with i32
@@ -428,7 +428,7 @@ let s: String = id("hello")  // fresh t2, unified with String
 
 ### 2.9 Traits and Impl Blocks <!-- stability: provisional -->
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 trait Display {
     fn to_string(self: Display) -> String
@@ -615,7 +615,7 @@ Evidence: `tests/fixtures/question_mark/basic_propagate.ark`,
 
 ### 3.10 If Expression
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 if cond {
     expr1
@@ -630,14 +630,14 @@ a statement, in which case the type is `()`.
 
 `else if` chains are permitted:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 if a { … } else if b { … } else { … }
 ```
 
 ### 3.11 Match Expression
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 match scrutinee {
     pattern1 => expr1,
@@ -651,7 +651,7 @@ expressions.
 
 ### 3.12 Block Expression
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 {
     stmt1;
@@ -666,7 +666,7 @@ block is empty, the block's type is `()`.
 
 ### 3.13 Struct Literal
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 Point { x: 1, y: 2 }
 Point { x: 1, ..base }    // struct update syntax
@@ -674,14 +674,14 @@ Point { x: 1, ..base }    // struct update syntax
 
 ### 3.14 Tuple Expression
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: variables/tuple.ark -->
 ```ark
 (1, "hello", true)
 ```
 
 ### 3.15 Array Expressions
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: arrays/array_literal.ark --><!-- fixture: arrays/array_repeat.ark -->
 ```ark
 [1, 2, 3]        // array literal
 [0; 10]           // array repeat: 10 elements, each 0
@@ -689,7 +689,7 @@ Point { x: 1, ..base }    // struct update syntax
 
 ### 3.16 Closure Expression
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 |x| x + 1
 |x: i32, y: i32| -> i32 { x + y }
@@ -714,7 +714,7 @@ ADR-061 and #872/#874.
 
 ### 3.17 Loop Expression
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 loop {
     if done { break value }
@@ -725,7 +725,7 @@ loop {
 
 ### 3.18 Return and Control Flow
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 return expr     // early return from function
 return          // return ()
@@ -736,7 +736,7 @@ continue        // skip to next loop iteration
 
 ### 3.19 Assignment
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 x = expr
 obj.field = expr
@@ -751,7 +751,7 @@ expression. Assignment returns `()`.
 A lightweight collection-construction form that desugars into an explicit `for` loop
 with a `Vec` builder:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- requires Vec type and prelude context -->
+<!-- fixture: spec_examples/array_comprehension.ark -->
 ```ark
 [x * 2 for x in xs]
 [x * 2 for x in xs if x > 0]
@@ -760,7 +760,7 @@ with a `Vec` builder:
 The canonical syntax is `[<expr> for <ident> in <iter>]`, with an optional filter
 `if <expr>` after the iterable.
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- requires Vec type and prelude context -->
+<!-- fixture: spec_examples/array_comprehension.ark -->
 ```ark
 let doubled = [x * 2 for x in xs]             // map only
 let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
@@ -768,7 +768,7 @@ let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
 
 **Desugaring** (no filter):
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 {
     let result: Vec<ElemType> = Vec::new<ElemType>()
@@ -785,7 +785,7 @@ let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
 
 With filter:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 {
     let result: Vec<ElemType> = Vec::new<ElemType>()
@@ -827,7 +827,7 @@ form above.
 
 ### 4.1 Let Binding
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 let name = expr
 let name: Type = expr
@@ -837,7 +837,7 @@ let mut name: Type = expr
 
 Destructuring via pattern:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: variables/tuple.ark -->
 ```ark
 let (a, b) = (1, 2)
 ```
@@ -846,7 +846,7 @@ The `mut` qualifier allows the binding to be reassigned.
 
 ### 4.2 Expression Statement
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 expr;
 expr      // semicolon optional
@@ -854,7 +854,7 @@ expr      // semicolon optional
 
 ### 4.3 While Loop
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 while cond {
     body
@@ -863,7 +863,7 @@ while cond {
 
 ### 4.4 Loop
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 loop {
     body
@@ -874,7 +874,7 @@ loop {
 
 Three forms of iteration:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 for i in start..end {     // range: [start, end)
     body
@@ -1093,7 +1093,7 @@ Patterns appear in `match` arms, `let` bindings, `for` targets, and multi-clause
 
 ### 5.1 Wildcard
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 _ => …
 ```
@@ -1102,7 +1102,7 @@ Matches anything, discards the value.
 
 ### 5.2 Variable Binding
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 x => …
 ```
@@ -1111,7 +1111,7 @@ Binds the matched value to `x`.
 
 ### 5.3 Literal Patterns
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 42 => …
 "hello" => …
@@ -1121,7 +1121,7 @@ true => …
 
 ### 5.4 Enum Variant Pattern
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 Some(x) => …
 Ok(value) => …
@@ -1130,7 +1130,7 @@ Shape::Circle(r) => …
 
 ### 5.5 Struct Pattern
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 Point { x, y } => …
 Point { x: px, y: py } => …
@@ -1138,14 +1138,14 @@ Point { x: px, y: py } => …
 
 ### 5.6 Tuple Pattern
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 (a, b, c) => …
 ```
 
 ### 5.7 Or Pattern
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 1 | 2 | 3 => …
 Some(0) | None => …
@@ -1153,7 +1153,7 @@ Some(0) | None => …
 
 ### 5.8 Match Guards
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 x if x > 0 => …
 ```
@@ -1166,7 +1166,7 @@ Items are top-level declarations within a module.
 
 ### 6.1 Function Definition
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 fn name(param1: T1, param2: T2) -> RetType {
     body
@@ -1207,7 +1207,7 @@ clause after that semicolon is a separate declaration and is subject to the
 ordinary duplicate-definition rule.
 The group desugars to a single `fn` with a `match` body.
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- illustrative examples; needs prelude context -->
+<!-- fixture: spec_examples/multi_clause_functions.ark --><!-- fixture: spec_examples/multi_clause_pub.ark -->
 ```ark
 // Integer literal clauses with wildcard catch-all
 fn classify(0) -> String = "zero"
@@ -1265,7 +1265,7 @@ pattern matching: the pattern must match first, then the guard is evaluated. If 
 guard is `true`, the clause body is chosen; otherwise, evaluation falls through to
 the next clause.
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- guard syntax resolution depends on full function context -->
+<!-- fixture: spec_examples/clause_guards.ark -->
 ```ark
 fn classify(n) -> String | n > 0 = "pos"
 fn classify(n) -> String | n < 0 = "neg"
@@ -1276,7 +1276,7 @@ Guard expressions reuse the same evaluation model as `match` arm guards (SS5.8) 
 may reference the function parameter bindings established by the clause pattern.
 The guard must evaluate to `bool`.
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- struct type defined externally -->
+<!-- fixture: spec_examples/clause_guards.ark -->
 ```ark
 struct Point { x: i32, y: i32 }
 
@@ -1293,7 +1293,7 @@ A multi-clause function group may end with a `where` block declaring shared valu
 bindings visible across all clauses. Each binding is `name = expr`; bindings are
 separated by one or more newlines or by a semicolon.
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- struct type and guard syntax need full context -->
+<!-- fixture: spec_examples/where_clause_magnitude.ark -->
 ```ark
 fn magnitude_label(p: Point) -> String | m == 0 = "origin"
 fn magnitude_label(p: Point) -> String | m < 10 = "near"
@@ -1314,7 +1314,7 @@ and mutual recursion are deferred.
 
 ### 6.2 Struct Definition
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 struct Name {
     field1: Type1,
@@ -1328,7 +1328,7 @@ pub struct Name<T> {
 
 ### 6.3 Enum Definition
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 enum Name {
     Unit,
@@ -1349,7 +1349,7 @@ Variant forms:
 
 ### 6.4 Trait Definition <!-- stability: provisional -->
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 trait Name {
     fn method(param: T) -> R
@@ -1362,7 +1362,7 @@ pub trait Name<T> {
 
 ### 6.5 Impl Block <!-- stability: provisional -->
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 impl Name {
     fn method(self) -> R { … }
@@ -1385,7 +1385,7 @@ namespace.
 
 **`use`** — source-module import syntax:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 use std::host::stdio
 use std::core as c
@@ -1402,7 +1402,7 @@ private and cannot become visible through a re-exporting facade.
 
 **`import`** — compatibility syntax for local source modules:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 import math
 import utils as u

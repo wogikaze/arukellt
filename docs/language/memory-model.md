@@ -44,9 +44,9 @@ user-defined struct / enum は明示 `impl Copy` が必要であり、`Box<T>` �
 `as_slice` は source collection の owner binding を消費せず、backend object と range を保持する読み取り view を作る。
 GC object の共有、linear-memory の pointer、将来の tracing collector はこの view の実装手段であり、view API の observable contract を変えない。
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: spec_examples/memory_model_move.ark -->
 ```ark
-let v1: Vec<i32> = Vec_new_i32()
+let v1: Vec<i32> = Vec::new<i32>()
 push(v1, 10)
 
 let v2 = v1

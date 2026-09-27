@@ -326,3 +326,19 @@ aliases = []
 alias_status = "none"
 purpose = "Issue #875 audit: compile each selected run: fixture as a wasm32-gc WASI-P2 component and a wasm32 linear core module, execute both under wasmtime, and compare normalized stdout; emits a JSON receipt with artifact SHA-256 and toolchain versions"
 coverage = ["tests/fixtures/manifest.txt", "wasm32-gc", "wasm32", "issue-875"]
+
+[[commands]]
+id = "observable_semantics_registry"
+canonical = "python3 scripts/check/check-observable-semantics.py"
+aliases = []
+alias_status = "none"
+purpose = "Issue #877 gate: validate docs/data/observable-semantics.toml — schema, domain coverage, manifest-registered fixture proofs, ACCEPTED ADR anchors, and issue tracking for non-verified rules"
+coverage = ["docs/data/observable-semantics.toml", "tests/fixtures/manifest.txt", "issue-877"]
+
+[[commands]]
+id = "doc_example_check"
+canonical = "python3 scripts/check/check-doc-examples.py docs/"
+aliases = []
+alias_status = "none"
+purpose = "Compile-check ```ark blocks in docs and enforce the #877 marker contract: skip-doc-check requires reason/owner/exit condition, fixture: links must resolve to manifest-registered fixtures"
+coverage = ["docs", "tests/fixtures/manifest.txt", "issue-877"]

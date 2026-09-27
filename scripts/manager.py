@@ -61,6 +61,7 @@ from docs_domain.checks import (  # noqa: E402
     run_deprecated_api_scan,
     run_examples,
     run_freshness,
+    run_observable_semantics,
     run_regenerate,
 )
 from perf.checks import (  # noqa: E402
@@ -4665,6 +4666,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-doc-examples.py docs/",
         ),
         (
+            "observable semantics registry (#877)",
+            "python3 scripts/check/check-observable-semantics.py",
+        ),
+        (
             "deprecated API scan in docs (H8)",
             "python3 scripts/check/check-deprecated-api-in-docs.py --strict",
         ),
@@ -7746,6 +7751,7 @@ def cmd_docs_check(args: argparse.Namespace) -> int:
         ("docs freshness", run_freshness),
         ("doc examples", run_examples),
         ("deprecated API scan", run_deprecated_api_scan),
+        ("observable semantics registry", run_observable_semantics),
     ]
     with _cf.ThreadPoolExecutor() as executor:
         futures = {executor.submit(fn, root, dry_run): label for label, fn in checks}

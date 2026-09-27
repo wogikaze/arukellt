@@ -36,10 +36,10 @@ Wasm GC 前提の設計話や古い slice/capability 前提の説明は外し、
 
 ### 利用者向け実用ポイント
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: arrays/array_literal.ark --><!-- fixture: spec_examples/type_annotations.ark -->
 ```ark
-let arr: [i32; 3] = [1, 2, 3]
-let v: Vec<i32> = Vec_new_i32()
+let arr = [1, 2, 3]
+let v: Vec<i32> = Vec::new<i32>()
 ```
 
 - 固定長は配列 `[T; N]`
@@ -69,7 +69,7 @@ API 一覧は [spec.md §9.10–9.11](spec.md#910-option-prelude) を参照し�
 
 よく使う helper:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 unwrap(x)
 unwrap_or(x, 0)

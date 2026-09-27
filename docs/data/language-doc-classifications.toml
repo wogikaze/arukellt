@@ -40,6 +40,12 @@ note = "Generated feature maturity matrix; do not edit manually — regenerated 
 
 
 [[docs]]
+file = "observable-semantics.md"
+class = "normative"
+note = "Generated observable-semantics registry (RFC-011 item 45); regenerated from docs/data/observable-semantics.toml — do not edit manually"
+
+
+[[docs]]
 file = "formatter.md"
 class = "explanatory"
 note = "Formatter / fmt CLI and LSP formatting surface; mirrors implemented selfhost formatter"

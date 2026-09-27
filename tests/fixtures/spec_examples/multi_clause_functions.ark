@@ -1,0 +1,23 @@
+use std::host::stdio
+fn classify(0) -> String = "zero"
+fn classify(1) -> String = "one"
+fn classify(_) -> String = "other"
+fn negate(true) -> bool = false
+fn negate(false) -> bool = true
+fn unwrap_or_zero(Option::Some(v)) -> i32 = v
+fn unwrap_or_zero(None) -> i32 = 0
+fn greet("hello") -> String = "hi"
+fn greet("bye") -> String = "goodbye"
+fn greet(_) -> String = "huh?"
+fn answer(42) -> String = "life"
+fn answer(n) -> String = "unknown"
+fn main() {
+    stdio::println(classify(0))
+    stdio::println(classify(2))
+    stdio::println((negate(true)).to_string())
+    stdio::println((unwrap_or_zero(Option::Some(7))).to_string())
+    stdio::println((unwrap_or_zero(None)).to_string())
+    stdio::println(greet("bye"))
+    stdio::println(answer(42))
+    stdio::println(answer(1))
+}

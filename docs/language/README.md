@@ -6,9 +6,9 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture registry: 3067 manifest entries (`docs/data/project-state.toml`).
+- Fixture registry: 3077 manifest entries (`docs/data/project-state.toml`).
 - Last observed harness: 1588 outcomes (passed: 57, failed: 1089, skipped: 442).
-- Not included in last snapshot: 1479 registry entries (not proof they fail).
+- Not included in last snapshot: 1489 registry entries (not proof they fail).
 - Canonical target for current docs: `wasm32-gc`
 
 ## Reading Paths
@@ -82,6 +82,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [guide.md](guide.md) | explanatory | Current-first language guide; stable features with provisional callouts; recommended first reading |
 | [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model; language semantics = GC (ADR-002); wasm32-gc primary with linear wasm32 compatibility |
+| [observable-semantics.md](observable-semantics.md) | normative | Generated observable-semantics registry (RFC-011 item 45); regenerated from docs/data/observable-semantics.toml — do not edit manually |
 | [ownership-map.md](ownership-map.md) | explanatory | Language docs ownership and release-gate map; governance companion to stdlib ownership-map |
 | [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
 | [syntax.md](syntax.md) | normative | Current-first syntax reference; reflects implemented, tested behavior |
@@ -96,6 +97,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [guide.md](guide.md) | Arukellt Language Guide | explanatory | Explanatory: This document explains concepts and usage patterns. It is not the authoritative specification. For normative behavior, see spec.md |
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative memory-model contract for Arukellt. |
+| [observable-semantics.md](observable-semantics.md) | Observable Semantics | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | explanatory | See also docs/governance/document-ownership.md |
 | [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [syntax.md](syntax.md) | 構文仕様 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |

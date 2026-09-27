@@ -36,6 +36,7 @@ docs/design/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/gener
 docs/examples/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/language/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/language/maturity-matrix.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/language/observable-semantics.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/platform/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/process/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/sample/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py

@@ -12,13 +12,11 @@
 
 ## エントリポイント
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 fn main() {
 }
 ```
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 fn main() -> i32 {
     0
@@ -39,7 +37,7 @@ fn main() -> i32 {
 
 旧来の `import` は移行期間の互換構文です。
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 import math
 import utils as u
@@ -55,7 +53,7 @@ import utils as u
 
 ## 変数と関数
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: spec_examples/syntax_let_mut_fn.ark -->
 ```ark
 let x = 42
 let mut y = 0
@@ -74,7 +72,7 @@ fn add(a: i32, b: i32) -> i32 {
 型の一覧・構造体・enum の正規定義は [type-system.md](type-system.md) にあります。
 基本的な型アノテーションの書き方は以下の通りです:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: spec_examples/type_annotations.ark -->
 ```ark
 let n: i32 = 42
 let s: String = String_from("hello")
@@ -100,7 +98,7 @@ semicolon による group 終端の診断例は [`fn_multiclause_semicolon_bound
 
 ### if
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 let label = if x > 0 {
     String_from("positive")
@@ -111,7 +109,7 @@ let label = if x > 0 {
 
 ### while / loop
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 while x < 10 {
     x = x + 1
@@ -126,7 +124,7 @@ loop {
 
 ### for
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 for i in 0..10 {
     println(to_string(i))
@@ -143,7 +141,7 @@ for item in values(v) {
 
 共通で安全なのは関数呼び出し形式です。
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 push(v, 42)
 let n = len(v)
@@ -158,7 +156,7 @@ let text = to_string(n)
 
 パターンマッチの基本的な使い方:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
 ```ark
 match value {
     0 => String_from("zero"),

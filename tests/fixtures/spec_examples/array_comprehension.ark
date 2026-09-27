@@ -1,0 +1,11 @@
+use std::host::stdio
+fn main() {
+    let xs: Vec<i32> = Vec::new<i32>()
+    push(xs, 1)
+    push(xs, 2)
+    push(xs, 3)
+    let doubled = [x * 2 for x in xs]
+    let evens = [x * 2 for x in xs if x % 2 == 0]
+    stdio::println(len(doubled).to_string())
+    stdio::println(len(evens).to_string())
+}
