@@ -1756,7 +1756,7 @@ signature and failed typecheck (`type mismatch: i32 vs <elem>`).
   `use std::collections::vec`, `Vec::new<T>` lowers through the impl
   body `raw::raw_array_new` and loses element specialization on GC —
   `Vec<i64>` push/get/pop trap while `Vec<i32>` works. That is the
-  impl-ctor CoreOp path, not pop-specific; recorded here for tracking.
+  impl-ctor CoreOp path, not pop-specific; tracked as #889.
 - Verification receipts:
 
       python3 scripts/manager.py selfhost build-compiler   PASS

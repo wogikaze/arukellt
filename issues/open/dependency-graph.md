@@ -45,6 +45,7 @@ graph LR
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
+  I889["889 889 — impl-path Vec::new<T> loses element specialization on wasm32-gc"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
@@ -67,6 +68,7 @@ graph LR
   I851 --> I850
   I872 --> I875
   I874 --> I875
+  I874 --> I889
   I682 --> I683
   I698 --> I699
   I695 --> I709
@@ -122,7 +124,7 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879
-- **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879
+- **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879, 889
 - **887** depends on: 856, 860; blocks: none
 - **888** depends on: 860; blocks: none
 - **682** depends on: 679, 680; blocks: 683
@@ -134,6 +136,7 @@ graph LR
 - **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
 - **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
+- **889** depends on: 874; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
