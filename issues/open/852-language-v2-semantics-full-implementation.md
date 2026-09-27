@@ -308,7 +308,7 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 
 - [x] #876 — stability / current-state / redesign の分類を整合する — RFC 42, 43 — depends: none
   - Receipt: `404ab8252`; ADR-014 canonical definitions now cited by the maturity matrix and the classifications TOML; spec.md provisional markers added for 2.9 / 6.4 / 6.5; TOML 2.8 renumbered to Let-Generalization (TypeScheme) with a new 2.9 Traits and Impl Blocks (v1) row; `check_spec_stability_marker_sync` wired into docs consistency detects label drift, section-renumber name drift, missing spec sections, and marker rows without TOML coverage; 13 unit tests cover parse/inheritance/normalization/drift. See [#876](../done/876-stability-current-state-spec-labels.md).
-- [x] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876 — done 2026-09-27 (`0f8e97eea`); GC emit gap split to #894 (open)
+- [x] #877 — normative examples と操作的意味論を実行可能にする — RFC 44, 45 — depends: 857, 858, 860, 875, 876 — done 2026-09-27 (`0f8e97eea`); GC emit gap split to #894 (done 2026-09-28, `ebd99196c`)
   - Progress (not done, 2026-09-27): observable-semantics registry
     landed (`docs/data/observable-semantics.toml` — 29 rules, 7/7 RFC-011
     domains verified, generated normative doc + independent checker);
@@ -443,3 +443,4 @@ graph TD
 
 - [x] #896: `96b099b26`; ADR-075 runtime follow-up; metadata arena 64 KiB→64 MiB, pressure-gated entry collect independent of payload watermark, free-list record reuse in commit_top, documented proc_exit OOM statuses (120/121). bench_stdlib_json_parse runs 50 iterations on wasm32 linear returning 2550 (gc parity); stage-3 wasm32 self-compile and s3 compile complete; new fixture linear_gc_metadata_pressure. See [#896](../done/896-linear-gc-metadata-arena-exhaustion.md).
 - [x] #897: `05b6acd64`; qualified mod::f/mod::CONST calls bind to the owning module's FnSig via qualified index keys, '-> mod::T' annotations resolve to leaf-name identity, and compiler sources migrated to v2 strictness (let mut field writes, i64 literals, prelude imports, overlay cache v5). Stage-3 self-compile completes phase 6. See [#897](../done/897-qualified-name-signature-collision.md).
+- [x] #894: `ebd99196c`; unannotated fn parameters are back-stamped with the managed type the body proves (match variant/string/guard/bind-return arms and ref-return position) so wasm32-gc signatures agree with the emitted body; string literal patterns compare via __intrinsic_string_eq on both AstNode and CoreHIR paths. spec_examples/clause_guards + multi_clause_functions promote to run: + t3-run with byte-exact GC/linear outputs. See [#894](../done/894-gc-emit-multi-clause-groups-invalid-wasm.md).

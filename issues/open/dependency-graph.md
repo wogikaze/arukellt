@@ -35,7 +35,6 @@ graph LR
   I880["880 880 — Language v2 最終 close audit を実施する"]
   I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
   I893["893 893 — match アームの tuple パターンが両経路で未実装"]
-  I894["894 894 — wasm32-gc emit: 複数 multi-clause 関数群で invalid core Wasm"]
   I895["895 895 — HashMap intrinsic ファミリの容量成長（growth/rehash）が存在しない"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -110,7 +109,6 @@ graph LR
 - **880** depends on: 877, 878, 879; blocks: 852
 - **891** depends on: none; blocks: none
 - **893** depends on: none; blocks: none
-- **894** depends on: none; blocks: none
 - **895** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699

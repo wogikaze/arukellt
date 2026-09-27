@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T21:11:33Z",
+  "generated_at": "2026-09-27T22:47:47Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -569,23 +569,6 @@
       }
     },
     {
-      "id": "894",
-      "path": "894-gc-emit-multi-clause-groups-invalid-wasm.md",
-      "title": "894 — wasm32-gc emit: 複数 multi-clause 関数群で invalid core Wasm",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
       "id": "895",
       "path": "895-hashmap-intrinsic-family-growth.md",
       "title": "895 — HashMap intrinsic ファミリの容量成長（growth/rehash）が存在しない",
@@ -782,7 +765,7 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 46,
+        "checked": 47,
         "unchecked": 6
       },
       "orchestration": {
