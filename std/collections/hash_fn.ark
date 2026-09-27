@@ -9,7 +9,36 @@ pub fn hashmap_i32_fn_new() -> HashMap<i32, fn(i32) -> i32> {
     __hm_if_new()
 }
 
+fn hm_if_grow(m: HashMap<i32, fn(i32) -> i32>) {
+    let old_cap: i32 = __hm_if_cap(m)
+    let dst: HashMap<i32, fn(i32) -> i32> = __hm_if_new_with_cap(old_cap * 2)
+    let mut i: i32 = 0
+    while i < old_cap {
+        if __hm_if_get_flag(m, i) == 1 {
+            let _stored: bool = hashmap_i32_fn_set_probe(dst, __hm_if_get_key(m, i), __hm_if_get_val(m, i))
+        }
+        i = i + 1
+    }
+    __hm_if_adopt(m, dst)
+}
+
+fn hm_if_ensure_insert_capacity(m: HashMap<i32, fn(i32) -> i32>, key: i32) {
+    if !hashmap_i32_fn_contains(m, key) {
+        let cap: i32 = __hm_if_cap(m)
+        let needed: i32 = __hm_if_size(m) + 1
+        if cap * 3 < needed * 4 {
+            hm_if_grow(m)
+        }
+    }
+}
+
+/// i32→fn set: grows before the load factor exceeds 0.75 (#895).
 pub fn hashmap_i32_fn_set(m: HashMap<i32, fn(i32) -> i32>, key: i32, value: fn(i32) -> i32) -> bool {
+    hm_if_ensure_insert_capacity(m, key)
+    hashmap_i32_fn_set_probe(m, key, value)
+}
+
+fn hashmap_i32_fn_set_probe(m: HashMap<i32, fn(i32) -> i32>, key: i32, value: fn(i32) -> i32) -> bool {
     let cap: i32 = __hm_if_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap

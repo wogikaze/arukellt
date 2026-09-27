@@ -77,7 +77,8 @@ fn is_hashmap_adapter_bool(callee_name: String) -> bool {
 }
 
 fn is_hashmap_si32_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), "__hm_si_new") {
+    if callee_eq(clone(callee_name), "__hm_si_new") ||
+    callee_eq(clone(callee_name), "__hm_si_new_with_cap") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_new") {
@@ -91,7 +92,8 @@ fn is_hashmap_si32_new(callee_name: String) -> bool {
 }
 
 fn is_hashmap_i32str_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), "__hm_is_new") {
+    if callee_eq(clone(callee_name), "__hm_is_new") ||
+    callee_eq(clone(callee_name), "__hm_is_new_with_cap") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_new") {
@@ -105,7 +107,8 @@ fn is_hashmap_i32str_new(callee_name: String) -> bool {
 }
 
 fn is_hashmap_i32fn_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), "__hm_if_new") {
+    if callee_eq(clone(callee_name), "__hm_if_new") ||
+    callee_eq(clone(callee_name), "__hm_if_new_with_cap") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_new") {
@@ -119,7 +122,8 @@ fn is_hashmap_i32fn_new(callee_name: String) -> bool {
 }
 
 fn is_hashmap_strfn_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), "__hm_sf_new") {
+    if callee_eq(clone(callee_name), "__hm_sf_new") ||
+    callee_eq(clone(callee_name), "__hm_sf_new_with_cap") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_new") {
@@ -133,7 +137,8 @@ fn is_hashmap_strfn_new(callee_name: String) -> bool {
 }
 
 fn is_hashmap_strstr_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), "__hm_ss_new") {
+    if callee_eq(clone(callee_name), "__hm_ss_new") ||
+    callee_eq(clone(callee_name), "__hm_ss_new_with_cap") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_string::hashmap_str_str_new") {

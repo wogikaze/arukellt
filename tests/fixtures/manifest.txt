@@ -911,7 +911,9 @@ run:stdlib_hashmap/native_hashmap_string_string_family.ark
 run:stdlib_hashmap/hashmap_capacity_extend.ark
 run:stdlib_hashmap/hashmap_capacity_reserve.ark
 run:stdlib_hashmap/hashmap_extended.ark
+run:stdlib_hashmap/hashmap_fn_growth.ark
 run:stdlib_hashmap/hashmap_generic_demo.ark
+run:stdlib_hashmap/hashmap_growth.ark
 run:stdlib_hashmap/hashmap_methods_generic.ark
 run:stdlib_hashmap/hashmap_hardening.ark
 run:stdlib_hashmap/hashmap_i32_string.ark
@@ -2745,7 +2747,9 @@ t3-run:stdlib_fs/host_capability_contract.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark
 t3-run:stdlib_hashmap/hashmap_capacity_extend.ark
 t3-run:stdlib_hashmap/hashmap_capacity_reserve.ark
+t3-run:stdlib_hashmap/hashmap_fn_growth.ark
 t3-run:stdlib_hashmap/hashmap_generic_demo.ark
+t3-run:stdlib_hashmap/hashmap_growth.ark
 t3-run:stdlib_hashmap/hashmap_methods_generic.ark
 t3-run:stdlib_hashmap/hashmap_i32_string.ark
 t3-run:stdlib_hashmap/hashmap_insert.ark

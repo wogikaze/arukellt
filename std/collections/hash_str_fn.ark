@@ -4,12 +4,45 @@
 //! still load those modules do not require the previous compiler to know `__hm_sf_*`.
 
 use std::core::hash
-use std::prelude::{eq}
+use std::prelude::{clone, eq}
 pub fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
     __hm_sf_new()
 }
 
+fn hm_sf_grow(m: HashMap<String, fn(i32) -> i32>) {
+    let old_cap: i32 = __hm_sf_cap(m)
+    let dst: HashMap<String, fn(i32) -> i32> = __hm_sf_new_with_cap(old_cap * 2)
+    let mut i: i32 = 0
+    while i < old_cap {
+        if __hm_sf_get_flag(m, i) == 1 {
+            let _stored: bool = hashmap_str_fn_set_probe(dst, __hm_sf_get_key(m, i), __hm_sf_get_val(m, i))
+        }
+        i = i + 1
+    }
+    __hm_sf_adopt(m, dst)
+}
+
+fn hm_sf_ensure_insert_capacity(m: HashMap<String, fn(i32) -> i32>, key: String) {
+    if !hashmap_str_fn_contains(m, key) {
+        let cap: i32 = __hm_sf_cap(m)
+        let needed: i32 = __hm_sf_size(m) + 1
+        if cap * 3 < needed * 4 {
+            hm_sf_grow(m)
+        }
+    }
+}
+
+/// String→fn set: grows before the load factor exceeds 0.75 (#895).
 pub fn hashmap_str_fn_set(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String,
+    value: fn(i32) -> i32
+) -> bool {
+    hm_sf_ensure_insert_capacity(m, clone(key))
+    hashmap_str_fn_set_probe(m, key, value)
+}
+
+fn hashmap_str_fn_set_probe(
     m: HashMap<String, fn(i32) -> i32>,
     key: String,
     value: fn(i32) -> i32

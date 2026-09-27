@@ -230,7 +230,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     eq(clone(name), "HashMap_String_String_contains_key") {
         return simple_type(commands::TY_BOOL())
     }
-    if eq(clone(name), "__hm_si_new") {
+    if eq(clone(name), "__hm_si_new") || eq(clone(name), "__hm_si_new_with_cap") {
         return hashmap_string_i32_type()
     }
     if eq(clone(name), "__hm_si_cap") ||
@@ -242,7 +242,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "__hm_si_get_key") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(clone(name), "__hm_is_new") {
+    if eq(clone(name), "__hm_is_new") || eq(clone(name), "__hm_is_new_with_cap") {
         return hashmap_i32_string_type()
     }
     if eq(clone(name), "__hm_is_cap") ||
@@ -254,7 +254,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "__hm_is_get_val") {
         return simple_type(commands::TY_STRING())
     }
-    if eq(clone(name), "__hm_if_new") {
+    if eq(clone(name), "__hm_if_new") || eq(clone(name), "__hm_if_new_with_cap") {
         return hashmap_i32_fn_type()
     }
     if eq(clone(name), "__hm_if_cap") ||
@@ -266,7 +266,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "__hm_if_get_val") {
         return simple_type(kinds::TY_FN())
     }
-    if eq(clone(name), "__hm_sf_new") {
+    if eq(clone(name), "__hm_sf_new") || eq(clone(name), "__hm_sf_new_with_cap") {
         return hashmap_string_fn_type()
     }
     if eq(clone(name), "__hm_sf_cap") ||
@@ -280,7 +280,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     if eq(clone(name), "__hm_sf_get_val") {
         return simple_type(kinds::TY_FN())
     }
-    if eq(clone(name), "__hm_ss_new") {
+    if eq(clone(name), "__hm_ss_new") || eq(clone(name), "__hm_ss_new_with_cap") {
         return hashmap_string_string_type()
     }
     if eq(clone(name), "__hm_ss_cap") || eq(clone(name), "__hm_ss_size") || eq(clone(name), "__hm_ss_get_flag") {

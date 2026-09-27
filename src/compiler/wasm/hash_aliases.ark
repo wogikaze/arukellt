@@ -44,6 +44,15 @@ fn hashmap_internal_builtin_alias(name: String) -> String {
     eq(clone(name), "__hm_ss_new") {
         return "hashmap_new"
     }
+    // __hm_*_new_with_cap lowers to the flat Vec<i32> constructor with a
+    // caller-supplied capacity on linear targets (#895 growth donor).
+    if eq(clone(name), "__hm_si_new_with_cap") ||
+    eq(clone(name), "__hm_is_new_with_cap") ||
+    eq(clone(name), "__hm_if_new_with_cap") ||
+    eq(clone(name), "__hm_sf_new_with_cap") ||
+    eq(clone(name), "__hm_ss_new_with_cap") {
+        return "hashmap_with_capacity"
+    }
     clone(name)
 }
 

@@ -1,9 +1,9 @@
 // Stdlib benchmark: hash map insert/get with String keys and i32 values.
 // Exercises the canonical generic HashMap<String, i32> method surface
 // (insert/get/contains_key/remove/len), which lowers to the __hm_si
-// intrinsic adapters. NOTE: the intrinsic table does not grow past its
-// initial capacity (16), so inserts beyond that are silently dropped —
-// tracked as #895; the expected output encodes correct-map semantics.
+// intrinsic adapters. The table grows past its initial capacity (16) via
+// Ark-side rehash + __hm_*_adopt (#895); checksum 35000 = 100 len +
+// sum(7*i for i in 0..100) + 100 contains + 50 removes*2 + 50 len.
 use std::host::stdio
 use std::text
 fn main() {

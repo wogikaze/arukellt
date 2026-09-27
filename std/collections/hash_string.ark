@@ -20,8 +20,41 @@ pub fn hashmap_str_i32_new() -> HashMap<String, i32> {
     __hm_si_new()
 }
 
+// Growth: rebuild into a donor table at 0.75 load and adopt its storage,
+// so the probe bound stays a fallback instead of silently dropping
+// inserts past the initial capacity (#895). The donor must be dropped
+// immediately after __hm_*_adopt — it keeps stale refs to the new arrays.
+fn hm_si_grow(m: HashMap<String, i32>) {
+    let old_cap: i32 = __hm_si_cap(m)
+    let dst: HashMap<String, i32> = __hm_si_new_with_cap(old_cap * 2)
+    let mut i: i32 = 0
+    while i < old_cap {
+        if __hm_si_get_flag(m, i) == 1 {
+            let _stored: bool = hashmap_str_set_probe(dst, __hm_si_get_key(m, i), __hm_si_get_val(m, i))
+        }
+        i = i + 1
+    }
+    __hm_si_adopt(m, dst)
+}
+
+fn hm_si_ensure_insert_capacity(m: HashMap<String, i32>, key: String) {
+    if !hashmap_str_contains(m, key) {
+        let cap: i32 = __hm_si_cap(m)
+        let needed: i32 = __hm_si_size(m) + 1
+        if cap * 3 < needed * 4 {
+            hm_si_grow(m)
+        }
+    }
+}
+
 /// String-keyed set: store key in keys array, value in values array.
+/// The table grows before the load factor exceeds 0.75.
 pub fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool {
+    hm_si_ensure_insert_capacity(m, clone(key))
+    hashmap_str_set_probe(m, key, value)
+}
+
+fn hashmap_str_set_probe(m: HashMap<String, i32>, key: String, value: i32) -> bool {
     let cap: i32 = __hm_si_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -199,7 +232,36 @@ pub fn hashmap_i32_str_new() -> HashMap<i32, String> {
     __hm_is_new()
 }
 
+fn hm_is_grow(m: HashMap<i32, String>) {
+    let old_cap: i32 = __hm_is_cap(m)
+    let dst: HashMap<i32, String> = __hm_is_new_with_cap(old_cap * 2)
+    let mut i: i32 = 0
+    while i < old_cap {
+        if __hm_is_get_flag(m, i) == 1 {
+            let _stored: bool = hashmap_i32_str_set_probe(dst, __hm_is_get_key(m, i), __hm_is_get_val(m, i))
+        }
+        i = i + 1
+    }
+    __hm_is_adopt(m, dst)
+}
+
+fn hm_is_ensure_insert_capacity(m: HashMap<i32, String>, key: i32) {
+    if !hashmap_i32_str_contains(m, key) {
+        let cap: i32 = __hm_is_cap(m)
+        let needed: i32 = __hm_is_size(m) + 1
+        if cap * 3 < needed * 4 {
+            hm_is_grow(m)
+        }
+    }
+}
+
+/// i32-keyed set: grows before the load factor exceeds 0.75 (#895).
 pub fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> bool {
+    hm_is_ensure_insert_capacity(m, key)
+    hashmap_i32_str_set_probe(m, key, value)
+}
+
+fn hashmap_i32_str_set_probe(m: HashMap<i32, String>, key: i32, value: String) -> bool {
     let cap: i32 = __hm_is_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -373,7 +435,36 @@ pub fn hashmap_str_str_new() -> HashMap<String, String> {
     __hm_ss_new()
 }
 
+fn hm_ss_grow(m: HashMap<String, String>) {
+    let old_cap: i32 = __hm_ss_cap(m)
+    let dst: HashMap<String, String> = __hm_ss_new_with_cap(old_cap * 2)
+    let mut i: i32 = 0
+    while i < old_cap {
+        if __hm_ss_get_flag(m, i) == 1 {
+            let _stored: bool = hashmap_str_str_set_probe(dst, __hm_ss_get_key(m, i), __hm_ss_get_val(m, i))
+        }
+        i = i + 1
+    }
+    __hm_ss_adopt(m, dst)
+}
+
+fn hm_ss_ensure_insert_capacity(m: HashMap<String, String>, key: String) {
+    if !hashmap_str_str_contains(m, key) {
+        let cap: i32 = __hm_ss_cap(m)
+        let needed: i32 = __hm_ss_size(m) + 1
+        if cap * 3 < needed * 4 {
+            hm_ss_grow(m)
+        }
+    }
+}
+
+/// String→String set: grows before the load factor exceeds 0.75 (#895).
 pub fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: String) -> bool {
+    hm_ss_ensure_insert_capacity(m, clone(key))
+    hashmap_str_str_set_probe(m, key, value)
+}
+
+fn hashmap_str_str_set_probe(m: HashMap<String, String>, key: String, value: String) -> bool {
     let cap: i32 = __hm_ss_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
