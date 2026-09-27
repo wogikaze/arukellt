@@ -304,3 +304,37 @@ pre-existing typecheck gap, unchanged by this work.
 Acceptance still open: collection GC lowering breadth and the
 boxing-policy write-up; the representative pair-ABI fixture is now in
 place.
+
+## Progress receipt — 2026-09-27 (collection breadth audit + boxing policy pinned)
+
+- Collection breadth audit: `selfhost-fixture-test.py --execute-all`
+  passes **collections 20/20** and **closure_capture 8/8** on the
+  current s2 (wasm32-gc P2 component compile + validate + execute).
+  Covered: `Vec<fn>`, `HashMap<i32,fn>`/`HashMap<String,fn>` calls,
+  `Option<Vec<fn>>`/`Result<Vec<fn>>`, `Vec<Vec<String>>`,
+  struct/enum payloads, move/borrow/Copy capture env cells, and the
+  escaping move-rebind cell.
+- Runtime-helper audit: a representative `HashMap<String,fn>` module
+  imports 16 functions, **all** WASI P2 host calls — zero
+  language-runtime helper imports; managed values live entirely in
+  Wasm GC objects on wasm32-gc.
+- Boxing policy: pinned as **ADR-080** — element-class storage
+  (i32-family inline, typed arrays for i64/f64/v128, ref-String array,
+  `__fnpair` array for fn, enum-base array, structref array for named
+  aggregates/nested containers), no uniform boxing of concrete elements,
+  nullable ref elements + `ref.as_non_null` on get, and the i32
+  dead-shell convention for unresolved element params (ref elements
+  there are an implementation gap, tracked for diagnosis).
+- Mutable-borrow capture escape (counter-style rebind crossing an escape
+  boundary) remains E0213 per the ADR-061 fallback; promoting the source
+  local to a shared managed cell is carved into **#891** with its open
+  design questions, since it changes when parent reads observe closure
+  writes — a semantics-level decision, not just lowering breadth.
+
+Acceptance status: managed closure env ✓ (pair ABI + env cells for
+move/Copy; borrow-escape cells → #891), collection managed parts ✓ for
+the covered class matrix, boxing policy ✓ (ADR-080), runtime-helper
+dependency minimal ✓, representative fixture ✓
+(`fn_zero_param_ref_return.ark`). #872 close now rests on the
+`$issue-close-review` audit against the full acceptance list plus
+the borrow-escape residual ownership in #891.
