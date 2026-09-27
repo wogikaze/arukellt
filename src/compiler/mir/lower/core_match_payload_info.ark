@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::call_type_fallback
@@ -76,8 +77,15 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
     starts_with(clone(scrut_type), "Result_i32_") ||
     starts_with(clone(scrut_type), "result:i32:")
     let scrut_ok_is_ref = core_scrut_type_is_ref(scrut_type)
+    // On wasm32 every variant of an enum that declares payloads is a heap
+    // record, including payload-less arms like `Opt::None`.  Comparing the
+    // record pointer against the tag constant is always false, so variant
+    // patterns of a record-repr enum must read the tag field first (#892).
+    let has_record_variant_arm = core_match_has_record_variant_pattern(ctx, exprs, expr)
     let mut compare_idx = scrut_idx
-    if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
+    if is_payload_match ||
+    (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) ||
+    (!ctx_gc_enum::ctx_is_gc_target(ctx) && has_record_variant_arm) {
         call_type_fallback::mir_promote_gc_enum_container_vt(ctx, scrut_idx)
         compare_idx = core_emit_payload_tag_local(ctx, scrut_idx)
     }
@@ -174,4 +182,41 @@ fn core_match_has_payload_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) ->
         arm_scan = arm_scan + 1
     }
     false
+}
+
+fn core_match_has_record_variant_pattern(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
+    let mut arm_scan = 1
+    while arm_scan < core_expr_shape_accessors::mir_core_expr_child_count(expr) {
+        let scan_arm = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
+        if core_expr_shape_accessors::mir_core_expr_child_count(scan_arm) > 0 {
+            let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
+            if core_pat_is_record_variant(ctx, exprs, scan_pat) {
+                return true
+            }
+        }
+        arm_scan = arm_scan + 1
+    }
+    false
+}
+
+// Payload-variant registration marks every variant of a record-repr enum on
+// wasm32 (`Opt::None` is registered alongside `Opt::Some`), so it is the
+// oracle for whether an arm pattern requires tag-field extraction.
+fn core_pat_is_record_variant(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr) -> bool {
+    if core_expr_shape_patterns::mir_core_expr_is_pat_or(pat) {
+        let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
+        let mut or_oi = 0
+        while or_oi < alt_count {
+            let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
+            if core_pat_is_record_variant(ctx, exprs, or_alt) {
+                return true
+            }
+            or_oi = or_oi + 1
+        }
+        return false
+    }
+    if !core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) && !core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
+        return false
+    }
+    ctx_api_variants::ctx_is_payload_variant(ctx, core_expr_shape_accessors::mir_core_expr_text(pat))
 }

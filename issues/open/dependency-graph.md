@@ -35,6 +35,7 @@ graph LR
   I875["875 875 — wasm32-gc / fallback の意味論 parity を証明する"]
   I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
   I892["892 892 — wasm32 linear の enum pattern dispatch が wasm32-gc と diverge する"]
+  I893["893 893 — match アームの tuple パターンが両経路で未実装"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -118,6 +119,7 @@ graph LR
 - **875** depends on: 857, 858, 861, 862, 863, 864, 865, 867, 868, 869, 871, 872, 874; blocks: 877, 878, 879
 - **891** depends on: none; blocks: none
 - **892** depends on: none; blocks: none
+- **893** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

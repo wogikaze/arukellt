@@ -412,6 +412,7 @@ run:diagnostics/trait_def.ark
 run:display_trait/display_struct.ark
 run:enums/enum_struct_variant.ark
 run:enums/exhaustive_match.ark
+run:enums/match_payload_enum_unit_arm.ark
 run:enums/nested_enum.ark
 run:enums/option_none.ark
 run:enums/option_some.ark
@@ -2120,6 +2121,7 @@ t3-compile:stdlib_trait/error_trait.ark
 t3-compile:display_trait/display_struct.ark
 t3-compile:enums/enum_struct_variant.ark
 t3-compile:enums/exhaustive_match.ark
+t3-compile:enums/match_payload_enum_unit_arm.ark
 t3-compile:enums/nested_enum.ark
 t3-compile:enums/option_none.ark
 t3-compile:enums/option_some.ark
@@ -2587,6 +2589,7 @@ t3-run:stdlib_trait/error_trait.ark
 t3-run:display_trait/display_struct.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
+t3-run:enums/match_payload_enum_unit_arm.ark
 t3-run:enums/nested_enum.ark
 t3-run:enums/option_none.ark
 t3-run:enums/option_some.ark

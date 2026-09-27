@@ -1,0 +1,23 @@
+use std::host::stdio
+
+enum Opt {
+    Some(i32),
+    None,
+}
+
+fn main() {
+    let o: Opt = Opt::None
+    match o {
+        Opt::None => stdio::println("none"),
+        _ => stdio::println("other"),
+    }
+    let s: Opt = Opt::Some(7)
+    match s {
+        Opt::None => stdio::println("none"),
+        _ => stdio::println("other"),
+    }
+    match o {
+        Opt::Some(v) => stdio::println("some"),
+        _ => stdio::println("fallback"),
+    }
+}

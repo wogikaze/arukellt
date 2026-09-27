@@ -59,6 +59,35 @@ match t {
 - wasm32-gc: 未検証(要確認 — component emit で同様に壊れる場合は
   共通の match lowering 問題)。
 
+## Root cause(2026-09-27 確定)
+
+二つの独立した lowering 欠陥が重なっていた。両方とも CoreHIR 経路
+(`lower_core_match`) のみ、または両経路共通で、GC 側は fn-clause が
+legacy body 経路へ落ちるため表面化していなかった。
+
+1. guarded non-catchall arm の連鎖構造
+   (`core_match_arm_branch.ark`):
+   `if(pat_cmp) { binds; if(guard) { body } else { 次arm } }` と
+   生成し、pattern-compare if に else が付かなかった。pattern miss で
+   match result が未初期化のまま返り、linear では println の null deref
+   (`0xfffffffc`) として顕在化した。legacy body 経路の matched-local
+   方式(`lower_guarded_nonlast_match_arm`)に揃えて修正。
+   同時に or-pattern + guard の arm が guard 自体を silent drop
+   していた欠陥も同経路で解消。
+
+2. payload-less variant の compare_idx
+   (`mir_prepare_match_payload` / `core_prepare_match_payload`):
+   linear では `is_payload_match`(子を持つ PatVariant がある)時だけ
+   compare_idx を tag local にしていた。`match o { Opt::None => _, _ => _ }`
+   のように payload-less arm のみの match では record pointer と tag
+   定数を `eq` 比較し常に false となり wrong-arm を返していた。
+   payload-enum の全 variant(record `{_tag}` 表現)を
+   `ctx_is_payload_variant` 登録で判定し、tag local へ promote するよう
+   両経路で修正。
+
+tuple arm パターンは両 backend・両経路で未実装(共通 gap、divergence
+ではない)のため #893 へ分離。
+
 同一意味を `match o { Opt::None => ... }`(非 tuple)で書くと
 wasm32 でも正しく `none` を返す。つまり壊れるのは multi-clause
 desugar が生成する tuple scrutinee 経路と、明示的な tuple 内 enum
