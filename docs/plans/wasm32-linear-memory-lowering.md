@@ -249,3 +249,34 @@ slot array は routed `Vec<i32>` backing 内にあるため、正確な descript
 move/borrow parity は引き続き未完了である。
 
 ---
+
+## Close-out（2026-09-27, #874 done）
+
+上記 receipt に列挙されていた残件の最終状態:
+
+- closure environment: {fnptr, env} pair record が managed closure
+  ABI として LINEAR_GC_ALLOC 経由で降り、closure_capture 6
+  fixture と escape fixture が両 backend で同一出力。完了。
+- HashMap descriptor: flat slot array は routed Vec<i32> backing
+  内にあり、conservative transitive marking が key/value を保持する
+  （linear_gc_hashmap_survives が実証）。exact pointer-field
+  descriptor は ADR-075 §3 の bootstrap 許可の範囲で conservative
+  scan を継続 — 本計画の外。
+- linear HashMap<*,fn>: fn-valued map の hash_fn/hash_str_fn
+  module retarget 以降、hm_fn_ops / hm_strfn_ops が両 backend で
+  同一出力。完了。
+- automatic collect: 64 MiB watermark-gated entry collect 実装済み、
+  linear_gc_entry_collect と e2e で実証。完了。
+- shared/cyclic source graph: source では真の pointer cycle は
+  書けない（struct は i32 index）。実 cycle は runtime probe
+  test_rooted_cycle_survives_and_unreachable_cycle_is_reused が
+  カバー。完了（runtime 解釈）。
+- move/borrow parity: 監査結果を
+  docs/research/874-fallback-managed-value-parity-audit.md に記録 —
+  11 項すべて両 backend で source-visible semantics 一致。完了。
+- impl-path Vec::new<T> element specialization: #889 で解消
+  （GC numeric grow clamp + LM vec_get wide dispatch、fixture
+  vec_impl_path_numeric 両 backend 同一出力）。
+- unannotated Vec::new<(A,B)> turbofish: #888 の tuple type-name
+  経路で解消済み。Option<tuple> payload ABI の共通欠陥は #890 へ
+  移管。

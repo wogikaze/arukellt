@@ -33,7 +33,6 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I872["872 872 — Wasm GC closure / collection lowering を完成する"]
-  I874["874 874 — fallback managed-value lowering を実装する"]
   I887["887 887 — Method-level generics (`fn m<U>` on generic/非 generic types)"]
   I890["890 890 — Option<tuple> payload produces invalid wasm on both backends"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -66,7 +65,6 @@ graph LR
   I715 --> I799
   I851 --> I850
   I872 --> I875
-  I874 --> I875
   I682 --> I683
   I698 --> I699
   I695 --> I709
@@ -75,7 +73,6 @@ graph LR
   I875 --> I877
   I875 --> I878
   I872 --> I879
-  I874 --> I879
   I875 --> I879
   I697 --> I710
   I709 --> I710
@@ -122,7 +119,6 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879
-- **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879
 - **887** depends on: 856, 860; blocks: none
 - **890** depends on: 860; blocks: none
 - **682** depends on: 679, 680; blocks: 683

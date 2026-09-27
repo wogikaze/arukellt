@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-27T04:16:45Z",
+  "generated_at": "2026-09-27T04:23:42Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -522,32 +522,6 @@
         "859",
         "860",
         "871"
-      ],
-      "blocks_issue_ids": [
-        "875",
-        "879"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "874",
-      "path": "874-fallback-managed-value-lowering.md",
-      "title": "874 — fallback managed-value lowering を実装する",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "854",
-        "855",
-        "859",
-        "860",
-        "873"
       ],
       "blocks_issue_ids": [
         "875",

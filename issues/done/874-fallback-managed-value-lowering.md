@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-20
+Updated: 2026-09-27
 ID: 874
 Parent: 852
 Track: language-v2
@@ -1771,3 +1771,54 @@ signature and failed typecheck (`type mismatch: i32 vs <elem>`).
   descriptor lowering, the written move/borrow parity audit summary,
   the impl-path `Vec::new<T>` element-specialization gap above, and
   unannotated tuple-element `Vec::new<(A, B)>` turbofish; #874 stays open.
+
+## Progress receipt — 2026-09-27 (issue closing)
+
+The written move/borrow parity audit — the last outstanding
+deliverable — is recorded at
+`docs/research/874-fallback-managed-value-parity-audit.md` and
+summarized in `docs/plans/wasm32-linear-memory-lowering.md` under
+Close-out. All five acceptance items are met:
+
+- struct/enum/Option/Result fallback layout: landed across receipts
+  (6f480e71e onward); aggregates allocate through
+  `emit_heap_alloc_from_stack` → `LINEAR_GC_ALLOC`.
+- closure env → fallback heap: `{fnptr, env}` pair records on the
+  managed closure ABI; closure_capture + escape fixtures identical on
+  both backends.
+- Vec/String/HashMap → fallback runtime: every LM heap allocation is
+  routed (Vec layout, all String families, HashMap flat slot array via
+  routed Vec<i32> backing — linear_gc_hashmap_survives proves entries
+  survive ≥2 entry-gated collections).
+- shared/cyclic execute without reject: source-level pointer cycles
+  are unwritable (structs hold i32 indices); real cycles are covered
+  by `test_rooted_cycle_survives_and_unreachable_cycle_is_reused`
+  and shared graphs by transitive marking evidence.
+- same move/borrow semantics as Wasm GC: audit table rows 1–11 all OK
+  — value copy semantics, borrow/write-through capture cells,
+  Option/Result payload records, bounds/error traps, root/collect
+  timing.
+
+Deferred/with-tracking items (not #874 scope):
+
+- exact pointer-field descriptors: ADR-075 §3 bootstrap-permitted
+  conservative scan; no false negatives by construction.
+- `Option<tuple>` payload ABI (invalid wasm on BOTH backends —
+  shared defect, not a parity divergence): tracked as #890.
+- impl-path `Vec::new<T>` element grow: fixed under #889
+  (`757fdf98b`, fixture `vec_impl_path_numeric` identical on both
+  backends).
+- unannotated `Vec::new<(A,B)>` turbofish: verified resolved by
+  #888's tuple type-name path — `get_unchecked(0)` destructures to
+  `1 2` on both backends today.
+- cosmetic: HashMap receiver renders `?` in E0200;
+  `hashmap_builtin_alias` HashMap_i32_fn_insert bool/Option
+  asymmetry — recorded in the audit doc.
+
+Verification this session: fixture + probe runs on the current s2
+(`vec_impl_path_numeric` byte-identical on wasm32 and wasm32-gc,
+tuple ctor probe `1 2` on both), prior receipts' gates
+(selfhost build-compiler, verify lane, linear GC contract/e2e
+suites) remain the implementation evidence; no code changed in this
+closing commit beyond the `wasm32`/`wasm32-gc` runs already
+verified under #889.
