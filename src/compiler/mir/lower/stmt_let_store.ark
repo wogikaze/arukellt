@@ -84,6 +84,14 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
         }
         return
     }
+    // An explicit `fn(...) -> R` annotation (fnsig:/fn( spellings) carries the
+    // concrete callback signature; the opaque `fnref*` bucket stored on a
+    // lowered pair initializer is not a refinement. Letting it overwrite
+    // drops the return segment, so indirect-call dests fall back to the
+    // scalar bucket and land in i64 locals on GC (#872).
+    if starts_with(clone(existing), "fnsig:") || starts_with(clone(existing), "fn(") {
+        return
+    }
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
     if len(init_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)

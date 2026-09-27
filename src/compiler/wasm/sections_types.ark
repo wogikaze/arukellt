@@ -54,7 +54,8 @@ fn emit_type_section(
         functions,
         fn_count,
         clone(target),
-        memory64
+        memory64,
+        module_gc_struct::MirModule_gc_struct_names(mir)
     )
     let pair_sig_count = len(pair_sigs)
     let type_sigs = build_type_sigs(

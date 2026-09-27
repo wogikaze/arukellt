@@ -88,6 +88,18 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         }
         return String_from("fnref2")
     }
+    if type_ann_child_count(node) == 0 && type_ann_return_count(node) == 1 {
+        // Zero-param fn values keep the legacy `fnref` bucket for scalar
+        // returns, mirroring the closure spelling rule in
+        // closure_funcref_type_name. A named non-scalar return needs the
+        // `fnsig:;<ret>` spelling so an indirect call dest local carries
+        // the ref type instead of collapsing to the scalar bucket (#872).
+        let ret_seg_zero = fn_sig_segment_name(type_ann_return_at(node, 0))
+        if len(ret_seg_zero) == 0 || fn_sig_segment_is_i32_family(clone(ret_seg_zero)) {
+            return String_from("fnref")
+        }
+        return concat(String_from("fnsig:;"), ret_seg_zero)
+    }
     String_from("fnref")
 }
 

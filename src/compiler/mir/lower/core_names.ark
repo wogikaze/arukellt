@@ -1,6 +1,7 @@
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
+use mir::lower::closure_registry
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
@@ -24,6 +25,21 @@ fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
 }
 
 fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
+    // A named function coerced to a fn value spells the same callback
+    // signature a same-shaped closure does (zero captures): scalar
+    // signatures keep the legacy fnref* buckets and named non-scalar
+    // returns spell fnsig:<params>;<ret>, so an indirect call dest carries
+    // the real return type (#872).
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let n = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(m, i)
+        if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
+            return closure_registry::closure_funcref_type_name(f, 0)
+        }
+        i = i + 1
+    }
     let parameter_count = mir_function_parameter_count(ctx, clone(fn_name))
     // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
     if parameter_count >= 2 {

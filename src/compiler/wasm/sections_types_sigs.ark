@@ -88,12 +88,14 @@ fn append_function_type_sigs(
 // declared (env, args...) -> ret shape has no __fnthunk trampoline still
 // needs a valid ref.cast target: emit resolves these registered types by
 // exact sig instead of arity-guessing a program function. Collected only
-// for the GC target; scalar-only per pair_call_sig_from_hint.
+// for the GC target; ref segments resolve through gc_struct_names per
+// pair_call_sig_from_hint.
 fn collect_pair_call_type_sigs(
     functions: Vec<MirFunction>,
     fn_count: i32,
     target: String,
-    memory64: bool
+    memory64: bool,
+    gc_struct_names: Vec<String>
 ) -> Vec<String> {
     let sigs = Vec::new<String>()
     if !emit_target::is_gc_target(clone(target)) {
@@ -114,7 +116,8 @@ fn collect_pair_call_type_sigs(
                     let sig = call_indirect::pair_call_sig_from_hint(
                         inst_accessors_literals::MirInst_str_val(inst),
                         inst_accessors_shape::MirInst_val_type(inst),
-                        memory64
+                        memory64,
+                        clone(gc_struct_names)
                     )
                     if len(sig) > 0 {
                         let mut seen = false

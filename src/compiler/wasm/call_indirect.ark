@@ -14,6 +14,7 @@ use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::opcodes
 use wasm::sections_types_gc
 use wasm::sections_type_plan
+use wasm::sections_types_gc_phase7
 use wasm::writer_core
 use mir::opcodes as mir_opcodes
 
@@ -235,12 +236,26 @@ fn pair_call_sig_vt_is_scalar(vt: i32) -> bool {
 }
 
 // "<structref, args...> -> ret" func-sig for a pair-ABI call site, or "" when
-// the hint has no vk key or any segment is not a scalar value type. The env
-// slot is always structref under the uniform pair ABI.
-fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool) -> String {
+// the hint has no vk key or a segment cannot be pinned to a concrete type.
+// The env slot is always structref under the uniform pair ABI. Scalar
+// segments come from the vk value types; ref-family segments resolve their
+// exact type from the parallel nk name segment so producer-free call sites
+// still get a valid ref.cast target (#872).
+fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct_names: Vec<String>) -> String {
     let vk = call_ref_hint_seg4(clone(hint))
     if !starts_with(clone(vk), String_from("vk:")) {
         return String_new()
+    }
+    let nk = call_ref_hint_seg3(clone(hint))
+    let mut nk_params = String_new()
+    let mut nk_ret = String_new()
+    if starts_with(clone(nk), String_from("nk:")) {
+        let nk_body = substring(clone(nk), 3, len(nk))
+        let nk_sep = index_of(clone(nk_body), String_from(";"))
+        if nk_sep >= 0 {
+            nk_params = substring(clone(nk_body), 0, nk_sep)
+            nk_ret = substring(clone(nk_body), nk_sep + 1, len(nk_body))
+        }
     }
     let body = substring(clone(vk), 3, len(vk))
     let sep = index_of(clone(body), String_from(";"))
@@ -254,16 +269,28 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool) -> String
     if n > 0 {
         let mut seg_start = 0
         let mut i = 0
+        let mut pi = 0
         while i <= n {
             if i == n || byte_at(params_part, i) == 44 {
                 let seg = substring(clone(params_part), seg_start, i)
                 let vt = pair_sig_parse_vt(seg)
-                if !pair_call_sig_vt_is_scalar(vt) {
-                    return String_new()
+                if vt >= 0 && pair_call_sig_vt_is_scalar(vt) {
+                    sig = concat(sig, String_from("_"))
+                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(vt, true, memory64))
+                } else {
+                    let name_tok = pair_sig_named_sig_token(
+                        pair_key_param_seg(clone(nk_params), pi),
+                        clone(gc_struct_names),
+                        memory64
+                    )
+                    if len(name_tok) == 0 {
+                        return String_new()
+                    }
+                    sig = concat(sig, String_from("_"))
+                    sig = concat(sig, name_tok)
                 }
-                sig = concat(sig, String_from("_"))
-                sig = concat(sig, sections_type_plan::val_type_to_target_sig(vt, true, memory64))
                 seg_start = i + 1
+                pi = pi + 1
             }
             i = i + 1
         }
@@ -271,9 +298,6 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool) -> String
     let mut ret_vt = 0 - 1
     if len(ret_part) > 0 {
         ret_vt = pair_sig_parse_vt(ret_part)
-        if ret_vt >= 0 && !pair_call_sig_vt_is_scalar(ret_vt) {
-            return String_new()
-        }
     }
     if ret_vt < 0 {
         ret_vt = dest_vt
@@ -281,10 +305,158 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool) -> String
     if ret_vt == value_types::VT_VOID() {
         return concat(sig, String_from("_0"))
     }
-    if !pair_call_sig_vt_is_scalar(ret_vt) {
+    if pair_call_sig_vt_is_scalar(ret_vt) {
+        return concat(
+            clone(sig),
+            concat(
+                String_from("_1"),
+                sections_type_plan::val_type_to_target_sig(ret_vt, true, memory64)
+            )
+        )
+    }
+    // Ref-family return: the nk return name carries the declared type, so
+    // resolve the exact ref token instead of dropping to the arity scan.
+    let ret_tok = pair_sig_named_sig_token(clone(nk_ret), gc_struct_names, memory64)
+    if len(ret_tok) == 0 {
         return String_new()
     }
-    concat(sig, concat(String_from("_1"), sections_type_plan::val_type_to_target_sig(ret_vt, true, memory64)))
+    concat(sig, concat(String_from("_1"), ret_tok))
+}
+
+// Segment at position idx inside a comma-separated pair-key params part
+// ("a,b,c"), or "" when idx is out of range.
+fn pair_key_param_seg(params: String, idx: i32) -> String {
+    let n = len(params)
+    let mut seg_start = 0
+    let mut seen = 0
+    let mut i = 0
+    while i <= n {
+        if i == n || byte_at(clone(params), i) == 44 {
+            if seen == idx {
+                return substring(clone(params), seg_start, i)
+            }
+            seen = seen + 1
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// Func-sig token for a named pair-call segment. Scalar names map to their
+// canonical value-type sig (with the same Memory64 widening the trampoline
+// signatures use); ref names resolve through pair_sig_ref_name_token so a
+// String return pins gcref0 rather than an arity-guessed fallback (#872).
+fn pair_sig_named_sig_token(name: String, gc_struct_names: Vec<String>, memory64: bool) -> String {
+    if len(name) == 0 {
+        return String_new()
+    }
+    let vt = fnsig_segment_value_type(clone(name))
+    if vt != value_types::VT_GC_REF() && vt != value_types::VT_REF() {
+        return sections_type_plan::val_type_to_target_sig(vt, true, memory64)
+    }
+    pair_sig_ref_name_token(name, gc_struct_names)
+}
+
+// Exact ref-type func-sig token for a ref-valued pair-call segment name.
+// Mirrors fnsig_segment_sig_for_mir spelling rules but resolves user
+// struct slots from the gc_struct_names list, which is available to both
+// the type-section collector and the emit-side lookup (#872).
+fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String {
+    if eq(clone(name), String_from("String")) || eq(clone(name), String_from("string")) {
+        return sections_types_gc::gc_string_type_sig()
+    }
+    if starts_with(clone(name), String_from("vec:")) ||
+    starts_with(clone(name), String_from("hashmap:")) {
+        return pair_sig_collection_name_token(name, gc_struct_names)
+    }
+    if starts_with(clone(name), String_from("option:")) ||
+    starts_with(clone(name), String_from("result:")) ||
+    starts_with(clone(name), String_from("enum:")) ||
+    starts_with(clone(name), String_from("Option")) ||
+    starts_with(clone(name), String_from("Result")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if eq(clone(name), String_from("fn")) ||
+    starts_with(clone(name), String_from("fnref")) ||
+    starts_with(clone(name), String_from("fnsig:")) ||
+    starts_with(clone(name), String_from("fn(")) {
+        // fn values are __fnpair records under the pair ABI.
+        let pair_slot = pair_sig_struct_slot(gc_struct_names, String_from("__fnpair"))
+        if pair_slot >= 0 {
+            return concat(String_from("gcsref"), i32_to_string(pair_slot))
+        }
+        return String_new()
+    }
+    let slot = pair_sig_struct_slot(gc_struct_names, clone(name))
+    if slot >= 0 {
+        return concat(String_from("gcsref"), i32_to_string(slot))
+    }
+    String_new()
+}
+
+fn pair_sig_struct_slot(gc_struct_names: Vec<String>, name: String) -> i32 {
+    let mut i = 0
+    while i < len(gc_struct_names) {
+        if eq(get_unchecked(gc_struct_names, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+// vec:/hashmap: segment names -> their fixed collection type sigs. Mirrors
+// collection_type_sig but needs no MirModule: the only module-dependent
+// branch (Vec of user structs) resolves through gc_struct_names (#872).
+fn pair_sig_collection_name_token(name: String, gc_struct_names: Vec<String>) -> String {
+    if starts_with(clone(name), String_from("vec:")) {
+        if eq(clone(name), String_from("vec:String")) || eq(clone(name), String_from("vec:string")) {
+            return sections_types_gc::gc_vec_string_type_sig()
+        }
+        if eq(clone(name), String_from("vec:i64")) || eq(clone(name), String_from("vec:I64")) {
+            return sections_types_gc::gc_vec_i64_type_sig()
+        }
+        if eq(clone(name), String_from("vec:f64")) || eq(clone(name), String_from("vec:F64")) {
+            return sections_types_gc::gc_vec_f64_type_sig()
+        }
+        if eq(clone(name), String_from("vec:v128")) || eq(clone(name), String_from("vec:V128")) {
+            return sections_types_gc::gc_vec_v128_type_sig()
+        }
+        if eq(clone(name), String_from("vec:fnref")) || eq(clone(name), String_from("vec:fn")) {
+            return sections_types_gc::gc_vec_fnref_type_sig()
+        }
+        let elem = substring(clone(name), 4, len(name))
+        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
+            return sections_types_gc::gc_vec_fnref_type_sig()
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
+            return sections_types_gc::gc_vec_enum_ref_type_sig()
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) ||
+        eq(clone(elem), String_from("Vec")) ||
+        starts_with(clone(elem), String_from("vec:")) ||
+        pair_sig_struct_slot(clone(gc_struct_names), clone(elem)) >= 0 {
+            return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
+        }
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    if starts_with(clone(name), String_from("hashmap:i32str")) {
+        return sections_types_gc::gc_hashmap_i32_str_type_sig()
+    }
+    if starts_with(clone(name), String_from("hashmap:i32fn")) {
+        return sections_types_gc::gc_hashmap_i32_fn_type_sig()
+    }
+    if starts_with(clone(name), String_from("hashmap:strfn")) {
+        return sections_types_gc::gc_hashmap_str_fn_type_sig()
+    }
+    if starts_with(clone(name), String_from("hashmap:strstr")) {
+        return sections_types_gc::gc_hashmap_str_str_type_sig()
+    }
+    if starts_with(clone(name), String_from("hashmap:i32i32")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    sections_types_gc::gc_hashmap_str_i32_type_sig()
 }
 
 // Emit-side lookup for the registered pair-call signatures.

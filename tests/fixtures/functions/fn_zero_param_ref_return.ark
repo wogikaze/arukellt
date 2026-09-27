@@ -1,0 +1,32 @@
+use std::host::stdio
+
+fn greeting() -> String {
+    "hello"
+}
+
+fn fallback() -> String {
+    "fallback"
+}
+
+fn producer() -> fn() -> String {
+    greeting
+}
+
+fn apply0(f: fn() -> String) -> String {
+    f()
+}
+
+fn main() {
+    let f: fn() -> String = greeting
+    stdio::println(f())
+    let p = producer()
+    stdio::println(p())
+    stdio::println(apply0(greeting))
+    let mut g: fn() -> String = fallback
+    g = greeting
+    stdio::println(g())
+    let c = || {
+        "fromclosure"
+    }
+    stdio::println(apply0(c))
+}

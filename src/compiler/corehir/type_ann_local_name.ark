@@ -1,8 +1,17 @@
 use corehir::type_ann_node
 use corehir::hashmap_type_name
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 
 fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
+        // fn(...) -> R annotations spell their callback signature
+        // (fnref/fnref2/fnrefss/fnrefsb/fnsig:) the same way fn params do —
+        // the raw node text is always the opaque "fnref" marker, which
+        // drops the return type and mis-types indirect-call results (#872).
+        return type_ann_node::type_ann_function_ref_name(ann)
+    }
     if type_ann_node::type_ann_is_generic(ann) {
         if eq(clone(ann_name), "Vec") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {

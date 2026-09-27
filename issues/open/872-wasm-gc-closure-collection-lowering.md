@@ -253,3 +253,54 @@ fixture sources, owned by #852/#878, unrelated to the emitter).
 Acceptance still open: managed closure env cells, collection GC lowering
 breadth, and the representative pair-ABI fixture; these commits are
 prerequisite validation repair, not closure.
+
+## Progress receipt — 2026-09-27 (zero-param `fn() -> R` signature gap closed)
+
+`fn() -> String` (and any zero-param fn signature with a named non-scalar
+return) produced invalid core Wasm on wasm32-gc — the call_ref result
+`(ref T)` was stored into an i64 local — and mis-compiled on wasm32 where
+a named-fn coercion was lowered as `call $f`, executing the callee and
+binding the return value instead of a fn pair.
+
+- `type_ann_function_ref_name` gained a zero-param branch spelling
+  `fnsig:;<ret>` for non-i32-family returns, matching the closure rule in
+  `closure_funcref_type_name` (`fnsig:;<ret>` for ref-returning thunks).
+- `mir_fn_return_type_name_from_type_info` mirrors the same rule for
+  MIR-level return signatures (argc==1, and argc>2 with non-i32 returns
+  now emit `fnsig:<params>;<ret>` instead of the lossy `fnref2` bucket).
+- `type_ann_shape_local_type_name` routes let annotations whose AST node
+  is TYPE_FN through the signature spelling; the raw node text was the
+  opaque "fnref" marker that dropped the return segment.
+- `mir_fnref_type_name_for_function` now delegates to
+  `closure_funcref_type_name(mf, 0)` so a named function coerced to a fn
+  value carries the concrete signature (previously arity-only
+  `fnref`/`fnref2`).
+- `sync_let_local_type_name` preserves `fnsig:`/`fn(` annotation names;
+  the opaque `fnref*` bucket on a lowered pair initializer no longer
+  overwrites the declared signature.
+- `pair_call_sig_from_hint` / `collect_pair_call_type_sigs` resolve
+  `fnsig:` ref segments through `gc_struct_names` so the emitted
+  call_ref func type matches the callee structref ABI.
+- `mir_value_type_from_type_name` treats `fnsig:` as a fn type name,
+  which keeps spine-param mvts marked FUNCREF — the root cause of the
+  linear path emitting a direct `call $f` for coerced identifiers.
+- New fixture `tests/fixtures/functions/fn_zero_param_ref_return.ark`
+  exercises annotated let binding, `fn() -> String` return, fn-typed
+  param call, mutable reassign, and a zero-param closure; manifest +3
+  entries, project-state counts synced.
+
+Verification: wasm32-gc core modules validate (`wasm-tools validate
+--features all`) and components print the expected output for all five
+probes plus the fixture; wasm32 runs the fixture end-to-end. T3 gate:
+479 pass / **0 validate-fail** / 27 compile-fail (unchanged pre-existing
+E0200/E0208 owned by #852/#878) / 19 skip. `verify lane` passes
+(fmt, touched-code quality ratchet, lint smoke).
+
+Known residual: an unannotated `let f = greeting` on wasm32 binds the
+call result per #884 semantics (bare 0-param ident invokes), so `f()`
+is a misuse that lowers to `unreachable` rather than a diagnostic —
+pre-existing typecheck gap, unchanged by this work.
+
+Acceptance still open: collection GC lowering breadth and the
+boxing-policy write-up; the representative pair-ABI fixture is now in
+place.

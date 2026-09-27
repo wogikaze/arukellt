@@ -40,7 +40,8 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
         let pair_sig = call_indirect::pair_call_sig_from_hint(
             clone(raw_hint),
             dest_vt,
-            ctx_record::SelfEmitCtx_memory64(ctx)
+            ctx_record::SelfEmitCtx_memory64(ctx),
+            ctx_record::SelfEmitCtx_gc_struct_names(ctx)
         )
         if len(pair_sig) > 0 {
             type_idx = call_indirect::call_ref_pair_sig_type_idx(ctx, pair_sig)

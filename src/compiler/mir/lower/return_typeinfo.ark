@@ -116,6 +116,19 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
 // opaque as fnref — the same collapse the annotation path performs.
 fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let argc = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    if argc == 1 {
+        // Zero-param fn values carry only the return type arg. Named
+        // non-scalar returns spell fnsig:;<ret> so indirect-call dests keep
+        // the ref type; scalar returns keep the legacy bucket, matching
+        // the annotation rule in type_ann_function_ref_name (#872).
+        let ret_seg_zero = return_typeinfo_names::mir_generic_inst_arg_type_name(
+            typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+        )
+        if len(ret_seg_zero) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_zero)) {
+            return String_from("fnref")
+        }
+        return concat(String_from("fnsig:;"), ret_seg_zero)
+    }
     if argc == 2 {
         let pseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
             typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
@@ -139,6 +152,37 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         )
     }
     if argc > 2 {
+        // Mirror the multi-param annotation rule: a named non-scalar return
+        // spells fnsig:<params>;<ret> so indirect-call dests carry the real
+        // type instead of collapsing to the fnref2 scalar bucket (#872).
+        let ret_seg_multi = return_typeinfo_names::mir_generic_inst_arg_type_name(
+            typeinfo_shape::mir_type_info_type_arg_at(ty, argc - 1)
+        )
+        if len(ret_seg_multi) > 0 &&
+        !type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg_multi)) {
+            let mut params = String_new()
+            let mut pi = 0
+            let mut unresolved = false
+            while pi < argc - 1 {
+                if pi > 0 {
+                    params = concat(params, String_from(","))
+                }
+                let pseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
+                    typeinfo_shape::mir_type_info_type_arg_at(ty, pi)
+                )
+                if len(pseg) == 0 {
+                    unresolved = true
+                }
+                params = concat(params, pseg)
+                pi = pi + 1
+            }
+            if !unresolved {
+                return concat(
+                    String_from("fnsig:"),
+                    concat(clone(params), concat(String_from(";"), ret_seg_multi))
+                )
+            }
+        }
         return String_from("fnref2")
     }
     String_from("fnref")
