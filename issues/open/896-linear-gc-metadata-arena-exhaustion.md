@@ -47,6 +47,14 @@ stringify_pretty を 50 回反復）を wasm32 linear で実行すると、
 wasm trap: wasm `unreachable` instruction executed
 ```
 
+さらに #879 の 20-workload suite では allocation-heavy な wasm32 linear 側が
+8 件（enum_dispatch / struct_graph / error_chain / http_parser /
+log_processor / config_loader / json_parse / toml_ops）すべて同型の
+`unreachable` trap で落ちる。enum_dispatch は 100k 回の enum literal
+確保で arena 上限を大幅に超えるため、この枯渇が支配的な linear
+runtime 障害として観測される。`root_push` 側の guard も同じ arena
+境界を共有するため、root stack 側の混雑でも同症状が出る点に注意。
+
 同じ source を wasm32-gc component として実行すると正しく `2550` を
 返す。ループなしの単発実行、および各呼び出しの個別使用は linear でも
 正常なので、parser ロジックではなく累積 allocation による枯渇が原因。
