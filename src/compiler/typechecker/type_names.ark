@@ -1,4 +1,5 @@
 use std::prelude::{clone}
+use typechecker::names
 use typechecker::kinds
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
@@ -14,17 +15,21 @@ fn type_info_named(tag: i32, name: String) -> TypeInfo {
 }
 
 fn resolve_type_name(name: String) -> TypeInfo {
-    let primitive = type_name_primitives::resolve_primitive_type_name(clone(name))
+    // Type identity is the declared leaf name: `mod::T` in an annotation
+    // refers to the same type as `T`, matching names::unqualified_type_name
+    // on the method-lookup side.
+    let leaf = names::unqualified_type_name(name)
+    let primitive = type_name_primitives::resolve_primitive_type_name(clone(leaf))
     if contract_type_access::TypeInfo_tag(primitive) != commands::TY_UNKNOWN() {
         return primitive
     }
-    let container = type_name_containers::resolve_container_type_name(clone(name))
+    let container = type_name_containers::resolve_container_type_name(clone(leaf))
     if contract_type_access::TypeInfo_tag(container) != commands::TY_UNKNOWN() {
         return container
     }
-    let alias = type_name_aliases::resolve_alias_type_name(clone(name))
+    let alias = type_name_aliases::resolve_alias_type_name(clone(leaf))
     if contract_type_access::TypeInfo_tag(alias) != commands::TY_UNKNOWN() {
         return alias
     }
-    type_info_named(commands::TY_STRUCT(), name)
+    type_info_named(commands::TY_STRUCT(), leaf)
 }

@@ -189,7 +189,7 @@ fn native_c_plan_root_clears_from_effects(
     reference_locals: Vec<i32>,
     effects: NativeCInstructionEffects
 ) -> NativeCRootClearPlan {
-    let plan = native_c_root_clear_plan_empty()
+    let mut plan = native_c_root_clear_plan_empty()
     plan.functions_analyzed = 1
     let block_count = function_block_queries::MirFunction_block_count(function)
     // MIR_PHI / block.phis are lowered by edge parallel copies (RFC-008).

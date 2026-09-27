@@ -147,7 +147,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
     out
 }
 
-fn import_block_bounds(entries: Vec<PruneImportEntry>) -> import_block::ImportBlockSpan {
+fn import_block_bounds(entries: Vec<PruneImportEntry>) -> ImportBlockSpan {
     let en = len(entries)
     let mut first_start = get_unchecked(entries, 0).line_start
     let mut last_end = get_unchecked(entries, 0).line_end

@@ -28,7 +28,7 @@ fn emit_clock_now_ms(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     }
     emit_clock_time_get(w, 0)
     emit_clock_load_i64_result(w)
-    let million: i64 = 1000000
+    let million: i64 = 1000000i64
     emit_i64_const_value(w, million)
     helpers_numeric_i64_arith::emit_i64_div_u(w)
     return true
@@ -36,7 +36,7 @@ fn emit_clock_now_ms(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_clock_time_get(w: WasmWriter, clock_id: i32) {
     helpers_io_const::emit_i32_const(w, clock_id)
-    let zero: i64 = 0
+    let zero: i64 = 0i64
     emit_i64_const_value(w, zero)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
     helpers_core::emit_call(w, constants::WASI_IMPORT_CLOCK_TIME_GET())

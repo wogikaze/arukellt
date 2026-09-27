@@ -36,7 +36,7 @@ fn lsp_doc_store_set(store: LspDocStore, uri: String, text: String, version: i32
         push(store.docs, LspDoc_new(uri, text, version))
         return
     }
-    let d = get_unchecked(store.docs, idx)
+    let mut d = get_unchecked(store.docs, idx)
     d.text = text
     d.version = version
 }

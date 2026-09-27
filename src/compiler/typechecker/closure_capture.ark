@@ -40,7 +40,7 @@ fn ClosureCaptureSummary_new() -> ClosureCaptureSummary {
 // extra parameter — including Copy captures, which ownership tracking
 // skips because they cannot alias.
 fn ClosureCaptureSummary_new_with_copy() -> ClosureCaptureSummary {
-    let summary = ClosureCaptureSummary_new()
+    let mut summary = ClosureCaptureSummary_new()
     summary.include_copy = true
     summary
 }

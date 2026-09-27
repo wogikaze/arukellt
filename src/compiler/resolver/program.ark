@@ -16,6 +16,7 @@ fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wi
 
 fn resolve_program_for_target_and_host(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String, host_profile: String) -> ResolveCtx {
     let ctx = context::ResolveCtx_new_for_target_and_host(target, host_profile)
+    context::ResolveCtx_set_modules(ctx, modules)
     register::register_imported_modules(ctx, modules)
     register_wit::register_wit_imports(ctx, wit_paths, decls)
     let count = len(decls)

@@ -16,9 +16,9 @@ fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_i64_load_default(w)
     helpers_core::emit_local_set(w, seconds_local)
     helpers_core::emit_local_get(w, seconds_local)
-    let million: i64 = 1000000
+    let million: i64 = 1000000i64
     emit_i64_const(w, million)
-    let thousand: i64 = 1000
+    let thousand: i64 = 1000i64
     emit_i64_const(w, thousand)
     helpers_numeric_i64_arith::emit_i64_mul(w)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT() + 8)

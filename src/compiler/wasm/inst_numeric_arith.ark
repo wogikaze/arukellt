@@ -21,7 +21,7 @@ fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             } else {
                 if val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF() {
                     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-                        intrinsic_string_basic::emit_concat(w, inst, ctx)
+                        let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
                     } else {
                         helpers_numeric_i32_convert::emit_i32_or_widened_op(
                             w, opcodes::OP_I32_ADD(), opcodes::OP_I64_ADD()

@@ -417,6 +417,7 @@ use component_contract
 use component_contract_preflight
 use component_wit_bindings
 use component_wit_text
+use std::prelude::{byte_at}
 
 fn bootstrap_emit_wit_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
     component_wit_text::bootstrap_emit_wit_from_decls_with_world(decls, world, wit_paths)
@@ -439,10 +440,10 @@ pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 }
 
 pub fn string_to_bytes(text: String) -> Vec<i32> {
-    let mut bytes = Vec_new_i32()
+    let mut bytes = Vec::new<i32>()
     let mut i = 0
     while i < len(text) {
-        push(bytes, char_at(text, i))
+        push(bytes, byte_at(text, i))
         i = i + 1
     }
     bytes
@@ -462,6 +463,8 @@ pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decl
 """
 
 BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB = """// Bootstrap overlay stub — world_spec excluded with component model.
+use std::prelude::{clone, contains}
+
 pub fn component_world_spec__world_target_error(world: String, target: String, emit_mode: String) -> String {
     if len(world) == 0 { return String_new() }
     if !contains(clone(target), String_from("wasm32-gc")) { return String_from("--world requires --target wasm32-gc") }
@@ -2981,7 +2984,7 @@ _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
 _FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
 # v2: stage-2 bootstrap skips full MIR verify (see _patch_bootstrap_skip_mir_verify).
 # v4: static-dispatch stub names Option<(A, B)> as option:tuple:k1,k2 (#890).
-_FLAT_OVERLAY_DISK_CACHE_VERSION = 4
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 5
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
@@ -4378,6 +4381,23 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     text = _replace_optional(
         text, "stdio::println(", "println(", "main stdio::println -> println"
     )
+    # The stage-3 self-compile gates prelude auto-import to the ADR-072
+    # stable set, so the bare names introduced above need explicit imports.
+    # The pinned bootstrap accepts these use lines (the names stay pub).
+    needed = [
+        name
+        for name in ("args", "exit", "println")
+        if re.search(r"(?<![:\w.])" + name + r"\(", text)
+    ]
+    if needed:
+        use_line = "use std::prelude::{" + ", ".join(needed) + "}\n"
+        lines = text.splitlines(keepends=True)
+        insert_at = 0
+        for idx, line in enumerate(lines):
+            if line.startswith("use "):
+                insert_at = idx + 1
+        lines.insert(insert_at, use_line)
+        text = "".join(lines)
     main_path.write_text(text, encoding="utf-8")
 
 

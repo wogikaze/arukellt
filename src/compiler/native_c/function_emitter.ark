@@ -393,7 +393,7 @@ fn native_c_effects_flush(state: NativeCFunctionEmitState, instruction: MirInst)
     while len(state.current_defs) > 0 { pop(state.current_defs) }
 }
 
-fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> root_liveness::NativeCInstructionEffects {
+fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> NativeCInstructionEffects {
     let effects = root_liveness::native_c_instruction_effects_new()
     let mut order = 0
     while order < len(state.effect_block_ids) {
@@ -3017,7 +3017,7 @@ fn native_c_emit_function_body(
     signature: SignatureEntry
 ) -> NativeCFunctionEmitState {
     // Pass 1: infer reference locals + record instruction effects (no C text).
-    let inference_state = native_c_function_state_new()
+    let mut inference_state = native_c_function_state_new()
     inference_state.heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     inference_state.suppress_source = true
     inference_state.record_effects = true
@@ -3053,7 +3053,7 @@ fn native_c_emit_function_body(
     }
 
     // Pass 2: emit real C. Size-gated clear emit (Phase 3 Stage A+).
-    let state = native_c_function_state_new()
+    let mut state = native_c_function_state_new()
     state.heap_enum_flags = inference_state.heap_enum_flags
     state.reference_locals = inference_state.reference_locals
     state.root_plan_safepoints = root_liveness::native_c_root_clear_plan_safepoint_count(clear_plan)

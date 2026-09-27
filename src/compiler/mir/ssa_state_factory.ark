@@ -1,5 +1,5 @@
 use mir::ssa_state_types
 
-fn MirSsaRenameState_new(original_local_count: i32, block_count: i32) -> ssa_state_types::MirSsaRenameState {
+fn MirSsaRenameState_new(original_local_count: i32, block_count: i32) -> MirSsaRenameState {
     ssa_state_types::MirSsaRenameState_new(original_local_count, block_count)
 }

@@ -3,3 +3,7 @@ use resolver::context
 fn typecheck_resolve_errors(resolve_ctx: ResolveCtx) -> Vec<String> {
     context::ResolveCtx_errors(resolve_ctx)
 }
+
+fn typecheck_resolve_modules(resolve_ctx: ResolveCtx) -> Vec<ModuleDecls> {
+    context::ResolveCtx_modules(resolve_ctx)
+}

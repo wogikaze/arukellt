@@ -1,6 +1,7 @@
 use std::prelude::{clone, eq}
 use resolver::ref_index
 use resolver::scope_record
+use resolver::modules
 struct ResolveCtx {
     scopes: Vec<Scope>,
     current_depth: i32,
@@ -13,6 +14,7 @@ struct ResolveCtx {
     ref_index: RefIndex,
     use_alias_shorts: Vec<String>,
     use_alias_targets: Vec<String>,
+    modules: Vec<ModuleDecls>,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
@@ -27,8 +29,20 @@ fn ResolveCtx_new_empty() -> ResolveCtx {
         host_profile: "wasi-p2",
         ref_index: ref_index::RefIndex_new(),
         use_alias_shorts: Vec::new<String>(),
-        use_alias_targets: Vec::new<String>()
+        use_alias_targets: Vec::new<String>(),
+        modules: Vec::new<ModuleDecls>()
     }
+}
+
+// The typechecker needs each imported module's decl region to give function
+// signatures module-qualified index keys (mod::f). resolve_program stores
+// the same module list it registers so later phases can recover it.
+fn resolve_ctx_set_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
+    ctx.modules = modules
+}
+
+fn resolve_ctx_modules(ctx: ResolveCtx) -> Vec<ModuleDecls> {
+    ctx.modules
 }
 
 fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {

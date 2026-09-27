@@ -564,7 +564,7 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
         return text::concat(String_from("i32_"), ok)
     }
     if p2_is_tuple_type_name(clone(type_name)) {
-        let sig = String_new()
+        let mut sig = String_new()
         let mut i = 0
         while len(p2_type_argument(clone(type_name), i)) > 0 {
             sig = text::concat(
@@ -579,7 +579,7 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
     }
     let fields = p2_struct_field_sigs(clone(type_name), mir)
     if len(fields) > 0 && !p2_enum_has_variants(clone(type_name), mir) {
-        let sig = String_new()
+        let mut sig = String_new()
         let mut i = 0
         while i < len(fields) {
             sig = text::concat(clone(sig), text::concat(p2_field_canonical_sig(get_unchecked(fields, i)), "_"))

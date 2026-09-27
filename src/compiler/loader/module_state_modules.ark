@@ -27,7 +27,7 @@ fn LoadState_release_module_asts(state: LoadState) {
     let module_count = len(state.modules)
     let mut mi = 0
     while mi < module_count {
-        let module = get_unchecked(state.modules, mi)
+        let mut module = get_unchecked(state.modules, mi)
         module.decls = Vec::new<AstNode>()
         mi = mi + 1
     }

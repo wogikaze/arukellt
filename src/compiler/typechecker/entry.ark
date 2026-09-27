@@ -1,3 +1,5 @@
+use std::prelude::{clone}
+use std::text
 use typechecker::body
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
@@ -10,13 +12,72 @@ use typechecker::module_wit
 use typechecker::resolver_errors
 use typechecker::contract_fn_sig
 use collections::name_index
+use resolver::modules
 
-fn build_fn_sig_index(fn_sigs: Vec<FnSig>) -> NameIndex {
+// Index keys parallel to `collect_fn_sigs` output: a module-owned fn or
+// const decl earns a `mod::name` key so qualified calls hit the signature
+// of the module the resolver accepted, while impl methods and entry-module
+// decls stay bare-only. `combine_loaded_and_main_decls` lists each loaded
+// module's decls before the entry module's, so one decl cursor tracks the
+// module boundaries.
+fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
+    let keys = Vec::new<String>()
+    let decl_count = len(decls)
+    let mut pos = 0
+    let module_count = len(modules)
+    let mut mi = 0
+    while mi < module_count && pos < decl_count {
+        let m = get_unchecked(modules, mi)
+        let mname = modules::module_name(m)
+        let mdcount = modules::module_decl_count(m)
+        let mut dk = 0
+        while dk < mdcount && pos < decl_count {
+            push_sig_index_key(keys, get_unchecked(decls, pos), clone(mname))
+            pos = pos + 1
+            dk = dk + 1
+        }
+        mi = mi + 1
+    }
+    while pos < decl_count {
+        push_sig_index_key(keys, get_unchecked(decls, pos), String_new())
+        pos = pos + 1
+    }
+    keys
+}
+
+fn push_sig_index_key(keys: Vec<String>, decl: AstNode, module_name: String) {
+    if ast_decl_predicates::node_is_fn_decl(decl) || ast_decl_predicates::node_is_const_decl(decl) {
+        if len(module_name) == 0 {
+            push(keys, String_new())
+        } else {
+            push(keys, text::concat(module_name, text::concat(String_from("::"), ast_access::node_text(decl))))
+        }
+        return
+    }
+    if ast_decl_predicates::node_is_impl_decl(decl) {
+        let child_count = ast_access::node_child_count(decl)
+        let mut ci = 0
+        while ci < child_count {
+            if ast_decl_predicates::node_is_fn_decl(ast_access::node_child_at(decl, ci)) {
+                push(keys, String_new())
+            }
+            ci = ci + 1
+        }
+    }
+}
+
+fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameIndex {
     let count = len(fn_sigs)
     let index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
         let sig = get_unchecked(fn_sigs, i)
+        if i < len(qualified_keys) {
+            let qname = get_unchecked(qualified_keys, i)
+            if len(qname) > 0 {
+                name_index::name_index_insert_first(index, qname, i)
+            }
+        }
         name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(sig), i)
         i = i + 1
     }
@@ -25,13 +86,13 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>) -> NameIndex {
 
 fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
     let result = contract_result_state::TypeCheckResult_new()
-    let env = context::TypeEnv_new()
+    let mut env = context::TypeEnv_new()
     contract_result_state::typecheck_result_set_errors(result, resolver_errors::typecheck_resolve_errors(resolve_ctx))
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
     module::register_struct_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls, env), module_wit::collect_wit_fn_sigs(wit_paths, decls))
-    env.fn_sig_index = build_fn_sig_index(fn_sigs)
+    env.fn_sig_index = build_fn_sig_index(fn_sigs, sig_qualified_keys(decls, resolver_errors::typecheck_resolve_modules(resolve_ctx)))
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {

@@ -73,7 +73,7 @@ fn fmt_import_entry_sort_group(entry: FmtImportEntry) -> i32 {
     entry.sort_group
 }
 
-fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> import_block::ImportBlockSpan {
+fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> ImportBlockSpan {
     let mut first_start = fmt_import_entry_line_start(get_unchecked(entries, 0))
     let mut last_end = fmt_import_entry_line_end(get_unchecked(entries, 0))
     let en = len(entries)
