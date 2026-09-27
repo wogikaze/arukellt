@@ -132,6 +132,8 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
         "// Compact table + index. Do not edit by hand.",
         "",
         "use corehir::table_blob",
+        "use std::prelude::{byte_at, clone, eq, substring}",
+        "use std::text",
         "",
         "fn core_op_binding_count() -> i32 {",
         f"    {len(callees)}",

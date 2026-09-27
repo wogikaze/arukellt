@@ -213,7 +213,7 @@ fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String 
     } else {
         "r"
     }
-    text::concat(prefix, i32_to_string(raw_type_id))
+    text::concat(prefix, (raw_type_id).to_string())
 }
 
 fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureEntry) -> String {
@@ -259,7 +259,7 @@ fn native_c_function_symbol(table: TypeTable, function_id_raw: i32, signature: S
     text::concat(
         "ark_f_",
         text::concat(
-            i32_to_string(function_id_raw),
+            (function_id_raw).to_string(),
             text::concat("__P_", text::concat(parameters, text::concat("__R_", results)))
         )
     )
@@ -303,7 +303,7 @@ fn native_c_signature_parameters(
         if index > 0 { parameters = text::concat(parameters, ", ") }
         parameters = text::concat(
             parameters,
-            text::concat(c_type, text::concat(" ark_v_", i32_to_string(index)))
+            text::concat(c_type, text::concat(" ark_v_", (index).to_string()))
         )
         index = index + 1
     }

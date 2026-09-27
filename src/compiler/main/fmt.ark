@@ -92,7 +92,7 @@ pub fn cmd_fmt(opts: CliOptions) {
         }
         i = i + 1
     }
-    stdio::eprintln(text::concat("fmt: checked=", text::concat(i32_to_string(checked), text::concat(" failed=", i32_to_string(failed)))))
+    stdio::eprintln(text::concat("fmt: checked=", text::concat((checked).to_string(), text::concat(" failed=", (failed).to_string()))))
     if failed > 0 {
         process::exit(1)
     }

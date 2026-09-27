@@ -42,7 +42,7 @@ fn core_op_shadow_log_unresolved(ctx: SelfEmitCtx, callee: String, func_id_raw: 
     stdio::eprintln(
         text::concat(
             "core-op-shadow unresolved callee=",
-            text::concat(callee, text::concat(" function_id=", i32_to_string(func_id_raw)))
+            text::concat(callee, text::concat(" function_id=", (func_id_raw).to_string()))
         )
     )
 }
@@ -93,18 +93,18 @@ fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
     let line = text::concat(
         "core-op-shadow: summary candidates=",
         text::concat(
-            i32_to_string(candidates),
+            (candidates).to_string(),
             text::concat(
                 " matched=",
                 text::concat(
-                    i32_to_string(matched),
+                    (matched).to_string(),
                     text::concat(
                         " mismatched=",
                         text::concat(
-                            i32_to_string(mismatched),
+                            (mismatched).to_string(),
                             text::concat(
                                 " unresolved=",
-                                i32_to_string(unresolved)
+                                (unresolved).to_string()
                             )
                         )
                     )

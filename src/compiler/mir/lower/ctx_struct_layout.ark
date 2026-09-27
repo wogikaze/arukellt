@@ -115,7 +115,7 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     }
     if ctx_is_registered_struct_type(ctx, clone(type_name)) {
         let byte_size = ctx_struct_byte_size(ctx, clone(type_name))
-        return text::concat(text::concat("struct:", type_name), text::concat(":", i32_to_string(byte_size)))
+        return text::concat(text::concat("struct:", type_name), text::concat(":", (byte_size).to_string()))
     }
     type_name
 }

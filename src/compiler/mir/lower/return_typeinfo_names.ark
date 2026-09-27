@@ -185,7 +185,7 @@ fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
     // Keep element keys for all tuples (not only GC-ref elems) so component
     // adapters can emit the correct WIT tuple shape (#810).
     let inner = mir_tuple_inner_name_from_type_info(ty)
-    text::concat(String_from("struct:"), text::concat(inner, text::concat(String_from(":"), i32_to_string(byte_size))))
+    text::concat(String_from("struct:"), text::concat(inner, text::concat(String_from(":"), (byte_size).to_string())))
 }
 
 fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {

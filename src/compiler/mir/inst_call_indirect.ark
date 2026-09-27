@@ -11,7 +11,7 @@ fn MirInst_call_indirect(callee_local: i32, type_idx: i32, arg_count: i32, dest:
 // candidates whose param0 matches (avoids picking min_i32's ref→i32 over i32→i32).
 fn MirInst_call_indirect_with_arg0_vt(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32, return_vt: i32, first_arg_vt: i32) -> MirInstDraft {
     let hint = if first_arg_vt >= 0 {
-        i32_to_string(first_arg_vt)
+        (first_arg_vt).to_string()
     } else {
         String_new()
     }

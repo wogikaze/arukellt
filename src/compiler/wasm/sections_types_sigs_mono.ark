@@ -126,7 +126,7 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_or
     let key = get_unchecked(type_keys, type_idx)
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(key))
     if slot >= 0 {
-        return text::concat("gcsref", i32_to_string(slot))
+        return text::concat("gcsref", (slot).to_string())
     }
     String_new()
 }
@@ -237,7 +237,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(last_key))
     if slot >= 0 {
-        return text::concat("gcsref", i32_to_string(slot))
+        return text::concat("gcsref", (slot).to_string())
     }
     String_new()
 }

@@ -108,6 +108,6 @@ fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
         i = i + 1
     }
     if diff > 0 {
-        stdio::eprintln(text::concat("sig-reg: host intrinsic stub diff count=", i32_to_string(diff)))
+        stdio::eprintln(text::concat("sig-reg: host intrinsic stub diff count=", (diff).to_string()))
     }
 }

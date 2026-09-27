@@ -195,7 +195,7 @@ fn gc_struct_vec_elem_spelling(type_name: String) -> String {
 }
 
 fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
-    let prefix = text::concat(String_from("_f"), i32_to_string(field_idx))
+    let prefix = text::concat(String_from("_f"), (field_idx).to_string())
     // Empty field types are discriminant/_tag slots on enum layouts — i32, not
     // the unknown→ref14 fallback (which produced GS_f0_ref14 enum boxes).
     if len(type_name) == 0 {
@@ -207,7 +207,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     if gc_struct_field_type_is_fn_value(clone(type_name)) {
         let pair_slot = ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat(prefix, text::concat(String_from("_gcsref"), i32_to_string(pair_slot)))
+            return text::concat(prefix, text::concat(String_from("_gcsref"), (pair_slot).to_string()))
         }
     }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
@@ -254,7 +254,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     // when decl order registers the parent first (AstNode before Span).
     let struct_slot = ctx_ensure_gc_struct_registered(ctx, clone(type_name))
     if struct_slot >= 0 {
-        return text::concat(prefix, text::concat(String_from("_gcsref"), i32_to_string(struct_slot)))
+        return text::concat(prefix, text::concat(String_from("_gcsref"), (struct_slot).to_string()))
     }
     text::concat(prefix, String_from("_ref14"))
 }

@@ -46,7 +46,7 @@ fn stdlib_resolve_normal_calls_validated(m: MirModule) -> i32 {
     if failures > 0 {
         stdio::eprintln(text::concat(
                 String_from("mir-opt translation validation rejected stdlib call-target block(s): "),
-                i32_to_string(failures)
+                (failures).to_string()
             ))
     }
     total

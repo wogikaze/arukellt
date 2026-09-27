@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 391 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 84 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 322 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
 
@@ -350,7 +350,6 @@ push(v, 2)
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | Encode a Unicode scalar as canonical UTF-8. |
-| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `functional` | `builtin` | no | - | - |
 | `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
 | `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |

@@ -44,9 +44,9 @@ pub struct NativeCInstructionEffects {
 
 fn native_c_root_clear_plan_empty() -> NativeCRootClearPlan {
     NativeCRootClearPlan {
-        clear_start: Vec_new_i32(),
-        clear_count: Vec_new_i32(),
-        clear_locals: Vec_new_i32(),
+        clear_start: Vec::new<i32>(),
+        clear_count: Vec::new<i32>(),
+        clear_locals: Vec::new<i32>(),
         instruction_count: 0,
         functions_analyzed: 0,
         functions_skipped: 0,
@@ -63,16 +63,16 @@ fn native_c_root_clear_plan_empty() -> NativeCRootClearPlan {
 
 fn native_c_instruction_effects_new() -> NativeCInstructionEffects {
     NativeCInstructionEffects {
-        block_ids: Vec_new_i32(),
-        reachable: Vec_new_i32(),
-        is_safepoint: Vec_new_i32(),
-        opcodes: Vec_new_i32(),
-        use_start: Vec_new_i32(),
-        use_count: Vec_new_i32(),
-        use_locals: Vec_new_i32(),
-        def_start: Vec_new_i32(),
-        def_count: Vec_new_i32(),
-        def_locals: Vec_new_i32(),
+        block_ids: Vec::new<i32>(),
+        reachable: Vec::new<i32>(),
+        is_safepoint: Vec::new<i32>(),
+        opcodes: Vec::new<i32>(),
+        use_start: Vec::new<i32>(),
+        use_count: Vec::new<i32>(),
+        use_locals: Vec::new<i32>(),
+        def_start: Vec::new<i32>(),
+        def_count: Vec::new<i32>(),
+        def_locals: Vec::new<i32>(),
     }
 }
 
@@ -103,7 +103,7 @@ fn native_c_is_clear_emit_safepoint_op(op: i32) -> bool {
 }
 
 fn native_c_bitset_new(width: i32) -> Vec<i32> {
-    let bits = Vec_new_i32()
+    let bits = Vec::new<i32>()
     let mut index = 0
     while index < width {
         push(bits, 0)
@@ -226,7 +226,7 @@ fn native_c_plan_root_clears_from_effects(
     // Locals used inside LOOP…END are treated as loop-carried / loop-live and
     // are never cleared (sound under ADR-024 missing backedges).
     let used_in_loop = native_c_bitset_new(local_count)
-    let control_stack = Vec_new_i32()
+    let control_stack = Vec::new<i32>()
     let mut scan = 0
     while scan < instruction_total {
         let op = get_unchecked(effects.opcodes, scan)
@@ -259,7 +259,7 @@ fn native_c_plan_root_clears_from_effects(
         scan = scan + 1
     }
 
-    let last_use = Vec_new_i32()
+    let last_use = Vec::new<i32>()
     local_index = 0
     while local_index < local_count {
         push(last_use, 0 - 1)

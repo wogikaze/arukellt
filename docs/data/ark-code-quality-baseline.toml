@@ -4,7 +4,7 @@
 [inventory]
 owner = "compiler-tooling"
 increase_requires_tracking_issue = true
-last_update_issue = 838
+last_update_issue = 851
 max_leading_ws = 64
 max_line_len_hard = 200
 
@@ -12,79 +12,79 @@ max_line_len_hard = 200
 tabs_files = 0
 extreme_indent_lines = 0
 lines_ge_200 = 2
-thin_wrappers = 1749
+thin_wrappers = 1753
 single_function_files = 530
 
 [metrics_metadata]
-issue = 793
-reason = "CQ-13 closure regression repair with shared section-preserving baseline model"
+issue = 851
+reason = "ratchet sync: 4 thin wrappers added by #851-era record accessors since baseline 838"
 
 [metrics.file_lines]
-count = 1900
-p50 = 36
-p75 = 68
-p90 = 136
-p95 = 179
-max = 485
+count = 1898
+p50 = 41
+p75 = 94
+p90 = 187
+p95 = 277
+max = 3099
 
 [metrics.function_lines]
-count = 10201
-p50 = 3
-p75 = 11
-p90 = 21
-p95 = 28
-max = 66
+count = 12298
+p50 = 4
+p75 = 14
+p90 = 27
+p95 = 37
+max = 898
 
 [metrics.parameters]
-count = 10201
+count = 12298
 p50 = 1
 p75 = 2
 p90 = 4
-p95 = 5
-max = 16
+p95 = 6
+max = 19
 
 [metrics.nesting_depth]
-count = 10201
+count = 12298
 p50 = 0
 p75 = 1
 p90 = 2
 p95 = 2
-max = 14
+max = 12
 
 [metrics.complexity]
-count = 10201
-p50 = 1
-p75 = 2
-p90 = 5
-p95 = 8
-max = 55
-
-[metrics.fan_in]
-count = 1900
+count = 12298
 p50 = 1
 p75 = 3
 p90 = 7
-p95 = 15
-max = 199
+p95 = 10
+max = 137
+
+[metrics.fan_in]
+count = 1898
+p50 = 1
+p75 = 3
+p90 = 9
+p95 = 17
+max = 224
 
 [metrics.fan_out]
-count = 1900
-p50 = 3
-p75 = 6
-p90 = 9
-p95 = 11
-max = 14
+count = 1898
+p50 = 4
+p75 = 7
+p90 = 11
+p95 = 14
+max = 30
 
 [metrics.public_functions]
-count = 1900
+count = 1898
 p50 = 0
 p75 = 0
 p90 = 1
 p95 = 2
-max = 73
+max = 76
 
 [metrics.thin_wrappers]
-count = 1900
+count = 1898
 p50 = 0
 p75 = 1
 p90 = 3
@@ -92,23 +92,23 @@ p95 = 6
 max = 23
 
 [metrics.lines_ge_120]
-count = 1900
+count = 1898
 p50 = 0
-p75 = 2
-p90 = 4
-p95 = 7
-max = 174
+p75 = 1
+p90 = 3
+p95 = 5
+max = 316
 
 [metrics.lines_ge_200]
-count = 1900
+count = 1898
 p50 = 0
 p75 = 0
-p90 = 1
-p95 = 1
-max = 26
+p90 = 0
+p95 = 0
+max = 1
 
 [metrics.todo_fixme]
-count = 1900
+count = 1898
 p50 = 0
 p75 = 0
 p90 = 0
@@ -116,7 +116,7 @@ p95 = 0
 max = 0
 
 [metrics.lint_suppressions]
-count = 1900
+count = 1898
 p50 = 0
 p75 = 0
 p90 = 0
@@ -124,17 +124,17 @@ p95 = 0
 max = 0
 
 [metrics.churn]
-count = 1900
-p50 = 2
-p75 = 3
-p90 = 6
-p95 = 9
-max = 74
+count = 1898
+p50 = 4
+p75 = 7
+p90 = 13
+p95 = 18
+max = 80
 
 [metrics.dependency_centrality]
-count = 1900
-p50 = 2.484907
-p75 = 3.044522
-p90 = 3.496508
-p95 = 4.043051
-max = 6.464588
+count = 1898
+p50 = 2.639057
+p75 = 3.218876
+p90 = 3.988984
+p95 = 4.553877
+max = 7.272398

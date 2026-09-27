@@ -17,6 +17,11 @@ Usage:
   python3 scripts/util/migrate-prelude-imports.py --fix-placement --apply
       # hoist use lines that were inserted between a doc comment and its
       # item back into the file's leading use block (CQ-DOC-006 repair)
+  python3 scripts/util/migrate-prelude-imports.py --rewrite-removed --apply
+      # rewrite bare calls to names that resolve to nothing post-flip:
+      # *_to_string(x) -> (x).to_string(), Vec_new_T() -> Vec::new<T>(),
+      # ok(x)/err(x) -> Ok(x)/Err(x). Files in SKIP_REWRITE_FILES keep
+      # their bare calls because they test the removal diagnostics.
 """
 from __future__ import annotations
 
@@ -241,6 +246,85 @@ def process(path: Path) -> tuple[str, dict] | None:
 USE_OR_IMPORT = re.compile(r"^(use |import )")
 
 
+# Bare names that resolve to nothing under the v2 gate. {arg} is the
+# extracted single-argument source text.
+REMOVED_CALL_REWRITES = {
+    "i32_to_string": "({arg}).to_string()",
+    "i64_to_string": "({arg}).to_string()",
+    "f64_to_string": "({arg}).to_string()",
+    "bool_to_string": "({arg}).to_string()",
+    "Vec_new_i32": "Vec::new<i32>()",
+    "Vec_new_String": "Vec::new<String>()",
+    "ok": "Ok({arg})",
+    "err": "Err({arg})",
+}
+
+# These files intentionally call removed names to pin the E0100
+# migration-hint diagnostic.
+SKIP_REWRITE_FILES = {
+    "tests/fixtures/diagnostics/removed_prelude_i32_to_string.ark",
+}
+
+
+def _matching_paren(scanned: str, open_pos: int) -> int | None:
+    depth = 0
+    for i in range(open_pos, len(scanned)):
+        c = scanned[i]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                return i
+    return None
+
+
+def _has_top_level_comma(arg: str) -> bool:
+    depth = 0
+    for c in arg:
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == "," and depth == 0:
+            return True
+    return False
+
+
+def rewrite_removed_calls(text: str, rel: str) -> tuple[str, list[str]]:
+    """Rewrite bare calls to removed names. Returns (new_text, notes)."""
+    scanned = strip_noise(text)
+    defined = set(DECL_RE.findall(scanned))
+    edits = []
+    notes = []
+    for name, template in REMOVED_CALL_REWRITES.items():
+        if name in defined:
+            continue
+        for m in re.finditer(rf"(?<![\w:.]){re.escape(name)}\s*\(", scanned):
+            open_pos = m.end() - 1
+            close_pos = _matching_paren(scanned, open_pos)
+            if close_pos is None:
+                notes.append(f"unbalanced call {name} at {m.start()}")
+                continue
+            arg = text[open_pos + 1 : close_pos]
+            if _has_top_level_comma(scanned[open_pos + 1 : close_pos]):
+                notes.append(f"multi-arg call {name}({arg}) at {m.start()} skipped")
+                continue
+            if name.startswith("Vec_new") and arg.strip():
+                notes.append(f"non-empty {name} args at {m.start()} skipped")
+                continue
+            replacement = template.format(arg=arg)
+            edits.append((m.start(), close_pos + 1, replacement))
+    if rel in SKIP_REWRITE_FILES:
+        return text, ["skip-listed (diagnostic fixture)"]
+    if not edits:
+        return text, notes
+    out = text
+    for s, e, repl in sorted(edits, key=lambda x: x[0], reverse=True):
+        out = out[:s] + repl + out[e:]
+    return out, notes
+
+
 def fix_placement(text: str) -> str:
     """Hoist use/import lines stranded inside the doc-comment region.
 
@@ -315,7 +399,7 @@ def main() -> int:
     only = [
         a
         for a in sys.argv[1:]
-        if a not in ("--apply", "--fix-placement")
+        if a not in ("--apply", "--fix-placement", "--rewrite-removed")
     ]
     files = subprocess.run(
         ["git", "ls-files", "*.ark"], cwd=ROOT, capture_output=True, text=True
@@ -323,11 +407,28 @@ def main() -> int:
     if only:
         files = [f for f in files if any(o in f for o in only)]
     fix = "--fix-placement" in sys.argv
+    rewrite_removed = "--rewrite-removed" in sys.argv
     changed = 0
     for rel in files:
         if rel == "std/prelude.ark":
             continue
         p = ROOT / rel
+        if rewrite_removed:
+            try:
+                old = p.read_text(encoding="utf-8")
+                new_text, notes = rewrite_removed_calls(old, rel)
+            except Exception as e:  # noqa: BLE001
+                print(f"ERROR {rel}: {e}")
+                continue
+            if new_text == old:
+                continue
+            changed += 1
+            if apply:
+                p.write_text(new_text, encoding="utf-8")
+            for n in notes:
+                print(f"  note {rel}: {n}")
+            print(f"{'APPLY' if apply else 'WOULD'} {rel}")
+            continue
         if fix:
             try:
                 old = p.read_text(encoding="utf-8")

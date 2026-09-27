@@ -16,10 +16,10 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     let line = text::concat(
         "gc-layout-audit: summary typed=",
         text::concat(
-            i32_to_string(typed_count),
+            (typed_count).to_string(),
             text::concat(
                 " name=0 fallback=0 conflict=",
-                i32_to_string(conflict_count)
+                (conflict_count).to_string()
             )
         )
     )

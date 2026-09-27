@@ -11,7 +11,6 @@
 #   - src/compiler/emitter.ark            (selfhost emitter dispatch)
 #
 # Discrepancies found during initial audit (documented, not fixed):
-#   - f32_to_string: typechecker signature exists without a resolver prelude entry.
 #   - __intrinsic_string_is_empty: resolver prelude entry exists without a builtin signature.
 #   - Several resolver prelude builtins lack direct typechecker signatures:
 #       unwrap_or_else, clear, is_ok, is_err, Vec_with_capacity_i32,
@@ -520,17 +519,6 @@ params = ["any"]
 returns = "String"
 prelude = true
 stability = "stable"
-doc_category = "conversion"
-
-# NOTE: f32_to_string has a function signature in the typechecker but is NOT
-# in the prelude function registry.
-[[functions]]
-name = "f32_to_string"
-kind = "builtin"
-params = ["f32"]
-returns = "String"
-prelude = false
-stability = "provisional"
 doc_category = "conversion"
 
 # ── Conversion: from string (parsing) ────────

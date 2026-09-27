@@ -153,7 +153,7 @@ fn closure_emit_env_alloc(ctx: LowerCtx, env_name: String, cap_names: Vec<String
     ctx_api_local_types::ctx_set_local_type(
         ctx,
         env_local,
-        text::concat("struct:", text::concat(clone(env_name), text::concat(":", i32_to_string(total))))
+        text::concat("struct:", text::concat(clone(env_name), text::concat(":", (total).to_string())))
     )
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(env_local, clone(env_name), total))
     let mut off = 0
@@ -453,7 +453,7 @@ fn closure_flush_pending_fn_thunks(ctx: LowerCtx) {
 // wildcard for ignored results.
 fn closure_pair_seg_norm(name: String, vt: i32) -> String {
     if len(name) == 0 {
-        return text::concat("~", i32_to_string(vt))
+        return text::concat("~", (vt).to_string())
     }
     // Normalize container spellings toward the fnsig segment form so a
     // fnsig:vec:i32;i32 callee matches a Vec<i32>-typed producer param.
@@ -489,7 +489,7 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
             String_new()
         }
         nk = text::concat(nk, closure_pair_seg_norm(aname, avt))
-        vk = text::concat(vk, i32_to_string(avt))
+        vk = text::concat(vk, (avt).to_string())
         i = i + 1
     }
     nk = text::concat(nk, ";")
@@ -505,7 +505,7 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
             // and Option-returning multi-param calls fell to the i32 binary
             // fallback (#881 / #874).
             nk = text::concat(nk, closure_pair_seg_norm(clone(dname), dvt))
-            vk = text::concat(vk, i32_to_string(dvt))
+            vk = text::concat(vk, (dvt).to_string())
         }
     }
     text::concat(type_name, text::concat("|", text::concat(nk, text::concat("|", vk))))

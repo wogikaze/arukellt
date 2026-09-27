@@ -35,11 +35,22 @@ SCAN_FILES = [
 STRICT_EXEMPT = {ROOT / "docs/stdlib/cookbook.md", ROOT / "docs/language/guide.md"}
 
 
-def load_deprecated_apis() -> set[str]:
-    """Return the set of deprecated API names from std/manifest.toml."""
+def load_deprecated_apis() -> set[tuple]:
+    """Return deprecated APIs as (name, module) pairs from std/manifest.toml.
+
+    A None module marks a deprecated bare prelude binding: bare occurrences
+    are flagged while module-qualified canonical paths (stdio::println) are
+    not. A module-scoped entry (e.g. std::seq map_i32_i32) is deprecated only
+    on the qualified path; a bare call resolves to the stable prelude decl
+    of the same name and must not be flagged.
+    """
     with open(ROOT / "std/manifest.toml", "rb") as f:
         manifest = tomllib.load(f)
-    return {fn["name"] for fn in manifest.get("functions", []) if fn.get("stability") == "deprecated"}
+    return {
+        (fn["name"], fn.get("module"))
+        for fn in manifest.get("functions", [])
+        if fn.get("stability") == "deprecated"
+    }
 
 
 def extract_code_blocks(text: str) -> list[tuple[int, int, str]]:
@@ -85,8 +96,14 @@ def scan_file(path: Path, deprecated_apis: set[str]) -> list[dict]:
             if fence.strip() != "```" and "ark" not in fence.lower():
                 continue
         for api in deprecated_apis:
-            # Word-boundary match to avoid partial matches
-            pattern = r'\b' + re.escape(api) + r'\b'
+            name, module = api
+            # Word-boundary match to avoid partial matches. A ::-qualified
+            # occurrence (e.g. stdio::println) is the canonical replacement
+            # path, not the deprecated bare prelude binding, so it is skipped.
+            if module:
+                pattern = r"(?<=::)" + re.escape(name) + r"\b"
+            else:
+                pattern = r'(?<![:\w])' + re.escape(name) + r'\b'
             if re.search(pattern, content):
                 has_marker = has_deprecation_marker(content)
                 # Also check 5 lines before the code block for an API note
@@ -95,7 +112,7 @@ def scan_file(path: Path, deprecated_apis: set[str]) -> list[dict]:
                 has_note = has_deprecation_marker(context) or "API note" in context or "API note" in content
                 findings.append({
                     "file": str(path.relative_to(ROOT)),
-                    "api": api,
+                        "api": name,
                     "line": start,
                     "has_marker": has_marker or has_note,
                 })

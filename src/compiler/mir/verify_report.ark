@@ -84,14 +84,14 @@ fn mir_verify_report_print_summary(report: MirVerifyReport) {
     let head = text::concat(
         "mir-verify: W001=",
         text::concat(
-            i32_to_string(report.w001),
+            (report.w001).to_string(),
             text::concat(
                 " W002=",
                 text::concat(
-                    i32_to_string(report.w002),
+                    (report.w002).to_string(),
                     text::concat(
                         " W003=",
-                        text::concat(i32_to_string(report.w003), text::concat(" W004=", text::concat(i32_to_string(report.w004), text::concat(" W005=", i32_to_string(report.w005)))))
+                        text::concat((report.w003).to_string(), text::concat(" W004=", text::concat((report.w004).to_string(), text::concat(" W005=", (report.w005).to_string()))))
                     )
                 )
             )
@@ -100,10 +100,10 @@ fn mir_verify_report_print_summary(report: MirVerifyReport) {
     let tail = text::concat(
         " W006=",
         text::concat(
-            i32_to_string(report.w006),
+            (report.w006).to_string(),
             text::concat(
                 " W007=",
-                text::concat(i32_to_string(report.w007), text::concat(" W008=", i32_to_string(report.w008)))
+                text::concat((report.w007).to_string(), text::concat(" W008=", (report.w008).to_string()))
             )
         )
     )

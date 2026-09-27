@@ -469,7 +469,7 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
     let mut i = 0
     while i < count {
         if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
-            return text::concat("_f1_gcsref", i32_to_string(i))
+            return text::concat("_f1_gcsref", (i).to_string())
         }
         i = i + 1
     }

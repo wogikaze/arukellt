@@ -213,13 +213,13 @@ fn native_c_validate_function_signature(
     if parameter_count != signature_entry::signature_entry_param_count(signature) {
         return text::concat(
             String_from("compiler ICE: native-cpp signature parameter mismatch for FunctionId "),
-            i32_to_string(function_id_raw)
+            (function_id_raw).to_string()
         )
     }
     if function_locals_view::MirFunction_local_count(function) < parameter_count {
         return text::concat(
             String_from("compiler ICE: native-cpp function locals omit parameters for FunctionId "),
-            i32_to_string(function_id_raw)
+            (function_id_raw).to_string()
         )
     }
     if signature_entry::signature_entry_return_count(signature) > 1 {
@@ -233,13 +233,13 @@ fn native_c_validate_function_signature(
     if len(abi::native_c_signature_return_type(table, signature, heap_enum_flags)) == 0 {
         return text::concat(
             String_from("compiler ICE: native-cpp cannot lower result signature for FunctionId "),
-            i32_to_string(function_id_raw)
+            (function_id_raw).to_string()
         )
     }
     if len(abi::native_c_signature_parameters(table, signature, heap_enum_flags)) == 0 {
         return text::concat(
             String_from("compiler ICE: native-cpp cannot lower parameter signature for FunctionId "),
-            i32_to_string(function_id_raw)
+            (function_id_raw).to_string()
         )
     }
     String_new()
@@ -281,7 +281,7 @@ fn native_c_function_declaration(
         return NativeCEmitResult_err(
             text::concat(
                 String_from("compiler ICE: native-cpp cannot mangle signature for FunctionId "),
-                i32_to_string(function_id_raw)
+                (function_id_raw).to_string()
             )
         )
     }
@@ -315,7 +315,7 @@ fn native_c_emit_function(
     let mut source = text::concat(
         String_from("/* FunctionId: "),
         text::concat(
-            i32_to_string(function_id::FunctionId_raw(resolved_id)),
+            (function_id::FunctionId_raw(resolved_id)).to_string(),
             String_from(" */\n")
         )
     )
@@ -359,7 +359,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
         let _resolved = native_c_resolve_function_id(mir_module, function, registry_index)
         registry_index = registry_index + 1
     }
-    let source_bytes = Vec_new_i32()
+    let source_bytes = Vec::new<i32>()
     native_c_append_bytes(source_bytes, native_c_runtime_prelude())
     let funcref_typedefs = hof_call::native_c_collect_funcref_typedefs(mir_module)
     if len(funcref_typedefs) > 0 {

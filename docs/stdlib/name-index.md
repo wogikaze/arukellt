@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 797
+- **Canonical names:** 796
 - **Historical/deprecated names:** 19
-- **Total entries:** 816
+- **Total entries:** 815
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -240,7 +240,6 @@ Current public API names, sorted alphabetically.
 | `extract_lane_u` | `std::simd::i8x16` | `experimental` | Simd |
 | `extract_lane_u` | `std::simd::i16x8` | `experimental` | Simd |
 | `f32_to_f64` | `prelude` | `stable` | Scalar Conversion |
-| `f32_to_string` | `prelude` | `provisional` | Conversion |
 | `f32_to_string` | `prelude` | `stable` | Convert |
 | `f64_bits_hi` | `prelude` | `stable` | Numeric |
 | `f64_bits_lo` | `prelude` | `stable` | Numeric |
@@ -1079,7 +1078,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `extract_lane_u` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `extract_lane_u` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `f32_to_f64` | ✅ `stable` | `prelude` | Scalar Conversion |
-| `f32_to_string` | ✅ `provisional` | `prelude` | Conversion |
 | `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | `f64_bits_hi` | ✅ `stable` | `prelude` | Numeric |
 | `f64_bits_lo` | ✅ `stable` | `prelude` | Numeric |

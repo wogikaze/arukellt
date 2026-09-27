@@ -156,9 +156,9 @@ pub fn doc_render_stdlib_html(table: manifest_doc_record::DocManifestTable) -> S
     out = text::builder_append(out, String_from("</aside><section><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search std APIs\"><select id=\"stability\"><opti"))
     out = text::builder_append(out, String_from("on value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimenta"))
     out = text::builder_append(out, String_from("l</option><option>deprecated</option></select></div><div class=\"stats\"><div class=\"stat\"><strong>"))
-    out = text::builder_append(out, i32_to_string(function_count))
+    out = text::builder_append(out, (function_count).to_string())
     out = text::builder_append(out, String_from("</strong> functions</div><div class=\"stat\"><strong>"))
-    out = text::builder_append(out, i32_to_string(module_count))
+    out = text::builder_append(out, (module_count).to_string())
     out = text::builder_append(out, String_from("</strong> modules</div></div><div id=\"api\" class=\"api-grid\">"))
     let mut i = 0
     while i < function_count {

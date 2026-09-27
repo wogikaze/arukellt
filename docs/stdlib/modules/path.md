@@ -55,7 +55,7 @@ operations that work on plain strings without host I/O.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `join` | `(String, String) -> String` | `stable` | ✅ functional | - |
+| `join` | `(String, String) -> String` | `stable` | ✅ functional | Joins two path segments with a single / separator. |
 | `file_name` | `(String) -> String` | `stable` | ✅ functional | Returns the final path segment after the last /. |
 | `extension` | `(String) -> String` | `stable` | ✅ functional | Returns the extension without the leading .. |
 | `with_extension` | `(String, String) -> String` | `stable` | ✅ functional | Replaces the current extension, or appends one when missing. |

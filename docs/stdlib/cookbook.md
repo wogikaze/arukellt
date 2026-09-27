@@ -112,6 +112,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+use std::prelude::{filter_i32, fold_i32_i32, map_i32_i32}
 use std::test
 fn double(x: i32) -> i32 { x * 2 }
 fn is_even(x: i32) -> bool { x % 2 == 0 }
@@ -174,6 +175,7 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::stdio
+use std::prelude::{sum_i32}
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
@@ -181,7 +183,7 @@ fn main() {
     push(v, 30)
     push(v, 40)
 
-    stdio::println(sum_i32(v).to_string())  // 100
+    stdio::println((sum_i32(v)).to_string())  // 100
 
     remove_i32(v, 1)                           // removes element at index 1
     stdio::println(len(v).to_string())      // 3
@@ -253,10 +255,11 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::test
+use std::text
 fn main() {
     let a: String = String_from("hello")
     let b: String = String_from(" world")
-    let c: String = concat(a, b)
+    let c: String = text::concat(a, b)
     test::assert_eq_string(c, "hello world")
 
     let s = String_from("original")
@@ -436,9 +439,10 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::stdio
+use std::text
 fn describe(opt: Option<i32>) -> String {
     match opt {
-        Some(val) => concat(String_from("got "), val.to_string()),
+        Some(val) => text::concat(String_from("got "), val.to_string()),
         None => String_from("nothing"),
     }
 }
@@ -517,11 +521,12 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::stdio
+use std::text
 fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
         Ok(val) => stdio::println(val.to_string()),
-        Err(e) => stdio::println(concat(String_from("error: "), e)),
+        Err(e) => stdio::println(text::concat(String_from("error: "), e)),
     }
 }
 ```
@@ -557,29 +562,31 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::stdio
+use std::prelude::{eq, is_err, is_ok, unwrap, unwrap_or}
+use std::text
 fn try_parse(s: String) -> Result<i32, String> {
     if eq(s, "42") {
         Ok(42)
     } else {
-        Err(concat("parse error: ", s))
+        Err(text::concat("parse error: ", s))
     }
 }
 
 fn main() {
     let r1 = try_parse("42")
-    stdio::println(is_ok(r1).to_string())     // true
-    stdio::println(is_err(r1).to_string())     // false
-    stdio::println(unwrap(r1).to_string())      // 42
+    stdio::println((is_ok(r1)).to_string())     // true
+    stdio::println((is_err(r1)).to_string())    // false
+    stdio::println((unwrap(r1)).to_string())    // 42
 
     let r2 = try_parse("bad")
-    stdio::println(is_ok(r2).to_string())      // false
-    stdio::println(unwrap_or(r2, 99).to_string())  // 99
+    stdio::println((is_ok(r2)).to_string())     // false
+    stdio::println((unwrap_or(r2, 99)).to_string())  // 99
 
     // match でエラーメッセージを取り出す
     let r3 = try_parse("xyz")
     let msg = match r3 {
-        Ok(v) => concat("got: ", v.to_string()),
-        Err(e) => concat("fail: ", e),
+        Result::Ok(v) => text::concat("got: ", (v).to_string()),
+        Result::Err(e) => text::concat("fail: ", e),
     }
     stdio::println(msg)  // fail: parse error: xyz
 }

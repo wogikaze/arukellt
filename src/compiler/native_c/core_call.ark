@@ -92,7 +92,7 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
 }
 
 fn native_c_core_arg(arguments: Vec<i32>, index: i32) -> String {
-    text::concat("ark_v_", i32_to_string(get_unchecked(arguments, index)))
+    text::concat("ark_v_", (get_unchecked(arguments, index)).to_string())
 }
 
 fn native_c_core_ref_arg(arguments: Vec<i32>, index: i32, c_type: String) -> String {
@@ -220,7 +220,7 @@ fn native_c_vec_new_call(function: MirFunction, instruction: MirInst) -> NativeC
         text::concat(
             String_from("(ark_object_header *)ark_rt_vec_new_with_capacity(UINT32_C("),
             text::concat(
-                i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                (native_c_core_destination_type_id(function, instruction)).to_string(),
                 String_from("), INT32_C(0))")
             )
         )
@@ -310,7 +310,7 @@ fn native_c_core_hashmap_value_expr(function: MirFunction, local_id: i32) -> Str
             member,
             text::concat(
                 String_from(" = "),
-                text::concat(String_from("ark_v_"), text::concat(i32_to_string(local_id), String_from(" }")))
+                text::concat(String_from("ark_v_"), text::concat((local_id).to_string(), String_from(" }")))
             )
         )
     )
@@ -472,8 +472,8 @@ fn native_c_emit_core_call(
                             text::concat(
                                 "`: expected ",
                                 text::concat(
-                                    i32_to_string(expected_arguments),
-                                    text::concat(", got ", i32_to_string(len(arguments)))
+                                    (expected_arguments).to_string(),
+                                    text::concat(", got ", (len(arguments)).to_string())
                                 )
                             )
                         )
@@ -630,7 +630,7 @@ fn native_c_emit_core_call(
             text::concat(
                 "(ark_object_header *)ark_rt_vec_new_with_capacity(UINT32_C(",
                 text::concat(
-                    i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                    (native_c_core_destination_type_id(function, instruction)).to_string(),
                     text::concat(
                         "), ",
                         text::concat(native_c_core_arg(arguments, 0), ")")
@@ -982,7 +982,7 @@ fn native_c_emit_core_call(
                     text::concat(
                         String_from(", UINT32_C("),
                         text::concat(
-                            i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                            (native_c_core_destination_type_id(function, instruction)).to_string(),
                             String_from("))")
                         )
                     )
@@ -999,7 +999,7 @@ fn native_c_emit_core_call(
                     text::concat(
                         String_from(", UINT32_C("),
                         text::concat(
-                            i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                            (native_c_core_destination_type_id(function, instruction)).to_string(),
                             String_from("))")
                         )
                     )
@@ -1020,7 +1020,7 @@ fn native_c_emit_core_call(
                             text::concat(
                                 String_from(", UINT32_C("),
                                 text::concat(
-                                    i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                                    (native_c_core_destination_type_id(function, instruction)).to_string(),
                                     String_from("))")
                                 )
                             )
@@ -1206,7 +1206,7 @@ fn native_c_emit_core_call(
                             text::concat(
                                 String_from(", UINT32_C("),
                                 text::concat(
-                                    i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                                    (native_c_core_destination_type_id(function, instruction)).to_string(),
                                     String_from("))")
                                 )
                             )

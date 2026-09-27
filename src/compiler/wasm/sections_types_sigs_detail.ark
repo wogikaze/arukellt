@@ -165,7 +165,7 @@ fn fnsig_segment_sig_for_mir(seg: String, target: String, mir: MirModule) -> Str
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(seg))
     if slot >= 0 {
-        return text::concat(String_from("gcsref"), i32_to_string(slot))
+        return text::concat(String_from("gcsref"), (slot).to_string())
     }
     String_new()
 }
@@ -926,7 +926,7 @@ fn build_param_type_sig(
         if emit_target::is_gc_target(clone(target)) {
             let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
             if pair_slot >= 0 {
-                return text::concat(String_from("gcsref"), i32_to_string(pair_slot))
+                return text::concat(String_from("gcsref"), (pair_slot).to_string())
             }
         }
         if starts_with(clone(p_type_name), String_from("fnsig:")) {
@@ -1005,7 +1005,7 @@ fn build_param_type_sig(
     if emit_target::is_gc_target(clone(target)) && len(p_type_name) > 0 {
         let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(p_type_name))
         if slot >= 0 {
-            return text::concat(String_from("gcsref"), i32_to_string(slot))
+            return text::concat(String_from("gcsref"), (slot).to_string())
         }
     }
     // 'Head<Args>' enum instantiations (e.g. Box<WitType>): same open-enum
@@ -1106,7 +1106,7 @@ fn build_return_type_value_sig(
         if emit_target::is_gc_target(clone(target)) {
             let pair_slot = module_gc_struct::MirModule_gc_struct_slot(mir, "__fnpair")
             if pair_slot >= 0 {
-                return text::concat(String_from("gcsref"), i32_to_string(pair_slot))
+                return text::concat(String_from("gcsref"), (pair_slot).to_string())
             }
         }
         return funcref_return_sig_for_target(clone(target), memory64)
@@ -1265,7 +1265,7 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
     if slot >= 0 {
-        let gcsref = text::concat(String_from("gcsref"), i32_to_string(slot))
+        let gcsref = text::concat(String_from("gcsref"), (slot).to_string())
         if gc_struct_sig_is_enum_open_box(clone(gcsref), mir) {
             return String_new()
         }
@@ -1285,7 +1285,7 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
         let bare = substring(return_type_name, colon_pos + 1, name_len)
         let bare_slot = module_gc_struct::MirModule_gc_struct_slot(mir, bare)
         if bare_slot >= 0 {
-            let gcsref = text::concat(String_from("gcsref"), i32_to_string(bare_slot))
+            let gcsref = text::concat(String_from("gcsref"), (bare_slot).to_string())
             if gc_struct_sig_is_enum_open_box(clone(gcsref), mir) {
                 return String_new()
             }
@@ -1320,7 +1320,7 @@ fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(struct_name))
     if slot >= 0 {
         // Use "gcsref" + slot as placeholder; resolved during emission via gc_struct_type_map.
-        return text::concat(String_from("gcsref"), i32_to_string(slot))
+        return text::concat(String_from("gcsref"), (slot).to_string())
     }
     // Fallback: extract byte_size and use size-based heuristic.
     let mut byte_size = 0

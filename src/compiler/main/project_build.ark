@@ -46,14 +46,17 @@ fn exit_project_compile_error(entry: String, result: CompileResult) {
 
 fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: String) {
     if manifest_has_pkg_name(info) {
+        let pkg_label = text::concat(
+            manifest_pkg_name(info),
+            text::concat(String_from(" v"), manifest_pkg_version(info))
+        )
+        let target_label = text::concat(String_from(" ("), text::concat(clone(entry), String_from(")")))
         stdio::eprintln(
-            text::concat(
-                String_from("building "),
-                text::concat(manifest_pkg_name(info), text::concat(String_from(" v"), text::concat(manifest_pkg_version(info), text::concat(String_from(" ("), text::concat(clone(entry), String_from(")"))))))
-            )
+            text::concat(String_from("building "), text::concat(pkg_label, target_label))
         )
     } else {
-        stdio::eprintln(text::concat(String_from("building "), text::concat(clone(manifest_path), text::concat(String_from(" (entry: "), text::concat(clone(entry), String_from(")"))))))
+        let target_label = text::concat(String_from(" (entry: "), text::concat(clone(entry), String_from(")")))
+        stdio::eprintln(text::concat(String_from("building "), text::concat(clone(manifest_path), target_label)))
     }
 }
 
@@ -72,11 +75,10 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
     let write_result = fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
+            let size_label = text::concat(String_from(" ("), text::concat(to_string(byte_count), String_from(" bytes)")))
+            let arrow_label = text::concat(clone(entry), text::concat(String_from(" -> "), clone(out_path)))
             stdio::eprintln(
-                text::concat(
-                    String_from("built "),
-                    text::concat(clone(entry), text::concat(String_from(" -> "), text::concat(clone(out_path), text::concat(String_from(" ("), text::concat(to_string(byte_count), String_from(" bytes)"))))))
-                )
+                text::concat(String_from("built "), text::concat(arrow_label, size_label))
             )
         },
         Result::Err(e) => {

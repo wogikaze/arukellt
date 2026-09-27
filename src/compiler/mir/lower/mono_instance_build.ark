@@ -77,7 +77,7 @@ fn mono_type_var_name_at(index: i32) -> String {
     if index == 2 { return "U" }
     if index == 3 { return "V" }
     if index == 4 { return "W" }
-    text::concat("T", i32_to_string(index))
+    text::concat("T", (index).to_string())
 }
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {

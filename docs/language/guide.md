@@ -189,12 +189,14 @@ fn identity<T>(x: T) -> T {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 if x > 0 {
-    println(String_from("positive"))
+    stdio::println(String_from("positive"))
 } else if x == 0 {
-    println(String_from("zero"))
+    stdio::println(String_from("zero"))
 } else {
-    println(String_from("negative"))
+    stdio::println(String_from("negative"))
 }
 ```
 
@@ -239,8 +241,10 @@ Range iteration (half-open `[start, end)`):
 <!-- fixture: for_loops/for_range.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 for i in 0..10 {
-    println(to_string(i))
+    stdio::println((i).to_string())
 }
 ```
 
@@ -248,8 +252,11 @@ Iterate over a `Vec`:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+use std::prelude::{values}
+
 for item in values(v) {
-    println(to_string(item))
+    stdio::println((item).to_string())
 }
 ```
 
@@ -276,8 +283,10 @@ Create and access:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 let p = Point { x: 3, y: 4 }
-println(to_string(p.x))
+stdio::println((p.x).to_string())
 ```
 
 Struct update syntax (copy all fields from `base`, override selected ones):
@@ -348,10 +357,12 @@ let err: Result<i32, String> = Err(String_from("bad"))
 <!-- fixture: control/match_enum.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 match direction {
-    Direction::North => println(String_from("north")),
-    Direction::South => println(String_from("south")),
-    _ => println(String_from("east or west")),
+    Direction::North => stdio::println(String_from("north")),
+    Direction::South => stdio::println(String_from("south")),
+    _ => stdio::println(String_from("east or west")),
 }
 ```
 
@@ -359,10 +370,12 @@ Match arms can include optional guards:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 match x {
-    n if n > 0 => println(String_from("positive")),
-    0          => println(String_from("zero")),
-    _          => println(String_from("negative")),
+    n if n > 0 => stdio::println(String_from("positive")),
+    0          => stdio::println(String_from("zero")),
+    _          => stdio::println(String_from("negative")),
 }
 ```
 
@@ -394,6 +407,8 @@ There is no exception mechanism.
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
+use std::prelude::{parse_i32}
+
 fn parse_positive(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
     if n < 0 {
@@ -407,9 +422,11 @@ Consume the result:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 match parse_positive(String_from("42")) {
-    Ok(n)  => println(to_string(n)),
-    Err(e) => println(e),
+    Ok(n)  => stdio::println((n).to_string()),
+    Err(e) => stdio::println(e),
 }
 ```
 
@@ -417,9 +434,11 @@ match parse_positive(String_from("42")) {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-match vec_get(v, 0) {
-    Some(val) => println(to_string(val)),
-    None      => println(String_from("empty")),
+use std::host::stdio
+
+match get(v, 0) {
+    Some(val) => stdio::println((val).to_string()),
+    None      => stdio::println(String_from("empty")),
 }
 ```
 
@@ -432,6 +451,8 @@ match vec_get(v, 0) {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
+use std::prelude::{parse_i32}
+
 fn double_parse(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?   // returns Err early if parsing fails
     Ok(n * 2)
@@ -473,11 +494,11 @@ Dynamic arrays. Use typed constructors:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let v: Vec<i32> = Vec_new_i32()
-vec_push(v, 1)
-vec_push(v, 2)
-let len = vec_len(v)        // 2
-let first = vec_get(v, 0)   // Some(1)
+let v: Vec<i32> = Vec::new<i32>()
+push(v, 1)
+push(v, 2)
+let n = len(v)              // 2
+let first = get(v, 0)       // Some(1)
 ```
 
 Common operations (all prelude):
@@ -550,7 +571,7 @@ Functions, structs, and enums can be parameterised by type variables:
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn first<T>(v: Vec<T>) -> Option<T> {
-    vec_get(v, 0)
+    get(v, 0)
 }
 
 struct Wrapper<T> {
@@ -605,18 +626,22 @@ stdio::println(String_from("from stdio"))
 
 ## 14. Standard Library Quick Reference
 
-The prelude (available in every module without import):
+The prelude stable set is available in every module without import;
+all other prelude decls require an explicit `use std::prelude::{name}`:
 
 ### Strings
 
 <!-- fixture: guide/string_ops.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::prelude::{eq, slice, to_lower, to_upper, trim}
+use std::text
+
 let s = String_from("hello")
-let t = concat(s, String_from(" world"))
+let t = text::concat(s, String_from(" world"))
 let upper = to_upper(s)
 let lower = to_lower(s)
-let n = string_len(s)
+let n = len(s)
 let b = eq(s, String_from("hello"))   // true
 let sub = slice(s, 0, 3)              // "hel"
 let trimmed = trim(String_from("  hi  "))
@@ -648,6 +673,7 @@ It accepts `i32`, `i64`, `f64`, `bool`, and `String` (pass-through).
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 use std::host::stdio
+use std::prelude::{to_string}
 
 fn main() {
     stdio::println(to_string(42))    // "42"
@@ -660,6 +686,8 @@ Works the same for other scalar types:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
+use std::prelude::{to_string}
+
 to_string(3.14)   // f64  → "3.14"
 to_string(true)   // bool → "true"
 to_string(false)  // bool → "false"
@@ -670,45 +698,52 @@ Combine with `concat` to build strings from mixed values:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
-let msg = concat(String_from("count: "), to_string(n))
+use std::prelude::{to_string}
+use std::text
+
+let msg = text::concat(String_from("count: "), to_string(n))
 ```
 
 #### Other numeric conversions
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::prelude::{parse_f64, parse_i32, to_string}
+
 let s = to_string(42)        // i32 → String
 let n = parse_i32(s)?        // String → Result<i32, String>
 let f = parse_f64(s)?        // String → Result<f64, String>
-let i = f64_to_i32(3.7)      // f64 → i32 (truncates)
-let b = i32_to_bool(1)
 ```
 
 ### Math
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::prelude::{abs, max, min, sqrt}
+
 let abs_val = abs(x)
 let sq = sqrt(2.0)
 let m = max(a, b)
 let mn = min(a, b)
-let p = pow(2.0, 10.0)
-let fl = floor(3.7)
-let cl = ceil(3.2)
+let p = (2).pow(10)         // i32 method
 ```
 
-### I/O (prelude)
+### I/O
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-println(String_from("line"))    // print with newline
-print(String_from("no newline"))
+use std::host::stdio
+
+stdio::println(String_from("line"))    // write a line
+stdio::print(String_from("no newline"))
 ```
 
 ### Assertions
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::prelude::{assert_eq}
+
 assert(x > 0, String_from("x must be positive"))
 assert_eq(actual, expected, String_from("values differ"))
 ```

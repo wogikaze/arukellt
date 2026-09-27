@@ -65,7 +65,7 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
     }
     // Value lives in `dest`; callers load via local_set_from / return_value.
     if len(struct_name) > 0 {
-        let type_name = text::concat("struct:", text::concat(clone(struct_name), text::concat(":", i32_to_string(total_bytes))))
+        let type_name = text::concat("struct:", text::concat(clone(struct_name), text::concat(":", (total_bytes).to_string())))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     } else if len(tuple_name) > 0 {
         // Anonymous small-int tuples (LM path) still record the tuple:<k,...>
@@ -194,7 +194,7 @@ fn tuple_gc_sig_from_field_vts(field_vts: Vec<i32>, field_count: i32) -> String 
 }
 
 fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
-    let prefix = text::concat("_f", i32_to_string(field_idx))
+    let prefix = text::concat("_f", (field_idx).to_string())
     if field_vt == value_types::VT_F64() {
         return text::concat(prefix, "_f64")
     }
@@ -254,7 +254,7 @@ fn tuple_type_name_from_param_alias(ctx: LowerCtx, param_type_name: String) -> S
         return String_new()
     }
     ctx_gc_struct::ctx_register_gc_struct(ctx, clone(wasm_name), sig)
-    text::concat("struct:", text::concat(wasm_name, text::concat(":", i32_to_string(tuple_byte_size_from_keys(keys)))))
+    text::concat("struct:", text::concat(wasm_name, text::concat(":", (tuple_byte_size_from_keys(keys)).to_string())))
 }
 
 fn tuple_byte_size_from_keys(keys: String) -> i32 {
@@ -384,7 +384,7 @@ fn tuple_field_key_at(keys: String, index: i32) -> String {
 }
 
 fn tuple_gc_field_sig_for_key(ctx: LowerCtx, key: String, field_idx: i32) -> String {
-    let prefix = text::concat("_f", i32_to_string(field_idx))
+    let prefix = text::concat("_f", (field_idx).to_string())
     if eq(clone(key), "f64") || eq(clone(key), "F64") {
         return text::concat(prefix, "_f64")
     }
@@ -409,7 +409,7 @@ fn tuple_gc_field_sig_for_key(ctx: LowerCtx, key: String, field_idx: i32) -> Str
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(key)) {
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat(prefix, text::concat(String_from("_gcsref"), i32_to_string(pair_slot)))
+            return text::concat(prefix, text::concat(String_from("_gcsref"), (pair_slot).to_string()))
         }
         return text::concat(prefix, "_ref14")
     }

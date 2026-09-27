@@ -19,7 +19,7 @@ fn MirInst_call_ref_with_arg0_vt(
     callee_type_name: String
 ) -> MirInstDraft {
     let numeric_hint = if first_arg_vt >= 0 {
-        i32_to_string(first_arg_vt)
+        (first_arg_vt).to_string()
     } else {
         String_new()
     }

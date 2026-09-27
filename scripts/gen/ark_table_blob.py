@@ -147,7 +147,7 @@ def emit_string_table(name: str, values: list[str]) -> list[str]:
             "        if remain < avail {",
             "            take = remain",
             "        }",
-            "        out = concat(out, substring(piece, local, local + take))",
+            "        out = text::concat(out, substring(piece, local, local + take))",
             "        i = i + take",
             "    }",
             "    return out",

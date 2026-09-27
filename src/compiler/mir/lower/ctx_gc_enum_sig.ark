@@ -16,7 +16,7 @@ fn gc_enum_field_sig_for_vt(ctx: LowerCtx, vt: i32) -> String {
         // Pair ABI (#872): fn payloads hold a {fnptr, env} __fnpair ref.
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat("_f1_gcsref", i32_to_string(pair_slot))
+            return text::concat("_f1_gcsref", (pair_slot).to_string())
         }
         return "_f1_fnref"
     }
@@ -176,7 +176,7 @@ fn gc_enum_field_sig_for_type_ctx(ctx: LowerCtx, type_name: String) -> String {
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(bare)) {
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat("_f1_gcsref", i32_to_string(pair_slot))
+            return text::concat("_f1_gcsref", (pair_slot).to_string())
         }
     }
     // Bare enum names (Inner, AppError) share the open-enum ABI; do not bind
@@ -243,7 +243,7 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
         return "_f1_ref14"
     }
     if struct_slot >= 0 {
-        return text::concat("_f1_gcsref", i32_to_string(struct_slot))
+        return text::concat("_f1_gcsref", (struct_slot).to_string())
     }
     "_f1_ref14"
 }

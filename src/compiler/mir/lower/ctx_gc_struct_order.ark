@@ -113,7 +113,7 @@ fn gc_struct_rewrite_gcsref_slots(sig: String, remap: Vec<i32>) -> String {
             let slot = get_unchecked(parsed, 0)
             let end = get_unchecked(parsed, 1)
             if end > i + 6 && slot >= 0 && slot < len(remap) {
-                out = text::concat(out, text::concat("gcsref", i32_to_string(get_unchecked(remap, slot))))
+                out = text::concat(out, text::concat("gcsref", (get_unchecked(remap, slot)).to_string()))
                 i = end
                 continue
             }

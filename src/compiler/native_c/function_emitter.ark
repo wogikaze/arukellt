@@ -97,40 +97,40 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         next_temporary_id: 0,
         is_unreachable: false,
         unreachable_nested_depth: 0,
-        root_clear_start: Vec_new_i32(),
-        root_clear_count: Vec_new_i32(),
-        root_clear_locals: Vec_new_i32(),
+        root_clear_start: Vec::new<i32>(),
+        root_clear_count: Vec::new<i32>(),
+        root_clear_locals: Vec::new<i32>(),
         instruction_order: 0,
         suppress_source: false,
         record_effects: false,
         current_block_id: 0,
-        current_uses: Vec_new_i32(),
-        current_defs: Vec_new_i32(),
-        effect_block_ids: Vec_new_i32(),
-        effect_reachable: Vec_new_i32(),
-        effect_is_safepoint: Vec_new_i32(),
-        effect_opcodes: Vec_new_i32(),
-        effect_use_start: Vec_new_i32(),
-        effect_use_count: Vec_new_i32(),
-        effect_use_locals: Vec_new_i32(),
-        effect_def_start: Vec_new_i32(),
-        effect_def_count: Vec_new_i32(),
-        effect_def_locals: Vec_new_i32(),
+        current_uses: Vec::new<i32>(),
+        current_defs: Vec::new<i32>(),
+        effect_block_ids: Vec::new<i32>(),
+        effect_reachable: Vec::new<i32>(),
+        effect_is_safepoint: Vec::new<i32>(),
+        effect_opcodes: Vec::new<i32>(),
+        effect_use_start: Vec::new<i32>(),
+        effect_use_count: Vec::new<i32>(),
+        effect_use_locals: Vec::new<i32>(),
+        effect_def_start: Vec::new<i32>(),
+        effect_def_count: Vec::new<i32>(),
+        effect_def_locals: Vec::new<i32>(),
         root_plan_safepoints: 0,
         root_plan_clears: 0,
         root_plan_sites: 0,
         root_plan_skipped: 0,
         root_plan_analyzed: 0,
         root_frame_locals: 0,
-        heap_enum_flags: Vec_new_i32(),
+        heap_enum_flags: Vec::new<i32>(),
         root_peak_slots: 0,
         root_planner_bytes: 0,
         root_emit_enabled_for_fn: false,
         root_sites_emitted: 0,
         root_assigns_emitted: 0,
         root_entry_null_inits: 0,
-        root_slot_of_local: Vec_new_i32(),
-        funcref_locals: Vec_new_i32(),
+        root_slot_of_local: Vec::new<i32>(),
+        funcref_locals: Vec::new<i32>(),
     }
 }
 
@@ -150,7 +150,7 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
     if order >= 0 && order < len(state.root_clear_count) {
         let count = get_unchecked(state.root_clear_count, order)
         let start = get_unchecked(state.root_clear_start, order)
-        let clear_slots = Vec_new_i32()
+        let clear_slots = Vec::new<i32>()
         let mut clear_index = 0
         while clear_index < count {
             let local = get_unchecked(state.root_clear_locals, start + clear_index)
@@ -173,10 +173,10 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
                 text::concat(
                     String_from("    /* ark-root-clear inst="),
                     text::concat(
-                        i32_to_string(order),
+                        (order).to_string(),
                         text::concat(
                             String_from(" n="),
-                            text::concat(i32_to_string(emitted_here), String_from(" */\n"))
+                            text::concat((emitted_here).to_string(), String_from(" */\n"))
                         )
                     )
                 )
@@ -188,7 +188,7 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
                 state,
                 text::concat(
                     String_from("        static const size_t ark_clr_"),
-                    text::concat(i32_to_string(order), String_from("[] = {"))
+                    text::concat((order).to_string(), String_from("[] = {"))
                 )
             )
             let mut slot_index = 0
@@ -198,7 +198,7 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
                 }
                 native_c_append(
                     state,
-                    text::concat(i32_to_string(get_unchecked(clear_slots, slot_index)), String_from("u"))
+                    text::concat((get_unchecked(clear_slots, slot_index)).to_string(), String_from("u"))
                 )
                 slot_index = slot_index + 1
             }
@@ -208,10 +208,10 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
                 text::concat(
                     String_from("        ark_gc_clear_root_slots((size_t)"),
                     text::concat(
-                        i32_to_string(emitted_here),
+                        (emitted_here).to_string(),
                         text::concat(
                             String_from("u, ark_clr_"),
-                            text::concat(i32_to_string(order), String_from(");\n"))
+                            text::concat((order).to_string(), String_from(");\n"))
                         )
                     )
                 )
@@ -280,29 +280,29 @@ fn native_c_function_root_emit_enabled(state: NativeCFunctionEmitState) -> bool 
 fn native_c_function_root_liveness_marker(state: NativeCFunctionEmitState) -> String {
     let emit_flag = if state.root_emit_enabled_for_fn { 1 } else { 0 }
     let mut marker = String_from("/* ARK_ROOT_LIVENESS fn analyzed=")
-    marker = text::concat(marker, i32_to_string(state.root_plan_analyzed))
+    marker = text::concat(marker, (state.root_plan_analyzed).to_string())
     marker = text::concat(marker, String_from(" skipped="))
-    marker = text::concat(marker, i32_to_string(state.root_plan_skipped))
+    marker = text::concat(marker, (state.root_plan_skipped).to_string())
     marker = text::concat(marker, String_from(" frames="))
-    marker = text::concat(marker, i32_to_string(state.root_frame_locals))
+    marker = text::concat(marker, (state.root_frame_locals).to_string())
     marker = text::concat(marker, String_from(" safepoints="))
-    marker = text::concat(marker, i32_to_string(state.root_plan_safepoints))
+    marker = text::concat(marker, (state.root_plan_safepoints).to_string())
     marker = text::concat(marker, String_from(" sites_planned="))
-    marker = text::concat(marker, i32_to_string(state.root_plan_sites))
+    marker = text::concat(marker, (state.root_plan_sites).to_string())
     marker = text::concat(marker, String_from(" assigns_planned="))
-    marker = text::concat(marker, i32_to_string(state.root_plan_clears))
+    marker = text::concat(marker, (state.root_plan_clears).to_string())
     marker = text::concat(marker, String_from(" sites_emitted="))
-    marker = text::concat(marker, i32_to_string(state.root_sites_emitted))
+    marker = text::concat(marker, (state.root_sites_emitted).to_string())
     marker = text::concat(marker, String_from(" assigns_emitted="))
-    marker = text::concat(marker, i32_to_string(state.root_assigns_emitted))
+    marker = text::concat(marker, (state.root_assigns_emitted).to_string())
     marker = text::concat(marker, String_from(" peak_slots="))
-    marker = text::concat(marker, i32_to_string(state.root_peak_slots))
+    marker = text::concat(marker, (state.root_peak_slots).to_string())
     marker = text::concat(marker, String_from(" planner_bytes="))
-    marker = text::concat(marker, i32_to_string(state.root_planner_bytes))
+    marker = text::concat(marker, (state.root_planner_bytes).to_string())
     marker = text::concat(marker, String_from(" entry_nulls="))
-    marker = text::concat(marker, i32_to_string(state.root_entry_null_inits))
+    marker = text::concat(marker, (state.root_entry_null_inits).to_string())
     marker = text::concat(marker, String_from(" emit="))
-    marker = text::concat(marker, i32_to_string(emit_flag))
+    marker = text::concat(marker, (emit_flag).to_string())
     text::concat(marker, String_from(" */\n\n"))
 }
 
@@ -397,8 +397,8 @@ fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> root_li
     let effects = root_liveness::native_c_instruction_effects_new()
     let mut order = 0
     while order < len(state.effect_block_ids) {
-        let uses = Vec_new_i32()
-        let defs = Vec_new_i32()
+        let uses = Vec::new<i32>()
+        let defs = Vec::new<i32>()
         let use_start = get_unchecked(state.effect_use_start, order)
         let use_count = get_unchecked(state.effect_use_count, order)
         let mut index = 0
@@ -435,9 +435,9 @@ fn native_c_fail(state: NativeCFunctionEmitState, diagnostic: String) {
 
 fn native_c_local_name(local_id: i32) -> String {
     if local_id < 0 {
-        return text::concat("ark_t_", i32_to_string((0 - local_id) - 2))
+        return text::concat("ark_t_", ((0 - local_id) - 2).to_string())
     }
-    text::concat("ark_v_", i32_to_string(local_id))
+    text::concat("ark_v_", (local_id).to_string())
 }
 
 fn native_c_allocate_temporary(state: NativeCFunctionEmitState, c_type: String) -> i32 {
@@ -486,7 +486,7 @@ fn native_c_stack_discard_to(state: NativeCFunctionEmitState, depth: i32) {
 fn native_c_control_label(control_id: i32, suffix: String) -> String {
     text::concat(
         "ark_ctl_",
-        text::concat(i32_to_string(control_id), text::concat("_", suffix))
+        text::concat((control_id).to_string(), text::concat("_", suffix))
     )
 }
 
@@ -545,7 +545,7 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
             destination,
             text::concat(
                 "INT32_C(",
-                text::concat(i32_to_string(inst_accessors_literals::MirInst_int_val(instruction)), ")")
+                text::concat((inst_accessors_literals::MirInst_int_val(instruction)).to_string(), ")")
             )
         )
         native_c_stack_push(state, destination)
@@ -593,7 +593,7 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
         native_c_emit_assignment(
             state,
             destination,
-            text::concat("(double)", f64_to_string(inst_accessors_literals::MirInst_float_val(instruction)))
+            text::concat("(double)", (inst_accessors_literals::MirInst_float_val(instruction)).to_string())
         )
         native_c_stack_push(state, destination)
         return true
@@ -609,12 +609,12 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
             let mut index = 0
             while index < length {
                 if index > 0 { expression = text::concat(expression, ",") }
-                expression = text::concat(expression, i32_to_string(byte_at(literal, index)))
+                expression = text::concat(expression, (byte_at(literal, index)).to_string())
                 index = index + 1
             }
             expression = text::concat(
                 expression,
-                text::concat("}, UINT32_C(", text::concat(i32_to_string(length), "))"))
+                text::concat("}, UINT32_C(", text::concat((length).to_string(), "))"))
             )
         }
         native_c_emit_assignment(state, destination, expression)
@@ -1028,8 +1028,8 @@ fn native_c_emit_struct(
         let expression = text::concat(
             "(ark_object_header *)ark_rt_struct_new(UINT32_C(",
             text::concat(
-                i32_to_string(native_c_local_type_id(function, destination)),
-                text::concat("), UINT32_C(", text::concat(i32_to_string(field_count), "))"))
+                (native_c_local_type_id(function, destination)).to_string(),
+                text::concat("), UINT32_C(", text::concat((field_count).to_string(), "))"))
             )
         )
         native_c_emit_assignment(state, destination, expression)
@@ -1086,7 +1086,7 @@ fn native_c_emit_struct(
                 native_c_local_name(base),
                 text::concat(
                     ", UINT32_C(",
-                    text::concat(i32_to_string(native_c_struct_field_index(instruction)), text::concat(")).", member))
+                    text::concat((native_c_struct_field_index(instruction)).to_string(), text::concat(")).", member))
                 )
             )
         )
@@ -1124,7 +1124,7 @@ fn native_c_emit_struct(
                 text::concat(
                     ", UINT32_C(",
                     text::concat(
-                        i32_to_string(native_c_struct_field_index(instruction)),
+                        (native_c_struct_field_index(instruction)).to_string(),
                         text::concat(
                             "), (ark_value){ .",
                             text::concat(member, text::concat(" = ", text::concat(native_c_local_name(value), " });\n")))
@@ -1156,8 +1156,8 @@ fn native_c_emit_array(
         let expression = text::concat(
             String_from("(ark_object_header *)ark_rt_array_new(UINT32_C("),
             text::concat(
-                i32_to_string(native_c_local_type_id(function, destination)),
-                text::concat(String_from("), INT32_C("), text::concat(i32_to_string(length), String_from("))")))
+                (native_c_local_type_id(function, destination)).to_string(),
+                text::concat(String_from("), INT32_C("), text::concat((length).to_string(), String_from("))")))
             )
         )
         native_c_emit_assignment(state, destination, expression)
@@ -1239,7 +1239,7 @@ fn native_c_emit_array(
                 text::concat(
                     String_from(", INT32_C("),
                     text::concat(
-                        i32_to_string(index),
+                        (index).to_string(),
                         text::concat(
                             String_from("), (ark_value){ ."),
                             text::concat(member, text::concat(String_from(" = "), text::concat(native_c_local_name(value), String_from(" });\n"))))
@@ -1598,7 +1598,7 @@ fn native_c_emit_hof(
     }
     let callee_local = native_c_stack_pop(state, String_from("indirect call callee"))
     let first_argument = len(state.value_stack) - argument_count
-    let arguments = Vec_new_i32()
+    let arguments = Vec::new<i32>()
     let mut argument_index = 0
     while argument_index < argument_count {
         push(arguments, get_unchecked(state.value_stack, first_argument + argument_index))
@@ -2065,10 +2065,10 @@ fn native_c_emit_call(
                             text::concat(
                                 String_from("`; argc="),
                                 text::concat(
-                                    i32_to_string(argument_count),
+                                    (argument_count).to_string(),
                                     text::concat(
                                         String_from("; stack="),
-                                        text::concat(i32_to_string(len(state.value_stack)), String_from(")"))
+                                        text::concat((len(state.value_stack)).to_string(), String_from(")"))
                                     )
                                 )
                             )
@@ -2088,7 +2088,7 @@ fn native_c_emit_call(
     } else {
         len(state.value_stack) - argument_count
     }
-    let arguments = Vec_new_i32()
+    let arguments = Vec::new<i32>()
     let mut argument_index = 0
     if use_explicit_first_arg {
         push(arguments, explicit_first_arg)
@@ -2440,7 +2440,7 @@ fn native_c_emit_instruction(
             state,
             text::concat(
                 String_from("compiler ICE: native-cpp reached validated opcode "),
-                i32_to_string(inst_accessors_shape::MirInst_op(instruction))
+                (inst_accessors_shape::MirInst_op(instruction)).to_string()
             )
         )
     }
@@ -2692,7 +2692,7 @@ fn native_c_emit_local_declarations(
     state.reference_locals = reference_producers
     // Zero-capture HOF: REF_FUNC / CALL_INDIRECT use intptr_t function pointers.
     // MIR often types these as VT_I32 (wasm table index); widen for LP64.
-    let funcref_locals = Vec_new_i32()
+    let funcref_locals = Vec::new<i32>()
     let mut funcref_index = 0
     while funcref_index < local_count {
         let local = function_locals_view::MirFunction_local_at(function, funcref_index)
@@ -2785,7 +2785,7 @@ fn native_c_emit_local_declarations(
     state.funcref_locals = funcref_locals
     // Unit-enum tags lower as CONST_I32 into named enum locals that the type
     // table still reports as refs. Prefer the concrete i32 producers.
-    let scalar_i32_locals = Vec_new_i32()
+    let scalar_i32_locals = Vec::new<i32>()
     let mut scalar_index = 0
     while scalar_index < local_count {
         push(scalar_i32_locals, 0)
@@ -2932,7 +2932,7 @@ fn native_c_emit_local_declarations(
         state,
         text::concat(
             String_from("    ark_gc_push_frame((size_t)"),
-            text::concat(i32_to_string(root_count), String_from(");\n"))
+            text::concat((root_count).to_string(), String_from(");\n"))
         )
     )
     while len(state.root_slot_of_local) > 0 {
@@ -2958,7 +2958,7 @@ fn native_c_emit_local_declarations(
                     text::concat(
                         String_from("    ark_gc_set_root((size_t)"),
                         text::concat(
-                            i32_to_string(root_slot),
+                            (root_slot).to_string(),
                             text::concat(
                                 String_from(", &"),
                                 text::concat(native_c_local_name(root_local), String_from(");\n"))
@@ -3024,17 +3024,17 @@ fn native_c_emit_function_body(
     native_c_emit_local_declarations(inference_state, mir_module, function, signature)
     if !native_c_function_emit_success(inference_state) { return inference_state }
     // Reset control/stack before effect recording walk; keep reference_locals.
-    inference_state.value_stack = Vec_new_i32()
-    inference_state.control_kinds = Vec_new_i32()
-    inference_state.control_ids = Vec_new_i32()
-    inference_state.control_stack_depths = Vec_new_i32()
-    inference_state.control_has_else = Vec_new_i32()
+    inference_state.value_stack = Vec::new<i32>()
+    inference_state.control_kinds = Vec::new<i32>()
+    inference_state.control_ids = Vec::new<i32>()
+    inference_state.control_stack_depths = Vec::new<i32>()
+    inference_state.control_has_else = Vec::new<i32>()
     inference_state.next_control_id = 0
     inference_state.is_unreachable = false
     inference_state.unreachable_nested_depth = 0
     inference_state.instruction_order = 0
-    inference_state.source = Vec_new_i32()
-    inference_state.temporary_declarations = Vec_new_i32()
+    inference_state.source = Vec::new<i32>()
+    inference_state.temporary_declarations = Vec::new<i32>()
     native_c_emit_function_instructions(inference_state, mir_module, function, signature)
     if !native_c_function_emit_success(inference_state) { return inference_state }
 

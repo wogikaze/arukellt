@@ -11,11 +11,11 @@ fn print_token_fields(kind: i32, text: String, int_val: i32, float_val: f64) {
         return
     }
     if kind == tokens::TK_INT() {
-        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), i32_to_string(int_val)), ")"))
+        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), (int_val).to_string()), ")"))
         return
     }
     if kind == tokens::TK_FLOAT() {
-        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), f64_to_string(float_val)), ")"))
+        stdio::println(text::concat(text::concat(text::concat(kind_str, "("), (float_val).to_string()), ")"))
         return
     }
     if kind == tokens::TK_BOOL() {

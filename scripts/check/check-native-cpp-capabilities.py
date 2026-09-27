@@ -170,13 +170,15 @@ def render_generated_ark(
         "",
         "use corehir::table_blob",
         "use mir::opcodes",
+        "use std::prelude::{substring}",
+        "use std::text",
         "",
         "fn native_c_capability_opcode_name(op: i32) -> String {",
     ]
     for entry in entries:
         identifier = str(entry["id"])
         lines.extend([f"    if op == opcodes::{identifier}() {{", f"        return {json.dumps(identifier)}", "    }"])
-    lines.extend(['    concat("MIR_OPCODE_", i32_to_string(op))', "}", "", "fn native_c_capability_status_detail(op: i32) -> String {"])
+    lines.extend(['    text::concat("MIR_OPCODE_", (op).to_string())', "}", "", "fn native_c_capability_status_detail(op: i32) -> String {"])
     for entry in entries:
         identifier = str(entry["id"])
         lines.extend([f"    if op == opcodes::{identifier}() {{", f"        return {json.dumps(_status_detail(entry))}", "    }"])

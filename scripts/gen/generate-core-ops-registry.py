@@ -62,6 +62,8 @@ def render(ops: list[dict]) -> str:
         "// Compact table + index. Do not edit by hand.",
         "",
         "use corehir::table_blob",
+        "use std::prelude::{byte_at, clone, eq, substring}",
+        "use std::text",
         "",
         f"fn core_op_registry_entry_count() -> i32 {{",
         f"    {len(ops)}",

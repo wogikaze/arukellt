@@ -235,7 +235,7 @@ fn native_c_emit_call_indirect(
             typedef_name,
             text::concat(
                 String_from(")"),
-                text::concat(String_from("ark_v_"), text::concat(i32_to_string(callee_local), String_from(")(")))
+                text::concat(String_from("ark_v_"), text::concat((callee_local).to_string(), String_from(")(")))
             )
         )
     )
@@ -244,7 +244,7 @@ fn native_c_emit_call_indirect(
         if argument_index > 0 { call = text::concat(call, String_from(", ")) }
         call = text::concat(
             call,
-            text::concat(String_from("ark_v_"), i32_to_string(get_unchecked(argument_locals, argument_index)))
+            text::concat(String_from("ark_v_"), (get_unchecked(argument_locals, argument_index)).to_string())
         )
         argument_index = argument_index + 1
     }
@@ -257,7 +257,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
     let registry = module_spine::MirModule_signature_registry(mir_module)
     let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     let function_count = module_functions::MirModule_function_count(mir_module)
-    let emitted_names = Vec_new_String()
+    let emitted_names = Vec::new<String>()
     let mut out = String_new()
     let mut function_index = 0
     while function_index < function_count {
