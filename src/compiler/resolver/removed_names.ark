@@ -1,0 +1,157 @@
+// Names removed from the auto-imported prelude / compat surface, or
+// gated behind explicit 'use std::prelude::{name}' imports by the v2
+// prelude policy (ADR-072). resolve_unknown_name consults this table
+// so pre-v2 sources get a migration hint instead of a bare
+// undefined-name error. Keep aligned with std/manifest.toml
+// deprecations and docs/stdlib/migration-guidance.md;
+// scripts/check/check-compat-orphans.py verifies both directions.
+pub fn removed_name_hint(name: String) -> String {
+    let specific = removed_name_specific_hint(clone(name))
+    if len(clone(specific)) > 0 {
+        return specific
+    }
+    return removed_gated_prelude_hint(name)
+}
+
+fn removed_name_specific_hint(name: String) -> String {
+    if eq(clone(name), "concat") { return "deprecated prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.concat(b)`" }
+    if eq(clone(name), "char_at") { return "deprecated prelude wrapper; use `byte_at(s, i)` via `use std::prelude::{byte_at}`" }
+    if eq(clone(name), "println") { return "deprecated prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
+    if eq(clone(name), "print") { return "deprecated prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
+    if eq(clone(name), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
+    if eq(clone(name), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
+    if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs` and call `fs::is_readable_file(...)`" }
+    if eq(clone(name), "get_var") { return "removed prelude binding; import `use std::host::env` and call `env::var(...)`" }
+    if eq(clone(name), "map_i32_i32") { return "deprecated prelude wrapper; import `use std::core::iter::{collect_map_i32}`" }
+    if eq(clone(name), "filter_i32") { return "deprecated prelude wrapper; import `use std::core::iter::{collect_filter_i32}`" }
+    if eq(clone(name), "fold_i32_i32") { return "deprecated prelude wrapper; import `use std::core::iter::{iter_fold_i32}`" }
+    if eq(clone(name), "sum_i32") { return "deprecated prelude wrapper; import `use std::core::iter::{iter_sum_i32}`" }
+    if eq(clone(name), "take_i32") { return "removed free function; import `use std::core::iter::{collect_take_i32}`" }
+    if eq(clone(name), "skip_i32") { return "removed free function; import `use std::core::iter::{collect_skip_i32}`" }
+    if eq(clone(name), "seq_reverse") { return "removed free function; import `use std::core::iter::{iter_reverse_i32}`" }
+    if eq(clone(name), "seq_contains") { return "removed free function; import `use std::core::iter::{iter_contains_i32}`" }
+    if eq(clone(name), "unique") { return "removed free function; import `use std::core::iter::{iter_unique_i32}`" }
+    if eq(clone(name), "count_eq") { return "removed free function; import `use std::core::iter::{iter_count_eq_i32}`" }
+    if eq(clone(name), "binary_search") { return "removed free function; import `use std::seq::{binary_search_by}`" }
+    if eq(clone(name), "min_i32") { return "removed free function; import `use std::seq::{min_by}`" }
+    if eq(clone(name), "max_i32") { return "removed free function; import `use std::seq::{max_by}`" }
+    if eq(clone(name), "i32_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(clone(name), "i64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(clone(name), "f64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(clone(name), "bool_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    if eq(clone(name), "Vec_new") { return "removed Vec constructor; use `Vec::new<T>()`" }
+    if eq(clone(name), "Vec_new_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
+    if eq(clone(name), "Vec_new_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
+    if eq(clone(name), "Vec_with_capacity") { return "removed Vec constructor; use `Vec::new<T>()`" }
+    if eq(clone(name), "Vec_with_capacity_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
+    if eq(clone(name), "Vec_with_capacity_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
+    if eq(clone(name), "ok") { return "removed free function; construct the variant directly with `Ok(...)`" }
+    if eq(clone(name), "err") { return "removed free function; construct the variant directly with `Err(...)`" }
+    if eq(clone(name), "expect") { return "removed free function; use `unwrap_or(value, fallback)` or match on the variant" }
+    if eq(clone(name), "unwrap_or_else") { return "removed free function; use `unwrap_or(value, fallback)`" }
+    if eq(clone(name), "ok_or") { return "removed free function; convert Option to Result explicitly with `Ok`/`Err` or `match`" }
+    String_new()
+}
+
+// Prelude decls outside the ADR-072 stable set: still public in
+// std::prelude but no longer auto-imported. The hint keeps the call
+// working through an explicit selective import.
+fn removed_gated_prelude_hint(name: String) -> String {
+    if !is_gated_prelude_name(clone(name)) {
+        return String_new()
+    }
+    concat("no longer auto-imported; add `use std::prelude::{", concat(name, "}`"))
+}
+
+fn is_gated_prelude_name(name: String) -> bool {
+    if eq(clone(name), "Box") || eq(clone(name), "Box_new") || eq(clone(name), "Slice") || eq(clone(name), "abs") || eq(clone(name), "any_String") || eq(clone(name), "any_f64") {
+        return true
+    }
+    if eq(clone(name), "any_i32") || eq(clone(name), "any_i64") || eq(clone(name), "args") || eq(clone(name), "as_slice") || eq(clone(name), "assert_eq") || eq(clone(name), "assert_eq_i64") {
+        return true
+    }
+    if eq(clone(name), "assert_eq_str") || eq(clone(name), "assert_ne") || eq(clone(name), "byte_at") || eq(clone(name), "byte_len") || eq(clone(name), "clamp_i32") || eq(clone(name), "clone") {
+        return true
+    }
+    if eq(clone(name), "contains") || eq(clone(name), "contains_String") || eq(clone(name), "contains_i32") || eq(clone(name), "contains_string") || eq(clone(name), "ends_with") || eq(clone(name), "eq") {
+        return true
+    }
+    if eq(clone(name), "exit") || eq(clone(name), "f32_to_f64") || eq(clone(name), "f32_to_string") || eq(clone(name), "f64_bits_hi") || eq(clone(name), "f64_bits_lo") || eq(clone(name), "f64_to_f32") {
+        return true
+    }
+    if eq(clone(name), "filter_String") || eq(clone(name), "filter_f64") || eq(clone(name), "filter_i64") || eq(clone(name), "find_String") || eq(clone(name), "find_f64") || eq(clone(name), "find_i32") {
+        return true
+    }
+    if eq(clone(name), "find_i64") || eq(clone(name), "fold_f64_f64") || eq(clone(name), "fold_i64_i64") || eq(clone(name), "format_bool") || eq(clone(name), "format_i32") || eq(clone(name), "gcd") {
+        return true
+    }
+    if eq(clone(name), "i16_to_i32") || eq(clone(name), "i32_to_i16") || eq(clone(name), "i32_to_i64") || eq(clone(name), "i32_to_i8") || eq(clone(name), "i32_to_u16") || eq(clone(name), "i32_to_u32") {
+        return true
+    }
+    if eq(clone(name), "i32_to_u8") || eq(clone(name), "i64_to_i32") || eq(clone(name), "i8_to_i32") || eq(clone(name), "index_of") || eq(clone(name), "is_empty") || eq(clone(name), "is_err") {
+        return true
+    }
+    if eq(clone(name), "is_none") || eq(clone(name), "is_ok") || eq(clone(name), "is_some") || eq(clone(name), "join") || eq(clone(name), "lines") || eq(clone(name), "map_String_String") {
+        return true
+    }
+    if eq(clone(name), "map_f64_f64") || eq(clone(name), "map_i64_i64") || eq(clone(name), "map_option_i32_i32") || eq(clone(name), "max") || eq(clone(name), "min") || eq(clone(name), "pad_left") {
+        return true
+    }
+    if eq(clone(name), "pad_right") || eq(clone(name), "parse_f64") || eq(clone(name), "parse_i32") || eq(clone(name), "parse_i64") || eq(clone(name), "product_i32") || eq(clone(name), "push_char") {
+        return true
+    }
+    if eq(clone(name), "remove_i32") || eq(clone(name), "repeat") || eq(clone(name), "replace") || eq(clone(name), "reverse_String") || eq(clone(name), "reverse_i32") || eq(clone(name), "slice") {
+        return true
+    }
+    if eq(clone(name), "slice_get") || eq(clone(name), "slice_len") || eq(clone(name), "sort_String") || eq(clone(name), "sort_f64") || eq(clone(name), "sort_i32") || eq(clone(name), "sort_i64") {
+        return true
+    }
+    if eq(clone(name), "split") || eq(clone(name), "sqrt") || eq(clone(name), "starts_with") || eq(clone(name), "substring") || eq(clone(name), "to_lower") || eq(clone(name), "to_lowercase") {
+        return true
+    }
+    if eq(clone(name), "to_string") || eq(clone(name), "to_upper") || eq(clone(name), "to_uppercase") || eq(clone(name), "trim") || eq(clone(name), "trim_end") || eq(clone(name), "trim_start") {
+        return true
+    }
+    if eq(clone(name), "u16_to_i32") || eq(clone(name), "u32_to_u64") || eq(clone(name), "u64_to_u32") || eq(clone(name), "u8_to_i32") || eq(clone(name), "unbox") || eq(clone(name), "unwrap") {
+        return true
+    }
+    if eq(clone(name), "unwrap_or") || eq(clone(name), "values") {
+        return true
+    }
+    false
+}
+
+test mod "removed_names" {
+    test "to_string family" {
+        assert(len(removed_name_hint("i32_to_string")) > 0)
+        assert(len(removed_name_hint("bool_to_string")) > 0)
+    }
+    test "vec ctor" { assert(len(removed_name_hint("Vec_new_i32")) > 0) }
+    test "io env fs" {
+        assert(len(removed_name_hint("read_to_string")) > 0)
+        assert(len(removed_name_hint("exists")) > 0)
+        assert(len(removed_name_hint("get_var")) > 0)
+    }
+    test "result option helpers" {
+        assert(len(removed_name_hint("ok")) > 0)
+        assert(len(removed_name_hint("err")) > 0)
+        assert(len(removed_name_hint("expect")) > 0)
+        assert(len(removed_name_hint("unwrap_or_else")) > 0)
+        assert(len(removed_name_hint("ok_or")) > 0)
+    }
+    test "io shims" { assert(len(removed_name_hint("eprintln")) > 0) }
+    test "deprecated prelude hints" {
+        assert(len(removed_name_hint("concat")) > 0)
+        assert(len(removed_name_hint("char_at")) > 0)
+        assert(len(removed_name_hint("println")) > 0)
+    }
+    test "gated prelude hints" {
+        assert(len(removed_name_hint("eq")) > 0)
+        assert(len(removed_name_hint("clone")) > 0)
+        assert(len(removed_name_hint("substring")) > 0)
+    }
+    test "live names have no hint" {
+        assert(len(removed_name_hint("len")) == 0)
+        assert(len(removed_name_hint("panic")) == 0)
+    }
+}

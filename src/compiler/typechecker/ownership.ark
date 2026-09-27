@@ -1,3 +1,5 @@
+use std::prelude::{clone, eq}
+use std::text
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::scope
@@ -8,7 +10,6 @@ use parser::ast
 use diagnostics::codes
 use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
-
 fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
     if ast_expr_predicates::node_is_ident(target) {
         let name = ast_access::node_text(target)
@@ -18,7 +19,7 @@ fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
                 env,
                 codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
                 target,
-                concat("cannot assign to borrowed capture `", concat(name, "`"))
+                text::concat("cannot assign to borrowed capture `", text::concat(name, "`"))
             )
             return
         }
@@ -27,7 +28,7 @@ fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
                 env,
                 codes::DIAG_TYPE_RETURN_MISMATCH(),
                 target,
-                concat("cannot assign to immutable variable ", name)
+                text::concat("cannot assign to immutable variable ", name)
             )
             return
         }
@@ -130,7 +131,7 @@ fn consume_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) {
             env,
             codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
             node,
-            concat("cannot move borrowed capture `", concat(name, "`"))
+            text::concat("cannot move borrowed capture `", text::concat(name, "`"))
         )
         return
     }
@@ -139,11 +140,24 @@ fn consume_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) {
             env,
             codes::DIAG_TYPE_MOVE_AFTER_USE(),
             node,
-            concat("use of moved value `", concat(name, "`"))
+            move_after_use_message(name)
         )
         return
     }
     scope::scope_mark_moved(scope, name, true)
+}
+
+// E0212 is also the v2 alias->move/borrow migration diagnostic (#878):
+// code written under implicit sharing now needs an explicit clone or
+// borrow, so the message points at both remedies.
+fn move_after_use_message(name: String) -> String {
+    text::concat(
+        "use of moved value `",
+        text::concat(
+            name,
+            "`; v2 uses move semantics; call `.clone()` before moving or borrow instead"
+        )
+    )
 }
 
 fn expr_is_copy(env: TypeEnv, scope: LocalScope, node: AstNode, inferred_ty: TypeInfo) -> bool {

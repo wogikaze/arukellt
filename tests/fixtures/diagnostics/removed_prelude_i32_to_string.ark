@@ -1,0 +1,3 @@
+fn main() {
+    let rendered = i32_to_string(42)
+}

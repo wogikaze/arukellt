@@ -1,0 +1,5 @@
+fn main() {
+    let wide: i64 = 5i64
+    let added = wide + 1
+    let as_float: f64 = wide
+}
