@@ -35,7 +35,7 @@ graph LR
   I872["872 872 — Wasm GC closure / collection lowering を完成する"]
   I874["874 874 — fallback managed-value lowering を実装する"]
   I887["887 887 — Method-level generics (`fn m<U>` on generic/非 generic types)"]
-  I888["888 888 — HashMap entry (key+value) enumeration"]
+  I890["890 890 — Option<tuple> payload produces invalid wasm on both backends"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -126,7 +126,7 @@ graph LR
 - **872** depends on: 855, 859, 860, 871; blocks: 875, 879
 - **874** depends on: 854, 855, 859, 860, 873; blocks: 875, 879, 889
 - **887** depends on: 856, 860; blocks: none
-- **888** depends on: 860; blocks: none
+- **890** depends on: 860; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

@@ -28,20 +28,20 @@ Scoring criteria (0-5 each, total 25):
 | 15 | 872 | 872 — Wasm GC closure / collection lowering を完成する | language-v2 | 2 | 0 | 1 | 5 | 2 | 10 |
 | 16 | 878 | 878 — Language v2 compatibility migration を完了する | language-v2 | 1 | 0 | 1 | 5 | 3 | 10 |
 | 17 | 889 | 889 — impl-path Vec::new<T> loses element specialization on... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
-| 18 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
-| 19 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 20 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
-| 21 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
-| 22 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 23 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 24 | 825 | AST cache format repair (not “re-enable as-is”) | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 25 | 849 | 849 — native-executor wasm32-gc S3 validation drift (func 118) | main | 0 | 0 | 1 | 3 | 5 | 9 |
-| 26 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 27 | 877 | 877 — normative examples と操作的意味論を実行可能にする | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
-| 28 | 879 | 879 — Wasm GC / fallback の性能・サイズ receipt を取得する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
-| 29 | 880 | 880 — Language v2 最終 close audit を実施する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
-| 30 | 887 | 887 — Method-level generics (`fn m<U>` on generic/非 generic... | language-v2 | 0 | 0 | 1 | 5 | 3 | 9 |
-| 31 | 888 | 888 — HashMap entry (key+value) enumeration | language-v2 | 0 | 0 | 1 | 5 | 3 | 9 |
+| 18 | 890 | 890 — Option<tuple> payload produces invalid wasm on both b... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
+| 19 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
+| 20 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 21 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
+| 22 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
+| 23 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
+| 24 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 25 | 825 | AST cache format repair (not “re-enable as-is”) | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 26 | 849 | 849 — native-executor wasm32-gc S3 validation drift (func 118) | main | 0 | 0 | 1 | 3 | 5 | 9 |
+| 27 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 28 | 877 | 877 — normative examples と操作的意味論を実行可能にする | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
+| 29 | 879 | 879 — Wasm GC / fallback の性能・サイズ receipt を取得する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
+| 30 | 880 | 880 — Language v2 最終 close audit を実施する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
+| 31 | 887 | 887 — Method-level generics (`fn m<U>` on generic/非 generic... | language-v2 | 0 | 0 | 1 | 5 | 3 | 9 |
 | 32 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
 | 33 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
 | 34 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
