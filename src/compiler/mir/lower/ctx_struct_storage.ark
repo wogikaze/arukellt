@@ -1,4 +1,4 @@
-use std::prelude::{clone}
+use std::prelude::{clone, eq}
 use collections::name_index
 fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
     len(ctx.struct_names)
@@ -37,6 +37,46 @@ fn ctx_struct_push_layout(ctx: LowerCtx, struct_name: String, field_count: i32) 
 // Index of the first layout named `struct_name`, or -1.
 fn ctx_struct_layout_first_index(ctx: LowerCtx, struct_name: String) -> i32 {
     name_index::name_index_get(ctx.struct_layout_first_index, struct_name)
+}
+
+// A single-field `_tag` layout is an enum base (or the tag-only layout of a
+// unit variant), not a user struct. Enum bases share the layout registry
+// with structs so variant payloads can reuse the same storage.
+fn ctx_struct_layout_is_enum_base_at(ctx: LowerCtx, index: i32) -> bool {
+    if ctx_struct_layout_field_count_at(ctx, index) != 1 {
+        return false
+    }
+    let off = ctx_struct_layout_field_offset_at(ctx, index)
+    eq(ctx_struct_field_name_at_offset(ctx, off), "_tag")
+}
+
+// Index of the first non-enum-base layout registered under `struct_name`,
+// or -1. A user struct may reuse a name an earlier enum registration claimed
+// (`struct Box` next to the prelude `enum Box`); the user decl shadows the
+// enum for struct-context lookups while enum machinery keeps its own
+// variant/tag registries.
+fn ctx_struct_layout_struct_index(ctx: LowerCtx, struct_name: String) -> i32 {
+    let sc = ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_layout_name_at(ctx, si), clone(struct_name)) &&
+        !ctx_struct_layout_is_enum_base_at(ctx, si) {
+            return si
+        }
+        si = si + 1
+    }
+    0 - 1
+}
+
+// Preferred layout for `struct_name`: the user struct when one shadows an
+// enum base under the same name, otherwise the first exact registration so
+// enum-only names keep resolving to their base layout.
+fn ctx_struct_layout_preferred_index(ctx: LowerCtx, struct_name: String) -> i32 {
+    let si = ctx_struct_layout_struct_index(ctx, clone(struct_name))
+    if si >= 0 {
+        return si
+    }
+    ctx_struct_layout_first_index(ctx, struct_name)
 }
 
 // Offset of layout `index`'s first field in struct_all_fields / struct_field_types.

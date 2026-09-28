@@ -1,38 +1,28 @@
 use std::prelude::{clone, eq}
 use mir::lower::ctx_struct_storage
 fn ctx_struct_layout_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut si = 0
-    while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
-            return ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
-        }
-        si = si + 1
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    if li < 0 {
+        return 0
     }
-    0
+    ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
 }
 
 fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut offset = 0
-    let mut si = 0
-    while si < sc {
-        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
-        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
-        if eq(clone(sn), clone(struct_name)) {
-            let mut byte_off = 0
-            let mut fi = 0
-            while fi < fc {
-                let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + fi)
-                byte_off = byte_off + ctx_struct_field_byte_size(ft)
-                fi = fi + 1
-            }
-            return byte_off
-        }
-        offset = offset + fc
-        si = si + 1
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    if li < 0 {
+        return 0
     }
-    0
+    let offset = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, li)
+    let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
+    let mut byte_off = 0
+    let mut fi = 0
+    while fi < fc {
+        let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + fi)
+        byte_off = byte_off + ctx_struct_field_byte_size(ft)
+        fi = fi + 1
+    }
+    byte_off
 }
 
 fn ctx_struct_field_byte_size(field_type: String) -> i32 {

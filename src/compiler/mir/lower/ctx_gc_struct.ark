@@ -86,8 +86,11 @@ fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
     // Enum base layouts (_tag only) and variant layouts (Enum::Var) must not
     // become named gc_structs. Their _tag field has an empty type that would
     // fall through to GS_f0_ref14, and return/payload lowering would then
-    // prefer that box over open-enum (#808 toml_get / nested_enum).
-    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(struct_name)) {
+    // prefer that box over open-enum (#808 toml_get / nested_enum). The
+    // struct-preferred index skips enum bases, so a user struct that shadows
+    // an enum name (struct Box vs prelude enum Box) still reaches this check
+    // and gets its own named type.
+    if ctx_struct_storage::ctx_struct_layout_struct_index(ctx, clone(struct_name)) < 0 {
         return 0 - 1
     }
     if contains(clone(struct_name), String_from("::")) {
@@ -501,20 +504,11 @@ fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> 
 }
 
 fn ctx_struct_offset_for_field(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
-    let layout_count = len(ctx.struct_names)
-    let mut off = 0
-    let mut li = 0
-    while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), clone(struct_name)) {
-            let mut fi = 0
-            while fi < target_field_idx {
-                off = off + 1
-                fi = fi + 1
-            }
-            return off
-        }
-        off = off + get_unchecked(ctx.struct_field_counts, li)
-        li = li + 1
+    // A user struct shadowing an enum name (struct Box vs prelude enum Box)
+    // must read its own field offsets, not the enum base registered first.
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    if li >= 0 {
+        return ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, li) + target_field_idx
     }
     0
 }

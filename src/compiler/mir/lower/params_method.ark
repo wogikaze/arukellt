@@ -48,25 +48,26 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
         starts_with(clone(local_type_name), "result:") ||
         starts_with(clone(local_type_name), "Result_") {
             pvt = value_types::VT_GC_REF()
-        } else {
-            if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(derived_local)) {
+        } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
+            // Struct context wins when a user struct shadows an enum name:
+            // a bare Box param is the user struct, while enum decls stay
+            // reachable through enum:/variant-qualified spellings.
+            pvt = value_types::VT_GC_REF()
+            sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
+        } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(derived_local)) {
+            pvt = value_types::VT_GC_REF()
+            mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
+            sig_type_name = clone(mir_type_name)
+        } else if !params_fn::mir_param_type_is_fnref(clone(local_type_name)) {
+            // fnref-family names (fnref/fnref2/fnsig:/fn() keep the
+            // callback ABI: the ':' inside fnsig: is a signature
+            // separator, not a module qualifier (#860).
+            let bare = mir_method_strip_module_prefix(clone(local_type_name))
+            let named = mir_method_resolve_named_user_type(clone(bare))
+            if len(named) > 0 {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-                sig_type_name = clone(mir_type_name)
-            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_local)) {
-                pvt = value_types::VT_GC_REF()
-                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(derived_local))
-            } else if !params_fn::mir_param_type_is_fnref(clone(local_type_name)) {
-                // fnref-family names (fnref/fnref2/fnsig:/fn() keep the
-                // callback ABI: the ':' inside fnsig: is a signature
-                // separator, not a module qualifier (#860).
-                let bare = mir_method_strip_module_prefix(clone(local_type_name))
-                let named = mir_method_resolve_named_user_type(clone(bare))
-                if len(named) > 0 {
-                    pvt = value_types::VT_GC_REF()
-                    mir_type_name = clone(named)
-                    sig_type_name = clone(named)
-                }
+                mir_type_name = clone(named)
+                sig_type_name = clone(named)
             }
         }
     } else {

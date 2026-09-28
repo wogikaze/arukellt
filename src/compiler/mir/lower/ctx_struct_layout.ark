@@ -33,15 +33,63 @@ fn ctx_struct_field_byte_size(field_type: String) -> i32 {
 }
 
 fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
-    let layout_index = ctx_struct_storage::ctx_struct_layout_first_index(ctx, struct_name)
-    if layout_index < 0 {
-        return false
-    }
     // Enum bases share the layout registry with structs, but their single
     // `_tag` layout must be represented as an open enum reference. Treating
     // it as a named struct makes payload inference keep the bare enum name,
-    // which the GC local mapper can misread as a generic Vec layout.
-    !ctx_is_registered_enum_type(ctx, struct_name)
+    // which the GC local mapper can misread as a generic Vec layout. A user
+    // struct may still shadow an enum base under the same name (struct Box
+    // next to prelude enum Box), so the struct index skips enum bases rather
+    // than taking the first registration.
+    ctx_struct_storage::ctx_struct_layout_struct_index(ctx, struct_name) >= 0
+}
+
+// `?Name:args` and `Name<args>` spellings reference a generic declaration,
+// so a non-generic user struct sharing the base name can never be the
+// referent — prelude `unbox` keeps `?Box:T` meaning `enum Box<T>` even
+// when a user `struct Box` shadows the bare name. Returns `enum:<base>`
+// for generic-enum spellings, "" otherwise.
+fn ctx_generic_enum_type_name(ctx: LowerCtx, type_name: String) -> String {
+    let mut base = String_new()
+    if starts_with(clone(type_name), String_from("?")) {
+        let stripped = substring(clone(type_name), 1, len(type_name))
+        let sn = len(stripped)
+        let mut i = 0
+        while i < sn {
+            if byte_at(clone(stripped), i) == 58 {
+                base = substring(clone(stripped), 0, i)
+                i = sn
+            }
+            i = i + 1
+        }
+    } else {
+        let n = len(type_name)
+        if n > 2 && byte_at(clone(type_name), n - 1) == 62 {
+            let mut i = 0
+            while i < n {
+                if byte_at(clone(type_name), i) == 60 {
+                    base = substring(clone(type_name), 0, i)
+                    i = n
+                }
+                i = i + 1
+            }
+        }
+    }
+    if len(base) == 0 {
+        return String_new()
+    }
+    // A generic struct owning the same base keeps Name<args> for itself.
+    let gc = len(ctx.generic_struct_names)
+    let mut gi = 0
+    while gi < gc {
+        if eq(get_unchecked(ctx.generic_struct_names, gi), clone(base)) {
+            return String_new()
+        }
+        gi = gi + 1
+    }
+    if ctx_is_registered_enum_type(ctx, clone(base)) {
+        return text::concat(String_from("enum:"), base)
+    }
+    String_new()
 }
 
 fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
@@ -110,12 +158,16 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
         return type_name
     }
-    if ctx_is_registered_enum_type(ctx, clone(type_name)) {
-        return text::concat("enum:", type_name)
-    }
     if ctx_is_registered_struct_type(ctx, clone(type_name)) {
         let byte_size = ctx_struct_byte_size(ctx, clone(type_name))
         return text::concat(text::concat("struct:", type_name), text::concat(":", (byte_size).to_string()))
+    }
+    let generic_enum = ctx_generic_enum_type_name(ctx, clone(type_name))
+    if len(generic_enum) > 0 {
+        return generic_enum
+    }
+    if ctx_is_registered_enum_type(ctx, clone(type_name)) {
+        return text::concat("enum:", type_name)
     }
     type_name
 }

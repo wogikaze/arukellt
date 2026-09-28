@@ -21,7 +21,7 @@ use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
 // Fallback: infer GC type from the called function's return type signature.
-use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
 use std::text
 fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
     let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
@@ -191,6 +191,9 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     starts_with(clone(ret_name), "result:") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
+    if starts_with(clone(ret_name), "enum:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
     if eq(clone(ret_name), "String") || eq(clone(ret_name), "string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
@@ -267,8 +270,51 @@ fn last_index_of_double_underscore(s: String) -> i32 {
     0 - 1
 }
 
+// True when 'name' spells 'Head<args>' and 'Head' owns registered enum
+// variants in this module. The enum instantiation stays enum-typed even when
+// a non-generic user struct shadows the bare head name (#905).
+fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> bool {
+    let n = len(name)
+    let mut head_end = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(name, i) == 60 {
+            head_end = i
+            i = n
+        }
+        i = i + 1
+    }
+    if head_end <= 0 {
+        return false
+    }
+    let head = substring(name, 0, head_end)
+    let variants = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let mut vi = 0
+    while vi < len(variants) {
+        let variant = get_unchecked(variants, vi)
+        if starts_with(clone(variant), text::concat(clone(head), String_from("::"))) ||
+        contains(clone(variant), text::concat(String_from("::"), text::concat(clone(head), String_from("::")))) {
+            return true
+        }
+        vi = vi + 1
+    }
+    false
+}
+
 fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
+        return Option::None
+    }
+    // An 'enum:Box' spelling names the enum base even when a user 'struct Box'
+    // shadows the bare name (#905). The last-colon strip below would otherwise
+    // leak 'Box' into struct resolution and retype an enum dest as the struct.
+    if starts_with(clone(ret_name), "enum:") {
+        return Option::None
+    }
+    // 'Head<Args>' whose head owns enum variants spells the generic enum
+    // instance (Box<i32>), not a shadowing non-generic user struct — matching
+    // local_type_name_is_enum_instance on the local-decl path.
+    if named_ret_head_registers_enum_variants(ctx, clone(ret_name)) {
         return Option::None
     }
     // `vec:Diagnostic` must not resolve as the Diagnostic gc_struct. The last

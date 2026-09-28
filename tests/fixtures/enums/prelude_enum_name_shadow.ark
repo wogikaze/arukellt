@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::prelude::{Box_new, unbox}
+
+struct Box {
+    s: String,
+}
+
+fn main() {
+    let b = Box { s: "shadow" }
+    stdio::println(b.s)
+    let boxed = Box_new(41)
+    stdio::println((unbox(boxed) + 1).to_string())
+}

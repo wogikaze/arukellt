@@ -242,6 +242,7 @@ diag:diagnostics/deprecated_std_io_import.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/deprecated_import_syntax.ark
 diag:diagnostics/duplicate_def.ark
+diag:diagnostics/generic_struct_enum_shadow.ark
 diag:diagnostics/immutable_mutation.ark
 diag:diagnostics/mismatched_arms.ark
 diag:diagnostics/missing_annotation.ark
@@ -437,6 +438,7 @@ run:enums/option_none.ark
 run:enums/option_some.ark
 run:enums/option_struct_payload_fields.ark
 run:enums/option_tuple_payload.ark
+run:enums/prelude_enum_name_shadow.ark
 run:enums/result_err.ark
 run:enums/result_ok.ark
 run:enums/tuple_variant.ark
@@ -2163,6 +2165,7 @@ t3-compile:enums/option_none.ark
 t3-compile:enums/option_some.ark
 t3-compile:enums/option_struct_payload_fields.ark
 t3-compile:enums/option_tuple_payload.ark
+t3-compile:enums/prelude_enum_name_shadow.ark
 t3-compile:enums/result_err.ark
 t3-compile:enums/result_ok.ark
 t3-compile:enums/tuple_variant.ark
@@ -2638,6 +2641,7 @@ t3-run:enums/option_none.ark
 t3-run:enums/option_some.ark
 t3-run:enums/option_struct_payload_fields.ark
 t3-run:enums/option_tuple_payload.ark
+t3-run:enums/prelude_enum_name_shadow.ark
 t3-run:enums/result_err.ark
 t3-run:enums/result_ok.ark
 t3-run:enums/tuple_variant.ark

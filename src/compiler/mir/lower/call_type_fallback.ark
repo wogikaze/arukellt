@@ -134,6 +134,15 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
         )
         return
     }
+    // `Box<i32>` / `?Box:T` spellings reference the generic decl — a
+    // non-generic user struct sharing the base name (struct Box next to
+    // prelude enum Box) cannot be the referent, so an enum base wins over
+    // layout basename resolve.
+    let generic_enum = ctx_struct_layout::ctx_generic_enum_type_name(ctx, clone(cleaned))
+    if len(generic_enum) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, generic_enum)
+        return
+    }
     // `Name<args>` instantiation spellings (VecIter<i32>) register their
     // substituted layout lazily. Derive it here so a call result whose
     // declared return type is a generic instantiation still resolves to a
@@ -274,7 +283,14 @@ fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest:
         let cn_suffix = substring(cn_stripped, cn_len - 4, cn_len)
         if eq(clone(cn_suffix), "_new") {
             let struct_cand = substring(cn_stripped, 0, cn_len - 4)
-            if ctx_struct_lookup::ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
+            // Name shadowing makes an X_new callee ambiguous: Box_new is
+            // the prelude enum ctor, but a user struct Box claims the bare
+            // name too. When both an enum base and a struct register under
+            // struct_cand, defer to the callee's declared return type —
+            // the rtn path resolves Box<T> / Box<i32> to enum:Box.
+            let ambiguous = ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(struct_cand)) &&
+            ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(struct_cand))
+            if !ambiguous && ctx_struct_lookup::ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, struct_cand))
                 ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, 0 - 1)
             }

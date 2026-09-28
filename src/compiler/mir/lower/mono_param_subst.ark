@@ -220,6 +220,24 @@ fn mono_subst_named_generic_param(ctx: LowerCtx, p: i32, ty_name: String, mono_s
     if len(concrete) == 0 {
         return true
     }
+    // The ?Base:args spelling references the generic declaration — when a
+    // non-generic user struct shadows an enum name (struct Box next to
+    // prelude enum Box), unbox keeps ?Box:T meaning enum Box<T>. A base
+    // that owns a generic struct decl belongs to the derive path below;
+    // an enum base wins over the plain struct lookup here.
+    let mut base_is_generic_struct = false
+    let gcount = len(ctx.generic_struct_names)
+    let mut gi = 0
+    while gi < gcount {
+        if eq(get_unchecked(ctx.generic_struct_names, gi), clone(base)) {
+            base_is_generic_struct = true
+        }
+        gi = gi + 1
+    }
+    if !base_is_generic_struct && ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(base)) {
+        mono_set_param_gc_type(ctx, p, text::concat(String_from("enum:"), base))
+        return true
+    }
     // ?Pair:T inside a mono body denotes the instantiated layout
     // (Pair<String>), not the unsubstituted declaration. Resolve through
     // the mono map and register the derived layout so field access and

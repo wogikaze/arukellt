@@ -1,0 +1,1 @@
+error[E0101|resolve]: ambiguous type name 'Box': only a non-generic struct may shadow a generic enum; rename the struct or drop its type parameters

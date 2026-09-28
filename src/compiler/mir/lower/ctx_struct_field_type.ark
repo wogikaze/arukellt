@@ -102,20 +102,14 @@ fn is_generic_type_parameter_name(type_name: String) -> bool {
 }
 
 fn ctx_struct_field_type_name_exact(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut offset = 0
-    let mut si = 0
-    while si < sc {
-        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
-        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
-        if eq(clone(sn), clone(struct_name)) {
-            if field_idx < fc {
-                return ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + field_idx)
-            }
-            return String_new()
-        }
-        offset = offset + fc
-        si = si + 1
+    let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, clone(struct_name))
+    if li < 0 {
+        return String_new()
+    }
+    let offset = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, li)
+    let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
+    if field_idx < fc {
+        return ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + field_idx)
     }
     String_new()
 }

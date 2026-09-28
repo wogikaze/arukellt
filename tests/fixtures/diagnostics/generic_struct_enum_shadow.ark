@@ -1,0 +1,9 @@
+use std::prelude::{Box_new, unbox}
+
+struct Box<T> {
+    v: T,
+}
+
+fn main() {
+    let b = Box { v: 1 }
+}

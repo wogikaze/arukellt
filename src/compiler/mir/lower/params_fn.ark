@@ -47,14 +47,17 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
             // Qualified names like "parser::TomlValue" need the bare enum
             // name for layout lookup; without this, export shells keep VT_I32.
             let bare = mir_param_strip_module_prefix(clone(local_type_name))
-            if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(bare)) || ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(local_type_name)) {
+            // Struct context wins when a user struct shadows an enum name:
+            // a bare Box param is the user struct, while the prelude enum
+            // stays reachable through enum:/qualified spellings.
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) || ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(bare)) {
                 pvt = value_types::VT_GC_REF()
-                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
-                sig_type_name = clone(mir_type_name)
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
             } else {
-                if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) || ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(bare)) {
+                if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(bare)) || ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(local_type_name)) {
                     pvt = value_types::VT_GC_REF()
-                    sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
+                    mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
+                    sig_type_name = clone(mir_type_name)
                 } else {
                     let named = mir_param_resolve_named_user_type(ctx, clone(bare))
                     if len(named) > 0 {
@@ -195,15 +198,15 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         push(result, clone(normalized))
         return result
     }
+    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+        push(result, clone(p_type_name))
+        push(result, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name)))
+        return result
+    }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
         let mt = text::concat(String_from("enum:"), p_type_name)
         push(result, mt)
         push(result, clone(mt))
-        return result
-    }
-    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
-        push(result, clone(p_type_name))
-        push(result, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name)))
         return result
     }
     if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {

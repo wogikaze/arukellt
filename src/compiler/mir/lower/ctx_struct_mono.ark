@@ -201,7 +201,10 @@ fn ctx_derive_generic_struct_layout(ctx: LowerCtx, inst_name: String) -> bool {
         ai = ai + 1
     }
     // Copy the base layout with substituted field types.
-    let base_index = ctx_struct_storage::ctx_struct_layout_first_index(ctx, clone(base))
+    // A generic struct may shadow an enum name (struct Box<T> vs prelude
+    // enum Box); the mono derivation must read the struct layout, not the
+    // enum base registered first.
+    let base_index = ctx_struct_storage::ctx_struct_layout_struct_index(ctx, clone(base))
     if base_index < 0 {
         return false
     }

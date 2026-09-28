@@ -211,13 +211,18 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
             // Normalize mono names: Vec_String → vec:String so emitter casts
             // structref elems to the string-vec GC type (#726 csv_perf).
             let mut set_ty = clone(elem_ty)
+            // An elem name registered as both enum and struct belongs to the
+            // user struct shadowing the enum (struct Box vs prelude enum Box,
+            // #905); rewriting it to enum:* would mistype the vec element.
+            let elem_is_unshadowed_enum = ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(elem_ty)) &&
+            !ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(elem_ty))
             if eq(clone(elem_ty), String_from("Vec_String")) || eq(clone(elem_ty), String_from("Vec_string")) {
                 set_ty = String_from("vec:String")
             } else if eq(clone(elem_ty), String_from("Vec")) {
                 set_ty = String_from("vec:String")
             } else if starts_with(clone(elem_ty), String_from("Vec_")) {
                 set_ty = text::concat(String_from("vec:"), substring(elem_ty, 4, len(elem_ty)))
-            } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(elem_ty)) {
+            } else if elem_is_unshadowed_enum {
                 // Bare TomlValue/JsonValue must become enum:* so locals and
                 // array.get casts use enum-open, not string fallback (#726).
                 set_ty = text::concat(String_from("enum:"), clone(elem_ty))
