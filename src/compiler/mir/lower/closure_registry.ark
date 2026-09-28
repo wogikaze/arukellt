@@ -11,6 +11,7 @@ use mir::lower::body_closure_capture
 use mir::lower::closure_env
 use mir::lower::closure_cells
 use mir::lower::ctx_call_edges
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_types
 use mir::function_return_view
 use mir::function_param_view
@@ -187,10 +188,14 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
 }
 
 fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {
+    let cur_fn = function_identity::MirFunction_name(
+        ctx_current_storage::ctx_current_func_value(ctx)
+    )
     let count = closure_storage::closure_storage_bind_count(ctx)
     let mut i = count - 1
     while i >= 0 {
-        if eq(closure_storage::closure_storage_bind_name_at(ctx, i), clone(name)) {
+        if eq(closure_storage::closure_storage_bind_name_at(ctx, i), clone(name)) &&
+        eq(closure_storage::closure_storage_bind_fn_at(ctx, i), clone(cur_fn)) {
             return i
         }
         i = i - 1

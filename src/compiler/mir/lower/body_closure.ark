@@ -2,6 +2,7 @@ use std::prelude::{clone, eq}
 use mir::lower::ast_node
 use mir::lower::closure_free
 use mir::lower::closure_capture_args
+use mir::lower::closure_pcells
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_types
@@ -47,13 +48,29 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         closure_free::closure_collect_free(ctx, cap_body, node, caps)
     }
     let synth = closure_registry::closure_next_synth_name(ctx)
+    let is_move = if ast_node::node_is_move(node) { 1 } else { 0 }
+    let rebind_flags = closure_free::closure_collect_rebind_flags(node, caps)
+    // Non-move rebind captures are mutable borrows: promote each source
+    // place into a shared heap cell before the supply is computed so the
+    // env packs the cell ref and the closure may escape with write-through
+    // semantics intact (#891). Env-cell/write-back flags keep only the
+    // captures that could not be promoted.
+    let eff_rebinds = Vec::new<i32>()
+    let mut pi = 0
+    while pi < len(caps) {
+        let mut eff = get_unchecked(rebind_flags, pi)
+        if is_move == 0 && eff != 0 &&
+        closure_pcells::ctx_promote_capture_cell(ctx, clone(get_unchecked(caps, pi))) >= 0 {
+            eff = 0
+        }
+        push(eff_rebinds, eff)
+        pi = pi + 1
+    }
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
-    let rebind_flags = closure_free::closure_collect_rebind_flags(node, caps)
-    let mf = mir_emit_closure_fn(ctx, synth, node, caps, rebind_flags)
-    let is_move = if ast_node::node_is_move(node) { 1 } else { 0 }
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags), caps, rebind_flags, is_move)
+    let mf = mir_emit_closure_fn(ctx, synth, node, caps, eff_rebinds)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, is_move)
 }
 
 fn is_identity_closure(node: AstNode) -> bool {

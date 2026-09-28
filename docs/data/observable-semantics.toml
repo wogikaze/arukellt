@@ -215,12 +215,11 @@ status = "verified"
 [[rules]]
 id = "closure_escape_boundaries"
 domain = "closure"
-statement = "Escaping captures (storing/returning closures over cells) keep observable values; rejected escapes are diagnostics."
-fixtures = ["closure_capture/escape_store.ark", "closure_capture/escape_arg.ark"]
+statement = "Escaping captures (storing/returning closures over cells) keep observable values; mutable-borrow rebind captures ride a promoted shared cell the env can carry, while remaining borrow captures are diagnostics."
+fixtures = ["closure_capture/escape_store.ark", "closure_capture/escape_arg.ark", "closure_capture/escape_borrow_arg.ark", "closure_capture/escape_borrow_return.ark", "closure_capture/escape_borrow_store.ark"]
 diagnostics = ["diagnostics/closure_borrow_return.ark", "diagnostics/closure_borrow_store.ark", "diagnostics/closure_borrow_callback.ark"]
 adrs = ["ADR-061"]
-status = "provisional"
-issue = "#891"
+status = "verified"
 
 [[rules]]
 id = "trait_inherent_dispatch"

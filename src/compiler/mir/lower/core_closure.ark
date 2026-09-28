@@ -1,6 +1,7 @@
 use std::prelude::{clone, eq}
 use mir::lower::closure_capture_args
 use mir::lower::closure_cells
+use mir::lower::closure_pcells
 use mir::lower::closure_registry
 use mir::lower::body_closure_capture
 use mir::lower::core_closure_emit
@@ -15,14 +16,26 @@ fn lower_core_closure(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     }
     let caps = core_closure_free::core_closure_collect_caps(ctx, exprs, expr)
     let synth = closure_registry::closure_next_synth_name(ctx)
+    let rebind_flags = core_closure_free::core_closure_collect_rebind_flags(exprs, expr, caps)
+    // CoreHIR closures are generated without move; every rebind capture is
+    // a mutable borrow, so promote the source place into a shared cell and
+    // keep env-cell/write-back flags only for unpromoted captures (#891).
+    let eff_rebinds = Vec::new<i32>()
+    let mut pi = 0
+    while pi < len(caps) {
+        let mut eff = get_unchecked(rebind_flags, pi)
+        if eff != 0 &&
+        closure_pcells::ctx_promote_capture_cell(ctx, clone(get_unchecked(caps, pi))) >= 0 {
+            eff = 0
+        }
+        push(eff_rebinds, eff)
+        pi = pi + 1
+    }
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, clone(synth))
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
     let extra = len(caps)
-    let rebind_flags = core_closure_free::core_closure_collect_rebind_flags(exprs, expr, caps)
-    let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, rebind_flags)
-    // CoreHIR closures are generated without `move`; every rebind capture
-    // is a mutable borrow, so write-back pairs are always registered.
-    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(rebind_flags), caps, rebind_flags, 0)
+    let mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, eff_rebinds)
+    closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, closure_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, 0)
 }
 
 fn is_identity_core_closure(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {

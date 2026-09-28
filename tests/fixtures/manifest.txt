@@ -255,7 +255,6 @@ diag:diagnostics/closure_borrow_callback.ark
 diag:diagnostics/closure_borrow_store.ark
 diag:diagnostics/closure_borrow_conflict.ark
 diag:diagnostics/closure_move_after_capture.ark
-diag:diagnostics/closure_capture_escape_return.ark
 diag:diagnostics/non_exhaustive.ark
 diag:diagnostics/operator_add_no_impl.ark
 diag:diagnostics/parse_bad_token.ark
@@ -394,6 +393,9 @@ run:closure_capture/copy_capture_snapshot.ark
 run:closure_capture/escape_store.ark
 run:closure_capture/escape_arg.ark
 run:closure_capture/borrow_rebind_cell.ark
+run:closure_capture/escape_borrow_arg.ark
+run:closure_capture/escape_borrow_return.ark
+run:closure_capture/escape_borrow_store.ark
 run:control/break_continue.ark
 run:control/if_basic.ark
 run:control/if_else.ark

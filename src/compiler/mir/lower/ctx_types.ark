@@ -78,6 +78,11 @@ pub struct LowerCtx {
     closure_bind_extra: Vec<i32>,
     closure_bind_identity: Vec<bool>,
     closure_bind_env: Vec<i32>,
+    // Owning function name per bind row: a direct-call bind only resolves
+    // inside the frame whose supply locals it names, so lookups from a
+    // different function must not match (stale binds produced underfunded
+    // direct calls when a let-bound closure escaped through a return).
+    closure_bind_fns: Vec<String>,
     // Named functions already lifted to __fnthunk_<name> pair shims.
     closure_thunk_names: Vec<String>,
     // Forward-referenced names whose __fnthunk_ shim could not be emitted
@@ -113,6 +118,38 @@ pub struct LowerCtx {
     wb_field_indices: Vec<i32>,
     wb_totals: Vec<i32>,
     wb_vts: Vec<i32>,
+    // Promoted borrow-capture cells (#891): a non-move closure that
+    // rebinds a capture promotes the source place into a shared heap cell
+    // so the managed env can carry a live alias and the closure may
+    // escape. The captured name keeps a payload-typed local binding and a
+    // hidden cell-ref local holds the __cell_N ref; ctx_emit rewrites
+    // every value read/write on the payload local to a field-0 access.
+    // Entries key on (owning function name, value local index) because
+    // local indices are per-function — a nested closure body lowered
+    // under a synth frame never matches the parent's cells.
+    pcell_fn_names: Vec<String>,
+    pcell_lis: Vec<i32>,
+    pcell_cell_lis: Vec<i32>,
+    pcell_cell_names: Vec<String>,
+    pcell_vts: Vec<i32>,
+    pcell_types: Vec<String>,
+    pcell_ref_names: Vec<String>,
+    // payload key (declared type name, or "vt:<n>" when untyped) -> the
+    // __cell_N layout registered for it, so equal payloads share one cell
+    // type. Parallel vts/types let a synth recover the payload contract
+    // from the cap param's struct:__cell_N:w spelling.
+    pcell_reg_keys: Vec<String>,
+    pcell_reg_cells: Vec<String>,
+    pcell_reg_vts: Vec<i32>,
+    pcell_reg_types: Vec<String>,
+    // Last materialized payload temp per (fn, value local): LOCAL_GET
+    // rewrites reuse it so a following consumer sees one pushed payload
+    // instead of a second deref leaving a stray stack value. Writes to the
+    // cell and call-like ops (the callee may invoke the closure that owns
+    // it) drop entries.
+    pcell_mat_fns: Vec<String>,
+    pcell_mat_lis: Vec<i32>,
+    pcell_mat_tmps: Vec<i32>,
     local_type_start: i32,
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,

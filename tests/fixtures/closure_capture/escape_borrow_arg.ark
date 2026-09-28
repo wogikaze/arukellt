@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn apply(f: fn() -> i32) -> i32 {
+    f()
+}
+
+fn main() {
+    let mut count = 0
+    let c = || {
+        count = count + 1
+        count
+    }
+    stdio::println((apply(c)).to_string())
+    stdio::println((count + 0).to_string())
+}

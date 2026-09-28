@@ -4,6 +4,8 @@ use mir::function_locals_view
 use mir::local_access
 use mir::inst_local_set
 use mir::lower::closure_cells
+use mir::lower::closure_env
+use mir::lower::closure_pcells
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
@@ -44,6 +46,14 @@ fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
         let cli = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(cname))
         let mut pvt = value_types::VT_I32()
         if cli >= 0 {
+            if closure_pcells::ctx_pcell_is_cell(ctx, cli) {
+                // Promoted borrow cells pass the cell ref as the cap
+                // argument (#891).
+                pvt = closure_env::closure_env_ref_vt(ctx)
+                push(cap_vts, pvt)
+                cvi = cvi + 1
+                continue
+            }
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
             let cap_type = mir_closure_lookup_capture_type(ctx, cli)
             if starts_with(clone(cap_type), "struct:") ||
@@ -69,6 +79,13 @@ fn mir_closure_capture_types(ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
     while cvi < cap_n {
         let cname = clone(get_unchecked(caps, cvi))
         let cli = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(cname))
+        if cli >= 0 && closure_pcells::ctx_pcell_is_cell(ctx, cli) {
+            // Promoted cap params declare the cell ref type so direct
+            // calls and the env trampoline pass the shared cell (#891).
+            push(cap_types, closure_pcells::ctx_pcell_cell_spelling(ctx, cli))
+            cvi = cvi + 1
+            continue
+        }
         let cap_type = mir_closure_lookup_capture_type(ctx, cli)
         push(cap_types, cap_type)
         cvi = cvi + 1
@@ -83,11 +100,19 @@ fn mir_emit_closure_captures(ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>
         let cname = clone(get_unchecked(caps, ci))
         let pvt = get_unchecked(cap_vts, ci)
         let cap_type = clone(get_unchecked(cap_types, ci))
-        let _idx2 = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(cname), pvt)
+        let pname = closure_pcells::ctx_pcell_cap_param_name(
+            clone(cap_type),
+            clone(cname)
+        )
+        let _idx2 = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(pname), pvt)
         if len(cap_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, _idx2, clone(cap_type))
         }
-        ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(cname), pvt, cap_type))
+        // A cap whose packed supply carries a promoted cell ref gets a
+        // payload shadow under the capture name so body accesses deref
+        // field 0 of the param's cell (#891).
+        closure_pcells::ctx_pcell_bind_cap_param(ctx, _idx2, clone(cap_type), clone(cname))
+        ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(pname), pvt, cap_type))
         ci = ci + 1
     }
     // The synth signature gains a trailing __env param when any capture is
@@ -118,6 +143,13 @@ fn mir_closure_snapshot_copy_captures(ctx: LowerCtx, caps: Vec<String>, scope: S
     while ci < cap_n {
         let cname = clone(get_unchecked(caps, ci))
         let li = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(cname))
+        if li >= 0 && closure_pcells::ctx_pcell_is_cell(ctx, li) {
+            // Promoted borrow cells pack the cell-ref local's own name so
+            // the env carries the shared place, not a payload read (#891).
+            push(out, closure_pcells::ctx_pcell_ref_name(ctx, li))
+            ci = ci + 1
+            continue
+        }
         if li < 0 || !mir_closure_vt_is_snapshot_copy(ctx_api_local_types::ctx_local_vt(ctx, li)) {
             push(out, cname)
             ci = ci + 1

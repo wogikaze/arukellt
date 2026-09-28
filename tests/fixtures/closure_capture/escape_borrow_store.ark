@@ -1,0 +1,14 @@
+use std::host::stdio
+
+fn main() {
+    let mut count = 0
+    let c = || {
+        count = count + 1
+        count
+    }
+    let stored = (c, 0)
+    let (f, x) = stored
+    stdio::println((f()).to_string())
+    stdio::println((f()).to_string())
+    stdio::println((count + x).to_string())
+}

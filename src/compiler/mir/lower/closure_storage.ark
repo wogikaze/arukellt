@@ -1,5 +1,7 @@
 use std::prelude::{clone, to_string}
 use std::text
+use mir::function_identity
+use mir::lower::ctx_current_storage
 fn closure_storage_clear_pending_bind(ctx: LowerCtx) {
     ctx.closure_last_synth = String_new()
     ctx.closure_last_caps = String_new()
@@ -41,6 +43,10 @@ fn closure_storage_push_bind(ctx: LowerCtx, bind_name: String) {
     push(ctx.closure_bind_extra, ctx.closure_last_extra)
     push(ctx.closure_bind_identity, ctx.closure_last_identity)
     push(ctx.closure_bind_env, ctx.closure_last_env)
+    push(
+        ctx.closure_bind_fns,
+        function_identity::MirFunction_name(ctx_current_storage::ctx_current_func_value(ctx))
+    )
 }
 
 fn closure_storage_bind_count(ctx: LowerCtx) -> i32 {
@@ -65,6 +71,10 @@ fn closure_storage_bind_extra_at(ctx: LowerCtx, index: i32) -> i32 {
 
 fn closure_storage_bind_env_at(ctx: LowerCtx, index: i32) -> i32 {
     get_unchecked(ctx.closure_bind_env, index)
+}
+
+fn closure_storage_bind_fn_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.closure_bind_fns, index))
 }
 
 fn closure_storage_bind_identity_at(ctx: LowerCtx, index: i32) -> bool {
