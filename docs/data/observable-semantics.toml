@@ -259,9 +259,9 @@ status = "verified"
 [[rules]]
 id = "match_untyped_option_result_scrutinee"
 domain = "evaluation"
-statement = "A match on an Option/Result value produced by an inline payload constructor, an inferred let binding, or an Option-of-tuple annotation behaves identically on wasm32-gc and wasm32 linear: the constructor records the concrete payload spelling on the destination local so payload reads select the same variant slot the constructor picked, producing valid core Wasm and equal observable results. Untyped unit constructors and other weakly-spelled scrutinees remain a residual gap tracked by #906."
+statement = "A match on an Option/Result value produced by an inline payload constructor, an inferred let binding, or an Option-of-tuple annotation behaves identically on wasm32-gc and wasm32 linear: the constructor records the concrete payload spelling on the destination local so payload reads select the same variant slot the constructor picked, producing valid core Wasm and equal observable results. A named Some/Ok/Err payload bind on a scrutinee with no payload type segment — an untyped Option::None, an enum:open merge, or another weakly-spelled value — is rejected as a compile diagnostic on wasm32-gc instead of emitting invalid core Wasm; wasm32 linear still lowers and runs the same program because its payload read needs no type choice (#906). Wildcard, literal, and composite sub-patterns carry their own payload proof and are unaffected."
 fixtures = ["match_extensions/untyped_option_scrutinee.ark"]
-diagnostics = []
+diagnostics = ["match_extensions/untyped_none_scrutinee_bind.ark"]
 adrs = ["ADR-060", "ADR-082"]
 status = "verified"
 
