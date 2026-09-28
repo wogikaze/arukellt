@@ -257,6 +257,15 @@ adrs = ["ADR-082"]
 status = "verified"
 
 [[rules]]
+id = "match_untyped_option_result_scrutinee"
+domain = "evaluation"
+statement = "A match on an Option/Result value produced by an inline payload constructor, an inferred let binding, or an Option-of-tuple annotation behaves identically on wasm32-gc and wasm32 linear: the constructor records the concrete payload spelling on the destination local so payload reads select the same variant slot the constructor picked, producing valid core Wasm and equal observable results. Untyped unit constructors and other weakly-spelled scrutinees remain a residual gap tracked by #906."
+fixtures = ["match_extensions/untyped_option_scrutinee.ark"]
+diagnostics = []
+adrs = ["ADR-060", "ADR-082"]
+status = "verified"
+
+[[rules]]
 id = "trait_inherent_dispatch"
 domain = "trait"
 statement = "Inherent impl methods resolve statically and observe receiver/argument semantics identically on both backends."
