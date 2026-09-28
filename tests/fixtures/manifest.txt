@@ -260,6 +260,7 @@ diag:diagnostics/non_exhaustive_literal.ark
 diag:diagnostics/non_exhaustive_payload.ark
 diag:diagnostics/non_exhaustive_guard.ark
 diag:diagnostics/operator_add_no_impl.ark
+diag:diagnostics/or_pattern_binding.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/parse_missing_rbrace.ark
 diag:diagnostics/prefer_use_import.ark
@@ -547,6 +548,7 @@ run:match_extensions/match_guard.ark
 run:match_extensions/catchall_unmatched.ark
 run:match_extensions/or_arm_edge.ark
 run:match_extensions/or_pattern.ark
+run:match_extensions/or_variant_alternatives.ark
 run:match_extensions/struct_field_update.ark
 run:match_extensions/struct_pattern.ark
 run:match_extensions/tuple_arm_match.ark
@@ -2236,6 +2238,7 @@ t3-compile:match_extensions/match_guard.ark
 t3-compile:match_extensions/catchall_unmatched.ark
 t3-compile:match_extensions/or_arm_edge.ark
 t3-compile:match_extensions/or_pattern.ark
+t3-compile:match_extensions/or_variant_alternatives.ark
 t3-compile:match_extensions/struct_field_update.ark
 t3-compile:match_extensions/struct_pattern.ark
 t3-compile:match_extensions/tuple_arm_match.ark
@@ -2718,6 +2721,7 @@ t3-run:match_extensions/match_guard.ark
 t3-run:match_extensions/catchall_unmatched.ark
 t3-run:match_extensions/or_arm_edge.ark
 t3-run:match_extensions/or_pattern.ark
+t3-run:match_extensions/or_variant_alternatives.ark
 t3-run:match_extensions/struct_field_update.ark
 t3-run:match_extensions/struct_pattern.ark
 t3-run:match_extensions/tuple_arm_match.ark

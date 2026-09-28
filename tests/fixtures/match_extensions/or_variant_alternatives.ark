@@ -1,0 +1,30 @@
+// Or-pattern arms over enum-variant alternatives: the GC emit path used
+// to compare the scrutinee ref against tag constants because the
+// variant-oracle scan skipped or-alternatives, producing invalid core
+// Wasm; the folded compares now read the extracted tag local (#901).
+// Verified identical on wasm32-gc component and wasm32 linear core.
+
+use std::host::stdio
+
+enum Shape { Circle(i32), Square, Triangle }
+
+fn classify(s: Shape) -> String {
+    match s {
+        Shape::Circle(_) | Shape::Square => "flat",
+        Shape::Triangle => "pointy",
+    }
+}
+
+fn option_side(o: Option<i32>) -> String {
+    match o {
+        Option::Some(_) | Option::None => "handled",
+    }
+}
+
+fn main() {
+    stdio::println(classify(Shape::Square))
+    stdio::println(classify(Shape::Circle(9)))
+    stdio::println(classify(Shape::Triangle))
+    stdio::println(option_side(Option::Some(3)))
+    stdio::println(option_side(Option::None))
+}

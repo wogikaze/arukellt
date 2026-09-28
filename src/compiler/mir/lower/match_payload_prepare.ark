@@ -117,8 +117,34 @@ fn mir_match_has_variant_pattern(node: AstNode, child_count: i32) -> bool {
                     return true
                 }
             }
+            if ast_node::node_kind_is(scan_pat, lower_kinds::NK_PAT_OR()) {
+                // Variant alternatives inside an or-arm still require tag
+                // extraction on wasm32-gc; without the descent compare_idx
+                // stays the scrutinee ref and i32.eq fails validate (#901).
+                if mir_pat_or_has_variant_alternative(scan_pat) {
+                    return true
+                }
+            }
         }
         arm_scan = arm_scan + 1
+    }
+    false
+}
+
+fn mir_pat_or_has_variant_alternative(pat: AstNode) -> bool {
+    let alt_count = ast_node::node_child_count(pat)
+    let mut or_oi = 0
+    while or_oi < alt_count {
+        let or_alt = ast_node::node_child_at(pat, or_oi)
+        if ast_node::node_kind_is(or_alt, lower_kinds::NK_PAT_VARIANT()) {
+            return true
+        }
+        if ast_node::node_kind_is(or_alt, lower_kinds::NK_PAT_IDENT()) {
+            if mir_ident_is_unit_variant_name(ast_node::node_text(or_alt)) {
+                return true
+            }
+        }
+        or_oi = or_oi + 1
     }
     false
 }

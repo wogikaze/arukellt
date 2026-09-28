@@ -1,0 +1,15 @@
+// An or-pattern alternative that binds a variable is rejected: only the
+// matching alternative could write the payload, so a bound name would
+// read an uninitialized local when another alternative matches (#901).
+use std::host::stdio
+
+enum Shape { Circle(i32), Square }
+
+fn main() {
+    let s = Shape::Square
+    let r = match s {
+        Shape::Circle(r) | Shape::Square => r,
+        _ => 0,
+    }
+    stdio::println(r.to_string())
+}
