@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T06:39:47Z",
+  "generated_at": "2026-09-28T08:37:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -562,23 +562,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "906",
-      "path": "906-untyped-none-scrutinee-gc-payload-slot.md",
-      "title": "906 — untyped Option::None 等 payload 型情報を持たない weak scrutinee の match bind が ref slot を読み invalid core Wasm になる",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 2
       },
       "orchestration": {
         "class": "design-ready",
