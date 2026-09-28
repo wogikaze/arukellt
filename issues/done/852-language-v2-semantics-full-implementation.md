@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-19
-Updated: 2026-09-20
+Updated: 2026-09-28
 ID: 852
 Track: language-v2
 Depends on: "880"
@@ -334,7 +334,20 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
 - [x] #879 — Wasm GC / fallback の性能・サイズ receipt を取得する — RFC performance — depends: 871, 872, 874, 875
   - Done (2026-09-27): paired 20-workload receipt `tests/baselines/perf/current-wasm32{,-gc}.json` + `docs/history/benchmarks/benchmark-879-{wasm32,wasm32-gc}.md` (`ad393e064`, `1fca2e1d9`, `72429718a`). gc: 20/20 run, 19/20 correctness; linear: 12/20 run, 8 allocation-heavy traps. Residual: #895 (intrinsic HashMap growth) — done 2026-09-28 (`2f39ba9fa`). #896 done 2026-09-28 (`96b099b26`).
   - Progress (not done, 2026-09-20): `f499fccad` makes the benchmark gate fail closed and records a current-s2 `wasm32` run in `tests/baselines/perf/current.json`. The fixed 20-workload run has 7 compile errors, 6 runtime errors, and 1 correctness failure; the historic 15-entry baseline remains unchanged. `104b108d2` adds targeted GC/linear `closure_map` compile/validate/runtime parity at `6017000`; complete paired measurements and runtime allocation/GC telemetry remain open. See [#879](879-wasm-gc-fallback-benchmarks.md).
-- [ ] #880 — Language v2 最終 close audit を実施する — RFC final — depends: 877, 878, 879
+- [x] #880 — Language v2 最終 close audit を実施する — RFC final — depends: 877, 878, 879
+  - Done (2026-09-28): full close audit at commit 517194d16. RFC 1–45
+    coverage mechanically verified against issues/done (all owners + the
+    #894–#906 residuals). RFC-011 §6 open items all mapped to accepted
+    ADR boundaries. Canonical cross-backend parity matrix: 235 fixtures,
+    parity=221, diverge=0; 14 compile-fail:gc all re-verified pre-existing
+    on post891. fixpoint --build produced fresh s3 (s2!=s3, tracked
+    not-yet-reached). fixture parity 1524/1783 with zero ownership-diagnostic
+    regressions; diag parity PASS after a stale-golden span repair; docs
+    consistency 6/6; verify quick 149/153 with all four failures
+    pre-existing. Paired quick benchmarks reproduced on both targets
+    (gc 20/20 correctness; linear 19/20 — toml_ops linear divergence is a
+    pre-existing fallback correctness gap now tracked as #907). See
+    [#880](../done/880-language-v2-final-close-audit.md).
 
 ## Dependency DAG
 
@@ -424,10 +437,10 @@ graph TD
 
 ## Parent close gate
 
-- [ ] #880 done
-- [ ] RFC 1–45 coverage complete
-- [ ] no child closed with unexplained TODO/skip
-- [ ] close note links child commits, ADRs, parity receipts, migration evidence, benchmark receipts
+- [x] #880 done
+- [x] RFC 1–45 coverage complete
+- [x] no child closed with unexplained TODO/skip
+- [x] close note links child commits, ADRs, parity receipts, migration evidence, benchmark receipts
 
 ## Completed child receipts
 
@@ -453,3 +466,41 @@ graph TD
 - [x] #897: `05b6acd64`; qualified mod::f/mod::CONST calls bind to the owning module's FnSig via qualified index keys, '-> mod::T' annotations resolve to leaf-name identity, and compiler sources migrated to v2 strictness (let mut field writes, i64 literals, prelude imports, overlay cache v5). Stage-3 self-compile completes phase 6. See [#897](../done/897-qualified-name-signature-collision.md).
 - [x] #894: `ebd99196c`; unannotated fn parameters are back-stamped with the managed type the body proves (match variant/string/guard/bind-return arms and ref-return position) so wasm32-gc signatures agree with the emitted body; string literal patterns compare via __intrinsic_string_eq on both AstNode and CoreHIR paths. spec_examples/clause_guards + multi_clause_functions promote to run: + t3-run with byte-exact GC/linear outputs. See [#894](../done/894-gc-emit-multi-clause-groups-invalid-wasm.md).
 - [x] #895: `2f39ba9fa`; all five __hm_ HashMap intrinsic families grow past the fixed capacity-16 table via Ark-side rehash into a donor (__hm_*_new_with_cap) whose storage is adopted by the live map (__hm_*_adopt), preserving map identity and giving identical growth semantics on wasm32-gc and linear; set() no longer silently drops inserts. hashmap_growth + hashmap_fn_growth fixtures registered run: + t3-run; bench_stdlib_hash_ops returns the corrected 35000 checksum on both backends. See [#895](../done/895-hashmap-intrinsic-family-growth.md).
+
+## Done (2026-09-28) — umbrella close
+
+ADR-058 / RFC-011 で要求した language v2 意味論再設計は、全
+child issue の完了と #880 の最終監査をもって close する。
+
+- RFC item 1–45 のカバレッジは上表の通り全て done issue に
+  割り当て済みで、各行は commit SHA・担当 ADR・fixture /
+  parity receipt を「Completed child receipts」に記録済み。
+- 最終監査 (#880, commit 517194d16): RFC-011 §6 の未決事項は
+  全て accepted ADR 境界へ移管済み。cross-backend parity
+  matrix 235 fixture / parity=221 / diverge=0 /
+  diverge-from-expected=0。14 件の compile-fail:gc は全て
+  pre-existing の frontend/emit gap として再確認済み。
+- 検証 receipt: fixpoint --build は fresh s3 を生成
+  （s2!=s3 は ADR-029 の tracked not-yet-reached）、fixture
+  parity 1524/1783（fail は全て pre-existing backlog、
+  所有権診断リグレッション 0 件）、diag parity PASS、
+  docs consistency 6/6、verify lane PASS、verify quick
+  149/153（4 fail は全て pre-existing の #765/#686/
+  done-checkbox backlog/thin-wrapper drift）。
+- Benchmark reproducibility: 20-workload paired receipt を
+  両 target で再取得（gc 20/20 correctness、linear 19/20 —
+  toml_ops linear 乖離のみ #907 として追跡）。receipt は
+  `tests/baselines/perf/current-wasm32{,-gc}.json` と
+  `docs/history/benchmarks/benchmark-880-wasm32{,-gc}.md`。
+- 移行 evidence: #878 で 1575 tracked .ark を ADR-072
+  prelude stable set へ移行済み（compat-orphan audit clean、
+  verify quick + docs check に wiring 済み）。
+- Tracked residual（本 umbrella の close を妨げない）:
+  #907（toml_ops linear 誤値）、fixpoint 未到達（pinned
+  bootstrap refresh 依存）、fixture parity 259 fail の既存
+  backlog（domain 別 issue で管理）、#893（tuple pattern arms）。
+
+設計の正本: ADR-058 + ADR-059〜081 の v2 系 accepted decision、
+RFC-011、docs/current-state.md、docs/data/observable-semantics.toml。
+Close audit の完全な receipt は
+[#880](../done/880-language-v2-final-close-audit.md) を参照。

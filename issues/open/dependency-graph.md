@@ -32,7 +32,6 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I852["852 852 — 言語 v2 意味論再設計 umbrella"]
   I907["907 907 — bench_stdlib_toml が wasm32 linear で誤値（GC は 8000、linear は 1000300000）"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -102,7 +101,6 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **852** depends on: 880; blocks: none
 - **907** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
