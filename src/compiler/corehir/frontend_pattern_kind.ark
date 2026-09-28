@@ -5,3 +5,4 @@ fn corehir_kind_is_pattern_wildcard(kind: i32) -> bool { kind == frontend_kind_m
 fn corehir_kind_is_pattern_literal(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_literal() }
 fn corehir_kind_is_pattern_variant(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_variant() }
 fn corehir_kind_is_pattern_or(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_or() }
+fn corehir_kind_is_pattern_tuple(kind: i32) -> bool { kind == frontend_kind_map::nk_pat_tuple() }

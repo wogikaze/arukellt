@@ -1,6 +1,7 @@
 use lexer::tokens
 use parser::core_ast_children
 use parser::core_ast_factory
+use parser::core_ast_span_fields
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::pattern_ident
@@ -38,10 +39,30 @@ fn parse_tuple_pattern(p: Parser, t: Token) -> AstNode {
         }
         first = false
         skip_newlines(p)
-        let elem = parse_pattern(p)
+        // An element may carry pipe alternatives just like an arm head, so
+        // match lowering sees the same NK_PAT_OR shape in element position.
+        let elem = parse_or_pattern_alts(p, parse_pattern(p))
         core_ast_children::AstNode_push_child(node, elem)
         skip_newlines(p)
     }
     expect_token(p, tokens::TK_RPAREN())
     node
+}
+
+// Wrap a pattern in NK_PAT_OR when pipe alternatives follow, mirroring the
+// arm-head or-pattern builder in expr_control_match_arm.
+fn parse_or_pattern_alts(p: Parser, first: AstNode) -> AstNode {
+    if peek_kind(p) != tokens::TK_PIPE() {
+        return first
+    }
+    let or_node = AstNode_new(kinds::NK_PAT_OR(), core_ast_span_fields::AstNode_span(first))
+    core_ast_children::AstNode_push_child(or_node, first)
+    while peek_kind(p) == tokens::TK_PIPE() {
+        p.pos = p.pos + 1
+        skip_newlines(p)
+        let alt = parse_pattern(p)
+        core_ast_children::AstNode_push_child(or_node, alt)
+        skip_newlines(p)
+    }
+    or_node
 }

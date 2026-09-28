@@ -2,10 +2,12 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::inst_local_get
 use mir::lower::core_match_control
 use mir::lower::core_match_patterns
 use mir::lower::core_match_payload
 use mir::lower::core_match_result
+use mir::lower::core_match_tuple
 
 fn core_match_arm_has_guard(arm: CoreHirExpr) -> bool {
     core_expr_shape_accessors::mir_core_expr_child_count(arm) == 3
@@ -26,7 +28,18 @@ fn lower_core_match_last_arm(
     if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
         core_match_patterns::core_emit_match_ident_bind(ctx, pat, scrut_idx)
     }
-    core_match_payload::core_emit_payload_variant_binds_if_needed(ctx, exprs, payload_info, pat, scrut_idx)
+    if core_expr_shape_patterns::mir_core_expr_is_pat_tuple(pat) {
+        // Mirror the legacy last-arm shape: a tuple arm opens its own if so
+        // element checks gate binds and body identically on both paths; the
+        // caller's end-count closes it via the returned depth (#893).
+        let tuple_cond = core_match_tuple::core_emit_tuple_arm_condition(ctx, exprs, pat, scrut_idx)
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_cond))
+        core_match_control::core_emit_if_begin(ctx)
+        next_if_depth = next_if_depth + 1
+        core_match_tuple::core_emit_tuple_arm_binds(ctx, exprs, pat, scrut_idx)
+    } else {
+        core_match_payload::core_emit_payload_variant_binds_if_needed(ctx, exprs, payload_info, pat, scrut_idx)
+    }
     if core_match_arm_has_guard(arm_node) {
         let guard_last = core_expr_shape_accessors::mir_core_expr_child(arm_node, 1)
         lower_core_expr(ctx, exprs, guard_last)

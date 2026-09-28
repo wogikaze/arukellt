@@ -12,6 +12,7 @@ use mir::lower::core_match_control
 use mir::lower::core_match_patterns
 use mir::lower::core_match_payload
 use mir::lower::core_match_result
+use mir::lower::core_match_tuple
 use mir::value_types
 
 fn core_match_arm_has_guard(arm: CoreHirExpr) -> bool {
@@ -51,13 +52,20 @@ fn lower_core_match_branch_arm(
         let matched = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, matched))
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(matched))
-        if core_expr_shape_patterns::mir_core_expr_is_pat_or(pat) {
+        if core_expr_shape_patterns::mir_core_expr_is_pat_tuple(pat) {
+            let tuple_cond = core_match_tuple::core_emit_tuple_arm_condition(ctx, exprs, pat, scrut_idx)
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_cond))
+        } else if core_expr_shape_patterns::mir_core_expr_is_pat_or(pat) {
             core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, pat, core_match_payload::core_match_payload_compare_idx(payload_info), scrut_idx)
         } else {
             core_match_conditions::core_emit_value_pattern_condition(ctx, pat, core_match_payload::core_match_payload_compare_idx(payload_info), scrut_idx)
         }
         core_match_control::core_emit_if_begin(ctx)
-        core_match_payload::core_emit_payload_variant_binds_if_needed(ctx, exprs, payload_info, pat, scrut_idx)
+        if core_expr_shape_patterns::mir_core_expr_is_pat_tuple(pat) {
+            core_match_tuple::core_emit_tuple_arm_binds(ctx, exprs, pat, scrut_idx)
+        } else {
+            core_match_payload::core_emit_payload_variant_binds_if_needed(ctx, exprs, payload_info, pat, scrut_idx)
+        }
         let guard_expr = core_expr_shape_accessors::mir_core_expr_child(arm_node, 1)
         let guard_idx = lower_core_expr(ctx, exprs, guard_expr)
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(matched, guard_idx))
@@ -66,7 +74,13 @@ fn lower_core_match_branch_arm(
         core_match_control::core_emit_if_begin(ctx)
         next_if_depth = next_if_depth + 1
     } else {
-        if core_expr_shape_patterns::mir_core_expr_is_pat_or(pat) {
+        if core_expr_shape_patterns::mir_core_expr_is_pat_tuple(pat) {
+            let tuple_cond = core_match_tuple::core_emit_tuple_arm_condition(ctx, exprs, pat, scrut_idx)
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_cond))
+            core_match_control::core_emit_if_begin(ctx)
+            next_if_depth = next_if_depth + 1
+            core_match_tuple::core_emit_tuple_arm_binds(ctx, exprs, pat, scrut_idx)
+        } else if core_expr_shape_patterns::mir_core_expr_is_pat_or(pat) {
             core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, pat, core_match_payload::core_match_payload_compare_idx(payload_info), scrut_idx)
             core_match_control::core_emit_if_begin(ctx)
             next_if_depth = next_if_depth + 1

@@ -47,6 +47,7 @@ fn nk_pat_wildcard() -> i32 { kinds::NK_PAT_WILDCARD() }
 fn nk_pat_literal() -> i32 { kinds::NK_PAT_LITERAL() }
 fn nk_pat_variant() -> i32 { kinds::NK_PAT_VARIANT() }
 fn nk_pat_or() -> i32 { kinds::NK_PAT_OR() }
+fn nk_pat_tuple() -> i32 { kinds::NK_PAT_TUPLE() }
 fn nk_type_named() -> i32 { kinds::NK_TYPE_NAMED() }
 fn nk_type_generic() -> i32 { kinds::NK_TYPE_GENERIC() }
 fn nk_type_tuple() -> i32 { kinds::NK_TYPE_TUPLE() }

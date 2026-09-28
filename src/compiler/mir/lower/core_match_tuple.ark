@@ -1,0 +1,217 @@
+use std::prelude::{clone, eq}
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_types
+use mir::inst_const_i32
+use mir::inst_factory
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::opcodes
+use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_patterns
+use mir::lower::core_match_conditions
+use mir::lower::core_match_payload_bind_core
+use mir::lower::core_match_payload_info
+use mir::lower::core_match_patterns
+use mir::lower::match
+use mir::lower::match_payload_prepare
+use mir::lower::stmt_let_tuple
+use mir::value_types
+
+// Emit the arm-head tuple condition on the CoreHIR path: destructure the
+// scrutinee tuple into element locals and AND-fold one compare per checked
+// element so the arm if consumes a single i32 (#893).
+// Returns a local holding the folded result so guarded and unguarded arm
+// shapes share one emission form.
+fn core_emit_tuple_arm_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32) -> i32 {
+    let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
+    let mut has_cmp = false
+    let mut ei = 0
+    while ei < elem_count {
+        let sub = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, ei))
+        if core_emit_tuple_elem_condition(ctx, exprs, sub, scrut_idx, ei, elem_count) {
+            if has_cmp {
+                let and_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+                ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_AND(), and_dest, and_dest, and_dest))
+            }
+            has_cmp = true
+        }
+        ei = ei + 1
+    }
+    if !has_cmp {
+        // All-bind / wildcard-only tuple arms match unconditionally; keep the
+        // shared if/else arm skeleton by feeding if a constant-true value.
+        let one = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, one))
+    }
+    let cond = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(cond))
+    cond
+}
+
+// Emit ident and variant payload binds for a matched tuple arm. Call after
+// the arm if opens so guards and bodies resolve the bound names (#893).
+fn core_emit_tuple_arm_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32) {
+    let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
+    let mut ei = 0
+    while ei < elem_count {
+        let sub = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, ei))
+        if core_expr_shape_patterns::mir_core_expr_is_pat_ident(sub) {
+            let name = core_expr_shape_accessors::mir_core_expr_text(sub)
+            if !eq(clone(name), "_") && ctx_api_variants::ctx_variant_tag(ctx, clone(name)) < 0 {
+                core_emit_tuple_elem_ident_bind(ctx, clone(name), scrut_idx, ei, elem_count)
+            }
+        }
+        if core_expr_shape_patterns::mir_core_expr_is_pat_variant(sub) {
+            core_emit_tuple_elem_variant_binds(ctx, exprs, sub, scrut_idx, ei, elem_count)
+        }
+        ei = ei + 1
+    }
+}
+
+fn core_emit_tuple_elem_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+    if core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(sub) {
+        return false
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_ident(sub) {
+        let name = core_expr_shape_accessors::mir_core_expr_text(sub)
+        if eq(clone(name), "_") {
+            return false
+        }
+        if ctx_api_variants::ctx_variant_tag(ctx, clone(name)) < 0 {
+            return false
+        }
+        return core_emit_tuple_elem_variant_compare(ctx, clone(name), scrut_idx, elem_index, elem_count)
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_variant(sub) {
+        return core_emit_tuple_elem_variant_compare(ctx, core_expr_shape_accessors::mir_core_expr_text(sub), scrut_idx, elem_index, elem_count)
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_literal(sub) {
+        let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+        if core_match_patterns::mir_core_pat_is_string_literal(sub) {
+            let _str_cmp = match::mir_emit_string_pattern_compare_text(ctx, elem_local, core_expr_shape_accessors::mir_core_expr_text(sub))
+            return true
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(elem_local))
+        let pat_idx = core_match_patterns::lower_core_pattern_value(ctx, sub)
+        let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, elem_local, pat_idx))
+        return true
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_or(sub) {
+        return core_emit_tuple_elem_or_condition(ctx, exprs, sub, scrut_idx, elem_index, elem_count)
+    }
+    // Nested tuple/struct element shapes are rejected by the typechecker;
+    // trap defensively so a stray pipeline cannot emit invalid Wasm (#893).
+    ctx_api_emit::ctx_emit(ctx, inst_factory::MirInst_new(opcodes::MIR_UNREACHABLE()))
+    false
+}
+
+// Variant element compare: record-repr enums compare the extracted tag
+// field, bare-tag enums compare the element value itself, the same split
+// the top-level payload probe makes; wasm32-gc values are always refs.
+fn core_emit_tuple_elem_variant_compare(ctx: LowerCtx, vname: String, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(vname))
+    if tag < 0 {
+        return false
+    }
+    let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+    let mut compare_idx = elem_local
+    if ctx_gc_enum::ctx_is_gc_target(ctx) || ctx_api_variants::ctx_is_payload_variant(ctx, clone(vname)) {
+        compare_idx = core_match_payload_info::core_emit_payload_tag_local(ctx, elem_local)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+    let tag_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_dest))
+    let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, compare_idx, tag_dest))
+    true
+}
+
+// Or-pattern element: all-literal alternatives compare the element value,
+// all-variant alternatives compare its tag. Mixed or nested alternatives
+// are rejected by the typechecker; the trap keeps stray pipelines safe.
+fn core_emit_tuple_elem_or_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+    let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(sub)
+    let mut has_variant_alt = false
+    let mut has_literal_alt = false
+    let mut unsupported = false
+    let mut ai = 0
+    while ai < alt_count {
+        let alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(sub, ai))
+        if core_expr_shape_patterns::mir_core_expr_is_pat_literal(alt) {
+            has_literal_alt = true
+        } else if core_expr_shape_patterns::mir_core_expr_is_pat_variant(alt) {
+            has_variant_alt = true
+        } else if core_expr_shape_patterns::mir_core_expr_is_pat_ident(alt) {
+            if ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(alt)) >= 0 {
+                has_variant_alt = true
+            } else {
+                unsupported = true
+            }
+        } else {
+            unsupported = true
+        }
+        ai = ai + 1
+    }
+    if unsupported || (has_variant_alt && has_literal_alt) {
+        ctx_api_emit::ctx_emit(ctx, inst_factory::MirInst_new(opcodes::MIR_UNREACHABLE()))
+        return false
+    }
+    let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+    let mut compare_idx = elem_local
+    if has_variant_alt {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) || core_tuple_or_alt_is_record_variant(ctx, exprs, sub) {
+            compare_idx = core_match_payload_info::core_emit_payload_tag_local(ctx, elem_local)
+        }
+    }
+    core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, sub, compare_idx, scrut_idx)
+    true
+}
+
+fn core_tuple_or_alt_is_record_variant(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr) -> bool {
+    let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(sub)
+    let mut ai = 0
+    while ai < alt_count {
+        let alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(sub, ai))
+        if ctx_api_variants::ctx_is_payload_variant(ctx, core_expr_shape_accessors::mir_core_expr_text(alt)) {
+            return true
+        }
+        ai = ai + 1
+    }
+    false
+}
+
+// Ident bind for one tuple element: extract the field and copy it into the
+// named local, mirroring core_emit_match_ident_bind's type propagation.
+fn core_emit_tuple_elem_ident_bind(ctx: LowerCtx, name: String, scrut_idx: i32, elem_index: i32, elem_count: i32) {
+    let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+    let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, elem_local)
+    let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(name), bind_vt)
+    let elem_type = ctx_api_local_types::ctx_get_local_type(ctx, elem_local)
+    if len(elem_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(elem_type))
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(elem_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+}
+
+// Variant payload binds for one tuple element. The element local carries
+// the tuple field's type name so Option/Result payload inference sees the
+// same scrutinee spelling a top-level arm would (#893).
+fn core_emit_tuple_elem_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) {
+    if core_expr_shape_accessors::mir_core_expr_child_count(sub) == 0 {
+        return
+    }
+    let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+    let elem_type = ctx_api_local_types::ctx_get_local_type(ctx, elem_local)
+    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(elem_type))
+    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(elem_type))
+    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(elem_type))
+    let is_ref = core_match_payload_info::core_scrut_type_is_ref(clone(elem_type))
+    core_match_payload_bind_core::core_emit_payload_variant_binds(ctx, exprs, sub, elem_local, is_f64, is_i64, is_i32, is_ref)
+}

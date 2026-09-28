@@ -57,21 +57,9 @@ fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scr
     let has_variant_arm = mir_match_has_variant_pattern(node, child_count)
     mir_fix_unresolved_scrutinee_type(ctx, node, child_count, scrut_idx, has_variant_arm)
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
-    let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") ||
-    eq(clone(scrut_type), "Option_f64") ||
-    eq(clone(scrut_type), "option:f64") ||
-    starts_with(clone(scrut_type), "Result_f64_") ||
-    starts_with(clone(scrut_type), "result:f64:")
-    let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") ||
-    eq(clone(scrut_type), "Option_i64") ||
-    eq(clone(scrut_type), "option:i64") ||
-    starts_with(clone(scrut_type), "Result_i64_") ||
-    starts_with(clone(scrut_type), "result:i64:")
-    let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") ||
-    eq(clone(scrut_type), "Result_i32") ||
-    eq(clone(scrut_type), "option:i32") ||
-    starts_with(clone(scrut_type), "Result_i32_") ||
-    starts_with(clone(scrut_type), "result:i32:")
+    let scrut_ok_is_f64 = mir_option_result_scrut_type_is_f64(clone(scrut_type))
+    let scrut_ok_is_i64 = mir_option_result_scrut_type_is_i64(clone(scrut_type))
+    let scrut_ok_is_i32 = mir_option_result_scrut_type_is_i32(clone(scrut_type))
     // On wasm32 every variant of an enum that declares payloads is a heap
     // record, including payload-less arms like `Opt::None`.  Comparing the
     // record pointer against the tag constant is always false, so variant
@@ -85,6 +73,34 @@ fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scr
         compare_idx = mir_emit_payload_tag_local(ctx, scrut_idx)
     }
     mir_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, compare_idx)
+}
+
+// Option/Result payload-scalar spelling checks shared by the top-level
+// scrutinee probe and tuple-element payload binds (#893): a tuple element
+// whose field type is option:i32/result:... needs the same flags a
+// top-level Option/Result scrutinee would.
+fn mir_option_result_scrut_type_is_f64(scrut_type: String) -> bool {
+    eq(clone(scrut_type), "Result_f64") ||
+    eq(clone(scrut_type), "Option_f64") ||
+    eq(clone(scrut_type), "option:f64") ||
+    starts_with(clone(scrut_type), "Result_f64_") ||
+    starts_with(clone(scrut_type), "result:f64:")
+}
+
+fn mir_option_result_scrut_type_is_i64(scrut_type: String) -> bool {
+    eq(clone(scrut_type), "Result_i64") ||
+    eq(clone(scrut_type), "Option_i64") ||
+    eq(clone(scrut_type), "option:i64") ||
+    starts_with(clone(scrut_type), "Result_i64_") ||
+    starts_with(clone(scrut_type), "result:i64:")
+}
+
+fn mir_option_result_scrut_type_is_i32(scrut_type: String) -> bool {
+    eq(clone(scrut_type), "Option_i32") ||
+    eq(clone(scrut_type), "Result_i32") ||
+    eq(clone(scrut_type), "option:i32") ||
+    starts_with(clone(scrut_type), "Result_i32_") ||
+    starts_with(clone(scrut_type), "result:i32:")
 }
 
 fn mir_match_has_variant_pattern(node: AstNode, child_count: i32) -> bool {

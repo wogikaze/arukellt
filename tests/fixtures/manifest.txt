@@ -542,6 +542,7 @@ run:match_extensions/match_guard.ark
 run:match_extensions/or_pattern.ark
 run:match_extensions/struct_field_update.ark
 run:match_extensions/struct_pattern.ark
+run:match_extensions/tuple_arm_match.ark
 run:module_import/use_destructure_multi.ark
 run:module_import/use_destructure_typed.ark
 run:module_import/use_func_destructure.ark
@@ -2228,6 +2229,7 @@ t3-compile:match_extensions/match_guard.ark
 t3-compile:match_extensions/or_pattern.ark
 t3-compile:match_extensions/struct_field_update.ark
 t3-compile:match_extensions/struct_pattern.ark
+t3-compile:match_extensions/tuple_arm_match.ark
 t3-compile:memory64_struct_i32/default_fields.ark
 t3-compile:memory64_vec_i32_in_struct_fn/build_module_infos.ark
 t3-compile:modules/import_basic/main.ark
@@ -2707,6 +2709,7 @@ t3-run:match_extensions/match_guard.ark
 t3-run:match_extensions/or_pattern.ark
 t3-run:match_extensions/struct_field_update.ark
 t3-run:match_extensions/struct_pattern.ark
+t3-run:match_extensions/tuple_arm_match.ark
 t3-run:modules/import_basic/main.ark
 t3-run:modules/multi_import/main.ark
 t3-run:operator_overload/add_complex.ark

@@ -45,6 +45,10 @@ fn pattern_is_or(node: AstNode) -> bool {
     frontend_pattern_kind::corehir_kind_is_pattern_or(frontend_ast_node::corehir_node_kind(node))
 }
 
+fn pattern_is_tuple(node: AstNode) -> bool {
+    frontend_pattern_kind::corehir_kind_is_pattern_tuple(frontend_ast_node::corehir_node_kind(node))
+}
+
 fn pattern_is_composite(node: AstNode) -> bool {
-    pattern_is_variant(node) || pattern_is_or(node)
+    pattern_is_variant(node) || pattern_is_or(node) || pattern_is_tuple(node)
 }
