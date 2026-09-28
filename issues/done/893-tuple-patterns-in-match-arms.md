@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-27
-Updated: 2026-09-27
+Updated: 2026-09-28
 ID: 893
 Parent: 875
 Track: language-v2
@@ -67,10 +67,10 @@ fn main() {
 
 ## Acceptance
 
-- [ ] `(pat, pat, ...)` arm が各要素の照合として動作し、
+- [x] `(pat, pat, ...)` arm が各要素の照合として動作し、
       payload bind / wildcard / literal / variant を要素位置に許す。
-- [ ] wasm32-gc と wasm32 linear で同じ意味論・同じ観測結果になる。
-- [ ] 非対応形(実装外の nested 形)は invalid wasm emit ではなく
+- [x] wasm32-gc と wasm32 linear で同じ意味論・同じ観測結果になる。
+- [x] 非対応形(実装外の nested 形)は invalid wasm emit ではなく
       明確な診断で拒否される。
 
 ## Required evidence
@@ -79,3 +79,30 @@ fn main() {
 - positive fixture(tuple arm match)の両 backend 実行結果
 - `scripts/check/check-cross-backend-parity.py` の diverge 一覧から
       該当ケースが消えていること
+
+## Done (2026-09-28)
+
+- implementation: `fix(#893)` commit. 新規
+  `mir/lower/body_match_tuple.ark`（legacy AstNode 経路）と
+  `mir/lower/core_match_tuple.ark`（CoreHIR 経路）が arm 頭部
+  tuple を要素ごとの compare AND-fold + arm-if 内 bind へ下ろす。
+  parser は要素位置の `|` alternatives を NK_PAT_OR として受理、
+  typechecker は要素 bind と非対応形の診断を担当する。
+- positive fixture: `tests/fixtures/match_extensions/tuple_arm_match.ark`
+  （variant payload bind / ident / literal / string literal / or /
+  guard / last-arm）— gc component と linear core の両方で
+  `some:42 / none / 12 / 104 / -1 / 204 / k5 / 3` を出力。
+- parity receipt: `.build/parity/report-full.json` —
+  223 fixtures, parity=208, compile-fail:gc=15, diverge=0。
+  `match_extensions/tuple_arm_match.ark` は parity。diverge 一覧に
+  該当ケースは残っていない（compile-fail:gc 15 件はすべて
+  resolve/typecheck 系の既存未実装領域で match lowering 由来なし）。
+- 非対応形の診断: nested tuple/struct 要素、variant 子の composite
+  要素、literal+variant 混合 or-alt は
+  `error[E0200|typecheck]: unsupported match pattern: ...` で拒否。
+  lowering 側にも防御用 MIR_UNREACHABLE を残す。
+- 残課題(別 issue 候補): guarded/last or-arm が参照する
+  `lower_or_match_compare_condition` が body_match_compare_or に
+  未定義（既存 bug）、variant payload 内 literal（`Some(0)`）が
+  top-level/tuple 要素の双方で tag 一致のみとして扱われる既存意味論、
+  multi-param multiclause の parser ゲート（ADR-073 の別判断）。
