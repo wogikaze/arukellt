@@ -231,6 +231,15 @@ adrs = ["ADR-082"]
 status = "verified"
 
 [[rules]]
+id = "match_or_pattern_alternatives"
+domain = "evaluation"
+statement = "An or-pattern arm compares each alternative against the scrutinee in turn — tag equality for variant alternatives, value equality for literals — and matches when any alternative hits; alternatives are discriminators only and may not bind variables or nest composite patterns, which are compile-time diagnostics."
+fixtures = ["match_extensions/or_variant_alternatives.ark", "match_extensions/or_pattern.ark", "match_extensions/or_arm_edge.ark"]
+diagnostics = ["diagnostics/or_pattern_binding.ark"]
+adrs = ["ADR-058"]
+status = "verified"
+
+[[rules]]
 id = "trait_inherent_dispatch"
 domain = "trait"
 statement = "Inherent impl methods resolve statically and observe receiver/argument semantics identically on both backends."

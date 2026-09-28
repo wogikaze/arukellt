@@ -666,6 +666,16 @@ exhaustive is a compile-time diagnostic (non-exhaustive match), so a
 program where no arm matches is rejected before code generation on both
 backends.
 
+An arm pattern may be an or-pattern (p1 | p2 => …). Each alternative
+contributes coverage independently and is compared in turn against the
+scrutinee (tag for variant alternatives, value equality otherwise).
+Alternatives are discriminators only: an alternative that would bind a
+variable — a bare identifier that is not a unit-variant name, or a
+variant alternative with a binding payload such as Some(v) — is a
+compile-time diagnostic, as are nested composite alternatives
+(#901). Payload sub-patterns that are not bindings, such as
+Shape::Circle(_), are permitted.
+
 ### 3.12 Block Expression
 
 <!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
