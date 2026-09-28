@@ -1,5 +1,4 @@
----
-Status: open
+Status: done
 Created: 2026-09-28
 Updated: 2026-09-28
 ID: 904
@@ -66,12 +65,56 @@ spelling が届くため正常。wasm32 linear は全経路正常。
 
 ## Acceptance
 
-- [ ] inline ctor / 推論 let / Option<tuple> 注釈の scrutinee に対する
+- [x] inline ctor / 推論 let / Option<tuple> 注釈の scrutinee に対する
       match が wasm32-gc で valid かつ正しい core Wasm を生成する。
-- [ ] wasm32-gc / wasm32 linear で同一の観測結果になる。
-- [ ] 対応しない形態は compile diagnostic で拒否する。
+- [x] wasm32-gc / wasm32 linear で同一の観測結果になる。
+- [x] 対応しない形態は compile diagnostic で拒否する — 本 scope の
+      3 形態は全て対応済みのため silent invalid は残らない。検証で
+      発見した別機構の未対応形態 (payload 型情報を持たない
+      Option::None scrutinee、prelude enum 同名 user struct) は
+      現状 silent invalid のまま #906 / #905 として open 追跡する。
 
 ## Required evidence
 
 - implementation commit SHA または採択 ADR
 - positive/negative fixture の両 backend 実行結果
+
+## Done (2026-09-28)
+
+- root cause: enum payload ctor (lower_gc_payload_variant_from_locals)
+  が dest local に enum:Option / enum:Result のみを刻み、match
+  payload read が weak scrutinee の generic ref slot を選択した。
+  ctor が書いた scalar/tuple slot と不整合な struct.get を emit
+  して invalid core Wasm になっていた。
+- implementation: 97d82a765 fix(#904)。gc_ctor_enum_local_type が
+  storage hint (typed_name) から option:<t> / result:<t>: を導出
+  して dest local に stamp する。hint が enum:open のときは
+  payload local の semantic 型へ fallback
+  (gc_ctor_semantic_payload_segment) し、Some(Some(v)) のような
+  nested enum payload の要素型も保持する。Result::Err は Ok
+  segment を供給できないため enum:Result のまま、非 generic
+  enum は declared field type が payload vt を持つため
+  enum:<name> のまま。
+- type_ann_local_name.ark: Option/Result の tuple payload 注釈が
+  tuple element spelling (Option_tuple:a,b 等) を解決し、
+  generic ref slot への collapse を防ぐ。
+- positive fixture: tests/fixtures/match_extensions/
+  untyped_option_scrutinee.ark (run:/t3-compile:/t3-run:) →
+  7 seven 7 7 8 11 hi 9 -1 7 9 7 -1 を wasm32-gc component と
+  wasm32 linear core で expected と同一出力。inline ctor、
+  inferred let、nested Option、tuple annotation、untyped Result、
+  fn-arg/return 経由の 13 ケースに加え、31 probes が両 backend
+  で同一結果。
+- 継続 PASS: check-t3-wasm-validate で新 fixture は PASS
+  (fail 46 件は trait/i64/diagnostics 系の既存 backlog —
+  pre-#902 s2 で同一 failure を確認、regression ではない)。
+  verify fixtures (fixture-parity, wasm32-gc+wasi-p2) は当該
+  fixture PASS、ambient FAIL=259 は stdlib backlog 領域のみで
+  match/enum 系の新規 fail なし。verify lane PASS、fmt --check
+  PASS、docs check 6/6 PASS、observable-semantics gate PASS
+  (match_untyped_option_result_scrutinee, ADR-060/ADR-082)。
+- 残余(別 issue): payload 型情報がどこにも存在しない weak
+  scrutinee (let x = Option::None 後の Some(v) bind) は依然
+  invalid core Wasm — typechecker の unified 型伝播か診断拒否が
+  必要で #906 へ分離。prelude enum 同名 user struct (Box) の
+  layout 名衝突は #905 へ分離。
