@@ -1,8 +1,14 @@
 use std::prelude::{clone, contains, eq, starts_with}
+use std::text
+use mir::function_identity
+use mir::function_param_view
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_api_module
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_types
+use mir::module_functions
 use mir::value_types
 fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {
     mir_payload_field_vt_for_payload(ctx, variant_name, field_idx, scrut_ok_is_f64, scrut_ok_is_i64, String_new())
@@ -202,4 +208,47 @@ fn mir_match_variant_is_some_or_ok(variant_name: String) -> bool {
         return true
     }
     false
+}
+
+// Report a compile diagnostic when a Some/Ok/Err payload pattern is
+// matched against a scrutinee whose local type carries no payload
+// segment (enum:Option / enum:Result / enum:open / untyped local).
+// Multiple registrations of the same variant name can disagree on the
+// payload slot type (i32, i64, f64, and ref payloads coexist on
+// wasm32-gc), so without the scrutinee spelling the emitter can only
+// guess from registration order; a wrong guess emits a struct.get the
+// runtime value does not have — invalid core Wasm (#906). The
+// diagnostic is pushed onto the module and the pipeline rejects the
+// module before emit. wasm32 linear is unaffected and keeps lowering.
+fn mir_report_weak_payload_scrutinee(ctx: LowerCtx, variant_name: String, payload_hint: String) {
+    if len(payload_hint) > 0 {
+        return
+    }
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return
+    }
+    if !mir_match_variant_is_some_or_ok(clone(variant_name)) && !mir_match_variant_is_err(clone(variant_name)) {
+        return
+    }
+    // Generic template bodies are lowered for registration only; the
+    // emitted MIR comes from the monomorphized instance where the same
+    // scrutinee carries option:<t> spellings. Diagnosing the template
+    // would reject every program that merely imports a generic adapter
+    // (e.g. TakeIter<I>::next matching self.iter.next()). The mangled
+    // name keeps ? for every unsubstituted type variable, including
+    // impl-side params the signature view does not expose.
+    let cur_fn = ctx_current_storage::ctx_current_func_value(ctx)
+    if function_param_view::MirFunction_has_unsubstituted_generic_param(cur_fn) ||
+    contains(function_identity::MirFunction_name(cur_fn), String_from("?")) {
+        return
+    }
+    let message = text::concat(
+        String_from("unsupported match on an untyped Option/Result scrutinee: cannot determine the payload type for `"),
+        text::concat(
+            clone(variant_name),
+            String_from("` — annotate the scrutinee with a concrete type (e.g. `let x: Option<i32> = ...`)")
+        )
+    )
+    let m = ctx_api_module::ctx_current_module(ctx)
+    module_functions::MirModule_record_diagnostic(m, message)
 }

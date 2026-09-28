@@ -1,0 +1,15 @@
+use std::host::stdio
+
+// #906 negative fixture: `let x = Option::None` leaves the scrutinee
+// without a payload type segment, so `Option::Some(v)` cannot select a
+// GC variant slot for the bind. wasm32-gc rejects the match at compile
+// time with an "untyped Option/Result scrutinee" diagnostic instead of
+// emitting invalid core Wasm. wasm32 linear accepts and runs it because
+// its payload read uses the variant's fixed field offset.
+fn main() {
+    let x = Option::None
+    match x {
+        Option::Some(v) => stdio::println(v.to_string()),
+        _ => stdio::println(String_from("none")),
+    }
+}

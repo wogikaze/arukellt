@@ -78,6 +78,7 @@ compile-error:component/export_unsupported_result_string_string.ark
 compile-error:component/export_unsupported_result_vec_i32_string.ark
 compile-error:component/export_unsupported_string_extra.ark
 compile-error:component/export_unsupported_string_multi_mixed.ark
+compile-error:match_extensions/untyped_none_scrutinee_bind.ark
 compile-error:component/export_unsupported_tuple_arity3.ark
 compile-error:component/export_unsupported_tuple_string.ark
 compile-error:component/export_unsupported_variant_payload_i32.ark

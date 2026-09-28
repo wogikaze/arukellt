@@ -5,6 +5,13 @@
 // the constructor picked. Inline ctors, inferred lets, nested Options,
 // tuple-annotated Options, and untyped Result values all produce valid
 // core Wasm identical to wasm32 linear (#904).
+// Payload-carrying unit constructors (Option::None) and other
+// weakly-spelled scrutinees carry no payload type segment; a match arm
+// that reads a Some/Ok/Err payload from them is a compile diagnostic on
+// wasm32-gc rather than silent invalid core Wasm (#906). The bare
+// Result::Err arm below stays tag-only so the Err tag coverage remains
+// without requiring an Err payload spelling the inferred Result::Ok
+// scrutinee does not have.
 
 use std::host::stdio
 
@@ -67,7 +74,7 @@ fn inferred_result() -> i32 {
     let x = Result::Ok(9)
     match x {
         Result::Ok(v) => v,
-        Result::Err(e) => 0 - 1,
+        Result::Err => 0 - 1,
     }
 }
 

@@ -100,6 +100,14 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
         if bi == 0 {
             mir_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)
         }
+        // Only named payload binds are undecidable: the bind's downstream
+        // use picks the arm's expected type after this point. Wildcard
+        // children never consume the payload and composite children only
+        // need a ref read, which the emitter can always emit.
+        if !is_composite_bind && ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_IDENT()) &&
+        !eq(clone(ast_node::node_text(bind_pat)), String_from("_")) {
+            match_payload_field_type::mir_report_weak_payload_scrutinee(ctx, clone(variant_name), clone(payload_hint))
+        }
         emit_payload_field_bind(ctx, clone(variant_name), scrut_idx, bind_local, bind_vt, bi)
         if is_composite_bind {
             mir_emit_subpat_binds(ctx, bind_pat, bind_local)
@@ -218,6 +226,12 @@ fn mir_emit_subpat_binds(ctx: LowerCtx, pat: AstNode, val_idx: i32) {
                 let bind_name = ast_node::node_text(bind_pat)
                 if !eq(clone(bind_name), "_") && ctx_api_variants::ctx_variant_tag(ctx, clone(bind_name)) < 0 {
                     let field_local = mir_subpat_load_field(ctx, clone(variant_name), val_idx, bi, is_f64, is_i64, is_i32, clone(scrut_type))
+                    let subpat_hint = if bi == 0 {
+                        mir_payload_elem_type_from_scrut(clone(scrut_type), match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)))
+                    } else {
+                        String_new()
+                    }
+                    match_payload_field_type::mir_report_weak_payload_scrutinee(ctx, clone(variant_name), subpat_hint)
                     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, field_local)
                     let bind_local = ctx_alloc_local(ctx, clone(bind_name), bind_vt)
                     let field_type = ctx_get_local_type(ctx, field_local)

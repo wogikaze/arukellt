@@ -18,6 +18,7 @@ use mir::lower::core_match_payload_bind_emit
 use mir::lower::core_match_payload_type_extract
 use mir::lower::core_match_payload_info
 use mir::lower::match_payload_prepare
+use mir::lower::match_payload_field_type
 use mir::lower::stmt_let_tuple
 use mir::inst_local_get
 use mir::inst_local_set
@@ -114,6 +115,11 @@ fn core_emit_payload_variant_binds(
         // Infer concrete payload type from scrutinee type for Option/Result.
         if bi == 0 {
             core_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)
+        }
+        // Named binds only — see the AST-side loop for the rationale.
+        if !is_composite_bind && core_expr_shape_patterns::mir_core_expr_is_pat_ident(bind_pat) &&
+        !eq(core_expr_shape_accessors::mir_core_expr_text(bind_pat), String_from("_")) {
+            match_payload_field_type::mir_report_weak_payload_scrutinee(ctx, clone(variant_name), clone(payload_hint))
         }
         core_match_payload_bind_emit::emit_payload_field_bind(ctx, variant_name, bi, scrut_idx, bind_vt, bind_local)
         if is_composite_bind {
@@ -242,6 +248,15 @@ fn core_emit_subpat_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirEx
                 continue
             }
             let field_local = core_subpat_load_field(ctx, clone(variant_name), val_idx, bi, is_f64, is_i64, is_i32, is_ref, clone(scrut_type))
+            if core_expr_shape_patterns::mir_core_expr_is_pat_ident(bind_pat) &&
+            !eq(core_expr_shape_accessors::mir_core_expr_text(bind_pat), String_from("_")) {
+                let subpat_hint = if bi == 0 {
+                    core_payload_elem_type_from_scrut(clone(scrut_type), core_match_payload_bind_types::core_match_variant_is_some_or_ok(clone(variant_name)))
+                } else {
+                    String_new()
+                }
+                match_payload_field_type::mir_report_weak_payload_scrutinee(ctx, clone(variant_name), subpat_hint)
+            }
             core_emit_subpat_binds(ctx, exprs, bind_pat, field_local)
             bi = bi + 1
         }

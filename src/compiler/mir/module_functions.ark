@@ -51,6 +51,32 @@ fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
 }
 
+// Lower-phase diagnostics sink. Emit-side code paths that can prove the
+// requested lowering is not representable record a message here; the
+// pipeline rejects the module before emit so the failure surfaces as a
+// compile diagnostic rather than invalid core Wasm (#906).
+// Identical messages are deduplicated because the same weak scrutinee
+// can be visited by several lowering paths in one module.
+fn MirModule_record_diagnostic(m: MirModule, message: String) {
+    let mut i = 0
+    while i < len(m.diagnostics) {
+        if eq(get_unchecked(m.diagnostics, i), clone(message)) {
+            return
+        }
+        i = i + 1
+    }
+    push(m.diagnostics, message)
+}
+
+// Takes the recorded diagnostics out of the module, leaving an empty
+// list. Returning the Vec keeps callers on std sequence ops instead of
+// one accessor per query.
+fn MirModule_drain_diagnostics(m: MirModule) -> Vec<String> {
+    let out = clone(m.diagnostics)
+    m.diagnostics = Vec::new<String>()
+    out
+}
+
 fn MirModule_block_count(m: MirModule) -> i32 {
     let fn_count = MirModule_function_count(m)
     let mut total = 0

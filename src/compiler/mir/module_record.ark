@@ -23,6 +23,11 @@ pub struct MirModule {
     // Live count into block_pool. Walk 0..used only. No pop of Vec<MirBlock>.
     block_pool: Vec<MirBlock>,
     block_pool_used: i32,
+    // Lower-phase diagnostics that must halt the pipeline before emit.
+    // Payload binds whose type the emitter cannot recover record a
+    // user-facing message here instead of emitting invalid core Wasm
+    // (#906).
+    diagnostics: Vec<String>,
 }
 
 fn MirModule_new() -> MirModule {
@@ -42,6 +47,7 @@ fn MirModule_new() -> MirModule {
         signature_registry: signature_registry::SignatureRegistry_new(),
         mono_instance_table: mono_instance_table::MonoInstanceTable_new(),
         block_pool: Vec::new<MirBlock>(),
-        block_pool_used: 0
+        block_pool_used: 0,
+        diagnostics: Vec::new<String>()
     }
 }

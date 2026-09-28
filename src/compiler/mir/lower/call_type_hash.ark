@@ -438,6 +438,13 @@ fn is_option_i32_hash_query(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash::hashmap_str_get") {
         return true
     }
+    // hash_string:: is the wasm-side builtin alias family
+    // (hashmap_string_i32_builtin_alias); the stdlib typed adapters call
+    // these names internally, so their Option<i32> results must resolve
+    // here as well (#906).
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_get") {
+        return true
+    }
     if callee_eq(clone(callee_name), "HashMap_String_i32_get") {
         return true
     }
@@ -445,6 +452,9 @@ fn is_option_i32_hash_query(callee_name: String) -> bool {
         return true
     }
     if callee_eq(clone(callee_name), "hash::hashmap_str_remove") {
+        return true
+    }
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_remove") {
         return true
     }
     callee_eq(callee_name, "HashMap_String_i32_remove")
