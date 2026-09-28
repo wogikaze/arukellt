@@ -23,16 +23,16 @@ Scoring criteria (0-5 each, total 25):
 | 10 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
 | 11 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 12 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
-| 13 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
-| 14 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 15 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
-| 16 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
-| 17 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 18 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 19 | 825 | AST cache format repair (not “re-enable as-is”) | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 20 | 849 | 849 — native-executor wasm32-gc S3 validation drift (func 118) | main | 0 | 0 | 1 | 3 | 5 | 9 |
-| 21 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 22 | 880 | 880 — Language v2 最終 close audit を実施する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
+| 13 | 907 | 907 — bench_stdlib_toml が wasm32 linear で誤値（GC は 8000、linea... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
+| 14 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
+| 15 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 16 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
+| 17 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
+| 18 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
+| 19 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 20 | 825 | AST cache format repair (not “re-enable as-is”) | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 21 | 849 | 849 — native-executor wasm32-gc S3 validation drift (func 118) | main | 0 | 0 | 1 | 3 | 5 | 9 |
+| 22 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
 | 23 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
 | 24 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
 | 25 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |

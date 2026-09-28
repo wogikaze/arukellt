@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T12:10:18Z",
+  "generated_at": "2026-09-28T13:26:14Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -512,25 +512,38 @@
       }
     },
     {
-      "id": "880",
-      "path": "880-language-v2-final-close-audit.md",
-      "title": "880 — Language v2 最終 close audit を実施する",
+      "id": "852",
+      "path": "852-language-v2-semantics-full-implementation.md",
+      "title": "852 — 言語 v2 意味論再設計 umbrella",
       "track": "language-v2",
-      "status": "open",
+      "status": "done",
       "depends_on": [
-        "877",
-        "878",
-        "879"
+        "880"
       ],
-      "blocks_issue_ids": [
-        "852"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 10
+        "checked": 54,
+        "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation-ready",
+        "class": "blocked-by-upstream",
+        "upstream_notes": 880
+      }
+    },
+    {
+      "id": "907",
+      "path": "907-bench-stdlib-toml-linear-backend-divergence.md",
+      "title": "907 — bench_stdlib_toml が wasm32 linear で誤値（GC は 8000、linear は 1000300000）",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
         "upstream_notes": 852
       }
     },
@@ -701,25 +714,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
-      }
-    },
-    {
-      "id": "852",
-      "path": "852-language-v2-semantics-full-implementation.md",
-      "title": "852 — 言語 v2 意味論再設計 umbrella",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [
-        "880"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 49,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": 880
       }
     },
     {
