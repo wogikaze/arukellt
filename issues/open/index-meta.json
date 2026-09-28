@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T11:29:30Z",
+  "generated_at": "2026-09-28T12:04:58Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -531,23 +531,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "903",
-      "path": "903-nested-capture-mark-not-propagated-to-defining-scope.md",
-      "title": "903 — nested closure の borrow/move マークが defining scope に伝播しない",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": 852
       }
     },

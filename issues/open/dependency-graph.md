@@ -33,7 +33,6 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I880["880 880 — Language v2 最終 close audit を実施する"]
-  I903["903 903 — nested closure の borrow/move マークが defining scope に伝播しない"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -105,7 +104,6 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **880** depends on: 877, 878, 879; blocks: 852
-- **903** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
