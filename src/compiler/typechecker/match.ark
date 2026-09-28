@@ -66,7 +66,7 @@ fn bind_match_pattern(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>,
     if !ast_access::node_kind_is(pat, kinds::NK_PAT_VARIANT()) {
         return
     }
-    bind_variant_payload_idents(scope, enum_defs, scrutinee_ty, pat)
+    bind_variant_payload_idents(env, scope, enum_defs, scrutinee_ty, pat)
 }
 
 // Or-pattern alternatives act as match discriminators only. A binding
@@ -126,7 +126,10 @@ fn check_or_variant_alt_children(env: TypeEnv, alt: AstNode) {
 // Bind the ident children of a variant pattern against the payload types of
 // scrutinee_ty's enum. Shared by top-level variant arms and tuple-arm
 // element variants, which look the payload types up on the element type.
-fn bind_variant_payload_idents(scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
+// Nested composite children recurse so Some(Some(v)) and Some((k, _)) bind
+// their inner idents; literal children are match conditions, not bindings,
+// and struct children are rejected rather than silently ignored (#902).
+fn bind_variant_payload_idents(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo, pat: AstNode) {
     let variant_name = ast_access::node_text(pat)
     let enum_info = match_enum_info(enum_defs, scrutinee_ty)
     let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, clone(variant_name))
@@ -134,14 +137,54 @@ fn bind_variant_payload_idents(scope: LocalScope, enum_defs: Vec<EnumInfo>, scru
     let mut i = 0
     while i < bind_count {
         let bind_pat = ast_access::node_child_at(pat, i)
-        if ast_access::node_kind_is(bind_pat, kinds::NK_PAT_IDENT()) {
-            let bind_name = ast_access::node_text(bind_pat)
-            if !eq(clone(bind_name), "_") {
-                let bind_ty = contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
-                scope::scope_define(scope, bind_name, bind_ty)
-            }
-        }
+        let bind_ty = contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
+        bind_payload_subpat_idents(env, scope, enum_defs, bind_ty, bind_pat)
         i = i + 1
+    }
+}
+
+// Bind the idents introduced by one payload sub-pattern at type payload_ty.
+// Literal and wildcard children bind nothing; ident children bind unless
+// they name a variant of the payload enum (a tag condition, not a name);
+// tuple and nested variant children destructure recursively; or and
+// struct children cannot introduce bindings (#902).
+fn bind_payload_subpat_idents(env: TypeEnv, scope: LocalScope, enum_defs: Vec<EnumInfo>, payload_ty: TypeInfo, pat: AstNode) {
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_IDENT()) {
+        let name = ast_access::node_text(pat)
+        if eq(clone(name), "_") {
+            return
+        }
+        let payload_enum = match_enum_info(enum_defs, payload_ty)
+        if contract_enum_info::EnumInfo_variant_index(payload_enum, clone(name)) >= 0 {
+            return
+        }
+        if match_coverage_variant::ident_looks_like_unit_variant(pat) {
+            return
+        }
+        scope::scope_define(scope, name, payload_ty)
+        return
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_VARIANT()) {
+        bind_variant_payload_idents(env, scope, enum_defs, payload_ty, pat)
+        return
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_TUPLE()) {
+        let elem_count = ast_access::node_child_count(pat)
+        let mut i = 0
+        while i < elem_count {
+            let elem = ast_access::node_child_at(pat, i)
+            let elem_ty = stmt_let::tuple_element_type_at(payload_ty, i)
+            bind_payload_subpat_idents(env, scope, enum_defs, elem_ty, elem)
+            i = i + 1
+        }
+        return
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_OR()) {
+        check_or_alternative_bindings(env, pat)
+        return
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_STRUCT()) {
+        unify::type_error(env, String_from("unsupported match pattern: struct sub-patterns in variant payloads are not implemented"))
     }
 }
 
@@ -194,7 +237,7 @@ fn check_tuple_elem_variant_binds(env: TypeEnv, scope: LocalScope, enum_defs: Ve
         }
         i = i + 1
     }
-    bind_variant_payload_idents(scope, enum_defs, elem_ty, sub)
+    bind_variant_payload_idents(env, scope, enum_defs, elem_ty, sub)
 }
 
 fn check_tuple_elem_or_alts(env: TypeEnv, sub: AstNode) {

@@ -1,0 +1,16 @@
+// Struct sub-patterns inside a variant payload are rejected at typecheck:
+// silently ignoring them would produce a tag-only match (#902).
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let r = match Option::Some(Point { x: 1, y: 2 }) {
+        Option::Some(Point { x: 5 }) => "five",
+        _ => "other",
+    }
+    stdio::println(r)
+}

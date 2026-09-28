@@ -17,6 +17,7 @@ use mir::lower::core_match_conditions
 use mir::lower::core_match_payload_bind_core
 use mir::lower::core_match_payload_info
 use mir::lower::core_match_patterns
+use mir::lower::core_match_subpat
 use mir::lower::match
 use mir::lower::match_payload_prepare
 use mir::lower::stmt_let_tuple
@@ -85,10 +86,10 @@ fn core_emit_tuple_elem_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: C
         if ctx_api_variants::ctx_variant_tag(ctx, clone(name)) < 0 {
             return false
         }
-        return core_emit_tuple_elem_variant_compare(ctx, clone(name), scrut_idx, elem_index, elem_count)
+        return core_emit_tuple_elem_variant_compare(ctx, exprs, sub, scrut_idx, elem_index, elem_count)
     }
     if core_expr_shape_patterns::mir_core_expr_is_pat_variant(sub) {
-        return core_emit_tuple_elem_variant_compare(ctx, core_expr_shape_accessors::mir_core_expr_text(sub), scrut_idx, elem_index, elem_count)
+        return core_emit_tuple_elem_variant_compare(ctx, exprs, sub, scrut_idx, elem_index, elem_count)
     }
     if core_expr_shape_patterns::mir_core_expr_is_pat_literal(sub) {
         let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
@@ -114,12 +115,21 @@ fn core_emit_tuple_elem_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: C
 // Variant element compare: record-repr enums compare the extracted tag
 // field, bare-tag enums compare the element value itself, the same split
 // the top-level payload probe makes; wasm32-gc values are always refs.
-fn core_emit_tuple_elem_variant_compare(ctx: LowerCtx, vname: String, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+// Elements with literal/composite payload children emit the guarded flag
+// form so payload reads stay inside the tag-true branch (#902).
+fn core_emit_tuple_elem_variant_compare(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: CoreHirExpr, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+    let vname = core_expr_shape_accessors::mir_core_expr_text(sub)
     let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(vname))
     if tag < 0 {
         return false
     }
     let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+    if core_expr_shape_patterns::mir_core_expr_is_pat_variant(sub) &&
+    core_match_subpat::core_variant_pat_has_checked_children(ctx, exprs, sub) {
+        let flag = core_match_subpat::core_emit_variant_subpat_flag_tagged(ctx, exprs, sub, elem_local, 0 - 1)
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(flag))
+        return true
+    }
     let mut compare_idx = elem_local
     if ctx_gc_enum::ctx_is_gc_target(ctx) || ctx_api_variants::ctx_is_payload_variant(ctx, clone(vname)) {
         compare_idx = core_match_payload_info::core_emit_payload_tag_local(ctx, elem_local)
@@ -169,7 +179,10 @@ fn core_emit_tuple_elem_or_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub
             compare_idx = core_match_payload_info::core_emit_payload_tag_local(ctx, elem_local)
         }
     }
-    core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, sub, compare_idx, scrut_idx)
+    // The element local is the value each alternative compares against:
+    // payload-carrying variant alts load their fields from it, so the or
+    // fold receives elem_local rather than the enclosing tuple (#902).
+    core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, sub, compare_idx, elem_local)
     true
 }
 

@@ -1,0 +1,1 @@
+error[E0200|typecheck]: unsupported match pattern: struct sub-patterns in variant payloads are not implemented

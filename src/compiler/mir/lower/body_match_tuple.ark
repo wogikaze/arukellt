@@ -14,6 +14,7 @@ use mir::inst_local_set
 use mir::inst_op
 use mir::opcodes
 use mir::lower::match
+use mir::lower::match_subpat
 use mir::lower::match_payload_fields
 use mir::lower::match_payload_prepare
 use mir::lower::stmt_let_tuple
@@ -84,10 +85,10 @@ fn emit_tuple_elem_condition(ctx: LowerCtx, sub: AstNode, scrut_idx: i32, elem_i
         if ctx_api_variants::ctx_variant_tag(ctx, clone(name)) < 0 {
             return false
         }
-        return emit_tuple_elem_variant_compare(ctx, clone(name), scrut_idx, elem_index, elem_count)
+        return emit_tuple_elem_variant_compare(ctx, sub, scrut_idx, elem_index, elem_count)
     }
     if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_VARIANT()) {
-        return emit_tuple_elem_variant_compare(ctx, ast_node::node_text(sub), scrut_idx, elem_index, elem_count)
+        return emit_tuple_elem_variant_compare(ctx, sub, scrut_idx, elem_index, elem_count)
     }
     if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_LITERAL()) {
         let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
@@ -114,12 +115,21 @@ fn emit_tuple_elem_condition(ctx: LowerCtx, sub: AstNode, scrut_idx: i32, elem_i
 // field, bare-tag enums compare the element value itself, the same split
 // prepare_match_payload makes between has_variant_arm and
 // has_record_variant_arm on wasm32; wasm32-gc values are always refs.
-fn emit_tuple_elem_variant_compare(ctx: LowerCtx, vname: String, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+// Elements with literal/composite payload children emit the guarded flag
+// form so payload reads stay inside the tag-true branch (#902).
+fn emit_tuple_elem_variant_compare(ctx: LowerCtx, sub: AstNode, scrut_idx: i32, elem_index: i32, elem_count: i32) -> bool {
+    let vname = ast_node::node_text(sub)
     let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(vname))
     if tag < 0 {
         return false
     }
     let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
+    if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_VARIANT()) &&
+    match_subpat::mir_variant_pat_has_checked_children(ctx, sub) {
+        let flag = match_subpat::mir_emit_variant_subpat_flag_tagged(ctx, sub, elem_local, 0 - 1)
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(flag))
+        return true
+    }
     let mut compare_idx = elem_local
     if ctx_gc_enum::ctx_is_gc_target(ctx) || ctx_api_variants::ctx_is_payload_variant(ctx, clone(vname)) {
         compare_idx = match_payload_prepare::mir_emit_payload_tag_local(ctx, elem_local)
@@ -174,7 +184,15 @@ fn emit_tuple_elem_or_condition(ctx: LowerCtx, sub: AstNode, scrut_idx: i32, ele
     while or_oi < alt_count {
         let or_alt = ast_node::node_child_at(sub, or_oi)
         let mut or_cmp = 0 - 1
-        if match::mir_pat_is_string_literal(or_alt) {
+        if ast_node::node_kind_is(or_alt, lower_kinds::NK_PAT_VARIANT()) &&
+        match_subpat::mir_variant_pat_has_checked_children(ctx, or_alt) {
+            // Variant alternatives with checked payload children carry
+            // their own guarded flag; it folds into the same OR
+            // accumulator as the flat compares, so the flag local is
+            // pushed to feed BIT_OR (#902).
+            or_cmp = match_subpat::mir_emit_variant_subpat_flag_tagged(ctx, or_alt, elem_local, compare_idx)
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(or_cmp))
+        } else if match::mir_pat_is_string_literal(or_alt) {
             or_cmp = match::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
         } else {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))

@@ -16,7 +16,7 @@ fn lower_last_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, 
     let is_struct_pattern = ast_node::node_kind_is(pat, lower_kinds::NK_PAT_STRUCT())
     let needs_condition = !is_catchall && !is_struct_pattern
     if needs_condition {
-        let pattern_matches = lower_last_pattern_condition(ctx, pat, payload_info)
+        let pattern_matches = lower_last_pattern_condition(ctx, pat, payload_info, scrut_idx)
         ctx_emit(ctx, inst_local_get::MirInst_local_get(pattern_matches))
         ctx_emit(ctx, inst_structured_control::MirInst_if())
         let _pattern_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
@@ -52,14 +52,14 @@ fn lower_last_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, 
     depth
 }
 
-fn lower_last_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
+fn lower_last_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
         // Tuple arms never engage the payload machinery, so compare_idx is
         // still the scrutinee local itself (#893).
         return body_match_tuple::emit_tuple_arm_condition(ctx, pat, match::mir_match_payload_compare_idx(payload_info))
     }
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
-        return body_match_compare_or::lower_or_match_compare_condition(ctx, pat, payload_info)
+        return body_match_compare_or::lower_or_match_compare_condition(ctx, pat, payload_info, scrut_idx)
     }
-    body_match_compare_single::lower_single_match_compare_condition(ctx, pat, payload_info)
+    body_match_compare_single::lower_single_match_compare_condition(ctx, pat, payload_info, scrut_idx)
 }

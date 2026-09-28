@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T04:26:08Z",
+  "generated_at": "2026-09-28T05:23:18Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -566,6 +566,23 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": 852
+      }
+    },
+    {
+      "id": "904",
+      "path": "904-untyped-generic-option-scrutinee-gc-payload-slot.md",
+      "title": "904 — generic Option scrutinee の型 spelling が無いと wasm32-gc が payload を ref slot で読み invalid core Wasm になる",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 875
       }
     },
     {

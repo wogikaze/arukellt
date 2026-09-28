@@ -1,0 +1,248 @@
+use std::prelude::{clone, eq}
+use mir::lower::ast_node
+use mir::lower::ctx_api_nesting
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_types
+use mir::lower_kinds
+use mir::inst_const_i32
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::inst_op
+use mir::inst_structured_control
+use mir::opcodes
+use mir::lower::match
+use mir::lower::match_payload_fields
+use mir::lower::match_payload_prepare
+use mir::lower::stmt_let_tuple
+use mir::value_types
+
+// Payload sub-pattern conditions (#902). A variant pattern matches only
+// when its tag matches AND every non-binding child pattern matches the
+// extracted payload value (ADR-082's refutable-subpattern rule). Payload
+// loads are only valid inside the enclosing tag-true branch (ref.cast on
+// wasm32-gc, record layout on wasm32), so composite checks emit a flag
+// local guarded by their own nested if instead of an unfolded compare.
+//
+// Emission follows the lowering stack contract: a condition helper leaves
+// exactly one i32 on the operand stack and also returns the local the
+// value materializes into, so callers can either fold the stack value or
+// reload the local.
+
+// True when a payload child contributes a runtime condition rather than a
+// binding. Literal, nested variant, tuple, and or children compare the
+// extracted value; an ident child is a condition only when it names a
+// registered unit variant (Some(None) tag-checks, Some(v) binds).
+fn mir_subpat_child_is_condition(ctx: LowerCtx, pat: AstNode) -> bool {
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_LITERAL()) ||
+    ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) ||
+    ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) ||
+    ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
+        return true
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
+        if eq(clone(ast_node::node_text(pat)), "_") {
+            return false
+        }
+        return ctx_api_variants::ctx_variant_tag(ctx, ast_node::node_text(pat)) >= 0
+    }
+    false
+}
+
+// True when any child of a variant pattern needs a payload-value compare
+// beyond the tag check. Pure binding patterns (Some(v), Some(_)) keep the
+// flat tag compare fast path.
+fn mir_variant_pat_has_checked_children(ctx: LowerCtx, pat: AstNode) -> bool {
+    let count = ast_node::node_child_count(pat)
+    let mut i = 0
+    while i < count {
+        if mir_subpat_child_is_condition(ctx, ast_node::node_child_at(pat, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+// Self-contained condition for one sub-pattern over the value in val_idx.
+// Leaves the i32 result on the operand stack and returns the local it
+// materializes into. Composite checks close their own guard ifs, so the
+// result is always safe to fold unconditionally. val_idx must already be
+// in a context where reading it is valid (top-level scrutinee or inside
+// a parent tag-true branch).
+fn mir_emit_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_LITERAL()) {
+        if match::mir_pat_is_string_literal(pat) {
+            let cmp = match::mir_emit_string_pattern_compare(ctx, val_idx, pat)
+            ctx_emit(ctx, inst_local_get::MirInst_local_get(cmp))
+            return cmp
+        }
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(val_idx))
+        let lit_idx = lower_expr(ctx, pat)
+        let cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, val_idx, lit_idx))
+        return cmp_dest
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
+        let name = ast_node::node_text(pat)
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(name))
+        if tag >= 0 {
+            return mir_emit_tag_compare_cond(ctx, val_idx, tag)
+        }
+        return mir_const_true_cond(ctx)
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) {
+        let flag = mir_emit_variant_subpat_flag_tagged(ctx, pat, val_idx, 0 - 1)
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(flag))
+        return flag
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
+        return mir_emit_tuple_subpat_cond(ctx, pat, val_idx)
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
+        let alt_count = ast_node::node_child_count(pat)
+        let mut acc = 0 - 1
+        let mut ai = 0
+        while ai < alt_count {
+            let alt = ast_node::node_child_at(pat, ai)
+            let alt_cond = mir_emit_subpat_cond(ctx, alt, val_idx)
+            if ai > 0 {
+                let or_acc = ctx_fresh_local(ctx, value_types::VT_I32())
+                ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_acc, acc, alt_cond))
+                acc = or_acc
+            } else {
+                acc = alt_cond
+            }
+            ai = ai + 1
+        }
+        if acc < 0 {
+            return mir_const_true_cond(ctx)
+        }
+        return acc
+    }
+    mir_const_true_cond(ctx)
+}
+
+// Variant sub-pattern: flag = 0; if tag(val) == vtag { flag = folded
+// conjunction of checked-child conditions }. Emits the guarded flag and
+// returns its local; the operand stack is neutral on return, so callers
+// push the flag when they need it as a condition value.
+fn mir_emit_variant_subpat_flag_tagged(ctx: LowerCtx, pat: AstNode, val_idx: i32, known_tag_idx: i32) -> i32 {
+    let variant_name = ast_node::node_text(pat)
+    let flag = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, flag))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(flag))
+    let mut tag_idx = known_tag_idx
+    if tag_idx < 0 {
+        tag_idx = match_payload_prepare::mir_emit_payload_tag_local(ctx, val_idx)
+    }
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_idx))
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+    let tag_const = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_const))
+    let tag_cmp = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), tag_cmp, tag_idx, tag_const))
+    ctx_emit(ctx, inst_structured_control::MirInst_if())
+    let _subpat_tag_nesting = ctx_api_nesting::ctx_push_nesting(ctx)
+    // Payload-field reads belong to this variant's layout only while the
+    // tag check holds; emit every child load inside the if (#902).
+    let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+    let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(scrut_type))
+    let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(scrut_type))
+    let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(scrut_type))
+    let mut cond_count = 0
+    let mut acc = 0 - 1
+    let count = ast_node::node_child_count(pat)
+    let mut i = 0
+    while i < count {
+        let child = ast_node::node_child_at(pat, i)
+        if !mir_subpat_child_is_condition(ctx, child) {
+            i = i + 1
+            continue
+        }
+        let field_local = match_payload_fields::mir_subpat_load_field(
+            ctx,
+            clone(variant_name),
+            val_idx,
+            i,
+            is_f64,
+            is_i64,
+            is_i32,
+            clone(scrut_type)
+        )
+        let child_cond = mir_emit_subpat_cond(ctx, child, field_local)
+        if cond_count > 0 {
+            // The child condition sits on the operand stack on top of the
+            // previous fold result; BIT_AND pops the pair and keeps one
+            // folded value pending.
+            let and_acc = ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_AND(), and_acc, acc, child_cond))
+            acc = and_acc
+        } else {
+            acc = child_cond
+        }
+        cond_count = cond_count + 1
+        i = i + 1
+    }
+    if cond_count == 0 {
+        let one = ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, one))
+        acc = one
+    }
+    // The folded conjunction is the pending stack value; settle it into
+    // the flag local so the flag is a plain local on both backends.
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(flag))
+    ctx_emit(ctx, inst_structured_control::MirInst_end())
+    let _subpat_tag_nesting_after = ctx_api_nesting::ctx_pop_nesting(ctx)
+    flag
+}
+
+// Tuple sub-pattern: extract each checked element and AND-fold the pushed
+// element conditions. Tuple destructuring needs no tag guard, so element
+// reads are unconditional once the enclosing variant payload is loaded.
+fn mir_emit_tuple_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
+    let count = ast_node::node_child_count(pat)
+    let mut cond_count = 0
+    let mut acc = 0 - 1
+    let mut i = 0
+    while i < count {
+        let elem = ast_node::node_child_at(pat, i)
+        if !mir_subpat_child_is_condition(ctx, elem) {
+            i = i + 1
+            continue
+        }
+        let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, val_idx, i, count)
+        let elem_cond = mir_emit_subpat_cond(ctx, elem, elem_local)
+        if cond_count > 0 {
+            let and_acc = ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_AND(), and_acc, acc, elem_cond))
+            acc = and_acc
+        } else {
+            acc = elem_cond
+        }
+        cond_count = cond_count + 1
+        i = i + 1
+    }
+    if cond_count == 0 {
+        return mir_const_true_cond(ctx)
+    }
+    acc
+}
+
+fn mir_emit_tag_compare_cond(ctx: LowerCtx, val_idx: i32, tag: i32) -> i32 {
+    let tag_idx = match_payload_prepare::mir_emit_payload_tag_local(ctx, val_idx)
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_idx))
+    let tag_const = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_const))
+    let cmp_dest = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, tag_idx, tag_const))
+    cmp_dest
+}
+
+fn mir_const_true_cond(ctx: LowerCtx) -> i32 {
+    let one = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, one))
+    one
+}

@@ -7,6 +7,7 @@ use mir::inst_structured_control
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_patterns
+use mir::lower::core_match_subpat
 use mir::lower::match
 use mir::value_types
 
@@ -17,7 +18,15 @@ fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: C
     while or_oi < alt_count {
         let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
         let mut or_cmp = 0 - 1
-        if core_match_patterns::mir_core_pat_is_string_literal(or_alt) {
+        if core_expr_shape_patterns::mir_core_expr_is_pat_variant(or_alt) &&
+        core_match_subpat::core_variant_pat_has_checked_children(ctx, exprs, or_alt) {
+            // Alternatives like Circle(5) carry their own guarded payload
+            // conditions; the returned flag folds into the same OR
+            // accumulator as the flat compares, so the flag local is
+            // pushed to feed BIT_OR (#902).
+            or_cmp = core_match_subpat::core_emit_variant_subpat_flag_tagged(ctx, exprs, or_alt, scrut_idx, compare_idx)
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(or_cmp))
+        } else if core_match_patterns::mir_core_pat_is_string_literal(or_alt) {
             or_cmp = match::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(or_alt))
         } else {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
@@ -36,7 +45,16 @@ fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: C
     }
 }
 
-fn core_emit_value_pattern_condition(ctx: LowerCtx, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
+fn core_emit_value_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
+    // A variant pattern with literal/composite payload children must
+    // compare the sub-patterns, not only the tag: emit the guarded flag
+    // form whose payload loads sit inside the tag-true branch (#902).
+    if core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) &&
+    core_match_subpat::core_variant_pat_has_checked_children(ctx, exprs, pat) {
+        let flag = core_match_subpat::core_emit_variant_subpat_flag_tagged(ctx, exprs, pat, scrut_idx, compare_idx)
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(flag))
+        return
+    }
     if core_match_patterns::mir_core_pat_is_string_literal(pat) {
         let _str_cmp = match::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(pat))
         return

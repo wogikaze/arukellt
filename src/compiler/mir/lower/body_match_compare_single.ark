@@ -8,11 +8,19 @@ use mir::inst_local_get
 use mir::inst_op
 use mir::opcodes
 use mir::lower::match
+use mir::lower::match_subpat
 use mir::value_types
 
 fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
     let mut depth = if_depth
-    let cmp_dest = lower_single_match_compare_condition(ctx, pat, payload_info)
+    let cmp_dest = lower_single_match_compare_condition(ctx, pat, payload_info, scrut_idx)
+    // The guarded flag form materializes its result in a local rather than
+    // on the operand stack like the binop compares; push it so the arm if
+    // still consumes one value (#902).
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) &&
+    match_subpat::mir_variant_pat_has_checked_children(ctx, pat) {
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(cmp_dest))
+    }
     ctx_emit(ctx, inst_structured_control::MirInst_if())
     let _single_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
     depth = depth + 1
@@ -26,8 +34,15 @@ fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstN
     depth
 }
 
-fn lower_single_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
+fn lower_single_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
+    // A variant pattern with literal/composite payload children must
+    // compare the sub-patterns, not only the tag: emit the guarded flag
+    // form whose payload loads sit inside the tag-true branch (#902).
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) &&
+    match_subpat::mir_variant_pat_has_checked_children(ctx, pat) {
+        return match_subpat::mir_emit_variant_subpat_flag_tagged(ctx, pat, scrut_idx, compare_idx)
+    }
     if match::mir_pat_is_string_literal(pat) {
         return match::mir_emit_string_pattern_compare(ctx, compare_idx, pat)
     }

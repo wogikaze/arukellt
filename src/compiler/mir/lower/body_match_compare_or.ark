@@ -9,11 +9,12 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_op
 use mir::lower::match
+use mir::lower::match_subpat
 use mir::value_types
 
-fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, if_depth: i32) -> i32 {
+fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, if_depth: i32) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
-    emit_or_compare_fold(ctx, pat, compare_idx)
+    emit_or_compare_fold(ctx, pat, compare_idx, scrut_idx)
     ctx_emit(ctx, inst_structured_control::MirInst_if())
     let _or_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
     if_depth + 1
@@ -23,9 +24,9 @@ fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirM
 // (guarded or-arms and last or-arms). Mirrors
 // lower_single_match_compare_condition: emit the per-alternative compares,
 // OR-fold them, and store into a fresh local (#898).
-fn lower_or_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
+fn lower_or_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
-    emit_or_compare_fold(ctx, pat, compare_idx)
+    emit_or_compare_fold(ctx, pat, compare_idx, scrut_idx)
     let cond = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_local_set::MirInst_local_set(cond))
     cond
@@ -34,14 +35,22 @@ fn lower_or_match_compare_condition(ctx: LowerCtx, pat: AstNode, payload_info: M
 // Emit compare/eq per or-alternative and OR-fold them, leaving the folded
 // i32 on the operand stack. The compare itself is shared with the
 // condition/prefix forms so arm shapes cannot drift (#898).
-fn emit_or_compare_fold(ctx: LowerCtx, pat: AstNode, compare_idx: i32) {
+fn emit_or_compare_fold(ctx: LowerCtx, pat: AstNode, compare_idx: i32, scrut_idx: i32) {
     let alt_count = ast_node::node_child_count(pat)
     let mut or_oi = 0
     let mut or_prev_cmp = 0 - 1
     while or_oi < alt_count {
         let or_alt = ast_node::node_child_at(pat, or_oi)
         let mut or_cmp = 0 - 1
-        if match::mir_pat_is_string_literal(or_alt) {
+        if ast_node::node_kind_is(or_alt, lower_kinds::NK_PAT_VARIANT()) &&
+        match_subpat::mir_variant_pat_has_checked_children(ctx, or_alt) {
+            // An alternative like Circle(5) contributes its own guarded
+            // payload conditions. The fold is stack-composed, so the flag
+            // local must be pushed to feed BIT_OR like the flat compares
+            // do (#902).
+            or_cmp = match_subpat::mir_emit_variant_subpat_flag_tagged(ctx, or_alt, scrut_idx, compare_idx)
+            ctx_emit(ctx, inst_local_get::MirInst_local_get(or_cmp))
+        } else if match::mir_pat_is_string_literal(or_alt) {
             or_cmp = match::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
         } else {
             ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))

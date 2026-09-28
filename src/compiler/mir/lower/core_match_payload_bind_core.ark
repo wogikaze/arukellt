@@ -1,5 +1,7 @@
 use std::prelude::{clone, contains, eq, is_err, starts_with, substring}
 use std::text
+use mir::lower::ctx_api_variants
+use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::aggregate_tuple
@@ -7,11 +9,18 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_mono
+use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_mono_type_params
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_payload_bind_types
 use mir::lower::core_match_payload_bind_emit
 use mir::lower::core_match_payload_type_extract
+use mir::lower::core_match_payload_info
+use mir::lower::match_payload_prepare
+use mir::lower::stmt_let_tuple
+use mir::inst_local_get
+use mir::inst_local_set
 use mir::value_types
 fn core_emit_payload_variant_binds(
     ctx: LowerCtx,
@@ -50,11 +59,34 @@ fn core_emit_payload_variant_binds(
             bi = bi + 1
             continue
         }
+        // Literal children are match conditions, not bindings (#902).
+        if core_expr_shape_patterns::mir_core_expr_is_pat_literal(bind_pat) {
+            bi = bi + 1
+            continue
+        }
+        // Ident children naming a registered unit variant (Some(None))
+        // are tag conditions, not bindings.
+        if core_expr_shape_patterns::mir_core_expr_is_pat_ident(bind_pat) {
+            let ident_name = core_expr_shape_accessors::mir_core_expr_text(bind_pat)
+            if !eq(clone(ident_name), "_") && ctx_api_variants::ctx_variant_tag(ctx, clone(ident_name)) >= 0 {
+                bi = bi + 1
+                continue
+            }
+        }
+        // Composite children (tuple, nested variant) load the payload
+        // into an unnamed temp and destructure recursively (#902).
+        let is_composite_bind = core_expr_shape_patterns::mir_core_expr_is_pat_tuple(bind_pat) ||
+        core_expr_shape_patterns::mir_core_expr_is_pat_variant(bind_pat)
         let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), bi, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
         if bi == 0 && core_match_payload_bind_types::core_payload_type_is_fnref(clone(payload_hint)) {
             bind_vt = value_types::VT_FUNCREF()
         }
-        let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(bind_pat), bind_vt)
+        let mut bind_local = 0 - 1
+        if is_composite_bind {
+            bind_local = ctx_api_local_alloc::ctx_fresh_local(ctx, bind_vt)
+        } else {
+            bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(bind_pat), bind_vt)
+        }
         if bind_vt == value_types::VT_FUNCREF() {
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "fnref")
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_FUNCREF())
@@ -84,7 +116,135 @@ fn core_emit_payload_variant_binds(
             core_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)
         }
         core_match_payload_bind_emit::emit_payload_field_bind(ctx, variant_name, bi, scrut_idx, bind_vt, bind_local)
+        if is_composite_bind {
+            core_emit_subpat_binds(ctx, exprs, bind_pat, bind_local)
+        }
         bi = bi + 1
+    }
+}
+
+// Load one payload field into an anonymous temp for a non-ident
+// sub-pattern. Mirrors the named-bind setup so the temp carries the same
+// vt and type spelling a bound payload local would (#902).
+fn core_subpat_load_field(
+    ctx: LowerCtx,
+    variant_name: String,
+    scrut_idx: i32,
+    field_idx: i32,
+    scrut_ok_is_f64: bool,
+    scrut_ok_is_i64: bool,
+    scrut_ok_is_i32: bool,
+    scrut_ok_is_ref: bool,
+    scrut_type: String
+) -> i32 {
+    let is_some_or_ok = core_match_payload_bind_types::core_match_variant_is_some_or_ok(clone(variant_name))
+    let mut payload_hint = String_new()
+    if field_idx == 0 && is_some_or_ok {
+        payload_hint = core_payload_elem_type_from_scrut(clone(scrut_type), true)
+    }
+    let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), field_idx, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
+    if field_idx == 0 && core_match_payload_bind_types::core_payload_type_is_fnref(clone(payload_hint)) {
+        bind_vt = value_types::VT_FUNCREF()
+    }
+    let temp = ctx_api_local_alloc::ctx_fresh_local(ctx, bind_vt)
+    if bind_vt == value_types::VT_FUNCREF() {
+        ctx_api_local_types::ctx_set_local_type(ctx, temp, "fnref")
+        ctx_api_local_types::ctx_set_local_vt(ctx, temp, value_types::VT_FUNCREF())
+    } else {
+        core_match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), temp, bind_vt, field_idx)
+    }
+    if bind_vt != value_types::VT_FUNCREF() && (bind_vt == value_types::VT_GC_REF() || core_match_payload_bind_types::core_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx)) {
+        if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, temp, "enum:open")
+        }
+        ctx_api_local_types::ctx_set_local_vt(ctx, temp, value_types::VT_GC_REF())
+    }
+    if bind_vt == value_types::VT_I32() && scrut_ok_is_i32 && field_idx == 0 {
+        if core_match_payload_bind_types::core_payload_i32_name_needs_type(clone(variant_name)) {
+            ctx_api_local_types::ctx_set_local_type(ctx, temp, "i32")
+        }
+    }
+    if bind_vt == value_types::VT_GC_REF() && scrut_ok_is_ref && field_idx == 0 {
+        if core_match_payload_bind_types::core_match_variant_is_some_or_ok(clone(variant_name)) {
+            if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
+                ctx_api_local_types::ctx_set_local_type(ctx, temp, "string")
+            }
+        }
+    }
+    if field_idx == 0 {
+        core_infer_payload_bind_type(ctx, clone(variant_name), temp, bind_vt, scrut_idx)
+    }
+    // Declared-field types keep the nested value's own type name (an enum
+    // or tuple payload) so deeper tag/payload reads resolve layouts the
+    // Option/Result inference would not see (#902).
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
+        let declared = ctx_mono_type_params::ctx_resolve_mono_type_name(
+            ctx,
+            ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        )
+        if len(declared) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, temp, declared)
+        }
+    }
+    core_match_payload_bind_emit::emit_payload_field_bind(ctx, variant_name, field_idx, scrut_idx, bind_vt, temp)
+    temp
+}
+
+// Bind every binding sub-pattern under a composite payload child whose
+// value already sits in val_idx (#902).
+fn core_emit_subpat_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) {
+    if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
+        let name = core_expr_shape_accessors::mir_core_expr_text(pat)
+        if eq(clone(name), "_") {
+            return
+        }
+        if ctx_api_variants::ctx_variant_tag(ctx, clone(name)) >= 0 {
+            return
+        }
+        let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+        let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(name), bind_vt)
+        let val_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+        if len(val_type) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(val_type))
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(val_idx))
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+        return
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_tuple(pat) {
+        let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
+        let mut ei = 0
+        while ei < elem_count {
+            let elem = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, ei))
+            if core_expr_shape_patterns::mir_core_expr_is_pat_ident(elem) ||
+            core_expr_shape_patterns::mir_core_expr_is_pat_variant(elem) ||
+            core_expr_shape_patterns::mir_core_expr_is_pat_tuple(elem) {
+                let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, val_idx, ei, elem_count)
+                core_emit_subpat_binds(ctx, exprs, elem, elem_local)
+            }
+            ei = ei + 1
+        }
+        return
+    }
+    if core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) {
+        let variant_name = core_expr_shape_accessors::mir_core_expr_text(pat)
+        let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+        let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(scrut_type))
+        let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(scrut_type))
+        let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(scrut_type))
+        let is_ref = core_match_payload_info::core_scrut_type_is_ref(clone(scrut_type))
+        let mut bi = 0
+        while bi < core_expr_shape_accessors::mir_core_expr_child_count(pat) {
+            let bind_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, bi))
+            if core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(bind_pat) ||
+            core_expr_shape_patterns::mir_core_expr_is_pat_literal(bind_pat) {
+                bi = bi + 1
+                continue
+            }
+            let field_local = core_subpat_load_field(ctx, clone(variant_name), val_idx, bi, is_f64, is_i64, is_i32, is_ref, clone(scrut_type))
+            core_emit_subpat_binds(ctx, exprs, bind_pat, field_local)
+            bi = bi + 1
+        }
     }
 }
 

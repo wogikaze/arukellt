@@ -1,0 +1,138 @@
+// Variant-payload sub-patterns participate in match selection: after the
+// tag compares equal, literal, string, nested-variant, unit-variant-ident,
+// and tuple children are checked, or-pattern alternatives carry their own
+// payload conditions, and composite children still bind (#902).
+// Scrutinees come from annotated lets or typed returns so the generic
+// Option payload keeps its element type on wasm32-gc (the untyped
+// scrutinee gap is residual, tracked separately).
+// Verified identical on wasm32-gc component and wasm32 linear core.
+
+use std::host::stdio
+
+enum Shape {
+    Circle(i32),
+    Square(i32),
+}
+
+fn mk_i() -> Option<i32> {
+    Option::Some(7)
+}
+
+fn mk_s() -> Option<String> {
+    Option::Some(String_from("hello"))
+}
+
+fn mk_n() -> Option<Option<i32>> {
+    Option::Some(Option::Some(7))
+}
+
+fn mk_t() -> Option<(i32, i32)> {
+    Option::Some((3, 7))
+}
+
+fn mk_t2() -> Option<(i32, i32)> {
+    Option::Some((2, 9))
+}
+
+fn lit() -> String {
+    match mk_i() {
+        Option::Some(5) => "five",
+        Option::Some(7) => "seven",
+        _ => "other",
+    }
+}
+
+fn lit_let() -> String {
+    let x: Option<i32> = Option::Some(7)
+    match x {
+        Option::Some(5) => "five",
+        Option::Some(9) => "nine",
+        _ => "other",
+    }
+}
+
+fn str_payload() -> String {
+    match mk_s() {
+        Option::Some("bye") => "bye",
+        Option::Some("hello") => "hi",
+        _ => "other",
+    }
+}
+
+fn nested() -> String {
+    match mk_n() {
+        Option::Some(Option::Some(5)) => "inner5",
+        Option::Some(Option::Some(7)) => "inner7",
+        Option::Some(Option::None) => "none",
+        _ => "other",
+    }
+}
+
+fn unit_child() -> String {
+    let x: Option<Option<i32>> = Option::Some(Option::None)
+    match x {
+        Option::Some(Option::None) => "inner-none",
+        Option::Some(Option::Some(v)) => "inner-some",
+        _ => "other",
+    }
+}
+
+fn tuple_child() -> String {
+    match mk_t() {
+        Option::Some((k, 5)) => "five",
+        Option::Some((k, 7)) => "seven",
+        _ => "other",
+    }
+}
+
+fn tuple_or_elem() -> String {
+    match mk_t2() {
+        Option::Some((1 | 2, k)) => "or12",
+        Option::Some((3, k)) => "three",
+        _ => "other",
+    }
+}
+
+fn bind_tuple() -> i32 {
+    match mk_t() {
+        Option::Some((a, b)) => a + b,
+        _ => 0 - 1,
+    }
+}
+
+fn bind_nested() -> i32 {
+    match mk_n() {
+        Option::Some(Option::Some(v)) => v,
+        _ => 0 - 1,
+    }
+}
+
+fn or_alt_payload() -> String {
+    match Shape::Circle(9) {
+        Shape::Circle(5) => "c5",
+        Shape::Square(5) | Shape::Circle(9) => "s5c9",
+        _ => "other",
+    }
+}
+
+fn guard_after_lit() -> String {
+    match mk_i() {
+        Option::Some(5) => "five",
+        Option::Some(v) if v > 5 => "big",
+        _ => "other",
+    }
+}
+
+fn main() {
+    stdio::println(lit())
+    stdio::println(lit_let())
+    stdio::println(str_payload())
+    stdio::println(nested())
+    stdio::println(unit_child())
+    stdio::println(tuple_child())
+    stdio::println(tuple_or_elem())
+    stdio::println(bind_tuple().to_string())
+    stdio::println(bind_nested().to_string())
+    stdio::println(or_alt_payload())
+    stdio::println(guard_after_lit())
+}

@@ -44,7 +44,7 @@ fn lower_guarded_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, pat: AstNod
         let guard_idx = lower_expr(ctx, guard_expr)
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(matched, guard_idx))
     } else {
-        let pattern_matches = lower_guarded_pattern_condition(ctx, pat, payload_info)
+        let pattern_matches = lower_guarded_pattern_condition(ctx, pat, payload_info, scrut_idx)
         ctx_emit(ctx, inst_local_get::MirInst_local_get(pattern_matches))
         ctx_emit(ctx, inst_structured_control::MirInst_if())
         let _guard_pattern_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
@@ -68,16 +68,16 @@ fn lower_guarded_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, pat: AstNod
     if_depth + 1
 }
 
-fn lower_guarded_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
+fn lower_guarded_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
         // Tuple arms never engage the payload machinery, so compare_idx is
         // still the scrutinee local itself (#893).
         return body_match_tuple::emit_tuple_arm_condition(ctx, pat, match::mir_match_payload_compare_idx(payload_info))
     }
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
-        return body_match_compare_or::lower_or_match_compare_condition(ctx, pat, payload_info)
+        return body_match_compare_or::lower_or_match_compare_condition(ctx, pat, payload_info, scrut_idx)
     }
-    body_match_compare_single::lower_single_match_compare_condition(ctx, pat, payload_info)
+    body_match_compare_single::lower_single_match_compare_condition(ctx, pat, payload_info, scrut_idx)
 }
 
 fn lower_catchall_match_arm_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
@@ -104,7 +104,7 @@ fn lower_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, pa
         return if_depth + 1
     }
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
-        return body_match_compare_or::lower_or_match_compare_prefix(ctx, pat, payload_info, if_depth)
+        return body_match_compare_or::lower_or_match_compare_prefix(ctx, pat, payload_info, scrut_idx, if_depth)
     }
     body_match_compare_single::lower_single_match_compare_prefix(ctx, arm_node, pat, payload_info, scrut_idx, has_guard, if_depth)
 }

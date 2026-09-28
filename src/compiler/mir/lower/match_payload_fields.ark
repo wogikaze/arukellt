@@ -3,6 +3,7 @@ use std::text
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_variants
 use mir::lower::aggregate_tuple
 use mir::lower::stmt_let_tuple
 use mir::inst_struct_get
@@ -16,6 +17,7 @@ use mir::lower_kinds
 use mir::lower::match_payload_bind_types
 use mir::lower::match_payload_bind_gc_resolve
 use mir::lower::match_payload_field_type
+use mir::lower::match_payload_prepare
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_mono
@@ -44,10 +46,28 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             bi = bi + 1
             continue
         }
-        // A tuple sub-pattern (Some((k, v))) binds the whole payload to an
+        // Literal sub-patterns contribute a match condition, not a
+        // binding; skipping them here keeps junk locals out (#902).
+        if ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_LITERAL()) {
+            bi = bi + 1
+            continue
+        }
+        // Ident children that name a registered unit variant (Some(None))
+        // are tag conditions, not bindings — mir_subpat_child_is_condition
+        // makes the same split for the compare phase.
+        if ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_IDENT()) {
+            let bind_name = ast_node::node_text(bind_pat)
+            if ctx_api_variants::ctx_variant_tag(ctx, clone(bind_name)) >= 0 {
+                bi = bi + 1
+                continue
+            }
+        }
+        // Composite sub-patterns (tuple, nested variant) bind into an
         // unnamed temp first; each element ident is destructured from it
-        // after the payload read lands (#890 Vec<(K, V)>::get match).
-        let is_tuple_bind = ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_TUPLE())
+        // after the payload read lands (#890 Vec<(K, V)>::get match,
+        // #902 nested payload binds).
+        let is_composite_bind = ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_TUPLE()) ||
+        ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_VARIANT())
         let hint_for_field = if bi == 0 {
             clone(payload_hint)
         } else {
@@ -62,7 +82,7 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             clone(hint_for_field)
         )
         let mut bind_local = 0 - 1
-        if is_tuple_bind {
+        if is_composite_bind {
             bind_local = ctx_api_local_alloc::ctx_fresh_local(ctx, bind_vt)
         } else {
             bind_local = ctx_alloc_local(ctx, ast_node::node_text(bind_pat), bind_vt)
@@ -81,10 +101,142 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             mir_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)
         }
         emit_payload_field_bind(ctx, clone(variant_name), scrut_idx, bind_local, bind_vt, bi)
-        if is_tuple_bind {
-            stmt_let_tuple::emit_tuple_pattern_ident_binds(ctx, bind_pat, bind_local)
+        if is_composite_bind {
+            mir_emit_subpat_binds(ctx, bind_pat, bind_local)
         }
         bi = bi + 1
+    }
+}
+
+// Load one payload field into an anonymous temp for a non-ident
+// sub-pattern (literal compare, nested variant/tuple destructure). The
+// setup mirrors the named-bind path so the temp sees the same vt and type
+// spelling a bound payload local would (#902).
+fn mir_subpat_load_field(ctx: LowerCtx, variant_name: String, scrut_idx: i32, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, scrut_type: String) -> i32 {
+    let is_some_or_ok = match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name))
+    let is_err = match_payload_field_type::mir_match_variant_is_err(clone(variant_name))
+    let mut payload_hint = String_new()
+    if field_idx == 0 && (is_some_or_ok || is_err) {
+        payload_hint = mir_payload_elem_type_from_scrut(clone(scrut_type), is_some_or_ok)
+    }
+    let bind_vt = match_payload_field_type::mir_payload_field_vt_for_payload(
+        ctx,
+        clone(variant_name),
+        field_idx,
+        scrut_ok_is_f64,
+        scrut_ok_is_i64,
+        clone(payload_hint)
+    )
+    let temp = ctx_api_local_alloc::ctx_fresh_local(ctx, bind_vt)
+    if bind_vt == value_types::VT_FUNCREF() {
+        ctx_set_local_type(ctx, temp, String_from("fnref"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, temp, value_types::VT_FUNCREF())
+    } else if bind_vt == value_types::VT_GC_REF() || match_payload_field_type::mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
+        ctx_set_local_type(ctx, temp, String_from("enum:open"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, temp, value_types::VT_GC_REF())
+    }
+    match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), temp, bind_vt, field_idx, clone(payload_hint))
+    match_payload_bind_types::set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), temp, bind_vt, field_idx, scrut_ok_is_i32)
+    if field_idx == 0 {
+        mir_infer_payload_bind_type(ctx, clone(variant_name), temp, bind_vt, scrut_idx)
+    }
+    // Declared-field types keep the nested value's own type name (an enum
+    // or tuple payload) so deeper tag/payload reads resolve layouts the
+    // Option/Result inference would not see (#902).
+    if len(ctx_get_local_type(ctx, temp)) == 0 {
+        let declared = ctx_mono_type_params::ctx_resolve_mono_type_name(
+            ctx,
+            ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+        )
+        if len(declared) > 0 {
+            ctx_set_local_type(ctx, temp, declared)
+        }
+    }
+    emit_payload_field_bind(ctx, clone(variant_name), scrut_idx, temp, bind_vt, field_idx)
+    temp
+}
+
+// Bind every binding sub-pattern under a composite payload child whose
+// value already sits in val_idx: ident children bind val directly, tuple
+// children destructure their elements, nested variant children load their
+// payload fields and recurse (#902).
+fn mir_emit_subpat_binds(ctx: LowerCtx, pat: AstNode, val_idx: i32) {
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
+        let name = ast_node::node_text(pat)
+        if eq(clone(name), "_") {
+            return
+        }
+        if ctx_api_variants::ctx_variant_tag(ctx, clone(name)) >= 0 {
+            return
+        }
+        // Inline of mir_emit_match_ident_bind: match_payload_bind already
+        // imports this file, so the shared helper cannot be reached
+        // without a module cycle.
+        let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+        let bind_local = ctx_alloc_local(ctx, clone(name), bind_vt)
+        let val_type = ctx_get_local_type(ctx, val_idx)
+        if len(val_type) > 0 {
+            ctx_set_local_type(ctx, bind_local, clone(val_type))
+            if starts_with(clone(val_type), "enum:") {
+                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+            }
+        }
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(val_idx))
+        ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+        return
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_TUPLE()) {
+        let elem_count = ast_node::node_child_count(pat)
+        let mut ei = 0
+        while ei < elem_count {
+            let elem = ast_node::node_child_at(pat, ei)
+            if ast_node::node_kind_is(elem, lower_kinds::NK_PAT_IDENT()) ||
+            ast_node::node_kind_is(elem, lower_kinds::NK_PAT_VARIANT()) ||
+            ast_node::node_kind_is(elem, lower_kinds::NK_PAT_TUPLE()) {
+                let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, val_idx, ei, elem_count)
+                mir_emit_subpat_binds(ctx, elem, elem_local)
+            }
+            ei = ei + 1
+        }
+        return
+    }
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) {
+        let variant_name = ast_node::node_text(pat)
+        let scrut_type = ctx_get_local_type(ctx, val_idx)
+        let is_f64 = match_payload_prepare::mir_option_result_scrut_type_is_f64(clone(scrut_type))
+        let is_i64 = match_payload_prepare::mir_option_result_scrut_type_is_i64(clone(scrut_type))
+        let is_i32 = match_payload_prepare::mir_option_result_scrut_type_is_i32(clone(scrut_type))
+        let mut bi = 0
+        while bi < ast_node::node_child_count(pat) {
+            let bind_pat = ast_node::node_child_at(pat, bi)
+            if ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_WILDCARD()) ||
+            ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_LITERAL()) {
+                bi = bi + 1
+                continue
+            }
+            if ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_IDENT()) {
+                let bind_name = ast_node::node_text(bind_pat)
+                if !eq(clone(bind_name), "_") && ctx_api_variants::ctx_variant_tag(ctx, clone(bind_name)) < 0 {
+                    let field_local = mir_subpat_load_field(ctx, clone(variant_name), val_idx, bi, is_f64, is_i64, is_i32, clone(scrut_type))
+                    let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, field_local)
+                    let bind_local = ctx_alloc_local(ctx, clone(bind_name), bind_vt)
+                    let field_type = ctx_get_local_type(ctx, field_local)
+                    if len(field_type) > 0 {
+                        ctx_set_local_type(ctx, bind_local, clone(field_type))
+                        if starts_with(clone(field_type), "enum:") {
+                            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+                        }
+                    }
+                    ctx_emit(ctx, inst_local_get::MirInst_local_get(field_local))
+                    ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+                }
+                bi = bi + 1
+                continue
+            }
+            let field_local = mir_subpat_load_field(ctx, clone(variant_name), val_idx, bi, is_f64, is_i64, is_i32, clone(scrut_type))
+            mir_emit_subpat_binds(ctx, bind_pat, field_local)
+            bi = bi + 1
+        }
     }
 }
 fn mir_option_scrut_type_is_untyped(scrut_type: String) -> bool {
