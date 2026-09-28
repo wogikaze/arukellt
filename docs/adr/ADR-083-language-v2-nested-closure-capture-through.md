@@ -53,14 +53,24 @@ ADR-061 §1 は「nested closure は内側の closure 自身が capture を
   move env は cell ref を受け取る。中間 frame の move はその frame
   自身の direct capture にだけ効く。
 
-### 3. 診断の適用境界(現行の既知ギャップ)
+### 3. 診断の適用境界
 
-- nested closure の borrow / move マークは typechecker の
-  scope-child copy に落ち、defining scope の binding へは伝播
-  しない。そのため例えば move inner が source を消費しても
-  enclosing function 側で move-after-use が未検出になりうる。
-  codegen と観測可能意味論は両 backend で一致するが、静的診断の
-  精度は一段目の closure より弱い。残課題として追跡する。
+- nested closure が transport 越しに source を borrow / move
+  する場合、そのマークは capture を行う closure 自身の検査が
+  決め、source の defining scope の binding へ適用される。
+  scope_child は binding 順序を保持するため、nested body の
+  検査中に立てられた所有権マークは copied prefix の index
+  対応で親 scope へ単調に畳み込まれる(設定のみ、解除は
+  伝播しない)。body 内で宣言された binding は prefix の外に
+  積まれるため、shadow 名が outer binding のマークを汚染
+  することはない。
+- この畳み込みにより、nested move capture は enclosing
+  function 内の後続 use に対して一段目と同じ move-after-use
+  (E0212)を、nested mutable-borrow capture は後続の代入に
+  対して一段目と同じ borrow conflict (E0214)を発火する。
+  一段目 closure の capture apply と同様、マークは literal の
+  位置で保守的に記録され、closure が実際に呼ばれるかは問わ
+  ない。
 
 ## 帰結
 
@@ -91,9 +101,6 @@ ADR-061 §1 は「nested closure は内側の closure 自身が capture を
 
 ## 再検討条件
 
-- nested closure の borrow / move マークを defining scope へ伝播
-  させる scope 構造を導入する場合、§3 の診断精度ギャップを
-  解消し、本節の現行ギャップ記述を撤去する。
 - escape した中間 frame が shared-borrow の transport を運ぶ
   経路で、borrow の有効範囲を超える read が観測可能になった場合、
   transport の寿命契約を再検討する。

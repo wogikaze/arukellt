@@ -233,9 +233,9 @@ status = "verified"
 [[rules]]
 id = "closure_nested_capture_through"
 domain = "closure"
-statement = "A nested closure captures names from its whole lexical scope: intermediate frames forward the name as a transport slot without acquiring ownership, a descendant rebind rides the promoted shared cell end-to-end (writes reach the defining binding), and two mutable-borrow nested captures of one source conflict as E0214."
-fixtures = ["closure_capture/nested_capture.ark", "closure_capture/nested_capture_escape.ark"]
-diagnostics = ["diagnostics/closure_nested_borrow_conflict.ark"]
+statement = "A nested closure captures names from its whole lexical scope: intermediate frames forward the name as a transport slot without acquiring ownership, a descendant rebind rides the promoted shared cell end-to-end (writes reach the defining binding), and the capture's borrow/move marks fold back onto the defining binding so enclosing-scope move-after-use (E0212) and borrow-conflict (E0214) fire exactly like a first-level capture while shadowed names stay unaffected."
+fixtures = ["closure_capture/nested_capture.ark", "closure_capture/nested_capture_escape.ark", "closure_capture/nested_shadow_move_scope.ark"]
+diagnostics = ["diagnostics/closure_nested_borrow_conflict.ark", "diagnostics/closure_nested_move_after_use.ark", "diagnostics/closure_nested_borrow_assign_conflict.ark"]
 adrs = ["ADR-083"]
 status = "verified"
 [[rules]]
