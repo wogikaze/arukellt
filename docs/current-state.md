@@ -128,6 +128,22 @@ has the #854 generic-enum limitation when invoked directly; the canonical
 build command uses the guarded source-only overlay until the pinned bootstrap
 is refreshed.
 
+### Language v2 match exhaustiveness (#899 / ADR-082)
+
+Since 2026-09-28 the typechecker requires every `match` to be provably
+exhaustive. A match is accepted when it has an unguarded catchall arm,
+covers every variant of a finite scrutinee domain (bool, `Option`,
+`Result`, or a known enum) with unguarded irrefutable-payload arms, or
+contains an unguarded tuple/struct pattern whose sub-patterns are all
+irrefutable. Guarded arms and refutable payload patterns
+(`Some(0)`) do not count toward coverage. Non-provable matches are
+compile-time diagnostics on both `wasm32-gc` and `wasm32`, so an
+unmatched match can no longer diverge between backends at runtime
+(linear previously ran the last arm unconditionally; GC trapped on a
+null reference). Nested scrutinee values whose type stays unresolved at
+check time (let-generalized bindings) remain unchecked — they keep the
+prior permissive path rather than producing cascading diagnostics.
+
 ### Language v2 Error trait ecosystem (#694 / ADR-064)
 
 `std::error::Error` is now a provisional static-dispatch trait with the
@@ -203,9 +219,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3095 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1507 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3079 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic fixtures were added, so the current registry remainder is 1491. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 3101 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1513 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3101 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness fixtures were added, so the current registry remainder is 1513. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 

@@ -218,7 +218,16 @@ domain = "closure"
 statement = "Escaping captures (storing/returning closures over cells) keep observable values; mutable-borrow rebind captures ride a promoted shared cell the env can carry, while remaining borrow captures are diagnostics."
 fixtures = ["closure_capture/escape_store.ark", "closure_capture/escape_arg.ark", "closure_capture/escape_borrow_arg.ark", "closure_capture/escape_borrow_return.ark", "closure_capture/escape_borrow_store.ark"]
 diagnostics = ["diagnostics/closure_borrow_return.ark", "diagnostics/closure_borrow_store.ark", "diagnostics/closure_borrow_callback.ark"]
-adrs = ["ADR-061"]
+adrs = ["ADR-061", "ADR-081"]
+status = "verified"
+
+[[rules]]
+id = "match_exhaustiveness"
+domain = "evaluation"
+statement = "A match must be provably exhaustive: an unguarded catchall arm, full variant coverage of a finite domain, or an all-irrefutable tuple/struct arm; anything else is a compile-time diagnostic, so an unmatched match cannot reach backend-divergent runtime behavior."
+fixtures = ["match_extensions/catchall_unmatched.ark", "match_extensions/or_arm_edge.ark", "match_extensions/match_guard.ark", "match_extensions/tuple_arm_match.ark", "enums/exhaustive_match.ark", "enums/option_tuple_payload.ark", "question_mark/user_error_type.ark"]
+diagnostics = ["diagnostics/non_exhaustive.ark", "diagnostics/non_exhaustive_literal.ark", "diagnostics/non_exhaustive_payload.ark", "diagnostics/non_exhaustive_guard.ark"]
+adrs = ["ADR-082"]
 status = "verified"
 
 [[rules]]

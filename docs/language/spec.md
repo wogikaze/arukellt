@@ -649,6 +649,23 @@ match scrutinee {
 All arms must produce the same type. Guards are optional boolean
 expressions.
 
+A `match` expression must be provably exhaustive (ADR-082). The
+checker accepts a match only when one of the following holds:
+
+- an unguarded wildcard (`_ =>`) or binding-identifier arm exists;
+- the scrutinee is a finite domain (bool, Option, Result, or a known
+  enum) and every variant is covered by unguarded arms whose payload
+  sub-patterns are all irrefutable (`_` or a binding identifier);
+- an unguarded tuple or struct pattern whose sub-patterns are all
+  irrefutable covers the whole scrutinee.
+
+Guarded arms never contribute to coverage, and a variant pattern covers
+its variant only when all payload sub-patterns are irrefutable — `Some(v)`
+covers `Some`, but `Some(0)` does not. A match that cannot be proven
+exhaustive is a compile-time diagnostic (non-exhaustive match), so a
+program where no arm matches is rejected before code generation on both
+backends.
+
 ### 3.12 Block Expression
 
 <!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
