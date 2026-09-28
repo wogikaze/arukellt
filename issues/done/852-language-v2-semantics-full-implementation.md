@@ -498,7 +498,8 @@ child issue の完了と #880 の最終監査をもって close する。
 - Tracked residual（本 umbrella の close を妨げない）:
   #907（toml_ops linear 誤値）、fixpoint 未到達（pinned
   bootstrap refresh 依存）、fixture parity 259 fail の既存
-  backlog（domain 別 issue で管理）、#893（tuple pattern arms）。
+  backlog（domain 別 issue で管理）。#893（tuple pattern
+  arms）は 3761a8a34 で done 済み。
 
 設計の正本: ADR-058 + ADR-059〜081 の v2 系 accepted decision、
 RFC-011、docs/current-state.md、docs/data/observable-semantics.toml。
