@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T03:24:06Z",
+  "generated_at": "2026-09-28T03:47:51Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -552,9 +552,9 @@
       }
     },
     {
-      "id": "901",
-      "path": "901-or-pattern-variant-alternative-invalid-wasm.md",
-      "title": "901 — variant alternative を含む or-pattern arm が invalid Wasm を生成",
+      "id": "902",
+      "path": "902-variant-payload-literal-subpattern-not-compared.md",
+      "title": "902 — variant payload の literal/複合 sub-pattern が照合されない",
       "track": "language-v2",
       "status": "open",
       "depends_on": [],

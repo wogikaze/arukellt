@@ -24,7 +24,7 @@ Scoring criteria (0-5 each, total 25):
 | 11 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 12 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
 | 13 | 900 | 900 — 多段 capture（中間 closure が未捕捉の変数）が invalid Wasm を生成 | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
-| 14 | 901 | 901 — variant alternative を含む or-pattern arm が invalid Wasm... | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
+| 14 | 902 | 902 — variant payload の literal/複合 sub-pattern が照合されない | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
 | 15 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
 | 16 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
 | 17 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
