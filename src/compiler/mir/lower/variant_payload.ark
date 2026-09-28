@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, starts_with}
+use std::prelude::{clone, ends_with, eq, starts_with, substring}
 use std::text
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -9,6 +9,7 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
+use mir::lower::match_payload_field_type
 use mir::inst_const_i32
 use mir::inst_struct_new
 use mir::inst_struct_set
@@ -53,7 +54,7 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, dest_slot)
             let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(clone(variant_name))
             if len(enum_name) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("enum:", enum_name))
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, gc_ctor_enum_local_type(clone(enum_name), clone(variant_name), clone(payload_type_name), clone(typed_name)))
             }
             ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, dest_slot))
             emit_variant_tag_field(ctx, dest, tag, dest_slot)
@@ -76,6 +77,59 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
     emit_variant_tag_field(ctx, dest, tag, type_slot)
     emit_gc_variant_payload_fields(ctx, dest, type_slot, payload_locals, payload_vts)
     dest
+}
+
+// Local type stamped on a freshly constructed enum value. Option/Result
+// payload constructors record the concrete payload spelling
+// (option:<t> / result:<t>:) so match payload reads select the same GC
+// variant slot the constructor picked; bare enum:Option/enum:Result
+// carried no payload type and made untyped scrutinees read the generic
+// ref slot — invalid core Wasm for scalar payloads (#904). Result::Err
+// keeps enum:Result because the result:<ok>:<err> spelling needs an Ok
+// segment the Err constructor cannot supply. Non-generic enums keep
+// enum:<name>: their declared field types already carry the payload vt.
+// typed_name is the storage-slot hint; enum:open means "untyped ref", so
+// an enum-valued payload must fall back to the payload local type or
+// nested matches lose the payload element type (Some(Some(v))).
+fn gc_ctor_enum_local_type(enum_name: String, variant_name: String, payload_type_name: String, typed_name: String) -> String {
+    if len(typed_name) == 0 || !match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
+        return text::concat("enum:", enum_name)
+    }
+    let mut segment = clone(typed_name)
+    if eq(clone(segment), "enum:open") {
+        segment = gc_ctor_semantic_payload_segment(clone(payload_type_name))
+    } else if starts_with(clone(segment), "enum:") {
+        // enum:Foo is a storage spelling; the payload segment keeps the
+        // semantic enum name so binds rebuild enum:Foo once.
+        segment = substring(segment, 5, len(segment))
+    }
+    if len(segment) == 0 || eq(clone(segment), "open") {
+        return text::concat("enum:", enum_name)
+    }
+    if eq(clone(enum_name), "Option") {
+        return text::concat("option:", segment)
+    }
+    if eq(clone(enum_name), "Result") {
+        return text::concat("result:", text::concat(segment, ":"))
+    }
+    text::concat("enum:", enum_name)
+}
+
+// Semantic payload spelling for the option:/result: segment. Storage
+// prefixes (enum:, struct:) describe the ref ABI, not the payload type;
+// strip them so `enum:Foo` becomes `Foo` and `option:i32` passes through.
+// Returns "" when the payload type is genuinely unknown (enum:open).
+fn gc_ctor_semantic_payload_segment(payload_type_name: String) -> String {
+    let mut name = clone(payload_type_name)
+    if starts_with(clone(name), "enum:") {
+        name = substring(name, 5, len(name))
+    } else if starts_with(clone(name), "struct:") {
+        name = ctx_struct_layout::ctx_struct_semantic_type_name(clone(name))
+    }
+    if eq(clone(name), "open") {
+        return String_new()
+    }
+    name
 }
 
 fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: String, variant_name: String, vt: i32) -> String {

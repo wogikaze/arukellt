@@ -1,0 +1,118 @@
+// Untyped generic Option/Result scrutinees keep the concrete payload
+// spelling on wasm32-gc: the enum constructor stamps option:<t> /
+// result:<t>: on the destination local instead of bare enum:Option /
+// enum:Result, so match payload reads select the same GC variant slot
+// the constructor picked. Inline ctors, inferred lets, nested Options,
+// tuple-annotated Options, and untyped Result values all produce valid
+// core Wasm identical to wasm32 linear (#904).
+
+use std::host::stdio
+
+fn inline_ctor() -> i32 {
+    match Option::Some(7) {
+        Option::Some(v) => v,
+        _ => 0 - 1,
+    }
+}
+
+fn inline_ctor_lit() -> String {
+    match Option::Some(7) {
+        Option::Some(5) => "five",
+        Option::Some(7) => "seven",
+        _ => "other",
+    }
+}
+
+fn inferred_let() -> i32 {
+    let x = Option::Some(7)
+    match x {
+        Option::Some(v) => v,
+        Option::None => 0 - 1,
+    }
+}
+
+fn inferred_nested() -> i32 {
+    let x = Option::Some(Option::Some(7))
+    match x {
+        Option::Some(Option::Some(v)) => v,
+        _ => 0 - 1,
+    }
+}
+
+fn annotated_nested() -> i32 {
+    let x: Option<Option<i32>> = Option::Some(Option::Some(8))
+    match x {
+        Option::Some(Option::Some(v)) => v,
+        _ => 0 - 1,
+    }
+}
+
+fn annotated_tuple() -> i32 {
+    let x: Option<(i32, i32)> = Option::Some((2, 9))
+    match x {
+        Option::Some((a, b)) => a + b,
+        Option::None => 0 - 1,
+    }
+}
+
+fn inferred_string() -> String {
+    let x = Option::Some("hi")
+    match x {
+        Option::Some(s) => s,
+        Option::None => "none",
+    }
+}
+
+fn inferred_result() -> i32 {
+    let x = Result::Ok(9)
+    match x {
+        Result::Ok(v) => v,
+        Result::Err(e) => 0 - 1,
+    }
+}
+
+fn inferred_result_err() -> i32 {
+    let x: Result<i32, String> = Result::Err(String_from("bad"))
+    match x {
+        Result::Ok(v) => v,
+        Result::Err(e) => 0 - 1,
+    }
+}
+
+fn unwrap_or(o: Option<i32>, d: i32) -> i32 {
+    match o {
+        Option::Some(v) => v,
+        Option::None => d,
+    }
+}
+
+fn if_merge(c: bool) -> Option<i32> {
+    if c {
+        Option::Some(7)
+    } else {
+        Option::None
+    }
+}
+
+fn merged(c: bool) -> i32 {
+    match if_merge(c) {
+        Option::Some(v) => v,
+        Option::None => 0 - 1,
+    }
+}
+
+fn main() {
+    stdio::println(inline_ctor().to_string())
+    stdio::println(inline_ctor_lit())
+    stdio::println(inferred_let().to_string())
+    stdio::println(inferred_nested().to_string())
+    stdio::println(annotated_nested().to_string())
+    stdio::println(annotated_tuple().to_string())
+    stdio::println(inferred_string())
+    stdio::println(inferred_result().to_string())
+    stdio::println(inferred_result_err().to_string())
+    stdio::println(unwrap_or(Option::Some(7), 9).to_string())
+    stdio::println(unwrap_or(Option::None, 9).to_string())
+    stdio::println(merged(true).to_string())
+    stdio::println(merged(false).to_string())
+}

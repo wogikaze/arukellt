@@ -57,6 +57,12 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 if type_ann_node::type_ann_is_name(ok_ty, "i64") {
                     return type_ann_shape_result_local_type_name(ann, "i64")
                 }
+                // Tuple Ok payloads keep their element spelling so
+                // Result<(i32, i32), E> resolves the tuple payload layout
+                // instead of collapsing to a unit/generic slot (#904).
+                if type_ann_node::type_ann_is_tuple(ok_ty) {
+                    return type_ann_shape_result_local_type_name(ann, type_ann_node::type_ann_tuple_local_name(ok_ty))
+                }
                 // Nested Vec so Result<Vec<fn>, E> → Result_vec:fn… (#832).
                 if type_ann_node::type_ann_is_generic(ok_ty) {
                     let shaped = type_ann_shape_local_type_name(ok_ty, 0)
@@ -82,6 +88,12 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 }
                 if type_ann_node::type_ann_is_name(some_ty, "i32") {
                     return "Option_i32"
+                }
+                // Tuple Some payloads keep their element spelling so
+                // Option<(i32, i32)> resolves the tuple payload layout
+                // instead of the generic ref slot (#904).
+                if type_ann_node::type_ann_is_tuple(some_ty) {
+                    return text::concat("Option_", type_ann_node::type_ann_tuple_local_name(some_ty))
                 }
                 // Nested Vec so Option<Vec<fn>> → Option_vec:fn (#832).
                 if type_ann_node::type_ann_is_generic(some_ty) {
@@ -137,6 +149,9 @@ fn type_ann_shape_local_type_arg(ann: AstNode) -> String {
         if len(shaped) > 0 {
             return shaped
         }
+    }
+    if type_ann_node::type_ann_is_tuple(ann) {
+        return type_ann_node::type_ann_tuple_local_name(ann)
     }
     type_ann_node::type_ann_name(ann)
 }

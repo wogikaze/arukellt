@@ -35,6 +35,8 @@ graph LR
   I880["880 880 — Language v2 最終 close audit を実施する"]
   I903["903 903 — nested closure の borrow/move マークが defining scope に伝播しない"]
   I904["904 904 — generic Option scrutinee の型 spelling が無いと wasm32-gc が payload を ref slot で読み invalid core Wasm になる"]
+  I905["905 905 — prelude enum と同名の user struct が enum 側の layout に解決され wasm32-gc で invalid core Wasm になる"]
+  I906["906 906 — untyped Option::None 等 payload 型情報を持たない weak scrutinee の match bind が ref slot を読み invalid core Wasm になる"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -108,6 +110,8 @@ graph LR
 - **880** depends on: 877, 878, 879; blocks: 852
 - **903** depends on: none; blocks: none
 - **904** depends on: none; blocks: none
+- **905** depends on: none; blocks: none
+- **906** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none

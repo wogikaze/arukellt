@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T05:33:30Z",
+  "generated_at": "2026-09-28T06:13:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -566,6 +566,40 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": 875
+      }
+    },
+    {
+      "id": "905",
+      "path": "905-user-struct-named-after-prelude-enum-layout-collision.md",
+      "title": "905 — prelude enum と同名の user struct が enum 側の layout に解決され wasm32-gc で invalid core Wasm になる",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 852
+      }
+    },
+    {
+      "id": "906",
+      "path": "906-untyped-none-scrutinee-gc-payload-slot.md",
+      "title": "906 — untyped Option::None 等 payload 型情報を持たない weak scrutinee の match bind が ref slot を読み invalid core Wasm になる",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 852
       }
     },
     {
