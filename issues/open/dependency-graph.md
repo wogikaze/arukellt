@@ -33,7 +33,6 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I880["880 880 — Language v2 最終 close audit を実施する"]
-  I902["902 902 — variant payload の literal/複合 sub-pattern が照合されない"]
   I903["903 903 — nested closure の borrow/move マークが defining scope に伝播しない"]
   I904["904 904 — generic Option scrutinee の型 spelling が無いと wasm32-gc が payload を ref slot で読み invalid core Wasm になる"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -107,7 +106,6 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **880** depends on: 877, 878, 879; blocks: 852
-- **902** depends on: none; blocks: none
 - **903** depends on: none; blocks: none
 - **904** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
