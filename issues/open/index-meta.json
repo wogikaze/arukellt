@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T04:20:58Z",
+  "generated_at": "2026-09-28T04:26:08Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -532,23 +532,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": 852
-      }
-    },
-    {
-      "id": "900",
-      "path": "900-multiframe-capture-source-invalid-wasm.md",
-      "title": "900 — 多段 capture（中間 closure が未捕捉の変数）が invalid Wasm を生成",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 872
       }
     },
     {
