@@ -1,0 +1,56 @@
+// A `match` on a field-access scrutinee must evaluate the field
+// projection.  The scrutinee text of `step.parts` is only the member
+// name `parts`; the CoreHIR lowering must not resolve it as a
+// same-named local - a binding named `parts` from an earlier sibling
+// arm is unrelated state.  Without the ident/path guard the wasm32
+// build read that stale slot, so payload extraction saw the wrong
+// record and either printed the Err arm or dereferenced garbage.
+// Verified identical on wasm32-gc and wasm32 linear core.
+use std::host::stdio
+use std::prelude::{push, len}
+use std::text
+
+struct KeyStep {
+    parts: Result<Vec<String>, String>,
+    next: i32,
+}
+
+fn step(key: String) -> KeyStep {
+    let v = Vec::new<String>()
+    push(v, key)
+    KeyStep { parts: Result::Ok(v), next: 1 }
+}
+
+fn main() {
+    // Sequential: the second scrutinee must evaluate `b.parts`, not
+    // reuse the first match arm's `parts` binding.
+    let a = step("a")
+    match a.parts {
+        Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
+        Result::Err(_) => stdio::println("err"),
+    }
+    let b = step("b")
+    match b.parts {
+        Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
+        Result::Err(_) => stdio::println("err"),
+    }
+    // Branched: sibling arms match on the same field name; the else
+    // arm's scrutinee must not read the then arm's `parts` slot.
+    let mut i = 0
+    while i < 2 {
+        if i == 0 {
+            let ks = step("h")
+            match ks.parts {
+                Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
+                Result::Err(_) => stdio::println("err"),
+            }
+        } else {
+            let ks = step("k")
+            match ks.parts {
+                Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
+                Result::Err(_) => stdio::println("err"),
+            }
+        }
+        i = i + 1
+    }
+}
