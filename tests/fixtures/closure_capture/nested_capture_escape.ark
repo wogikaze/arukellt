@@ -1,0 +1,21 @@
+use std::host::stdio
+
+// An escaping frame still forwards the promoted cell: the inner rebind
+// writes through to the source binding across indirect calls (#900).
+fn make_counter() -> fn() -> i32 {
+    let mut count = 0
+    let outer = || {
+        let inner = || {
+            count = count + 5
+            count
+        }
+        inner()
+    }
+    outer
+}
+
+fn main() {
+    let c = make_counter()
+    stdio::println(c().to_string())
+    stdio::println(c().to_string())
+}

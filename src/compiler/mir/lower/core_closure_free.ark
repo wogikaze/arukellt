@@ -24,6 +24,18 @@ fn core_closure_is_param_name(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, name: 
 
 fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, clos: CoreHirExpr, acc: Vec<String>) {
     if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
+        // A nested closure reaches through this frame: the names it
+        // frees must ride this closure's env, or the inner capture
+        // resolves to a local the intermediate frame never received
+        // and emit produces invalid Wasm (#900).
+        let nested_body_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+        if nested_body_count > 0 {
+            let nested_body = get_unchecked(
+                exprs,
+                core_expr_shape_accessors::mir_core_expr_child(expr, nested_body_count - 1)
+            )
+            core_closure_collect_free(ctx, exprs, nested_body, expr, acc)
+        }
         return
     }
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
@@ -70,19 +82,33 @@ fn core_closure_collect_rebind_flags(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr,
         return flags
     }
     let body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, child_count - 1))
-    core_closure_mark_rebind(exprs, body, caps, flags)
+    core_closure_mark_rebind(exprs, body, caps, flags, Vec::new<String>())
     flags
 }
 
-fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Vec<String>, flags: Vec<i32>) {
+fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Vec<String>, flags: Vec<i32>, shadowed: Vec<String>) {
     if core_expr_shape_calls::mir_core_expr_is_closure(expr) {
+        // A nested rebind of a name this frame captures still borrows
+        // this frame's slot: the flag must ride up, or the env packs a
+        // dead snapshot and the write is silently lost (#900). Nested
+        // params shadow the outer name, so they join the blocked set.
+        let nested_child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
+        if nested_child_count == 0 {
+            return
+        }
+        let inner_shadowed = core_closure_extend_shadowed(exprs, expr, shadowed, nested_child_count)
+        let nested_body = get_unchecked(
+            exprs,
+            core_expr_shape_accessors::mir_core_expr_child(expr, nested_child_count - 1)
+        )
+        core_closure_mark_rebind(exprs, nested_body, caps, flags, inner_shadowed)
         return
     }
     if core_expr_shape_ops::mir_core_expr_is_assign(expr) {
         // CoreHIR ASSIGN carries the plain target name in node text;
         // field/index targets leave it empty (ref mutation, not a rebind).
         let name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        if len(name) > 0 {
+        if len(name) > 0 && !core_closure_name_is_shadowed(shadowed, clone(name)) {
             let mut ci = 0
             while ci < len(caps) {
                 if eq(get_unchecked(caps, ci), clone(name)) {
@@ -96,7 +122,44 @@ fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Ve
     let cc = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let mut i = 0
     while i < cc {
-        core_closure_mark_rebind(exprs, get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i)), caps, flags)
+        core_closure_mark_rebind(
+            exprs,
+            get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, i)),
+            caps,
+            flags,
+            shadowed
+        )
         i = i + 1
     }
+}
+
+// A fresh shadowed set for a nested closure's body keeps the params it
+// adds from leaking into sibling subtrees.
+fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shadowed: Vec<String>, child_count: i32) -> Vec<String> {
+    let inner = Vec::new<String>()
+    let mut i = 0
+    while i < len(shadowed) {
+        push(inner, clone(get_unchecked(shadowed, i)))
+        i = i + 1
+    }
+    let mut pi = 0
+    while pi < child_count - 1 {
+        let param = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, pi))
+        if core_expr_shape_atoms::mir_core_expr_is_ident(param) {
+            push(inner, core_expr_shape_accessors::mir_core_expr_text(param))
+        }
+        pi = pi + 1
+    }
+    inner
+}
+
+fn core_closure_name_is_shadowed(shadowed: Vec<String>, name: String) -> bool {
+    let mut i = 0
+    while i < len(shadowed) {
+        if eq(get_unchecked(shadowed, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }

@@ -1,0 +1,33 @@
+use std::host::stdio
+
+// A nested closure resolves names through an intermediate frame that
+// does not itself capture them: the transport slot rides the middle
+// env, while the inner closure keeps its own capture (#900).
+fn main() {
+    let mut count = 0
+    let read_two = || {
+        let inner = || {
+            count + 5
+        }
+        inner()
+    }
+    stdio::println(read_two().to_string())
+    let write_two = || {
+        let inner = || {
+            count = count + 6
+        }
+        inner()
+    }
+    write_two()
+    stdio::println(count.to_string())
+    let three = || {
+        let two = || {
+            let one = || {
+                count + 1
+            }
+            one()
+        }
+        two()
+    }
+    stdio::println(three().to_string())
+}

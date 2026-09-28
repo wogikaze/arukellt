@@ -20,7 +20,30 @@ fn closure_is_param_name(clos: AstNode, name: String) -> bool {
 }
 
 fn closure_collect_free(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>) {
+    closure_collect_free_mode(ctx, expr, clos, acc, 1)
+}
+
+// Names this frame's own body references, without the transitively
+// needed names nested closures pull through. The promote decision
+// distinguishes them: a move closure owns only its direct captures,
+// while a transport name always carries the descendant's borrow (#900).
+fn closure_collect_direct(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>) {
+    closure_collect_free_mode(ctx, expr, clos, acc, 0)
+}
+
+fn closure_collect_free_mode(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>, descend: i32) {
     if ast_node::node_kind_is(expr, lower_kinds::NK_CLOSURE()) {
+        if descend == 0 {
+            return
+        }
+        // A nested closure reaches through this frame: the names it
+        // frees must ride this closure's env, or the inner capture
+        // resolves to a local the intermediate frame never received
+        // and emit produces invalid Wasm (#900).
+        let cc = ast_node::node_child_count(expr)
+        if cc > 0 {
+            closure_collect_free_mode(ctx, ast_node::node_child_at(expr, cc - 1), expr, acc, descend)
+        }
         return
     }
     if ast_node::node_kind_is(expr, lower_kinds::NK_IDENT()) {
@@ -30,9 +53,20 @@ fn closure_collect_free(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<St
     let cc = ast_node::node_child_count(expr)
     let mut ci = 0
     while ci < cc {
-        closure_collect_free(ctx, ast_node::node_child_at(expr, ci), clos, acc)
+        closure_collect_free_mode(ctx, ast_node::node_child_at(expr, ci), clos, acc, descend)
         ci = ci + 1
     }
+}
+
+fn closure_caps_contain(caps: Vec<String>, name: String) -> bool {
+    let mut i = 0
+    while i < len(caps) {
+        if eq(get_unchecked(caps, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, acc: Vec<String>) {
@@ -74,12 +108,23 @@ fn closure_collect_rebind_flags(clos: AstNode, caps: Vec<String>) -> Vec<i32> {
     if child_count == 0 {
         return flags
     }
-    closure_mark_rebind(ast_node::node_child_at(clos, child_count - 1), caps, flags)
+    closure_mark_rebind(ast_node::node_child_at(clos, child_count - 1), caps, flags, Vec::new<String>())
     flags
 }
 
-fn closure_mark_rebind(node: AstNode, caps: Vec<String>, flags: Vec<i32>) {
+fn closure_mark_rebind(node: AstNode, caps: Vec<String>, flags: Vec<i32>, shadowed: Vec<String>) {
     if ast_node::node_kind_is(node, lower_kinds::NK_CLOSURE()) {
+        // A nested rebind of a name this frame captures still borrows
+        // this frame's slot: the flag must ride up, or the env packs a
+        // dead snapshot and the write is silently lost (#900). Nested
+        // params shadow the outer name, so they join the blocked set.
+        let nested_child_count = ast_node::node_child_count(node)
+        if nested_child_count == 0 {
+            return
+        }
+        let inner_shadowed = closure_rebind_extend_shadowed(node, shadowed, nested_child_count)
+        let nested_body = ast_node::node_child_at(node, nested_child_count - 1)
+        closure_mark_rebind(nested_body, caps, flags, inner_shadowed)
         return
     }
     if ast_node::node_kind_is(node, lower_kinds::NK_ASSIGN()) &&
@@ -87,20 +132,53 @@ fn closure_mark_rebind(node: AstNode, caps: Vec<String>, flags: Vec<i32>) {
         let target = ast_node::node_child_at(node, 0)
         if ast_node::node_kind_is(target, lower_kinds::NK_IDENT()) {
             let name = ast_node::node_text(target)
-            let mut ci = 0
-            while ci < len(caps) {
-                if eq(get_unchecked(caps, ci), clone(name)) {
-                    set(flags, ci, 1)
-                    ci = len(caps)
+            if !closure_rebind_name_is_shadowed(shadowed, clone(name)) {
+                let mut ci = 0
+                while ci < len(caps) {
+                    if eq(get_unchecked(caps, ci), clone(name)) {
+                        set(flags, ci, 1)
+                        ci = len(caps)
+                    }
+                    ci = ci + 1
                 }
-                ci = ci + 1
             }
         }
     }
     let child_count = ast_node::node_child_count(node)
     let mut i = 0
     while i < child_count {
-        closure_mark_rebind(ast_node::node_child_at(node, i), caps, flags)
+        closure_mark_rebind(ast_node::node_child_at(node, i), caps, flags, shadowed)
         i = i + 1
     }
+}
+
+// A fresh shadowed set for a nested closure's body keeps the params it
+// adds from leaking into sibling subtrees.
+fn closure_rebind_extend_shadowed(node: AstNode, shadowed: Vec<String>, child_count: i32) -> Vec<String> {
+    let inner = Vec::new<String>()
+    let mut i = 0
+    while i < len(shadowed) {
+        push(inner, clone(get_unchecked(shadowed, i)))
+        i = i + 1
+    }
+    let mut pi = 0
+    while pi < child_count - 1 {
+        let param = ast_node::node_child_at(node, pi)
+        if ast_node::node_kind_is(param, lower_kinds::NK_IDENT()) {
+            push(inner, ast_node::node_text(param))
+        }
+        pi = pi + 1
+    }
+    inner
+}
+
+fn closure_rebind_name_is_shadowed(shadowed: Vec<String>, name: String) -> bool {
+    let mut i = 0
+    while i < len(shadowed) {
+        if eq(get_unchecked(shadowed, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }

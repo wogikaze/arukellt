@@ -42,10 +42,12 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return closure_registry::closure_register_identity(ctx)
     }
     let caps = Vec::new<String>()
+    let direct_caps = Vec::new<String>()
     let cap_child_count = ast_node::node_child_count(node)
     if cap_child_count > 0 {
         let cap_body = ast_node::node_child_at(node, cap_child_count - 1)
         closure_free::closure_collect_free(ctx, cap_body, node, caps)
+        closure_free::closure_collect_direct(ctx, cap_body, node, direct_caps)
     }
     let synth = closure_registry::closure_next_synth_name(ctx)
     let is_move = if ast_node::node_is_move(node) { 1 } else { 0 }
@@ -59,7 +61,12 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let mut pi = 0
     while pi < len(caps) {
         let mut eff = get_unchecked(rebind_flags, pi)
-        if is_move == 0 && eff != 0 &&
+        // A move closure owns only its direct captures: a name that a
+        // nested closure rebinds through this frame is still a borrow of
+        // the source place, so the cell promotion applies regardless of
+        // this frame's move prefix (#900).
+        if eff != 0 && (is_move == 0 ||
+            !closure_free::closure_caps_contain(direct_caps, clone(get_unchecked(caps, pi)))) &&
         closure_pcells::ctx_promote_capture_cell(ctx, clone(get_unchecked(caps, pi))) >= 0 {
             eff = 0
         }
