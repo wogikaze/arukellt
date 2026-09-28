@@ -498,6 +498,11 @@ A closure that borrows a non-`Copy` binding is returned, stored in an
 aggregate, or passed to a callback. Use `move` when the closure must own the
 captured value, or keep the closure local to the enclosing function.
 
+Since ADR-081 a mutable-borrow capture (the body rebinds its source) may
+escape: the source place is promoted into a shared heap cell the managed
+environment carries as a live alias, so E0213 fires only for shared-borrow
+captures the environment cannot keep.
+
 ### E0214 — closure capture conflicts with another borrow or move
 
 | | |

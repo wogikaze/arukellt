@@ -70,8 +70,10 @@ owned ADT、Box、Slice の source-level 契約は両 target で同じである�
 
 closures は MIR lowerer により **named functions** としてコンパイルされる。
 通常の非 `Copy` capture は shared borrow、body が source を変更する capture は mutable borrow、
-`move |...|` は move capture として型検査する。borrow capture を含む closure の return、aggregate 保存、
+`move |...|` は move capture として型検査する。shared-borrow capture を含む closure の return、aggregate 保存、
 callback 引数への escape は E0213、borrow 中の source への再代入・再 move は E0214 とする（ADR-061）。
+mutable-borrow(rebind)capture は source place を共有 heap cell に昇格し、env が live alias を運ぶため
+escape できる（ADR-081）。
 キャプチャはヒープ環境 struct ではなく関数パラメータ経由で渡す（現行 fixture 集合向け）。
 
 - Class A/B の関数値は typed funcref（`(ref $sig)`）+ `ref.func` / `call_ref`

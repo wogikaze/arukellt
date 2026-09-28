@@ -68,8 +68,8 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 ADR-061 is accepted for #855. The selfhost typechecker now records shared
 borrow, mutable borrow, and move capture state for closures. `move |...|` is a
-contextual closure prefix; borrow-capturing closures that return, enter an
-aggregate, or cross a callback boundary produce E0213, and source conflicts
+contextual closure prefix; shared-borrow-capturing closures that return, enter
+an aggregate, or cross a callback boundary produce E0213, and source conflicts
 produce E0214. Positive and negative fixtures are registered for both GC and
 linear compilation paths; the positive runtime outputs are `borrow:3` and
 `move:4` on both targets.
@@ -77,8 +77,11 @@ linear compilation paths; the positive runtime outputs are `borrow:3` and
 Since 2026-09-26 move- and Copy-capturing closures escape through the
 managed `{fnptr, env}` pair ABI (#872): call/method arguments, receivers,
 `let` inits, aggregates, and stores are positive run fixtures on
-`wasm32-gc`. Borrow captures and mutable-rebind captures still produce the
-E0213 diagnostic until borrowed env cells land (#872/#874). The retired
+`wasm32-gc`. Since 2026-09-28 mutable-borrow (rebind) captures escape via
+promoted shared heap cells the env carries as a live alias (ADR-081, #891):
+call-arg, return, and aggregate-store fixtures produce identical output on
+both targets. Shared-borrow captures still produce the E0213 diagnostic.
+The retired
 capability diagnostic E0220 no longer exists in the implementation.
 The committed pinned bootstrap predates generic enum payload support and cannot
 typecheck the current generic enum `Box` / `Slice` prelude directly. The
@@ -200,8 +203,8 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3079 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1491 registry entries (not proof they fail)
+- Fixture registry: 3095 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1507 registry entries (not proof they fail)
 - Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3079 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic fixtures were added, so the current registry remainder is 1491. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
@@ -414,7 +417,7 @@ python3 scripts/util/benchmark_runner.py --mode compare    # compare against sto
 |--------|---------|---------|-------|
 | hello.ark | 494 B | 494 B | Both targets use same linear-memory emitter at default opt |
 | vec.ark | 2,382 B | 2,382 B | Vec ops, same target path |
-| closure.ark | 2,101 B | 2,574 B | Non-capturing closure as fn value compiles and runs (`42`); move/Copy captures escape via the managed pair env on GC (#872); borrow and mutable-rebind captures are compile-time E0213 (#874) |
+| closure.ark | 2,101 B | 2,574 B | Non-capturing closure as fn value compiles and runs (`42`); move/Copy captures escape via the managed pair env on GC (#872); mutable-rebind captures escape via promoted shared cells (ADR-081, #891); shared-borrow captures are compile-time E0213 (#874) |
 
 Historical size-attribution measurements live in
 [`history/process/wasm-size-reduction.md`](history/process/wasm-size-reduction.md).

@@ -32,6 +32,13 @@ ADR-059 と ADR-060 は binding の move / `Copy`、owned value、`Box<T>`、`Sl
 
 ### 2. Lifetime と escape
 
+> 改訂(2026-09-28): mutable-borrow(rebind)capture を含む closure は
+> [ADR-081](ADR-081-language-v2-borrow-capture-escape-cells.md) の
+> promoted shared cell により escape を許す。E0213 は env が source
+> mutation を保持できない経路(現行では shared borrow capture)に限り
+> 発火する。以下の §2・§3 はその絞り込みの前の原文であり、escape
+> 境界の定義と backend 独立性の規則は引き続き有効である。
+
 - borrow capture の有効範囲は、その capture を作った enclosing function 内である。
   borrow は source binding より長く生存してはならない。
 - `return` の返却値、関数呼び出しの callback 引数、aggregate の要素・field への保存は、closure value の escape とみなす。

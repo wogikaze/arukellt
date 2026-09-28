@@ -77,6 +77,7 @@
 | [ADR-078-language-v2-parametric-trait-impl.md](ADR-078-language-v2-parametric-trait-impl.md) | ADR-078: Language v2 の parametric trait impl | ADR-062 は「type variable を含む user impl は blanket impl とみなし、初期 v2 では 拒否する」と定めた。この規則は impl<T> Trait for T のような真の blanket impl （self 型が裸の型変数）を防ぎ、coherence と termination を registry 契約で保証する |
 | [ADR-079-language-v2-method-level-generics.md](ADR-079-language-v2-method-level-generics.md) | ADR-079: Language v2 メソッド型パラメータ（method-level generics） | これまで impl VecIter<T> のメソッドシグネチャに現れる型変数はすべて impl ヘッダで束縛されていた。fn map(self: VecIter<T>, f: fn(T) -> U) のようなメソッド固有の型変数 U は書けず、コールバックが item 型を変える lazy adapter は MapIter<T, U> の literal 構築を利用者へ強いるしかなかった。VecIter<T>::map や FilterIter<T>::map が T -> T に固定されていたのはこの型システム上の欠落であり、RFC-011 item 37 の残差として #887 に引き継がれていた。 |
 | [ADR-080-language-v2-generic-element-boxing-policy.md](ADR-080-language-v2-generic-element-boxing-policy.md) | ADR-080: 言語 v2 のジェネリクス要素 boxing ポリシー | Vec<T>・HashMap<K, V>・Option<T> などのコンテナ/ジェネリクス 要素を wasm32-gc 上でどの GC 表現へ下ろすかは、実装が個別に収束して きたが、判断として固定されていなかった。要素 storage の選択を emitter が呼び出し側ヒューリスティクスで再決定すると、同一の |
+| [ADR-081-language-v2-borrow-capture-escape-cells.md](ADR-081-language-v2-borrow-capture-escape-cells.md) | ADR-081: 言語 v2 の mutable-borrow capture escape — promoted shared cell | ADR-061 §2 は borrow capture を含む closure の escape を一律 E0213 で拒否した。 一方 §3 は「environment が source mutation を保持できるなら mutable borrow も escape できる」ことを設計意図として残し、再検討条件に「両 backend で同一の観測可能意味論を fixture と receipt で示すこと」を要求していた。 |
 
 ## 提案
 

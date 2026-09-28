@@ -143,7 +143,7 @@ GC backendでheap objectを使っても、それが言語上の共有参照や�
 `move |params| body` は非 `Copy` binding を作成時に消費する。
 `Copy` binding は `move` を付けても Copy 規則に従い消費しない。
 
-borrow capture を含む closure の return、aggregate への保存、callback 引数への受け渡しは enclosing function の外へ escape するため E0213 で拒否する。
+borrow capture を含む closure の return、aggregate への保存、callback 引数への受け渡しは enclosing function の外へ escape するため E0213 で拒否する(改訂: mutable-borrow(rebind)capture は ADR-081 の promoted shared cell により escape を許す; E0213 は shared borrow capture に限る)。
 borrow 中の source への再代入または再 move は E0214 で拒否する。
 これらの検査結果は `wasm32-gc` と `wasm32` で共有し、lambda lifting や managed environment の表現は意味論を変更しない。
 

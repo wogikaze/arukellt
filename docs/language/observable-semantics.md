@@ -19,8 +19,8 @@ that prove it on the fixture harness (cross-backend parity: issue #875).
 
 | Status | Count |
 |--------|-------|
-| verified | 28 |
-| provisional | 1 |
+| verified | 29 |
+| provisional | 0 |
 | unimplemented | 0 |
 
 ## `alias` — Aliasing & ownership observation
@@ -39,7 +39,7 @@ that prove it on the fixture harness (cross-backend parity: issue #875).
 | `closure_copy_capture` | Copy capture stores a snapshot in the environment; the closure cannot observe later source mutation. | [`closure_capture/copy_capture_snapshot.ark`](../../tests/fixtures/closure_capture/copy_capture_snapshot.ark), [`closure_capture/capture_struct.ark`](../../tests/fixtures/closure_capture/capture_struct.ark) | [ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md) | verified |
 | `closure_move_capture` | Move capture transfers the cell into the environment; rebinding the source local does not leak into the closure. | [`closure_capture/move_local.ark`](../../tests/fixtures/closure_capture/move_local.ark), [`closure_capture/move_rebind_cell.ark`](../../tests/fixtures/closure_capture/move_rebind_cell.ark), [`diagnostics/closure_move_after_capture.ark`](../../tests/fixtures/diagnostics/closure_move_after_capture.ark) (diag) | [ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md) | verified |
 | `closure_borrow_capture` | Borrow capture shares the local cell; writes through one handle are observed by the other while the borrow is live. | [`closure_capture/borrow_local.ark`](../../tests/fixtures/closure_capture/borrow_local.ark), [`closure_capture/borrow_rebind_cell.ark`](../../tests/fixtures/closure_capture/borrow_rebind_cell.ark), [`diagnostics/closure_borrow_conflict.ark`](../../tests/fixtures/diagnostics/closure_borrow_conflict.ark) (diag) | [ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md) | verified |
-| `closure_escape_boundaries` | Escaping captures (storing/returning closures over cells) keep observable values; rejected escapes are diagnostics. | [`closure_capture/escape_store.ark`](../../tests/fixtures/closure_capture/escape_store.ark), [`closure_capture/escape_arg.ark`](../../tests/fixtures/closure_capture/escape_arg.ark), [`diagnostics/closure_borrow_return.ark`](../../tests/fixtures/diagnostics/closure_borrow_return.ark) (diag), [`diagnostics/closure_borrow_store.ark`](../../tests/fixtures/diagnostics/closure_borrow_store.ark) (diag), [`diagnostics/closure_borrow_callback.ark`](../../tests/fixtures/diagnostics/closure_borrow_callback.ark) (diag) | [ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md) | **provisional** (#891) |
+| `closure_escape_boundaries` | Escaping captures (storing/returning closures over cells) keep observable values; mutable-borrow rebind captures ride a promoted shared cell the env can carry, while remaining borrow captures are diagnostics. | [`closure_capture/escape_store.ark`](../../tests/fixtures/closure_capture/escape_store.ark), [`closure_capture/escape_arg.ark`](../../tests/fixtures/closure_capture/escape_arg.ark), [`closure_capture/escape_borrow_arg.ark`](../../tests/fixtures/closure_capture/escape_borrow_arg.ark), [`closure_capture/escape_borrow_return.ark`](../../tests/fixtures/closure_capture/escape_borrow_return.ark), [`closure_capture/escape_borrow_store.ark`](../../tests/fixtures/closure_capture/escape_borrow_store.ark), [`diagnostics/closure_borrow_return.ark`](../../tests/fixtures/diagnostics/closure_borrow_return.ark) (diag), [`diagnostics/closure_borrow_store.ark`](../../tests/fixtures/diagnostics/closure_borrow_store.ark) (diag), [`diagnostics/closure_borrow_callback.ark`](../../tests/fixtures/diagnostics/closure_borrow_callback.ark) (diag) | [ADR-061](../adr/ADR-061-language-v2-closure-capture-lifetime.md) | verified |
 
 ## `copy` — Copy / clone semantics
 
