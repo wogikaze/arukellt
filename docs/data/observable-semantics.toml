@@ -231,6 +231,14 @@ adrs = ["ADR-082"]
 status = "verified"
 
 [[rules]]
+id = "closure_nested_capture_through"
+domain = "closure"
+statement = "A nested closure captures names from its whole lexical scope: intermediate frames forward the name as a transport slot without acquiring ownership, a descendant rebind rides the promoted shared cell end-to-end (writes reach the defining binding), and two mutable-borrow nested captures of one source conflict as E0214."
+fixtures = ["closure_capture/nested_capture.ark", "closure_capture/nested_capture_escape.ark"]
+diagnostics = ["diagnostics/closure_nested_borrow_conflict.ark"]
+adrs = ["ADR-083"]
+status = "verified"
+[[rules]]
 id = "match_or_pattern_alternatives"
 domain = "evaluation"
 statement = "An or-pattern arm compares each alternative against the scrutinee in turn — tag equality for variant alternatives, value equality for literals — and matches when any alternative hits; alternatives are discriminators only and may not bind variables or nest composite patterns, which are compile-time diagnostics."

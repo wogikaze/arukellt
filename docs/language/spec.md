@@ -743,6 +743,15 @@ The rules are source-level and do not depend on Wasm GC or linear-memory
 representation; the promoted cell lowers to a one-field GC struct on
 `wasm32-gc` and to an equal-width linear-memory slot on `wasm32`.
 
+A nested closure captures names from its whole lexical scope, including
+bindings an intermediate closure does not itself reference. Each such
+intermediate frame forwards the name as a transport slot in its
+environment; the frame does not acquire a borrow or move on names it
+only forwards (ADR-083). When a descendant rebinds the source, the
+source place is promoted into a shared cell and every forwarded slot
+carries the cell reference, so writes through a nested borrow reach the
+defining binding on both backends.
+
 ### 3.17 Loop Expression
 
 <!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->

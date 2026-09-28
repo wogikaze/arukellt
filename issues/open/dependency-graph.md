@@ -35,6 +35,7 @@ graph LR
   I880["880 880 — Language v2 最終 close audit を実施する"]
   I900["900 900 — 多段 capture（中間 closure が未捕捉の変数）が invalid Wasm を生成"]
   I902["902 902 — variant payload の literal/複合 sub-pattern が照合されない"]
+  I903["903 903 — nested closure の borrow/move マークが defining scope に伝播しない"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -108,6 +109,7 @@ graph LR
 - **880** depends on: 877, 878, 879; blocks: 852
 - **900** depends on: none; blocks: none
 - **902** depends on: none; blocks: none
+- **903** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
