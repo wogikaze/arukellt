@@ -28,6 +28,12 @@ fn infer_closure_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     }
     let body = ast_access::node_child_at(node, child_count - 1)
     let body_ty = infer_expr(env, closure_scope, fn_sigs, enum_defs, body)
+    // Nested closure captures and rebinds of outer places mark the
+    // closure_scope copies; fold them back so the enclosing scope sees
+    // the same ownership state a first-level capture records (#903).
+    if env.is_ownership_tracking_enabled {
+        scope::scope_merge_child_marks(scope, closure_scope)
+    }
     let mut return_ty = body_ty
     let mut annotation_index = 0
     let annotation_count = ast_access::node_type_ann_count(node)

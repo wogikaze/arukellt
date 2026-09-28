@@ -1,0 +1,11 @@
+fn main() {
+    let mut count = 0
+    let outer = || {
+        let inner = || {
+            count = count + 1
+        }
+        inner()
+    }
+    outer()
+    count = 99
+}

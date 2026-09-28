@@ -26,6 +26,11 @@ fn infer_comprehension_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>
                 unify::type_error(env, "filter expression must be bool")
             }
         }
+        // Element/filter expressions can move or capture outer bindings;
+        // fold the comp_scope marks back like any other nested body (#903).
+        if env.is_ownership_tracking_enabled {
+            scope::scope_merge_child_marks(scope, comp_scope)
+        }
         let mut vec_ty = TypeInfo_simple(commands::TY_VEC())
         contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)
         return vec_ty

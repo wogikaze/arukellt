@@ -1,0 +1,12 @@
+use std::text
+fn main() {
+    let source = String_from("move:")
+    let outer = || {
+        let inner = move || {
+            text::concat(source, "!")
+        }
+        inner()
+    }
+    outer()
+    let reused = source
+}

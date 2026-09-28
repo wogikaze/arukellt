@@ -19,7 +19,7 @@ fn main() {
         inner()
     }
     write_two()
-    stdio::println(count.to_string())
+    stdio::println((count + 0).to_string())
     let three = || {
         let two = || {
             let one = || {

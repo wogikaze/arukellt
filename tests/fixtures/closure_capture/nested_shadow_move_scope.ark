@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::text
+fn main() {
+    let source = String_from("outer:")
+    let outer = || {
+        let source = String_from("inner:")
+        let inner = move || {
+            text::concat(source, "!")
+        }
+        inner()
+    }
+    outer()
+    stdio::println(source)
+}

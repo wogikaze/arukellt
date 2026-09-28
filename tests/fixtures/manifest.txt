@@ -257,7 +257,9 @@ diag:diagnostics/closure_borrow_callback.ark
 diag:diagnostics/closure_borrow_store.ark
 diag:diagnostics/closure_borrow_conflict.ark
 diag:diagnostics/closure_move_after_capture.ark
+diag:diagnostics/closure_nested_borrow_assign_conflict.ark
 diag:diagnostics/closure_nested_borrow_conflict.ark
+diag:diagnostics/closure_nested_move_after_use.ark
 diag:diagnostics/non_exhaustive.ark
 diag:diagnostics/non_exhaustive_literal.ark
 diag:diagnostics/non_exhaustive_payload.ark
@@ -404,6 +406,7 @@ run:closure_capture/borrow_rebind_cell.ark
 run:closure_capture/escape_borrow_arg.ark
 run:closure_capture/escape_borrow_return.ark
 run:closure_capture/escape_borrow_store.ark
+run:closure_capture/nested_shadow_move_scope.ark
 run:closure_capture/nested_capture.ark
 run:closure_capture/nested_capture_escape.ark
 run:control/break_continue.ark
@@ -2128,6 +2131,7 @@ t3-compile:async/stream_type_ann.ark
 t3-compile:closure_capture/capture_struct.ark
 t3-compile:closure_capture/copy_capture_snapshot.ark
 t3-compile:closure_capture/nested_capture.ark
+t3-compile:closure_capture/nested_shadow_move_scope.ark
 t3-compile:component/import_async_resource_type.ark
 t3-compile:component/import_future_type.ark
 t3-compile:component/import_resource_type.ark
@@ -2616,6 +2620,7 @@ t3-run:arrays/array_literal.ark
 t3-run:arrays/array_repeat.ark
 t3-run:closure_capture/capture_struct.ark
 t3-run:closure_capture/copy_capture_snapshot.ark
+t3-run:closure_capture/nested_shadow_move_scope.ark
 t3-run:control/break_continue.ark
 t3-run:control/if_basic.ark
 t3-run:control/if_else.ark

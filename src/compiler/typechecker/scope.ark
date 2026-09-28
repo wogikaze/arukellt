@@ -53,6 +53,42 @@ fn scope_child(parent: LocalScope) -> LocalScope {
     child
 }
 
+// Marks written while checking a nested expression (closure captures,
+// rebinding an outer place) land on the scope_child copies and must reach
+// the defining binding, or enclosing-scope move-after-use and borrow
+// diagnostics silently miss them (#903, ADR-083). scope_child preserves
+// binding order, so the copied prefix maps to the parent by index while
+// bindings declared inside the nested body sit past that prefix and stay
+// local — shadowed names cannot leak marks onto the shadowed outer
+// binding. The merge is set-only: a nested body must not resurrect state
+// the parent already recorded (a rebind un-moving a binding applies at
+// call time, not at the literal position where marks are taken).
+fn scope_merge_child_marks(parent: LocalScope, child: LocalScope) {
+    let count = contract_scope::LocalScope_binding_count(parent)
+    let mut i = 0
+    while i < count {
+        let parent_binding = contract_scope::LocalScope_binding_at(parent, i)
+        let child_binding = contract_scope::LocalScope_binding_at(child, i)
+        if contract_scope::VarBinding_is_moved(child_binding) {
+            contract_scope::VarBinding_set_moved(parent_binding, true)
+        }
+        if contract_scope::VarBinding_has_shared_borrow(child_binding) {
+            contract_scope::VarBinding_set_shared_borrow(parent_binding, true)
+        }
+        if contract_scope::VarBinding_has_mutable_borrow(child_binding) {
+            contract_scope::VarBinding_set_mutable_borrow(parent_binding, true)
+        }
+        if contract_scope::VarBinding_has_captures(child_binding) {
+            contract_scope::VarBinding_set_has_captures(parent_binding, true)
+        }
+        if contract_scope::VarBinding_has_borrow_captures(child_binding) {
+            contract_scope::VarBinding_set_has_borrow_captures(parent_binding, true)
+        }
+        set(parent.bindings, i, parent_binding)
+        i = i + 1
+    }
+}
+
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
     scope_define_with_flags(scope, name, ty, false, ownership_types::type_is_builtin_copy(ty))
 }

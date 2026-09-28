@@ -37,6 +37,12 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
         let arm_scope = scope::scope_child(scope)
         bind_match_pattern(env, arm_scope, enum_defs, scrutinee_ty, pat)
         let arm_ty = infer_expr(env, arm_scope, fn_sigs, enum_defs, body)
+        // An arm may move or capture an outer binding; without folding the
+        // marks back, later arms and post-match uses miss the possibly-
+        // moved state (#903 — same gap as nested closures).
+        if env.is_ownership_tracking_enabled {
+            scope::scope_merge_child_marks(scope, arm_scope)
+        }
         if idx == 0 {
             result_ty = arm_ty
         }
