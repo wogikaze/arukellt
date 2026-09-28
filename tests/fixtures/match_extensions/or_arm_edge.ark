@@ -1,0 +1,27 @@
+// Or-patterns in last and guarded arm positions (#898): the legacy
+// match lowering calls lower_or_match_compare_condition for both
+// shapes; a missing implementation trapped the compiler itself.
+// Verified identical on wasm32-gc component and wasm32 linear core.
+
+use std::host::stdio
+
+fn main() {
+    let x = 3
+    // or-pattern in the last arm position (no catchall).
+    match x {
+        1 => stdio::println("one"),
+        2 | 3 => stdio::println("two-three"),
+    }
+    // guarded or-pattern: pattern matches but the guard fails, so
+    // control must reach the catchall below.
+    match x {
+        1 | 3 if x > 10 => stdio::println("big"),
+        _ => stdio::println("other"),
+    }
+    // guarded or-pattern where the guard passes on a later
+    // alternative.
+    match x {
+        1 | 3 if x == 3 => stdio::println("hit"),
+        _ => stdio::println("miss"),
+    }
+}

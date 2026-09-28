@@ -539,6 +539,7 @@ run:lang_uplift/lambda_pattern.ark
 run:lang_uplift/multi_clause_boolean.ark
 run:lang_uplift/where_clause_generic.ark
 run:match_extensions/match_guard.ark
+run:match_extensions/or_arm_edge.ark
 run:match_extensions/or_pattern.ark
 run:match_extensions/struct_field_update.ark
 run:match_extensions/struct_pattern.ark
@@ -2226,6 +2227,7 @@ t3-compile:integration/word_counter.ark
 t3-compile:iterator/custom_iterator.ark
 t3-compile:iterator/generic_scan_iter.ark
 t3-compile:match_extensions/match_guard.ark
+t3-compile:match_extensions/or_arm_edge.ark
 t3-compile:match_extensions/or_pattern.ark
 t3-compile:match_extensions/struct_field_update.ark
 t3-compile:match_extensions/struct_pattern.ark
@@ -2706,6 +2708,7 @@ t3-run:integration/word_counter.ark
 t3-run:iterator/custom_iterator.ark
 t3-run:iterator/generic_scan_iter.ark
 t3-run:match_extensions/match_guard.ark
+t3-run:match_extensions/or_arm_edge.ark
 t3-run:match_extensions/or_pattern.ark
 t3-run:match_extensions/struct_field_update.ark
 t3-run:match_extensions/struct_pattern.ark
