@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-09-28
-Updated: 2026-09-28
+Updated: 2026-09-29
 ID: 907
 Parent: 852
 Track: language-v2
@@ -70,14 +70,64 @@ fallback 正確性バグである。
 
 ## Acceptance
 
-- [ ] `bench_stdlib_toml` が wasm32 linear で `8000`（GC と同一
+- [x] `bench_stdlib_toml` が wasm32 linear で `8000`（GC と同一
       の観測結果）を出力する。
-- [ ] 再現 root cause が特定され、線形 fallback 側の emit /
+- [x] 再現 root cause が特定され、線形 fallback 側の emit /
       runtime で修正される。
-- [ ] linear-only の回帰 fixture（または bench 系の観測）が追加
+- [x] linear-only の回帰 fixture（または bench 系の観測）が追加
       される。
 
 ## Required evidence
 
 - implementation commit SHA
 - wasm32 linear 実行での正しい出力（`8000`）の receipt
+
+## Done (2026-09-29)
+
+### Root cause
+
+`core_match.ark` の scrutinee 直値解決が expr kind を確認せず
+`mir_core_lookup_local(ctx, scrut_expr)` を呼んでいた（cf18eba95 で
+`is_ident` ガードが除去された回帰）。CoreHIR の `FIELD_ACCESS` expr は
+`text` にレシーバではなくフィールド名だけを持つ（`parse_dot_suffix`
+が `Token_text(field_tok)` を格納）ため、`match ks.parts` が
+`ctx_lookup_local("parts")` で同名の無関係 local — 兄弟 arm の
+`Result::Ok(parts)` 束縛 — に誤解決された。wasm32 emit では scrutinee
+が生きている `ks.parts` 投影ではなく、その未初期化 / stale local の
+`i32.load` を tag として読み、payload 抽出も同じ wrong base から読んで
+いた。`toml_parse` では header-path arm の `parts` 束縛が衝突し、
+kv arm の `toml_insert_key` に `len == 0` の腐った vec が渡され
+`"empty key"` Err → 全 iteration fallback branch → `1000300000`。
+GC 経路は同名 local の誤解決が typed ref の `struct.get` 型不一致として
+表面化せず正しく projection を emit していた。
+
+### Fix
+
+`src/compiler/mir/lower/core_match.ark`: scrutinee の直値 lookup を
+`mir_core_expr_is_ident || mir_core_expr_is_path` に限定（`body_match.ark`
+の `NK_IDENT` ガードと同じ規約。path は `a::b` 形式で local 名と衝突
+しない）。`CALL` / `METHOD_CALL` / `FIELD_ACCESS` / `STRUCT_LIT` 等、
+member/callee 名を text に持つ kind は `lower_core_expr` 経由で正しく
+評価される。
+
+### Evidence
+
+- `bench_stdlib_toml` wasm32 linear: `8000`（correctness=pass）。
+- 最小再現（`.build/ark907` probe8/9 + fixture化）: pre-fix s2 は
+  `a/err/err/err`（stale local の tag != 0 → Err arm）または
+  `0xfffffffc` trap（未初期化 slot の payload deref）、post-fix は
+  `a/b/h/k`。
+- 回帰 fixture: `match_extensions/match_field_access_scrutinee.ark`
+  を `run:` + `t3-run:` に登録（pre-fix `a/err/err/err`、post-fix
+  両 backend で `a/b/h/k`、`.expected` 一致）。
+- `selfhost fixture-parity` 全体: PASS=1525 FAIL=259 — fail 数は
+  pre-fix と同一（spot-check は post891 でも同一再現の pre-existing
+  backlog のみ）。新規 regression 0 件。
+- `verify lane`、issue index 再生成を実施。
+
+### Residual（本 issue の scope 外）
+
+- probe 中に `Result<i64>` payload + while 内 `i64` 累算の組み合わせで
+  linear emit が `expected i64, found i32` の invalid wasm を出す兆候を
+  観測したが、最小再現には至らず本 issue とは別要因の可能性。再現したら
+  別 issue で追跡する。

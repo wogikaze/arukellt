@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T13:27:37Z",
+  "generated_at": "2026-09-28T16:18:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -509,23 +509,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "907",
-      "path": "907-bench-stdlib-toml-linear-backend-divergence.md",
-      "title": "907 — bench_stdlib_toml が wasm32 linear で誤値（GC は 8000、linear は 1000300000）",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 852
       }
     },
     {
