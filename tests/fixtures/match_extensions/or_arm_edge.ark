@@ -1,16 +1,28 @@
 // Or-patterns in last and guarded arm positions (#898): the legacy
 // match lowering calls lower_or_match_compare_condition for both
 // shapes; a missing implementation trapped the compiler itself.
+// ADR-082 requires a catchall for non-finite scrutinee, so the
+// i32 or-pattern sits in a non-last arm and the last-position
+// or-pattern coverage moves to a bool scrutinee.
 // Verified identical on wasm32-gc component and wasm32 linear core.
 
 use std::host::stdio
 
 fn main() {
     let x = 3
-    // or-pattern in the last arm position (no catchall).
+    // or-pattern in a non-last arm position (i32 scrutinee).
     match x {
         1 => stdio::println("one"),
         2 | 3 => stdio::println("two-three"),
+        _ => stdio::println("other"),
+    }
+    // or-pattern in the last arm position on a finite scrutinee:
+    // the first arm misses, then the or-condition's later
+    // alternative fires.
+    let flag = false
+    match flag {
+        true => stdio::println("t"),
+        true | false => stdio::println("tf"),
     }
     // guarded or-pattern: pattern matches but the guard fails, so
     // control must reach the catchall below.

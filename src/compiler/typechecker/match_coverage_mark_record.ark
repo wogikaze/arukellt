@@ -4,6 +4,10 @@ fn match_coverage_mark_wildcard(coverage: MatchCoverage) {
     coverage.has_wildcard = true
 }
 
+fn match_coverage_mark_irrefutable(coverage: MatchCoverage) {
+    coverage.has_irrefutable = true
+}
+
 fn match_coverage_mark_bool_true(coverage: MatchCoverage) {
     coverage.has_bool_true = true
 }

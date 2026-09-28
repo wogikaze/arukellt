@@ -1,5 +1,6 @@
 struct MatchCoverage {
     has_wildcard: bool,
+    has_irrefutable: bool,
     has_bool_true: bool,
     has_bool_false: bool,
     has_option_some: bool,
@@ -12,6 +13,7 @@ struct MatchCoverage {
 fn MatchCoverage_new() -> MatchCoverage {
     MatchCoverage {
         has_wildcard: false,
+        has_irrefutable: false,
         has_bool_true: false,
         has_bool_false: false,
         has_option_some: false,

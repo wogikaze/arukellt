@@ -2,6 +2,8 @@
 // sub-pattern — wildcard, ident bind, literal, string literal, or, and
 // variant (with payload binds). Element conditions AND-fold on both the
 // wasm32-gc primary path and the wasm32 linear fallback.
+// ADR-082: tuple scrutinee is non-finite, so matches that are not
+// provably total carry an explicit catchall arm.
 
 use std::host::stdio
 use std::text
@@ -17,12 +19,14 @@ fn main() {
     match t1 {
         (Opt::Some(v), _) => stdio::println(text::concat("some:", (v).to_string())),
         (Opt::None, _) => stdio::println("none"),
+        _ => stdio::println("miss"),
     }
     let n = Opt::None
     let t2 = (n, 1)
     match t2 {
         (Opt::Some(v), _) => stdio::println("some"),
         (Opt::None, _) => stdio::println("none"),
+        _ => stdio::println("miss"),
     }
 
     // ident binds + literal elements
@@ -62,5 +66,6 @@ fn main() {
     match t5 {
         ("bye", _) => stdio::println("bye"),
         ("hello", m) => stdio::println((m + 1).to_string()),
+        _ => stdio::println("miss"),
     }
 }

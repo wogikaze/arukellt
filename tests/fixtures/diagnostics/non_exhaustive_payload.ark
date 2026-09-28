@@ -1,0 +1,14 @@
+use std::host::stdio
+
+fn get_opt() -> Option<i32> {
+    Option::Some(5)
+}
+
+fn main() {
+    // Some(0) does not cover all of Some, and no catchall exists.
+    let r = match get_opt() {
+        Option::Some(0) => "zero",
+        None => "none",
+    }
+    stdio::println(r)
+}

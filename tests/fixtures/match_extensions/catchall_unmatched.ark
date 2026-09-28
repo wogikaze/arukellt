@@ -1,0 +1,19 @@
+// ADR-082: a match with a catchall arm accepts any scrutinee value and
+// produces a defined result on both backends; the catchall absorbs the
+// unmatched case where a non-catchall last arm would previously have
+// diverged (linear ran it unconditionally, GC trapped on null).
+
+use std::host::stdio
+
+fn classify(x: i32) -> String {
+    match x {
+        1 | 2 => "low",
+        _ => "other",
+    }
+}
+
+fn main() {
+    stdio::println(classify(1))
+    stdio::println(classify(9))
+    stdio::println(classify(2))
+}

@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn get_opt() -> Option<i32> {
+    Option::Some(0)
+}
+
+fn main() {
+    // The guarded Some arm cannot prove coverage; only None is
+    // covered, so the match is not provably exhaustive.
+    let r = match get_opt() {
+        Option::Some(v) if v > 0 => "pos",
+        None => "none",
+    }
+    stdio::println(r)
+}

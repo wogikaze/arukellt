@@ -25,5 +25,6 @@ fn main() {
     match propagate() {
         Result::Ok(_) => assert(false),
         Result::Err(Error::Invalid) => stdio::println(String_from("OK")),
+        _ => stdio::println(String_from("other")),
     }
 }

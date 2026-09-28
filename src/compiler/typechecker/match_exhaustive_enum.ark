@@ -23,6 +23,20 @@ fn check_enum_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_
     }
 }
 
+fn enum_def_exists(resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>) -> bool {
+    let enum_name = contract_type_access::TypeInfo_name(resolved_scrutinee)
+    let mut i = 0
+    let def_count = len(enum_defs)
+    while i < def_count {
+        let declared_name = contract_enum_info::EnumInfo_name(get_unchecked(enum_defs, i))
+        if enum_name_matches(clone(enum_name), clone(declared_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
     if eq(clone(resolved_name), clone(declared_name)) {
         return true

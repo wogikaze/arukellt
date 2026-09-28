@@ -4,6 +4,10 @@ fn MatchCoverage_has_wildcard(coverage: MatchCoverage) -> bool {
     coverage.has_wildcard
 }
 
+fn MatchCoverage_has_irrefutable(coverage: MatchCoverage) -> bool {
+    coverage.has_irrefutable
+}
+
 fn MatchCoverage_has_bool_true(coverage: MatchCoverage) -> bool {
     coverage.has_bool_true
 }

@@ -1,15 +1,22 @@
+use typechecker::ast_access
 use typechecker::ast_pattern_predicates
+use typechecker::kinds
 use typechecker::match_coverage_literal
 use typechecker::match_coverage_mark_record
 use typechecker::match_coverage_variant
 
-fn record_match_pattern(coverage: MatchCoverage, pat: AstNode) {
+// Guarded arms never contribute to coverage: the guard may fail at
+// runtime, so the arm cannot prove exhaustiveness (ADR-082).
+fn record_match_pattern(coverage: MatchCoverage, pat: AstNode, guarded: bool) {
+    if guarded {
+        return
+    }
     if ast_pattern_predicates::node_is_pat_wildcard(pat) {
         match_coverage_mark_record::match_coverage_mark_wildcard(coverage)
         return
     }
     if ast_pattern_predicates::node_is_pat_ident(pat) {
-        // Bare `None`/`Some`/`Ok`/`Err` are unit-variant arms, not catchalls.
+        // Bare None / Some / Ok / Err are unit-variant arms, not catchalls.
         if match_coverage_variant::ident_looks_like_unit_variant(pat) {
             match_coverage_variant::record_variant_pattern(coverage, pat)
             return
@@ -19,8 +26,68 @@ fn record_match_pattern(coverage: MatchCoverage, pat: AstNode) {
     }
     if ast_pattern_predicates::node_is_pat_literal(pat) {
         match_coverage_literal::record_literal_pattern(coverage, pat)
+        return
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_OR()) {
+        let alt_count = ast_access::node_child_count(pat)
+        let mut i = 0
+        while i < alt_count {
+            record_match_pattern(coverage, ast_access::node_child_at(pat, i), false)
+            i = i + 1
+        }
+        return
     }
     if ast_pattern_predicates::node_is_pat_variant(pat) {
-        match_coverage_variant::record_variant_pattern(coverage, pat)
+        // A variant arm covers its variant only when every payload
+        // sub-pattern is irrefutable. Some(v) covers Some; Some(0)
+        // does not.
+        if pat_children_irrefutable(pat) {
+            match_coverage_variant::record_variant_pattern(coverage, pat)
+        }
+        return
     }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_TUPLE()) ||
+    ast_access::node_kind_is(pat, kinds::NK_PAT_STRUCT()) {
+        if pat_children_irrefutable(pat) {
+            match_coverage_mark_record::match_coverage_mark_irrefutable(coverage)
+        }
+        return
+    }
+}
+
+fn pat_children_irrefutable(pat: AstNode) -> bool {
+    let child_count = ast_access::node_child_count(pat)
+    let mut i = 0
+    while i < child_count {
+        if !pat_is_irrefutable(ast_access::node_child_at(pat, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn pat_is_irrefutable(pat: AstNode) -> bool {
+    if ast_pattern_predicates::node_is_pat_wildcard(pat) {
+        return true
+    }
+    if ast_pattern_predicates::node_is_pat_ident(pat) {
+        return !match_coverage_variant::ident_looks_like_unit_variant(pat)
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_OR()) {
+        let alt_count = ast_access::node_child_count(pat)
+        let mut i = 0
+        while i < alt_count {
+            if pat_is_irrefutable(ast_access::node_child_at(pat, i)) {
+                return true
+            }
+            i = i + 1
+        }
+        return false
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_TUPLE()) ||
+    ast_access::node_kind_is(pat, kinds::NK_PAT_STRUCT()) {
+        return pat_children_irrefutable(pat)
+    }
+    false
 }
