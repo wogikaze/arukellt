@@ -305,3 +305,12 @@ statement = "From-based conversion (including ? error conversion) applies the re
 fixtures = ["from_trait/from_auto_convert.ark", "question_mark/from_error.ark"]
 adrs = ["ADR-039", "ADR-062"]
 status = "verified"
+
+[[rules]]
+id = "evaluation_struct_shadows_prelude_enum"
+domain = "evaluation"
+statement = "A non-generic user struct sharing a prelude generic enum's name claims the bare name in struct contexts while the enum stays reachable via enum:, ?X:args, X<args>, and X::Variant spellings; declarations that leave either side unreachable are compile diagnostics."
+fixtures = ["enums/prelude_enum_name_shadow.ark"]
+diagnostics = ["diagnostics/generic_struct_enum_shadow.ark"]
+adrs = ["ADR-072"]
+status = "verified"
