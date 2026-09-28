@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T08:37:50Z",
+  "generated_at": "2026-09-28T11:29:30Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -545,23 +545,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 852
-      }
-    },
-    {
-      "id": "905",
-      "path": "905-user-struct-named-after-prelude-enum-layout-collision.md",
-      "title": "905 — prelude enum と同名の user struct が enum 側の layout に解決され wasm32-gc で invalid core Wasm になる",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
       },
       "orchestration": {
         "class": "design-ready",
