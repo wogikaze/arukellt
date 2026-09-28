@@ -14,8 +14,8 @@ Scoring criteria (0-5 each, total 25):
 | 1 | 686 | Wasm GC Selfhost Implementation | main | 2 | 0 | 4 | 5 | 4 | 15 |
 | 2 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
 | 3 | 723 | Wasm Exception Handling (`exnref`) 統合の検討 | language-design | 0 | 0 | 4 | 5 | 5 | 14 |
-| 4 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
-| 5 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 4 | 5 | 3 | 12 |
+| 4 | 852 | 852 — 言語 v2 意味論再設計 umbrella | language-v2 | 0 | 0 | 5 | 5 | 4 | 14 |
+| 5 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
 | 6 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
 | 7 | 899 | 899 — 非 catchall last arm が非マッチ時に GC/linear で発散 | language-v2 | 0 | 0 | 1 | 5 | 5 | 11 |
 | 8 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
@@ -24,17 +24,17 @@ Scoring criteria (0-5 each, total 25):
 | 11 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
 | 12 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 13 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 1 | 5 | 3 | 10 |
-| 14 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
-| 15 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 16 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
-| 17 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
-| 18 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 19 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 20 | 825 | AST cache format repair (not “re-enable as-is”) | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 21 | 849 | 849 — native-executor wasm32-gc S3 validation drift (func 118) | main | 0 | 0 | 1 | 3 | 5 | 9 |
-| 22 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 23 | 880 | 880 — Language v2 最終 close audit を実施する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
-| 24 | 891 | 891 — mutable-borrow capture escape の env cell 昇格 | language-v2 | 0 | 0 | 1 | 5 | 3 | 9 |
+| 14 | 900 | 900 — 多段 capture（中間 closure が未捕捉の変数）が invalid Wasm を生成 | language-v2 | 0 | 0 | 1 | 5 | 4 | 10 |
+| 15 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
+| 16 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 17 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
+| 18 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
+| 19 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
+| 20 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 21 | 825 | AST cache format repair (not “re-enable as-is”) | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 22 | 849 | 849 — native-executor wasm32-gc S3 validation drift (func 118) | main | 0 | 0 | 1 | 3 | 5 | 9 |
+| 23 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 24 | 880 | 880 — Language v2 最終 close audit を実施する | language-v2 | 1 | 0 | 1 | 5 | 2 | 9 |
 | 25 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
 | 26 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
 | 27 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |

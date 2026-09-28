@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T00:28:11Z",
+  "generated_at": "2026-09-28T02:46:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -535,23 +535,6 @@
       }
     },
     {
-      "id": "891",
-      "path": "891-borrow-capture-escape-env-cells.md",
-      "title": "891 — mutable-borrow capture escape の env cell 昇格",
-      "track": "language-v2",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 872
-      }
-    },
-    {
       "id": "899",
       "path": "899-non-catchall-last-arm-unmatched-divergence.md",
       "title": "899 — 非 catchall last arm が非マッチ時に GC/linear で発散",
@@ -566,6 +549,23 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": 875
+      }
+    },
+    {
+      "id": "900",
+      "path": "900-multiframe-capture-source-invalid-wasm.md",
+      "title": "900 — 多段 capture（中間 closure が未捕捉の変数）が invalid Wasm を生成",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 872
       }
     },
     {
@@ -748,8 +748,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 48,
-        "unchecked": 6
+        "checked": 49,
+        "unchecked": 5
       },
       "orchestration": {
         "class": "blocked-by-upstream",

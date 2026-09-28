@@ -129,7 +129,15 @@ Source: "ADR-058 / RFC-011 sub-issue umbrella"
     `fn_zero_param_ref_return` representative fixture on both backends.
     Residual: escaping mutable-borrow capture stays E0213 → #891.
     See [#872](../done/872-wasm-gc-closure-collection-lowering.md).
-- [ ] #891 — mutable-borrow capture escape の env cell 昇格 — ADR-061 fallback の解除 — depends: none (child of #872)
+- [x] #891 — mutable-borrow capture escape の env cell 昇格 — ADR-061 fallback の解除 — depends: none (child of #872)
+  - Done (2026-09-28): promoted shared cells (`814759c6a`, ADR-081).
+    Rebind captures promote the source place into a shared heap cell at
+    the capture point; the env carries a live alias so escaped closures
+    write through identically on wasm32-gc and linear wasm32.
+    escape_borrow_arg/return/store fixtures and closure_capture
+    cross-backend parity 11/11; E0213 narrowed to shared-borrow
+    captures. Residual: multi-frame capture-source resolution → #900.
+    See [#891](../done/891-borrow-capture-escape-env-cells.md).
 - [x] #873 — linear-memory tracing GC fallback runtime を実装する — RFC 8 (fallback runtime) — depends: 870
   - Receipt: runtime foundation `6cb9bb01f`; P2 Memory64 boundary adapter `47995d5bf`; compiler root-frame integration `aed3af031`; full managed-local write coverage `f3c56bbef`; watermark-gated automatic collection at function entry `2aaadcbf4`; source-level survival fixtures `b2144f1c1`, `449bb5651`. Allocator, root registration/update, tracing collector, and cycle collection are implemented and probe- plus source-verified; linear artifacts contain no Wasm GC instructions. `verify quick` remains red only on unrelated pre-existing #652/#765/#823/T3-memory64 baseline checks (unchanged by this work). See [#873](../done/873-linear-memory-tracing-gc-runtime.md).
 - [x] #874 — fallback managed-value lowering を実装する — RFC 8 (fallback lowering) — depends: 854, 855, 859, 860, 873
