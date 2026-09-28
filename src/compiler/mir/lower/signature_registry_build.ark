@@ -18,6 +18,9 @@ use mir::lower::signature_spine
 use corehir::param
 use corehir::mir_signature_fn
 use mir::lower::stdlib_body_defer
+use mir::mono
+use corehir::function_id
+use corehir::type_contracts
 fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, expected_fn_names: Vec<String>) -> MirSignatureSpine {
     let table = type_table::TypeTable_new()
     let registry = signature_registry::SignatureRegistry_new()
@@ -101,8 +104,41 @@ fn sig_reg_index_top_level_fn(
     // string.join(Vec,…) stays CoreOp-only; registering it as bare `join`
     // overwrites path::join(String,String) and yields invalid wasm (#807).
     if !skip_shadow && !sig_reg_skip_join_vec_overload(sig_source, fn_info_index, clone(decl_name)) {
-        let registered = signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
         let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
+        let mut registered = function_id::FUNCTION_ID_INVALID()
+        // A generic whose instances all arrived through the qualified path
+        // emits one leaf-named concrete body (entry_fns_mono). Its decl entry
+        // is what qualified calls resolve, so register that instance's
+        // concrete signature instead of the declared vec:T.
+        let mut leaf_inst_idx = 0 - 1
+        if mono::mono_index_count(midx, clone(decl_name)) == 0 {
+            leaf_inst_idx = signature_registry_build_mono::sig_reg_leaf_instance_index(
+                fn_index_source::mir_fn_index_source_mono_instances(source),
+                clone(decl_name),
+                clone(qualified_name)
+            )
+        }
+        if leaf_inst_idx >= 0 {
+            let leaf_inst = get_unchecked(
+                fn_index_source::mir_fn_index_source_mono_instances(source),
+                leaf_inst_idx
+            )
+            registered = signature_registry_entry::sig_reg_register_fn_leaf_instance(
+                table,
+                registry,
+                mono_table,
+                source,
+                sig_source,
+                fn_info_index,
+                typed_index,
+                clone(decl_name),
+                type_contracts::MonoInstance_mangled_name(leaf_inst),
+                fn_index_source::mir_fn_index_source_mono_instances(source),
+                decl_index
+            )
+        } else {
+            registered = signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
+        }
         if len(qualified_name) > 0 {
             signature_registry::signature_registry_register_alias(registry, clone(qualified_name), registered)
             let import_name = sig_reg_import_facing_qualified_name(qualified_name)
@@ -119,6 +155,15 @@ fn sig_reg_index_top_level_fn(
             }
         }
         signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
+        // Qualified-keyed instances (test::assert_eq_debug__i32, ...) also
+        // need registry entries so call sites can bind variant FunctionIds.
+        // The decl keeps the generic signature as the unresolved fallback.
+        if mono::mono_index_count(midx, clone(decl_name)) == 0 &&
+        len(qualified_name) > 0 &&
+        !eq(clone(qualified_name), clone(decl_name)) &&
+        mono::mono_index_count(midx, clone(qualified_name)) > 1 {
+            signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(qualified_name), typed_index, fn_info_index, decl_index)
+        }
     }
 }
 

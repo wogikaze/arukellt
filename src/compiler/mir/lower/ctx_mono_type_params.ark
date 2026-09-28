@@ -802,6 +802,7 @@ fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
         }
     }
     if !has_sep {
+        ctx_setup_mono_type_params_leaf_instance(ctx, mangled_name)
         return
     }
     let type_var_names = ctx_collect_type_var_names(ctx)
@@ -823,6 +824,86 @@ fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
         let ty_name = mir_type_info_to_mono_key(ty)
         push(names, clone(get_unchecked(type_var_names, j)))
         push(types, ty_name)
+        j = j + 1
+    }
+    ctx_set_mono_type_params(ctx, names, types)
+}
+
+// Index into ctx.mono_instances of the unique non-marker instance whose fn
+// leaf name matches leaf_name; -1 when absent or ambiguous. Generic decls
+// emitted under their leaf name (sort_by inside std::seq, instantiated via
+// the qualified seq::sort_by call) resolve their binding through this
+// instead of the mangled-name lookup.
+fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
+    let leaf_sep = find_last_double_colon(clone(leaf_name))
+    let mut query_leaf = clone(leaf_name)
+    if leaf_sep >= 0 {
+        query_leaf = substring(leaf_name, leaf_sep + 2, len(leaf_name))
+    }
+    let mut matched_index = 0 - 1
+    let mut matched_mangled = String_new()
+    let mut ambiguous = false
+    let count = len(ctx.mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(ctx.mono_instances, i)
+        i = i + 1
+        if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
+            continue
+        }
+        let first_arg = type_contracts::MonoInstance_type_arg_at(inst, 0)
+        if type_contracts::TypeInfo_tag(first_arg) < 0 {
+            continue
+        }
+        let inst_name = type_contracts::MonoInstance_fn_name(inst)
+        let inst_sep = find_last_double_colon(clone(inst_name))
+        let mut inst_leaf = clone(inst_name)
+        if inst_sep >= 0 {
+            inst_leaf = substring(inst_name, inst_sep + 2, len(inst_name))
+        }
+        if !eq(inst_leaf, clone(query_leaf)) {
+            continue
+        }
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
+            ambiguous = true
+        }
+        if len(matched_mangled) == 0 {
+            matched_index = i - 1
+        }
+        matched_mangled = inst_mangled
+    }
+    if ambiguous {
+        return 0 - 1
+    }
+    matched_index
+}
+
+// A body emitted under the unqualified leaf name carries no __ suffix,
+// so the mangled-name lookup above cannot find its instance. That happens
+// when a generic decl is emitted inside its own module (sort_by) while
+// callers instantiated it through the qualified path (seq::sort_by).
+// When the instance list holds exactly one distinct non-marker instance
+// whose leaf fn name matches, its type arguments bind this body's type
+// variables; zero or multiple matches leave the map untouched.
+fn ctx_setup_mono_type_params_leaf_instance(ctx: LowerCtx, emit_name: String) {
+    let type_var_names = ctx_collect_type_var_names(ctx)
+    if len(type_var_names) == 0 {
+        return
+    }
+    let matched_index = ctx_find_leaf_mono_instance_index(ctx, emit_name)
+    if matched_index < 0 {
+        return
+    }
+    let inst = get_unchecked(ctx.mono_instances, matched_index)
+    let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
+    let names = Vec::new<String>()
+    let types = Vec::new<String>()
+    let mut j = 0
+    while j < arg_count && j < len(type_var_names) {
+        let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
+        push(names, clone(get_unchecked(type_var_names, j)))
+        push(types, mir_type_info_to_mono_key(ty))
         j = j + 1
     }
     ctx_set_mono_type_params(ctx, names, types)

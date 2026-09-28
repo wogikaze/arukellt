@@ -62,6 +62,75 @@ fn sig_reg_register_fn(
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 
+// Register a generic decl that was emitted under its leaf name because its
+// only instantiation arrived through the qualified spelling (seq::sort_by
+// records the instance under seq::sort_by, while the decl key is sort_by).
+// The leaf-emitted body is that one concrete instance, so the decl entry —
+// which call sites resolve through the qualified alias — must carry the
+// instance's substituted params/return and mono link. Leaving the declared
+// vec:T here makes call-result locals declare the wrong GC struct type.
+fn sig_reg_register_fn_leaf_instance(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    mono_table: MonoInstanceTable,
+    source: MirLowerFnIndexSource,
+    sig_source: CoreHirMirSignatureSource,
+    fn_info_index: i32,
+    typed_index: i32,
+    decl_name: String,
+    inst_mangled: String,
+    mono_instances: Vec<MonoInstance>,
+    decl_index: i32
+) -> FunctionId {
+    let params = sig_reg_params_from_fn_info_mono(
+        sig_source,
+        fn_info_index,
+        table,
+        clone(inst_mangled),
+        clone(mono_instances)
+    )
+    let returns = Vec::new<MirValueType>()
+    let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
+    let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
+    let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
+    let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(
+        mono_instances,
+        inst_mangled,
+        generic_return_ty
+    )
+    if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
+        return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
+        return_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
+    }
+    push(
+        returns,
+        type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name)
+    )
+    let mono_id = mono_instance_build::mono_instance_table_register_from_instances(
+        mono_table,
+        table,
+        mono_instances,
+        inst_mangled,
+        params,
+        returns
+    )
+    let receiver = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(decl_name),
+        params,
+        returns,
+        false,
+        receiver,
+        0 - 1,
+        decl_index,
+        mono_id,
+        kinds::ABI_KIND_NORMAL(),
+        core_op_id::CORE_OP_ID_NONE()
+    )
+    signature_registry::signature_registry_register(registry, entry, decl_name)
+}
+
 fn sig_reg_register_method(
     table: TypeTable,
     registry: SignatureRegistry,

@@ -2,6 +2,7 @@ use std::prelude::{clone, eq}
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 use mir::lower::stdlib_body_defer
+use mir::mono
 fn mir_index_top_level_fn(
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,
@@ -39,6 +40,19 @@ fn mir_index_top_level_fn(
         push(fn_return_vts, rvt)
         push(fn_return_type_names, clone(rtn))
         fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(decl_name), rvt, clone(rtn), mono_instances, generic_return_ty)
+        // Instances of a module member record under the qualified fn_name
+        // (test::assert_eq_debug), which the decl-keyed index above never
+        // sees. With two or more distinct instantiations the leaf emit is a
+        // generic stub, so publish the variant names under the qualified key
+        // — call-site resolution and emit both look them up by that name.
+        if fn_info_index >= 0 && mono::mono_index_count(midx, clone(decl_name)) == 0 {
+            let mono_qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
+            if len(mono_qualified_name) > 0 &&
+            !eq(clone(mono_qualified_name), clone(decl_name)) &&
+            mono::mono_index_count(midx, clone(mono_qualified_name)) > 1 {
+                fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, mono_qualified_name, rvt, clone(rtn), mono_instances, generic_return_ty)
+            }
+        }
     }
     fn_index + 1
 }

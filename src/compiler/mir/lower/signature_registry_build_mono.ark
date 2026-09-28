@@ -1,4 +1,5 @@
-use std::prelude::{clone}
+use std::prelude::{clone, ends_with, eq}
+use std::text
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
@@ -117,6 +118,76 @@ fn sig_reg_register_mono_fn(
         core_op_id::CORE_OP_ID_NONE()
     )
     signature_registry::signature_registry_register(registry, entry, mangled)
+}
+
+// A decl emitted under its leaf name resolves its single instantiation
+// through the qualified instance fn_name (seq::sort_by), which mono_index
+// never keys by the leaf. Return the unique non-marker instance index for
+// the decl; -1 when absent or ambiguous. The index is into
+// mir_fn_index_source_mono_instances / ctx.mono_instances.
+fn sig_reg_leaf_instance_index(
+    mono_instances: Vec<MonoInstance>,
+    decl_name: String,
+    qualified_name: String
+) -> i32 {
+    let mut matched = 0 - 1
+    let mut matched_mangled = String_new()
+    let mut ambiguous = false
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(mono_instances, i)
+        i = i + 1
+        if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
+            continue
+        }
+        let first_arg = type_contracts::MonoInstance_type_arg_at(inst, 0)
+        if type_contracts::TypeInfo_tag(first_arg) < 0 {
+            continue
+        }
+        if !sig_reg_leaf_instance_name_match(
+            type_contracts::MonoInstance_fn_name(inst),
+            clone(decl_name),
+            clone(qualified_name)
+        ) {
+            continue
+        }
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        if len(matched_mangled) > 0 && !eq(clone(inst_mangled), clone(matched_mangled)) {
+            ambiguous = true
+        }
+        if len(matched_mangled) == 0 {
+            matched = i - 1
+        }
+        matched_mangled = inst_mangled
+    }
+    if ambiguous {
+        return 0 - 1
+    }
+    matched
+}
+
+// Instance fn_names can spell the same decl as seq::sort_by or
+// std::seq::sort_by depending on which side recorded the instance, so a
+// strict equality check would miss real instantiations. Suffix matching on
+// either side keeps the binding without accepting an unrelated module's
+// same-leaf generic.
+fn sig_reg_leaf_instance_name_match(
+    inst_name: String,
+    decl_name: String,
+    qualified_name: String
+) -> bool {
+    if len(qualified_name) > 0 {
+        if eq(clone(inst_name), clone(qualified_name)) {
+            return true
+        }
+        if ends_with(clone(inst_name), text::concat(String_from("::"), clone(qualified_name))) ||
+        ends_with(clone(qualified_name), text::concat(String_from("::"), clone(inst_name))) {
+            return true
+        }
+        return false
+    }
+    eq(inst_name, decl_name)
 }
 
 fn sig_reg_index_method_mono(

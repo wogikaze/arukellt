@@ -2,8 +2,10 @@ use std::prelude::{clone, eq}
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
 use mir::lower::ctx_api_module
+use mir::lower::ctx_mono_type_params
 use mir::lower::entry_emit_top
 use mir::lower::entry_view_record
+use mir::lower::entry_view_fn
 use mir::lower::return_typeinfo
 use mir::lower::return_types
 use mir::lower_kinds
@@ -21,7 +23,23 @@ fn mir_emit_top_level_fn_mono_bodies(
     midx: MonoIndex,
     mir_tr: i32
 ) {
-    let mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
+    let mut mono_key = clone(decl_name)
+    let mut mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
+    if mono_emit_count_raw == 0 {
+        // Module-member generics record instances under the qualified fn_name
+        // (test::assert_eq_debug), so the decl key never sees them. A single
+        // instance is still emitted as the concrete leaf body below; with
+        // two or more, emit the qualified-keyed variants and leave the leaf
+        // decl as the unreachable generic fallback.
+        let mono_qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
+        if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
+            let qualified_count = mono::mono_index_count(midx, clone(mono_qualified_name))
+            if qualified_count > 1 {
+                mono_emit_count_raw = qualified_count
+                mono_key = mono_qualified_name
+            }
+        }
+    }
     if mono_emit_count_raw > 0 {
         let mut mono_emit_i = 0
         let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
@@ -29,7 +47,7 @@ fn mir_emit_top_level_fn_mono_bodies(
         let generic_rt_type_var_name = mir_entry_typed_return_type_var_name(entry_view, typed_index)
         let generic_return_ty = mir_entry_typed_return_type_at(entry_view, typed_index)
         while mono_emit_i < mono_emit_count_raw {
-            let mangled = mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i)
+            let mangled = mono::mono_index_mangled_at(midx, clone(mono_key), mono_emit_i)
             let emit_fn_name = mono::mono_safe_name(mangled)
             let mut rt_tag = generic_rt_tag
             let mut rt_type_name = clone(generic_rt_type_name)
@@ -60,11 +78,36 @@ fn mir_emit_top_level_fn_mono_bodies(
     }
     let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
     let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
+    let mut leaf_rt_tag = generic_rt_tag
+    let mut leaf_rt_type_name = clone(generic_rt_type_name)
+    // A generic emitted under its leaf name reaches this branch because its
+    // instances were recorded under the qualified caller spelling
+    // (seq::sort_by -> seq::sort_by__i32 while the decl is sort_by). The
+    // emitted body still belongs to one concrete instantiation: keep the
+    // recorded return type concrete so callee-propagation hands callers
+    // vec:i32 instead of the declared vec:T, which would declare the
+    // caller's result local as the structref-element vec on wasm32-gc.
+    let leaf_inst_idx = ctx_mono_type_params::ctx_find_leaf_mono_instance_index(ctx, clone(decl_name))
+    if leaf_inst_idx >= 0 {
+        let leaf_inst = get_unchecked(ctx.mono_instances, leaf_inst_idx)
+        let leaf_concrete = mono_instantiate_return_from_instance(
+            ctx,
+            type_contracts::MonoInstance_mangled_name(leaf_inst),
+            mir_entry_typed_return_type_at(entry_view, typed_index)
+        )
+        if type_contracts::TypeInfo_tag(leaf_concrete) != 0 {
+            leaf_rt_tag = return_typeinfo::mir_return_tag_from_type_info(leaf_concrete)
+            leaf_rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(leaf_concrete)
+            if type_contracts::TypeInfo_tag(leaf_concrete) == lower_kinds::TY_TUPLE() {
+                aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, clone(leaf_rt_type_name))
+            }
+        }
+    }
     entry_top::mir_emit_top_level_fn_body(
         ctx,
         body_input,
-        generic_rt_tag,
-        clone(generic_rt_type_name),
+        leaf_rt_tag,
+        clone(leaf_rt_type_name),
         clone(generic_rt_type_name),
         clone(decl_name),
         param_count,

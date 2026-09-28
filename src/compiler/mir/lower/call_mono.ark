@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
+use std::prelude::{byte_at, clone, contains, eq, index_of, starts_with, substring, String_from}
 use std::text
 use mir::lower::call_type_vec
 use mir::lower::ctx_fn_mono
@@ -10,7 +10,7 @@ use mir::mono
 use mir::value_types
 use wasm::sections_types_gc_phase7
 fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
-    let mut resolved = clone(rewritten)
+    let mut resolved = concretize_var_owner_call_target(ctx, clone(rewritten))
     let mut mono_resolved_by_type = false
     if first_arg_idx >= 0 {
         let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
@@ -67,6 +67,37 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
     }
     resolved = concretize_vec_ctor_projection(ctx, resolved)
     resolved = resolve_format_debug_mono_target(ctx, clone(resolved), first_arg_idx)
+    resolved
+}
+
+// `Var::method` callees (`T::cmp`, `K::cmp`) inside a monomorphized body
+// keep the type-variable owner because the enclosing instance binds it
+// only in the type-param map, not in the local type names. Bind the
+// owner through that map (T -> i32) so the concrete impl method
+// resolves; owners that are not bound vars, or whose binding does not
+// name an emitted function, keep the symbolic spelling for the
+// existing fallback chain.
+fn concretize_var_owner_call_target(ctx: LowerCtx, resolved: String) -> String {
+    let sep = index_of(clone(resolved), String_from("::"))
+    if sep <= 0 {
+        return resolved
+    }
+    let first = byte_at(clone(resolved), 0)
+    if first != 63 && (first < 65 || first > 90) {
+        return resolved
+    }
+    let owner = substring(clone(resolved), 0, sep)
+    let concrete = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(owner))
+    if len(concrete) == 0 {
+        return resolved
+    }
+    let candidate = text::concat(
+        clone(concrete),
+        substring(clone(resolved), sep, len(resolved))
+    )
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(candidate)) {
+        return candidate
+    }
     resolved
 }
 

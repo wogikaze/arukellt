@@ -1,4 +1,4 @@
-use std::prelude::{clone}
+use std::prelude::{clone, len, byte_at}
 use typechecker::names
 use typechecker::kinds
 use typechecker::contract_type_constructors
@@ -15,9 +15,16 @@ fn type_info_named(tag: i32, name: String) -> TypeInfo {
 }
 
 fn resolve_type_name(name: String) -> TypeInfo {
-    // Type identity is the declared leaf name: `mod::T` in an annotation
-    // refers to the same type as `T`, matching names::unqualified_type_name
-    // on the method-lookup side.
+    // Qualified spellings split by owner kind. An uppercase or `?` owner
+    // is a type-level projection (`Self::Item`, `I::Item`,
+    // `VecIter<i32>::Item`) whose full spelling must survive so
+    // normalize_projection_ty and resolve_trait_method_type can reduce it
+    // through the impl's associated types. A lowercase owner is a module
+    // path: `mod::T` refers to the same type as `T`, matching
+    // names::unqualified_type_name on the method-lookup side.
+    if projection_owner_keeps_qualifier(clone(name)) {
+        return type_info_named(commands::TY_STRUCT(), name)
+    }
     let leaf = names::unqualified_type_name(name)
     let primitive = type_name_primitives::resolve_primitive_type_name(clone(leaf))
     if contract_type_access::TypeInfo_tag(primitive) != commands::TY_UNKNOWN() {
@@ -32,4 +39,19 @@ fn resolve_type_name(name: String) -> TypeInfo {
         return alias
     }
     type_info_named(commands::TY_STRUCT(), leaf)
+}
+
+// True when `name` is an `Owner::Assoc` spelling whose owner denotes a
+// type-level entity — a `?T` type variable, `Self`, or a PascalCase
+// constructor — rather than a lowercase module path segment.
+fn projection_owner_keeps_qualifier(name: String) -> bool {
+    let mut i = len(name) - 2
+    while i >= 0 {
+        if byte_at(clone(name), i) == 58 && byte_at(clone(name), i + 1) == 58 {
+            let first = byte_at(name, 0)
+            return first == 63 || (first >= 65 && first <= 90)
+        }
+        i = i - 1
+    }
+    false
 }
