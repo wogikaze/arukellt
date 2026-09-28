@@ -248,6 +248,15 @@ adrs = ["ADR-082"]
 status = "verified"
 
 [[rules]]
+id = "match_variant_payload_subpatterns"
+domain = "evaluation"
+statement = "A variant pattern matches only when its tag matches and every non-binding payload sub-pattern — literal, string, unit-variant name, tuple, or nested variant — compares equal against the extracted payload field; composite children still bind their inner identifiers, or-pattern alternatives carry their own payload conditions, and struct sub-patterns in payload position are a compile-time diagnostic rather than a silently skipped check."
+fixtures = ["match_extensions/variant_payload_subpat.ark"]
+diagnostics = ["diagnostics/variant_payload_struct_subpat.ark"]
+adrs = ["ADR-082"]
+status = "verified"
+
+[[rules]]
 id = "trait_inherent_dispatch"
 domain = "trait"
 statement = "Inherent impl methods resolve statically and observe receiver/argument semantics identically on both backends."

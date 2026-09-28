@@ -676,6 +676,16 @@ compile-time diagnostic, as are nested composite alternatives
 (#901). Payload sub-patterns that are not bindings, such as
 Shape::Circle(_), are permitted.
 
+A variant pattern's payload sub-patterns participate in arm selection,
+not only in coverage accounting (#902). After the tag compares equal,
+each non-binding child — a literal, a unit-variant name, a tuple, or a
+nested variant — is compared against the extracted payload field, so
+Some(5) does not match Some(7). Composite children still introduce
+bindings for their inner identifiers (Some((k, _)) binds k; Some(Some(v))
+binds v). A struct sub-pattern inside a variant payload is not yet
+implemented and is a compile-time diagnostic rather than a tag-only
+match.
+
 ### 3.12 Block Expression
 
 <!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
