@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T00:15:27Z",
+  "generated_at": "2026-09-28T00:28:11Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -549,6 +549,23 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": 872
+      }
+    },
+    {
+      "id": "899",
+      "path": "899-non-catchall-last-arm-unmatched-divergence.md",
+      "title": "899 — 非 catchall last arm が非マッチ時に GC/linear で発散",
+      "track": "language-v2",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 875
       }
     },
     {

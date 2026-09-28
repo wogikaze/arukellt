@@ -34,6 +34,7 @@ graph LR
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I880["880 880 — Language v2 最終 close audit を実施する"]
   I891["891 891 — mutable-borrow capture escape の env cell 昇格"]
+  I899["899 899 — 非 catchall last arm が非マッチ時に GC/linear で発散"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
@@ -106,6 +107,7 @@ graph LR
 - **851** depends on: 827; blocks: 850
 - **880** depends on: 877, 878, 879; blocks: 852
 - **891** depends on: none; blocks: none
+- **899** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
