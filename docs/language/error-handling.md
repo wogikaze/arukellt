@@ -90,7 +90,7 @@ panic(String_from("unreachable"))
 
 現行 stdlib wrapper では、たとえば以下のような形が多いです。
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 Result<String, String>
 Result<(), String>

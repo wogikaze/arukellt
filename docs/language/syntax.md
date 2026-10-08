@@ -37,7 +37,7 @@ fn main() -> i32 {
 
 旧来の `import` は移行期間の互換構文です。
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 import math
 import utils as u
@@ -98,7 +98,7 @@ semicolon による group 終端の診断例は [`fn_multiclause_semicolon_bound
 
 ### if
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 let label = if x > 0 {
     String_from("positive")
@@ -109,7 +109,7 @@ let label = if x > 0 {
 
 ### while / loop
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 while x < 10 {
     x = x + 1
@@ -124,7 +124,7 @@ loop {
 
 ### for
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 for i in 0..10 {
     println(to_string(i))
@@ -141,7 +141,7 @@ for item in values(v) {
 
 共通で安全なのは関数呼び出し形式です。
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 push(v, 42)
 let n = len(v)
@@ -156,7 +156,7 @@ let text = to_string(n)
 
 パターンマッチの基本的な使い方:
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 match value {
     0 => String_from("zero"),

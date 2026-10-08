@@ -69,7 +69,7 @@ API 一覧は [spec.md §9.10–9.11](spec.md#910-option-prelude) を参照し�
 
 よく使う helper:
 
-<!-- skip-doc-check kind="grammar-fragment" reason="syntax/notation sketch with metavariables; not a runnable program" -->
+<!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 unwrap(x)
 unwrap_or(x, 0)
