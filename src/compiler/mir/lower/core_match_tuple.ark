@@ -18,7 +18,7 @@ use mir::lower::core_match_payload_bind_core
 use mir::lower::core_match_payload_info
 use mir::lower::core_match_patterns
 use mir::lower::core_match_subpat
-use mir::lower::match
+use mir::lower::match_arms
 use mir::lower::match_payload_prepare
 use mir::lower::stmt_let_tuple
 use mir::value_types
@@ -94,7 +94,7 @@ fn core_emit_tuple_elem_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, sub: C
     if core_expr_shape_patterns::mir_core_expr_is_pat_literal(sub) {
         let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
         if core_match_patterns::mir_core_pat_is_string_literal(sub) {
-            let _str_cmp = match::mir_emit_string_pattern_compare_text(ctx, elem_local, core_expr_shape_accessors::mir_core_expr_text(sub))
+            let _str_cmp = match_arms::mir_emit_string_pattern_compare_text(ctx, elem_local, core_expr_shape_accessors::mir_core_expr_text(sub))
             return true
         }
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(elem_local))

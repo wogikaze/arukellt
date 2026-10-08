@@ -13,7 +13,7 @@ use mir::inst_local_set
 use mir::inst_op
 use mir::inst_structured_control
 use mir::opcodes
-use mir::lower::match
+use mir::lower::match_arms
 use mir::lower::match_payload_fields
 use mir::lower::match_payload_prepare
 use mir::lower::stmt_let_tuple
@@ -74,8 +74,8 @@ fn mir_variant_pat_has_checked_children(ctx: LowerCtx, pat: AstNode) -> bool {
 // a parent tag-true branch).
 fn mir_emit_subpat_cond(ctx: LowerCtx, pat: AstNode, val_idx: i32) -> i32 {
     if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_LITERAL()) {
-        if match::mir_pat_is_string_literal(pat) {
-            let cmp = match::mir_emit_string_pattern_compare(ctx, val_idx, pat)
+        if match_arms::mir_pat_is_string_literal(pat) {
+            let cmp = match_arms::mir_emit_string_pattern_compare(ctx, val_idx, pat)
             ctx_emit(ctx, inst_local_get::MirInst_local_get(cmp))
             return cmp
         }

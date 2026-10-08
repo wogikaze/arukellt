@@ -32,6 +32,8 @@ struct TypeEnv {
     trait_methods: Vec<TraitMethodEntry>,
     struct_defs: Vec<StructInfo>,
     fn_sig_index: NameIndex,
+    const_names: Vec<String>,
+    const_types: Vec<TypeInfo>,
     current_fn_name: String,
     current_fn_type_params: Vec<String>,
     current_fn_bounds: Vec<TypeParamBounds>,
@@ -60,6 +62,8 @@ fn TypeEnv_new() -> TypeEnv {
         trait_methods: Vec::new<TraitMethodEntry>(),
         struct_defs: Vec::new<StructInfo>(),
         fn_sig_index: name_index::NameIndex_new(0),
+        const_names: Vec::new<String>(),
+        const_types: Vec::new<TypeInfo>(),
         current_fn_name: String_new(),
         current_fn_type_params: Vec::new<String>(),
         current_fn_bounds: Vec::new<TypeParamBounds>(),
@@ -92,6 +96,39 @@ fn type_env_release_tracked_bindings(env: TypeEnv) {
     env.tracked_binding_spans_start = Vec::new<i32>()
     env.tracked_binding_spans_end = Vec::new<i32>()
     env.tracked_binding_used = Vec::new<i32>()
+}
+
+// Const decls register a nullary FnSig so `mod::K` paths resolve, but that
+// shape is indistinguishable from a real `fn() -> T`. The declared type is
+// kept on a side table so expression inference can type a bare const ident
+// as its value type instead of a function signature.
+fn type_env_register_const(env: TypeEnv, name: String, const_type: TypeInfo) {
+    push(env.const_names, name)
+    push(env.const_types, const_type)
+}
+
+fn type_env_const_type(env: TypeEnv, name: String) -> TypeInfo {
+    let count = len(env.const_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(env.const_names, i), clone(name)) {
+            return get_unchecked(env.const_types, i)
+        }
+        i = i + 1
+    }
+    TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
+}
+
+fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
+    let count = len(env.const_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(env.const_names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn type_env_finalize_unused_bindings(env: TypeEnv) {

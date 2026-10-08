@@ -4,6 +4,7 @@ use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::associated_types
 use typechecker::contract_fn_sig
+use typechecker::contract_env_record
 use typechecker::contract_type_access
 use typechecker::kinds
 use typechecker::sigs
@@ -18,7 +19,16 @@ fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
             push(fn_sigs, sigs::fn_sig_from_fn_decl(node))
         }
         if ast_decl_predicates::node_is_const_decl(node) {
-            push(fn_sigs, sigs::fn_sig_from_const_decl(node))
+            let const_sig = sigs::fn_sig_from_const_decl(node)
+            // Consts share the nullary-FnSig shape with `fn() -> T`; record
+            // the declared value type so expression inference does not
+            // mistake a bare const name for a function value.
+            contract_env_record::type_env_register_const(
+                env,
+                ast_access::node_text(node),
+                contract_fn_sig::FnSig_return_type(const_sig)
+            )
+            push(fn_sigs, const_sig)
         }
         if ast_decl_predicates::node_is_impl_decl(node) {
             collect_impl_method_sigs(fn_sigs, node, env)

@@ -158,7 +158,7 @@ fn register_pub_use_reexports(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mut mi = 0
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
-        collect_pub_use_edges(m, modules::module_name(m), edge_targets, edge_sources)
+        collect_pub_use_edges(m, modules::module_name(m), modules, edge_targets, edge_sources)
         mi = mi + 1
     }
     let edge_count = len(edge_targets)
@@ -183,7 +183,7 @@ fn register_pub_use_reexports(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     }
 }
 
-fn collect_pub_use_edges(m: ModuleDecls, module_name: String, edge_targets: Vec<String>, edge_sources: Vec<String>) {
+fn collect_pub_use_edges(m: ModuleDecls, module_name: String, modules: Vec<ModuleDecls>, edge_targets: Vec<String>, edge_sources: Vec<String>) {
     let mdecl_count = modules::module_decl_count(m)
     let mut di = 0
     while di < mdecl_count {
@@ -193,18 +193,41 @@ fn collect_pub_use_edges(m: ModuleDecls, module_name: String, edge_targets: Vec<
             continue
         }
         push(edge_targets, clone(module_name))
-        push(edge_sources, ast_access::node_text(d))
+        push(edge_sources, pub_use_source_key(ast_access::node_text(d), modules))
         let child_count = ast_access::node_child_count(d)
         let mut ci = 0
         while ci < child_count {
             let child = ast_access::node_child_at(d, ci)
             if ast_decl_predicates::node_is_use(child) {
                 push(edge_targets, clone(module_name))
-                push(edge_sources, ast_access::node_text(child))
+                push(edge_sources, pub_use_source_key(ast_access::node_text(child), modules))
             }
             ci = ci + 1
         }
     }
+}
+
+// "pub use" paths are written in use-path form (std::json::parser,
+// outer::inner, pkg::sub::sym) while module members register under the
+// module's short name (parser::json_get, inner::helper). Map the written
+// path onto the registered module key before collecting the edge: a trailing
+// segment that names a loaded module re-exports that module's members, and
+// otherwise the parent module's member is selected. Unknown shapes fall back
+// to the written path so two-segment module::member sources keep working.
+fn pub_use_source_key(source: String, modules: Vec<ModuleDecls>) -> String {
+    let leaf = paths::use_module_short_name(clone(source))
+    if modules::module_registered(modules, clone(leaf)) {
+        return leaf
+    }
+    let parent = paths::use_module_parent_path(clone(source))
+    if len(clone(parent)) == 0 {
+        return clone(source)
+    }
+    let parent_leaf = paths::use_module_short_name(parent)
+    if !modules::module_registered(modules, clone(parent_leaf)) {
+        return clone(source)
+    }
+    text::concat(parent_leaf, text::concat("::", leaf))
 }
 
 // True when at least one new qualified symbol was defined.

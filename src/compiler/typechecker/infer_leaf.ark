@@ -3,6 +3,7 @@ use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
 use typechecker::contract_env_record
+use typechecker::contract_type_access
 use typechecker::int_lit_suffix
 use typechecker::scope
 fn infer_leaf_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
@@ -39,7 +40,14 @@ fn infer_leaf_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
         contract_env_record::type_env_mark_binding_used(env, clone(name))
-        return scope::scope_lookup_instantiated(env, scope, name)
+        let local_ty = scope::scope_lookup_instantiated(env, scope, name)
+        if contract_type_access::TypeInfo_tag(local_ty) != commands::TY_UNKNOWN() {
+            return local_ty
+        }
+        // Module consts are registered as nullary fn sigs for `mod::K`
+        // path lookup, so they never appear in LocalScope. A bare const
+        // ident is a value: return its declared type.
+        return contract_env_record::type_env_const_type(env, name)
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
 }

@@ -17,7 +17,7 @@ use mir::lower::core_match_patterns
 use mir::lower::core_match_payload_bind_core
 use mir::lower::core_match_payload_bind_types
 use mir::lower::core_match_payload_info
-use mir::lower::match
+use mir::lower::match_arms
 use mir::lower::match_payload_prepare
 use mir::lower::stmt_let_tuple
 use mir::value_types
@@ -61,7 +61,7 @@ fn core_variant_pat_has_checked_children(ctx: LowerCtx, exprs: Vec<CoreHirExpr>,
 fn core_emit_subpat_cond(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, val_idx: i32) -> i32 {
     if core_expr_shape_patterns::mir_core_expr_is_pat_literal(pat) {
         if core_match_patterns::mir_core_pat_is_string_literal(pat) {
-            let cmp = match::mir_emit_string_pattern_compare_text(
+            let cmp = match_arms::mir_emit_string_pattern_compare_text(
                 ctx,
                 val_idx,
                 core_expr_shape_accessors::mir_core_expr_text(pat)

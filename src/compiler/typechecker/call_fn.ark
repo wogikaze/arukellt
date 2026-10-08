@@ -1,5 +1,7 @@
 use std::prelude::{byte_at, clone, eq, substring, to_string}
 use std::text
+use resolver::expr_path
+use resolver::paths
 use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
@@ -59,11 +61,30 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
             ast_access::node_child_at(node, 1)
         )
     }
+    // A function-typed local binding shadows the flat fn_sigs index:
+    // higher-order parameters such as `map_i32_i32(v, f: fn(i32) -> i32)`
+    // call `f(x)` inside their bodies and must resolve to the parameter,
+    // not to an imported module function that happens to share the bare
+    // name after signature-index flattening.
+    if ast_expr_predicates::node_is_ident(callee) {
+        let local_fn_ty = scope::scope_lookup_instantiated(env, scope, clone(callee_name))
+        if contract_type_access::TypeInfo_tag(local_fn_ty) == commands::TY_FN() {
+            return call_unknown::infer_local_function_call(
+                env,
+                scope,
+                fn_sigs,
+                enum_defs,
+                node,
+                local_fn_ty
+            )
+        }
+    }
     let mut mono_fn_name = clone(callee_name)
     let mut sig = sigs::lookup_fn_sig(env, fn_sigs, clone(callee_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         let stripped = tc_strip_module_prefix(clone(callee_name))
-        if !eq(clone(stripped), clone(callee_name)) {
+        if !eq(clone(stripped), clone(callee_name)) &&
+        !expr_path::is_builtin_type_name(paths::path_module_part(clone(callee_name))) {
             let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(stripped))
             // Imported declarations are flattened into the typecheck signature
             // index, while the source path keeps its module alias. Use the bare
@@ -96,19 +117,6 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
             )
             if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() {
                 vec_core_mono::record_vec_core_mono_for_callee(env, clone(callee_name), recv_ty)
-            }
-        }
-        if ast_expr_predicates::node_is_ident(callee) {
-            let local_ty = scope::scope_lookup_instantiated(env, scope, clone(callee_name))
-            if contract_type_access::TypeInfo_tag(local_ty) == commands::TY_FN() {
-                return call_unknown::infer_local_function_call(
-                    env,
-                    scope,
-                    fn_sigs,
-                    enum_defs,
-                    node,
-                    local_ty
-                )
             }
         }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)

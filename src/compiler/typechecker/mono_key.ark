@@ -14,6 +14,25 @@ fn mono_type_key(ty: TypeInfo) -> String {
     } else {
         base = names::type_tag_name(tag)
     }
+    // Option/Result/HashMap have no primitive tag name and used to key as
+    // `?` — the same spelling mono sites emit for unbound type variables.
+    // A concrete container arg then looks like a template spelling, so span
+    // rewrites such as `Vec::new__Option<i32>` were dropped and the call
+    // bound to the bare constructor (vec:i32 layout for Vec<Option<i32>>).
+    if eq(clone(base), "?") {
+        if tag == commands::TY_OPTION() {
+            base = "Option"
+        }
+        if tag == commands::TY_RESULT() {
+            base = "Result"
+        }
+        if tag == commands::TY_HASHMAP() {
+            base = "HashMap"
+        }
+        if tag == commands::TY_TUPLE() {
+            base = "tuple"
+        }
+    }
     let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
     if arg_count == 0 {
         return base

@@ -8,7 +8,7 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_patterns
 use mir::lower::core_match_subpat
-use mir::lower::match
+use mir::lower::match_arms
 use mir::value_types
 
 fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
@@ -27,7 +27,7 @@ fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: C
             or_cmp = core_match_subpat::core_emit_variant_subpat_flag_tagged(ctx, exprs, or_alt, scrut_idx, compare_idx)
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(or_cmp))
         } else if core_match_patterns::mir_core_pat_is_string_literal(or_alt) {
-            or_cmp = match::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(or_alt))
+            or_cmp = match_arms::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(or_alt))
         } else {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
             let alt_idx = core_match_patterns::lower_core_pattern_value(ctx, or_alt)
@@ -56,7 +56,7 @@ fn core_emit_value_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat
         return
     }
     if core_match_patterns::mir_core_pat_is_string_literal(pat) {
-        let _str_cmp = match::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(pat))
+        let _str_cmp = match_arms::mir_emit_string_pattern_compare_text(ctx, compare_idx, core_expr_shape_accessors::mir_core_expr_text(pat))
         return
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))

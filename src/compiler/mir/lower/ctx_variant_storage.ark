@@ -24,18 +24,18 @@ fn ctx_variant_push_tag(ctx: LowerCtx, name: String, tag: i32) {
     push(ctx.variant_tags, tag)
 }
 
-// Exact-name index, else the tag of the longest registered name sharing the
-// `Enum::Variant` key (module-aliased `types::WitType::Bool` -> `WitType::Bool`).
+// Exact-name index, else the index of the longest registered name sharing the
+// Enum::Variant key (module-aliased types::WitType::Bool to WitType::Bool).
+// The fallback must return the slot index, not the stored tag: callers
+// dereference it through ctx_variant_tag_at and ctx_variant_name_at, and a
+// tag value re-read as an index silently maps every qualified variant to an
+// unrelated entry (module qualified variant patterns compared as tag 0).
 fn ctx_variant_name_index(ctx: LowerCtx, name: String) -> i32 {
     let first = name_index::name_index_get(ctx.variant_name_first, clone(name))
     if first >= 0 {
         return first
     }
-    let best = name_index::name_index_get(ctx.variant_key_best, variant_enum_variant_key(name))
-    if best < 0 {
-        return 0 - 1
-    }
-    get_unchecked(ctx.variant_tags, best)
+    name_index::name_index_get(ctx.variant_key_best, variant_enum_variant_key(name))
 }
 
 /// Last two `::`-separated segments (`Enum::Variant`), or the whole name.

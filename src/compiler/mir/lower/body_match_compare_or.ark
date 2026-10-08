@@ -9,6 +9,7 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_op
 use mir::lower::match
+use mir::lower::match_arms
 use mir::lower::match_subpat
 use mir::value_types
 
@@ -50,8 +51,8 @@ fn emit_or_compare_fold(ctx: LowerCtx, pat: AstNode, compare_idx: i32, scrut_idx
             // do (#902).
             or_cmp = match_subpat::mir_emit_variant_subpat_flag_tagged(ctx, or_alt, scrut_idx, compare_idx)
             ctx_emit(ctx, inst_local_get::MirInst_local_get(or_cmp))
-        } else if match::mir_pat_is_string_literal(or_alt) {
-            or_cmp = match::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
+        } else if match_arms::mir_pat_is_string_literal(or_alt) {
+            or_cmp = match_arms::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
         } else {
             ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
             let or_pat_idx = lower_expr(ctx, or_alt)

@@ -26,18 +26,6 @@ fn mir_match_arm_has_guard(arm_child_count: i32) -> bool {
     match_arms::mir_match_arm_has_guard(arm_child_count)
 }
 
-fn mir_pat_is_string_literal(pat: AstNode) -> bool {
-    match_arms::mir_pat_is_string_literal(pat)
-}
-
-fn mir_emit_string_pattern_compare(ctx: LowerCtx, compare_idx: i32, pat: AstNode) -> i32 {
-    match_arms::mir_emit_string_pattern_compare(ctx, compare_idx, pat)
-}
-
-fn mir_emit_string_pattern_compare_text(ctx: LowerCtx, compare_idx: i32, pat_text: String) -> i32 {
-    match_arms::mir_emit_string_pattern_compare_text(ctx, compare_idx, pat_text)
-}
-
 fn mir_emit_match_guard_begin(ctx: LowerCtx) {
     match_arms::mir_emit_match_guard_begin(ctx)
 }

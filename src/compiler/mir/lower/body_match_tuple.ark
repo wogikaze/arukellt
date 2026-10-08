@@ -13,7 +13,7 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_op
 use mir::opcodes
-use mir::lower::match
+use mir::lower::match_arms
 use mir::lower::match_subpat
 use mir::lower::match_payload_fields
 use mir::lower::match_payload_prepare
@@ -92,8 +92,8 @@ fn emit_tuple_elem_condition(ctx: LowerCtx, sub: AstNode, scrut_idx: i32, elem_i
     }
     if ast_node::node_kind_is(sub, lower_kinds::NK_PAT_LITERAL()) {
         let elem_local = stmt_let_tuple::emit_tuple_element_extract(ctx, scrut_idx, elem_index, elem_count)
-        if match::mir_pat_is_string_literal(sub) {
-            let _str_cmp = match::mir_emit_string_pattern_compare(ctx, elem_local, sub)
+        if match_arms::mir_pat_is_string_literal(sub) {
+            let _str_cmp = match_arms::mir_emit_string_pattern_compare(ctx, elem_local, sub)
             return true
         }
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(elem_local))
@@ -192,8 +192,8 @@ fn emit_tuple_elem_or_condition(ctx: LowerCtx, sub: AstNode, scrut_idx: i32, ele
             // pushed to feed BIT_OR (#902).
             or_cmp = match_subpat::mir_emit_variant_subpat_flag_tagged(ctx, or_alt, elem_local, compare_idx)
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(or_cmp))
-        } else if match::mir_pat_is_string_literal(or_alt) {
-            or_cmp = match::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
+        } else if match_arms::mir_pat_is_string_literal(or_alt) {
+            or_cmp = match_arms::mir_emit_string_pattern_compare(ctx, compare_idx, or_alt)
         } else {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
             let or_pat_idx = lower_expr(ctx, or_alt)

@@ -4,6 +4,7 @@ use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::associated_types
 use typechecker::contract_fn_sig
+use typechecker::contract_env_record
 use typechecker::contract_type_access
 use typechecker::contract_type_mutation
 use typechecker::instantiate
@@ -43,8 +44,11 @@ fn constrain_generic_fn_args(
         // TY_UNKNOWN because top-level functions are not scope bindings.
         // Recover the declared signature so `fn(T) -> U` parameters bind
         // the item type variables from the callee's own signature (#860).
+        // Const decls share the nullary fn-sig shape but are values, not
+        // callbacks: `set(v, 0, K)` must not mint a fn-typed argument.
         if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() &&
-        ast_expr_predicates::node_is_ident(arg_node) {
+        ast_expr_predicates::node_is_ident(arg_node) &&
+        !contract_env_record::type_env_is_const_name(env, ast_access::node_text(arg_node)) {
             let fn_ty = fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(arg_node))
             if contract_type_access::TypeInfo_tag(fn_ty) == commands::TY_FN() {
                 arg_ty = fn_ty

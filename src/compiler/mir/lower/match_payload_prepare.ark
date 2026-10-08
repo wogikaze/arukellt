@@ -8,7 +8,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
-use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_struct_lookup_index
 use mir::lower_kinds
 use mir::lower::ctx_gc_enum
 use mir::lower::call_type_fallback
@@ -428,7 +428,7 @@ fn mir_guard_ident_field_owner(ctx: LowerCtx, expr: AstNode, bind_name: String) 
     if ast_node::node_kind_is(expr, lower_kinds::NK_FIELD_ACCESS()) {
         let base = ast_node::node_child_at(expr, 0)
         if ast_node::node_kind_is(base, lower_kinds::NK_IDENT()) && eq(clone(ast_node::node_text(base)), clone(bind_name)) {
-            return ctx_struct_lookup::ctx_field_owner_struct_name(ctx, ast_node::node_text(expr))
+            return ctx_struct_lookup_index::ctx_field_owner_struct_name(ctx, ast_node::node_text(expr))
         }
     }
     let cc = ast_node::node_child_count(expr)

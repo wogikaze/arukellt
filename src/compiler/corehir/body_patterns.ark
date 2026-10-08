@@ -1,6 +1,7 @@
 use corehir::expr_factory
 use corehir::expr_builder_patterns
 use corehir::expr_predicates
+use corehir::frontend_ast_node
 use corehir::pattern_node
 
 fn corehir_build_pattern_expr(table: CoreHirBodyTable, pat: AstNode) -> i32 {
@@ -15,7 +16,7 @@ fn corehir_build_pattern_expr(table: CoreHirBodyTable, pat: AstNode) -> i32 {
         // marks cooked strings so they are not confused with int literal 0;
         // #894). CoreHirExpr has no op slot, so the mark rides in type_name
         // as the "pat:string" marker read by core match lowering.
-        let lit_type_name = if pattern_node::pattern_op(pat) == 1 { "pat:string" } else { String_new() }
+        let lit_type_name = if frontend_ast_node::corehir_node_op(pat) == 1 { "pat:string" } else { String_new() }
         let lit_expr = expr_builder_patterns::corehir_expr_pat_literal(
             pattern_node::pattern_text(pat),
             pattern_node::pattern_int_val(pat),

@@ -216,6 +216,13 @@ fn type_ann_is_name(node: AstNode, expected: String) -> bool {
 // to the same tuple:<a,b> name (#888).
 fn type_ann_tuple_local_name(node: AstNode) -> String {
     let count = type_ann_child_count(node)
+    if count == 0 {
+        // `()` in type position is unit, not a heap tuple: it lowers to i32 0
+        // in payloads (Ok(())) and scalar params. Emitting `tuple:` marks the
+        // payload GC-ref, which makes match binds cast Result<(), E> values to
+        // a ref-payload variant that Ok(()) never produces.
+        return String_from("unit")
+    }
     let mut name = String_from("tuple:")
     let mut i = 0
     while i < count {

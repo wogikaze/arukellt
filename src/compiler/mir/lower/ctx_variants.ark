@@ -9,11 +9,15 @@ fn ctx_strip_first_path_segment(name: String) -> String {
     substring(name, pos + 2, len(name))
 }
 
-// Resolve `module::Enum::Variant` to the layout name `Enum::Variant` used by
-// MIR struct/enum lowering. Prefer exact matches, then strip leading segments.
+// Resolve module::Enum::Variant spellings to the registered layout name
+// Enum::Variant used by MIR struct/enum lowering. The lookup already
+// normalizes through the Enum::Variant key index, so return the registered
+// spelling rather than the caller's text; downstream layout/GC lookups are
+// keyed by the registered name and miss on module-prefixed spellings.
 fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
-    if ctx_variant_storage::ctx_variant_name_index(ctx, clone(name)) >= 0 {
-        return clone(name)
+    let exact = ctx_variant_storage::ctx_variant_name_index(ctx, clone(name))
+    if exact >= 0 {
+        return ctx_variant_storage::ctx_variant_name_at(ctx, exact)
     }
     let mut rest = clone(name)
     while true {
@@ -21,8 +25,9 @@ fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
         if len(next) == 0 {
             return String_new()
         }
-        if ctx_variant_storage::ctx_variant_name_index(ctx, clone(next)) >= 0 {
-            return next
+        let idx = ctx_variant_storage::ctx_variant_name_index(ctx, clone(next))
+        if idx >= 0 {
+            return ctx_variant_storage::ctx_variant_name_at(ctx, idx)
         }
         rest = next
     }

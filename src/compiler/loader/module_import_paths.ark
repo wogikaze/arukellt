@@ -12,6 +12,19 @@ fn push_import_decl_paths(paths: Vec<String>, decl: AstNode) {
         } else {
             push(paths, decl_path)
         }
+        // Destructure children may name submodules ("use std::text::{string}").
+        // Push each child path too: module children resolve to real files while
+        // function children ("use std::text::string::{split}") fail to load
+        // silently — stdlib reads return Err and local reads fall back to the
+        // parent module before reporting an error.
+        let mut ci = 0
+        while ci < num_children {
+            let child = ast_access::node_child_at(decl, ci)
+            if ast_decl_predicates::node_is_use(child) {
+                push(paths, ast_access::node_text(child))
+            }
+            ci = ci + 1
+        }
         return
     }
     push(paths, decl_path)

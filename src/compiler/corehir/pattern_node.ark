@@ -13,10 +13,6 @@ fn pattern_int_val(node: AstNode) -> i32 {
     frontend_ast_node::corehir_node_int_val(node)
 }
 
-fn pattern_op(node: AstNode) -> i32 {
-    frontend_ast_node::corehir_node_op(node)
-}
-
 fn pattern_child_count(node: AstNode) -> i32 {
     frontend_ast_node::corehir_node_child_count(node)
 }
