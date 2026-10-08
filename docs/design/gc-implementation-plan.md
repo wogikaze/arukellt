@@ -200,8 +200,8 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 | コンパイラ line limits | `wc -l src/compiler/wasm/intrinsic_string_*.ark src/compiler/wasm/string_gc_helpers.ark` | ✅ 249行以内 |
 | GC 全フィクスチャ通過 | `python3 scripts/manager.py verify full 2>&1 \| tail -5` | ⏳ 未達 |
 | T1 パス維持 (定期) | `python3 scripts/manager.py verify quick 2>&1 \| tail -5` | 🟡 定期確認 |
-| gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-gc -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ⏳ 未着手 |
-| Benchmark 比較 | `python3 scripts/util/benchmark_runner.py --mode full && python3 scripts/util/benchmark_runner.py --mode compare` | ⏳ 未着手 |
+| gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-gc -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ✅ `metadata.code.gc_hint` が struct/enum レイアウト表と hint entry 表を出力（bootstrap overlay で gc_hint pass を有効化、`gc_hint_short_lived.ark` で entry 記録済み） |
+| Benchmark 比較 | `python3 scripts/util/benchmark_runner.py --mode full && python3 scripts/util/benchmark_runner.py --mode compare` | ✅ T1/T3 full run を `current-wasm32.json` / `current-wasm32-gc.json` と `docs/history/benchmarks/benchmark-686-*.md` に記録。比較サマリは `docs/process/benchmark-results.md` |
 
 ## 主要な修正点
 
