@@ -105,10 +105,12 @@ fn gc_hint_is_constructor_initialization(inst: MirInstDraft, local: i32) -> bool
 }
 
 fn gc_hint_is_local_reload(inst: MirInstDraft, local: i32) -> bool {
-    // Ident lowering emits local.get_to(idx, idx) before field access. That
-    // reload is not a second consumer of the allocation.
+    // Ident lowering emits local.get_to(idx, idx) before field access. Only
+    // that self-copy is transparent; a get that moves the value into a
+    // different local is a real use of the allocation.
     inst_draft::MirInstDraft_op(inst) == opcodes::MIR_LOCAL_GET() &&
-    inst_draft::MirInstDraft_arg0(inst) == local
+    inst_draft::MirInstDraft_arg0(inst) == local &&
+    inst_draft::MirInstDraft_dest(inst) == local
 }
 
 fn gc_hint_resolve_use_target(insts: Vec<MirInstDraft>, from: i32, to: i32, local: i32) -> GcHintUseTarget {

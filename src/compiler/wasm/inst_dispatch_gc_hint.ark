@@ -1,12 +1,21 @@
 use mir::inst_accessors_shape
 use mir::inst_gc_hint
 use mir::types
+use wasm::ctx_gc_hint
+use wasm::ctx_record
+use wasm::writer_core
 
 fn try_emit_gc_hint_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     if op != inst_gc_hint::mir_gc_hint_opcode() {
         return false
     }
-    // GC hints are recorded via metadata.code.gc_hint; no Wasm bytecode.
+    // GC hints emit no Wasm bytecode; record the code-section offset where the
+    // annotated instruction begins so metadata.code.gc_hint can point at it.
+    ctx_gc_hint::SelfEmitCtx_push_gc_hint_offset(
+        ctx,
+        ctx_record::SelfEmitCtx_current_func_idx(ctx),
+        writer_core::writer_size(w)
+    )
     true
 }

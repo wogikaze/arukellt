@@ -1,31 +1,51 @@
-use std::prelude::{byte_at}
 use wasm::ctx_gc_hint
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
+use wasm::writer_string
+
+// metadata.code.gc_hint, version 1:
+//   struct_count:u32 then per entry { name:string, sig:string }
+//   variant_count:u32 then per entry { name:string, sig:string }
+//   hint_count:u32 then per entry { func_idx:u32, code_offset:u32 }
+// The sig strings reuse the type-section layout encoding (sections_types_gc).
+// Emitted on every wasm32-gc module so consumers can resolve GC layouts even
+// when no MIR gc_hint annotation was produced.
 fn emit_gc_hint_custom_section(out: WasmWriter, ctx: SelfEmitCtx) {
-    let count = ctx_gc_hint::SelfEmitCtx_gc_hint_count(ctx)
-    if count <= 0 {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return
     }
     let payload = writer_core::WasmWriter_new()
-    emit_gc_hint_section_name(payload, "metadata.code.gc_hint")
+    writer_string::emit_string(payload, "metadata.code.gc_hint")
+    writer_core::emit_leb128_u(payload, 1)
+    emit_gc_layout_table(payload, ctx_record::SelfEmitCtx_gc_struct_names(ctx), ctx_record::SelfEmitCtx_gc_struct_sigs(ctx))
+    emit_gc_layout_table(payload, ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx), ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx))
+    emit_gc_hint_entries(payload, ctx)
+    writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
+}
+
+fn emit_gc_layout_table(payload: WasmWriter, names: Vec<String>, sigs: Vec<String>) {
+    let count = len(names)
+    writer_core::emit_leb128_u(payload, count)
+    let mut i = 0
+    while i < count {
+        writer_string::emit_string(payload, get_unchecked(names, i))
+        let sig = if i < len(sigs) { get_unchecked(sigs, i) } else { String_new() }
+        writer_string::emit_string(payload, sig)
+        i = i + 1
+    }
+}
+
+fn emit_gc_hint_entries(payload: WasmWriter, ctx: SelfEmitCtx) {
+    let count = ctx_gc_hint::SelfEmitCtx_gc_hint_count(ctx)
     writer_core::emit_leb128_u(payload, count)
     let offsets = ctx_gc_hint::SelfEmitCtx_gc_hint_offsets(ctx)
     let mut i = 0
     while i < count {
-        writer_core::emit_leb128_u(payload, get_unchecked(offsets, i))
+        writer_core::emit_leb128_u(payload, get_unchecked(offsets, i * 2))
+        writer_core::emit_leb128_u(payload, get_unchecked(offsets, i * 2 + 1))
         i = i + 1
-    }
-    writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
-}
-
-fn emit_gc_hint_section_name(w: WasmWriter, name: String) {
-    let nlen = len(name)
-    writer_core::emit_leb128_u(w, nlen)
-    let mut ci = 0
-    while ci < nlen {
-        writer_core::emit_byte(w, byte_at(name, ci))
-        ci = ci + 1
     }
 }
