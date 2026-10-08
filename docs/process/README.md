@@ -21,6 +21,7 @@
 |------|-------|---------|
 | [agent-harness.md](agent-harness.md) | Agent Harness Guide | This is a short pointer document for developers and agents working in this repository. |
 | [benchmark-plan.md](benchmark-plan.md) | Benchmark Plan — Governance, Run Modes, and Baseline Rules | This document is the authoritative process reference for the Arukellt benchmark suite. It defines run modes, baseline update rules, and the governance contract |
+| [benchmark-results.md](benchmark-results.md) | Benchmark Results — T1 linear vs T3 Wasm GC (#686 Phase 4) | T1 (linear memory) と T3 (Wasm GC) の benchmark 結果の記録先と比較サマリ。 測定は 2026-10-08、selfhost s2 コンパイラ（bootstrap overlay で gc_hint pass が -O2 に有効化）、 python3 scripts/util/benchmark_runner.py --mode full --target <t>、 |
 | [board.md](board.md) | Arukellt Board | Arukellt Board は、issue / ADR / ドキュメントを横断して追跡できる読み取り専用のカンバン SPA です。複数軸切り替え、全文検索、Mermaid 依存グラフ、エージェント向けコピー、n ペイン分割タブを備えています。 |
 | [bootstrap-verification.md](bootstrap-verification.md) | Bootstrap Verification | Current-first. This page is a thin pointer to the ADR-029 verification contract. Do not treat Rust Stage 0 documents as current. |
 | [ci-required-checks.md](ci-required-checks.md) | CI required checks (quality closed loop) | Policy: ADR-047. |
