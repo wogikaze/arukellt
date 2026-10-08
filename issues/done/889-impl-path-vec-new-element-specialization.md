@@ -44,10 +44,10 @@ element type.
 
 ## Acceptance
 
-- [ ] `Vec::new<i64>`/`Vec::new<f64>` under `use std::collections::vec`
+- [x] `Vec::new<i64>`/`Vec::new<f64>` under `use std::collections::vec`
       produce element-typed backing arrays on wasm32-gc
-- [ ] push/get/pop on such vecs run identically on wasm32-gc and wasm32
-- [ ] positive fixture covering impl-path i64/f64 vec on both backends
+- [x] push/get/pop on such vecs run identically on wasm32-gc and wasm32
+- [x] positive fixture covering impl-path i64/f64 vec on both backends
 
 ## Required evidence
 

@@ -39,9 +39,9 @@ RFC-011: **8–45 parity**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-20 (enum payload branch parity)
 

@@ -24,11 +24,11 @@ RFC-011: **8 (fallback lowering)**。
 
 ## Acceptance
 
-- [ ] struct/enum/Option/Result の fallback layout を実装する
-- [ ] closure env を fallback heap へ lower する
-- [ ] Vec/String/HashMap を fallback runtime に接続する
-- [ ] 共有・循環参照を reject せず実行する
-- [ ] Wasm GC backend と同じ move/borrow semantics を保つ
+- [x] struct/enum/Option/Result の fallback layout を実装する
+- [x] closure env を fallback heap へ lower する
+- [x] Vec/String/HashMap を fallback runtime に接続する
+- [x] 共有・循環参照を reject せず実行する
+- [x] Wasm GC backend と同じ move/borrow semantics を保つ
 
 ## Required evidence
 
@@ -39,9 +39,9 @@ RFC-011: **8 (fallback lowering)**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-20 (aggregate allocation boundary)
 

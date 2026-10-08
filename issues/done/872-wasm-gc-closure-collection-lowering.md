@@ -24,11 +24,11 @@ RFC-011: **8 (closure/collection)**。
 
 ## Acceptance
 
-- [ ] closure env を Wasm GC managed representation にする
-- [ ] Vec/String/HashMap の managed parts を GC representation にする
-- [ ] generic element boxing policy を固定する
-- [ ] runtime helper 依存を最小化する
-- [ ] representative compile/run/validate fixture を追加する
+- [x] closure env を Wasm GC managed representation にする
+- [x] Vec/String/HashMap の managed parts を GC representation にする
+- [x] generic element boxing policy を固定する
+- [x] runtime helper 依存を最小化する
+- [x] representative compile/run/validate fixture を追加する
 
 ## Required evidence
 
@@ -39,9 +39,9 @@ RFC-011: **8 (closure/collection)**。
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-20 (closure annotation typing prerequisite)
 

@@ -39,11 +39,11 @@ behavior) must be specified explicitly or declared out of scope.
 
 ## Acceptance
 
-- [ ] Entry enumeration API surface を trait/method 形で固定する
-- [ ] 全 supported pair で entry iteration が `wasm32-gc` と `wasm32`
+- [x] Entry enumeration API surface を trait/method 形で固定する
+- [x] 全 supported pair で entry iteration が `wasm32-gc` と `wasm32`
       の両 backend で compile/validate/run する
-- [ ] live-order / mutation-during-iteration の semantics を docs 化する
-- [ ] positive fixture + negative/diagnostic fixture
+- [x] live-order / mutation-during-iteration の semantics を docs 化する
+- [x] positive fixture + negative/diagnostic fixture
 
 ## Required evidence
 
@@ -54,9 +54,9 @@ behavior) must be specified explicitly or declared out of scope.
 
 ## False-done guard
 
-- [ ] Acceptance の一部だけで done にしない
-- [ ] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
-- [ ] 親 #852 の担当項目を evidence 付きで更新する
+- [x] Acceptance の一部だけで done にしない
+- [x] TODO/skip/hack を残す場合は tracking issue + removal condition を必須にする
+- [x] 親 #852 の担当項目を evidence 付きで更新する
 
 ## Progress receipt — 2026-09-27 (issue closing)
 
