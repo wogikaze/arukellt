@@ -2,11 +2,11 @@ use std::test
 
 fn main() {
     let mut v: Vec<i64> = Vec::new<i64>()
-    let a: i64 = 100
-    let b: i64 = 200
+    let a: i64 = 100i64
+    let b: i64 = 200i64
     push(v, a)
     push(v, b)
     test::assert_eq_i32(len(v), 2)
-    test::assert_eq_i64(get_unchecked(v, 0), 100)
-    test::assert_eq_i64(get_unchecked(v, 1), 200)
+    test::assert_eq_i64(get_unchecked(v, 0), 100i64)
+    test::assert_eq_i64(get_unchecked(v, 1), 200i64)
 }

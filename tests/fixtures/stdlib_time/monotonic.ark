@@ -10,7 +10,7 @@ fn main() {
     }
     let t2 = clock::monotonic_now()
     let elapsed = time::duration_ns(t1, t2)
-    assert(elapsed >= 0)
+    assert(elapsed >= 0i64)
     stdio::println("monotonic ok")
 }
 // Do some work

@@ -1,4 +1,5 @@
 //! Comparison utilities for core scalar values.
+use std::core
 use std::prelude::{byte_at}
 /// Trait for types that support equality comparison.
 ///

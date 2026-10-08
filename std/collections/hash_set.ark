@@ -1,86 +1,86 @@
 //! std::collections::hash_set — HashSet API
 //!
 //! Re-exports the HashSet operations from std::collections::hash.
-//! HashSet<i32> is backed by the monomorphic hash::hashset_* functions.
+//! Vec<i32> is backed by the monomorphic hash::hashset_* functions.
 
 use std::collections::hash
 use std::collections::hash_string
 
-/// Create a new HashSet<i32>.
-pub fn hashset_i32_new() -> HashSet<i32> {
+/// Create a new Vec<i32>.
+pub fn hashset_i32_new() -> Vec<i32> {
     hash::hashset_new()
 }
 
-/// Insert a value into a HashSet<i32>. Returns true if the value was newly inserted.
-pub fn hashset_i32_insert(s: HashSet<i32>, value: i32) -> bool {
+/// Insert a value into a Vec<i32>. Returns true if the value was newly inserted.
+pub fn hashset_i32_insert(s: Vec<i32>, value: i32) -> bool {
     hash::hashset_insert(s, value)
 }
 
-/// Returns true if the HashSet<i32> contains the value.
-pub fn hashset_i32_contains(s: HashSet<i32>, value: i32) -> bool {
+/// Returns true if the Vec<i32> contains the value.
+pub fn hashset_i32_contains(s: Vec<i32>, value: i32) -> bool {
     hash::hashset_contains(s, value)
 }
 
-/// Remove a value from the HashSet<i32>. Returns true if the value was present.
-pub fn hashset_i32_remove(s: HashSet<i32>, value: i32) -> bool {
+/// Remove a value from the Vec<i32>. Returns true if the value was present.
+pub fn hashset_i32_remove(s: Vec<i32>, value: i32) -> bool {
     hash::hashset_remove(s, value)
 }
 
-/// Return the number of elements in the HashSet<i32>.
-pub fn hashset_i32_len(s: HashSet<i32>) -> i32 {
+/// Return the number of elements in the Vec<i32>.
+pub fn hashset_i32_len(s: Vec<i32>) -> i32 {
     hash::hashset_len(s)
 }
 
-/// Returns true if the HashSet<i32> is empty.
-pub fn hashset_i32_is_empty(s: HashSet<i32>) -> bool {
+/// Returns true if the Vec<i32> is empty.
+pub fn hashset_i32_is_empty(s: Vec<i32>) -> bool {
     hash::hashset_is_empty(s)
 }
 
-/// Convert the HashSet<i32> to a Vec<i32>.
-pub fn hashset_i32_to_vec(s: HashSet<i32>) -> Vec<i32> {
+/// Convert the Vec<i32> to a Vec<i32>.
+pub fn hashset_i32_to_vec(s: Vec<i32>) -> Vec<i32> {
     hash::hashset_to_vec(s)
 }
 
-/// Return the union of two HashSet<i32>s.
-pub fn hashset_i32_union(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> {
+/// Return the union of two Vec<i32>s.
+pub fn hashset_i32_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     hash::hashset_union(a, b)
 }
 
-/// Return the intersection of two HashSet<i32>s.
-pub fn hashset_i32_intersection(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> {
+/// Return the intersection of two Vec<i32>s.
+pub fn hashset_i32_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     hash::hashset_intersection(a, b)
 }
 
-/// Return the difference of two HashSet<i32>s (elements in a but not b).
-pub fn hashset_i32_difference(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> {
+/// Return the difference of two Vec<i32>s (elements in a but not b).
+pub fn hashset_i32_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     hash::hashset_difference(a, b)
 }
 
-/// Return the current bucket capacity of the HashSet<i32>.
-pub fn hashset_i32_capacity(s: HashSet<i32>) -> i32 {
+/// Return the current bucket capacity of the Vec<i32>.
+pub fn hashset_i32_capacity(s: Vec<i32>) -> i32 {
     hash::hashset_capacity(s)
 }
 
-/// Ensure the HashSet<i32> can hold at least `additional` more elements
+/// Ensure the Vec<i32> can hold at least `additional` more elements
 /// without exceeding the load-factor threshold.
-pub fn hashset_i32_reserve(s: HashSet<i32>, additional: i32) {
+pub fn hashset_i32_reserve(s: Vec<i32>, additional: i32) {
     hash::hashset_reserve(s, additional)
 }
 
-/// Shrink the HashSet<i32> to the minimum capacity preserving the load-factor
+/// Shrink the Vec<i32> to the minimum capacity preserving the load-factor
 /// invariant.
-pub fn hashset_i32_shrink_to_fit(s: HashSet<i32>) {
+pub fn hashset_i32_shrink_to_fit(s: Vec<i32>) {
     hash::hashset_shrink_to_fit(s)
 }
 
-/// Remove all elements from the HashSet<i32>, resetting size to 0.
-pub fn hashset_i32_clear(s: HashSet<i32>) {
+/// Remove all elements from the Vec<i32>, resetting size to 0.
+pub fn hashset_i32_clear(s: Vec<i32>) {
     hash::hashset_clear(s)
 }
 
-/// Extend a HashSet<i32> with all elements from another set (`other`).
+/// Extend a Vec<i32> with all elements from another set (`other`).
 /// Mirrors Rust's `HashSet::extend`.
-pub fn hashset_i32_extend(s: HashSet<i32>, other: HashSet<i32>) {
+pub fn hashset_i32_extend(s: Vec<i32>, other: Vec<i32>) {
     hash::hashset_extend(s, other)
 }
 

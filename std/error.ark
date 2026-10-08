@@ -5,6 +5,10 @@
 //! protocol is provisional while typed source objects and a dynamic error ABI
 //! remain outside the static-dispatch language contract.
 
+// The Display impl for String lives in std::core::convert; importing it keeps
+// impl Error for String inside its declared supertrait boundary.
+use std::core::convert
+
 /// A displayable error that can expose a human-readable immediate cause.
 ///
 /// `source` returns the rendered cause instead of a `dyn Error` object because

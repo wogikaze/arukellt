@@ -19,8 +19,8 @@ fn main() {
     assert(written == 5)
 
     // Seek to position 2
-    let pos1: i64 = io::seek_to(buf, 2)
-    assert(pos1 == 2)
+    let pos1: i64 = io::seek_to(buf, 2i64)
+    assert(pos1 == 2i64)
 
     // Read from position 2 -> should get 'C' (67)
     let r1: Vec<i32> = io::read_bytes(buf, 1)
@@ -28,8 +28,8 @@ fn main() {
     assert(get_unchecked(r1, 0) == 67)
 
     // Seek back to position 0
-    let pos2: i64 = io::seek_to(buf, 0)
-    assert(pos2 == 0)
+    let pos2: i64 = io::seek_to(buf, 0i64)
+    assert(pos2 == 0i64)
 
     // Read from position 0 -> should get 'A' (65)
     let r2: Vec<i32> = io::read_bytes(buf, 1)
@@ -37,8 +37,8 @@ fn main() {
     assert(get_unchecked(r2, 0) == 65)
 
     // Seek to position 4 (last byte)
-    let pos3: i64 = io::seek_to(buf, 4)
-    assert(pos3 == 4)
+    let pos3: i64 = io::seek_to(buf, 4i64)
+    assert(pos3 == 4i64)
 
     // Read from position 4 -> should get 'E' (69)
     let r3: Vec<i32> = io::read_bytes(buf, 1)
@@ -46,16 +46,16 @@ fn main() {
     assert(get_unchecked(r3, 0) == 69)
 
     // Seek past end should clamp to end (5)
-    let pos4: i64 = io::seek_to(buf, 100)
-    assert(pos4 == 5)
+    let pos4: i64 = io::seek_to(buf, 100i64)
+    assert(pos4 == 5i64)
 
     // Reading at end should return 0 bytes
     let r4: Vec<i32> = io::read_bytes(buf, 1)
     assert(len(r4) == 0)
 
     // Seek to negative should clamp to 0
-    let pos5: i64 = io::seek_to(buf, -1)
-    assert(pos5 == 0)
+    let pos5: i64 = io::seek_to(buf, -1i64)
+    assert(pos5 == 0i64)
 
     stdio::println("OK")
 }

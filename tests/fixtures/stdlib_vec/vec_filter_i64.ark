@@ -1,19 +1,19 @@
 use std::test
 use std::prelude::{filter_i64}
 fn is_even(x: i64) -> bool {
-    x % 2 == 0
+    x % 2i64 == 0i64
 }
 
 fn main() {
     let mut v: Vec<i64> = Vec::new<i64>()
-    let a: i64 = 10
-    let b: i64 = 15
-    let c: i64 = 20
+    let a: i64 = 10i64
+    let b: i64 = 15i64
+    let c: i64 = 20i64
     push(v, a)
     push(v, b)
     push(v, c)
     let result: Vec<i64> = filter_i64(v, is_even)
     test::assert_eq_i32(len(result), 2)
-    test::assert_eq_i64(get_unchecked(result, 0), 10)
-    test::assert_eq_i64(get_unchecked(result, 1), 20)
+    test::assert_eq_i64(get_unchecked(result, 0), 10i64)
+    test::assert_eq_i64(get_unchecked(result, 1), 20i64)
 }

@@ -1,9 +1,10 @@
 use std::host::stdio
+use std::text
 
 fn main() {
     let s = "arukellt"
     stdio::println(s)
 
-    let s2 = s + " rocks"
+    let s2 = text::concat(s, " rocks")
     stdio::println(s2)
 }

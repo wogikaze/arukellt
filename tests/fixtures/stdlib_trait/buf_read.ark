@@ -25,7 +25,7 @@ fn main() {
 
     // Cursor should still be at 0 (fill_buf does not consume)
     let pos: i64 = io::position(buf)
-    assert(pos == 0)
+    assert(pos == 0i64)
 
     // Read 1 byte to advance cursor
     let one: Vec<i32> = io::read_bytes(buf, 1)
@@ -40,7 +40,7 @@ fn main() {
 
     // Cursor should be at 1
     let pos2: i64 = io::position(buf)
-    assert(pos2 == 1)
+    assert(pos2 == 1i64)
 
     stdio::println("OK")
 }

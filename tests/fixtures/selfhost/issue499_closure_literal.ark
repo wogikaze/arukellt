@@ -3,7 +3,7 @@
 use std::host::stdio
 
 fn main() {
-    let _add = |x, y| x + y
+    let _add = |x: i32, y: i32| x + y
     let _z = || 42
     stdio::println(String_from("ok"))
 }

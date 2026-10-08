@@ -1,5 +1,6 @@
 // Test: array comprehension on an empty iterable
 use std::host::stdio
+use std::core::iter
 
 fn main() {
     let xs: Vec<i32> = Vec::new<i32>()

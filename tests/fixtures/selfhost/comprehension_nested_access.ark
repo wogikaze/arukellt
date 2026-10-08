@@ -1,5 +1,6 @@
 // Test: array comprehension — field access on loop variable in element expr
 use std::host::stdio
+use std::core::iter
 use std::prelude::{values}
 struct Point {
     x: i32,

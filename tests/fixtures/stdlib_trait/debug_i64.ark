@@ -4,9 +4,9 @@ use std::test
 fn main() {
     test::assert_eq_string(fmt::format_debug(0), "0")
 
-    let big: i64 = 1000000000000
+    let big: i64 = 1000000000000i64
     test::assert_eq_string(fmt::format_debug(big), (big).to_string())
 
-    let neg: i64 = -99999999999
+    let neg: i64 = -99999999999i64
     test::assert_eq_string(fmt::format_debug(neg), (neg).to_string())
 }

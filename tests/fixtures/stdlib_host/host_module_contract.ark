@@ -10,15 +10,15 @@ use std::text
 fn main() {
     // ── Host clock contract ──
     let t_ns = clock::monotonic_now()
-    assert(t_ns >= 0)
+    assert(t_ns >= 0i64)
     let t_ms = clock::now_ms()
-    assert(t_ms >= 0)
-    if t_ns > 0 {
+    assert(t_ms >= 0i64)
+    if t_ns > 0i64 {
         stdio::println("clock:non-zero-ns")
     } else {
         stdio::println("clock:zero-ns")
     }
-    if t_ms > 0 {
+    if t_ms > 0i64 {
         stdio::println("clock:non-zero-ms")
     } else {
         stdio::println("clock:zero-ms")

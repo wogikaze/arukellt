@@ -6,6 +6,6 @@ use std::host::stdio
 
 fn main() {
     let t = clock::now_ms()
-    assert(t >= 0)
+    assert(t >= 0i64)
     stdio::println("wasi_clock ok")
 }

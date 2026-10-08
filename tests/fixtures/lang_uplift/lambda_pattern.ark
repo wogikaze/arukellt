@@ -1,5 +1,5 @@
 use std::text
 fn main() {
-    let add_pair = |a, b| a + b
+    let add_pair = |a: i32, b: i32| a + b
     __intrinsic_print(text::concat((add_pair(3, 4)).to_string(), "\n"))
 }

@@ -2,9 +2,9 @@ use std::host::stdio
 
 fn main() {
     let a: i32 = 10
-    let b: i64 = 20
+    let b: i64 = 20i64
     let c: f64 = 3.5
     stdio::println((a + 5).to_string())
-    stdio::println((b + 10).to_string())
+    stdio::println((b + 10i64).to_string())
     stdio::println((c * 2.0).to_string())
 }

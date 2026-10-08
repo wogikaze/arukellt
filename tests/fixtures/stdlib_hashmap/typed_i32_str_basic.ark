@@ -12,11 +12,11 @@ fn main() {
     test::assert_false(hash_map::hashmap_i32_str_contains(m, 99))
 
     match hash_map::hashmap_i32_str_get(m, 1) {
-        Option::Some(v) => test::assert_eq_str(v, "one"),
+        Option::Some(v) => test::assert_eq_string(v, "one"),
         None => panic("expected Some(one)"),
     }
     match hash_map::hashmap_i32_str_get(m, 2) {
-        Option::Some(v) => test::assert_eq_str(v, "two"),
+        Option::Some(v) => test::assert_eq_string(v, "two"),
         None => panic("expected Some(two)"),
     }
 }

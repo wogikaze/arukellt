@@ -431,11 +431,11 @@ pub fn json_get_int(json: String, key: String) -> i32 {
 }
 
 // ─── Re-exports from std/json/parser.ark ────────────────────────────────────
-// Full JsonValue parser lives in std/json/parser.ark. Wrappers let
-// `use std::json` callers invoke `json::parse(...)` without unresolved
-// drop/unreachable stubs (#726 json_perf_decode).
+// The full JsonValue parser lives in std/json/parser.ark and is re-exported
+// by the pub use above. The wrappers below keep parse / stringify spelled
+// with the re-exported names (#726 json_perf_decode).
 
-use std::json::parser
+pub use std::json::parser
 
 pub fn parse(s: String) -> Result<parser::JsonValue, parser::JsonParseError> {
     parser::parse(s)

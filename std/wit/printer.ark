@@ -44,7 +44,8 @@ fn wit_func_print(func: world::WitFunc) -> String {
         i = i + 1
     }
     line = text::concat(line, ")")
-    match func.result {
+    let r: Option<types::WitType> = func.result
+    match r {
         Option::Some(ret) => text::concat(line, text::concat(" -> ", wit_type_print(ret))),
         None => line,
     }

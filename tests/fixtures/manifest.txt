@@ -321,6 +321,7 @@ diag:selfhost/trait_overlapping_impl.ark
 diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
 diag:diagnostics/hashmap_entries_unsupported_pair.ark
+diag:diagnostics/hashmap_unsupported_pair.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/typescheme_deny_no_generalize.ark
 diag:selfhost/typescheme_environment_monomorphic.ark
@@ -2157,8 +2158,6 @@ t3-compile:control/while_counter.ark
 t3-compile:diagnostics/method_syntax.ark
 t3-compile:diagnostics/nested_generic.ark
 t3-compile:diagnostics/operator_overload.ark
-t3-compile:diagnostics/hashmap_unsupported_pair.ark
-t3-compile:diagnostics/numeric_implicit_promotion.ark
 t3-compile:diagnostics/trait_def.ark
 t3-compile:stdlib_trait/error_trait.ark
 t3-compile:display_trait/display_struct.ark

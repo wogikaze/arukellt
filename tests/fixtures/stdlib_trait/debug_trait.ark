@@ -15,7 +15,7 @@ fn main() {
     assert(eq(fmt::format_debug(0), String_from("0")))
 
     // Debug for i64 — mirrors Display.
-    let big: i64 = 1000000000000
+    let big: i64 = 1000000000000i64
     assert(eq(fmt::format_debug(big), (big).to_string()))
 
     // Debug for f64 — mirrors Display (compare against the same intrinsic).

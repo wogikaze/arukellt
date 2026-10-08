@@ -1,12 +1,11 @@
 // Property: abs(abs(x)) == abs(x) for all x.
 use std::core::math
 use std::test
-use std::prelude::{values}
 fn main() {
-    let values = [0, 1, -1, 42, -42, 100, -100, 7, -7]
+    let vals = [0, 1, -1, 42, -42, 100, -100, 7, -7]
     let mut i = 0
     while i < 9 {
-        let x = get_unchecked(values, i)
+        let x = get_unchecked(vals, i)
         let a1 = x.abs()
         let a2 = a1.abs()
         test::assert_eq_i32(a1, a2)

@@ -1,5 +1,6 @@
 // Test: array comprehension — [expr for x in iter] (map-only)
 use std::host::stdio
+use std::core::iter
 use std::prelude::{values}
 fn main() {
     let xs: Vec<i32> = Vec::new<i32>()

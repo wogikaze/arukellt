@@ -22,7 +22,7 @@ fn main() {
 
     // Buffer should have 5 bytes (cursor is at 0, data follows)
     let blen: i64 = io::buffer_len(buf)
-    assert(blen == 5)
+    assert(blen == 5i64)
 
     // Read 5 bytes back from the buffer
     let read: Vec<i32> = io::read_bytes(buf, 5)
@@ -35,7 +35,7 @@ fn main() {
 
     // After reading all 5 bytes, cursor should be at 5
     let pos: i64 = io::position(buf)
-    assert(pos == 5)
+    assert(pos == 5i64)
 
     // Reading again should return 0 bytes (EOF)
     let read2: Vec<i32> = io::read_bytes(buf, 5)

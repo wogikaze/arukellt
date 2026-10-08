@@ -247,7 +247,8 @@ pub fn ast_variant_case_has_payload(node: WitNode, index: i32) -> bool {
             if index < 0 || index >= len(cases) {
                 return false
             }
-            match get_unchecked(cases, index).ty {
+            let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
+            match case_ty {
                 Option::Some(_) => true,
                 Option::None => false,
             }
@@ -263,7 +264,8 @@ pub fn ast_variant_case_type_at(node: WitNode, index: i32) -> types::WitType {
             if index < 0 || index >= len(cases) {
                 return types::wit_type_from_id(0)
             }
-            match get_unchecked(cases, index).ty {
+            let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
+            match case_ty {
                 Option::Some(ty) => ty,
                 Option::None => types::wit_type_from_id(0),
             }
@@ -312,7 +314,8 @@ pub fn ast_func_param_type_at(node: WitNode, index: i32) -> types::WitType {
 pub fn ast_func_has_result(node: WitNode) -> bool {
     match node {
         WitNode::Func(_, _, result) => {
-            match result {
+            let r: Option<types::WitType> = result
+            match r {
                 Option::Some(_) => true,
                 Option::None => false,
             }
@@ -325,7 +328,8 @@ pub fn ast_func_has_result(node: WitNode) -> bool {
 pub fn ast_func_result(node: WitNode) -> types::WitType {
     match node {
         WitNode::Func(_, _, result) => {
-            match result {
+            let r: Option<types::WitType> = result
+            match r {
                 Option::Some(ty) => ty,
                 Option::None => types::wit_type_from_id(0),
             }
@@ -435,7 +439,8 @@ fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> 
         if i > 0 {
             out = text::concat(out, String_from("~"))
         }
-        let payload = match get_unchecked(cases, i).ty {
+        let case_ty: Option<types::WitType> = get_unchecked(cases, i).ty
+        let payload = match case_ty {
             Option::Some(ty) => types::wit_type_from_ast(ty),
             Option::None => String_new(),
         }
@@ -472,7 +477,8 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
     for i in 0..len(items) {
         match get_unchecked(items, i) {
             WitNode::Func(func_name, params, result) => {
-                let result_text = match result {
+                let r: Option<types::WitType> = result
+                let result_text = match r {
                     Option::Some(ty) => types::wit_type_from_ast(ty),
                     Option::None => String_new(),
                 }

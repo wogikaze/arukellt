@@ -12,11 +12,11 @@ fn main() {
     test::assert_false(hash_map::hashmap_str_str_contains(m, "de"))
 
     match hash_map::hashmap_str_str_get(m, "en") {
-        Option::Some(v) => test::assert_eq_str(v, "hello"),
+        Option::Some(v) => test::assert_eq_string(v, "hello"),
         None => panic("expected Some(hello)"),
     }
     match hash_map::hashmap_str_str_get(m, "fr") {
-        Option::Some(v) => test::assert_eq_str(v, "bonjour"),
+        Option::Some(v) => test::assert_eq_string(v, "bonjour"),
         None => panic("expected Some(bonjour)"),
     }
 }

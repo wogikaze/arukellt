@@ -19,10 +19,10 @@ struct Counter {
 }
 
 fn main() {
-    let c = Counter { val: 42 }
+    let mut c = Counter { val: 42 }
     c.val = c.val
     stdio::println((c.val).to_string())
-    let p = Point { x: 10, y: 20 }
+    let mut p = Point { x: 10, y: 20 }
     p.x = p.x
     p.y = p.y
     stdio::println((p.x).to_string())

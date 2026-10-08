@@ -5,6 +5,7 @@
 // `ide::api::analyze` returns a snapshot with non-zero AST/symbol/type
 // counts and zero diagnostics.
 use std::prelude::{to_string}
+use std::host::stdio
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
