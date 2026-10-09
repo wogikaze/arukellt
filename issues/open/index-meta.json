@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-28T16:18:20Z",
+  "generated_at": "2026-10-09T18:13:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -171,8 +171,8 @@
         "801"
       ],
       "acceptance": {
-        "checked": 12,
-        "unchecked": 4
+        "checked": 15,
+        "unchecked": 1
       },
       "orchestration": {
         "class": null,
@@ -283,26 +283,6 @@
       },
       "orchestration": {
         "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "718",
-      "path": "718-stdlib-free-function-method-migration.md",
-      "title": "718 — Stdlib free-function → method/trait migration inventory",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "700",
-        "701"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 15,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "incremental",
         "upstream_notes": "None"
       }
     },

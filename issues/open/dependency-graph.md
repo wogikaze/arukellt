@@ -20,7 +20,6 @@ graph LR
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
-  I718["718 718 — Stdlib free-function → method/trait migration inventory"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
@@ -88,7 +87,6 @@ graph LR
 - **702** depends on: 688, 700, 692; blocks: none
 - **708** depends on: 692, 707; blocks: none
 - **715** depends on: 041, done); blocks: 719, 799
-- **718** depends on: 700, 701; blocks: none
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
 - **728** depends on: none; blocks: none

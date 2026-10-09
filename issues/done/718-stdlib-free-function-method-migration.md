@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-05
-Updated: 2026-07-12
+Updated: 2026-10-10
 ID: 718
 Track: stdlib-api
 Depends on: "700, 701"
