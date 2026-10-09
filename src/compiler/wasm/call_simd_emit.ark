@@ -1,5 +1,6 @@
 use mir::inst_accessors_operands
 use wasm::inst_store
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::opcodes
 use wasm::writer_core
 
@@ -7,6 +8,45 @@ use wasm::writer_core
 fn emit_simd_prefix(w: WasmWriter, sub_opcode: i32) {
     writer_core::emit_byte(w, opcodes::SIMD_PREFIX())
     writer_core::emit_leb128_u(w, sub_opcode)
+}
+
+// Lane scalar kinds for stack-width adaptation. MIR i32 scalars are carried
+// as i64 under Memory64 (gc targets) while SIMD lane operands stay raw i32.
+// The i64/f32/f64 lane kinds need no adaptation on either target.
+fn SIMD_LANE_I32() -> i32 { 1 }
+fn SIMD_LANE_I64() -> i32 { 2 }
+fn SIMD_LANE_F32() -> i32 { 3 }
+fn SIMD_LANE_F64() -> i32 { 4 }
+
+// Narrow the carried scalar on stack top to a raw i32 lane operand. No-op
+// for non-i32 lane kinds; emit_narrow_i64_operand itself no-ops on memory32.
+fn emit_simd_lane_demote(w: WasmWriter, lane_kind: i32) {
+    if lane_kind == SIMD_LANE_I32() {
+        helpers_numeric_i32::emit_narrow_i64_operand(w)
+    }
+}
+
+// Widen a raw i32 lane result back to the carried scalar width. Same gating
+// as demote: i32-width lanes only, memory64-only emission.
+fn emit_simd_lane_promote(w: WasmWriter, lane_kind: i32) {
+    if lane_kind == SIMD_LANE_I32() {
+        helpers_numeric_i32::emit_widen_i32_result(w)
+    }
+}
+
+// Splat: one lane-scalar operand on stack, result v128
+fn emit_simd_splat(w: WasmWriter, inst: MirInst, sub_opcode: i32, lane_kind: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_simd_lane_demote(w, lane_kind)
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+}
+
+// i32-producing reduction (bitmask / all_true / any_true): the raw i32 result
+// must widen back to the carried scalar width under Memory64.
+fn emit_simd_reduce_i32(w: WasmWriter, inst: MirInst, sub_opcode: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    helpers_numeric_i32::emit_widen_i32_result(w)
+    emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
 }
 
 // Binary SIMD op: two v128 operands on stack, result v128 on stack
@@ -28,16 +68,18 @@ fn emit_simd_ternary(w: WasmWriter, inst: MirInst, sub_opcode: i32, next_op: i32
 }
 
 // Extract lane: v128 + lane index (immediate) on stack, scalar result
-fn emit_simd_extract_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_simd_extract_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32, lane_kind: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     emit_simd_prefix(w, sub_opcode)
     // Lane index is an immediate byte (0..N-1)
     let lane = inst_accessors_operands::MirInst_arg1(inst)
     writer_core::emit_byte(w, lane)
+    emit_simd_lane_promote(w, lane_kind)
     emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
 }
 
 // Replace lane: v128 + scalar value on stack, lane index is immediate
-fn emit_simd_replace_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+fn emit_simd_replace_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32, lane_kind: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_simd_lane_demote(w, lane_kind)
     emit_simd_prefix(w, sub_opcode)
     let lane = inst_accessors_operands::MirInst_arg1(inst)
     writer_core::emit_byte(w, lane)
@@ -46,6 +88,7 @@ fn emit_simd_replace_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32, next_op
 
 // Shift: v128 + scalar i32 shift amount on stack, result v128 on stack
 fn emit_simd_shift(w: WasmWriter, inst: MirInst, sub_opcode: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     emit_simd_prefix(w, sub_opcode)
     emit_store_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
 }

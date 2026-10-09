@@ -2875,10 +2875,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "simd.i32x4.add"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_simd_i32x4_add_impl"
+required = true
 [[operations.specializations]]
 priority = 100
 [operations.specializations.when]
@@ -2924,10 +2924,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "simd.i32x4.sub"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_simd_i32x4_sub_impl"
+required = true
 [[operations.specializations]]
 priority = 100
 [operations.specializations.when]
@@ -2973,10 +2973,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "simd.f32x4.add"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_simd_f32x4_add_impl"
+required = true
 [[operations.specializations]]
 priority = 100
 [operations.specializations.when]
