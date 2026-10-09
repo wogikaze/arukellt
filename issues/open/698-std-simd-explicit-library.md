@@ -35,16 +35,21 @@ load/store boundary separation, and std::wasm raw v128 intrinsics.
 
 ## Current state
 
-- **#822 carve-out (2026-07-26):** three portable SIMD CoreOps remain
-  `legacy_emitter` after representation-dependent Vec/String migration closed
-  (`issues/done/822-representation-dependent-stdlib-migration.md`):
-  `simd.i32x4.add`, `simd.i32x4.sub`, `simd.f32x4.add`. #822 acceptance
-  explicitly excludes these; **this issue (#698) + ADR-037** own migrating them
-  to portable scalar Ark bodies and/or ADR-037 nominal-type `normal_call` /
-  specialization paths (default lowering is still `legacy_emitter`; simd128
-  specialization already exists for NativeSimd).
+- **#822 carve-out (2026-07-26, migrated 2026-10-10):** the three portable SIMD
+  CoreOps left over from
+  `issues/done/822-representation-dependent-stdlib-migration.md` —
+  `simd.i32x4.add`, `simd.i32x4.sub`, `simd.f32x4.add` — are now
+  `normal_call` with portable scalar Ark fallback bodies
+  (`__core_simd_i32x4_add_impl` / `__core_simd_i32x4_sub_impl` /
+  `__core_simd_f32x4_add_impl` in `std/prelude.ark`) plus the existing
+  wasm/`NativeSimd` `target_intrinsic` specialization (simd128). ADR-042
+  portable-SIMD shape; `legacy_emitter` op count is now zero. The same change
+  adds Memory64 lane-width adaptation in the Wasm emitter (i32 lane scalars
+  ride as i64 on gc targets): splat / replace_lane / shift narrow operands,
+  extract_lane / bitmask / all_true / any_true widen results — previously the
+  wasm32-gc SIMD output failed `wasm-tools validate`.
 - Experimental `std::simd` lane modules and first-class `v128` exist (Phase 1–2
-  below); ADR-037 nominal redesign and the three leftover CoreOps remain open.
+  below); the ADR-037 nominal redesign remains open.
 - Issue #107 (loop vectorization hint) — rejected, deferred to v5+
 
 ## Required work
