@@ -21,7 +21,6 @@ graph LR
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
-  I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
@@ -88,7 +87,6 @@ graph LR
 - **708** depends on: 692, 707; blocks: none
 - **715** depends on: 041, done); blocks: 719, 799
 - **721** depends on: none; blocks: none
-- **723** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none

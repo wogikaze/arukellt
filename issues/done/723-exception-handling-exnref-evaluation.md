@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-24
+Updated: 2026-10-10
 ID: 723
 Track: language-design
 Depends on: none
@@ -102,7 +102,8 @@ WASI P2/P3 の component model では、host 側がエラーを返す際に
 - [x] Result モデル vs exnref モデルの性能比較（ベンチマック）が実施される
 - [x] JS interop のユースケースが具体化しているか評価される
 - [x] 選択肢 A/B/C のいずれかが推奨として記録される
-- [ ] 選択肢 B を採用する場合、JS interop の設計 ADR との整合が確認される
+- [x] 選択肢 B を採用する場合、JS interop の設計 ADR との整合が確認される
+      （A 採用のため条件不成立・N/A。B 再検討条件は ADR-043 §6 に記録済み）
 - [x] ADR-008 / ADR-043 の推奨事項が本 issue の結論に合わせて更新される
 
 ## Conclusion (2026-07-24)
