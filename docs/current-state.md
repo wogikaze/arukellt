@@ -89,14 +89,12 @@ closure_capture/nested_capture fixtures produce 5/6/7 and 5/10 on both
 targets; two mutable-borrow nested captures of one source are E0214.
 The retired
 capability diagnostic E0220 no longer exists in the implementation.
-The committed pinned bootstrap predates generic enum payload support and cannot
-typecheck the current generic enum `Box` / `Slice` prelude directly. The
-canonical `selfhost build-compiler` command now succeeds through a guarded,
-source-only structural overlay in the isolated bootstrap workspace; the
-checked-in prelude and user artifacts are unchanged. The pinned bootstrap
-refresh/fixpoint and migration work tracked by the v2 migration and final-audit
-issues are still pending; the targeted #855 receipt uses the locally generated
-current selfhost artifact.
+The committed pinned bootstrap (sha256 `3f0ca605…`) handles the current
+generic enum `Box` / `Slice` prelude directly. `selfhost build-compiler`
+retains the guarded, source-only structural overlay as a fallback path for
+older pinned artifacts; the checked-in prelude and user artifacts are
+unchanged. The bootstrap chain on the current source is fixpoint-clean
+(`s2 == s3`, sha256 `33922353…`).
 
 ### Language v2 trait core (#856 / ADR-062)
 
@@ -129,10 +127,9 @@ Parser and IR recovery states remain compiler-internal. A source-level
 `question_mark/user_error_type.ark` fixture. The conversion diagnostics and
 the user `Error` fixture are checked against the same typechecker result for
 `wasm32-gc` and the `wasm32` linear-memory fallback. The `Error` trait
-ecosystem is implemented by #694 / ADR-064. The pinned stage-0 compiler still
-has the #854 generic-enum limitation when invoked directly; the canonical
-build command uses the guarded source-only overlay until the pinned bootstrap
-is refreshed.
+ecosystem is implemented by #694 / ADR-064. The refreshed pinned stage-0
+compiler no longer carries the #854 generic-enum limitation; the guarded
+source-only overlay remains available for older bootstrap artifacts.
 
 ### Language v2 match exhaustiveness (#899 / ADR-082)
 
@@ -190,9 +187,9 @@ enum.
 `?` to propagate both error families into one `Result<T, AppError>`. The
 `question_mark/error_ecosystem.ark` fixture compiles and runs through both the
 `wasm32-gc` primary path and the `wasm32` linear-memory fallback with the same
-source behavior. The pinned stage-0 compiler still cannot typecheck the
-generic return bodies directly, but `selfhost build-compiler` now succeeds
-through the guarded bootstrap overlay; the current artifact receipt is
+source behavior. The refreshed pinned stage-0 compiler typechecks the generic
+return bodies directly; the guarded bootstrap overlay is kept as a
+compatibility path for pre-refresh artifacts. The current artifact receipt is
 recorded in `issues/done/694-error-trait-unified-ecosystem.md`.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->

@@ -13,11 +13,11 @@ Cargo workspace, host-linker, or repository-specific runtime is involved.
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 5 170 058 bytes (≈ 4.93 MiB) |
-| sha256 | `f4825fc30ddde8eba100ff258fb77f460568b09210ff83eb50b6f2e664e8df36` |
-| Built from commit | Selfhost compiler source at `bf7d4a4ef00b`, with the stable stage-3 artifact confirmed by `s3 == s4` |
-| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 16384)`, 1 GiB **memory32**) |
-| Producer | Direct Wasmtime selfhost compile from the previous pinned 1 GiB memory32 bootstrap, followed by a stable `s3 == s4` check; no host-linker, bridge, adapter, or Rust code |
+| Size | 6 244 452 bytes (≈ 5.96 MiB) |
+| sha256 | `3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852` |
+| Built from commit | Selfhost compiler source at `01c3ec26e` (includes the `wall_datetime_to_ms` memory64 scratch-address fix, `d73dbf509`), built through the structural Box/Slice prelude overlay described below |
+| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 8192)`, 512 MiB **memory32**) |
+| Producer | Direct Wasmtime selfhost compile of the current source by the previous pinned artifact (`ad2801cf…`), retried through the canonical structural `Box`/`Slice` prelude overlay because the predecessor predates generic enum payload lowering; the chain was then verified on the unpatched current source (`selfhost fixpoint`: `s2 == s3`, sha256 `3392235391fbc5fd1ea694087d3e228288c696f18e5eb76f253beb02a924598a`). No host-linker, bridge, adapter, or Rust code |
 
 ## Reproducibility recipe
 
@@ -77,7 +77,7 @@ behavioural drift in its body.
 ### Direct bootstrap and WASI P2 packaging
 
 Pinned bootstrap is direct `wasm32` / `wasi-p1` with guest memory32
-(`(memory 16384)`, 1 GiB). The compiler emits standard `wasm32-gc` /
+(`(memory 8192)`, 512 MiB). The compiler emits standard `wasm32-gc` /
 `wasi-p2` core modules for component work. `scripts/run/arukellt-selfhost.sh`
 and the fixture gate package those modules with the official WASI P2 WIT and
 `wasm-tools component embed/new`. There is no host-linker or compatibility
