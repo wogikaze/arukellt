@@ -11,19 +11,25 @@ use wasm::writer_core
 fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
     // `wall-clock.now` returns datetime through the canonical result pointer:
     // seconds at offset 0 and nanoseconds at offset 8.
+    // Load addresses follow the module memory index type (i64 under Memory64);
+    // emit_scratch_addr_wasi is only for WASI import pointer operands.
     let seconds_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
-    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_CLOCK_RESULT())
     emit_i64_load_default(w)
     helpers_core::emit_local_set(w, seconds_local)
+    // now_ms = seconds * 1000 + nanoseconds / 1_000_000
     helpers_core::emit_local_get(w, seconds_local)
-    let million: i64 = 1000000i64
-    emit_i64_const(w, million)
     let thousand: i64 = 1000i64
     emit_i64_const(w, thousand)
     helpers_numeric_i64_arith::emit_i64_mul(w)
-    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT() + 8)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_CLOCK_RESULT() + 8)
     helpers_memory::emit_i32_load_default(w)
-    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    // emit_i32_load already widens the i32 value to i64 under the Memory64
+    // value repr; a second extend would leave the operand stack ill-typed.
+    if !writer_core::writer_memory64(w) {
+        helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    }
+    let million: i64 = 1000000i64
     emit_i64_const(w, million)
     helpers_numeric_i64_arith::emit_i64_div_u(w)
     helpers_numeric_i64_arith::emit_i64_add(w)
