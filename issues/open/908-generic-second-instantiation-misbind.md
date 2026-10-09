@@ -56,19 +56,44 @@ emitted.
 - So the failure needs two distinct instantiations of the same generic
   fn, the i32 one coming from a stdlib wrapper.
 
-## Suspected area (not yet root-caused)
+## Refined diagnosis (2026-10-10 probes)
 
-- src/compiler/typechecker/call_generic_fn.ark:55
-  (mono::record_mono_instance), mono_instances.ark, and the emit-side
-  instance enumeration / call-site → mangled-name mapping
-  (record_mono_call_site).
-- Possibly the #312 residual: instantiate_type does not walk
-  TypeInfo.type_args, so Vec<T> parameter positions may fail to bind
-  T = String, leaving the call unminted and falling back to the first
-  recorded __i32 instance.
-- Symptom class matches #849 (func N failed to validate, nominal
-  ref-type mismatch on wasm32-gc): check whether the same name/instance
-  keyed resolution underlies that S3 drift.
+Trigger pinned: the failure needs **two distinct instantiations of the
+same generic fn where the i32 instance is minted inside the imported
+std module** (a wrapper body like binary_search → binary_search_by<i32>
+or min_i32 → min_by<i32>). Single-module dual instantiation works
+(find_first<i32> + find_first<String> both emit and bind); an
+imported generic driven to two type args by the user also works
+(seq::sort_by<i32> + seq::sort_by<String> both emit as
+seq__sort_by__i32 / seq__sort_by__String — note the module-prefixed
+names, which sort_by gets because it has no std-internal i32 wrapper).
+
+So the broken case is: pre-existing __i32 instance registered during
+the std module's own typecheck + a later user call at T=String. The
+user call resolves to __i32 and __String is never emitted.
+
+## Suspected mechanism
+
+- Emit-side call→instance resolution lives in
+  src/compiler/mir/lower/call_mono.ark::mir_resolve_mono_call_target:
+  type-key candidate (first-arg type) → span-keyed lookup
+  (ctx_mono_lookup_call via ctx.mono_call_span_* hash by span_start,
+  matched by mono_sources_match + mono_target_matches_source) →
+  fallback ctx_resolve_unused_mono_by_name "assign unused mono
+  specialization in registration order". That fallback returns the
+  first registered instance (__i32) — matching the observed mis-bind —
+  and its own comment admits it breaks multi-param generics.
+- So: either the typechecker never mints binary_search_by__String /
+  records no call-site for it, or the span-keyed lookup misses (e.g.
+  source-spelling mismatch for qualified seq::binary_search_by), and
+  the order-dependent fallback silently picks __i32.
+- Check src/compiler/typechecker/mono_instances.ark
+  record_mono_instance / record_mono_call_site and
+  module_env_merge.ark for whether a second mint happens and which
+  source spelling the span record uses vs what the emit side passes.
+- Related: #312 residual (instantiate_type does not walk
+  TypeInfo.type_args) and #849 (same invalid-wasm symptom class on
+  wasm32-gc func validation).
 
 ## Acceptance
 
