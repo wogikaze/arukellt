@@ -26,8 +26,16 @@ Options:
   -V, --version  Print version
   --json         Emit machine-readable JSON diagnostics
   --output json  Alias for --json on diagnostic/check output
+  --target <target>  Select the canonical backend target
+  --wasi-version <profile>  Select wasi-p1, wasi-p2, or wasi-p3
+  --memory-width <width>  Select auto, memory32, or memory64
+  --emit <kind>  Select wasm, wat, component, wit, or all
   --wit <path>   Add a WIT import file for component compilation
   --list         List available lint rules (with `lint` command)
   --local        Lint local (parse-only) rules; no module resolve
   --allow <rule> Allow (suppress) a lint rule by W-code or name
   --deny <rule>  Deny (escalate to error) a lint rule by W-code or name
+  --deny-clock   Reject programs that use host clock intrinsics
+  --deny-random  Reject programs that use host randomness intrinsics
+  --deny-process Reject programs that use process exit/abort intrinsics
+  --strip-debug  Strip debug sections (name, source map) from output
