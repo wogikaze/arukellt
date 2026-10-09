@@ -1906,6 +1906,7 @@ run:stdlib_trait/ord_sort_negative.ark
 run:stdlib_trait/ord_sort_reverse.ark
 run:stdlib_trait/ord_sort_single.ark
 run:stdlib_trait/ord_sort_stress.ark
+run:stdlib_trait/ord_sort_vec_string.ark
 run:stdlib_trait/ord_string.ark
 run:stdlib_trait/ord_string_prefix.ark
 run:stdlib_trait/ord_trait.ark
@@ -2432,6 +2433,7 @@ t3-compile:stdlib_trait/iterator_scan_string.ark
 t3-compile:stdlib_trait/iterator_step_scan.ark
 t3-compile:stdlib_trait/iterator_string_callbacks.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
+t3-compile:stdlib_trait/ord_sort_vec_string.ark
 t3-compile:stdlib_trait/ord_trait.ark
 t3-compile:stdlib_trait/integer_trait.ark
 t3-compile:stdlib_trait/read_write.ark
@@ -2933,6 +2935,7 @@ t3-run:stdlib_trait/iterator_query_consumers.ark
 t3-run:stdlib_trait/iterator_scan_string.ark
 t3-run:stdlib_trait/iterator_step_scan.ark
 t3-run:stdlib_trait/iterator_string_callbacks.ark
+t3-run:stdlib_trait/ord_sort_vec_string.ark
 t3-run:stdlib_trait/read_write.ark
 t3-run:stdlib_trait/seek.ark
 t3-run:stdlib_trait/seq_ord_generic_algorithms.ark
