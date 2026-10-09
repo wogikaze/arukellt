@@ -925,3 +925,34 @@ pub fn i32_to_u32(n: i32) -> u32 {
 pub fn f32_to_string(n: f32) -> String {
     __core_f32_to_string_impl(n)
 }
+
+// Portable scalar fallback bodies for the three simd CoreOps whose lowering is
+// normal_call (ADR-042). The wasm simd128 specialisation in data/core-ops.toml
+// records the native fast path; these bodies define the portable semantics.
+
+fn __core_simd_i32x4_add_impl(a: v128, b: v128) -> v128 {
+    let mut v = __simd_i32x4_splat(0)
+    v = __simd_i32x4_replace_lane(v, 0, __simd_i32x4_extract_lane(a, 0) + __simd_i32x4_extract_lane(b, 0))
+    v = __simd_i32x4_replace_lane(v, 1, __simd_i32x4_extract_lane(a, 1) + __simd_i32x4_extract_lane(b, 1))
+    v = __simd_i32x4_replace_lane(v, 2, __simd_i32x4_extract_lane(a, 2) + __simd_i32x4_extract_lane(b, 2))
+    v = __simd_i32x4_replace_lane(v, 3, __simd_i32x4_extract_lane(a, 3) + __simd_i32x4_extract_lane(b, 3))
+    v
+}
+
+fn __core_simd_i32x4_sub_impl(a: v128, b: v128) -> v128 {
+    let mut v = __simd_i32x4_splat(0)
+    v = __simd_i32x4_replace_lane(v, 0, __simd_i32x4_extract_lane(a, 0) - __simd_i32x4_extract_lane(b, 0))
+    v = __simd_i32x4_replace_lane(v, 1, __simd_i32x4_extract_lane(a, 1) - __simd_i32x4_extract_lane(b, 1))
+    v = __simd_i32x4_replace_lane(v, 2, __simd_i32x4_extract_lane(a, 2) - __simd_i32x4_extract_lane(b, 2))
+    v = __simd_i32x4_replace_lane(v, 3, __simd_i32x4_extract_lane(a, 3) - __simd_i32x4_extract_lane(b, 3))
+    v
+}
+
+fn __core_simd_f32x4_add_impl(a: v128, b: v128) -> v128 {
+    let mut v = __simd_f32x4_splat(0.0f32)
+    v = __simd_f32x4_replace_lane(v, 0, __simd_f32x4_extract_lane(a, 0) + __simd_f32x4_extract_lane(b, 0))
+    v = __simd_f32x4_replace_lane(v, 1, __simd_f32x4_extract_lane(a, 1) + __simd_f32x4_extract_lane(b, 1))
+    v = __simd_f32x4_replace_lane(v, 2, __simd_f32x4_extract_lane(a, 2) + __simd_f32x4_extract_lane(b, 2))
+    v = __simd_f32x4_replace_lane(v, 3, __simd_f32x4_extract_lane(a, 3) + __simd_f32x4_extract_lane(b, 3))
+    v
+}

@@ -671,6 +671,7 @@ run:selfhost/typescheme_value_restriction.ark
 run:simd_conformance/f32x4_basic.ark
 run:simd_conformance/i32x4_basic.ark
 run:simd_conformance/v128_bitwise.ark
+run:simd_conformance/i8x16_lane_ops.ark
 run:simd_gc_storage/v128_array_element.ark
 run:simd_gc_storage/v128_struct_field.ark
 run:simd_lowering/t1_scalar_expansion.ark
@@ -2575,6 +2576,7 @@ t3-compile:stdlib_wit/wit_type_basic.ark
 t3-compile:string_interp/fstring_basic.ark
 t3-compile:string_interp/fstring_debug_specifier.ark
 t3-compile:string_interp/fstring_expr.ark
+t3-compile:simd_conformance/i8x16_lane_ops.ark
 t3-compile:struct_mutation/field_assign.ark
 t3-compile:structs/basic_struct.ark
 t3-compile:structs/constructor_fn.ark
