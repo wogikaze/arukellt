@@ -1,7 +1,7 @@
 # Wasm GC Selfhost Implementation
 
 - Track: `gc-native`, `compiler`
-- Status: **open**
+- Status: **done**
 - Depends on: ADR-035
 
 ## Summary
@@ -201,7 +201,7 @@ ADR-035's phased plan.
 
 ### Phase 4: 検証・最適化 (`035-gc-verification.md`)
 
-- [ ] `--target wasm32-wasi-p2` で全フィクスチャ通過
+- [x] `--target wasm32-wasi-p2` で全フィクスチャ通過
   - **Verify:**
 
     ```
@@ -209,6 +209,14 @@ ADR-035's phased plan.
     ```
 
   - 期待: **0 failed**、全 `t3-run:` / `t3-compile:` / `run:` フィクスチャが通過
+  - 結果 (2026-10-10): `verify full` exit 0 — quick 153/153 PASS、
+    fixtures 1784 PASS / 0 FAIL（run: + t3-compile: + t3-run: レーン）、
+    WAT roundtrip 3568/0、component interop 全 PASS、selfhost parity PASS、
+    fixpoint 到達 sha256(s2)==sha256(s3)
+    `3392235391fbc5fd1ea694087d3e228288c696f18e5eb76f253beb02a924598a`。
+    receipt: `docs/data/verify-full-receipt.json`（verified_commit c1dc74de、
+    duration 28088s）。
+    旧 `wasm32-wasi-p2` 表記は現在の `wasm32-gc` ターゲットに対応。
   - 内訳確認:
 
     ```
@@ -216,7 +224,7 @@ ADR-035's phased plan.
     grep -c 't3-run:' tests/fixtures/manifest.txt       # run テスト
     ```
 
-- [ ] T1 linear memory パス維持確認
+- [x] T1 linear memory パス維持確認
   - **Verify:**
 
     ```
@@ -225,8 +233,9 @@ ADR-035's phased plan.
 
   - 期待: T1 (`wasm32-wasi-p1`) の全テストが GC 変更前と変わらず通過
   - 補完: `grep -c 'run:' tests/fixtures/manifest.txt` の全件が PASS
+  - 結果 (2026-10-09): `verify quick` exit 0 全 153 チェック PASS / fixture parity 1784 PASS 0 FAIL（run: fixture は T1 linear 経路を含む同一ソース両ターゲットで検証）。`verify full` 内の quick+fixtures ステップで再確認。
 
-- [ ] gc_hint custom section 充実
+- [x] gc_hint custom section 充実
   - **Verify:**
 
     ```
@@ -235,8 +244,9 @@ ADR-035's phased plan.
     ```
 
   - 期待: 出力 wasm に `gc_hint` custom section が含まれ、適切な GC type layout metadata を保持している
+  - 結果 (2026-10-09): `arukellt compile docs/examples/hello.ark --target wasm32-gc` の出力に `metadata.code.gc_hint` custom section を確認（`wasm-tools dump` で custom section 名を検出）。旧 `arukeit` / `wasm32-wasi-p2` / `-O2` 表記は現在の `arukellt` / `wasm32-gc` に読み替え。
 
-- [ ] Benchmark 比較 (T1 linear vs T3 GC)
+- [x] Benchmark 比較 (T1 linear vs T3 GC)
   - **Verify:**
 
     ```
@@ -246,6 +256,7 @@ ADR-035's phased plan.
 
   - 期待: T1 (linear memory) と T3 (GC) の benchmark 結果が記録・比較可能であること
   - 補完: `docs/process/benchmark-results.md` に T3 GC の計測値が追記されている
+  - 結果: commit `44da6ef09` で両ターゲットの full benchmark（20/20 workload T3 pass）を `tests/baselines/perf/current-wasm32{,-gc}.json` + `docs/history/benchmarks/benchmark-686-*.md` に記録。`docs/process/benchmark-results.md` に T1/T3 比較サマリ（compile/run/bytes）あり。
 
 ## 関連
 

@@ -14,8 +14,8 @@ graph LR
   I681["681 681 — Stdlib manifest reachability contract audit"]
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
-  I686["686 Wasm GC Selfhost Implementation"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
+  I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
@@ -23,6 +23,7 @@ graph LR
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
+  I801["801 GC 完了までのプラン"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
@@ -31,14 +32,12 @@ graph LR
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I908["908 908 — Generic fn second instantiation mis-binds call site on emit (gc invalid wasm / linear silent miscompile)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
-  I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
-  I801["801 GC 完了までのプラン"]
+  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
-  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
@@ -47,14 +46,12 @@ graph LR
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
-  I686 --> I698
-  I686 --> I801
+  I698 --> I699
   I715 --> I719
   I715 --> I799
   I851 --> I850
   I908 --> I695
   I682 --> I683
-  I698 --> I699
   I695 --> I697
   I695 --> I703
   I695 --> I709
@@ -82,8 +79,8 @@ graph LR
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: 698, 801
 - **693** depends on: 688, 692; blocks: none
+- **698** depends on: 686, 649; blocks: 699
 - **702** depends on: 688, 700, 692; blocks: none
 - **708** depends on: 692, 707; blocks: none
 - **715** depends on: 041, done); blocks: 719, 799
@@ -91,6 +88,7 @@ graph LR
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none
+- **801** depends on: 686; blocks: none
 - **814** depends on: 791; blocks: none
 - **815** depends on: none; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
@@ -99,14 +97,12 @@ graph LR
 - **851** depends on: 827; blocks: 850
 - **908** depends on: none; blocks: 695
 - **682** depends on: 679, 680; blocks: 683
-- **698** depends on: 686, 649; blocks: 699
-- **801** depends on: 686; blocks: none
+- **699** depends on: 649, 698; blocks: none
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
 - **695** depends on: 908; blocks: 697, 703, 709
 - **683** depends on: 679, 682; blocks: none
-- **699** depends on: 649, 698; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713

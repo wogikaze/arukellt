@@ -166,7 +166,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
      wasm-tools dump /tmp/p3_vec_get.wasm 2>&1 | grep 'array.get'
      ```
 
-7. ⏳ `emit_vec_push_gc`: array.set + growth logic
+7. ✅ `emit_vec_push_gc`: array.set + growth logic
    - **Verify (実装後):**
 
      ```
@@ -177,9 +177,9 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 
    - 期待: push 操作が `array.set` で実装され、runtime で正しく動作する
 
-8. ⏳ `emit_vec_pop` / `emit_vec_set` GC パス
-9. ⏳ `emit_chars`: Vec GC を使用して実装
-10. ⏳ Enum subtype hierarchy + `br_on_cast` dispatch
+8. ✅ `emit_vec_pop` / `emit_vec_set` GC パス（`intrinsic_vec_pop_gc.ark` / `intrinsic_vec_set_gc.ark`）
+9. ✅ `emit_chars`: Vec GC を使用して実装（`intrinsic_string_chars.ark`）
+10. ✅ Enum subtype hierarchy + `br_on_cast` dispatch（`inst_control.ark::emit_br_on_cast*`）
 
 > **注意**: 上記の型システム変更はソースコードには反映済みだが、selfhost コンパイラを再ビルドしないとテスト不可。再ビルドには fixpoint build の解決が必要。
 
@@ -198,7 +198,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 | T1 退行チェック | `python3 scripts/manager.py verify quick 2>&1 \| grep -E 'FAIL\|T1\|p1'` | ✅ 全パス（docs drift 3件を除く） |
 | コンパイラ import fan-out | `grep -r '^use ' src/compiler/wasm/intrinsic_string_*.ark \| wc -l` | ✅ 13件以内 |
 | コンパイラ line limits | `wc -l src/compiler/wasm/intrinsic_string_*.ark src/compiler/wasm/string_gc_helpers.ark` | ✅ 249行以内 |
-| GC 全フィクスチャ通過 | `python3 scripts/manager.py verify full 2>&1 \| tail -5` | ⏳ 未達 |
+| GC 全フィクスチャ通過 | `python3 scripts/manager.py verify full 2>&1 \| tail -5` | ✅ 2026-10-10 verify full exit 0 — fixtures 1784/0、WAT roundtrip 3568/0、component interop、selfhost parity、fixpoint s2==s3 到達 |
 | T1 パス維持 (定期) | `python3 scripts/manager.py verify quick 2>&1 \| tail -5` | ✅ 2026-10-08 verify quick PASS (exit 0)、parity --execute-all 1784 PASS / 0 FAIL |
 | gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-gc -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ✅ `metadata.code.gc_hint` が struct/enum レイアウト表と hint entry 表を出力（bootstrap overlay で gc_hint pass を有効化、`gc_hint_short_lived.ark` で entry 記録済み） |
 | Benchmark 比較 | `python3 scripts/util/benchmark_runner.py --mode full && python3 scripts/util/benchmark_runner.py --mode compare` | ✅ T1/T3 full run を `current-wasm32.json` / `current-wasm32-gc.json` と `docs/history/benchmarks/benchmark-686-*.md` に記録。比較サマリは `docs/process/benchmark-results.md` |

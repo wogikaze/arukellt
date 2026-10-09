@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-09T18:43:28Z",
+  "generated_at": "2026-10-09T18:46:44Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -160,26 +160,6 @@
       }
     },
     {
-      "id": "686",
-      "path": "686-wasm-gc-selfhost-implementation.md",
-      "title": "Wasm GC Selfhost Implementation",
-      "track": "main",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "698",
-        "801"
-      ],
-      "acceptance": {
-        "checked": 15,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "693",
       "path": "693-read-write-traits-io-unification.md",
       "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
@@ -197,6 +177,28 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
+      }
+    },
+    {
+      "id": "698",
+      "path": "698-std-simd-explicit-library.md",
+      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
+      "track": "wasm-feature",
+      "status": "open",
+      "depends_on": [
+        "686",
+        "649"
+      ],
+      "blocks_issue_ids": [
+        "699"
+      ],
+      "acceptance": {
+        "checked": 49,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {
@@ -331,6 +333,25 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "801",
+      "path": "801-gc-rebuild-plan.md",
+      "title": "GC 完了までのプラン",
+      "track": "gc",
+      "status": "open",
+      "depends_on": [
+        "686"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": 686
       }
     },
     {
@@ -493,44 +514,23 @@
       }
     },
     {
-      "id": "698",
-      "path": "698-std-simd-explicit-library.md",
-      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
-      "track": "wasm-feature",
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
       "status": "open",
       "depends_on": [
-        "686",
-        "649"
-      ],
-      "blocks_issue_ids": [
-        "699"
-      ],
-      "acceptance": {
-        "checked": 49,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "801",
-      "path": "801-gc-rebuild-plan.md",
-      "title": "GC 完了までのプラン",
-      "track": "gc",
-      "status": "open",
-      "depends_on": [
-        "686"
+        "649",
+        "698"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 9
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": 686
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {
@@ -632,26 +632,6 @@
       },
       "orchestration": {
         "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },
