@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::simd::i8x16
+use std::simd::v128
+
+fn main() {
+    // Exercises every lane-scalar width path: splat/replace_lane/shift narrow
+    // the i32 operand, extract_lane/bitmask/all_true/any_true widen the i32
+    // result — the pair that must adapt under the Memory64 (gc) repr.
+    let a = i8x16::splat(3)
+    let b = i8x16::replace_lane(a, 2, 5)
+    let c = i8x16::shl(b, 1)
+    stdio::println(i8x16::extract_lane(c, 2).to_string())
+    stdio::println(i8x16::bitmask(i8x16::splat(-1)).to_string())
+    stdio::println(i8x16::all_true(c).to_string())
+    stdio::println(v128::any_true(i8x16::splat(0)).to_string())
+}
