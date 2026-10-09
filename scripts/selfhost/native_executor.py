@@ -631,6 +631,8 @@ def run_native_executor(
                 compiler_source_arg,
                 "--target",
                 "native-cpp",
+                "--emit",
+                "c",
                 "--output",
                 generated_c_arg,
                 "--cache-dir",
