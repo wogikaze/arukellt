@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T10:49:36Z",
+  "generated_at": "2026-10-10T12:48:13Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -500,8 +500,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
+        "checked": 2,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -556,6 +556,23 @@
       },
       "orchestration": {
         "class": "design-needed",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "913",
+      "path": "913-wasm32-gc-string-table-corrupt-record.md",
+      "title": "913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "investigation",
         "upstream_notes": "none"
       }
     },

@@ -35,6 +35,7 @@ graph LR
   I910["910 910 - emit_gc_local_val_type re-analyzes write sites per local decl"]
   I911["911 911 - Verification gap: nothing exercises a freshly built s2 as producer"]
   I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
+  I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -104,6 +105,7 @@ graph LR
 - **910** depends on: none; blocks: none
 - **911** depends on: none; blocks: none
 - **912** depends on: none; blocks: none
+- **913** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **699** depends on: 649, 698; blocks: none
 - **719** depends on: 715; blocks: none
