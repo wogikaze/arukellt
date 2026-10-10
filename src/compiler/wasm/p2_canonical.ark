@@ -2,6 +2,7 @@ use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
 use mir::value_types
+use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::function_indices
@@ -16,6 +17,7 @@ use wasm::sections_types_gc
 use wasm::sections_types_sigs_detail
 use wasm::writer_core
 use wasm::writer_gc
+use wasm::writer_leb
 
 // Convert the compiler's private GC string representation to standard32
 // canonical ABI values at a core-module export boundary. The component linker
@@ -74,7 +76,13 @@ fn emit_wrapper_local_decls(
     writer_core::emit_leb128_u(w, local_decl_group_count(ref_markers))
     emit_ref_decl_groups(w, ref_markers)
     writer_core::emit_leb128_u(w, 3)
-    writer_core::emit_byte(w, 127)
+    // Aux locals (loop counter, canonical result pointer, scratch length/tag)
+    // live in the module's widened scalar domain: i64 under memory64.
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, constants::WASM_I64())
+    } else {
+        writer_core::emit_byte(w, constants::WASM_I32())
+    }
     let local_refs = Vec::new<i32>()
     append_ref_markers(local_refs, canonical_param_count, 0 - 1)
     for i in 0..len(ref_markers) {
@@ -218,11 +226,14 @@ fn emit_list_input_conversion(
     helpers_control::emit_block_loop_header(w)
     writer_core::emit_local_get(w, loop_local)
     writer_core::emit_local_get(w, length_local)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     helpers_numeric_i32_compare::emit_i32_ge_u(w)
     helpers_control::emit_br_if(w, 1)
     writer_core::emit_local_get(w, array_local)
     writer_core::emit_local_get(w, loop_local)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, pointer_local)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     writer_core::emit_local_get(w, loop_local)
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_numeric_i32_arith::emit_i32_mul(w)
@@ -733,6 +744,7 @@ fn emit_option_input_conversion(
     let some_type = p2_variant_type_named(ctx, String_from("Option"), String_from("Some"), clone(payload_field))
     if eq(clone(inner), String_from("bool")) {
         writer_core::emit_local_get(w, canonical_idx)
+        helpers_numeric_i32_convert::emit_widen_i32_result(w)
         helpers_numeric_i32_const::emit_i32_const(w, 0)
         helpers_numeric_i32_compare::emit_i32_eq(w)
         helpers_control::emit_if_empty(w)
@@ -743,6 +755,7 @@ fn emit_option_input_conversion(
         return
     }
     writer_core::emit_local_get(w, canonical_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_numeric_i32_compare::emit_i32_eq(w)
     helpers_control::emit_if_empty(w)
@@ -781,6 +794,7 @@ fn emit_result_input_conversion(
     let ok_type = p2_variant_type_named(ctx, String_from("Result"), String_from("Ok"), clone(ok_field))
     let err_type = p2_variant_type_named(ctx, String_from("Result"), String_from("Err"), clone(err_field))
     writer_core::emit_local_get(w, canonical_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_numeric_i32_compare::emit_i32_eq(w)
     helpers_control::emit_if_empty(w)
@@ -832,6 +846,7 @@ fn emit_enum_input_conversion(
     let mut i = 0
     while i < count - 1 {
         writer_core::emit_local_get(w, canonical_idx)
+        helpers_numeric_i32_convert::emit_widen_i32_result(w)
         helpers_numeric_i32_const::emit_i32_const(w, i)
         helpers_numeric_i32_compare::emit_i32_eq(w)
         helpers_control::emit_if_empty(w)
@@ -878,6 +893,7 @@ fn emit_variant_new_bool(w: WasmWriter, type_idx: i32, tag: i32, source_local: i
     helpers_numeric_i32_const::emit_i32_const(w, tag)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, source_local)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     helpers_numeric_i32_const::emit_i32_const(w, 1)
     helpers_numeric_i32_arith::emit_i32_sub(w)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
@@ -902,6 +918,7 @@ fn emit_result_conversion(
     let return_type = function_return_view::MirFunction_return_type(f)
     let kind = p2_type_kind(clone(return_name), return_type, mir)
     if kind == p2_kind_scalar() {
+        emit_mir_to_canonical_scalar_result(w, return_type)
         return
     }
     if kind == p2_kind_string() {
@@ -972,10 +989,36 @@ fn emit_result_conversion(
     )
 }
 
+// MIR scalar results live in widened slots (i64/f64) while the canonical ABI
+// declares the narrow width (i32/f32). Narrow the raw call result so the
+// wrapper's result type validates.
+fn emit_mir_to_canonical_scalar_result(w: WasmWriter, return_type: i32) {
+    if return_type == value_types::VT_I32() {
+        helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+        return
+    }
+}
+
 fn emit_enum_result_value(w: WasmWriter, raw_result_local: i32, ctx: SelfEmitCtx) {
     writer_core::emit_local_get(w, raw_result_local)
     writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     writer_gc::emit_gc_struct_get_i32(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx), 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+}
+
+// Canonical ABI call operands are always memory32-width i32, even when the
+// module itself is memory64; never route these through emit_i32_const, which
+// widens constants to i64 under memory64.
+fn emit_canon_i32_const(w: WasmWriter, value: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, value)
+}
+
+// The canonical result pointer is a memory32 i32 at the ABI boundary while
+// the aux local keeps the memory64-widened form internally.
+fn emit_p2_canonical_result_ptr(w: WasmWriter, result_ptr_local: i32) {
+    writer_core::emit_local_get(w, result_ptr_local)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
 }
 
 fn emit_p2_realloc_fixed(
@@ -985,12 +1028,14 @@ fn emit_p2_realloc_fixed(
     align: i32,
     size: i32
 ) {
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, align)
-    helpers_numeric_i32_const::emit_i32_const(w, size)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, align)
+    emit_canon_i32_const(w, size)
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, realloc_idx)
+    // cabi_realloc keeps the memory32 ABI: i32 result, widened for the local.
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, result_ptr_local)
 }
@@ -1003,14 +1048,16 @@ fn emit_p2_realloc_dynamic(
     size_local: i32,
     extra_size: i32
 ) {
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, align)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, align)
     writer_core::emit_local_get(w, size_local)
     helpers_numeric_i32_const::emit_i32_const(w, extra_size)
     helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, realloc_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, result_ptr_local)
 }
@@ -1099,7 +1146,7 @@ fn emit_struct_result_conversion(
         offset = offset + width
         fi = fi + 1
     }
-    writer_core::emit_local_get(w, result_ptr_local)
+    emit_p2_canonical_result_ptr(w, result_ptr_local)
 }
 
 fn emit_list_result_conversion(
@@ -1119,16 +1166,18 @@ fn emit_list_result_conversion(
     writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, length_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, 4)
     writer_core::emit_local_get(w, length_local)
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_numeric_i32_arith::emit_i32_mul(w)
     helpers_numeric_i32_const::emit_i32_const(w, 8)
     helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, realloc_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, result_ptr_local)
     emit_p2_pointer_offset(w, result_ptr_local, 0)
@@ -1163,7 +1212,7 @@ fn emit_list_result_conversion(
     writer_core::emit_leb128_u(w, loop_local)
     helpers_control::emit_br(w, 0)
     helpers_control::emit_block_loop_footer(w)
-    writer_core::emit_local_get(w, result_ptr_local)
+    emit_p2_canonical_result_ptr(w, result_ptr_local)
 }
 
 fn p2_payload_kind(type_name: String) -> i32 {
@@ -1343,7 +1392,7 @@ fn emit_string_variant_result_conversion(
             ctx_gc_type::SelfEmitCtx_string_type(ctx)
         )
         helpers_control::emit_end(w)
-        writer_core::emit_local_get(w, result_ptr_local)
+        emit_p2_canonical_result_ptr(w, result_ptr_local)
         return
     }
     let string_tag = if ok_is_string { 0 } else { 1 }
@@ -1386,7 +1435,7 @@ fn emit_string_variant_result_conversion(
         scalar_kind
     )
     helpers_control::emit_end(w)
-    writer_core::emit_local_get(w, result_ptr_local)
+    emit_p2_canonical_result_ptr(w, result_ptr_local)
 }
 
 fn emit_raw_variant_tag(w: WasmWriter, raw_result_local: i32, tag_local: i32, ctx: SelfEmitCtx) {
@@ -1427,7 +1476,7 @@ fn emit_string_option_result_conversion(
     emit_p2_realloc_fixed(w, result_ptr_local, realloc_idx, 4, 12)
     emit_variant_tag_store(w, result_ptr_local, tag_local, true)
     helpers_control::emit_end(w)
-    writer_core::emit_local_get(w, result_ptr_local)
+    emit_p2_canonical_result_ptr(w, result_ptr_local)
 }
 
 fn emit_string_variant_payload(
@@ -1540,7 +1589,7 @@ fn emit_fixed_variant_result_conversion(
             payload_kind
         )
         helpers_control::emit_end(w)
-        writer_core::emit_local_get(w, result_ptr_local)
+        emit_p2_canonical_result_ptr(w, result_ptr_local)
         return
     }
     let kind = p2_type_kind(clone(type_name), 5, mir)
@@ -1581,7 +1630,7 @@ fn emit_fixed_variant_result_conversion(
             payload_kind
         )
         helpers_control::emit_end(w)
-        writer_core::emit_local_get(w, result_ptr_local)
+        emit_p2_canonical_result_ptr(w, result_ptr_local)
         return
     }
     let family = sections_types_sigs_detail::p2_enum_type_name(clone(type_name))
@@ -1612,7 +1661,7 @@ fn emit_fixed_variant_result_conversion(
         )
         helpers_control::emit_end(w)
     }
-    writer_core::emit_local_get(w, result_ptr_local)
+    emit_p2_canonical_result_ptr(w, result_ptr_local)
 }
 
 fn emit_string_input_copy(
@@ -1633,11 +1682,14 @@ fn emit_string_input_copy(
     helpers_control::emit_block_loop_header(w)
     writer_core::emit_local_get(w, loop_local)
     writer_core::emit_local_get(w, length_local)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     helpers_numeric_i32_compare::emit_i32_ge_u(w)
     helpers_control::emit_br_if(w, 1)
     writer_core::emit_local_get(w, string_local)
     writer_core::emit_local_get(w, loop_local)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_local_get(w, pointer_local)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     writer_core::emit_local_get(w, loop_local)
     helpers_numeric_i32_arith::emit_i32_add(w)
     helpers_memory::emit_i32_load8_u_default(w)
@@ -1669,6 +1721,7 @@ fn emit_raw_function_call(
         let kind = p2_type_kind(clone(type_name), local_access::MirLocal_val_type(param), mir)
         if kind == p2_kind_scalar() {
             writer_core::emit_local_get(w, canonical_idx)
+            emit_canonical_to_mir_scalar(w, clone(type_name))
             canonical_idx = canonical_idx + 1
         } else {
             let ref_local = canonical_param_count + param_ref_offset(f, pi, ctx, mir)
@@ -1693,6 +1746,47 @@ fn emit_raw_function_call(
     )
 }
 
+// Canonical ABI scalar params arrive in the canonical width (i32/f32) while
+// MIR functions take widened slots (i64/f64). Emit the widening conversion so
+// the raw call's operand types match the callee signature. Signedness follows
+// the declared type name: signed ints use i64.extend_i32_s, unsigned/bool/char
+// and any other i32-width name use i64.extend_i32_u.
+fn emit_canonical_to_mir_scalar(w: WasmWriter, type_name: String) {
+    if p2_scalar_no_widen(type_name) {
+        return
+    }
+    if writer_core::writer_memory64(w) {
+        if p2_scalar_is_signed(clone(type_name)) {
+            writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_S())
+            return
+        }
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+    }
+}
+
+fn p2_scalar_no_widen(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("i64")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("u64")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return true
+    }
+    eq(clone(type_name), String_from("f64"))
+}
+
+fn p2_scalar_is_signed(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("i8")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("i16")) {
+        return true
+    }
+    eq(clone(type_name), String_from("i32"))
+}
+
 fn emit_string_result_conversion(
     w: WasmWriter,
     result_array_local: i32,
@@ -1708,18 +1802,20 @@ fn emit_string_result_conversion(
     emit_string_result_alloc(w, result_ptr_local, loop_local, realloc_idx)
     emit_string_result_header(w, result_ptr_local, loop_local)
     emit_string_result_bytes(w, result_ptr_local, loop_local, result_array_local, string_type)
-    writer_core::emit_local_get(w, result_ptr_local)
+    emit_p2_canonical_result_ptr(w, result_ptr_local)
 }
 
 fn emit_string_result_alloc(w: WasmWriter, result_ptr_local: i32, length_local: i32, realloc_idx: i32) {
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, 0)
+    emit_canon_i32_const(w, 4)
     writer_core::emit_local_get(w, length_local)
     helpers_numeric_i32_const::emit_i32_const(w, 8)
     helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, realloc_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, result_ptr_local)
 }

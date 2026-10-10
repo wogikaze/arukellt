@@ -59,32 +59,7 @@ DEFAULT_JOBS = max(1, (os.cpu_count() or 4) // 2)
 # expected to fail compilation in the plain ``compile`` path.  These are
 # tracked separately and should be fixed by making the compile path handle
 # them, but for now they are skipped to keep the gate meaningful.
-T3_COMPILE_SKIP: frozenset[str] = frozenset({
-    # Requires WIT import bindings (component model)
-    "component/import_async_resource_type.ark",
-    "component/import_future_type.ark",
-    "component/import_resource_type.ark",
-    "component/resource_v3/resource_basic.ark",
-    "component/resource_v3/resource_handle.ark",
-    "component/resource_v3/resource_gc.ark",
-    "component/resource_v3/resource_async_drop.ark",
-    "component/resource_v3/resource_forward.ark",
-    # async/future/stream require special runtime support
-    "async/async_fn_basic.ark",
-    "async/future_type_ann.ark",
-    "async/stream_type_ann.ark",
-    # stdlib_host requires WASI host capability bindings
-    "stdlib_host/wasi_stdio.ark",
-    "stdlib_host/wasi_fs.ark",
-    "stdlib_host/wasi_args.ark",
-    "stdlib_host/wasi_process.ark",
-    "stdlib_host/wasi_clock.ark",
-    "stdlib_host/wasi_random.ark",
-    # stdlib_fs requires filesystem host capability
-    "stdlib_fs/host_capability_contract.ark",
-    # #730: selfhost OOM compiling recursive WitNode AST to T3 GC
-    "stdlib_wit/wit_ast_parse.ark",
-})
+T3_COMPILE_SKIP: frozenset[str] = frozenset()
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

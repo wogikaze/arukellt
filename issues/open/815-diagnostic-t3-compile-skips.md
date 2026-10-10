@@ -57,9 +57,24 @@ python3 scripts/manager.py selfhost diag-parity
 
 ## Current count
 
-19 T3 compile skips (frozenset; timeout skips may add a few) + 1 diagnostic
-parity skip = 20+ total skips
+0 T3 compile skips (frozenset is empty) + 1 diagnostic parity skip = 1 total
 (as of 2026-10-11; was 49)
+
+Progress (2026-10-11, T3 leg): the p2 canonical-ABI wrapper emitter mixed
+canonical i32 widths with the module's memory64 i64 scalar domain. Under
+wasm32-gc the wrapper's aux locals (loop counter, result pointer, scratch
+tag/length) were declared i32 while every emit_i32_* helper emits widened
+i64 ops under memory64, canonical params were read into i64 arithmetic
+without i64.extend, local.get of widened aux locals fed i32-expecting
+canonical results, and emit_i32_const emitted i64.const for the
+memory32-ABI cabi_realloc operands. src/compiler/wasm/p2_canonical.ark
+now declares the aux locals i64 under memory64, widens canonical params at
+i64-domain reads, narrows results and realloc operands back to the
+canonical i32 boundary (emit_canon_i32_const, emit_p2_canonical_result_ptr),
+and widens cabi_realloc results into the aux locals. All five
+component/resource_v3/* fixtures compile and pass wasm-tools validate
+--features gc; T3_COMPILE_SKIP is empty. The remaining count is the one
+diagnostic skip below.
 
 ## Progress (2026-10-10)
 
