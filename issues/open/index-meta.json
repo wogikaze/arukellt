@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T12:48:13Z",
+  "generated_at": "2026-10-10T12:50:09Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -177,6 +177,29 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
+      }
+    },
+    {
+      "id": "695",
+      "path": "695-ord-partialord-traits.md",
+      "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "908"
+      ],
+      "blocks_issue_ids": [
+        "697",
+        "703",
+        "709"
+      ],
+      "acceptance": {
+        "checked": 11,
+        "unchecked": 1
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#908 generic mono-instance emit mis-bind"
       }
     },
     {
@@ -473,42 +496,6 @@
       }
     },
     {
-      "id": "908",
-      "path": "908-generic-second-instantiation-misbind.md",
-      "title": "908 — Generic fn second instantiation mis-binds call site on emit (gc invalid wasm / linear silent miscompile)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "695"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "909",
-      "path": "909-linear-gc-mark-candidate-page-table.md",
-      "title": "909 - Linear GC mark_candidate O(records) scan makes collection quadratic",
-      "track": "gc",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
       "id": "910",
       "path": "910-emit-gc-local-val-type-write-site-reanalysis.md",
       "title": "910 - emit_gc_local_val_type re-analyzes write sites per local decl",
@@ -599,6 +586,53 @@
       }
     },
     {
+      "id": "697",
+      "path": "697-vec-operation-extension.md",
+      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "695"
+      ],
+      "blocks_issue_ids": [
+        "709",
+        "710"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #695 Ord"
+      }
+    },
+    {
+      "id": "703",
+      "path": "703-monomorphic-api-bold-cutover.md",
+      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "700",
+        "701",
+        "691",
+        "695"
+      ],
+      "blocks_issue_ids": [
+        "709"
+      ],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 17
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+      }
+    },
+    {
       "id": "699",
       "path": "699-t4-llvm-native-simd-lowering.md",
       "title": "699 — T4 LLVM native SIMD lowering for std::simd",
@@ -678,29 +712,6 @@
       }
     },
     {
-      "id": "695",
-      "path": "695-ord-partialord-traits.md",
-      "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "908"
-      ],
-      "blocks_issue_ids": [
-        "697",
-        "703",
-        "709"
-      ],
-      "acceptance": {
-        "checked": 11,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#908 generic mono-instance emit mis-bind"
-      }
-    },
-    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -718,53 +729,6 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "697",
-      "path": "697-vec-operation-extension.md",
-      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "695"
-      ],
-      "blocks_issue_ids": [
-        "709",
-        "710"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #695 Ord"
-      }
-    },
-    {
-      "id": "703",
-      "path": "703-monomorphic-api-bold-cutover.md",
-      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "700",
-        "701",
-        "691",
-        "695"
-      ],
-      "blocks_issue_ids": [
-        "709"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 17
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
       }
     },
     {

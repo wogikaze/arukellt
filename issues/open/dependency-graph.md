@@ -15,6 +15,7 @@ graph LR
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
+  I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
@@ -30,35 +31,31 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I908["908 908 — Generic fn second instantiation mis-binds call site on emit (gc invalid wasm / linear silent miscompile)"]
-  I909["909 909 - Linear GC mark_candidate O(records) scan makes collection quadratic"]
   I910["910 910 - emit_gc_local_val_type re-analyzes write sites per local decl"]
   I911["911 911 - Verification gap: nothing exercises a freshly built s2 as producer"]
   I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
+  I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
+  I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
-  I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
-  I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
+  I695 --> I697
+  I695 --> I703
   I698 --> I699
   I715 --> I719
   I715 --> I799
   I851 --> I850
-  I908 --> I695
   I682 --> I683
-  I695 --> I697
-  I695 --> I703
   I695 --> I709
   I697 --> I709
   I703 --> I709
@@ -85,6 +82,7 @@ graph LR
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **693** depends on: 688, 692; blocks: none
+- **695** depends on: 908; blocks: 697, 703, 709
 - **698** depends on: 686, 649; blocks: 699
 - **702** depends on: 688, 700, 692; blocks: none
 - **708** depends on: 692, 707; blocks: none
@@ -100,21 +98,18 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **908** depends on: none; blocks: 695
-- **909** depends on: none; blocks: none
 - **910** depends on: none; blocks: none
 - **911** depends on: none; blocks: none
 - **912** depends on: none; blocks: none
 - **913** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
+- **697** depends on: 691, 695; blocks: 709, 710
+- **703** depends on: 700, 701, 691, 695; blocks: 709
 - **699** depends on: 649, 698; blocks: none
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
-- **695** depends on: 908; blocks: 697, 703, 709
 - **683** depends on: 679, 682; blocks: none
-- **697** depends on: 691, 695; blocks: 709, 710
-- **703** depends on: 700, 701, 691, 695; blocks: 709
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
