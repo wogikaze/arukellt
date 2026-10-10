@@ -189,15 +189,15 @@ Notes (Integer placement): `trait Integer` + impls live in
 `std/core/convert.ark` (not `math.ark`) so method names do not collide
 with deprecated free wrappers still exported from `math.ark`.
 
-### Phase 2 (future, Tier 2-3, blocked by #691, #695)
+### Phase 2 (future, Tier 2-3, blocked by #691, #695 — owned by #709)
 
-- [ ] Migrate Either, Error, IO functions to methods
-- [ ] Migrate HashMap, sort, LinkedList, Trie to methods/new types
+- Migrate Either, Error, IO functions to methods
+- Migrate HashMap, sort, LinkedList, Trie to methods/new types
 
 ### Phase 3 (future, Tier 4-5, blocked by Phase 2)
 
-- [ ] Migrate text/bytes functions to methods
-- [ ] Deprecate prelude wrappers after sources migrate
+- Migrate text/bytes functions to methods
+- Deprecate prelude wrappers after sources migrate
 
 ## Acceptance
 

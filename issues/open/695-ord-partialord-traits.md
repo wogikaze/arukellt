@@ -4,9 +4,9 @@ Created: 2026-06-26
 Updated: 2026-10-10
 ID: 695
 Track: stdlib-api
-Depends on: "908"
-Orchestration class: blocked-by-upstream
-Orchestration upstream: "#908 generic mono-instance emit mis-bind"
+Depends on: none
+Orchestration class: ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 2
 Source: Stdlib abstraction gap audit 2026-06-26 — Rust parity comparison
@@ -60,18 +60,20 @@ The trait surface and generic algorithms are fully landed and verified:
 `ord_sort_vec_string` (Vec<String> + Vec<Reverse<i32>>, proven on
 wasm32 and wasm32-gc).
 
-One acceptance item stays open: calls needing a **second** instantiation
-of the same generic fn mis-bind to the `__i32` instance —
-`binary_search_by(Vec<String>)` and `min_by(Vec<String>)` produce
-invalid wasm32-gc and silently miscompile on wasm32. Filed as #908;
-this issue is blocked on it.
+Update 2026-10-10: #908 is fixed and closed — demanded mono instances
+are minted and bound for dual-instantiated generics. The new
+`seq_generic_string_instantiation` fixture proves binary_search_by /
+lower_bound / binary_search_by_key / min_by / max_by / min_by_key /
+max_by_key at T=String emit dedicated __String bodies: the wasm32-gc
+module validates and the wasm32 module runs all assertions green.
 
 ## Acceptance
 
 - [x] `Ord` / `PartialOrd` traits defined with scalar impls.
-- [ ] `sort_by` / `binary_search_by` work generically on `Vec<T: Ord>`
+- [x] `sort_by` / `binary_search_by` work generically on `Vec<T: Ord>`
       — sort_by proven on Vec<String>/Vec<Reverse<i32>> on both targets;
-      binary_search_by/min_by at T=String blocked by #908.
+      binary_search_by/min_by at T=String verified post-#908 on both
+      targets via seq_generic_string_instantiation.
 - [x] Fixture sorts a non-`i32` collection (e.g. `Vec<String>`) via the trait.
 - [x] `python3 scripts/manager.py verify quick` exits 0.
 

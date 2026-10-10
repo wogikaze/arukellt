@@ -85,7 +85,7 @@ the page table does not depend on record ordering at all.
       tests/fixtures/target_capability/linear_gc_* compile and run clean.
 - [x] gcstress probe re-run against a program emitted by the new s2:
       0.80s vs 6.59s on the identical workload.
-- [ ] s2 -> s3 build carries the new runtime into the runnable compiler;
+- [x] s2 -> s3 build carries the new runtime into the runnable compiler;
       confirm previously-stalling std::seq probes compile promptly under
       s3. In progress via a big-arena + collect-nop binary patch on a
       scratch copy of s2-runtime.wasm (the s2's own baked runtime is the

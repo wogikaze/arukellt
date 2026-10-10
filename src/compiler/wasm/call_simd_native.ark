@@ -3,6 +3,7 @@
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::call_simd_emit
+use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 
@@ -107,15 +108,15 @@ fn try_emit_simd_native_f32x4(w: WasmWriter, handler_id: i32, inst: MirInst, des
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_splat() {
-        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_F32X4_SPLAT(), call_simd_emit::SIMD_LANE_F32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_F32X4_SPLAT(), constants::SIMD_LANE_F32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_extract_lane(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F32X4_EXTRACT_LANE(), call_simd_emit::SIMD_LANE_F32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F32X4_EXTRACT_LANE(), constants::SIMD_LANE_F32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_replace_lane(){
-        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F32X4_REPLACE_LANE(), call_simd_emit::SIMD_LANE_F32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F32X4_REPLACE_LANE(), constants::SIMD_LANE_F32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_eq() {
@@ -199,15 +200,15 @@ fn try_emit_simd_native_f64x2(w: WasmWriter, handler_id: i32, inst: MirInst, des
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_splat() {
-        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_F64X2_SPLAT(), call_simd_emit::SIMD_LANE_F64(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_F64X2_SPLAT(), constants::SIMD_LANE_F64(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_extract_lane(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F64X2_EXTRACT_LANE(), call_simd_emit::SIMD_LANE_F64(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F64X2_EXTRACT_LANE(), constants::SIMD_LANE_F64(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_replace_lane(){
-        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F64X2_REPLACE_LANE(), call_simd_emit::SIMD_LANE_F64(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F64X2_REPLACE_LANE(), constants::SIMD_LANE_F64(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_eq() {
@@ -287,15 +288,15 @@ fn try_emit_simd_native_i32x4(w: WasmWriter, handler_id: i32, inst: MirInst, des
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_splat() {
-        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I32X4_SPLAT(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I32X4_SPLAT(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_extract_lane(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I32X4_EXTRACT_LANE(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I32X4_EXTRACT_LANE(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_replace_lane(){
-        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I32X4_REPLACE_LANE(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I32X4_REPLACE_LANE(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_eq() {
@@ -387,15 +388,15 @@ fn try_emit_simd_native_i64x2(w: WasmWriter, handler_id: i32, inst: MirInst, des
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_splat() {
-        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I64X2_SPLAT(), call_simd_emit::SIMD_LANE_I64(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I64X2_SPLAT(), constants::SIMD_LANE_I64(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_extract_lane(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I64X2_EXTRACT_LANE(), call_simd_emit::SIMD_LANE_I64(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I64X2_EXTRACT_LANE(), constants::SIMD_LANE_I64(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_replace_lane(){
-        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I64X2_REPLACE_LANE(), call_simd_emit::SIMD_LANE_I64(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I64X2_REPLACE_LANE(), constants::SIMD_LANE_I64(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_eq() {
@@ -455,19 +456,19 @@ fn try_emit_simd_native_i8x16(w: WasmWriter, handler_id: i32, inst: MirInst, des
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_splat() {
-        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I8X16_SPLAT(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I8X16_SPLAT(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_extract_lane_s(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_S(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_S(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_extract_lane_u(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_U(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_U(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_replace_lane(){
-        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I8X16_REPLACE_LANE(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I8X16_REPLACE_LANE(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_eq() {
@@ -571,19 +572,19 @@ fn try_emit_simd_native_i16x8(w: WasmWriter, handler_id: i32, inst: MirInst, des
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_splat() {
-        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I16X8_SPLAT(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_splat(w, inst, opcodes::SIMD_I16X8_SPLAT(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_extract_lane_s(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_S(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_S(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_extract_lane_u(){
-        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_U(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_U(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_replace_lane(){
-        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I16X8_REPLACE_LANE(), call_simd_emit::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I16X8_REPLACE_LANE(), constants::SIMD_LANE_I32(), next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_ge_u() {

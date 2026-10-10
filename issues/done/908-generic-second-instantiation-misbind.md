@@ -97,13 +97,13 @@ user call resolves to __i32 and __String is never emitted.
 
 ## Acceptance
 
-- [ ] binary_search_by(Vec<String>, String) compiles to valid
+- [x] binary_search_by(Vec<String>, String) compiles to valid
       wasm32-gc (a distinct String instantiation is emitted and bound)
       and returns the correct index at run time.
-- [ ] Same for min_by / max_by / binary_search_by_key / lower_bound at
+- [x] Same for min_by / max_by / binary_search_by_key / lower_bound at
       T = String — no __i32 fallback binding.
-- [ ] wasm32 (linear) also emits and binds the String instance (not the
+- [x] wasm32 (linear) also emits and binds the String instance (not the
       i32 body running on pointers).
-- [ ] Regression fixture exercising Vec<String> through the affected
+- [x] Regression fixture exercising Vec<String> through the affected
       generics, with run: + t3-compile: manifest entries.
-- [ ] python3 scripts/manager.py verify lane passes.
+- [x] python3 scripts/manager.py verify lane passes.

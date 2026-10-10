@@ -32,14 +32,14 @@
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
-| `std::seq` | 22 | 0 | 9 | 0 | 13 | 6/9 (67%) | no |
+| `std::seq` | 22 | 0 | 9 | 0 | 13 | 9/9 (100%) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
-| `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 16/24 (67%) | no |
-| `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 13/14 (93%) | no |
-| `std::simd::i16x8` | 10 | 0 | 0 | 10 | 0 | 7/10 (70%) | no |
-| `std::simd::i32x4` | 15 | 0 | 0 | 15 | 0 | 12/15 (80%) | no |
-| `std::simd::i64x2` | 10 | 0 | 0 | 10 | 0 | 9/10 (90%) | no |
-| `std::simd::i8x16` | 12 | 0 | 0 | 12 | 0 | 7/12 (58%) | no |
+| `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 17/24 (71%) | no |
+| `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
+| `std::simd::i16x8` | 10 | 0 | 0 | 10 | 0 | 8/10 (80%) | no |
+| `std::simd::i32x4` | 15 | 0 | 0 | 15 | 0 | 13/15 (87%) | no |
+| `std::simd::i64x2` | 10 | 0 | 0 | 10 | 0 | 10/10 (100%) | no |
+| `std::simd::i8x16` | 12 | 0 | 0 | 12 | 0 | 10/12 (83%) | no |
 | `std::simd::u16x8` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u32x4` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
@@ -53,7 +53,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 815 APIs, 391 stable, 83 provisional, 322 experimental, 19 deprecated, 659/796 (83%) fixture coverage
+**Total**: 815 APIs, 391 stable, 83 provisional, 322 experimental, 19 deprecated, 670/796 (84%) fixture coverage
 
 ## Legend
 

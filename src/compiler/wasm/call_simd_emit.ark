@@ -1,6 +1,7 @@
 use mir::inst_accessors_operands
 use wasm::inst_store
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
 
@@ -10,18 +11,10 @@ fn emit_simd_prefix(w: WasmWriter, sub_opcode: i32) {
     writer_core::emit_leb128_u(w, sub_opcode)
 }
 
-// Lane scalar kinds for stack-width adaptation. MIR i32 scalars are carried
-// as i64 under Memory64 (gc targets) while SIMD lane operands stay raw i32.
-// The i64/f32/f64 lane kinds need no adaptation on either target.
-fn SIMD_LANE_I32() -> i32 { 1 }
-fn SIMD_LANE_I64() -> i32 { 2 }
-fn SIMD_LANE_F32() -> i32 { 3 }
-fn SIMD_LANE_F64() -> i32 { 4 }
-
 // Narrow the carried scalar on stack top to a raw i32 lane operand. No-op
 // for non-i32 lane kinds; emit_narrow_i64_operand itself no-ops on memory32.
 fn emit_simd_lane_demote(w: WasmWriter, lane_kind: i32) {
-    if lane_kind == SIMD_LANE_I32() {
+    if lane_kind == constants::SIMD_LANE_I32() {
         helpers_numeric_i32::emit_narrow_i64_operand(w)
     }
 }
@@ -29,7 +22,7 @@ fn emit_simd_lane_demote(w: WasmWriter, lane_kind: i32) {
 // Widen a raw i32 lane result back to the carried scalar width. Same gating
 // as demote: i32-width lanes only, memory64-only emission.
 fn emit_simd_lane_promote(w: WasmWriter, lane_kind: i32) {
-    if lane_kind == SIMD_LANE_I32() {
+    if lane_kind == constants::SIMD_LANE_I32() {
         helpers_numeric_i32::emit_widen_i32_result(w)
     }
 }

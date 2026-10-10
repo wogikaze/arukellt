@@ -276,3 +276,11 @@ fn WIT_SLOT_TUPLE_I32_I32() -> i32 { 10 }
 fn WIT_SLOT_TUPLE_BOOL_BOOL() -> i32 { 11 }
 fn WIT_SLOT_TUPLE_I32_BOOL() -> i32 { 12 }
 fn WIT_SLOT_TUPLE_I64_I64() -> i32 { 13 }
+
+// Lane scalar kinds for stack-width adaptation. MIR i32 scalars are carried
+// as i64 under Memory64 (gc targets) while SIMD lane operands stay raw i32.
+// The i64/f32/f64 lane kinds need no adaptation on either target.
+fn SIMD_LANE_I32() -> i32 { 1 }
+fn SIMD_LANE_I64() -> i32 { 2 }
+fn SIMD_LANE_F32() -> i32 { 3 }
+fn SIMD_LANE_F64() -> i32 { 4 }
