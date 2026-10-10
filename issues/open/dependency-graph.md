@@ -34,6 +34,7 @@ graph LR
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
+  I915["915 915 - Fresh type-var names collide across TypeEnv scopes"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -93,6 +94,7 @@ graph LR
 - **851** depends on: 827; blocks: 850
 - **912** depends on: none; blocks: none
 - **913** depends on: none; blocks: none
+- **915** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **719** depends on: 715; blocks: none

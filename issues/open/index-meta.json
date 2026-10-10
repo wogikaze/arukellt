@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T14:20:28Z",
+  "generated_at": "2026-10-10T17:07:55Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -538,6 +538,23 @@
       "id": "913",
       "path": "913-wasm32-gc-string-table-corrupt-record.md",
       "title": "913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "investigation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "915",
+      "path": "915-fresh-typevar-namespace-collision.md",
+      "title": "915 - Fresh type-var names collide across TypeEnv scopes",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [],
