@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T12:50:09Z",
+  "generated_at": "2026-10-10T13:01:15Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -180,26 +180,26 @@
       }
     },
     {
-      "id": "695",
-      "path": "695-ord-partialord-traits.md",
-      "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
+      "id": "697",
+      "path": "697-vec-operation-extension.md",
+      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
       "track": "stdlib-api",
       "status": "open",
       "depends_on": [
-        "908"
+        "691",
+        "695"
       ],
       "blocks_issue_ids": [
-        "697",
-        "703",
-        "709"
+        "709",
+        "710"
       ],
       "acceptance": {
-        "checked": 11,
-        "unchecked": 1
+        "checked": 0,
+        "unchecked": 15
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#908 generic mono-instance emit mis-bind"
+        "upstream_notes": "#691 Iterator, #695 Ord"
       }
     },
     {
@@ -243,6 +243,30 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+      }
+    },
+    {
+      "id": "703",
+      "path": "703-monomorphic-api-bold-cutover.md",
+      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "700",
+        "701",
+        "691",
+        "695"
+      ],
+      "blocks_issue_ids": [
+        "709"
+      ],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 17
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
       }
     },
     {
@@ -496,23 +520,6 @@
       }
     },
     {
-      "id": "910",
-      "path": "910-emit-gc-local-val-type-write-site-reanalysis.md",
-      "title": "910 - emit_gc_local_val_type re-analyzes write sites per local decl",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
       "id": "911",
       "path": "911-fresh-s2-producer-verify-gap.md",
       "title": "911 - Verification gap: nothing exercises a freshly built s2 as producer",
@@ -586,53 +593,6 @@
       }
     },
     {
-      "id": "697",
-      "path": "697-vec-operation-extension.md",
-      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "695"
-      ],
-      "blocks_issue_ids": [
-        "709",
-        "710"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #695 Ord"
-      }
-    },
-    {
-      "id": "703",
-      "path": "703-monomorphic-api-bold-cutover.md",
-      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "700",
-        "701",
-        "691",
-        "695"
-      ],
-      "blocks_issue_ids": [
-        "709"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 17
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
-      }
-    },
-    {
       "id": "699",
       "path": "699-t4-llvm-native-simd-lowering.md",
       "title": "699 — T4 LLVM native SIMD lowering for std::simd",
@@ -650,6 +610,33 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "709",
+      "path": "709-stdlib-trait-first-api-policy.md",
+      "title": "709 — Stdlib trait-first API policy and free-function eradication",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "695",
+        "697",
+        "703"
+      ],
+      "blocks_issue_ids": [
+        "710",
+        "711",
+        "712",
+        "713"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
       }
     },
     {
@@ -729,33 +716,6 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "709",
-      "path": "709-stdlib-trait-first-api-policy.md",
-      "title": "709 — Stdlib trait-first API policy and free-function eradication",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "695",
-        "697",
-        "703"
-      ],
-      "blocks_issue_ids": [
-        "710",
-        "711",
-        "712",
-        "713"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
       }
     },
     {
