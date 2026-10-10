@@ -32,9 +32,9 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I911["911 911 - Verification gap: nothing exercises a freshly built s2 as producer"]
   I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
+  I914["914 914 - A generic user function colliding with an imported concrete function of the same name mis-binds resolve and mono instances"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -92,9 +92,9 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **911** depends on: none; blocks: none
 - **912** depends on: none; blocks: none
 - **913** depends on: none; blocks: none
+- **914** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **719** depends on: 715; blocks: none

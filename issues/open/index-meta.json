@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T13:02:02Z",
+  "generated_at": "2026-10-10T13:36:34Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -518,23 +518,6 @@
       }
     },
     {
-      "id": "911",
-      "path": "911-fresh-s2-producer-verify-gap.md",
-      "title": "911 - Verification gap: nothing exercises a freshly built s2 as producer",
-      "track": "verification",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
       "id": "912",
       "path": "912-mono-propagation-demand-closure-boundary.md",
       "title": "912 - Monomorphization needs a principled demand-closure boundary",
@@ -565,6 +548,23 @@
       },
       "orchestration": {
         "class": "investigation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "914",
+      "path": "914-generic-fn-name-collision-misbind.md",
+      "title": "914 - A generic user function colliding with an imported concrete function of the same name mis-binds resolve and mono instances",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "none"
       }
     },

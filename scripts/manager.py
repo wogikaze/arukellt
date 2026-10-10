@@ -551,6 +551,10 @@ _LANE_GATES: dict[str, tuple[str, str]] = {
         "quality quick",
         "python3 scripts/manager.py quality quick",
     ),
+    "s2-producer": (
+        "fresh-s2 producer smoke (#911)",
+        "python3 scripts/check/check-fresh-s2-smoke.py",
+    ),
 }
 
 
@@ -4705,6 +4709,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "GC array smoke gate",
             "python3 scripts/check/check-gc-array-smoke.py",
+        ),
+        (
+            "fresh-s2 producer smoke (#911)",
+            "python3 scripts/check/check-fresh-s2-smoke.py",
         ),
         (
             "init template gate (#464)",
