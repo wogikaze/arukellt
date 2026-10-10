@@ -84,6 +84,9 @@ pub struct SelfEmitCtx {
     // Encoded Option<i32> for direct producer storage: -2 = uncomputed,
     // -1 = no storage type, >=0 = wasm type index.
     local_direct_producer_storage_cache: Vec<i32>,
+    // Encoded Option<i32> for the copied-source storage walk: -2 =
+    // uncomputed, -1 = no storage type, >=0 = wasm type index.
+    local_copied_storage_cache: Vec<i32>,
     // First MIR_STRUCT_NEW byte size per struct name in the current body, in
     // body order; replaces a per-local body rescan in local decl typing.
     struct_new_size_names: Vec<String>,
@@ -209,6 +212,7 @@ fn SelfEmitCtx_new(
         local_strong_ref_producer_cache: Vec::new<i32>(),
         local_vec_constructor_cache: Vec::new<i32>(),
         local_direct_producer_storage_cache: Vec::new<i32>(),
+        local_copied_storage_cache: Vec::new<i32>(),
         struct_new_size_names: Vec::new<String>(),
         struct_new_sizes: Vec::new<i32>(),
         local_write_index: local_write_index::LocalWriteIndex_empty(),
@@ -333,6 +337,14 @@ fn SelfEmitCtx_local_direct_producer_storage_cache(ctx: SelfEmitCtx) -> Vec<i32>
 
 fn SelfEmitCtx_set_local_direct_producer_storage_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_direct_producer_storage_cache = cache
+}
+
+fn SelfEmitCtx_local_copied_storage_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_copied_storage_cache
+}
+
+fn SelfEmitCtx_set_local_copied_storage_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_copied_storage_cache = cache
 }
 
 fn SelfEmitCtx_local_write_index(ctx: SelfEmitCtx) -> LocalWriteIndex {

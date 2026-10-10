@@ -24,6 +24,7 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let strong_ref_flags = Vec::new<i32>()
     let vec_constructor_flags = Vec::new<i32>()
     let direct_storage = Vec::new<i32>()
+    let copied_storage = Vec::new<i32>()
     let def_block = Vec::new<i32>()
     let def_inst = Vec::new<i32>()
     let struct_new_size_names = Vec::new<String>()
@@ -36,6 +37,7 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
         push(has_ref, 0)
         push(vec_constructor_flags, 0)
         push(direct_storage, 0 - 2)
+        push(copied_storage, 0 - 2)
         push(def_block, 0 - 1)
         push(def_inst, 0 - 1)
         i = i + 1
@@ -105,6 +107,7 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     ctx_record::SelfEmitCtx_set_local_strong_ref_producer_cache(ctx, strong_ref_flags)
     ctx_record::SelfEmitCtx_set_local_vec_constructor_cache(ctx, vec_constructor_flags)
     ctx_record::SelfEmitCtx_set_local_direct_producer_storage_cache(ctx, direct_storage)
+    ctx_record::SelfEmitCtx_set_local_copied_storage_cache(ctx, copied_storage)
     ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, def_block)
     ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, def_inst)
     ctx_record::SelfEmitCtx_set_struct_new_size_table(ctx, struct_new_size_names, struct_new_sizes)
@@ -267,6 +270,7 @@ fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_set_local_strong_ref_producer_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_vec_constructor_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_direct_producer_storage_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_copied_storage_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, Vec::new<i32>())
     ctx_record::SelfEmitCtx_set_local_i64_stack_set_cache(ctx, Vec::new<i32>())
@@ -311,6 +315,28 @@ fn cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
 
 fn set_cached_direct_producer_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
     let cache = ctx_record::SelfEmitCtx_local_direct_producer_storage_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return
+    }
+    match value {
+        Option::Some(type_idx) => set(cache, local_idx, type_idx),
+        Option::None => set(cache, local_idx, 0 - 1),
+    }
+}
+
+// Encoded Option<i32> for copied_non_string_storage_type at depth 0.
+// -3 means the per-function cache is inactive or the local index is
+// outside the cache; -2 uncomputed, -1 miss, >=0 hit.
+fn cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let cache = ctx_record::SelfEmitCtx_local_copied_storage_cache(ctx)
+    if local_idx < 0 || local_idx >= len(cache) {
+        return 0 - 3
+    }
+    get_unchecked(cache, local_idx)
+}
+
+fn set_cached_copied_storage(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
+    let cache = ctx_record::SelfEmitCtx_local_copied_storage_cache(ctx)
     if local_idx < 0 || local_idx >= len(cache) {
         return
     }
