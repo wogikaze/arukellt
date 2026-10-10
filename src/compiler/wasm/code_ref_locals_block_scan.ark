@@ -368,7 +368,16 @@ fn local_set_non_string_storage_type(
     storage_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
         return Option::None
     }
-    copied_non_string_storage_type(f, local_idx, ctx, 0)
+    let cached = code_ref_locals_fn_cache::cached_copied_storage(ctx, local_idx)
+    if cached == 0 - 1 {
+        return Option::None
+    }
+    if cached >= 0 {
+        return Option::Some(cached)
+    }
+    let result = copied_non_string_storage_type(f, local_idx, ctx, 0)
+    code_ref_locals_fn_cache::set_cached_copied_storage(ctx, local_idx, result)
+    result
 }
 
 fn copied_non_string_storage_type(
