@@ -460,6 +460,7 @@ run:functions/closure_basic.ark
 run:functions/closure_capture.ark
 run:functions/early_return.ark
 run:functions/generic_fn.ark
+run:functions/generic_shadow_import_name.ark
 run:functions/higher_order.ark
 run:functions/option_fn_call.ark
 run:functions/option_fn_mut_assign.ark
@@ -2187,6 +2188,7 @@ t3-compile:functions/closure_basic.ark
 t3-compile:functions/closure_capture.ark
 t3-compile:functions/early_return.ark
 t3-compile:functions/generic_fn.ark
+t3-compile:functions/generic_shadow_import_name.ark
 t3-compile:functions/higher_order.ark
 t3-compile:functions/option_fn_call.ark
 t3-compile:functions/option_fn_mut_assign.ark

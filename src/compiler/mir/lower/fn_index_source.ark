@@ -4,6 +4,7 @@ use corehir::mir_signature_method
 use corehir::mir_type_source
 use corehir::mod
 use mir::lower::return_types
+use mir::lower_kinds
 use mir::type_contracts
 use mir::typeinfo_shape
 use mir::value_types
@@ -98,6 +99,40 @@ fn mir_fn_index_source_typed_param_type_at(source: MirLowerFnIndexSource, typed_
 
 fn mir_fn_index_source_mono_instances(source: MirLowerFnIndexSource) -> Vec<MonoInstance> {
     type_source::mir_type_source_mono_instances(source.type_source)
+}
+
+fn mir_type_contains_type_var(ty: TypeInfo) -> bool {
+    if type_contracts::TypeInfo_tag(ty) == lower_kinds::TY_TYPE_VAR() {
+        return true
+    }
+    let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < arg_count {
+        if mir_type_contains_type_var(type_contracts::TypeInfo_type_arg_at(ty, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+// A decl owns mono instances only while its typed signature still carries
+// type variables. The flat mono index groups instances by bare decl name,
+// so an imported concrete decl sharing the name with an entry-module
+// generic (std::core::identity vs the program's `fn identity<T>`) sees the
+// same variants. A concrete decl must not claim them: registering
+// `identity__String` under the imported i64 signature produces a
+// param-i64/result-String func that fails wasm validation (#914).
+fn mir_fn_index_source_decl_is_generic(source: MirLowerFnIndexSource, typed_index: i32) -> bool {
+    let param_count = mir_fn_index_source_typed_param_count(source, typed_index)
+    let mut i = 0
+    while i < param_count {
+        if mir_type_contains_type_var(mir_fn_index_source_typed_param_type_at(source, typed_index, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    mir_type_contains_type_var(mir_fn_index_source_typed_return_type(source, typed_index))
 }
 
 fn mir_fn_index_source_method_info_index(source: MirLowerFnIndexSource, impl_decl_index: i32, method_index: i32) -> i32 {

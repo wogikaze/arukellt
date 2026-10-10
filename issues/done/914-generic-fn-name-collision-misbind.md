@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-10
 Updated: 2026-10-10
 ID: 914
@@ -144,6 +144,49 @@ args) end to end - the same qualified-identity redesign #912 calls for.
 - The prelude `assert_eq` warning and the `assert_eq_debug` rename
   rationale are revisited; if the generic `assert_eq` works post-fix,
   a follow-up may restore the name (tracked separately).
+
+## Resolution
+
+Two name-keyed single-slot tables were colliding; both fixed:
+
+1. `build_fn_sig_index` (typechecker/entry.ark): imported decls are
+   listed before entry-module decls and `name_index_insert_first` keeps
+   the first writer, so `std::core::identity(i32)` permanently claimed
+   the bare `identity` slot. Entry-module decls (empty qualified key)
+   now register bare names first; imports still fill qualified keys and
+   remaining bare slots.
+2. Mono-variant ownership (mir/lower): `mono_index` groups instances by
+   bare name, so every same-named decl claimed the entry generic's
+   variants. Once the call sites minted `identity__i32`/`identity__String`
+   again, the imported concrete decl registered/emitted them with its
+   own i64 signature (param-i64/result-ref Frankenstein func). Variant
+   publishing, signature-registry registration, and mono-body emission
+   are now gated by `decl_is_generic` - a decl only owns instances when
+   its typed signature still carries type variables
+   (`fn_index_source::mir_fn_index_source_decl_is_generic`,
+   `entry_fns_mono::mir_entry_decl_is_generic`).
+
+Regression fixture: `tests/fixtures/functions/generic_shadow_import_name.ark`
+(run: + t3-compile: manifest entries) covers annotated and unannotated
+lets at i32 and String instantiations under `use std::test`.
+
+Verified on a freshly built s2 (built post-fix):
+
+- All six previously failing probe shapes (annotated/unannotated lets,
+  `use std::test`/`std::core`/`std::core::cmp`) compile and
+  `wasm-tools validate` on wasm32-gc; wasm32 compiles and runs to
+  exit 0.
+- `identity__i32` and `identity__String` now emit as separate funcs
+  with correct signatures; call sites bind them by mangled name.
+- Spot fixtures `generic_fn`, `generics/two_params`,
+  `generics/vec_generic` compile + validate unchanged;
+  `check-fresh-s2-smoke` 4/4 PASS.
+
+Remaining scope (not this issue): the flat name-keyed tables still allow
+two generic decls sharing a bare name to claim each other's instances,
+and the no-arg-unification escape in `infer_concrete_call_expr` still
+silently accepts arg mismatches when a concrete sig wins the slot.
+Both belong to the qualified-identity redesign tracked by #912.
 
 ## Related
 

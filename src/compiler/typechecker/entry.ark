@@ -70,6 +70,28 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     let count = len(fn_sigs)
     let index = name_index::NameIndex_new(count)
     let mut i = 0
+    // combine_loaded_and_main_decls lists loaded modules before the entry
+    // module, and name_index_insert_first keeps the first writer. A plain
+    // in-order pass therefore lets an imported decl permanently claim the
+    // bare-name slot over a same-named decl in the entry module itself:
+    // `use std::test` pulls in std::core::identity(i32) and a local generic
+    // `fn identity<T>` could never be found by unqualified calls, which
+    // bound the concrete i32 sig and skipped mono-instance minting (#914).
+    // Give entry-module GENERIC decls (empty qualified key, type params)
+    // first claim on their bare names: a generic call can never resolve
+    // to the imported concrete sig anyway, so that slot was dead weight.
+    // Concrete entry decls keep the existing imported-first order so
+    // std-internal calls to colliding names are not re-bound.
+    while i < count {
+        if i < len(qualified_keys) && len(get_unchecked(qualified_keys, i)) == 0 {
+            let own_sig = get_unchecked(fn_sigs, i)
+            if contract_fn_sig::FnSig_type_param_count(own_sig) > 0 {
+                name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(own_sig), i)
+            }
+        }
+        i = i + 1
+    }
+    i = 0
     while i < count {
         let sig = get_unchecked(fn_sigs, i)
         if i < len(qualified_keys) {

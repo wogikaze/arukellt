@@ -38,7 +38,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
         qualified_count = mono::mono_index_count(midx, clone(mono_qualified_name))
     }
-    if bare_count > 0 || qualified_count > 1 {
+    if mir_entry_decl_is_generic(entry_view, typed_index) && (bare_count > 0 || qualified_count > 1) {
         let mut emit_mangled_list = Vec::new<String>()
         let mut bare_i = 0
         while bare_i < bare_count {
@@ -286,4 +286,43 @@ fn mir_entry_typed_return_type_var_name(view: MirLowerEntryView, typed_index: i3
         return typeinfo_shape::mir_type_info_name(ret_ty)
     }
     ""
+}
+
+fn mir_type_info_contains_var(ty: TypeInfo) -> bool {
+    if type_contracts::TypeInfo_tag(ty) == lower_kinds::TY_TYPE_VAR() {
+        return true
+    }
+    let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < arg_count {
+        if mir_type_info_contains_var(type_contracts::TypeInfo_type_arg_at(ty, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+// A decl owns mono variants only while its typed signature still carries
+// type variables. The flat mono index groups instances by bare decl name,
+// so an imported concrete decl sharing the name with an entry-module
+// generic (std::core::identity vs the program's `fn identity<T>`) would
+// otherwise emit identity__String with its own concrete i64 params
+// (#914). A concrete decl falls through to the leaf emit for its own
+// body instead.
+fn mir_entry_decl_is_generic(view: MirLowerEntryView, typed_index: i32) -> bool {
+    let ts = entry_view_record::entry_view_type_source(view)
+    if typed_index < 0 || typed_index >= type_source::mir_type_source_typed_fn_count(ts) {
+        return false
+    }
+    let tf = type_source::mir_type_source_typed_fn_at(ts, typed_index)
+    let param_count = len(tf.param_types)
+    let mut i = 0
+    while i < param_count {
+        if mir_type_info_contains_var(get_unchecked(tf.param_types, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    mir_type_info_contains_var(typeinfo_shape::mir_typed_fn_return_type(tf))
 }
