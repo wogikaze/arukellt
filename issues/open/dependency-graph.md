@@ -16,7 +16,7 @@ graph LR
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
-  I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
+  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
@@ -36,7 +36,6 @@ graph LR
   I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
-  I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
@@ -47,7 +46,6 @@ graph LR
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
-  I698 --> I699
   I697 --> I709
   I703 --> I709
   I715 --> I719
@@ -78,7 +76,7 @@ graph LR
 - **685** depends on: 679; blocks: none
 - **693** depends on: 688, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
-- **698** depends on: 686, 649; blocks: 699
+- **699** depends on: 649, 698; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **708** depends on: 692, 707; blocks: none
@@ -98,7 +96,6 @@ graph LR
 - **912** depends on: none; blocks: none
 - **913** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
-- **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none

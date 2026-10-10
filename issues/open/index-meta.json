@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T13:01:15Z",
+  "generated_at": "2026-10-10T13:02:02Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -203,21 +203,19 @@
       }
     },
     {
-      "id": "698",
-      "path": "698-std-simd-explicit-library.md",
-      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
-      "track": "wasm-feature",
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
       "status": "open",
       "depends_on": [
-        "686",
-        "649"
+        "649",
+        "698"
       ],
-      "blocks_issue_ids": [
-        "699"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 49,
-        "unchecked": 0
+        "checked": 0,
+        "unchecked": 9
       },
       "orchestration": {
         "class": "design-ready",
@@ -590,26 +588,6 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "wasm-tools (CI install policy)"
-      }
-    },
-    {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
       }
     },
     {

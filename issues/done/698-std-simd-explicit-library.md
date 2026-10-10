@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-26
-Updated: 2026-07-26
+Updated: 2026-10-10
 ID: 698
 Track: wasm-feature
 Depends on: "686 (wasm-gc-selfhost-implementation), 649 (t4-native-full-lowering)"
