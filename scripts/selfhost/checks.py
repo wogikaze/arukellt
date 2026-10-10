@@ -5632,28 +5632,8 @@ def _run_fixture_parity_locked(
 # the diagnostics or the test exercises an unimplemented feature.  These are
 # tracked in issue #529 Phase 3 (diagnostic parity expansion).
 DIAG_PARITY_SKIP: frozenset[str] = frozenset({
-    "diagnostics/deprecated_prelude_println.ark",
-    "diagnostics/deprecated_std_io_import.ark",
-    "diagnostics/deprecated_time_monotonic_now.ark",
-    "diagnostics/immutable_mutation.ark",
     "diagnostics/mismatched_arms.ark",
-    "diagnostics/mutable_sharing.ark",
-    "diagnostics/non_exhaustive.ark",
-    "diagnostics/question_type_mismatch.ark",
-    "diagnostics/unused_import.ark",
-    "diagnostics/wrong_arg_count.ark",
-    "deny_clock_compile.ark",
-    "deny_random_compile.ark",
-    "stdlib_io/deny_clock.ark",
-    "stdlib_io/deny_random.ark",
-    "v0_constraints/no_method_call.ark",
-    "v0_constraints/no_operator_overload.ark",
-    "module_import/use_symbol_not_found.ark",
-    "selfhost/typecheck_match_nonexhaustive.ark",
-    "selfhost/ret_type_mismatch.ark",
     "selfhost/trait_ambiguous_bound.ark",
-    "selfhost/trait_overlapping_impl.ark",
-    "selfhost/trait_unresolved_var_bound.ark",
 })
 
 

@@ -57,7 +57,42 @@ python3 scripts/manager.py selfhost diag-parity
 
 ## Current count
 
-23 T3 compile skips + 26 diagnostic parity skips = 49 total skips
+19 T3 compile skips (frozenset; timeout skips may add a few) + 3 diagnostic
+parity skips = 22+ total skips
+(as of 2026-10-10; was 49)
+
+## Progress (2026-10-10)
+
+Diagnostic parity leg reduced from 28 skips (22 in `DIAG_PARITY_SKIP` + 6
+missing-golden fixtures) to 3:
+
+- 16 fixtures already emitted their committed golden and were simply
+  unskipped (stale entries).
+- `module_import/use_symbol_not_found` and
+  `diagnostics/deprecated_time_monotonic_now` gained `.selfhost.diag`
+  goldens recording the resolve-stage diagnostics (E0100) the selfhost
+  actually emits.
+- 5 missing-golden fixtures gained `.selfhost.diag` goldens for the
+  diagnostics the selfhost already emits: `selfhost/comprehen_deny_*` (3)
+  and `wit_import/errors/duplicate_*` (2).
+- The two `v0_constraints/*` entries were dead (not `diag:` manifest
+  fixtures — the programs are legal `run:` fixtures now); their stale
+  `.diag` files asserting a removed v0 restriction were deleted.
+
+Remaining diagnostic skips (genuine selfhost diagnostic gaps, need
+compiler work):
+
+- `diagnostics/mismatched_arms.ark` — no E0205 for mixed match arm types.
+- `selfhost/trait_ambiguous_bound.ark` — no ambiguous-trait-bound error.
+- `selfhost/comprehen_deny_elem_type_mismatch.ark` — no element-type
+  mismatch error (emits only warnings; no `.diag` yet by design).
+
+Remaining T3 compile skips are all feature-blocked (WIT/component
+bindings, async/future/stream runtime, WASI host capabilities,
+`stdlib_wit/wit_ast_parse.ark` OOM tracked by #730).
+
+Verified: `python3 scripts/manager.py selfhost diag-parity`
+PASS=96 SKIP=3 FAIL=0.
 
 ## New-failure ratchet
 
