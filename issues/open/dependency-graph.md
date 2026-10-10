@@ -31,6 +31,10 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I908["908 908 — Generic fn second instantiation mis-binds call site on emit (gc invalid wasm / linear silent miscompile)"]
+  I909["909 909 - Linear GC mark_candidate O(records) scan makes collection quadratic"]
+  I910["910 910 - emit_gc_local_val_type re-analyzes write sites per local decl"]
+  I911["911 911 - Verification gap: nothing exercises a freshly built s2 as producer"]
+  I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -96,6 +100,10 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **908** depends on: none; blocks: 695
+- **909** depends on: none; blocks: none
+- **910** depends on: none; blocks: none
+- **911** depends on: none; blocks: none
+- **912** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **699** depends on: 649, 698; blocks: none
 - **719** depends on: 715; blocks: none

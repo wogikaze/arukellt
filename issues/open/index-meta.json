@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-09T18:46:44Z",
+  "generated_at": "2026-10-10T10:49:36Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -488,6 +488,74 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "909",
+      "path": "909-linear-gc-mark-candidate-page-table.md",
+      "title": "909 - Linear GC mark_candidate O(records) scan makes collection quadratic",
+      "track": "gc",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "910",
+      "path": "910-emit-gc-local-val-type-write-site-reanalysis.md",
+      "title": "910 - emit_gc_local_val_type re-analyzes write sites per local decl",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "911",
+      "path": "911-fresh-s2-producer-verify-gap.md",
+      "title": "911 - Verification gap: nothing exercises a freshly built s2 as producer",
+      "track": "verification",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "912",
+      "path": "912-mono-propagation-demand-closure-boundary.md",
+      "title": "912 - Monomorphization needs a principled demand-closure boundary",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-needed",
         "upstream_notes": "none"
       }
     },
