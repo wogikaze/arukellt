@@ -45,11 +45,22 @@ fn mir_index_top_level_fn(
         // sees. With two or more distinct instantiations the leaf emit is a
         // generic stub, so publish the variant names under the qualified key
         // — call-site resolution and emit both look them up by that name.
-        if fn_info_index >= 0 && mono::mono_index_count(midx, clone(decl_name)) == 0 {
+        // One decl can hold instances under both keys: a wrapper inside the
+        // same module records the bare name (binary_search →
+        // binary_search_by__i32) while a downstream call records the
+        // qualified name (seq::binary_search_by__String). Publish the
+        // qualified-keyed variants whenever they are not served by the
+        // single-instance leaf path; otherwise the extra instantiation is
+        // dropped and callers bind the first-registered specialization
+        // (#908).
+        if fn_info_index >= 0 {
             let mono_qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
-            if len(mono_qualified_name) > 0 &&
-            !eq(clone(mono_qualified_name), clone(decl_name)) &&
-            mono::mono_index_count(midx, clone(mono_qualified_name)) > 1 {
+            let bare_mono_count = mono::mono_index_count(midx, clone(decl_name))
+            let mut qualified_mono_count = 0
+            if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
+                qualified_mono_count = mono::mono_index_count(midx, clone(mono_qualified_name))
+            }
+            if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {
                 fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, mono_qualified_name, rvt, clone(rtn), mono_instances, generic_return_ty)
             }
         }

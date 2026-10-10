@@ -5,6 +5,11 @@ struct MonoInstance {
     mangled_name: String,
     type_args: Vec<TypeInfo>,
     return_type: TypeInfo,
+    // Whether a real call site demands this instance's body be emitted.
+    // Speculatively minted instances (impl-sibling and arg propagation,
+    // template-site rebind children of speculative parents) stay false so
+    // MIR emits only the demanded closure; see mono_instances.ark.
+    demanded: bool,
 }
 
 struct MonoCallSite {
@@ -36,8 +41,17 @@ fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeIn
             commands::TY_UNKNOWN(),
             String_new(),
             Vec::new<TypeInfo>()
-        )
+        ),
+        demanded: false
     }
+}
+
+fn MonoInstance_demanded(instance: MonoInstance) -> bool {
+    instance.demanded
+}
+
+fn MonoInstance_set_demanded(instance: MonoInstance) {
+    instance.demanded = true
 }
 
 fn MonoInstance_fn_name(instance: MonoInstance) -> String {

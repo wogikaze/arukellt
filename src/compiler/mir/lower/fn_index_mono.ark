@@ -130,8 +130,7 @@ fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> Mon
     while i < count {
         let inst = get_unchecked(mono_instances, i)
         let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        let inst_safe = mono_names::mono_safe_name(inst_mangled)
-        if eq(clone(inst_safe), clone(safe)) {
+        if mono_names::mono_name_eq_safe(inst_mangled, clone(safe)) {
             return inst
         }
         i = i + 1

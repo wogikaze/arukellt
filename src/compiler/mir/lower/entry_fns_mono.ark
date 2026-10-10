@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone, contains, eq}
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
 use mir::lower::ctx_api_module
@@ -23,32 +23,58 @@ fn mir_emit_top_level_fn_mono_bodies(
     midx: MonoIndex,
     mir_tr: i32
 ) {
-    let mut mono_key = clone(decl_name)
-    let mut mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
-    if mono_emit_count_raw == 0 {
-        // Module-member generics record instances under the qualified fn_name
-        // (test::assert_eq_debug), so the decl key never sees them. A single
-        // instance is still emitted as the concrete leaf body below; with
-        // two or more, emit the qualified-keyed variants and leave the leaf
-        // decl as the unreachable generic fallback.
-        let mono_qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
-        if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
-            let qualified_count = mono::mono_index_count(midx, clone(mono_qualified_name))
-            if qualified_count > 1 {
-                mono_emit_count_raw = qualified_count
-                mono_key = mono_qualified_name
-            }
-        }
+    // Instances can be recorded under two keys for one decl: a same-module
+    // wrapper records the bare name (binary_search_by__i32 under
+    // binary_search_by) while a downstream call records the qualified
+    // spelling (seq::binary_search_by__String under seq::binary_search_by).
+    // Emitting only one key drops the other instantiations, and their call
+    // sites then bind the first-registered specialization (#908). Emit the
+    // dedup'd union of both keys' mangled names; a single qualified
+    // instance (bare==0 && qualified<=1) still uses the concrete leaf
+    // body below.
+    let bare_count = mono::mono_index_count(midx, clone(decl_name))
+    let mono_qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
+    let mut qualified_count = 0
+    if len(mono_qualified_name) > 0 && !eq(clone(mono_qualified_name), clone(decl_name)) {
+        qualified_count = mono::mono_index_count(midx, clone(mono_qualified_name))
     }
-    if mono_emit_count_raw > 0 {
+    if bare_count > 0 || qualified_count > 1 {
+        let mut emit_mangled_list = Vec::new<String>()
+        let mut bare_i = 0
+        while bare_i < bare_count {
+            push(emit_mangled_list, mono::mono_index_mangled_at(midx, clone(decl_name), bare_i))
+            bare_i = bare_i + 1
+        }
+        let mut qualified_i = 0
+        while qualified_i < qualified_count {
+            let mangled = mono::mono_index_mangled_at(midx, clone(mono_qualified_name), qualified_i)
+            if !string_vec_contains(clone(emit_mangled_list), clone(mangled)) {
+                push(emit_mangled_list, mangled)
+            }
+            qualified_i = qualified_i + 1
+        }
         let mut mono_emit_i = 0
         let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
         let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
         let generic_rt_type_var_name = mir_entry_typed_return_type_var_name(entry_view, typed_index)
         let generic_return_ty = mir_entry_typed_return_type_at(entry_view, typed_index)
-        while mono_emit_i < mono_emit_count_raw {
-            let mangled = mono::mono_index_mangled_at(midx, clone(mono_key), mono_emit_i)
+        while mono_emit_i < len(emit_mangled_list) {
+            let mangled = get_unchecked(emit_mangled_list, mono_emit_i)
             let emit_fn_name = mono::mono_safe_name(mangled)
+            let emit_inst = ctx_api_module::ctx_mono_instance_at(ctx, clone(mangled))
+            if len(type_contracts::MonoInstance_mangled_name(emit_inst)) > 0 &&
+            !type_contracts::MonoInstance_demanded(emit_inst) {
+                // Speculatively recorded instance that no real call site
+                // demands: register but do not lower a body for it.
+                mono_emit_i = mono_emit_i + 1
+                continue
+            }
+            if contains(clone(mangled), String_from("?")) {
+                // Unsubstituted template instances are registration-only;
+                // no call site can ever name a ?-mangled body.
+                mono_emit_i = mono_emit_i + 1
+                continue
+            }
             let mut rt_tag = generic_rt_tag
             let mut rt_type_name = clone(generic_rt_type_name)
             let concrete = mono_instantiate_return_from_instance(ctx, clone(mangled), generic_return_ty)
@@ -209,6 +235,18 @@ fn type_var_to_index(var_name: String) -> i32 {
     if eq(clone(var_name), "C") { return 2 }
     if eq(clone(var_name), "D") { return 3 }
     0
+}
+
+fn string_vec_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn mir_entry_typed_return_tag_at(view: MirLowerEntryView, typed_index: i32) -> i32 {
