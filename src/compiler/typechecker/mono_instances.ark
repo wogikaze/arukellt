@@ -15,6 +15,65 @@ use typechecker::mono_key
 use typechecker::trait_method_record
 use typechecker::names
 use typechecker::types
+
+// Speculative propagation must stay inside a finite receiver space.
+// Adapter constructors are open-ended: once projections like I::Item
+// resolve through impls, sibling-propagation and template-site rebinding
+// on ever-deeper adapter receivers mint fresh MonoInstances forever — a
+// flat-overlay s2 never finished checking use std::core::iter. Instances
+// deeper than this bound are still recorded (dedup + emit); only their
+// transitive propagation is cut. The call sites a deep body needs were
+// already minted at shallower receivers.
+const MONO_PROPAGATE_DEPTH_LIMIT: i32 = 2
+
+// The depth bound alone does not stop the breadth explosion: at depth <=2
+// the adapter x impl-method cross product still mints new distinct
+// instances for minutes (seq::binary_search_by check burned >15G fuel).
+// Propagated siblings only exist so impl bodies can call sibling methods
+// at the same concrete receiver; once the recorded set is large, the odds
+// a further speculative instance is ever called are negligible. Cap the
+// total recorded set so propagation provably terminates. The budget gates
+// propagate_parametric_impl_mono only: rebind_enclosing_template_sites is
+// demand binding that every recorded instantiation needs, so it must run
+// past the cap or late instances emit untyped Option/Result scrutinees.
+pub fn MONO_PROPAGATE_INSTANCE_BUDGET() -> i32 {
+    300
+}
+
+fn mono_type_ctor_depth(ty: TypeInfo) -> i32 {
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut best = 0
+    let mut i = 0
+    while i < arg_count {
+        let d = mono_type_ctor_depth(contract_type_access::TypeInfo_type_arg_at(ty, i))
+        if d > best {
+            best = d
+        }
+        i = i + 1
+    }
+    best + 1
+}
+
+fn mono_args_within_depth(resolved_types: Vec<TypeInfo>) -> bool {
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let arg = get_unchecked(resolved_types, i)
+        // Var-carrying args (Take::next+[?I]) have ctor depth 1 and would
+        // otherwise propagate: match_pattern_collect_vars then binds impl
+        // self-type vars against a still-open receiver, and the resulting
+        // instances record+propagate again without ever converging.
+        if associated_types::type_contains_var(clone(arg)) {
+            return false
+        }
+        if mono_type_ctor_depth(arg) > MONO_PROPAGATE_DEPTH_LIMIT() {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)
     let count = len(resolved_types)
@@ -30,13 +89,58 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     while j < mi_count {
         let mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
         if eq(contract_mono::MonoInstance_mangled_name(mi), clone(mangled)) {
+            if !contract_mono::MonoInstance_demanded(mi) {
+                // A speculatively minted instance turned out to be a real
+                // call target: upgrade it and re-run the demand closure so
+                // the instances its body needs get marked too.
+                contract_mono::MonoInstance_set_demanded(mi)
+                propagate_arg_impls_for(env, clone(fn_name), clone(resolved_types), true)
+                rebind_enclosing_template_sites(env, clone(fn_name), resolved_types, true)
+            }
+            return mangled
+        }
+        j = j + 1
+    }
+    let inst = contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types))
+    contract_mono::MonoInstance_set_demanded(inst)
+    contract_env_mono_record::type_env_push_mono_instance(env, inst)
+    propagate_arg_impls_for(env, clone(fn_name), clone(resolved_types), true)
+    if contract_env_mono_record::type_env_mono_instance_count(env) <= MONO_PROPAGATE_INSTANCE_BUDGET() {
+        propagate_parametric_impl_mono(env, clone(fn_name), resolved_types)
+    }
+    rebind_enclosing_template_sites(env, fn_name, resolved_types, true)
+    mangled
+}
+
+// Recording without speculative propagation. Propagation-minted siblings
+// use this so the closure stays one level deep: a real call's propagation
+// mints the sibling methods its impl body can call on the same receiver,
+// and those siblings do not propagate again. Letting them re-propagate
+// chains receiver -> impl methods -> record -> propagate and enumerates
+// the adapter x method space (~15G fuel on a seq::binary_search_by call).
+// Rebind still runs: a propagated sibling's body may hold ?T call sites
+// that must bind once the sibling is emitted with concrete args.
+fn record_propagated_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
+    let mut mangled = clone(fn_name)
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let ty = get_unchecked(resolved_types, i)
+        mangled = text::builder_append(mangled, text::concat("__", mono_key::mono_type_key(ty)))
+        i = i + 1
+    }
+    let mi_count = contract_env_mono_record::type_env_mono_instance_count(env)
+    let mut j = 0
+    while j < mi_count {
+        let mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
+        if eq(contract_mono::MonoInstance_mangled_name(mi), clone(mangled)) {
             return mangled
         }
         j = j + 1
     }
     contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(clone(fn_name), clone(mangled), clone(resolved_types)))
-    propagate_parametric_impl_mono(env, clone(fn_name), resolved_types)
-    rebind_enclosing_template_sites(env, fn_name, resolved_types)
+    propagate_arg_impls_for(env, clone(fn_name), clone(resolved_types), false)
+    rebind_enclosing_template_sites(env, fn_name, resolved_types, false)
     mangled
 }
 
@@ -86,7 +190,9 @@ fn record_template_site_if_generic(env: TypeEnv, fn_name: String, mangled_name: 
 // concrete instantiation supplies its arguments. `Outer::next`+[VecIter]
 // turns the `Inner::next`+[?I] site into `Inner::next`+[VecIter], which
 // MIR lowering can then emit and span-rewrite call sites can resolve.
-fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+// The bound children inherit the parent's demanded flag: a demanded body
+// needs its callees emitted, a speculative parent does not.
+fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>, demanded: bool) {
     if len(resolved_types) == 0 {
         return
     }
@@ -124,11 +230,20 @@ fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types
                     )
                     b = b + 1
                 }
-                let _rebound = record_mono_instance(
-                    env,
-                    clone(site.fn_name),
-                    bound_args
-                )
+                let mut _rebound = clone(site.mangled_name)
+                if demanded {
+                    _rebound = record_mono_instance(
+                        env,
+                        clone(site.fn_name),
+                        bound_args
+                    )
+                } else {
+                    _rebound = record_propagated_mono_instance(
+                        env,
+                        clone(site.fn_name),
+                        bound_args
+                    )
+                }
                 // The rebound instance also needs the resolved return:
                 // the template recorded it under the enclosing vars
                 // (Vec<U> for collect_iterator inside MapIter<T,U>::collect).
@@ -197,15 +312,33 @@ fn record_mono_return_type(env: TypeEnv, mangled_name: String, return_type: Type
 // methods at the bound arguments. Pattern bindings follow self-type
 // traversal order, the same order extract_impl_type_params uses for impl
 // type parameters; ADR-078's coverage rule (trait-ref vars ⊆ self vars)
-// makes those bindings complete.
+// makes those bindings complete. Sibling minting is the speculative axis:
+// it stays behind the caller's instance budget and the receiver-depth
+// bound, because re-propagating at the same receiver is what enumerates
+// the adapter x method space. Argument-impl propagation is demand-side
+// instead (see propagate_arg_impls_for).
 fn propagate_parametric_impl_mono(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    if !mono_args_within_depth(clone(resolved_types)) {
+        return
+    }
+    propagate_owner_impl_mono(env, fn_name, resolved_types)
+}
+
+// Demand-side propagation: every recorded instance's body can call trait
+// methods on its argument types — a next() call on a bare-var receiver
+// such as TakeIter<MapIter<..>> needs the impl's next bound at the inner
+// args, which only impl-method propagation mints (bare-var receivers
+// record no template site). This must run for every record regardless of
+// the speculative budget/depth gates: the bound method args are the
+// receiver's own inner type, so receiver depth strictly decreases along
+// the chain and it provably terminates.
+fn propagate_arg_impls_for(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>, demanded: bool) {
     let count = len(resolved_types)
     let mut i = 0
     while i < count {
-        propagate_arg_impl_mono(env, clone(fn_name), get_unchecked(resolved_types, i))
+        propagate_arg_impl_mono(env, clone(fn_name), get_unchecked(resolved_types, i), demanded)
         i = i + 1
     }
-    propagate_owner_impl_mono(env, fn_name, resolved_types)
 }
 
 // Sibling axis of demand-driven propagation. Recording
@@ -238,13 +371,13 @@ fn propagate_owner_impl_mono(env: TypeEnv, fn_name: String, resolved_types: Vec<
             contract_type_access::TypeInfo_name(self_ty),
             clone(owner)
         ) && associated_types::type_contains_var(clone(self_ty)) {
-            propagate_impl_methods_mono(env, impl_info, clone(receiver))
+            propagate_impl_methods_mono(env, impl_info, clone(receiver), false)
         }
         i = i + 1
     }
 }
 
-fn propagate_arg_impl_mono(env: TypeEnv, fn_name: String, arg: TypeInfo) {
+fn propagate_arg_impl_mono(env: TypeEnv, fn_name: String, arg: TypeInfo, demanded: bool) {
     let tag = contract_type_access::TypeInfo_tag(arg)
     if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
         return
@@ -264,13 +397,13 @@ fn propagate_arg_impl_mono(env: TypeEnv, fn_name: String, arg: TypeInfo) {
             contract_type_access::TypeInfo_name(self_ty),
             contract_type_access::TypeInfo_name(arg)
         ) && associated_types::type_contains_var(clone(self_ty)) {
-            propagate_impl_methods_mono(env, impl_info, clone(arg))
+            propagate_impl_methods_mono(env, impl_info, clone(arg), demanded)
         }
         i = i + 1
     }
 }
 
-fn propagate_impl_methods_mono(env: TypeEnv, impl_info: TraitImplInfo, receiver: TypeInfo) {
+fn propagate_impl_methods_mono(env: TypeEnv, impl_info: TraitImplInfo, receiver: TypeInfo, demanded: bool) {
     let var_names = Vec::new<String>()
     let var_types = Vec::new<TypeInfo>()
     if !associated_types::match_pattern_collect_vars(
@@ -308,7 +441,27 @@ fn propagate_impl_methods_mono(env: TypeEnv, impl_info: TraitImplInfo, receiver:
                     i = i + 1
                     continue
                 }
-                let mangled = record_mono_instance(env, clone(method_fn), clone(var_types))
+                // One level only: sibling records must not re-enter
+                // propagate_parametric_impl_mono (see
+                // record_propagated_mono_instance). Demanded parents mint
+                // demanded callees; speculative parents stay off the emit
+                // path.
+                let mut mangled = clone(method_fn)
+                if demanded {
+                    mangled = record_mono_instance(env, clone(method_fn), clone(var_types))
+                } else {
+                    mangled = record_propagated_mono_instance(env, clone(method_fn), clone(var_types))
+                }
+                // resolve_trait_method_signature walks the impl table per
+                // associated-type lookup; run it only when this mangled
+                // name still lacks a recorded return type. Repeated mints
+                // of the same sibling would otherwise redo the full
+                // signature resolution and throw the result away.
+                let recorded_ret = mono_instance_return_type_by_mangled(env, clone(mangled))
+                if contract_type_access::TypeInfo_tag(recorded_ret) != 0 {
+                    i = i + 1
+                    continue
+                }
                 let resolved_sig = associated_types::resolve_trait_method_signature(
                     env,
                     entry,

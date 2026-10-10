@@ -111,7 +111,7 @@ fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
 // commit. Only an empty free list bumps the cursor, and only a truly
 // exhausted arena reaches the OOM exit.
 fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32) {
-    emit_local_decls(w, 3)
+    emit_local_decls(w, 6)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
     emit_local_set(w, 1)
 
@@ -168,48 +168,139 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32) {
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
     emit_local_get(w, 0)
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
+
+    // Register the record on every page its range touches so mark_candidate
+    // can jump straight to the covering chain instead of walking the arena.
+    // local4 = first page, local5 = last page, local6 = new chain node.
+    emit_local_get(w, 1)
+    emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
+    emit_i32_shr_u(w)
+    emit_local_set(w, 4)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 1)
+    emit_i32_sub(w)
+    emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
+    emit_i32_shr_u(w)
+    emit_local_set(w, 5)
+    emit_local_get(w, 5)
+    emit_local_get(w, 4)
+    emit_i32_lt_u(w)
+    emit_if_empty(w)
+    emit_else(w)
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 4)
+    emit_local_get(w, 5)
+    emit_i32_gt_u(w)
+    emit_br_if(w, 1)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    emit_local_set(w, 6)
+    emit_local_get(w, 6)
+    emit_i32_const(w, constants::LINEAR_GC_CHAIN_NODE_BYTES())
+    emit_i32_add(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_LIMIT())
+    emit_i32_gt_u(w)
+    emit_if_empty(w)
+    emit_linear_gc_oom(w, exit_index, constants::LINEAR_GC_OOM_EXIT_CHAIN())
+    emit_end(w)
+    emit_local_get(w, 6)
+    emit_i32_const(w, constants::LINEAR_GC_CHAIN_NODE_BYTES())
+    emit_i32_add(w)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    emit_local_get(w, 6)
+    emit_local_get(w, 2)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 6)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_PAGE_TABLE_BASE())
+    emit_local_get(w, 4)
+    emit_i32_const(w, 2)
+    emit_i32_shl(w)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_store(w, 0)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_PAGE_TABLE_BASE())
+    emit_local_get(w, 4)
+    emit_i32_const(w, 2)
+    emit_i32_shl(w)
+    emit_i32_add(w)
+    emit_local_get(w, 6)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 4)
+    emit_i32_const(w, 1)
+    emit_i32_add(w)
+    emit_local_set(w, 4)
+    emit_br(w, 0)
+    emit_end(w)
+    emit_end(w)
+    emit_end(w)
+
     emit_end(w)
     emit_end(w)
 }
 
-// Returns 1 exactly when `candidate` newly marks an allocation record.
+// Returns 1 exactly when the candidate newly marks an allocation record.
+//
+// A 64 KiB-page table maps the candidate's page to a chain of
+// {record, next} nodes, one node per commit per covered page. The walk only
+// touches records that actually span that page, so candidates cost
+// O(records-per-page) instead of a full arena scan. Reuse and sweep leave
+// stale nodes behind; the [lo,hi) range check against the record's current
+// fields filters them, since disjoint ranges can never collide falsely.
 fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_local_decls(w, 3)
-    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    // local1 = page index, local2 = chain node, local3 = record
+    emit_local_get(w, 0)
+    emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
+    emit_i32_shr_u(w)
     emit_local_set(w, 1)
-
-    emit_void_block(w)
-    emit_void_loop(w)
     emit_local_get(w, 1)
-    emit_i32_eqz(w)
-    emit_br_if(w, 1)
+    emit_i32_const(w, constants::LINEAR_GC_PAGE_TABLE_ENTRIES())
+    emit_i32_ge_u(w)
+    emit_if_empty(w)
+    emit_i32_const(w, 0)
+    emit_return(w)
+    emit_end(w)
 
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_PAGE_TABLE_BASE())
     emit_local_get(w, 1)
-    emit_i32_const(w, 4)
+    emit_i32_const(w, 2)
+    emit_i32_shl(w)
     emit_i32_add(w)
     emit_i32_load(w, 0)
     emit_local_set(w, 2)
-    emit_local_get(w, 1)
-    emit_i32_const(w, 8)
-    emit_i32_add(w)
+
+    emit_void_block(w)
+    emit_void_loop(w)
+    emit_local_get(w, 2)
+    emit_i32_eqz(w)
+    emit_br_if(w, 1)
+
+    emit_local_get(w, 2)
     emit_i32_load(w, 0)
     emit_local_set(w, 3)
-
     emit_local_get(w, 0)
-    emit_local_get(w, 2)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
     emit_i32_ge_u(w)
     emit_local_get(w, 0)
     emit_local_get(w, 3)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
     emit_i32_lt_u(w)
     emit_i32_and(w)
     emit_if_empty(w)
-    emit_local_get(w, 1)
+    emit_local_get(w, 3)
     emit_i32_const(w, 12)
     emit_i32_add(w)
     emit_i32_load(w, 0)
     emit_i32_eqz(w)
     emit_if_empty(w)
-    emit_local_get(w, 1)
+    emit_local_get(w, 3)
     emit_i32_const(w, 12)
     emit_i32_add(w)
     emit_i32_const(w, 1)
@@ -221,9 +312,11 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_return(w)
     emit_end(w)
 
-    emit_local_get(w, 1)
+    emit_local_get(w, 2)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
     emit_i32_load(w, 0)
-    emit_local_set(w, 1)
+    emit_local_set(w, 2)
     emit_br(w, 0)
     emit_end(w)
     emit_end(w)
@@ -588,6 +681,7 @@ fn emit_i32_lt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LT_U
 fn emit_i32_ge_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_U()) }
 fn emit_i32_gt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GT_U()) }
 fn emit_i32_shr_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHR_U()) }
+fn emit_i32_shl(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SHL()) }
 
 fn emit_call(w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_CALL())

@@ -36,6 +36,10 @@ fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
     type_contracts::MonoInstance_type_arg_at(instance, index)
 }
 
+fn MonoInstance_demanded(instance: MonoInstance) -> bool {
+    type_contracts::MonoInstance_demanded(instance)
+}
+
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
     type_contracts::TypeInfo_simple(tag)
 }

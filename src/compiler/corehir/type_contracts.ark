@@ -4,6 +4,7 @@ struct MonoInstance {
     mangled_name: String,
     type_args: Vec<TypeInfo>,
     return_type: TypeInfo,
+    demanded: bool,
 }
 
 struct TypeCheckResult {
@@ -82,6 +83,15 @@ fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeIn
         fn_name: fn_name,
         mangled_name: mangled_name,
         type_args: type_args,
-        return_type: TypeInfo_simple(commands::TY_UNKNOWN())
+        return_type: TypeInfo_simple(commands::TY_UNKNOWN()),
+        demanded: false
     }
+}
+
+fn MonoInstance_demanded(instance: MonoInstance) -> bool {
+    instance.demanded
+}
+
+fn MonoInstance_set_demanded(instance: MonoInstance) {
+    instance.demanded = true
 }

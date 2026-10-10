@@ -34,6 +34,14 @@ fn GLOBAL_LINEAR_GC_ROOT_LIMIT() -> i32 { 4 }
 fn GLOBAL_LINEAR_GC_METADATA_CURSOR() -> i32 { 5 }
 fn GLOBAL_LINEAR_GC_LAST_TOP() -> i32 { 6 }
 fn GLOBAL_LINEAR_GC_ALLOC_WATERMARK() -> i32 { 7 }
+// Page-table base: a 64 KiB-page index into the candidate's owning-record
+// chain head. Covers the whole wasm32 address space with 65536 entries.
+fn GLOBAL_LINEAR_GC_PAGE_TABLE_BASE() -> i32 { 8 }
+// Bump cursor and limit of the chain-node arena. Each commit pushes one
+// {record, next} node per touched page so mark_candidate only walks the
+// records covering that page instead of every record in the arena.
+fn GLOBAL_LINEAR_GC_CHAIN_CURSOR() -> i32 { 9 }
+fn GLOBAL_LINEAR_GC_CHAIN_LIMIT() -> i32 { 10 }
 // Shared arena for allocation records (bumped upward from the arena base) and
 // root slots (grown downward from heap_start). Records are committed
 // monotonically between collections, so the arena must cover the program's
@@ -41,6 +49,16 @@ fn GLOBAL_LINEAR_GC_ALLOC_WATERMARK() -> i32 { 7 }
 // ~4M records, which keeps small-allocation workloads far from the guard.
 fn LINEAR_GC_METADATA_BYTES() -> i32 { 67108864 }
 fn LINEAR_GC_ALLOCATION_RECORD_BYTES() -> i32 { 16 }
+// Page-table geometry: one entry per 64 KiB page of the wasm32 address
+// space, each entry pointing at the head of a {record,next} node chain.
+fn LINEAR_GC_PAGE_SHIFT() -> i32 { 16 }
+fn LINEAR_GC_PAGE_TABLE_ENTRIES() -> i32 { 65536 }
+fn LINEAR_GC_PAGE_TABLE_BYTES() -> i32 { 262144 }
+fn LINEAR_GC_CHAIN_NODE_BYTES() -> i32 { 8 }
+// Chain-node arena. A node is only ever appended (stale nodes are filtered
+// by the record's current range), so the arena bounds total committed
+// page-records between OOM; 32 MiB holds 4M nodes.
+fn LINEAR_GC_CHAIN_BYTES() -> i32 { 33554432 }
 fn LINEAR_GC_ROOT_SLOT_BYTES() -> i32 { 4 }
 // Free bytes remaining in the shared arena below which a function entry runs
 // the collector even under the payload watermark. Sweeping then refills the
@@ -58,6 +76,7 @@ fn LINEAR_GC_COLLECT_THRESHOLD_BYTES() -> i32 { 67108864 }
 // instead of a bare `unreachable` trap (#896).
 fn LINEAR_GC_OOM_EXIT_METADATA() -> i32 { 120 }
 fn LINEAR_GC_OOM_EXIT_ROOTS() -> i32 { 121 }
+fn LINEAR_GC_OOM_EXIT_CHAIN() -> i32 { 122 }
 
 // Private linear runtime function ordinals. The function section emits these
 // in this order after user, wrapper, P2, and library functions.

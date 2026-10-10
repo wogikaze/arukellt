@@ -158,10 +158,16 @@ fn sig_reg_index_top_level_fn(
         // Qualified-keyed instances (test::assert_eq_debug__i32, ...) also
         // need registry entries so call sites can bind variant FunctionIds.
         // The decl keeps the generic signature as the unresolved fallback.
-        if mono::mono_index_count(midx, clone(decl_name)) == 0 &&
-        len(qualified_name) > 0 &&
-        !eq(clone(qualified_name), clone(decl_name)) &&
-        mono::mono_index_count(midx, clone(qualified_name)) > 1 {
+        // Instances can arrive under both keys: a same-module wrapper records
+        // the bare name while downstream calls record the qualified name
+        // (#908). The bare==0 && qualified==1 case stays on the leaf
+        // registration above; anything beyond that needs per-variant entries.
+        let bare_mono_count = mono::mono_index_count(midx, clone(decl_name))
+        let mut qualified_mono_count = 0
+        if len(qualified_name) > 0 && !eq(clone(qualified_name), clone(decl_name)) {
+            qualified_mono_count = mono::mono_index_count(midx, clone(qualified_name))
+        }
+        if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {
             signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(qualified_name), typed_index, fn_info_index, decl_index)
         }
     }

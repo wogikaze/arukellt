@@ -27,3 +27,27 @@ fn mono_safe_name(name: String) -> String {
     }
     text::builder_append(out, substring(name, run_start, n))
 }
+
+// Compare a possibly-unsafe mangled name against an already-safe name without
+// allocating: each unsafe char in `name` must read as `_` in `safe`.
+// Equivalent to eq(mono_safe_name(name), safe) but scans bytes in place, which
+// keeps mono_find_instance lookups off the GC-heap allocation path.
+fn mono_name_eq_safe(name: String, safe: String) -> bool {
+    let n = len(name)
+    if len(safe) != n {
+        return false
+    }
+    let mut i = 0
+    while i < n {
+        let ch = byte_at(name, i)
+        let mut expected = ch
+        if is_mono_unsafe_char(ch) {
+            expected = 95
+        }
+        if byte_at(safe, i) != expected {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

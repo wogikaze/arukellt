@@ -1,0 +1,33 @@
+// Vec<String> through the std::seq generics that also have std-internal
+// i32 wrappers (binary_search -> binary_search_by<i32>, min_i32/max_i32
+// -> min_by/max_by<i32>). The user calls at String must emit and bind a
+// dedicated __String instance: the first-registered __i32 body is not a
+// valid fallback (gc: invalid wasm; linear: i32 body on struct
+// pointers). Regression coverage for the dual-instantiation mis-bind.
+use std::seq
+use std::test
+
+fn key_self(x: String) -> String {
+    x
+}
+
+fn main() {
+    let s: Vec<String> = Vec::new<String>()
+    push(s, String_from("alpha"))
+    push(s, String_from("beta"))
+    push(s, String_from("gamma"))
+
+    test::assert_eq_i32(seq::binary_search_by(s, String_from("beta")), 1)
+    test::assert_eq_i32(seq::binary_search_by(s, String_from("zed")), 0 - 1)
+    test::assert_eq_i32(seq::lower_bound(s, String_from("beta")), 1)
+    test::assert_eq_i32(seq::lower_bound(s, String_from("aaa")), 0)
+    test::assert_eq_i32(
+        seq::binary_search_by_key(s, String_from("gamma"), key_self),
+        2
+    )
+
+    test::assert_eq_string(seq::min_by(s), String_from("alpha"))
+    test::assert_eq_string(seq::max_by(s), String_from("gamma"))
+    test::assert_eq_string(seq::min_by_key(s, key_self), String_from("alpha"))
+    test::assert_eq_string(seq::max_by_key(s, key_self), String_from("gamma"))
+}
