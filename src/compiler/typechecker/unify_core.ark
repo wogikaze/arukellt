@@ -44,6 +44,16 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         unify_bind::bind_var(env, contract_type_access::TypeInfo_name(b), a)
         return a
     }
+    // The unit literal is spelled as an empty tuple, so a zero-arg TUPLE
+    // and UNIT denote the same type. Canonicalize to the UNIT side.
+    if a_tag == commands::TY_UNIT() && b_tag == commands::TY_TUPLE() &&
+    contract_type_access::TypeInfo_type_arg_count(b) == 0 {
+        return a
+    }
+    if b_tag == commands::TY_UNIT() && a_tag == commands::TY_TUPLE() &&
+    contract_type_access::TypeInfo_type_arg_count(a) == 0 {
+        return b
+    }
     if (a_tag == commands::TY_STRUCT() && b_tag == commands::TY_ENUM()) ||
     (a_tag == commands::TY_ENUM() && b_tag == commands::TY_STRUCT()) {
         let a_name = contract_type_access::TypeInfo_name(a)

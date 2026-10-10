@@ -57,9 +57,9 @@ python3 scripts/manager.py selfhost diag-parity
 
 ## Current count
 
-19 T3 compile skips (frozenset; timeout skips may add a few) + 3 diagnostic
-parity skips = 22+ total skips
-(as of 2026-10-10; was 49)
+19 T3 compile skips (frozenset; timeout skips may add a few) + 2 diagnostic
+parity skips = 21+ total skips
+(as of 2026-10-11; was 49)
 
 ## Progress (2026-10-10)
 
@@ -79,13 +79,31 @@ missing-golden fixtures) to 3:
   fixtures — the programs are legal `run:` fixtures now); their stale
   `.diag` files asserting a removed v0 restriction were deleted.
 
+Progress (2026-10-11): `diagnostics/mismatched_arms.ark` unskipped.
+The typechecker now unifies match arm body types (previously the first
+arm's type silently won), and `()`-literal TUPLE-0 is canonicalized to
+UNIT in `unify` so `=> panic(...)` / `=> ()` arms agree. The fixture
+reports E0200 `type mismatch: i32 vs String` via `.selfhost.diag`.
+Verified by: s2->s3 compile of the full compiler (fixpoint s3 produced),
+a 611-fixture `check` sweep over all match-using run:/diag: fixtures
+with zero new failures, and targeted probes for TUPLE-0/UNIT cases.
+
+Note: a stricter `should_prefer_annotation` variant (erroring on
+concrete init-vs-annotation type-arg mismatches, which would also fix
+`comprehen_deny_elem_type_mismatch`) was tried and reverted: stdlib and
+compiler internals rely on annotation-override where generic inference
+is weak (e.g. `let rebuilt: Vec<String> = Vec::from_iter(..)`,
+`let ks: Vec<K> = self.keys()`), so enforcing it requires the #912-class
+inference work first.
+
 Remaining diagnostic skips (genuine selfhost diagnostic gaps, need
 compiler work):
 
-- `diagnostics/mismatched_arms.ark` — no E0205 for mixed match arm types.
 - `selfhost/trait_ambiguous_bound.ark` — no ambiguous-trait-bound error.
-- `selfhost/comprehen_deny_elem_type_mismatch.ark` — no element-type
-  mismatch error (emits only warnings; no `.diag` yet by design).
+- `selfhost/comprehen_deny_elem_type_mismatch.ark` — comprehension
+  element-vs-annotation mismatch is silently overridden by
+  `should_prefer_annotation`; fixing it needs reliable concrete-arg
+  mismatch detection that tolerates weak generic inference (#912-class).
 
 Remaining T3 compile skips are all feature-blocked (WIT/component
 bindings, async/future/stream runtime, WASI host capabilities,

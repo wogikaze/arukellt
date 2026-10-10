@@ -45,6 +45,11 @@ fn infer_match_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_d
         }
         if idx == 0 {
             result_ty = arm_ty
+        } else {
+            // Arms must agree on a single result type. Without this, a
+            // later arm could return a different type and the match would
+            // silently take the first arm's type.
+            result_ty = unify::unify(env, result_ty, arm_ty)
         }
         idx = idx + 1
     }

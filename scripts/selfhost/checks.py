@@ -5632,7 +5632,6 @@ def _run_fixture_parity_locked(
 # the diagnostics or the test exercises an unimplemented feature.  These are
 # tracked in issue #529 Phase 3 (diagnostic parity expansion).
 DIAG_PARITY_SKIP: frozenset[str] = frozenset({
-    "diagnostics/mismatched_arms.ark",
     "selfhost/trait_ambiguous_bound.ark",
 })
 
