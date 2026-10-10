@@ -1,9 +1,22 @@
-use std::prelude::{clone, eq}
+use std::prelude::{byte_at, clone, eq}
+
 pub struct MonoIndex {
     names: Vec<String>,
     counts: Vec<i32>,
     mangled_names: Vec<String>,
     mangled_bases: Vec<String>,
+    // Hash accelerators kept in sync by push_name/increment_name. name_slots
+    // maps a base fn name to its names position + 1 (0 = empty slot).
+    // base_slots maps a base name to its slot in base_heads/base_tails; each
+    // mangled entry chains same-base siblings through mangled_next so the
+    // ordinal lookup walks the base's list in insertion order.
+    name_keys: Vec<String>,
+    name_slots: Vec<i32>,
+    base_keys: Vec<String>,
+    base_slots: Vec<i32>,
+    base_heads: Vec<i32>,
+    base_tails: Vec<i32>,
+    mangled_next: Vec<i32>,
 }
 
 fn mono_index_new() -> MonoIndex {
@@ -11,7 +24,14 @@ fn mono_index_new() -> MonoIndex {
         names: Vec::new<String>(),
         counts: Vec::new<i32>(),
         mangled_names: Vec::new<String>(),
-        mangled_bases: Vec::new<String>()
+        mangled_bases: Vec::new<String>(),
+        name_keys: Vec::new<String>(),
+        name_slots: Vec::new<i32>(),
+        base_keys: Vec::new<String>(),
+        base_slots: Vec::new<i32>(),
+        base_heads: Vec::new<i32>(),
+        base_tails: Vec::new<i32>(),
+        mangled_next: Vec::new<i32>()
     }
 }
 
@@ -44,6 +64,9 @@ fn mono_index_push_name(idx: MonoIndex, fn_name: String, mangled_name: String) {
     push(idx.counts, 1)
     push(idx.mangled_names, clone(mangled_name))
     push(idx.mangled_bases, fn_name)
+    push(idx.mangled_next, 0 - 1)
+    mono_index_name_insert(idx, clone(fn_name))
+    mono_index_base_chain_push(idx, clone(fn_name), len(idx.mangled_names) - 1)
 }
 
 fn mono_index_increment_name(idx: MonoIndex, index: i32, mangled_name: String) {
@@ -51,16 +74,201 @@ fn mono_index_increment_name(idx: MonoIndex, index: i32, mangled_name: String) {
     set(idx.counts, index, cur + 1)
     push(idx.mangled_names, clone(mangled_name))
     push(idx.mangled_bases, clone(mono_index_name_at(idx, index)))
+    push(idx.mangled_next, 0 - 1)
+    mono_index_base_chain_push(idx, mono_index_name_at(idx, index), len(idx.mangled_names) - 1)
 }
 
 fn mono_index_find_name(idx: MonoIndex, fn_name: String) -> i32 {
-    let mut found_at = 0 - 1
-    let mut si = 0
-    while si < mono_index_name_count(idx) {
-        if eq(mono_index_name_at(idx, si), clone(fn_name)) {
-            found_at = si
+    mono_index_name_pos(idx, fn_name)
+}
+
+// FNV-1a over UTF-8 bytes; same open-addressing convention as the lowering
+// ctx maps (ctx_mono_inst_probe_slot).
+fn mono_index_string_hash(name: String) -> i32 {
+    let mut hash = 216613626
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * 16777619 ^ byte_at(name, hi)
+        if hash < 0 {
+            hash = 0 - hash
         }
-        si = si + 1
+        hi = hi + 1
     }
-    found_at
+    if hash < 0 {
+        return 0
+    }
+    hash
+}
+
+// Returns the probe slot: a 0 bucket is an insertion point, a nonzero bucket
+// holds keys[bucket-1] == name.
+fn mono_index_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
+    let capacity = len(slots)
+    if capacity <= 0 {
+        return 0 - 1
+    }
+    let mut slot = mono_index_string_hash(name) % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let bucket = get_unchecked(slots, slot)
+        if bucket == 0 {
+            return slot
+        }
+        if eq(get_unchecked(keys, bucket - 1), clone(name)) {
+            return slot
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
+    }
+    0 - 1
+}
+
+fn mono_index_zero_slots(size: i32) -> Vec<i32> {
+    let slots = Vec::new<i32>()
+    let mut i = 0
+    while i < size {
+        push(slots, 0)
+        i = i + 1
+    }
+    slots
+}
+
+fn mono_index_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
+    let slots = mono_index_zero_slots(capacity)
+    let mut i = 0
+    while i < len(keys) {
+        let slot = mono_index_probe(clone(keys), slots, clone(get_unchecked(keys, i)))
+        set(slots, slot, i + 1)
+        i = i + 1
+    }
+    slots
+}
+
+fn mono_index_name_ensure(idx: MonoIndex) {
+    let mut capacity = len(idx.name_slots)
+    if capacity > 0 && len(idx.name_keys) * 2 < capacity {
+        return
+    }
+    if capacity == 0 {
+        capacity = 64
+    }
+    while capacity <= len(idx.name_keys) * 2 {
+        capacity = capacity * 2
+    }
+    idx.name_slots = mono_index_rehash(idx.name_keys, capacity)
+}
+
+// Inserts fn_name as a new key. The stored slot value is the key index + 1,
+// which equals the names position + 1 because callers only push names that
+// are not already present (mono_index_find_name check at build sites).
+fn mono_index_name_insert(idx: MonoIndex, fn_name: String) {
+    mono_index_name_ensure(idx)
+    let slot = mono_index_probe(clone(idx.name_keys), clone(idx.name_slots), clone(fn_name))
+    if slot < 0 {
+        return
+    }
+    if get_unchecked(idx.name_slots, slot) != 0 {
+        return
+    }
+    push(idx.name_keys, fn_name)
+    set(idx.name_slots, slot, len(idx.name_keys))
+}
+
+fn mono_index_name_pos(idx: MonoIndex, fn_name: String) -> i32 {
+    let slot = mono_index_probe(clone(idx.name_keys), clone(idx.name_slots), clone(fn_name))
+    if slot < 0 {
+        return 0 - 1
+    }
+    let bucket = get_unchecked(idx.name_slots, slot)
+    if bucket == 0 {
+        return 0 - 1
+    }
+    bucket - 1
+}
+
+fn mono_index_base_ensure(idx: MonoIndex) {
+    let mut capacity = len(idx.base_slots)
+    if capacity > 0 && len(idx.base_keys) * 2 < capacity {
+        return
+    }
+    if capacity == 0 {
+        capacity = 64
+    }
+    while capacity <= len(idx.base_keys) * 2 {
+        capacity = capacity * 2
+    }
+    idx.base_slots = mono_index_rehash(idx.base_keys, capacity)
+}
+
+fn mono_index_base_pos(idx: MonoIndex, base: String) -> i32 {
+    let slot = mono_index_probe(clone(idx.base_keys), clone(idx.base_slots), clone(base))
+    if slot < 0 {
+        return 0 - 1
+    }
+    let bucket = get_unchecked(idx.base_slots, slot)
+    if bucket == 0 {
+        return 0 - 1
+    }
+    bucket - 1
+}
+
+fn mono_index_base_chain_push(idx: MonoIndex, base: String, mangled_pos: i32) {
+    mono_index_base_ensure(idx)
+    let slot = mono_index_probe(clone(idx.base_keys), clone(idx.base_slots), clone(base))
+    if slot < 0 {
+        return
+    }
+    let mut base_pos = get_unchecked(idx.base_slots, slot) - 1
+    if base_pos < 0 {
+        push(idx.base_keys, base)
+        push(idx.base_heads, 0 - 1)
+        push(idx.base_tails, 0 - 1)
+        base_pos = len(idx.base_keys) - 1
+        set(idx.base_slots, slot, base_pos + 1)
+    }
+    let tail = get_unchecked(idx.base_tails, base_pos)
+    if tail < 0 {
+        set(idx.base_heads, base_pos, mangled_pos)
+    } else {
+        set(idx.mangled_next, tail, mangled_pos)
+    }
+    set(idx.base_tails, base_pos, mangled_pos)
+}
+
+fn mono_index_base_has_mangled(idx: MonoIndex, base: String, mangled: String) -> bool {
+    let base_pos = mono_index_base_pos(idx, clone(base))
+    if base_pos < 0 {
+        return false
+    }
+    let mut cur = get_unchecked(idx.base_heads, base_pos)
+    while cur >= 0 {
+        if eq(get_unchecked(idx.mangled_names, cur), clone(mangled)) {
+            return true
+        }
+        cur = get_unchecked(idx.mangled_next, cur)
+    }
+    false
+}
+
+// The ordinal-th mangled entry registered under base, in insertion order.
+// Returns "" when the base is unknown or the ordinal is out of range.
+fn mono_index_base_mangled_at(idx: MonoIndex, base: String, ordinal: i32) -> String {
+    if ordinal < 0 {
+        return ""
+    }
+    let base_pos = mono_index_base_pos(idx, clone(base))
+    if base_pos < 0 {
+        return ""
+    }
+    let mut cur = get_unchecked(idx.base_heads, base_pos)
+    let mut steps = 0
+    while cur >= 0 && steps < ordinal {
+        cur = get_unchecked(idx.mangled_next, cur)
+        steps = steps + 1
+    }
+    if cur < 0 {
+        return ""
+    }
+    clone(get_unchecked(idx.mangled_names, cur))
 }

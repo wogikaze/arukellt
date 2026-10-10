@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone}
 use mir::mono_instance_shape
 use mir::mono_index_types
 use mir::type_contracts
@@ -30,14 +30,5 @@ fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
 }
 
 fn mono_index_has_mangled(idx: MonoIndex, fn_name: String, mangled: String) -> bool {
-    let count = mono_index_types::mono_index_mangled_count(idx)
-    let mut i = 0
-    while i < count {
-        if eq(mono_index_types::mono_index_mangled_base_at(idx, i), clone(fn_name)) &&
-        eq(mono_index_types::mono_index_mangled_at_offset(idx, i), clone(mangled)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
+    mono_index_types::mono_index_base_has_mangled(idx, fn_name, mangled)
 }

@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-10
-Updated: 2026-10-10
+Updated: 2026-10-11
 ID: 912
 Track: compiler-internal
 Depends on: none
@@ -41,3 +41,19 @@ used during lowering with an indexed lookup.
   input to the rewrite's module/visibility boundary design.
 - #910 emit-side write-site reanalysis - adjacent but independent
   quadratic in the emit phase.
+
+## Progress (2026-10-11)
+
+Indexed lookup landed: MonoIndex now keeps FNV-1a open-addressed
+accelerators (same convention as the lowering ctx mono-inst map in
+ctx_api_module.ark): a name to names-position map plus per-base mangled
+entry chains, so mono_index_count / mono_index_mangled_at /
+mono_index_has_mangled are probe + short chain walks instead of linear
+scans over all entries. A/B evidence: pre/post-change compiler outputs
+are byte-identical on the 9 generics fixtures, a 5-instantiation smoke
+program, and component/resource_v3/resource_basic.
+
+Remaining: the demand-closure model itself - computing the demanded set
+as a reachability closure over emitted bodies and removing the
+MONO_PROPAGATE_INSTANCE_BUDGET / mono_args_within_depth stopgap caps in
+typechecker/mono_instances.ark.

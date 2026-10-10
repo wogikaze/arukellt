@@ -1,32 +1,13 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone}
 use mir::mono_index_types
 fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
-    let count = mono_index_types::mono_index_name_count(idx)
-    let mut i = 0
-    while i < count {
-        if eq(mono_index_types::mono_index_name_at(idx, i), clone(fn_name)) {
-            return mono_index_types::mono_index_count_at(idx, i)
-        }
-        i = i + 1
+    let pos = mono_index_types::mono_index_name_pos(idx, clone(fn_name))
+    if pos < 0 {
+        return 0
     }
-    0
+    mono_index_types::mono_index_count_at(idx, pos)
 }
 
 fn mono_index_mangled_at(idx: MonoIndex, fn_name: String, ordinal: i32) -> String {
-    if ordinal < 0 {
-        return ""
-    }
-    let entry_count = mono_index_types::mono_index_mangled_count(idx)
-    let mut found = 0
-    let mut i = 0
-    while i < entry_count {
-        if eq(mono_index_types::mono_index_mangled_base_at(idx, i), clone(fn_name)) {
-            if found == ordinal {
-                return mono_index_types::mono_index_mangled_at_offset(idx, i)
-            }
-            found = found + 1
-        }
-        i = i + 1
-    }
-    ""
+    mono_index_types::mono_index_base_mangled_at(idx, fn_name, ordinal)
 }
