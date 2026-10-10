@@ -89,16 +89,51 @@ also resolves against it while the unannotated path resolves the user
 generic correctly but downstream mono/emit re-binds by name to the i32
 instance.
 
+## Emitted-module evidence (wasm-tools print)
+
+Broken program (`use std::test`, unannotated dual instantiation), gc:
+
+```
+(func $identity (;19;) (type 12) (param $x i64) (result i64)
+...  call $identity        // both call sites, i32 sig
+```
+
+The user's generic `identity<T>` and both expected instances
+(`identity__i32`, `identity__String`) never materialize as wasm
+functions at all. Control program (`use std::host::stdio`, no
+`std::core::identity` import), gc - valid:
+
+```
+(func $identity__i32    (param i64) (result i64)
+(func $identity__String (param (ref null 14)) (result (ref null 14))
+...  call $identity__i32 / call $identity__String
+```
+
+So the user's decl/instances are dropped upstream of emit and the call
+sites bind the first same-name MirFunction (std::core's i64-signature
+`identity`). On linear this is a silent mis-bind that happens to return
+correct results for `identity` specifically (i32 sig accepts the String
+pointer and returns it unchanged).
+
 ## Root-cause hypothesis
 
-Function lookup and/or mono-instance registration is keyed by
-unqualified name somewhere in the resolve -> mono pipeline: an imported
-concrete `identity` collides with a local generic `identity<T>`. At
-typecheck the annotated-let expected-type path picks the imported i32
-signature; at emit the `identity__String` call site binds the
-`__i32` instance's body/storage. Either resolution must make local
-definitions win over imports, or instance keys must be fully qualified
-(module + name + type args).
+Two name-keyed single-slot tables collide:
+
+- `env.fn_sig_index` maps one sig per unqualified name
+  (`build_fn_sig_index`, first-inserted wins). With `std::core` in
+  scope, `identity` resolves to the imported i32 sig - the annotated
+  `let` path checks against it and reports E0200.
+- The MIR function / mono-index namespace keeps unqualified decl names,
+  so the imported `identity` and the local generic `identity` share one
+  key; the user's decl and its recorded `identity__i32`/`identity__String`
+  instances are then never published into the emit function table, and
+  `mir_resolve_duplicate_call_target`'s exact-name first-scan binds the
+  call to whichever `identity` appears first in module order
+  (std modules emit first).
+
+Either resolution must make local definitions win over imports, or
+function/instance keys must be fully qualified (module + name + type
+args) end to end - the same qualified-identity redesign #912 calls for.
 
 ## Acceptance
 
