@@ -1,1 +1,1 @@
-ambiguous trait bound: cannot determine if t0 implements Foo
+error[E0200|typecheck]: cannot infer type parameter T in call ambiguous

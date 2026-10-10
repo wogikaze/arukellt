@@ -57,8 +57,8 @@ python3 scripts/manager.py selfhost diag-parity
 
 ## Current count
 
-19 T3 compile skips (frozenset; timeout skips may add a few) + 2 diagnostic
-parity skips = 21+ total skips
+19 T3 compile skips (frozenset; timeout skips may add a few) + 1 diagnostic
+parity skip = 20+ total skips
 (as of 2026-10-11; was 49)
 
 ## Progress (2026-10-10)
@@ -96,10 +96,19 @@ is weak (e.g. `let rebuilt: Vec<String> = Vec::from_iter(..)`,
 `let ks: Vec<K> = self.keys()`), so enforcing it requires the #912-class
 inference work first.
 
-Remaining diagnostic skips (genuine selfhost diagnostic gaps, need
-compiler work):
+Progress (2026-10-11, cont.): `selfhost/trait_ambiguous_bound.ark`
+unskipped; DIAG_PARITY_SKIP is now empty. Generic calls whose inferred
+type variable is unreachable from the instantiated return type and every
+argument type now report E0200 `cannot infer type parameter T in call F`
+at the call — the variable can never be constrained downstream, so the
+call previously monomorphized silently with a meaningless type argument.
+Vars still mentioned in the return or arguments stay deferred (the
+`let v: Vec<i32> = Vec::new()` and `None`-with-annotation paths keep
+working). Verified by an s2->s3 compile of the full compiler (fixpoint s3
+produced, zero new diagnostics on compiler source).
 
-- `selfhost/trait_ambiguous_bound.ark` — no ambiguous-trait-bound error.
+Remaining diagnostic skip:
+
 - `selfhost/comprehen_deny_elem_type_mismatch.ark` — comprehension
   element-vs-annotation mismatch is silently overridden by
   `should_prefer_annotation`; fixing it needs reliable concrete-arg

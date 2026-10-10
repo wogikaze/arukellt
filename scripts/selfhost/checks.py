@@ -5631,9 +5631,11 @@ def _run_fixture_parity_locked(
 # Fixtures skipped for diag-parity because selfhost has not yet implemented
 # the diagnostics or the test exercises an unimplemented feature.  These are
 # tracked in issue #529 Phase 3 (diagnostic parity expansion).
-DIAG_PARITY_SKIP: frozenset[str] = frozenset({
-    "selfhost/trait_ambiguous_bound.ark",
-})
+# Intentionally empty: every fixture in the diag: manifest now emits its
+# committed golden under the current selfhost compiler. The only remaining
+# diagnostic skip is selfhost/comprehen_deny_elem_type_mismatch.ark, which
+# skips via the missing-golden path instead (see issue #815).
+DIAG_PARITY_SKIP: frozenset[str] = frozenset()
 
 
 def run_diag_parity(root: Path, dry_run: bool) -> tuple[int, str]:

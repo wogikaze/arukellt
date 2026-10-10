@@ -1,4 +1,5 @@
-use std::prelude::{clone}
+use std::prelude::{clone, eq}
+use std::text
 use typechecker::ast_access
 use typechecker::call_generic_common
 use typechecker::call_generic_fn_args
@@ -45,6 +46,9 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, projected_ret)
     // Unresolved polymorphic calls must not mint mono instances.
     if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types) {
+        if len(arg_types) == 0 {
+            report_unbindable_type_params(env, infer_env, var_names, var_types, projected_ret, fn_name)
+        }
         return ret_ty
     }
     let resolved_type_args = call_generic_common::resolve_type_args(infer_env, var_types)
@@ -72,4 +76,46 @@ fn generic_call_args_concrete(arg_types: Vec<TypeInfo>) -> bool {
         i = i + 1
     }
     true
+}
+
+// On a zero-argument call, a fresh type variable that is unreachable from
+// the instantiated return type can never be constrained by a later
+// unification site (annotation or a subsequent call), so leaving it
+// silent would let the call monomorphize with a meaningless type
+// argument. Vars that appear in the return type may still be bound
+// downstream and stay deferred on purpose.
+fn report_unbindable_type_params(env: TypeEnv, infer_env: TypeEnv, var_names: Vec<String>, var_types: Vec<TypeInfo>, ret_ty: TypeInfo, fn_name: String) {
+    let count = len(var_types)
+    let mut i = 0
+    while i < count {
+        let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        if call_generic_resolve::is_unresolved_fresh_type_var(infer_env, resolved) {
+            let var_name = contract_type_access::TypeInfo_name(resolved)
+            if !type_mentions_var(ret_ty, var_name) {
+                unify::type_error(
+                    env,
+                    text::concat(
+                        "cannot infer type parameter ",
+                        text::concat(get_unchecked(var_names, i), text::concat(" in call ", clone(fn_name)))
+                    )
+                )
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn type_mentions_var(ty: TypeInfo, var_name: String) -> bool {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
+        return eq(contract_type_access::TypeInfo_name(ty), var_name)
+    }
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        if type_mentions_var(contract_type_access::TypeInfo_type_arg_at(ty, i), clone(var_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
