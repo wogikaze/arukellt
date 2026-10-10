@@ -23,3 +23,28 @@ fn mir_i32_vec_replace_at(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {
     }
     out
 }
+
+test mod "ssa_state_vec" {
+    test "filled_len_and_values" {
+        let v = mir_i32_vec_filled(3, 7)
+        assert(v.len() == 3)
+        assert(v.get_unchecked(0) == 7)
+        assert(v.get_unchecked(2) == 7)
+    }
+    test "filled_zero" {
+        let v = mir_i32_vec_filled(0, 7)
+        assert(v.len() == 0)
+    }
+    test "replace_at_single" {
+        let v = mir_i32_vec_filled(3, 1)
+        let r = mir_i32_vec_replace_at(v, 1, 9)
+        assert(r.get_unchecked(0) == 1)
+        assert(r.get_unchecked(1) == 9)
+        assert(r.get_unchecked(2) == 1)
+    }
+    test "replace_at_preserves_len" {
+        let v = mir_i32_vec_filled(2, 1)
+        let r = mir_i32_vec_replace_at(v, 0, 5)
+        assert(r.len() == 2)
+    }
+}

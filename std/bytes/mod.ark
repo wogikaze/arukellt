@@ -1096,3 +1096,157 @@ test mod "bytes" {
     test "from_str" { assert(bytes_len(bytes_from_string("ab")) == 2) }
     test "push" { assert(bytes_len(bytes_push(bytes_new(), 255)) == 1) }
 }
+
+test mod "bytes_ops" {
+    test "get_reads_byte" {
+        let b = bytes_from_string("ab")
+        assert(bytes_get(b, 0) == 97)
+        assert(bytes_get(b, 1) == 98)
+    }
+    test "eq_identical" {
+        let a = bytes_from_string("xy")
+        let b = bytes_from_string("xy")
+        assert(bytes_eq(a, b))
+    }
+    test "eq_different_len" {
+        let a = bytes_from_string("x")
+        let b = bytes_from_string("xy")
+        assert(bytes_eq(a, b) == false)
+    }
+    test "concat_appends" {
+        let a = bytes_from_string("ab")
+        let c = bytes_from_string("cd")
+        let r = bytes_concat(a, c)
+        assert(bytes_len(r) == 4)
+        assert(bytes_get(r, 3) == 100)
+    }
+    test "slice_middle" {
+        let b = bytes_from_string("abcd")
+        let s = bytes_slice(b, 1, 3)
+        assert(bytes_len(s) == 2)
+        assert(bytes_get(s, 0) == 98)
+    }
+    test "string_roundtrip" {
+        let b = bytes_from_string("hi")
+        assert(string_from_bytes(b) == "hi")
+    }
+    test "byte_length_ascii" { assert(byte_length("abc") == 3) }
+    test "hex_char_digits" {
+        assert(hex_char(0) == "0")
+        assert(hex_char(9) == "9")
+        assert(hex_char(10) == "a")
+        assert(hex_char(15) == "f")
+    }
+    test "hex_val_char_valid" {
+        assert(hex_val_char("0") == 0)
+        assert(hex_val_char("9") == 9)
+        assert(hex_val_char("a") == 10)
+        assert(hex_val_char("f") == 15)
+        assert(hex_val_char("F") == 15)
+    }
+    test "hex_encode_ascii" {
+        let b = bytes_from_string("a")
+        assert(hex_encode(b) == "61")
+    }
+    test "hex_decode_roundtrip" {
+        let d = hex_decode("dead")
+        assert(bytes_len(d) == 2)
+        assert(bytes_get(d, 0) == 222)
+        assert(bytes_get(d, 1) == 173)
+    }
+}
+
+test mod "bytes_endian" {
+    test "u16_le_layout" {
+        let b = u16_to_le_bytes(4660)
+        assert(bytes_get(b, 0) == 52)
+        assert(bytes_get(b, 1) == 18)
+    }
+    test "u16_le_roundtrip" {
+        let b = u16_to_le_bytes(258)
+        assert(u16_from_le_bytes(b) == 258)
+    }
+    test "u32_le_layout" {
+        let b = u32_to_le_bytes(1)
+        assert(bytes_len(b) == 4)
+        assert(bytes_get(b, 0) == 1)
+        assert(bytes_get(b, 3) == 0)
+    }
+    test "u32_le_roundtrip" { assert(u32_from_le_bytes(u32_to_le_bytes(70000)) == 70000) }
+    test "u32_be_layout" {
+        let b = u32_to_be_bytes(1)
+        assert(bytes_get(b, 0) == 0)
+        assert(bytes_get(b, 3) == 1)
+    }
+    test "u32_be_roundtrip" { assert(u32_from_be_bytes(u32_to_be_bytes(70000)) == 70000) }
+    test "leb128_small_single_byte" {
+        let e = leb128_encode_u32(127)
+        assert(bytes_len(e) == 1)
+        assert(bytes_get(e, 0) == 127)
+    }
+    test "leb128_128_two_bytes" {
+        let e = leb128_encode_u32(128)
+        assert(bytes_len(e) == 2)
+        assert(bytes_get(e, 0) == 128)
+        assert(bytes_get(e, 1) == 1)
+    }
+    test "leb128_u32_decode_roundtrip" {
+        let e = leb128_encode_u32(624485)
+        let c = cursor_new(e)
+        assert(leb128_decode_u32(c) == 624485)
+    }
+}
+
+test mod "bytes_buf_cursor" {
+    test "buf_push_u8" {
+        let b = buf_new()
+        buf_push_u8(b, 65)
+        assert(buf_len(b) == 1)
+    }
+    test "buf_push_u16_le_two_bytes" {
+        let b = buf_new()
+        buf_push_u16_le(b, 258)
+        assert(buf_len(b) == 2)
+        assert(bytes_get(b, 0) == 2)
+        assert(bytes_get(b, 1) == 1)
+    }
+    test "buf_push_u32_le_four_bytes" {
+        let b = buf_new()
+        buf_push_u32_le(b, 1)
+        assert(buf_len(b) == 4)
+    }
+    test "buf_extend_appends" {
+        let b = buf_new()
+        buf_push_u8(b, 1)
+        buf_extend(b, bytes_from_string("xy"))
+        assert(buf_len(b) == 3)
+    }
+    test "cursor_read_u8_advances" {
+        let c = cursor_new(bytes_from_string("ab"))
+        assert(read_u8(c) == 97)
+        assert(cursor_pos(c) == 1)
+        assert(cursor_remaining(c) == 1)
+    }
+    test "cursor_read_u16_le" {
+        let c = cursor_new(u16_to_le_bytes(258))
+        assert(read_u16_le(c) == 258)
+    }
+    test "cursor_read_u32_le" {
+        let c = cursor_new(u32_to_le_bytes(70000))
+        assert(read_u32_le(c) == 70000)
+    }
+    test "try_read_u8_empty_is_none" {
+        let c = cursor_new(bytes_new())
+        let r = match try_read_u8(c) {
+            Option::Some(v) => 1,
+            Option::None => 2,
+        }
+        assert(r == 2)
+    }
+    test "read_bytes_takes_n" {
+        let c = cursor_new(bytes_from_string("abcd"))
+        let r = read_bytes(c, 2)
+        assert(bytes_len(r) == 2)
+        assert(cursor_remaining(c) == 2)
+    }
+}

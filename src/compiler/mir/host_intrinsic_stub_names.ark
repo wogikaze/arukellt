@@ -31,3 +31,12 @@ fn host_intrinsic_stub_is_known(name: String) -> bool {
     }
     false
 }
+
+test mod "host_intrinsic_stubs" {
+    test "count_is_11" { assert(host_intrinsic_stub_count() == 11) }
+    test "name_at_zero" { assert(host_intrinsic_stub_name_at(0) == "args") }
+    test "name_at_last" { assert(host_intrinsic_stub_name_at(10) == "clock_now") }
+    test "is_known_hit" { assert(host_intrinsic_stub_is_known("exists")) }
+    test "is_known_miss" { assert(host_intrinsic_stub_is_known("read_to_string") == false) }
+    test "is_known_unknown" { assert(host_intrinsic_stub_is_known("no_such_host") == false) }
+}

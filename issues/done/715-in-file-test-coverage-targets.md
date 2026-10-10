@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-04
-Updated: 2026-07-14
+Updated: 2026-10-11
 ID: 715
 Track: testing
 Depends on: "041 (ADR, done)"
@@ -99,16 +99,17 @@ Priority modules where in-file tests add the most value:
 
 ## Acceptance
 
-- [ ] Phase 1: ≥180 in-file `test` declarations in `std/` covering pure
+- [x] Phase 1: ≥180 in-file `test` declarations in `std/` covering pure
       functions in core, collections, text, bytes
-- [ ] Phase 2: ≥60 in-file `test` declarations in `src/compiler/` covering
+- [x] Phase 2: ≥60 in-file `test` declarations in `src/compiler/` covering
       lexer, parser, resolver, typechecker, mir, diagnostics
-- [ ] No in-file tests added to side-effectful modules (host, component,
+- [x] No in-file tests added to side-effectful modules (host, component,
       lsp, dap, wasm emitter body) — those stay fixture-only
-- [ ] Coverage target documented in ADR-041 or `docs/current-state.md`
-- [ ] `arukellt test` discovery works on all modified files without
+- [x] Coverage target documented in ADR-041 or `docs/current-state.md`
+- [x] `arukellt test` discovery works on all modified files without
       typecheck errors
-- [ ] `python3 scripts/manager.py verify quick` passes after each phase
+- [x] `python3 scripts/manager.py verify quick` passes after each phase
+      (154/154 checks green on branch `docs/adr-058-language-v2-semantics`)
 
 ## Reopened blocking findings (2026-07-14 CQ-18 audit)
 
@@ -135,6 +136,34 @@ Priority modules where in-file tests add the most value:
    detect and reject future `probe_N`, `sanity` with trivial asserts,
    `assert(literal >= 0)`, `assert(x == x)` patterns. 7 unit tests added
    with false-positive guards.
+
+## Final adoption recount (2026-10-11)
+
+All added tests assert real behavior of the co-located pure functions
+(edge cases, invariants, round-trips); no probe/sanity/trivial patterns
+(`check-trivial-tests.py` PASS).
+
+- Phase 1 (std/core, std/collections, std/text, std/bytes):
+  250 meaningful tests (target: 180) — OK
+  - std/core: 69 (math, either, clone, error, raw, hash, default)
+  - std/collections: 98 (linear, linked_list, hash_set, bimap, ordered,
+    trie, compiler arena/slotmap/interner, hash)
+  - std/text: 51 (builder, rope, string, fmt)
+  - std/bytes: 32 (byte ops, hex, endian, LEB128, buf/cursor)
+- Phase 2 (lexer, parser, resolver, typechecker, mir, diagnostics):
+  127 meaningful tests (target: 60) — OK
+  - lexer 13, parser 22, resolver 11, typechecker 23, mir 46,
+    diagnostics 12 — every required pass non-zero
+- Out-of-scope side-effectful modules: 0 tests (host, component, lsp,
+  dap, wasm, simd) — fixtures remain their harness
+- Files that cannot standalone-typecheck under `arukellt test`
+  (prelude-injected `__core_*` names, private cross-module refs) were
+  excluded from new tests: `std/core/convert.ark`,
+  `std/core/default.ark`, `std/core/scalar_format.ark`,
+  `std/collections/sort.ark`, `std/collections/hash_map.ark`,
+  `std/collections/string.ark`, `src/compiler/mir/dump_op_names_*.ark`,
+  `src/compiler/typechecker/name_*.ark`,
+  `src/compiler/diagnostics/{format,record,source_map_offsets}.ark`.
 
 ## Dependencies
 

@@ -35,3 +35,23 @@ fn token_start(tok: Token) -> i32 {
 fn token_end(tok: Token) -> i32 {
     tok.end
 }
+
+test mod "token_record" {
+    test "make_token_kind" {
+        let t = make_token(10, "fn", 0, 2)
+        assert(token_kind(t) == 10)
+    }
+    test "make_token_text" {
+        let t = make_token(1, "abc", 3, 6)
+        assert(token_text(t) == "abc")
+    }
+    test "make_token_positions" {
+        let t = make_token(1, "x", 5, 9)
+        assert(token_start(t) == 5)
+        assert(token_end(t) == 9)
+    }
+    test "make_token_default_vals" {
+        let t = make_token(1, "x", 0, 1)
+        assert(token_int_val(t) == 0)
+    }
+}

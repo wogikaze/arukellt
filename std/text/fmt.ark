@@ -232,3 +232,35 @@ pub fn debug_format_result_string_string(r: Result<String, String>) -> String {
         Result::Err(e) => __intrinsic_concat("Err(", __intrinsic_concat(format_debug(e), ")")),
     }
 }
+
+test mod "fmt" {
+    test "format_i32_positive" { assert(format_i32(42) == "42") }
+    test "format_i32_negative" { assert(format_i32(0 - 7) == "-7") }
+    test "format_i32_zero" { assert(format_i32(0) == "0") }
+    test "format_i64_large" { assert(format_i64(3000000000i64) == "3000000000") }
+    test "format_bool_true" { assert(format_bool(true) == "true") }
+    test "format_bool_false" { assert(format_bool(false) == "false") }
+    test "debug_vec_bool" {
+        let v = Vec::new<bool>()
+        v.push(true)
+        v.push(false)
+        assert(debug_format_vec_bool(v) == "[true, false]")
+    }
+    test "debug_option_some_string" { assert(debug_format_option_string(Option::Some("hi")) == "Some(\"hi\")") }
+    test "debug_option_none_string" { assert(debug_format_option_string(Option::None) == "None") }
+    test "debug_vec_i32" {
+        let v = Vec::new<i32>()
+        v.push(1)
+        v.push(2)
+        v.push(3)
+        assert(debug_format_vec_i32(v) == "[1, 2, 3]")
+    }
+    test "debug_vec_i32_empty" {
+        let v = Vec::new<i32>()
+        assert(debug_format_vec_i32(v) == "[]")
+    }
+    test "debug_option_some_i32" { assert(debug_format_option_i32(Option::Some(5)) == "Some(5)") }
+    test "debug_option_none_i32" { assert(debug_format_option_i32(Option::None) == "None") }
+    test "debug_result_ok" { assert(debug_format_result_i32_string(Result::Ok(42)) == "Ok(42)") }
+    test "debug_result_err" { assert(debug_format_result_i32_string(Result::Err("bad")) == "Err(\"bad\")") }
+}

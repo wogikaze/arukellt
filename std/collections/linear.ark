@@ -207,3 +207,130 @@ test mod "deque" {
         assert(deque_front(d) == 9)
     }
 }
+
+test mod "deque_order" {
+    test "fifo_back_in_front_out" {
+        let d = deque_new()
+        deque_push_back(d, 1)
+        deque_push_back(d, 2)
+        deque_push_back(d, 3)
+        assert(deque_pop_front(d) == 1)
+        assert(deque_pop_front(d) == 2)
+    }
+    test "mixed_ends_front_first" {
+        let d = deque_new()
+        deque_push_back(d, 2)
+        deque_push_front(d, 1)
+        deque_push_back(d, 3)
+        assert(deque_front(d) == 1)
+        assert(deque_back(d) == 3)
+    }
+    test "lifo_pop_back" {
+        let d = deque_new()
+        deque_push_back(d, 1)
+        deque_push_back(d, 2)
+        deque_push_back(d, 3)
+        assert(deque_pop_back(d) == 3)
+        assert(deque_pop_back(d) == 2)
+        assert(deque_pop_back(d) == 1)
+    }
+    test "len_tracks_pushes" {
+        let d = deque_new()
+        deque_push_back(d, 1)
+        deque_push_back(d, 2)
+        assert(deque_len(d) == 2)
+        deque_pop_front(d)
+        assert(deque_len(d) == 1)
+    }
+    test "is_empty_after_drain" {
+        let d = deque_new()
+        deque_push_back(d, 1)
+        deque_pop_front(d)
+        assert(deque_is_empty(d))
+    }
+    test "clear_resets" {
+        let d = deque_new()
+        deque_push_back(d, 1)
+        deque_push_back(d, 2)
+        deque_clear(d)
+        assert(deque_len(d) == 0)
+        assert(deque_is_empty(d))
+    }
+    test "to_vec_front_to_back" {
+        let d = deque_new()
+        deque_push_back(d, 10)
+        deque_push_back(d, 20)
+        deque_push_back(d, 30)
+        let v = deque_to_vec(d)
+        assert(v.len() == 3)
+        assert(v.get_unchecked(0) == 10)
+        assert(v.get_unchecked(2) == 30)
+    }
+    test "wrap_around_beyond_initial_cap" {
+        let d = deque_new()
+        let mut i = 0
+        while i < 20 {
+            deque_push_back(d, i)
+            i = i + 1
+        }
+        assert(deque_len(d) == 20)
+        assert(deque_pop_front(d) == 0)
+    }
+}
+
+test mod "priority_queue" {
+    test "new_is_empty" {
+        let q = pq_new()
+        assert(pq_is_empty(q))
+        assert(pq_len(q) == 0)
+    }
+    test "pop_returns_min" {
+        let q = pq_new()
+        pq_push(q, 5)
+        pq_push(q, 1)
+        pq_push(q, 3)
+        assert(pq_pop(q) == 1)
+    }
+    test "pop_ascending_order" {
+        let q = pq_new()
+        pq_push(q, 4)
+        pq_push(q, 1)
+        pq_push(q, 3)
+        pq_push(q, 2)
+        assert(pq_pop(q) == 1)
+        assert(pq_pop(q) == 2)
+        assert(pq_pop(q) == 3)
+        assert(pq_pop(q) == 4)
+    }
+    test "peek_shows_min_without_pop" {
+        let q = pq_new()
+        pq_push(q, 7)
+        pq_push(q, 2)
+        assert(pq_peek(q) == 2)
+        assert(pq_len(q) == 2)
+    }
+    test "duplicates_pop_in_count" {
+        let q = pq_new()
+        pq_push(q, 1)
+        pq_push(q, 1)
+        pq_push(q, 1)
+        assert(pq_len(q) == 3)
+        assert(pq_pop(q) == 1)
+        assert(pq_len(q) == 2)
+    }
+    test "clear_resets_heap" {
+        let q = pq_new()
+        pq_push(q, 9)
+        pq_clear(q)
+        assert(pq_is_empty(q))
+    }
+    test "interleaved_push_pop" {
+        let q = pq_new()
+        pq_push(q, 8)
+        pq_push(q, 1)
+        assert(pq_pop(q) == 1)
+        pq_push(q, 0)
+        assert(pq_pop(q) == 0)
+        assert(pq_pop(q) == 8)
+    }
+}

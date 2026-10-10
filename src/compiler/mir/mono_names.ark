@@ -51,3 +51,16 @@ fn mono_name_eq_safe(name: String, safe: String) -> bool {
     }
     true
 }
+
+test mod "mono_names" {
+    test "safe_name_passthrough" { assert(mono_safe_name("plain_name") == "plain_name") }
+    test "safe_name_angle_brackets" { assert(mono_safe_name("f<i32>") == "f_i32_") }
+    test "safe_name_comma_space" { assert(mono_safe_name("f<i32, i64>") == "f_i32__i64_") }
+    test "unsafe_char_detection" {
+        assert(is_mono_unsafe_char(60))
+        assert(is_mono_unsafe_char(44))
+        assert(is_mono_unsafe_char(97) == false)
+    }
+    test "eq_safe_accepts_mangled" { assert(mono_name_eq_safe("f<i32>", "f_i32_")) }
+    test "eq_safe_rejects_plain" { assert(mono_name_eq_safe("f<i32>", "f<i32>") == false) }
+}

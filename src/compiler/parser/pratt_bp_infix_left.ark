@@ -33,3 +33,19 @@ pub fn infix_bp_left(kind: i32) -> i32 {
     }
     0
 }
+
+test mod "infix_bp_left" {
+    test "logical_or_weakest" { assert(infix_bp_left(tokens::TK_PIPEPIPE()) == 3) }
+    test "logical_and_above_or" { assert(infix_bp_left(tokens::TK_AMPAMP()) == 5) }
+    test "equality" { assert(infix_bp_left(tokens::TK_EQEQ()) == 13) }
+    test "inequality" { assert(infix_bp_left(tokens::TK_BANGEQ()) == 13) }
+    test "comparison" { assert(infix_bp_left(tokens::TK_LT()) == 15) }
+    test "shift" { assert(infix_bp_left(tokens::TK_SHL()) == 17) }
+    test "additive" { assert(infix_bp_left(tokens::TK_PLUS()) == 19) }
+    test "multiplicative_strongest" { assert(infix_bp_left(tokens::TK_STAR()) == 21) }
+    test "non_infix_zero" { assert(infix_bp_left(tokens::TK_EOF()) == 0) }
+    test "precedence_ordering" {
+        assert(infix_bp_left(tokens::TK_STAR()) > infix_bp_left(tokens::TK_PLUS()))
+        assert(infix_bp_left(tokens::TK_PLUS()) > infix_bp_left(tokens::TK_EQEQ()))
+    }
+}

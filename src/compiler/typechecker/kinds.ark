@@ -135,3 +135,14 @@ fn TY_RESOURCE() -> i32 { 24 }
 
 // Inference type tags.
 fn TY_TYPE_VAR() -> i32 { 30 }
+
+test mod "kinds" {
+    test "fn_decl" { assert(NK_FN_DECL() == 50) }
+    test "test_decl" { assert(NK_TEST_DECL() == 59) }
+    test "test_mod" { assert(NK_TEST_MOD() == 60) }
+    test "int_lit" { assert(NK_INT_LIT() == 1) }
+    test "match_expr" { assert(NK_MATCH_EXPR() == 14) }
+    test "pat_ident" { assert(NK_PAT_IDENT() == 70) }
+    test "fn_type_tag" { assert(TY_FN() == 20) }
+    test "type_var_tag" { assert(TY_TYPE_VAR() == 30) }
+}

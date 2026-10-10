@@ -9,3 +9,26 @@ fn mir_push_unique_i32(ids: Vec<i32>, block_id: i32) {
     }
     push(ids, block_id)
 }
+
+test mod "dom_set_mutate" {
+    test "push_unique_adds_new" {
+        let ids = Vec::new<i32>()
+        mir_push_unique_i32(ids, 3)
+        assert(ids.len() == 1)
+    }
+    test "push_unique_skips_dup" {
+        let ids = Vec::new<i32>()
+        mir_push_unique_i32(ids, 3)
+        mir_push_unique_i32(ids, 3)
+        assert(ids.len() == 1)
+    }
+    test "push_unique_keeps_order" {
+        let ids = Vec::new<i32>()
+        mir_push_unique_i32(ids, 5)
+        mir_push_unique_i32(ids, 2)
+        mir_push_unique_i32(ids, 5)
+        assert(ids.len() == 2)
+        assert(ids.get_unchecked(0) == 5)
+        assert(ids.get_unchecked(1) == 2)
+    }
+}

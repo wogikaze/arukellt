@@ -113,3 +113,15 @@ fn MIR_HOF_KIND_I64() -> i32 { 1 }
 fn MIR_HOF_KIND_I32() -> i32 { 2 }
 fn MIR_HOF_KIND_F64() -> i32 { 3 }
 fn MIR_HOF_KIND_OPTION_I32() -> i32 { 4 }
+
+test mod "lower_kinds" {
+    test "int_lit" { assert(NK_INT_LIT() == 1) }
+    test "binary" { assert(NK_BINARY() == 6) }
+    test "call" { assert(NK_CALL() == 8) }
+    test "if_expr" { assert(NK_IF_EXPR() == 13) }
+    test "match_expr" { assert(NK_MATCH_EXPR() == 14) }
+    test "let_stmt" { assert(NK_LET() == 30) }
+    test "pat_ident" { assert(NK_PAT_IDENT() == 70) }
+    test "ty_type_var" { assert(TY_TYPE_VAR() == 30) }
+    test "hof_kind_order" { assert(MIR_HOF_KIND_I32() == 2) }
+}

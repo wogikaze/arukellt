@@ -126,3 +126,15 @@ fn simd_return_wasm_unit(name: String) -> bool {
     if eq(clone(name), "__wasm_v128_store_lane") { return true }
     false
 }
+
+test mod "simd_lanes" {
+    test "i8x16_add_classified" { assert(simd_return_i8x16("__simd_i8x16_add")) }
+    test "i8x16_splat_classified" { assert(simd_return_i8x16("__simd_i8x16_splat")) }
+    test "i8x16_rejects_other" { assert(simd_return_i8x16("__simd_i32x4_add") == false) }
+    test "wasm_store_is_unit" { assert(simd_return_wasm_unit("__wasm_v128_store")) }
+    test "wasm_load_not_unit" { assert(simd_return_wasm_unit("__wasm_v128_load") == false) }
+    test "wasm_load_lane_is_v128" { assert(simd_return_wasm_v128("__wasm_v128_load_lane")) }
+    test "extract_lane_returns_i32" { assert(simd_return_i32("__simd_i32x4_extract_lane")) }
+    test "any_true_returns_i32" { assert(simd_return_i32("__simd_v128_any_true")) }
+    test "i32_rejects_splat" { assert(simd_return_i32("__simd_i8x16_splat") == false) }
+}

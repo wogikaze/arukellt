@@ -64,3 +64,14 @@ pub fn DIAG_WARN_PREFER_USE_IMPORT() -> String { String_from("W0010") }
 pub fn DIAG_WARN_PREFER_ELSE_IF() -> String { String_from("W0011") }
 pub fn DIAG_WARN_DEPRECATED_IMPORT() -> String { String_from("W0101") }
 pub fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0102") }
+
+test mod "codes" {
+    test "parse_unexpected" { assert(DIAG_PARSE_UNEXPECTED() == "E0001") }
+    test "resolve_unknown_name" { assert(DIAG_RESOLVE_UNKNOWN_NAME() == "E0100") }
+    test "type_mismatch" { assert(DIAG_TYPE_MISMATCH() == "E0200") }
+    test "emit_failed" { assert(DIAG_EMIT_FAILED() == "E0500") }
+    test "warn_shared_mut_alias" { assert(DIAG_WARN_SHARED_MUT_ALIAS() == "W0001") }
+    test "warn_prefer_else_if" { assert(DIAG_WARN_PREFER_ELSE_IF() == "W0011") }
+    test "warn_deprecated_import" { assert(DIAG_WARN_DEPRECATED_IMPORT() == "W0101") }
+    test "error_and_warn_namespaces_distinct" { assert(DIAG_EMIT_FAILED() != DIAG_WARN_WASM_VALIDATION()) }
+}

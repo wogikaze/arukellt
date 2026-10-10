@@ -130,3 +130,106 @@ pub fn interner_lookup(i: Vec<String>, sym: i32) -> Option<String> {
 pub fn interner_len(i: Vec<String>) -> i32 {
     len(i)
 }
+
+test mod "arena" {
+    test "alloc_returns_sequential_ids" {
+        let a = arena_new()
+        assert(arena_alloc(a, 100) == 0)
+        assert(arena_alloc(a, 200) == 1)
+        assert(arena_alloc(a, 300) == 2)
+    }
+    test "get_reads_stored_value" {
+        let a = arena_new()
+        let idx = arena_alloc(a, 77)
+        assert(arena_get(a, idx) == 77)
+    }
+    test "len_tracks_allocs" {
+        let a = arena_new()
+        arena_alloc(a, 1)
+        arena_alloc(a, 2)
+        assert(arena_len(a) == 2)
+    }
+}
+
+test mod "slotmap" {
+    test "insert_returns_key" {
+        let m = slotmap_new()
+        let k = slotmap_insert(m, 42)
+        let r = match slotmap_get(m, k) {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(r == 42)
+    }
+    test "get_missing_key_is_none" {
+        let m = slotmap_new()
+        let r = match slotmap_get(m, 0) {
+            Option::Some(v) => 1,
+            Option::None => 2,
+        }
+        assert(r == 2)
+    }
+    test "remove_drops_entry" {
+        let m = slotmap_new()
+        let k = slotmap_insert(m, 5)
+        let removed = match slotmap_remove(m, k) {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(removed == 5)
+        assert(slotmap_contains(m, k) == false)
+    }
+    test "contains_and_len" {
+        let m = slotmap_new()
+        let k1 = slotmap_insert(m, 1)
+        slotmap_insert(m, 2)
+        assert(slotmap_contains(m, k1))
+        assert(slotmap_len(m) == 2)
+    }
+    test "keys_stable_across_remove" {
+        let m = slotmap_new()
+        let k1 = slotmap_insert(m, 10)
+        let k2 = slotmap_insert(m, 20)
+        slotmap_remove(m, k1)
+        let r = match slotmap_get(m, k2) {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(r == 20)
+    }
+}
+
+test mod "interner" {
+    test "intern_dedup_same_string" {
+        let i = interner_new()
+        let a = interner_intern(i, "sym")
+        let b = interner_intern(i, "sym")
+        assert(a == b)
+        assert(interner_len(i) == 1)
+    }
+    test "intern_distinct_strings" {
+        let i = interner_new()
+        let a = interner_intern(i, "x")
+        let b = interner_intern(i, "y")
+        assert(a != b)
+        assert(interner_len(i) == 2)
+    }
+    test "lookup_roundtrip" {
+        let i = interner_new()
+        let sym = interner_intern(i, "name")
+        let r = match interner_lookup(i, sym) {
+            Option::Some(s) => s,
+            Option::None => "missing",
+        }
+        assert(r == "name")
+    }
+    test "lookup_out_of_range_is_none" {
+        let i = interner_new()
+        interner_intern(i, "a")
+        let r = match interner_lookup(i, 99) {
+            Option::Some(s) => 1,
+            Option::None => 2,
+        }
+        assert(r == 2)
+    }
+}

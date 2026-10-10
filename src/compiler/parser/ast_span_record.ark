@@ -18,3 +18,21 @@ fn span_start(span: Span) -> i32 {
 fn span_end(span: Span) -> i32 {
     span.end
 }
+
+test mod "span_record" {
+    test "new_accessors" {
+        let s = Span_new(3, 7)
+        assert(span_start(s) == 3)
+        assert(span_end(s) == 7)
+    }
+    test "empty_is_zero" {
+        let s = Span_empty()
+        assert(span_start(s) == 0)
+        assert(span_end(s) == 0)
+    }
+    test "distinct_spans" {
+        let a = Span_new(1, 2)
+        let b = Span_new(5, 9)
+        assert(span_start(a) != span_start(b))
+    }
+}

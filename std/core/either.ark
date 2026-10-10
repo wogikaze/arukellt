@@ -113,3 +113,52 @@ pub fn either_fold(e: Either, on_left: fn(i32) -> i32, on_right: fn(i32) -> i32)
         Either::Right(v) => on_right(v),
     }
 }
+
+fn either_test_double(x: i32) -> i32 {
+    x * 2
+}
+
+fn either_test_negate(x: i32) -> i32 {
+    0 - x
+}
+
+test mod "either" {
+    test "left_is_left" { assert(is_left(left(7))) }
+    test "right_is_right" { assert(is_right(right(9))) }
+    test "left_is_not_right" { assert(is_right(left(3)) == false) }
+    test "right_is_not_left" { assert(is_left(right(3)) == false) }
+    test "from_left_hit" { assert(from_left(left(7), 0) == 7) }
+    test "from_left_fallback" { assert(from_left(right(9), 5) == 5) }
+    test "from_right_hit" { assert(from_right(right(9), 0) == 9) }
+    test "from_right_fallback" { assert(from_right(left(9), 5) == 5) }
+    test "swap_left_to_right" { assert(is_right(swap(left(4)))) }
+    test "swap_right_to_left" { assert(is_left(swap(right(4)))) }
+    test "swap_preserves_value" { assert(from_right(swap(left(4)), 0) == 4) }
+    test "map_left_applies" { assert(from_left(map_left(left(3), either_test_double), 0) == 6) }
+    test "map_left_passes_right" { assert(from_right(map_left(right(3), either_test_double), 0) == 3) }
+    test "map_right_applies" { assert(from_right(map_right(right(3), either_test_double), 0) == 6) }
+    test "map_right_passes_left" { assert(from_left(map_right(left(3), either_test_double), 0) == 3) }
+    test "fold_left" { assert(either_fold(left(4), either_test_double, either_test_negate) == 8) }
+    test "fold_right" { assert(either_fold(right(4), either_test_double, either_test_negate) == 0 - 4) }
+    test "left_to_option_some" {
+        let r = match left_to_option(left(6)) {
+            Some(v) => v,
+            None => 99,
+        }
+        assert(r == 6)
+    }
+    test "left_to_option_none" {
+        let r = match left_to_option(right(6)) {
+            Some(v) => v,
+            None => 99,
+        }
+        assert(r == 99)
+    }
+    test "right_to_option_some" {
+        let r = match right_to_option(right(6)) {
+            Some(v) => v,
+            None => 99,
+        }
+        assert(r == 6)
+    }
+}

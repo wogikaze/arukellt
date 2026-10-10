@@ -313,3 +313,38 @@ impl SaturatingMul for i64 {
         }
     }
 }
+
+test mod "math" {
+    test "gcd_positive" { assert(gcd(12, 18) == 6) }
+    test "gcd_zero_left" { assert(gcd(0, 5) == 5) }
+    test "gcd_zero_right" { assert(gcd(7, 0) == 7) }
+    test "gcd_negative_input" { assert(gcd(0 - 6, 9) == 3) }
+    test "gcd_coprime" { assert(gcd(7, 13) == 1) }
+    test "gcd_commutative" { assert(gcd(18, 12) == gcd(12, 18)) }
+    test "lcm_basic" { assert(lcm(4, 6) == 12) }
+    test "lcm_zero_left" { assert(lcm(0, 5) == 0) }
+    test "lcm_zero_right" { assert(lcm(5, 0) == 0) }
+    test "lcm_negative_input" { assert(lcm(0 - 3, 4) == 12) }
+    test "lcm_product_identity" { assert(gcd(6, 10) * lcm(6, 10) == 60) }
+    test "is_power_of_two_one" { assert(is_power_of_two(1)) }
+    test "is_power_of_two_16" { assert(is_power_of_two(16)) }
+    test "is_power_of_two_zero" { assert(is_power_of_two(0) == false) }
+    test "is_power_of_two_six" { assert(is_power_of_two(6) == false) }
+    test "is_power_of_two_negative" { assert(is_power_of_two(0 - 2) == false) }
+    test "next_power_of_two_one" { assert(next_power_of_two(1) == 1) }
+    test "next_power_of_two_five" { assert(next_power_of_two(5) == 8) }
+    test "next_power_of_two_exact" { assert(next_power_of_two(16) == 16) }
+    test "next_power_of_two_seventeen" { assert(next_power_of_two(17) == 32) }
+    test "leading_zeros_zero" { assert(leading_zeros(0) == 32) }
+    test "leading_zeros_one" { assert(leading_zeros(1) == 31) }
+    test "leading_zeros_high_bit" { assert(leading_zeros(0 - 2147483648) == 0) }
+    test "leading_zeros_byte_boundary" { assert(leading_zeros(255) == 24) }
+    test "trailing_zeros_zero" { assert(trailing_zeros(0) == 32) }
+    test "trailing_zeros_one" { assert(trailing_zeros(1) == 0) }
+    test "trailing_zeros_eight" { assert(trailing_zeros(8) == 3) }
+    test "trailing_zeros_min_i32" { assert(trailing_zeros(0 - 2147483648) == 31) }
+    test "popcount_zero" { assert(popcount(0) == 0) }
+    test "popcount_one" { assert(popcount(1) == 1) }
+    test "popcount_255" { assert(popcount(255) == 8) }
+    test "popcount_all_bits" { assert(popcount(0 - 1) == 32) }
+}

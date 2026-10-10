@@ -9,3 +9,21 @@ fn mir_block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
     }
     false
 }
+
+test mod "block_id_set" {
+    test "empty_contains_nothing" {
+        let ids = Vec::new<i32>()
+        assert(mir_block_ids_contains(ids, 1) == false)
+    }
+    test "contains_present" {
+        let ids = Vec::new<i32>()
+        push(ids, 4)
+        push(ids, 8)
+        assert(mir_block_ids_contains(ids, 8))
+    }
+    test "contains_absent" {
+        let ids = Vec::new<i32>()
+        push(ids, 4)
+        assert(mir_block_ids_contains(ids, 5) == false)
+    }
+}

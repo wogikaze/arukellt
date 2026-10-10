@@ -20,11 +20,12 @@ graph LR
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
-  I715["715 715 — In-file test coverage targets for compiler and stdlib"]
+  I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
+  I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I801["801 GC 完了までのプラン"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I815["815 815 — Diagnostic/T3 compile skips"]
@@ -37,8 +38,6 @@ graph LR
   I915["915 915 - Fresh type-var names collide across TypeEnv scopes"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
-  I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
-  I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
@@ -48,8 +47,6 @@ graph LR
   I680 --> I682
   I697 --> I709
   I703 --> I709
-  I715 --> I719
-  I715 --> I799
   I851 --> I850
   I682 --> I683
   I697 --> I710
@@ -80,11 +77,12 @@ graph LR
 - **702** depends on: 688, 700, 692; blocks: none
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **708** depends on: 692, 707; blocks: none
-- **715** depends on: 041, done); blocks: 719, 799
+- **719** depends on: 715; blocks: none
 - **721** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none
+- **799** depends on: 715, 796, 797; blocks: none
 - **801** depends on: 686; blocks: none
 - **814** depends on: 791; blocks: none
 - **815** depends on: none; blocks: none
@@ -97,8 +95,6 @@ graph LR
 - **915** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
-- **719** depends on: 715; blocks: none
-- **799** depends on: 715, 796, 797; blocks: none
 - **850** depends on: 851; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711

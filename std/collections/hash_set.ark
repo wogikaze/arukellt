@@ -89,6 +89,103 @@ pub fn hashset_str_new() -> Vec<String> {
     hash_string::hashset_str_new()
 }
 
+test mod "hashset_i32" {
+    test "new_is_empty" {
+        let s = hashset_i32_new()
+        assert(hashset_i32_is_empty(s))
+        assert(hashset_i32_len(s) == 0)
+    }
+    test "insert_returns_true_first_time" {
+        let s = hashset_i32_new()
+        assert(hashset_i32_insert(s, 7))
+        assert(hashset_i32_len(s) == 1)
+    }
+    test "insert_duplicate_returns_false" {
+        let s = hashset_i32_new()
+        hashset_i32_insert(s, 7)
+        assert(hashset_i32_insert(s, 7) == false)
+        assert(hashset_i32_len(s) == 1)
+    }
+    test "contains_after_insert" {
+        let s = hashset_i32_new()
+        hashset_i32_insert(s, 42)
+        assert(hashset_i32_contains(s, 42))
+        assert(hashset_i32_contains(s, 43) == false)
+    }
+    test "remove_existing" {
+        let s = hashset_i32_new()
+        hashset_i32_insert(s, 5)
+        assert(hashset_i32_remove(s, 5))
+        assert(hashset_i32_contains(s, 5) == false)
+        assert(hashset_i32_len(s) == 0)
+    }
+    test "remove_missing_returns_false" {
+        let s = hashset_i32_new()
+        hashset_i32_insert(s, 5)
+        assert(hashset_i32_remove(s, 6) == false)
+    }
+    test "union_combines" {
+        let a = hashset_i32_new()
+        hashset_i32_insert(a, 1)
+        hashset_i32_insert(a, 2)
+        let b = hashset_i32_new()
+        hashset_i32_insert(b, 2)
+        hashset_i32_insert(b, 3)
+        let u = hashset_i32_union(a, b)
+        assert(hashset_i32_len(u) == 3)
+        assert(hashset_i32_contains(u, 1))
+        assert(hashset_i32_contains(u, 3))
+    }
+    test "intersection_common_only" {
+        let a = hashset_i32_new()
+        hashset_i32_insert(a, 1)
+        hashset_i32_insert(a, 2)
+        let b = hashset_i32_new()
+        hashset_i32_insert(b, 2)
+        hashset_i32_insert(b, 3)
+        let i = hashset_i32_intersection(a, b)
+        assert(hashset_i32_len(i) == 1)
+        assert(hashset_i32_contains(i, 2))
+    }
+    test "difference_excludes_b" {
+        let a = hashset_i32_new()
+        hashset_i32_insert(a, 1)
+        hashset_i32_insert(a, 2)
+        let b = hashset_i32_new()
+        hashset_i32_insert(b, 2)
+        let d = hashset_i32_difference(a, b)
+        assert(hashset_i32_len(d) == 1)
+        assert(hashset_i32_contains(d, 1))
+    }
+    test "clear_resets" {
+        let s = hashset_i32_new()
+        hashset_i32_insert(s, 1)
+        hashset_i32_insert(s, 2)
+        hashset_i32_clear(s)
+        assert(hashset_i32_is_empty(s))
+    }
+    test "extend_merges" {
+        let s = hashset_i32_new()
+        hashset_i32_insert(s, 1)
+        let other = hashset_i32_new()
+        hashset_i32_insert(other, 2)
+        hashset_i32_insert(other, 3)
+        hashset_i32_extend(s, other)
+        assert(hashset_i32_len(s) == 3)
+    }
+    test "many_insert_no_dup_growth" {
+        let s = hashset_i32_new()
+        let mut i = 0
+        while i < 40 {
+            hashset_i32_insert(s, i)
+            i = i + 1
+        }
+        assert(hashset_i32_len(s) == 40)
+        assert(hashset_i32_contains(s, 0))
+        assert(hashset_i32_contains(s, 39))
+    }
+}
+
 /// Insert a value into a HashSet<String>. Returns true if the value was newly inserted.
 pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
     hash_string::hashset_str_insert(s, value)

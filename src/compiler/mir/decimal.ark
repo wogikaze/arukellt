@@ -26,3 +26,12 @@ fn parse_decimal_as_i64(text: String) -> i64 {
     }
     result
 }
+
+test mod "decimal" {
+    test "simple" { assert(parse_decimal_as_i64("123") == 123i64) }
+    test "zero" { assert(parse_decimal_as_i64("0") == 0i64) }
+    test "underscore_separators" { assert(parse_decimal_as_i64("1_000_000") == 1000000i64) }
+    test "negative" { assert(parse_decimal_as_i64("-42") == 0i64 - 42i64) }
+    test "stops_at_nondigit" { assert(parse_decimal_as_i64("12abc") == 12i64) }
+    test "i64_range" { assert(parse_decimal_as_i64("3000000000") == 3000000000i64) }
+}

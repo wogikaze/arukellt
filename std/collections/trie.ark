@@ -269,3 +269,79 @@ fn count_values_in_subtree(buf: Vec<i32>, node: i32) -> i32 {
     }
     count
 }
+
+test mod "trie" {
+    test "insert_get_roundtrip" {
+        let t = trie_new()
+        trie_insert(t, "abc", 42)
+        let r = match trie_get(t, "abc") {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(r == 42)
+    }
+    test "get_missing_is_none" {
+        let t = trie_new()
+        trie_insert(t, "abc", 1)
+        let r = match trie_get(t, "abd") {
+            Option::Some(v) => 1,
+            Option::None => 2,
+        }
+        assert(r == 2)
+    }
+    test "contains_inserted_key" {
+        let t = trie_new()
+        trie_insert(t, "hello", 7)
+        assert(trie_contains(t, "hello"))
+        assert(trie_contains(t, "hell") == false)
+    }
+    test "shared_prefix_keys_independent" {
+        let t = trie_new()
+        trie_insert(t, "car", 1)
+        trie_insert(t, "cart", 2)
+        trie_insert(t, "carton", 3)
+        let r = match trie_get(t, "car") {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(r == 1)
+        assert(trie_contains(t, "carton"))
+    }
+    test "prefix_is_not_key" {
+        let t = trie_new()
+        trie_insert(t, "carton", 3)
+        assert(trie_contains(t, "car") == false)
+        assert(trie_has_prefix(t, "car"))
+    }
+    test "has_prefix_absent" {
+        let t = trie_new()
+        trie_insert(t, "dog", 1)
+        assert(trie_has_prefix(t, "cat") == false)
+    }
+    test "remove_key" {
+        let t = trie_new()
+        trie_insert(t, "key", 9)
+        assert(trie_remove(t, "key"))
+        assert(trie_contains(t, "key") == false)
+    }
+    test "remove_missing_returns_false" {
+        let t = trie_new()
+        trie_insert(t, "key", 9)
+        assert(trie_remove(t, "lock") == false)
+    }
+    test "count_with_prefix" {
+        let t = trie_new()
+        trie_insert(t, "car", 1)
+        trie_insert(t, "cart", 2)
+        trie_insert(t, "dog", 3)
+        assert(trie_count_with_prefix(t, "car") == 2)
+        assert(trie_count_with_prefix(t, "do") == 1)
+        assert(trie_count_with_prefix(t, "x") == 0)
+    }
+    test "count_with_prefix_full_key" {
+        let t = trie_new()
+        trie_insert(t, "ab", 1)
+        trie_insert(t, "abc", 2)
+        assert(trie_count_with_prefix(t, "abc") == 1)
+    }
+}

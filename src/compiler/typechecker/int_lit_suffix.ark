@@ -10,3 +10,12 @@ fn typechecker_int_literal_has_64_suffix(raw_text: String, raw_len: i32) -> bool
     }
     false
 }
+
+test mod "int_lit_suffix" {
+    test "i64_suffix" { assert(typechecker_int_literal_has_64_suffix("123i64", 6)) }
+    test "u64_suffix" { assert(typechecker_int_literal_has_64_suffix("7u64", 4)) }
+    test "i32_no_suffix" { assert(typechecker_int_literal_has_64_suffix("42", 2) == false) }
+    test "i32_suffix_rejected" { assert(typechecker_int_literal_has_64_suffix("5i32", 4) == false) }
+    test "short_text_rejected" { assert(typechecker_int_literal_has_64_suffix("64", 2) == false) }
+    test "suffix_inside_not_counted" { assert(typechecker_int_literal_has_64_suffix("i642", 4) == false) }
+}

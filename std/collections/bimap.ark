@@ -129,3 +129,70 @@ pub fn bimap_i32_i32_len(buf: Vec<i32>) -> i32 {
 pub fn bimap_i32_i32_is_empty(buf: Vec<i32>) -> bool {
     len(buf) == 0
 }
+
+test mod "bimap_i32_i32" {
+    test "new_is_empty" {
+        let b = bimap_i32_i32_new()
+        assert(bimap_i32_i32_is_empty(b))
+        assert(bimap_i32_i32_len(b) == 0)
+    }
+    test "get_by_key_hit" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 100)
+        let r = match bimap_i32_i32_get_by_key(b, 1) {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(r == 100)
+    }
+    test "get_by_key_miss" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 100)
+        let r = match bimap_i32_i32_get_by_key(b, 2) {
+            Option::Some(v) => v,
+            Option::None => 77,
+        }
+        assert(r == 77)
+    }
+    test "get_by_value_hit" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 100)
+        let r = match bimap_i32_i32_get_by_value(b, 100) {
+            Option::Some(v) => v,
+            Option::None => 0 - 1,
+        }
+        assert(r == 1)
+    }
+    test "contains_key_and_value" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 3, 30)
+        assert(bimap_i32_i32_contains_key(b, 3))
+        assert(bimap_i32_i32_contains_value(b, 30))
+        assert(bimap_i32_i32_contains_key(b, 4) == false)
+    }
+    test "remove_by_key_drops_both_views" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 10)
+        assert(bimap_i32_i32_remove_by_key(b, 1))
+        assert(bimap_i32_i32_contains_key(b, 1) == false)
+        assert(bimap_i32_i32_contains_value(b, 10) == false)
+        assert(bimap_i32_i32_len(b) == 0)
+    }
+    test "remove_by_value_drops_both_views" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 10)
+        assert(bimap_i32_i32_remove_by_value(b, 10))
+        assert(bimap_i32_i32_contains_key(b, 1) == false)
+    }
+    test "remove_missing_returns_false" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 10)
+        assert(bimap_i32_i32_remove_by_key(b, 9) == false)
+    }
+    test "len_tracks_pairs" {
+        let b = bimap_i32_i32_new()
+        bimap_i32_i32_insert(b, 1, 10)
+        bimap_i32_i32_insert(b, 2, 20)
+        assert(bimap_i32_i32_len(b) == 2)
+    }
+}

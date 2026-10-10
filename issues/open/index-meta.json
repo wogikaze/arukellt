@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T17:07:55Z",
+  "generated_at": "2026-10-10T18:47:21Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -288,25 +288,21 @@
       }
     },
     {
-      "id": "715",
-      "path": "715-in-file-test-coverage-targets.md",
-      "title": "715 — In-file test coverage targets for compiler and stdlib",
-      "track": "testing",
+      "id": "719",
+      "path": "719-test-execution-harness.md",
+      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
+      "track": "tooling",
       "status": "open",
       "depends_on": [
-        "041",
-        "done)"
+        "715"
       ],
-      "blocks_issue_ids": [
-        "719",
-        "799"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 13,
-        "unchecked": 6
+        "checked": 0,
+        "unchecked": 0
       },
       "orchestration": {
-        "class": "ready",
+        "class": "implementation",
         "upstream_notes": "None"
       }
     },
@@ -378,6 +374,27 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "799",
+      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
+      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "715",
+        "796",
+        "797"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 1
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": 715
       }
     },
     {
@@ -615,46 +632,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
-      }
-    },
-    {
-      "id": "719",
-      "path": "719-test-execution-harness.md",
-      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
-      "track": "tooling",
-      "status": "open",
-      "depends_on": [
-        "715"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "799",
-      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
-      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "715",
-        "796",
-        "797"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": 715
       }
     },
     {

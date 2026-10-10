@@ -442,3 +442,169 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 // We use two parallel vecs packed into one: first half keys, second half values
 // Actually simpler: [count, k0, v0, k1, v1, ...]
 // Insert at idx: shift elements right
+
+test mod "ordered_map" {
+    test "sorted_map_insert_get" {
+        let m = sorted_map_new()
+        sorted_map_insert(m, 3, 30)
+        sorted_map_insert(m, 1, 10)
+        assert(sorted_map_get(m, 3) == 30)
+        assert(sorted_map_get(m, 1) == 10)
+    }
+    test "sorted_map_missing_returns_zero" {
+        let m = sorted_map_new()
+        sorted_map_insert(m, 1, 10)
+        assert(sorted_map_get(m, 99) == 0)
+    }
+    test "sorted_map_contains" {
+        let m = sorted_map_new()
+        sorted_map_insert(m, 5, 50)
+        assert(sorted_map_contains(m, 5))
+        assert(sorted_map_contains(m, 6) == false)
+    }
+    test "sorted_map_len" {
+        let m = sorted_map_new()
+        sorted_map_insert(m, 1, 10)
+        sorted_map_insert(m, 2, 20)
+        assert(sorted_map_len(m) == 2)
+    }
+    test "sorted_map_overwrites_existing_key" {
+        let m = sorted_map_new()
+        sorted_map_insert(m, 1, 10)
+        sorted_map_insert(m, 1, 99)
+        assert(sorted_map_get(m, 1) == 99)
+        assert(sorted_map_len(m) == 1)
+    }
+    test "find_idx_locates_insertion_point" {
+        let m = sorted_map_new()
+        sorted_map_insert(m, 10, 1)
+        sorted_map_insert(m, 20, 2)
+        sorted_map_insert(m, 30, 3)
+        assert(sorted_map_find_idx(m, 15) == 1)
+        assert(sorted_map_find_idx(m, 20) == 1)
+        assert(sorted_map_find_idx(m, 40) == 3)
+    }
+    test "btree_insert_get" {
+        let m = btree_new()
+        btree_insert(m, 7, 70)
+        assert(btree_get(m, 7) == 70)
+        assert(btree_contains_key(m, 7))
+    }
+    test "btree_remove" {
+        let m = btree_new()
+        btree_insert(m, 1, 10)
+        btree_insert(m, 2, 20)
+        btree_remove(m, 1)
+        assert(btree_contains_key(m, 1) == false)
+        assert(btree_len(m) == 1)
+    }
+    test "btree_keys_sorted" {
+        let m = btree_new()
+        btree_insert(m, 30, 3)
+        btree_insert(m, 10, 1)
+        btree_insert(m, 20, 2)
+        let ks = btree_keys(m)
+        assert(ks.get_unchecked(0) == 10)
+        assert(ks.get_unchecked(1) == 20)
+        assert(ks.get_unchecked(2) == 30)
+    }
+    test "btree_range_exclusive_end" {
+        let m = btree_new()
+        btree_insert(m, 10, 1)
+        btree_insert(m, 20, 2)
+        btree_insert(m, 30, 3)
+        let r = btree_range(m, 10, 30)
+        assert(r.len() == 2)
+        assert(r.get_unchecked(0) == 10)
+        assert(r.get_unchecked(1) == 20)
+    }
+    test "btree_set_insert_dedup" {
+        let s = btree_set_new()
+        assert(btree_set_insert(s, 5))
+        assert(btree_set_insert(s, 5) == false)
+        assert(btree_set_len(s) == 1)
+    }
+    test "btree_set_contains" {
+        let s = btree_set_new()
+        btree_set_insert(s, 8)
+        assert(btree_set_contains(s, 8))
+        assert(btree_set_contains(s, 9) == false)
+    }
+    test "index_map_insert_get" {
+        let m = index_map_new()
+        index_map_insert(m, 2, 200)
+        assert(index_map_get(m, 2) == 200)
+        assert(index_map_len(m) == 1)
+    }
+    test "index_map_keys_preserves_insertion" {
+        let m = index_map_new()
+        index_map_insert(m, 9, 90)
+        index_map_insert(m, 1, 10)
+        let ks = index_map_keys(m)
+        assert(ks.len() == 2)
+        assert(ks.get_unchecked(0) == 9)
+    }
+    test "index_set_dedup" {
+        let s = index_set_new()
+        assert(index_set_insert(s, 4))
+        assert(index_set_insert(s, 4) == false)
+        assert(index_set_len(s) == 1)
+        assert(index_set_contains(s, 4))
+    }
+}
+
+test mod "bitset" {
+    test "new_has_no_bits" {
+        let bs = bitset_new()
+        assert(bitset_count(bs) == 0)
+        assert(bitset_test(bs, 0) == false)
+    }
+    test "mark_and_test" {
+        let bs = bitset_new()
+        bitset_mark(bs, 3)
+        assert(bitset_test(bs, 3))
+        assert(bitset_test(bs, 4) == false)
+    }
+    test "unmark_clears" {
+        let bs = bitset_new()
+        bitset_mark(bs, 3)
+        bitset_unmark(bs, 3)
+        assert(bitset_test(bs, 3) == false)
+    }
+    test "crosses_word_boundary" {
+        let bs = bitset_new()
+        bitset_mark(bs, 31)
+        bitset_mark(bs, 32)
+        bitset_mark(bs, 33)
+        assert(bitset_test(bs, 32))
+        assert(bitset_count(bs) == 3)
+    }
+    test "count_tracks_marks" {
+        let bs = bitset_new()
+        bitset_mark(bs, 0)
+        bitset_mark(bs, 100)
+        assert(bitset_count(bs) == 2)
+    }
+    test "union_combines_bits" {
+        let a = bitset_new()
+        bitset_mark(a, 1)
+        let b = bitset_new()
+        bitset_mark(b, 2)
+        let u = bitset_union(a, b)
+        assert(bitset_test(u, 1))
+        assert(bitset_test(u, 2))
+        assert(bitset_count(u) == 2)
+    }
+    test "intersection_common_bits" {
+        let a = bitset_new()
+        bitset_mark(a, 1)
+        bitset_mark(a, 2)
+        let b = bitset_new()
+        bitset_mark(b, 2)
+        bitset_mark(b, 3)
+        let i = bitset_intersection(a, b)
+        assert(bitset_test(i, 2))
+        assert(bitset_test(i, 1) == false)
+        assert(bitset_count(i) == 1)
+    }
+}

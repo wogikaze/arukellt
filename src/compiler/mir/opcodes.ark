@@ -92,3 +92,15 @@ fn MIR_REF_FUNC() -> i32 { 89 }
 fn is_arith_opcode(op: i32) -> bool {
     op >= MIR_ADD() && op <= MIR_SHR()
 }
+
+test mod "opcodes" {
+    test "const_i32" { assert(MIR_CONST_I32() == 1) }
+    test "local_get" { assert(MIR_LOCAL_GET() == 10) }
+    test "add" { assert(MIR_ADD() == 20) }
+    test "gc_struct_new" { assert(MIR_GC_STRUCT_NEW() == 86) }
+    test "ref_func" { assert(MIR_REF_FUNC() == 89) }
+    test "arith_range_includes_add" { assert(is_arith_opcode(MIR_ADD())) }
+    test "arith_range_includes_shr" { assert(is_arith_opcode(MIR_SHR())) }
+    test "arith_range_excludes_const" { assert(is_arith_opcode(MIR_CONST_I32()) == false) }
+    test "arith_range_excludes_gc" { assert(is_arith_opcode(MIR_GC_STRUCT_NEW()) == false) }
+}

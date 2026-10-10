@@ -22,3 +22,10 @@ fn severity_name(sev: i32) -> String {
     }
     "unknown"
 }
+
+test mod "severity" {
+    test "error_name" { assert(severity_name(SEV_ERROR()) == "error") }
+    test "warning_name" { assert(severity_name(SEV_WARNING()) == "warning") }
+    test "note_name" { assert(severity_name(SEV_NOTE()) == "note") }
+    test "unknown_fallback" { assert(severity_name(99) == "unknown") }
+}

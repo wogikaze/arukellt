@@ -280,3 +280,54 @@ pub fn to_utf8_bytes(s: String) -> Vec<i32> {
     }
     result
 }
+
+test mod "string" {
+    test "concat" { assert(concat("ab", "cd") == "abcd") }
+    test "starts_with_hit" { assert(starts_with("hello", "he")) }
+    test "starts_with_miss" { assert(starts_with("hello", "lo") == false) }
+    test "starts_with_empty_prefix" { assert(starts_with("hello", "")) }
+    test "ends_with_hit" { assert(ends_with("hello", "lo")) }
+    test "ends_with_miss" { assert(ends_with("hello", "he") == false) }
+    test "contains_hit" { assert(contains("hello", "ell")) }
+    test "contains_miss" { assert(contains("hello", "z") == false) }
+    test "to_lower_ascii" { assert(to_lower("HeLLo") == "hello") }
+    test "to_upper_ascii" { assert(to_upper("HeLLo") == "HELLO") }
+    test "len_bytes_ascii" { assert(len_bytes("hello") == 5) }
+    test "len_bytes_empty" { assert(len_bytes("") == 0) }
+    test "len_chars_ascii" { assert(len_chars("hello") == 5) }
+    test "is_empty_checks" { assert(is_empty("")) assert(is_empty("x") == false) }
+    test "slice_bytes_middle" { assert(slice_bytes("hello", 1, 4) == "ell") }
+    test "split_two_parts" {
+        let parts = split("a,b", ",")
+        assert(parts.len() == 2)
+        assert(parts.get_unchecked(0) == "a")
+        assert(parts.get_unchecked(1) == "b")
+    }
+    test "split_no_delim" {
+        let parts = split("abc", ",")
+        assert(parts.len() == 1)
+    }
+    test "join_roundtrip" {
+        let parts = split("a,b,c", ",")
+        assert(join(parts, ",") == "a,b,c")
+    }
+    test "trim_whitespace" { assert(trim("  hi  ") == "hi") }
+    test "trim_start_only" { assert(trim_start("  hi  ") == "hi  ") }
+    test "trim_end_only" { assert(trim_end("  hi  ") == "  hi") }
+    test "replace_substring" { assert(replace("a-b-c", "-", "+") == "a+b+c") }
+    test "repeat_string" { assert(repeat("ab", 3) == "ababab") }
+    test "lines_split" {
+        let ls = lines("x\ny\nz")
+        assert(ls.len() == 3)
+        assert(ls.get_unchecked(1) == "y")
+    }
+    test "chars_count" {
+        let cs = chars("abc")
+        assert(cs.len() == 3)
+    }
+    test "to_utf8_roundtrip" {
+        let b = to_utf8_bytes("ok")
+        assert(b.len() == 2)
+        assert(b.get_unchecked(0) == 111)
+    }
+}
