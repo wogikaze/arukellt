@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-10
 Updated: 2026-10-11
 ID: 913
@@ -129,3 +129,33 @@ propagates a negative length unchecked. Intern sites that feed
   negative-length record); 140-fixture sweep also clean. Producer
   binary rebuilt deterministically at `deb9710b7` (md5 `caa1fce2`) for
   a same-binary before/after check.
+
+## Resolution (2026-10-11)
+
+- Root cause: bounded to the three `ctx_intern_string` call sites
+  (`node_text`, `mir_core_expr_text`, `pat_text`) fed by the
+  `67eb8fda2` mono-propagation machinery — the corruption first
+  appears in that era and the byte-level decode shows an extra
+  append-only intern push with a `len = -1` header. Line-level
+  isolation of the exact stale read was not completed because the
+  containing subsystem was deleted wholesale: #912 replaced
+  mono-propagation with demand-closure, and every post-#912 validation
+  run is clean (40/40 on this fixture, 140-fixture sweep, and the
+  1786-fixture emit sweep with zero corrupt/invalid sections).
+- Regression mechanism (acceptance 2): `emit_string_data_payload`
+  now traps loudly on `slen < 0` (`0a729373a`), so a recurrence
+  produces an ICE at emit time instead of malformed bytes that only a
+  validator would catch.
+- Before/after evidence (acceptance 3): satisfied via retained
+  artifacts — the two observed corrupt modules
+  (`.build/fx-str-gc.wasm`, `.build/fx-str-gc2.wasm`, byte-identical,
+  `ff 00 00 00` record present) are the before state; the post-#912
+  clean runs above are the after state. A literal same-binary re-run
+  was attempted three times and is infeasible: the `deb9710b7`
+  producer binary hangs >60 min on this fixture (its own
+  mono-propagation explosion, the same pathology #912 fixed), so it
+  can no longer complete the offending compile either way.
+- Residual risk: if a stale-read corruption resurfaces in new code,
+  the emit-side trap converts it into a loud ICE with the offending
+  constant index, which is the intended debugging hook for a fresh
+  issue.

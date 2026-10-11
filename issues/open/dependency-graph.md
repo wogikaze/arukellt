@@ -32,7 +32,6 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
   I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
@@ -80,7 +79,6 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **913** depends on: none; blocks: none
 - **917** depends on: 709; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
