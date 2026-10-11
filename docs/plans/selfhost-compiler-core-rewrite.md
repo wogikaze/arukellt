@@ -54,6 +54,29 @@ mono/ctx/hashmap 系各 ~1% 以下が多数。病理的単一ループは無く�
 **allocation churn を減らす Phase 5 arena が最大の単一レバー**、
 mono/reachability/name_index の線形探索が Phase 4 の次候補。
 
+### KEEP_CLOCK 実フェーズ（2026-10-12、keep-clock gc host、guest total 49.1s）
+
+ARUKELLT_OVERLAY_KEEP_CLOCK=1 + 別 overlay root で実測:
+
+| phase | ms | 備考 |
+|---|---:|---|
+| resolve | 3,135 | |
+| typecheck | 7,454 | |
+| lower.total | 34,839 | **支配的（~71%）** |
+| — lower.body_emit | 25,526 | decl_emit 内に入れ子（decl_emit=32,050） |
+| — lower.fn_index | 6,067 | |
+| — lower.propagate | 1,276 | |
+| — lower.reachability | 977 | |
+| — lower.sync | 290 | |
+| mir_opt | 732 | |
+| emit | 2,970 | emit.code ≈2.6s |
+| total | 49,130 | wall ≈51.3s / RSS ≈904MiB |
+
+**body_emit（関数本体 lowering ~26-32s）が最大の単一 chunk** —
+fat MIR reconstruction + per-function emit = Phase 2/3 の直接対象。
+typecheck 7.5s・fn_index 6.1s・resolve 3.1s が次の層。
+propagate 1.3s は CalleePropCache 後でも残存。
+
 ## 受入
 
 - cacheless flattened `src/compiler/main.ark`

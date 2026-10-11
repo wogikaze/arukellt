@@ -1,0 +1,44 @@
+{
+ "schema": "arukellt-selfhost-overlay-keepclock-phases-v1",
+ "recorded_at": "2026-10-12T05:14:00Z",
+ "note": "KEEP_CLOCK gc host (s3-kc32.component.wasm) real --time phases; flat-src overlay compile of src/compiler/main.ark -> wasm32-gc+wasi-p2",
+ "source_sha": "2349d2cfb3d5ec3687fb703f9d04997003ab5b8e",
+ "host": ".build/selfhost/flat-src-keepclock/s3-kc32.component.wasm",
+ "wall_ms": 51260,
+ "rss_max_kb": 925572,
+ "guest_total_ms": 49130,
+ "phases_ms": {
+  "lex": 0,
+  "parse": 0,
+  "resolve": 3135,
+  "typecheck": 7454,
+  "lower": 34839,
+  "mir_opt": 732,
+  "mir_verify": 0,
+  "emit": 2970,
+  "total": 49130,
+  "lower.fn_index": 6067,
+  "lower.ctx_prep": 455,
+  "lower.body_emit": 25526,
+  "lower.decl_emit": 32050,
+  "lower.reachability": 977,
+  "lower.sync": 290,
+  "lower.propagate": 1276,
+  "lower.total": 34594,
+  "emit.strings": 0,
+  "emit.types": 188,
+  "emit.pre_code": 47,
+  "emit.code": 2637,
+  "emit.tail": 93
+ },
+ "mir_counts": {
+  "functions": 11012,
+  "locals": 291542,
+  "insts": 594230
+ },
+ "reachability": {
+  "fns": "11979->11012",
+  "blocks": "23958->22024",
+  "insts": "618731->594230"
+ }
+}

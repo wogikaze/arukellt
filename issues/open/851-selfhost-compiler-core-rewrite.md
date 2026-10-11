@@ -82,7 +82,11 @@ perf/perfmap は `wasm func[11026]`＝linear GC `mark_candidate` が
 また fixpoint の s3 ビルド（wasm32+p1 emit）は 3600s timeout に到達 —
 linear emit 経路そのものも遅い。
 
-**次の作業**: frontend（parse〜lower）の時間分解。gc host の ~50s のうち
-emit は ~2.6s で、残りは frontend だが現行ビルドは `--time` が stub され
-0ms 表示。KEEP_CLOCK ビルドか perfmap で frontend の内訳を取り、
-Phase 0 の receipt 項目を完成させる。
+**次の作業**: KEEP_CLOCK keep-clock gc host で frontend 分解済み —
+`lower.body_emit ≈26-32s`（lower.total 34.8s、guest total 49.1s の ~71%）が
+最大単一 chunk（fat MIR reconstruction + per-function emit、Phase 2/3 の直接対象）。
+次は typecheck 7.5s・fn_index 6.1s・resolve 3.1s。
+perfmap では host 側 wasmtime copying GC が ~55-60%（allocation churn、
+Phase 5 arena が最大レバー）。Phase 0 の未消化: 208s vs 239s の切り分けと、
+linear host での再現測定（現行は >600s timeout で計測不能 — mark_candidate が
+改善しない限り linear host 計測は取れない）。
