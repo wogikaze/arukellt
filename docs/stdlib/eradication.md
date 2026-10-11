@@ -8,7 +8,7 @@
 ADR-046 removes every user-reachable free function from the stdlib surface.
 The public API shape is method / associated function / trait dispatch only;
 the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
-Policy: [#709](../../issues/open/709-stdlib-trait-first-api-policy.md).
+Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
 ## Scorecard

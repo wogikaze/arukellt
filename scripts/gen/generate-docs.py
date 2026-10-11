@@ -4127,6 +4127,14 @@ def _eradication_owner_cell(owner: str) -> str:
     return f"[#{owner}]({rel})"
 
 
+def _issue_link(issue_id: str) -> str:
+    path = owner_issue_path(ROOT, issue_id)
+    if path is None:
+        return f"#{issue_id}"
+    rel = os.path.relpath(path, ERADICATION_MD.parent)
+    return f"[#{issue_id}]({rel})"
+
+
 def render_stdlib_eradication(eradication: dict, resolved: list, manifest: dict) -> str:
     """Generate the ADR-046 free-function eradication scorecard + inventory."""
     class_order = ["must delete", "associated-or-method", "intrinsic-only"]
@@ -4153,8 +4161,8 @@ def render_stdlib_eradication(eradication: dict, resolved: list, manifest: dict)
         "ADR-046 removes every user-reachable free function from the stdlib surface.",
         "The public API shape is method / associated function / trait dispatch only;",
         "the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).",
-        "Policy: [#709](../../issues/open/709-stdlib-trait-first-api-policy.md).",
-        "Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).",
+        "Policy: " + _issue_link("709") + ".",
+        "Execution: " + _issue_link("917") + ".",
         "",
         "## Scorecard",
         "",
