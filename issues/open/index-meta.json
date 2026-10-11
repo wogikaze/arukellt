@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-11T11:05:09Z",
+  "generated_at": "2026-10-11T11:21:56Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -190,7 +190,6 @@
         "695"
       ],
       "blocks_issue_ids": [
-        "709",
         "710"
       ],
       "acceptance": {
@@ -255,9 +254,7 @@
         "691",
         "695"
       ],
-      "blocks_issue_ids": [
-        "709"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 2,
         "unchecked": 17
@@ -535,6 +532,25 @@
       }
     },
     {
+      "id": "917",
+      "path": "917-stdlib-eradication-execution.md",
+      "title": "917 — Free-function eradication execution (must-delete / associated-or-method waves)",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "709"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "incremental",
+        "upstream_notes": "#709 policy, #703 monomorphic cutover, #718 inventory"
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -557,31 +573,28 @@
       }
     },
     {
-      "id": "709",
-      "path": "709-stdlib-trait-first-api-policy.md",
-      "title": "709 — Stdlib trait-first API policy and free-function eradication",
+      "id": "710",
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
       "track": "stdlib-api",
       "status": "open",
       "depends_on": [
         "691",
-        "695",
         "697",
-        "703"
+        "701",
+        "707",
+        "709"
       ],
       "blocks_issue_ids": [
-        "710",
-        "711",
-        "712",
-        "713",
-        "917"
+        "711"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 11
+        "unchecked": 13
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {
@@ -621,50 +634,6 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "710",
-      "path": "710-stdlib-linear-collections-type-surface.md",
-      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "697",
-        "701",
-        "707",
-        "709"
-      ],
-      "blocks_issue_ids": [
-        "711"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
-      }
-    },
-    {
-      "id": "917",
-      "path": "917-stdlib-eradication-execution.md",
-      "title": "917 — Free-function eradication execution (must-delete / associated-or-method waves)",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "709"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "incremental",
-        "upstream_notes": "#709 policy, #703 monomorphic cutover, #718 inventory"
       }
     },
     {

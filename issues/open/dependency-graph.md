@@ -33,29 +33,21 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
+  I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
-  I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
+  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
-  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
-  I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I680 --> I682
-  I697 --> I709
-  I703 --> I709
+  I697 --> I710
   I851 --> I850
   I682 --> I683
-  I697 --> I710
-  I709 --> I710
-  I709 --> I917
   I681 --> I711
-  I709 --> I711
   I710 --> I711
-  I709 --> I712
   I711 --> I712
-  I709 --> I713
   I711 --> I713
   I712 --> I713
 ```
@@ -71,10 +63,10 @@ graph LR
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **693** depends on: 688, 692; blocks: none
-- **697** depends on: 691, 695; blocks: 709, 710
+- **697** depends on: 691, 695; blocks: 710
 - **699** depends on: 649, 698; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
-- **703** depends on: 700, 701, 691, 695; blocks: 709
+- **703** depends on: 700, 701, 691, 695; blocks: none
 - **708** depends on: 692, 707; blocks: none
 - **719** depends on: 715; blocks: none
 - **721** depends on: none; blocks: none
@@ -89,12 +81,11 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **913** depends on: none; blocks: none
+- **917** depends on: 709; blocks: none
 - **682** depends on: 679, 680; blocks: 683
-- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713, 917
+- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none
 - **683** depends on: 679, 682; blocks: none
-- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
-- **917** depends on: 709; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none
