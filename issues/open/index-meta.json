@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-10T18:47:21Z",
+  "generated_at": "2026-10-11T06:02:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -436,23 +436,6 @@
       }
     },
     {
-      "id": "815",
-      "path": "815-diagnostic-t3-compile-skips.md",
-      "title": "815 — Diagnostic/T3 compile skips",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "818",
       "path": "818-core-op-production-scaffold-exit.md",
       "title": "818 — CoreOpRegistry production scaffold exit",
@@ -532,23 +515,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 827
-      }
-    },
-    {
-      "id": "912",
-      "path": "912-mono-propagation-demand-closure-boundary.md",
-      "title": "912 - Monomorphization needs a principled demand-closure boundary",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-needed",
-        "upstream_notes": "none"
       }
     },
     {

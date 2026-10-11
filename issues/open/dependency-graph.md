@@ -28,12 +28,10 @@ graph LR
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I801["801 GC 完了までのプラン"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
-  I815["815 815 — Diagnostic/T3 compile skips"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
-  I912["912 912 - Monomorphization needs a principled demand-closure boundary"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
   I915["915 915 - Fresh type-var names collide across TypeEnv scopes"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -85,12 +83,10 @@ graph LR
 - **799** depends on: 715, 796, 797; blocks: none
 - **801** depends on: 686; blocks: none
 - **814** depends on: 791; blocks: none
-- **815** depends on: none; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **825** depends on: 823; blocks: none
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
-- **912** depends on: none; blocks: none
 - **913** depends on: none; blocks: none
 - **915** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
