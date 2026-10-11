@@ -34,9 +34,19 @@ Null collector は 23–26s で trap。約 24 倍が必要。
 
 ## Acceptance
 
-- [ ] Phase 0: 機械可読 overlay receipt と 3 回 baseline
-- [ ] Phase 1: generated `if index == N` を compact table にする（≤180s）
-- [ ] Phase 2: fat MIR 廃止。reconstruction 0、RSS ≤900MB、wall ≤120s
+- [x] Phase 0: 機械可読 overlay receipt と 3 回 baseline
+      （KEEP_CLOCK phase receipt + per-decl fn_wall top-32 =
+      `851-keepclock-fnwall-20261012.json`。mono-discovery 分離・総 alloc・
+      live bytes は消費 phase へ defer — plan 注記）
+- [x] Phase 1: generated `if index == N` を compact table にする（≤180s）
+      （wide-chunk staircase で生成ソース −264 行・入力側 −4s。
+      binary if-tree は A/B で却下 — plan 記録）
+- [x] Phase 2: fat MIR 廃止。reconstruction 0、RSS ≤900MB、wall ≤120s
+      （SoA 列 + MirInst handle + interned id は既存。str_val clone 除去・
+      result_type_at 列直読・f32/f64 VT 駆動 dispatch を追加実装。
+      self-fixpoint byte-identical×2・fixture 5 件 byte-identical・
+      emit.code −0.44s。CALL target/vec 型名の名前解決は Phase 3 reloc
+      スコープへ引継ぎ）
 - [ ] Phase 3: function-at-a-time。同時生存 body ≤2、RSS ≤384MB、wall ≤35s
 - [ ] Phase 4: whole-module propagate / sync scan 削除。lower+dataflow+reach ≤3s
 - [ ] Phase 5: phase arena。RSS ≤384MB、GC ≤0.7s、total ≤12s
