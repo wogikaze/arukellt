@@ -3635,7 +3635,7 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     }
     if lt > 0 && ends_with(clone(ty_name), String_from(">")) {
         let inner = substring(clone(ty_name), lt + 1, n - 1)
-        let args = stub_split_top_level_type_args(inner)
+        let args = ctx_split_top_level_type_args(inner)
         let mut ai = 0
         while ai < len(args) {
             let arg = get_unchecked(args, ai)
@@ -3656,7 +3656,7 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
 }
 
 // Split `A<B, C<D,E>>` argument text on top-level commas only.
-fn stub_split_top_level_type_args(inner: String) -> Vec<String> {
+fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
     let args = Vec_new_String()
     let mut depth = 0
     let mut seg_start = 0
@@ -3958,7 +3958,7 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
     let lt = index_of(clone(owner), String_from("<"))
     if lt > 0 && ends_with(clone(owner), String_from(">")) {
         let base = substring(clone(owner), 0, lt)
-        let args = stub_split_top_level_type_args(substring(clone(owner), lt + 1, len(owner) - 1))
+        let args = ctx_split_top_level_type_args(substring(clone(owner), lt + 1, len(owner) - 1))
         let mut mangled = concat(base, String_from("__next"))
         let mut ai = 0
         while ai < len(args) {
