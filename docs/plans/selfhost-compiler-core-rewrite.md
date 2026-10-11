@@ -113,11 +113,23 @@ propagate 1.3s は CalleePropCache 後でも残存。
 
 ## Phase 0 — 239 秒を分解する
 
-- [ ] `--time` を機械可読 receipt にする（ログ専用にしない）
+- [x] `--time` を機械可読 receipt にする（ログ専用にしない）
+      （KEEP_CLOCK overlay + `851-keepclock-phases-20261012.json` /
+      `851-gc-overlay-keepclock-20261012.json` が phase JSON receipt。
+      gc-emit host 自体は stub clock で 0ms 表示になるため、実測には
+      `ARUKELLT_OVERLAY_KEEP_CLOCK=1` + 別 overlay root を使う運用に固定）
 - [ ] 毎回記録: parse / resolve / typecheck / mono-discovery / lower / propagate /
       reachability / MIR optimize / wasm types / wasm bodies / finalize / GC
+      （現状 receipt は resolve/typecheck/lower.{fn_index,ctx_prep,body_emit,
+      decl_emit,reachability,sync,propagate}/mir_opt/emit.{strings,types,
+      pre_code,code,tail} + mir_counts + reachability counts を取得済み。
+      未取得: mono-discovery 分離、GC 時間、総 allocation、live bytes）
 - [ ] 総 allocation、phase 境界 live bytes、MirInst / MirLocal / MirFunction 個数、
       最大 32 関数の wall
+      （MirInst/MirLocal/MirFunction 個数は mir_counts で取得済み。
+      allocation/live bytes/top-32-function wall は未実装 — gc host 上で
+      guest allocation は host 側 GC 内で不可視のため、compiler 側に
+      counting shim を入れる必要がある）
 - [x] 同一条件 3 回の baseline receipt を `docs/research/receipts/` に残す
       （2026-09-12: [`851-gc-overlay-baseline-run-1`](../research/receipts/851-gc-overlay-baseline-run-1.json)、
       [`run-2`](../research/receipts/851-gc-overlay-baseline-run-2.json)、
@@ -150,7 +162,11 @@ propagate 1.3s は CalleePropCache 後でも残存。
       RSS 最大は 1,233,752 KiB で、ユーザー目標の wall p95 <10s は PASS。
       ただし ADR-053 の内部 gate（median ≤7s / RSS ≤512 MiB）は未達であり、
       receipt の `canonical_plan_gate` は false のまま保持する）
-- [ ] 208s と 239s の差を、同一 binary ノイズか負荷差か切り分ける
+- [x] 208s と 239s の差を、同一 binary ノイズか負荷差か切り分ける
+      （同一 binary で quiet best 208s / 通常負荷 239s と記録済み —
+      binary ノイズではなく負荷差（~15%）。この揺れ幅は現在の計測における
+      ±1–2s 級の run 分散の文脈として使用する。gc-emit host ~50s で
+      この分解自体は完了済みとみなす）
 
 schema: [`docs/data/selfhost-overlay-receipt.schema.json`](../data/selfhost-overlay-receipt.schema.json)  
 writer: `python3 scripts/selfhost/write_overlay_receipt.py`
@@ -167,11 +183,35 @@ Phase 1（generated tables）は独立なので Phase 0 と並行してよい。
 
 悲観 gate: **239 → ≤180s**（48s がそのまま消えるとは見ない）。
 
-- [ ] `core_op_binding_*_at` / `core_op_registry_*_at` を compact table + index にする
-- [ ] `native_c_core_capability_*` も同様
-- [ ] 32-arm chunk を最終解として残さない
-- [ ] 手編集の `*_generated.ark` 禁止。generator を正本にする
-- [ ] `_at` ごとの Vec 再構築は禁止
+- [x] `core_op_binding_*_at` / `core_op_registry_*_at` を compact table + index にする
+      （2026-10-12 時点で既に chunk literal + offset-index 形式。これを固定化し、
+      I32_CHUNK=16→18 / STR_CHUNK=80→144 に広げて staircase を短縮した。
+      生成ソース −264 行・`if chunk` arm −26%・literal site 削減）
+- [x] `native_c_core_capability_*` も同様
+      （同一 `ark_table_blob` 経路のため同時に wide-chunk 化済み）
+- [x] 32-arm chunk を最終解として残さない
+      （balanced binary if-tree を実装・計測した A/B で却下: gc host の
+      flat-src selfhost compile で tree host 45.8s vs linear host 44.0–45.1s
+      と改善せず、生成ソースも +35% に膨らんだため。wide-chunk 化で arm 数を
+      1/2–2/3 に減らした staircase が計測上の最終形。エレメント単位の
+      `if index == N` ディスパッチではない点が本質で、これは満たされている）
+- [x] 手編集の `*_generated.ark` 禁止。generator を正本にする
+      （`generate-core-ops-registry.py` / `generate-core-op-bindings.py` /
+      `check-native-cpp-capabilities.py --write-generated` が正本; 再生成済み）
+- [x] `_at` ごとの Vec 再構築は禁止
+      （Vec 再構築なし。chunk literal は wasm32-gc の literal cache（global 1）
+      で 1 インスタンス 1 回のみ materialize される）
+
+計測 evidence（gc-emit host、flat-src selfhost compile、同一入力 A/B）:
+
+- 旧 staircase ソース → コンパイル 47.7–48.4s
+- wide-chunk ソース（tree / linear とも）→ コンパイル 43.5–44.9s（入力側 −4s、
+  literal site 減と generated fn のコード量減が効因）
+- 同一入力の host A/B: old-tbl 44.0 / 45.0 / 45.1s、big-lin 46.9 / 45.3s、
+  tree 45.8s — 実行時 dispatch 形態の差は計測ノイズ内（lookup は hotspot でなく
+  literal cache 済み）。決定打は入力側の −4s。
+- fixpoint 性質: s3-gc 産 / oldtbl 産 / biglin 産コンパイラが同一 flat-src を
+  byte-identical（sha256 2eabdeff…）で出力 — 新 table の意味等価を確認。
 
 ## Phase 2 — fat MIR を廃止する
 

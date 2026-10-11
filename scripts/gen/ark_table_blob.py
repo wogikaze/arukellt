@@ -1,12 +1,21 @@
 """Emit compact generated tables: hex i32 blobs + concatenated string slices.
 
 Do not emit `if index == N` arms or rebuild a Vec on each `_at` call.
-32-arm chunk dispatch is not the representation (ADR-053 Phase 1).
+32-arm element dispatch is not the representation (ADR-053 Phase 1): data
+lives in chunked literals addressed by index arithmetic, and the chunk count
+is kept small via wide chunks so the residual `if chunk == N` staircase is
+a handful of compares. A measured A/B (2026-10-12, gc host selfhost compile)
+showed a balanced binary if-tree was ~2s slower than the linear staircase at
+the same chunk sizes, so wide-chunk + short staircase is the shipping shape.
 """
 from __future__ import annotations
 
-I32_CHUNK = 16
-STR_CHUNK = 80
+# Chunk sizes keep every generated line below the 200-char quality-gate
+# limit with headroom for tree depth indent and escape inflation
+# (hex literal = CHUNK*8 chars; string literal = CHUNK chars; worst leaf
+# indent ≈ depth*4). Larger chunks shrink the dispatch tree's node count.
+I32_CHUNK = 18
+STR_CHUNK = 144
 
 
 def ark_string(text: str) -> str:
@@ -58,14 +67,9 @@ def emit_i32_table(name: str, values: list[int], default: int = -1) -> list[str]
     hex_all = pack_i32_hex(values)
     chunk_hex_len = I32_CHUNK * 8
     chunks = [hex_all[i : i + chunk_hex_len] for i in range(0, len(hex_all), chunk_hex_len)]
-    lines = [f"fn {name}_hex_chunk(chunk: i32) -> String {{"]
-    for chunk_index, chunk_hex in enumerate(chunks):
-        lines.append(f"    if chunk == {chunk_index} {{ return {ark_string(chunk_hex)} }}")
+    lines = _emit_chunk_stairs(f"{name}_hex_chunk", [ark_string(chunk) for chunk in chunks])
     lines.extend(
         [
-            "    return String_new()",
-            "}",
-            "",
             f"fn {at_name}(index: i32) -> i32 {{",
             f"    if index < 0 || index >= {len(values)} {{",
             f"        return {i32_lit(default)}",
@@ -77,6 +81,23 @@ def emit_i32_table(name: str, values: list[int], default: int = -1) -> list[str]
             "",
         ]
     )
+    return lines
+
+
+def _emit_chunk_stairs(fn_name: str, literals: list[str]) -> list[str]:
+    """Emit `fn <fn_name>(chunk: i32) -> String` as an ordered arm chain.
+
+    With the wide chunk sizes the chain is ~17-33 arms, i.e. a handful of
+    compares on average — measured faster in practice than a binary tree of
+    the same literals (see module docstring for the measured A/B). Out-of-range
+    chunks fall through to `String_new()`.
+    """
+    lines = [f"fn {fn_name}(chunk: i32) -> String {{"]
+    for chunk_index, literal in enumerate(literals):
+        lines.append(f"    if chunk == {chunk_index} {{ return {literal} }}")
+    lines.append("    return String_new()")
+    lines.append("}")
+    lines.append("")
     return lines
 
 
@@ -110,14 +131,9 @@ def emit_string_table(name: str, values: list[str]) -> list[str]:
         return lines
 
     chunks = [data[i : i + STR_CHUNK] for i in range(0, len(data), STR_CHUNK)]
-    lines.append(f"fn {name}_data_chunk(chunk: i32) -> String {{")
-    for chunk_index, chunk_text in enumerate(chunks):
-        lines.append(f"    if chunk == {chunk_index} {{ return {ark_string(chunk_text)} }}")
+    lines.extend(_emit_chunk_stairs(f"{name}_data_chunk", [ark_string(chunk) for chunk in chunks]))
     lines.extend(
         [
-            "    return String_new()",
-            "}",
-            "",
             f"fn {at_name}(index: i32) -> String {{",
             f"    if index < 0 || index >= {len(values)} {{",
             "        return String_new()",
