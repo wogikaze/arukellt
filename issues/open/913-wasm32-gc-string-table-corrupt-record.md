@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-10
-Updated: 2026-10-10
+Updated: 2026-10-11
 ID: 913
 Track: compiler-internal
 Depends on: none
@@ -81,3 +81,51 @@ propagates a negative length unchecked. Intern sites that feed
 - Blocks closing the `run:` manifest gate only if it resurfaces; the
   908 fixture itself is committed on the strength of 12/12 clean
   compiles plus a green wasm32 run of the emitted module.
+
+## Investigation progress (2026-10-11)
+
+- Inside the s2 binary, `String`/`Vec<T>` are linear-memory repr (i32
+  handle; `len(s)` reads the i32 header at `s - 4`), confirmed by
+  disassembling `total_string_data_size` and `MirModule_push_string_constant`
+  in the producing-era build, so a `len = -1` element means some producer
+  wrote a -1 header (e.g. `substring(src, a, a - 1)`) or pushed a handle
+  pointing four bytes past a -1 word (stale/aliased read). GC `array.len`
+  can never be negative; the old impossible-under-GC reasoning is moot.
+- The injected record sits between `""` and `"\\n"`, i.e. an extra
+  `intern_string` push during lowering (the vec is append-only; intern
+  sites are `values.ark` `node_text`, `core_literals.ark`
+  `mir_core_expr_text`, `match_arms.ark` `pat_text`).
+- Producing binary identified by deterministic rebuild: builds in
+  `1383275a8..deb9710b7` all produce md5 `caa1fce2` (the range is
+  source-identical modulo docs/tests/perf-memo). That binary now hangs
+  >15 min on the fixture (pre-#912 mono-propagation explosion); the
+  original ~16 min spacing between the two bad artifacts matches.
+- Pre-#908-fix binaries (`s2-bigarena*` md5 `852e9924`, `eb20f7ff`,
+  `f316c34c`, `07496ffe`) compile the fixture cleanly in seconds, so
+  the corruption arrived with the `67eb8fda2` propagation machinery
+  that the #912 demand-closure later replaced.
+- `check` (parse+typecheck only) finishes in ~1 s on the producing
+  binary; the pathological path is MIR lowering / mono emit, not
+  front-end.
+
+- Byte-level decode of `fx-str-gc.wasm`: the injected record's 4 emitted
+  bytes are `ff 00 00 00`, i.e. exactly what `emit_string_data_payload`
+  writes for `slen = -1` (`-1 % 256 = -1` -> 0xff; `-1 / 256 = 0` ->
+  0x00 x3). The payload loop `0..(-1)` is empty, so the element costs
+  3 bytes in `total_string_data_size` but 4 on the wire -> the 1-byte
+  section-size mismatch. The element is an EXTRA push, not a mutated
+  record: gc output has 35 records vs 34 in the linear output, and the
+  real `""` / `"\\n"` / fixture literals are all intact in order.
+- Same fixture + same producer binary, `--target wasm32` (linear):
+  CLEAN (34 records, `""` then `"\\n"` adjacent). The extra intern
+  therefore happens on a heap-history-dependent path: an intern call
+  whose String argument reads `len = -1` under the gc run's layout but
+  resolves to a dedup-matchable (or absent) value under the linear
+  run's layout. Producer candidates remain the three `ctx_intern_string`
+  sites (`node_text`, `mir_core_expr_text`, `pat_text`) whose argument
+  is a field read that can return a stale/mis-resolved handle.
+- Post-#912 s2 (`14affb4f`, demand-closure era): 40/40 fixture compiles
+  emit an intact data section (declared size == walked payload, no
+  negative-length record); 140-fixture sweep also clean. Producer
+  binary rebuilt deterministically at `deb9710b7` (md5 `caa1fce2`) for
+  a same-binary before/after check.
