@@ -291,6 +291,43 @@ fixture 3 件（vec_generic / clone_independent / ord_sort_vec_string）出力 b
 - [ ] CALL / GC type は FuncId / TypeId reloc。最終izer が数値 index にする
 - [ ] 「index 未定だから全 MIR 生存」を消す
 
+residency map（2026-10-12 調査 — なぜ全 body が同時生存か）:
+
+1. `lower.body_emit` が全 decl 本体を共有 `MirModule`（body_store: inst/local/
+   body の巨大 Vec、592k insts / 291k locals 生存）へ書き込む
+2. `closure_flush_pending_fn_thunks` + `gc_late` が decl loop 後にさらに body を追加
+3. `reachability` prune が module-wide call graph（body 内 edge を辿る）
+4. `sync`/`propagate`/`mir_opt` が module-wide scan
+5. `emit.code` が全 body を反復して wasm byte 化 + 約 31 箇所の全関数 scan
+   （signature/export/indirect table/debug map — body ではなく metadata を読む）
+6. `emit.tail` で section 確定
+
+body MIR が本当に必要なのは 3・4 の一部と 5 の body emit のみ。
+signature/export/indirect/debug/p2 wrapper は metadata 消費で、
+discovery index（fn_index + signature_registry + mono view）で賄える。
+`ctx_call_edges` は既に edge table として存在 — reachability の
+「body 走査で edge 発見」を「lower 中に edge 記録」へ転換すれば、
+body の生存理由は「自分の wasm body byte 化まで」に限定できる。
+
+Phase-3 手順の設計:
+a. discovery 完了形を固定: fn_index（名前→decl/typed index）+ signature
+   registry（func_id→sig+core_op_id）+ mono index を body 非依存で構築
+   （現在 fn_index 5.5s / ctx_prep — body CoreHIR は mono worklist 経由のみ）
+b. per-function loop: decl 順または worklist 順に body lower → per-fn
+   sync/propagate（post-pass の関数化）→ wasm body byte 化 → reloc
+   記録（call site → callee FuncId、gc type use → TypeId）→ MIR 破棄
+c. reloc finalizer: emit.code の function_idx が事実上の FuncId 位置
+   （module position = wasm func index + import offset）。call site は
+   `call <func_id>` reloc を書き、section 組立時に index 解決
+d. edge 駆動 reachability: callee 未到達なら worklist へ追加 —
+   「index 未定で全 MIR 生存」を消す本体
+
+未決: body emit が必要とする signature 以外の情報（struct field layout、
+closure env、capture 解析）は discovery で TypeKey/closure として確定する
+必要あり — ここが body 非依存化の実質コスト。最初の実装単位は
+「edge table を reachability 入力にする」+「per-fn emit 直後の body drop」
+の順で、whole-module 保持のまま先に edge-table 化を進める。
+
 ## Phase 4 — post-pass type propagation を消す
 
 gate: **lower + 全 dataflow + reachability ≤ 3s、whole-module instruction scan = 0**。
