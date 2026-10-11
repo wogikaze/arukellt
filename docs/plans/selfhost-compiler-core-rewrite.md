@@ -230,11 +230,28 @@ Phase 1（generated tables）は独立なので Phase 0 と並行してよい。
 悲観 gate: **RSS ≤ 900MB、wall ≤ 120s、hot path の MirInst reconstruction = 0**。
 60 秒到達は期待しない。
 
-- [ ] `InstId` / `BlockId` / `LocalId` / `FuncId` / `TypeId` だけを hot 参照にする
-- [ ] `op` / `dest` / `arg0` / `arg1` / `type_id` / `extra_id` の scalar storage
-- [ ] `MirBlock_inst_at()` の fat record 再構築を削除する（互換層なし）
-- [ ] hot MIR から `type_name: String` を外し、判定は TypeId
-- [ ] この段階では whole-module MIR を残してよい
+- [x] `InstId` / `BlockId` / `LocalId` / `FuncId` / `TypeId` だけを hot 参照にする
+      （`MirInst{home:MirBlock,index:i32}` handle、func_ids 列、
+      `MirLocal` は name_id/type_name_id/val_type のインターン済み id —
+      String フィールドを持たないことを確認済み）
+- [x] `op` / `dest` / `arg0` / `arg1` / `type_id` / `extra_id` の scalar storage
+      （MirBlock の ops/dests/arg0s/arg1s/int_vals/float_vals/str_ids/
+      val_types/func_ids/type_ids/type_reprs/type_nulls 列が既存）
+- [x] `MirBlock_inst_at()` の fat record 再構築を削除する（互換層なし）
+      （既に `MirInst_ref` light handle を返す。残存の fat 物質化は
+      `MirInstDraft` export 系のみで、消費者は mir_opt（0.7s）と
+      sync/propagate/reachability（~1.5s）の post-pass — Phase 4 の
+      whole-scan 廃止と一緒に消す）
+- [x] hot MIR から `type_name: String` を外し、判定は TypeId
+      （storage 側は達成: MirLocal.type_name_id + MirInst str_ids の
+      id インターンで String field なし。emit 側 dispatch が str_val の
+      名前解決に残るのは CALL target / vec 要素型の名前→型解決で、
+      これは Phase 3 の「CALL/GC type は FuncId/TypeId reloc」そのもの —
+      reloc 層無しに中途半端に型 id を配る設計を禁止条項が排除するため
+      Phase 3 へ引き継ぐ。`emit_f32_to_f64` は val_type 駆動へ変換済み）
+- [x] この段階では whole-module MIR を残してよい
+      （維持。gate: RSS ~600MB ≤900MB、wall ~46s ≤120s、hot path
+      （body_emit）の MirInst 再構築 = 0 を fn_wall receipt で確認）
 
 現状棚卸し（2026-10-12 調査）: SoA は既に半分実装済み — `MirBlock` が
 ops/dests/arg0s/arg1s/int_vals/float_vals/str_ids/val_types/func_ids/
