@@ -7,6 +7,7 @@ use driver::config_record
 use compiler::session_frontend_query
 use compiler::session_lex_query
 use compiler::session_parse_tokens
+use compiler::test_desugar
 use driver::debug
 use driver::errors
 use driver::errors_parse
@@ -61,7 +62,10 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
         )
     }
     let t_lex = clock::monotonic_now()
-    let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
+    let mut decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
+    if config_record::config_test_mode(config) {
+        decls = test_desugar::desugar_test_decls(decls)
+    }
     let parse_warnings = program::ParseResult_warnings(parse_result)
     debug::dump_ast_if_enabled(config, decls)
     let parse_error_count = session_parse_tokens::session_parse_error_count(parse_result)

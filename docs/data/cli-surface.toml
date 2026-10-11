@@ -58,7 +58,7 @@ id = "test"
 presence = "present"
 contract_stability = "provisional"
 implementation_state = "functional"
-summary = "Discover and type-check in-file test declarations (ADR-041)"
+summary = "Compile and run in-file test declarations (ADR-041; fail-fast, trap=FAIL)"
 
 [[commands]]
 id = "lint"

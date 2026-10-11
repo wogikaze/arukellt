@@ -161,6 +161,20 @@ purpose = "Run the component/WIT library emit smoke gate"
 coverage = ["examples/ark/export-library/calculator.ark"]
 
 [[commands]]
+id = "verify_test_execution"
+canonical = "python3 scripts/check/gate-719-test-execution.py"
+aliases = []
+alias_status = "none"
+purpose = "Run the arukellt test execution harness gate (#719): PASS/FAIL exit semantics plus pow/gcd wasm32-gc emit regression"
+coverage = [
+    "tests/fixtures/test_syntax/basic.ark",
+    "tests/fixtures/test_syntax/assert_fail.ark",
+    "tests/fixtures/hello/hello.ark",
+    "tests/fixtures/stdlib_core/math_pow_basic.ark",
+    "tests/fixtures/stdlib_core/math_gcd_basic.ark",
+]
+
+[[commands]]
 id = "verify_full"
 canonical = "python3 scripts/manager.py verify full"
 aliases = ["python3 scripts/manager.py verify --full"]

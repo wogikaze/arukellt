@@ -4829,6 +4829,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "MIR reachability queue-BFS gate (#823)",
             "python3 scripts/check/check-mir-reachability-bfs.py",
         ),
+        (
+            "arukellt test execution harness gate (#719)",
+            "python3 scripts/check/gate-719-test-execution.py",
+        ),
     ]
 
     if not extended:

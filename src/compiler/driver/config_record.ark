@@ -18,6 +18,7 @@ struct DriverConfig {
     dump_wasm: bool,
     parse_only: bool,
     check_only: bool,
+    test_mode: bool,
     source_dir: String,
     source_file: String,
     show_timing: bool,
@@ -48,6 +49,7 @@ fn DriverConfig_default() -> DriverConfig {
         dump_wasm: false,
         parse_only: false,
         check_only: false,
+        test_mode: false,
         source_dir: ".",
         source_file: "",
         show_timing: false,
@@ -78,6 +80,7 @@ fn config_dump_wasm(config: DriverConfig) -> bool { config.dump_wasm }
 fn config_show_timing(config: DriverConfig) -> bool { config.show_timing }
 fn config_parse_only(config: DriverConfig) -> bool { config.parse_only }
 fn config_check_only(config: DriverConfig) -> bool { config.check_only }
+fn config_test_mode(config: DriverConfig) -> bool { config.test_mode }
 fn config_source_dir(config: DriverConfig) -> String { clone(config.source_dir) }
 fn config_source_file(config: DriverConfig) -> String { clone(config.source_file) }
 fn config_set_wasi_version(config: DriverConfig, wasi_version: String) { config.wasi_version = wasi_version }
@@ -100,6 +103,7 @@ fn config_set_dump_wasm(config: DriverConfig, dump_wasm: bool) { config.dump_was
 fn config_set_show_timing(config: DriverConfig, show_timing: bool) { config.show_timing = show_timing }
 fn config_set_parse_only(config: DriverConfig, parse_only: bool) { config.parse_only = parse_only }
 fn config_set_check_only(config: DriverConfig, check_only: bool) { config.check_only = check_only }
+fn config_set_test_mode(config: DriverConfig, test_mode: bool) { config.test_mode = test_mode }
 fn config_set_source_dir(config: DriverConfig, source_dir: String) { config.source_dir = source_dir }
 fn config_set_source_file(config: DriverConfig, source_file: String) { config.source_file = source_file }
 fn config_world(config: DriverConfig) -> String { clone(config.world) }

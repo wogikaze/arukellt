@@ -1,0 +1,138 @@
+// ADR-041 Phase 2 (#719): AST-level desugar of `test` declarations for
+// `arukellt test`. Each `test "name" { ... }` becomes a synthesized fn decl
+// `__test_<n>` whose body is the test block; nested `test mod` blocks
+// flatten their tests with `mod::name` display prefixes. One `__test_main`
+// calls them in order and prints `PASS <name>` after each completed call.
+// Desugared fns ride the normal resolve / typecheck / MIR pipeline, so no
+// MIR-level synthesis is needed. Only applies when DriverConfig.test_mode
+// is set; normal compiles still skip test decls at MIR per ADR-041 D5.
+use std::prelude::{clone, eq, substring, to_string}
+use std::text
+use compiler::session_parse
+use parser::ast
+use parser::core_ast_children
+use parser::core_ast_factory
+use parser::core_ast_span_fields
+use parser::core_ast_text_fields
+use parser::kinds
+
+pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
+    let out = Vec::new<AstNode>()
+    let names = Vec::new<String>()
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        desugar_test_node(decl, out, names, String_new())
+        i = i + 1
+    }
+    if len(names) == 0 {
+        return out
+    }
+    let extra = synthesize_test_main(names, decls)
+    let extra_count = len(extra)
+    let mut j = 0
+    while j < extra_count {
+        push(out, get_unchecked(extra, j))
+        j = j + 1
+    }
+    out
+}
+
+fn desugar_test_node(node: AstNode, out: Vec<AstNode>, names: Vec<String>, prefix: String) {
+    let kind = ast::ast_node_kind(node)
+    if kind == kinds::NK_TEST_MOD() {
+        let mod_name = ast::ast_node_text(node)
+        let child_count = ast::ast_node_child_count(node)
+        let mut i = 0
+        while i < child_count {
+            let inner = ast::ast_node_child_at(node, i)
+            desugar_test_node(inner, out, names, clone(mod_name))
+            i = i + 1
+        }
+        return
+    }
+    if kind != kinds::NK_TEST_DECL() {
+        push(out, node)
+        return
+    }
+    let index = len(names)
+    push(names, test_display_name(prefix, ast::ast_node_text(node)))
+    push(out, synthesize_test_fn(node, index))
+}
+
+fn test_display_name(prefix: String, name: String) -> String {
+    if len(clone(prefix)) == 0 {
+        return name
+    }
+    text::concat(prefix, text::concat("::", name))
+}
+
+// A `test "name" { body }` decl keeps its block as the only child — the
+// optional `test <fn>` target ident is metadata for resolution only and
+// is dropped (the body resolves the target fn by name like any caller).
+fn synthesize_test_fn(test_node: AstNode, index: i32) -> AstNode {
+    let span = core_ast_span_fields::AstNode_span(test_node)
+    let node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), span)
+    core_ast_text_fields::AstNode_set_text(node, text::concat("__test_", to_string(index)))
+    core_ast_span_fields::AstNode_set_name_span(node, span)
+    let child_count = ast::ast_node_child_count(test_node)
+    let body = ast::ast_node_child_at(test_node, child_count - 1)
+    core_ast_children::AstNode_push_child(node, body)
+    node
+}
+
+// The `__test_main` body (and its `use std::host::stdio`) are built by
+// parsing a generated snippet — the call/print statement shapes stay in
+// sync with the real grammar instead of hand-built child layouts.
+fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode> {
+    let mut src = String_new()
+    if !has_stdio_use(decls) {
+        src = text::concat(src, "use std::host::stdio\n")
+    }
+    src = text::concat(src, "fn __test_main() {\n")
+    let name_count = len(names)
+    let mut i = 0
+    while i < name_count {
+        src = text::concat(src, text::concat("    __test_", to_string(i)))
+        src = text::concat(src, "()\n")
+        src = text::concat(src, text::concat("    stdio::println(\"  PASS ", escape_test_name(get_unchecked(names, i))))
+        src = text::concat(src, "\")\n")
+        i = i + 1
+    }
+    src = text::concat(src, "}\n")
+    session_parse::session_parse_decls(src)
+}
+
+fn has_stdio_use(decls: Vec<AstNode>) -> bool {
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if ast::ast_node_kind(decl) == kinds::NK_USE() {
+            if eq(ast::ast_node_text(decl), "std::host::stdio") && ast::ast_node_child_count(decl) == 0 {
+                return true
+            }
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn escape_test_name(name: String) -> String {
+    let mut out = String_new()
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = substring(clone(name), i, i + 1)
+        if eq(clone(ch), "\\") {
+            out = text::concat(out, "\\\\")
+        } else if eq(clone(ch), "\"") {
+            out = text::concat(out, "\\\"")
+        } else {
+            out = text::concat(out, ch)
+        }
+        i = i + 1
+    }
+    out
+}

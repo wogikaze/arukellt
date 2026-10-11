@@ -8,13 +8,23 @@ use corehir::fn_info
 use corehir::param_shape
 use corehir::raw_dto
 fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
+    // `arukellt test` desugars test decls into `__test_<n>` fns plus a
+    // synthesized `__test_main` (#719); it is the entry when present.
+    let test_main = find_named_fn_decl_index(decls, "__test_main")
+    if test_main >= 0 {
+        return test_main
+    }
+    find_named_fn_decl_index(decls, "main")
+}
+
+fn find_named_fn_decl_index(decls: Vec<AstNode>, name: String) -> i32 {
     let mut entry_main_decl_index = 0 - 1
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_fn(decl) {
-            if eq(decl_node_identity::decl_name(decl), "main") {
+            if eq(decl_node_identity::decl_name(decl), clone(name)) {
                 entry_main_decl_index = i
             }
         }

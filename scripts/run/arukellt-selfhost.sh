@@ -882,6 +882,44 @@ if [[ "${1:-}" == "run" ]]; then
   exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
 fi
 
+# ADR-041 Phase 2 (#719): `arukellt test` compiles test declarations into
+# a runnable module (synthesized `__test_*` fns + `__test_main` entry) via
+# the s2 `test` command, then executes it here — a trap means a failing
+# test, a clean exit means every test passed (fail-fast runner).
+if [[ "${1:-}" == "test" ]]; then
+  tmpdir="$(mktemp -d "$REPO_ROOT/.build/arukellt-test.XXXXXX")"
+  trap 'rm -rf "$tmpdir"' EXIT
+  # The emitted module must run under plain `wasmtime run`: only the
+  # wasm32 target emits the wasi_snapshot_preview1 import surface wasmtime
+  # links natively. wasm32-gc emits cm32p2 imports that need component
+  # packaging first, so default the exec target to wasm32 unless the user
+  # explicitly chose a target.
+  test_exec_args=("$@")
+  test_has_target=0
+  for arg in "${test_exec_args[@]}"; do
+    if [[ "$arg" == "--target" || "$arg" == --target=* ]]; then
+      test_has_target=1
+      break
+    fi
+  done
+  if [[ "$test_has_target" -eq 0 ]]; then
+    test_exec_args+=(--target wasm32)
+  fi
+  set +e
+  run_compiler "$wasm" "${test_exec_args[@]}" -o "${tmpdir#$REPO_ROOT/}/test.wasm" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  rc=$?
+  set -e
+  cat "$tmpdir/stdout"
+  cat "$tmpdir/stderr" >&2
+  if [[ "$rc" -ne 0 ]]; then
+    exit "$rc"
+  fi
+  if [[ ! -f "$tmpdir/test.wasm" ]]; then
+    exit 2
+  fi
+  exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$tmpdir/test.wasm"
+fi
+
 # #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
 if [[ "${1:-}" == "compose" ]]; then
   validate_only=0

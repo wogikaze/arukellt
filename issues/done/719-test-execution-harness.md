@@ -194,3 +194,35 @@ Once `arukellt test` can execute `test mod` blocks:
   failure) from "compiler bug trap" (unexpected).
 - **Compilation speed**: Option B1 compiles once (fast), B2 compiles N
   times (slow but isolated). Start with B1.
+
+## Resolution (2026-10-11)
+
+B1 (fail-fast, single-module runner) is implemented and gated; the
+remaining Phase-2c runner UX moved to #918 and the `.expected` migration
+to #919.
+
+**Implementation** — AST-level desugar instead of MIR synthesis (same
+semantics, no new lowering machinery per ADR-048 KISS):
+
+- `src/compiler/compiler/test_desugar.ark`: when
+  `DriverConfig.test_mode` is set, `run_lex_parse` rewrites each
+  `test`/`test mod` decl into `__test_<n>` fns and appends a synthesized
+  `fn __test_main()` that calls them in order and prints `PASS <name>`.
+- `find_entry_main_decl_index` prefers `__test_main` as the CoreHir entry.
+- `is_wasm_start_function_name` recognizes `__test_main`, and MIR
+  reachability roots it, so the emit path produces `_start` (p1) /
+  `cm32p2|wasi:cli/run` (p2) exports for the synthesized entry.
+- `cmd_test` compiles in test mode and writes the module; the wrapper
+  `test` handler executes it under wasmtime (default exec target wasm32
+  for the WASI-p1 import surface), exit 0 = all pass, trap = FAIL,
+  exit 2 = no test declarations.
+
+**Bug found and fixed in the same change**: `emit_pow_i32`/`emit_gcd`
+emitted raw `OP_I32_*` opcodes, producing invalid modules under the
+memory64 scalar-widen used by wasm32-gc (`type mismatch: expected i64,
+found i32`); now routed through the `helpers_numeric_i32` widened-op
+helpers.
+
+**Verification**: `python3 scripts/check/gate-719-test-execution.py`
+PASS (all-tests exit 0 + PASS lines; failing assert traps → exit 1;
+no-test file exits 2; pow/gcd wasm32-gc emit validates).

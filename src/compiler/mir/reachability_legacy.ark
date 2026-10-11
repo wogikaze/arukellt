@@ -63,6 +63,9 @@ fn mir_legacy_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra
     if mir_legacy_mark_reachable_name(functions, reachable, "_start") {
         root_count = root_count + 1
     }
+    if mir_legacy_mark_reachable_name(functions, reachable, "__test_main") {
+        root_count = root_count + 1
+    }
     let extra_count = len(extra_roots)
     let mut ei = 0
     while ei < extra_count {

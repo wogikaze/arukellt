@@ -1,4 +1,8 @@
 use std::prelude::{clone, eq}
+
+// `__test_main` is the compiler-synthesized `arukellt test` entry (#719);
+// it must satisfy the same entry predicate as `main` so the emit path
+// exports `_start` / the p2 run export for it.
 fn is_wasm_start_function_name(name: String) -> bool {
-    eq(clone(name), "main") || eq(name, "_start")
+    eq(clone(name), "main") || eq(clone(name), "_start") || eq(name, "__test_main")
 }

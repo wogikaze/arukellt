@@ -47,7 +47,7 @@ Rules evaluate in order; the first match wins. Owners are tracking issues.
 | deprecated module frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 2 | module-associated equivalents |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 54 | method / associated equivalent on the receiver or namespace type |
 | std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 42 | Read / Write / BufRead / Seek trait methods and Stdin/Stdout/Stderr associated |
-| std::test assert frees | `associated-or-method` | [#719](../../issues/open/719-test-execution-harness.md) | 18 | Test associated API / harness assertion surface (#719) |
+| std::test assert frees | `associated-or-method` | [#719](../../issues/done/719-test-execution-harness.md) | 18 | Test associated API / harness assertion surface (#719) |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | Slice/Vec methods (sort_by, binary_search family) |
 | std::core::iter frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 44 | Iterator trait methods / adapter associated fns |
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 111 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
@@ -703,24 +703,24 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `not` | `std::simd::v128` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `or` | `std::simd::v128` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `xor` | `std::simd::v128` | `associated-or-method` | std::simd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `assert_contains` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_bool` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_debug` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_f64` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_i64` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_snapshot` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_eq_string` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_false` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_msg` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_ne_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_ne_string` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `assert_true` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `bench` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `expect_err_string` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `expect_none_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `expect_ok_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
-| `expect_some_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/open/719-test-execution-harness.md) |
+| `assert_contains` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_bool` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_debug` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_f64` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_i64` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_snapshot` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_eq_string` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_false` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_msg` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_ne_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_ne_string` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `assert_true` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `bench` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `expect_err_string` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `expect_none_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `expect_ok_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
+| `expect_some_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#719](../../issues/done/719-test-execution-harness.md) |
 | `builder_append` | `std::text` | `associated-or-method` | std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `builder_append_char` | `std::text` | `associated-or-method` | std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `builder_append_line` | `std::text` | `associated-or-method` | std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

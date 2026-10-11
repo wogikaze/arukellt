@@ -16,7 +16,7 @@
 | `arukellt check` | `present` | `stable` | `functional` | `cli_check` | Type-check without compiling |
 | `arukellt build` | `present` | `stable` | `limited` | — | Build the project in the current directory (requires ark.toml) |
 | `arukellt fmt` | `present` | `provisional` | `functional` | — | Format .ark source files |
-| `arukellt test` | `present` | `provisional` | `functional` | — | Discover and type-check in-file test declarations (ADR-041) |
+| `arukellt test` | `present` | `provisional` | `functional` | — | Compile and run in-file test declarations (ADR-041; fail-fast, trap=FAIL) |
 | `arukellt lint` | `present` | `provisional` | `functional` | — | Run static analysis lints |
 | `arukellt targets` | `present` | `stable` | `unavailable` | — | List supported compilation targets |
 | `arukellt analyze` | `present` | `provisional` | `functional` | — | Analyze a compiled Wasm binary |

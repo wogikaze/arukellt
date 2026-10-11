@@ -28,6 +28,18 @@ fn mir_mark_roots(
     ) {
         root_count = root_count + 1
     }
+    // Root the synthesized `arukellt test` entry (#719): under p2/GC emit
+    // nothing else references it, so an unrooted `__test_main` is pruned
+    // before the export pass can see it.
+    if reachability_names::mir_enqueue_reachable_name(
+        index,
+        functions,
+        reachable,
+        queue,
+        "__test_main"
+    ) {
+        root_count = root_count + 1
+    }
     let extra_count = len(extra_roots)
     let mut ei = 0
     while ei < extra_count {

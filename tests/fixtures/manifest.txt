@@ -3128,6 +3128,7 @@ t4-compile:native_cpp/scalar_cfg_call.ark
 t4-compile:native_cpp/unsupported_string.ark
 # ADR-041 in-file test syntax fixtures
 t3-compile:test_syntax/basic.ark
+t3-compile:test_syntax/assert_fail.ark
 compile-error:test_syntax/body_type_error.ark
 
 # RFC-005 / #816: restored prelude and a user Ark body both reach Wasm.

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-11T11:37:05Z",
+  "generated_at": "2026-10-11T12:25:52Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -285,25 +285,6 @@
       }
     },
     {
-      "id": "719",
-      "path": "719-test-execution-harness.md",
-      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
-      "track": "tooling",
-      "status": "open",
-      "depends_on": [
-        "715"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "721",
       "path": "721-final-types-emit-for-all-structs.md",
       "title": "Final Types (`sub final`) を全 struct に適用",
@@ -531,6 +512,44 @@
       "orchestration": {
         "class": "incremental",
         "upstream_notes": "#709 policy, #703 monomorphic cutover, #718 inventory"
+      }
+    },
+    {
+      "id": "918",
+      "path": "918-test-runner-ux.md",
+      "title": "918 — `arukellt test` runner UX: filter, no-fail-fast, directory discovery",
+      "track": "tooling",
+      "status": "open",
+      "depends_on": [
+        "719"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "919",
+      "path": "919-expected-to-test-migration.md",
+      "title": "919 — `.expected` to `test:` fixture migration (ADR-041 Phase 2d)",
+      "track": "tooling",
+      "status": "open",
+      "depends_on": [
+        "719"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "incremental",
+        "upstream_notes": "#719 execution harness"
       }
     },
     {

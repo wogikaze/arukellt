@@ -82,7 +82,11 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
     config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))
-    config_record::config_set_check_only(config, true)
+    // ADR-041 Phase 2 (#719): test mode desugars `test` decls into
+    // synthesized fns and emits a runnable module instead of only
+    // type-checking. The wrapper executes the emitted module; a trap
+    // is a failing test (fail-fast runner).
+    config_record::config_set_test_mode(config, true)
     let allows = args_record::cli_lint_allow(opts)
     push(allows, "W0003")
     push(allows, "W0005")
@@ -107,10 +111,6 @@ fn print_test_start(input_file: String) {
     stdio::eprintln(text::concat("testing ", input_file))
 }
 
-fn print_test_pass(input_file: String, test_count: i32) {
-    stdio::println(text::concat("  PASS  ", text::concat(input_file, text::concat("  (", text::concat(to_string(test_count), " tests)")))))
-}
-
 fn print_test_fail(input_file: String, result: CompileResult) {
     stdio::println(text::concat("  FAIL  ", clone(input_file)))
     let err_count = result_record::compile_result_error_count(result)
@@ -123,21 +123,25 @@ fn print_test_fail(input_file: String, result: CompileResult) {
 }
 
 pub fn cmd_test(opts: CliOptions) {
-    if args_record::cli_has_input_file(opts) {
-        let input_file = args_record::cli_input_file(opts)
-        print_test_start(clone(input_file))
-        let test_count = discover_and_print_tests(clone(input_file))
-        let config = build_test_driver_config(opts)
-        let result = file::compile_file(clone(input_file), config)
-        if result_record::compile_result_success(result) {
-            print_test_pass(input_file, test_count)
-        } else {
-            print_test_fail(input_file, result)
-            exit_test_failure()
-        }
-    } else {
+    if !args_record::cli_has_input_file(opts) {
         exit_missing_test_input()
     }
+    let input_file = args_record::cli_input_file(opts)
+    print_test_start(clone(input_file))
+    let test_count = discover_and_print_tests(clone(input_file))
+    let config = build_test_driver_config(opts)
+    let result = file::compile_file(clone(input_file), config)
+    if !result_record::compile_result_success(result) {
+        print_test_fail(input_file, result)
+        exit_test_failure()
+        return
+    }
+    if test_count == 0 {
+        stdio::eprintln("test: no test declarations found")
+        process::exit(2)
+    }
+    let out_path = run_output_path(opts, clone(input_file))
+    write_run_output(input_file, out_path, result_record::compile_result_output_bytes(result))
 }
 
 // Parses the source file and prints discovered `test` declarations.

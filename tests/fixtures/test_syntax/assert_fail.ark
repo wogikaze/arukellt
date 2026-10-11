@@ -1,0 +1,6 @@
+// ADR-041 in-file test syntax — runtime failure fixture for `arukellt test`.
+// The harness must exit non-zero when an assertion inside a test body traps.
+
+test "intentional failure" {
+    assert(1 + 1 == 3)
+}
