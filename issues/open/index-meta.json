@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-11T06:02:16Z",
+  "generated_at": "2026-10-11T10:29:13Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -535,9 +535,9 @@
       }
     },
     {
-      "id": "915",
-      "path": "915-fresh-typevar-namespace-collision.md",
-      "title": "915 - Fresh type-var names collide across TypeEnv scopes",
+      "id": "916",
+      "path": "916-for-desugar-mono-minting-gap.md",
+      "title": "916 - for-loop desugar falls back to erased generic shells instead of demanding mono for T::into_iter/next",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [],

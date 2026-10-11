@@ -12,7 +12,7 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 913 | 913 - wasm32-gc emit intermittently inserts a corrupt strin... | compiler-internal | 0 | 0 | 1 | 5 | 5 | 11 |
-| 2 | 915 | 915 - Fresh type-var names collide across TypeEnv scopes | compiler-internal | 0 | 0 | 1 | 5 | 5 | 11 |
+| 2 | 916 | 916 - for-loop desugar falls back to erased generic shells ... | compiler-internal | 0 | 0 | 1 | 5 | 5 | 11 |
 | 3 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
 | 4 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
 | 5 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
