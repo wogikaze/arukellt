@@ -41,7 +41,17 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
         // type variable, not a nominal struct named "I". The var form is
         // what mono template spellings ("Inner::next__?I") key on.
         let ann_ty = types::resolve_type_ann_node_generic(ann, env.current_fn_type_params)
-        if should_prefer_annotation(bind_ty, ann_ty) {
+        // Comprehension element types are inferred from the source
+        // iterator's item, which is reliable enough to stand against
+        // the annotation: `let ys: Vec<String> = [x * 2 for x in xs]`
+        // over Vec<i32> is a real mismatch that must reach unify,
+        // not an annotation-override (#815). Other initializers keep
+        // the lenient path because overloaded/weakly-inferred calls
+        // (for example Vec::from_iter picking the first impl by name)
+        // still produce concrete-but-wrong argument types.
+        let init_is_comprehension = ast_access::node_child_count(node) > 0 &&
+        ast_expr_predicates::node_is_comprehension(ast_access::node_child_at(node, 0))
+        if should_prefer_annotation(bind_ty, ann_ty) && !init_is_comprehension {
             bind_ty = ann_ty
         } else {
             bind_ty = unify::unify(env, bind_ty, ann_ty)

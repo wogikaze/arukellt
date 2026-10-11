@@ -57,7 +57,7 @@ python3 scripts/manager.py selfhost diag-parity
 
 ## Current count
 
-0 T3 compile skips (frozenset is empty) + 1 diagnostic parity skip = 1 total
+0 T3 compile skips (frozenset is empty) + 0 diagnostic parity skips = 0 total
 (as of 2026-10-11; was 49)
 
 Progress (2026-10-11, T3 leg): the p2 canonical-ABI wrapper emitter mixed
@@ -122,12 +122,21 @@ Vars still mentioned in the return or arguments stay deferred (the
 working). Verified by an s2->s3 compile of the full compiler (fixpoint s3
 produced, zero new diagnostics on compiler source).
 
-Remaining diagnostic skip:
+Resolved diagnostic skip:
 
-- `selfhost/comprehen_deny_elem_type_mismatch.ark` — comprehension
-  element-vs-annotation mismatch is silently overridden by
-  `should_prefer_annotation`; fixing it needs reliable concrete-arg
-  mismatch detection that tolerates weak generic inference (#912-class).
+- `selfhost/comprehen_deny_elem_type_mismatch.ark` — unskipped with a
+  `.selfhost.diag` golden (`E0200 type mismatch: i32 vs String`).
+  `check_let_stmt` now bypasses `should_prefer_annotation` only when
+  the initializer is a comprehension: comprehension element types are
+  inferred from the source iterator's item and are reliable enough to
+  stand against the annotation. A general var/UNKNOWN/projection-aware
+  strict variant was tried and reverted again for the same reason as
+  the previous attempt: `Vec::from_iter` resolves the first impl
+  overload by name and produces concrete-but-wrong argument types
+  (Vec<i32> for a String source), which the annotation legitimately
+  overrides — so a general strict rule cannot distinguish weak
+  inference from real mismatches until overload resolution is
+  argument-driven (#912-class).
 
 Remaining T3 compile skips are all feature-blocked (WIT/component
 bindings, async/future/stream runtime, WASI host capabilities,
