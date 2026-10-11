@@ -192,7 +192,6 @@ fn emit_env_args_gc_store_one_p2(
 
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_slot)
-    helpers_numeric_i32::emit_narrow_i64_operand(w)
     writer_gc::emit_gc_array_get(w, arr_type)
     writer_gc::emit_gc_ref_cast(w, string_type)
     helpers_core::emit_local_set(w, s_str)
@@ -234,7 +233,6 @@ fn emit_env_args_gc_store_one(
 
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_slot)
-    helpers_numeric_i32::emit_narrow_i64_operand(w)
     writer_gc::emit_gc_array_get(w, arr_type)
     writer_gc::emit_gc_ref_cast(w, string_type)
     helpers_core::emit_local_set(w, s_str)

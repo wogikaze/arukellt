@@ -52,6 +52,20 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     if param_idx != 0 {
         return String_new()
     }
+    // A param0 declared with a concrete non-container type is not a storage
+    // receiver: compiler-side helpers share the hashmap_/hashset_ prefixes
+    // (typechecker_hashmap_api::hashmap_type_name takes TypeInfo). Those keep
+    // their declared GC type; only container or empty type names continue to
+    // the storage sigs below.
+    if len(type_name) > 0 &&
+    !starts_with(clone(type_name), "vec:") &&
+    !starts_with(clone(type_name), "hashmap:") &&
+    !starts_with(clone(type_name), "hashset:") &&
+    !starts_with(clone(type_name), "Vec") &&
+    !starts_with(clone(type_name), "HashMap") &&
+    !starts_with(clone(type_name), "HashSet") {
+        return String_new()
+    }
     // Check function name before type_name: hashmap functions may have "vec:..."
     // type names (from their linear-memory representation) but need their proper
     // GC struct type assigned on GC targets.
