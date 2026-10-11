@@ -46,7 +46,8 @@ fn MirBlock_inst_str_val(block: MirBlock, idx: i32) -> String {
     if str_id < 0 || str_id >= len(block.str_pool) {
         return String_new()
     }
-    clone(get_unchecked(block.str_pool, str_id))
+    // See mir_inst_str_val: pooled names are returned without cloning.
+    get_unchecked(block.str_pool, str_id)
 }
 
 fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {

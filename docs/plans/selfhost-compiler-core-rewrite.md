@@ -236,6 +236,28 @@ Phase 1（generated tables）は独立なので Phase 0 と並行してよい。
 - [ ] hot MIR から `type_name: String` を外し、判定は TypeId
 - [ ] この段階では whole-module MIR を残してよい
 
+現状棚卸し（2026-10-12 調査）: SoA は既に半分実装済み — `MirBlock` が
+ops/dests/arg0s/arg1s/int_vals/float_vals/str_ids/val_types/func_ids/
+type_ids/type_reprs/type_nulls の列を持ち、`MirBlock_inst_at` は fat record ではなく
+`MirInst{home,index}` handle を返す（checklist 3 は実質達成）。
+`MirInstTable`（module 全域 SoA）も存在。残る fat 経路は 3 系統:
+(a) `MirInstDraft` export/drafts_from_refs — mir_opt 内のみ（mir_opt=0.7s で cold）,
+(b) `mir_inst_result_types` が call 毎に Vec + MirValueType を alloc → `_at` は
+    列直読へ修正済み（下記）,
+(c) `str_val` clone — emit 系 54 箇所で per-inst String clone → pool 参照返却へ
+    修正済み（下記）。type_name:String の TypeId 化と string-dispatch→id-dispatch は
+    Phase 3 の reloc/FuncId 設計と一体で残る。
+
+実施済み increment（`eedde79ff` 後の作業分）:
+- `mir_inst_str_val` / `MirBlock_inst_str_val`: pool String の clone を除去
+  （emit 側呼出は全て read-only であることを確認。pool 汚染は fixpoint で検出可能）
+- `mir_inst_result_type_at`: 中間 Vec<MirValueType> 確保を除去し列直読化
+
+検証: keepclock flat-src で s5-noclone をビルド — `wasm-tools validate` OK、
+self-fixpoint byte-identical（sha256 `5f0f9470…`）、旧 compiler (s3-kc32) vs s5-noclone で
+fixture 3 件（vec_generic / clone_independent / ord_sort_vec_string）出力 byte-identical。
+`--time` 計測で emit.code 2.64s→2.20s（str_val clone 除去分）。
+
 禁止: SoA 保存 + fat API、tick 173/178 級の再構築、`MirFunction` への場当たり field 追加。
 
 ## Phase 3 — whole-module 本体 MIR を廃止する

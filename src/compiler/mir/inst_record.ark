@@ -58,8 +58,15 @@ fn mir_inst_result_type_count(inst: MirInst) -> i32 {
     0
 }
 
-fn mir_inst_result_type_at(inst: MirInst, index: i32) -> MirValueType {
-    get_unchecked(mir_inst_result_types(inst), index)
+fn mir_inst_result_type_at(inst: MirInst, _index: i32) -> MirValueType {
+    // Packed single-result storage: callers gate on result_type_count > 0
+    // and pass index 0, so read the columns directly instead of
+    // materializing a Vec<MirValueType> per access.
+    mir_value_type::MirValueType_new(
+        type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index)),
+        get_unchecked(inst.home.type_reprs, inst.index),
+        get_unchecked(inst.home.type_nulls, inst.index)
+    )
 }
 
 fn mir_inst_set_result_types(inst: MirInst, result_types: Vec<MirValueType>) {
@@ -108,7 +115,10 @@ fn mir_inst_str_val(inst: MirInst) -> String {
     if str_id < 0 {
         return String_new()
     }
-    clone(get_unchecked(inst.home.str_pool, str_id))
+    // Return the pooled String without cloning: emit-side callers only
+    // read (eq/concat/parse); mutating a pooled name would corrupt the
+    // block str_pool shared by every instruction.
+    get_unchecked(inst.home.str_pool, str_id)
 }
 
 fn mir_inst_set_arg0(inst: MirInst, arg0: i32) {
