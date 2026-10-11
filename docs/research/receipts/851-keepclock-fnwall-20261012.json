@@ -1,0 +1,159 @@
+{
+ "schema": "arukellt-selfhost-overlay-fnwall-v1",
+ "recorded_at": "2026-10-12T08:10:00Z",
+ "note": "KEEP_CLOCK instrumented build (s4-fnwall, entry_decls per-decl wall hooks). flat-src overlay compile of src/compiler/main.ark -> wasm32-gc+wasi-p2. fn_wall = per-decl mir_emit_top_level_fn_decl / mir_emit_impl_methods wall (decl_emit phase, contains body_emit).",
+ "source": "worktree 706430a04 + entry_timing/entry_decls fn-wall instrumentation",
+ "host": ".build/selfhost/flat-src-keepclock/out-s4-fnwall.component.wasm (built by s3-kc32 from keepclock flat-src)",
+ "guest_total_ms": 45638,
+ "phases_ms": {
+  "lower.fn_index": 5577,
+  "lower.ctx_prep": 299,
+  "lower.body_emit": 24253,
+  "lower.decl_emit": 30130,
+  "lower.reachability": 1027,
+  "lower.sync": 294,
+  "lower.propagate": 1200,
+  "lower.total": 32652,
+  "total": 45638
+ },
+ "mir_counts": {
+  "fns": "11981->11014",
+  "blocks": "23962->22028",
+  "insts": "616581->592170"
+ },
+ "prefilter": {
+  "would_keep": 4594,
+  "would_skip": 7545
+ },
+ "fn_wall_top32_ms": [
+  [
+   "native_c_emit_core_call",
+   202
+  ],
+  [
+   "type_ann_function_ref_name",
+   181
+  ],
+  [
+   "p_decl",
+   172
+  ],
+  [
+   "return_vt_for_rt_tag",
+   168
+  ],
+  [
+   "core_op_binding_callee_data_chunk",
+   164
+  ],
+  [
+   "core_op_registry_lowering_kind_hex_chunk",
+   164
+  ],
+  [
+   "gc_struct_container_ref_suffix",
+   164
+  ],
+  [
+   "target_default_host_profile",
+   163
+  ],
+  [
+   "parse_value_at",
+   163
+  ],
+  [
+   "peek_text_at_index",
+   163
+  ],
+  [
+   "wit_import_serialized_interface",
+   161
+  ],
+  [
+   "parse_option_args",
+   160
+  ],
+  [
+   "find_key_pos",
+   160
+  ],
+  [
+   "is_test_decl_start",
+   160
+  ],
+  [
+   "emit_sort_gc_i32",
+   160
+  ],
+  [
+   "reexport_module_symbols",
+   159
+  ],
+  [
+   "lower_fn_contracts",
+   159
+  ],
+  [
+   "fn_param_local_type_name",
+   159
+  ],
+  [
+   "core_op_handler_runtime_i8_to_i32",
+   159
+  ],
+  [
+   "session_record_typecheck_diagnostics",
+   158
+  ],
+  [
+   "parse_turbofish_type_args",
+   158
+  ],
+  [
+   "parse_pattern_payload",
+   158
+  ],
+  [
+   "parse_full",
+   158
+  ],
+  [
+   "mir_enqueue_call_edges",
+   158
+  ],
+  [
+   "mir_lower_ctx_api_emit__ctx_current_block_ends_with_control_return",
+   158
+  ],
+  [
+   "chars",
+   157
+  ],
+  [
+   "lex_char_literal",
+   157
+  ],
+  [
+   "type_name_is_scalar_primitive",
+   157
+  ],
+  [
+   "ctx_ensure_gc_struct_registered",
+   157
+  ],
+  [
+   "lex_equal_or_bang_punct",
+   156
+  ],
+  [
+   "parse_ident_or_struct_lit",
+   156
+  ],
+  [
+   "decl_layout_member_name",
+   156
+  ]
+ ],
+ "analysis": "Top-32 decl walls are flat at 156-202ms (max 0.7% of decl_emit). No single-function hotspot: body_emit 24.3s is uniformly distributed across ~12k decls (~2ms avg). Fat-MIR cost is structural/global, confirming Phase 2 SoA abolition as the lever rather than per-function micro-optimization. Prefilter reports 7545 would_skip but all decls still emit (ident/path marks miss mangled names)."
+}

@@ -1,6 +1,6 @@
 use std::host::clock
 use std::host::stdio
-use std::prelude::{clone, i64_to_i32, to_string}
+use std::prelude::{clone, get_unchecked, i64_to_i32, len, push, set, to_string}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override disabled on wasm32-gc until Option-from-env::var locals
@@ -101,4 +101,63 @@ fn mir_lower_phase_mir_size(
             )
         )
     )
+}
+
+fn mir_lower_wall_record(
+    timing: i32,
+    wall_ms: Vec<i32>,
+    wall_name: Vec<String>,
+    t_start: i64,
+    name: String
+) {
+    if timing == 0 {
+        return
+    }
+    push(wall_ms, mir_lower_phase_ms(t_start, clock::monotonic_now()))
+    push(wall_name, name)
+}
+
+fn mir_lower_top_walls_note(enabled: i32, wall_ms: Vec<i32>, wall_name: Vec<String>) {
+    if enabled == 0 {
+        return
+    }
+    let n = len(wall_ms)
+    let mut limit = n
+    if limit > 32 {
+        limit = 32
+    }
+    let mut rank = 0
+    while rank < limit {
+        let mut best = -1
+        let mut best_ms = -1
+        let mut i = 0
+        while i < n {
+            let ms = get_unchecked(wall_ms, i)
+            if ms > best_ms {
+                best_ms = ms
+                best = i
+            }
+            i = i + 1
+        }
+        if best < 0 {
+            return
+        }
+        set(wall_ms, best, -1)
+        stdio::eprintln(
+            text::concat(
+                "[arukellt] lower.fn_wall ",
+                text::concat(
+                    to_string(rank),
+                    text::concat(
+                        " ",
+                        text::concat(
+                            clone(get_unchecked(wall_name, best)),
+                            text::concat(" ", text::concat(to_string(best_ms), "ms"))
+                        )
+                    )
+                )
+            )
+        )
+        rank = rank + 1
+    }
 }

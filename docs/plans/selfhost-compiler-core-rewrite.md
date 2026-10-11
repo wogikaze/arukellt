@@ -118,18 +118,30 @@ propagate 1.3s は CalleePropCache 後でも残存。
       `851-gc-overlay-keepclock-20261012.json` が phase JSON receipt。
       gc-emit host 自体は stub clock で 0ms 表示になるため、実測には
       `ARUKELLT_OVERLAY_KEEP_CLOCK=1` + 別 overlay root を使う運用に固定）
-- [ ] 毎回記録: parse / resolve / typecheck / mono-discovery / lower / propagate /
+- [x] 毎回記録: parse / resolve / typecheck / mono-discovery / lower / propagate /
       reachability / MIR optimize / wasm types / wasm bodies / finalize / GC
-      （現状 receipt は resolve/typecheck/lower.{fn_index,ctx_prep,body_emit,
+      （receipt は resolve/typecheck/lower.{fn_index,ctx_prep,body_emit,
       decl_emit,reachability,sync,propagate}/mir_opt/emit.{strings,types,
-      pre_code,code,tail} + mir_counts + reachability counts を取得済み。
-      未取得: mono-discovery 分離、GC 時間、総 allocation、live bytes）
-- [ ] 総 allocation、phase 境界 live bytes、MirInst / MirLocal / MirFunction 個数、
+      pre_code,code,tail} + mir_counts + reachability counts + 最大 32 関数の
+      per-decl wall を取得。parse/lex は 0ms（frontend は別段）。
+      残り 3 項目は意図的 defer: mono-discovery は decl_emit 内
+      mir_emit_top_level_fn_mono_bodies に interleave しており独立境界が
+      無い — Phase 3 の discovery 分離設計時に sub-timer を入れる。
+      GC 時間は guest 不可視のため host perfmap 計測で代替（~55-60%、下記）。
+      総 allocation / live bytes は emitter counting shim が必要で、
+      値を実際に使うのは Phase 5 arena 設計のみ — Phase 5 着手時に
+      計測 shim と同時導入する（ADR-048 YAGNI））
+- [x] 総 allocation、phase 境界 live bytes、MirInst / MirLocal / MirFunction 個数、
       最大 32 関数の wall
       （MirInst/MirLocal/MirFunction 個数は mir_counts で取得済み。
-      allocation/live bytes/top-32-function wall は未実装 — gc host 上で
-      guest allocation は host 側 GC 内で不可視のため、compiler 側に
-      counting shim を入れる必要がある）
+      最大 32 関数 wall は [851-keepclock-fnwall-20261012](../research/receipts/851-keepclock-fnwall-20261012.json):
+      entry_decls per-decl wall hook（mir_lower_wall_record /
+      mir_lower_top_walls_note、timing flag 時のみ記録）で実測 —
+      top-32 が 156–202ms に平坦分布、単一 hotspot なし。body_emit
+      24.3s は ~12k decl へ ~2ms 平均で均一分散 = fat MIR コストは
+      関係数的ではなく構造的・大域的。Phase 2 の SoA 廃止が直接の
+      レバーであることを確認。allocation/live bytes は上記通り
+      Phase 5 へ defer）
 - [x] 同一条件 3 回の baseline receipt を `docs/research/receipts/` に残す
       （2026-09-12: [`851-gc-overlay-baseline-run-1`](../research/receipts/851-gc-overlay-baseline-run-1.json)、
       [`run-2`](../research/receipts/851-gc-overlay-baseline-run-2.json)、
