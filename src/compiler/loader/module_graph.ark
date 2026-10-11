@@ -101,6 +101,12 @@ fn load_local_module_or_parent(
     root_dir: String,
     state: LoadState
 ) {
+    // Dedup before touching the filesystem: every `use` edge reaches this
+    // point, and re-reading an already-loaded module file per edge multiplied
+    // file I/O by the edge count.
+    if module_local_decls::should_skip_local_module_read(clone(module_name), clone(base_dir), state) {
+        return
+    }
     let direct = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
     if module_file_load_local::DriverLoadedSource_is_ok(direct) {
         load_single_module(module_name, base_dir, root_dir, state)

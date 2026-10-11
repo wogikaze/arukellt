@@ -70,7 +70,7 @@ fn try_load_registry_module(module_name: String, base_dir: String, state: LoadSt
     }
 }
 
-fn should_skip_local_module_read(module_name: String, base_dir: String, state: LoadState) -> bool {
+pub fn should_skip_local_module_read(module_name: String, base_dir: String, state: LoadState) -> bool {
     let stem = module_paths::module_path_to_file_stem(clone(module_name))
     let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
     if local_candidate_loaded_or_loading(clone(module_name), clone(primary_path), state) {
