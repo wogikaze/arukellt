@@ -241,6 +241,8 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32) {
 }
 
 // Returns 1 exactly when the candidate newly marks an allocation record.
+// Newly marked records are pushed onto the grey worklist: the mark field
+// stores next_grey+1, so 0 stays unmarked and any pushed record is non-zero.
 //
 // A 64 KiB-page table maps the candidate's page to a chain of
 // {record, next} nodes, one node per commit per covered page. The walk only
@@ -251,6 +253,23 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32) {
 fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_local_decls(w, 3)
     // local1 = page index, local2 = chain node, local3 = record
+    // Cheap reject before touching the page table: every payload lives in
+    // [heap_start, heap_pointer), so values outside the live heap range can
+    // never hit a record range. Most scanned words are ints, not pointers.
+    emit_local_get(w, 0)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_LIMIT())
+    emit_i32_lt_u(w)
+    emit_if_empty(w)
+    emit_i32_const(w, 0)
+    emit_return(w)
+    emit_end(w)
+    emit_local_get(w, 0)
+    emit_global_get(w, constants::GLOBAL_HEAP_POINTER())
+    emit_i32_ge_u(w)
+    emit_if_empty(w)
+    emit_i32_const(w, 0)
+    emit_return(w)
+    emit_end(w)
     emit_local_get(w, 0)
     emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
     emit_i32_shr_u(w)
@@ -303,8 +322,12 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_local_get(w, 3)
     emit_i32_const(w, 12)
     emit_i32_add(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
     emit_i32_const(w, 1)
+    emit_i32_add(w)
     emit_i32_store(w, 0)
+    emit_local_get(w, 3)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
     emit_i32_const(w, 1)
     emit_return(w)
     emit_end(w)
@@ -328,6 +351,8 @@ fn emit_linear_gc_runtime_collect_body(w: WasmWriter, mark_index: i32) {
     emit_local_decls(w, 10)
     emit_i32_const(w, 0)
     emit_global_set(w, constants::GLOBAL_LINEAR_GC_ALLOC_WATERMARK())
+    emit_i32_const(w, 0)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
     emit_linear_gc_clear_marks(w)
     emit_linear_gc_mark_roots(w, mark_index)
     emit_linear_gc_mark_transitive(w, mark_index)
@@ -378,17 +403,15 @@ fn emit_linear_gc_mark_roots(w: WasmWriter, mark_index: i32) {
     emit_end(w)
 }
 
+// Drains the grey worklist once: every record pushed by mark_candidate is
+// popped and scanned exactly once, so a collection costs O(marked words)
+// instead of re-scanning every marked record until a fixpoint.
+// local0 = popped record, local3 = next grey link, local4/5 = [lo,hi) cursor.
 fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
-    emit_i32_const(w, 1)
-    emit_local_set(w, 3)
     emit_void_block(w)
     emit_void_loop(w)
-    emit_i32_const(w, 0)
-    emit_local_set(w, 3)
-    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_HEAD())
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
     emit_local_set(w, 0)
-    emit_void_block(w)
-    emit_void_loop(w)
     emit_local_get(w, 0)
     emit_i32_eqz(w)
     emit_br_if(w, 1)
@@ -396,7 +419,16 @@ fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
     emit_i32_const(w, 12)
     emit_i32_add(w)
     emit_i32_load(w, 0)
-    emit_if_empty(w)
+    emit_i32_const(w, 1)
+    emit_i32_sub(w)
+    emit_local_set(w, 3)
+    emit_local_get(w, 0)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_const(w, 1)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 3)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
     emit_local_get(w, 0)
     emit_i32_const(w, 4)
     emit_i32_add(w)
@@ -416,10 +448,7 @@ fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
     emit_local_get(w, 4)
     emit_i32_load(w, 0)
     emit_call(w, mark_index)
-    emit_if_empty(w)
-    emit_i32_const(w, 1)
-    emit_local_set(w, 3)
-    emit_end(w)
+    emit_drop(w)
     emit_local_get(w, 4)
     emit_i32_const(w, 4)
     emit_i32_add(w)
@@ -427,16 +456,6 @@ fn emit_linear_gc_mark_transitive(w: WasmWriter, mark_index: i32) {
     emit_br(w, 0)
     emit_end(w)
     emit_end(w)
-    emit_end(w)
-    emit_local_get(w, 0)
-    emit_i32_load(w, 0)
-    emit_local_set(w, 0)
-    emit_br(w, 0)
-    emit_end(w)
-    emit_end(w)
-    emit_local_get(w, 3)
-    emit_i32_eqz(w)
-    emit_br_if(w, 1)
     emit_br(w, 0)
     emit_end(w)
     emit_end(w)

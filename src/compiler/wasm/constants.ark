@@ -42,6 +42,10 @@ fn GLOBAL_LINEAR_GC_PAGE_TABLE_BASE() -> i32 { 8 }
 // records covering that page instead of every record in the arena.
 fn GLOBAL_LINEAR_GC_CHAIN_CURSOR() -> i32 { 9 }
 fn GLOBAL_LINEAR_GC_CHAIN_LIMIT() -> i32 { 10 }
+// Head of the grey worklist threaded through record mark fields during a
+// collection. A stored value is next_grey+1, so 0 still means unmarked and
+// every pushed record reads non-zero for mark tests.
+fn GLOBAL_LINEAR_GC_GREY_HEAD() -> i32 { 11 }
 // Shared arena for allocation records (bumped upward from the arena base) and
 // root slots (grown downward from heap_start). Records are committed
 // monotonically between collections, so the arena must cover the program's
