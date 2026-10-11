@@ -21,6 +21,8 @@ The `std::wit` module exposes WebAssembly Interface Types (WIT) primitive types 
 
 **Typical usage:**
 
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::wit
 

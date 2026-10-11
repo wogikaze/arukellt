@@ -32,6 +32,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from structured_state_common import check_freshness
+from stdlib_eradication import (
+    classify_manifest,
+    load_eradication,
+    owner_issue_path,
+    rule_label,
+)
 
 try:
     import tomllib
@@ -59,6 +65,8 @@ MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 OBSERVABLE_SEMANTICS_TOML = DATA / "observable-semantics.toml"
 OBSERVABLE_SEMANTICS_MD = ROOT / "docs" / "language" / "observable-semantics.md"
 MONOMORPHIC_DEPRECATION = ROOT / "docs" / "stdlib" / "monomorphic-deprecation.md"
+ERADICATION_TOML = DATA / "stdlib-api-eradication.toml"
+ERADICATION_MD = DOCS / "stdlib" / "eradication.md"
 
 # Lifecycle axes are intentionally distinct. Public stdlib APIs follow ADR-014;
 # language features may additionally be specified-but-unimplemented.
@@ -383,6 +391,8 @@ match content {
                 ("`json_null()`", "Returns the JSON `null` literal."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::json
 
@@ -475,6 +485,8 @@ println("Running as: " + name)
                 ("`shuffle_i32(vec, seed)`", "Return a shuffled copy of a `Vec<i32>`."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::random
 
@@ -504,6 +516,8 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
                 ("`seq_contains(vec, value)`", "Linear search for membership."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::seq
 
@@ -535,6 +549,8 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
                 ("`assert_eq_snapshot(actual, expected)`", "Line-by-line string comparison with diff on failure."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::test
 
@@ -568,6 +584,8 @@ let value = expect_ok_i32(result)  // 42
                 ("`pad_left(s, width, fill)` / `pad_right(s, width, fill)`", "Fixed-width string padding."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::text
 
@@ -662,6 +680,8 @@ match toml_parse("[server]\\nhost = \\"localhost\\"") {
                 ("`memory_fill(dst, val, len)`", "Bulk memory fill (like `memory.fill`)."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::wasm
 
@@ -689,6 +709,8 @@ let i32_type = valtype_i32()       // 0x7f
                 ("`wit_type_name(ty)`", "Map a `WitType` value back to its human-readable name."),
             ],
             "typical_usage": """\
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::wit
 
@@ -2919,7 +2941,7 @@ def render_stdlib_readme(
     # Paths already prominently linked above — skip from the table
     skip_paths = {"cookbook.md", "reference.md", "migration-guidance.md", "std.md", "stability-policy.md"}
     legacy_paths = {"core.md", "io.md"}
-    policy_keywords = {"policy", "deprecation", "dedup", "migration", "scoreboard"}
+    policy_keywords = {"policy", "deprecation", "dedup", "migration", "scoreboard", "eradication"}
     for entry in entries:
         if entry.rel_path in skip_paths:
             continue
@@ -4089,6 +4111,113 @@ def render_scoreboard(manifest: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+
+_MONOMORPHIC_SUFFIX = re.compile(
+    r"_(i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|bool|str|string)$"
+)
+
+
+def _eradication_owner_cell(owner: str) -> str:
+    if not owner or owner == "none":
+        return "—"
+    path = owner_issue_path(ROOT, owner)
+    if path is None:
+        return f"#{owner} (missing)"
+    rel = os.path.relpath(path, ERADICATION_MD.parent)
+    return f"[#{owner}]({rel})"
+
+
+def render_stdlib_eradication(eradication: dict, resolved: list, manifest: dict) -> str:
+    """Generate the ADR-046 free-function eradication scorecard + inventory."""
+    class_order = ["must delete", "associated-or-method", "intrinsic-only"]
+    counts = {cls: 0 for cls in class_order}
+    rule_hits: dict[int, int] = {}
+    for _entry, rule in resolved:
+        counts[rule["class"]] = counts.get(rule["class"], 0) + 1
+        rule_hits[id(rule)] = rule_hits.get(id(rule), 0) + 1
+
+    public_scope = [(e, r) for e, r in resolved if r["class"] != "intrinsic-only"]
+    prelude_wrappers = sum(1 for e, _r in resolved if e.get("kind") == "prelude_wrapper")
+    monomorphic = sum(
+        1 for e, _r in public_scope if _MONOMORPHIC_SUFFIX.search(e.get("name", ""))
+    )
+
+    lines = [
+        "# Stdlib Free-Function Eradication (ADR-046)",
+        "",
+        "> This file is generated by `python3 scripts/gen/generate-docs.py` from",
+        "> [`../../std/manifest.toml`](../../std/manifest.toml) and",
+        "> [`../data/stdlib-api-eradication.toml`](../data/stdlib-api-eradication.toml).",
+        "> Do not edit manually — changes will be overwritten on the next regeneration.",
+        "",
+        "ADR-046 removes every user-reachable free function from the stdlib surface.",
+        "The public API shape is method / associated function / trait dispatch only;",
+        "the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).",
+        "Policy: [#709](../../issues/open/709-stdlib-trait-first-api-policy.md).",
+        "Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).",
+        "",
+        "## Scorecard",
+        "",
+        "| Metric | Count | Goal |",
+        "|--------|-------|------|",
+        f"| Eradication-scope symbols (public free / wrapper / monomorphic) | {len(public_scope)} | 0 |",
+        f"| `prelude_wrapper` entries | {prelude_wrappers} | 0 |",
+        f"| Monomorphic `*_i32` / `*_f64` / … helpers | {monomorphic} | 0 |",
+        f"| `intrinsic-only` bridges (non-public) | {counts.get('intrinsic-only', 0)} | — |",
+        "",
+        "## Classification",
+        "",
+        "| Class | Meaning | Symbols |",
+        "|-------|---------|---------|",
+        "| `must delete` | Replacement already exists or functionality retires | "
+        f"{counts.get('must delete', 0)} |",
+        "| `associated-or-method` | Replacement must land as method/associated first | "
+        f"{counts.get('associated-or-method', 0)} |",
+        "| `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | "
+        f"{counts.get('intrinsic-only', 0)} |",
+        "",
+        "## Execution Rules",
+        "",
+        "Rules evaluate in order; the first match wins. Owners are tracking issues.",
+        "",
+        "| Rule | Class | Owner | Symbols | Replacement |",
+        "|------|-------|-------|---------|-------------|",
+    ]
+    for rule in eradication.get("rules", []):
+        hit = rule_hits.get(id(rule), 0)
+        lines.append(
+            f"| {rule_label(rule)} | `{rule.get('class', '?')}` | "
+            f"{_eradication_owner_cell(str(rule.get('owner', '')))} | {hit} | "
+            f"{rule.get('replacement', '—')} |"
+        )
+
+    lines.extend([
+        "",
+        "## Inventory",
+        "",
+        "Every manifest `[[functions]]` entry resolves to exactly one rule.",
+        "",
+        "| Symbol | Module | Class | Rule | Owner |",
+        "|--------|--------|-------|------|-------|",
+    ])
+
+    def _sort_key(pair):
+        entry, rule = pair
+        return (
+            class_order.index(rule["class"]) if rule["class"] in class_order else 9,
+            entry.get("module") or "",
+            entry.get("name") or "",
+        )
+
+    for entry, rule in sorted(resolved, key=_sort_key):
+        module = entry.get("module") or "(prelude)"
+        lines.append(
+            f"| `{entry.get('name', '?')}` | `{module}` | `{rule['class']}` | "
+            f"{rule_label(rule)} | {_eradication_owner_cell(str(rule.get('owner', '')))} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def replace_generated_block(text: str, marker: str, content: str) -> str:
     start = f"<!-- BEGIN GENERATED:{marker} -->"
     end = f"<!-- END GENERATED:{marker} -->"
@@ -4290,6 +4419,27 @@ def main() -> int:
     write_file(DOCS / "stdlib" / "name-index.md", render_name_index(manifest), args.check, stale)
     write_file(DOCS / "stdlib" / "scoreboard.md", render_scoreboard(manifest), args.check, stale)
     write_file(MONOMORPHIC_DEPRECATION, render_deprecation_table(manifest), args.check, stale)
+
+    eradication = load_eradication(ERADICATION_TOML)
+    resolved, unclassified, cls_errors = classify_manifest(eradication, manifest)
+    if cls_errors or unclassified:
+        print(
+            "stdlib eradication classification incomplete — update "
+            "docs/data/stdlib-api-eradication.toml:",
+            file=sys.stderr,
+        )
+        for msg in cls_errors:
+            print(f"  ✗ {msg}", file=sys.stderr)
+        for entry in unclassified:
+            module = entry.get("module", "(prelude)")
+            print(f"  ✗ {module}::{entry.get('name', '?')}", file=sys.stderr)
+        return 1
+    write_file(
+        ERADICATION_MD,
+        render_stdlib_eradication(eradication, resolved, manifest),
+        args.check,
+        stale,
+    )
     for page in STDLIB_MODULE_PAGES:
         write_file(
             DOCS / "stdlib" / page["path"],

@@ -7,6 +7,7 @@
 > monomorphic API（`Vec_new_i32()`, `concat()`, `HashMap_i32_i32_new()` など）
 > を使用しています。これらは `std/manifest.toml` で `stability = "deprecated"`
 > とマークされており、推奨APIは trait-based method syntax（ADR-036）です。
+> ADR-046 により free function は全件撲滅対象です（[eradication.md](eradication.md)）。
 > 移行状況は [migration-guidance.md](migration-guidance.md) を参照してください。
 
 このページは、現行実装でそのまま使いやすい書き方だけを残した cookbook です。

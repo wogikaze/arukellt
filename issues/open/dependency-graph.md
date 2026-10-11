@@ -38,6 +38,7 @@ graph LR
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
@@ -48,6 +49,7 @@ graph LR
   I682 --> I683
   I697 --> I710
   I709 --> I710
+  I709 --> I917
   I681 --> I711
   I709 --> I711
   I710 --> I711
@@ -88,10 +90,11 @@ graph LR
 - **851** depends on: 827; blocks: 850
 - **913** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
-- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
+- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713, 917
 - **850** depends on: 851; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **917** depends on: 709; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none

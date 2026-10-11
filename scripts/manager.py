@@ -4679,6 +4679,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-compat-orphans.py",
         ),
         (
+            "stdlib free-function eradication coverage (#709)",
+            "python3 scripts/check/check-stdlib-eradication.py",
+        ),
+        (
             "deprecated API scan in docs (H8)",
             "python3 scripts/check/check-deprecated-api-in-docs.py --strict",
         ),

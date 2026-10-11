@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-11T10:49:20Z",
+  "generated_at": "2026-10-11T11:05:09Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -572,7 +572,8 @@
         "710",
         "711",
         "712",
-        "713"
+        "713",
+        "917"
       ],
       "acceptance": {
         "checked": 0,
@@ -645,6 +646,25 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      }
+    },
+    {
+      "id": "917",
+      "path": "917-stdlib-eradication-execution.md",
+      "title": "917 — Free-function eradication execution (must-delete / associated-or-method waves)",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "709"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "incremental",
+        "upstream_notes": "#709 policy, #703 monomorphic cutover, #718 inventory"
       }
     },
     {

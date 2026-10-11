@@ -320,6 +320,14 @@ purpose = "Forbid regression vs native-cpp fixture coverage baseline (ICE/crash/
 coverage = ["native-cpp", "adr-050"]
 
 [[commands]]
+id = "stdlib_eradication_coverage"
+canonical = "python3 scripts/check/check-stdlib-eradication.py"
+aliases = []
+alias_status = "none"
+purpose = "ADR-046 gate (#709): every std/manifest.toml function resolves to a must-delete / associated-or-method / intrinsic-only class in docs/data/stdlib-api-eradication.toml — no unclassified symbol, no dead rule, every public class has an existing owner issue"
+coverage = ["std/manifest.toml", "docs/data/stdlib-api-eradication.toml", "adr-046", "issue-709", "issue-917"]
+
+[[commands]]
 id = "cross_backend_parity"
 canonical = "python3 scripts/check/check-cross-backend-parity.py"
 aliases = []

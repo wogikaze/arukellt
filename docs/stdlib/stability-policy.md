@@ -59,6 +59,11 @@ The stdlib follows consistent naming patterns for functions that can fail:
 
 ### Result / Option builtins (prelude)
 
+> **Eradication scope (ADR-046):** these prelude free functions are
+> classified in the [eradication scorecard](eradication.md) and migrate to
+> `Result` / `Option` methods under issue #917. The table documents the
+> current surface, not the target shape.
+
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `is_ok` | `(Result<T, E>) -> bool` | Test if Result is Ok |
@@ -89,6 +94,29 @@ A Stable API is deprecated before removal:
 1. Mark with `@deprecated` annotation and document the replacement.
 2. Keep the deprecated API available until the next major version, and for at least one complete release.
 3. Remove no earlier than that major-version boundary, with a migration guide.
+
+---
+
+## Free-Function Eradication (ADR-046)
+
+ADR-046 removes every **user-reachable free function** from the stdlib
+surface. The public API shape is method / associated function / trait
+dispatch only (ADR-044); the sole exception is non-public `__intrinsic_*`
+compiler bridges, which never appear in the public surface.
+
+- The authoritative per-symbol classification lives in
+  [`../data/stdlib-api-eradication.toml`](../data/stdlib-api-eradication.toml):
+  every `std/manifest.toml` `[[functions]]` entry resolves to
+  `must delete`, `associated-or-method`, or `intrinsic-only`, each with an
+  owning issue and a replacement note.
+- The generated scorecard and full inventory live in
+  [eradication.md](eradication.md); the zero goal is **0 public free
+  functions, 0 `prelude_wrapper` entries, 0 monomorphic helpers**.
+- Coverage is enforced by `python3 scripts/check/check-stdlib-eradication.py`
+  and by `docs regenerate` / `docs check`: any unclassified manifest symbol
+  fails the gate.
+- Retirement follows the deprecation process above; execution waves are
+  tracked in issue #917 under policy issue #709.
 
 ---
 

@@ -24,6 +24,8 @@ The `std::text` module extends the prelude's built-in string type with inspectio
 
 **Typical usage:**
 
+> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+
 ```ark
 import std::text
 
