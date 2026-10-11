@@ -1,3 +1,5 @@
+use std::host::process
+use std::host::stdio
 use std::prelude::{clone, eq}
 use wasm::constants
 use mir::module_strings
@@ -60,6 +62,13 @@ fn emit_string_layout_existing_constants(mir: MirModule, str_count: i32, string_
     while si < str_count {
         let s = module_strings::MirModule_string_constant_at(mir, si)
         let slen = len(s)
+        // #913: negative-length constants are producer-side corruption; see
+        // module_strings::assert_string_constant_sane. Trap before offsets
+        // and the emitted payload can diverge.
+        if slen < 0 {
+            stdio::eprintln("compiler ICE: negative string length in string table layout")
+            process::exit(1)
+        }
         push(string_offsets, data_offset + 4)
         push(string_lengths, slen)
         data_offset = data_offset + 4 + slen

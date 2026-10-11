@@ -1,6 +1,20 @@
+use std::host::process
+use std::host::stdio
 use std::prelude::{clone, eq}
 use mir::module_record
 use mir::types
+
+// #913: a linear-repr String whose length header is negative can only come
+// from a producer-side bounds/lifetime bug (substring with end < start, or a
+// stale field read). Trap at the table boundary so corruption can never be
+// emitted as a malformed data segment again.
+fn assert_string_constant_sane(s: String) {
+    if len(s) < 0 {
+        stdio::eprintln("compiler ICE: string constant entered table with negative length")
+        process::exit(1)
+    }
+}
+
 fn MirModule_string_constants(m: MirModule) -> Vec<String> {
     m.string_constants
 }
@@ -14,10 +28,12 @@ fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
 }
 
 fn MirModule_push_string_constant(m: MirModule, s: String) {
+    assert_string_constant_sane(s)
     push(m.string_constants, s)
 }
 
 fn intern_string(m: MirModule, s: String) -> i32 {
+    assert_string_constant_sane(s)
     let count = len(m.string_constants)
     let mut i = 0
     while i < count {
