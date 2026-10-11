@@ -1780,6 +1780,7 @@ run:stdlib_trait/eq_i64.ark
 run:stdlib_trait/eq_string.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/eq_trait_string.ark
+run:stdlib_trait/format_debug_match_binding.ark
 run:stdlib_trait/format_debug_point.ark
 run:stdlib_trait/from_i32_to_i64.ark
 run:stdlib_trait/from_i64_to_i32.ark
@@ -2420,6 +2421,7 @@ t3-compile:stdlib_trait/display_trait.ark
 t3-compile:stdlib_trait/display_trait_vec.ark
 t3-compile:stdlib_trait/eq_trait.ark
 t3-compile:stdlib_trait/eq_trait_string.ark
+t3-compile:stdlib_trait/format_debug_match_binding.ark
 t3-compile:stdlib_trait/format_debug_point.ark
 t3-compile:stdlib_trait/hash_trait.ark
 t3-compile:stdlib_trait/hash_trait_nested.ark

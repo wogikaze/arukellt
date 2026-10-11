@@ -108,5 +108,8 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
     child.current_fn_name = parent.current_fn_name
     child.current_fn_type_params = parent.current_fn_type_params
     child.current_fn_bounds = parent.current_fn_bounds
+    // Fresh vars minted during fn-check must not collide with parent vars
+    // when inferred types containing them unify back in the parent (#915).
+    child.var_id_box = parent.var_id_box
     child
 }

@@ -100,6 +100,21 @@ fn enforce_operator_trait(
         return
     }
     if tag == commands::TY_TYPE_VAR() {
+        // Only declared parameters carry evaluable bounds here. A fresh
+        // inference variable (including one whose name leaked from a dead
+        // infer-env scope) cannot prove a bound at this site, so it defers
+        // to unification instead of producing a spurious diagnostic (#915).
+        let mut declared = false
+        let mut pi = 0
+        while pi < len(env.current_fn_type_params) {
+            if eq(get_unchecked(env.current_fn_type_params, pi), contract_type_access::TypeInfo_name(resolved_ty)) {
+                declared = true
+            }
+            pi = pi + 1
+        }
+        if !declared {
+            return
+        }
         if trait_bounds::env_type_var_has_trait_bound(
             env,
             contract_type_access::TypeInfo_name(resolved_ty),

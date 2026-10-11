@@ -2,13 +2,15 @@ use typechecker::contract_env_record
 
 fn reset_infer_env(env: TypeEnv) {
     env.vars = Vec::new<TypeVar>()
-    env.next_id = 0
     env.errors = Vec::new<String>()
     env.error_count = 0
 }
 
-fn borrow_generic_infer_env() -> TypeEnv {
-    let env = contract_env_record::TypeEnv_new()
+// Scratch envs share the caller var-id counter so fresh t<id> names minted
+// here can never alias a var already live in the parent scope (#915).
+fn borrow_generic_infer_env(parent: TypeEnv) -> TypeEnv {
+    let mut env = contract_env_record::TypeEnv_new()
     reset_infer_env(env)
+    env.var_id_box = parent.var_id_box
     env
 }

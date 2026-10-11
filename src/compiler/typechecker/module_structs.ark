@@ -186,7 +186,7 @@ fn infer_generic_literal_args(env: TypeEnv, aggregate_ty: TypeInfo, node: AstNod
         if len(type_params) == 0 {
             return aggregate_ty
         }
-        let infer_env = infer_env_scope::borrow_generic_infer_env()
+        let infer_env = infer_env_scope::borrow_generic_infer_env(env)
         let var_types = Vec::new<TypeInfo>()
         let mut pi = 0
         while pi < len(type_params) {

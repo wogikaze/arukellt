@@ -1,0 +1,23 @@
+use std::test
+use std::text::fmt
+
+// A generic call whose argument is a fresh var from the enclosing env
+// must still infer its type parameter. Every infer env used to mint
+// fresh vars from t0, so a var named t0 bound by the match payload
+// and the call scratch env t0 compared equal by name and unify
+// skipped binding T, leaving the call unresolved.
+fn make_some<T>(value: T) -> Option<T> {
+    Option::Some(value)
+}
+
+fn describe<T: Debug>(x: T) -> String {
+    let opt = make_some(x)
+    match opt {
+        Option::Some(val) => fmt::format_debug(val),
+        None => "none",
+    }
+}
+
+fn main() {
+    test::assert_eq_string(describe(7), "7")
+}

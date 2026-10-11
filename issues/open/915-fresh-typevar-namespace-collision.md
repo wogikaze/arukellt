@@ -64,3 +64,29 @@ zero-arg calls to avoid depending on this fix.
   the same flat name-keyed tables; namespace cleanup belongs together.
 - #914 generic name-collision fix (done) - the sibling bug at the
   fn-signature name-index level.
+
+## Resolution notes (2026-10-11)
+
+Implemented the shared-counter option: `TypeEnv.next_id` became
+`var_id_box: Vec<i32>`, a one-element box shared by every env derived
+from a parent (`borrow_generic_infer_env`, `type_env_for_fn_check`), so
+`t<id>` names are globally unique within a check session and the
+unify same-name shortcut can never alias cross-scope vars.
+
+Verification:
+
+- `tests/fixtures/generics/`: 8/8 FAIL -> 8/8 PASS.
+- `check std/text/fmt.ark`: zero `cannot infer type parameter`
+  diagnostics (only pre-existing W0005 export warnings).
+- `tests/fixtures/stdlib_trait/format_debug_match_binding.ark` added as
+  scenario coverage (match-bound `val` into `fmt::format_debug`).
+- Full fixture sweep: 1783 PASS / 5 FAIL; all 5 verified pre-existing
+  (see #916 - three hashmap/iterator timeouts reproduce on the pre-#915
+  s2, two iterator validation errors are a mono-minting gap the
+  collision was masking).
+
+Latent issue fixed along the way: leaked scratch vars (now correctly
+distinct) reached `enforce_operator_trait` bound checks as
+non-declared vars and produced spurious E0208s. Bound checks now
+apply to declared `current_fn_type_params` only; fresh vars defer to
+unification.

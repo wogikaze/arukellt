@@ -2,8 +2,8 @@ use typechecker::contract_env_record
 use typechecker::contract_typevar_record
 
 fn type_env_take_next_var_id(env: TypeEnv) -> i32 {
-    let id = env.next_id
-    env.next_id = env.next_id + 1
+    let id = get_unchecked(env.var_id_box, 0)
+    set(env.var_id_box, 0, id + 1)
     id
 }
 
