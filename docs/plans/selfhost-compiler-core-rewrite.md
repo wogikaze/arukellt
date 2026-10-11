@@ -328,6 +328,41 @@ closure env、capture 解析）は discovery で TypeKey/closure として確定
 「edge table を reachability 入力にする」+「per-fn emit 直後の body drop」
 の順で、whole-module 保持のまま先に edge-table 化を進める。
 
+既存基盤の棚卸し（2026-10-12 Phase 3 着手前調査）:
+
+- reachability は既に edge 駆動: `ctx_edge_table`（lower 中に CALL/REF_FUNC の
+  fid+name を packed stream 記録）→ `mir_build_recorded_edge_lists` で
+  per-fn callee list 化 → BFS。recorded edge がある fn は body scan を
+  スキップする — 既に「index 未定」回避の片側は済み。
+- call reloc は既実装: `SelfEmitCtx_push_call_reloc(slot, fid_raw)` +
+  placeholder `emit_leb128_u_fixed(0)` + `apply_call_relocs` で
+  finalize 時に index 解決。`resolve_fn_index_for_call` は fid→mir 経由を
+  優先（`ctx_fid_map` の name-chain map 経由）。
+- per-fn body detach は既実装: emit.code loop が body 出力直後に
+  `mir_function_detach_blocks(f, mir)`（module_block_pool で block 再利用）。
+- `callee_prop_cache` は signature 級（fn name + return_type_name のみ、
+  body 不読）→ registry source 化すれば pre-emit propagate 可能。
+- sync/propagate は per-fn 独立（共有は read-only TypeTable + cache）—
+  decl loop 内 per-fn 化は「cache が全 fn 名を持つ前提」で阻害:
+  forward-callee の return_type が未 emit だと lookup miss →
+  伝搬が不完全になるため、cache を signature_registry 由来に直す必要。
+- type index は eager 解決（reloc なし）: body emit は emit.types 後なので
+  index 確定済み。late 登録は `ctx_ensure_gc_enum_payload_variant_typed` の
+  enum payload（Option::Some 等、body 由来）で gc_late=2 — per-fn emit 化に
+  は「type 早期凍結（discovery で全型登録）」か「TypeId reloc」のどちらかが必要。
+
+残る実装 = pipeline 再構成の本丸: per-fn「lower→analyze→emit→detach」への
+decl loop 書き換え。peak RSS（lower 終端で全 body+type 生存 ~600MB）を
+下げるには emit を lower loop 内に移す以外に近道がないことを確認。
+実装順序の再評価:
+a. discovery で edge/type を確定（CoreHIR 読みの edge table 化 — MIR 不要）
+b. per-fn post-pass: callee cache を signature_registry 由来に変換し、
+   sync+propagate を decl loop 内で per-fn 実行（forward-callee の
+   return type を registry が保持するため）
+c. per-fn emit: type index の解決を「upfront 凍結で済む経路」+「late は
+   TypeId reloc で placeholder+finalize patch」に分離
+d. worklist 駆動で到達不能 fn の lower 自体を skip（~8% body_emit 節約）
+
 ## Phase 4 — post-pass type propagation を消す
 
 gate: **lower + 全 dataflow + reachability ≤ 3s、whole-module instruction scan = 0**。
