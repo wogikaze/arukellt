@@ -3,7 +3,7 @@
 Status: active — Phase 0 NEXT  
 Owner: overlay / #851 / ADR-053  
 Created: 2026-09-01  
-Last updated: 2026-09-16
+Last updated: 2026-10-12
 
 決定: [`docs/adr/ADR-053-selfhost-compiler-core-rewrite.md`](../adr/ADR-053-selfhost-compiler-core-rewrite.md)  
 追跡: [`issues/open/851-selfhost-compiler-core-rewrite.md`](../../issues/open/851-selfhost-compiler-core-rewrite.md)
@@ -23,6 +23,36 @@ Last updated: 2026-09-16
 必要なのは約 24 倍。各改善は半分しか効かない前提。
 マイルストーン: **239 → 180 → 120 → 35 → 20 → 12 → 9 秒**。
 35 秒までは速度より、fat MIR / 全体 fixpoint / 長寿命 GC graph を消せたかを評価する。
+
+## 現行床（2026-10-12、gc-emit host 計測）
+
+Sep-15 audit の trap は解消済み。同一 clean commit (2349d2cf) で 10-run receipt を取得:
+docs/research/receipts/851-gc-overlay-goal-20261012.json。
+
+| host | 条件 | wall | RSS | 結果 |
+|---|---|---:|---:|---|
+| linear s2-runtime | wasm32-gc+p2 overlay | **>600s** | - | mark_candidate に ~100%（600s timeout） |
+| gc-emit s3-gc32.component | 同上 x10 回 | **median 49.5s / p95 50.2s** | ~600MiB | 10/10 成功、出力 sha256 全一致 |
+| linear s2-runtime | s3 ビルド（wasm32+p1、fixpoint --build） | **>3600s** | - | SELFHOST_COMPILE_TIMEOUT 到達 |
+
+perf/perfmap で linear host の hotspot を特定: wasm func[11026]
+（linear GC mark_candidate、type 3 param i32 → i32）がサンプルの 99.97%。
+ページテーブル鎖走査が全収集で支配しており、emit 仕事ではなく host 自身の
+linear GC mark がボトルネック。gc-emit host はこのコストを持たず、
+同一 overlay が ~50s で完走する。
+
+残る ~50s の内訳（gc host）: emit.code ≈2.3s / emit.types ≈0.16s /
+emit.tail ≈0.08s は実測。frontend（lex/parse/resolve/typecheck/lower）は
+このビルドでは --time が stub され 0ms 表示のため未分解 — KEEP_CLOCK 版か
+perfmap 分解が次の証拠。
+
+perfmap 2 窓（early/mid、計 ~30s 分）の分解 — host 側 wasmtime copying GC が
+**~55-60%**（forward ~18-21% + scan_field ~13-15% + collect_increment ~9-10% +
+GcHeap::index ~7-8%）、guest 側は分散: eq ~5%、name_index_find_slot ~4%、
+mir_reachability_function_ordinal ~2.5%、signature_registry_mangled_at ~2-3%、
+mono/ctx/hashmap 系各 ~1% 以下が多数。病理的単一ループは無く、
+**allocation churn を減らす Phase 5 arena が最大の単一レバー**、
+mono/reachability/name_index の線形探索が Phase 4 の次候補。
 
 ## 受入
 
