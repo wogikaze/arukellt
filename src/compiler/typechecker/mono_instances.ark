@@ -124,7 +124,8 @@ fn record_var_method_site(env: TypeEnv, method_name: String, recv_ty: TypeInfo) 
     if len(env.current_fn_name) == 0 {
         return
     }
-    if !associated_types::type_contains_var(clone(recv_ty)) {
+    if !associated_types::type_contains_var(clone(recv_ty)) &&
+    !is_var_projection_receiver(env, clone(recv_ty)) {
         return
     }
     let mut mangled = clone(method_name)
@@ -149,6 +150,30 @@ fn record_var_method_site(env: TypeEnv, method_name: String, recv_ty: TypeInfo) 
             enclosing_vars: clone(env.current_fn_type_params),
             is_var_method: true
         })
+}
+
+// A `T::Assoc` projection carries an enclosing type variable in its
+// owner prefix even though type_contains_var only inspects type
+// arguments. For-desugar sites record `next` on `T::IntoIter` (#916).
+fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_STRUCT() {
+        return false
+    }
+    let name = contract_type_access::TypeInfo_name(recv_ty)
+    let sep = associated_types::projection_sep_index(clone(name))
+    if sep <= 0 {
+        return false
+    }
+    let owner = substring(clone(name), 0, sep)
+    let count = len(env.current_fn_type_params)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(env.current_fn_type_params, i), clone(owner)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 // Re-bind template sites recorded inside `fn_name`'s body now that a

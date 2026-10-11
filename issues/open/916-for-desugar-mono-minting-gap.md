@@ -75,3 +75,34 @@ resolution gap, not fixing it.
 - #851 selfhost compiler core rewrite - the mono/inference internals this
   touches are the rewrite target; durable fix belongs there.
 - #912 mono demand-closure boundary - same machinery, minting side.
+
+## Resolution notes (2026-10-11)
+
+Root cause narrowed one level further than the original note: the MIR
+resolver was only the *symptom*. The real gap is at check time -
+`stmt_for::check_generic_for_source` validates the bound for a
+TYPE_VAR `for` source and records nothing, so the desugared
+into_iter/next calls had no template site to rebind when the enclosing
+generic function was instantiated.
+
+Fix: `record_generic_for_desugar_sites` records var-method template
+sites for `into_iter` on T and `next` on the `T::IntoIter` projection
+(or `next` on T directly for Iterator-bound sources).
+`record_var_method_site` was relaxed to treat `T::Assoc` TY_STRUCT
+projections as var-carrying when T is an enclosing type param. The
+existing `rebind_enclosing_template_sites` -> `resolve_var_method_site`
+-> `mint_trait_method_instance` path then mints
+`Owner__method__args` demanded at each concrete instantiation, and the
+MIR parametric lookup resolves them exactly like the TakeIter case
+that already worked.
+
+Verification:
+
+- `iterator_string_callbacks.ark` + `iterator_adapters.ark`: compile
+  ~2-4s AND `wasm-tools validate` clean (previously emitted invalid
+  modules with `expected i32, found (ref null $type)`).
+- Full fixture sweep: 1786 PASS / 3 FAIL (was 1783/5). All 3 remaining
+  failures are the pre-existing compile-timeout class
+  (hashmap_generic_demo, hashmap_growth, iterator_hashmap_keys) -
+  confirmed by >150s timeouts on the pre-#915 producer s2 as well.
+  No new failures and no remaining invalid-wasm emissions.

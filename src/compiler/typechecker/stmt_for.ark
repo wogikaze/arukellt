@@ -8,6 +8,7 @@ use typechecker::contract_fn_sig
 use typechecker::instantiate
 use typechecker::kinds
 use typechecker::mono
+use typechecker::mono_instances
 use typechecker::names
 use typechecker::sigs
 use typechecker::trait_bounds
@@ -241,9 +242,11 @@ fn for_desugar_builtin_owner_name(ty: TypeInfo) -> String {
 fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
     let var_name = contract_type_access::TypeInfo_name(source_ty)
     if trait_bounds::env_type_var_has_trait_bound(env, clone(var_name), String_from("IntoIterator")) {
+        record_generic_for_desugar_sites(env, source_ty, true)
         return
     }
     if trait_bounds::env_type_var_has_trait_bound(env, clone(var_name), String_from("Iterator")) {
+        record_generic_for_desugar_sites(env, source_ty, false)
         return
     }
     unify::type_error(
@@ -253,6 +256,30 @@ fn check_generic_for_source(env: TypeEnv, source_ty: TypeInfo) {
             var_name
         )
     )
+}
+
+// A `for` over a bare type-var source names no concrete impl at check
+// time, so the desugared into_iter/next calls cannot be recorded the way
+// record_for_desugar_mono does for concrete sources. Register them as
+// var-method template sites instead: instantiating the enclosing fn
+// binds T and rebind_enclosing_template_sites resolves the impl methods
+// (Owner::into_iter / Owner::next) demanded. Without these sites the MIR
+// resolver finds only the erased generic shells and emits unreachable
+// next calls into invalid wasm (#916). The next receiver is the
+// `T::IntoIter` projection; Iterator-bound sources are already iterators
+// and only need next.
+fn record_generic_for_desugar_sites(env: TypeEnv, source_ty: TypeInfo, via_into_iterator: bool) {
+    if via_into_iterator {
+        mono_instances::record_var_method_site(env, String_from("into_iter"), clone(source_ty))
+        let var_name = contract_type_access::TypeInfo_name(source_ty)
+        let iterator_proj = contract_type_constructors::TypeInfo_named(
+            commands::TY_STRUCT(),
+            text::concat(clone(var_name), String_from("::IntoIter"))
+        )
+        mono_instances::record_var_method_site(env, String_from("next"), iterator_proj)
+        return
+    }
+    mono_instances::record_var_method_site(env, String_from("next"), source_ty)
 }
 
 fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -> bool {
