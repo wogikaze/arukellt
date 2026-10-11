@@ -5,10 +5,10 @@ struct MonoInstance {
     mangled_name: String,
     type_args: Vec<TypeInfo>,
     return_type: TypeInfo,
-    // Whether a real call site demands this instance's body be emitted.
-    // Speculatively minted instances (impl-sibling and arg propagation,
-    // template-site rebind children of speculative parents) stay false so
-    // MIR emits only the demanded closure; see mono_instances.ark.
+    // Whether a real call edge demands this instance's body be emitted.
+    // Instance demand is a closure over emitted bodies (#912): every
+    // record_mono_instance mint is demanded, so the flag only stays false
+    // for records pushed outside that path (call-site markers).
     demanded: bool,
 }
 
@@ -30,6 +30,11 @@ struct MonoTemplateSite {
     type_args: Vec<TypeInfo>,
     enclosing_fn: String,
     enclosing_vars: Vec<String>,
+    // True for sites recorded by a method call on a still-open type-var
+    // receiver (`x.next()` on ?T): fn_name is the unqualified method
+    // name and rebind resolves `Receiver::method` through the impl
+    // table instead of recording a same-name instance (#912).
+    is_var_method: bool,
 }
 
 fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {

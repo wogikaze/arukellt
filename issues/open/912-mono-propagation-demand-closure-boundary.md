@@ -53,7 +53,28 @@ scans over all entries. A/B evidence: pre/post-change compiler outputs
 are byte-identical on the 9 generics fixtures, a 5-instantiation smoke
 program, and component/resource_v3/resource_basic.
 
-Remaining: the demand-closure model itself - computing the demanded set
-as a reachability closure over emitted bodies and removing the
-MONO_PROPAGATE_INSTANCE_BUDGET / mono_args_within_depth stopgap caps in
-typechecker/mono_instances.ark.
+Demand-closure model landed (same day): record_mono_instance is now the
+sole mint and every mint is demanded; demand edges are recorded at real
+call sites, template-site rebinds, and var-method sites (method calls
+on still-open type-var receivers record `method`+[?T] and rebind
+resolves `Receiver::method` through the impl table). Deleted:
+MONO_PROPAGATE_INSTANCE_BUDGET, mono_args_within_depth,
+mono_type_ctor_depth, record_propagated_mono_instance, and all
+propagate_* sibling/arg speculation - the over-approximation itself was
+the termination hazard (adapter x method ascent never converged).
+Module-merge rebind is gated on demanded so non-demanded marker records
+can no longer mint sentinel-arg junk. Two latent bugs the stopgaps had
+masked got real fixes: sig_decl dropped the last parameter of bodiless
+trait methods (`fn next(self: Self)` registered param_count 0, making
+infer_trait_method_call unreachable for self-only methods), and
+infer_trait_method_call's call edge was never recorded as demand.
+
+Evidence: for_values now compiles in ~1s (was >300s under demanded
+owner-prop); hashmap_entries_values ~2s (was >90s). Compiler outputs
+are byte-identical vs the stopgap build on all 19 probed fixtures
+(9 generics, multi_inst, resource_basic, and 8 iterator/collection
+fixtures), with 0 untyped-scrutinee diagnostics where the no-cap build
+previously emitted 52.
+
+Remaining: none of the listed stopgap scope. Close-candidate pending
+wider lane verification and the $issue-close-review checklist.

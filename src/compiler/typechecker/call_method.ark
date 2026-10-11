@@ -15,6 +15,7 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::hashmap_methods
+use typechecker::mono_instances
 use typechecker::names
 use typechecker::sigs
 use typechecker::trait_bounds
@@ -140,6 +141,14 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         )
         if contract_type_access::TypeInfo_tag(numeric_result) != commands::TY_UNKNOWN() {
             return numeric_result
+        }
+        // Unbounded-var receiver: no declared bound names a trait for
+        // this method (`self.iter.next()` inside `impl Iterator for
+        // TakeIter<I>` where I has no bound). The call still produces a
+        // demand edge so the enclosing instantiation mints
+        // `Receiver::method` at rebind (#912).
+        if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_TYPE_VAR() {
+            mono_instances::record_var_method_site(env, clone(method_name), clone(recv_ty))
         }
         return simple_type(commands::TY_UNKNOWN())
     }
@@ -587,6 +596,16 @@ fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     let recv_node = ast_access::node_child_at(node, 0)
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     call_method_args::constrain_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
+    // Demand edge (#912): a trait method call on a still-open receiver
+    // records a var-method site; the enclosing function's
+    // instantiation binds the receiver and mints `Receiver::method`
+    // through the impl table (see
+    // mono_instances::rebind_enclosing_template_sites).
+    mono_instances::record_var_method_site(
+        env,
+        ast_access::node_text(node),
+        clone(recv_ty)
+    )
     let ret_ty = contract_fn_sig::FnSig_return_type(sig)
     // Self substitution: if the trait method's return type is a TY_TYPE_VAR
     // named "Self", substitute the receiver's concrete type (#707).

@@ -13,6 +13,7 @@ use typechecker::names
 use typechecker::hashmap_api
 use typechecker::instantiate
 use typechecker::mono
+use typechecker::mono_instances
 use typechecker::traits
 use typechecker::unify
 fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, explicit_args: i32) -> TypeInfo {
@@ -56,6 +57,18 @@ fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<
     }
     if !hashmap_api::validate_hashmap_method(env, clone(mono_fn_name), resolved_recv_ty) {
         return ret_ty
+    }
+    // A receiver that is still a bare type variable may resolve to an
+    // impl method at the concrete instantiation instead of this sig
+    // (MIR lowering prefers `Receiver::method`): record the var-method
+    // demand edge alongside the sig's own instance so the rebind mints
+    // whichever the call actually lowers to (#912).
+    if contract_type_access::TypeInfo_tag(resolved_recv_ty) == commands::TY_TYPE_VAR() {
+        mono_instances::record_var_method_site(
+            env,
+            clone(method_name),
+            clone(resolved_recv_ty)
+        )
     }
     let mangled_name = mono::record_mono_instance(env, clone(mono_fn_name), resolved_type_args)
     mono::record_mono_return_type(env, clone(mangled_name), ret_ty)

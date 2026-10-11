@@ -30,17 +30,19 @@ fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
         }
         if !found {
             push(dst.mono_instances, incoming)
-            // The rebinding step mints further instances through
-            // record_mono_instance, but it is demand binding: every merged
-            // instance needs its ?T sites bound regardless of the
-            // speculative propagation budget. Instances minted by the
-            // rebind still honour that budget inside record_mono_instance.
-            mono_instances::rebind_enclosing_template_sites(
-                dst,
-                contract_mono::MonoInstance_fn_name(incoming),
-                clone(incoming.type_args),
-                contract_mono::MonoInstance_demanded(incoming)
-            )
+            // Rebind only for demanded instances (#912): a body that is
+            // never emitted must not pull its callees into the demanded
+            // set, and non-demanded marker records carry sentinel type
+            // args that must never reach a rebind at all. A marker that
+            // later becomes a real call target binds its sites through
+            // record_mono_instance's demand-upgrade path instead.
+            if contract_mono::MonoInstance_demanded(incoming) {
+                mono_instances::rebind_enclosing_template_sites(
+                    dst,
+                    contract_mono::MonoInstance_fn_name(incoming),
+                    clone(incoming.type_args)
+                )
+            }
         }
         i = i + 1
     }

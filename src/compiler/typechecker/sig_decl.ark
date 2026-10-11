@@ -1,5 +1,6 @@
 use std::prelude::{clone, eq}
 use collections::vec_extend
+use parser::ast
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::contract_fn_sig
@@ -35,9 +36,23 @@ fn fn_sig_from_fn_decl_with_params(
     let mut j = 0
     let param_types = Vec::new<TypeInfo>()
     let child_count = ast_access::node_child_count(node)
-    if child_count > 1 {
+    // The last child is the body only for fns that actually have one:
+    // `= expr` bodies set the int_val marker and block bodies are
+    // NK_BLOCK. Bodiless decls (trait methods, externs) keep every
+    // child as a parameter -- the historical `child_count - 1` dropped
+    // their last parameter, leaving `fn next(self: Self)` inside a
+    // trait with param_count 0 (#912).
+    let mut param_end = child_count
+    if child_count > 0 {
+        let last_child = ast_access::node_child_at(node, child_count - 1)
+        if ast::ast_node_int_val(node) == 1 ||
+        ast_access::node_kind_is(last_child, kinds::NK_BLOCK()) {
+            param_end = child_count - 1
+        }
+    }
+    if param_end > 0 {
         let mut p = 0
-        while p < child_count - 1 {
+        while p < param_end {
             let param = ast_access::node_child_at(node, p)
             let mut pty = simple_type(commands::TY_UNKNOWN())
             if ast_access::node_type_ann_count(param) > 0 {
