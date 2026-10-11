@@ -257,6 +257,10 @@ type_ids/type_reprs/type_nulls の列を持ち、`MirBlock_inst_at` は fat reco
 self-fixpoint byte-identical（sha256 `5f0f9470…`）、旧 compiler (s3-kc32) vs s5-noclone で
 fixture 3 件（vec_generic / clone_independent / ord_sort_vec_string）出力 byte-identical。
 `--time` 計測で emit.code 2.64s→2.20s（str_val clone 除去分）。
+- `emit_f32_to_f64`: 共有 handler の方向判定を callee 名比較から result
+  `val_type`（VT_F32/VT_F64）比較へ変換 — string-dispatch → 型駆動の初例。
+  numeric_explicit_conversions / arithmetic_edges の新旧コンパイラ出力が
+  byte-identical、s6-vt self-fixpoint `b61cb055…` で確定。
 
 禁止: SoA 保存 + fat API、tick 173/178 級の再構築、`MirFunction` への場当たり field 追加。
 

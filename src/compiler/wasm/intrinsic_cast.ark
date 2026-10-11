@@ -1,4 +1,5 @@
-use mir::inst_accessors_literals
+use mir::inst_record
+use mir::value_types
 use wasm::opcodes
 use wasm::writer_core
 use wasm::intrinsics::helpers_numeric_f64
@@ -80,11 +81,13 @@ fn emit_i32_to_u32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: f32_to_f64, f64_to_f32
 fn emit_f32_to_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "f64_to_f32") || eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "__intrinsic_f64_to_f32") {
+    // One handler covers both directions; the result's value type picks
+    // the bridge so no callee-name compare is needed.
+    if inst_record::mir_inst_val_type(inst) == value_types::VT_F32() {
         helpers_numeric_f64::emit_f64_to_f32_bridge(w)
         return true
     }
-    if eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "f32_to_f64") || eq(clone(inst_accessors_literals::MirInst_str_val(inst)), "__intrinsic_f32_to_f64") {
+    if inst_record::mir_inst_val_type(inst) == value_types::VT_F64() {
         helpers_numeric_f64::emit_f32_to_f64_bridge(w)
         return true
     }
