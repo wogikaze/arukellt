@@ -273,8 +273,13 @@ subtyping (サブ型付け) を禁止する。
 
 ### Arukellt での活用可能性
 
-**中程度。** Arukellt の現在の WasmGC 出力では、すべての struct に
-デフォルトで `(sub ...)` を付けており、継承が不要な型にも冗長なサブタイプ宣言が残る。
+> **実装済み (2026-10, issue #721 / commit ba33c5405)**: user-defined struct は
+> すべて `(sub final (struct ...))` で出力される。enum バリアントは
+> `(sub final $base ...)`、enum ベース型のみ `(sub ...)` (open) を維持。
+> 下記の「現在の出力」記述は導入前の状態である。
+
+**中程度。** （導入前の記述）Arukellt の WasmGC 出力では、すべての struct に
+デフォルトで `(sub ...)` を付けており、継承が不要な型にも冗長なサブタイプ宣言が残っていた。
 
 `final` を適用できる場面:
 

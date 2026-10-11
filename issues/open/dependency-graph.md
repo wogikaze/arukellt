@@ -20,7 +20,6 @@ graph LR
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
-  I721["721 Final Types (`sub final`) を全 struct に適用"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
@@ -34,6 +33,7 @@ graph LR
   I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I918["918 918 — `arukellt test` runner UX: filter, no-fail-fast, directory discovery"]
   I919["919 919 — `.expected` to `test:` fixture migration (ADR-041 Phase 2d)"]
+  I920["920 t3-run fixtures trap at runtime on wasm32-gc (pre-existing codegen bugs)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
@@ -68,7 +68,6 @@ graph LR
 - **702** depends on: 688, 700, 692; blocks: none
 - **703** depends on: 700, 701, 691, 695; blocks: none
 - **708** depends on: 692, 707; blocks: none
-- **721** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none
@@ -82,6 +81,7 @@ graph LR
 - **917** depends on: 709; blocks: none
 - **918** depends on: 719; blocks: none
 - **919** depends on: 719; blocks: none
+- **920** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none

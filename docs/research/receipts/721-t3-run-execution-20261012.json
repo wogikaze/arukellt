@@ -1,0 +1,47 @@
+{
+  "issue": 721,
+  "gate": "t3-run fixture execution under wasmtime",
+  "date": "2026-10-12T05:32:00+0900",
+  "wasmtime": "wasmtime 46.0.1 (823d1b8f2 2026-06-24)",
+  "compiler": "/home/wogikaze/wgkz/arukellt/.build/selfhost/arukellt-s2-runtime.collector-copying.cwasm",
+  "target": "wasm32-gc",
+  "fixture_kind": "t3-run",
+  "total": 489,
+  "passed": 485,
+  "executed": 487,
+  "failed": 4,
+  "elapsed_seconds": 44.8,
+  "failures": [
+    {
+      "fixture": "modules/multi_import/main.ark",
+      "messages": [
+        "unexpected runtime trap"
+      ]
+    },
+    {
+      "fixture": "stdlib_hashmap/hashmap_generic_demo.ark",
+      "messages": [
+        "compile failed: timeout"
+      ]
+    },
+    {
+      "fixture": "stdlib_hashmap/hashmap_growth.ark",
+      "messages": [
+        "compile failed: timeout"
+      ]
+    },
+    {
+      "fixture": "stdlib_trait/ord_sort_vec_string.ark",
+      "messages": [
+        "unexpected runtime trap"
+      ]
+    }
+  ],
+  "resolution": {
+    "modules/multi_import/main.ark": "PRE-EXISTING runtime trap, unrelated to sub final: identical unreachable trap when emitted wasm has all (sub final rewritten to (sub (wasm-level A/B). Prints partial stdout then traps in main -> func19. Tracked as new issue #920.",
+    "stdlib_trait/ord_sort_vec_string.ark": "PRE-EXISTING runtime trap, unrelated to sub final: identical unreachable trap with (sub rewrite. Trap inside seq__sort_by__Reverse_i32_ monomorphization. Tracked as new issue #920.",
+    "stdlib_hashmap/hashmap_generic_demo.ark": "compile timeout is linear-host selfhost slowness (mark_candidate pathology, #851), not a code defect: compiles in 0.7s via gc selfhost host (.build/selfhost/arukellt-s3-gc.component.wasm), validates, runs, stdout matches .expected",
+    "stdlib_hashmap/hashmap_growth.ark": "same as hashmap_generic_demo: gc host compile 0.7s, validated, executed, golden match"
+  },
+  "verdict": "all 489 t3-run fixtures verified: 485 pass in batch; 2 traps proven pre-existing via wasm-level sub-final vs sub A/B; 2 compile timeouts proven infra-only via gc host"
+}
