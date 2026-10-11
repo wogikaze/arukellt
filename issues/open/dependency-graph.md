@@ -33,7 +33,6 @@ graph LR
   I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I913["913 913 - wasm32-gc emit intermittently inserts a corrupt string-table record (len = -1)"]
-  I916["916 916 - for-loop desugar falls back to erased generic shells instead of demanding mono for T::into_iter/next"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
@@ -88,7 +87,6 @@ graph LR
 - **849** depends on: none; blocks: none
 - **851** depends on: 827; blocks: 850
 - **913** depends on: none; blocks: none
-- **916** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **850** depends on: 851; blocks: none
