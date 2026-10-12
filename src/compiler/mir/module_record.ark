@@ -12,6 +12,13 @@ pub struct MirModule {
     // finishes lowering so post passes never rescan bodies for it
     // (#851 Phase 3: callee metadata must outlive the body MIR).
     return_variant_slots: Vec<i32>,
+    // Pre-body discovery catalog: every decl-level fn name with its
+    // enum-normalized declared return type name. Recorded at ctx_prep from
+    // the fn_index so callee lookups can resolve functions whose bodies
+    // are not lowered yet (#851 Phase 3: forward-callee metadata for
+    // per-fn post passes).
+    discovery_fn_names: Vec<String>,
+    discovery_fn_ret_names: Vec<String>,
     export_names: Vec<String>,
     export_surface_set: bool,
     string_constants: Vec<String>,
@@ -39,6 +46,8 @@ fn MirModule_new() -> MirModule {
     MirModule {
         functions: Vec::new<MirFunction>(),
         return_variant_slots: Vec::new<i32>(),
+        discovery_fn_names: Vec::new<String>(),
+        discovery_fn_ret_names: Vec::new<String>(),
         export_names: Vec::new<String>(),
         export_surface_set: false,
         string_constants: Vec::new<String>(),

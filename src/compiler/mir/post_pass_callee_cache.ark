@@ -13,6 +13,15 @@ struct CalleePropCache {
     by_bare: NameIndex,
     ret_type_names: Vec<String>,
     ret_variant_slots: Vec<i32>,
+    // Tier 2 discovery catalog (#851 Phase 3): fn_index names +
+    // enum-normalized return names recorded on the module at ctx_prep.
+    // Consulted only for exact names when the tier-1 module index misses,
+    // so callees whose bodies are not lowered yet still resolve during
+    // per-fn propagation. Bare-name and variant-slot lookups stay tier 1:
+    // discovery adds bare ambiguity (#730) and variant slots are a
+    // body-level fact signatures cannot supply.
+    disc_names: NameIndex,
+    disc_ret_names: Vec<String>,
 }
 
 fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
@@ -46,11 +55,20 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
         push(ret_variant_slots, ret_slot)
         fi = fi + 1
     }
+    let disc_names_list = module_functions::MirModule_discovery_fn_names(m)
+    let disc_index = name_index::NameIndex_new(len(disc_names_list))
+    let mut di = 0
+    while di < len(disc_names_list) {
+        name_index::name_index_insert_first(disc_index, clone(get_unchecked(disc_names_list, di)), di)
+        di = di + 1
+    }
     CalleePropCache {
         by_name: by_name,
         by_bare: by_bare,
         ret_type_names: ret_type_names,
         ret_variant_slots: ret_variant_slots,
+        disc_names: disc_index,
+        disc_ret_names: module_functions::MirModule_discovery_fn_ret_names(m),
     }
 }
 
@@ -69,10 +87,14 @@ fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {
 
 fn callee_prop_cache_return_type_name(cache: CalleePropCache, callee: String) -> String {
     let idx = callee_prop_cache_lookup(cache, callee)
-    if idx < 0 || idx >= len(cache.ret_type_names) {
+    if idx >= 0 && idx < len(cache.ret_type_names) {
+        return clone(get_unchecked(cache.ret_type_names, idx))
+    }
+    let di = name_index::name_index_get(cache.disc_names, callee)
+    if di < 0 || di >= len(cache.disc_ret_names) {
         return String_new()
     }
-    clone(get_unchecked(cache.ret_type_names, idx))
+    clone(get_unchecked(cache.disc_ret_names, di))
 }
 
 fn callee_prop_cache_return_variant_slot(cache: CalleePropCache, callee: String) -> i32 {

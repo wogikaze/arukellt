@@ -1,8 +1,10 @@
 use mir::lower::ctx_api_module
 use mir::lower::ctx_call_edges
+use mir::lower::ctx_fn_index
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_gc_struct_order
+use mir::lower::ctx_struct_layout
 use mir::lower::closure_env
 use mir::lower::decl_source
 use mir::lower::ctx_corehir_probe
@@ -62,6 +64,26 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let sealed_enums = ctx_gc_enum::ctx_gc_enum_variant_count(ctx)
     let t_after_ctx = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, "ctx_prep", t_after_fn_index, t_after_ctx)
+    // #851 Phase 3: snapshot the fn_index return catalog onto the module so
+    // callee metadata survives body detach. Names carry the same enum
+    // normalization MirFunction.return_type_name uses; late ctx_register
+    // names are covered by the tier-1 module index instead.
+    let disc_names = Vec::new<String>()
+    let disc_ret_names = Vec::new<String>()
+    let disc_count = ctx_fn_index::ctx_fn_index_count(ctx)
+    let mut disc_i = 0
+    while disc_i < disc_count {
+        push(disc_names, ctx_fn_index::ctx_fn_index_name_at(ctx, disc_i))
+        push(
+            disc_ret_names,
+            ctx_struct_layout::ctx_maybe_enum_return_type_name(
+                ctx,
+                ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, disc_i)
+            )
+        )
+        disc_i = disc_i + 1
+    }
+    module_functions::MirModule_set_discovery_return_table(m, disc_names, disc_ret_names)
     entry_decls::mir_emit_view_decls(
         ctx,
         view,
