@@ -105,6 +105,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
             ctx_call_edges::ctx_edge_fn_names(ctx),
             ctx_call_edges::ctx_edge_overflow_names(ctx)
         )
+        ctx_corehir_probe::mir_probe_dump_return_table_diff(ctx, module)
     }
     let blocks_before = module_functions::MirModule_block_count(module)
     let insts_before = module_functions::MirModule_inst_count(module)

@@ -434,3 +434,28 @@ byte buffer、LEB、generated lookup、branch layout。
 - ADR-053 を SUPERSEDE する新しい ACCEPTED ADR が出た
 
 commit、tick 完了、1 回の overlay 成功、hello バイト一致、`#850` close は停止条件ではない。
+- **`fixpoint --build` は検証ゲートに使えない**: wasm32+p1 stage-3 が
+  既知の `SELFHOST_COMPILE_TIMEOUT >3600s` で止まる（旧バイナリでも同じ、
+  環境起因）。fixture byte-parity が代替ゲート。
+
+Phase-3 実測（2026-10-12 第2弾 return-table probe、同じ switch で
+[probeT]/[probeT-miss]/[probeT-extra] が出る）:
+
+- **fn_index は全 MIR fn を正規化済み return 名で 100% カバー**:
+  `ctx.fn_index`（name→return_vt+return_type_name、ctx_prep で構築、
+  `ctx_register_fn_signature` で lower 中に synth 名も追加）の全エントリに
+  対し `ctx_maybe_enum_return_type_name` 適用値と
+  `MirFunction_return_type_name` を比較 — vec_new_option_i32 で
+  **0 mismatch / 0 extra**。`callee_prop_cache` の name+ret_name を
+  fn_index 由来に切替可能で、forward-callee も pre-body に解決できる。
+- **258 miss は emit されない intrinsic/prelude decl**（`clone`、
+  `String_from` 等）。lookup 的には dead だが、`by_bare` では bare 名の
+  ambiguity が増え得る（`clone` 汚染は #730 で既知）。by_bare は
+  「emit される decl」のみに絞るか two-tier が要る。
+- **ret_variant_slot は値フロー由来で signature からは供給不可**:
+  `mir_function_return_variant_slot` は RETURN local の variant_slot を
+  body 走査で読む。per-fn pipeline では pushed 済み fn のみ供給、
+  forward-callee の dst は slot=-1 へ劣化する。callee の返す variant は
+  caller 内 dataflow では再現できないため、enum payload 直アクセスの
+  hint を失う分だけ emit code が重くなる可能性（正しさには影響なし）。
+  callee-first emit 順なら pushed 済み slot が使えて回避可能。

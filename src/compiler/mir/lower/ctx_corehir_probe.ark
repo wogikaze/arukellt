@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{clone, to_string}
+use std::prelude::{clone, eq, to_string}
 use std::text
 use corehir::expr_raw
 use corehir::frontend_ast_children
@@ -8,6 +8,10 @@ use corehir::frontend_expr_kind
 use corehir::kinds
 use mir::function_identity
 use mir::module_functions
+use mir::function_return_view
+use mir::lower::ctx_fn_index
+use mir::lower::ctx_struct_layout
+use collections::name_index
 // #851 Phase 3 probe: collect call-edge names by walking body sources
 // (CoreHIR forest or fallback AstNode) instead of reading emitted
 // CALL/REF_FUNC insts. The dump compares source-visible callees
@@ -158,5 +162,56 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
         if oi >= 0 && oi < len(edge_names) {
             stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(edge_names, oi))))))
         }
+    }
+}
+
+// #851 Phase 3 probe: can the fn_index return table (all decl names + typed
+// return names, built pre-body) replace the module-scanned callee cache?
+// For every fn_index entry, compare the enum-normalized fn_index return name
+// against MirFunction.return_type_name of the emitted MIR fn with the same
+// name. [probeT] mismatch lines show name, mir value, fn_index value;
+// [probeT-miss] entries have no MIR fn at all (never emitted / pruned),
+// [probeT-extra] MIR fns missing from fn_index (synth/closure names).
+fn mir_probe_dump_return_table_diff(ctx: LowerCtx, module: MirModule) {
+    let fn_count = module_functions::MirModule_function_count(module)
+    let mir_by_name = name_index::NameIndex_new(fn_count)
+    let mut mi = 0
+    while mi < fn_count {
+        let f = module_functions::MirModule_function_at(module, mi)
+        name_index::name_index_insert_first(mir_by_name, function_identity::MirFunction_name(f), mi)
+        mi = mi + 1
+    }
+    let idx_count = ctx_fn_index::ctx_fn_index_count(ctx)
+    let mut ii = 0
+    while ii < idx_count {
+        let name = ctx_fn_index::ctx_fn_index_name_at(ctx, ii)
+        let want = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, ii))
+        let mir = name_index::name_index_get(mir_by_name, clone(name))
+        if mir < 0 {
+            stdio::eprintln(text::concat("[probeT-miss] ", clone(name)))
+            ii = ii + 1
+            continue
+        }
+        let got = function_return_view::MirFunction_return_type_name(module_functions::MirModule_function_at(module, mir))
+        if !eq(clone(got), clone(want)) {
+            stdio::eprintln(
+                text::concat(
+                    "[probeT] ",
+                    text::concat(
+                        clone(name),
+                        text::concat(" : mir=", text::concat(clone(got), text::concat(" fnidx=", clone(want))))
+                    )
+                )
+            )
+        }
+        ii = ii + 1
+    }
+    mi = 0
+    while mi < fn_count {
+        let f = module_functions::MirModule_function_at(module, mi)
+        if ctx_fn_index::ctx_fn_index_find(ctx, function_identity::MirFunction_name(f)) < 0 {
+            stdio::eprintln(text::concat("[probeT-extra] ", function_identity::MirFunction_name(f)))
+        }
+        mi = mi + 1
     }
 }
