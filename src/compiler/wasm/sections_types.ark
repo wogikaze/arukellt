@@ -98,34 +98,43 @@ fn emit_type_section(
         linear_gc_enabled
     )
     let gc_type_base = first_gc_type_index(canon_types)
-    // Named GC structs are emitted before enum variants so Option/Result
-    // payloads can reference them via gcsref without forward type indices
-    // (#726 display_trait_vec / toml).
+    // Module GC region (#851 Phase 3): sealed types keep slot order, late
+    // types follow in registration order — gc_module_emit_slots is the
+    // single source for both the sig emission order in build_type_sigs and
+    // these slot→canonical-index maps.
+    let gc_module_emit = sections_types_gc::gc_module_emit_slots(mir)
+    let module_region_start = num_host_types + wit_import_count + gc_fixed_count + gc_callback_count
+    let gc_struct_type_map = Vec::new<i32>()
+    let gc_enum_variant_type_map = Vec::new<i32>()
+    let mut msi = 0
+    while msi < gc_struct_count {
+        push(gc_struct_type_map, 0 - 1)
+        msi = msi + 1
+    }
+    msi = 0
+    while msi < enum_variant_count {
+        push(gc_enum_variant_type_map, 0 - 1)
+        msi = msi + 1
+    }
+    let mut mei = 0
+    while mei < len(gc_module_emit) {
+        let packed = get_unchecked(gc_module_emit, mei)
+        let canon_idx = get_unchecked(type_map, module_region_start + mei)
+        if packed % 2 == 0 {
+            set(gc_struct_type_map, packed / 2, canon_idx)
+        } else {
+            set(gc_enum_variant_type_map, packed / 2, canon_idx)
+        }
+        mei = mei + 1
+    }
     let mut gc_struct_base = 0 - 1
-    if gc_struct_count > 0 && gc_type_base >= 0 {
-        gc_struct_base = gc_type_base + gc_fixed_count + gc_callback_count
+    if gc_struct_count > 0 {
+        gc_struct_base = get_unchecked(gc_struct_type_map, 0)
     }
     let mut gc_enum_variant_base = 0 - 1
-    if enum_variant_count > 0 && gc_type_base >= 0 {
-        gc_enum_variant_base = gc_type_base + gc_fixed_count + gc_callback_count + gc_struct_count
+    if enum_variant_count > 0 {
+        gc_enum_variant_base = get_unchecked(gc_enum_variant_type_map, 0)
     }
-    let gc_struct_type_map = build_gc_struct_type_map(
-        type_map,
-        num_host_types,
-        wit_import_count,
-        gc_fixed_count,
-        gc_callback_count,
-        gc_struct_count
-    )
-    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(
-        type_map,
-        num_host_types,
-        wit_import_count,
-        gc_fixed_count,
-        gc_callback_count,
-        gc_struct_count,
-        enum_variant_count
-    )
     // Pair-call signatures occupy the last pair_sig_count type_map slots.
     let pair_call_type_map = Vec::new<i32>()
     let mut pci = len(type_map) - pair_sig_count
@@ -205,43 +214,6 @@ fn build_linear_gc_type_map(
     linear_map
 }
 
-fn build_gc_struct_type_map(
-    type_map: Vec<i32>,
-    num_host_types: i32,
-    wit_import_count: i32,
-    gc_fixed_count: i32,
-    gc_callback_count: i32,
-    gc_struct_count: i32
-) -> Vec<i32> {
-    let mut struct_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_callback_count
-    let mut si = 0
-    while si < gc_struct_count {
-        push(struct_map, get_unchecked(type_map, base_idx + si))
-        si = si + 1
-    }
-    struct_map
-}
-
-fn build_gc_enum_variant_type_map(
-    type_map: Vec<i32>,
-    num_host_types: i32,
-    wit_import_count: i32,
-    gc_fixed_count: i32,
-    gc_callback_count: i32,
-    gc_struct_count: i32,
-    enum_variant_count: i32
-) -> Vec<i32> {
-    let mut variant_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_callback_count + gc_struct_count
-    let mut si = 0
-    while si < enum_variant_count {
-        push(variant_map, get_unchecked(type_map, base_idx + si))
-        si = si + 1
-    }
-    variant_map
-}
-
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
     TypeCanonPlan { canon_types: canon_types, type_map: type_map }
 }
@@ -271,9 +243,10 @@ fn build_type_sigs(
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
         sections_types_sigs::append_gc_typed_callback_type_sigs(type_sigs)
-        // Structs before enum variants so gcsref fields resolve (#726).
-        sections_types_gc::append_gc_struct_sigs(type_sigs, mir)
-        sections_types_gc::append_enum_variant_sigs(type_sigs, mir)
+        // Module GC types: sealed slots first, then late registrations in
+        // recorded order so no type references a later index (#851
+        // Phase 3 — forward refs are invalid outside a rec group).
+        sections_types_gc::append_module_gc_type_sigs(type_sigs, mir)
     }
     sections_types_sigs::append_function_type_sigs(
         type_sigs,

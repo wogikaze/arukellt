@@ -28,13 +28,27 @@ pub struct MirModule {
     gc_enum_variant_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_names: Vec<String>,
+    // Module-region split for the wasm type section (#851 Phase 3).
+    // sealed_*_count is the number of gc struct / enum variant slots
+    // registered by ctx_prep (before body lowering); -1 means the module was
+    // built outside the lowering ctx and every slot is sealed. Slots
+    // registered after the seal are "late" (enum payload variants, __fnpair,
+    // tuple/aggregate structs) and their registration order is recorded in
+    // late_gc_order as packed slot*2+kind entries (kind 0 = struct,
+    // 1 = enum variant). The type section emits sealed types first, then
+    // late types in this order, then every signature region — a forward
+    // type reference is invalid outside a rec group, so this ordering keeps
+    // every intra-module reference backward while still giving each late
+    // type a final index that is fixed at registration time.
+    sealed_gc_struct_count: i32,
+    sealed_gc_enum_count: i32,
+    late_gc_order: Vec<i32>,
     // Append-only canonical type table (#851 Phase 3). canon_sigs[i] is the
-    // i-th distinct type signature in registration/collection order and
-    // canon_index maps sig text to canon idx. Forward type references are
-    // legal in the wasm GC type section, so late registrations may append
-    // here without shifting any existing index — this is what lets per-fn
-    // body emit resolve GC type indices before the whole module's types
-    // are registered.
+    // i-th distinct type signature in ensure order and canon_index maps sig
+    // text to canon idx. For GC module types the ensure order matches the
+    // emission order above, so a registered type's final index is stable;
+    // signature-region entries may still shift and are resolved at emit
+    // time like today.
     canon_sigs: Vec<String>,
     canon_index: NameIndex,
     gc_layout_plan: MirGcLayoutPlan,
@@ -66,6 +80,9 @@ fn MirModule_new() -> MirModule {
         gc_enum_variant_names: Vec::new<String>(),
         gc_struct_sigs: Vec::new<String>(),
         gc_struct_names: Vec::new<String>(),
+        sealed_gc_struct_count: 0 - 1,
+        sealed_gc_enum_count: 0 - 1,
+        late_gc_order: Vec::new<i32>(),
         canon_sigs: Vec::new<String>(),
         canon_index: name_index::NameIndex_new(64),
         gc_layout_plan: gc_layout_plan::MirGcLayoutPlan_new(),

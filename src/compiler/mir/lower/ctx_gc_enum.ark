@@ -2,6 +2,7 @@ use std::text
 use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_struct_field_type
+use mir::module_gc_order
 use mir::module_gc_enum
 use wasm::emit_target
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
@@ -26,6 +27,15 @@ fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String
     }
     push(ctx.gc_enum_variant_names, variant_name)
     push(ctx.gc_enum_variant_sigs, sig)
+    // Post-seal registration is "late": record it so the type section emits
+    // it after the sealed types in registration order. Packed as
+    // slot*2+1 (kind 1 = enum variant). #851 Phase 3.
+    if ctx.gc_seal_done {
+        module_gc_order::MirModule_push_late_gc_order(
+            ctx.module,
+            (len(ctx.gc_enum_variant_names) - 1) * 2 + 1
+        )
+    }
     len(ctx.gc_enum_variant_names) - 1
 }
 

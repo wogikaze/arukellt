@@ -1,0 +1,29 @@
+use mir::module_record
+
+// Sealed/late split of the module GC type region (#851 Phase 3).
+// sealed counts are fixed at the ctx_prep flush; late_gc_order records
+// post-seal registrations in order as packed slot*2+kind values
+// (kind 0 = gc struct, 1 = enum variant). Emission order is
+// [sealed structs][sealed enums][late order] so every type sits before
+// its referencers — a forward type index is invalid outside a rec group.
+
+fn MirModule_set_sealed_gc_counts(m: MirModule, struct_count: i32, enum_count: i32) {
+    m.sealed_gc_struct_count = struct_count
+    m.sealed_gc_enum_count = enum_count
+}
+
+fn MirModule_sealed_gc_struct_count(m: MirModule) -> i32 {
+    m.sealed_gc_struct_count
+}
+
+fn MirModule_sealed_gc_enum_count(m: MirModule) -> i32 {
+    m.sealed_gc_enum_count
+}
+
+fn MirModule_late_gc_order(m: MirModule) -> Vec<i32> {
+    m.late_gc_order
+}
+
+fn MirModule_push_late_gc_order(m: MirModule, packed_slot_kind: i32) {
+    push(m.late_gc_order, packed_slot_kind)
+}

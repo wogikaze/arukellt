@@ -181,6 +181,12 @@ pub struct LowerCtx {
     gc_enum_variant_alias_slots: Vec<i32>,
     gc_struct_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
+    // Set once the ctx_prep prefix flush runs (entry.ark). GC types
+    // registered while true are "late": their registration order is
+    // recorded on the module so the type section can emit them after the
+    // sealed types without breaking the no-forward-reference rule
+    // (#851 Phase 3).
+    gc_seal_done: bool,
     mono_type_param_names: Vec<String>,
     mono_type_param_types: Vec<String>,
     mono_instances: Vec<MonoInstance>,

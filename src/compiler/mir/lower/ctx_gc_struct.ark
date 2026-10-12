@@ -9,6 +9,7 @@ use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_size
+use mir::module_gc_order
 use mir::module_gc_struct
 use mir::module_spine
 use wasm::sections_types_gc_phase7
@@ -40,7 +41,17 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     }
     push(ctx.gc_struct_names, clone(struct_name))
     push(ctx.gc_struct_sigs, sig)
+    ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
     ctx_intern_gc_struct_type(ctx, struct_name)
+}
+
+// Post-seal registrations append to the module's late_gc_order so the
+// type section can emit them in registration order behind the sealed
+// types (#851 Phase 3). Packed as slot*2 (kind 0 = struct).
+fn ctx_gc_note_late_struct(ctx: LowerCtx, slot: i32) {
+    if ctx.gc_seal_done {
+        module_gc_order::MirModule_push_late_gc_order(ctx.module, slot * 2)
+    }
 }
 
 // The shared fn-pair record {fnptr, env} (#872). Registered lazily so
@@ -70,6 +81,7 @@ fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {
     }
     push(ctx.gc_struct_names, struct_name)
     push(ctx.gc_struct_sigs, sig)
+    ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
 }
 
 // Ensure a nested struct field has a named GC slot before the parent sig is

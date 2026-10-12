@@ -22,6 +22,7 @@ use mir::lower::mono_view
 use mir::lower::registry_view
 use mir::lower::trace
 use mir::module_factory
+use mir::module_gc_order
 use mir::module_functions
 use mir::post_pass_callee_cache
 use mir::post_pass_type_propagate
@@ -64,6 +65,17 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
     let sealed_structs = ctx_gc_struct::ctx_gc_struct_count(ctx)
     let sealed_enums = ctx_gc_enum::ctx_gc_enum_variant_count(ctx)
+    // #851 Phase 3: everything sealed so far keeps its slot position in
+    // the module type region. Registrations after this point are "late"
+    // and get recorded on the module in registration order so emit can
+    // place them after the sealed types — a forward type index is invalid
+    // outside a rec group.
+    ctx.gc_seal_done = true
+    module_gc_order::MirModule_set_sealed_gc_counts(
+        ctx.module,
+        sealed_structs,
+        sealed_enums
+    )
     let t_after_ctx = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, "ctx_prep", t_after_fn_index, t_after_ctx)
     // #851 Phase 3: snapshot the fn_index return catalog onto the module so

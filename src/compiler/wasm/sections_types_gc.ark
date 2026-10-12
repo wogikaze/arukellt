@@ -9,6 +9,7 @@
 use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use std::text
 use mir::module_gc_enum
+use mir::module_gc_order
 use mir::module_gc_struct
 use wasm::constants
 use wasm::opcodes
@@ -261,15 +262,6 @@ fn gc_hashmap_str_fn_type_sig() -> String {
     "gcref32"
 }
 
-fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
-    let count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
-    let mut i = 0
-    while i < count {
-        push(type_sigs, module_gc_enum::MirModule_gc_enum_variant_sig_at(mir, i))
-        i = i + 1
-    }
-}
-
 fn gc_struct_sig_as_final(sig: String) -> String {
     if starts_with(clone(sig), "GS_f") {
         return text::concat("SubF_", sig)
@@ -277,12 +269,96 @@ fn gc_struct_sig_as_final(sig: String) -> String {
     sig
 }
 
-fn append_gc_struct_sigs(type_sigs: Vec<String>, mir: MirModule) {
-    let count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
+// Emission order of the module GC type region, packed slot*2+kind
+// (kind 0 = struct, 1 = enum variant). Sealed slots keep slot order, then
+// late slots follow late_gc_order so every type is emitted before its
+// referencers — a forward type index is invalid outside a rec group
+// (#851 Phase 3). Late slots missing from the order list still emit at
+// the tail, grouped by kind, so a missed recording cannot silently drop
+// a type.
+fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
+    let struct_total = module_gc_struct::MirModule_gc_struct_sig_count(mir)
+    let enum_total = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
+    let mut sealed_structs = module_gc_order::MirModule_sealed_gc_struct_count(mir)
+    let mut sealed_enums = module_gc_order::MirModule_sealed_gc_enum_count(mir)
+    if sealed_structs < 0 || sealed_structs > struct_total {
+        sealed_structs = struct_total
+    }
+    if sealed_enums < 0 || sealed_enums > enum_total {
+        sealed_enums = enum_total
+    }
+    let emit_slots = Vec::new<i32>()
     let mut i = 0
-    while i < count {
-        let sig = module_gc_struct::MirModule_gc_struct_sig_at(mir, i)
-        push(type_sigs, gc_struct_sig_as_final(sig))
+    while i < sealed_structs {
+        push(emit_slots, i * 2)
+        i = i + 1
+    }
+    i = 0
+    while i < sealed_enums {
+        push(emit_slots, i * 2 + 1)
+        i = i + 1
+    }
+    let mut seen_struct = Vec::new<i32>()
+    let mut seen_enum = Vec::new<i32>()
+    i = 0
+    while i < struct_total {
+        push(seen_struct, 0)
+        i = i + 1
+    }
+    i = 0
+    while i < enum_total {
+        push(seen_enum, 0)
+        i = i + 1
+    }
+    i = 0
+    let order = module_gc_order::MirModule_late_gc_order(mir)
+    while i < len(order) {
+        let packed = get_unchecked(order, i)
+        let slot = packed / 2
+        if packed % 2 == 0 {
+            if slot >= sealed_structs && slot < struct_total &&
+            get_unchecked(seen_struct, slot) == 0 {
+                set(seen_struct, slot, 1)
+                push(emit_slots, packed)
+            }
+        } else {
+            if slot >= sealed_enums && slot < enum_total &&
+            get_unchecked(seen_enum, slot) == 0 {
+                set(seen_enum, slot, 1)
+                push(emit_slots, packed)
+            }
+        }
+        i = i + 1
+    }
+    i = sealed_structs
+    while i < struct_total {
+        if get_unchecked(seen_struct, i) == 0 {
+            push(emit_slots, i * 2)
+        }
+        i = i + 1
+    }
+    i = sealed_enums
+    while i < enum_total {
+        if get_unchecked(seen_enum, i) == 0 {
+            push(emit_slots, i * 2 + 1)
+        }
+        i = i + 1
+    }
+    emit_slots
+}
+
+fn append_module_gc_type_sigs(type_sigs: Vec<String>, mir: MirModule) {
+    let emit_slots = gc_module_emit_slots(mir)
+    let mut i = 0
+    while i < len(emit_slots) {
+        let packed = get_unchecked(emit_slots, i)
+        let slot = packed / 2
+        if packed % 2 == 0 {
+            let sig = module_gc_struct::MirModule_gc_struct_sig_at(mir, slot)
+            push(type_sigs, gc_struct_sig_as_final(sig))
+        } else {
+            push(type_sigs, module_gc_enum::MirModule_gc_enum_variant_sig_at(mir, slot))
+        }
         i = i + 1
     }
 }
