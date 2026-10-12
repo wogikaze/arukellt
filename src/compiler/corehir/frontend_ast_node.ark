@@ -37,6 +37,10 @@ fn corehir_node_span_start(node: AstNode) -> i32 {
     frontend_ast_span::corehir_node_span_start(node)
 }
 
+fn corehir_node_span_end(node: AstNode) -> i32 {
+    frontend_ast_span::corehir_node_span_end(node)
+}
+
 fn corehir_node_op(node: AstNode) -> i32 {
     frontend_ast_literals::corehir_node_op(node)
 }

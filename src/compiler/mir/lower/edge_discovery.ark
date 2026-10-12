@@ -1,16 +1,31 @@
-use std::prelude::{byte_at, clone, contains, eq, substring}
+use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring, trim}
 use std::text
 use collections::name_index
 use wasm::hash_aliases
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_ast_span
+use corehir::frontend_ast_type_ann
+use corehir::expr_node_access
 use corehir::frontend_expr_kind
 use corehir::mir_signature_method
 use corehir::mod
+use corehir::param
+use corehir::type_ann_node
+use mir::lower::ann_types
 use mir::lower::entry_fns_mono
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_mono
+use mir::lower::ctx_fn_return_type
+use mir::lower::ctx_mono_rewrites
+use mir::lower::fn_index_method_return_type
+use mir::lower::for_iter_resolve
+use mir::lower::mono_suffix_parse
+use mir::lower::call_rewrite_method
+use mir::lower::call_rewrite_hashmap
+use mir::lower::call_rewrite_vec
+use mir::lower::ctx_struct_lookup
+use mir::lower::method_resolve
 use mir::lower::decl_source
 use mir::lower::entry_body_source
 use mir::lower::entry_body_input
@@ -51,6 +66,63 @@ struct AstEdgeTable {
     base_index: NameIndex,
     base_names: Vec<String>,
     base_lists: Vec<Vec<String>>,
+}
+
+// Per-decl memo for edge_infer_expr_type results on method-call nodes,
+// keyed by the node's source span. A node's inferred type is fixed for
+// the whole walk of its decl: env bindings only change at let
+// statements, and a memoized node is only ever re-queried along its
+// ancestors' receiver spine, which is reached before any sibling let.
+// Caching turns the nested receiver-type recursion on a.k1().k2()…
+// chains from O(depth^2) resolve/concat work into one resolution per
+// node — the difference that keeps big std bodies under the runtime
+// collector's allocation watermark. Entries are cleared per decl: env
+// contents are decl-scoped and short entry lists keep lookups linear.
+struct EdgeTypeMemo {
+    starts: Vec<i32>,
+    ends: Vec<i32>,
+    types: Vec<String>,
+}
+
+fn edge_type_memo_find(memo: EdgeTypeMemo, span_start: i32, span_end: i32) -> i32 {
+    let mut i = 0
+    while i < len(memo.starts) {
+        if get_unchecked(memo.starts, i) == span_start && get_unchecked(memo.ends, i) == span_end {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+// Reuse the per-decl walk allocations: popping to empty keeps each
+// Vec's backing array, so the next decl's seed/collect does not re-grow
+// from zero. The runtime collector fires on cumulative allocation, so
+// this directly lowers the walk's watermark cost.
+fn edge_walk_state_clear(
+    env_names: Vec<String>,
+    env_types: Vec<String>,
+    segment: Vec<String>,
+    memo: EdgeTypeMemo
+) {
+    while len(env_names) > 0 {
+        pop(env_names)
+    }
+    while len(env_types) > 0 {
+        pop(env_types)
+    }
+    while len(segment) > 0 {
+        pop(segment)
+    }
+    while len(memo.starts) > 0 {
+        pop(memo.starts)
+    }
+    while len(memo.ends) > 0 {
+        pop(memo.ends)
+    }
+    while len(memo.types) > 0 {
+        pop(memo.types)
+    }
 }
 
 fn edge_index_add(index: NameIndex, keys: Vec<String>, lists: Vec<Vec<String>>, key: String, val: String) {
@@ -240,27 +312,820 @@ fn edge_emit_names_for_method(mangled: String, midx: MonoIndex) -> Vec<String> {
     names
 }
 
+// Span-rewrite sources compare on the bare name only (the text after the
+// last ':'), so HashMap::insert and insert name the same source.
+fn edge_mono_sources_match(candidate: String, requested: String) -> bool {
+    if eq(clone(candidate), clone(requested)) {
+        return true
+    }
+    eq(ctx_mono_rewrites::mono_bare_source(candidate), ctx_mono_rewrites::mono_bare_source(requested))
+}
+
+// Every span rewrite whose source matches raw, concretized to emit
+// names. Unlike ctx_mono_lookup_call this does not require the target to
+// share the source__ prefix shape — typed adapter names such as
+// hashmap_str_i32_set are valid resolutions for source insert — and it
+// collects all same-source targets instead of consuming the first unused
+// one (emit-time cursor semantics are an emit concern, not an edge one).
+fn edge_mono_span_targets(ctx: LowerCtx, span_start: i32, raw: String, out: Vec<String>) {
+    let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
+    while cursor > 0 {
+        let i = cursor - 1
+        if get_unchecked(ctx.mono_call_starts, i) == span_start {
+            let cand_source = ctx_mono_rewrites::ctx_mono_span_rewrite_source_at(ctx, i)
+            if edge_mono_sources_match(cand_source, clone(raw)) {
+                let target = ctx_fn_mono::ctx_mono_concretize_span_target(
+                    ctx,
+                    ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, i)
+                )
+                if len(target) > 0 && !entry_fns_mono::string_vec_contains(clone(out), clone(target)) {
+                    push(out, target)
+                }
+            }
+        }
+        cursor = get_unchecked(ctx.mono_span_next, i)
+    }
+}
+
 fn edge_add_callee_candidates(ctx: LowerCtx, out: Vec<String>, raw: String, span_start: i32) {
     if len(raw) == 0 {
         return
+    }
+    if ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start) > 0 {
+        let precise = Vec::new<String>()
+        edge_mono_span_targets(ctx, span_start, clone(raw), precise)
+        if len(precise) > 0 {
+            // The typechecker already resolved this site: keep the
+            // precise targets and skip the bare spelling. A bare
+            // spelling like get/insert/next resolves through bare_index
+            // to every _-segment family in the module, which cascades
+            // the keep set ~10x and stalls emit on allocation churn
+            // (2026-10-12 hashmap_growth regression: 42->457 kept fns,
+            // compile hang).
+            let mut pi = 0
+            while pi < len(precise) {
+                push(out, clone(get_unchecked(precise, pi)))
+                pi = pi + 1
+            }
+            return
+        }
     }
     push(out, clone(raw))
     let alias = hash_aliases::hashmap_builtin_alias(clone(raw))
     if !eq(clone(alias), clone(raw)) {
         push(out, alias)
     }
-    let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, raw)
-    if len(mono_target) > 0 {
-        push(out, mono_target)
+}
+
+// Receiver-type environment: emit resolves recv.m() through the
+// receiver's local type — hashmap:<pair> receivers rewrite to
+// hash_map::hashmap_<pair>_m adapter bodies
+// (call_rewrite_hashmap::mir_rewrite_hashmap_method) and impl methods
+// register under Owner::m / InstOwner::m
+// (call_rewrite_method::mir_try_resolve_impl_method) — so the bare
+// spelling "m" reaches neither when no mono instance spells the pair.
+// HashMap<i32,i32>::values is adapter-only: the worklist dropped
+// hashmap_i32_i32_values and the emitted call stubbed to unreachable
+// (2026-10-13 hashmap_entries_values regression). let/param bindings
+// give the AST walk the same receiver types the MIR side reads via
+// ctx_get_local_type.
+fn edge_env_get(names: Vec<String>, types: Vec<String>, name: String) -> String {
+    let mut i = 0
+    while i < len(names) {
+        if eq(clone(get_unchecked(names, i)), clone(name)) {
+            return clone(get_unchecked(types, i))
+        }
+        i = i + 1
     }
+    String_new()
+}
+
+fn edge_env_set(names: Vec<String>, types: Vec<String>, name: String, ty: String) {
+    let mut i = 0
+    while i < len(names) {
+        if eq(clone(get_unchecked(names, i)), clone(name)) {
+            set(types, i, ty)
+            return
+        }
+        i = i + 1
+    }
+    push(names, name)
+    push(types, ty)
+}
+
+// fn_index return type for a spelling, trying the after-last-`::` suffix
+// a qualified candidate needs (hash_map::hashmap_i32_i32_new registers
+// under the bare emit name).
+fn edge_fn_index_return_type(ctx: LowerCtx, name: String) -> String {
+    let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    if ni >= 0 {
+        return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, ni)
+    }
+    if contains(clone(name), String_from("::")) {
+        let short = edge_after_last(name, 58, 58)
+        let si = ctx_fn_index::ctx_fn_index_find(ctx, clone(short))
+        if si >= 0 {
+            return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, si)
+        }
+    }
+    String_new()
+}
+
+// Registered return type for a callee spelling. The hashmap-constructor
+// rewrite runs first: HashMap__new__i32__i32 also names the generic
+// HashMap::new decl whose return is the unsubstituted HashMap<K, V>,
+// while the hash_map::hashmap_i32_i32_new adapter carries the concrete
+// pair name the receiver-type dispatch needs.
+fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
+    let ctor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(name))
+    if len(ctor) > 0 {
+        let crt = edge_fn_index_return_type(ctx, clone(ctor))
+        if len(crt) > 0 {
+            return crt
+        }
+    }
+    let direct = edge_fn_index_return_type(ctx, clone(name))
+    if len(direct) > 0 {
+        return direct
+    }
+    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        return edge_fn_index_return_type(ctx, clone(alias))
+    }
+    String_new()
+}
+
+// HashMap::new<i32, i32>-style callee paths carry their type arguments
+// as children 1..n (child 0 is the path head). Returns the mono instance
+// spelling (HashMap__new__i32__i32) or "" when no argument list is
+// present or an argument has no name spelling. Same tag rule as
+// body_call_direct::mir_hashmap_ctor_type_arg_name: fn(i32) -> i32
+// spells fn_i32_i32_.
+fn edge_ctor_spelling(callee: AstNode) -> String {
+    let count = frontend_ast_children::corehir_node_child_count(callee)
+    if count < 2 {
+        return String_new()
+    }
+    let mut name = frontend_ast_identity::corehir_node_text(callee)
+    if len(name) == 0 {
+        return String_new()
+    }
+    let mut i = 1
+    while i < count {
+        let arg = frontend_ast_children::corehir_node_child_at(callee, i)
+        let mut tag = String_new()
+        if type_ann_node::type_ann_is_named(arg) {
+            tag = type_ann_node::type_ann_name(arg)
+        } else if type_ann_node::type_ann_is_i32_i32_fn(arg) {
+            tag = String_from("fn_i32_i32_")
+        }
+        if len(tag) == 0 {
+            return String_new()
+        }
+        name = text::concat(clone(name), text::concat(String_from("__"), clone(tag)))
+        i = i + 1
+    }
+    mono::mono_safe_name(name)
+}
+
+// Typed candidates for recv.m() — mirrors the emit-time receiver-type
+// dispatch in call_rewrite::mir_rewrite_call_target /
+// call_rewrite_method::mir_try_resolve_impl_method:
+//   hashmap:<pair> receiver -> hash_map::hashmap_<pair>_m adapter +
+//     HashMap_<pair>::m trait-impl owner (contains_key -> _contains)
+//   vec:/struct:/generic receivers -> Vec::m / Struct::m / Inst::m
+// Every pushed name resolves later through edge_resolve_candidate, so
+// dead spellings cost nothing while a hit keeps the adapter body alive.
+fn edge_push_typed_method_candidates(out: Vec<String>, recv_ty: String, method: String) {
+    if len(recv_ty) == 0 || len(method) == 0 {
+        return
+    }
+    // HashMap<i32, i32> spellings normalize to the per-instantiation
+    // owner form the impl-registration side uses.
+    let mut owner_ty = clone(recv_ty)
+    if contains(clone(recv_ty), String_from("<")) {
+        owner_ty = method_resolve::mir_inst_owner_name(clone(recv_ty))
+    }
+    let family = call_rewrite_hashmap::hashmap_family_for_type(clone(owner_ty))
+    if len(family) > 0 {
+        let meth = call_rewrite_hashmap::hashmap_method_name(clone(method))
+        if len(meth) > 0 {
+            if eq(clone(meth), String_from("contains_key")) {
+                push(out, text::concat(clone(family), String_from("_contains")))
+            } else {
+                push(out, text::concat(clone(family), text::concat(String_from("_"), clone(meth))))
+            }
+        }
+        let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
+        if len(pair_owner) > 0 {
+            push(out, text::concat(clone(pair_owner), text::concat(String_from("::"), clone(method))))
+        }
+    }
+    let bare_owner = call_rewrite_method::mir_bare_receiver_type_name(clone(owner_ty))
+    if len(bare_owner) > 0 {
+        push(out, text::concat(clone(bare_owner), text::concat(String_from("::"), clone(method))))
+    }
+    // Per-instantiation impl owner (GenTakeIter<VecIter> ->
+    // GenTakeIter_VecIter::m); differs from bare_owner only for generic
+    // receivers the pair form did not already cover.
+    let inst_owner = method_resolve::mir_inst_owner_name(clone(recv_ty))
+    if len(inst_owner) > 0 && !eq(clone(inst_owner), clone(bare_owner)) {
+        push(out, text::concat(clone(inst_owner), text::concat(String_from("::"), clone(method))))
+    }
+}
+
+// Site-level method resolution: run the same lookup lowering runs for a
+// desugared Owner::method call (mono span record -> registered name ->
+// parametric impl instance -> pooled name rewrite). Returns the
+// emit-level callee name or "" when nothing resolves — the caller then
+// keeps the bare candidate path.
+fn edge_desugar_resolved(ctx: LowerCtx, span_start: i32, declared: String) -> String {
+    for_iter_resolve::mir_for_desugar_callee(ctx, span_start, declared)
+}
+
+fn edge_push_resolved_once(out: Vec<String>, resolved: String) {
+    if len(resolved) == 0 {
+        return
+    }
+    if !entry_fns_mono::string_vec_contains(clone(out), clone(resolved)) {
+        push(out, resolved)
+    }
+}
+
+// Concrete callee names emit could call for recv.m(), mirroring
+// mir_rewrite_call_target / mir_try_resolve_impl_method plus the
+// coreop/intrinsic preferences: hashmap-pair adapters, per-instantiation
+// and bare impl owners through the desugar resolver, and the
+// vec-coreop/builtin-intrinsic leaves a preferred mapping emits
+// directly. Resolved names dedupe; an empty result means the caller
+// must keep the bare candidate fallback.
+fn edge_resolve_method_site(
+    ctx: LowerCtx,
+    span_start: i32,
+    recv_ty: String,
+    method: String,
+    out: Vec<String>
+) {
+    if len(recv_ty) == 0 || len(method) == 0 {
+        return
+    }
+    let mut owner_ty = clone(recv_ty)
+    if starts_with(clone(owner_ty), String_from("?")) {
+        owner_ty = substring(owner_ty, 1, len(owner_ty))
+    }
+    if contains(clone(owner_ty), String_from("<")) {
+        owner_ty = method_resolve::mir_inst_owner_name(clone(owner_ty))
+    }
+    // HashMap pair receivers lower to per-pair adapter bodies
+    // (hash_map::hashmap_i32_i32_values) plus the pair-owner impl spell
+    // — both shapes the emit hashmap rewrite produces.
+    let family = call_rewrite_hashmap::hashmap_family_for_type(clone(owner_ty))
+    if len(family) > 0 {
+        let meth = call_rewrite_hashmap::hashmap_method_name(clone(method))
+        if len(meth) > 0 {
+            let adapter = if eq(clone(meth), String_from("contains_key")) {
+                text::concat(clone(family), String_from("_contains"))
+            } else {
+                text::concat(clone(family), text::concat(String_from("_"), clone(meth)))
+            }
+            edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, adapter))
+        }
+        let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
+        if len(pair_owner) > 0 {
+            let declared = text::concat(
+                clone(pair_owner),
+                text::concat(String_from("::"), clone(method))
+            )
+            edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, declared))
+        }
+    }
+    let owners = Vec::new<String>()
+    let inst_owner = method_resolve::mir_inst_owner_name(clone(owner_ty))
+    if len(inst_owner) > 0 {
+        push(owners, clone(inst_owner))
+    }
+    let bare_owner = call_rewrite_method::mir_bare_receiver_type_name(clone(owner_ty))
+    if len(bare_owner) > 0 &&
+    !entry_fns_mono::string_vec_contains(clone(owners), clone(bare_owner)) {
+        push(owners, clone(bare_owner))
+    }
+    let mut oi = 0
+    while oi < len(owners) {
+        let declared = text::concat(
+            clone(get_unchecked(owners, oi)),
+            text::concat(String_from("::"), clone(method))
+        )
+        edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, clone(declared)))
+        // Preferred coreop / intrinsic leaves: when the owner method maps
+        // onto a coreop name (Vec::read -> vec_read) or a builtin
+        // intrinsic, emit can call that leaf even when the Owner::m
+        // spelling itself is not a registered fn.
+        let coreop = method_resolve::mir_vec_method_prefer_coreop_name(clone(declared))
+        if len(coreop) > 0 {
+            edge_push_resolved_once(out, coreop)
+        }
+        let intr = method_resolve::mir_builtin_method_to_intrinsic(
+            clone(declared),
+            clone(method)
+        )
+        if len(intr) > 0 && !eq(clone(intr), clone(declared)) {
+            edge_push_resolved_once(out, intr)
+        }
+        oi = oi + 1
+    }
+}
+
+// Local-type spelling for an expression, from the let/param env plus
+// constructor and call return types. "" when the shape is unknown —
+// callers then record only the bare method spelling, which still
+// resolves through bare_index (wrong-type entries over-keep, never
+// under-keep).
+fn edge_infer_expr_type(
+    ctx: LowerCtx,
+    node: AstNode,
+    env_names: Vec<String>,
+    env_types: Vec<String>,
+    memo: EdgeTypeMemo
+) -> String {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    if frontend_expr_kind::corehir_kind_is_expr_ident(kind) {
+        return edge_env_get(env_names, env_types, frontend_ast_identity::corehir_node_text(node))
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_call(kind) &&
+    frontend_ast_children::corehir_node_child_count(node) > 0 {
+        let callee = frontend_ast_children::corehir_node_child_at(node, 0)
+        // Explicit type args name the precise instance
+        // (HashMap::new<i32, i32> -> HashMap__new__i32__i32).
+        let sp = edge_ctor_spelling(callee)
+        if len(sp) > 0 {
+            let typed_rt = edge_call_return_type(ctx, clone(sp))
+            if len(typed_rt) > 0 {
+                return typed_rt
+            }
+        }
+        return edge_call_return_type(ctx, frontend_ast_identity::corehir_node_text(callee))
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) &&
+    frontend_ast_children::corehir_node_child_count(node) > 0 {
+        let node_span_start = frontend_ast_span::corehir_node_span_start(node)
+        let node_span_end = frontend_ast_span::corehir_node_span_end(node)
+        let memo_idx = edge_type_memo_find(memo, node_span_start, node_span_end)
+        if memo_idx >= 0 {
+            return clone(get_unchecked(memo.types, memo_idx))
+        }
+        let inferred = edge_infer_method_type(ctx, node, env_names, env_types, memo)
+        push(memo.starts, node_span_start)
+        push(memo.ends, node_span_end)
+        push(memo.types, clone(inferred))
+        return inferred
+    }
+    if kind == frontend_kind_map::nk_int_lit() {
+        return String_from("i32")
+    }
+    if kind == frontend_kind_map::nk_float_lit() {
+        return String_from("f64")
+    }
+    if kind == frontend_kind_map::nk_string_lit() {
+        return String_from("String")
+    }
+    if kind == frontend_kind_map::nk_bool_lit() {
+        return String_from("bool")
+    }
+    if kind == frontend_kind_map::nk_char_lit() {
+        return String_from("char")
+    }
+    String_new()
+}
+
+fn edge_infer_method_type(
+    ctx: LowerCtx,
+    node: AstNode,
+    env_names: Vec<String>,
+    env_types: Vec<String>,
+    memo: EdgeTypeMemo
+) -> String {
+    let recv_ty = edge_infer_expr_type(
+        ctx,
+        frontend_ast_children::corehir_node_child_at(node, 0),
+        env_names,
+        env_types,
+        memo
+    )
+    if len(recv_ty) > 0 {
+        // Resolve the site the way lowering does so trait-default and
+        // parametric impl methods (VecIter::map ->
+        // Iterator__map__VecIter-style instance names) still name a
+        // return type — the raw typed candidates only spell owner
+        // names that may not exist in fn_index.
+        let resolved = Vec::new<String>()
+        edge_resolve_method_site(
+            ctx,
+            frontend_ast_span::corehir_node_span_start(node),
+            clone(recv_ty),
+            frontend_ast_identity::corehir_node_text(node),
+            resolved
+        )
+        let mut ri = 0
+        while ri < len(resolved) {
+            let rt = edge_call_return_type(ctx, clone(get_unchecked(resolved, ri)))
+            if len(rt) > 0 {
+                return rt
+            }
+            ri = ri + 1
+        }
+        let cands = Vec::new<String>()
+        edge_push_typed_method_candidates(
+            cands,
+            clone(recv_ty),
+            frontend_ast_identity::corehir_node_text(node)
+        )
+        let mut ci = 0
+        while ci < len(cands) {
+            let rt = edge_call_return_type(ctx, clone(get_unchecked(cands, ci)))
+            if len(rt) > 0 {
+                return rt
+            }
+            ci = ci + 1
+        }
+    }
+    edge_call_return_type(ctx, frontend_ast_identity::corehir_node_text(node))
+}
+
+// Params carry local-type spellings (hashmap:<pair>, vec:<elem>,
+// struct:Name:size) the receiver-type paths consume directly.
+fn edge_seed_params(
+    entry_view: MirLowerEntryView,
+    info_index: i32,
+    is_method: bool,
+    env_names: Vec<String>,
+    env_types: Vec<String>
+) {
+    if info_index < 0 {
+        return
+    }
+    let mut pc = 0
+    if is_method {
+        pc = entry_view_method::mir_entry_method_param_count_at(entry_view, info_index, 0)
+    } else {
+        pc = entry_view_fn::mir_entry_fn_param_count_at(entry_view, info_index, 0)
+    }
+    let mut i = 0
+    while i < pc {
+        // Method info indices address a different table than fn info
+        // indices; picking the wrong accessor overruns fn_infos.
+        let p = if is_method {
+            entry_view_method::mir_entry_method_param_at(entry_view, info_index, i)
+        } else {
+            entry_view_fn::mir_entry_fn_param_at(entry_view, info_index, i)
+        }
+        let pname = param::param_name(clone(p))
+        let pty = param::param_local_type_name(p)
+        if len(pname) > 0 && len(pty) > 0 {
+            edge_env_set(env_names, env_types, pname, pty)
+        }
+        i = i + 1
+    }
+}
+
+// Operator desugars produce trait impl calls no AST node spells by name:
+// a+b on non-scalars lowers to Add::add, !x to Not::not, a[i] to
+// Index::index / IndexMut::index_set, and for/comprehension iteration to
+// iter/next. Candidates go through edge_add_callee_candidates so a mono
+// span rewrite yields the precise impl; only when mono has no record do
+// they fall back to the bare_index family fan-out (over-keep) — without
+// them the impl is dropped and the call site stubs to unreachable,
+// which surfaced as question_mark validation failures and
+// iterator/operator runtime traps (2026-10-12).
+fn edge_push_binary_op_candidates(ctx: LowerCtx, out: Vec<String>, op: i32, span_start: i32) {
+    if op == lower_kinds::OP_ADD() { edge_add_callee_candidates(ctx, out, "add", span_start) }
+    if op == lower_kinds::OP_SUB() { edge_add_callee_candidates(ctx, out, "sub", span_start) }
+    if op == lower_kinds::OP_MUL() { edge_add_callee_candidates(ctx, out, "mul", span_start) }
+    if op == lower_kinds::OP_DIV() { edge_add_callee_candidates(ctx, out, "div", span_start) }
+    if op == lower_kinds::OP_MOD() { edge_add_callee_candidates(ctx, out, "rem", span_start) }
+    if op == lower_kinds::OP_EQ() || op == lower_kinds::OP_NEQ() {
+        edge_add_callee_candidates(ctx, out, "eq", span_start)
+    }
+    if op == lower_kinds::OP_LT() || op == lower_kinds::OP_LTEQ() ||
+    op == lower_kinds::OP_GT() || op == lower_kinds::OP_GTEQ() {
+        edge_add_callee_candidates(ctx, out, "cmp", span_start)
+        edge_add_callee_candidates(ctx, out, "partial_cmp", span_start)
+    }
+    if op == lower_kinds::OP_BIT_AND() { edge_add_callee_candidates(ctx, out, "bitand", span_start) }
+    if op == lower_kinds::OP_BIT_OR() { edge_add_callee_candidates(ctx, out, "bitor", span_start) }
+    if op == lower_kinds::OP_BIT_XOR() { edge_add_callee_candidates(ctx, out, "bitxor", span_start) }
+    if op == lower_kinds::OP_SHL() { edge_add_callee_candidates(ctx, out, "shl", span_start) }
+    if op == lower_kinds::OP_SHR() { edge_add_callee_candidates(ctx, out, "shr", span_start) }
+}
+
+fn edge_push_unary_op_candidates(ctx: LowerCtx, out: Vec<String>, op: i32, span_start: i32) {
+    if op == lower_kinds::UOP_NEG() { edge_add_callee_candidates(ctx, out, "neg", span_start) }
+    if op == lower_kinds::UOP_NOT() { edge_add_callee_candidates(ctx, out, "not", span_start) }
+    if op == lower_kinds::UOP_BITNOT() { edge_add_callee_candidates(ctx, out, "bitnot", span_start) }
+}
+
+// Mono-suffix type-key lookup, mirroring sig_reg_resolve_mono_type_key:
+// one key substitutes every variable, multi-key names map T/K/A->0,
+// E/B->1, ... through mono_type_var_to_index.
+fn edge_resolve_mono_type_key(type_var: String, mono_suffix: String) -> String {
+    if starts_with(clone(mono_suffix), String_from("Vec")) {
+        return mono_suffix
+    }
+    let keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
+    let key_count = len(keys)
+    if key_count <= 0 {
+        return String_new()
+    }
+    if key_count == 1 {
+        return get_unchecked(keys, 0)
+    }
+    let idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var))
+    if idx >= 0 && idx < key_count {
+        return get_unchecked(keys, idx)
+    }
+    get_unchecked(keys, 0)
+}
+
+// Comma-separated top-level segments of a generic argument list (angle
+// brackets nest, so Vec<HashMap<K, V>, T> splits into two args).
+fn edge_split_angle_args(inner: String, out: Vec<String>) {
+    let mut depth = 0
+    let mut seg_start = 0
+    let n = len(inner)
+    let mut i = 0
+    while i <= n {
+        let at_end = i == n
+        let ch = if at_end { 44 } else { byte_at(clone(inner), i) }
+        if ch == 60 {
+            depth = depth + 1
+        }
+        if ch == 62 {
+            depth = depth - 1
+        }
+        if (ch == 44 && depth == 0) || at_end {
+            push(out, substring(clone(inner), seg_start, i))
+            seg_start = i + 1
+        }
+        i = i + 1
+    }
+}
+
+// Substitute type variables inside Name<a, b> angle args by argument
+// position from the mono suffix keys, keeping the declared spelling —
+// owner normalization (mir_inst_owner_name) flattens the result for
+// lookup. Any angle arg left unsubstituted is a variable the suffix
+// cannot express (fn signatures), which is fine: owner spellings with a
+// variable segment simply miss fn_index and over-keep through the bare
+// fallback.
+fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
+    let lt = index_of(clone(ty), String_from("<"))
+    if lt <= 0 || byte_at(clone(ty), len(ty) - 1) != 62 {
+        return ty
+    }
+    let head = substring(clone(ty), 0, lt)
+    let inner = substring(clone(ty), lt + 1, len(ty) - 1)
+    let args = Vec::new<String>()
+    edge_split_angle_args(inner, args)
+    if len(args) == 0 {
+        return ty
+    }
+    let mut changed = false
+    let mut rebuilt = text::concat(head, String_from("<"))
+    let mut i = 0
+    while i < len(args) {
+        let arg = trim(clone(get_unchecked(args, i)))
+        let mut out_arg = clone(arg)
+        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(arg)) && i < len(keys) {
+            out_arg = clone(get_unchecked(keys, i))
+            changed = true
+        }
+        if i > 0 {
+            rebuilt = text::concat(rebuilt, String_from(","))
+        }
+        rebuilt = text::concat(rebuilt, out_arg)
+        i = i + 1
+    }
+    if !changed {
+        return ty
+    }
+    text::concat(rebuilt, String_from(">"))
+}
+
+// Substitute the type variables of one local-type spelling through a mono
+// instance's emit-name suffix. Mirrors sig_reg_subst_mono_param_type_name
+// but reads only the mangled-name suffix: MonoInstance type args are not
+// reachable here, so fn-valued type arguments stay unsubstituted and the
+// affected calls fall back to the bare candidate path (over-keep, never
+// under-keep). A leading ? (ref/borrow) is dropped — receiver dispatch
+// only reads the underlying owner.
+fn edge_subst_param_type(ty: String, emit_name: String) -> String {
+    if len(ty) == 0 || len(emit_name) == 0 {
+        return ty
+    }
+    let suffix = mono_suffix_parse::extract_mono_suffix(clone(emit_name))
+    if len(suffix) == 0 {
+        return ty
+    }
+    let mut work = clone(ty)
+    if starts_with(clone(work), String_from("?")) {
+        work = substring(work, 1, len(work))
+    }
+    if starts_with(clone(work), String_from("vec:")) {
+        let elem = substring(clone(work), 4, len(work))
+        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+            return ty
+        }
+        let concrete = edge_resolve_mono_type_key(clone(elem), clone(suffix))
+        if len(concrete) == 0 {
+            return ty
+        }
+        return text::concat(String_from("vec:"), concrete)
+    }
+    if starts_with(clone(work), String_from("option:")) {
+        let elem = substring(clone(work), 7, len(work))
+        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+            return ty
+        }
+        let concrete = edge_resolve_mono_type_key(clone(elem), clone(suffix))
+        if len(concrete) == 0 {
+            return ty
+        }
+        return text::concat(String_from("option:"), concrete)
+    }
+    if starts_with(clone(work), String_from("hashmap:")) {
+        // Unresolved hashmap:K:V spellings alias the pair positionally
+        // (declaration order), the same rule
+        // sig_reg_mono_hashmap_param_alias applies through MonoInstance
+        // args. Rebuild the HashMap_k_v spelling owner lookup accepts
+        // (mir_hashmap_impl_owner_name / hashmap_family_for_type).
+        let args = substring(clone(work), 8, len(work))
+        let colon = index_of(clone(args), String_from(":"))
+        if colon < 0 {
+            return ty
+        }
+        let keys = mono_suffix_parse::split_mono_suffix(clone(suffix))
+        if len(keys) < 2 {
+            return ty
+        }
+        let key_seg = substring(clone(args), 0, colon)
+        let val_seg = substring(clone(args), colon + 1, len(args))
+        let mut key_out = clone(key_seg)
+        let mut val_out = clone(val_seg)
+        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(key_seg)) {
+            key_out = clone(get_unchecked(keys, 0))
+        }
+        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(val_seg)) {
+            val_out = clone(get_unchecked(keys, 1))
+        }
+        if eq(clone(key_out), clone(key_seg)) && eq(clone(val_out), clone(val_seg)) {
+            return ty
+        }
+        return text::concat(
+            String_from("HashMap_"),
+            text::concat(clone(key_out), text::concat(String_from("_"), val_out))
+        )
+    }
+    if contains(clone(work), String_from("<")) {
+        let keys = mono_suffix_parse::split_mono_suffix(clone(suffix))
+        let substituted = edge_subst_angle_args(clone(work), keys)
+        if !eq(clone(substituted), clone(work)) {
+            return substituted
+        }
+        return ty
+    }
+    if fn_index_method_return_type::method_return_type_name_is_type_var(clone(work)) {
+        let concrete = edge_resolve_mono_type_key(clone(work), clone(suffix))
+        if len(concrete) > 0 {
+            return concrete
+        }
+    }
+    ty
+}
+
+// Rebind every env type through one emit name's mono suffix. Generic
+// decls collect calls once per emit name so source: T seeds as the
+// instance's concrete receiver (sum_into_for__VecIter -> VecIter) and
+// the for/method desugars resolve precisely instead of falling back to
+// the whole bare_index family.
+fn edge_env_substitute(env_types: Vec<String>, emit_name: String) {
+    if edge_first_double_underscore(clone(emit_name)) < 0 {
+        return
+    }
+    let mut i = 0
+    while i < len(env_types) {
+        let ty = clone(get_unchecked(env_types, i))
+        let substituted = edge_subst_param_type(ty, clone(emit_name))
+        set(env_types, i, substituted)
+        i = i + 1
+    }
+}
+
+// Scalar operands lower binary/unary ops to core wasm ops — no trait
+// impl call leaves the module — so a desugar candidate for a known
+// scalar op only over-keeps every impl in the family.
+fn edge_is_scalar_type_name(ty: String) -> bool {
+    eq(clone(ty), String_from("i32")) ||
+    eq(clone(ty), String_from("i64")) ||
+    eq(clone(ty), String_from("f64")) ||
+    eq(clone(ty), String_from("f32")) ||
+    eq(clone(ty), String_from("bool")) ||
+    eq(clone(ty), String_from("char"))
+}
+
+// #-prefixed candidates are site-resolved emit names: the desugar
+// machinery below already ran the same lookup emit performs, so resolve
+// them literally (fn_index + aliases + rewrites) without the bare/base
+// fan-out a raw Owner::m suffix would trigger.
+fn edge_precise_mark(name: String) -> String {
+    text::concat(String_from("#"), name)
+}
+
+// Precise candidates for a for/comprehension desugar, mirroring
+// body_stmt_for / core_for_iter: IntoIterator sources emit
+// Owner::into_iter plus Iterator::next on its return type; Iterator
+// sources emit Owner::next on the source type directly. Returns the
+// number of precise candidates pushed; zero means the caller keeps the
+// bare iter/into_iter/next fallback.
+fn edge_push_for_desugars(ctx: LowerCtx, out: Vec<String>, span_start: i32, src_ty: String) -> i32 {
+    let mut work = clone(src_ty)
+    if starts_with(clone(work), String_from("?")) {
+        work = substring(work, 1, len(work))
+    }
+    if len(work) == 0 {
+        return 0
+    }
+    let mut pushed = 0
+    let into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(
+        ctx,
+        span_start,
+        clone(work)
+    )
+    if len(into_iter_callee) > 0 {
+        push(out, edge_precise_mark(into_iter_callee))
+        pushed = pushed + 1
+        let iterator_ty = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(into_iter_callee))
+        if len(iterator_ty) > 0 {
+            let next_callee = for_iter_resolve::mir_for_next_callee(
+                ctx,
+                span_start,
+                iterator_ty
+            )
+            if len(next_callee) > 0 {
+                push(out, edge_precise_mark(next_callee))
+                pushed = pushed + 1
+            }
+        }
+    }
+    let direct_next = for_iter_resolve::mir_for_next_callee(ctx, span_start, work)
+    if len(direct_next) > 0 {
+        push(out, edge_precise_mark(direct_next))
+        pushed = pushed + 1
+    }
+    pushed
 }
 
 // Body-level walk: call/method nodes contribute callee names plus
 // resolution candidates; ident/path nodes that spell an emitted function
-// name contribute REF_FUNC-style edges. Everything else just recurses.
-fn edge_collect_calls(ctx: LowerCtx, node: AstNode, out: Vec<String>) {
+// name contribute REF_FUNC-style edges. let/param bindings accumulate
+// local types so method calls record receiver-typed adapter/impl
+// candidates alongside the bare spelling. Everything else just recurses.
+fn edge_collect_calls(
+    ctx: LowerCtx,
+    node: AstNode,
+    out: Vec<String>,
+    env_names: Vec<String>,
+    env_types: Vec<String>,
+    memo: EdgeTypeMemo
+) {
     let kind = frontend_ast_identity::corehir_node_kind(node)
     let child_count = frontend_ast_children::corehir_node_child_count(node)
+    // let x: T / let x = init records the bound local type before the
+    // walk descends into the initializer, so later siblings see it. A
+    // shadowed name overwrites the entry; a wrong or stale inner type
+    // can only over-keep through typed candidates, never under-keep.
+    if kind == frontend_kind_map::nk_let() {
+        let bound = frontend_ast_identity::corehir_node_text(node)
+        let mut bound_ty = String_new()
+        if frontend_ast_type_ann::corehir_node_type_ann_count(node) >= 1 {
+            let ta = frontend_ast_type_ann::corehir_node_type_ann_at(node, 0)
+            let ta_name = frontend_ast_identity::corehir_node_text(clone(ta))
+            bound_ty = ann_types::mir_local_type_name_from_ann(
+                ta,
+                ctx_struct_lookup::ctx_struct_field_count(ctx, ta_name)
+            )
+        }
+        if len(bound_ty) == 0 && child_count > 0 {
+            bound_ty = edge_infer_expr_type(
+                ctx,
+                frontend_ast_children::corehir_node_child_at(node, 0),
+                env_names,
+                env_types,
+                memo
+            )
+        }
+        if len(bound) > 0 && len(bound_ty) > 0 {
+            edge_env_set(env_names, env_types, bound, bound_ty)
+        }
+    }
     if frontend_expr_kind::corehir_kind_is_expr_call(kind) && child_count > 0 {
         let callee = frontend_ast_children::corehir_node_child_at(node, 0)
         edge_add_callee_candidates(
@@ -271,12 +1136,189 @@ fn edge_collect_calls(ctx: LowerCtx, node: AstNode, out: Vec<String>) {
         )
     }
     if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
+        let method_text = frontend_ast_identity::corehir_node_text(node)
+        let call_span = frontend_ast_span::corehir_node_span_start(node)
+        // Mono span records resolve the site concretely first — the
+        // typechecker already picked the target, so nothing else is a
+        // candidate (mirrors edge_add_callee_candidates' hit path).
+        let mut site_resolved = false
+        if ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, call_span) > 0 {
+            let precise = Vec::new<String>()
+            edge_mono_span_targets(ctx, call_span, clone(method_text), precise)
+            if len(precise) > 0 {
+                site_resolved = true
+                let mut pi = 0
+                while pi < len(precise) {
+                    push(out, clone(get_unchecked(precise, pi)))
+                    pi = pi + 1
+                }
+            }
+        }
+        if !site_resolved {
+            let mut recv_ty = String_new()
+            if child_count > 0 {
+                recv_ty = edge_infer_expr_type(
+                    ctx,
+                    frontend_ast_children::corehir_node_child_at(node, 0),
+                    env_names,
+                    env_types,
+                    memo
+                )
+            }
+            let resolved = Vec::new<String>()
+            if len(recv_ty) > 0 {
+                edge_resolve_method_site(ctx, call_span, clone(recv_ty), clone(method_text), resolved)
+            }
+            if len(resolved) > 0 {
+                // The receiver type named concrete callees: keep them
+                // precise (#-marked) and skip the bare spelling —
+                // bare m fans out through bare_index to every
+                // same-named method family in the module (the ~10x
+                // keep explosion on iterator chains, 2026-10-13).
+                let mut ri = 0
+                while ri < len(resolved) {
+                    push(out, edge_precise_mark(clone(get_unchecked(resolved, ri))))
+                    ri = ri + 1
+                }
+            } else {
+                // Unknown receiver or unresolved site: the bare
+                // spelling plus unmarked typed candidates stay the
+                // over-keep fallback (a dropped impl method traps the
+                // emitted call).
+                edge_add_callee_candidates(
+                    ctx,
+                    out,
+                    clone(method_text),
+                    call_span
+                )
+                if len(recv_ty) > 0 {
+                    edge_push_typed_method_candidates(out, recv_ty, method_text)
+                }
+            }
+        }
+    }
+    // `expr?` desugars to a `From::from(e)` conversion on the error path —
+    // a trait impl call that no AST node spells by name. The recorded
+    // stream carries the resolved impl method (e.g.
+    // `AppError::from__String`), so the worklist needs an equivalent
+    // candidate or the impl is dropped and the call site stubs to
+    // unreachable (question_mark/* validate failures, 2026-10-12).
+    if frontend_expr_kind::corehir_kind_is_expr_try(kind) {
         edge_add_callee_candidates(
             ctx,
             out,
-            frontend_ast_identity::corehir_node_text(node),
+            "from",
             frontend_ast_span::corehir_node_span_start(node)
         )
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_binary(kind) {
+        // Scalar-scalar ops lower to core wasm ops with no callee; only
+        // non-scalar or unknown operands can emit a trait impl call, so
+        // the bare_index family fan-out (add/eq/cmp on every impl) is
+        // skipped entirely when both operand types are known scalars.
+        let mut scalar_op = false
+        if child_count >= 2 {
+            let lhs_ty = edge_infer_expr_type(
+                ctx,
+                frontend_ast_children::corehir_node_child_at(node, 0),
+                env_names,
+                env_types,
+                memo
+            )
+            let rhs_ty = edge_infer_expr_type(
+                ctx,
+                frontend_ast_children::corehir_node_child_at(node, 1),
+                env_names,
+                env_types,
+                memo
+            )
+            scalar_op = len(lhs_ty) > 0 && len(rhs_ty) > 0 &&
+            edge_is_scalar_type_name(lhs_ty) && edge_is_scalar_type_name(rhs_ty)
+        }
+        if !scalar_op {
+            edge_push_binary_op_candidates(
+                ctx,
+                out,
+                expr_node_access::expr_op(node),
+                frontend_ast_span::corehir_node_span_start(node)
+            )
+        }
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_unary(kind) {
+        let mut scalar_unary = false
+        if child_count >= 1 {
+            let operand_ty = edge_infer_expr_type(
+                ctx,
+                frontend_ast_children::corehir_node_child_at(node, 0),
+                env_names,
+                env_types,
+                memo
+            )
+            scalar_unary = len(operand_ty) > 0 && edge_is_scalar_type_name(operand_ty)
+        }
+        if !scalar_unary {
+            edge_push_unary_op_candidates(
+                ctx,
+                out,
+                expr_node_access::expr_op(node),
+                frontend_ast_span::corehir_node_span_start(node)
+            )
+        }
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_index(kind) {
+        edge_add_callee_candidates(
+            ctx,
+            out,
+            "index",
+            frontend_ast_span::corehir_node_span_start(node)
+        )
+        edge_add_callee_candidates(
+            ctx,
+            out,
+            "index_set",
+            frontend_ast_span::corehir_node_span_start(node)
+        )
+    }
+    if kind == frontend_kind_map::nk_for() ||
+    frontend_expr_kind::corehir_kind_is_expr_comprehension(kind) {
+        let for_span = frontend_ast_span::corehir_node_span_start(node)
+        let mut resolved = 0
+        if child_count > 0 {
+            let src_ty = edge_infer_expr_type(
+                ctx,
+                frontend_ast_children::corehir_node_child_at(node, 0),
+                env_names,
+                env_types,
+                memo
+            )
+            if len(src_ty) > 0 {
+                resolved = edge_push_for_desugars(ctx, out, for_span, src_ty)
+            }
+        }
+        // Unknown or unresolved source types keep the bare family
+        // fan-out: dropping a needed iterator impl under-keeps, while a
+        // bare name can only over-keep. This is also the path generic
+        // decls take when a mono suffix cannot express a type argument.
+        if resolved == 0 {
+            edge_add_callee_candidates(
+                ctx,
+                out,
+                "iter",
+                for_span
+            )
+            edge_add_callee_candidates(
+                ctx,
+                out,
+                "into_iter",
+                for_span
+            )
+            edge_add_callee_candidates(
+                ctx,
+                out,
+                "next",
+                for_span
+            )
+        }
     }
     if frontend_expr_kind::corehir_kind_is_expr_ident(kind) || frontend_expr_kind::corehir_kind_is_expr_path(kind) {
         let text = frontend_ast_identity::corehir_node_text(node)
@@ -286,7 +1328,14 @@ fn edge_collect_calls(ctx: LowerCtx, node: AstNode, out: Vec<String>) {
     }
     let mut ci = 0
     while ci < child_count {
-        edge_collect_calls(ctx, frontend_ast_children::corehir_node_child_at(node, ci), out)
+        edge_collect_calls(
+            ctx,
+            frontend_ast_children::corehir_node_child_at(node, ci),
+            out,
+            env_names,
+            env_types,
+            memo
+        )
         ci = ci + 1
     }
 }
@@ -334,6 +1383,20 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let dsource = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(dsource)
+    // Walk state is reused across decls: env/memo contents are
+    // decl-scoped (cleared per iteration), while the Vec backing arrays
+    // persist. Reallocating per decl pushed the cumulative allocation
+    // past the linear runtime's 64MiB collection watermark on
+    // iterator-heavy fixtures (2026-10-13 iterator_query_consumers
+    // stall).
+    let env_names = Vec::new<String>()
+    let env_types = Vec::new<String>()
+    let segment = Vec::new<String>()
+    let memo = EdgeTypeMemo {
+        starts: Vec::new<i32>(),
+        ends: Vec::new<i32>(),
+        types: Vec::new<String>()
+    }
     let mut di = 0
     while di < decl_count {
         let decl_name = decl_source::mir_decl_source_name_at(dsource, di)
@@ -348,9 +1411,23 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
             let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, di, fn_info_index, body_idx)
             let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
             let body_node = legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
-            let segment = Vec::new<String>()
-            edge_collect_calls(ctx, body_node, segment)
             let callers = edge_emit_names_for_fn_decl(entry_view, di, clone(decl_name), fn_info_index, typed_index, midx)
+            // One collect walk per decl body, not per emit name: generic
+            // decls emit one body per mono instance, and rewalking the
+            // AST per instance multiplied the scan's allocations by the
+            // instance count (2026-10-13: iterator_query_consumers pushed
+            // the total allocation past the runtime collector's 64MiB
+            // watermark and stalled the emit-phase mark). The declared
+            // env keeps param types unresolved for multi-instance
+            // generics — those sites fall back to the bare/typed
+            // superset — while single-instance decls still substitute
+            // their one concrete env for free.
+            edge_walk_state_clear(env_names, env_types, segment, memo)
+            edge_seed_params(entry_view, fn_info_index, false, env_names, env_types)
+            if len(callers) == 1 {
+                edge_env_substitute(env_types, clone(get_unchecked(callers, 0)))
+            }
+            edge_collect_calls(ctx, body_node, segment, env_names, env_types, memo)
             edge_push_caller_segment(table, callers, segment)
         }
         if decl_source::mir_decl_source_is_impl_at(dsource, di) {
@@ -368,9 +1445,17 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
                 let body_input = entry_body_source::mir_entry_body_source_method_input(body_source, di, mi, method_info_index, m_body_idx)
                 let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
                 let body_node = legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
-                let segment = Vec::new<String>()
-                edge_collect_calls(ctx, body_node, segment)
                 let callers = edge_emit_names_for_method(mangled, midx)
+                edge_walk_state_clear(env_names, env_types, segment, memo)
+                // self binds to the impl owner spelling; generic impls
+                // (impl HashMap<K, V>) leave it bare, which simply adds
+                // no adapter candidates.
+                edge_env_set(env_names, env_types, String_from("self"), clone(struct_name))
+                edge_seed_params(entry_view, method_info_index, true, env_names, env_types)
+                if len(callers) == 1 {
+                    edge_env_substitute(env_types, clone(get_unchecked(callers, 0)))
+                }
+                edge_collect_calls(ctx, body_node, segment, env_names, env_types, memo)
                 edge_push_caller_segment(table, callers, segment)
                 mi = mi + 1
             }
@@ -381,13 +1466,80 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
     table
 }
 
+// Emit-time callee rewrites that are pure name transforms: the lowering
+// picks adapter/intrinsic spellings the AST never writes
+// (call_rewrite_hashmap, call_rewrite_vec*, hash_aliases, the coreop and
+// scalar intrinsic maps). Expanding them on resolved names keeps the
+// bodies emit actually calls — without this the worklist keeps
+// HashMap::values but drops hash_map::hashmap_i32_i32_values and the
+// emitted call traps (2026-10-13 hashmap_entries_values regression).
+fn edge_rewrite_targets(name: String, out: Vec<String>) {
+    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        push(out, alias)
+    }
+    let ctor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(name))
+    if len(ctor) > 0 {
+        push(out, ctor)
+    }
+    let meth = call_rewrite_hashmap::hashmap_method_name(clone(name))
+    let fam = call_rewrite_hashmap::hashmap_family_for_callee(clone(name))
+    if len(meth) > 0 && len(fam) > 0 {
+        if eq(clone(meth), String_from("contains_key")) {
+            push(out, text::concat(clone(fam), String_from("_contains")))
+        } else {
+            push(out, text::concat(clone(fam), text::concat(String_from("_"), clone(meth))))
+        }
+    }
+    let vec_coreop = method_resolve::mir_vec_method_prefer_coreop_name(clone(name))
+    if len(vec_coreop) > 0 {
+        push(out, vec_coreop)
+    }
+    let intr = method_resolve::mir_builtin_method_to_intrinsic(
+        clone(name),
+        method_resolve::mir_bare_method_name(clone(name))
+    )
+    if len(intr) > 0 {
+        push(out, intr)
+    }
+    // vec:/array: receivers lower access/len/set/pop to raw_array_* and
+    // vec_* names (call_rewrite_vec*); the receiver type is unavailable
+    // pre-lower, so the raw spellings ride alongside the impl name.
+    if call_rewrite_vec::is_vec_get_unchecked_callee(clone(name)) {
+        push(out, String_from("raw_array_get_unchecked"))
+    }
+    if call_rewrite_vec::is_vec_get_callee(clone(name)) {
+        push(out, String_from("vec_get"))
+    }
+    if call_rewrite_vec::is_vec_len_callee(clone(name)) ||
+    call_rewrite_vec::is_vec_set_callee(clone(name)) {
+        push(out, String_from("raw_array_len"))
+    }
+    if call_rewrite_vec::is_vec_set_callee(clone(name)) {
+        push(out, String_from("raw_array_set_unchecked"))
+    }
+    if call_rewrite_vec::is_vec_pop_callee(clone(name)) {
+        push(out, String_from("vec_pop"))
+    }
+}
+
 // Resolve one recorded candidate to emitted function names and mark them.
 // Mirrors ctx_edge_record_name's resolution order (fn_index -> builtin
 // alias) and adds the bare/base expansions a raw AST name cannot spell.
-fn edge_resolve_push(name: String, seen: NameIndex, out: Vec<String>) {
-    if name_index::name_index_get(seen, clone(name)) < 0 {
-        name_index::name_index_insert_first(seen, clone(name), 1)
-        push(out, name)
+// Every pushed name is also expanded through the emit-time name rewrites
+// so adapter/intrinsic bodies stay reachable.
+fn edge_resolve_push(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: NameIndex, out: Vec<String>) {
+    if name_index::name_index_get(seen, clone(name)) >= 0 {
+        return
+    }
+    name_index::name_index_insert_first(seen, clone(name), 1)
+    push(out, clone(name))
+    let rewrites = Vec::new<String>()
+    edge_rewrite_targets(clone(name), rewrites)
+    let mut i = 0
+    while i < len(rewrites) {
+        edge_resolve_candidate(ctx, table, clone(get_unchecked(rewrites, i)), seen, out)
+        i = i + 1
     }
 }
 
@@ -395,16 +1547,24 @@ fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, s
     if len(spelling) == 0 {
         return
     }
+    // Re-visiting an expanded spelling adds nothing; deduping here also
+    // stops rewrite cycles (mir_builtin_method_to_intrinsic returns the
+    // input name for Vec::new/with_capacity spellings, and alias pairs
+    // can ping-pong). The mark lands after the hit paths so a spelling
+    // that is itself an emit name still pushes once.
+    if name_index::name_index_get(seen, clone(spelling)) >= 0 {
+        return
+    }
     let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(spelling))
     if ni >= 0 {
-        edge_resolve_push(ctx_fn_index::ctx_fn_index_name_at(ctx, ni), seen, out)
+        edge_resolve_push(ctx, table, ctx_fn_index::ctx_fn_index_name_at(ctx, ni), seen, out)
     }
     let bi = name_index::name_index_get(table.bare_index, clone(spelling))
     if bi >= 0 && bi < len(table.bare_lists) {
         let list = get_unchecked(table.bare_lists, bi)
         let mut i = 0
         while i < len(list) {
-            edge_resolve_push(clone(get_unchecked(list, i)), seen, out)
+            edge_resolve_push(ctx, table, clone(get_unchecked(list, i)), seen, out)
             i = i + 1
         }
     }
@@ -413,7 +1573,7 @@ fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, s
         let list = get_unchecked(table.base_lists, mi)
         let mut i = 0
         while i < len(list) {
-            edge_resolve_push(clone(get_unchecked(list, i)), seen, out)
+            edge_resolve_push(ctx, table, clone(get_unchecked(list, i)), seen, out)
             i = i + 1
         }
     }
@@ -421,8 +1581,19 @@ fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, s
     if !eq(clone(alias), clone(spelling)) {
         let ai = ctx_fn_index::ctx_fn_index_find(ctx, clone(alias))
         if ai >= 0 {
-            edge_resolve_push(ctx_fn_index::ctx_fn_index_name_at(ctx, ai), seen, out)
+            edge_resolve_push(ctx, table, ctx_fn_index::ctx_fn_index_name_at(ctx, ai), seen, out)
         }
+    }
+    // Spellings that hit nothing still expand through the emit-time
+    // rewrites: an adapter name like HashMap_String_i32_insert may not be
+    // a registered fn, but its rewritten target (hashmap_str_set) is.
+    name_index::name_index_insert_first(seen, clone(spelling), 1)
+    let rewrites = Vec::new<String>()
+    edge_rewrite_targets(clone(spelling), rewrites)
+    let mut ri = 0
+    while ri < len(rewrites) {
+        edge_resolve_candidate(ctx, table, clone(get_unchecked(rewrites, ri)), seen, out)
+        ri = ri + 1
     }
 }
 
@@ -430,9 +1601,56 @@ fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, seen
     if len(cand) == 0 {
         return
     }
+    // #-prefixed candidates are emit names the desugar resolver already
+    // picked the way lowering does (for_iter_resolve / mono site
+    // records). Resolve them literally — running the raw Owner::m
+    // suffix through bare_index would re-fan-out to every same-named
+    // method family and recreate the ~10x keep explosion they exist to
+    // avoid (2026-10-13 iterator_query_consumers compile stall).
+    if byte_at(clone(cand), 0) == 35 {
+        edge_resolve_precise(ctx, table, substring(cand, 1, len(cand)), seen, out)
+        return
+    }
     edge_resolve_spelling(ctx, table, clone(cand), seen, out)
     if contains(clone(cand), String_from("::")) {
         edge_resolve_spelling(ctx, table, edge_after_last(cand, 58, 58), seen, out)
+    }
+}
+
+// Literal resolution for site-resolved candidates: fn_index hit, builtin
+// alias hit, and rewrite expansion only — no bare_index/base_index
+// family lookup. A miss contributes nothing; the collect side already
+// fell back to bare candidates when its resolver found no target.
+fn edge_resolve_precise(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: NameIndex, out: Vec<String>) {
+    if len(name) == 0 {
+        return
+    }
+    let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    if ni >= 0 {
+        edge_resolve_push(ctx, table, ctx_fn_index::ctx_fn_index_name_at(ctx, ni), seen, out)
+        return
+    }
+    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        let ai = ctx_fn_index::ctx_fn_index_find(ctx, clone(alias))
+        if ai >= 0 {
+            edge_resolve_push(ctx, table, ctx_fn_index::ctx_fn_index_name_at(ctx, ai), seen, out)
+            return
+        }
+    }
+    // Resolved-but-unregistered spellings still expand through the
+    // emit-time rewrites: a site resolver can name an adapter or
+    // intrinsic leaf fn_index does not register directly.
+    if name_index::name_index_get(seen, clone(name)) >= 0 {
+        return
+    }
+    name_index::name_index_insert_first(seen, clone(name), 1)
+    let rewrites = Vec::new<String>()
+    edge_rewrite_targets(clone(name), rewrites)
+    let mut ri = 0
+    while ri < len(rewrites) {
+        edge_resolve_candidate(ctx, table, clone(get_unchecked(rewrites, ri)), seen, out)
+        ri = ri + 1
     }
 }
 
@@ -525,14 +1743,22 @@ fn mir_ast_edge_reachable_names(ctx: LowerCtx, table: AstEdgeTable, export_roots
         push(queue, clone(get_unchecked(export_roots, ri)))
         ri = ri + 1
     }
+    // Mark names at push time, not pop time: queue entries are unique by
+    // construction, so every pop processes a fresh kept name exactly
+    // once. Marking at pop let the same callee enqueue once per
+    // discovering caller (~20x duplication on fan-in-heavy names like
+    // iterator methods), and each duplicate pop re-resolved its whole
+    // candidate segment — the dominant cost of the BFS (2026-10-13
+    // iterator_query_consumers stall: 7558 pops vs 363 unique keeps).
+    let mut mi = 0
+    while mi < len(queue) {
+        name_index::name_index_insert_first(keep, clone(get_unchecked(queue, mi)), 1)
+        mi = mi + 1
+    }
     let mut qi = 0
     while qi < len(queue) {
         let name = get_unchecked(queue, qi)
         qi = qi + 1
-        if name_index::name_index_get(keep, clone(name)) >= 0 {
-            continue
-        }
-        name_index::name_index_insert_first(keep, clone(name), 1)
         let cidxs = mir_ast_edge_table_caller_find_all(table, name)
         let mut ci = 0
         while ci < len(cidxs) {
@@ -541,6 +1767,7 @@ fn mir_ast_edge_reachable_names(ctx: LowerCtx, table: AstEdgeTable, export_roots
             while ni < len(names) {
                 let callee = get_unchecked(names, ni)
                 if name_index::name_index_get(keep, clone(callee)) < 0 {
+                    name_index::name_index_insert_first(keep, clone(callee), 1)
                     push(queue, callee)
                 }
                 ni = ni + 1

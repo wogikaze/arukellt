@@ -99,10 +99,14 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     if prune_enabled || ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
         ast_edges = edge_discovery::mir_ast_edge_table_build(ctx, body_source, view, midx)
     }
+    let t_after_edges = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, "edge_table", t_after_ctx, t_after_edges)
     let mut emit_keep = name_index::NameIndex_new(4)
     if prune_enabled {
         emit_keep = edge_discovery::mir_ast_edge_reachable_names(ctx, ast_edges, clone_export_roots(export_roots))
     }
+    let t_after_bfs = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, "edge_bfs", t_after_edges, t_after_bfs)
     entry_decls::mir_emit_view_decls(
         ctx,
         view,
