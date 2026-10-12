@@ -459,3 +459,31 @@ Phase-3 実測（2026-10-12 第2弾 return-table probe、同じ switch で
   caller 内 dataflow では再現できないため、enum payload 直アクセスの
   hint を失う分だけ emit code が重くなる可能性（正しさには影響なし）。
   callee-first emit 順なら pushed 済み slot が使えて回避可能。
+- **`fixpoint --build` は検証ゲートに使えない**: wasm32+p1 stage-3 が
+  既知の `SELFHOST_COMPILE_TIMEOUT >3600s` で止まる（旧バイナリでも同じ、
+  環境起因）。fixture byte-parity が代替ゲート。
+
+Phase-3 実装済み（2026-10-12、コミット順）:
+
+1. `c3ff1f92e` `MirModule.return_variant_slots` — RETURN variant slot を
+   fn push 時に記録。callee cache build の body 走査を除去。
+2. `e829d01b5` edge probe（`ctx_corehir_probe.ark`、[probeA]/[probeK]/
+   [probeR]）。source-level と recorded edge の fidelity を実測。
+3. `c994a0b09` probeT 追加 — fn_index が全 MIR fn の正規化 return 名を
+   100% カバーすることを証明。
+4. `ea51ca0b4` `CalleePropCache` に discovery tier（fn_index 名 + 正規化
+   ret 名、module に保持）。tier1 miss 時のみ tier2 exact lookup。
+   10/10 fixture byte-parity。
+5. `d49a15221` `ctx.prop_cache` + push 時 tier1 増分 + per-fn
+   sync→propagate→sync。`ctx_register_fn_signature` は discovery 表と
+   cache disc index にも追記。post-loop の module pass は収束 mop-up
+   として残置（各 body を二重走査する過渡コストあり）。
+   16/16 fixture byte-parity、verify lane PASS。
+
+prefilter 前例の検証（2026-10-12）: `entry_prefilter.ark` は存在するが
+事実上 dead — flat な ident/path 名マーキングは caller→callee 構造を持た
+ず、mangled/lower 生成名を取りこぼして「overlay reachability=1」に
+壊れたため `Always emit` で無効化されている。worklist skip (item d)
+には **per-caller edge 表 + 名前解決レイヤ** が必要で、これは item (a)
+の AstNode edge table と同じ部品。mono 解決には `ctx.mono_call_*` の
+span→target rewrite map（frontend 由来、ctx_prep 済み）がそのまま使える。
