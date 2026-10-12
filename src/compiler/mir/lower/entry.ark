@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_module
+use collections::name_index
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_gc_enum
@@ -33,7 +34,6 @@ use corehir::mod as corehir_mod
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.
 // Export-only dedupe (wasm/sections_exports.ark) handles overlay name collisions.
 
-use std::prelude::{clone}
 fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>, prune_enabled: bool) -> MirModule {
     let timing = entry_timing::mir_lower_phase_timing_enabled(input.report_phase_timing)
     let t_enter = entry_timing::mir_lower_phase_now()
@@ -91,11 +91,17 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     // the module: tier 1 starts empty (no bodies pushed yet), tier 2 covers
     // every decl name so forward callees resolve during per-fn passes.
     ctx.prop_cache = post_pass_callee_cache::callee_prop_cache_build(m)
-    // #851 Phase 3 probe only: pre-lower AST call-edge table, measured
-    // against the recorded stream before it may drive BFS/worklist skips.
+    // #851 Phase 3: pre-lower AST call-edge table. When pruning is on it
+    // drives the worklist skip (emit no body an unreachable decl would
+    // produce); under the probe switch it is also diffed against the
+    // recorded stream.
     let mut ast_edges = edge_discovery::mir_ast_edge_table_empty()
-    if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
+    if prune_enabled || ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
         ast_edges = edge_discovery::mir_ast_edge_table_build(ctx, body_source, view, midx)
+    }
+    let mut emit_keep = name_index::NameIndex_new(4)
+    if prune_enabled {
+        emit_keep = edge_discovery::mir_ast_edge_reachable_names(ctx, ast_edges, clone_export_roots(export_roots))
     }
     entry_decls::mir_emit_view_decls(
         ctx,
@@ -104,9 +110,8 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
         fn_index_info,
         midx,
         mir_tr,
-        input.decl_nodes,
-        clone_export_roots(export_roots),
         prune_enabled,
+        emit_keep,
         timing
     )
     input.decl_nodes = Vec::new<AstNode>()

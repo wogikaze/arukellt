@@ -32,6 +32,11 @@ struct AstEdgeTable {
     // names) in build order.
     callers: Vec<String>,
     caller_index: NameIndex,
+    // MIR fn names collide across modules: json::parse and parser::parse
+    // both emit as parse. caller_index maps a name to one entry here,
+    // and each entry lists every caller position sharing that name so BFS
+    // traverses all their candidate segments instead of only the first.
+    caller_lists: Vec<Vec<i32>>,
     // [callers.len()+1] offsets into `names` for each caller's candidate
     // segment.
     offs: Vec<i32>,
@@ -220,7 +225,7 @@ fn edge_emit_names_for_fn_decl(
 // Emit names one impl method can produce, mirroring
 // entry_methods_mono::mir_emit_method_mono_bodies: the mangled name plus
 // every mono instance recorded under it.
-fn edge_emit_names_for_method(entry_view: MirLowerEntryView, method_info_index: i32, mangled: String, midx: MonoIndex) -> Vec<String> {
+fn edge_emit_names_for_method(mangled: String, midx: MonoIndex) -> Vec<String> {
     let names = Vec::new<String>()
     let inst_count = mono::mono_index_count(midx, clone(mangled))
     if inst_count <= 0 {
@@ -290,7 +295,16 @@ fn edge_push_caller_segment(table: AstEdgeTable, caller_names: Vec<String>, segm
     let mut i = 0
     while i < len(caller_names) {
         let caller = get_unchecked(caller_names, i)
-        name_index::name_index_insert_first(table.caller_index, clone(caller), len(table.callers))
+        let pos = len(table.callers)
+        let list_idx = name_index::name_index_get(table.caller_index, clone(caller))
+        if list_idx < 0 {
+            let list = Vec::new<i32>()
+            push(list, pos)
+            name_index::name_index_set(table.caller_index, clone(caller), len(table.caller_lists))
+            push(table.caller_lists, list)
+        } else {
+            push(get_unchecked(table.caller_lists, list_idx), pos)
+        }
         push(table.callers, caller)
         push(table.offs, len(table.names))
         let mut j = 0
@@ -306,6 +320,7 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
     let table = AstEdgeTable {
         callers: Vec::new<String>(),
         caller_index: name_index::NameIndex_new(64),
+        caller_lists: Vec::new<Vec<i32>>(),
         offs: Vec::new<i32>(),
         names: Vec::new<String>(),
         bare_index: name_index::NameIndex_new(64),
@@ -355,7 +370,7 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
                 let body_node = legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
                 let segment = Vec::new<String>()
                 edge_collect_calls(ctx, body_node, segment)
-                let callers = edge_emit_names_for_method(entry_view, method_info_index, mangled, midx)
+                let callers = edge_emit_names_for_method(mangled, midx)
                 edge_push_caller_segment(table, callers, segment)
                 mi = mi + 1
             }
@@ -430,7 +445,25 @@ fn mir_ast_edge_table_caller_at(table: AstEdgeTable, i: i32) -> String {
 }
 
 fn mir_ast_edge_table_caller_find(table: AstEdgeTable, caller: String) -> i32 {
-    name_index::name_index_get(table.caller_index, caller)
+    let li = name_index::name_index_get(table.caller_index, caller)
+    if li < 0 || li >= len(table.caller_lists) {
+        return 0 - 1
+    }
+    let list = get_unchecked(table.caller_lists, li)
+    if len(list) == 0 {
+        return 0 - 1
+    }
+    get_unchecked(list, 0)
+}
+
+// All caller positions sharing this emit name (duplicate MIR names across
+// modules each contribute a decl's candidate segment).
+fn mir_ast_edge_table_caller_find_all(table: AstEdgeTable, caller: String) -> Vec<i32> {
+    let li = name_index::name_index_get(table.caller_index, caller)
+    if li < 0 || li >= len(table.caller_lists) {
+        return Vec::new<i32>()
+    }
+    get_unchecked(table.caller_lists, li)
 }
 
 // Probe-only placeholder so callers can hold a table slot when discovery is
@@ -439,6 +472,7 @@ fn mir_ast_edge_table_empty() -> AstEdgeTable {
     AstEdgeTable {
         callers: Vec::new<String>(),
         caller_index: name_index::NameIndex_new(4),
+        caller_lists: Vec::new<Vec<i32>>(),
         offs: Vec::new<i32>(),
         names: Vec::new<String>(),
         bare_index: name_index::NameIndex_new(4),
@@ -474,4 +508,59 @@ fn mir_ast_edge_table_resolve_caller(ctx: LowerCtx, table: AstEdgeTable, caller_
         name_index::name_index_insert_first(marked, clone(get_unchecked(names, i)), 1)
         i = i + 1
     }
+}
+
+// Emit names that must have lowered bodies: BFS from the same roots the
+// reachability pass seeds (main/_start/__test_main + export roots),
+// traversing resolved caller candidates. Names with no caller entry
+// (imports, core-ops, synth frames) are dead ends, not misses.
+fn mir_ast_edge_reachable_names(ctx: LowerCtx, table: AstEdgeTable, export_roots: Vec<String>) -> NameIndex {
+    let keep = name_index::NameIndex_new(len(table.callers) + 16)
+    let queue = Vec::new<String>()
+    push(queue, String_from("main"))
+    push(queue, String_from("_start"))
+    push(queue, String_from("__test_main"))
+    let mut ri = 0
+    while ri < len(export_roots) {
+        push(queue, clone(get_unchecked(export_roots, ri)))
+        ri = ri + 1
+    }
+    let mut qi = 0
+    while qi < len(queue) {
+        let name = get_unchecked(queue, qi)
+        qi = qi + 1
+        if name_index::name_index_get(keep, clone(name)) >= 0 {
+            continue
+        }
+        name_index::name_index_insert_first(keep, clone(name), 1)
+        let cidxs = mir_ast_edge_table_caller_find_all(table, name)
+        let mut ci = 0
+        while ci < len(cidxs) {
+            let names = mir_ast_edge_table_resolve_caller_names(ctx, table, get_unchecked(cidxs, ci))
+            let mut ni = 0
+            while ni < len(names) {
+                let callee = get_unchecked(names, ni)
+                if name_index::name_index_get(keep, clone(callee)) < 0 {
+                    push(queue, callee)
+                }
+                ni = ni + 1
+            }
+            ci = ci + 1
+        }
+    }
+    keep
+}
+
+// True when at least one of a decl's emit names is needed. The emit-name
+// set is a superset of what actually emits, so an empty intersection is a
+// safe skip: nothing this decl could emit is reachable.
+fn mir_ast_edge_emit_names_needed(names: Vec<String>, keep: NameIndex) -> bool {
+    let mut i = 0
+    while i < len(names) {
+        if name_index::name_index_get(keep, clone(get_unchecked(names, i))) >= 0 {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }

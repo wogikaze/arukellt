@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::prelude::{clone, contains, eq, to_string}
 use std::text
 use corehir::expr_raw
 use corehir::frontend_ast_children
@@ -13,7 +12,6 @@ use mir::lower::ctx_fn_index
 use mir::lower::ctx_struct_layout
 use mir::lower::edge_discovery
 use mir::reachability_index
-use mir::reachability_names
 use mir::reachability_roots
 use mir::reachability_walk
 use resolver
@@ -31,6 +29,13 @@ fn mir_probe_edges_enabled() -> i32 {
     // Set to 1 in source to dump [probeA]/[probeK]/[probeR] edges on stderr.
     // Must stay 0 in committed code so --time measurement runs keep clean stderr.
     0
+}
+
+// Set to 0 in source to force emit_bodies=true while the edge-table probes
+// still measure: [probeE-ureach] then names every fn the AST worklist would
+// wrongly drop. Must stay 1 (skip active) in committed code.
+fn mir_probe_skip_enabled() -> i32 {
+    1
 }
 
 fn mir_probe_corehir_call_names(exprs: Vec<CoreHirExpr>, root: i32) -> Vec<String> {
@@ -384,6 +389,30 @@ fn mir_probe_dump_ast_edge_coverage(
     )
 }
 
+// AST-BFS enqueue: production reaches a name's first MirFunction index by
+// name and any same-named twins via fid edges. Name-level worklists cannot
+// tell twins apart, so mark every fn carrying the name (or its module
+// short form) to keep [probeE-ureach] measuring real gaps only.
+fn mir_probe_ast_enqueue_by_name(
+    functions: Vec<MirFunction>,
+    ast_reach: Vec<i32>,
+    ast_queue: Vec<i32>,
+    name: String
+) {
+    let want = resolver::use_module_short_name(clone(name))
+    let mut i = 0
+    while i < len(functions) {
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, i))
+        if eq(clone(fname), clone(name)) || eq(resolver::use_module_short_name(fname), clone(want)) {
+            if get_unchecked(ast_reach, i) == 0 {
+                set(ast_reach, i, 1)
+                push(ast_queue, i)
+            }
+        }
+        i = i + 1
+    }
+}
+
 // #851 Phase 3 probe: reachable-set diff, not just name coverage. Replays
 // the production walk (recorded stream + inst scan, same roots) as the
 // truth set, then BFSs the same roots through the AstEdgeTable.
@@ -452,8 +481,8 @@ fn mir_probe_dump_ast_reach_diff(
         let fi = get_unchecked(ast_queue, qh)
         qh = qh + 1
         let caller = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        let cidx = edge_discovery::mir_ast_edge_table_caller_find(table, clone(caller))
-        if cidx < 0 {
+        let cidxs = edge_discovery::mir_ast_edge_table_caller_find_all(table, clone(caller))
+        if len(cidxs) == 0 {
             nocall = nocall + 1
             if printed < 40 {
                 stdio::eprintln(text::concat("[probeE-nocall] ", clone(caller)))
@@ -461,17 +490,15 @@ fn mir_probe_dump_ast_reach_diff(
             }
             continue
         }
-        let names = edge_discovery::mir_ast_edge_table_resolve_caller_names(ctx, table, cidx)
-        let mut ni = 0
-        while ni < len(names) {
-            reachability_names::mir_enqueue_reachable_name(
-                index,
-                functions,
-                ast_reach,
-                ast_queue,
-                clone(get_unchecked(names, ni))
-            )
-            ni = ni + 1
+        let mut ci = 0
+        while ci < len(cidxs) {
+            let names = edge_discovery::mir_ast_edge_table_resolve_caller_names(ctx, table, get_unchecked(cidxs, ci))
+            let mut ni = 0
+            while ni < len(names) {
+                mir_probe_ast_enqueue_by_name(functions, ast_reach, ast_queue, clone(get_unchecked(names, ni)))
+                ni = ni + 1
+            }
+            ci = ci + 1
         }
     }
     let mut rec_total = 0

@@ -1,6 +1,6 @@
-use std::prelude::{clone}
 use mir::lower::entry_body_source
 use mir::lower::entry_body_input
+use mir::lower::edge_discovery
 use mir::lower::entry_core_body
 use mir::lower::entry_methods_mono
 use mir::lower::entry_view_method
@@ -8,7 +8,7 @@ use mir::lower::ctx_corehir_probe
 use mir::lower::entry_fallback_body
 use mir::lower::legacy_body
 use corehir::mod as corehir_mod
-fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex) {
+fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex, emit_keep: NameIndex, prune_enabled: bool) {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, impl_decl_index)
     let mut mi = 0
@@ -36,7 +36,18 @@ fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, im
                 legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
             )
         }
-        entry_methods_mono::mir_emit_method_mono_bodies(ctx, body_input, struct_name, mangled, method_param_count, entry_view, method_info_index, midx)
+        // #851 Phase 3 worklist skip: emit the method's bodies only when at
+        // least one of its emit names is AST-edge reachable.
+        let mut emit_bodies = true
+        if prune_enabled {
+            emit_bodies = edge_discovery::mir_ast_edge_emit_names_needed(
+                edge_discovery::edge_emit_names_for_method(clone(mangled), midx),
+                emit_keep
+            )
+        }
+        if emit_bodies {
+            entry_methods_mono::mir_emit_method_mono_bodies(ctx, body_input, struct_name, mangled, method_param_count, entry_view, method_info_index, midx)
+        }
         let core_body = entry_body_input::mir_entry_body_input_core(body_input)
         corehir_mod::release_body_expr_subtree(
             entry_core_body::mir_entry_core_body_exprs(core_body),
