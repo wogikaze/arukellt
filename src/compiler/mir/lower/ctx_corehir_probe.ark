@@ -1,0 +1,162 @@
+use std::host::stdio
+use std::prelude::{clone, to_string}
+use std::text
+use corehir::expr_raw
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_expr_kind
+use corehir::kinds
+use mir::function_identity
+use mir::module_functions
+// #851 Phase 3 probe: collect call-edge names by walking body sources
+// (CoreHIR forest or fallback AstNode) instead of reading emitted
+// CALL/REF_FUNC insts. The dump compares source-visible callees
+// ([probeA] for AstNode, [probeK] for CoreHIR forest) against the
+// recorded inst stream ([probeR]) to measure whether a pre-lower edge
+// table can replace lower-time edge recording for reachability and
+// per-fn pipelining. Gated on a source-level force switch because
+// env::var is unavailable on wasm32-gc; flip, rebuild, measure, flip
+// back before commit.
+fn mir_probe_edges_enabled() -> i32 {
+    // Set to 1 in source to dump [probeA]/[probeK]/[probeR] edges on stderr.
+    // Must stay 0 in committed code so --time measurement runs keep clean stderr.
+    0
+}
+
+fn mir_probe_corehir_call_names(exprs: Vec<CoreHirExpr>, root: i32) -> Vec<String> {
+    let names = Vec::new<String>()
+    if root < 0 || root >= len(exprs) {
+        return names
+    }
+    let queue = Vec::new<i32>()
+    push(queue, root)
+    let mut qi = 0
+    while qi < len(queue) {
+        let idx = get_unchecked(queue, qi)
+        qi = qi + 1
+        if idx < 0 || idx >= len(exprs) {
+            continue
+        }
+        let e = get_unchecked(exprs, idx)
+        let k = expr_raw::corehir_expr_kind(e)
+        if k == kinds::COREHIR_EXPR_CALL() || k == kinds::COREHIR_EXPR_METHOD_CALL() {
+            push(names, expr_raw::corehir_expr_text(e))
+        }
+        let cc = expr_raw::corehir_expr_child_count(e)
+        let mut ci = 0
+        while ci < cc {
+            push(queue, expr_raw::corehir_expr_child(e, ci))
+            ci = ci + 1
+        }
+    }
+    names
+}
+
+fn mir_probe_dump_body_calls(caller: String, exprs: Vec<CoreHirExpr>, root: i32) {
+    let names = mir_probe_corehir_call_names(exprs, root)
+    let mut i = 0
+    while i < len(names) {
+        stdio::eprintln(text::concat("[probeK] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(names, i))))))
+        i = i + 1
+    }
+}
+
+// AST fallback-body variant: the actual body source on the current pipeline
+// (MirLowerEntryFallbackBody wraps AstNode). Reuses the resolved-call
+// scanner so call detection matches the frontend exactly.
+fn mir_probe_dump_ast_calls(caller: String, node: AstNode) {
+    let names = Vec::new<String>()
+    mir_probe_ast_call_names(node, names)
+    let mut i = 0
+    while i < len(names) {
+        stdio::eprintln(text::concat("[probeA] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(names, i))))))
+        i = i + 1
+    }
+}
+
+// Call-node text is empty; the callee name lives on the callee child (same
+// rule as body_call_direct::corehir_direct_call_callee_name). Method calls
+// keep their raw method name tagged 'm:' since mono resolution needs the
+// receiver type, which the AST walk does not reproduce.
+fn mir_probe_ast_call_names(node: AstNode, names: Vec<String>) {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    if frontend_expr_kind::corehir_kind_is_expr_call(kind) &&
+    frontend_ast_children::corehir_node_child_count(node) > 0 {
+        let callee = frontend_ast_children::corehir_node_child_at(node, 0)
+        push(names, frontend_ast_identity::corehir_node_text(callee))
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
+        push(names, text::concat("m:", frontend_ast_identity::corehir_node_text(node)))
+    }
+    let child_count = frontend_ast_children::corehir_node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        mir_probe_ast_call_names(frontend_ast_children::corehir_node_child_at(node, ci), names)
+        ci = ci + 1
+    }
+}
+
+// Decode the recorded packed edge stream into caller -> callee lines so the
+// source dump can be diffed against it. Payload >= 0 is a FunctionId raw;
+// negative payloads are name tags (-(index+10), index >= 1e6 -> edge_names).
+fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<String>, edge_names: Vec<String>) {
+    let header = 10
+    let mark = 0 - 8
+    let bias = 1000000
+    let n = len(edges)
+    let frame_to_mir = Vec::new<i32>()
+    let mut i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark && i + 2 < n {
+            let frame = get_unchecked(edges, i + 1)
+            let mir = get_unchecked(edges, i + 2)
+            if frame >= 0 {
+                while len(frame_to_mir) <= frame {
+                    push(frame_to_mir, 0 - 1)
+                }
+                set(frame_to_mir, frame, mir)
+            }
+            i = i + 3
+        } else {
+            i = i + 2
+        }
+    }
+    i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark {
+            i = i + 3
+            continue
+        }
+        if i + 1 >= n {
+            i = n
+            continue
+        }
+        let frame = get_unchecked(edges, i)
+        let payload = get_unchecked(edges, i + 1)
+        i = i + 2
+        if frame < 0 || frame >= len(frame_to_mir) {
+            continue
+        }
+        let mir = get_unchecked(frame_to_mir, frame)
+        if mir < 0 || mir >= module_functions::MirModule_function_count(m) {
+            continue
+        }
+        let caller = function_identity::MirFunction_name(module_functions::MirModule_function_at(m, mir))
+        if payload >= 0 {
+            stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> fid:", to_string(payload)))))
+            continue
+        }
+        let ni = 0 - payload - 10
+        if ni < 0 {
+            continue
+        }
+        if ni < bias && ni < len(fn_names) {
+            stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(fn_names, ni))))))
+            continue
+        }
+        let oi = ni - bias
+        if oi >= 0 && oi < len(edge_names) {
+            stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(edge_names, oi))))))
+        }
+    }
+}

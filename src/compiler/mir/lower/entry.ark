@@ -5,6 +5,7 @@ use mir::lower::ctx_gc_struct
 use mir::lower::ctx_gc_struct_order
 use mir::lower::closure_env
 use mir::lower::decl_source
+use mir::lower::ctx_corehir_probe
 use mir::lower::entry_context
 use mir::lower::entry_decls
 use mir::lower::entry_input
@@ -97,6 +98,14 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
 
     let module = ctx_api_module::ctx_current_module(ctx)
     let fns_before = module_functions::MirModule_function_count(module)
+    if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
+        ctx_corehir_probe::mir_probe_dump_recorded_edges(
+            module,
+            ctx_call_edges::ctx_edge_table(ctx),
+            ctx_call_edges::ctx_edge_fn_names(ctx),
+            ctx_call_edges::ctx_edge_overflow_names(ctx)
+        )
+    }
     let blocks_before = module_functions::MirModule_block_count(module)
     let insts_before = module_functions::MirModule_inst_count(module)
     if prune_enabled {

@@ -361,8 +361,33 @@ closure env、capture 解析）は discovery で TypeKey/closure として確定
 残る実装 = pipeline 再構成の本丸: per-fn「lower→analyze→emit→detach」への
 decl loop 書き換え。peak RSS（lower 終端で全 body+type 生存 ~600MB）を
 下げるには emit を lower loop 内に移す以外に近道がないことを確認。
+
+Phase-3 実測（2026-10-12 edge probe、`ctx_corehir_probe.ark` —
+`mir_probe_edges_enabled()` を 1 にして rebuild すると [probeA]/[probeK]/
+[probeR] が stderr に出る）:
+
+- **実 body source は CoreHIR forest ではなく AstNode**:
+  `mir/lower/input.ark` で `lazy_body=false` 固定、decl loop 中の
+  `mir_entry_exprs` は空・`root=-1`。実体は
+  `MirLowerEntryFallbackBody` → `MirLowerLegacyBody.node`（AstNode、
+  `mir_legacy_decl_body_at` 経由）。「CoreHIR 読みの edge table 化」は
+  前提が誤り — pre-lower edge 発見は **AST 走査**として設計する。
+- **edge fidelity の実測（vec_option_i32: AST 125 vs recorded 229、
+  caller mismatch 13）**: recorded stream は alias/mono/method 解決済み名
+  （`push→vec_push`、`len→raw_array_len`、`Vec::new→Vec__new__i32`、
+  `m:to_string→to_string`）を持ち、AST 側は生名＋非 call 構文
+  （`Some`、`Box::Owned`、param `f`）を含む。AST edge table を
+  recorded と同等にするには同じ解決レイヤが要る:
+  builtin alias は `hashmap_builtin_alias` で再現可能、method→実 fn は
+  レシーバ型が前提のため signature/type 情報を discovery で先に確定する
+  必要がある（mono worklist 設計と一直線）。
+- **`fixpoint --build` は検証ゲートに使えない**: wasm32+p1 stage-3 が
+  既知の `SELFHOST_COMPILE_TIMEOUT >3600s` で止まる（旧バイナリでも同じ、
+  環境起因）。fixture byte-parity が代替ゲート。
+
 実装順序の再評価:
-a. discovery で edge/type を確定（CoreHIR 読みの edge table 化 — MIR 不要）
+a. discovery で edge/type を確定（**AstNode 走査の edge table 化** — MIR 不要。
+   ただし recorded 同等の解決名にするため alias/mono/method 解決レイヤが前提）
 b. per-fn post-pass: callee cache を signature_registry 由来に変換し、
    sync+propagate を decl loop 内で per-fn 実行（forward-callee の
    return type を registry が保持するため）

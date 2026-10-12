@@ -4,6 +4,9 @@ use mir::lower::entry_body_input
 use mir::lower::entry_core_body
 use mir::lower::entry_methods_mono
 use mir::lower::entry_view_method
+use mir::lower::ctx_corehir_probe
+use mir::lower::entry_fallback_body
+use mir::lower::legacy_body
 use corehir::mod as corehir_mod
 fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex) {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
@@ -20,6 +23,19 @@ fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, im
             method_param_count = entry_view_method::mir_entry_method_param_count_at(entry_view, method_info_index, method_param_count)
         }
         let body_input = entry_body_source::mir_entry_body_source_method_input(body_source, impl_decl_index, mi, method_info_index, m_body_idx)
+        if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
+            let probe_body = entry_body_input::mir_entry_body_input_core(body_input)
+            ctx_corehir_probe::mir_probe_dump_body_calls(
+                clone(mangled),
+                entry_core_body::mir_entry_core_body_exprs(probe_body),
+                entry_core_body::mir_entry_core_body_root(probe_body)
+            )
+            let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
+            ctx_corehir_probe::mir_probe_dump_ast_calls(
+                clone(mangled),
+                legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
+            )
+        }
         entry_methods_mono::mir_emit_method_mono_bodies(ctx, body_input, struct_name, mangled, method_param_count, entry_view, method_info_index, midx)
         let core_body = entry_body_input::mir_entry_body_input_core(body_input)
         corehir_mod::release_body_expr_subtree(

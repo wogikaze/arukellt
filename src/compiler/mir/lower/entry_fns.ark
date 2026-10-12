@@ -4,6 +4,9 @@ use mir::lower::entry_body_input
 use mir::lower::entry_core_body
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_fn
+use mir::lower::entry_fallback_body
+use mir::lower::ctx_corehir_probe
+use mir::lower::legacy_body
 use mir::lower::stdlib_body_defer
 use corehir::mod as corehir_mod
 fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySource, decl_index: i32, decl_name: String, fn_idx: i32, entry_main_decl_index: i32, midx: MonoIndex, mir_tr: i32) -> i32 {
@@ -23,6 +26,19 @@ fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySourc
     let defer_stdlib_body = mir_defer_body_for_decl(clone(decl_name), entry_view, fn_info_index, param_count)
     if !skip_shadow_main && !defer_stdlib_body {
         let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, decl_index, fn_info_index, body_idx)
+        if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
+            let probe_body = entry_body_input::mir_entry_body_input_core(body_input)
+            ctx_corehir_probe::mir_probe_dump_body_calls(
+                clone(decl_name),
+                entry_core_body::mir_entry_core_body_exprs(probe_body),
+                entry_core_body::mir_entry_core_body_root(probe_body)
+            )
+            let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
+            ctx_corehir_probe::mir_probe_dump_ast_calls(
+                clone(decl_name),
+                legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
+            )
+        }
         entry_fns_mono::mir_emit_top_level_fn_mono_bodies(ctx, body_input, decl_name, typed_index, param_count, entry_view, fn_info_index, midx, mir_tr)
         let core_body = entry_body_input::mir_entry_body_input_core(body_input)
         corehir_mod::release_body_expr_subtree(
