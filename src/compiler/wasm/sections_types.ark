@@ -12,7 +12,7 @@ use wasm::sections_types_sigs
 use wasm::sections_exports
 use wasm::writer_core
 use wasm::writer_sections
-use collections::name_index
+use mir::module_canon
 struct TypeCanonPlan { canon_types: Vec<String>, type_map: Vec<i32> }
 
 fn emit_type_section(
@@ -69,7 +69,7 @@ fn emit_type_section(
         bindings,
         pair_sigs
     )
-    let canon_plan = canonicalize_type_sigs(type_sigs)
+    let canon_plan = canonicalize_type_sigs(mir, type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
     let linear_gc_enabled = emit_target::is_linear_memory_target(clone(target))
@@ -318,27 +318,20 @@ fn build_type_sigs(
     type_sigs
 }
 
-fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {
-    let canon_types = Vec::new<String>()
+// Dedup the collected type sigs through the module's append-only canon
+// table (#851 Phase 3). The table preserves first-occurrence order, so the
+// resulting canon_types/type_map are identical to a fresh local index —
+// the difference is that registrations outside this path may also append,
+// keeping every canon index stable for earlier body emit.
+fn canonicalize_type_sigs(mir: MirModule, type_sigs: Vec<String>) -> TypeCanonPlan {
     let mut type_map = Vec::new<i32>()
     let ts_count = len(type_sigs)
-    let canon_index = name_index::NameIndex_new(ts_count)
     let mut tsi = 0
     while tsi < ts_count {
-        let sig = get_unchecked(type_sigs, tsi)
-        let found = name_index::name_index_get(canon_index, clone(sig))
-        if found >= 0 {
-            push(type_map, found)
-            tsi = tsi + 1
-            continue
-        }
-        let canon_idx = len(canon_types)
-        push(type_map, canon_idx)
-        push(canon_types, clone(sig))
-        name_index::name_index_insert_first(canon_index, sig, canon_idx)
+        push(type_map, module_canon::MirModule_canon_ensure(mir, clone(get_unchecked(type_sigs, tsi))))
         tsi = tsi + 1
     }
-    TypeCanonPlan_new(canon_types, type_map)
+    TypeCanonPlan_new(module_canon::MirModule_canon_sigs(mir), type_map)
 }
 
 fn first_gc_type_index(canon_types: Vec<String>) -> i32 {

@@ -1,0 +1,31 @@
+use std::prelude::{clone}
+use collections::name_index
+use mir::module_record
+
+// Ensure sig has a canonical type index in the module's append-only
+// table, returning it. Re-ensuring an existing sig returns its index —
+// distinct registrations that share a signature text (e.g. two enum
+// payload variants with identical field layouts) share one canon type,
+// preserving nominal equality for ref.cast/ref.test.
+fn MirModule_canon_ensure(m: MirModule, sig: String) -> i32 {
+    let found = name_index::name_index_get(m.canon_index, clone(sig))
+    if found >= 0 {
+        return found
+    }
+    let canon_idx = len(m.canon_sigs)
+    push(m.canon_sigs, clone(sig))
+    name_index::name_index_insert_first(m.canon_index, sig, canon_idx)
+    canon_idx
+}
+
+fn MirModule_canon_count(m: MirModule) -> i32 {
+    len(m.canon_sigs)
+}
+
+fn MirModule_canon_sig_at(m: MirModule, idx: i32) -> String {
+    clone(get_unchecked(m.canon_sigs, idx))
+}
+
+fn MirModule_canon_sigs(m: MirModule) -> Vec<String> {
+    m.canon_sigs
+}

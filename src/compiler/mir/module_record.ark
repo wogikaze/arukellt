@@ -1,5 +1,6 @@
 use corehir::signature_registry
 use corehir::type_table
+use collections::name_index
 use mir::block_record
 use mir::function_core_record
 use mir::gc_layout_plan
@@ -27,6 +28,15 @@ pub struct MirModule {
     gc_enum_variant_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_names: Vec<String>,
+    // Append-only canonical type table (#851 Phase 3). canon_sigs[i] is the
+    // i-th distinct type signature in registration/collection order and
+    // canon_index maps sig text to canon idx. Forward type references are
+    // legal in the wasm GC type section, so late registrations may append
+    // here without shifting any existing index — this is what lets per-fn
+    // body emit resolve GC type indices before the whole module's types
+    // are registered.
+    canon_sigs: Vec<String>,
+    canon_index: NameIndex,
     gc_layout_plan: MirGcLayoutPlan,
     spine_populated: bool,
     type_table: TypeTable,
@@ -56,6 +66,8 @@ fn MirModule_new() -> MirModule {
         gc_enum_variant_names: Vec::new<String>(),
         gc_struct_sigs: Vec::new<String>(),
         gc_struct_names: Vec::new<String>(),
+        canon_sigs: Vec::new<String>(),
+        canon_index: name_index::NameIndex_new(64),
         gc_layout_plan: gc_layout_plan::MirGcLayoutPlan_new(),
         spine_populated: false,
         type_table: type_table::TypeTable_new(),
