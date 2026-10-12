@@ -421,6 +421,32 @@ Phase-3 実測（2026-10-12 worklist skip / gc-late probe）:
   registration→index 即時確定の append-only canon registry は subtype 順序
   制約（super 先行必須）と現行 section 並び替えの互換を調べる設計論点あり。
 
+Phase-3 設計確定（2026-10-12 canon 調査 — **TypeId reloc は不要**）:
+
+- **type section の前方参照は合法**（実測確定）: GC/function-references
+  型索引空間は section 全域で確立される。実 emit 済み module（
+  late_probe.wasm）に type 30→32 等の前方参照が存在し、
+  `wasm-tools validate --features all` が通る。`emit_type_section` の
+  「Option/Result payload が gcsref で前方 index を踏まないよう struct を
+  enum より先に置く」コメントの制約は実は不要だった。
+- **よって canon 順序は自由**: 全 discovery 決定型（host/wit/gc_fixed/
+  callback/fn sig/p2/linear/pair call）を discovery 完了時に固定順で canon
+  化し、body 駆動の module-gc sig（enum payload variant・遅延 struct）は
+  **登録順 append** で canon_idx を即時確定できる。late 登録は末尾に
+  足すだけで既存 index を一切ずらさない — 早期凍結（集合の完全列挙）も
+  TypeId reloc（19 ファイルの operand 書換）も要らない。
+- sig 本文の `refN`/`gcsrefN` は canon index ではなく fixed 型番号と
+  gc_struct registry slot を指す（`ctx_gc_enum_sig` 実測）— sig は
+  registration 時点で完結し、canon 化時に参照解決は emit 側の remap に
+  任せられる。
+- 実装方針: ctx/module に append-only canon 表（sig→idx dedup + idx→sig）
+  を持ち、discovery 末端で非 body 型を一括 ensure、各 registration path
+  （`ctx_register_gc_enum_variant`/`ctx_ensure_gc_struct_registered`）が
+  ensure で canon_idx を即時確定・保存。`*_type_map` は保存済み
+  canon_idx の直読みに置き換わる。emit 順序は変わる（dedup 後の登録順）
+  が valid かつ deterministic — fixture parity（output 一致）と fixpoint
+  で検証可能。
+
 実装順序の再評価:
 a. discovery で edge/type を確定（**AstNode 走査の edge table 化** — MIR 不要。
    ただし recorded 同等の解決名にするため alias/mono/method 解決レイヤが前提）
