@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::prelude::{clone, eq, to_string}
+use std::prelude::{clone, contains, eq, to_string}
 use std::text
 use corehir::expr_raw
 use corehir::frontend_ast_children
@@ -11,6 +11,12 @@ use mir::module_functions
 use mir::function_return_view
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_struct_layout
+use mir::lower::edge_discovery
+use mir::reachability_index
+use mir::reachability_names
+use mir::reachability_roots
+use mir::reachability_walk
+use resolver
 use collections::name_index
 // #851 Phase 3 probe: collect call-edge names by walking body sources
 // (CoreHIR forest or fallback AstNode) instead of reading emitted
@@ -214,4 +220,311 @@ fn mir_probe_dump_return_table_diff(ctx: LowerCtx, module: MirModule) {
         }
         mi = mi + 1
     }
+}
+
+// #851 Phase 3 probe: does the pre-lower AstEdgeTable cover every callee the
+// recorded inst stream captured? For each recorded edge, resolve the
+// caller's AST candidates once (stream frames are contiguous per caller;
+// a re-appearing caller just re-resolves) and check the callee's resolved
+// name against that set. Fid payloads go through the same fid_to_mir map
+// reachability uses, so their callee name is checked identically.
+// [probeE-miss] lines are under-approximation bugs a BFS worklist would hit;
+// [probeE-nocaller] callers (synth thunks, closure wrappers) have no decl
+// and must come from another source before the table can stand alone.
+fn mir_probe_dump_ast_edge_coverage(
+    ctx: LowerCtx,
+    m: MirModule,
+    edges: Vec<i32>,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>,
+    table: AstEdgeTable
+) {
+    let header = 10
+    let mark = 0 - 8
+    let bias = 1000000
+    let n = len(edges)
+    let frame_to_mir = Vec::new<i32>()
+    let mut i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark && i + 2 < n {
+            let frame = get_unchecked(edges, i + 1)
+            let mir = get_unchecked(edges, i + 2)
+            if frame >= 0 {
+                while len(frame_to_mir) <= frame {
+                    push(frame_to_mir, 0 - 1)
+                }
+                set(frame_to_mir, frame, mir)
+            }
+            i = i + 3
+        } else {
+            i = i + 2
+        }
+    }
+    let functions = module_functions::MirModule_functions(m)
+    let index = reachability_index::mir_reachability_index_build(m, functions)
+    let mut dbg = 0
+    while dbg < len(functions) {
+        stdio::eprintln(
+            text::concat("[probeE-fn] ", function_identity::MirFunction_name(get_unchecked(functions, dbg)))
+        )
+        dbg = dbg + 1
+    }
+    let mut total = 0
+    let mut covered = 0
+    let mut missed = 0
+    let mut nocaller = 0
+    let mut unresolved = 0
+    let mut printed = 0
+    let mut cur_mir = 0 - 2
+    let mut cur_state = 0
+    let mut cur_caller = String_new()
+    let mut cur_marked = name_index::NameIndex_new(4)
+    i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark {
+            i = i + 3
+            continue
+        }
+        if i + 1 >= n {
+            i = n
+            continue
+        }
+        let frame = get_unchecked(edges, i)
+        let payload = get_unchecked(edges, i + 1)
+        i = i + 2
+        if frame < 0 || frame >= len(frame_to_mir) {
+            continue
+        }
+        let mir = get_unchecked(frame_to_mir, frame)
+        if mir < 0 || mir >= len(functions) {
+            continue
+        }
+        if mir != cur_mir {
+            cur_mir = mir
+            cur_caller = function_identity::MirFunction_name(get_unchecked(functions, mir))
+            let cidx = edge_discovery::mir_ast_edge_table_caller_find(table, clone(cur_caller))
+            if cidx < 0 {
+                cur_state = 0 - 1
+                nocaller = nocaller + 1
+                if printed < 50 {
+                    stdio::eprintln(text::concat("[probeE-nocaller] ", clone(cur_caller)))
+                    printed = printed + 1
+                }
+            } else {
+                cur_state = 1
+                cur_marked = name_index::NameIndex_new(64)
+                edge_discovery::mir_ast_edge_table_resolve_caller(ctx, table, cidx, cur_marked)
+            }
+        }
+        let mut cname = String_new()
+        if payload >= 0 {
+            let c_mir = reachability_index::mir_reachability_lookup_by_func_id(index, payload)
+            if c_mir >= 0 && c_mir < len(functions) {
+                cname = function_identity::MirFunction_name(get_unchecked(functions, c_mir))
+            }
+        } else {
+            let tagged = 0 - payload - 10
+            if tagged >= 0 && tagged < bias && tagged < len(fn_names) {
+                cname = clone(get_unchecked(fn_names, tagged))
+            }
+            if tagged >= bias {
+                let oi = tagged - bias
+                if oi >= 0 && oi < len(edge_names) {
+                    cname = clone(get_unchecked(edge_names, oi))
+                }
+            }
+        }
+        if len(cname) == 0 {
+            unresolved = unresolved + 1
+            continue
+        }
+        if cur_state < 0 {
+            continue
+        }
+        total = total + 1
+        let mut hit = name_index::name_index_get(cur_marked, clone(cname)) >= 0
+        if !hit && contains(clone(cname), String_from("::")) {
+            hit = name_index::name_index_get(cur_marked, resolver::use_module_short_name(cname)) >= 0
+        }
+        if hit {
+            covered = covered + 1
+            continue
+        }
+        missed = missed + 1
+        if printed < 50 {
+            stdio::eprintln(
+                text::concat("[probeE-miss] ", text::concat(clone(cur_caller), text::concat(" -> ", clone(cname))))
+            )
+            printed = printed + 1
+        }
+    }
+    stdio::eprintln(
+        text::concat(
+            "[probeE] covered=",
+            text::concat(
+                to_string(covered),
+                text::concat(
+                    "/",
+                    text::concat(
+                        to_string(total),
+                        text::concat(
+                            " miss=",
+                            text::concat(
+                                to_string(missed),
+                                text::concat(
+                                    " nocaller=",
+                                    text::concat(to_string(nocaller), text::concat(" unresolved=", to_string(unresolved)))
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+}
+
+// #851 Phase 3 probe: reachable-set diff, not just name coverage. Replays
+// the production walk (recorded stream + inst scan, same roots) as the
+// truth set, then BFSs the same roots through the AstEdgeTable.
+// [probeE-ureach] = fns production keeps but AST edges lose (fatal for a
+// pre-lower worklist); [probeE-oreach] = AST extra reach (harmless).
+// [probeE-nocall] = reachable callers with no table entry (synth frames).
+fn mir_probe_dump_ast_reach_diff(
+    ctx: LowerCtx,
+    m: MirModule,
+    export_roots: Vec<String>,
+    target: String,
+    edges: Vec<i32>,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>,
+    table: AstEdgeTable
+) {
+    let fn_count = module_functions::MirModule_function_count(m)
+    if fn_count <= 0 {
+        return
+    }
+    let functions = module_functions::MirModule_functions(m)
+    let index = reachability_index::mir_reachability_index_build(m, functions)
+    let rec_reach = Vec::new<i32>()
+    let mut zi = 0
+    while zi < fn_count {
+        push(rec_reach, 0)
+        zi = zi + 1
+    }
+    let rec_queue = Vec::new<i32>()
+    let root_count = reachability_roots::mir_mark_roots(index, functions, rec_reach, rec_queue, clone(export_roots))
+    if root_count <= 0 {
+        stdio::eprintln("[probeE-reach] no roots; diff skipped")
+        return
+    }
+    let packed = reachability_walk::mir_build_recorded_edge_lists(edges, fn_count)
+    let mut qh = 0
+    while qh < len(rec_queue) {
+        let fi = get_unchecked(rec_queue, qh)
+        qh = qh + 1
+        reachability_walk::mir_enqueue_call_edges(
+            m,
+            index,
+            functions,
+            rec_reach,
+            rec_queue,
+            get_unchecked(functions, fi),
+            clone(target),
+            packed,
+            fi,
+            fn_names,
+            edge_names
+        )
+    }
+    let ast_reach = Vec::new<i32>()
+    zi = 0
+    while zi < fn_count {
+        push(ast_reach, 0)
+        zi = zi + 1
+    }
+    let ast_queue = Vec::new<i32>()
+    reachability_roots::mir_mark_roots(index, functions, ast_reach, ast_queue, export_roots)
+    let mut nocall = 0
+    let mut printed = 0
+    qh = 0
+    while qh < len(ast_queue) {
+        let fi = get_unchecked(ast_queue, qh)
+        qh = qh + 1
+        let caller = function_identity::MirFunction_name(get_unchecked(functions, fi))
+        let cidx = edge_discovery::mir_ast_edge_table_caller_find(table, clone(caller))
+        if cidx < 0 {
+            nocall = nocall + 1
+            if printed < 40 {
+                stdio::eprintln(text::concat("[probeE-nocall] ", clone(caller)))
+                printed = printed + 1
+            }
+            continue
+        }
+        let names = edge_discovery::mir_ast_edge_table_resolve_caller_names(ctx, table, cidx)
+        let mut ni = 0
+        while ni < len(names) {
+            reachability_names::mir_enqueue_reachable_name(
+                index,
+                functions,
+                ast_reach,
+                ast_queue,
+                clone(get_unchecked(names, ni))
+            )
+            ni = ni + 1
+        }
+    }
+    let mut rec_total = 0
+    let mut ast_total = 0
+    let mut under = 0
+    let mut over = 0
+    let mut uprint = 0
+    let mut fi2 = 0
+    while fi2 < fn_count {
+        let rr = get_unchecked(rec_reach, fi2)
+        let ar = get_unchecked(ast_reach, fi2)
+        if rr != 0 {
+            rec_total = rec_total + 1
+        }
+        if ar != 0 {
+            ast_total = ast_total + 1
+        }
+        if rr != 0 && ar == 0 {
+            under = under + 1
+            if uprint < 60 {
+                stdio::eprintln(
+                    text::concat("[probeE-ureach] ", function_identity::MirFunction_name(get_unchecked(functions, fi2)))
+                )
+                uprint = uprint + 1
+            }
+        }
+        if rr == 0 && ar != 0 {
+            over = over + 1
+        }
+        fi2 = fi2 + 1
+    }
+    stdio::eprintln(
+        text::concat(
+            "[probeE-reach] recorded=",
+            text::concat(
+                to_string(rec_total),
+                text::concat(
+                    " ast=",
+                    text::concat(
+                        to_string(ast_total),
+                        text::concat(
+                            " under=",
+                            text::concat(
+                                to_string(under),
+                                text::concat(
+                                    " over=",
+                                    text::concat(to_string(over), text::concat(" nocall=", to_string(nocall)))
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
 }

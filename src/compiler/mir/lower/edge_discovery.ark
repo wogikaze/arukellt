@@ -1,0 +1,477 @@
+use std::prelude::{byte_at, clone, contains, eq, substring}
+use std::text
+use collections::name_index
+use wasm::hash_aliases
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_ast_span
+use corehir::frontend_expr_kind
+use corehir::mir_signature_method
+use corehir::mod
+use mir::lower::entry_fns_mono
+use mir::lower::ctx_fn_index
+use mir::lower::ctx_fn_mono
+use mir::lower::decl_source
+use mir::lower::entry_body_source
+use mir::lower::entry_body_input
+use mir::lower::entry_fallback_body
+use mir::lower::entry_view_fn
+use mir::lower::entry_view_method
+use mir::lower::legacy_body
+use mir::mono
+
+// #851 Phase 3: pre-lower call-edge discovery. Walks each decl's body
+// AstNode (the real body source on this pipeline; the CoreHIR forest is
+// lazy/absent) and records candidate callee names per emitted caller, so
+// reachability and the lowering worklist stop depending on emitted CALL/
+// REF_FUNC insts. Candidates stay raw at record time; resolution to emit
+// names happens per lookup through fn_index, builtin aliases, and the
+// bare/base indexes below.
+struct AstEdgeTable {
+    // Emit-name callers (decl names, mangled method names, mono instance
+    // names) in build order.
+    callers: Vec<String>,
+    caller_index: NameIndex,
+    // [callers.len()+1] offsets into `names` for each caller's candidate
+    // segment.
+    offs: Vec<i32>,
+    names: Vec<String>,
+    // bare name -> segment in bare_names/bare_lists of emit names a bare
+    // call could target (method calls resolve through this).
+    bare_index: NameIndex,
+    bare_names: Vec<String>,
+    bare_lists: Vec<Vec<String>>,
+    // mono base ("Vec::new" / "seq::binary_search_by") -> instance emit
+    // names, for path callees whose mono site was not span-registered.
+    base_index: NameIndex,
+    base_names: Vec<String>,
+    base_lists: Vec<Vec<String>>,
+}
+
+fn edge_index_add(index: NameIndex, keys: Vec<String>, lists: Vec<Vec<String>>, key: String, val: String) {
+    let ki = name_index::name_index_get(index, clone(key))
+    if ki < 0 {
+        push(keys, clone(key))
+        let list = Vec::new<String>()
+        push(list, val)
+        push(lists, list)
+        name_index::name_index_set(index, key, len(keys) - 1)
+        return
+    }
+    let list = get_unchecked(lists, ki)
+    push(list, val)
+}
+
+// Emit names a bare call/method could target. `__` segments of mangled
+// names are ambiguous between owner/method/arg positions, so index every
+// plausible segment; extra candidates only keep more functions reachable.
+fn edge_after_last(name: String, b0: i32, b1: i32) -> String {
+    let n = len(name)
+    let mut last = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if byte_at(name, i) == b0 && byte_at(name, i + 1) == b1 {
+            last = i
+            i = i + 1
+        }
+        i = i + 1
+    }
+    if last < 0 {
+        return name
+    }
+    substring(name, last + 2, n)
+}
+
+fn edge_first_double_underscore(name: String) -> i32 {
+    let n = len(name)
+    let mut i = 0
+    while i + 1 < n {
+        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn edge_last_double_underscore(name: String) -> i32 {
+    let n = len(name)
+    let mut last = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if byte_at(name, i) == 95 && byte_at(name, i + 1) == 95 {
+            last = i
+            i = i + 1
+        }
+        i = i + 1
+    }
+    last
+}
+
+fn edge_bare_candidates_of(name: String, out: Vec<String>) {
+    if contains(clone(name), "::") {
+        push(out, edge_after_last(clone(name), 58, 58))
+    } else {
+        push(out, clone(name))
+    }
+    let first = edge_first_double_underscore(clone(name))
+    if first >= 0 {
+        let head = substring(clone(name), 0, first)
+        let rest = substring(clone(name), first + 2, len(clone(name)))
+        let second = edge_first_double_underscore(clone(rest))
+        if second >= 0 {
+            push(out, substring(clone(rest), 0, second))
+        } else {
+            push(out, clone(rest))
+        }
+        if contains(clone(head), "::") {
+            push(out, edge_after_last(head, 58, 58))
+        } else {
+            push(out, head)
+        }
+    }
+}
+
+// Mono base key of a mangled emit name: `Pair__get_first__String` ->
+// `Pair::get_first`, `seq::binary_search_by__String` ->
+// `seq::binary_search_by`. Names without `__` return empty.
+fn edge_mono_base_key(name: String) -> String {
+    let last = edge_last_double_underscore(clone(name))
+    if last <= 0 {
+        return String_new()
+    }
+    let base = substring(clone(name), 0, last)
+    let first = edge_first_double_underscore(clone(base))
+    if first < 0 {
+        return base
+    }
+    let owner = substring(clone(base), 0, first)
+    let rest = substring(base, first + 2, len(clone(base)))
+    text::concat(owner, text::concat("::", rest))
+}
+
+fn edge_index_builtins(ctx: LowerCtx, table: AstEdgeTable) {
+    let count = ctx_fn_index::ctx_fn_index_count(ctx)
+    let mut i = 0
+    while i < count {
+        let name = ctx_fn_index::ctx_fn_index_name_at(ctx, i)
+        let bares = Vec::new<String>()
+        edge_bare_candidates_of(clone(name), bares)
+        let mut bi = 0
+        while bi < len(bares) {
+            edge_index_add(table.bare_index, table.bare_names, table.bare_lists, clone(get_unchecked(bares, bi)), clone(name))
+            bi = bi + 1
+        }
+        let base_key = edge_mono_base_key(clone(name))
+        if len(base_key) > 0 {
+            edge_index_add(table.base_index, table.base_names, table.base_lists, base_key, name)
+        }
+        i = i + 1
+    }
+}
+
+// Emit names the fn decl can produce, mirroring
+// entry_fns_mono::mir_emit_top_level_fn_mono_bodies: generic decls emit the
+// deduped union of bare+qualified mono keys (mono_safe_name applied); a
+// leaf emits under decl_name.
+fn edge_emit_names_for_fn_decl(
+    entry_view: MirLowerEntryView,
+    decl_index: i32,
+    decl_name: String,
+    fn_info_index: i32,
+    typed_index: i32,
+    midx: MonoIndex
+) -> Vec<String> {
+    let names = Vec::new<String>()
+    let mut is_generic = false
+    if fn_info_index >= 0 {
+        is_generic = entry_fns_mono::mir_entry_decl_is_generic(entry_view, typed_index)
+    }
+    if !is_generic {
+        push(names, decl_name)
+        return names
+    }
+    let bare_count = mono::mono_index_count(midx, clone(decl_name))
+    let qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
+    let mut qualified_count = 0
+    if len(qualified_name) > 0 && !eq(clone(qualified_name), clone(decl_name)) {
+        qualified_count = mono::mono_index_count(midx, clone(qualified_name))
+    }
+    if bare_count <= 0 && qualified_count <= 1 {
+        push(names, decl_name)
+        return names
+    }
+    let mut bi = 0
+    while bi < bare_count {
+        push(names, mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(decl_name), bi)))
+        bi = bi + 1
+    }
+    let mut qi = 0
+    while qi < qualified_count {
+        let mangled = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(qualified_name), qi))
+        if !entry_fns_mono::string_vec_contains(clone(names), clone(mangled)) {
+            push(names, mangled)
+        }
+        qi = qi + 1
+    }
+    names
+}
+
+// Emit names one impl method can produce, mirroring
+// entry_methods_mono::mir_emit_method_mono_bodies: the mangled name plus
+// every mono instance recorded under it.
+fn edge_emit_names_for_method(entry_view: MirLowerEntryView, method_info_index: i32, mangled: String, midx: MonoIndex) -> Vec<String> {
+    let names = Vec::new<String>()
+    let inst_count = mono::mono_index_count(midx, clone(mangled))
+    if inst_count <= 0 {
+        push(names, mangled)
+        return names
+    }
+    let mut i = 0
+    while i < inst_count {
+        push(names, mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(mangled), i)))
+        i = i + 1
+    }
+    names
+}
+
+fn edge_add_callee_candidates(ctx: LowerCtx, out: Vec<String>, raw: String, span_start: i32) {
+    if len(raw) == 0 {
+        return
+    }
+    push(out, clone(raw))
+    let alias = hash_aliases::hashmap_builtin_alias(clone(raw))
+    if !eq(clone(alias), clone(raw)) {
+        push(out, alias)
+    }
+    let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, raw)
+    if len(mono_target) > 0 {
+        push(out, mono_target)
+    }
+}
+
+// Body-level walk: call/method nodes contribute callee names plus
+// resolution candidates; ident/path nodes that spell an emitted function
+// name contribute REF_FUNC-style edges. Everything else just recurses.
+fn edge_collect_calls(ctx: LowerCtx, node: AstNode, out: Vec<String>) {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    let child_count = frontend_ast_children::corehir_node_child_count(node)
+    if frontend_expr_kind::corehir_kind_is_expr_call(kind) && child_count > 0 {
+        let callee = frontend_ast_children::corehir_node_child_at(node, 0)
+        edge_add_callee_candidates(
+            ctx,
+            out,
+            frontend_ast_identity::corehir_node_text(callee),
+            frontend_ast_span::corehir_node_span_start(node)
+        )
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
+        edge_add_callee_candidates(
+            ctx,
+            out,
+            frontend_ast_identity::corehir_node_text(node),
+            frontend_ast_span::corehir_node_span_start(node)
+        )
+    }
+    if frontend_expr_kind::corehir_kind_is_expr_ident(kind) || frontend_expr_kind::corehir_kind_is_expr_path(kind) {
+        let text = frontend_ast_identity::corehir_node_text(node)
+        if ctx_fn_index::ctx_fn_index_find(ctx, text) >= 0 {
+            push(out, clone(text))
+        }
+    }
+    let mut ci = 0
+    while ci < child_count {
+        edge_collect_calls(ctx, frontend_ast_children::corehir_node_child_at(node, ci), out)
+        ci = ci + 1
+    }
+}
+
+fn edge_push_caller_segment(table: AstEdgeTable, caller_names: Vec<String>, segment: Vec<String>) {
+    let mut i = 0
+    while i < len(caller_names) {
+        let caller = get_unchecked(caller_names, i)
+        name_index::name_index_insert_first(table.caller_index, clone(caller), len(table.callers))
+        push(table.callers, caller)
+        push(table.offs, len(table.names))
+        let mut j = 0
+        while j < len(segment) {
+            push(table.names, clone(get_unchecked(segment, j)))
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource, view: CoreHirMirView, midx: MonoIndex) -> AstEdgeTable {
+    let table = AstEdgeTable {
+        callers: Vec::new<String>(),
+        caller_index: name_index::NameIndex_new(64),
+        offs: Vec::new<i32>(),
+        names: Vec::new<String>(),
+        bare_index: name_index::NameIndex_new(64),
+        bare_names: Vec::new<String>(),
+        bare_lists: Vec::new<Vec<String>>(),
+        base_index: name_index::NameIndex_new(64),
+        base_names: Vec::new<String>(),
+        base_lists: Vec::new<Vec<String>>(),
+    }
+    edge_index_builtins(ctx, table)
+    let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
+    let dsource = decl_source::mir_decl_source_from_view(view)
+    let decl_count = decl_source::mir_decl_source_count(dsource)
+    let mut di = 0
+    while di < decl_count {
+        let decl_name = decl_source::mir_decl_source_name_at(dsource, di)
+        if decl_source::mir_decl_source_is_fn_at(dsource, di) {
+            let fn_info_index = entry_view_fn::mir_entry_fn_info_index_for_decl(entry_view, di)
+            let mut typed_index = 0 - 1
+            let mut body_idx = 0 - 1
+            if fn_info_index >= 0 {
+                typed_index = entry_view_fn::mir_entry_fn_typed_index_at(entry_view, fn_info_index, typed_index)
+                body_idx = entry_view_fn::mir_entry_fn_body_index_at(entry_view, fn_info_index, body_idx)
+            }
+            let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, di, fn_info_index, body_idx)
+            let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
+            let body_node = legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
+            let segment = Vec::new<String>()
+            edge_collect_calls(ctx, body_node, segment)
+            let callers = edge_emit_names_for_fn_decl(entry_view, di, clone(decl_name), fn_info_index, typed_index, midx)
+            edge_push_caller_segment(table, callers, segment)
+        }
+        if decl_source::mir_decl_source_is_impl_at(dsource, di) {
+            let struct_name = mir_signature_method::mir_signature_method_owner_name_for_impl(mod::view_signature_source(view), di, decl_name)
+            let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, di)
+            let mut mi = 0
+            while mi < method_count {
+                let method_info_index = entry_view_method::mir_entry_method_info_index(entry_view, di, mi)
+                let mut mangled = clone(struct_name)
+                let mut m_body_idx = 0 - 1
+                if method_info_index >= 0 {
+                    mangled = entry_view_method::mir_entry_method_mangled_name_at(entry_view, method_info_index, mangled)
+                    m_body_idx = entry_view_method::mir_entry_method_body_index_at(entry_view, method_info_index, m_body_idx)
+                }
+                let body_input = entry_body_source::mir_entry_body_source_method_input(body_source, di, mi, method_info_index, m_body_idx)
+                let fb = entry_body_input::mir_entry_body_input_fallback(body_input)
+                let body_node = legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
+                let segment = Vec::new<String>()
+                edge_collect_calls(ctx, body_node, segment)
+                let callers = edge_emit_names_for_method(entry_view, method_info_index, mangled, midx)
+                edge_push_caller_segment(table, callers, segment)
+                mi = mi + 1
+            }
+        }
+        di = di + 1
+    }
+    push(table.offs, len(table.names))
+    table
+}
+
+// Resolve one recorded candidate to emitted function names and mark them.
+// Mirrors ctx_edge_record_name's resolution order (fn_index -> builtin
+// alias) and adds the bare/base expansions a raw AST name cannot spell.
+fn edge_resolve_push(name: String, seen: NameIndex, out: Vec<String>) {
+    if name_index::name_index_get(seen, clone(name)) < 0 {
+        name_index::name_index_insert_first(seen, clone(name), 1)
+        push(out, name)
+    }
+}
+
+fn edge_resolve_spelling(ctx: LowerCtx, table: AstEdgeTable, spelling: String, seen: NameIndex, out: Vec<String>) {
+    if len(spelling) == 0 {
+        return
+    }
+    let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(spelling))
+    if ni >= 0 {
+        edge_resolve_push(ctx_fn_index::ctx_fn_index_name_at(ctx, ni), seen, out)
+    }
+    let bi = name_index::name_index_get(table.bare_index, clone(spelling))
+    if bi >= 0 && bi < len(table.bare_lists) {
+        let list = get_unchecked(table.bare_lists, bi)
+        let mut i = 0
+        while i < len(list) {
+            edge_resolve_push(clone(get_unchecked(list, i)), seen, out)
+            i = i + 1
+        }
+    }
+    let mi = name_index::name_index_get(table.base_index, clone(spelling))
+    if mi >= 0 && mi < len(table.base_lists) {
+        let list = get_unchecked(table.base_lists, mi)
+        let mut i = 0
+        while i < len(list) {
+            edge_resolve_push(clone(get_unchecked(list, i)), seen, out)
+            i = i + 1
+        }
+    }
+    let alias = hash_aliases::hashmap_builtin_alias(clone(spelling))
+    if !eq(clone(alias), clone(spelling)) {
+        let ai = ctx_fn_index::ctx_fn_index_find(ctx, clone(alias))
+        if ai >= 0 {
+            edge_resolve_push(ctx_fn_index::ctx_fn_index_name_at(ctx, ai), seen, out)
+        }
+    }
+}
+
+fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, seen: NameIndex, out: Vec<String>) {
+    if len(cand) == 0 {
+        return
+    }
+    edge_resolve_spelling(ctx, table, clone(cand), seen, out)
+    if contains(clone(cand), String_from("::")) {
+        edge_resolve_spelling(ctx, table, edge_after_last(cand, 58, 58), seen, out)
+    }
+}
+
+fn mir_ast_edge_table_caller_count(table: AstEdgeTable) -> i32 {
+    len(table.callers)
+}
+
+fn mir_ast_edge_table_caller_at(table: AstEdgeTable, i: i32) -> String {
+    clone(get_unchecked(table.callers, i))
+}
+
+fn mir_ast_edge_table_caller_find(table: AstEdgeTable, caller: String) -> i32 {
+    name_index::name_index_get(table.caller_index, caller)
+}
+
+// Probe-only placeholder so callers can hold a table slot when discovery is
+// gated off. An empty table resolves nothing and must not reach BFS code.
+fn mir_ast_edge_table_empty() -> AstEdgeTable {
+    AstEdgeTable {
+        callers: Vec::new<String>(),
+        caller_index: name_index::NameIndex_new(4),
+        offs: Vec::new<i32>(),
+        names: Vec::new<String>(),
+        bare_index: name_index::NameIndex_new(4),
+        bare_names: Vec::new<String>(),
+        bare_lists: Vec::new<Vec<String>>(),
+        base_index: name_index::NameIndex_new(4),
+        base_names: Vec::new<String>(),
+        base_lists: Vec::new<Vec<String>>(),
+    }
+}
+
+// Resolve all of caller's candidates to deduped emit/fn_index names
+// (emit names reachable from this caller in one hop).
+fn mir_ast_edge_table_resolve_caller_names(ctx: LowerCtx, table: AstEdgeTable, caller_idx: i32) -> Vec<String> {
+    let seen = name_index::NameIndex_new(64)
+    let out = Vec::new<String>()
+    let start = get_unchecked(table.offs, caller_idx)
+    let end = get_unchecked(table.offs, caller_idx + 1)
+    let mut i = start
+    while i < end {
+        edge_resolve_candidate(ctx, table, clone(get_unchecked(table.names, i)), seen, out)
+        i = i + 1
+    }
+    out
+}
+
+// Resolve all of caller's candidates into marked names (emit names
+// reachable from this caller in one hop).
+fn mir_ast_edge_table_resolve_caller(ctx: LowerCtx, table: AstEdgeTable, caller_idx: i32, marked: NameIndex) {
+    let names = mir_ast_edge_table_resolve_caller_names(ctx, table, caller_idx)
+    let mut i = 0
+    while i < len(names) {
+        name_index::name_index_insert_first(marked, clone(get_unchecked(names, i)), 1)
+        i = i + 1
+    }
+}

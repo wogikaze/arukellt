@@ -8,6 +8,7 @@ use mir::lower::ctx_struct_layout
 use mir::lower::closure_env
 use mir::lower::decl_source
 use mir::lower::ctx_corehir_probe
+use mir::lower::edge_discovery
 use mir::lower::entry_context
 use mir::lower::entry_decls
 use mir::lower::entry_input
@@ -90,6 +91,12 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     // the module: tier 1 starts empty (no bodies pushed yet), tier 2 covers
     // every decl name so forward callees resolve during per-fn passes.
     ctx.prop_cache = post_pass_callee_cache::callee_prop_cache_build(m)
+    // #851 Phase 3 probe only: pre-lower AST call-edge table, measured
+    // against the recorded stream before it may drive BFS/worklist skips.
+    let mut ast_edges = edge_discovery::mir_ast_edge_table_empty()
+    if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
+        ast_edges = edge_discovery::mir_ast_edge_table_build(ctx, body_source, view, midx)
+    }
     entry_decls::mir_emit_view_decls(
         ctx,
         view,
@@ -134,6 +141,24 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
             ctx_call_edges::ctx_edge_overflow_names(ctx)
         )
         ctx_corehir_probe::mir_probe_dump_return_table_diff(ctx, module)
+        ctx_corehir_probe::mir_probe_dump_ast_edge_coverage(
+            ctx,
+            module,
+            ctx_call_edges::ctx_edge_table(ctx),
+            ctx_call_edges::ctx_edge_fn_names(ctx),
+            ctx_call_edges::ctx_edge_overflow_names(ctx),
+            ast_edges
+        )
+        ctx_corehir_probe::mir_probe_dump_ast_reach_diff(
+            ctx,
+            module,
+            clone_export_roots(export_roots),
+            clone(input.target),
+            ctx_call_edges::ctx_edge_table(ctx),
+            ctx_call_edges::ctx_edge_fn_names(ctx),
+            ctx_call_edges::ctx_edge_overflow_names(ctx),
+            ast_edges
+        )
     }
     let blocks_before = module_functions::MirModule_block_count(module)
     let insts_before = module_functions::MirModule_inst_count(module)
