@@ -468,6 +468,21 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
   base+slot 算術を撤去した。次の作業単位: (C) registration path が
   canon_idx を登録時に即時確定して entity へ保存し、
   `*_type_map` 参照を置き換える。
+- 実装状況（`e90d327f1` + `2a58dda63`、(C) 着地）: sealed/late emit
+  順 + 登録時 canon 確定まで完了。canon ensure 順は
+  `gc_module_emit_slots` と完全一致 — [gc_fixed][typed callbacks]
+  [sealed structs][sealed enums][late 登録順] で、その後を
+  wasi/wit/fn/wrapper/p2/linear/pair の canonicalize 分が埋める。
+  fixed+callback prefix は初回登録時に lazy ensure
+  （`ctx_gc_canon_prefix_ensure`、flag 冪等）。sealed flush は slot 順
+  inline ensure、late は slot 順 push 後に `ctx_gc_canon_ensure_late`
+  が late_gc_order 順で set（未記録は kind 別 sweep、emit tail と同形）。
+  emit の `gc_struct_type_map`/`gc_enum_variant_type_map` は module
+  保存の canon vec 直読みに置き換え済み。`MirModule_push_gc_*` が
+  canon=-1 placeholder を並列 push し ensure で set する構造のため、
+  per-fn fusion で登録点が body emit 時点に移っても同じ hook で確定
+  できる。次の作業単位: per-fn「lower→analyze→emit→detach」の decl
+  loop 書き換え（gcsrefN は emit 時点で canon_idx 直読み可能）。
 
 Phase-3 実測（2026-10-13 AST edge-table 解決レイヤ — emit 同一解決の再現）:
 
