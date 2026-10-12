@@ -446,6 +446,16 @@ Phase-3 設計確定（2026-10-12 canon 調査 — **TypeId reloc は不要**）
   canon_idx の直読みに置き換わる。emit 順序は変わる（dedup 後の登録順）
   が valid かつ deterministic — fixture parity（output 一致）と fixpoint
   で検証可能。
+- 実装状況（`b8287e893`）: `MirModule.canon_sigs`/`canon_index` +
+  `MirModule_canon_ensure` 着地。`canonicalize_type_sigs` は module
+  table 経由になり emit 出力は不変（367 fixture parity PASS）。次の
+  作業単位: (B) emit の region オフセット算定（gc_struct_base 等の
+  base+slot 算術と type_map slice）を collection position の明示化へ
+  置き換え、module-gc sig を collection 末尾へ移す。(C) registration
+  path が ctx.module の canon table に ensure で即時確定 + entity へ
+  canon_idx 保存。注意点: pair call sig は body 駆動（MIR_CALL_REF
+  走査）なので module 領域側、fn sig の gcsrefN は slot 参照で symbolic
+  のまま canonical 化できる。
 
 実装順序の再評価:
 a. discovery で edge/type を確定（**AstNode 走査の edge table 化** — MIR 不要。
