@@ -29,3 +29,11 @@ fn MirModule_canon_sig_at(m: MirModule, idx: i32) -> String {
 fn MirModule_canon_sigs(m: MirModule) -> Vec<String> {
     m.canon_sigs
 }
+
+fn MirModule_gc_canon_prefix_done(m: MirModule) -> bool {
+    m.gc_canon_prefix_done
+}
+
+fn MirModule_set_gc_canon_prefix_done(m: MirModule, done: bool) {
+    m.gc_canon_prefix_done = done
+}

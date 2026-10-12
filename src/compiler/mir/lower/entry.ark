@@ -21,6 +21,7 @@ use mir::lower::gc_layout_plan_build
 use mir::lower::mono_view
 use mir::lower::registry_view
 use mir::lower::trace
+use mir::lower::ctx_gc_canon
 use mir::module_factory
 use mir::module_gc_order
 use mir::module_functions
@@ -61,8 +62,12 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     // flush the prefix once. Body emit may still append; flush only the tail
     // so prefix type indices stay stable. A full second flush duplicates.
     ctx_gc_struct_order::ctx_reorder_gc_structs_deps_first(ctx)
-    ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
+    // Sealed flush order must match the emit order (structs before enum
+    // variants): flushes also assign canon indices inline, and the section
+    // emits canon_sigs in ensure order — enum payload sigs may reference
+    // struct slots via gcsref, so structs must ensure first.
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
+    ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     let sealed_structs = ctx_gc_struct::ctx_gc_struct_count(ctx)
     let sealed_enums = ctx_gc_enum::ctx_gc_enum_variant_count(ctx)
     // #851 Phase 3: everything sealed so far keeps its slot position in
@@ -147,6 +152,10 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let late_enums = ctx_gc_enum::ctx_gc_enum_variant_count(ctx) - sealed_enums
     ctx_gc_struct::ctx_flush_gc_structs_from(ctx, sealed_structs)
     ctx_gc_enum::ctx_flush_gc_enum_variants_from(ctx, sealed_enums)
+    // Late canon indices are assigned in late_gc_order — the emission
+    // order — after the slot-order pushes above kept module slot == ctx
+    // slot.
+    ctx_gc_canon::ctx_gc_canon_ensure_late(ctx)
     entry_timing::mir_lower_gc_late_note(timing, late_structs, late_enums)
     let t_after_decl = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, "body_emit", t_after_ctx, t_after_decl)

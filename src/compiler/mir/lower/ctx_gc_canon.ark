@@ -1,0 +1,112 @@
+use std::prelude::{clone}
+use mir::lower::ctx_types
+use mir::module_canon
+use mir::module_gc_enum
+use mir::module_gc_order
+use mir::module_gc_struct
+use wasm::sections_types_gc
+use wasm::sections_types_sigs
+
+// #851 Phase 3: registration-time canonical type indices for module GC
+// entities. MirModule's append-only canon table assigns the final
+// type-section index when a module GC type registers, so per-fn body emit
+// can read entity canon_idx directly instead of a post-hoc type_map —
+// this is what makes late (body-driven) registrations addressable without
+// TypeId reloc.
+
+// Ordering contract: the type section emits canon_sigs in order and a
+// forward type index is invalid outside a rec group, so ensure order must
+// keep every referencer after its referents.
+//   1. The fixed GC + typed-callback prefix first: module GC field sigs
+//      reference them via _refN (gc_type_base + N) and callback text
+//      lookups, so they must hold lower canon indices than any module GC
+//      type. Ensured lazily at the first registration — idempotent.
+//   2. Module GC entities in gc_module_emit_slots order — sealed structs,
+//      sealed enum variants, then late_gc_order — which is the order emit
+//      already uses, so canon order matches the emitted section exactly.
+// Everything else (wasi/wit/fn sigs/wrappers/p2/linear/pair) is ensured
+// by canonicalize_type_sigs afterwards and appends behind the GC region;
+// none of those sigs are referenced by module GC sigs.
+
+fn ctx_gc_canon_prefix_ensure(ctx: LowerCtx) {
+    let m = ctx.module
+    if module_canon::MirModule_gc_canon_prefix_done(m) {
+        return
+    }
+    module_canon::MirModule_set_gc_canon_prefix_done(m, true)
+    let sigs = Vec::new<String>()
+    sections_types_gc::append_gc_type_sigs(sigs)
+    sections_types_sigs::append_gc_typed_callback_type_sigs(sigs)
+    let mut i = 0
+    while i < len(sigs) {
+        module_canon::MirModule_canon_ensure(m, get_unchecked(sigs, i))
+        i = i + 1
+    }
+}
+
+// Ensure a module GC signature and return its final canon index. -1 on
+// non-GC targets where no GC canon region exists.
+fn ctx_gc_canon_ensure_sig(ctx: LowerCtx, sig: String) -> i32 {
+    if !ctx.is_gc_target {
+        return 0 - 1
+    }
+    ctx_gc_canon_prefix_ensure(ctx)
+    module_canon::MirModule_canon_ensure(ctx.module, sig)
+}
+
+fn ctx_gc_canon_ensure_struct_sig(ctx: LowerCtx, sig: String) -> i32 {
+    ctx_gc_canon_ensure_sig(ctx, sections_types_gc::gc_struct_sig_as_final(sig))
+}
+
+// Ensure canon indices for late (post-seal) registrations in
+// late_gc_order — the same order gc_module_emit_slots emits them — then
+// sweep any unrecorded late slot grouped by kind, mirroring the emit
+// tail. Assumes the module vecs already hold the entries (slot order
+// push happened first via ctx_flush_gc_*_from).
+fn ctx_gc_canon_ensure_late(ctx: LowerCtx) {
+    let m = ctx.module
+    let order = module_gc_order::MirModule_late_gc_order(m)
+    let mut i = 0
+    while i < len(order) {
+        let packed = get_unchecked(order, i)
+        let slot = packed / 2
+        if packed % 2 == 0 {
+            let canon = ctx_gc_canon_ensure_struct_sig(
+                ctx,
+                module_gc_struct::MirModule_gc_struct_sig_at(m, slot)
+            )
+            module_gc_struct::MirModule_set_gc_struct_canon_idx(m, slot, canon)
+        } else {
+            let canon = ctx_gc_canon_ensure_sig(
+                ctx,
+                module_gc_enum::MirModule_gc_enum_variant_sig_at(m, slot)
+            )
+            module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, slot, canon)
+        }
+        i = i + 1
+    }
+    let mut s = 0
+    let struct_total = module_gc_struct::MirModule_gc_struct_sig_count(m)
+    while s < struct_total {
+        if module_gc_struct::MirModule_gc_struct_canon_idx_at(m, s) < 0 {
+            let canon = ctx_gc_canon_ensure_struct_sig(
+                ctx,
+                module_gc_struct::MirModule_gc_struct_sig_at(m, s)
+            )
+            module_gc_struct::MirModule_set_gc_struct_canon_idx(m, s, canon)
+        }
+        s = s + 1
+    }
+    let mut e = 0
+    let enum_total = module_gc_enum::MirModule_gc_enum_variant_sig_count(m)
+    while e < enum_total {
+        if module_gc_enum::MirModule_gc_enum_variant_canon_idx_at(m, e) < 0 {
+            let canon = ctx_gc_canon_ensure_sig(
+                ctx,
+                module_gc_enum::MirModule_gc_enum_variant_sig_at(m, e)
+            )
+            module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, e, canon)
+        }
+        e = e + 1
+    }
+}

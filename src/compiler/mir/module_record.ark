@@ -51,6 +51,18 @@ pub struct MirModule {
     // time like today.
     canon_sigs: Vec<String>,
     canon_index: NameIndex,
+    // Per-slot canon idx for module GC entities, assigned at registration
+    // (#851 Phase 3, sealed/late). gc_struct_canon_idx[slot] is the final
+    // type-section index of gc_struct_names[slot] once ensured; -1 while
+    // the late-registration push happened but ordered ensure has not run
+    // yet (sealed entries ensure inline at flush, late entries ensure in
+    // late_gc_order order). gc_canon_prefix_done marks the one-time
+    // ensure of the fixed GC + typed-callback sig prefix every module GC
+    // registration must follow — those sigs are what module GC field
+    // types reference, so they must hold lower canon indices.
+    gc_struct_canon_idx: Vec<i32>,
+    gc_enum_variant_canon_idx: Vec<i32>,
+    gc_canon_prefix_done: bool,
     gc_layout_plan: MirGcLayoutPlan,
     spine_populated: bool,
     type_table: TypeTable,
@@ -85,6 +97,9 @@ fn MirModule_new() -> MirModule {
         late_gc_order: Vec::new<i32>(),
         canon_sigs: Vec::new<String>(),
         canon_index: name_index::NameIndex_new(64),
+        gc_struct_canon_idx: Vec::new<i32>(),
+        gc_enum_variant_canon_idx: Vec::new<i32>(),
+        gc_canon_prefix_done: false,
         gc_layout_plan: gc_layout_plan::MirGcLayoutPlan_new(),
         spine_populated: false,
         type_table: type_table::TypeTable_new(),

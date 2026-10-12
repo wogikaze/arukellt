@@ -1,6 +1,7 @@
 use std::text
 use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substring}
 use mir::lower::ctx_gc_enum_sig
+use mir::lower::ctx_gc_canon
 use mir::lower::ctx_struct_field_type
 use mir::module_gc_order
 use mir::module_gc_enum
@@ -200,9 +201,14 @@ fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
 fn ctx_flush_gc_enum_variants_from(ctx: LowerCtx, start: i32) {
     let m = ctx.module
     let count = len(ctx.gc_enum_variant_names)
-    let mut i = start
+    let mut i = if start < 0 { 0 } else { start }
     while i < count {
-        module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(get_unchecked(ctx.gc_enum_variant_sigs, i)))
+        let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
+        module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(sig))
+        if !ctx.gc_seal_done {
+            let canon = ctx_gc_canon::ctx_gc_canon_ensure_sig(ctx, sig)
+            module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, i, canon)
+        }
         i = i + 1
     }
 }

@@ -6,12 +6,14 @@ use corehir::type_table
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_canon
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_size
 use mir::module_gc_order
 use mir::module_gc_struct
 use mir::module_spine
+use wasm::sections_types_gc
 use wasm::sections_types_gc_phase7
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
@@ -140,9 +142,18 @@ fn ctx_flush_gc_structs(ctx: LowerCtx) {
 fn ctx_flush_gc_structs_from(ctx: LowerCtx, start: i32) {
     let m = ctx.module
     let count = len(ctx.gc_struct_names)
-    let mut i = start
+    let mut i = if start < 0 { 0 } else { start }
     while i < count {
-        module_gc_struct::MirModule_push_gc_struct(m, clone(get_unchecked(ctx.gc_struct_names, i)), clone(get_unchecked(ctx.gc_struct_sigs, i)))
+        let sig = clone(get_unchecked(ctx.gc_struct_sigs, i))
+        module_gc_struct::MirModule_push_gc_struct(m, clone(get_unchecked(ctx.gc_struct_names, i)), clone(sig))
+        // Sealed registrations emit in slot order, so ensure inline while
+        // pushing. Post-seal entries keep -1 until ctx_gc_canon_ensure_late
+        // assigns them in late_gc_order (emission) order — pushing in slot
+        // order first is what keeps module slot == ctx slot.
+        if !ctx.gc_seal_done {
+            let canon = ctx_gc_canon::ctx_gc_canon_ensure_struct_sig(ctx, sig)
+            module_gc_struct::MirModule_set_gc_struct_canon_idx(m, i, canon)
+        }
         i = i + 1
     }
 }

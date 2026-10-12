@@ -98,35 +98,11 @@ fn emit_type_section(
         linear_gc_enabled
     )
     let gc_type_base = first_gc_type_index(canon_types)
-    // Module GC region (#851 Phase 3): sealed types keep slot order, late
-    // types follow in registration order — gc_module_emit_slots is the
-    // single source for both the sig emission order in build_type_sigs and
-    // these slot→canonical-index maps.
-    let gc_module_emit = sections_types_gc::gc_module_emit_slots(mir)
-    let module_region_start = num_host_types + wit_import_count + gc_fixed_count + gc_callback_count
-    let gc_struct_type_map = Vec::new<i32>()
-    let gc_enum_variant_type_map = Vec::new<i32>()
-    let mut msi = 0
-    while msi < gc_struct_count {
-        push(gc_struct_type_map, 0 - 1)
-        msi = msi + 1
-    }
-    msi = 0
-    while msi < enum_variant_count {
-        push(gc_enum_variant_type_map, 0 - 1)
-        msi = msi + 1
-    }
-    let mut mei = 0
-    while mei < len(gc_module_emit) {
-        let packed = get_unchecked(gc_module_emit, mei)
-        let canon_idx = get_unchecked(type_map, module_region_start + mei)
-        if packed % 2 == 0 {
-            set(gc_struct_type_map, packed / 2, canon_idx)
-        } else {
-            set(gc_enum_variant_type_map, packed / 2, canon_idx)
-        }
-        mei = mei + 1
-    }
+    // Module GC canon indices are assigned at registration and stored on
+    // the module (#851 Phase 3): the stored per-slot vectors are the
+    // slot→canon maps emit reads — no section-position arithmetic needed.
+    let gc_struct_type_map = module_gc_struct::MirModule_gc_struct_canon_idxs(mir)
+    let gc_enum_variant_type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir)
     let mut gc_struct_base = 0 - 1
     if gc_struct_count > 0 {
         gc_struct_base = get_unchecked(gc_struct_type_map, 0)
