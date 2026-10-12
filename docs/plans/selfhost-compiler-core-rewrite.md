@@ -288,7 +288,8 @@ fixture 3 件（vec_generic / clone_independent / ord_sort_vec_string）出力 b
 
 - [ ] discovery: FunctionKey / TypeKey / signature / closure / mono worklist。本体 MIR なし
 - [ ] body: 1 関数 lower → 局所解析 → Wasm body → reloc 保存 → arena reset
-- [ ] CALL / GC type は FuncId / TypeId reloc。最終izer が数値 index にする
+- [ ] CALL は FuncId reloc（既実装）／GC type は登録時 canon_idx
+      （sealed/late 分割で確定、reloc 不要 — 後述「設計確定」）。最終izer が数値 index にする
 - [ ] 「index 未定だから全 MIR 生存」を消す
 
 residency map（2026-10-12 調査 — なぜ全 body が同時生存か）:
@@ -355,8 +356,10 @@ closure env、capture 解析）は discovery で TypeKey/closure として確定
   伝搬が不完全になるため、cache を signature_registry 由来に直す必要。
 - type index は eager 解決（reloc なし）: body emit は emit.types 後なので
   index 確定済み。late 登録は `ctx_ensure_gc_enum_payload_variant_typed` の
-  enum payload（Option::Some 等、body 由来）で gc_late=2 — per-fn emit 化に
-  は「type 早期凍結（discovery で全型登録）」か「TypeId reloc」のどちらかが必要。
+  enum payload（Option::Some 等、body 由来）で gc_late=2 — 当初は
+  「type 早期凍結」か「TypeId reloc」が必要と見積もったが、後述の
+  sealed/late 分割により late 型も登録時に canon_idx が確定するため
+  reloc は不要になった（2026-10-12 訂正版）。
 
 残る実装 = pipeline 再構成の本丸: per-fn「lower→analyze→emit→detach」への
 decl loop 書き換え。peak RSS（lower 終端で全 body+type 生存 ~600MB）を
@@ -408,8 +411,9 @@ Phase-3 実測（2026-10-12 worklist skip / gc-late probe）:
   （例: `Option::Some`/`Result::Ok` の
   `SubF+14_S_f0_i32_f1_ref22` — payload が `Vec<i64>` 等の concrete
   ref）。sig が payload 側 canon 型 index（`refN`）を内包するため、
-  「enum 個数だけ先に凍結」では解けず、(name,sig) の完全列挙か
-  canon registry の append-only 化か TypeId reloc が必要。
+  「enum 個数だけ先に凍結」では解けず、登録時 index は
+  late region の登録順配置（sealed/late 分割）で解くことになった
+  （下の「設計確定」参照）。
 - **canon 型 index は base+slot ではない**: type section は canon sig
   dedup 順（`TypeCanonPlan`）で並び、`*_type_map` が slot→canon_idx
   を引く。late 登録が新 canon 型を足すと downstream（struct/callback/
@@ -421,41 +425,109 @@ Phase-3 実測（2026-10-12 worklist skip / gc-late probe）:
   registration→index 即時確定の append-only canon registry は subtype 順序
   制約（super 先行必須）と現行 section 並び替えの互換を調べる設計論点あり。
 
-Phase-3 設計確定（2026-10-12 canon 調査 — **TypeId reloc は不要**）:
+Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed/late
+分割で登録時 index 確定**）:
 
-- **type section の前方参照は合法**（実測確定）: GC/function-references
-  型索引空間は section 全域で確立される。実 emit 済み module（
-  late_probe.wasm）に type 30→32 等の前方参照が存在し、
-  `wasm-tools validate --features all` が通る。`emit_type_section` の
-  「Option/Result payload が gcsref で前方 index を踏まないよう struct を
-  enum より先に置く」コメントの制約は実は不要だった。
-- **よって canon 順序は自由**: 全 discovery 決定型（host/wit/gc_fixed/
-  callback/fn sig/p2/linear/pair call）を discovery 完了時に固定順で canon
-  化し、body 駆動の module-gc sig（enum payload variant・遅延 struct）は
-  **登録順 append** で canon_idx を即時確定できる。late 登録は末尾に
-  足すだけで既存 index を一切ずらさない — 早期凍結（集合の完全列挙）も
-  TypeId reloc（19 ファイルの operand 書換）も要らない。
-- sig 本文の `refN`/`gcsrefN` は canon index ではなく fixed 型番号と
-  gc_struct registry slot を指す（`ctx_gc_enum_sig` 実測）— sig は
-  registration 時点で完結し、canon 化時に参照解決は emit 側の remap に
-  任せられる。
-- 実装方針: ctx/module に append-only canon 表（sig→idx dedup + idx→sig）
-  を持ち、discovery 末端で非 body 型を一括 ensure、各 registration path
-  （`ctx_register_gc_enum_variant`/`ctx_ensure_gc_struct_registered`）が
-  ensure で canon_idx を即時確定・保存。`*_type_map` は保存済み
-  canon_idx の直読みに置き換わる。emit 順序は変わる（dedup 後の登録順）
-  が valid かつ deterministic — fixture parity（output 一致）と fixpoint
-  で検証可能。
-- 実装状況（`b8287e893`）: `MirModule.canon_sigs`/`canon_index` +
-  `MirModule_canon_ensure` 着地。`canonicalize_type_sigs` は module
-  table 経由になり emit 出力は不変（367 fixture parity PASS）。次の
-  作業単位: (B) emit の region オフセット算定（gc_struct_base 等の
-  base+slot 算術と type_map slice）を collection position の明示化へ
-  置き換え、module-gc sig を collection 末尾へ移す。(C) registration
-  path が ctx.module の canon table に ensure で即時確定 + entity へ
-  canon_idx 保存。注意点: pair call sig は body 駆動（MIR_CALL_REF
-  走査）なので module 領域側、fn sig の gcsrefN は slot 参照で symbolic
-  のまま canonical 化できる。
+- **type section の前方参照は rec 群なしでは invalid**（バイナリ合成で
+  実測確定: type0 の func param `ref 1` → `unknown type 1: type index
+  out of bounds`。self-ref は暗黙 rec-of-1 で合法）。同日の awk probe
+  が late_probe.wasm に「type 30→32 の前方参照」を見たとする記録は
+  parse 誤り — Python 再スキャンで s2-runtime（263 types）・probe 群は
+  全件 0 前方参照だった。よって module 型を collection 末尾へ移す設計は
+  破棄 — fn sig / pair sig は `gcsrefN` で struct slot・__fnpair を
+  参照しうるため前方参照になる。
+- **sealed/late 分割で登録時 index が成立**: module ブロックは従来通り
+  全 sig 領域より前に置き、内部順序だけを
+  `[sealed_structs][sealed_enums][late（structs+enums 登録順 interleave)]`
+  にする。late idx = late_base + 登録順、late_base =
+  host+wit+fixed+callback+sealed 計で sealed-flush 時に確定するため
+  **全 GC 型が登録時に最終 index を持てる**。sig 領域は late append で
+  ずれるが body operand ではないため従来通り emit 時解決でよい。
+- 参照制約の確認: late enum→late struct（__fnpair・payload field）は
+  ensure が sig 構築より先に走るため必ず登録順が前方になる。
+  late struct→late enum variant は存在しない（field は enum base
+  `ref14` を指し、variant slot を指さない）。sealed 内は ctx_prep の
+  deps-first reorder 済み。fn/pair/p2 sig は module ブロックより後なので
+  常に後方参照。
+- 残存リスク（現行 layout と同じ露出であり新規ではない）:
+  `ctx_ensure_gc_struct_registered` の placeholder で parent slot <
+  field slot になりうるため、late struct→late struct は稀に前方参照に
+  なりうる（late struct が実質 __fnpair/tuple のみで未観測）。
+  late struct が増えたら late region を deps-first topo にする。
+- parity: late 登録なしの module では emitted order が現行と完全一致
+  （全 fixture が対象）。selfhost でも late_structs=0 のため late
+  block は enum のみ = 現行と同順序。順序が変わるのは
+  struct/enum 混在 late のみで、そちらも valid。
+- 実装（作業中）: `MirModule.{sealed_gc_struct_count,
+  sealed_gc_enum_count, late_gc_order}`（packed slot*2+kind、
+  module_gc_order.ark）、`LowerCtx.gc_seal_done`、登録点
+  （`ctx_register_gc_struct`/`ctx_set_gc_struct_sig`/
+  `ctx_register_gc_enum_variant`）で order 記録。emit 側は
+  `gc_module_emit_slots`（sealed → late 登録順 → 未記録 slot sweep）
+  を sig 発行順と slot→canon map の両方の正本にし、
+  base+slot 算術を撤去した。次の作業単位: (C) registration path が
+  canon_idx を登録時に即時確定して entity へ保存し、
+  `*_type_map` 参照を置き換える。
+
+Phase-3 実測（2026-10-13 AST edge-table 解決レイヤ — emit 同一解決の再現）:
+
+- AST edge table は「AST が名前で書ける callee」だけでは emit の
+  呼び先と一致しない。emit は `call_rewrite::mir_rewrite_call_target`
+  で callee を書き換えるため、edge 側でも解決名を同じ形に展開する
+  `edge_rewrite_targets`（hashmap alias/ctor/family、vec coreop、
+  builtin intrinsic、raw_array_*）を resolution に通した。
+- **receiver-type 環境**: `recv.m()` は emit が receiver local type で
+  dispatch する（`mir_try_resolve_impl_method` /
+  `mir_rewrite_hashmap_method`）。`HashMap<K,V>` の
+  values/entries/keys は impl method が存在しない adapter-only で、
+  bare spelling も mono instance も無いため under-keep → emit call が
+  unreachable stub 化していた（hashmap_entries_values trap）。
+  body ごとの let/param/`self` → local-type env を edge_collect_calls
+  に通し、method call で `hashmap_family_for_type` →
+  `hash_map::hashmap_<pair>_<m>` adapter・`HashMap_<pair>::m` pair
+  owner・`Owner::m`/`InstOwner::m` impl spelling を候補追加。
+  typed 候補は additive（bare は常に併記）なので誤型でも over-keep
+  のみ。fixture は expected 15 行と一致。
+- rewrite 展開の循環を spelling-level dedup で停止（
+  `mir_builtin_method_to_intrinsic` の `Vec::new`→自身 self-map、
+  alias ping-pong 対策）。hit パス後・rewrite 展開前に seen マーク。
+- 残留 [probeE-ureach] は `__fnthunk_*` のみ（thunk は decl 外で無条件
+  合成される false positive）。`__hm_if_*`/`__intrinsic_*`/`vec_push`
+  等の miss は intrinsic/inline emit で body 不要。
+- 残る既知の型推論ギャップ（bare fallback が埋めている）: tuple
+  destructure の element 型、for 変数の element 型、field access、
+  `?` の error 型。いずれも adapter 型名を要さず bare_index で
+  解決できるため現時点では over-keep に留まる。
+
+Phase-3 実測（2026-10-13 edge walk の allocation watermark —
+iterator_query_consumers stall の根本原因）:
+
+- 症状: `stdlib_trait/iterator_query_consumers.ark` の emit が s2 で
+  >600s stall（100% CPU・RSS 平坦 ~160MB、stall 位置は print 間で
+  漂う）。emit ロジックではなく **s2-runtime 内蔵 linear-memory GC**
+  が原因: 関数 prologue が `alloc_since_gc >= 64MiB` で collect を
+  発火し、mark フェーズ（wasm func 11100/11101）は
+  O(live_words × descriptor list) の fixpoint 再スキャン — emit 中盤
+  の最大 live 時に 1 回の collect が分数かかる。
+- ピン留め bootstrap（Oct 10 版）は grey-worklist/page-index
+  collector 改良コミット群（aabd7c16b 等、Oct 12）より前 — s2 が
+  埋め込む collector は構造的に旧式で、新 collector は s3 にしか
+  載らない。よってローカルでは s3 ビルドが旧 collector の壁で
+  >3600s かかり fixpoint ゲートも実質不可 — **恒久対策は bootstrap
+  更新か gc-host s2 経路**（gc+p2 では同 fixture が数秒で通る）。
+- 当該 fixture の walk 総 allocation は (64MiB, 66MiB] — 閾値を
+  66MiB に binary patch すると通ることで測定。対症として edge walk
+  側の allocation を削り watermark 未達にした:
+  `edge_collect_calls` を emit-name ごとの walk から decl ごとの
+  単一 walk（shared segment + `edge_push_caller_segment`）へ再構成し、
+  method-call ノードの receiver 型推論を span キーの per-decl memo
+  （EdgeTypeMemo）で O(depth^2)→O(depth) 化、env/segment/memo の
+  Vec を decl loop 外で再利用化（pop clear）、mono span レコード無し
+  の多数ノードで `precise` Vec 確保を hash head ガードに移動。
+  結果: 同一 fixture が未パッチ 64MiB 閾値で ~4s に（emit された
+  wasm は削減前後で byte-identical、34549B）。
+- 教訓: watermark 直下の fixture は微小な allocation 増で stall 復活
+  しうる。edge walk の候補追加は alloc 量を意識すること。
 
 実装順序の再評価:
 a. discovery で edge/type を確定（**AstNode 走査の edge table 化** — MIR 不要。
@@ -463,8 +535,9 @@ a. discovery で edge/type を確定（**AstNode 走査の edge table 化** — 
 b. per-fn post-pass: callee cache を signature_registry 由来に変換し、
    sync+propagate を decl loop 内で per-fn 実行（forward-callee の
    return type を registry が保持するため）
-c. per-fn emit: type index の解決を「upfront 凍結で済む経路」+「late は
-   TypeId reloc で placeholder+finalize patch」に分離
+c. per-fn emit: 全 GC 型が登録時に canon_idx 確定するため body operand
+   は entity 保存の canon_idx 直読み（TypeId reloc は不要）。call 側は
+   既存の call reloc を継続利用
 d. worklist 駆動で到達不能 fn の lower 自体を skip（~8% body_emit 節約）
 
 ## Phase 4 — post-pass type propagation を消す
