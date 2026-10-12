@@ -124,7 +124,11 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     }
     let t_after_bfs = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, "edge_bfs", t_after_edges, t_after_bfs)
-    entry_decls::mir_emit_view_decls(
+    // Decl-level bodies the AST-edge worklist skipped never enter the
+    // module; count them in fns_before so reachability_fns still reports
+    // "fns considered -> fns surviving" instead of only the post-skip
+    // module population.
+    let skipped_bodies = entry_decls::mir_emit_view_decls(
         ctx,
         view,
         body_source,
@@ -162,7 +166,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, "decl_emit", t_enter, t_after_decl)
 
     let module = ctx_api_module::ctx_current_module(ctx)
-    let fns_before = module_functions::MirModule_function_count(module)
+    let fns_before = module_functions::MirModule_function_count(module) + skipped_bodies
     if ctx_corehir_probe::mir_probe_edges_enabled() != 0 {
         ctx_corehir_probe::mir_probe_dump_recorded_edges(
             module,

@@ -8,10 +8,11 @@ use mir::lower::ctx_corehir_probe
 use mir::lower::entry_fallback_body
 use mir::lower::legacy_body
 use corehir::mod as corehir_mod
-fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex, emit_keep: NameIndex, prune_enabled: bool) {
+fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex, emit_keep: NameIndex, prune_enabled: bool) -> i32 {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, impl_decl_index)
     let mut mi = 0
+    let mut skipped = 0
     while mi < method_count {
         let method_info_index = entry_view_method::mir_entry_method_info_index(entry_view, impl_decl_index, mi)
         let mut mangled = clone(struct_name)
@@ -47,6 +48,8 @@ fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, im
         }
         if emit_bodies {
             entry_methods_mono::mir_emit_method_mono_bodies(ctx, body_input, struct_name, mangled, method_param_count, entry_view, method_info_index, midx)
+        } else {
+            skipped = skipped + 1
         }
         let core_body = entry_body_input::mir_entry_body_input_core(body_input)
         corehir_mod::release_body_expr_subtree(
@@ -56,4 +59,5 @@ fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, im
         entry_body_source::mir_entry_body_source_release_method(body_source, impl_decl_index, mi, m_body_idx)
         mi = mi + 1
     }
+    skipped
 }

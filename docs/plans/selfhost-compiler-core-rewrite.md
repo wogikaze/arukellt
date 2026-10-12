@@ -288,7 +288,7 @@ fixture 3 件（vec_generic / clone_independent / ord_sort_vec_string）出力 b
 
 - [ ] discovery: FunctionKey / TypeKey / signature / closure / mono worklist。本体 MIR なし
 - [ ] body: 1 関数 lower → 局所解析 → Wasm body → reloc 保存 → arena reset
-- [ ] CALL は FuncId reloc（既実装）／GC type は登録時 canon_idx
+- [x] CALL は FuncId reloc（既実装）／GC type は登録時 canon_idx
       （sealed/late 分割で確定、reloc 不要 — 後述「設計確定」）。最終izer が数値 index にする
 - [ ] 「index 未定だから全 MIR 生存」を消す
 

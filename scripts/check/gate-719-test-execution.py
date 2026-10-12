@@ -22,6 +22,11 @@ import sys
 import tempfile
 from pathlib import Path
 
+SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WRAPPER = REPO_ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
 
@@ -68,7 +73,7 @@ def _run(
 
 
 def _validate_wasm(path: Path) -> tuple[int, str]:
-    wasm_tools = shutil.which("wasm-tools")
+    wasm_tools = find_wasm_tools()
     if wasm_tools is None:
         return 0, "wasm-tools not found; skipping validate"
     result = subprocess.run(
