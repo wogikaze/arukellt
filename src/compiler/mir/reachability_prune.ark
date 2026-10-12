@@ -5,18 +5,28 @@ use mir::types
 fn mir_prune_unmarked_functions(m: MirModule, reachable: Vec<i32>) -> i32 {
     let fn_count = module_functions::MirModule_function_count(m)
     let kept = Vec::new<MirFunction>()
+    // 'return_variant_slots' stays parallel to 'functions' across the prune;
+    // a mismatched length means the module was built without recording, so
+    // the list resets to unrecorded instead of going stale.
+    let slots = module_functions::MirModule_return_variant_slots(m)
+    let keep_slots = len(slots) == fn_count
+    let kept_slots = Vec::new<i32>()
     let mut pruned = 0
     let mut i = 0
     while i < fn_count {
         let f = module_functions::MirModule_function_at(m, i)
         if get_unchecked(reachable, i) != 0 {
             push(kept, f)
+            if keep_slots {
+                push(kept_slots, get_unchecked(slots, i))
+            }
         } else {
             pruned = pruned + 1
         }
         i = i + 1
     }
     module_functions::MirModule_set_functions(m, kept)
+    module_functions::MirModule_set_return_variant_slots(m, kept_slots)
     module_metadata::MirModule_set_mono_pruned_count(m, pruned)
     pruned
 }

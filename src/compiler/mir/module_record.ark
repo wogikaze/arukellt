@@ -7,6 +7,11 @@ use mir::lower::mono_instance_table
 
 pub struct MirModule {
     functions: Vec<MirFunction>,
+    // Per-function metadata parallel to 'functions': the consistent variant
+    // slot of each function's RETURN locals. Recorded when the function body
+    // finishes lowering so post passes never rescan bodies for it
+    // (#851 Phase 3: callee metadata must outlive the body MIR).
+    return_variant_slots: Vec<i32>,
     export_names: Vec<String>,
     export_surface_set: bool,
     string_constants: Vec<String>,
@@ -33,6 +38,7 @@ pub struct MirModule {
 fn MirModule_new() -> MirModule {
     MirModule {
         functions: Vec::new<MirFunction>(),
+        return_variant_slots: Vec::new<i32>(),
         export_names: Vec::new<String>(),
         export_surface_set: false,
         string_constants: Vec::new<String>(),

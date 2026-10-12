@@ -1,10 +1,53 @@
 use std::prelude::{clone}
 use mir::function_core_record
 use mir::types_function
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::inst_accessors_operands
+use mir::inst_record
+use mir::local_access
+use mir::opcodes
 fn MirFunction_return_type(f: MirFunction) -> i32 {
     f.return_type
 }
 
 fn MirFunction_return_type_name(f: MirFunction) -> String {
     clone(f.return_type_name)
+}
+
+// Consistent variant slot of the locals this function returns. The first
+// RETURN whose local carries a slot wins; a later RETURN with a different
+// slot collapses the result to -1. Recorded per function when its body
+// finishes lowering (#851) so post passes read it as metadata instead of
+// rescanning every function body at propagate entry.
+fn mir_function_return_variant_slot(f: MirFunction) -> i32 {
+    let mut first_slot = 0 - 1
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_record::mir_inst_op(inst) == opcodes::MIR_RETURN() {
+                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+                if ret_local >= 0 && ret_local < function_locals_view::MirFunction_local_count(f) {
+                    let loc = function_locals_view::MirFunction_local_at(f, ret_local)
+                    let slot = local_access::MirLocal_variant_slot(loc)
+                    if slot >= 0 {
+                        if first_slot < 0 {
+                            first_slot = slot
+                        } else if slot != first_slot {
+                            return 0 - 1
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    first_slot
 }

@@ -342,6 +342,13 @@ closure env、capture 解析）は discovery で TypeKey/closure として確定
   `mir_function_detach_blocks(f, mir)`（module_block_pool で block 再利用）。
 - `callee_prop_cache` は signature 級（fn name + return_type_name のみ、
   body 不読）→ registry source 化すれば pre-emit propagate 可能。
+  2026-10-12 実装済み: \`MirModule.return_variant_slots\` — RETURN local の
+  variant slot を fn push 時点で記録（ctx_push_{module,current}_function）。
+  prune は並列表を併せて filter、非 ctx 経路の module は sentinel -2 →
+  旧 body scan fallback。callee cache build は body を一切読まなくなった
+  （name + return_type_name + slot 全て metadata）。37 fixture byte-parity、
+  verify lane PASS。残る body 非依存化: by_name/by_bare の fn 名 scan は
+  signature_registry への切替候補。
 - sync/propagate は per-fn 独立（共有は read-only TypeTable + cache）—
   decl loop 内 per-fn 化は「cache が全 fn 名を持つ前提」で阻害:
   forward-callee の return_type が未 emit だと lookup miss →

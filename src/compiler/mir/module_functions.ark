@@ -49,6 +49,38 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
 
 fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
+    // Keep 'return_variant_slots' parallel: 'unrecorded' marks functions
+    // pushed outside the ctx lower path (smoke fixtures, ad-hoc modules)
+    // so consumers fall back to deriving the slot from the body.
+    push(m.return_variant_slots, mir_return_variant_slot_unrecorded())
+}
+
+// Sentinel for MirModule.return_variant_slots entries that were registered
+// without a computed slot. Real slots are >= 0 or -1 (none/conflicting).
+fn mir_return_variant_slot_unrecorded() -> i32 {
+    0 - 2
+}
+
+fn MirModule_return_variant_slot_at(m: MirModule, idx: i32) -> i32 {
+    if idx < 0 || idx >= len(m.return_variant_slots) {
+        return mir_return_variant_slot_unrecorded()
+    }
+    get_unchecked(m.return_variant_slots, idx)
+}
+
+fn MirModule_set_return_variant_slot_at(m: MirModule, idx: i32, slot: i32) {
+    if idx < 0 || idx >= len(m.return_variant_slots) {
+        return
+    }
+    set(m.return_variant_slots, idx, slot)
+}
+
+fn MirModule_return_variant_slots(m: MirModule) -> Vec<i32> {
+    m.return_variant_slots
+}
+
+fn MirModule_set_return_variant_slots(m: MirModule, slots: Vec<i32>) {
+    m.return_variant_slots = slots
 }
 
 // Lower-phase diagnostics sink. Emit-side code paths that can prove the
