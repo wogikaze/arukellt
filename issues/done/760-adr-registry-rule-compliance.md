@@ -1,6 +1,6 @@
 # ADR 台帳の規則追従 — research/plans 分離と supersession 整合
 
-Status: open
+Status: done
 Priority: P1
 Created: 2026-07-11
 
@@ -15,7 +15,7 @@ ADR-000 の規則に既存 ADR 群を追従させる残作業を追跡する。
 2. [x] 現役 ADR の判断文脈で T1–T5 を使っていない（歴史括弧のみ可）
 3. [x] `docs/current-state.md` のターゲット表記が ADR-007/013 canonical 名と一致
 4. [x] ADR-002 等の生きたランタイム版・未実装スナップショットが current-state 側へ整理済み
-5. [ ] `python3 scripts/check/check-adrs.py` と `python3 scripts/manager.py verify quick` が緑
+5. [x] `python3 scripts/check/check-adrs.py` と `python3 scripts/manager.py verify quick` が緑
 
 ## Notes
 
@@ -25,3 +25,8 @@ current-state分割（history/）・鮮度メタ・リンク修正。
 2026-07-11 (再評価対応): ADR-036 を ADR-014 準拠の削除方針へ修正。From/Into 直接
 impl 禁止・TryFrom<T,E>・RFC-004。ADR-037 TypeKind。RFC-003 拡充。host_profiles
 SSOT・ADR-042 core-ops.toml・primary 役割定義。
+
+2026-10-13 (close): check-adrs.py OK（79 ファイル/78 ID/廃止記録 4）、
+verify quick 156/156 PASS on HEAD `e6c838562`。残存赤要因だった 4 ゲート
+（false-done hygiene・reachability BFS #823・ark quality ratchet・gate-719
+wasm-tools lookup）を同日修復し全緑で収束。

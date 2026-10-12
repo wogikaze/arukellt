@@ -22,7 +22,6 @@ graph LR
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
-  I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I801["801 GC 完了までのプラン"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
@@ -70,7 +69,6 @@ graph LR
 - **708** depends on: 692, 707; blocks: none
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: none
-- **760** depends on: none; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **801** depends on: 686; blocks: none
 - **814** depends on: 791; blocks: none

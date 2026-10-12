@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-11T20:37:25Z",
+  "generated_at": "2026-10-12T23:34:17Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -321,23 +321,6 @@
       }
     },
     {
-      "id": "760",
-      "path": "760-adr-registry-rule-compliance.md",
-      "title": "ADR 台帳の規則追従 — research/plans 分離と supersession 整合",
-      "track": "main",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "799",
       "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
       "title": "799 — CQ-18: code-quality closed-loop strict final audit",
@@ -470,8 +453,8 @@
         "850"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 10
+        "checked": 3,
+        "unchecked": 7
       },
       "orchestration": {
         "class": "architecture-implementation",
