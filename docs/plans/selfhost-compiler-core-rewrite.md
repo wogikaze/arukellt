@@ -385,6 +385,42 @@ Phase-3 実測（2026-10-12 edge probe、`ctx_corehir_probe.ark` —
   既知の `SELFHOST_COMPILE_TIMEOUT >3600s` で止まる（旧バイナリでも同じ、
   環境起因）。fixture byte-parity が代替ゲート。
 
+Phase-3 実測（2026-10-12 worklist skip / gc-late probe）:
+
+- **worklist skip は着地済み**（`5bae97401`）: `mir_ast_edge_reachable_names`
+  が AstEdgeTable を root（main/_start/__test_main + export_roots）から BFS
+  し `emit_keep` NameIndex を生成。`mir_emit_view_decls` は emit 名が全て
+  未到達の decl/method の `*_mono_bodies` を skip する。`entry_prefilter`
+  （文字列名ベースの下位近似）は削除。MIR 名の跨モジュール衝突
+  （`json::parse`/`parser::parse` → `parse`）対策として
+  `AstEdgeTable.caller_lists` が同名 caller 全 position を保持する。
+- **検証経路の注意**: `arukellt-selfhost.sh` の wasm 探索順は
+  `$ARUKELLT_SELFHOST_WASM` → pinned → s2-runtime → s2 の順。素の
+  `compile`/`run` は **pinned** を使うため current source の変更を検証
+  しない。変更後の直接検証は
+  `ARUKELLT_SELFHOST_WASM=$PWD/.build/selfhost/arukellt-s2-runtime.wasm`
+  を export して行う（fixture parity は内部で current s2 を使うので影響なし）。
+  s2 JIT 実行の flat-src 全体 compile は >5min なので、probe/計測用には
+  `wasmtime compile … -o s2-probe.cwasm` で AOT 化すると小規模入力が
+  秒で回る。
+- **gc_late の実測（pinned --time）**: selfhost 規模で structs=0 enums=3、
+  fixture 級では全件 0。late variant は sealed と同名で **sig だけが違う**
+  （例: `Option::Some`/`Result::Ok` の
+  `SubF+14_S_f0_i32_f1_ref22` — payload が `Vec<i64>` 等の concrete
+  ref）。sig が payload 側 canon 型 index（`refN`）を内包するため、
+  「enum 個数だけ先に凍結」では解けず、(name,sig) の完全列挙か
+  canon registry の append-only 化か TypeId reloc が必要。
+- **canon 型 index は base+slot ではない**: type section は canon sig
+  dedup 順（`TypeCanonPlan`）で並び、`*_type_map` が slot→canon_idx
+  を引く。late 登録が新 canon 型を足すと downstream（struct/callback/
+  fn sig/wrapper/p2）の index が全てずれる — per-fn emit の前提は
+  「全 canon 型の確定」か「型オペランドの reloc」に限定される。
+  GC 型オペランドの解決点は `gc_struct_type_map`/`gc_enum_variant_type_map`
+  参照の 19 ファイルに散在（struct.new/cast/get/set、indirect、vec、
+  option/result intrinsic）— 全置換の reloc は大掛かり。一方で
+  registration→index 即時確定の append-only canon registry は subtype 順序
+  制約（super 先行必須）と現行 section 並び替えの互換を調べる設計論点あり。
+
 実装順序の再評価:
 a. discovery で edge/type を確定（**AstNode 走査の edge table 化** — MIR 不要。
    ただし recorded 同等の解決名にするため alias/mono/method 解決レイヤが前提）
