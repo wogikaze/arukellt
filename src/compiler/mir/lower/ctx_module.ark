@@ -2,8 +2,13 @@ use mir::module_functions
 use mir::module_strings
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
+use mir::function_identity
 use mir::reachability
 use mir::function_return_view
+use mir::module_spine
+use mir::post_pass_callee_cache
+use mir::post_pass_type_propagate
+use mir::typed_mir_sync_module
 
 fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -11,11 +16,19 @@ fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) {
     module_functions::MirModule_push_function(m, func)
     let mir_index = module_functions::MirModule_function_count(m) - 1
     module_functions::MirModule_set_return_variant_slot_at(m, mir_index, ret_slot)
+    post_pass_callee_cache::callee_prop_cache_add_fn(
+        ctx.prop_cache,
+        mir_index,
+        function_identity::MirFunction_name(func),
+        function_return_view::MirFunction_return_type_name(func),
+        ret_slot
+    )
     if ctx_call_edges::ctx_edge_pending_map_open(ctx) {
         ctx_call_edges::ctx_edge_complete_pending_map(ctx, mir_index)
     } else {
         ctx_call_edges::ctx_edge_finish_current_map(ctx, mir_index)
     }
+    ctx_run_per_fn_post_pass(ctx, m, func, mir_index)
 }
 
 fn ctx_push_current_function(ctx: LowerCtx) {
@@ -26,6 +39,34 @@ fn ctx_push_current_function(ctx: LowerCtx) {
     let mir_index = module_functions::MirModule_function_count(m) - 1
     module_functions::MirModule_set_return_variant_slot_at(m, mir_index, ret_slot)
     ctx_call_edges::ctx_edge_finish_current_map(ctx, mir_index)
+    post_pass_callee_cache::callee_prop_cache_add_fn(
+        ctx.prop_cache,
+        mir_index,
+        function_identity::MirFunction_name(func),
+        function_return_view::MirFunction_return_type_name(func),
+        ret_slot
+    )
+    ctx_run_per_fn_post_pass(ctx, m, func, mir_index)
+}
+
+// #851 Phase 3: run the post passes on each function while its body is
+// still the only one live. Mirrors the module-level order (sync ->
+// propagate -> sync) so the post-loop module passes converge immediately
+// for this function. The cache is appended before the pass so recursive
+// self-calls resolve their own return name.
+fn ctx_run_per_fn_post_pass(ctx: LowerCtx, m: MirModule, func: MirFunction, mir_index: i32) {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return
+    }
+    let table = module_spine::MirModule_type_table(m)
+    func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
+    let _iters = post_pass_type_propagate::mir_function_propagate_local_types(
+        ctx.prop_cache,
+        func,
+        table
+    )
+    func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
+    module_functions::MirModule_set_function_at(m, mir_index, func)
 }
 
 fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 {

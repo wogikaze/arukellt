@@ -83,11 +83,6 @@ fn MirModule_set_return_variant_slots(m: MirModule, slots: Vec<i32>) {
     m.return_variant_slots = slots
 }
 
-fn MirModule_set_discovery_return_table(m: MirModule, names: Vec<String>, ret_names: Vec<String>) {
-    m.discovery_fn_names = names
-    m.discovery_fn_ret_names = ret_names
-}
-
 fn MirModule_discovery_fn_names(m: MirModule) -> Vec<String> {
     m.discovery_fn_names
 }

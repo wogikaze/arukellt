@@ -4,6 +4,7 @@ use mir::source_location_record
 use mir::lower::ctx_types
 use wasm::emit_target
 use collections::name_index
+use mir::post_pass_callee_cache
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
     LowerCtx_new_for_target(m, String_new(), String_new(), Vec::new<SourceLocation>())
 }
@@ -95,5 +96,6 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         source_text: source_text,
         fn_source_locations: fn_source_locations,
         edge_names: Vec::new<String>(),
+        prop_cache: post_pass_callee_cache::callee_prop_cache_build(m),
     }
 }

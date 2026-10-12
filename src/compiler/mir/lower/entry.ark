@@ -21,6 +21,7 @@ use mir::lower::registry_view
 use mir::lower::trace
 use mir::module_factory
 use mir::module_functions
+use mir::post_pass_callee_cache
 use mir::post_pass_type_propagate
 use mir::reachability
 use mir::typed_mir_sync_module
@@ -52,7 +53,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     mir_lower_trace_line(mir_tr, -1, decl_count, entry_fn_index_facade::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
     let source_text = clone(input.source_text)
     let fn_source_locations = entry_source_locations::compute_fn_source_locations(view, input.decl_nodes, clone(source_text))
-    let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target, source_text, fn_source_locations)
+    let mut ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target, source_text, fn_source_locations)
     registry_view::mir_register_view_layouts(ctx, view)
     // View registration seals named GC types (ticks 166–167). Reorder and
     // flush the prefix once. Body emit may still append; flush only the tail
@@ -68,10 +69,12 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     // callee metadata survives body detach. Names carry the same enum
     // normalization MirFunction.return_type_name uses; late ctx_register
     // names are covered by the tier-1 module index instead.
-    let disc_names = Vec::new<String>()
-    let disc_ret_names = Vec::new<String>()
     let disc_count = ctx_fn_index::ctx_fn_index_count(ctx)
     let mut disc_i = 0
+    // Append into the module vecs (not replace): signatures registered
+    // during ctx prep (e.g. WIT bindings) may already have pushed entries.
+    let disc_names = module_functions::MirModule_discovery_fn_names(m)
+    let disc_ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
     while disc_i < disc_count {
         push(disc_names, ctx_fn_index::ctx_fn_index_name_at(ctx, disc_i))
         push(
@@ -83,7 +86,10 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
         )
         disc_i = disc_i + 1
     }
-    module_functions::MirModule_set_discovery_return_table(m, disc_names, disc_ret_names)
+    // Seed the incremental callee cache now that the discovery table is on
+    // the module: tier 1 starts empty (no bodies pushed yet), tier 2 covers
+    // every decl name so forward callees resolve during per-fn passes.
+    ctx.prop_cache = post_pass_callee_cache::callee_prop_cache_build(m)
     entry_decls::mir_emit_view_decls(
         ctx,
         view,

@@ -4,6 +4,10 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_mono_rewrites
 use mir::lower::ctx_mono_type_params
+use mir::lower::ctx_struct_layout
+use mir::lower::ctx_current_storage
+use mir::module_functions
+use collections::name_index
 use mir::mono_names
 fn ctx_replace_fn_index(
     ctx: LowerCtx,
@@ -24,7 +28,18 @@ fn ctx_replace_fn_index(
 }
 
 fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
-    ctx_fn_index::ctx_fn_index_push(ctx, name, return_vt, return_type_name)
+    ctx_fn_index::ctx_fn_index_push(ctx, clone(name), return_vt, clone(return_type_name))
+    // Keep the discovery return catalog parallel (#851 Phase 3): names
+    // registered after ctx_prep (synth fns, late signatures) are reachable
+    // by per-fn callee lookups before their bodies exist.
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let names = module_functions::MirModule_discovery_fn_names(m)
+    push(names, clone(name))
+    let ret_names = module_functions::MirModule_discovery_fn_ret_names(m)
+    push(ret_names, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(return_type_name)))
+    // The seeded cache index is not rebuilt on growth; register the new
+    // name so tier-2 lookups find it too.
+    name_index::name_index_insert_first(ctx.prop_cache.disc_names, clone(name), len(names) - 1)
 }
 
 fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> String {

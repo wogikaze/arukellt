@@ -1,6 +1,7 @@
 use mir::types
 use mir::source_location_record
 use collections::name_index
+use mir::post_pass_callee_cache
 
 pub struct LowerCtx {
     module: MirModule,
@@ -193,4 +194,8 @@ pub struct LowerCtx {
     // Callee names that are not in fn_name_index (HashMap aliases, etc.).
     // Must not go into MirModule.string_constants — the emitter dumps those.
     edge_names: Vec<String>,
+    // Incrementally-built callee cache (#851 Phase 3): seeded at ctx_prep
+    // from the fn_index discovery table, extended at each function push so
+    // per-fn post passes resolve both pushed and forward callees.
+    prop_cache: CalleePropCache,
 }

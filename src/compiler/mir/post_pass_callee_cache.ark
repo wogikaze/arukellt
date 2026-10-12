@@ -72,6 +72,22 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
     }
 }
 
+// Append one emitted function to the tier-1 index. Must mirror the build
+// loop exactly: same insert order semantics for by_name/by_bare and the
+// same parallel ret tables.
+fn callee_prop_cache_add_fn(cache: CalleePropCache, fi: i32, fname: String, ret_name: String, ret_slot: i32) {
+    name_index::name_index_insert_first(cache.by_name, clone(fname), fi)
+    let bare = strip_module_prefix(clone(fname))
+    let existing_bare = name_index::name_index_get(cache.by_bare, clone(bare))
+    if existing_bare < 0 {
+        name_index::name_index_set(cache.by_bare, bare, fi)
+    } else if existing_bare != fi {
+        name_index::name_index_set(cache.by_bare, bare, 0 - 2)
+    }
+    push(cache.ret_type_names, ret_name)
+    push(cache.ret_variant_slots, ret_slot)
+}
+
 fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {
     let exact = name_index::name_index_get(cache.by_name, clone(callee))
     if exact >= 0 {
