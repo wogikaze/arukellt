@@ -484,6 +484,45 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
   できる。次の作業単位: per-fn「lower→analyze→emit→detach」の decl
   loop 書き換え（gcsrefN は emit 時点で canon_idx 直読み可能）。
 
+- 実装状況（2026-10-13、module-wide sync/propagate 撤去）:
+  per-fn post-pass は `ctx_run_per_fn_post_pass`（ctx_module.ark）として
+  全 fn push ファネル（`ctx_push_{module,current}_function`）で
+  sync→propagate→sync を実行済みだったため、entry.ark post-loop の
+  `mir_module_sync_all_value_types`×2 + `mir_module_propagate_local_types_report`
+  を削除した。cache は push 時 `callee_prop_cache_add_fn` で tier-1 に
+  追加され forward callee は tier-2 discovery 名で解決 — thunk/mono
+  も push 経路でカバー。47 fixture（enums/generics/collections/
+  iterator/closure_capture/match_extensions）で emit wasm byte-identical
+  を確認。残る本丸: body emit（wasm byte 化）の decl loop 内移設 —
+  code section 順序のため body byte の fn index 順バッファリングが必要。
+
+Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_context_new
+と strings.ark の実調査）:
+
+- **string offset は reloc 不要**: `EmitStringTablePlan` の offset は
+  `DATA_START + 4 + Σ len(prev)` で insertion order にのみ依存し、
+  intern 時点で最終確定する（append-only、既存 offset は不変）。
+  in-loop emit は running `next_data_offset` で即時解決できる。
+  bool literal は `emit_string_layout_ensure_bool_literals` が plan 時に
+  末尾 append するため、ctx_prep で module table へ先行 intern して
+  offset を早期凍結する。
+- **SelfEmitCtx**: `functions` / gc canon vecs は module の ref 共有なら
+  push/ensure と共に育つ。signature_spine/registry/type_table/mono は
+  ctx_prep 時点で populated。必要なのは ctx 構築を ctx_prep 後へ前倒し
+  する配線と、late 登録を反映する読み経路（canon_idx 直読み済み）。
+- **fn sig canon**: 関数 sig index は fn push 時 ensure で確定可能
+  （gc canon_idx と同型、登録順=push 順で layout 不変）。function
+  section / call.indirect 型は即時解決になる。
+- **body byte buffering**: per-fn scratch WasmWriter で sized body を
+  生成し `body_bytes[func_idx]` へ保存、post-loop で vec header +
+  func_idx 順 concat + synthetic bodies（wrapper/p2/linear-gc）。
+  offsets map は組立時に記録。call reloc は (func_idx, body内offset,
+  fid_raw) へ一般化して section 組立で絶対 index 解決。
+- **arena reset**: 現行 `mir_function_detach_blocks` は block 返却のみ。
+  inst/local SoA 行も fn 単位で解放するには body_store の per-fn
+  region（freelist or bump reset）が要る — Phase 4 の #850 arena と
+  同一設計点。
+
 Phase-3 実測（2026-10-13 AST edge-table 解決レイヤ — emit 同一解決の再現）:
 
 - AST edge table は「AST が名前で書ける callee」だけでは emit の
