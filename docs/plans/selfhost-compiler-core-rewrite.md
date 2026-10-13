@@ -571,13 +571,18 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     SelfEmitCtx_finalize_gc_derived_indexes へ集約（wasm_sections から
     gc setter 群の後に 1 回呼出）。facade の dead getter 2 件も除去
     （97 fixture byte-identical）。
+  - c0d85e976: call_ref の ref.cast / call_ref 両 operand を reloc 化。
+    emit は (arg_count, dest_vt, callee_local, raw_hint,
+    callee_type_name) を記録し、apply で resolve_call_ref_type_idx_after_local
+    を再実行 — func-scoped local probe は emit 時に chain 位置そのまま
+    inline 化し、hit なら直接 emit / miss なら reloc。pair_key/pair_sig
+    map を含む post-loop 非確定値が call_ref 経路から除去（97 fixture
+    byte-identical、gc-layout-audit カウンタも一致）。
 
   **残り in-loop emit ブロッカー**:
   - indirect_type_returns_value — emit 時 semantic read（store 形状
     判定）。plan 由来 fn_type_map 依存のため in-loop では signature
     spine から sig text を読んで ret arity を引く variant が必要。
-  - call_ref_pair_sig_type_idx / resolve_call_ref_type_idx
-    （call_ref 系、pair_call map）— 未 reloc。
   - SelfEmitCtx の ctx_prep 後構築（mir 保持は f03044b03 で着地済み、
     残は構築時点の前倒しと ctx_prep 依存の解消）。
   - call reloc の module-level 化（thunk fid の forward ref 用、
