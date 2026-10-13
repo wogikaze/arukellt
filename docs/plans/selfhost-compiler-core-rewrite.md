@@ -869,6 +869,43 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
   audit counter が検出器として効いた）。`art.opt_done` を新設して
   「artifacts 有効」と「opt 消費済み」を分離。stub 更新を忘れると
   flat overlay ビルドだけ静かに挙動が変わる点に注意。
+- 実装状況（2026-10-14、push 時点 emit 直前までの前提整備 — 97/97）:
+  - `emit_inloop_drain` は `ctx.emit_ctx`（LowerCtx が live module
+    handle 上に構築した shared SelfEmitCtx）を再利用し、
+    `SelfEmitCtx_fn_index_drain` が pushed fn を watermark 増分で name
+    table に fold、`remap_colliding_short_names` は post-fold に走る。
+  - per-push `mir_opt::optimize_fn` 着地: `ctx_run_per_fn_post_pass` が
+    sync/propagate の直後に per-fn pipeline を走らせ、drain は
+    `art.opt_fn_count` の prefix watermark 以降の remainder だけを
+    同一 per-fn pipeline で処理（module pass の double-opt 回避）。
+    全 pass が function-local（module 読みは populated 済み spine
+    registry のみ）で batch 等価。注意点: bootstrap stub の
+    `stdlib_inline_fn` は callee を module fn vec 前方検索する
+    cross-fn pass で、push 時点では未 push callee を inline できない
+    — 97 fixture では不発だが stub 経路固有の潜伏差分として残る。
+  - `emit_fn_type_idx` の in-loop 残り 3 箇所（code_locals own-fn
+    param、inst_convert own-fn result、call_fallback_resolved の
+    callee result_ref for ref_top）を sig テキスト直接 parse の
+    symbolic 読みに置換（canon 未密封でも同一値）。
+- probe 実測（2026-10-14、97 fixture に drain で全 kept fn の sig を
+  MirFunction-built vs spine-reconstructed で比較）:
+  - `__closure_*`/`__fnthunk_*`（65件）は signature registry に無く
+    name→sig 再構成は空を返す。synth fn は registry 経路の対象外。
+  - enum 系 return（79件）で `gcref14`（A=MirFunction）vs `gcref`
+    （B=mvt_to_type_name 由来）が不一致 — mvt→name は enum spelling
+    を失う。`MirFunction_return_type_name` は post-lower 正規化済み
+    （例 "Result_i32_String"、"struct:VecIter<i32>:12"）で、
+    disc_ret_names もそれと一致しない（closure は空、"option:i32" の
+    ような正規化前の綴りが残る）。
+  - NODISC 0 — `discovery_fn_names` は decl + `ctx_register_fn_signature`
+    経由の synth を全網羅するので「この名前の fn が後で push される」
+    の完全 oracle として使える（ret name の sig 互換性はない）。
+  - → 設計転換: forward-call（emit 時点で fn_idx<0 の module fn call）
+    を含む fn は drain emit へ defer（現行経路で byte 一致保証）し、
+    per-push emit は全 MIR_CALL が backward に解決できる fn のみに
+    限定する。note_ref_top/ref.cast/ret_vt の spine 完全再構成は
+    正規化前名の不忠実リスクが大きく、defer 側の segment 数を
+    削る改善として後で扱う。
 
 ## Phase 4 — post-pass type propagation を消す
 
