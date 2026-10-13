@@ -71,6 +71,14 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     // level and target spelling the drain spec carries.
     if emit_spec::mir_lower_emit_spec_enabled(input.emit_spec) {
         ctx.emit_spec = input.emit_spec
+        // Per-push body emit is gated to gc targets on the non-legacy
+        // reachability path — the drain still covers deferred bodies and
+        // every configuration that leaves this flag off.
+        if ctx.is_gc_target {
+            if !reachability_legacy::mir_reachability_legacy_enabled() {
+                ctx.emit_in_loop = true
+            }
+        }
     }
     registry_view::mir_register_view_layouts(ctx, view)
     // View registration seals named GC types (ticks 166–167). Reorder and

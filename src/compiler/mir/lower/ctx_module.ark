@@ -9,6 +9,7 @@ use mir::inst_accessors_shape
 use mir::opcodes
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
+use mir::lower::emit_inloop
 use mir::function_identity
 use mir::reachability
 use mir::function_return_view
@@ -95,6 +96,14 @@ fn ctx_run_per_fn_post_pass(ctx: LowerCtx, m: MirModule, func: MirFunction, mir_
         }
     }
     ctx_record_fn_pair_refs(m, func, mir_index)
+    // Fused in-loop emit (#851 Phase 3): emit the optimized body now when
+    // every call it makes resolves push-stably; otherwise leave an empty
+    // body_bytes slot the drain fills through the same emit path.
+    if ctx.emit_in_loop {
+        emit_inloop::emit_inloop_prepare(ctx)
+        let emit_ok = emit_inloop::emit_inloop_fn_emittable(ctx, func)
+        emit_inloop::emit_inloop_push(ctx, func, mir_index, emit_ok)
+    }
 }
 
 // #851 Phase 3: record this fn's CALL_REF sites as raw (owner func_idx,

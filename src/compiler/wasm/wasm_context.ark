@@ -67,6 +67,9 @@ fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRe
     if spine_populated {
         ctx_fid_map::SelfEmitCtx_build_fid_to_mir(ctx)
     }
+    // The rebuild consumes the full function vec wholesale; the live
+    // consumption chains from bind_spine_incremental are now stale.
+    ctx.fid_chains_live = false
 }
 
 fn emit_wasm_context_set_gc_layout_table(ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {

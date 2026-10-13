@@ -132,6 +132,13 @@ pub struct SelfEmitCtx {
     // #851 Phase 3: bodies were emitted inside the lowering drain into
     // body_bytes; emit_code_section skips its emit loop when this is set.
     in_loop_emitted: bool,
+    // Incremental fid->mir state (#851 Phase 3 push-time emit): the
+    // same-name consumption chains built over the signature registry stay
+    // live so fn_index_drain can fold each pushed fn in registry-ordinal
+    // order — identical to SelfEmitCtx_build_fid_to_mir's one-shot pass.
+    fid_chain_heads: NameIndex,
+    fid_chain_next: Vec<i32>,
+    fid_chains_live: bool,
 }
 
 fn SelfEmitCtx_new(
@@ -248,15 +255,20 @@ fn SelfEmitCtx_new(
         reloc_skey2: Vec::new<String>(),
         fn_index_watermark: fn_count,
         in_loop_emitted: false,
+        fid_chain_heads: name_index::NameIndex_new(0),
+        fid_chain_next: Vec::new<i32>(),
+        fid_chains_live: false,
     }
 }
 
-// Fold newly pushed functions into the name index/counts. Idempotent and
-// incremental: identical result to the constructor's one-shot build when
-// the module is complete, and correct for a still-growing functions vec.
+// Fold newly pushed functions into the name index/counts (and the live
+// fid->mir chains when bound incrementally). Idempotent and incremental:
+// identical result to the constructor's one-shot build when the module is
+// complete, and correct for a still-growing functions vec.
 fn SelfEmitCtx_fn_index_drain(ctx: SelfEmitCtx) {
     let functions = ctx.functions
     let n = len(functions)
+    let fid_live = ctx.fid_chains_live
     while ctx.fn_index_watermark < n {
         let fi = ctx.fn_index_watermark
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
@@ -264,6 +276,24 @@ fn SelfEmitCtx_fn_index_drain(ctx: SelfEmitCtx) {
         name_index::name_index_insert_first(
             ctx.function_name_index, clone(fname), fi)
         name_index::name_index_increment(ctx.function_name_counts, fname)
+        if fid_live {
+            // Consume one same-name registry entry per pushed fn, matching
+            // ctx_fid_map's ordinal rule. Entries beyond the map (registry
+            // growth after bind) simply stay unmapped — a deferred-emit
+            // decision, never a wrong resolution.
+            let raw = name_index::name_index_get(
+                ctx.fid_chain_heads, clone(fname))
+            if raw >= 0 {
+                if raw < len(ctx.fid_to_mir) {
+                    if get_unchecked(ctx.fid_to_mir, raw) < 0 {
+                        set(ctx.fid_to_mir, raw, fi)
+                    }
+                }
+                name_index::name_index_set(
+                    ctx.fid_chain_heads, fname,
+                    get_unchecked(ctx.fid_chain_next, raw))
+            }
+        }
         ctx.fn_index_watermark = fi + 1
     }
 }

@@ -63,3 +63,36 @@ fn SelfEmitCtx_build_fid_to_mir(ctx: SelfEmitCtx) {
     }
     ctx_record::SelfEmitCtx_set_fid_to_mir(ctx, fid_to_mir)
 }
+
+// #851 Phase 3 push-time emit: bind the populated signature spine onto an
+// in-loop emit ctx while keeping the same-name consumption chains live on
+// the ctx. fn_index_drain folds each pushed fn through fid_chain_heads so
+// every MIR body maps exactly one registry entry in declaration order —
+// the batch build's result, produced incrementally.
+fn SelfEmitCtx_bind_spine_incremental(
+    ctx: SelfEmitCtx,
+    registry: SignatureRegistry,
+    table: TypeTable,
+    mono: MonoInstanceTable
+) {
+    ctx_record::SelfEmitCtx_set_signature_registry(ctx, registry)
+    ctx_record::SelfEmitCtx_set_type_table(ctx, table)
+    ctx_record::SelfEmitCtx_set_mono_instance_table(ctx, mono)
+    ctx_record::SelfEmitCtx_set_spine_populated(ctx, true)
+    let registry_count = signature_registry::signature_registry_entry_count(registry)
+    let fid_to_mir = Vec::new<i32>()
+    let mut si = 0
+    while si < registry_count {
+        push(fid_to_mir, 0 - 1)
+        si = si + 1
+    }
+    let registry_heads = name_index::NameIndex_new(registry_count)
+    let registry_tails = name_index::NameIndex_new(registry_count)
+    let registry_next = Vec::new<i32>()
+    ctx_fid_map_build_registry_chains(
+        registry, registry_heads, registry_tails, registry_next)
+    ctx_record::SelfEmitCtx_set_fid_to_mir(ctx, fid_to_mir)
+    ctx.fid_chain_heads = registry_heads
+    ctx.fid_chain_next = registry_next
+    ctx.fid_chains_live = true
+}

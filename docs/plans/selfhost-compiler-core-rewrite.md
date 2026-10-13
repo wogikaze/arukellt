@@ -906,6 +906,36 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
     限定する。note_ref_top/ref.cast/ret_vt の spine 完全再構成は
     正規化前名の不忠実リスクが大きく、defer 側の segment 数を
     削る改善として後で扱う。
+- 実装状況（2026-10-14、per-push body emit 着地 — 97/97 byte parity）:
+  ctx_run_per_fn_post_pass が per-fn opt の直後に emit_inloop を走らせ
+  る（prepare → gate → push）。prepare は毎 push で gc flush・
+  ensure_late・ectx rebind・fid chain 増分 fold・layout plan の
+  incremental drain まで行い、push は art.body_bytes[mir_index] に
+  emit 結果を直接書く（gate 不合格なら空 placeholder）。drain は EMPTY
+  slot のみを従来経路で emit し直す。
+  - gate (emit_inloop_fn_emittable) の安定条件: (a) CALL_INDIRECT /
+    WIT_CALL / CALL_REF は常に defer、(b) MIR_CALL fid>=0 は fid map
+    が未 bind なら defer、(c) fid<0 は resolve_fn_index_for_call 成功
+    または discovery oracle 命中で defer（残るは真 intrinsic で
+    fallback が時点不変）、(d) plan_pending > 0 で defer、
+    (e) ref 系 local の storage-layout lookup が miss のものを含む fn
+    は defer、(f) variant_slot >= canon map 長の local を含む fn は
+    defer。
+  - 判った flip 機構: emit 時点の「miss→drain で hit」参照が全ての
+    乖離原因。wasm_ref_type_idx_for_local / storage_ref_type_idx_
+    for_mir_value_type が late registration で未 bind の local を持つ
+    fn を push emit すると、producer/copy storage infer の優先順位が
+    変わり local decl の型が変わる（hashmap_i32_fn_get: open-enum
+    (ref null 14) → variant (ref null 39)）。bound 済み entry は
+    append-stable なので hit 側は不変 — miss のみを defer する。
+  - 残留リスク（未観測）: callee 戻り mvt・enum/struct name index の
+    miss→hit は未ゲート。97 fixture で不発なので defer 候補として記録。
+  - 副作用で発見した latent bug は #921 起票（nested if を call 引数に
+    すると arm が slot 配送・consumer が stack 配送になり invalid
+    wasm。pinned bootstrap で再現、本変更とは無関係）。
+  - 計測メモ: s2 build ~35s（fmt swarm と競合時は 579s まで劣化した
+    実績あり — 並列エージェント作業時は worktree/ARUKELLT_BUILD_DIR
+    分離を厳守する）。parity suite 97 件 ~19 分。
 
 ## Phase 4 — post-pass type propagation を消す
 

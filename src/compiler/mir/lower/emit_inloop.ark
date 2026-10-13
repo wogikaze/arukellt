@@ -17,8 +17,18 @@
 //     on the post-prune index at reloc-apply time.
 
 use std::prelude::eq
+use std::prelude::{byte_at, clone, substring}
+use collections::name_index
+use mir::block_inst_access
 use mir::emit_artifacts
+use mir::function_block_queries
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::inst_record
 use mir::lower::ctx_call_edges
+use mir::lower::ctx_gc_canon
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_struct
 use mir::lower::emit_spec
 use mir::module_canon
 use mir::module_emit_artifacts
@@ -26,15 +36,23 @@ use mir::module_functions
 use mir::module_gc_enum
 use mir::module_gc_struct
 use mir::module_spine
+use mir::opcodes
 use mir::reachability_entry
 use mir::types
 use mir::function_identity
 use mir::function_return_view
+use mir::function_locals_view
+use mir::local_access
+use mir::value_types
 use mir_opt::optimize_fn
 use wasm::call_resolve
 use wasm::call_indirect
 use wasm::code_body
+use wasm::ctx_fid_map
+use wasm::hash_aliases
+use wasm::inst_ctx
 use wasm::ctx_record
+use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::gc_layout_table
 use wasm::gc_layout_table_build
@@ -72,6 +90,240 @@ fn emit_inloop_needs_start_wrapper(kept: Vec<MirFunction>) -> i32 {
         i = i + 1
     }
     needs_wrapper
+}
+
+// --- per-push body emit (fused emit, defer strategy) ---
+//
+// A fn emits into art.body_bytes[mir_index] right after its per-fn post
+// pass when every MIR_CALL it contains resolves to state that cannot move
+// under later pushes: fid>=0 calls resolve through the fid map (immutable
+// once bound), and fid<0 calls are emitted only when the name matches no
+// pushed fn AND is absent from the discovery oracle — the remaining cases
+// are true intrinsics whose fallback path is identical at any emit point.
+// Everything else (forward module calls, CALL_REF / CALL_INDIRECT /
+// WIT_CALL — whose pair/fn-type canon indices are not sealed until the
+// drain) leaves an empty slot the drain fills through the same code path,
+// so bytes are identical whether a body emitted at push or at drain.
+
+fn emit_inloop_prepare(ctx: LowerCtx) {
+    // Materialize gc registrations produced since the last push and assign
+    // their canon indices. Post-seal registrations already self-materialize
+    // on the module at registration; these sweeps are incremental and
+    // idempotent, and late canon indices bind in late_gc_order either way.
+    ctx_gc_struct::ctx_flush_gc_structs_from(ctx, 0)
+    ctx_gc_enum::ctx_flush_gc_enum_variants_from(ctx, 0)
+    ctx_gc_canon::ctx_gc_canon_ensure_late(ctx)
+    let m = ctx.module
+    let spec = ctx.emit_spec
+    let mut ectx = ctx.emit_ctx
+    ectx.functions = module_functions::MirModule_functions(m)
+    ectx.wasi_version = clone(emit_spec::mir_lower_emit_spec_wasi_version(spec))
+    ectx.memory64 = emit_spec::mir_lower_emit_spec_memory64(spec)
+    ectx.source_file = emit_spec::mir_lower_emit_spec_source_file(spec)
+    if !ectx.spine_populated {
+        if module_spine::MirModule_signature_spine_populated(m) {
+            // Bind the spine once and keep the fid consumption chains live
+            // so each push folds its own fn through fn_index_drain.
+            ctx_fid_map::SelfEmitCtx_bind_spine_incremental(
+                ectx,
+                module_spine::MirModule_signature_registry(m),
+                module_spine::MirModule_type_table(m),
+                module_spine::MirModule_mono_instance_table(m)
+            )
+        }
+    }
+    ctx_record::SelfEmitCtx_fn_index_drain(ectx)
+    // Module gc vecs are the live objects — rebind so registrations
+    // appended since the last push (or a vec swap) are visible.
+    wasm_context::emit_wasm_context_set_gc_enum_variant_names(
+        ectx, module_gc_enum::MirModule_gc_enum_variant_names(m))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_sigs(
+        ectx, module_gc_enum::MirModule_gc_enum_variant_sigs(m))
+    wasm_context::emit_wasm_context_set_gc_struct_names(
+        ectx, module_gc_struct::MirModule_gc_struct_names(m))
+    wasm_context::emit_wasm_context_set_gc_struct_sigs(
+        ectx, module_gc_struct::MirModule_gc_struct_sigs(m))
+    wasm_context::emit_wasm_context_set_gc_type_base(
+        ectx,
+        sections_types::first_gc_type_index(
+            module_canon::MirModule_canon_sigs(m)))
+    let mut gc_struct_base = 0 - 1
+    if module_gc_struct::MirModule_gc_struct_sig_count(m) > 0 {
+        gc_struct_base = get_unchecked(
+            module_gc_struct::MirModule_gc_struct_canon_idxs(m), 0)
+    }
+    wasm_context::emit_wasm_context_set_gc_struct_base(ectx, gc_struct_base)
+    let mut gc_enum_variant_base = 0 - 1
+    if module_gc_enum::MirModule_gc_enum_variant_sig_count(m) > 0 {
+        gc_enum_variant_base = get_unchecked(
+            module_gc_enum::MirModule_gc_enum_variant_canon_idxs(m), 0)
+    }
+    wasm_context::emit_wasm_context_set_gc_enum_variant_base(
+        ectx, gc_enum_variant_base)
+    wasm_context::emit_wasm_context_finalize_gc_indexes(ectx)
+    // Incremental layout-plan drain: a binding whose type-section slot is
+    // final registers now; the rest stay pending for a later push or the
+    // drain's final all-or-ICE pass. GC local typing reads this table.
+    gc_layout_table_build::gc_layout_table_drain_plan(
+        ctx_record::SelfEmitCtx_gc_layout_table(ectx),
+        m,
+        ctx_record::SelfEmitCtx_gc_type_base(ectx),
+        module_gc_enum::MirModule_gc_enum_variant_canon_idxs(m),
+        module_gc_struct::MirModule_gc_struct_canon_idxs(m),
+        false
+    )
+    // Artifact vecs are shared with the drain: body pushes land on the
+    // module record directly and call/body relocs ride the same
+    // deferred-patch vecs the drain-bound ctx uses.
+    let art = module_emit_artifacts::MirModule_emit_artifacts(m)
+    ectx.body_bytes = art.body_bytes
+    ectx.reloc_func = art.reloc_func
+    ectx.reloc_off = art.reloc_off
+    ectx.reloc_kind = art.reloc_kind
+    ectx.reloc_ikey = art.reloc_ikey
+    ectx.reloc_ikey2 = art.reloc_ikey2
+    ectx.reloc_ikey3 = art.reloc_ikey3
+    ectx.reloc_skey = art.reloc_skey
+    ectx.reloc_skey2 = art.reloc_skey2
+    ectx.call_reloc_offs = art.call_reloc_offs
+    ectx.call_reloc_fids = art.call_reloc_fids
+    ectx.call_reloc_funcs = art.call_reloc_funcs
+    ectx.call_reloc_names = art.call_reloc_names
+    ectx.in_loop_emitted = true
+}
+
+// Discovery-oracle probe for a fid<0 callee name: hit means a module fn
+// under this spelling is or will be pushed, so the emit-time intrinsic
+// fallback must not run — defer. Covers the exact, stripped, and builtin
+// alias spellings resolve_fn_index tries.
+fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
+    if name_index::name_index_get(disc, clone(name)) >= 0 {
+        return true
+    }
+    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        if name_index::name_index_get(disc, alias) >= 0 {
+            return true
+        }
+    }
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if byte_at(name, i) == 58 {
+            let stripped = substring(name, i + 1, n)
+            return name_index::name_index_get(disc, stripped) >= 0
+        }
+        i = i - 1
+    }
+    false
+}
+
+fn emit_inloop_fn_emittable(ctx: LowerCtx, f: MirFunction) -> bool {
+    let ectx = ctx.emit_ctx
+    // Layout-plan bindings whose type-section slot is not final yet stay
+    // pending between pushes. Emit-time local typing consults this table
+    // (wasm_ref_type_idx_for_local / storage_ref_type_idx_for_mir_value_type
+    // and every infer path layered on them); a miss that resolves at the
+    // drain flips which infer branch wins, so a pushed body can diverge
+    // from the drained one. Defer while any binding is still pending —
+    // resolved bindings are append-stable, the drain covers the rest.
+    let layout_table = ctx_record::SelfEmitCtx_gc_layout_table(ectx)
+    if len(layout_table.plan_pending) > 0 {
+        return false
+    }
+    // Storage-layout consults are miss-then-hit flippable while later
+    // function bodies can still register GC types: a ref local whose
+    // MirValueType has no bound table entry now may bind one by the drain,
+    // switching which storage-infer branch wins (the hashmap_i32_fn_get
+    // $result 14->39 drift). Bound entries are append-stable; defer only
+    // the locals whose spine consult is still a miss.
+    let variant_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.module)
+    let local_count = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < local_count {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let lvt = local_access::MirLocal_val_type(loc)
+        if lvt == value_types::VT_GC_REF() || lvt == value_types::VT_REF() {
+            let mvt = local_access::MirLocal_value_type(loc)
+            if ctx_gc_layout_lookup::SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ectx, mvt) < 0 {
+                return false
+            }
+            let vs = local_access::MirLocal_variant_slot(loc)
+            if vs >= len(variant_map) {
+                return false
+            }
+        }
+        li = li + 1
+    }
+    let disc = ctx.prop_cache.disc_names
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ectx)
+    let bc = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < bc {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let ic = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < ic {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if op == opcodes::MIR_CALL_INDIRECT() ||
+            op == opcodes::MIR_WIT_CALL() ||
+            op == opcodes::MIR_CALL_REF() {
+                return false
+            }
+            if op == opcodes::MIR_CALL() {
+                let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+                if fid_raw >= 0 {
+                    // Emit resolves fid through the fid map when it maps;
+                    // an unmapped fid falls to the name path, whose result
+                    // still shifts under later pushes — defer.
+                    let mapped = ctx_record::SelfEmitCtx_mir_index_for_func_id(
+                        ectx, fid_raw)
+                    if mapped < 0 || mapped >= fn_count {
+                        return false
+                    }
+                } else {
+                    let callee = clone(
+                        inst_accessors_literals::MirInst_str_val(inst))
+                    if inst_ctx::resolve_fn_index_for_call(
+                        ectx, clone(callee), fid_raw) >= 0 {
+                        return false
+                    }
+                    if emit_inloop_disc_hit(disc, callee) {
+                        return false
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    true
+}
+
+// Slot mir_index of art.body_bytes: emit the optimized body when it is
+// push-stable, else leave the empty placeholder for the drain to fill.
+fn emit_inloop_push(
+    ctx: LowerCtx,
+    func: MirFunction,
+    mir_index: i32,
+    emittable: bool
+) {
+    let m = ctx.module
+    let art = module_emit_artifacts::MirModule_emit_artifacts(m)
+    push(art.body_bytes, Vec::new<i32>())
+    if !emittable {
+        return
+    }
+    let spec = ctx.emit_spec
+    let mut ectx = ctx.emit_ctx
+    ctx_record::SelfEmitCtx_set_current_func_idx(ectx, mir_index)
+    let body_w = writer_core::WasmWriter_with_memory64(
+        emit_spec::mir_lower_emit_spec_memory64(spec))
+    code_body::emit_function_body(
+        body_w, func, ectx,
+        emit_spec::mir_lower_emit_spec_bindings(spec))
+    set(art.body_bytes, mir_index, writer_core::writer_bytes(body_w))
 }
 
 fn emit_inloop_drain(
@@ -228,7 +480,10 @@ fn emit_inloop_drain(
         module_spine::MirModule_signature_spine_populated(module)
     )
     wasm_context::emit_wasm_context_set_pair_call_sigs(ectx, pair_sigs)
-    let gc_layout = gc_layout_table::GcLayoutTable_new()
+    // Reuse the in-loop ctx's layout table: per-push emits already drained
+    // the incremental plan into it (and accumulated lookup counters). The
+    // non-fused path gets the same fresh empty table the init left.
+    let gc_layout = ctx_record::SelfEmitCtx_gc_layout_table(ectx)
     wasm_context::emit_wasm_context_set_gc_layout_table(ectx, gc_layout)
     // The plan is built before prune (it reads only type/gc tables), so
     // every binding's type-section slot is final — same all-or-ICE
@@ -258,18 +513,23 @@ fn emit_inloop_drain(
     ectx.call_reloc_names = art.call_reloc_names
     ectx.in_loop_emitted = true
     // Emit kept bodies in pre-prune module order — identical to what the
-    // emit-phase loop produces over the post-prune vec. Unmarked slots
-    // keep an empty entry so body_bytes stays index-aligned.
+    // emit-phase loop produces over the post-prune vec. Fns already
+    // emitted at push keep their recorded bytes; empty slots (deferred
+    // fns, and fns pushed outside the in-loop path) emit now. Unmarked
+    // slots keep an empty entry so body_bytes stays index-aligned.
     let mut fi = 0
     while fi < fn_count {
-        if len(marks) == 0 || get_unchecked(marks, fi) != 0 {
-            let f = get_unchecked(functions, fi)
-            ctx_record::SelfEmitCtx_set_current_func_idx(ectx, fi)
-            let body_w = writer_core::WasmWriter_with_memory64(memory64)
-            code_body::emit_function_body(body_w, f, ectx, bindings)
-            push(ectx.body_bytes, writer_core::writer_bytes(body_w))
-        } else {
+        while len(ectx.body_bytes) <= fi {
             push(ectx.body_bytes, Vec::new<i32>())
+        }
+        if len(marks) == 0 || get_unchecked(marks, fi) != 0 {
+            if len(get_unchecked(ectx.body_bytes, fi)) == 0 {
+                let f = get_unchecked(functions, fi)
+                ctx_record::SelfEmitCtx_set_current_func_idx(ectx, fi)
+                let body_w = writer_core::WasmWriter_with_memory64(memory64)
+                code_body::emit_function_body(body_w, f, ectx, bindings)
+                set(ectx.body_bytes, fi, writer_core::writer_bytes(body_w))
+            }
         }
         fi = fi + 1
     }
