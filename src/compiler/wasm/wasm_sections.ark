@@ -136,12 +136,12 @@ fn emit_wasm_module_sections(
     // MirModule.canon_index_of, so no parallel type map is stored (#851).
     wasm_context::emit_wasm_context_set_pair_call_sigs(
         ctx,
-        sections_types_sigs::collect_pair_call_type_sigs(
+        sections_types_sigs::pair_call_sigs_for_emit(
+            mir,
             functions,
             fn_count,
             clone(target),
-            writer_core::writer_memory64(out),
-            module_gc_struct::MirModule_gc_struct_names(mir)
+            writer_core::writer_memory64(out)
         )
     )
     wasm_context::emit_wasm_context_set_gc_layout_table(ctx, gc_layout)

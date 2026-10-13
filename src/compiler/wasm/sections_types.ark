@@ -48,12 +48,12 @@ fn emit_type_section(
     } else {
         0
     }
-    let pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
+    let pair_sigs = sections_types_sigs::pair_call_sigs_for_emit(
+        mir,
         functions,
         fn_count,
         clone(target),
-        memory64,
-        module_gc_struct::MirModule_gc_struct_names(mir)
+        memory64
     )
     let pair_sig_count = len(pair_sigs)
     let type_sigs = build_type_sigs(

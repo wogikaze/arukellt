@@ -30,6 +30,7 @@ use mir::lower::ctx_gc_canon
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::emit_spec
+use mir::module_block_pool
 use mir::module_canon
 use mir::module_emit_artifacts
 use mir::module_functions
@@ -57,6 +58,7 @@ use wasm::emit_target
 use wasm::gc_layout_table
 use wasm::gc_layout_table_build
 use wasm::sections_types
+use wasm::sections_types_sigs
 use wasm::start_names
 use wasm::wasm_context
 use wasm::writer_core
@@ -324,6 +326,10 @@ fn emit_inloop_push(
         body_w, func, ectx,
         emit_spec::mir_lower_emit_spec_bindings(spec))
     set(art.body_bytes, mir_index, writer_core::writer_bytes(body_w))
+    // Arena reset (#851 Phase 3): the emitted body is durable as wasm
+    // bytes now, so its MIR blocks go back to the module pool for the
+    // next lowering take. Deferred bodies stay live for the drain.
+    module_block_pool::mir_function_detach_blocks(func, m)
 }
 
 fn emit_inloop_drain(
@@ -425,6 +431,47 @@ fn emit_inloop_drain(
         }
         pr = pr + 1
     }
+    // Fns pushed outside the ctx push paths (late __fnthunk_ flushes and
+    // other non-decl bodies) never produced pair_ref records. Their MIR
+    // bodies are still live here, so union their CALL_REF evidence the
+    // same way the batch collection does — the sealed set must match
+    // what the emit-phase scan would find over the kept functions.
+    let late_kept = Vec::new<MirFunction>()
+    let mut li = art.opt_fn_count
+    while li < fn_count {
+        if len(marks) == 0 || get_unchecked(marks, li) != 0 {
+            push(late_kept, get_unchecked(functions, li))
+        }
+        li = li + 1
+    }
+    let late_pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
+        late_kept,
+        len(late_kept),
+        clone(target),
+        memory64,
+        clone(gc_names)
+    )
+    let mut lsi = 0
+    while lsi < len(late_pair_sigs) {
+        let late_sig = get_unchecked(late_pair_sigs, lsi)
+        let mut seen = false
+        let mut si = 0
+        while si < len(pair_sigs) {
+            if eq(clone(late_sig), clone(get_unchecked(pair_sigs, si))) {
+                seen = true
+            }
+            si = si + 1
+        }
+        if !seen {
+            push(pair_sigs, late_sig)
+        }
+        lsi = lsi + 1
+    }
+    // Seal for the emit phase (#851 Phase 3): pushed and deferred bodies
+    // detach right after their emit, so emit-phase consumers can no
+    // longer re-derive this set by scanning — they replay the sealed list.
+    art.pair_call_sigs = pair_sigs
+    art.pair_call_sigs_final = true
     let type_sigs = sections_types::build_type_sigs(
         module,
         kept,
@@ -529,6 +576,13 @@ fn emit_inloop_drain(
                 let body_w = writer_core::WasmWriter_with_memory64(memory64)
                 code_body::emit_function_body(body_w, f, ectx, bindings)
                 set(ectx.body_bytes, fi, writer_core::writer_bytes(body_w))
+                // Arena reset for deferred ctx-pushed bodies (#851 Phase
+                // 3): emitted here, detach now. Late fns (>= opt_fn_count)
+                // never recorded body evidence, so their MIR stays live
+                // until the emit-phase sweep answers opcode queries.
+                if fi < art.opt_fn_count {
+                    module_block_pool::mir_function_detach_blocks(f, module)
+                }
             }
         }
         fi = fi + 1

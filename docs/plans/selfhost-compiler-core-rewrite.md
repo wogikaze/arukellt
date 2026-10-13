@@ -936,6 +936,53 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
   - 計測メモ: s2 build ~35s（fmt swarm と競合時は 579s まで劣化した
     実績あり — 並列エージェント作業時は worktree/ARUKELLT_BUILD_DIR
     分離を厳守する）。parity suite 97 件 ~19 分。
+- 実装状況（2026-10-14、per-push arena reset 着地 — 97/97 byte parity）:
+  emit 完了した関数の MIR blocks を emit 直後に block_pool へ返却する
+  配線。push emit (emit_inloop_push) は byte 書き込み直後に
+  mir_function_detach_blocks、drain の EMPTY slot emit は
+  fi < art.opt_fn_count（ctx-pushed のみ）に限り同様に detach。
+  late fn（ctx 非経由 push）は emit-phase sweep まで body を残す —
+  それらには pair_ref / funcref evidence が無いため。
+  - post-emit body reader 監査: emit-phase で module 関数の body を
+    読むのは (a) collect_pair_call_type_sigs（type section 内蔵 +
+    wasm_sections の ctx.pair_call_sigs 初期化）と (b)
+    module_has_funcref_values（table/element section）の 2 箇所のみ。
+    (a) は drain が pair_ref records + late fn body union で seal した
+    art.pair_call_sigs を使う pair_call_sigs_for_emit へ置換、
+    (b) は pair_refs scan で記録する art.saw_funcref_values flag で
+    短絡する。reachability は ctx-push fn 全員に edge map mark があり
+    body fallback を踏まない（call-free fn は scan が空を返すだけ）。
+    mir/body_store.ark は旧 gc-overlay 時代の未配線 scaffold で
+    現 MirModule のフィールドを参照しない orphan — 今回の配線は
+    その serialize 設計ではなく pool reset で実現した（後始末は別途）。
+  - 残存生存: deferred fn の body は drain emit まで生存（gate 通過
+    分のみ早期解放）。MirModule_block_count/inst_count は detach 後
+    の live 数を報告する（receipt の reachability 行で効果が見える）。
+- 実装状況（2026-10-14、selfhost-scale hang の真因特定 — emit 系では
+  なく producer wasm の線形 GC）: flat-src / n≈700+ forward-call
+  stress が s2 で固まる件、wasmtime -W timeout の wasm backtrace で
+  emit_inloop_drain → emit_function_body → core_op_shadow_observe_call
+  配下の linear-GC collect が走っていることを確認。s2 runtime が内蔵
+  する collector は #909 以前の旧版（全 record list を mark 毎に
+  線形走査 + marked-only fixpoint 反復）で、O(marked words × records)
+  の壁を踏む。producer binary 差別の実測: 同一入力で pinned 17.5s、
+  s2（旧 GC）>15min、arukellt-s3-worklist（新 GC）60s 未満。
+  - 同時に #909 chain arena の未回収欠陥を発見: page-table chain node
+    が bump-only で reclaim されず、総 commit 数が ~4M に達すると
+    proc_exit(122) で無診断終了する（s3-worklist の flat-src
+    compile が ~17min で EXIT=122 — 観測済）。#922 起票。
+    emit_linear_gc_rebuild_chains（collect 先頭で page table クリア +
+    chain cursor を arena 基底へ reset + 全 record の page 再登録）と
+    safepoint trigger への chain free pressure 条件を追加し、arena を
+    live + 1 cycle churn へ境界付けた。churn 再現器は旧 emitter で
+    exit 122、新 emitter で完走することを確認。
+  - producer の鶏卵問題: 新 GC を内蔵した compiler は chain OOM で
+    大きな compile を完走できず、旧 GC の compiler は quadratic mark
+    で止まる。解消経路は fixed emitter を含む s2（pinned→flat-src
+    build、batch emit 経路で旧 GC でも ~17.5s 級）→ s2 が emit した
+    fixed-chain binary が大きな compile を完走 → bootstrap refresh
+    （PROVENANCE の s3==s4 fixpoint 手順）で pinned を新 GC 世代へ
+    更新する。
 
 ## Phase 4 — post-pass type propagation を消す
 

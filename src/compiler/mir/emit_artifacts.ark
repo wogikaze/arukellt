@@ -57,6 +57,16 @@ struct MirEmitArtifacts {
     // old func_idx -> new func_idx recorded by reachability prune; empty
     // means identity (no prune ran or nothing was removed).
     prune_old_to_new: Vec<i32>,
+    // Per-push body evidence (#851 Phase 3): set when any ctx-pushed
+    // function's post-opt body contained a funcref-class inst
+    // (MIR_REF_FUNC / MIR_CALL_REF / MIR_CALL_INDIRECT). Emitted bodies
+    // detach their MIR blocks, so emit-phase queries such as the table
+    // section's module_has_funcref_values can no longer rescan them.
+    saw_funcref_values: bool,
+    // Set by the in-loop drain once pair_call_sigs holds the complete
+    // sealed set (recorded CALL_REF tuples plus late-fn body evidence).
+    // Emit-phase pair-sig consumers use it instead of rescanning bodies.
+    pair_call_sigs_final: bool,
 }
 
 fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
@@ -92,7 +102,9 @@ fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
         gc_layout_conflicts: 0,
         opt_fn_count: 0,
         opt_done: false,
-        prune_old_to_new: Vec::new<i32>()
+        prune_old_to_new: Vec::new<i32>(),
+        saw_funcref_values: false,
+        pair_call_sigs_final: false
     }
 }
 

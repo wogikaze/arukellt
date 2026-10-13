@@ -1,4 +1,7 @@
 use std::prelude::{clone, eq}
+use mir::emit_artifacts
+use mir::module_emit_artifacts
+use mir::module_gc_struct
 use mir::module_wit_imports
 use mir::function_block_queries
 use mir::block_inst_access
@@ -140,6 +143,31 @@ fn collect_pair_call_type_sigs(
         fi = fi + 1
     }
     sigs
+}
+
+// #851 Phase 3: pair sigs come from the drain-sealed artifact list when
+// the fused emit path ran — emitted bodies detach at push/drain, so the
+// batch body scan cannot re-derive them. The sealed list already unions
+// recorded CALL_REF tuples with late-fn body evidence, identical to what
+// this scan returns over the kept functions.
+fn pair_call_sigs_for_emit(
+    mir: MirModule,
+    functions: Vec<MirFunction>,
+    fn_count: i32,
+    target: String,
+    memory64: bool
+) -> Vec<String> {
+    let art = module_emit_artifacts::MirModule_emit_artifacts(mir)
+    if emit_artifacts::MirEmitArtifacts_enabled(art) && art.pair_call_sigs_final {
+        return art.pair_call_sigs
+    }
+    collect_pair_call_type_sigs(
+        functions,
+        fn_count,
+        clone(target),
+        memory64,
+        module_gc_struct::MirModule_gc_struct_names(mir)
+    )
 }
 
 fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32, wasi_version: String) {

@@ -1,4 +1,6 @@
 use std::prelude::{clone, eq}
+use mir::emit_artifacts
+use mir::module_emit_artifacts
 use mir::local_access
 use mir::block_inst_access
 use mir::function_block_queries
@@ -11,6 +13,13 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
 fn module_has_funcref_values(mir: MirModule) -> bool {
+    // #851 Phase 3: pushed bodies detach at emit — per-push recording
+    // already answered this for them, so trust the recorded evidence
+    // and scan only bodies still live (deferred + late fns).
+    let art = module_emit_artifacts::MirModule_emit_artifacts(mir)
+    if emit_artifacts::MirEmitArtifacts_enabled(art) && art.saw_funcref_values {
+        return true
+    }
     if module_has_funcref_params(mir) {
         return true
     }
