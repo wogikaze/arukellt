@@ -194,3 +194,24 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     }
     out_v
 }
+
+// Fixed-width sibling of the splice helpers: CALL operands reserve a
+// 5-byte uleb slot at emit (emit_leb128_u_fixed), so apply patches in
+// place. No byte is inserted or removed, so surrounding reloc offsets
+// stay valid regardless of patch order.
+fn reloc_patch_leb_u_fixed(body: Vec<i32>, off: i32, v: i32) {
+    let mut val = v
+    if val < 0 {
+        val = 0
+    }
+    let mut i = 0
+    while i < 5 {
+        let mut b = val % 128
+        val = val / 128
+        if i < 4 {
+            b = b + 128
+        }
+        set(body, off + i, b)
+        i = i + 1
+    }
+}

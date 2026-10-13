@@ -9,7 +9,6 @@ use wasm::host_intrinsic_gc_body
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_ref_locals_fn_cache
-use wasm::ctx_call_reloc
 use wasm::emit_target
 use wasm::linear_root_lowering
 use mir::block_inst_access
@@ -105,7 +104,6 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
         bi = bi + 1
     }
 }
-use mir::module_wit_imports
 
 fn emit_function_body(
     w: WasmWriter,
@@ -118,7 +116,6 @@ fn emit_function_body(
     // wasm32 locals are i32/i64 widths only. The #829 producer/ref cache is
     // for GC type inference and is unread on this target; skip the extra
     // body walks (otherwise emit pays ~7 scans of every function).
-    ctx.call_reloc_used = 0
     emit_body_gc_local_cache_begin(ctx, f)
     code_locals::emit_local_decls(w, f, local_count, param_count, ctx)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
@@ -151,11 +148,6 @@ fn emit_function_body(
     linear_root_lowering::emit_frame_enter_and_push(w, f, ctx)
     emit_function_instructions(w, f, ctx, bindings)
     linear_root_lowering::emit_frame_leave(w, ctx)
-    ctx_call_reloc::SelfEmitCtx_apply_call_relocs(
-        ctx,
-        w,
-        module_wit_imports::wit_import_count(bindings)
-    )
 
     writer_core::emit_byte(w, opcodes::OP_END())
     emit_body_gc_local_cache_end(ctx)

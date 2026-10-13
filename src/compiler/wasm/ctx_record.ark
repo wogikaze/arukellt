@@ -97,10 +97,13 @@ pub struct SelfEmitCtx {
     // FunctionId.raw → MirFunction index. -1 = no body (core-op alias).
     // Reloc key for CALL; never assume raw == mir index (#823).
     fid_to_mir: Vec<i32>,
-    // Per-body CALL slots: offset into the module code writer, FunctionId.raw.
+    // Module-level CALL slots (#851 Phase 3): (func_idx into body_bytes,
+    // body_rel_off, FunctionId.raw), patched at section assembly once the
+    // function index space is final — supports forward refs to fids
+    // registered mid-loop in the fused design.
     call_reloc_offs: Vec<i32>,
     call_reloc_fids: Vec<i32>,
-    call_reloc_used: i32,
+    call_reloc_funcs: Vec<i32>,
     // Registered pair-ABI call-site signatures and their canon type
     // indices (#872); parallel vectors, empty outside GC targets.
     pair_call_sigs: Vec<String>,
@@ -225,7 +228,7 @@ fn SelfEmitCtx_new(
         fid_to_mir: Vec::new<i32>(),
         call_reloc_offs: Vec::new<i32>(),
         call_reloc_fids: Vec::new<i32>(),
-        call_reloc_used: 0,
+        call_reloc_funcs: Vec::new<i32>(),
         pair_call_sigs: Vec::new<String>(),
         pair_call_type_map: Vec::new<i32>(),
         body_bytes: Vec::new<Vec<i32>>(),

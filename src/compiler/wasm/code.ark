@@ -13,6 +13,7 @@ use mir::module_wit_imports
 use wasm::code_body
 use wasm::call_indirect
 use wasm::call_ref
+use wasm::ctx_call_reloc
 use wasm::ctx_record
 use wasm::ctx_reloc
 use wasm::ctx_string_view
@@ -409,10 +410,13 @@ fn emit_code_section(
         module_block_pool::mir_function_detach_blocks(f, mir)
         ci = ci + 1
     }
-    // #851 Phase 3: deferred-resolution operands (plan-appended string
-    // literals, later call_indirect type indices) are final now that every
-    // declared body is emitted — splice the resolved minimal encodings
-    // into the stored body vecs, then assemble in func_idx order.
+    // #851 Phase 3: deferred-resolution operands (call targets, plan-
+    // appended string literals, call_indirect/call_ref type indices) are
+    // final now that every declared body is emitted. CALL slots patch
+    // first: they write a fixed 5-byte slot in place, so their emit-order
+    // offsets stay valid; the variable-length splices then run in reverse
+    // so each applied splice cannot shift the offsets of the ones ahead.
+    ctx_call_reloc::SelfEmitCtx_apply_call_relocs(ctx, wit_import_count)
     code_apply_pending_relocs(ctx)
     let mut bi2 = 0
     while bi2 < fn_count {
