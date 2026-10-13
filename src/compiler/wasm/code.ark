@@ -68,6 +68,125 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
     true
 }
 
+// Configure a body writer with the linear-GC runtime function indices used
+// when bodies emit runtime calls. Declared bodies emit into per-fn scratch
+// writers (#851 Phase 3), so this is shared by the code-section writer
+// (synthetic bodies) and every per-fn body writer.
+fn code_configure_linear_gc_writer(
+    w: WasmWriter,
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    p2_runtime_function_count: i32,
+    linear_gc_runtime_count: i32,
+    target: String,
+    wasi_version: String,
+    wit_import_count: i32
+) {
+    if linear_gc_runtime_count <= 0 {
+        return
+    }
+    writer_core::writer_set_linear_gc_commit_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_COMMIT_TOP(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+    writer_core::writer_set_linear_gc_alloc_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ALLOC(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+    writer_core::writer_set_linear_gc_root_frame_enter_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_FRAME_ENTER(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+    writer_core::writer_set_linear_gc_root_push_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_PUSH(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+    writer_core::writer_set_linear_gc_root_update_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_UPDATE(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+    writer_core::writer_set_linear_gc_root_frame_leave_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_ROOT_FRAME_LEAVE(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+    writer_core::writer_set_linear_gc_collect_function_index(
+        w,
+        function_indices::linear_gc_runtime_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            constants::LINEAR_GC_COLLECT(),
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+}
+
 fn emit_code_section(
     out: WasmWriter,
     mir: MirModule,
@@ -172,6 +291,18 @@ fn emit_code_section(
         )
         writer_core::writer_set_linear_gc_collect_function_index(code_sec, collect_index)
     }
+    code_configure_linear_gc_writer(
+        code_sec,
+        fn_count,
+        needs_wrapper,
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        p2_runtime_function_count,
+        linear_gc_runtime_count,
+        clone(target),
+        clone(wasi_version),
+        module_wit_imports::wit_import_count(bindings)
+    )
     let p2_command_extra = if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) && needs_wrapper == 1 {
         1
     } else {
@@ -190,10 +321,28 @@ fn emit_code_section(
         let f = get_unchecked(functions, ci)
         ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
         let t_fn = clock::monotonic_now()
+        // #851 Phase 3: declared bodies emit into a per-fn scratch writer so
+        // the resulting byte vec is independently addressable by func_idx —
+        // the same shape in-loop emit needs once bodies complete out of
+        // code-section order.
+        let body_w = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+        code_configure_linear_gc_writer(
+            body_w,
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            p2_library_wrapper_count,
+            p2_runtime_function_count,
+            linear_gc_runtime_count,
+            clone(target),
+            clone(wasi_version),
+            module_wit_imports::wit_import_count(bindings)
+        )
+        code_body::emit_function_body(body_w, f, ctx, bindings)
+        push(ctx.body_bytes, writer_core::writer_bytes(body_w))
         push(offsets, writer_core::writer_size(code_sec))
         let size_off = emit_sized_code_body_begin(code_sec)
-        code_body::emit_function_body(code_sec, f, ctx, bindings)
-        writer_core::writer_begin_function_locals(code_sec, Vec::new<i32>())
+        writer_core::emit_bytes(code_sec, get_unchecked(ctx.body_bytes, ci))
         emit_sized_code_body_end(code_sec, size_off)
         if slow_notes < 32 {
             if emit_slow_fn_note(report_timing, ci, f, t_fn) {

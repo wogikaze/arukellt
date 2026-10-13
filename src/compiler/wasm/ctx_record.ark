@@ -107,6 +107,10 @@ pub struct SelfEmitCtx {
     // indices (#872); parallel vectors, empty outside GC targets.
     pair_call_sigs: Vec<String>,
     pair_call_type_map: Vec<i32>,
+    // Per-fn sized body bytes, indexed by module func_idx. Declared bodies
+    // emit into a scratch writer and land here so the code section can be
+    // assembled in func_idx order regardless of emit order (#851 Phase 3).
+    body_bytes: Vec<Vec<i32>>,
 }
 
 fn SelfEmitCtx_new(
@@ -223,6 +227,7 @@ fn SelfEmitCtx_new(
         call_reloc_used: 0,
         pair_call_sigs: Vec::new<String>(),
         pair_call_type_map: Vec::new<i32>(),
+        body_bytes: Vec::new<Vec<i32>>(),
     }
 }
 
