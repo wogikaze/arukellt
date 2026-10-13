@@ -856,6 +856,19 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
   する symbolic 化が必須（canon dedup により sig テキスト一致 =
   型一致）。callee fn sig → result segment → gc sig テキストの導出を
   spine 情報のみで行う経路が要る。
+- 実装状況（2026-10-13、per-push pair_sig 収集 着地 — 97/97）:
+  artifacts を module 生成時点（emit_spec gate）で enable し、
+  `ctx_run_per_fn_post_pass` が push ごとに CALL_REF の raw tuple
+  (owner idx, hint, vt) を `art.pair_ref_*` へ記録。drain の seal は
+  record を push 順に kept フィルタして sig を derive — batch kept-scan
+  と同一入力・同一順序であることを 97 fixture byte-parity で確認。
+  **罠**: early enable により real `optimize_module`（orchestrate）と
+  bootstrap stub（`scripts/selfhost/checks.py` の BOOTSTRAP_MIR_OPT_STUB）
+  の双方が「enabled = opt 済み」と誤読して drain 内 opt まで skip して
+  いた（wasm byte は偶然一致し、gc-layout typed lookup だけ増加 —
+  audit counter が検出器として効いた）。`art.opt_done` を新設して
+  「artifacts 有効」と「opt 消費済み」を分離。stub 更新を忘れると
+  flat overlay ビルドだけ静かに挙動が変わる点に注意。
 
 ## Phase 4 — post-pass type propagation を消す
 
