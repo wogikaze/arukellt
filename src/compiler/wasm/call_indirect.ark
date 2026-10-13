@@ -8,6 +8,7 @@ use mir::inst_accessors_shape
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_layout_lookup
+use wasm::ctx_reloc
 use wasm::emit_target
 use wasm::inst_store
 use wasm::intrinsics::helpers_numeric_i32_convert
@@ -186,16 +187,53 @@ fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     // Pair ABI (#872): the nk/vk hint keys pin the exact (env, args...)
     // signature; the fnptr table index is already on the stack.
     let mut type_idx = call_ref_pair_key_type_idx(ctx, inst_accessors_literals::MirInst_str_val(inst))
-    if type_idx < 0 {
+    // #851 Phase 3: the type operand is a reloc placeholder patched at
+    // code-section assembly — the resolver inputs are recorded so apply
+    // re-runs the same resolution once every table is final (in-loop emit
+    // has no type_plan yet). A MIR-provided arg1 index is already final
+    // and emits directly.
+    let mut reloc_kind = 0 - 1
+    if type_idx >= 0 {
+        reloc_kind = ctx_reloc::RELOC_KIND_PAIR_KEY()
+    } else {
+        if inst_accessors_operands::MirInst_arg1(inst) < 0 {
+            reloc_kind = ctx_reloc::RELOC_KIND_INDIRECT_SCAN()
+        }
         type_idx = resolve_indirect_type_idx(ctx, inst_accessors_operands::MirInst_arg1(inst), arg_count, dest_vt, first_arg_vt)
     }
     // Under Memory64, the funcref table index is stored as a widened i64
     // scalar but the call_indirect instruction requires an i32 index.
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_CALL_INDIRECT())
-    writer_core::emit_leb128_u(w, type_idx)
+    if reloc_kind >= 0 {
+        ctx_reloc::SelfEmitCtx_emit_leb_u_reloc(
+            w,
+            ctx,
+            reloc_kind,
+            arg_count,
+            dest_vt,
+            first_arg_vt,
+            inst_accessors_literals::MirInst_str_val(inst)
+        )
+    } else {
+        writer_core::emit_leb128_u(w, type_idx)
+    }
     writer_core::emit_leb128_u(w, 0)
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, indirect_type_returns_value(ctx, type_idx, dest_vt))
+}
+
+// Re-run one recorded call_indirect resolution at reloc-apply time. The
+// inputs captured at emit are regime-independent, and every table the
+// resolvers read is final at assembly — the patched operand therefore
+// equals the value direct resolution produced.
+fn resolve_indirect_reloc(ctx: SelfEmitCtx, kind: i32, ikey: i32, ikey2: i32, ikey3: i32, skey: String) -> i32 {
+    if kind == ctx_reloc::RELOC_KIND_PAIR_KEY() {
+        return call_ref_pair_key_type_idx(ctx, skey)
+    }
+    if kind == ctx_reloc::RELOC_KIND_INDIRECT_SCAN() {
+        return resolve_indirect_type_idx(ctx, 0 - 1, ikey, ikey2, ikey3)
+    }
+    0 - 1
 }
 
 // ---- pair-call signature registration (#872) ----

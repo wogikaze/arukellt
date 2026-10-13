@@ -1,4 +1,5 @@
 use std::host::clock
+use std::host::process
 use std::host::stdio
 use std::prelude::{clone, i64_to_i32, to_string}
 use std::text
@@ -10,8 +11,10 @@ use mir::module_block_pool
 use mir::module_functions
 use mir::module_wit_imports
 use wasm::code_body
+use wasm::call_indirect
 use wasm::ctx_record
 use wasm::ctx_reloc
+use wasm::ctx_string_view
 use wasm::function_indices
 use wasm::import_indices
 use wasm::opcodes
@@ -188,6 +191,56 @@ fn code_configure_linear_gc_writer(
     )
 }
 
+// Resolve every pending body reloc and splice its minimal encoding into
+// the stored body vec. Iterates records in reverse: emit order is
+// ascending offset within each body, so reverse applies higher offsets
+// first and earlier splice-induced growth never shifts a site still to
+// be patched.
+fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
+    let mut i = len(ctx.reloc_func) - 1
+    while i >= 0 {
+        let fi = get_unchecked(ctx.reloc_func, i)
+        let off = get_unchecked(ctx.reloc_off, i)
+        let kind = get_unchecked(ctx.reloc_kind, i)
+        let ikey = get_unchecked(ctx.reloc_ikey, i)
+        let ikey2 = get_unchecked(ctx.reloc_ikey2, i)
+        let ikey3 = get_unchecked(ctx.reloc_ikey3, i)
+        let skey = clone(get_unchecked(ctx.reloc_skey, i))
+        let mut value = 0 - 1
+        if kind == ctx_reloc::RELOC_KIND_STR_TRUE() {
+            value = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
+        }
+        if kind == ctx_reloc::RELOC_KIND_STR_FALSE() {
+            value = ctx_string_view::SelfEmitCtx_false_string_offset(ctx)
+        }
+        if kind == ctx_reloc::RELOC_KIND_STR_VALUE() {
+            value = ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, skey)
+        }
+        if kind == ctx_reloc::RELOC_KIND_PAIR_KEY() ||
+        kind == ctx_reloc::RELOC_KIND_INDIRECT_SCAN() {
+            value = call_indirect::resolve_indirect_reloc(ctx, kind, ikey, ikey2, ikey3, skey)
+        }
+        if value < 0 {
+            stdio::eprintln("compiler ICE: unresolved body reloc")
+            process::exit(1)
+        }
+        let body = get_unchecked(ctx.body_bytes, fi)
+        if ctx_reloc::reloc_kind_is_sleb(kind) {
+            set(ctx.body_bytes, fi, ctx_reloc::reloc_splice_i32(body, off, value))
+        } else {
+            set(ctx.body_bytes, fi, ctx_reloc::reloc_splice_u32(body, off, value))
+        }
+        i = i - 1
+    }
+    ctx.reloc_func = Vec::new<i32>()
+    ctx.reloc_off = Vec::new<i32>()
+    ctx.reloc_kind = Vec::new<i32>()
+    ctx.reloc_ikey = Vec::new<i32>()
+    ctx.reloc_ikey2 = Vec::new<i32>()
+    ctx.reloc_ikey3 = Vec::new<i32>()
+    ctx.reloc_skey = Vec::new<String>()
+}
+
 fn emit_code_section(
     out: WasmWriter,
     mir: MirModule,
@@ -353,7 +406,7 @@ fn emit_code_section(
     // literals, later call_indirect type indices) are final now that every
     // declared body is emitted — splice the resolved minimal encodings
     // into the stored body vecs, then assemble in func_idx order.
-    ctx_reloc::SelfEmitCtx_apply_pending_relocs(ctx)
+    code_apply_pending_relocs(ctx)
     let mut bi2 = 0
     while bi2 < fn_count {
         push(offsets, writer_core::writer_size(code_sec))

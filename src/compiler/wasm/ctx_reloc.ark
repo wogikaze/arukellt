@@ -1,8 +1,4 @@
-use std::host::process
-use std::host::stdio
-use std::prelude::{clone}
 use wasm::ctx_record
-use wasm::ctx_string_view
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_leb
@@ -26,20 +22,42 @@ fn RELOC_KIND_STR_VALUE() -> i32 {
     2
 }
 
-// Reserved kinds for the follow-up consumers:
-//   3 = fn_type_map index (ikey = index)
-//   4 = pair_call_type_map index (ikey = index)
+// call_indirect operand kinds: records the resolver inputs and re-runs the
+// same resolution at apply (functions/type maps are final then), so the
+// patched value equals direct resolution by construction.
+//   ikey = arg_count, ikey2 = dest_vt, ikey3 = first_arg_vt
+fn RELOC_KIND_INDIRECT_SCAN() -> i32 {
+    3
+}
+
+// skey = MirInst_str_val pair-ABI hint (nk/vk segments).
+fn RELOC_KIND_PAIR_KEY() -> i32 {
+    4
+}
+
+// Operand byte class used by the splice: STR_* are sleb i32/i64 const
+// operands; the call_indirect type operand is a uleb.
+fn reloc_kind_is_sleb(kind: i32) -> bool {
+    kind == RELOC_KIND_STR_TRUE() ||
+    kind == RELOC_KIND_STR_FALSE() ||
+    kind == RELOC_KIND_STR_VALUE()
+}
+
 fn SelfEmitCtx_push_reloc(
     ctx: SelfEmitCtx,
     body_off: i32,
     kind: i32,
     ikey: i32,
+    ikey2: i32,
+    ikey3: i32,
     skey: String
 ) {
     push(ctx.reloc_func, ctx_record::SelfEmitCtx_current_func_idx(ctx))
     push(ctx.reloc_off, body_off)
     push(ctx.reloc_kind, kind)
     push(ctx.reloc_ikey, ikey)
+    push(ctx.reloc_ikey2, ikey2)
+    push(ctx.reloc_ikey3, ikey3)
     push(ctx.reloc_skey, skey)
 }
 
@@ -59,7 +77,7 @@ fn SelfEmitCtx_emit_i32_const_reloc(
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     }
-    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, skey)
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, 0, 0, skey)
     writer_leb::emit_leb128_s(w, 0)
 }
 
@@ -74,8 +92,23 @@ fn SelfEmitCtx_emit_i32_const_true_reloc(
     skey: String
 ) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, skey)
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, 0, 0, skey)
     writer_leb::emit_leb128_s(w, 0)
+}
+
+// ULEB operand variant (call_indirect type index): record the operand
+// position, write a 1-byte uleb(0) placeholder.
+fn SelfEmitCtx_emit_leb_u_reloc(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    kind: i32,
+    ikey: i32,
+    ikey2: i32,
+    ikey3: i32,
+    skey: String
+) {
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, ikey2, ikey3, skey)
+    writer_leb::emit_leb128_u(w, 0)
 }
 
 fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
@@ -103,41 +136,26 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     out_v
 }
 
-fn reloc_resolve_value(ctx: SelfEmitCtx, kind: i32, ikey: i32, skey: String) -> i32 {
-    if kind == RELOC_KIND_STR_TRUE() {
-        return ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
+// ULEB variant: same 1-byte placeholder skip, minimal u-leb encoding.
+fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
+    let out_v = Vec::new<i32>()
+    let mut i = 0
+    while i < off {
+        push(out_v, get_unchecked(body, i))
+        i = i + 1
     }
-    if kind == RELOC_KIND_STR_FALSE() {
-        return ctx_string_view::SelfEmitCtx_false_string_offset(ctx)
+    let sw = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sw, value)
+    let enc = writer_core::writer_bytes(sw)
+    let mut j = 0
+    while j < len(enc) {
+        push(out_v, get_unchecked(enc, j))
+        j = j + 1
     }
-    if kind == RELOC_KIND_STR_VALUE() {
-        return ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, skey)
+    let mut k = off + 1
+    while k < len(body) {
+        push(out_v, get_unchecked(body, k))
+        k = k + 1
     }
-    stdio::eprintln("compiler ICE: unknown body reloc kind")
-    process::exit(1)
-    0 - 1
-}
-
-// Resolve every pending reloc and splice its minimal sleb into the stored
-// body vec. Iterates records in reverse: emit order is ascending offset
-// within each body, so reverse applies higher offsets first and earlier
-// splice-induced growth never shifts a site still to be patched.
-fn SelfEmitCtx_apply_pending_relocs(ctx: SelfEmitCtx) {
-    let mut i = len(ctx.reloc_func) - 1
-    while i >= 0 {
-        let fi = get_unchecked(ctx.reloc_func, i)
-        let off = get_unchecked(ctx.reloc_off, i)
-        let kind = get_unchecked(ctx.reloc_kind, i)
-        let ikey = get_unchecked(ctx.reloc_ikey, i)
-        let skey = clone(get_unchecked(ctx.reloc_skey, i))
-        let value = reloc_resolve_value(ctx, kind, ikey, skey)
-        let body = get_unchecked(ctx.body_bytes, fi)
-        set(ctx.body_bytes, fi, reloc_splice_i32(body, off, value))
-        i = i - 1
-    }
-    ctx.reloc_func = Vec::new<i32>()
-    ctx.reloc_off = Vec::new<i32>()
-    ctx.reloc_kind = Vec::new<i32>()
-    ctx.reloc_ikey = Vec::new<i32>()
-    ctx.reloc_skey = Vec::new<String>()
+    out_v
 }
