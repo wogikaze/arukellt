@@ -49,6 +49,13 @@ fn RELOC_KIND_CALL_REF_TYPE() -> i32 {
     6
 }
 
+// MIR_REF_FUNC operand (uleb): skey = target function name. In-loop drain
+// emits bodies before reachability compaction, so the module function index
+// is resolved against the post-prune functions vec at apply time.
+fn RELOC_KIND_REF_FUNC() -> i32 {
+    7
+}
+
 // Operand byte class used by the splice: STR_* are sleb i32/i64 const
 // operands, CALL_REF_CAST is a sleb GC heap-type operand; the call_indirect
 // and CALL_REF_TYPE type operands are uleb.

@@ -1,17 +1,23 @@
-// #851 Phase 3: fused body emit — post-prune drain. Once reachability has
-// compacted the module and the GC layout plan is rebuilt, every remaining
-// function is optimized and emitted into per-fn byte vecs recorded on
+// #851 Phase 3: fused body emit — pre-prune drain. Once every decl body
+// (including late __fnthunk_ flushes and GC late canon) is pushed but
+// BEFORE reachability compaction removes dead functions, each surviving
+// body is optimized and emitted into a per-fn byte vec recorded on
 // MirEmitArtifacts. The wasm emit phase adopts those vecs instead of
-// re-emitting, so emit-order byte content is unchanged while lower still
-// owns the module.
+// re-emitting, compacting them through MirEmitArtifacts.prune_old_to_new.
 //
-// The drain sees exactly what the emit phase sees: the post-prune
-// function vec, post-opt MIR, and a canon table sealed by the same
-// build_type_sigs + canonicalize_type_sigs run emit_type_section
-// performs. canon_ensure is idempotent, so the emit-phase canonicalize
-// replays as pure lookups and the emitted type section is byte-identical.
+// Ordering contract vs the emit phase:
+//   - canon is sealed by running the same build_type_sigs +
+//     canonicalize_type_sigs emit_type_section runs, but over the KEPT
+//     function vec (marks-filtered) — identical sigs in identical order,
+//     so the emit-phase canonicalize replays as pure lookups.
+//   - body emit runs while the pre-prune function vec is intact, so
+//     SelfEmitCtx function/name lookups resolve exactly as they do at
+//     emit time; only recorded indices are pre-prune and get remapped.
+//   - fid<0 calls defer by name (in_loop_emitted) so their patch lands
+//     on the post-prune index at reloc-apply time.
 
 use mir::emit_artifacts
+use mir::lower::ctx_call_edges
 use mir::lower::emit_spec
 use mir::module_canon
 use mir::module_emit_artifacts
@@ -19,7 +25,10 @@ use mir::module_functions
 use mir::module_gc_enum
 use mir::module_gc_struct
 use mir::module_spine
+use mir::reachability_entry
 use mir::types
+use mir::function_identity
+use mir::function_return_view
 use mir_opt::optimize_module
 use wasm::code_body
 use wasm::ctx_record
@@ -28,46 +37,108 @@ use wasm::gc_layout_table
 use wasm::gc_layout_table_build
 use wasm::sections_types
 use wasm::sections_types_sigs
+use wasm::start_names
 use wasm::wasm_context
-use wasm::wasm_start
 use wasm::writer_core
 
-fn emit_inloop_drain(mir: MirModule, spec: MirLowerEmitSpec) {
+// Post-prune equivalent of wasm_start::wasm_module_start_function_index:
+// scans the kept vec so a dead start-named fn cannot surface a stale index.
+fn emit_inloop_start_fn_index(kept: Vec<MirFunction>) -> i32 {
+    let mut main_idx = 0 - 1
+    let mut mi = 0
+    while mi < len(kept) {
+        let f = get_unchecked(kept, mi)
+        if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
+            main_idx = mi
+        }
+        mi = mi + 1
+    }
+    main_idx
+}
+
+// Post-prune equivalent of wasm_start::wasm_module_needs_start_wrapper.
+fn emit_inloop_needs_start_wrapper(kept: Vec<MirFunction>) -> i32 {
+    let mut needs_wrapper = 0
+    let mut i = 0
+    while i < len(kept) {
+        let f = get_unchecked(kept, i)
+        if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
+            if function_return_view::MirFunction_return_type(f) != 0 {
+                needs_wrapper = 1
+            }
+        }
+        i = i + 1
+    }
+    needs_wrapper
+}
+
+fn emit_inloop_drain(
+    ctx: LowerCtx,
+    module: MirModule,
+    export_roots: Vec<String>,
+    prune_enabled: bool,
+    spec: MirLowerEmitSpec
+) {
     let target = emit_spec::mir_lower_emit_spec_target(spec)
     let wasi_version = emit_spec::mir_lower_emit_spec_wasi_version(spec)
     let opt_level = emit_spec::mir_lower_emit_spec_opt_level(spec)
     let memory64 = emit_spec::mir_lower_emit_spec_memory64(spec)
     let bindings = emit_spec::mir_lower_emit_spec_bindings(spec)
     // The driver's optimize_module pipeline runs here while the module is
-    // final: keeping the module-level pass preserves its pass order and
-    // translation-validation reporting. Artifacts are enabled only after
-    // this call so the driver's own optimize_module becomes a no-op.
-    mir_opt::optimize_module(mir, opt_level, clone(target))
-    let mut art = module_emit_artifacts::MirModule_emit_artifacts(mir)
+    // complete (all decl + thunk bodies pushed, pre-prune). Keeping the
+    // module-level pass preserves pass order and validation reporting;
+    // per-fn passes are function-local so kept results match the
+    // post-prune run. Artifacts are enabled after this call so the
+    // driver's own optimize_module becomes a no-op.
+    mir_opt::optimize_module(module, opt_level, clone(target))
+    let mut art = module_emit_artifacts::MirModule_emit_artifacts(module)
     emit_artifacts::MirEmitArtifacts_enable(art)
     // Re-read after opt: the O2 passes may replace the module function vec.
-    let functions = module_functions::MirModule_functions(mir)
+    let functions = module_functions::MirModule_functions(module)
     let fn_count = len(functions)
-    // Seal the canon table with the same sig stream emit_type_section
-    // builds over the post-prune module. The emit-phase canonicalize then
-    // replays as lookups only — identical type_map and section bytes.
-    let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
+    // Reachability marks over the recorded edge table — identical inputs
+    // to the prune pass about to run, so the kept set is exactly what
+    // emit would see post-compaction. Empty marks = no prune (all kept).
+    let marks = if prune_enabled {
+        reachability_entry::mir_reachability_marks_for_target_and_edges(
+            module,
+            export_roots,
+            clone(target),
+            ctx_call_edges::ctx_edge_table(ctx),
+            ctx_call_edges::ctx_edge_fn_names(ctx),
+            ctx_call_edges::ctx_edge_overflow_names(ctx)
+        )
+    } else {
+        Vec::new<i32>()
+    }
+    let kept = Vec::new<MirFunction>()
+    let mut ki = 0
+    while ki < fn_count {
+        if len(marks) == 0 || get_unchecked(marks, ki) != 0 {
+            push(kept, get_unchecked(functions, ki))
+        }
+        ki = ki + 1
+    }
+    // Seal the canon table with the sig stream emit_type_section builds
+    // over the post-prune module — kept order equals pruned order, so the
+    // emit-phase canonicalize replays as lookups only.
+    let main_idx = emit_inloop_start_fn_index(kept)
     let needs_wrapper = if emit_target::is_p2_wasi(clone(wasi_version)) {
         if main_idx >= 0 { 1 } else { 0 }
     } else {
-        wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
+        emit_inloop_needs_start_wrapper(kept)
     }
     let pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
-        functions,
-        fn_count,
+        kept,
+        len(kept),
         clone(target),
         memory64,
-        module_gc_struct::MirModule_gc_struct_names(mir)
+        module_gc_struct::MirModule_gc_struct_names(module)
     )
     let type_sigs = sections_types::build_type_sigs(
-        mir,
-        functions,
-        fn_count,
+        module,
+        kept,
+        len(kept),
         needs_wrapper,
         clone(target),
         clone(wasi_version),
@@ -75,13 +146,14 @@ fn emit_inloop_drain(mir: MirModule, spec: MirLowerEmitSpec) {
         bindings,
         pair_sigs
     )
-    let _canon_plan = sections_types::canonicalize_type_sigs(mir, type_sigs)
-    // The drain ctx shares live module state (functions, canon sigs, gc
-    // name/sig vecs, signature spine) so lookups see the fully-lowered
-    // module. true/false string indices stay -1: bool-literal offsets are
-    // plan-tail appends carried as STR relocs, resolved on the emit ctx.
+    let _canon_plan = sections_types::canonicalize_type_sigs(module, type_sigs)
+    // The drain ctx shares live module state (pre-prune functions vec,
+    // canon sigs, gc name/sig vecs, signature spine) so emit-time lookups
+    // resolve exactly as they do on the emit ctx. true/false string
+    // indices stay -1: bool-literal offsets are plan-tail appends carried
+    // as STR relocs, resolved on the emit ctx.
     let mut ectx = ctx_record::SelfEmitCtx_new(
-        mir,
+        module,
         functions,
         0 - 1,
         0 - 1,
@@ -90,44 +162,45 @@ fn emit_inloop_drain(mir: MirModule, spec: MirLowerEmitSpec) {
         memory64,
         emit_spec::mir_lower_emit_spec_source_file(spec)
     )
-    wasm_context::emit_wasm_context_set_gc_enum_variant_names(ectx, module_gc_enum::MirModule_gc_enum_variant_names(mir))
-    wasm_context::emit_wasm_context_set_gc_enum_variant_sigs(ectx, module_gc_enum::MirModule_gc_enum_variant_sigs(mir))
-    wasm_context::emit_wasm_context_set_gc_struct_names(ectx, module_gc_struct::MirModule_gc_struct_names(mir))
-    wasm_context::emit_wasm_context_set_gc_struct_sigs(ectx, module_gc_struct::MirModule_gc_struct_sigs(mir))
-    wasm_context::emit_wasm_context_set_gc_type_base(ectx, sections_types::first_gc_type_index(module_canon::MirModule_canon_sigs(mir)))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_names(ectx, module_gc_enum::MirModule_gc_enum_variant_names(module))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_sigs(ectx, module_gc_enum::MirModule_gc_enum_variant_sigs(module))
+    wasm_context::emit_wasm_context_set_gc_struct_names(ectx, module_gc_struct::MirModule_gc_struct_names(module))
+    wasm_context::emit_wasm_context_set_gc_struct_sigs(ectx, module_gc_struct::MirModule_gc_struct_sigs(module))
+    wasm_context::emit_wasm_context_set_gc_type_base(ectx, sections_types::first_gc_type_index(module_canon::MirModule_canon_sigs(module)))
     let mut gc_struct_base = 0 - 1
-    if module_gc_struct::MirModule_gc_struct_sig_count(mir) > 0 {
-        gc_struct_base = get_unchecked(module_gc_struct::MirModule_gc_struct_canon_idxs(mir), 0)
+    if module_gc_struct::MirModule_gc_struct_sig_count(module) > 0 {
+        gc_struct_base = get_unchecked(module_gc_struct::MirModule_gc_struct_canon_idxs(module), 0)
     }
     wasm_context::emit_wasm_context_set_gc_struct_base(ectx, gc_struct_base)
     let mut gc_enum_variant_base = 0 - 1
-    if module_gc_enum::MirModule_gc_enum_variant_sig_count(mir) > 0 {
-        gc_enum_variant_base = get_unchecked(module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir), 0)
+    if module_gc_enum::MirModule_gc_enum_variant_sig_count(module) > 0 {
+        gc_enum_variant_base = get_unchecked(module_gc_enum::MirModule_gc_enum_variant_canon_idxs(module), 0)
     }
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ectx, gc_enum_variant_base)
     wasm_context::emit_wasm_context_finalize_gc_indexes(ectx)
     wasm_context::emit_wasm_context_set_signature_spine(
         ectx,
-        module_spine::MirModule_signature_registry(mir),
-        module_spine::MirModule_type_table(mir),
-        module_spine::MirModule_mono_instance_table(mir),
-        module_spine::MirModule_signature_spine_populated(mir)
+        module_spine::MirModule_signature_registry(module),
+        module_spine::MirModule_type_table(module),
+        module_spine::MirModule_mono_instance_table(module),
+        module_spine::MirModule_signature_spine_populated(module)
     )
     wasm_context::emit_wasm_context_set_pair_call_sigs(ectx, pair_sigs)
     let gc_layout = gc_layout_table::GcLayoutTable_new()
     wasm_context::emit_wasm_context_set_gc_layout_table(ectx, gc_layout)
-    // Post-prune the plan's type-section slots are all final — the drain
-    // runs the same all-or-ICE populate the emit phase runs.
+    // The plan is built before prune (it reads only type/gc tables), so
+    // every binding's type-section slot is final — same all-or-ICE
+    // populate the emit phase runs.
     gc_layout_table_build::populate_gc_layout_table_for_emit(
         gc_layout,
-        mir,
+        module,
         ctx_record::SelfEmitCtx_gc_type_base(ectx),
-        module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir),
-        module_gc_struct::MirModule_gc_struct_canon_idxs(mir)
+        module_gc_enum::MirModule_gc_enum_variant_canon_idxs(module),
+        module_gc_struct::MirModule_gc_struct_canon_idxs(module)
     )
     // Artifact vecs are shared with the drain ctx: body pushes land on the
-    // module record directly and the emit phase adopts them unchanged —
-    // every recorded index is already post-prune final.
+    // module record directly; the emit phase compacts through
+    // prune_old_to_new since every recorded index is PRE-prune.
     ectx.body_bytes = art.body_bytes
     ectx.reloc_func = art.reloc_func
     ectx.reloc_off = art.reloc_off
@@ -142,16 +215,20 @@ fn emit_inloop_drain(mir: MirModule, spec: MirLowerEmitSpec) {
     ectx.call_reloc_funcs = art.call_reloc_funcs
     ectx.call_reloc_names = art.call_reloc_names
     ectx.in_loop_emitted = true
-    // Emit bodies in module order — identical to the emit-phase loop.
-    // Per-fn timing notes stay emit-phase-only; the drain measures the
-    // whole step as the lower-phase "inloop_emit" span instead.
+    // Emit kept bodies in pre-prune module order — identical to what the
+    // emit-phase loop produces over the post-prune vec. Unmarked slots
+    // keep an empty entry so body_bytes stays index-aligned.
     let mut fi = 0
     while fi < fn_count {
-        let f = get_unchecked(functions, fi)
-        ctx_record::SelfEmitCtx_set_current_func_idx(ectx, fi)
-        let body_w = writer_core::WasmWriter_with_memory64(memory64)
-        code_body::emit_function_body(body_w, f, ectx, bindings)
-        push(ectx.body_bytes, writer_core::writer_bytes(body_w))
+        if len(marks) == 0 || get_unchecked(marks, fi) != 0 {
+            let f = get_unchecked(functions, fi)
+            ctx_record::SelfEmitCtx_set_current_func_idx(ectx, fi)
+            let body_w = writer_core::WasmWriter_with_memory64(memory64)
+            code_body::emit_function_body(body_w, f, ectx, bindings)
+            push(ectx.body_bytes, writer_core::writer_bytes(body_w))
+        } else {
+            push(ectx.body_bytes, Vec::new<i32>())
+        }
         fi = fi + 1
     }
     // Audit counters accumulate on the drain ctx — copy them so the

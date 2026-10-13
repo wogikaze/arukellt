@@ -770,12 +770,14 @@ c. per-fn emit: 全 GC 型が登録時に canon_idx 確定するため body oper
    既存の call reloc を継続利用
 d. worklist 駆動で到達不能 fn の lower 自体を skip（~8% body_emit 節約）
 
-Phase-3 実装（2026-10-13 fused emit 第1段 — post-prune drain 着地、
+Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
 97 fixture byte-identical）:
 
 - `emit_inloop::emit_inloop_drain`（mir/lower/emit_inloop.ark）が
-  reachability prune + gc_layout_plan 再構築の直後・lower return 前の
-  位置で、post-prune module に対して body emit まで一括実行する。
+  reachability mark（prune の marks と同一引数で再計算）のあと・
+  prune 本体の前に置かれ、pre-prune module に対して body emit まで
+  一括実行する。kept fn の body は mark 位置で emit、prune 対象は
+  空 body hole として vec を埋め、adopt 時に map で compact する。
   順序は driver の backend 順をそのまま再現:
   `mir_opt::optimize_module`（module-level pass — pass 順と検証集計を
   保持、artifacts enable はその後なので driver 側呼出は no-op 化）
@@ -787,19 +789,26 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — post-prune drain 着地、
   STR reloc 委譲）→ 全 fn を module 順に emit_function_body。
 - handoff は設計通り: artifact vec（body_bytes / reloc tuple /
   call_reloc(+names)）を drain ctx と参照共有し、emit phase は
-  `code::emit_ctx_adopt_inloop_artifacts` で O(1) adopt + audit
-  counters 移し替え + emit loop skip + detach sweep。
+  `code::emit_ctx_adopt_inloop_artifacts` で `prune_old_to_new` map に
+  従い body_bytes / reloc owner / call_reloc owner を compact・remap
+  して adopt + audit counters 移し替え + emit loop skip + detach sweep。
 - 有効条件は emit_mode ∈ {wasm, core-wasm, component} かつ gc
   target のみ（MirLowerEmitSpec、driver/lower.ark が config から
   session/input へ流す）。reachability_legacy 有効時は drain せず
   従来 loop を維持。
-- pre-prune drain 案で懸念だった func_idx remap は drain 位置を
-  post-prune に据えたことで不要化（記録される index が全て final）。
-  `MirEmitArtifacts.prune_old_to_new` の記録、
+- pre-prune drain で発火した stale-index は ref.func 経路:
+  `try_emit_ref_func_inst` は MIR_REF_FUNC の functions 名前 scan を
+  即時 `defined_function_index` へ焼き込んでいたため、drain 位置で
+  pre-prune index が確定してしまった。`RELOC_KIND_REF_FUNC`（uleb、
+  skey=関数名）を新設し、in-loop emit 時は ref.func operand を名前
+  遅延にして apply で post-prune vec 上の last-match scan を再現する
+  （`code::resolve_ref_func_reloc`）。call operand は既存の
+  call_reloc_names deferral で同じ問題を解決済み。
+- `MirEmitArtifacts.prune_old_to_new` の記録、
   `gc_layout_table_drain_plan` の resumable 化、
   `SelfEmitCtx.fn_index_watermark` / `fn_index_drain`、
-  fid<0 call の name deferral（call_reloc_names）は in-loop 融合本体が
-  必要とする機構として残置 — 本 step では記録・pair 維持のみ。
+  fid<0 call の name deferral（call_reloc_names）が remap 経路で
+  実動作する状態になり、in-loop 融合本体の前提機構が一通り検証済み。
 - mir_opt bootstrap stub 制約: drain は namespace-level の
   `mir_opt::optimize_module` のみを呼ぶ（overlay では stub 実装、
   実装では orchestrate 経由 — どちらの build でも同一 entry が

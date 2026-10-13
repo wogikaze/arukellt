@@ -4,6 +4,7 @@ use mir::inst_accessors_operands
 use mir::function_identity
 use mir::value_types
 use wasm::ctx_record
+use wasm::ctx_reloc
 use wasm::emit_target
 use wasm::function_indices
 use wasm::inst_const
@@ -77,7 +78,23 @@ fn try_emit_ref_func_inst(
         // Typed funcref: emit ref.func with the module function index. Active
         // table elem segments also declare referenced functions (#831/ADR-033).
         writer_core::emit_byte(w, opcodes::OP_REF_FUNC())
-        writer_core::emit_leb128_u(w, defined_idx)
+        if ctx.in_loop_emitted {
+            // In-loop drain emits before reachability compaction: the name
+            // scan above ran on the pre-prune vec, so defined_idx would go
+            // stale. Defer by name — apply resolves the post-prune index.
+            ctx_reloc::SelfEmitCtx_emit_leb_u_reloc(
+                w,
+                ctx,
+                ctx_reloc::RELOC_KIND_REF_FUNC(),
+                0,
+                0,
+                0,
+                clone(fn_name),
+                String_new()
+            )
+        } else {
+            writer_core::emit_leb128_u(w, defined_idx)
+        }
     } else {
         // The linear-memory fallback represents callbacks as table indices.
         // Its call_ref MIR is emitted as call_indirect by call_ref.ark. Table

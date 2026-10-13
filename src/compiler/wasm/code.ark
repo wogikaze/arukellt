@@ -1,7 +1,7 @@
 use std::host::clock
 use std::host::process
 use std::host::stdio
-use std::prelude::{clone, i64_to_i32, to_string}
+use std::prelude::{clone, eq, i64_to_i32, to_string}
 use std::text
 use mir::block_inst_access
 use mir::emit_artifacts
@@ -199,7 +199,7 @@ fn code_configure_linear_gc_writer(
 // ascending offset within each body, so reverse applies higher offsets
 // first and earlier splice-induced growth never shifts a site still to
 // be patched.
-fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
+fn code_apply_pending_relocs(ctx: SelfEmitCtx, wit_import_count: i32) {
     let mut i = len(ctx.reloc_func) - 1
     while i >= 0 {
         let fi = get_unchecked(ctx.reloc_func, i)
@@ -228,6 +228,9 @@ fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
         kind == ctx_reloc::RELOC_KIND_CALL_REF_TYPE() {
             value = call_ref::resolve_call_ref_reloc(ctx, ikey, ikey2, ikey3, skey, skey2)
         }
+        if kind == ctx_reloc::RELOC_KIND_REF_FUNC() {
+            value = resolve_ref_func_reloc(ctx, skey, wit_import_count)
+        }
         if value < 0 {
             stdio::eprintln("compiler ICE: unresolved body reloc")
             process::exit(1)
@@ -250,24 +253,114 @@ fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
     ctx.reloc_skey2 = Vec::new<String>()
 }
 
+// RELOC_KIND_REF_FUNC apply: reproduce the emit-time name scan (exact
+// equality, last match wins — MirInst_str_val is already the resolved name)
+// on the post-prune functions vec, then map to the module function index.
+// A missing target keeps the legacy fallback value 0 rather than an ICE.
+fn resolve_ref_func_reloc(ctx: SelfEmitCtx, fn_name: String, wit_import_count: i32) -> i32 {
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let mut mir_fn_idx = 0 - 1
+    let mut i = 0
+    while i < fn_count {
+        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), clone(fn_name)) {
+            mir_fn_idx = i
+        }
+        i = i + 1
+    }
+    if mir_fn_idx < 0 {
+        return 0
+    }
+    function_indices::defined_function_index(
+        mir_fn_idx,
+        ctx_record::SelfEmitCtx_target(ctx),
+        ctx_record::SelfEmitCtx_wasi_version(ctx),
+        wit_import_count
+    )
+}
+
 // #851 Phase 3 fused emit: adopt the lowering drain's artifact vecs onto
-// this emit ctx. The drain runs post-prune, so every recorded function
-// index is already final — adoption is a straight vec handoff plus the
-// audit counters the drain accumulated on its own ctx.
+// this emit ctx. The drain runs pre-prune, so recorded reloc owners and
+// body order are PRE-PRUNE function indices; prune_old_to_new compacts
+// and remaps them. An empty map means prune never ran — indices are
+// already final and adoption is a straight vec handoff.
 fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
-    ctx.body_bytes = art.body_bytes
-    ctx.reloc_func = art.reloc_func
-    ctx.reloc_off = art.reloc_off
-    ctx.reloc_kind = art.reloc_kind
-    ctx.reloc_ikey = art.reloc_ikey
-    ctx.reloc_ikey2 = art.reloc_ikey2
-    ctx.reloc_ikey3 = art.reloc_ikey3
-    ctx.reloc_skey = art.reloc_skey
-    ctx.reloc_skey2 = art.reloc_skey2
-    ctx.call_reloc_offs = art.call_reloc_offs
-    ctx.call_reloc_fids = art.call_reloc_fids
-    ctx.call_reloc_funcs = art.call_reloc_funcs
-    ctx.call_reloc_names = art.call_reloc_names
+    let map = art.prune_old_to_new
+    if len(map) == 0 {
+        ctx.body_bytes = art.body_bytes
+        ctx.reloc_func = art.reloc_func
+        ctx.reloc_off = art.reloc_off
+        ctx.reloc_kind = art.reloc_kind
+        ctx.reloc_ikey = art.reloc_ikey
+        ctx.reloc_ikey2 = art.reloc_ikey2
+        ctx.reloc_ikey3 = art.reloc_ikey3
+        ctx.reloc_skey = art.reloc_skey
+        ctx.reloc_skey2 = art.reloc_skey2
+        ctx.call_reloc_offs = art.call_reloc_offs
+        ctx.call_reloc_fids = art.call_reloc_fids
+        ctx.call_reloc_funcs = art.call_reloc_funcs
+        ctx.call_reloc_names = art.call_reloc_names
+    } else {
+        let bodies = Vec::new<Vec<i32>>()
+        let mut oi = 0
+        while oi < len(map) {
+            if get_unchecked(map, oi) >= 0 {
+                push(bodies, get_unchecked(art.body_bytes, oi))
+            }
+            oi = oi + 1
+        }
+        ctx.body_bytes = bodies
+        let rfunc = Vec::new<i32>()
+        let roff = Vec::new<i32>()
+        let rkind = Vec::new<i32>()
+        let ri1 = Vec::new<i32>()
+        let ri2 = Vec::new<i32>()
+        let ri3 = Vec::new<i32>()
+        let rs1 = Vec::new<String>()
+        let rs2 = Vec::new<String>()
+        let mut ri = 0
+        while ri < len(art.reloc_func) {
+            let mapped = get_unchecked(map, get_unchecked(art.reloc_func, ri))
+            if mapped >= 0 {
+                push(rfunc, mapped)
+                push(roff, get_unchecked(art.reloc_off, ri))
+                push(rkind, get_unchecked(art.reloc_kind, ri))
+                push(ri1, get_unchecked(art.reloc_ikey, ri))
+                push(ri2, get_unchecked(art.reloc_ikey2, ri))
+                push(ri3, get_unchecked(art.reloc_ikey3, ri))
+                push(rs1, clone(get_unchecked(art.reloc_skey, ri)))
+                push(rs2, clone(get_unchecked(art.reloc_skey2, ri)))
+            }
+            ri = ri + 1
+        }
+        ctx.reloc_func = rfunc
+        ctx.reloc_off = roff
+        ctx.reloc_kind = rkind
+        ctx.reloc_ikey = ri1
+        ctx.reloc_ikey2 = ri2
+        ctx.reloc_ikey3 = ri3
+        ctx.reloc_skey = rs1
+        ctx.reloc_skey2 = rs2
+        let coffs = Vec::new<i32>()
+        let cfids = Vec::new<i32>()
+        let cfuncs = Vec::new<i32>()
+        let cnames = Vec::new<String>()
+        let mut cii = 0
+        while cii < len(art.call_reloc_funcs) {
+            let mapped = get_unchecked(map, get_unchecked(art.call_reloc_funcs, cii))
+            if mapped >= 0 {
+                push(coffs, get_unchecked(art.call_reloc_offs, cii))
+                push(cfids, get_unchecked(art.call_reloc_fids, cii))
+                push(cfuncs, mapped)
+                push(cnames, clone(get_unchecked(art.call_reloc_names, cii)))
+            }
+            cii = cii + 1
+        }
+        ctx.call_reloc_offs = coffs
+        ctx.call_reloc_fids = cfids
+        ctx.call_reloc_funcs = cfuncs
+        ctx.call_reloc_names = cnames
+    }
     ctx.registry_audit_candidates = art.registry_audit_candidates
     ctx.registry_audit_matched = art.registry_audit_matched
     ctx.registry_audit_mismatched = art.registry_audit_mismatched
@@ -461,7 +554,7 @@ fn emit_code_section(
     // offsets stay valid; the variable-length splices then run in reverse
     // so each applied splice cannot shift the offsets of the ones ahead.
     ctx_call_reloc::SelfEmitCtx_apply_call_relocs(ctx, wit_import_count)
-    code_apply_pending_relocs(ctx)
+    code_apply_pending_relocs(ctx, wit_import_count)
     let mut bi2 = 0
     while bi2 < fn_count {
         push(offsets, writer_core::writer_size(code_sec))
