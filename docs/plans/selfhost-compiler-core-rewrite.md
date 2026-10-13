@@ -584,11 +584,13 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     reloc より先に適用（splice は引き続き逆順）。per-body の
     call_reloc_used pool/reset は廃止。thunk fid のような mid-loop
     登録 fid への forward ref 経路が確立（97 fixture byte-identical）。
+  - 2e006f117: indirect_type_returns_value を module canon sig 直読み化。
+    type_idx → canon_sigs[type_idx] の末尾 '_' セグメント（'0'=void,
+    '1<tok>'=値あり）で arity を判定し、plan 由来 fn_type_map scan を
+    廃止 — store 形状判定が in-loop emit で利用可能に（97 fixture
+    byte-identical）。
 
   **残り in-loop emit ブロッカー**:
-  - indirect_type_returns_value — emit 時 semantic read（store 形状
-    判定）。plan 由来 fn_type_map 依存のため in-loop では signature
-    spine から sig text を読んで ret arity を引く variant が必要。
   - SelfEmitCtx の ctx_prep 後構築（mir 保持は f03044b03 で着地済み、
     残は構築時点の前倒しと ctx_prep 依存の解消）。
   - decl loop 融合本体（emit_function_body を mir_emit_view_decls
