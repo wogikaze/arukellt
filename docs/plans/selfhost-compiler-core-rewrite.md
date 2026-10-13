@@ -519,6 +519,33 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
   次の作業単位: SelfEmitCtx の ctx_prep 前移設配線と call_indirect
   の type reloc（sig→canon finalize 解決）。
 
+- 実装状況（2026-10-13、per-fn body writer 着地）:
+  declared body は per-fn `WasmWriter` へ emit し
+  `SelfEmitCtx.body_bytes[func_idx]` に durable 保存、code section は
+  保存 vec から func_idx 順に sized assemble する形に変更。linear-GC
+  runtime index 設定は `code_configure_linear_gc_writer` へ抽出して
+  code_sec（synthetic bodies）と各 body_w に適用。166 fixture
+  byte-identical。body 内 call reloc の offset は body-relative に
+  なった（apply は依然 body 完了時 — callee fn_idx は discovery 時点で
+  確定済みのため in-loop でも即時解決可能）。
+
+  **in-loop emit readiness 監査**（body emit が読む post-loop 限定値）:
+  - `ctx_string_view` 系: 通常 literal は `ctx.string_offsets` 経由だが
+    値自体は `DATA_START + MirModule_string_data_rel_at` と同一 —
+    module SSOT 直読みへ切替可能（ctx に module 参照 or rel vec の
+    配線が要る）。bool literal（"true"/"false"/"assertion failed"）は
+    plan 時 tail append のため **string reloc 必須**。
+  - `fn_type_map` / `pair_call_type_map`: call_indirect 系で参照。
+    canon order 維持のため push 時 ensure は不可 — **type reloc**
+    （func_idx + body_rel_off + 解決 key を記録、finalize で patch）。
+  - `gc_struct_type_map` / `gc_enum_variant_type_map/flags`:
+    call_indirect / ctx_gc_type / ctx_gc_layout_lookup / code_ref_locals_*
+    に残存読み — module canon vec 直読みへの切替監査が残る。
+  - reloc は body_bytes[func_idx] 上の body_rel_off を固定幅ではなく
+    **splice patch** とする（i32.const 等の minimal SLEB を維持し
+    byte-parity を保つ）。同 body 複数 site は offset 降順 apply で
+    位置ずれを防ぐ。
+
 Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_context_new
 と strings.ark の実調査）:
 
