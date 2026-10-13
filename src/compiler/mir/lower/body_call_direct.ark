@@ -1,5 +1,6 @@
 use std::prelude::{clone, contains, eq}
 use std::text
+use mir::inst_local_get
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::binary_cast
@@ -8,11 +9,13 @@ use mir::lower::call_args
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit
 use mir::lower::call_rewrite_vec
+use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_index
 use mir::lower::literals
 use mir::lower::loop_vec
+use mir::lower::method
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use corehir::type_ann_node
@@ -76,12 +79,21 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
                 arg_idx = literals::lower_unary_neg_forced_i64(ctx, unary_operand)
             } else {
                 arg_idx = lower_expr(ctx, arg)
+                // Staged calls re-read the result local into the staging
+                // slot; an extra local.get here would leak onto the operand
+                // stack. Only unstaged args consume the stack value (#921).
+                if !stage_call_args && method::mir_method_arg_leaves_no_stack(ctx, arg_idx) {
+                    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+                }
             }
         } else if mir_arg_is_fn_value_for_param(ctx, clone(callee_name), arg, param_idx) ||
             mir_push_arg_is_fn_value(ctx, clone(callee_name), arg, param_idx, first_arg_idx) {
                 arg_idx = value_variants::lower_function_value(ctx, ast_node::node_text(arg))
             } else {
                 arg_idx = lower_expr(ctx, arg)
+                if !stage_call_args && method::mir_method_arg_leaves_no_stack(ctx, arg_idx) {
+                    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+                }
             }
             if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
                 arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)

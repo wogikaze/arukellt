@@ -414,6 +414,7 @@ run:control/break_continue.ark
 run:control/if_basic.ark
 run:control/if_else.ark
 run:control/if_expr.ark
+run:control/if_expr_call_arg.ark
 run:control/loop_basic.ark
 run:control/loop_break_value.ark
 run:control/match_enum.ark

@@ -1,4 +1,5 @@
 use std::prelude::{clone, eq}
+use mir::inst_local_get
 use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_emit
@@ -13,8 +14,10 @@ use mir::lower::core_expr_shape_calls
 use mir::lower::core_expr_shape_ops
 use mir::lower::core_literals
 use mir::lower::core_names
+use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::loop_vec
+use mir::lower::method
 use mir::lower::struct_lit
 use mir::lower_kinds
 use mir::lower::value_variants
@@ -119,12 +122,18 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
                     arg_idx = core_literals::lower_core_unary_neg_forced_i64(ctx, unary_operand)
                 } else {
                     arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+                    if !stage_call_args && method::mir_method_arg_leaves_no_stack(ctx, arg_idx) {
+                        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+                    }
                 }
             } else if mir_core_arg_is_fn_value_for_param(ctx, clone(callee_name), arg_expr, param_idx) ||
                 mir_core_vec_push_arg_is_fn(ctx, clone(callee_name), arg_expr, param_idx, first_arg_idx) {
                     arg_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(arg_expr))
                 } else {
                     arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+                    if !stage_call_args && method::mir_method_arg_leaves_no_stack(ctx, arg_idx) {
+                        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+                    }
                 }
                 if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
                     arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)

@@ -74,6 +74,10 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
 // prev_arg0 in call_fallback_resolved, but core-op intrinsic emits
 // (e.g. `__core_vec_push_i32_impl` -> inlined vec_push) have no such
 // recovery. The caller re-pushes the result local for these.
+// MIR_END is the same contract: if/match/block-tail expressions deliver
+// their result via a result local (mir_store_if_branch_result), so an
+// arg whose lowering ends at END holds the value in arg_idx, not on the
+// operand stack (#921).
 fn mir_method_arg_leaves_no_stack(ctx: LowerCtx, arg_idx: i32) -> bool {
     if arg_idx < 0 {
         return false
@@ -81,5 +85,6 @@ fn mir_method_arg_leaves_no_stack(ctx: LowerCtx, arg_idx: i32) -> bool {
     let last_op = ctx_locals_emit::ctx_current_block_last_inst_op(ctx)
     last_op == opcodes::MIR_STRUCT_SET() ||
     last_op == opcodes::MIR_ARRAY_SET() ||
-    last_op == opcodes::MIR_GC_STRUCT_SET()
+    last_op == opcodes::MIR_GC_STRUCT_SET() ||
+    last_op == opcodes::MIR_END()
 }

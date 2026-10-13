@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-14
 Updated: 2026-10-14
 ID: 921
@@ -73,3 +73,38 @@ nested `if`/`end`.
       delivery convention, or the arg-binding assumes stack delivery
 - [ ] Regression fixture covering if-expression in call-arg position
 - [ ] Verify match/nested-block expressions in arg position as well
+
+## Resolution (2026-10-14)
+
+Root cause: if/match/block-tail expressions deliver their value via a
+result local — mir_store_if_branch_result writes each arm into the
+if-result local and mir_end_if_expr deliberately does not emit a trailing
+local.get ("callers that need the value load the local themselves").
+Unstaged call arguments (stage_call_args=false: single-arg calls and
+println-like callees) are consumed straight from the operand stack, so a
+result-local arg left nothing for the callee — local.set on an empty stack.
+Staged calls were immune because mir_stage_call_arg copies the local.
+
+Fix: mir_method_arg_leaves_no_stack now also reports MIR_END (structured
+control terminator) as a no-stack producer — matching the existing
+STRUCT_SET/ARRAY_SET/GC_STRUCT_SET result-local cases — and
+lower_direct_call_expr / lower_core_direct_call_args emit
+local.get arg_idx for unstaged args whose lowering ended at a no-stack
+producer. Method-call receivers/args benefit through the same helper.
+
+Evidence:
+
+- to_string(if b {1} else {0}), id(if b {2} else {3}),
+  id(match r {2=>4,_=>5}), id({ let q=7; if b {q} else {8} }) all
+  compile + wasm-tools validate clean on wasm32-gc (s2-runtime build);
+  component emit + run prints expected values.
+- Fixture: tests/fixtures/control/if_expr_call_arg.ark (+ .expected,
+  manifest run: entry). selfhost-fixture-test --filter-dir control
+  PASS 14/14.
+- Regression: nested id(id(5)), staged add2(if…, 9), let-bound
+  let n = if … and 7 control/functions fixtures all remain VALID.
+
+Follow-up (filed separately): component emit (i32-scalar mode) still fails
+"expected i64, found i32" when an i32-typed source feeds an i64 parameter —
+pre-existing arg-width widening gap, reproduces with plain id(n: i32) on
+the pinned bootstrap; unrelated to this fix.
