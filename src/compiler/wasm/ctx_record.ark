@@ -119,6 +119,7 @@ pub struct SelfEmitCtx {
     reloc_ikey2: Vec<i32>,
     reloc_ikey3: Vec<i32>,
     reloc_skey: Vec<String>,
+    reloc_skey2: Vec<String>,
 }
 
 fn SelfEmitCtx_new(
@@ -235,6 +236,7 @@ fn SelfEmitCtx_new(
         reloc_ikey2: Vec::new<i32>(),
         reloc_ikey3: Vec::new<i32>(),
         reloc_skey: Vec::new<String>(),
+        reloc_skey2: Vec::new<String>(),
     }
 }
 

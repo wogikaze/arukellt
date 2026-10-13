@@ -35,12 +35,28 @@ fn RELOC_KIND_PAIR_KEY() -> i32 {
     4
 }
 
+// call_ref operand kinds: re-run the call_ref resolution chain minus the
+// func-scoped local lookup (the emit gate guarantees it returned -1).
+//   ikey = arg_count, ikey2 = dest_vt, ikey3 = callee_local
+//   skey = MirInst_str_val raw hint, skey2 = resolved callee_type_name
+// CALL_REF_CAST = ref.cast heap-type operand (signed LEB encoding).
+// CALL_REF_TYPE = call_ref type operand (uleb).
+fn RELOC_KIND_CALL_REF_CAST() -> i32 {
+    5
+}
+
+fn RELOC_KIND_CALL_REF_TYPE() -> i32 {
+    6
+}
+
 // Operand byte class used by the splice: STR_* are sleb i32/i64 const
-// operands; the call_indirect type operand is a uleb.
+// operands, CALL_REF_CAST is a sleb GC heap-type operand; the call_indirect
+// and CALL_REF_TYPE type operands are uleb.
 fn reloc_kind_is_sleb(kind: i32) -> bool {
     kind == RELOC_KIND_STR_TRUE() ||
     kind == RELOC_KIND_STR_FALSE() ||
-    kind == RELOC_KIND_STR_VALUE()
+    kind == RELOC_KIND_STR_VALUE() ||
+    kind == RELOC_KIND_CALL_REF_CAST()
 }
 
 fn SelfEmitCtx_push_reloc(
@@ -50,7 +66,8 @@ fn SelfEmitCtx_push_reloc(
     ikey: i32,
     ikey2: i32,
     ikey3: i32,
-    skey: String
+    skey: String,
+    skey2: String
 ) {
     push(ctx.reloc_func, ctx_record::SelfEmitCtx_current_func_idx(ctx))
     push(ctx.reloc_off, body_off)
@@ -59,6 +76,7 @@ fn SelfEmitCtx_push_reloc(
     push(ctx.reloc_ikey2, ikey2)
     push(ctx.reloc_ikey3, ikey3)
     push(ctx.reloc_skey, skey)
+    push(ctx.reloc_skey2, skey2)
 }
 
 // Emit an i32/i64 const whose operand is a reloc placeholder: opcode first,
@@ -77,7 +95,7 @@ fn SelfEmitCtx_emit_i32_const_reloc(
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     }
-    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, 0, 0, skey)
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, 0, 0, skey, String_new())
     writer_leb::emit_leb128_s(w, 0)
 }
 
@@ -92,7 +110,7 @@ fn SelfEmitCtx_emit_i32_const_true_reloc(
     skey: String
 ) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, 0, 0, skey)
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, 0, 0, skey, String_new())
     writer_leb::emit_leb128_s(w, 0)
 }
 
@@ -105,10 +123,27 @@ fn SelfEmitCtx_emit_leb_u_reloc(
     ikey: i32,
     ikey2: i32,
     ikey3: i32,
-    skey: String
+    skey: String,
+    skey2: String
 ) {
-    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, ikey2, ikey3, skey)
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, ikey2, ikey3, skey, skey2)
     writer_leb::emit_leb128_u(w, 0)
+}
+
+// SLEB operand variant (GC heap-type operands like ref.cast): record the
+// operand position, write a 1-byte sleb(0) placeholder.
+fn SelfEmitCtx_emit_leb_s_reloc(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    kind: i32,
+    ikey: i32,
+    ikey2: i32,
+    ikey3: i32,
+    skey: String,
+    skey2: String
+) {
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, ikey2, ikey3, skey, skey2)
+    writer_leb::emit_leb128_s(w, 0)
 }
 
 fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {

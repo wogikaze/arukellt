@@ -12,6 +12,7 @@ use mir::module_functions
 use mir::module_wit_imports
 use wasm::code_body
 use wasm::call_indirect
+use wasm::call_ref
 use wasm::ctx_record
 use wasm::ctx_reloc
 use wasm::ctx_string_view
@@ -206,6 +207,7 @@ fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
         let ikey2 = get_unchecked(ctx.reloc_ikey2, i)
         let ikey3 = get_unchecked(ctx.reloc_ikey3, i)
         let skey = clone(get_unchecked(ctx.reloc_skey, i))
+        let skey2 = clone(get_unchecked(ctx.reloc_skey2, i))
         let mut value = 0 - 1
         if kind == ctx_reloc::RELOC_KIND_STR_TRUE() {
             value = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
@@ -219,6 +221,10 @@ fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
         if kind == ctx_reloc::RELOC_KIND_PAIR_KEY() ||
         kind == ctx_reloc::RELOC_KIND_INDIRECT_SCAN() {
             value = call_indirect::resolve_indirect_reloc(ctx, kind, ikey, ikey2, ikey3, skey)
+        }
+        if kind == ctx_reloc::RELOC_KIND_CALL_REF_CAST() ||
+        kind == ctx_reloc::RELOC_KIND_CALL_REF_TYPE() {
+            value = call_ref::resolve_call_ref_reloc(ctx, ikey, ikey2, ikey3, skey, skey2)
         }
         if value < 0 {
             stdio::eprintln("compiler ICE: unresolved body reloc")
@@ -239,6 +245,7 @@ fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
     ctx.reloc_ikey2 = Vec::new<i32>()
     ctx.reloc_ikey3 = Vec::new<i32>()
     ctx.reloc_skey = Vec::new<String>()
+    ctx.reloc_skey2 = Vec::new<String>()
 }
 
 fn emit_code_section(

@@ -5,6 +5,7 @@ use mir::inst_accessors_shape
 use wasm::call_indirect
 use wasm::code_locals
 use wasm::ctx_record
+use wasm::ctx_reloc
 use wasm::emit_target
 use wasm::inst_store
 use wasm::opcodes
@@ -47,11 +48,22 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
             type_idx = call_indirect::call_ref_pair_sig_type_idx(ctx, pair_sig)
         }
     }
+    // The func-scoped local-type probe cannot be reproduced at reloc apply
+    // (current_func_idx has moved past this body), so it runs inline here in
+    // its original chain position. A hit is final — the operands emit
+    // directly; a miss (including pair-step hits that never reach it) sends
+    // the operands to reloc placeholders re-resolved at section assembly.
+    let mut local_typed_idx = 0 - 1
     if type_idx < 0 {
-        type_idx = call_indirect::resolve_call_ref_type_idx(
+        local_typed_idx = call_indirect::typed_string_callback_type_idx_for_local(ctx, callee_local)
+        if local_typed_idx >= 0 {
+            type_idx = local_typed_idx
+        }
+    }
+    if type_idx < 0 {
+        type_idx = call_indirect::resolve_call_ref_type_idx_after_local(
             ctx,
             callee_type_name,
-            callee_local,
             arg_count,
             dest_vt,
             first_arg_vt
@@ -59,9 +71,40 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
     }
     // Stack: env, args..., funcref. ref.cast narrows the generic funcref
     // field to the concrete trampoline signature for call_ref.
-    writer_gc::emit_gc_ref_cast(w, type_idx)
-    writer_core::emit_byte(w, opcodes::OP_CALL_REF())
-    writer_core::emit_leb128_u(w, type_idx)
+    if local_typed_idx >= 0 {
+        writer_gc::emit_gc_ref_cast(w, type_idx)
+        writer_core::emit_byte(w, opcodes::OP_CALL_REF())
+        writer_core::emit_leb128_u(w, type_idx)
+    } else {
+        // Cast elision and stack bookkeeping use the emit-time-resolved
+        // index; only the emitted operands become reloc placeholders.
+        if !writer_core::writer_ref_top_is(w, type_idx) {
+            writer_gc::emit_gc_prefix(w)
+            writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
+            ctx_reloc::SelfEmitCtx_emit_leb_s_reloc(
+                w,
+                ctx,
+                ctx_reloc::RELOC_KIND_CALL_REF_CAST(),
+                arg_count,
+                dest_vt,
+                callee_local,
+                clone(raw_hint),
+                clone(callee_type_name)
+            )
+            writer_core::writer_note_ref_top(w, type_idx)
+        }
+        writer_core::emit_byte(w, opcodes::OP_CALL_REF())
+        ctx_reloc::SelfEmitCtx_emit_leb_u_reloc(
+            w,
+            ctx,
+            ctx_reloc::RELOC_KIND_CALL_REF_TYPE(),
+            arg_count,
+            dest_vt,
+            callee_local,
+            clone(raw_hint),
+            clone(callee_type_name)
+        )
+    }
     inst_store::emit_store_result_if_needed(
         w,
         inst,
@@ -71,4 +114,36 @@ fn emit_call_ref_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
         next2_op,
         call_indirect::indirect_type_returns_value(ctx, type_idx, dest_vt)
     )
+}
+
+// Re-run the recorded call_ref resolution at reloc-apply. The func-scoped
+// local-type lookup is not re-run (the emit gate proved it returned -1);
+// every remaining step reads tables that are final at assembly, so the
+// patched operand equals the direct-resolution value.
+//   ikey = arg_count, ikey2 = dest_vt, ikey3 = callee_local
+//   skey = MirInst_str_val raw hint, skey2 = resolved callee_type_name
+fn resolve_call_ref_reloc(ctx: SelfEmitCtx, ikey: i32, ikey2: i32, ikey3: i32, skey: String, skey2: String) -> i32 {
+    let first_arg_vt = call_indirect::parse_first_arg_vt_hint(clone(skey))
+    let mut type_idx = call_indirect::call_ref_pair_key_type_idx(ctx, clone(skey))
+    if type_idx < 0 {
+        let pair_sig = call_indirect::pair_call_sig_from_hint(
+            clone(skey),
+            ikey2,
+            ctx_record::SelfEmitCtx_memory64(ctx),
+            ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+        )
+        if len(pair_sig) > 0 {
+            type_idx = call_indirect::call_ref_pair_sig_type_idx(ctx, pair_sig)
+        }
+    }
+    if type_idx < 0 {
+        type_idx = call_indirect::resolve_call_ref_type_idx_after_local(
+            ctx,
+            skey2,
+            ikey,
+            ikey2,
+            first_arg_vt
+        )
+    }
+    type_idx
 }

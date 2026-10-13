@@ -213,7 +213,8 @@ fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
             arg_count,
             dest_vt,
             first_arg_vt,
-            inst_accessors_literals::MirInst_str_val(inst)
+            inst_accessors_literals::MirInst_str_val(inst),
+            String_new()
         )
     } else {
         writer_core::emit_leb128_u(w, type_idx)
@@ -624,18 +625,17 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     0
 }
 
-fn resolve_call_ref_type_idx(
+// call_ref resolution minus the func-scoped local-type probe. Callers emit-
+// side probe typed_string_callback_type_idx_for_local first (its result
+// doubles as the reloc-safety gate); reloc apply re-runs this tail directly
+// because func-local state no longer exists at section assembly.
+fn resolve_call_ref_type_idx_after_local(
     ctx: SelfEmitCtx,
     type_name: String,
-    callee_local: i32,
     arg_count: i32,
     dest_vt: i32,
     first_arg_vt: i32
 ) -> i32 {
-    let typed_local_idx = typed_string_callback_type_idx_for_local(ctx, callee_local)
-    if typed_local_idx >= 0 {
-        return typed_local_idx
-    }
     let typed_value_idx = typed_string_callback_type_idx_for_value_types(
         ctx,
         arg_count,
