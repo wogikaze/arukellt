@@ -511,6 +511,11 @@ Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_contex
   経路へ統一。plan build は `DATA_START + rel` の SSOT 直読みに
   置き換え（47 fixture byte-identical）。bool literal の emit-time
   ensure から ctx_prep 先行 intern への移行は残タスク。
+  → bool literal 結論: 先行 intern は string table 順を変え全 fixture
+  byte-diff を起こすため却下。**string reloc**（operand emit 時に
+  placeholder + (func_idx, offset, literal_kind) 記録 → finalize で
+  plan 確定後の tail offset を patch）が byte-identical を保つ唯一の
+  経路。対象 literal は "true"/"false"/"assertion failed" の 3 件のみ。
 - **SelfEmitCtx**: `functions` / gc canon vecs は module の ref 共有なら
   push/ensure と共に育つ。signature_spine/registry/type_table/mono は
   ctx_prep 時点で populated。必要なのは ctx 構築を ctx_prep 後へ前倒し
