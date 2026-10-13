@@ -538,9 +538,6 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
   - `fn_type_map` / `pair_call_type_map`: call_indirect 系で参照。
     canon order 維持のため push 時 ensure は不可 — **type reloc**
     （func_idx + body_rel_off + 解決 key を記録、finalize で patch）。
-  - `gc_struct_type_map` / `gc_enum_variant_type_map/flags`:
-    call_indirect / ctx_gc_type / ctx_gc_layout_lookup / code_ref_locals_*
-    に残存読み — module canon vec 直読みへの切替監査が残る。
   - reloc は body_bytes[func_idx] 上の body_rel_off を固定幅ではなく
     **splice patch** とする（i32.const 等の minimal SLEB を維持し
     byte-parity を保つ）。同 body 複数 site は offset 降順 apply で
@@ -562,6 +559,18 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     first_arg_vt）で apply 時に同じ resolver を再実行 — map index
     保持より確実。MIR arg1>=0 は直接 emit。apply は import cycle
     回避のため code.ark の code_apply_pending_relocs（130 fixture）。
+  - f03044b03: SelfEmitCtx が mir: MirModule を保持（module SSOT への
+    入口確立）。plan 由来の string_offsets/lengths/values 3 vec を廃止し、
+    ctx_string_view は DATA_START + MirModule_string_data_rel_at と
+    MirModule_string_constants 直読み。intern 時点で rel 確定のため
+    plan 非依存 = in-loop emit で文字列 operand が解決可能に。
+    EmitStringTablePlan から無読者の string_lengths も除去（97 fixture）。
+  - ab1936764: gc_struct_type_map / gc_enum_variant_type_map の ctx 複製を
+    廃止 — 全 15 reader が MirModule_gc_*_canon_idxs(ctx.mir) 直読み。
+    setter の order-dependent rebuild 副作用は
+    SelfEmitCtx_finalize_gc_derived_indexes へ集約（wasm_sections から
+    gc setter 群の後に 1 回呼出）。facade の dead getter 2 件も除去
+    （97 fixture byte-identical）。
 
   **残り in-loop emit ブロッカー**:
   - indirect_type_returns_value — emit 時 semantic read（store 形状
@@ -569,9 +578,6 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     spine から sig text を読んで ret arity を引く variant が必要。
   - call_ref_pair_sig_type_idx / resolve_call_ref_type_idx
     （call_ref 系、pair_call map）— 未 reloc。
-  - gc_struct_type_map / gc_enum_variant_type_map の残存読み
-    （call_indirect:698、ctx_gc_type、ctx_gc_layout_lookup、
-    code_ref_locals_*）→ module canon vec 切替。
   - SelfEmitCtx の ctx_prep 後構築（mir 保持は f03044b03 で着地済み、
     残は構築時点の前倒しと ctx_prep 依存の解消）。
   - call reloc の module-level 化（thunk fid の forward ref 用、
@@ -779,9 +785,3 @@ prefilter 前例の検証（2026-10-12）: `entry_prefilter.ark` は存在する
 には **per-caller edge 表 + 名前解決レイヤ** が必要で、これは item (a)
 の AstNode edge table と同じ部品。mono 解決には `ctx.mono_call_*` の
 span→target rewrite map（frontend 由来、ctx_prep 済み）がそのまま使える。
-  - f03044b03: SelfEmitCtx が mir: MirModule を保持（module SSOT への
-    入口確立）。plan 由来の string_offsets/lengths/values 3 vec を廃止し、
-    ctx_string_view は DATA_START + MirModule_string_data_rel_at と
-    MirModule_string_constants 直読み。intern 時点で rel 確定のため
-    plan 非依存 = in-loop emit で文字列 operand が解決可能に。
-    EmitStringTablePlan から無読者の string_lengths も除去（97 fixture）。
