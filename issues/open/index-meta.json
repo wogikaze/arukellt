@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-12T23:34:17Z",
+  "generated_at": "2026-10-13T22:41:26Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -523,6 +523,40 @@
       "path": "920-t3-run-runtime-traps.md",
       "title": "t3-run fixtures trap at runtime on wasm32-gc (pre-existing codegen bugs)",
       "track": "wasm-feature",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "921",
+      "path": "921-nested-if-call-arg-invalid-wasm.md",
+      "title": "921 — Nested if-expression as call argument emits invalid wasm",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": 851
+      }
+    },
+    {
+      "id": "922",
+      "path": "922-linear-gc-chain-arena-append-only-oom.md",
+      "title": "922 — linear-GC page-chain arena is append-only; high-churn workloads exit CHAIN OOM",
+      "track": "compiler",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],

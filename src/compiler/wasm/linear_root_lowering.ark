@@ -99,6 +99,17 @@ fn emit_frame_enter_and_push(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_I32_AND())
     writer_core::emit_byte(w, opcodes::OP_I32_OR())
+    // Chain-arena pressure shares the gate: the arena is bump-only between
+    // collections (rebuild_chains reclaims it), so a low free margin means
+    // the next allocation burst could OOM before the following safepoint.
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_CHAIN_LIMIT())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
+    writer_core::emit_byte(w, opcodes::OP_I32_LT_U())
+    writer_core::emit_byte(w, opcodes::OP_I32_OR())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     emit_call(w, writer_core::writer_linear_gc_collect_function_index(w))
