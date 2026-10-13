@@ -48,6 +48,24 @@ mismatch cannot materialize. Integer literals are forced to i64 by
 mir_should_force_int_lit_i64; the gap is for non-literal i32 sources
 (locals, if/match results, narrow vars).
 
+## Deeper root cause (2026-10-14 analysis)
+
+Memory64 stack convention: MIR scalars sit on the operand stack as i64
+(array.get on i32 elems is followed by i64.extend_i32_u; emit_extend
+emits i32.wrap_i64 + i64.extend_i32_s treating input as i64). But
+i32-typed wasm locals produce a REAL i32 on local.get — the stack repr
+is not normalized at the get site. Any consumer that needs stack-i64
+(call params, i64 local.set) then sees the raw i32: the class of bug,
+not just call args.
+
+Fix shape (design-ready): either local.get emit extends i32-typed
+locals to stack-i64 repr in memory64 mode (broad, code size cost), or
+arg-bind emits i64.extend_i32_s — NOT MirInst_extend_i32_to_i64_stack,
+which emits wrap+extend for the stack-i64 convention and would itself
+be invalid on a real-i32 input. Staged calls partially dodge this via
+push_i64_needs_extend, but that only covers the last arg — a per-param
+widen table is the complete fix.
+
 ## Acceptance
 
 - [ ] i32-typed arg to i64 param emits i64.extend (or an equivalent
