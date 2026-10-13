@@ -1,8 +1,11 @@
 use std::prelude::{clone}
 use mir::function_factory
+use mir::module_functions
 use mir::source_location_record
+use mir::lower::emit_spec
 use mir::lower::ctx_types
 use wasm::emit_target
+use wasm::ctx_record
 use collections::name_index
 use mir::post_pass_callee_cache
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -99,5 +102,15 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         fn_source_locations: fn_source_locations,
         edge_names: Vec::new<String>(),
         prop_cache: post_pass_callee_cache::callee_prop_cache_build(m),
+        emit_ctx: ctx_record::SelfEmitCtx_new(
+            m,
+            module_functions::MirModule_functions(m),
+            0 - 1, 0 - 1,
+            clone(effective_target),
+            String_new(), false, String_new()
+        ),
+        emit_spec: emit_spec::mir_lower_emit_spec_disabled(),
+        emit_in_loop: false,
+        emit_fn_cursor: 0,
     }
 }

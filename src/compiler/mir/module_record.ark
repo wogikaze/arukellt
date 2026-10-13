@@ -1,6 +1,7 @@
 use corehir::signature_registry
 use corehir::type_table
 use collections::name_index
+use mir::emit_artifacts
 use mir::block_record
 use mir::function_core_record
 use mir::gc_layout_plan
@@ -83,6 +84,10 @@ pub struct MirModule {
     // user-facing message here instead of emitting invalid core Wasm
     // (#906).
     diagnostics: Vec<String>,
+    // Fused-emit handoff (#851 Phase 3): per-fn body bytes, reloc tables,
+    // pair sigs, and audit counters produced when declared bodies emit
+    // inside the lowering decl loop. Disabled in the legacy two-phase path.
+    emit_artifacts: MirEmitArtifacts,
 }
 
 fn MirModule_new() -> MirModule {
@@ -116,6 +121,7 @@ fn MirModule_new() -> MirModule {
         mono_instance_table: mono_instance_table::MonoInstanceTable_new(),
         block_pool: Vec::new<MirBlock>(),
         block_pool_used: 0,
-        diagnostics: Vec::new<String>()
+        diagnostics: Vec::new<String>(),
+        emit_artifacts: emit_artifacts::MirEmitArtifacts_disabled()
     }
 }

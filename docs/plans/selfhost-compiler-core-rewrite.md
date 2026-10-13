@@ -633,6 +633,35 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     - strings は MirModule.string_data_rel が append-only で育つため
       live 読みで対応可能（ctx_string_view は既に module 直読み）。
 
+  融合 v1 の実調査で追加確定した副ブロッカー（2026-10-13 第2調査）:
+  - emit-spec plumbing: emit_function_body が要する wasi_version /
+    memory64 / source_file / bindings(WitImportBinding) / opt_level /
+    report_timing は MirLowerInput に無い。driver/lower.ark は config
+    を持つので emit spec record を session → mir_lower_input へ流す。
+  - mir_opt が lower と emit の間に走る（async_lower /
+    stdlib_resolve_validated / O2 gc_hint — 全て内部は per-fn ループ）。
+    融合では post-pass 後・emit 前に per-fn 版を呼ぶ。
+    stdlib_resolve の call-target 解決は forward callee に registry /
+    discovery catalog 経由で耐える必要がある。
+  - verify_mir は fn body を読む — detach は post-verify の emit 側
+    sweep に残し、in-loop では detach しない（v1）。blocks pool の
+    live 範囲は emit まで延びるが Phase 5 arena が本来の解放点。
+  - reachability prune は functions[] を除去して index を詰める —
+    body_bytes / reloc func_idx は pre-prune index なので prune が
+    old→new map を module に記録し、emit 側で compaction + remap。
+  - function_name_index / function_name_counts / fid_to_mir は
+    functions[] scan で構築 — SelfEmitCtx が pre-loop に作られるなら
+    per-push drain 化が要る。remap_colliding_short_names は完全な
+    functions が要るので post-loop の finalize に残す。
+  - linear_gc runtime func_idx は最終 fn_count 依存 — v1 は
+    gc target のみ融合し、linear は従来 loop のまま維持。
+  - emit_ctx handoff: SelfEmitCtx を MirModule field に置くと
+    MirModule↔SelfEmitCtx の record cycle になるため、artifacts
+    （body_bytes / reloc vecs / audit counters）を module の plain
+    field 群として引き渡し、emit 側は従来通り ctx を構築して
+    adopt する（in-loop ctx が artifact vec を参照共有すれば
+    handoff は O(1)）。
+
 Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_context_new
 と strings.ark の実調査）:
 

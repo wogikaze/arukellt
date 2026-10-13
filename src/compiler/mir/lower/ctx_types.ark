@@ -1,7 +1,9 @@
 use mir::types
 use mir::source_location_record
 use collections::name_index
+use mir::lower::emit_spec
 use mir::post_pass_callee_cache
+use wasm::ctx_record
 
 pub struct LowerCtx {
     module: MirModule,
@@ -209,4 +211,14 @@ pub struct LowerCtx {
     // from the fn_index discovery table, extended at each function push so
     // per-fn post passes resolve both pushed and forward callees.
     prop_cache: CalleePropCache,
+    // Fused in-loop body emit (#851 Phase 3): when the driver attaches an
+    // enabled MirLowerEmitSpec for a GC target, emit_ctx is the shared
+    // SelfEmitCtx (its mir/functions/string handles are the live module
+    // objects) and each pushed function is emitted into
+    // emit_ctx.body_bytes right after its per-fn post pass.
+    // emit_fn_cursor = number of module functions already emitted.
+    emit_ctx: SelfEmitCtx,
+    emit_spec: MirLowerEmitSpec,
+    emit_in_loop: bool,
+    emit_fn_cursor: i32,
 }

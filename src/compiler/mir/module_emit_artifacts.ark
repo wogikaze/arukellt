@@ -1,0 +1,10 @@
+use mir::emit_artifacts
+use mir::module_record
+
+// MirModule-facing accessors for the fused-emit handoff record (#851
+// Phase 3). Kept out of emit_artifacts.ark so module_record -> emit_artifacts
+// stays a one-way import.
+
+fn MirModule_emit_artifacts(m: MirModule) -> MirEmitArtifacts {
+    m.emit_artifacts
+}

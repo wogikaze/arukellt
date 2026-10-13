@@ -3,6 +3,37 @@ use compiler::session
 use corehir::export_surface
 use driver::checked_program
 use driver::config_record
+use mir::lower::emit_spec
+use resolver::wit_import_bind
+use wasm::emit_target
+
+// #851 Phase 3: emit parameters for the fused in-loop body emit. Enabled
+// only when this compile will emit core Wasm on the GC target — other emit
+// modes and the linear target keep the legacy post-lower emit loop.
+fn lower_emit_spec_for(program: CheckedProgram, config: DriverConfig) -> MirLowerEmitSpec {
+    let emit_mode = config_record::config_emit_mode(config)
+    let target = config_record::config_target(config)
+    let emits_wasm = eq(clone(emit_mode), String_from("wasm")) ||
+    eq(clone(emit_mode), String_from("core-wasm")) ||
+    eq(clone(emit_mode), String_from("component"))
+    if !emits_wasm || !emit_target::is_gc_target(clone(target)) {
+        return emit_spec::mir_lower_emit_spec_disabled()
+    }
+    let wasi_version = config_record::config_wasi_version(config)
+    let bindings = wit_import_bind::wit_collect_bindings(
+        config_record::config_wit_paths(config),
+        checked_program::checked_program_wit_decls(program)
+    )
+    emit_spec::mir_lower_emit_spec_new(
+        clone(wasi_version),
+        emit_target::uses_memory64(clone(target), wasi_version, config_record::config_memory_width(config)),
+        config_record::config_source_file(config),
+        bindings,
+        config_record::config_opt_level(config),
+        lower_report_phase_timing(config)
+    )
+}
+
 fn lower_report_phase_timing(config: DriverConfig) -> i32 {
     if config_record::config_show_timing(config) {
         return 1
@@ -30,7 +61,8 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig, source: 
         config_record::config_wit_paths(config),
         config_record::config_target(config),
         lower_report_phase_timing(config),
-        source
+        source,
+        lower_emit_spec_for(program, config)
     )
 }
 
@@ -56,7 +88,8 @@ fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig, source: 
         config_record::config_wit_paths(config),
         config_record::config_target(config),
         lower_report_phase_timing(config),
-        source
+        source,
+        lower_emit_spec_for(program, config)
     )
 }
 
@@ -70,6 +103,7 @@ fn lower_component_program(program: CheckedProgram, config: DriverConfig, source
         config_record::config_wit_paths(config),
         config_record::config_target(config),
         lower_report_phase_timing(config),
-        source
+        source,
+        lower_emit_spec_for(program, config)
     )
 }

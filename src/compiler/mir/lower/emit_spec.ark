@@ -1,0 +1,74 @@
+use std::prelude::{clone}
+use resolver::wit_import_bind
+
+// #851 Phase 3: emit parameters the fused in-loop body emit needs while the
+// MIR lowering pipeline still owns the module. The driver fills this from
+// DriverConfig; a disabled spec keeps the legacy post-lower emit loop.
+struct MirLowerEmitSpec {
+    enabled: bool,
+    wasi_version: String,
+    memory64: bool,
+    source_file: String,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    opt_level: i32,
+    report_timing: i32,
+}
+
+fn mir_lower_emit_spec_disabled() -> MirLowerEmitSpec {
+    MirLowerEmitSpec {
+        enabled: false,
+        wasi_version: String_new(),
+        memory64: false,
+        source_file: String_new(),
+        bindings: Vec::new<resolver::wit_import_bind::WitImportBinding>(),
+        opt_level: 0,
+        report_timing: 0
+    }
+}
+
+fn mir_lower_emit_spec_new(
+    wasi_version: String,
+    memory64: bool,
+    source_file: String,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    opt_level: i32,
+    report_timing: i32
+) -> MirLowerEmitSpec {
+    MirLowerEmitSpec {
+        enabled: true,
+        wasi_version: wasi_version,
+        memory64: memory64,
+        source_file: source_file,
+        bindings: bindings,
+        opt_level: opt_level,
+        report_timing: report_timing
+    }
+}
+
+fn mir_lower_emit_spec_enabled(spec: MirLowerEmitSpec) -> bool {
+    spec.enabled
+}
+
+fn mir_lower_emit_spec_wasi_version(spec: MirLowerEmitSpec) -> String {
+    clone(spec.wasi_version)
+}
+
+fn mir_lower_emit_spec_memory64(spec: MirLowerEmitSpec) -> bool {
+    spec.memory64
+}
+
+fn mir_lower_emit_spec_source_file(spec: MirLowerEmitSpec) -> String {
+    clone(spec.source_file)
+}
+
+fn mir_lower_emit_spec_bindings(spec: MirLowerEmitSpec) -> Vec<resolver::wit_import_bind::WitImportBinding> {
+    spec.bindings
+}
+
+fn mir_lower_emit_spec_opt_level(spec: MirLowerEmitSpec) -> i32 {
+    spec.opt_level
+}
+
+fn mir_lower_emit_spec_report_timing(spec: MirLowerEmitSpec) -> i32 {
+    spec.report_timing
+}

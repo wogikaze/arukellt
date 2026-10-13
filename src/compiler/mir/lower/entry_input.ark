@@ -1,4 +1,5 @@
 use mir::lower::input
+use mir::lower::emit_spec
 
 struct MirLowerEntryInput {
     view: CoreHirMirView,
@@ -8,6 +9,7 @@ struct MirLowerEntryInput {
     target: String,
     report_phase_timing: i32,
     source_text: String,
+    emit_spec: MirLowerEmitSpec,
 }
 
 fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput {
@@ -20,7 +22,8 @@ fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput 
         decl_nodes: input::mir_lower_input_decl_nodes(input),
         target: input::mir_lower_input_target(input),
         report_phase_timing: input.report_phase_timing,
-        source_text: input.source_text
+        source_text: input.source_text,
+        emit_spec: input.emit_spec
     }
 }
 

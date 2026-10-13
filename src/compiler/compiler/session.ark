@@ -1,4 +1,5 @@
 use compiler::session_corehir
+use mir::lower::emit_spec
 //
 // Owns the post-typecheck CoreHIR artifact shared by the driver pipeline
 // and LSP analysis. Consumers query the session instead of rebuilding the
@@ -27,9 +28,10 @@ fn session_lower_mir(
     wit_paths: Vec<String>,
     target: String,
     report_phase_timing: i32,
-    source: String
+    source: String,
+    emit_spec: MirLowerEmitSpec
 ) -> MirModule {
-    session_corehir::session_lower_mir(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing, source)
+    session_corehir::session_lower_mir(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing, source, emit_spec)
 }
 
 fn session_lower_mir_component(
@@ -39,7 +41,8 @@ fn session_lower_mir_component(
     wit_paths: Vec<String>,
     target: String,
     report_phase_timing: i32,
-    source: String
+    source: String,
+    emit_spec: MirLowerEmitSpec
 ) -> MirModule {
-    session_corehir::session_lower_mir_component(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing, source)
+    session_corehir::session_lower_mir_component(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing, source, emit_spec)
 }

@@ -1,5 +1,6 @@
 use std::prelude::{clone}
 use mir::lower::entry_body_source
+use mir::lower::emit_spec
 use corehir::body
 struct MirLowerInput {
     view: CoreHirMirView,
@@ -9,6 +10,7 @@ struct MirLowerInput {
     target: String,
     report_phase_timing: i32,
     source_text: String,
+    emit_spec: MirLowerEmitSpec,
 }
 
 fn mir_lower_input_new(
@@ -44,8 +46,15 @@ fn mir_lower_input_new(
         decl_nodes: decl_nodes,
         target: effective_target,
         report_phase_timing: report_phase_timing,
-        source_text: source_text
+        source_text: source_text,
+        emit_spec: emit_spec::mir_lower_emit_spec_disabled()
     }
+}
+
+// #851 Phase 3: attach emit parameters for the fused in-loop body emit.
+// Called by the session layer when the compile will emit core Wasm.
+fn mir_lower_input_set_emit_spec(input: MirLowerInput, spec: MirLowerEmitSpec) {
+    input.emit_spec = spec
 }
 
 fn mir_lower_input_wit_paths(input: MirLowerInput) -> Vec<String> {

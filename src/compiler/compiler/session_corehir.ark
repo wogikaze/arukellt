@@ -1,5 +1,6 @@
 use corehir::mod
 use mir
+use mir::lower::emit_spec
 //
 // The single query route for building, validating, and lowering the CoreHIR
 // program. Both the driver pipeline and LSP analysis go through these
@@ -21,7 +22,8 @@ fn session_lower_mir(
     wit_paths: Vec<String>,
     target: String,
     report_phase_timing: i32,
-    source: String
+    source: String,
+    emit_spec: MirLowerEmitSpec
 ) -> MirModule {
     let view = mod::mir_view_from_program(program)
     if eq(clone(target), String_from("wasm32-gc")) {
@@ -36,6 +38,7 @@ fn session_lower_mir(
         report_phase_timing,
         source
     )
+    mir::lower::input::mir_lower_input_set_emit_spec(input, emit_spec)
     // Prune with export roots before typed sync (inside lower). A second prune
     // after return is unnecessary; sync on the full flat graph hangs/selfhost (#730).
     mir::lower_to_mir_with_roots(input, export_roots)
@@ -48,7 +51,8 @@ fn session_lower_mir_component(
     wit_paths: Vec<String>,
     target: String,
     report_phase_timing: i32,
-    source: String
+    source: String,
+    emit_spec: MirLowerEmitSpec
 ) -> MirModule {
     let view = mod::mir_view_from_program(program)
     if eq(clone(target), String_from("wasm32-gc")) {
@@ -63,6 +67,7 @@ fn session_lower_mir_component(
         report_phase_timing,
         source
     )
+    mir::lower::input::mir_lower_input_set_emit_spec(input, emit_spec)
     mir::lower_to_mir_with_roots(input, export_roots)
 }
 

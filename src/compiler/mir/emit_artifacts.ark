@@ -1,0 +1,80 @@
+// #851 Phase 3: handoff state produced when body emit runs inside the MIR
+// lowering decl loop (fused emit). The wasm emit phase adopts these vec
+// fields onto its own SelfEmitCtx instead of re-emitting declared bodies.
+// Keeping the artifacts as plain mir-layer fields avoids a MirModule to
+// SelfEmitCtx record cycle; the in-loop ctx shares these vec objects so
+// pushes land here live and the handoff is O(1).
+struct MirEmitArtifacts {
+    enabled: bool,
+    // Per-fn sized body bytes in PUSH (pre-prune) func_idx order.
+    body_bytes: Vec<Vec<i32>>,
+    // Pair-ABI call-site sigs collected per-fn in push order (#872).
+    pair_call_sigs: Vec<String>,
+    // Deferred-resolution relocs — same tuple shape as SelfEmitCtx.reloc_*.
+    reloc_func: Vec<i32>,
+    reloc_off: Vec<i32>,
+    reloc_kind: Vec<i32>,
+    reloc_ikey: Vec<i32>,
+    reloc_ikey2: Vec<i32>,
+    reloc_ikey3: Vec<i32>,
+    reloc_skey: Vec<String>,
+    reloc_skey2: Vec<String>,
+    // Module-level CALL relocs — (func_idx, body_rel_off, fid_raw).
+    call_reloc_offs: Vec<i32>,
+    call_reloc_fids: Vec<i32>,
+    call_reloc_funcs: Vec<i32>,
+    // Audit counters accumulated on the in-loop emit ctx.
+    registry_audit_candidates: i32,
+    registry_audit_matched: i32,
+    registry_audit_mismatched: i32,
+    registry_audit_mismatch_budget: i32,
+    core_op_shadow_candidates: i32,
+    core_op_shadow_matched: i32,
+    core_op_shadow_mismatched: i32,
+    core_op_shadow_unresolved: i32,
+    core_op_shadow_mismatch_budget: i32,
+    gc_layout_typed_lookups: i32,
+    gc_layout_conflicts: i32,
+    // old func_idx -> new func_idx recorded by reachability prune; empty
+    // means identity (no prune ran or nothing was removed).
+    prune_old_to_new: Vec<i32>,
+}
+
+fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
+    MirEmitArtifacts {
+        enabled: false,
+        body_bytes: Vec::new<Vec<i32>>(),
+        pair_call_sigs: Vec::new<String>(),
+        reloc_func: Vec::new<i32>(),
+        reloc_off: Vec::new<i32>(),
+        reloc_kind: Vec::new<i32>(),
+        reloc_ikey: Vec::new<i32>(),
+        reloc_ikey2: Vec::new<i32>(),
+        reloc_ikey3: Vec::new<i32>(),
+        reloc_skey: Vec::new<String>(),
+        reloc_skey2: Vec::new<String>(),
+        call_reloc_offs: Vec::new<i32>(),
+        call_reloc_fids: Vec::new<i32>(),
+        call_reloc_funcs: Vec::new<i32>(),
+        registry_audit_candidates: 0,
+        registry_audit_matched: 0,
+        registry_audit_mismatched: 0,
+        registry_audit_mismatch_budget: 128,
+        core_op_shadow_candidates: 0,
+        core_op_shadow_matched: 0,
+        core_op_shadow_mismatched: 0,
+        core_op_shadow_unresolved: 0,
+        core_op_shadow_mismatch_budget: 128,
+        gc_layout_typed_lookups: 0,
+        gc_layout_conflicts: 0,
+        prune_old_to_new: Vec::new<i32>()
+    }
+}
+
+fn MirEmitArtifacts_enable(artifacts: MirEmitArtifacts) {
+    artifacts.enabled = true
+}
+
+fn MirEmitArtifacts_enabled(artifacts: MirEmitArtifacts) -> bool {
+    artifacts.enabled
+}
