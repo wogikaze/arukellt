@@ -12,6 +12,7 @@ use wasm::wasm_start
 use wasm::strings
 use wasm::wasm_sections_facade
 use wasm::gc_layout_table
+use wasm::gc_layout_table_build
 use wasm::gc_layout_audit
 use wasm::registry_return_audit
 use wasm::core_op_shadow
@@ -142,6 +143,17 @@ fn emit_wasm_module_sections(
         )
     )
     wasm_context::emit_wasm_context_set_gc_layout_table(ctx, gc_layout)
+    // The layout table needs only module data plus the gc base/canon vecs —
+    // all final here, so it no longer rides inside emit_type_section.
+    if emit_target::is_gc_target(clone(target)) {
+        gc_layout_table_build::populate_gc_layout_table_for_emit(
+            gc_layout,
+            mir,
+            ctx_record::SelfEmitCtx_gc_type_base(ctx),
+            module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir),
+            module_gc_struct::MirModule_gc_struct_canon_idxs(mir)
+        )
+    }
     let type_plan = wasm_sections_facade::emit_type_section(
         out,
         mir,
@@ -150,8 +162,7 @@ fn emit_wasm_module_sections(
         needs_wrapper,
         clone(target),
         clone(wasi_version),
-        bindings,
-        gc_layout
+        bindings
     )
     t_phase = emit_section_note(report_timing, "types", t_phase)
     wasm_context::emit_wasm_context_set_fn_type_map(ctx, wasm_sections_facade::type_plan_fn_type_map(type_plan))

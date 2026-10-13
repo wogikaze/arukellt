@@ -3,7 +3,6 @@ use mir::module_wit_imports
 use mir::module_gc_enum
 use mir::module_gc_struct
 use wasm::emit_target
-use wasm::gc_layout_table_build
 use wasm::opcodes
 use wasm::sections_type_plan
 use wasm::sections_types_gc
@@ -23,8 +22,7 @@ fn emit_type_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
-    gc_layout: GcLayoutTable
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> TypeSectionPlan {
     let memory64 = writer_core::writer_memory64(out)
     let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version))
@@ -139,15 +137,6 @@ fn emit_type_section(
         pair_sigs,
         pair_call_type_map
     )
-    if emit_target::is_gc_target(clone(target)) {
-        gc_layout_table_build::populate_gc_layout_table_for_emit(
-            gc_layout,
-            mir,
-            sections_type_plan::TypeSectionPlan_gc_type_base(plan),
-            sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan),
-            sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
-        )
-    }
     let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(type_sec, len(canon_types))
     let fn_type_refs =

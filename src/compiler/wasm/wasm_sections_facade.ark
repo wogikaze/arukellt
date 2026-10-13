@@ -15,8 +15,7 @@ fn emit_type_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
-    gc_layout: GcLayoutTable
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> TypeSectionPlan {
     sections_types::emit_type_section(
         out,
@@ -26,8 +25,7 @@ fn emit_type_section(
         needs_wrapper,
         target,
         wasi_version,
-        bindings,
-        gc_layout
+        bindings
     )
 }
 
