@@ -110,16 +110,8 @@ fn type_plan_gc_enum_variant_base(plan: TypeSectionPlan) -> i32 {
     sections_type_plan::TypeSectionPlan_gc_enum_variant_base(plan)
 }
 
-fn type_plan_gc_enum_variant_type_map(plan: TypeSectionPlan) -> Vec<i32> {
-    sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan)
-}
-
 fn type_plan_gc_struct_base(plan: TypeSectionPlan) -> i32 {
     sections_type_plan::TypeSectionPlan_gc_struct_base(plan)
-}
-
-fn type_plan_gc_struct_type_map(plan: TypeSectionPlan) -> Vec<i32> {
-    sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
 }
 
 fn type_plan_fn_type_map(plan: TypeSectionPlan) -> Vec<i32> {

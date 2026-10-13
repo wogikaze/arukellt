@@ -6,7 +6,7 @@ use std::prelude::{clone, ends_with, eq}
 fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let count = len(names)
     let mut fallback = 0 - 1
@@ -36,7 +36,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
 fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, suffix: String) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let count = len(names)
     let mut fallback = 0 - 1
@@ -62,3 +62,4 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
     }
     ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(variant_name))
 }
+use mir::module_gc_enum

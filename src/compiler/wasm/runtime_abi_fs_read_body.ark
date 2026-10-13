@@ -269,7 +269,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     // which is usually `_f1_i32` from builtin registration order.
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let count = len(names)
     let mut fallback = 0 - 1
@@ -336,3 +336,4 @@ fn emit_fs_read_gc_string_from_scratch(w: WasmWriter, s_str: i32, s_i: i32, s_le
     helpers_control::emit_end(w)
     helpers_control::emit_end(w)
 }
+use mir::module_gc_enum

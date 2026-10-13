@@ -501,7 +501,7 @@ fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
 fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_type: i32) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let count = len(names)
     let mut fallback = 0 - 1
@@ -532,3 +532,4 @@ fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_ty
     }
     enum_type
 }
+use mir::module_gc_enum

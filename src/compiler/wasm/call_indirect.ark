@@ -733,7 +733,7 @@ fn typed_string_callback_type_idx_from_struct_field(
     if struct_type_idx < 0 || field_idx < 0 {
         return 0 - 1
     }
-    let type_map = ctx_record::SelfEmitCtx_gc_struct_type_map(ctx)
+    let type_map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
     while i < len(type_map) {
@@ -1078,3 +1078,4 @@ fn match_matches_return(rt: i32, dest_vt: i32) -> bool {
     }
     false
 }
+use mir::module_gc_struct

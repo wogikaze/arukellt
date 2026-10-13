@@ -32,10 +32,6 @@ fn emit_wasm_context_set_gc_enum_variant_base(ctx: SelfEmitCtx, gc_enum_variant_
     ctx_record::SelfEmitCtx_set_gc_enum_variant_base(ctx, gc_enum_variant_base)
 }
 
-fn emit_wasm_context_set_gc_enum_variant_type_map(ctx: SelfEmitCtx, gc_enum_variant_type_map: Vec<i32>) {
-    ctx_record::SelfEmitCtx_set_gc_enum_variant_type_map(ctx, gc_enum_variant_type_map)
-}
-
 fn emit_wasm_context_set_gc_enum_variant_names(ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_enum_variant_names(ctx, gc_enum_variant_names)
 }
@@ -48,16 +44,16 @@ fn emit_wasm_context_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_struct_base(ctx, gc_struct_base)
 }
 
-fn emit_wasm_context_set_gc_struct_type_map(ctx: SelfEmitCtx, gc_struct_type_map: Vec<i32>) {
-    ctx_record::SelfEmitCtx_set_gc_struct_type_map(ctx, gc_struct_type_map)
-}
-
 fn emit_wasm_context_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_struct_names(ctx, gc_struct_names)
 }
 
 fn emit_wasm_context_set_gc_struct_sigs(ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_struct_sigs(ctx, gc_struct_sigs)
+}
+
+fn emit_wasm_context_finalize_gc_indexes(ctx: SelfEmitCtx) {
+    ctx_record::SelfEmitCtx_finalize_gc_derived_indexes(ctx)
 }
 
 fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {

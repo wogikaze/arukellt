@@ -201,7 +201,7 @@ fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
     if type_slot < 0 {
         return SelfEmitCtx_enum_open_type(ctx)
     }
-    let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     if type_slot >= 0 && type_slot < len(map) {
         return get_unchecked(map, type_slot)
     }
@@ -229,3 +229,4 @@ fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32
 fn SelfEmitCtx_has_struct_type(ctx: SelfEmitCtx, struct_name: String) -> bool {
     SelfEmitCtx_struct_type_by_name(ctx, struct_name) >= 0
 }
+use mir::module_gc_enum

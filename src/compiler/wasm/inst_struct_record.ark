@@ -59,7 +59,7 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
     if len(user_sig) > 0 {
         return gc_struct_field_sig_is_i32_scalar(user_sig)
     }
-    let variant_types = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let variant_types = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let variant_sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
     let count = len(variant_types)
     let mut variant_id = 0
@@ -79,7 +79,7 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
 // Field type from a registered user gc_struct (by wasm type index). Empty when
 // the type is not a registered struct or the field is out of range.
 fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> String {
-    let map = ctx_record::SelfEmitCtx_gc_struct_type_map(ctx)
+    let map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
     while i < len(map) {
@@ -377,3 +377,5 @@ fn gc_struct_name_without_size(type_name: String) -> String {
     }
     substring(body, 0, last_colon)
 }
+use mir::module_gc_enum
+use mir::module_gc_struct

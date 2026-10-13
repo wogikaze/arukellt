@@ -17,7 +17,7 @@ use wasm::writer_gc
 use std::prelude::{clone, contains}
 fn find_payload_variant_type(ctx: SelfEmitCtx) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
-    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let count = len(names)
     let mut i = 0
     while i < count {
@@ -201,3 +201,4 @@ fn emit_unwrap_or_with_locals(w: WasmWriter, s_opt: i32, s_def: i32, ctx: SelfEm
     helpers_core::emit_local_get(w, s_def)
     helpers_control::emit_end(w)
 }
+use mir::module_gc_enum

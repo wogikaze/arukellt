@@ -29,14 +29,12 @@ pub struct SelfEmitCtx {
     code_section_offsets: Vec<i32>,
     gc_type_base: i32,
     gc_enum_variant_base: i32,
-    gc_enum_variant_type_map: Vec<i32>,
     // O(1) membership for the wasm type indices occupied by enum variants.
     gc_enum_variant_type_flags: Vec<i32>,
     gc_enum_variant_names: Vec<String>,
     gc_enum_variant_sigs: Vec<String>,
     gc_enum_variant_name_index: NameIndex,
     gc_struct_base: i32,
-    gc_struct_type_map: Vec<i32>,
     gc_struct_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_name_index: NameIndex,
@@ -153,10 +151,8 @@ fn SelfEmitCtx_new(
     let empty_i32 = Vec::new<i32>()
     let empty_string = Vec::new<String>()
     let empty_i32_b = Vec::new<i32>()
-    let empty_i32_c = Vec::new<i32>()
     let empty_string_b = Vec::new<String>()
     let empty_string_c = Vec::new<String>()
-    let empty_i32_d = Vec::new<i32>()
     let empty_string_d = Vec::new<String>()
     let empty_string_e = Vec::new<String>()
     let empty_i32_e = Vec::new<i32>()
@@ -182,13 +178,11 @@ fn SelfEmitCtx_new(
         code_section_offsets: Vec::new<i32>(),
         gc_type_base: 0,
         gc_enum_variant_base: 0 - 1,
-        gc_enum_variant_type_map: empty_i32_c,
         gc_enum_variant_type_flags: Vec::new<i32>(),
         gc_enum_variant_names: empty_string_b,
         gc_enum_variant_sigs: empty_string_c,
         gc_enum_variant_name_index: name_index::NameIndex_new(0),
         gc_struct_base: 0 - 1,
-        gc_struct_type_map: empty_i32_d,
         gc_struct_names: empty_string_d,
         gc_struct_sigs: empty_string_e,
         gc_struct_name_index: name_index::NameIndex_new(0),
@@ -433,24 +427,12 @@ fn SelfEmitCtx_set_gc_enum_variant_base(ctx: SelfEmitCtx, gc_enum_variant_base: 
     ctx.gc_enum_variant_base = gc_enum_variant_base
 }
 
-fn SelfEmitCtx_gc_enum_variant_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
-    ctx.gc_enum_variant_type_map
-}
-
-fn SelfEmitCtx_set_gc_enum_variant_type_map(ctx: SelfEmitCtx, gc_enum_variant_type_map: Vec<i32>) {
-    ctx.gc_enum_variant_type_map = gc_enum_variant_type_map
-    SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx)
-    if len(ctx.gc_enum_variant_names) > 0 {
-        SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx)
-    }
-}
-
 fn SelfEmitCtx_gc_enum_variant_type_flags(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.gc_enum_variant_type_flags
 }
 
 fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx: SelfEmitCtx) {
-    let map = ctx.gc_enum_variant_type_map
+    let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut max_type_idx = 0 - 1
     let mut i = 0
     while i < len(map) {
@@ -483,7 +465,6 @@ fn SelfEmitCtx_gc_enum_variant_names(ctx: SelfEmitCtx) -> Vec<String> {
 
 fn SelfEmitCtx_set_gc_enum_variant_names(ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
     ctx.gc_enum_variant_names = gc_enum_variant_names
-    SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx)
 }
 
 fn SelfEmitCtx_gc_enum_variant_name_index(ctx: SelfEmitCtx) -> NameIndex {
@@ -492,7 +473,7 @@ fn SelfEmitCtx_gc_enum_variant_name_index(ctx: SelfEmitCtx) -> NameIndex {
 
 fn SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx: SelfEmitCtx) {
     let names = ctx.gc_enum_variant_names
-    let map = ctx.gc_enum_variant_type_map
+    let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let count = len(names)
     let index = name_index::NameIndex_new(count)
     let mut i = 0
@@ -526,24 +507,12 @@ fn SelfEmitCtx_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
     ctx.gc_struct_base = gc_struct_base
 }
 
-fn SelfEmitCtx_gc_struct_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
-    ctx.gc_struct_type_map
-}
-
-fn SelfEmitCtx_set_gc_struct_type_map(ctx: SelfEmitCtx, gc_struct_type_map: Vec<i32>) {
-    ctx.gc_struct_type_map = gc_struct_type_map
-    if len(ctx.gc_struct_names) > 0 {
-        SelfEmitCtx_rebuild_gc_struct_name_index(ctx)
-    }
-}
-
 fn SelfEmitCtx_gc_struct_names(ctx: SelfEmitCtx) -> Vec<String> {
     ctx.gc_struct_names
 }
 
 fn SelfEmitCtx_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
     ctx.gc_struct_names = gc_struct_names
-    SelfEmitCtx_rebuild_gc_struct_name_index(ctx)
 }
 
 fn SelfEmitCtx_gc_struct_name_index(ctx: SelfEmitCtx) -> NameIndex {
@@ -585,7 +554,7 @@ fn SelfEmitCtx_gc_struct_index_by_module_stripped_name(ctx: SelfEmitCtx, strippe
 
 fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
     let names = ctx.gc_struct_names
-    let map = ctx.gc_struct_type_map
+    let map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let count = len(names)
     let index = name_index::NameIndex_new(count)
     let stripped_index = name_index::NameIndex_new(count)
@@ -613,6 +582,15 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
     }
     ctx.gc_struct_name_index = index
     ctx.gc_struct_module_stripped_index = stripped_index
+}
+
+// Derived emit indexes are built once after names/sigs are set. The canon
+// maps live on the module, so this explicit finalize is the single build
+// point (setters no longer carry order-dependent rebuild side-effects).
+fn SelfEmitCtx_finalize_gc_derived_indexes(ctx: SelfEmitCtx) {
+    SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx)
+    SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx)
+    SelfEmitCtx_rebuild_gc_struct_name_index(ctx)
 }
 
 fn SelfEmitCtx_gc_struct_sigs(ctx: SelfEmitCtx) -> Vec<String> {
@@ -794,3 +772,5 @@ fn SelfEmitCtx_mir_index_for_func_id(ctx: SelfEmitCtx, func_id_raw: i32) -> i32 
     }
     get_unchecked(ctx.fid_to_mir, func_id_raw)
 }
+use mir::module_gc_enum
+use mir::module_gc_struct

@@ -352,7 +352,7 @@ fn p2_struct_type(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> i32 {
         return direct
     }
     let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
-    let maps = ctx_record::SelfEmitCtx_gc_struct_type_map(ctx)
+    let maps = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let mut i = 0
     while i < len(names) && i < len(maps) {
         if eq(clone(get_unchecked(names, i)), clone(query)) ||
@@ -634,7 +634,7 @@ fn p2_variant_type_named(
 ) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    let maps = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let maps = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut i = 0
     while i < len(names) && i < len(sigs) && i < len(maps) {
         if p2_variant_name_matches(clone(family), clone(variant), get_unchecked(names, i)) {
@@ -654,7 +654,7 @@ fn p2_variant_type_named(
 
 fn p2_variant_type_at_ordinal(ctx: SelfEmitCtx, family: String, ordinal: i32) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
-    let maps = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let maps = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut seen = 0
     let mut i = 0
     while i < len(names) && i < len(maps) {
@@ -683,7 +683,7 @@ fn p2_variant_count(ctx: SelfEmitCtx, family: String) -> i32 {
 }
 
 fn p2_variant_payload_field(ctx: SelfEmitCtx, type_idx: i32) -> String {
-    let maps = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let maps = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
     let mut i = 0
     while i < len(maps) && i < len(sigs) {
@@ -1868,3 +1868,5 @@ fn emit_string_result_bytes(
     helpers_control::emit_br(w, 0)
     helpers_control::emit_block_loop_footer(w)
 }
+use mir::module_gc_enum
+use mir::module_gc_struct
