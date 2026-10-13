@@ -1,7 +1,6 @@
 use std::prelude::{clone, eq, starts_with, substring}
 use wasm::constants
 use wasm::ctx_record
-use wasm::call_indirect
 use wasm::code_ref_locals
 use wasm::code_ref_locals_block_scan
 use wasm::code_ref_locals_fn_cache
@@ -58,10 +57,17 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
     // Params are typed by the function's type-section entry, recorded while
     // that section was emitted; -1 for anything that is not a concrete ref null.
     let local_ref_types = Vec::new<i32>()
-    let fn_type_idx = call_indirect::emit_fn_type_idx(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    // Symbolic sig parse: the canon table is not sealed while the decl
+    // loop emits bodies, so the fn-type index is unavailable. The sig
+    // text yields the same param ref types the canon reader parsed.
+    let param_ref_types = ctx_fn_type_refs::SelfEmitCtx_fn_sig_param_ref_types(ctx, f)
     let mut pi = 0
     while pi < param_count {
-        push(local_ref_types, ctx_fn_type_refs::SelfEmitCtx_param_ref_type(ctx, fn_type_idx, pi))
+        let mut param_ref = 0 - 1
+        if pi < len(param_ref_types) {
+            param_ref = get_unchecked(param_ref_types, pi)
+        }
+        push(local_ref_types, param_ref)
         pi = pi + 1
     }
     let mut li = param_count

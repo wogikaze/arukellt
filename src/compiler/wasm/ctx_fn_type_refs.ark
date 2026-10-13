@@ -1,9 +1,12 @@
 use std::prelude::{byte_at, clone, eq, starts_with, substring}
 use mir::module_canon
 use mir::module_gc_struct
+use mir::types
 use wasm::ctx_record
+use wasm::sections_types
 use wasm::sections_type_plan
 use wasm::sections_types_emit
+use wasm::sections_types_sigs_detail
 
 // Lazy FuncTypeRefs readers over the module canon table (#851 Phase 3).
 // The type section records each fn-type entry param/result ref index
@@ -74,6 +77,65 @@ fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
     sections_types_emit::sig_ref_null_type_index(
         substring(result_seg, 1, len(result_seg)),
         ctx_record::SelfEmitCtx_gc_type_base(ctx),
+        module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
+    )
+}
+
+// #851 per-push emit: symbolic fn-sig ref-type reads. The canon table is
+// not sealed while the decl loop runs (fn-sig entries land after the gc
+// regions), so emit_fn_type_idx cannot answer mid-loop. These variants
+// parse the sig text built from the MirFunction directly — same segments
+// and the same sig_ref_null_type_index conversion, so values are
+// identical to the canon-backed readers post-seal.
+// gc_type_base is recomputed from the live canon vec: gc sigs occupy the
+// prefix region and the sealed prefix flush runs before any body emit,
+// so first_gc_type_index is already final at push time.
+fn SelfEmitCtx_fn_sig_param_ref_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i32> {
+    let out = Vec::new<i32>()
+    let sig = sections_types_sigs_detail::build_function_type_sig(
+        f,
+        ctx_record::SelfEmitCtx_target(ctx),
+        ctx_record::SelfEmitCtx_wasi_version(ctx),
+        ctx_record::SelfEmitCtx_memory64(ctx),
+        ctx.mir
+    )
+    let segs = sections_type_plan::type_sig_param_segments(sig)
+    let gc_type_base = sections_types::first_gc_type_index(
+        module_canon::MirModule_canon_sigs(ctx.mir)
+    )
+    let struct_canon_idxs = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
+    let mut i = 0
+    while i < len(segs) {
+        push(
+            out,
+            sections_types_emit::sig_ref_null_type_index(
+                get_unchecked(segs, i),
+                gc_type_base,
+                struct_canon_idxs
+            )
+        )
+        i = i + 1
+    }
+    out
+}
+
+fn SelfEmitCtx_fn_sig_result_ref_type(ctx: SelfEmitCtx, f: MirFunction) -> i32 {
+    let sig = sections_types_sigs_detail::build_function_type_sig(
+        f,
+        ctx_record::SelfEmitCtx_target(ctx),
+        ctx_record::SelfEmitCtx_wasi_version(ctx),
+        ctx_record::SelfEmitCtx_memory64(ctx),
+        ctx.mir
+    )
+    let result_seg = sections_type_plan::type_sig_result_segment(sig)
+    if eq(clone(result_seg), "0") {
+        return 0 - 1
+    }
+    sections_types_emit::sig_ref_null_type_index(
+        substring(result_seg, 1, len(result_seg)),
+        sections_types::first_gc_type_index(
+            module_canon::MirModule_canon_sigs(ctx.mir)
+        ),
         module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     )
 }

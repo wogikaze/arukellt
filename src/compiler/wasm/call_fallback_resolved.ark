@@ -107,9 +107,13 @@ fn try_emit_resolved_fallback_call(
             )
         }
     }
+    // Symbolic sig parse: in-loop emit runs before the canon table seals,
+    // so the callee's fn-type index is unavailable. fn_idx >= 0 here (the
+    // forward-call path returns false earlier), so the callee MirFunction
+    // exists and its sig text gives the same result ref type.
     writer_core::writer_note_ref_top(
         w,
-        ctx_fn_type_refs::SelfEmitCtx_result_ref_type(ctx, call_indirect::emit_fn_type_idx(ctx, fn_idx))
+        ctx_fn_type_refs::SelfEmitCtx_fn_sig_result_ref_type(ctx, called)
     )
     let fn_ret_vt = registry_return_resolve::resolve_call_fn_ret_vt(ctx, inst, called)
     if has_signature {
