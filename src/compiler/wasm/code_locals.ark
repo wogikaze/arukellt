@@ -13,7 +13,7 @@ use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_locals_struct
-use wasm::sections_type_plan
+use wasm::ctx_fn_type_refs
 use wasm::sections_types_gc
 use mir::function_identity
 use mir::function_locals_view
@@ -58,11 +58,10 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
     // Params are typed by the function's type-section entry, recorded while
     // that section was emitted; -1 for anything that is not a concrete ref null.
     let local_ref_types = Vec::new<i32>()
-    let type_refs = ctx_record::SelfEmitCtx_fn_type_refs(ctx)
-    let fn_type_idx = ctx_record::SelfEmitCtx_fn_type_index(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    let fn_type_idx = call_indirect::emit_fn_type_idx(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
     let mut pi = 0
     while pi < param_count {
-        push(local_ref_types, sections_type_plan::FuncTypeRefs_param_ref_type(type_refs, fn_type_idx, pi))
+        push(local_ref_types, ctx_fn_type_refs::SelfEmitCtx_param_ref_type(ctx, fn_type_idx, pi))
         pi = pi + 1
     }
     let mut li = param_count

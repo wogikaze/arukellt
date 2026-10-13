@@ -22,7 +22,8 @@ use mir::inst_accessors_operands
 use wasm::registry_return_audit
 use wasm::registry_return_resolve
 use wasm::inst_locals
-use wasm::sections_type_plan
+use wasm::call_indirect
+use wasm::ctx_fn_type_refs
 fn try_emit_resolved_fallback_call(
     w: WasmWriter,
     callee: String,
@@ -100,10 +101,7 @@ fn try_emit_resolved_fallback_call(
     }
     writer_core::writer_note_ref_top(
         w,
-        sections_type_plan::FuncTypeRefs_result_ref_type(
-            ctx_record::SelfEmitCtx_fn_type_refs(ctx),
-            ctx_record::SelfEmitCtx_fn_type_index(ctx, fn_idx)
-        )
+        ctx_fn_type_refs::SelfEmitCtx_result_ref_type(ctx, call_indirect::emit_fn_type_idx(ctx, fn_idx))
     )
     let fn_ret_vt = registry_return_resolve::resolve_call_fn_ret_vt(ctx, inst, called)
     if has_signature {

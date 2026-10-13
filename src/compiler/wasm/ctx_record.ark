@@ -8,7 +8,6 @@ use mir::module_record
 use mir::lower::mono_instance_table
 use wasm::call_resolve
 use wasm::gc_layout_table
-use wasm::sections_type_plan
 use collections::name_index
 pub struct SelfEmitCtx {
     functions: Vec<MirFunction>,
@@ -41,8 +40,6 @@ pub struct SelfEmitCtx {
     // `a::b::Name` -> gc_struct_names index, keyed by the `::`-stripped name.
     gc_struct_module_stripped_index: NameIndex,
     current_func_idx: i32,
-    fn_type_map: Vec<i32>,
-    fn_type_refs: FuncTypeRefs,
     signature_registry: SignatureRegistry,
     type_table: TypeTable,
     mono_instance_table: MonoInstanceTable,
@@ -159,7 +156,6 @@ fn SelfEmitCtx_new(
     let empty_string_c = Vec::new<String>()
     let empty_string_d = Vec::new<String>()
     let empty_string_e = Vec::new<String>()
-    let empty_i32_e = Vec::new<i32>()
     let sig = signature_registry::SignatureRegistry_new()
     let types = type_table::TypeTable_new()
     let mono = mono_instance_table::MonoInstanceTable_new()
@@ -192,8 +188,6 @@ fn SelfEmitCtx_new(
         gc_struct_name_index: name_index::NameIndex_new(0),
         gc_struct_module_stripped_index: name_index::NameIndex_new(0),
         current_func_idx: 0,
-        fn_type_map: empty_i32_e,
-        fn_type_refs: sections_type_plan::FuncTypeRefs_new(),
         signature_registry: sig,
         type_table: types,
         mono_instance_table: mono,
@@ -611,26 +605,6 @@ fn SelfEmitCtx_set_current_func_idx(ctx: SelfEmitCtx, current_func_idx: i32) {
 
 fn SelfEmitCtx_current_func_idx(ctx: SelfEmitCtx) -> i32 {
     ctx.current_func_idx
-}
-
-fn SelfEmitCtx_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
-    ctx.fn_type_map = fn_type_map
-}
-
-// Type-section index of defined function `fn_idx`, or -1 when unknown.
-fn SelfEmitCtx_fn_type_index(ctx: SelfEmitCtx, fn_idx: i32) -> i32 {
-    if fn_idx < 0 || fn_idx >= len(ctx.fn_type_map) {
-        return 0 - 1
-    }
-    get_unchecked(ctx.fn_type_map, fn_idx)
-}
-
-fn SelfEmitCtx_fn_type_refs(ctx: SelfEmitCtx) -> FuncTypeRefs {
-    ctx.fn_type_refs
-}
-
-fn SelfEmitCtx_set_fn_type_refs(ctx: SelfEmitCtx, table: FuncTypeRefs) {
-    ctx.fn_type_refs = table
 }
 
 fn SelfEmitCtx_pair_call_sigs(ctx: SelfEmitCtx) -> Vec<String> {

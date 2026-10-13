@@ -1,7 +1,6 @@
 use wasm::strings
 use wasm::ctx_fid_map
 use wasm::ctx_record
-use wasm::sections_type_plan
 
 fn emit_wasm_context_new(
     mir: MirModule,
@@ -56,16 +55,8 @@ fn emit_wasm_context_finalize_gc_indexes(ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_finalize_gc_derived_indexes(ctx)
 }
 
-fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
-    ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
-}
-
 fn emit_wasm_context_set_pair_call_sigs(ctx: SelfEmitCtx, sigs: Vec<String>) {
     ctx_record::SelfEmitCtx_set_pair_call_sigs(ctx, sigs)
-}
-
-fn emit_wasm_context_set_fn_type_refs(ctx: SelfEmitCtx, table: FuncTypeRefs) {
-    ctx_record::SelfEmitCtx_set_fn_type_refs(ctx, table)
 }
 
 fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRegistry, table: TypeTable, mono_table: MonoInstanceTable, spine_populated: bool) {

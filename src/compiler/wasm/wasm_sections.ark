@@ -165,11 +165,6 @@ fn emit_wasm_module_sections(
         bindings
     )
     t_phase = emit_section_note(report_timing, "types", t_phase)
-    wasm_context::emit_wasm_context_set_fn_type_map(ctx, wasm_sections_facade::type_plan_fn_type_map(type_plan))
-    wasm_context::emit_wasm_context_set_fn_type_refs(
-        ctx,
-        wasm_sections_facade::type_plan_fn_type_refs(type_plan)
-    )
     wasm_sections_facade::emit_import_section(
         out,
         wasm_sections_facade::type_plan_host_type_map(type_plan),

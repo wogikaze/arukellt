@@ -11,7 +11,8 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::intrinsics::helpers_numeric_i32_convert
-use wasm::sections_type_plan
+use wasm::call_indirect
+use wasm::ctx_fn_type_refs
 use mir::opcodes as mir_opcodes
 
 fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -49,11 +50,8 @@ fn emit_declared_gc_return_cast(w: WasmWriter, ctx: SelfEmitCtx) {
     if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return
     }
-    let fn_type_idx = ctx_record::SelfEmitCtx_fn_type_index(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    let result_ref = sections_type_plan::FuncTypeRefs_result_ref_type(
-        ctx_record::SelfEmitCtx_fn_type_refs(ctx),
-        fn_type_idx
-    )
+    let fn_type_idx = call_indirect::emit_fn_type_idx(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    let result_ref = ctx_fn_type_refs::SelfEmitCtx_result_ref_type(ctx, fn_type_idx)
     if result_ref != ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) {
         return
     }

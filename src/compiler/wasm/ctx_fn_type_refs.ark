@@ -1,0 +1,79 @@
+use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use mir::module_canon
+use mir::module_gc_struct
+use wasm::ctx_record
+use wasm::sections_type_plan
+use wasm::sections_types_emit
+
+// Lazy FuncTypeRefs readers over the module canon table (#851 Phase 3).
+// The type section records each fn-type entry param/result ref index
+// while emitting; those values are pure functions of the canon sig text
+// plus the gc base/struct canon vecs, so they can be answered directly
+// wherever the module exists — including in-loop emit before the type
+// section runs. Non-fn canon sigs yield -1 exactly like empty entries.
+
+// Mirror of the kind dispatch in emit_canon_type_entries: only sigs that
+// fall through to the functype branch carry FuncTypeRefs entries.
+fn canon_sig_is_fn_type(sig: String) -> bool {
+    if starts_with(clone(sig), String_from("SubF")) {
+        return false
+    }
+    if starts_with(clone(sig), String_from("Sub0_")) {
+        return false
+    }
+    if starts_with(clone(sig), String_from("Sub")) {
+        return false
+    }
+    if starts_with(clone(sig), String_from("GS_f")) {
+        return false
+    }
+    if eq(clone(sig), String_from("A_fnref")) {
+        return false
+    }
+    byte_at(sig, 0) != 65
+}
+
+// FuncTypeRefs_param_ref_type equivalent.
+fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -> i32 {
+    if param_idx < 0 {
+        return 0 - 1
+    }
+    let canon_sigs = module_canon::MirModule_canon_sigs(ctx.mir)
+    if type_idx < 0 || type_idx >= len(canon_sigs) {
+        return 0 - 1
+    }
+    let sig = get_unchecked(canon_sigs, type_idx)
+    if !canon_sig_is_fn_type(clone(sig)) {
+        return 0 - 1
+    }
+    let segs = sections_type_plan::type_sig_param_segments(sig)
+    if param_idx >= len(segs) {
+        return 0 - 1
+    }
+    sections_types_emit::sig_ref_null_type_index(
+        get_unchecked(segs, param_idx),
+        ctx_record::SelfEmitCtx_gc_type_base(ctx),
+        module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
+    )
+}
+
+// FuncTypeRefs_result_ref_type equivalent.
+fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
+    let canon_sigs = module_canon::MirModule_canon_sigs(ctx.mir)
+    if type_idx < 0 || type_idx >= len(canon_sigs) {
+        return 0 - 1
+    }
+    let sig = get_unchecked(canon_sigs, type_idx)
+    if !canon_sig_is_fn_type(clone(sig)) {
+        return 0 - 1
+    }
+    let result_seg = sections_type_plan::type_sig_result_segment(sig)
+    if eq(clone(result_seg), "0") {
+        return 0 - 1
+    }
+    sections_types_emit::sig_ref_null_type_index(
+        substring(result_seg, 1, len(result_seg)),
+        ctx_record::SelfEmitCtx_gc_type_base(ctx),
+        module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
+    )
+}
