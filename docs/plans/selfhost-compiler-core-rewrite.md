@@ -837,6 +837,25 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
     （ref.cast 判定）、`emit_fn_type_idx`（canon sig idx）、
     `resolve_call_fn_ret_vt`（fid>=0 は registry path 済み）。
     fid<0 call は spine name 検索で真 fn と intrinsic を区別する。
+- canon 順序の確定事実（2026-10-13 第3調査 — 「fn push 時 ensure」
+  仮定の修正）: `build_type_sigs` の出力順は [wasi][wit][gc fixed]
+  [typed callbacks][module gc sealed→late 登録順][**fn sigs**]
+  [wrapper][p2][linear][pair sigs]。fn sig は全 module gc 型の後な
+  ので、decl loop 中の push 時 ensure は (a) 後続 fn の body が
+  登録する late gc 型より前に fn sig が canon を占有し、(b) prune
+  対象 fn の sig が canon 枠を消費する、の二点で順序が崩れる。
+  → per-push emit では fn-sig 依存 operand（call_indirect の
+  `emit_fn_type_idx` 系）は全て reloc 化し、apply は name/fid →
+  post-prune MirFunction → 既存 `build_function_type_sig` →
+  `canon_index_of` で解決する（sig 構築の再実装を避け byte 一致を
+  保証しやすい）。
+- emit 時点の**決定**は reloc では遅延できない: `ref_top` bookkeeping
+  （call_ref / writer_gc の重複 ref.cast elision — emit byte に効く）
+  は callee の戻り gc 型 idx を要する。未登録型には idx が無いため、
+  writer の ref_top を idx ではなく canon sig テキストのキーで保持
+  する symbolic 化が必須（canon dedup により sig テキスト一致 =
+  型一致）。callee fn sig → result segment → gc sig テキストの導出を
+  spine 情報のみで行う経路が要る。
 
 ## Phase 4 — post-pass type propagation を消す
 
