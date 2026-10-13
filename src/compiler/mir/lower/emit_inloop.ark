@@ -30,7 +30,7 @@ use mir::reachability_entry
 use mir::types
 use mir::function_identity
 use mir::function_return_view
-use mir_opt::optimize_module
+use mir_opt::optimize_fn
 use wasm::call_resolve
 use wasm::call_indirect
 use wasm::code_body
@@ -86,15 +86,22 @@ fn emit_inloop_drain(
     let opt_level = emit_spec::mir_lower_emit_spec_opt_level(spec)
     let memory64 = emit_spec::mir_lower_emit_spec_memory64(spec)
     let bindings = emit_spec::mir_lower_emit_spec_bindings(spec)
-    // The driver's optimize_module pipeline runs here while the module is
-    // complete (all decl + thunk bodies pushed, pre-prune). Keeping the
-    // module-level pass preserves pass order and validation reporting;
-    // per-fn passes are function-local so kept results match the
-    // post-prune run. Artifacts are enabled after this call so the
-    // driver's own optimize_module becomes a no-op.
-    mir_opt::optimize_module(module, opt_level, clone(target))
+    // Per-push post passes already ran the per-fn opt pipeline on the
+    // first art.opt_fn_count pushed fns (a prefix — pushes are ordered).
+    // Run the same per-fn pipeline on any remainder — fns pushed outside
+    // the decl-loop push paths — rather than the module pass: every pass
+    // is function-local (module reads hit only the fully-populated
+    // signature spine), so results match the batch run, and the prefix
+    // avoids double-optimizing.
     let mut art = module_emit_artifacts::MirModule_emit_artifacts(module)
-    emit_artifacts::MirEmitArtifacts_enable(art)
+    let fns_for_opt = module_functions::MirModule_functions(module)
+    let mut opt_i = art.opt_fn_count
+    while opt_i < len(fns_for_opt) {
+        let opt_f = get_unchecked(fns_for_opt, opt_i)
+        let opt_f = mir_opt::optimize_fn(module, opt_f, opt_level, clone(target))
+        module_functions::MirModule_set_function_at(module, opt_i, opt_f)
+        opt_i = opt_i + 1
+    }
     // Mark the module opt pipeline as consumed by the drain so the
     // driver-side optimize_module call no-ops (artifacts were enabled at
     // entry, before this drain ran).

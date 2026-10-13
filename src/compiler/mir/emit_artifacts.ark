@@ -46,6 +46,10 @@ struct MirEmitArtifacts {
     core_op_shadow_mismatch_budget: i32,
     gc_layout_typed_lookups: i32,
     gc_layout_conflicts: i32,
+    // Number of pushed fns that already ran the per-fn opt pipeline at
+    // post-pass time (a prefix — pushes are ordered). The drain runs the
+    // same per-fn pipeline on any remainder instead of the module pass.
+    opt_fn_count: i32,
     // Set by the in-loop drain after it runs the module opt pipeline —
     // lets the driver's later optimize_module call no-op without making
     // the drain's own call a no-op (artifacts are enabled pre-loop now).
@@ -86,6 +90,7 @@ fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
         core_op_shadow_mismatch_budget: 128,
         gc_layout_typed_lookups: 0,
         gc_layout_conflicts: 0,
+        opt_fn_count: 0,
         opt_done: false,
         prune_old_to_new: Vec::new<i32>()
     }

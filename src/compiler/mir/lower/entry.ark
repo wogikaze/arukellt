@@ -66,6 +66,12 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let source_text = clone(input.source_text)
     let fn_source_locations = entry_source_locations::compute_fn_source_locations(view, input.decl_nodes, clone(source_text))
     let mut ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target, source_text, fn_source_locations)
+    // #851 Phase 3: hand the emit spec to the lowering ctx so per-push
+    // post passes (per-fn opt now, body emit next) see the same opt
+    // level and target spelling the drain spec carries.
+    if emit_spec::mir_lower_emit_spec_enabled(input.emit_spec) {
+        ctx.emit_spec = input.emit_spec
+    }
     registry_view::mir_register_view_layouts(ctx, view)
     // View registration seals named GC types (ticks 166–167). Reorder and
     // flush the prefix once. Body emit may still append; flush only the tail

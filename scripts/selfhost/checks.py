@@ -403,6 +403,7 @@ BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
 # Nested imports that flatten to the namespace owner when the namespace is stubbed.
 BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS: dict[tuple[str, ...], str] = {
     ("mir_opt", "optimize_module"): "mir_opt",
+    ("mir_opt", "optimize_fn"): "mir_opt",
 }
 BOOTSTRAP_MIR_OPT_STUB = """// Focused proof overlay — stdlib plus validated gc_hint only.
 use mir_emit_artifacts
