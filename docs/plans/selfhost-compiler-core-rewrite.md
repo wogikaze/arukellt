@@ -612,7 +612,26 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
 
   **残り in-loop emit ブロッカー**:
   - decl loop 融合本体（emit_function_body を mir_emit_view_decls
-    内へ移設）。
+    内へ移設）。調査（2026-10-13）で確定した前提条件:
+    - SelfEmitCtx を MIR lowering pipeline で構築する配線（ctx.mir は
+      構築中の module を共有 — functions/canon_sigs は push/ensure で
+      育つ参照型）。
+    - fn 解決の spine 化: fid_to_mir / function_name_counts /
+      functions[] / type_name_ref_index は post-lower 完全 module 前提。
+      融合では callee が未 lower の forward ref が発生するため、
+      signature_registry（ctx_prep populated）+ name→decl 表で
+      fid→decl_idx を解く。MirFunction_* の callee 読み（param_count
+      等）は spine 経由に置き換えが必要。
+    - pair_call_sigs: 現状 ctx_prep で全 MIR body を走査して収集するが、
+      融合では body は未存在 — discovery edge walk から収集するか、
+      loop 内で発見して post-loop 一括 canon_ensure（登録順維持のため
+      即 ensure は不可）し operand は reloc 委譲。
+    - writer_note_ref_top / ref_top_is の bookkeeping は emit 時に
+      確定 type_idx を要する — reloc 経路では -1 になり得るので、
+      cast elision を symbolic（未解決は elide しない）にするか
+      解決済み key で記録する設計が要る。
+    - strings は MirModule.string_data_rel が append-only で育つため
+      live 読みで対応可能（ctx_string_view は既に module 直読み）。
 
 Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_context_new
 と strings.ark の実調査）:
