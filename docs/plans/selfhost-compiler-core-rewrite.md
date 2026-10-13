@@ -770,6 +770,50 @@ c. per-fn emit: 全 GC 型が登録時に canon_idx 確定するため body oper
    既存の call reloc を継続利用
 d. worklist 駆動で到達不能 fn の lower 自体を skip（~8% body_emit 節約）
 
+Phase-3 実装（2026-10-13 fused emit 第1段 — post-prune drain 着地、
+97 fixture byte-identical）:
+
+- `emit_inloop::emit_inloop_drain`（mir/lower/emit_inloop.ark）が
+  reachability prune + gc_layout_plan 再構築の直後・lower return 前の
+  位置で、post-prune module に対して body emit まで一括実行する。
+  順序は driver の backend 順をそのまま再現:
+  `mir_opt::optimize_module`（module-level pass — pass 順と検証集計を
+  保持、artifacts enable はその後なので driver 側呼出は no-op 化）
+  → canon seal（emit_type_section と同じ `build_type_sigs` +
+  `canonicalize_type_sigs` を先行実行。canon_ensure は idempotent
+  なので emit 側の canonicalize は lookup のみに退化し、type
+  section は byte-identical）→ emit ctx 構築（gc base / spine /
+  pair_call_sigs / gc_layout populate、true/false string idx は -1 で
+  STR reloc 委譲）→ 全 fn を module 順に emit_function_body。
+- handoff は設計通り: artifact vec（body_bytes / reloc tuple /
+  call_reloc(+names)）を drain ctx と参照共有し、emit phase は
+  `code::emit_ctx_adopt_inloop_artifacts` で O(1) adopt + audit
+  counters 移し替え + emit loop skip + detach sweep。
+- 有効条件は emit_mode ∈ {wasm, core-wasm, component} かつ gc
+  target のみ（MirLowerEmitSpec、driver/lower.ark が config から
+  session/input へ流す）。reachability_legacy 有効時は drain せず
+  従来 loop を維持。
+- pre-prune drain 案で懸念だった func_idx remap は drain 位置を
+  post-prune に据えたことで不要化（記録される index が全て final）。
+  `MirEmitArtifacts.prune_old_to_new` の記録、
+  `gc_layout_table_drain_plan` の resumable 化、
+  `SelfEmitCtx.fn_index_watermark` / `fn_index_drain`、
+  fid<0 call の name deferral（call_reloc_names）は in-loop 融合本体が
+  必要とする機構として残置 — 本 step では記録・pair 維持のみ。
+- mir_opt bootstrap stub 制約: drain は namespace-level の
+  `mir_opt::optimize_module` のみを呼ぶ（overlay では stub 実装、
+  実装では orchestrate 経由 — どちらの build でも同一 entry が
+  解決する）。per-fn `mir_opt::optimize_fn` API は in-loop step 用に
+  確保（`mir_opt_optimize_fn` = async_lower → validated stdlib
+  resolve → O2 loop/gc_hint の per-fn 合成）。
+- 検証: 97 fixture の `.wasm` / `.code` / `.log`（stderr audit 含む）
+  が parity baseline（`.build/parity/old`）と完全一致、
+  `lower.inloop_emit` phase timer が `--time` で記録されることを確認。
+- 残: decl loop 融合本体は未着手 — 「残り in-loop emit ブロッカー」
+  節のうち forward-ref fn 解決の spine 化、ref_top bookkeeping の
+  symbolic 化、per-push 収集（pair_sigs / name index）は依然として
+  in-loop step の前提条件。
+
 ## Phase 4 — post-pass type propagation を消す
 
 gate: **lower + 全 dataflow + reachability ≤ 3s、whole-module instruction scan = 0**。
