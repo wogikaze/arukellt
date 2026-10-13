@@ -1,0 +1,125 @@
+use std::host::process
+use std::host::stdio
+use std::prelude::{clone}
+use wasm::ctx_record
+use wasm::ctx_string_view
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+// #851 Phase 3: deferred-resolution reloc records for body bytes.
+// Operands whose value is only final after the post-loop tables exist
+// (plan-appended string literals, call_indirect type-map indices) emit a
+// placeholder, record (func_idx, body_rel_off, kind, key) here, and get
+// splice-patched at section assembly once body_bytes holds every body.
+// Splice (not fixed-width patch) keeps the minimal SLEB encoding the
+// direct-resolution path produced, so output stays byte-identical.
+fn RELOC_KIND_STR_TRUE() -> i32 {
+    0
+}
+
+fn RELOC_KIND_STR_FALSE() -> i32 {
+    1
+}
+
+// Reserved kinds for the follow-up consumers:
+//   2 = string literal by value (skey = literal text)
+//   3 = fn_type_map index (ikey = index)
+//   4 = pair_call_type_map index (ikey = index)
+fn SelfEmitCtx_push_reloc(
+    ctx: SelfEmitCtx,
+    body_off: i32,
+    kind: i32,
+    ikey: i32,
+    skey: String
+) {
+    push(ctx.reloc_func, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    push(ctx.reloc_off, body_off)
+    push(ctx.reloc_kind, kind)
+    push(ctx.reloc_ikey, ikey)
+    push(ctx.reloc_skey, skey)
+}
+
+// Emit an i32/i64 const whose operand is a reloc placeholder: opcode first,
+// then a 1-byte sleb(0) that apply replaces with the minimal sleb of the
+// resolved value. Mirrors emit_i32_const's memory64 opcode dispatch so the
+// non-operand bytes match the direct path exactly.
+fn SelfEmitCtx_emit_i32_const_reloc(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    kind: i32,
+    ikey: i32,
+    skey: String
+) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    }
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, skey)
+    writer_leb::emit_leb128_s(w, 0)
+}
+
+fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
+    let out_v = Vec::new<i32>()
+    let mut i = 0
+    while i < off {
+        push(out_v, get_unchecked(body, i))
+        i = i + 1
+    }
+    let sw = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_s(sw, value)
+    let enc = writer_core::writer_bytes(sw)
+    let mut j = 0
+    while j < len(enc) {
+        push(out_v, get_unchecked(enc, j))
+        j = j + 1
+    }
+    // The placeholder operand is always the 1-byte sleb(0); skip exactly
+    // one byte.
+    let mut k = off + 1
+    while k < len(body) {
+        push(out_v, get_unchecked(body, k))
+        k = k + 1
+    }
+    out_v
+}
+
+fn reloc_resolve_value(ctx: SelfEmitCtx, kind: i32, ikey: i32, skey: String) -> i32 {
+    if kind == RELOC_KIND_STR_TRUE() {
+        return ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
+    }
+    if kind == RELOC_KIND_STR_FALSE() {
+        return ctx_string_view::SelfEmitCtx_false_string_offset(ctx)
+    }
+    if kind == 2 {
+        return ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, skey)
+    }
+    stdio::eprintln("compiler ICE: unknown body reloc kind")
+    process::exit(1)
+    0 - 1
+}
+
+// Resolve every pending reloc and splice its minimal sleb into the stored
+// body vec. Iterates records in reverse: emit order is ascending offset
+// within each body, so reverse applies higher offsets first and earlier
+// splice-induced growth never shifts a site still to be patched.
+fn SelfEmitCtx_apply_pending_relocs(ctx: SelfEmitCtx) {
+    let mut i = len(ctx.reloc_func) - 1
+    while i >= 0 {
+        let fi = get_unchecked(ctx.reloc_func, i)
+        let off = get_unchecked(ctx.reloc_off, i)
+        let kind = get_unchecked(ctx.reloc_kind, i)
+        let ikey = get_unchecked(ctx.reloc_ikey, i)
+        let skey = clone(get_unchecked(ctx.reloc_skey, i))
+        let value = reloc_resolve_value(ctx, kind, ikey, skey)
+        let body = get_unchecked(ctx.body_bytes, fi)
+        set(ctx.body_bytes, fi, reloc_splice_i32(body, off, value))
+        i = i - 1
+    }
+    ctx.reloc_func = Vec::new<i32>()
+    ctx.reloc_off = Vec::new<i32>()
+    ctx.reloc_kind = Vec::new<i32>()
+    ctx.reloc_ikey = Vec::new<i32>()
+    ctx.reloc_skey = Vec::new<String>()
+}
