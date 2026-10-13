@@ -589,10 +589,22 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     '1<tok>'=値あり）で arity を判定し、plan 由来 fn_type_map scan を
     廃止 — store 形状判定が in-loop emit で利用可能に（97 fixture
     byte-identical）。
+  - b4aae6172: SelfEmitCtx を emit_type_section 前に構築 — ctor +
+    module 由来 setter（gc names/sigs、signature spine、gc_layout_table
+    handle）を早期化。type_plan 由来 setter のみ post-section に残る
+    純粋なスケジューリング変更（97 fixture byte-identical）。
+  - 31a8790fb: call type 解決を module canon 読み化。emit_fn_type_idx
+    = canon_index_of(build_function_type_sig(fi)) で fn_type_map 相当を
+    module から読み、call_ref_pair_key / fnsig finder /
+    resolve_indirect_type_idx / memory64 callback finders が plan 非
+    依存に。pair_call_type_map ctx field 廃止、pair_call_sigs は
+    ctx_prep で収集（97 fixture byte-identical）。
 
   **残り in-loop emit ブロッカー**:
-  - SelfEmitCtx の ctx_prep 後構築（mir 保持は f03044b03 で着地済み、
-    残は構築時点の前倒しと ctx_prep 依存の解消）。
+  - SelfEmitCtx の ctx_prep 依存解消（構築前倒しは b4aae6172、canon
+    読み化は 31a8790fb で着地済み）。残: fn_type_refs / ctx fn_type_map
+    field（FuncTypeRefs 読者3箇所と結合）、gc_layout_table、
+    gc_*_base の module 読み化。
   - decl loop 融合本体（emit_function_body を mir_emit_view_decls
     内へ移設）。
 
