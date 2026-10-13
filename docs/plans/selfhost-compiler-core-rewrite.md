@@ -599,12 +599,18 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     resolve_indirect_type_idx / memory64 callback finders が plan 非
     依存に。pair_call_type_map ctx field 廃止、pair_call_sigs は
     ctx_prep で収集（97 fixture byte-identical）。
+  - fc61b0a99: gc_type_base / gc_struct_base / gc_enum_variant_base を
+    module canon から導出（type_plan 不在で確定）。
+    finalize_gc_derived_indexes も早期ブロックへ（97 fixture）。
+  - 3e3a21271: gc_layout_table を ctx_prep で populate — emit_type_section
+    から gc_layout param を除去。populate は module plan + gc base/canon
+    のみ要する（97 fixture byte-identical）。
+  - 0a2f96d54: fn_type_refs を lazy 化 — 新規 ctx_fn_type_refs が
+    canon_sigs[type_idx] を parse して param/result ref idx を即答。
+    ctx.fn_type_refs / ctx.fn_type_map field を削除し、SelfEmitCtx は
+    type section 前に完全 populated になった（97 fixture byte-identical）。
 
   **残り in-loop emit ブロッカー**:
-  - SelfEmitCtx の ctx_prep 依存解消（構築前倒しは b4aae6172、canon
-    読み化は 31a8790fb で着地済み）。残: fn_type_refs / ctx fn_type_map
-    field（FuncTypeRefs 読者3箇所と結合）、gc_layout_table、
-    gc_*_base の module 読み化。
   - decl loop 融合本体（emit_function_body を mir_emit_view_decls
     内へ移設）。
 
