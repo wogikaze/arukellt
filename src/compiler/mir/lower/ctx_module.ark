@@ -1,5 +1,12 @@
 use mir::module_functions
 use mir::module_strings
+use mir::emit_artifacts
+use mir::module_emit_artifacts
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::opcodes
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
 use mir::function_identity
@@ -55,18 +62,46 @@ fn ctx_push_current_function(ctx: LowerCtx) {
 // for this function. The cache is appended before the pass so recursive
 // self-calls resolve their own return name.
 fn ctx_run_per_fn_post_pass(ctx: LowerCtx, m: MirModule, func: MirFunction, mir_index: i32) {
-    if !module_spine::MirModule_signature_spine_populated(m) {
+    if module_spine::MirModule_signature_spine_populated(m) {
+        let table = module_spine::MirModule_type_table(m)
+        func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
+        let _iters = post_pass_type_propagate::mir_function_propagate_local_types(
+            ctx.prop_cache,
+            func,
+            table
+        )
+        func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
+        module_functions::MirModule_set_function_at(m, mir_index, func)
+    }
+    ctx_record_fn_pair_refs(m, func, mir_index)
+}
+
+// #851 Phase 3: record this fn's CALL_REF sites as raw (owner func_idx,
+// hint, vt) tuples on the module emit artifacts. The seal derives pair
+// sigs from them in kept-fn order — the same inputs the batch body scan
+// used — so pair-sig collection survives per-push body emit.
+fn ctx_record_fn_pair_refs(m: MirModule, func: MirFunction, mir_index: i32) {
+    let art = module_emit_artifacts::MirModule_emit_artifacts(m)
+    if !emit_artifacts::MirEmitArtifacts_enabled(art) {
         return
     }
-    let table = module_spine::MirModule_type_table(m)
-    func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
-    let _iters = post_pass_type_propagate::mir_function_propagate_local_types(
-        ctx.prop_cache,
-        func,
-        table
-    )
-    func = typed_mir_sync_module::mir_function_sync_all_value_types(func, table)
-    module_functions::MirModule_set_function_at(m, mir_index, func)
+    let bc = function_block_queries::MirFunction_block_count(func)
+    let mut bi = 0
+    while bi < bc {
+        let block = function_block_queries::MirFunction_block_at(func, bi)
+        let ic = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < ic {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL_REF() {
+                push(art.pair_ref_fn, mir_index)
+                push(art.pair_ref_hint, inst_accessors_literals::MirInst_str_val(inst))
+                push(art.pair_ref_vt, inst_accessors_shape::MirInst_val_type(inst))
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
 }
 
 fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 {

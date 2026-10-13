@@ -12,6 +12,8 @@ use mir::lower::ctx_corehir_probe
 use mir::lower::edge_discovery
 use mir::lower::emit_inloop
 use mir::lower::emit_spec
+use mir::emit_artifacts
+use mir::module_emit_artifacts
 use mir::lower::entry_context
 use mir::lower::entry_decls
 use mir::lower::entry_input
@@ -43,6 +45,12 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let view = entry_input::mir_entry_input_view(input)
     let body_source = entry_input::mir_entry_input_body_source(input)
     let m = module_factory::MirModule_new()
+    // #851 Phase 3: enable emit artifacts up front so per-push recording
+    // (pair CALL_REF tuples now; body bytes once emit moves in-loop)
+    // captures every pushed function — the drain only reads them.
+    if emit_spec::mir_lower_emit_spec_enabled(input.emit_spec) {
+        emit_artifacts::MirEmitArtifacts_enable(module_emit_artifacts::MirModule_emit_artifacts(m))
+    }
     if prune_enabled {
         module_functions::MirModule_set_export_names(m, clone_export_roots(export_roots))
     }

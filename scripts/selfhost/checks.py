@@ -415,7 +415,7 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
     let _target = target
     // #851 Phase 3 fused emit: bodies already optimized+emitted in the
     // lowering drain; mutating MIR here would diverge from emitted bytes.
-    if mir_emit_artifacts::MirEmitArtifacts_enabled(mir_module_emit_artifacts::MirModule_emit_artifacts(m)) {
+    if mir_emit_artifacts::MirEmitArtifacts_opt_done(mir_module_emit_artifacts::MirModule_emit_artifacts(m)) {
         return m
     }
     if opt_level >= 1 {

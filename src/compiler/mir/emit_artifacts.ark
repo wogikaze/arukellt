@@ -26,6 +26,14 @@ struct MirEmitArtifacts {
     // Name key for fid<0 call relocs (fused emit defers name resolution to
     // the post-prune apply step).
     call_reloc_names: Vec<String>,
+    // Per-push CALL_REF records (#851 Phase 3): owner func_idx, raw
+    // MirInst_str_val hint, MirInst_val_type captured at push time. The
+    // seal derives pair sigs from these in kept-fn order — identical
+    // inputs to the batch body scan — so pair-sig collection no longer
+    // needs the fn bodies alive at seal time.
+    pair_ref_fn: Vec<i32>,
+    pair_ref_hint: Vec<String>,
+    pair_ref_vt: Vec<i32>,
     // Audit counters accumulated on the in-loop emit ctx.
     registry_audit_candidates: i32,
     registry_audit_matched: i32,
@@ -38,6 +46,10 @@ struct MirEmitArtifacts {
     core_op_shadow_mismatch_budget: i32,
     gc_layout_typed_lookups: i32,
     gc_layout_conflicts: i32,
+    // Set by the in-loop drain after it runs the module opt pipeline —
+    // lets the driver's later optimize_module call no-op without making
+    // the drain's own call a no-op (artifacts are enabled pre-loop now).
+    opt_done: bool,
     // old func_idx -> new func_idx recorded by reachability prune; empty
     // means identity (no prune ran or nothing was removed).
     prune_old_to_new: Vec<i32>,
@@ -60,6 +72,9 @@ fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
         call_reloc_fids: Vec::new<i32>(),
         call_reloc_funcs: Vec::new<i32>(),
         call_reloc_names: Vec::new<String>(),
+        pair_ref_fn: Vec::new<i32>(),
+        pair_ref_hint: Vec::new<String>(),
+        pair_ref_vt: Vec::new<i32>(),
         registry_audit_candidates: 0,
         registry_audit_matched: 0,
         registry_audit_mismatched: 0,
@@ -71,6 +86,7 @@ fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
         core_op_shadow_mismatch_budget: 128,
         gc_layout_typed_lookups: 0,
         gc_layout_conflicts: 0,
+        opt_done: false,
         prune_old_to_new: Vec::new<i32>()
     }
 }
@@ -81,4 +97,8 @@ fn MirEmitArtifacts_enable(artifacts: MirEmitArtifacts) {
 
 fn MirEmitArtifacts_enabled(artifacts: MirEmitArtifacts) -> bool {
     artifacts.enabled
+}
+
+fn MirEmitArtifacts_opt_done(artifacts: MirEmitArtifacts) -> bool {
+    artifacts.opt_done
 }

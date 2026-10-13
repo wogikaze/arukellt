@@ -16,6 +16,7 @@
 //   - fid<0 calls defer by name (in_loop_emitted) so their patch lands
 //     on the post-prune index at reloc-apply time.
 
+use std::prelude::eq
 use mir::emit_artifacts
 use mir::lower::ctx_call_edges
 use mir::lower::emit_spec
@@ -30,13 +31,13 @@ use mir::types
 use mir::function_identity
 use mir::function_return_view
 use mir_opt::optimize_module
+use wasm::call_indirect
 use wasm::code_body
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::gc_layout_table
 use wasm::gc_layout_table_build
 use wasm::sections_types
-use wasm::sections_types_sigs
 use wasm::start_names
 use wasm::wasm_context
 use wasm::writer_core
@@ -93,6 +94,10 @@ fn emit_inloop_drain(
     mir_opt::optimize_module(module, opt_level, clone(target))
     let mut art = module_emit_artifacts::MirModule_emit_artifacts(module)
     emit_artifacts::MirEmitArtifacts_enable(art)
+    // Mark the module opt pipeline as consumed by the drain so the
+    // driver-side optimize_module call no-ops (artifacts were enabled at
+    // entry, before this drain ran).
+    art.opt_done = true
     // Re-read after opt: the O2 passes may replace the module function vec.
     let functions = module_functions::MirModule_functions(module)
     let fn_count = len(functions)
@@ -128,13 +133,38 @@ fn emit_inloop_drain(
     } else {
         emit_inloop_needs_start_wrapper(kept)
     }
-    let pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
-        kept,
-        len(kept),
-        clone(target),
-        memory64,
-        module_gc_struct::MirModule_gc_struct_names(module)
-    )
+    // Pair-ABI call-site sigs come from the per-push raw records: walk
+    // records in push order, skip owners the prune marks dropped, and
+    // derive each sig on the final gc name table. Same stream the batch
+    // kept-scan produced — bodies no longer need to be alive for this.
+    let gc_names = module_gc_struct::MirModule_gc_struct_names(module)
+    let pair_sigs = Vec::new<String>()
+    let mut pr = 0
+    while pr < len(art.pair_ref_fn) {
+        let owner = get_unchecked(art.pair_ref_fn, pr)
+        if len(marks) == 0 || get_unchecked(marks, owner) != 0 {
+            let sig = call_indirect::pair_call_sig_from_hint(
+                clone(get_unchecked(art.pair_ref_hint, pr)),
+                get_unchecked(art.pair_ref_vt, pr),
+                memory64,
+                clone(gc_names)
+            )
+            if len(sig) > 0 {
+                let mut seen = false
+                let mut si = 0
+                while si < len(pair_sigs) {
+                    if eq(clone(sig), clone(get_unchecked(pair_sigs, si))) {
+                        seen = true
+                    }
+                    si = si + 1
+                }
+                if !seen {
+                    push(pair_sigs, sig)
+                }
+            }
+        }
+        pr = pr + 1
+    }
     let type_sigs = sections_types::build_type_sigs(
         module,
         kept,
