@@ -4,6 +4,7 @@ use wasm::ctx_record
 use wasm::sections_type_plan
 
 fn emit_wasm_context_new(
+    mir: MirModule,
     functions: Vec<MirFunction>,
     strings: EmitStringTablePlan,
     target: String,
@@ -11,12 +12,9 @@ fn emit_wasm_context_new(
     memory64: bool,
     source_file: String
 ) -> SelfEmitCtx {
-    let string_values = strings::EmitStringTablePlan_values(strings)
     ctx_record::SelfEmitCtx_new(
+        mir,
         functions,
-        strings::EmitStringTablePlan_offsets(strings),
-        strings::EmitStringTablePlan_lengths(strings),
-        string_values,
         strings::EmitStringTablePlan_true_idx(strings),
         strings::EmitStringTablePlan_false_idx(strings),
         target,

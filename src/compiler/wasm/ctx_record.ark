@@ -4,6 +4,7 @@ use corehir::signature_registry
 use mir::local_write_index
 use corehir::type_table
 use mir::function_identity
+use mir::module_record
 use mir::lower::mono_instance_table
 use wasm::call_resolve
 use wasm::gc_layout_table
@@ -14,9 +15,8 @@ pub struct SelfEmitCtx {
     function_name_lengths: Vec<i32>,
     function_name_index: NameIndex,
     function_name_counts: NameIndex,
-    string_offsets: Vec<i32>,
-    string_lengths: Vec<i32>,
-    string_values: Vec<String>,
+    // Module SSOT; emit readers migrate off plan-built snapshots (#851).
+    mir: MirModule,
     scratch_base: i32,
     true_str_idx: i32,
     false_str_idx: i32,
@@ -124,10 +124,8 @@ pub struct SelfEmitCtx {
 }
 
 fn SelfEmitCtx_new(
+    mir: MirModule,
     functions: Vec<MirFunction>,
-    string_offsets: Vec<i32>,
-    string_lengths: Vec<i32>,
-    string_values: Vec<String>,
     true_str_idx: i32,
     false_str_idx: i32,
     target: String,
@@ -171,9 +169,7 @@ fn SelfEmitCtx_new(
         function_name_lengths: name_lengths,
         function_name_index: function_name_index,
         function_name_counts: function_name_counts,
-        string_offsets: string_offsets,
-        string_lengths: string_lengths,
-        string_values: string_values,
+        mir: mir,
         scratch_base: 0,
         true_str_idx: true_str_idx,
         false_str_idx: false_str_idx,

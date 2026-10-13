@@ -1,11 +1,13 @@
 use std::prelude::{clone, eq}
+use wasm::constants
 use wasm::ctx_record
+use mir::module_strings
 fn SelfEmitCtx_string_offset_count(ctx: SelfEmitCtx) -> i32 {
-    len(ctx.string_offsets)
+    module_strings::MirModule_string_constant_count(ctx.mir)
 }
 
 fn SelfEmitCtx_string_offset_at(ctx: SelfEmitCtx, idx: i32) -> i32 {
-    get_unchecked(ctx.string_offsets, idx)
+    constants::DATA_START() + module_strings::MirModule_string_data_rel_at(ctx.mir, idx)
 }
 
 fn SelfEmitCtx_true_string_offset(ctx: SelfEmitCtx) -> i32 {
@@ -17,9 +19,10 @@ fn SelfEmitCtx_false_string_offset(ctx: SelfEmitCtx) -> i32 {
 }
 
 fn SelfEmitCtx_string_offset_for_value(ctx: SelfEmitCtx, value: String) -> i32 {
+    let values = module_strings::MirModule_string_constants(ctx.mir)
     let mut i = 0
-    while i < len(ctx.string_values) {
-        if eq(clone(get_unchecked(ctx.string_values, i)), clone(value)) {
+    while i < len(values) {
+        if eq(clone(get_unchecked(values, i)), clone(value)) {
             return SelfEmitCtx_string_offset_at(ctx, i)
         }
         i = i + 1

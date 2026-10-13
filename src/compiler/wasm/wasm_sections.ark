@@ -95,6 +95,7 @@ fn emit_wasm_module_sections(
     )
     t_phase = emit_section_note(report_timing, "types", t_phase)
     let mut ctx = wasm_context::emit_wasm_context_new(
+        mir,
         functions,
         strings,
         clone(target),
