@@ -31,6 +31,7 @@ use mir::types
 use mir::function_identity
 use mir::function_return_view
 use mir_opt::optimize_module
+use wasm::call_resolve
 use wasm::call_indirect
 use wasm::code_body
 use wasm::ctx_record
@@ -177,20 +178,24 @@ fn emit_inloop_drain(
         pair_sigs
     )
     let _canon_plan = sections_types::canonicalize_type_sigs(module, type_sigs)
-    // The drain ctx shares live module state (pre-prune functions vec,
-    // canon sigs, gc name/sig vecs, signature spine) so emit-time lookups
-    // resolve exactly as they do on the emit ctx. true/false string
-    // indices stay -1: bool-literal offsets are plan-tail appends carried
-    // as STR relocs, resolved on the emit ctx.
-    let mut ectx = ctx_record::SelfEmitCtx_new(
-        module,
+    // Reuse the lowering-held emit ctx (LowerCtx.emit_ctx — built on the
+    // live module handles at ctx init, mir already bound). opt passes may
+    // replace the module functions vec, so rebind it, then fold pushed
+    // fns into the name tables via fn_index_drain — the incremental form
+    // of the constructor batch build. remap_colliding_short_names runs
+    // post-fold on the complete vec, same ordering as SelfEmitCtx_new.
+    // true/false string indices stay -1: bool-literal offsets are
+    // plan-tail appends carried as STR relocs, resolved on the emit ctx.
+    let mut ectx = ctx.emit_ctx
+    ectx.functions = functions
+    ectx.wasi_version = clone(wasi_version)
+    ectx.memory64 = memory64
+    ectx.source_file = emit_spec::mir_lower_emit_spec_source_file(spec)
+    ctx_record::SelfEmitCtx_fn_index_drain(ectx)
+    call_resolve::call_resolve_remap_colliding_short_names(
         functions,
-        0 - 1,
-        0 - 1,
-        clone(target),
-        clone(wasi_version),
-        memory64,
-        emit_spec::mir_lower_emit_spec_source_file(spec)
+        ectx.function_name_index,
+        ectx.function_name_counts
     )
     wasm_context::emit_wasm_context_set_gc_enum_variant_names(ectx, module_gc_enum::MirModule_gc_enum_variant_names(module))
     wasm_context::emit_wasm_context_set_gc_enum_variant_sigs(ectx, module_gc_enum::MirModule_gc_enum_variant_sigs(module))
