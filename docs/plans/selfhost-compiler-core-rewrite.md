@@ -506,6 +506,11 @@ Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_contex
   bool literal は `emit_string_layout_ensure_bool_literals` が plan 時に
   末尾 append するため、ctx_prep で module table へ先行 intern して
   offset を早期凍結する。
+  → 着地（2026-10-13）: `MirModule.string_data_rel` + `string_data_next`
+  を `MirModule_push_string_constant` で維持、`intern_string` は push
+  経路へ統一。plan build は `DATA_START + rel` の SSOT 直読みに
+  置き換え（47 fixture byte-identical）。bool literal の emit-time
+  ensure から ctx_prep 先行 intern への移行は残タスク。
 - **SelfEmitCtx**: `functions` / gc canon vecs は module の ref 共有なら
   push/ensure と共に育つ。signature_spine/registry/type_table/mono は
   ctx_prep 時点で populated。必要なのは ctx 構築を ctx_prep 後へ前倒し

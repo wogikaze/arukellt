@@ -23,6 +23,13 @@ pub struct MirModule {
     export_names: Vec<String>,
     export_surface_set: bool,
     string_constants: Vec<String>,
+    // Per-string packed data offset relative to the data section base,
+    // maintained at push time so offsets are final at intern (#851 Phase 3
+    // in-loop emit prerequisite). rel_i = 4 + sum_{j<i}(4+len_j); the wasm
+    // emit layer adds DATA_START. string_data_next is the running
+    // cumulative end = sum_j(4+len_j).
+    string_data_rel: Vec<i32>,
+    string_data_next: i32,
     mono_pruned_count: i32,
     gc_enum_variant_sigs: Vec<String>,
     gc_enum_variant_names: Vec<String>,
@@ -87,6 +94,8 @@ fn MirModule_new() -> MirModule {
         export_names: Vec::new<String>(),
         export_surface_set: false,
         string_constants: Vec::new<String>(),
+        string_data_rel: Vec::new<i32>(),
+        string_data_next: 0,
         mono_pruned_count: 0,
         gc_enum_variant_sigs: Vec::new<String>(),
         gc_enum_variant_names: Vec::new<String>(),
