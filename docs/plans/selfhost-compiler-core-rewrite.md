@@ -822,6 +822,21 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
   節のうち forward-ref fn 解決の spine 化、ref_top bookkeeping の
   symbolic 化、per-push 収集（pair_sigs / name index）は依然として
   in-loop step の前提条件。
+- per-push emit 前提の実測（2026-10-13 第3調査）:
+  - signature spine は `fn_index_view`（decl loop 前の indexing pass）
+    で全件 populate — 未 push callee も `signature_registry` の
+    name→fid→entry（params/returns MirValueType）で body なしに
+    解決できる。`spine_lookup::function_param_mvt` /
+    `function_return_mvt` が既存の薄い facade。
+  - `MirModule_push_function` は in-place push — ctx が functions vec
+    を参照共有すれば push が live に見える。vec 置換するのは
+    `MirModule_set_functions`（mir_opt async_lower/orchestrate と
+    reachability_prune）のみ — 融合後は per-fn optimize_fn に置き
+    換わるため ctx 再 bind は不要になる見込み。
+  - 残る emit-time MirFunction 依存は call 経路の param0 type name
+    （ref.cast 判定）、`emit_fn_type_idx`（canon sig idx）、
+    `resolve_call_fn_ret_vt`（fid>=0 は registry path 済み）。
+    fid<0 call は spine name 検索で真 fn と intrinsic を区別する。
 
 ## Phase 4 — post-pass type propagation を消す
 
