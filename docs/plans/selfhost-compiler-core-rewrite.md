@@ -578,6 +578,12 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     inline 化し、hit なら直接 emit / miss なら reloc。pair_key/pair_sig
     map を含む post-loop 非確定値が call_ref 経路から除去（97 fixture
     byte-identical、gc-layout-audit カウンタも一致）。
+  - 2c315f237: call reloc を module-level 化。(func_idx, body_rel_off,
+    fid_raw) を記録し emit_code_section で apply — 5-byte fixed slot
+    を reloc_patch_leb_u_fixed で in-place patch するため splice 系
+    reloc より先に適用（splice は引き続き逆順）。per-body の
+    call_reloc_used pool/reset は廃止。thunk fid のような mid-loop
+    登録 fid への forward ref 経路が確立（97 fixture byte-identical）。
 
   **残り in-loop emit ブロッカー**:
   - indirect_type_returns_value — emit 時 semantic read（store 形状
@@ -585,8 +591,6 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     spine から sig text を読んで ret arity を引く variant が必要。
   - SelfEmitCtx の ctx_prep 後構築（mir 保持は f03044b03 で着地済み、
     残は構築時点の前倒しと ctx_prep 依存の解消）。
-  - call reloc の module-level 化（thunk fid の forward ref 用、
-    closure_flush_pending_fn_thunks が post-loop push のため）。
   - decl loop 融合本体（emit_function_body を mir_emit_view_decls
     内へ移設）。
 
