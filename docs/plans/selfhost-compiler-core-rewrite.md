@@ -546,6 +546,41 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
     byte-parity を保つ）。同 body 複数 site は offset 降順 apply で
     位置ずれを防ぐ。
 
+- 実装状況（2026-10-13、ctx_reloc + body buffering + call_indirect reloc 着地）:
+  3 commit で emit 側の fusion 前提を整備した。全て byte-identical 検証済み。
+  - cca998b45: declared body は per-fn WasmWriter へ emit し
+    SelfEmitCtx.body_bytes[func_idx] に durable 保存、code section は
+    保存 vec から func_idx 順に sized assemble。emit phase / assemble
+    phase の分離点が確立（166 fixture）。
+  - fdde5b57b + e30334b42: ctx_reloc — placeholder + (func_idx,
+    body_rel_off, kind, keys) 記録 → assembly で minimal-encoding splice。
+    bool literal（STR_TRUE/FALSE、GC/linear 両 path）と panic message
+    （STR_VALUE、iov/p2 write）を consumer 化。memory64 でも真 i32 の
+    operand は emit_i32_const_true_reloc で分岐（131+91 fixture）。
+  - a6401fd53: call_indirect type operand を reloc 化。kind は再解決
+    型（PAIR_KEY=skey hint 文字列、INDIRECT_SCAN=arg_count/dest_vt/
+    first_arg_vt）で apply 時に同じ resolver を再実行 — map index
+    保持より確実。MIR arg1>=0 は直接 emit。apply は import cycle
+    回避のため code.ark の code_apply_pending_relocs（130 fixture）。
+
+  **残り in-loop emit ブロッカー**:
+  - indirect_type_returns_value — emit 時 semantic read（store 形状
+    判定）。plan 由来 fn_type_map 依存のため in-loop では signature
+    spine から sig text を読んで ret arity を引く variant が必要。
+  - ctx_string_view / inst_const literal — module string_data_rel
+    直読みへ切替（SelfEmitCtx に module 参照 or rel vec 配線が要る）。
+  - call_ref_pair_sig_type_idx / resolve_call_ref_type_idx
+    （call_ref 系、pair_call map）— 未 reloc。
+  - gc_struct_type_map / gc_enum_variant_type_map の残存読み
+    （call_indirect:698、ctx_gc_type、ctx_gc_layout_lookup、
+    code_ref_locals_*）→ module canon vec 切替。
+  - SelfEmitCtx の ctx_prep 後構築 + mir: MirModule 参照保持
+    （module SSOT 全表へのアクセスを開く）。
+  - call reloc の module-level 化（thunk fid の forward ref 用、
+    closure_flush_pending_fn_thunks が post-loop push のため）。
+  - decl loop 融合本体（emit_function_body を mir_emit_view_decls
+    内へ移設）。
+
 Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_context_new
 と strings.ark の実調査）:
 
