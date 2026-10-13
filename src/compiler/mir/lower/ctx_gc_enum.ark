@@ -3,6 +3,7 @@ use std::prelude::{byte_at, clone, contains, ends_with, eq, starts_with, substri
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_gc_canon
 use mir::lower::ctx_struct_field_type
+use mir::gc_layout_slot_bind
 use mir::module_gc_order
 use mir::module_gc_enum
 use wasm::emit_target
@@ -36,6 +37,21 @@ fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String
             ctx.module,
             (len(ctx.gc_enum_variant_names) - 1) * 2 + 1
         )
+        // Materialize immediately so body emit can read the module slot and
+        // canon index without waiting for the post-loop flush. Enum sigs are
+        // final at registration (no placeholder pass like gc structs), and
+        // ensuring here keeps canon order identical to the late_gc_order
+        // sweep ctx_gc_canon_ensure_late performs.
+        let m = ctx.module
+        let slot = len(ctx.gc_enum_variant_names) - 1
+        module_gc_enum::MirModule_push_gc_enum_variant(
+            m,
+            clone(variant_name),
+            clone(sig)
+        )
+        let canon = ctx_gc_canon::ctx_gc_canon_ensure_sig(ctx, clone(sig))
+        module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, slot, canon)
+        gc_layout_slot_bind::mir_gc_layout_bind_enum_variant_slot(m, slot)
     }
     len(ctx.gc_enum_variant_names) - 1
 }
@@ -202,6 +218,11 @@ fn ctx_flush_gc_enum_variants_from(ctx: LowerCtx, start: i32) {
     let m = ctx.module
     let count = len(ctx.gc_enum_variant_names)
     let mut i = if start < 0 { 0 } else { start }
+    // Post-seal entries are materialized at registration; resume after them.
+    let materialized = module_gc_enum::MirModule_gc_enum_variant_sig_count(m)
+    if i < materialized {
+        i = materialized
+    }
     while i < count {
         let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
         module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(sig))

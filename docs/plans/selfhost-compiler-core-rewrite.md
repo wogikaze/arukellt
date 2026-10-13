@@ -496,6 +496,29 @@ Phase-3 設計確定（2026-10-12 訂正版 — **前方参照は不可、sealed
   を確認。残る本丸: body emit（wasm byte 化）の decl loop 内移設 —
   code section 順序のため body byte の fn index 順バッファリングが必要。
 
+- 実装状況（2026-10-13、materialize-at-registration 着地）:
+  post-seal GC 登録が登録時点で module slot push + canon_idx ensure +
+  layout plan bind まで行うようにした。struct は placeholder sig
+  （"GS"→ctx_set_gc_struct_sig 書換）経路があるため
+  `gc_struct_sig_pending: Vec<bool>` を LowerCtx に追加し、
+  `ctx_gc_struct_materialize_ready` が pending 直前まで slot 順に
+  drain — canon 発行順を late_gc_order（=登録順）と完全一致させる。
+  nested ensure（A→B→A 系）でも A 確定時に A,B 順で drain されるため
+  baseline と canon order が変わらない。enum は sig 確定登録のため
+  push 分岐で即 materialize。両 flush_from は module 保有数から resume。
+  TypeId 解決 helper は新規 leaf module `mir/gc_layout_slot_bind.ark`
+  へ移設（ctx_*→lower::gc_layout_plan_build→aggregate_field→ctx_* の
+  import cycle 回避）。entry.ark は seal 直後に module-held plan へ
+  fixed+sealed bind を実行し、post-loop build は冪等再実行として残す。
+  139 fixture（enums/generics/collections/iterator/closure_capture/
+  structs/generics_v1/match_extensions/memory64/mir_struct/
+  struct_mutation/ownership/question_mark/regression/native_gc_stress/
+  lang_uplift）で byte-identical。ついでに未使用 thin wrapper 2 件
+  （mir_ast_edge_table_caller_count, MirModule_canon_count）を削除し
+  先行していた ratchet drift（HEAD で 1754>1753）を 1752 へ解消。
+  次の作業単位: SelfEmitCtx の ctx_prep 前移設配線と call_indirect
+  の type reloc（sig→canon finalize 解決）。
+
 Phase-3 設計（2026-10-13 body-emit 融合の依存分解 — emit_wasm_context_new
 と strings.ark の実調査）:
 

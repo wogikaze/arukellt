@@ -18,10 +18,6 @@ fn MirModule_canon_ensure(m: MirModule, sig: String) -> i32 {
     canon_idx
 }
 
-fn MirModule_canon_count(m: MirModule) -> i32 {
-    len(m.canon_sigs)
-}
-
 fn MirModule_canon_sig_at(m: MirModule, idx: i32) -> String {
     clone(get_unchecked(m.canon_sigs, idx))
 }

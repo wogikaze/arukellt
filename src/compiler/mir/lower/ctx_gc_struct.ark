@@ -1,8 +1,11 @@
 use std::text
+use std::host::process
+use std::host::stdio
 use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_with, substring}
 use corehir::kinds
 use corehir::type_id
 use corehir::type_table
+use mir::gc_layout_slot_bind
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
@@ -43,8 +46,12 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     }
     push(ctx.gc_struct_names, clone(struct_name))
     push(ctx.gc_struct_sigs, sig)
+    push(ctx.gc_struct_sig_pending, false)
     ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
     ctx_intern_gc_struct_type(ctx, struct_name)
+    if ctx.gc_seal_done {
+        ctx_gc_struct_materialize_ready(ctx)
+    }
 }
 
 // Post-seal registrations append to the module's late_gc_order so the
@@ -76,14 +83,68 @@ fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {
     let mut i = 0
     while i < count {
         if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+            // A materialized module slot mirrors the sig pushed at
+            // materialize time; rewriting it afterwards would desync the
+            // emitted type from the canon entry. Only pending slots may
+            // update, and those are never materialized yet.
+            if ctx.gc_seal_done && module_gc_struct::MirModule_gc_struct_sig_count(ctx.module) > i {
+                stdio::eprintln("compiler ICE: post-seal gc struct sig update after materialize")
+                process::exit(1)
+            }
             set(ctx.gc_struct_sigs, i, sig)
+            set(ctx.gc_struct_sig_pending, i, false)
+            if ctx.gc_seal_done {
+                ctx_gc_struct_materialize_ready(ctx)
+            }
             return
         }
         i = i + 1
     }
     push(ctx.gc_struct_names, struct_name)
     push(ctx.gc_struct_sigs, sig)
+    push(ctx.gc_struct_sig_pending, false)
     ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
+    if ctx.gc_seal_done {
+        ctx_gc_struct_materialize_ready(ctx)
+    }
+}
+
+// Push a ctx slot whose sig is a placeholder that ctx_set_gc_struct_sig
+// rewrites once nested fields resolve. Post-seal the entry stays
+// unmaterialized — and blocks the drain — until the real sig lands, so a
+// nested ensure that finalizes first cannot jump the canon order.
+fn ctx_gc_struct_push_pending(ctx: LowerCtx, struct_name: String) {
+    push(ctx.gc_struct_names, clone(struct_name))
+    push(ctx.gc_struct_sigs, "GS")
+    push(ctx.gc_struct_sig_pending, true)
+    ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
+    ctx_intern_gc_struct_type(ctx, struct_name)
+}
+
+// Post-seal counterpart of the sealed flush: push every finalized ctx slot
+// the module does not have yet, in slot order, assigning canon indices at
+// push so body emit can read them immediately. Stops at the first pending
+// (placeholder) slot — later slots wait so canon order stays registration
+// order, matching the late_gc_order/ctx_gc_canon_ensure_late sequence.
+fn ctx_gc_struct_materialize_ready(ctx: LowerCtx) {
+    let m = ctx.module
+    let count = len(ctx.gc_struct_names)
+    let mut slot = module_gc_struct::MirModule_gc_struct_sig_count(m)
+    while slot < count {
+        if get_unchecked(ctx.gc_struct_sig_pending, slot) {
+            return
+        }
+        let sig = clone(get_unchecked(ctx.gc_struct_sigs, slot))
+        module_gc_struct::MirModule_push_gc_struct(
+            m,
+            clone(get_unchecked(ctx.gc_struct_names, slot)),
+            clone(sig)
+        )
+        let canon = ctx_gc_canon::ctx_gc_canon_ensure_struct_sig(ctx, sig)
+        module_gc_struct::MirModule_set_gc_struct_canon_idx(m, slot, canon)
+        gc_layout_slot_bind::mir_gc_layout_bind_struct_slot(m, slot)
+        slot = slot + 1
+    }
 }
 
 // Ensure a nested struct field has a named GC slot before the parent sig is
@@ -115,7 +176,7 @@ fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
         return 0 - 1
     }
     // Placeholder slot breaks cycles (A→B→A) while nested fields resolve.
-    ctx_register_gc_struct(ctx, clone(struct_name), String_from("GS"))
+    ctx_gc_struct_push_pending(ctx, clone(struct_name))
     let sig = gc_struct_build_sig(ctx, clone(struct_name), field_count)
     ctx_set_gc_struct_sig(ctx, clone(struct_name), sig)
     ctx_gc_struct_slot(ctx, clone(struct_name))
@@ -143,13 +204,19 @@ fn ctx_flush_gc_structs_from(ctx: LowerCtx, start: i32) {
     let m = ctx.module
     let count = len(ctx.gc_struct_names)
     let mut i = if start < 0 { 0 } else { start }
+    // Post-seal entries may already be materialized on the module (slot
+    // order push + canon + layout bind at registration); resume after them.
+    let materialized = module_gc_struct::MirModule_gc_struct_sig_count(m)
+    if i < materialized {
+        i = materialized
+    }
     while i < count {
         let sig = clone(get_unchecked(ctx.gc_struct_sigs, i))
         module_gc_struct::MirModule_push_gc_struct(m, clone(get_unchecked(ctx.gc_struct_names, i)), clone(sig))
         // Sealed registrations emit in slot order, so ensure inline while
-        // pushing. Post-seal entries keep -1 until ctx_gc_canon_ensure_late
-        // assigns them in late_gc_order (emission) order — pushing in slot
-        // order first is what keeps module slot == ctx slot.
+        // pushing. Post-seal entries were materialized at registration; any
+        // stragglers keep -1 until ctx_gc_canon_ensure_late assigns them in
+        // late_gc_order (emission) order.
         if !ctx.gc_seal_done {
             let canon = ctx_gc_canon::ctx_gc_canon_ensure_struct_sig(ctx, sig)
             module_gc_struct::MirModule_set_gc_struct_canon_idx(m, i, canon)

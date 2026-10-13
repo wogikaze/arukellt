@@ -181,6 +181,11 @@ pub struct LowerCtx {
     gc_enum_variant_alias_slots: Vec<i32>,
     gc_struct_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
+    // Parallel to gc_struct_names: true while the slot holds a cycle-breaker
+    // placeholder sig ("GS") awaiting ctx_set_gc_struct_sig. Post-seal
+    // materialize drains only up to the first pending slot so module pushes
+    // and canon ensures stay in registration order (#851 Phase 3).
+    gc_struct_sig_pending: Vec<bool>,
     // Set once the ctx_prep prefix flush runs (entry.ark). GC types
     // registered while true are "late": their registration order is
     // recorded on the module so the type section can emit them after the

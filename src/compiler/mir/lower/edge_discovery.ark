@@ -1654,10 +1654,6 @@ fn edge_resolve_precise(ctx: LowerCtx, table: AstEdgeTable, name: String, seen: 
     }
 }
 
-fn mir_ast_edge_table_caller_count(table: AstEdgeTable) -> i32 {
-    len(table.callers)
-}
-
 fn mir_ast_edge_table_caller_at(table: AstEdgeTable, i: i32) -> String {
     clone(get_unchecked(table.callers, i))
 }

@@ -79,6 +79,10 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
         sealed_structs,
         sealed_enums
     )
+    // #851 Phase 3: bind fixed + sealed layout entries into the module-held
+    // plan now. Post-seal registrations bind their own slot at materialize
+    // time; the post-loop build below re-runs all binds idempotently.
+    gc_layout_plan_build::mir_module_build_gc_layout_plan(ctx.module, clone(input.target))
     let t_after_ctx = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, "ctx_prep", t_after_fn_index, t_after_ctx)
     // #851 Phase 3: snapshot the fn_index return catalog onto the module so
