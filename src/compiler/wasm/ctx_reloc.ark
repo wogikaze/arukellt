@@ -22,8 +22,11 @@ fn RELOC_KIND_STR_FALSE() -> i32 {
     1
 }
 
+fn RELOC_KIND_STR_VALUE() -> i32 {
+    2
+}
+
 // Reserved kinds for the follow-up consumers:
-//   2 = string literal by value (skey = literal text)
 //   3 = fn_type_map index (ikey = index)
 //   4 = pair_call_type_map index (ikey = index)
 fn SelfEmitCtx_push_reloc(
@@ -60,6 +63,21 @@ fn SelfEmitCtx_emit_i32_const_reloc(
     writer_leb::emit_leb128_s(w, 0)
 }
 
+// True-i32 variant for operands that stay i32 even under Memory64 (WASI
+// iov/scratch pointer fields): always OP_I32_CONST like
+// helpers_io_const::emit_i32_const, never the widened i64 form.
+fn SelfEmitCtx_emit_i32_const_true_reloc(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    kind: i32,
+    ikey: i32,
+    skey: String
+) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    SelfEmitCtx_push_reloc(ctx, writer_core::writer_size(w), kind, ikey, skey)
+    writer_leb::emit_leb128_s(w, 0)
+}
+
 fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let out_v = Vec::new<i32>()
     let mut i = 0
@@ -92,7 +110,7 @@ fn reloc_resolve_value(ctx: SelfEmitCtx, kind: i32, ikey: i32, skey: String) -> 
     if kind == RELOC_KIND_STR_FALSE() {
         return ctx_string_view::SelfEmitCtx_false_string_offset(ctx)
     }
-    if kind == 2 {
+    if kind == RELOC_KIND_STR_VALUE() {
         return ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, skey)
     }
     stdio::eprintln("compiler ICE: unknown body reloc kind")

@@ -1,4 +1,6 @@
 use wasm::constants
+use wasm::ctx_record
+use wasm::ctx_reloc
 use wasm::intrinsics::helpers_io_calls
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
@@ -32,6 +34,30 @@ fn emit_p2_write_newline(w: WasmWriter, get_stream_import_idx: i32) {
 fn emit_p2_write_ptr_len(w: WasmWriter, ptr: i32, len: i32, get_stream_import_idx: i32) {
     helpers_io_calls::emit_call(w, get_stream_import_idx)
     helpers_io_const::emit_i32_const(w, ptr)
+    emit_p2_write_len_and_call(w, len)
+}
+
+// Reloc variant of emit_p2_write_ptr_len for plan-time string offsets
+// (#851 Phase 3): the ptr operand is a placeholder patched at assembly.
+fn emit_p2_write_str_reloc(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    len: i32,
+    skey: String,
+    get_stream_import_idx: i32
+) {
+    helpers_io_calls::emit_call(w, get_stream_import_idx)
+    ctx_reloc::SelfEmitCtx_emit_i32_const_true_reloc(
+        w,
+        ctx,
+        ctx_reloc::RELOC_KIND_STR_VALUE(),
+        0,
+        skey
+    )
+    emit_p2_write_len_and_call(w, len)
+}
+
+fn emit_p2_write_len_and_call(w: WasmWriter, len: i32) {
     helpers_io_const::emit_i32_const(w, len)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
     helpers_io_calls::emit_call(w, constants::P2_IMPORT_BWAF())
