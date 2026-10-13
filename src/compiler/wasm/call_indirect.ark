@@ -17,6 +17,7 @@ use wasm::opcodes
 use wasm::sections_types_gc
 use wasm::sections_type_plan
 use wasm::sections_types_gc_phase7
+use wasm::sections_types_sigs_detail
 use wasm::writer_core
 use mir::opcodes as mir_opcodes
 
@@ -152,15 +153,14 @@ fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
         return 0 - 1
     }
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let n = len(functions)
     if len(nk) > 0 {
         let mut fi = 0
         while fi < n {
             let f = get_unchecked(functions, fi)
-            if fn_is_pair_trampoline(f) && fi < len(fn_type_map) {
+            if fn_is_pair_trampoline(f) {
                 if pair_key_matches(clone(nk), pair_tramp_sig_key(f, true)) {
-                    return get_unchecked(fn_type_map, fi)
+                    return emit_fn_type_idx(ctx, fi)
                 }
             }
             fi = fi + 1
@@ -170,9 +170,9 @@ fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
         let mut fi = 0
         while fi < n {
             let f = get_unchecked(functions, fi)
-            if fn_is_pair_trampoline(f) && fi < len(fn_type_map) {
+            if fn_is_pair_trampoline(f) {
                 if pair_key_matches(clone(vk), pair_tramp_sig_key(f, false)) {
-                    return get_unchecked(fn_type_map, fi)
+                    return emit_fn_type_idx(ctx, fi)
                 }
             }
             fi = fi + 1
@@ -501,15 +501,35 @@ fn pair_sig_collection_name_token(name: String, gc_struct_names: Vec<String>) ->
     sections_types_gc::gc_hashmap_str_i32_type_sig()
 }
 
-// Emit-side lookup for the registered pair-call signatures.
+// fn's canon type index via the module append-only signature table (#851
+// Phase 3): identical to the type_plan fn_type_map entry — canon order is
+// registration order — but readable before the type plan exists.
+fn emit_fn_type_idx(ctx: SelfEmitCtx, fi: i32) -> i32 {
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
+    if fi < 0 || fi >= len(functions) {
+        return 0 - 1
+    }
+    module_canon::MirModule_canon_index_of(
+        ctx.mir,
+        sections_types_sigs_detail::build_function_type_sig(
+            get_unchecked(functions, fi),
+            ctx_record::SelfEmitCtx_target(ctx),
+            ctx_record::SelfEmitCtx_wasi_version(ctx),
+            ctx_record::SelfEmitCtx_memory64(ctx),
+            ctx.mir
+        )
+    )
+}
+
+// Emit-side lookup for the registered pair-call signatures: membership is
+// the collected pair-sig list, the index is the module canon table.
 fn call_ref_pair_sig_type_idx(ctx: SelfEmitCtx, sig: String) -> i32 {
     let sigs = ctx_record::SelfEmitCtx_pair_call_sigs(ctx)
-    let map = ctx_record::SelfEmitCtx_pair_call_type_map(ctx)
     let n = len(sigs)
     let mut i = 0
     while i < n {
-        if eq(clone(sig), clone(get_unchecked(sigs, i))) && i < len(map) {
-            return get_unchecked(map, i)
+        if eq(clone(sig), clone(get_unchecked(sigs, i))) {
+            return module_canon::MirModule_canon_index_of(ctx.mir, sig)
         }
         i = i + 1
     }
@@ -564,7 +584,6 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     if type_idx >= 0 {
         return type_idx
     }
-    let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
     let memory64 = ctx_record::SelfEmitCtx_memory64(ctx)
@@ -574,12 +593,12 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     if arg_count == 1 {
         if dest_vt == value_types::VT_I32() && (first_arg_vt < 0 || first_arg_vt == value_types::VT_I32()) {
             if memory64 {
-                let named_m64 = find_unary_i32_callback_type_memory64(functions, fn_type_map, fn_count)
+                let named_m64 = find_unary_i32_callback_type_memory64(ctx, fn_count)
                 if named_m64 >= 0 {
                     return named_m64
                 }
             } else {
-                let named = find_unary_i32_callback_type(functions, fn_type_map, fn_count)
+                let named = find_unary_i32_callback_type()
                 if named >= 0 {
                     return named
                 }
@@ -588,12 +607,12 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     }
     if arg_count == 2 {
         if memory64 {
-            let named2_m64 = find_binary_i32_callback_type_memory64(functions, fn_type_map, fn_count)
+            let named2_m64 = find_binary_i32_callback_type_memory64(ctx, fn_count)
             if named2_m64 >= 0 {
                 return named2_m64
             }
         } else {
-            let named2 = find_binary_i32_callback_type(functions, fn_type_map, fn_count)
+            let named2 = find_binary_i32_callback_type()
             if named2 >= 0 {
                 return named2
             }
@@ -606,22 +625,27 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
         if pc == arg_count {
             let effective_rt = effective_return_vt(f)
             if match_matches_return(effective_rt, dest_vt) {
-                if fi < len(fn_type_map) {
-                    if first_arg_vt >= 0 && pc > 0 {
-                        let p0 = function_param_view::MirFunction_param_val_type(f, 0)
-                        if match_matches_param0(p0, first_arg_vt) {
-                            return get_unchecked(fn_type_map, fi)
+                if first_arg_vt >= 0 && pc > 0 {
+                    let p0 = function_param_view::MirFunction_param_val_type(f, 0)
+                    if match_matches_param0(p0, first_arg_vt) {
+                        let fi_type = emit_fn_type_idx(ctx, fi)
+                        if fi_type >= 0 {
+                            return fi_type
                         }
-                    } else {
-                        return get_unchecked(fn_type_map, fi)
+                    }
+                } else {
+                    let fi_type = emit_fn_type_idx(ctx, fi)
+                    if fi_type >= 0 {
+                        return fi_type
                     }
                 }
             }
         }
         fi = fi + 1
     }
-    if len(fn_type_map) > 0 {
-        return get_unchecked(fn_type_map, 0)
+    let first = emit_fn_type_idx(ctx, 0)
+    if first >= 0 {
+        return first
     }
     0
 }
@@ -922,16 +946,15 @@ fn fnsig_segment_value_type(seg: String) -> i32 {
 // ref flavour so `fnsig:VecIter;i32` finds `fn(VecIter) -> i32` (#860).
 fn find_fnsig_fn_type_idx(ctx: SelfEmitCtx, param_vt: i32, ret_vt: i32) -> i32 {
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let fn_count = len(functions)
     let mut fi = 0
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
-        if function_param_view::MirFunction_param_count(f) == 1 && fi < len(fn_type_map) {
+        if function_param_view::MirFunction_param_count(f) == 1 {
             let p0 = function_param_view::MirFunction_param_val_type(f, 0)
             let rt = effective_return_vt(f)
             if fnsig_vt_matches(p0, param_vt) && fnsig_vt_matches(rt, ret_vt) {
-                return get_unchecked(fn_type_map, fi)
+                return emit_fn_type_idx(ctx, fi)
             }
         }
         fi = fi + 1
@@ -949,38 +972,32 @@ fn fnsig_vt_matches(actual: i32, want: i32) -> bool {
     false
 }
 
-fn find_unary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+fn find_unary_i32_callback_type() -> i32 {
     // Map/filter callbacks are funcref params. Searching MirFunctions can
     // falsely match Vec→Iter helpers whose wasm type is GC-ref based.
     // WASI host type sigs always include i32_1i32 as type index 3
     // (see sections_types_sigs::append_wasi_type_sigs).
-    if fn_count < 0 {
-        let _f = functions
-        let _m = fn_type_map
-    }
     3
 }
 
-fn find_binary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+fn find_binary_i32_callback_type() -> i32 {
     // Fold callbacks are funcref params. Do not search MirFunctions — that
     // falsely matches map_i32_i32 when fnref locals are typed VT_I32.
     // WASI host type sigs always include i32_i32_1i32 as type index 1.
-    if fn_count < 0 {
-        let _f = functions
-        let _m = fn_type_map
-    }
     1
 }
 
-fn find_unary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+fn find_unary_i32_callback_type_memory64(ctx: SelfEmitCtx, fn_count: i32) -> i32 {
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let mut fi = 0
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
         if function_param_view::MirFunction_param_count(f) == 1 {
             if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
                 if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
-                    if fi < len(fn_type_map) {
-                        return get_unchecked(fn_type_map, fi)
+                    let fi_type = emit_fn_type_idx(ctx, fi)
+                    if fi_type >= 0 {
+                        return fi_type
                     }
                 }
             }
@@ -990,7 +1007,8 @@ fn find_unary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_ma
     0 - 1
 }
 
-fn find_binary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+fn find_binary_i32_callback_type_memory64(ctx: SelfEmitCtx, fn_count: i32) -> i32 {
+    let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let mut fi = 0
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
@@ -998,8 +1016,9 @@ fn find_binary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_m
             if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
                 if function_param_view::MirFunction_param_val_type(f, 1) == value_types::VT_I32() {
                     if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
-                        if fi < len(fn_type_map) {
-                            return get_unchecked(fn_type_map, fi)
+                        let fi_type = emit_fn_type_idx(ctx, fi)
+                        if fi_type >= 0 {
+                            return fi_type
                         }
                     }
                 }

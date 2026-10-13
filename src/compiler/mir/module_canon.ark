@@ -26,6 +26,13 @@ fn MirModule_canon_sigs(m: MirModule) -> Vec<String> {
     m.canon_sigs
 }
 
+// Read-only counterpart of canon_ensure: the canon index of an already-
+// registered signature, or -1. Never appends — callers that need
+// registration go through canon_ensure so index order stays explicit.
+fn MirModule_canon_index_of(m: MirModule, sig: String) -> i32 {
+    name_index::name_index_get(m.canon_index, sig)
+}
+
 fn MirModule_gc_canon_prefix_done(m: MirModule) -> bool {
     m.gc_canon_prefix_done
 }

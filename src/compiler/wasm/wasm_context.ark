@@ -60,8 +60,8 @@ fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
 }
 
-fn emit_wasm_context_set_pair_call_sig_types(ctx: SelfEmitCtx, sigs: Vec<String>, type_map: Vec<i32>) {
-    ctx_record::SelfEmitCtx_set_pair_call_sig_types(ctx, sigs, type_map)
+fn emit_wasm_context_set_pair_call_sigs(ctx: SelfEmitCtx, sigs: Vec<String>) {
+    ctx_record::SelfEmitCtx_set_pair_call_sigs(ctx, sigs)
 }
 
 fn emit_wasm_context_set_fn_type_refs(ctx: SelfEmitCtx, table: FuncTypeRefs) {
