@@ -405,12 +405,19 @@ BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS: dict[tuple[str, ...], str] = {
     ("mir_opt", "optimize_module"): "mir_opt",
 }
 BOOTSTRAP_MIR_OPT_STUB = """// Focused proof overlay — stdlib plus validated gc_hint only.
+use mir_emit_artifacts
+use mir_module_emit_artifacts
 use mir_module_functions
 use mir_opt_gc_hint
 use mir_opt_stdlib_inline
 
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     let _target = target
+    // #851 Phase 3 fused emit: bodies already optimized+emitted in the
+    // lowering drain; mutating MIR here would diverge from emitted bytes.
+    if mir_emit_artifacts::MirEmitArtifacts_enabled(mir_module_emit_artifacts::MirModule_emit_artifacts(m)) {
+        return m
+    }
     if opt_level >= 1 {
         mir_opt_stdlib_inline::stdlib_inline_module(m)
     }
@@ -429,6 +436,20 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
     }
     mir_module_functions::MirModule_set_functions(m, updated)
     m
+}
+
+// Per-fn form used by the fused in-loop emit drain (#851 Phase 3): same
+// pass sequence as optimize_module applied to one function.
+pub fn optimize_fn(m: MirModule, f: MirFunction, opt_level: i32, target: String) -> MirFunction {
+    let _target = target
+    if opt_level >= 1 {
+        mir_opt_stdlib_inline::stdlib_inline_fn(m, f)
+    }
+    mir_opt_stdlib_inline::stdlib_resolve_fn_normal_calls(m, f)
+    if opt_level >= 2 {
+        mir_opt_gc_hint::run_gc_hint(f)
+    }
+    f
 }
 """
 

@@ -73,7 +73,7 @@ fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_gc_data_string(
         w,
         ctx,
-        ctx_string_view::SelfEmitCtx_true_string_offset(ctx),
+        0 - 1,
         4,
         dest,
         string_type,
@@ -84,7 +84,7 @@ fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_gc_data_string(
         w,
         ctx,
-        ctx_string_view::SelfEmitCtx_false_string_offset(ctx),
+        0 - 1,
         5,
         dest,
         string_type,

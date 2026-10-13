@@ -53,6 +53,11 @@ struct GcLayoutTable {
     next_id: i32,
     typed_lookup_count: i32,
     conflict_count: i32,
+    // Resumable plan-drain state (#851 Phase 3): bindings[0..plan_seen)
+    // have been offered to the drain; plan_pending holds those whose
+    // type-section slot was not final yet (late canon ensure).
+    plan_seen: i32,
+    plan_pending: Vec<i32>,
 }
 
 fn GcMemberKey_aggregate() -> GcMemberKey {
@@ -126,7 +131,9 @@ fn GcLayoutTable_new() -> GcLayoutTable {
         next_same_type_id: Vec::new<i32>(),
         next_id: 0,
         typed_lookup_count: 0,
-        conflict_count: 0
+        conflict_count: 0,
+        plan_seen: 0,
+        plan_pending: Vec::new<i32>()
     }
 }
 

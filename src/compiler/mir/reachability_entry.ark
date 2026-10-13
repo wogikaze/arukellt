@@ -36,13 +36,41 @@ fn mir_prune_unreachable_with_roots_for_target_and_edges(
     if reachability_legacy::mir_reachability_legacy_enabled() {
         return reachability_legacy::mir_prune_unreachable_legacy_fixpoint(m, extra_roots)
     }
-    let fn_count = module_functions::MirModule_function_count(m)
-    if fn_count == 0 {
+    let reachable = mir_reachability_marks_for_target_and_edges(
+        m,
+        extra_roots,
+        target,
+        edges,
+        fn_names,
+        edge_names
+    )
+    if len(reachable) == 0 {
         return 0
+    }
+    reachability_prune::mir_prune_unmarked_functions(m, reachable)
+}
+
+// #851 Phase 3: the fused in-loop body drain needs the reachable set before
+// pruning compacts the function table, so it can emit exactly the surviving
+// functions (emitting a to-be-pruned body would skew the emit audit
+// counters). Returns fn_count marks (1 = kept); an empty vec means the
+// module had no functions. A zero-root walk still returns all-1 marks to
+// match the legacy early-return that keeps every function.
+fn mir_reachability_marks_for_target_and_edges(
+    m: MirModule,
+    extra_roots: Vec<String>,
+    target: String,
+    edges: Vec<i32>,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>
+) -> Vec<i32> {
+    let fn_count = module_functions::MirModule_function_count(m)
+    let reachable = Vec::new<i32>()
+    if fn_count == 0 {
+        return reachable
     }
     let functions = module_functions::MirModule_functions(m)
     let index = reachability_index::mir_reachability_index_build(m, functions)
-    let reachable = Vec::new<i32>()
     let mut i = 0
     while i < fn_count {
         push(reachable, 0)
@@ -51,7 +79,12 @@ fn mir_prune_unreachable_with_roots_for_target_and_edges(
     let queue = Vec::new<i32>()
     let root_count = reachability_roots::mir_mark_roots(index, functions, reachable, queue, extra_roots)
     if root_count == 0 {
-        return 0
+        let mut ri = 0
+        while ri < fn_count {
+            set(reachable, ri, 1)
+            ri = ri + 1
+        }
+        return reachable
     }
     let packed_edges = reachability_walk::mir_build_recorded_edge_lists(edges, fn_count)
     let mut qhead = 0
@@ -73,5 +106,5 @@ fn mir_prune_unreachable_with_roots_for_target_and_edges(
             edge_names
         )
     }
-    reachability_prune::mir_prune_unmarked_functions(m, reachable)
+    reachable
 }

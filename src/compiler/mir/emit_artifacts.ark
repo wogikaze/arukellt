@@ -23,6 +23,9 @@ struct MirEmitArtifacts {
     call_reloc_offs: Vec<i32>,
     call_reloc_fids: Vec<i32>,
     call_reloc_funcs: Vec<i32>,
+    // Name key for fid<0 call relocs (fused emit defers name resolution to
+    // the post-prune apply step).
+    call_reloc_names: Vec<String>,
     // Audit counters accumulated on the in-loop emit ctx.
     registry_audit_candidates: i32,
     registry_audit_matched: i32,
@@ -56,6 +59,7 @@ fn MirEmitArtifacts_disabled() -> MirEmitArtifacts {
         call_reloc_offs: Vec::new<i32>(),
         call_reloc_fids: Vec::new<i32>(),
         call_reloc_funcs: Vec::new<i32>(),
+        call_reloc_names: Vec::new<String>(),
         registry_audit_candidates: 0,
         registry_audit_matched: 0,
         registry_audit_mismatched: 0,

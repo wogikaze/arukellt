@@ -11,6 +11,19 @@ fn SelfEmitCtx_push_call_reloc(ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
     push(ctx.call_reloc_offs, off)
     push(ctx.call_reloc_fids, fid_raw)
     push(ctx.call_reloc_funcs, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    push(ctx.call_reloc_names, String_new())
+}
+
+// #851 Phase 3 fused emit: a resolved call whose callee has no FunctionId
+// is patched by name. In-loop emit still sees pre-prune function indices,
+// so the target name defers into the reloc stream and resolves at apply
+// time on the post-prune index — identical result to the legacy immediate
+// patch.
+fn SelfEmitCtx_push_call_reloc_name(ctx: SelfEmitCtx, off: i32, name: String) {
+    push(ctx.call_reloc_offs, off)
+    push(ctx.call_reloc_fids, 0 - 1)
+    push(ctx.call_reloc_funcs, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    push(ctx.call_reloc_names, name)
 }
 
 fn SelfEmitCtx_apply_call_relocs(
@@ -24,11 +37,14 @@ fn SelfEmitCtx_apply_call_relocs(
         let off = get_unchecked(ctx.call_reloc_offs, i)
         let fid_raw = get_unchecked(ctx.call_reloc_fids, i)
         let func_idx = get_unchecked(ctx.call_reloc_funcs, i)
-        let signature = signature_registry::signature_registry_lookup_by_id(
-            registry,
-            function_id::FunctionId_new(fid_raw)
-        )
-        let name = signature_entry::signature_entry_base_name(signature)
+        let mut name = get_unchecked(ctx.call_reloc_names, i)
+        if fid_raw >= 0 {
+            let signature = signature_registry::signature_registry_lookup_by_id(
+                registry,
+                function_id::FunctionId_new(fid_raw)
+            )
+            name = signature_entry::signature_entry_base_name(signature)
+        }
         let fn_idx = inst_ctx::resolve_fn_index_for_call(ctx, name, fid_raw)
         if fn_idx >= 0 {
             let body = get_unchecked(ctx.body_bytes, func_idx)
@@ -48,4 +64,5 @@ fn SelfEmitCtx_apply_call_relocs(
     ctx.call_reloc_offs = Vec::new<i32>()
     ctx.call_reloc_fids = Vec::new<i32>()
     ctx.call_reloc_funcs = Vec::new<i32>()
+    ctx.call_reloc_names = Vec::new<String>()
 }

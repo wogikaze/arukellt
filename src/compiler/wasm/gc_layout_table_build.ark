@@ -50,14 +50,38 @@ fn populate_gc_layout_table_for_emit(
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_type_map: Vec<i32>
 ) {
+    gc_layout_table_drain_plan(
+        table, mir, gc_type_base, gc_enum_variant_type_map,
+        gc_struct_type_map, true)
+}
+
+// Resumable drain of the module GC layout plan into the emit table (#851
+// Phase 3): new bindings are offered once; a binding whose type-section
+// slot is not final yet stays pending instead of ICEing. final_pass=true
+// restores the legacy all-or-ICE semantics (post-lower emit path).
+fn gc_layout_table_drain_plan(
+    table: GcLayoutTable,
+    mir: MirModule,
+    gc_type_base: i32,
+    gc_enum_variant_type_map: Vec<i32>,
+    gc_struct_type_map: Vec<i32>,
+    final_pass: bool
+) {
     let plan = module_gc_layout_plan::MirModule_gc_layout_plan(mir)
     if !gc_layout_plan_validator::mir_gc_layout_plan_valid(plan) {
         stdio::eprintln("compiler ICE: backend received invalid MIR GC layout plan")
         process::exit(1)
     }
     let count = gc_layout_plan::mir_gc_layout_plan_binding_count(plan)
-    let mut index = 0
-    while index < count {
+    while table.plan_seen < count {
+        push(table.plan_pending, table.plan_seen)
+        table.plan_seen = table.plan_seen + 1
+    }
+    let still_pending = Vec::new<i32>()
+    let pending_count = len(table.plan_pending)
+    let mut p = 0
+    while p < pending_count {
+        let index = get_unchecked(table.plan_pending, p)
         let binding = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, index)
         let type_idx = gc_layout_plan_type_index(
             binding,
@@ -66,22 +90,27 @@ fn populate_gc_layout_table_for_emit(
             gc_struct_type_map
         )
         if type_idx < 0 {
-            stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
-            process::exit(1)
+            if final_pass {
+                stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
+                process::exit(1)
+            }
+            push(still_pending, index)
+        } else {
+            let layout_id = gc_layout_table::gc_layout_table_register_key(
+                table,
+                gc_layout_table::GcLayoutKey_new(
+                    gc_layout_plan::mir_gc_layout_binding_type_id(binding),
+                    gc_layout_table::GcMemberKey_aggregate()
+                ),
+                gc_layout_table::WasmRefType_new(type_idx, 1),
+                gc_layout_plan_struct_type_index(binding, type_idx)
+            )
+            if !gc_layout_table::gc_layout_id_is_valid(layout_id) {
+                stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
+                process::exit(1)
+            }
         }
-        let layout_id = gc_layout_table::gc_layout_table_register_key(
-            table,
-            gc_layout_table::GcLayoutKey_new(
-                gc_layout_plan::mir_gc_layout_binding_type_id(binding),
-                gc_layout_table::GcMemberKey_aggregate()
-            ),
-            gc_layout_table::WasmRefType_new(type_idx, 1),
-            gc_layout_plan_struct_type_index(binding, type_idx)
-        )
-        if !gc_layout_table::gc_layout_id_is_valid(layout_id) {
-            stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
-            process::exit(1)
-        }
-        index = index + 1
+        p = p + 1
     }
+    table.plan_pending = still_pending
 }

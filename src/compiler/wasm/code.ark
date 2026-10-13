@@ -4,6 +4,7 @@ use std::host::stdio
 use std::prelude::{clone, i64_to_i32, to_string}
 use std::text
 use mir::block_inst_access
+use mir::emit_artifacts
 use mir::function_block_queries
 use mir::function_identity
 use mir::function_return_view
@@ -249,6 +250,39 @@ fn code_apply_pending_relocs(ctx: SelfEmitCtx) {
     ctx.reloc_skey2 = Vec::new<String>()
 }
 
+// #851 Phase 3 fused emit: adopt the lowering drain's artifact vecs onto
+// this emit ctx. The drain runs post-prune, so every recorded function
+// index is already final — adoption is a straight vec handoff plus the
+// audit counters the drain accumulated on its own ctx.
+fn emit_ctx_adopt_inloop_artifacts(ctx: SelfEmitCtx, art: MirEmitArtifacts) {
+    ctx.body_bytes = art.body_bytes
+    ctx.reloc_func = art.reloc_func
+    ctx.reloc_off = art.reloc_off
+    ctx.reloc_kind = art.reloc_kind
+    ctx.reloc_ikey = art.reloc_ikey
+    ctx.reloc_ikey2 = art.reloc_ikey2
+    ctx.reloc_ikey3 = art.reloc_ikey3
+    ctx.reloc_skey = art.reloc_skey
+    ctx.reloc_skey2 = art.reloc_skey2
+    ctx.call_reloc_offs = art.call_reloc_offs
+    ctx.call_reloc_fids = art.call_reloc_fids
+    ctx.call_reloc_funcs = art.call_reloc_funcs
+    ctx.call_reloc_names = art.call_reloc_names
+    ctx.registry_audit_candidates = art.registry_audit_candidates
+    ctx.registry_audit_matched = art.registry_audit_matched
+    ctx.registry_audit_mismatched = art.registry_audit_mismatched
+    ctx.registry_audit_mismatch_budget = art.registry_audit_mismatch_budget
+    ctx.core_op_shadow_candidates = art.core_op_shadow_candidates
+    ctx.core_op_shadow_matched = art.core_op_shadow_matched
+    ctx.core_op_shadow_mismatched = art.core_op_shadow_mismatched
+    ctx.core_op_shadow_unresolved = art.core_op_shadow_unresolved
+    ctx.core_op_shadow_mismatch_budget = art.core_op_shadow_mismatch_budget
+    let mut layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
+    layout.typed_lookup_count = layout.typed_lookup_count + art.gc_layout_typed_lookups
+    layout.conflict_count = layout.conflict_count + art.gc_layout_conflicts
+    ctx.in_loop_emitted = true
+}
+
 fn emit_code_section(
     out: WasmWriter,
     mir: MirModule,
@@ -379,36 +413,46 @@ fn emit_code_section(
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut ci = 0
     let mut slow_notes = 0
-    while ci < fn_count {
-        let f = get_unchecked(functions, ci)
-        ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
-        let t_fn = clock::monotonic_now()
-        // #851 Phase 3: declared bodies emit into a per-fn scratch writer so
-        // the resulting byte vec is independently addressable by func_idx —
-        // the same shape in-loop emit needs once bodies complete out of
-        // code-section order.
-        let body_w = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
-        code_configure_linear_gc_writer(
-            body_w,
-            fn_count,
-            needs_wrapper,
-            p2_library_post_count,
-            p2_library_wrapper_count,
-            p2_runtime_function_count,
-            linear_gc_runtime_count,
-            clone(target),
-            clone(wasi_version),
-            module_wit_imports::wit_import_count(bindings)
-        )
-        code_body::emit_function_body(body_w, f, ctx, bindings)
-        push(ctx.body_bytes, writer_core::writer_bytes(body_w))
-        if slow_notes < 32 {
-            if emit_slow_fn_note(report_timing, ci, f, t_fn) {
-                slow_notes = slow_notes + 1
-            }
+    if ctx.in_loop_emitted {
+        // #851 Phase 3 fused emit: bodies already sit in ctx.body_bytes
+        // (post-adoption, compacted to post-prune indices). Keep the detach
+        // sweep so the MIR footprint after emit matches the legacy loop.
+        while ci < fn_count {
+            module_block_pool::mir_function_detach_blocks(get_unchecked(functions, ci), mir)
+            ci = ci + 1
         }
-        module_block_pool::mir_function_detach_blocks(f, mir)
-        ci = ci + 1
+    } else {
+        while ci < fn_count {
+            let f = get_unchecked(functions, ci)
+            ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
+            let t_fn = clock::monotonic_now()
+            // #851 Phase 3: declared bodies emit into a per-fn scratch writer so
+            // the resulting byte vec is independently addressable by func_idx —
+            // the same shape in-loop emit needs once bodies complete out of
+            // code-section order.
+            let body_w = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+            code_configure_linear_gc_writer(
+                body_w,
+                fn_count,
+                needs_wrapper,
+                p2_library_post_count,
+                p2_library_wrapper_count,
+                p2_runtime_function_count,
+                linear_gc_runtime_count,
+                clone(target),
+                clone(wasi_version),
+                module_wit_imports::wit_import_count(bindings)
+            )
+            code_body::emit_function_body(body_w, f, ctx, bindings)
+            push(ctx.body_bytes, writer_core::writer_bytes(body_w))
+            if slow_notes < 32 {
+                if emit_slow_fn_note(report_timing, ci, f, t_fn) {
+                    slow_notes = slow_notes + 1
+                }
+            }
+            module_block_pool::mir_function_detach_blocks(f, mir)
+            ci = ci + 1
+        }
     }
     // #851 Phase 3: deferred-resolution operands (call targets, plan-
     // appended string literals, call_indirect/call_ref type indices) are

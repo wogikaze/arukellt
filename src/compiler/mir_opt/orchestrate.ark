@@ -7,6 +7,8 @@
 // verified GC-safe. gc_hint is enabled on all targets.
 
 use std::prelude::{clone}
+use mir::emit_artifacts
+use mir::module_emit_artifacts
 use mir::module_functions
 use mir::types
 use mir_opt::async_lower
@@ -16,6 +18,12 @@ use mir_opt::loop_unroll
 use mir_opt::stdlib_resolve_validated
 use mir_opt::target_gate
 fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+    // #851 Phase 3: with fused in-loop emit the per-fn passes already ran in
+    // the lowering drain and the emitted bytes are stored on the module's
+    // artifacts — re-running opt here would mutate MIR after its emit.
+    if emit_artifacts::MirEmitArtifacts_enabled(module_emit_artifacts::MirModule_emit_artifacts(m)) {
+        return m
+    }
     let m = async_lower::async_lower_optimize_module(m)
     // stdlib call expansion is intentionally disabled until an independent
     // expansion validator exists. Call-target normalization is enabled only
@@ -40,4 +48,21 @@ fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirM
     }
     module_functions::MirModule_set_functions(m, updated)
     m
+}
+
+// Per-fn composition for the fused in-loop emit drain (#851 Phase 3):
+// same pass order as mir_opt_optimize_module (async lower -> validated
+// stdlib resolve -> O2 loop/gc passes) applied to one function. All passes
+// are function-local, so composing them per-fn is equivalent.
+fn mir_opt_optimize_fn(m: MirModule, f: MirFunction, opt_level: i32, target: String) -> MirFunction {
+    let f = async_lower::async_lower_fn(f)
+    stdlib_resolve_validated::stdlib_resolve_fn_validated(m, f)
+    if opt_level >= 2 {
+        if !target_gate::mir_opt_is_t3_target(clone(target)) {
+            loop_unroll::run_loop_unroll(f)
+            licm::run_licm(f)
+        }
+        gc_hint::run_gc_hint(f)
+    }
+    f
 }

@@ -78,17 +78,25 @@ fn stdlib_inline_module(m: MirModule) -> i32 {
     let mut function_index = 0
     while function_index < function_count {
         let caller = module_functions::MirModule_function_at(m, function_index)
-        let block_count = function_block_queries::MirFunction_block_count(caller)
-        let mut block_index = 0
-        while block_index < block_count {
-            total = total + stdlib_inline_rewrite_block(
-                m,
-                caller,
-                function_block_queries::MirFunction_block_at(caller, block_index)
-            )
-            block_index = block_index + 1
-        }
+        total = total + stdlib_inline_fn(m, caller)
         function_index = function_index + 1
+    }
+    total
+}
+
+// Per-fn entry for the fused in-loop emit drain (#851 Phase 3): identical
+// block loop to stdlib_inline_module, applied to one caller.
+fn stdlib_inline_fn(m: MirModule, caller: MirFunction) -> i32 {
+    let mut total = 0
+    let block_count = function_block_queries::MirFunction_block_count(caller)
+    let mut block_index = 0
+    while block_index < block_count {
+        total = total + stdlib_inline_rewrite_block(
+            m,
+            caller,
+            function_block_queries::MirFunction_block_at(caller, block_index)
+        )
+        block_index = block_index + 1
     }
     total
 }
@@ -243,17 +251,24 @@ fn stdlib_resolve_normal_calls(m: MirModule) -> i32 {
     let mut function_index = 0
     while function_index < function_count {
         let f = module_functions::MirModule_function_at(m, function_index)
-        let block_count = function_block_queries::MirFunction_block_count(f)
-        let mut block_index = 0
-        while block_index < block_count {
-            total = total + stdlib_resolve_normal_call_block(
-                m,
-                f,
-                function_block_queries::MirFunction_block_at(f, block_index)
-            )
-            block_index = block_index + 1
-        }
+        total = total + stdlib_resolve_fn_normal_calls(m, f)
         function_index = function_index + 1
+    }
+    total
+}
+
+// Per-fn entry for the fused in-loop emit drain (#851 Phase 3).
+fn stdlib_resolve_fn_normal_calls(m: MirModule, f: MirFunction) -> i32 {
+    let mut total = 0
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut block_index = 0
+    while block_index < block_count {
+        total = total + stdlib_resolve_normal_call_block(
+            m,
+            f,
+            function_block_queries::MirFunction_block_at(f, block_index)
+        )
+        block_index = block_index + 1
     }
     total
 }

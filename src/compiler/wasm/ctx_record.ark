@@ -101,6 +101,10 @@ pub struct SelfEmitCtx {
     call_reloc_offs: Vec<i32>,
     call_reloc_fids: Vec<i32>,
     call_reloc_funcs: Vec<i32>,
+    // #851 Phase 3: name key for call relocs whose callee carried no
+    // FunctionId — resolved by name at reloc-apply time (post-prune), so
+    // the in-loop drain can defer them the same way fid relocs are.
+    call_reloc_names: Vec<String>,
     // Registered pair-ABI call-site signatures (#872); their canon type
     // indices resolve through MirModule.canon_sigs — no parallel map is
     // kept (#851 Phase 3). Empty outside GC targets.
@@ -120,6 +124,14 @@ pub struct SelfEmitCtx {
     reloc_ikey3: Vec<i32>,
     reloc_skey: Vec<String>,
     reloc_skey2: Vec<String>,
+    // Incremental name-index state (#851 Phase 3 in-loop emit): number of
+    // ctx.functions already folded into function_name_index/counts. The
+    // emit-phase ctx is built on the complete module so the watermark
+    // starts at fn_count; an in-loop ctx drains as functions push.
+    fn_index_watermark: i32,
+    // #851 Phase 3: bodies were emitted inside the lowering drain into
+    // body_bytes; emit_code_section skips its emit loop when this is set.
+    in_loop_emitted: bool,
 }
 
 fn SelfEmitCtx_new(
@@ -223,6 +235,7 @@ fn SelfEmitCtx_new(
         call_reloc_offs: Vec::new<i32>(),
         call_reloc_fids: Vec::new<i32>(),
         call_reloc_funcs: Vec::new<i32>(),
+        call_reloc_names: Vec::new<String>(),
         pair_call_sigs: Vec::new<String>(),
         body_bytes: Vec::new<Vec<i32>>(),
         reloc_func: Vec::new<i32>(),
@@ -233,6 +246,25 @@ fn SelfEmitCtx_new(
         reloc_ikey3: Vec::new<i32>(),
         reloc_skey: Vec::new<String>(),
         reloc_skey2: Vec::new<String>(),
+        fn_index_watermark: fn_count,
+        in_loop_emitted: false,
+    }
+}
+
+// Fold newly pushed functions into the name index/counts. Idempotent and
+// incremental: identical result to the constructor's one-shot build when
+// the module is complete, and correct for a still-growing functions vec.
+fn SelfEmitCtx_fn_index_drain(ctx: SelfEmitCtx) {
+    let functions = ctx.functions
+    let n = len(functions)
+    while ctx.fn_index_watermark < n {
+        let fi = ctx.fn_index_watermark
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
+        push(ctx.function_name_lengths, len(clone(fname)))
+        name_index::name_index_insert_first(
+            ctx.function_name_index, clone(fname), fi)
+        name_index::name_index_increment(ctx.function_name_counts, fname)
+        ctx.fn_index_watermark = fi + 1
     }
 }
 

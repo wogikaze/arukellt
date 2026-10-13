@@ -10,6 +10,8 @@ use mir::lower::closure_env
 use mir::lower::decl_source
 use mir::lower::ctx_corehir_probe
 use mir::lower::edge_discovery
+use mir::lower::emit_inloop
+use mir::lower::emit_spec
 use mir::lower::entry_context
 use mir::lower::entry_decls
 use mir::lower::entry_input
@@ -27,6 +29,7 @@ use mir::module_gc_order
 use mir::module_functions
 use mir::post_pass_callee_cache
 use mir::reachability
+use mir::reachability_legacy
 use corehir::mir_body_source
 use corehir::mod as corehir_mod
 
@@ -227,7 +230,19 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, "gc_layout_plan", t_after_reach, t_after_prop)
     entry_timing::mir_lower_phase_note(timing, "sync", t_after_reach, t_after_reach)
     entry_timing::mir_lower_phase_note(timing, "propagate", t_after_reach, t_after_reach)
-    entry_timing::mir_lower_phase_note(timing, "total", t_enter, t_after_prop)
+
+    // #851 Phase 3 fused emit: with the post-prune module final, drain
+    // declared bodies into MirEmitArtifacts. The wasm emit phase adopts
+    // the bytes and only applies relocs + assembles the code section.
+    // The legacy reachability path keeps the legacy post-lower emit loop.
+    if emit_spec::mir_lower_emit_spec_enabled(input.emit_spec) {
+        if !reachability_legacy::mir_reachability_legacy_enabled() {
+            emit_inloop::emit_inloop_drain(module, input.emit_spec)
+        }
+    }
+    let t_after_inloop = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, "inloop_emit", t_after_prop, t_after_inloop)
+    entry_timing::mir_lower_phase_note(timing, "total", t_enter, t_after_inloop)
 
     module
 }

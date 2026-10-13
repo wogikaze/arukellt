@@ -27,6 +27,7 @@ fn lower_emit_spec_for(program: CheckedProgram, config: DriverConfig) -> MirLowe
     emit_spec::mir_lower_emit_spec_new(
         clone(wasi_version),
         emit_target::uses_memory64(clone(target), wasi_version, config_record::config_memory_width(config)),
+        clone(target),
         config_record::config_source_file(config),
         bindings,
         config_record::config_opt_level(config),

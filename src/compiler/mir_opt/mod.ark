@@ -4,3 +4,10 @@ use mir_opt::orchestrate
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     orchestrate::mir_opt_optimize_module(m, opt_level, target)
 }
+
+// Per-fn composition for the fused in-loop emit drain (#851 Phase 3).
+// The bootstrap overlay provides its own stub optimize_fn; the drain only
+// ever sees whichever mir_opt namespace the build linked.
+pub fn optimize_fn(m: MirModule, f: MirFunction, opt_level: i32, target: String) -> MirFunction {
+    orchestrate::mir_opt_optimize_fn(m, f, opt_level, target)
+}

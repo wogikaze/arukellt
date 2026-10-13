@@ -15,15 +15,21 @@ fn async_lower_optimize_module(m: MirModule) -> MirModule {
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
-        if function_has_async_op(f) {
-            push(updated, lower_async_ops(f))
-        } else {
-            push(updated, f)
-        }
+        push(updated, async_lower_fn(f))
         fi = fi + 1
     }
     module_functions::MirModule_set_functions(m, updated)
     m
+}
+
+// Per-fn entry for the fused in-loop emit drain (#851 Phase 3): identical
+// to the module pass body — async ops lower in place and the function
+// record is returned unchanged.
+fn async_lower_fn(f: MirFunction) -> MirFunction {
+    if function_has_async_op(f) {
+        return lower_async_ops(f)
+    }
+    f
 }
 
 fn function_has_async_op(f: MirFunction) -> bool {

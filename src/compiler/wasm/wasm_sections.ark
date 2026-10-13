@@ -17,6 +17,8 @@ use wasm::gc_layout_audit
 use wasm::registry_return_audit
 use wasm::core_op_shadow
 use mir::module_functions
+use mir::emit_artifacts
+use mir::module_emit_artifacts
 use mir::module_canon
 use mir::module_wit_imports
 use mir::module_gc_struct
@@ -197,6 +199,13 @@ fn emit_wasm_module_sections(
     wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), wit_import_count)
     wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), wit_import_count)
     t_phase = emit_section_note(report_timing, "pre_code", t_phase)
+    // #851 Phase 3 fused emit: when the lowering drain already emitted the
+    // declared bodies into the module's artifact record, adopt them so the
+    // code section only applies relocs and assembles sized bodies.
+    let emit_arts = module_emit_artifacts::MirModule_emit_artifacts(mir)
+    if emit_artifacts::MirEmitArtifacts_enabled(emit_arts) {
+        code::emit_ctx_adopt_inloop_artifacts(ctx, emit_arts)
+    }
     code::emit_code_section(
         out,
         mir,

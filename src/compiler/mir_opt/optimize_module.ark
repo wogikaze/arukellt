@@ -4,3 +4,7 @@ use mir_opt::orchestrate
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     orchestrate::mir_opt_optimize_module(m, opt_level, target)
 }
+
+pub fn optimize_fn(m: MirModule, f: MirFunction, opt_level: i32, target: String) -> MirFunction {
+    orchestrate::mir_opt_optimize_fn(m, f, opt_level, target)
+}

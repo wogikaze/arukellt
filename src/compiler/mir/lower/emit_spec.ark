@@ -8,6 +8,9 @@ struct MirLowerEmitSpec {
     enabled: bool,
     wasi_version: String,
     memory64: bool,
+    // Driver config target verbatim — optimize_module's t3 gate keys off
+    // it, so the fused drain must see the same spelling.
+    target: String,
     source_file: String,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     opt_level: i32,
@@ -19,6 +22,7 @@ fn mir_lower_emit_spec_disabled() -> MirLowerEmitSpec {
         enabled: false,
         wasi_version: String_new(),
         memory64: false,
+        target: String_new(),
         source_file: String_new(),
         bindings: Vec::new<resolver::wit_import_bind::WitImportBinding>(),
         opt_level: 0,
@@ -29,6 +33,7 @@ fn mir_lower_emit_spec_disabled() -> MirLowerEmitSpec {
 fn mir_lower_emit_spec_new(
     wasi_version: String,
     memory64: bool,
+    target: String,
     source_file: String,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     opt_level: i32,
@@ -38,6 +43,7 @@ fn mir_lower_emit_spec_new(
         enabled: true,
         wasi_version: wasi_version,
         memory64: memory64,
+        target: target,
         source_file: source_file,
         bindings: bindings,
         opt_level: opt_level,
@@ -55,6 +61,10 @@ fn mir_lower_emit_spec_wasi_version(spec: MirLowerEmitSpec) -> String {
 
 fn mir_lower_emit_spec_memory64(spec: MirLowerEmitSpec) -> bool {
     spec.memory64
+}
+
+fn mir_lower_emit_spec_target(spec: MirLowerEmitSpec) -> String {
+    clone(spec.target)
 }
 
 fn mir_lower_emit_spec_source_file(spec: MirLowerEmitSpec) -> String {

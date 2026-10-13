@@ -88,16 +88,24 @@ fn try_emit_resolved_fallback_call(
     if fid_raw >= 0 {
         ctx_call_reloc::SelfEmitCtx_push_call_reloc(ctx, slot, fid_raw)
     } else {
-        writer_core::patch_leb128_u_fixed(
-            w,
-            slot,
-            function_indices::defined_function_index(
-                fn_idx,
-                ctx_record::SelfEmitCtx_target(ctx),
-                ctx_record::SelfEmitCtx_wasi_version(ctx),
-                wit_import_count
+        if ctx.in_loop_emitted {
+            // In-loop emit runs before reachability compaction: fn_idx is a
+            // pre-prune index, so the defined_function_index value would go
+            // stale. Defer by name — the apply-time name index is post-prune
+            // and yields the same target today's immediate patch wrote.
+            ctx_call_reloc::SelfEmitCtx_push_call_reloc_name(ctx, slot, clone(resolved_name))
+        } else {
+            writer_core::patch_leb128_u_fixed(
+                w,
+                slot,
+                function_indices::defined_function_index(
+                    fn_idx,
+                    ctx_record::SelfEmitCtx_target(ctx),
+                    ctx_record::SelfEmitCtx_wasi_version(ctx),
+                    wit_import_count
+                )
             )
-        )
+        }
     }
     writer_core::writer_note_ref_top(
         w,
