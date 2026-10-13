@@ -28,7 +28,11 @@ fn emit_runtime_body(w: WasmWriter, ordinal: i32, runtime_base: i32, exit_index:
         return
     }
     if ordinal == constants::LINEAR_GC_COMMIT_TOP() {
-        emit_linear_gc_runtime_commit_top_body(w, exit_index)
+        emit_linear_gc_runtime_commit_top_body(
+            w,
+            exit_index,
+            runtime_base + constants::LINEAR_GC_COLLECT()
+        )
         return
     }
     if ordinal == constants::LINEAR_GC_MARK_CANDIDATE() {
@@ -111,8 +115,22 @@ fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
 // (a bounded leak), which keeps the metadata cursor from growing on every
 // commit. Only an empty free list bumps the cursor, and only a truly
 // exhausted arena reaches the OOM exit.
-fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32) {
+fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32, collect_index: i32) {
     emit_local_decls(w, 6)
+    // Chain-arena pressure is also checked at the commit edge: intrinsic
+    // inline allocations inside a single activation emit no fn-entry
+    // safepoints, so the safepoint gate alone cannot see a burst that would
+    // overflow the arena between fn entries (#922). The record being
+    // committed is not linked into the live list yet, so this collection
+    // cannot sweep it.
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_LIMIT())
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    emit_i32_sub(w)
+    emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
+    emit_i32_lt_u(w)
+    emit_if_empty(w)
+    emit_call(w, collect_index)
+    emit_end(w)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_LAST_TOP())
     emit_local_set(w, 1)
 

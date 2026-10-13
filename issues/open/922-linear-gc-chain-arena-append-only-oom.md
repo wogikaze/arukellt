@@ -67,11 +67,21 @@ workload reaches that bound.
 2. The fn-entry safepoint gate gains a third disjunct: collect when
    CHAIN_LIMIT - CHAIN_CURSOR < LINEAR_GC_PRESSURE_FREE_BYTES, so the
    reclaim fires before a burst can outrun the arena.
+3. The same pressure check now also runs at the head of
+   `emit_linear_gc_runtime_commit_top_body`: intrinsic inline
+   allocations (Vec::new / push etc.) inside a single activation emit
+   no fn-entry safepoints, so the safepoint gate alone could never see
+   a burst like the reproducer. The record being committed is not yet
+   linked into the live list when the check fires, so collection cannot
+   sweep it.
 
 Verified: the 6M-allocation churn loop exits 122 on the buggy emitter
-and completes (exit 0) on the fixed emitter. Single-activation bursts
-larger than the arena (no safepoint between commits) still exit CHAIN
-OOM — that remains the documented bounded-arena contract.
+and completes (exit 0, ~0.26s) on the fixed emitter — including the
+single-activation burst case after fix 3. linear_gc_metadata_pressure /
+linear_gc_entry_collect / linear_gc_hashmap_survives all run exit 0 on
+wasm32 + wasm-tools validate clean. The residual bounded-arena contract
+now covers only genuinely-huge live sets (live page-records alone
+exceeding ~4M nodes).
 
 ## Acceptance
 
