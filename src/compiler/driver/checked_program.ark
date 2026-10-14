@@ -23,6 +23,7 @@ fn build_checked_program_bundle(
     all_decls: Vec<AstNode>,
     check_result: TypeCheckResult,
     modules: Vec<ModuleDecls>,
+    module_stdlib_flags: Vec<bool>,
     main_decls: Vec<AstNode>
 ) -> FrontendBundle {
     let module_names = Vec::new<String>()
@@ -41,6 +42,7 @@ fn build_checked_program_bundle(
         check_result,
         module_names,
         module_decl_counts,
+        module_stdlib_flags,
         main_decls
     )
 }
@@ -49,10 +51,11 @@ fn build_checked_program(
     all_decls: Vec<AstNode>,
     check_result: TypeCheckResult,
     modules: Vec<ModuleDecls>,
+    module_stdlib_flags: Vec<bool>,
     main_decls: Vec<AstNode>,
     include_body_artifact: bool
 ) -> CheckedProgram {
-    let bundle = build_checked_program_bundle(all_decls, check_result, modules, main_decls)
+    let bundle = build_checked_program_bundle(all_decls, check_result, modules, module_stdlib_flags, main_decls)
     let retained_decls = frontend_bundle::bundle_decls(bundle)
     let core_program = if include_body_artifact {
         mod::build_from_frontend_bundle(bundle)

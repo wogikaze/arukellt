@@ -1,5 +1,6 @@
 struct CoreHirModuleInfo {
     name: String,
+    is_stdlib: bool,
     decl_start: i32,
     decl_count: i32,
 }
@@ -15,8 +16,12 @@ struct CoreHirTypedLocal {
     type_info: TypeInfo,
 }
 
-fn CoreHirModuleInfo_new(name: String, decl_start: i32, decl_count: i32) -> CoreHirModuleInfo {
-    CoreHirModuleInfo { name: name, decl_start: decl_start, decl_count: decl_count }
+fn CoreHirModuleInfo_new(name: String, is_stdlib: bool, decl_start: i32, decl_count: i32) -> CoreHirModuleInfo {
+    CoreHirModuleInfo { name: name, is_stdlib: is_stdlib, decl_start: decl_start, decl_count: decl_count }
+}
+
+fn CoreHirModuleInfo_is_stdlib(info: CoreHirModuleInfo) -> bool {
+    info.is_stdlib
 }
 
 fn CoreHirModuleInfo_decl_start(info: CoreHirModuleInfo) -> i32 {

@@ -9,6 +9,7 @@ struct SignatureRegistry {
     entries: Vec<SignatureEntry>,
     id_to_mangled: Vec<String>,
     mangled_to_id: NameIndex,
+    signature_only: Vec<bool>,
     next_id: i32,
 }
 
@@ -17,6 +18,7 @@ fn SignatureRegistry_new() -> SignatureRegistry {
         entries: Vec::new<SignatureEntry>(),
         id_to_mangled: Vec::new<String>(),
         mangled_to_id: name_index::NameIndex_new(8192),
+        signature_only: Vec::new<bool>(),
         next_id: 0,
     }
 }
@@ -29,9 +31,28 @@ fn signature_registry_register(registry: SignatureRegistry, entry: SignatureEntr
     name_index::name_index_insert_first(registry.mangled_to_id, clone(mangled_name), registry.next_id)
     push(registry.entries, entry)
     push(registry.id_to_mangled, mangled_name)
+    push(registry.signature_only, false)
     let id = FunctionId_new(registry.next_id)
     registry.next_id = registry.next_id + 1
     id
+}
+
+// Decls whose Ark body is deferred (CoreOp shim / intrinsic stdlib rewrite)
+// still register a signature so call sites typecheck, but they never produce
+// a MirFunction. Same-name fid chains must skip them or an emitted user fn
+// that shares the bare name (strings::repeat vs stdlib repeat, #920) binds
+// the deferred decl's FunctionId and its own fid stays unmapped.
+fn signature_registry_mark_signature_only(registry: SignatureRegistry, index: i32) {
+    if index >= 0 && index < len(registry.signature_only) {
+        set(registry.signature_only, index, true)
+    }
+}
+
+fn signature_registry_is_signature_only(registry: SignatureRegistry, index: i32) -> bool {
+    if index >= 0 && index < len(registry.signature_only) {
+        return get_unchecked(registry.signature_only, index)
+    }
+    false
 }
 
 fn signature_registry_entry_at(registry: SignatureRegistry, index: i32) -> SignatureEntry {

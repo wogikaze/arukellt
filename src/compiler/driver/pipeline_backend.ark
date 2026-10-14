@@ -75,6 +75,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         all_decls,
         backend_typecheck::typecheck_result_check_result(checked),
         backend_resolve::resolve_result_loaded_modules(resolved),
+        backend_resolve::resolve_result_module_stdlib_flags(resolved),
         decls,
         eq(clone(config_record::config_emit_mode(config)), "typed-corehir") ||
         !eq(clone(config_record::config_target(config)), "wasm32-gc")

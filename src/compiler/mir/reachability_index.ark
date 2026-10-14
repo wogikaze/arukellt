@@ -37,7 +37,8 @@ fn mir_reachability_registry_id_for_ordinal(
     let mut seen = 0
     let mut i = 0
     while i < signature_registry::signature_registry_entry_count(registry) {
-        if eq(signature_registry::signature_registry_mangled_at(registry, i), clone(fname)) {
+        if eq(signature_registry::signature_registry_mangled_at(registry, i), clone(fname)) &&
+        !signature_registry::signature_registry_is_signature_only(registry, i) {
             if seen == ordinal {
                 return function_id::FunctionId_new(i)
             }

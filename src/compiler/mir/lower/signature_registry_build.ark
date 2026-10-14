@@ -139,6 +139,9 @@ fn sig_reg_index_top_level_fn(
         } else {
             registered = signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
         }
+        if sig_reg_fn_is_signature_only(source, fn_info_index, clone(decl_name)) {
+            signature_registry::signature_registry_mark_signature_only(registry, FunctionId_raw(registered))
+        }
         if len(qualified_name) > 0 {
             signature_registry::signature_registry_register_alias(registry, clone(qualified_name), registered)
             let import_name = sig_reg_import_facing_qualified_name(qualified_name)
@@ -216,6 +219,33 @@ fn sig_reg_skip_join_vec_overload(sig_source: CoreHirMirSignatureSource, fn_info
     }
     let param0 = mir_signature_fn::mir_signature_fn_param_at(sig_source, fn_info_index, 0)
     stdlib_body_defer::mir_is_vec_join_overload(clone(decl_name), param0)
+}
+
+// Mirrors mir_defer_body_for_decl: a stdlib decl whose body is deferred for
+// CoreOp / intrinsic-shim lowering registers its signature but never emits
+// a MirFunction. Mark the entry so same-name fid chains skip it — otherwise
+// the deferred decl consumes the chain slot that belongs to an emitted user
+// fn sharing the bare name (#920: user strings::repeat bound a stdlib
+// "repeat" fid, was pruned as unreachable, and its call site stayed an
+// unpatched call 0).
+fn sig_reg_fn_is_signature_only(
+    source: MirLowerFnIndexSource,
+    fn_info_index: i32,
+    decl_name: String
+) -> bool {
+    let is_stdlib = fn_index_source::mir_fn_index_source_fn_is_stdlib_at(source, fn_info_index, true)
+    if !is_stdlib {
+        return false
+    }
+    if fn_info_index >= 0 && fn_index_source::mir_fn_index_source_fn_param_count_at(source, fn_info_index) > 0 {
+        if eq(clone(decl_name), String_from("write_bytes")) ||
+        eq(clone(decl_name), String_from("join")) {
+            let param0 = fn_index_source::mir_fn_index_source_fn_param_at(source, fn_info_index, 0)
+            return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(clone(decl_name), param0)
+        }
+    }
+    let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
+    stdlib_body_defer::mir_should_defer_stdlib_body_for_qualified(decl_name, qualified_name)
 }
 
 fn sig_reg_index_impl_methods(

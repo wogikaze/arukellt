@@ -18,6 +18,13 @@ fn ctx_fid_map_build_registry_chains(
     let mut raw = 0
     while raw < registry_count {
         push(registry_next, 0 - 1)
+        // Signature-only entries never produce a MirFunction; leaving them
+        // in the chain shifts every emitted same-name fn to the wrong
+        // FunctionId (#920).
+        if signature_registry::signature_registry_is_signature_only(registry, raw) {
+            raw = raw + 1
+            continue
+        }
         let name = signature_registry::signature_registry_mangled_at(registry, raw)
         let tail = name_index::name_index_get(registry_tails, clone(name))
         if tail < 0 {

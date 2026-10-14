@@ -4,6 +4,7 @@ struct CoreHirFnInfo {
     typed_fn_index: i32,
     name: String,
     qualified_name: String,
+    is_stdlib: bool,
     param_count: i32,
     params: Vec<CoreHirParam>,
     body_index: i32,
@@ -15,6 +16,7 @@ fn CoreHirFnInfo_new(
     typed_fn_index: i32,
     name: String,
     qualified_name: String,
+    is_stdlib: bool,
     param_count: i32,
     params: Vec<CoreHirParam>,
     body_index: i32,
@@ -25,6 +27,7 @@ fn CoreHirFnInfo_new(
         typed_fn_index: typed_fn_index,
         name: name,
         qualified_name: qualified_name,
+        is_stdlib: is_stdlib,
         param_count: param_count,
         params: params,
         body_index: body_index,
@@ -42,6 +45,13 @@ fn fn_info_name_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: Stri
 fn fn_info_qualified_name_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: String) -> String {
     if info_index >= 0 && info_index < len(fn_infos) {
         return clone(get_unchecked(fn_infos, info_index).qualified_name)
+    }
+    fallback
+}
+
+fn fn_info_is_stdlib_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: bool) -> bool {
+    if info_index >= 0 && info_index < len(fn_infos) {
+        return get_unchecked(fn_infos, info_index).is_stdlib
     }
     fallback
 }

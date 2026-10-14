@@ -65,6 +65,16 @@ fn mir_defer_body_for_decl(
     fn_info_index: i32,
     param_count: i32
 ) -> bool {
+    // CoreOp/intrinsic-shim deferral is only valid for stdlib decls. A user
+    // module fn whose bare name collides with a bound callee (strings::repeat
+    // vs repeat) must keep its body: its call sites resolve to the emitted
+    // fn, not an intrinsic rewrite, so a deferred body becomes
+    // drop+unreachable (#920). Missing fn_info keeps the historical bare-name
+    // behavior.
+    let is_stdlib = entry_view_fn::mir_entry_fn_is_stdlib_at(entry_view, fn_info_index, true)
+    if !is_stdlib {
+        return false
+    }
     if fn_info_index >= 0 && param_count > 0 {
         if eq(clone(decl_name), String_from("write_bytes")) ||
         eq(clone(decl_name), String_from("join")) {

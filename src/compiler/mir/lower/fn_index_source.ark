@@ -44,6 +44,10 @@ fn mir_fn_index_source_fn_qualified_name_at(source: MirLowerFnIndexSource, info_
     signature_fn::mir_signature_fn_qualified_name_at(source.signature_source, info_index, String_new())
 }
 
+fn mir_fn_index_source_fn_is_stdlib_at(source: MirLowerFnIndexSource, info_index: i32, fallback: bool) -> bool {
+    signature_fn::mir_signature_fn_is_stdlib_at(source.signature_source, info_index, fallback)
+}
+
 fn mir_fn_index_source_fn_param_count_at(source: MirLowerFnIndexSource, info_index: i32) -> i32 {
     signature_fn::mir_signature_fn_param_count_at(source.signature_source, info_index, 0)
 }

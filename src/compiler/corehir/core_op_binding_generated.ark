@@ -2,9 +2,9 @@
 // legacy_binding_patterns + std/manifest.toml.
 // Compact table + index. Do not edit by hand.
 
-use corehir::table_blob
 use std::prelude::{byte_at, clone, eq, substring}
 use std::text
+use corehir::table_blob
 
 fn core_op_binding_count() -> i32 {
     542

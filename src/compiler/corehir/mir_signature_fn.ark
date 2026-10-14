@@ -21,6 +21,10 @@ fn mir_signature_fn_qualified_name_at(source: CoreHirMirSignatureSource, info_in
     fn_info::fn_info_qualified_name_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
 }
 
+fn mir_signature_fn_is_stdlib_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: bool) -> bool {
+    fn_info::fn_info_is_stdlib_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
+}
+
 fn mir_signature_fn_body_index_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
     fn_info::fn_info_body_index_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
 }

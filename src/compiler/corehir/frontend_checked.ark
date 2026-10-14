@@ -25,6 +25,7 @@ fn build_checked_program_from_bundle_mode(bundle: FrontendBundle, include_bodies
     let modules = frontend_modules::build_module_infos(
         frontend_bundle::bundle_module_names(bundle),
         frontend_bundle::bundle_module_decl_counts(bundle),
+        frontend_bundle::bundle_module_stdlib_flags(bundle),
         len(decls)
     )
     let resolved_calls = if include_bodies {
@@ -54,6 +55,7 @@ fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> 
             check_result,
             Vec::new<String>(),
             Vec::new<i32>(),
+            Vec::new<bool>(),
             decls
         ))
 }

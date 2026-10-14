@@ -4,12 +4,13 @@ struct LoadState {
     loaded_slots: Vec<i32>,
     loading_stack: Vec<String>,
     modules: Vec<ModuleDecls>,
+    module_stdlib_flags: Vec<bool>,
     errors: Vec<String>,
     cache_dir: String,
 }
 
 pub fn LoadState_new() -> LoadState {
-    LoadState { loaded_names: Vec::new<String>(), loaded_slots: Vec::new<i32>(), loading_stack: Vec::new<String>(), modules: Vec::new<ModuleDecls>(), errors: Vec::new<String>(), cache_dir: String_new() }
+    LoadState { loaded_names: Vec::new<String>(), loaded_slots: Vec::new<i32>(), loading_stack: Vec::new<String>(), modules: Vec::new<ModuleDecls>(), module_stdlib_flags: Vec::new<bool>(), errors: Vec::new<String>(), cache_dir: String_new() }
 }
 
 pub fn LoadState_cache_dir(state: LoadState) -> String {

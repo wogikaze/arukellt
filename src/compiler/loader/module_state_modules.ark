@@ -11,8 +11,22 @@ fn LoadState_modules(state: LoadState) -> Vec<ModuleDecls> {
     state.modules
 }
 
-fn LoadState_add_module(state: LoadState, name: String, decls: Vec<AstNode>) {
+// ModuleDecls stays {name, decls}: the resolver namespace owns a same-named
+// public record and the typechecker resolves both by bare name, so widening
+// this struct corrupts the shared layout. Stdlib provenance rides in the
+// parallel LoadState.module_stdlib_flags vec instead.
+fn LoadState_add_module(state: LoadState, name: String, decls: Vec<AstNode>, is_stdlib: bool) {
     push(state.modules, ModuleDecls_new(name, decls))
+    push(state.module_stdlib_flags, is_stdlib)
+}
+
+// Stdlib provenance per registered module, index-aligned with modules. The
+// CoreOp body-defer shim list is only valid for stdlib decls: a user module
+// whose bare fn name matches a bound callee (strings::repeat vs repeat) must
+// still lower its own body, or the emitted call collapses to
+// drop+unreachable (#920).
+fn LoadState_module_stdlib_flags(state: LoadState) -> Vec<bool> {
+    state.module_stdlib_flags
 }
 
 fn ModuleDecls_decl_count(module: ModuleDecls) -> i32 {

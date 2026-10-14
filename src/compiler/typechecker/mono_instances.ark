@@ -1,5 +1,5 @@
 use std::text
-use std::prelude::{clone, eq, substring}
+use std::prelude::{byte_at, clone, eq, index_of, substring}
 use collections::name_index
 use typechecker::associated_types
 use typechecker::contract_fn_sig
@@ -176,6 +176,73 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
     false
 }
 
+// `Reverse<I>::cmp` -> `Reverse::cmp`: impl method sigs name the enclosing
+// fn with the impl head's type params attached, while the mono instance key
+// arrives with them resolved away (Reverse::cmp). Only the first balanced
+// <...> span is removed — the owner head.
+fn erase_impl_owner_args(name: String) -> String {
+    let n = len(name)
+    let mut lt = 0 - 1
+    let mut i = 0
+    while i < n {
+        if byte_at(name, i) == 60 {
+            lt = i
+            i = n
+        }
+        i = i + 1
+    }
+    if lt < 0 {
+        return name
+    }
+    let mut depth = 0
+    let mut gt = 0 - 1
+    i = lt
+    while i < n {
+        if byte_at(name, i) == 60 {
+            depth = depth + 1
+        }
+        if byte_at(name, i) == 62 {
+            depth = depth - 1
+            if depth == 0 {
+                gt = i
+                i = n
+            }
+        }
+        i = i + 1
+    }
+    if gt < 0 {
+        return name
+    }
+    text::concat(substring(name, 0, lt), substring(name, gt + 1, n))
+}
+
+// `enclosing_fn` stores FnSig_name of the body being checked: bare decl
+// names for free fns and trait-decl methods, `Owner<I>::m` for impl
+// methods. Instantiated keys arrive module-qualified (seq::sort_by) or
+// impl-qualified (Reverse::cmp). Match shapes:
+//   sort_by          vs seq::sort_by  -> last `::` segment
+//   Reverse<I>::cmp  vs Reverse::cmp  -> owner type-arg erasure
+//   cmp              vs Ord::cmp      -> trait-decl vs trait name
+// Critically `Ord::cmp` must NOT match `Reverse<I>::cmp` sites: a purely
+// unqualified compare collapses every `cmp`/`next`/`eq` impl into one
+// bucket and the mint chain explodes (#920 emit-phase stall).
+fn enclosing_matches_instantiation(site_name: String, fn_name: String) -> bool {
+    if eq(clone(site_name), clone(fn_name)) {
+        return true
+    }
+    let site_erased = erase_impl_owner_args(clone(site_name))
+    let fn_erased = erase_impl_owner_args(clone(fn_name))
+    if eq(clone(site_erased), clone(fn_erased)) {
+        return true
+    }
+    if index_of(clone(site_name), String_from("::")) < 0 {
+        if eq(names::unqualified_type_name(clone(fn_erased)), clone(site_name)) {
+            return true
+        }
+    }
+    false
+}
+
 // Re-bind template sites recorded inside `fn_name`'s body now that a
 // concrete instantiation supplies its arguments. `Outer::next`+[VecIter]
 // turns the `Inner::next`+[?I] site into `Inner::next`+[VecIter], which
@@ -196,7 +263,7 @@ fn rebind_enclosing_template_sites(env: TypeEnv, fn_name: String, resolved_types
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
-        if eq(clone(site.enclosing_fn), clone(fn_name)) {
+        if enclosing_matches_instantiation(clone(site.enclosing_fn), clone(fn_name)) {
             let site_vars = clone(site.enclosing_vars)
             if len(site_vars) == arg_count {
                 let site_args = clone(site.type_args)

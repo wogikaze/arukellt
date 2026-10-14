@@ -3,6 +3,7 @@ struct FrontendBundle {
     check_result: TypeCheckResult,
     module_names: Vec<String>,
     module_decl_counts: Vec<i32>,
+    module_stdlib_flags: Vec<bool>,
     export_decls: Vec<AstNode>,
 }
 
@@ -11,6 +12,7 @@ fn FrontendBundle_new(
     check_result: TypeCheckResult,
     module_names: Vec<String>,
     module_decl_counts: Vec<i32>,
+    module_stdlib_flags: Vec<bool>,
     export_decls: Vec<AstNode>
 ) -> FrontendBundle {
     FrontendBundle {
@@ -18,6 +20,7 @@ fn FrontendBundle_new(
         check_result: check_result,
         module_names: module_names,
         module_decl_counts: module_decl_counts,
+        module_stdlib_flags: module_stdlib_flags,
         export_decls: export_decls,
     }
 }
@@ -36,6 +39,10 @@ fn bundle_module_names(bundle: FrontendBundle) -> Vec<String> {
 
 fn bundle_module_decl_counts(bundle: FrontendBundle) -> Vec<i32> {
     bundle.module_decl_counts
+}
+
+fn bundle_module_stdlib_flags(bundle: FrontendBundle) -> Vec<bool> {
+    bundle.module_stdlib_flags
 }
 
 fn bundle_export_decls(bundle: FrontendBundle) -> Vec<AstNode> {

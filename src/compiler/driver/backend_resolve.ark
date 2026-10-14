@@ -33,6 +33,10 @@ fn resolve_result_loaded_modules(result: DriverResolveResult) -> Vec<ModuleDecls
     module_state_modules::LoadState_modules(result.load_state)
 }
 
+fn resolve_result_module_stdlib_flags(result: DriverResolveResult) -> Vec<bool> {
+    module_state_modules::LoadState_module_stdlib_flags(result.load_state)
+}
+
 fn resolve_result_ctx(result: DriverResolveResult) -> ResolveCtx {
     result.resolve_ctx
 }
