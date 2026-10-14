@@ -124,6 +124,21 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             ))
         return true
     }
+    // A join temp can be LOCAL_SET from differently-typed sources on
+    // different branches (a unit-typed if still copies each branch's last
+    // stack ref). No concrete decl accepts both stores, so resolve the
+    // shared storage first: enum_open for enum-family conflicts, `(ref null
+    // any)` for unrelated types. Typed reads ref.cast at the access site.
+    let join_storage =
+    code_ref_locals_block_scan::local_set_conflict_storage_type(f, local_idx, ctx)
+    match join_storage {
+        Option::Some(join_type) => {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, join_type)
+            return true
+        }
+        Option::None => {}
+    }
     if starts_with(clone(type_name), String_from("array:")) {
         // Array literals hold the backing GC array directly. They use an
         // `array:` marker so the same element metadata cannot be mistaken for

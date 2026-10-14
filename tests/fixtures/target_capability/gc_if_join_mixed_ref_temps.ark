@@ -1,0 +1,25 @@
+use std::test
+
+// A statement-position `if` still stores each branch's last ref temp into the
+// shared join local (mir_begin_if_expr allocates one result local before the
+// branch value types are known). When the branches leave unrelated concrete
+// GC types — a Vec<Vec<i32>> receiver versus a Vec<i32> receiver — the join
+// decl must be their common `(ref null any)`; keeping the first branch's type
+// made the other branch's LOCAL_SET fail wasm32-gc validation.
+
+fn push_in_branch(vv: Vec<Vec<i32>>, v: Vec<i32>, c: i32) -> i32 {
+    if c > 0 {
+        push(vv, v)
+    } else {
+        push(v, 1)
+    }
+    0
+}
+
+fn main() {
+    let mut vv = Vec::new<Vec<i32>>()
+    let mut v = Vec::new<i32>()
+    push(v, 7)
+    push_in_branch(vv, v, 1)
+    test::assert_eq_i32(len(vv), 1)
+}
