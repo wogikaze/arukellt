@@ -12,31 +12,31 @@ max_line_len_hard = 200
 tabs_files = 0
 extreme_indent_lines = 0
 lines_ge_200 = 2
-thin_wrappers = 1753
-single_function_files = 530
+thin_wrappers = 1754
+single_function_files = 470
 
 [metrics_metadata]
 issue = 851
-reason = "ratchet sync: 4 thin wrappers added by #851-era record accessors since baseline 838"
+reason = "ratchet sync: #851-era emit-drain accessor/adapter wrappers net +1 thin wrapper; single_function_files tightened 530->470"
 
 [metrics.file_lines]
-count = 1898
-p50 = 41
-p75 = 94
-p90 = 187
-p95 = 277
+count = 1915
+p50 = 43
+p75 = 101
+p90 = 203
+p95 = 291
 max = 3099
 
 [metrics.function_lines]
-count = 12298
+count = 12710
 p50 = 4
 p75 = 14
 p90 = 27
-p95 = 37
+p95 = 39
 max = 898
 
 [metrics.parameters]
-count = 12298
+count = 12710
 p50 = 1
 p75 = 2
 p90 = 4
@@ -44,15 +44,15 @@ p95 = 6
 max = 19
 
 [metrics.nesting_depth]
-count = 12298
+count = 12710
 p50 = 0
 p75 = 1
 p90 = 2
-p95 = 2
-max = 12
+p95 = 3
+max = 13
 
 [metrics.complexity]
-count = 12298
+count = 12710
 p50 = 1
 p75 = 3
 p90 = 7
@@ -60,23 +60,23 @@ p95 = 10
 max = 137
 
 [metrics.fan_in]
-count = 1898
+count = 1915
 p50 = 1
 p75 = 3
 p90 = 9
-p95 = 17
-max = 224
+p95 = 18
+max = 235
 
 [metrics.fan_out]
-count = 1898
+count = 1915
 p50 = 4
-p75 = 7
-p90 = 11
+p75 = 8
+p90 = 12
 p95 = 14
-max = 30
+max = 43
 
 [metrics.public_functions]
-count = 1898
+count = 1915
 p50 = 0
 p75 = 0
 p90 = 1
@@ -84,7 +84,7 @@ p95 = 2
 max = 76
 
 [metrics.thin_wrappers]
-count = 1898
+count = 1915
 p50 = 0
 p75 = 1
 p90 = 3
@@ -92,15 +92,15 @@ p95 = 6
 max = 23
 
 [metrics.lines_ge_120]
-count = 1898
+count = 1915
 p50 = 0
 p75 = 1
 p90 = 3
-p95 = 5
-max = 316
+p95 = 6
+max = 346
 
 [metrics.lines_ge_200]
-count = 1898
+count = 1915
 p50 = 0
 p75 = 0
 p90 = 0
@@ -108,7 +108,7 @@ p95 = 0
 max = 1
 
 [metrics.todo_fixme]
-count = 1898
+count = 1915
 p50 = 0
 p75 = 0
 p90 = 0
@@ -116,7 +116,7 @@ p95 = 0
 max = 0
 
 [metrics.lint_suppressions]
-count = 1898
+count = 1915
 p50 = 0
 p75 = 0
 p90 = 0
@@ -124,17 +124,17 @@ p95 = 0
 max = 0
 
 [metrics.churn]
-count = 1898
+count = 1915
 p50 = 4
-p75 = 7
+p75 = 8
 p90 = 13
-p95 = 18
+p95 = 19
 max = 80
 
 [metrics.dependency_centrality]
-count = 1898
-p50 = 2.639057
-p75 = 3.218876
-p90 = 3.988984
-p95 = 4.553877
-max = 7.272398
+count = 1915
+p50 = 2.70805
+p75 = 3.295837
+p90 = 4.094345
+p95 = 4.682131
+max = 7.515345

@@ -67,12 +67,12 @@ nested `if`/`end`.
 
 ## Acceptance
 
-- [ ] `to_string(if b { 1 } else { 0 })` (and nested if-as-arg generally)
+- [x] `to_string(if b { 1 } else { 0 })` (and nested if-as-arg generally)
       validates and runs correctly
-- [ ] Root cause identified: whether the if-result lowering picks the wrong
+- [x] Root cause identified: whether the if-result lowering picks the wrong
       delivery convention, or the arg-binding assumes stack delivery
-- [ ] Regression fixture covering if-expression in call-arg position
-- [ ] Verify match/nested-block expressions in arg position as well
+- [x] Regression fixture covering if-expression in call-arg position
+- [x] Verify match/nested-block expressions in arg position as well
 
 ## Resolution (2026-10-14)
 

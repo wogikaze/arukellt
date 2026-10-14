@@ -430,6 +430,7 @@ run:target_capability/linear_gc_hashmap_survives.ark
 run:target_capability/linear_gc_metadata_pressure.ark
 run:target_capability/linear_gc_chain_arena_reclaim.ark
 run:target_capability/gc_get_unchecked_dest_decl.ark
+run:target_capability/gc_if_join_mixed_ref_temps.ark
 run:target_capability/wasm32_same_source.ark
 run:diagnostics/method_syntax.ark
 run:diagnostics/nested_generic.ark
@@ -2604,6 +2605,7 @@ t3-compile:t3/hashmap_match_only.ark
 t3-compile:t3/hello.ark
 t3-compile:target_capability/gc_get_unchecked_dest_decl.ark
 t3-compile:target_capability/gc_linear_same_source.ark
+t3-compile:target_capability/gc_if_join_mixed_ref_temps.ark
 t3-compile:target_capability/wasm32_same_source.ark
 t3-compile:t3/if_println_string.ark
 t3-compile:t3/if_true_println_string.ark

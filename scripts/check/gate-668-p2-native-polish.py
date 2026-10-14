@@ -24,6 +24,7 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from lib.selfhost_s2 import gate_env, is_current_selfhost_wasm  # noqa: E402
+from lib.tooling import find_wasm_tools  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "wasi_p2_native"
@@ -82,8 +83,11 @@ def _compile(fixture_rel: str, out: Path, *, emit_component: bool) -> tuple[int,
 
 
 def _validate(path: Path) -> tuple[int, str]:
+    wasm_tools = find_wasm_tools()
+    if wasm_tools is None:
+        return 1, "no Bytecode Alliance wasm-tools on PATH"
     result = subprocess.run(
-        ["wasm-tools", "validate", str(path)],
+        [wasm_tools, "validate", str(path)],
         capture_output=True,
         text=True,
         timeout=60,
@@ -130,8 +134,11 @@ def _wasmtime_run(
 
 
 def _assert_guest_native_core(path: Path) -> tuple[int, str]:
+    wasm_tools = find_wasm_tools()
+    if wasm_tools is None:
+        return 1, "no Bytecode Alliance wasm-tools on PATH"
     printed = subprocess.run(
-        ["wasm-tools", "print", str(path)],
+        [wasm_tools, "print", str(path)],
         capture_output=True,
         text=True,
         timeout=60,
