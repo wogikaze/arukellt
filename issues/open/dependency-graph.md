@@ -32,7 +32,6 @@ graph LR
   I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I918["918 918 — `arukellt test` runner UX: filter, no-fail-fast, directory discovery"]
   I919["919 919 — `.expected` to `test:` fixture migration (ADR-041 Phase 2d)"]
-  I920["920 t3-run fixtures trap at runtime on wasm32-gc (pre-existing codegen bugs)"]
   I922["922 922 — linear-GC page-chain arena is append-only; high-churn workloads exit CHAIN OOM"]
   I923["923 923 — Component emit misses i32→i64 argument widening"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -81,7 +80,6 @@ graph LR
 - **917** depends on: 709; blocks: none
 - **918** depends on: 719; blocks: none
 - **919** depends on: 719; blocks: none
-- **920** depends on: none; blocks: none
 - **922** depends on: none; blocks: none
 - **923** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683

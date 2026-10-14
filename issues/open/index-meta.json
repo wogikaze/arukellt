@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-13T23:05:31Z",
+  "generated_at": "2026-10-14T10:04:07Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -516,23 +516,6 @@
       "orchestration": {
         "class": "incremental",
         "upstream_notes": "#719 execution harness"
-      }
-    },
-    {
-      "id": "920",
-      "path": "920-t3-run-runtime-traps.md",
-      "title": "t3-run fixtures trap at runtime on wasm32-gc (pre-existing codegen bugs)",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
       }
     },
     {
