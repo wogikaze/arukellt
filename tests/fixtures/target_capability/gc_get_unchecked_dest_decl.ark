@@ -1,0 +1,33 @@
+use std::test
+
+// A get_unchecked dest temp on wasm32-gc must keep the vector element's GC
+// type regardless of which call follows in the block. The emit path used to
+// guess the element type from the next call's last parameter, so a following
+// Bag_tag(bag) — whose only parameter is the enclosing struct — misdeclared
+// the temp as (ref null Bag) and the module failed wasm validation.
+
+struct Bag {
+    bodies: Vec<Vec<i32>>,
+    tag: i32,
+}
+
+fn Bag_tag(b: Bag) -> i32 {
+    b.tag
+}
+
+fn pick(bag: Bag, i: i32) -> i32 {
+    let body = get_unchecked(bag.bodies, i)
+    // Unrelated receiver call; it must not leak Bag into body's decl type.
+    let tag = Bag_tag(bag)
+    len(body) + tag
+}
+
+fn main() {
+    let mut bodies = Vec::new<Vec<i32>>()
+    let mut row = Vec::new<i32>()
+    push(row, 40)
+    push(row, 2)
+    push(bodies, row)
+    let bag = Bag { bodies: bodies, tag: 1 }
+    test::assert_eq_i32(pick(bag, 0), 3)
+}

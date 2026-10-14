@@ -429,6 +429,7 @@ run:target_capability/linear_gc_entry_collect.ark
 run:target_capability/linear_gc_hashmap_survives.ark
 run:target_capability/linear_gc_metadata_pressure.ark
 run:target_capability/linear_gc_chain_arena_reclaim.ark
+run:target_capability/gc_get_unchecked_dest_decl.ark
 run:target_capability/wasm32_same_source.ark
 run:diagnostics/method_syntax.ark
 run:diagnostics/nested_generic.ark
@@ -2601,6 +2602,7 @@ t3-compile:t3/array_gc.ark
 t3-compile:t3/boxing_i31.ark
 t3-compile:t3/hashmap_match_only.ark
 t3-compile:t3/hello.ark
+t3-compile:target_capability/gc_get_unchecked_dest_decl.ark
 t3-compile:target_capability/gc_linear_same_source.ark
 t3-compile:target_capability/wasm32_same_source.ark
 t3-compile:t3/if_println_string.ark
@@ -3104,6 +3106,7 @@ t3-run:target_capability/linear_gc_entry_collect.ark
 t3-run:target_capability/linear_gc_hashmap_survives.ark
 t3-run:target_capability/linear_gc_metadata_pressure.ark
 t3-run:target_capability/linear_gc_chain_arena_reclaim.ark
+t3-run:target_capability/gc_get_unchecked_dest_decl.ark
 t3-run:trait/basic_impl.ark
 t3-run:trait/builtin_method.ark
 t3-run:trait/method_chain.ark
