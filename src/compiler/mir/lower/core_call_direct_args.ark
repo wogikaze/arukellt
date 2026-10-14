@@ -1,5 +1,7 @@
 use std::prelude::{clone, eq}
 use mir::inst_local_get
+use mir::inst_convert
+use mir::value_types
 use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_emit
@@ -48,6 +50,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
     let stage_call_args = !is_println && child_count > 2
     let staged_arg_locals = Vec::new<i32>()
+    let arg_widen_i64 = Vec::new<i32>()
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1
     let mut lane_immediate = 0 - 1
@@ -62,6 +65,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
             first_arg_idx,
             second_arg_idx,
             staged_arg_locals,
+            arg_widen_i64,
             stage_call_args,
             core_expr_shape_accessors::mir_core_expr_span_start(expr),
             lane_immediate,
@@ -83,6 +87,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
                     first_arg_idx,
                     second_arg_idx,
                     staged_arg_locals,
+                    arg_widen_i64,
                     stage_call_args,
                     core_expr_shape_accessors::mir_core_expr_span_start(expr),
                     lane_immediate,
@@ -139,10 +144,26 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
                     arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
                 }
                 arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
+                // i32-scalar arg into an i64 param: component emit leaves
+                // i32 locals as real i32 on the operand stack. Unstaged args
+                // are already pushed; staged args widen on re-read (#923).
+                let needs_i64_arg_widen = arg_idx >= 0 &&
+                call_arg_i64::mir_callee_param_is_i64(ctx, clone(callee_name), param_idx) &&
+                ctx_api_local_types::ctx_local_vt(ctx, arg_idx) == value_types::VT_I32()
+                if !stage_call_args && needs_i64_arg_widen {
+                    ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
+                }
                 if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
                     receiver_writeback = arg_idx
                 }
+                let mut staged_arg_now = false
+                if stage_call_args && arg_idx >= 0 {
+                    staged_arg_now = true
+                }
                 arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(ctx, staged_arg_locals, arg_idx, stage_call_args)
+                if staged_arg_now {
+                    push(arg_widen_i64, if needs_i64_arg_widen { 1 } else { 0 })
+                }
                 if a == 1 {
                     first_arg_idx = arg_idx
                 }
@@ -157,6 +178,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
                         first_arg_idx,
                         second_arg_idx,
                         staged_arg_locals,
+                        arg_widen_i64,
                         stage_call_args,
                         core_expr_shape_accessors::mir_core_expr_span_start(expr),
                         lane_immediate,

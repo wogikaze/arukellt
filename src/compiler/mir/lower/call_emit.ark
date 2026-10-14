@@ -33,6 +33,7 @@ fn mir_emit_direct_call(
     first_arg_idx: i32,
     second_arg_idx: i32,
     staged_arg_locals: Vec<i32>,
+    arg_widen_i64: Vec<i32>,
     stage_call_args: bool,
     span_start: i32,
     lane_immediate: i32,
@@ -62,7 +63,16 @@ fn mir_emit_direct_call(
                 }
             }
         }
-        call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, push_i64_needs_extend)
+        // The legacy vec_push rewrite flag predates the per-param widen
+        // table; map it onto the last staged arg, matching the old emit
+        // order (extend applied to the final pushed value).
+        if push_i64_needs_extend && staged_count > 0 {
+            while len(arg_widen_i64) < staged_count {
+                push(arg_widen_i64, 0)
+            }
+            set(arg_widen_i64, staged_count - 1, 1)
+        }
+        call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, arg_widen_i64)
     }
     // Prefer pre-stage receiver for GC mutating calls (push_char writeback).
     // Staged temps are stack copies; writing them back does not update `let mut s`.

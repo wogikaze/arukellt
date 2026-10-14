@@ -122,7 +122,7 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
     mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
     let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
-    call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, false)
+    call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, Vec::new<i32>())
     // The fnptr field read leaves a raw funcref/table-index on the stack;
     // the emitter casts/narrows it to the trampoline signature.
     closure_env::closure_emit_pair_fnptr(ctx, callee_local)
@@ -157,7 +157,7 @@ fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, c
     call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
     mark_indirect_callback_result_type(ctx, clone(callee_type_name), dest)
     let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
-    call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, false)
+    call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, Vec::new<i32>())
     closure_env::closure_emit_pair_fnptr(ctx, callee_local)
     ctx_api_emit::ctx_emit(ctx, inst_call_ref::MirInst_call_ref_with_arg0_vt(
             callee_local,

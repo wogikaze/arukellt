@@ -1,0 +1,23 @@
+// #923: i32-typed arguments must be widened to i64 at i64 callee params on
+// the component boundary (memory32 codegen), where MIR i32 locals are real
+// wasm i32 values rather than stack-i64 slots. Covers a declared i32 local,
+// a multi-arg staged call (both positions), and if/match result args.
+use std::host::stdio
+use std::prelude::{to_string}
+
+fn widen(x: i64) -> i64 { x }
+fn widen_pair(a: i64, b: i64) -> i64 { a + b }
+
+fn main() {
+    let n: i32 = 2
+    let m: i32 = 5
+    stdio::println(widen(n).to_string())
+    stdio::println(widen_pair(n, m).to_string())
+    stdio::println(widen_pair(m, n).to_string())
+    stdio::println(widen(if n > 0 { m } else { 0 }).to_string())
+    let pick = match n {
+        2 => m
+        _ => 0
+    }
+    stdio::println(widen(pick).to_string())
+}

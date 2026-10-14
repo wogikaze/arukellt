@@ -1,6 +1,7 @@
 use std::prelude::{clone, contains, eq}
 use std::text
 use mir::inst_local_get
+use mir::inst_convert
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::binary_cast
@@ -19,6 +20,7 @@ use mir::lower::method
 use mir::lower::struct_lit
 use mir::lower::value_variants
 use corehir::type_ann_node
+use mir::value_types
 fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     // Funcref parameter call: f(x) where f: fn(i32) -> i32
     if ast_node::node_kind_is(callee, lower_kinds::NK_IDENT()) {
@@ -39,6 +41,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
     let is_println = call_args::mir_is_printlike_callee(clone(callee_name))
     let stage_call_args = !is_println && child_count > 2
     let staged_arg_locals = Vec::new<i32>()
+    let arg_widen_i64 = Vec::new<i32>()
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1
     let mut lane_immediate = 0 - 1
@@ -99,12 +102,23 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
                 arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
             }
             arg_idx = lower_direct_call_print_convert(ctx, is_println, a, arg, arg_idx)
+            // i32-scalar arg into an i64 param: component emit leaves i32
+            // locals as real i32 on the operand stack, so the call operand
+            // must be extended. Unstaged args are already pushed here;
+            // staged args widen when the staged copy is re-read (#923).
+            let needs_i64_arg_widen = arg_idx >= 0 &&
+            call_arg_i64::mir_callee_param_is_i64(ctx, clone(callee_name), param_idx) &&
+            ctx_api_local_types::ctx_local_vt(ctx, arg_idx) == value_types::VT_I32()
+            if !stage_call_args && needs_i64_arg_widen {
+                ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
+            }
             // Capture pre-stage receiver for GC void mutators (push_char).
             if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
                 receiver_writeback = arg_idx
             }
             if stage_call_args && arg_idx >= 0 {
                 arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
+                push(arg_widen_i64, if needs_i64_arg_widen { 1 } else { 0 })
             }
             if a == 1 {
                 first_arg_idx = arg_idx
@@ -121,6 +135,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             first_arg_idx,
             second_arg_idx,
             staged_arg_locals,
+            arg_widen_i64,
             stage_call_args,
             ast_node::node_span_start(node),
             lane_immediate,

@@ -466,6 +466,7 @@ run:functions/higher_order.ark
 run:functions/option_fn_call.ark
 run:functions/option_fn_mut_assign.ark
 run:functions/fn_return_bind.ark
+run:functions/i32_arg_to_i64_param.ark
 run:functions/fn_zero_value_positions.ark
 run:functions/fn_zero_param_ref_return.ark
 run:functions/call_expr_callee.ark

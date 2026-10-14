@@ -3,15 +3,21 @@ use mir::lower::ctx_types
 use mir::inst_convert
 use mir::inst_local_get
 
-fn mir_emit_staged_call_args(ctx: LowerCtx, staged_arg_locals: Vec<i32>, push_i64_needs_extend: bool) {
+// widen_i64_args parallels staged_arg_locals: a non-zero entry re-emits the
+// staged i32 local with an i32→i64 extend so the staged copy satisfies an
+// i64 callee parameter. Under component emit (memory32) the staged local is
+// a real i32 on the stack and a bare i64.extend is required for validation
+// (#923); under memory64 the same instruction normalizes the stack-i64
+// representation.
+fn mir_emit_staged_call_args(ctx: LowerCtx, staged_arg_locals: Vec<i32>, widen_i64_args: Vec<i32>) {
     let mut sai = 0
     let sac = len(staged_arg_locals)
     while sai < sac {
         let staged_arg = get_unchecked(staged_arg_locals, sai)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(staged_arg, staged_arg))
+        if sai < len(widen_i64_args) && get_unchecked(widen_i64_args, sai) != 0 {
+            ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
+        }
         sai = sai + 1
-    }
-    if push_i64_needs_extend {
-        ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
     }
 }
