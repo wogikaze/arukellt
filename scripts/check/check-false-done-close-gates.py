@@ -98,7 +98,9 @@ TRACKED: dict[str, list[str]] = {
     "653": ["WIT import resolver MIR gate-653-wit-import-resolver-mir.py"],
     "654": ["WIT import component emit gate-654-wit-import-component-emit.py"],
     "663": ["ark.toml WIT package resolution gate-663-ark-toml-wit-package.py"],
+    "668": ["P2 native polish gate-668-p2-native-polish.py"],
     "664": ["WIT record/enum import bindings gate-664-wit-import-record-enum-bindings.py"],
+    "673": ["component export tier2 matrix gate-673-component-export-aggregate-expansion.py"],
     "443": ["Component composition Phase 3 gate-443-component-composition-phase3.py"],
     "665": ["WIT import compose round-trip E2E gate-665-wit-import-compose-roundtrip-e2e.py"],
     "651": ["WIT flags type support gate-651-wit-flags-type-support.py"],
@@ -287,6 +289,25 @@ def _gate_prefixes(issue_id: str) -> tuple[str, ...]:
         return base + (script_prefix, "scripts/check", "tests/fixtures/wit_import/compose_roundtrip", "src/compiler/main", "tests/fixtures/manifest.txt")
     if issue_id in {"034", "123", "510", "074", "076"}:
         return base + (script_prefix, "scripts/check", "tests/fixtures", "tests/fixtures/manifest.txt")
+    if issue_id == "668":
+        return base + (
+            script_prefix,
+            "scripts/check",
+            "tests/fixtures/wasi_p2_native",
+            "tests/fixtures/manifest.txt",
+            "docs/platform",
+            "docs/current-state.md",
+            "docs/data/p2-native-component-size-baseline.toml",
+        )
+    if issue_id == "673":
+        return base + (
+            script_prefix,
+            "scripts/check",
+            "docs/data/component-export-tier2.toml",
+            "src/compiler/component",
+            "tests/fixtures/component",
+            "tests/fixtures/manifest.txt",
+        )
     if issue_id in {"472", "500"}:
         return (script_prefix, "scripts/check", "playground")
     if issue_id == "679":
@@ -920,6 +941,40 @@ def gate_663() -> tuple[int, str]:
         return 1, (result.stdout + result.stderr)[-400:]
     return 0, ""
 
+def gate_668() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-668-p2-native-polish.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-668-p2-native-polish.py"
+    env = _selfhost_compile_env()
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=900,
+        env=env,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
+def gate_673() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-673-component-export-aggregate-expansion.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-673-component-export-aggregate-expansion.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_664() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-664-wit-import-record-enum-bindings.py"
     if not script.is_file():
@@ -1078,7 +1133,9 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "653": gate_653,
     "654": gate_654,
     "663": gate_663,
+    "668": gate_668,
     "664": gate_664,
+    "673": gate_673,
     "443": gate_443,
     "665": gate_665,
     "651": gate_651,

@@ -145,8 +145,8 @@ def _assert_guest_native_core(path: Path) -> tuple[int, str]:
         return 1, "guest still imports pseudo stderr write"
     if 'import "cm32p2|wasi:cli/stdout@0.2" "get-stdout"' not in text:
         return 1, "guest missing get-stdout import"
-    if 'import "cm32p2|wasi:io/streams@0.2" "blocking-write-and-flush"' not in text:
-        return 1, "guest missing blocking-write-and-flush import"
+    if 'import "cm32p2|wasi:io/streams@0.2" "[method]output-stream.blocking-write-and-flush"' not in text:
+        return 1, "guest missing [method]output-stream.blocking-write-and-flush import"
     if 'import "cm32p2|wasi:cli/stderr@0.2" "get-stderr"' not in text:
         return 1, "guest missing get-stderr import"
     return 0, ""

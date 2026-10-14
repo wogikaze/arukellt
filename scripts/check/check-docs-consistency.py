@@ -1881,33 +1881,143 @@ def check_docs_runtime_contract() -> int:
             "contract_audit.readme_status_source must cite project-state.toml + generate-docs.py"
         )
 
-    if target_contract.is_file():
+    # The contract doc moved: docs/target-contract.md was superseded by
+    # docs/platform/target-runtime-and-surfaces.md (P2/component surface
+    # claims) plus generated docs/data/target-contract-summary.md. Resolve
+    # whichever exists — silently skipping would let tier claims drift.
+    contract_doc = next(
+        (
+            p
+            for p in (
+                target_contract,
+                ROOT / "docs" / "platform" / "target-runtime-and-surfaces.md",
+            )
+            if p.is_file()
+        ),
+        None,
+    )
+    if contract_doc is None:
+        errors.append(
+            "missing target contract doc: expected docs/target-contract.md or "
+            "docs/platform/target-runtime-and-surfaces.md"
+        )
+
+    if contract_doc is not None:
+        target_contract = contract_doc
         tc_text = target_contract.read_text(encoding="utf-8")
         component_tier = contract.get("component_emit_tier", "")
         if component_tier and not re.search(
+            rf"component[^\n|]*\|\s*{re.escape(component_tier)}\s*\|",
+            tc_text,
+            re.IGNORECASE,
+        ) and not re.search(
             rf"component.*{re.escape(component_tier)}|{re.escape(component_tier)}.*component",
             tc_text,
             re.IGNORECASE | re.DOTALL,
         ):
             errors.append(
                 f"contract_audit.component_emit_tier={component_tier!r} "
-                "not reflected in target-contract.md component section"
+                f"not reflected in {target_contract.relative_to(ROOT)} component section"
             )
         p2_tier = contract.get("p2_native_tier", "")
-        if p2_tier and not re.search(
+        if p2_tier and not (
+            "WASI P2" in tc_text and "ADR-054" in tc_text
+        ) and not re.search(
             rf"P2 native|Preview 2 native|p2.native|wasi-version p2",
             tc_text,
             re.IGNORECASE,
         ):
             errors.append(
-                "target-contract.md missing P2 native section for contract_audit.p2_native_tier"
+                f"{target_contract.relative_to(ROOT)} missing WASI P2 / ADR-054 "
+                f"contract anchor for contract_audit.p2_native_tier={p2_tier!r}"
+            )
+        if p2_tier and not re.search(r"wasmtime", cs_text):
+            errors.append(
+                "current-state.md lost the wasmtime evidence anchor for the "
+                "P2 component path (contract_audit.p2_native_tier is set)"
             )
         if component_tier == "smoke" and "skip-on-CI" not in tc_text and "skip" not in tc_text.lower():
             errors.append(
-                "target-contract.md should mention skip-on-CI or skip for smoke-tier component"
+                f"{target_contract.relative_to(ROOT)} should mention skip-on-CI "
+                "or skip for smoke-tier component"
             )
+        if component_tier == "smoke":
+            for line in cs_text.splitlines():
+                if (
+                    re.search(r"component", line, re.IGNORECASE)
+                    and "guaranteed" in line.lower()
+                ):
+                    errors.append(
+                        "current-state.md claims a guaranteed component surface "
+                        "while contract_audit.component_emit_tier is smoke"
+                    )
+                    break
 
     return 1 if errors else 0
+
+
+def check_capability_manifest_parity() -> int:
+    """Stdlib capability docs must not drift from std/manifest.toml (#678).
+
+    capabilities.toml is the SSOT for docs/capability-surface.md. A module
+    claiming registered=true must appear in std/manifest.toml (as a
+    'module =' value on at least one entry, or a 'name =' entry) and
+    its 'path' must exist. Conversely, every std::host::* module present
+    in the manifest must be documented in capabilities.toml — otherwise
+    the capability matrix silently under-documents host availability.
+    """
+    caps_path = ROOT / "docs" / "data" / "capabilities.toml"
+    if not caps_path.is_file() or not MANIFEST.exists():
+        return 0
+
+    caps = _tomllib.loads(caps_path.read_text(encoding="utf-8"))
+    manifest_text = MANIFEST.read_text(encoding="utf-8")
+    manifest_modules = set(
+        re.findall(r'^module\s*=\s*"([^"]+)"', manifest_text, re.MULTILINE)
+    )
+    manifest_names = set(
+        re.findall(r'^name\s*=\s*"([^"]+)"', manifest_text, re.MULTILINE)
+    )
+
+    def _registered(module: str) -> bool:
+        return module in manifest_modules or module in manifest_names
+
+    local = 0
+    cap_modules: set[str] = set()
+    for mod in caps.get("modules", []):
+        name = mod.get("module", "")
+        if not name:
+            continue
+        cap_modules.add(name)
+        path = mod.get("path", "")
+        if path and not (ROOT / path).is_file():
+            errors.append(f"capabilities.toml: {name} path missing on disk: {path}")
+            local += 1
+        is_registered = _registered(name)
+        if mod.get("registered") is True and not is_registered:
+            errors.append(
+                f"capabilities.toml: {name} claims registered=true but "
+                "std/manifest.toml has no entries for it"
+            )
+            local += 1
+        if mod.get("registered") is False and is_registered:
+            errors.append(
+                f"capabilities.toml: {name} claims registered=false but "
+                "std/manifest.toml registers it"
+            )
+            local += 1
+
+    undocumented = sorted(
+        m for m in manifest_modules
+        if m.startswith("std::host::") and m not in cap_modules
+    )
+    if undocumented:
+        errors.append(
+            "capabilities.toml does not document manifest std::host modules: "
+            + ", ".join(undocumented)
+        )
+        local += 1
+    return local
 
 
 def main() -> int:
@@ -1938,6 +2048,7 @@ def main() -> int:
     failed += check_normative_target_sync()
     failed += check_current_state_adr_sync()
     failed += check_docs_runtime_contract()
+    failed += check_capability_manifest_parity()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)

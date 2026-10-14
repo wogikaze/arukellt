@@ -4731,6 +4731,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-false-done-hygiene.py",
         ),
         (
+            "issue evidence rules (#678)",
+            "python3 scripts/check/check-issue-evidence-rules.py",
+        ),
+        (
             "native-cpp capabilities registry",
             "python3 scripts/check/check-native-cpp-capabilities.py",
         ),

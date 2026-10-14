@@ -499,6 +499,30 @@ platforms = ["linux"]
 note = "Component interop wasmtime suite: 102 pass, 0 fail (jco-interop opt-in skipped unless ARUKELLT_TEST_JCO=1). Closed #810."
 
 [[checks]]
+id = "check_p2_native_wasmtime"
+guarantee_id = "emit_component"
+command = "python3 scripts/check/gate-668-p2-native-polish.py"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = true
+result = "pass"
+evidence_type = "fixture-set"
+verification_environment = "linux; repository verification toolchain"
+last_verified_commit = "1fcdf7d3d"
+verified_at = "2026-10-15"
+stale_after_days = 30
+affected_count = 0
+incident_id = ""
+blocker_category = ""
+blocker_scope = ""
+blocker_owner = ""
+blocker_issue = ""
+first_seen_commit = "1fcdf7d3d"
+platforms = ["linux"]
+note = "P2 native wasmtime run (gate_074 lineage): all tests/fixtures/wasi_p2_native fixtures compile --emit component, wasm-tools validate, and run under wasmtime with expected stdout/stderr/exit. Also enforces the component size ceiling and guest-native canonical import shape. Runs inside verify quick via check-false-done-close-gates (#668 in done)."
+
+[[checks]]
 id = "check_opt_equivalence"
 guarantee_id = ""
 command = "bash scripts/run/test-opt-equivalence.sh --quick"

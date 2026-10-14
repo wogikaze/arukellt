@@ -34,6 +34,7 @@ not individual checks.
 - [ ] **CI `check_selfhost_diag_parity`** [FAIL] — `python3 scripts/manager.py selfhost diag-parity` (job: `verification`)
 - [ ] **CI `check_wat_roundtrip`** — `bash scripts/run/wat-roundtrip.sh` (job: `verification`)
 - [ ] **CI `check_component_interop_wasmtime`** — `python3 scripts/manager.py verify component-interop` (job: `verification`)
+- [ ] **CI `check_p2_native_wasmtime`** — `python3 scripts/check/gate-668-p2-native-polish.py` (job: `verification`)
 <!-- END GENERATED:release-blockers -->
 
 ## Non-blocking informational checks

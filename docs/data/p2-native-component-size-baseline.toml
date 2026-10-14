@@ -1,7 +1,13 @@
 # Baseline for scripts/check/gate-668-p2-size.py (#668).
-# Measured on wasi_p2_native/hello.ark --emit component (guest-native ~4KB).
-# Ceiling leaves headroom for small emit churn. The gate checks the official
-# component contract and rejects legacy P1/bridge markers separately.
+# Measured on wasi_p2_native/hello.ark --emit component: 10438 bytes
+# (2026-10-15). The official WASI P2 command world declares instance types
+# for every interface the guest adapts (stdout/stderr/stdin, environment,
+# exit, io streams+error, clocks, filesystem types+preopens, random), so
+# the component carries ~12 instance-type declarations plus 16 lowered
+# cm32p2 imports even when hello only writes stdout. Ceiling leaves
+# headroom for small emit churn.
+# The gate checks the official component contract and rejects legacy
+# P1/bridge markers separately.
 
 fixture = "tests/fixtures/wasi_p2_native/hello.ark"
-max_bytes = 8192
+max_bytes = 12288
