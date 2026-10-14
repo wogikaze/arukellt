@@ -1,0 +1,18 @@
+use std::test
+
+// #922 / ADR-075: the page-chain arena used to be append-only — every
+// committed record pushed {record,next} nodes into a bounded bump arena
+// that no collection ever reclaimed, so single-activation alloc bursts
+// (intrinsic inline allocs emit no fn-entry safepoints) exited 122 after
+// ~4M commits. Each collection now rebuilds the chain table and the
+// commit edge pressure-gates collection before the burst outruns it.
+
+fn main() {
+    let mut i = 0
+    while i < 6000000 {
+        let v = Vec::new<i32>()
+        push(v, i)
+        i = i + 1
+    }
+    test::assert_eq_i32(i, 6000000)
+}
