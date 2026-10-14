@@ -83,6 +83,10 @@ fn emit_frame_enter_and_push(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
     // and metadata-arena pressure (bounds record slots). Pressure collects
     // only when the free list is empty, because a nonempty free list already
     // supplies commit_top/alloc without growing the cursor.
+    // The metadata hysteresis term keeps a collect that frees nothing from
+    // refiring on every entry: the gate reopens only after a full band-width
+    // of new bump-committed records, so a saturated live set reaches the hard
+    // metadata OOM instead of livelocking (#922).
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_ALLOC_WATERMARK())
     emit_i32_const(w, constants::LINEAR_GC_COLLECT_THRESHOLD_BYTES())
@@ -98,10 +102,21 @@ fn emit_frame_enter_and_push(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
     writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_I32_AND())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_METADATA_COLLECT_MARK())
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    emit_i32_const(w, constants::LINEAR_GC_META_RETRY_BYTES())
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_U())
+    writer_core::emit_byte(w, opcodes::OP_I32_AND())
     writer_core::emit_byte(w, opcodes::OP_I32_OR())
     // Chain-arena pressure shares the gate: the arena is bump-only between
     // collections (rebuild_chains reclaims it), so a low free margin means
     // the next allocation burst could OOM before the following safepoint.
+    // The hysteresis term suppresses futile refires when a collect still
+    // leaves the cursor inside the band; the gate reopens after a full
+    // band-width of new nodes (#922).
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
     writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_CHAIN_LIMIT())
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
@@ -109,6 +124,14 @@ fn emit_frame_enter_and_push(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
     writer_core::emit_byte(w, opcodes::OP_I32_LT_U())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, constants::GLOBAL_LINEAR_GC_CHAIN_COLLECT_MARK())
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_U())
+    writer_core::emit_byte(w, opcodes::OP_I32_AND())
     writer_core::emit_byte(w, opcodes::OP_I32_OR())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)

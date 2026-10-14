@@ -117,17 +117,46 @@ fn emit_linear_gc_runtime_root_frame_leave_body(w: WasmWriter) {
 // exhausted arena reaches the OOM exit.
 fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32, collect_index: i32) {
     emit_local_decls(w, 6)
-    // Chain-arena pressure is also checked at the commit edge: intrinsic
+    // The commit edge mirrors the whole fn-entry safepoint gate: intrinsic
     // inline allocations inside a single activation emit no fn-entry
-    // safepoints, so the safepoint gate alone cannot see a burst that would
-    // overflow the arena between fn entries (#922). The record being
-    // committed is not linked into the live list yet, so this collection
-    // cannot sweep it.
+    // safepoints, so a burst can outrun every trigger between fn entries —
+    // payload watermark, metadata-arena pressure, and chain-arena pressure
+    // all need to fire here (#922). The record being committed is not linked
+    // into the live list yet, so this collection cannot sweep it. The chain
+    // hysteresis term keeps a collect that cannot reclaim below the band
+    // from refiring on every commit: the gate opens again only after a full
+    // band-width of new chain nodes has accumulated, so a saturated live set
+    // degrades to the hard overflow check instead of livelocking (#922).
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ALLOC_WATERMARK())
+    emit_i32_const(w, constants::LINEAR_GC_COLLECT_THRESHOLD_BYTES())
+    emit_i32_ge_u(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_ROOT_CURSOR())
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_i32_sub(w)
+    emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
+    emit_i32_lt_u(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_FREE_HEAD())
+    emit_i32_eqz(w)
+    emit_i32_and(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_COLLECT_MARK())
+    emit_i32_sub(w)
+    emit_i32_const(w, constants::LINEAR_GC_META_RETRY_BYTES())
+    emit_i32_ge_u(w)
+    emit_i32_and(w)
+    emit_i32_or(w)
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_LIMIT())
     emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
     emit_i32_sub(w)
     emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
     emit_i32_lt_u(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_COLLECT_MARK())
+    emit_i32_sub(w)
+    emit_i32_const(w, constants::LINEAR_GC_PRESSURE_FREE_BYTES())
+    emit_i32_ge_u(w)
+    emit_i32_and(w)
+    writer_core::emit_byte(w, opcodes::OP_I32_OR())
     emit_if_empty(w)
     emit_call(w, collect_index)
     emit_end(w)
@@ -482,6 +511,11 @@ fn emit_linear_gc_rebuild_chains(w: WasmWriter, exit_index: i32) {
     emit_br(w, 0)
     emit_end(w)
     emit_end(w)
+    // Record the post-rebuild chain cursor as the hysteresis mark: the
+    // pressure gates reopen only after a full pressure band-width of new
+    // nodes accumulates on top of this position (#922).
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_CHAIN_CURSOR())
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_CHAIN_COLLECT_MARK())
 }
 
 fn emit_linear_gc_runtime_collect_body(w: WasmWriter, exit_index: i32, mark_index: i32) {
@@ -495,6 +529,11 @@ fn emit_linear_gc_runtime_collect_body(w: WasmWriter, exit_index: i32, mark_inde
     emit_linear_gc_mark_roots(w, mark_index)
     emit_linear_gc_mark_transitive(w, mark_index)
     emit_linear_gc_sweep(w)
+    // Same hysteresis contract as the chain mark: record the post-collect
+    // metadata cursor so the pressure term stays suppressed until a full
+    // band-width of new bump-committed records has accumulated (#922).
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_METADATA_CURSOR())
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_METADATA_COLLECT_MARK())
     emit_end(w)
 }
 

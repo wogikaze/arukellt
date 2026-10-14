@@ -983,6 +983,21 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
     fixed-chain binary が大きな compile を完走 → bootstrap refresh
     （PROVENANCE の s3==s4 fixpoint 手順）で pinned を新 GC 世代へ
     更新する。
+  - 2026-10-15 追加（73d5bfd2e / 9bfa2b280）: chain reclaim 実装後も
+    flat-src compile は ~304MB で張り付き 60min 不完走だった。原因は
+    2 層目の futile-collect livelock — chain band（live footprint が
+    band 内だと commit 毎に全量 collect）と metadata band（band-hot +
+    free-empty で同様に毎 commit 発火）。CHAIN_COLLECT_MARK /
+    METADATA_COLLECT_MARK のヒステリシス mark を両 gate に入れ、
+    band-width 分の進行がない限り refire しない形にした（meta 側は
+    PRESSURE/8 = 512KiB の retry window で live-set dip への再試行余地を
+    残す）。arena も metadata/chain とも 128MiB へ拡大（compiler-scale
+    live set は数百万 record 級）。probe で確認: live_edge 3.6M 24.6s /
+    meta_band 5M 26.4s / meta_edge 8.15M+churn 179s 完走（旧: >300s
+    停滞）。真に飽和した live set は従来通り OOM exit で停止する。
+    なお s2-runtime（memory64 heap-patch host）自体の flat-src compile
+    は従来の quadratic mark で ~15min 超かかる点は変わらず、
+    producer speed の問題であり emit 正しさとは別系。
 
 ## Phase 4 — post-pass type propagation を消す
 

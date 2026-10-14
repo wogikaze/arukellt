@@ -46,12 +46,35 @@ fn GLOBAL_LINEAR_GC_CHAIN_LIMIT() -> i32 { 10 }
 // collection. A stored value is next_grey+1, so 0 still means unmarked and
 // every pushed record reads non-zero for mark tests.
 fn GLOBAL_LINEAR_GC_GREY_HEAD() -> i32 { 11 }
+// Chain cursor position at the end of the last chain rebuild. The pressure
+// gates use it as a hysteresis mark: when a collection still leaves the
+// cursor inside the pressure band, further pressure fires are futile churn,
+// so the gates stay suppressed until the cursor has advanced a full
+// band-width again. A genuinely saturated live set then reaches the hard
+// overflow check and a clean OOM instead of livelocking.
+fn GLOBAL_LINEAR_GC_CHAIN_COLLECT_MARK() -> i32 { 12 }
+// Metadata cursor position at the end of the last collection. The
+// metadata-pressure term only refires once a full band-width of records has
+// been bump-committed since then: a collect that frees nothing leaves the
+// band hot, and without this mark every subsequent commit would pay a futile
+// O(live) collect until the arena wall (#922). Records consumed off the
+// free list do not move the cursor, so refills still pause the term
+// naturally.
+fn GLOBAL_LINEAR_GC_METADATA_COLLECT_MARK() -> i32 { 13 }
+// Hysteresis width for the metadata-pressure term. Deliberately an eighth of
+// the pressure band: after a futile collect the term must still leave
+// several retry windows before the arena wall, because a live-set dip can
+// make a later collect productive (probe: 8.15M live + churn must reclaim
+// churn records instead of OOMing). Full-band hysteresis would consume the
+// whole band before the first retry (#922).
+fn LINEAR_GC_META_RETRY_BYTES() -> i32 { 524288 }
 // Shared arena for allocation records (bumped upward from the arena base) and
 // root slots (grown downward from heap_start). Records are committed
 // monotonically between collections, so the arena must cover the program's
-// live record count plus the churn since the last sweep; 64 MiB gives
-// ~4M records, which keeps small-allocation workloads far from the guard.
-fn LINEAR_GC_METADATA_BYTES() -> i32 { 67108864 }
+// live record count plus the churn since the last sweep. A selfhost compile
+// holds millions of live records at once, so 128 MiB (~8M records) keeps the
+// compiler-scale workload far from the metadata guard.
+fn LINEAR_GC_METADATA_BYTES() -> i32 { 134217728 }
 fn LINEAR_GC_ALLOCATION_RECORD_BYTES() -> i32 { 16 }
 // Page-table geometry: one entry per 64 KiB page of the wasm32 address
 // space, each entry pointing at the head of a {record,next} node chain.
@@ -61,8 +84,10 @@ fn LINEAR_GC_PAGE_TABLE_BYTES() -> i32 { 262144 }
 fn LINEAR_GC_CHAIN_NODE_BYTES() -> i32 { 8 }
 // Chain-node arena. A node is only ever appended (stale nodes are filtered
 // by the record's current range), so the arena bounds total committed
-// page-records between OOM; 32 MiB holds 4M nodes.
-fn LINEAR_GC_CHAIN_BYTES() -> i32 { 33554432 }
+// page-records per collection cycle (rebuild_chains reclaims it); the live
+// footprint scales with live record count plus one node per covered page,
+// so 128 MiB keeps compiler-scale heaps far from the pressure band.
+fn LINEAR_GC_CHAIN_BYTES() -> i32 { 134217728 }
 fn LINEAR_GC_ROOT_SLOT_BYTES() -> i32 { 4 }
 // Free bytes remaining in the shared arena below which a function entry runs
 // the collector even under the payload watermark. Sweeping then refills the

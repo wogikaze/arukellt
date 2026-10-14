@@ -90,3 +90,42 @@ exceeding ~4M nodes).
 - [ ] Linear-target fixture set passes; no new runtime-trap regressions.
 - [ ] Churn reproducer added as a regression fixture if a lightweight
       variant exists.
+
+## Update 2026-10-15 — second pathology layer found and fixed
+
+The first fix (rebuild_chains + safepoint/commit-edge pressure trigger)
+removed the append-only OOM, but a flat-src compile on the new emitter
+still did not terminate: RSS went flat at ~304MB / 100% CPU and the run
+had to be killed at 60min. Stack samples (wasmtime -W timeout) showed
+the guest inside normal parse/codegen frames, so the burn was inside GC
+maintenance, not emit logic. Deeper analysis found two more issues:
+
+1. Commit-edge gate fired collect whenever CHAIN_LIMIT - CHAIN_CURSOR
+   < 4MiB. rebuild_chains re-registers the whole live set, so when the
+   live footprint itself sits inside the band, every commit re-fired a
+   futile full collect (the live set can never shrink below its own
+   size). Fix: CHAIN_COLLECT_MARK records the post-rebuild cursor; the
+   chain term additionally requires a full band-width of new nodes
+   (cursor - mark >= 4MiB) before refiring.
+2. The metadata band had the same shape: (ROOT - META < 4MiB) AND
+   free-list empty => collect on every fn-entry AND (new) commit. A
+   collect that frees nothing leaves both conditions true, so the term
+   refires per commit = the same livelock. Bench probe: 8.15M live
+   records + 500k churn stalled >300s pre-fix; with a 512KiB
+   (PRESSURE/8) METADATA_COLLECT_MARK retry window it completes in 179s;
+   a fully saturated set still exits 120 cleanly instead of hanging.
+   (PRESSURE-wide hysteresis alone was verified too coarse: it consumed
+   the whole band before the first retry and turned the recoverable
+   churn case into OOM 120 at 77s.)
+
+Also in the same commit: the commit-edge gate now mirrors the entire
+fn-entry gate (watermark OR meta-pressure OR chain-pressure) instead of
+only chain pressure, and both arenas were enlarged to 128MiB
+(metadata ~8.39M records, chain ~16M nodes) because a compiler-scale
+workload holds several million live records.
+
+Verification: fixtures target_capability 6/6 + collections 20/20 +
+generics_v1 23/23 + functions 20/20 + for_loops 4/4 +
+match_extensions 11/11 + enums 13/13 all executed PASS on a freshly
+built s2-runtime; probes live_edge/meta_band/meta_edge complete.
+Commits 73d5bfd2e + 9bfa2b280.
