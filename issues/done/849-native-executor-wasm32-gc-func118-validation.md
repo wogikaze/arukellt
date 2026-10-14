@@ -1,3 +1,8 @@
+---
+Status: done
+Updated: 2026-10-15
+---
+
 # 849 — native-executor wasm32-gc S3 validation drift (func 118)
 
 ## Summary
@@ -19,8 +24,8 @@ comparison S2 build profile (`wasm32` + `wasi-p1` today). Handle under a
 separate `s2-gc[wasm32-gc] -> s3-gc[wasm32-gc]` validation lane.
 
 ## Acceptance
-- Reproducible under an explicit wasm32-gc profile lane
-- Root-caused type canonicalization / function 118 body drift fixed or waived with ADR-backed scope
+- [x] Reproducible under an explicit wasm32-gc profile lane
+- [x] Root-caused type canonicalization / function 118 body drift fixed or waived with ADR-backed scope
 
 ## Update 2026-10-15 — defect reproduces in current-source emit
 
@@ -97,3 +102,76 @@ only when the dest local (or a staged copy of it) is the last argument's
 LOCAL_GET source, which is exactly the shape the heuristic was written
 for. Regression fixture: target_capability/gc_get_unchecked_dest_decl.ark
 (run / t3-compile / t3-run).
+
+## Update 2026-10-15 (3) — co-observed join-temp defect root-caused and fixed (1388020de)
+
+The second observed defect (Oct-9 emit func 6873 / current emit func 6879,
+`edge_push_caller_segment`, write-only `local.set` local 23) is a different
+bug family in the same decl-resolution layer: `mir_begin_if_expr` allocates
+one result local before branch types are known, and a statement-position
+`if` still copies each branch's last stack ref into it via LOCAL_SET. With
+`push(table.caller_lists, list)` vs `push(get_unchecked(...), pos)` the two
+branches leave unrelated concrete GC types — no single concrete decl accepts
+both stores.
+
+Fix: `local_set_conflict_storage_type` (src/compiler/wasm/
+code_ref_locals_block_scan.ark) scans a local's LOCAL_SET writes and resolves
+each source's storage type; on disagreement `emit_gc_local_val_type` declares
+enum_open when every source is enum-family (extending the existing
+variant-vs-variant join to variant-vs-open) and `(ref null any)` otherwise.
+Reads already `ref.cast` at access sites, so the widened decl is sound. The
+join is also applied inside `copied_non_string_storage_type` so a copy of a
+conflicted local resolves to anyref, not the first write's type.
+
+Minimal reproducer (compiled INVALID before, VALID after):
+
+    fn f(vv: Vec<Vec<i32>>, v: Vec<i32>, c: i32) -> i32 {
+        if c > 0 { push(vv, v) } else { push(v, 1) }
+        0
+    }
+
+Regression fixture: target_capability/gc_if_join_mixed_ref_temps.ark.
+
+End-to-end evidence: a gc-host build carrying both fixes (gc-host-v6, the
+current-source compiler emitted to wasm32-gc and binary-patched only for the
+join-temp decl, matching this fix) re-emitted the full flat-src compiler to
+wasm32-gc — `wasm-tools validate --features gc` reports zero defects with no
+patching. The third co-observed defect (Oct-9 emit func 8834 func-section
+rec/ref) did not reproduce in current-source emit.
+
+Remaining producer-side note: a linear-memory (wasm32) host such as
+arukellt-s2-runtime.wasm cannot finish a flat-src compile — it grinds in
+the pre-#922-hysteresis GC runtime the Oct-9 pinned emitter embedded. That
+is producer speed (tracked under #922/#851), not emit correctness; the
+wasm32-gc emit validation above used the GC-native gc-host lane.
+
+## Resolution (2026-10-15)
+
+Both defects of the observed family are root-caused and fixed in the
+wasm32-gc emit path; the compiler now self-emits to a fully valid
+wasm32-gc module.
+
+- d103863c2 + e2c2a05f4: `infer_get_unchecked_elem_from_next_call`
+  stamped the next block-CALL's last-param type onto a get_unchecked
+  dest without checking dataflow (receipt func 118 == emit func
+  5353/5357 local 51). Gated on `call_result_is_last_call_arg`.
+  Fixture: gc_get_unchecked_dest_decl.
+- 1388020de: `local_set_conflict_storage_type` — if-expression join
+  temps whose LOCAL_SET sources disagree now declare enum_open
+  (enum-family conflicts) or `(ref null any)` (unrelated concrete
+  types), fixing the `edge_push_caller_segment` write-only local 23
+  defect (emit func 6879 / Oct-9 func 6873). Fixture:
+  gc_if_join_mixed_ref_temps.
+- The third co-observed defect (Oct-9 func 8834 func-section rec/ref)
+  did not reproduce in current-source emit.
+
+Lane evidence: gc-host-v5 (Oct-14 emit logic) re-emitted flat-src to
+wasm32-gc = func 6879 defect reproduced; gc-host-v6 (same emit plus the
+join fix) re-emitted it with zero validation defects and no patching
+(`wasm-tools validate --features gc` clean on selfemit-v7.core.wasm).
+Gates: `selfhost-fixture-test.py --filter-dir target_capability` 7/7
+PASS, `verify lane --gate t3` PASS.
+
+Out of scope here: producer-side linear-GC throughput on the s2-runtime
+host (#922/#851) and the dedicated s2-gc→s3-gc native-executor lane
+harness (native-cpp promotion mission, #847/#848).

@@ -998,6 +998,53 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
     なお s2-runtime（memory64 heap-patch host）自体の flat-src compile
     は従来の quadratic mark で ~15min 超かかる点は変わらず、
     producer speed の問題であり emit 正しさとは別系。
+  - 2026-10-15 追加（d103863c2）: #849 根本原因特定・修正。
+    `infer_get_unchecked_elem_from_next_call`
+    （wasm/code_ref_locals_infer_dest.ark、#730 由来）が
+    raw_array_get_unchecked の dest temp に「ブロック内の次の CALL の
+    最後の param の named-struct 型」を無条件で刻印していた。dest が
+    実際にその引数へ流れるか検査していなかったため、直後に来る任意の
+    receiver call（`SelfEmitCtx_target(ctx)` 等）で temp が poison され、
+    `SelfEmitCtx_apply_call_relocs` の local 51 が (ref null 184) で
+    declare されながら (ref null 10) の値を store → validate 失敗
+    （func 118/5353/5357 は全て同一箇所）。修正は
+    `call_result_is_last_call_arg` ゲート — dest（または staged copy、
+    既存 infer_local_is_copy_of 経由）が次 CALL の最終引数の
+    LOCAL_GET 源である時だけ推論を発火。回帰 fixture:
+    tests/fixtures/target_capability/gc_get_unchecked_dest_decl.ark。
+  - gc-host-v5 構築手順の記録: Oct-14 gc-host（旧 emit）で flat-src →
+    wasm32-gc を emit すると decl bug を含むため、wasm binary を直接
+    修復して動く producer を得た（/tmp/wpatch/drive2.py — local decl
+    heaptype を producer 型へ patched-same-length 書換 + write-only
+    scratch local は local.set→drop+nop）。重要: wasm32-gc の auto は
+    memory64 を選び `component new` が canonical realloc で失敗する。
+    実行可能な component には `--memory-width memory32` が必須
+    （gc-host.core は 32bit memory で package 可能）。
+    gc-host-v5（fixed emit + native GC runtime, patched binary）により
+    flat-src→wasm32 emit (s3-final) と flat-src→wasm32-gc selfemit
+    (selfemit-v5, no-patch validate 期待) を実行中。
+  - 2026-10-15 追加（1388020de）: #849 第2欠陥（join temp）修正。
+    `mir_begin_if_expr` は分岐型を知る前に result local を1つ割り当て、
+    statement 位置の if でも各分岐の最後の stack ref を LOCAL_SET で
+    join temp へ書き込む。`push(Vec<Vec<i32>>)` vs `push(Vec<i32>)` の
+    ように無関係な concrete GC 型が混ざると、単一の concrete decl では
+    両方を収められず validation 失敗（self-emit func 6879 / 旧 emit の
+    func 6873 local 23、`edge_push_caller_segment`）。修正:
+    `local_set_conflict_storage_type`（code_ref_locals_block_scan.ark）が
+    LOCAL_SET 書き込み源の storage type を解決し、不一致なら decl を
+    enum_open（全源が enum family: variant 同士に加え variant-vs-open
+    も）か `(ref null any)` にする。typed read は access site で既に
+    ref.cast するため拡大 decl は安全。`copied_non_string_storage_type`
+    側にも同じ join を適用し、conflicted local の copy は first-write
+    型ではなく anyref を返す。
+    検証: repro_min/repro_edge と self-emit 全関数が validate 清浄化
+    — 修正を載せた gc-host-v6（同じロジックを含むバイナリ）の
+    flat-src→wasm32-gc 再 emit は patch 無しで zero defect。
+    回帰 fixture: gc_if_join_mixed_ref_temps.ark。
+    なお arukellt-s2-runtime.wasm で flat-src compile は linear-GC の
+    旧ランタイム（Oct-9 pinned emitter 由来、#922 hysteresis 前）に
+    埋め込まれ futile-collect で進まない — producer 速度の問題で
+    emit 正しさとは別系（#922/#851 側）。
 
 ## Phase 4 — post-pass type propagation を消す
 
