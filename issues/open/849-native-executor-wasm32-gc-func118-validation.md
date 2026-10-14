@@ -65,3 +65,35 @@ Also observed this session: s2-runtime (memory64 heap-patched host)
 cannot finish a flat-src to wasm32-gc compile within 15 min — consistent
 with the known quadratic-mark pathology that motivated the gc-host lane;
 that is a producer-speed property, not emit correctness.
+
+## Update 2026-10-15 (2) — root cause found and fixed (d103863c2)
+
+The mistyped scratch local was not a spine-entry collision. It is
+infer_get_unchecked_elem_from_next_call in
+src/compiler/wasm/code_ref_locals_infer_dest.ark (added aa87f31a1 for
+#730): for a raw_array_get_unchecked producer it scanned forward past
+LOCAL_SET/LOCAL_GET to the *next CALL in the block* and stamped that
+call's **last parameter's named-struct type** onto the dest local, without
+checking that the dest value actually feeds that argument.
+
+In SelfEmitCtx_apply_call_relocs, the body binding of
+get_unchecked(ctx.body_bytes, func_idx) is followed by
+ctx_record::SelfEmitCtx_target(ctx) — a call whose last (only) parameter
+is ctx: SelfEmitCtx — so _t51 was declared (ref null 184) while the
+instruction stream stores the (ref null 10) array.get result into it.
+
+Minimal reproducer (compiled INVALID before the fix, VALID after):
+
+    struct Big { bodies: Vec<Vec<i32>>, tag: i32 }
+    fn Big_tag(b: Big) -> i32 { b.tag }
+    fn pick(bag: Bag, i: i32) -> i32 {
+        let body = get_unchecked(bag.bodies, i)
+        let tag = Bag_tag(bag)   // unrelated receiver call poisoned the temp
+        len(body) + tag
+    }
+
+Fix: call_result_is_last_call_arg gate — the next-call inference fires
+only when the dest local (or a staged copy of it) is the last argument's
+LOCAL_GET source, which is exactly the shape the heuristic was written
+for. Regression fixture: target_capability/gc_get_unchecked_dest_decl.ark
+(run / t3-compile / t3-run).
