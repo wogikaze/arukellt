@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-14
 Updated: 2026-10-14
 ID: 923
@@ -68,8 +68,35 @@ widen table is the complete fix.
 
 ## Acceptance
 
-- [ ] i32-typed arg to i64 param emits i64.extend (or an equivalent
+- [x] i32-typed arg to i64 param emits i64.extend (or an equivalent
       coercion) in component emit / i32-scalar mode
-- [ ] The same widening verified for if/match result args and declared
+- [x] The same widening verified for if/match result args and declared
       i32 locals
-- [ ] Regression fixture exercising component emit arg width coercion
+- [x] Regression fixture exercising component emit arg width coercion
+
+## Resolution (2026-10-14, 5c572e93d)
+
+Implemented the per-param widen table. mir_emit_staged_call_args now takes
+a widen_i64_args vector parallel to staged_arg_locals and emits
+MirInst_extend_i32_to_i64_stack after each flagged staged re-read. Both
+direct-call lowering paths (AST body_call_direct, CoreHIR
+core_call_direct_args) compute needs_i64_arg_widen =
+mir_callee_param_is_i64(callee, param_idx) && ctx_local_vt(arg) ==
+VT_I32, emitting the extend inline for unstaged args and flagging the
+staged copy otherwise. The legacy push_i64_needs_extend flag now maps
+onto the last staged slot, preserving the old vec_push emit order.
+
+Note on the fix-shape caution above: MirInst_extend_i32_to_i64_stack is
+the correct instruction for both widths — under memory32 (component
+emit) emit_extend_i32_to_i64 emits the bare i64.extend_i32_s this
+analysis called for; under memory64 it emits wrap+extend which
+normalizes the stack-i64 representation of an i32 local. The invalid
+"wrap on a real i32" combination cannot arise because each width emits
+the form matching its own local.get representation.
+
+Verified: the issue reproducer under --emit component validates clean
+(wasm-tools validate; previously "expected i64, found i32"), and
+regression fixture run:functions/i32_arg_to_i64_param.ark (declared i32
+local, staged multi-arg both positions, if-result and match-result args)
+prints its expected 2/7/7/5/5 through the memory32 component pipeline.
+python3 scripts/manager.py verify lane PASS.

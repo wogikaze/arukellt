@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-14T10:04:07Z",
+  "generated_at": "2026-10-14T12:13:12Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -533,23 +533,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "923",
-      "path": "923-component-emit-i32-arg-widening-missing.md",
-      "title": "923 — Component emit misses i32→i64 argument widening",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": 921
       }
     },
     {
