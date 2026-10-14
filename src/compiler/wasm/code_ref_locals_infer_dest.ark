@@ -292,6 +292,25 @@ fn infer_local_is_copy_of(block: MirBlock, before_ii: i32, alias: i32, local_idx
     false
 }
 
+// True when the local that supplied the CALL's last argument is dest or a
+// staged copy of it. The last arg is the nearest LOCAL_GET before the call;
+// anything else (const, nested producer) means the produced value does not
+// reach the callee's last param and the next-call inference must not fire.
+fn call_result_is_last_call_arg(block: MirBlock, call_ii: i32, dest: i32) -> bool {
+    if call_ii <= 0 || dest < 0 {
+        return false
+    }
+    let prev = block_inst_access::MirBlock_inst_at(block, call_ii - 1)
+    if inst_accessors_shape::MirInst_op(prev) != opcodes::MIR_LOCAL_GET() {
+        return false
+    }
+    let src = inst_accessors_operands::MirInst_arg0(prev)
+    if src == dest {
+        return true
+    }
+    infer_local_is_copy_of(block, call_ii, src, dest)
+}
+
 // Match emit_get_unchecked: stack-top result feeds the next CALL's last param.
 fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
     let dest = inst_accessors_operands::MirInst_dest(inst)
@@ -313,24 +332,28 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
                         let next = block_inst_access::MirBlock_inst_at(block, look)
                         let nop = inst_accessors_shape::MirInst_op(next)
                         if nop == opcodes::MIR_CALL() {
-                            let next_callee = inst_accessors_literals::MirInst_str_val(next)
-                            let fn_idx =
-                            resolve_fn_index_for_inference(ctx, clone(next_callee))
-                            if fn_idx >= 0 {
-                                let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
-                                let pc = function_param_view::MirFunction_param_count(called)
-                                if pc > 0 {
-                                    let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
-                                    if !starts_with(clone(pname), "vec:") &&
-                                    !starts_with(clone(pname), "Vec") {
-                                        let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
-                                        match named {
-                                            Option::Some(named_v) => {
-                                                if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                                    return named
+                            // The inference is only sound when this result
+                            // actually feeds that call's last parameter.
+                            if call_result_is_last_call_arg(block, look, dest) {
+                                let next_callee = inst_accessors_literals::MirInst_str_val(next)
+                                let fn_idx =
+                                resolve_fn_index_for_inference(ctx, clone(next_callee))
+                                if fn_idx >= 0 {
+                                    let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+                                    let pc = function_param_view::MirFunction_param_count(called)
+                                    if pc > 0 {
+                                        let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
+                                        if !starts_with(clone(pname), "vec:") &&
+                                        !starts_with(clone(pname), "Vec") {
+                                            let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
+                                            match named {
+                                                Option::Some(named_v) => {
+                                                    if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                                        return named
+                                                    }
                                                 }
+                                                Option::None => {}
                                             }
-                                            Option::None => {}
                                         }
                                     }
                                 }
