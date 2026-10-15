@@ -285,6 +285,7 @@ diag:diagnostics/operator_trait_missing.ark
 diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
 diag:diagnostics/same_line_statement_split.ark
+diag:diagnostics/noncallable_callee.ark
 diag:diagnostics/boolean_literal_not_name.ark
 diag:diagnostics/future_reserved_keyword.ark
 diag:diagnostics/fstring_embedded_unresolved.ark

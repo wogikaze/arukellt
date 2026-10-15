@@ -5,6 +5,7 @@ use typechecker::ast_access
 use typechecker::builtins
 use typechecker::call_args
 use typechecker::contract_type_access
+use typechecker::names
 use typechecker::scope
 use typechecker::unify
 fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, fn_ty: TypeInfo) -> TypeInfo {
@@ -50,6 +51,18 @@ fn infer_unknown_ident_call(env: TypeEnv, scope: LocalScope, callee: AstNode) ->
         if type_arg_count > 0 {
             return contract_type_access::TypeInfo_type_arg_at(loc_ty, type_arg_count - 1)
         }
+    }
+    // A concrete, resolved non-function binding cannot be callee of a
+    // call expression — `a(b)` with `a: i32` previously fell through to
+    // TY_UNKNOWN and the emitters produced invalid wasm.  TY_UNKNOWN and
+    // TY_TYPE_VAR stay quiet: the resolver owns undefined-name
+    // diagnostics, and a not-yet-bound var may still unify with a fn.
+    let loc_tag = contract_type_access::TypeInfo_tag(loc_ty)
+    if loc_tag != commands::TY_UNKNOWN() && loc_tag != commands::TY_TYPE_VAR() {
+        unify::type_error(env, text::concat(
+                clone(callee_name),
+                text::concat(" (",
+                    text::concat(names::type_display_name(loc_ty), ") is not callable"))))
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
 }
