@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-14
-Updated: 2026-10-14
+Updated: 2026-10-15
 ID: 922
 Track: compiler
 Depends on: none
@@ -129,3 +129,47 @@ generics_v1 23/23 + functions 20/20 + for_loops 4/4 +
 match_extensions 11/11 + enums 13/13 all executed PASS on a freshly
 built s2-runtime; probes live_edge/meta_band/meta_edge complete.
 Commits 73d5bfd2e + 9bfa2b280.
+
+## Update 2026-10-15 (b) — flat-src s4 attempt: OOB memory fault at MIR lowering
+
+A full s4 attempt (s3-final.wasm, gc-host-emitted wasm32 build with the
+#922 fixes) reached MIR lowering after ~2.5h of parse/check, then died
+on an out-of-bounds linear-memory read — the first concrete evidence
+that a guest-side UAF window remains:
+
+    memory fault at wasm address 0x211aca80 in linear memory of size 0x205e0000
+    name_index_find_slot <- name_index_get <- type_table_find_existing
+    <- TypeTable_intern <- mir_value_type_from_type_name <- ...
+
+get_unchecked(index.buckets, slot) read ~11.3MB past the memory end —
+either the NameIndex record or its buckets Vec was swept while still
+reachable, i.e. a live ref existed only in a wasm operand-stack slot or
+unmirrored scratch local when the commit-edge collect ran. The fn-entry
+safepoint is safe by construction (empty operand stack); the commit-edge
+collect added for #922 fires mid-expression where that invariant does
+not hold.
+
+A second attempt (s3-v2.wasm -> s4-v2.wasm) died during module loading
+with 59 "failed to load module" errors — diagnosed as environmental:
+verify quick ran _prepare_flattened_selfhost_source_locked (which does
+_remove_tree(flat-src) under flat-overlay.lock) at 08:12, while the s4
+guest was mid-load of the same tree. Not a compiler defect; artifacts
+dropped into flat-src do not survive a re-flatten.
+
+## In flight — amplified-collect detonation build
+
+To localize the unrooted window without 2.5h per datapoint, a debug
+flat-src snapshot was emitted with:
+
+- LINEAR_GC_COLLECT_THRESHOLD_BYTES 64MiB -> 64KiB (both collect
+  gates fire ~1000x more often)
+- sweep poison: first payload word of each swept record overwritten
+  with 0x7EADBEEF so a stale ref faults at a recognizable address
+
+s3-debug.wasm (11.4MB) contains both (verified in the binary) and is
+running the same flat-src -> wasm32 compile. If a mid-expression ref
+window exists and is reachable at compiler scale, it should detonate
+far earlier and name the consumer in the backtrace. Repro status:
+50k-insert HashMap churn + full readback on wasm32 passes clean on the
+normal build (.build/repro_922.ark), so the window needs either
+compiler-scale allocation density or a specific emitter path.

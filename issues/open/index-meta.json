@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-14T21:00:12Z",
+  "generated_at": "2026-10-15T00:01:57Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -61,23 +61,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "678",
-      "path": "678-verification-gates-docs-release.md",
-      "title": "678 — Verification gates: stale docs, release checklist, and close-gate coverage",
-      "track": "tooling-contract",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },

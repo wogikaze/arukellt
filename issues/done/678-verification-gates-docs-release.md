@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-17
-Updated: 2026-06-17
+Updated: 2026-10-15
 ID: 678
 Track: tooling-contract
 Depends on: none
@@ -66,7 +66,9 @@ deleted network APIs.
   - [x] P2 native wasmtime run (`gate_074` / `wasi_p2_native/*`)
       — new `check_p2_native_wasmtime` release-blocking check
       (`scripts/check/gate-668-p2-native-polish.py`).
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [x] `python3 scripts/manager.py verify quick` exits 0
+      — 157/157 checks pass, exit 0 (2026-10-15 run, commits
+      9ed7eb8ab + eb391af90).
 
 ## Update 2026-10-15
 
@@ -79,6 +81,40 @@ deleted network APIs.
   more importantly, now runs at all — #668 was in done/ with a dead gate.
 - `docs/target-contract.md` no longer exists; the contract-doc check in
   check-docs-consistency.py was passing vacuously. Resolved to the real doc.
+
+## Resolution (2026-10-15)
+
+All acceptance items are implemented and gate-enforced:
+
+- `scripts/check/check-issue-evidence-rules.py` encodes the four
+  evidence-class rules for issues/done/ (fixture evidence, runtime-proof
+  requirement, callable-import rule, implementation rule); 813 pre-existing
+  violations grandfathered in
+  `docs/data/issue-evidence-rules-baseline.toml`, ratchet enforced by
+  verify quick ("issue evidence rules" bg check).
+- `check_docs_runtime_contract` in check-docs-consistency.py resolves the
+  live contract doc (platform/target-runtime-and-surfaces.md) instead of
+  skipping vacuously; checks the emit-component row tier, P2/ADR-054
+  anchor, wasmtime evidence anchor, and tier ceiling.
+- `check_capability_manifest_parity` keeps capabilities.toml and
+  std/manifest.toml bidirectionally consistent.
+- close-gates: #668 and #673 added to TRACKED/GATES — #668's gate was red
+  while the issue sat in done/ (stale import-name expectation +
+  pre-official-P2 size ceiling, fixed; gate now PASS); full close-gates
+  run = 25 enforced, all PASS.
+- `check_p2_native_wasmtime` added as a release-blocking check in
+  release-guarantees.toml (generated into docs/release-checklist.md).
+
+Drift repairs required for a green verify quick (eb391af90):
+generate-core-op-bindings emit-order made fmt-canonical (killed a
+regen<->fmt churn that flagged the generated file stale), manifest
+registration + .expected for gc_if_join_mixed_ref_temps, gate-668
+wasm-tools resolution via find_wasm_tools() (pip shadow package),
+ark-code-quality + project-state baseline syncs, done-checkbox hygiene
+in issues/done/921.
+
+Verification: `python3 scripts/manager.py verify quick` 157/157 PASS,
+exit 0; close-gates standalone 25/25; gate-668 standalone PASS.
 
 ## References
 

@@ -9,7 +9,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I669["669 669 — WIT import IDE and formatter surface"]
   I677["677 677 — Component developer experience (CLI, cookbooks, diagnostics explain)"]
-  I678["678 678 — Verification gates: stale docs, release checklist, and close-gate coverage"]
   I680["680 680 — Target tier honesty audit (stable / smoke / scaffold / none)"]
   I681["681 681 — Stdlib manifest reachability contract audit"]
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
@@ -55,7 +54,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **669** depends on: 652, done); blocks: none
 - **677** depends on: 475, 485; blocks: none
-- **678** depends on: none; blocks: none
 - **680** depends on: 679; blocks: 682
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
