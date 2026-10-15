@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-15T08:29:48Z",
+  "generated_at": "2026-10-15T11:04:44Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -483,36 +483,19 @@
       }
     },
     {
-      "id": "925",
-      "path": "925-infix-pipe-statement-truncation.md",
-      "title": "Infix `|` silently terminates a `let` RHS — remainder parsed as garbage",
-      "track": "language",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "926",
-      "path": "926-noncallable-callee-silent-unknown.md",
-      "title": "Typechecker accepts calls of non-function values (silent unknown)",
+      "id": "927",
+      "path": "927-module-graph-compile-hang.md",
+      "title": "Selfhost compiler hangs compiling src/compiler/main.ark via module graph",
       "track": "compiler",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 3
+        "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation",
+        "class": "investigation",
         "upstream_notes": null
       }
     },

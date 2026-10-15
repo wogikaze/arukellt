@@ -30,8 +30,7 @@ graph LR
   I918["918 918 — `arukellt test` runner UX: filter, no-fail-fast, directory discovery"]
   I919["919 919 — `.expected` to `test:` fixture migration (ADR-041 Phase 2d)"]
   I922["922 922 — linear-GC page-chain arena is append-only; high-churn workloads exit CHAIN OOM"]
-  I925["925 Infix `|` silently terminates a `let` RHS — remainder parsed as garbage"]
-  I926["926 Typechecker accepts calls of non-function values (silent unknown)"]
+  I927["927 Selfhost compiler hangs compiling src/compiler/main.ark via module graph"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
@@ -76,8 +75,7 @@ graph LR
 - **918** depends on: 719; blocks: none
 - **919** depends on: 719; blocks: none
 - **922** depends on: none; blocks: none
-- **925** depends on: none; blocks: none
-- **926** depends on: none; blocks: none
+- **927** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none
