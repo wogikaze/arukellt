@@ -41,6 +41,24 @@ whole compiler source tree.
 - Trivial single-file programs compile in <1 s; multi-module fixtures
   compile fine -> scale- or shape-specific.
 
+## Minimal-ish repro (2026-10-15)
+
+`tests/fixtures/stdlib_trait/iterator_query_consumers.ark` and
+`iterator_string_callbacks.ark` compile in ~1.5 s under the pinned
+bootstrap (`bootstrap/arukellt-selfhost.wasm`) but exceed the 120 s
+fixture-parity compile timeout under both the current s2-runtime AND
+the pre-change `flat-src-gc-v5/bootstrap-out.wasm` (built 04:41
+today).  So the regression window is roughly "after the 2026-10-09
+pin, before 2026-10-15 04:41" — candidates in that window include the
+#920 deferred-sig binding work and the #922 linear-GC pressure/arena
+machinery.  These iterator fixtures exercise exactly the
+trait/generic-inference surface that the whole-compiler compile also
+stresses.
+
+Practical gate impact: `python3 scripts/manager.py selfhost
+fixture-parity` currently reports PASS=1793 FAIL=2 with both failures
+being these compile timeouts — pre-existing, not caused by #924–#926.
+
 ## Suspects
 
 - Resolver worklist / visited-set over ~500-module graph not making
