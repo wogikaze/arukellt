@@ -1,9 +1,11 @@
+use std::text
 use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
 use parser::core_api_cursor
 use parser::core_api_expect
+use parser::state_record
 
 pub fn parse_expr_or_block(p: Parser) -> AstNode {
     skip_newlines(p)
@@ -24,6 +26,21 @@ pub fn parse_block(p: Parser) -> AstNode {
         }
         let stmt = parse_stmt(p)
         core_ast_children::AstNode_push_child(node, stmt)
+        // A statement must end at a newline, `;`, `}` or EOF.  Anything
+        // else on the same line was previously split into a second,
+        // silently discarded statement — `let x = a ~ b` bound `a` and
+        // swallowed `~ b` with no diagnostic.  Expression parsing skips
+        // newlines while looking for a continuation, so a statement that
+        // already ended at a newline is recognized via the previous token.
+        let term = peek_kind(p)
+        let prev = peek_kind_at_index(p, state_record::parser_position(p) - 1)
+        if term != tokens::TK_NEWLINE() && term != tokens::TK_SEMI() &&
+        term != tokens::TK_RBRACE() && term != tokens::TK_EOF() &&
+        prev != tokens::TK_NEWLINE() && prev != tokens::TK_SEMI() {
+            core_api_expect::error(p, text::concat(
+                    "unexpected token after statement (expected newline or `;`): ",
+                    peek_text(p)))
+        }
         skip_newlines(p)
     }
     expect_token(p, tokens::TK_RBRACE())

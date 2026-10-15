@@ -1,0 +1,6 @@
+use std::host::stdio
+
+fn main() {
+    let x = 12 ~ 5
+    stdio::println(x.to_string())
+}

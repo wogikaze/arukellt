@@ -1,4 +1,5 @@
 use std::host::stdio
+use std::prelude::{f32_to_f64}
 
 fn main() {
     let a = 42i32
@@ -7,4 +8,27 @@ fn main() {
     stdio::println(a)
     stdio::println(b)
     stdio::println(c)
+
+    // A suffix directly against an operator must leave the operator in
+    // the stream; the lexer used to eat the next byte into the suffix.
+    stdio::println(100u8+1u8)
+    stdio::println(50i16*2i16)
+    stdio::println(9u32-4u32)
+
+    // A suffix directly against call punctuation must close cleanly.
+    stdio::println(7i8)
+    stdio::println(8u16)
+    stdio::println(11u64)
+    stdio::println(f32_to_f64(2.5f32))
+
+    let d = 6i8
+    let e = 300u16
+    let f = 70000u32
+    let g = 5i64
+    let h = 1.5f32
+    stdio::println(d)
+    stdio::println(e)
+    stdio::println(f)
+    stdio::println(g)
+    stdio::println(f32_to_f64(h))
 }

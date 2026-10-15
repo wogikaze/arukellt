@@ -295,7 +295,10 @@ test mod "string" {
     test "len_bytes_ascii" { assert(len_bytes("hello") == 5) }
     test "len_bytes_empty" { assert(len_bytes("") == 0) }
     test "len_chars_ascii" { assert(len_chars("hello") == 5) }
-    test "is_empty_checks" { assert(is_empty("")) assert(is_empty("x") == false) }
+    test "is_empty_checks" {
+        assert(is_empty(""))
+        assert(is_empty("x") == false)
+    }
     test "slice_bytes_middle" { assert(slice_bytes("hello", 1, 4) == "ell") }
     test "split_two_parts" {
         let parts = split("a,b", ",")
