@@ -8,6 +8,8 @@ use loader::ast_serialize
 // {cache_dir}/{source_hash}.astc before parsing.
 // On cache miss, parses source and stores result to cache.
 pub fn parse_module_source(source: String, cache_dir: String) -> Vec<AstNode> {
-    // AST cache disabled - needs heap investigation
+    // AST cache stays disabled after the #825 codec repair: the format is
+    // fixed and fails closed, but re-enablement requires measured
+    // frontend-time benefit. See the issue file for the measurement record.
     session_parse::session_parse_decls(source)
 }

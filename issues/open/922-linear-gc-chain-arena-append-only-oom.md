@@ -173,3 +173,38 @@ far earlier and name the consumer in the backtrace. Repro status:
 50k-insert HashMap churn + full readback on wasm32 passes clean on the
 normal build (.build/repro_922.ark), so the window needs either
 compiler-scale allocation density or a specific emitter path.
+
+## Update 2026-10-15 (c) — deterministic emitter miscompile found via #825
+
+While repairing the AST cache codec (#825) a **100% deterministic**
+wasm32-linear emitter defect surfaced that is almost certainly the same
+family as the UAF above:
+
+- `fn f(...) -> (i32, i32)` ending in a bare tuple tail `(a, b)` emits
+  `local.get a; local.get b; drop; drop; unreachable` plus the real
+  tuple-build in dead code — i.e. tail-position tuple literals are
+  scrapped instead of returned.  Every bare-tuple-tail function traps at
+  runtime.  `return (a, b)` emits correctly.  (Compare `read_i32` vs its
+  early-return path in .build/astc-probe.wasm, func ~706.)
+- With certain shapes the emission is worse than a trap: operand values
+  are lost mid-expression and the function ships *invalid* wasm
+  ("expected i32 but nothing on stack" at validation).  In one instance
+  the `b3` local's store landed after the `unreachable` — a scratch-local
+  def/use inversion under the shadow-stack spill pass (locals 69+).
+- Confirmed on both current s2 and the pinned bootstrap — pre-existing,
+  not introduced by #825.
+
+This gives a tiny, fast repro for the class of bug suspected in the s4
+UAF: **the linear backend's value tracking around bare tuple tails /
+scratch spill is unreliable** — a live value can be dropped or
+re-materialized after a terminator.  If the same machinery unroots a ref
+across a collect safepoint, that is the UAF window.  The codec now
+avoids the pattern; the emitter fix itself belongs to this issue (or the
+emitter-audit slice of #851).
+
+Minimal repro sketch: any `fn -> (i32,i32)` whose body ends in
+`(x, y)` without `return`, compiled with --target wasm32.  Every
+existing codec function hit it; nothing in the fixture suite exercises
+bare tuple tails on wasm32 (all tuple-returning code paths in src/
+either return early explicitly or were never reached at runtime — the
+AST cache was disabled for exactly this class of breakage).

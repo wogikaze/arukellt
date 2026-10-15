@@ -1,24 +1,57 @@
+// AST cache codec — write side and file I/O.
 //
-// Format (all integers little-endian):
-//   Header: magic[4] = "ASTC", version:i32 = 1
-//   Count: i32 (number of top-level nodes)
+// Binary contract (all integers little-endian):
+//   Header (20 bytes):
+//     magic[4] = "ASTC"
+//     version:i32 = 2            — readers reject any other value
+//     count:i32                  — number of top-level nodes
+//     payload_len:i32            — byte length of the payload section
+//     crc:i32                    — checksum over the payload bytes
+//   Payload (payload_len bytes): `count` serialized nodes, no padding
 //   Node:
 //     kind:i32, span_start:i32, span_end:i32,
 //     name_span_start:i32, name_span_end:i32,
-//     text_len:i32, text_bytes[text_len],
+//     text_len:i32, text_bytes[text_len],          (raw UTF-8 bytes)
 //     int_val:i32,
-//     float_text_len:i32, float_text[float_text_len],
+//     float_len:i32, float_text[float_len],        (f64 as decimal text)
 //     op:i32,
 //     children_count:i32, children[children_count],
 //     type_ann_count:i32, type_ann[type_ann_count],
-//     flags:u8 (is_mut | is_pub<<1 | is_async<<2 | is_move<<3 | is_component_export<<4)
+//     flags:u8 (is_mut | is_pub<<1 | is_async<<2 | is_move<<3
+//              | is_component_export<<4)
+//
+// Integrity: readers validate magic, version, payload_len and the
+// checksum before parsing, so a torn or stale write always fails closed
+// (cache miss, never a partial AST).  The host fs facade exposes no
+// rename, so a true temp+rename atomic write is impossible; the checksum
+// envelope provides the same "never consume a partial file" guarantee.
+//
+// The checksum is FNV-1a-style (basis 216613626, prime 16777619,
+// abs-normalized), matching std::core::hash policy.  Constants mirrored
+// in ast_serialize_parse.ark must stay in sync (no pub const in Ark).
 
 use std::host::fs
+use std::prelude::{byte_at, clone, eq, to_string}
+use std::core::ops
 use loader::ast_serialize_parse
+// The two parser imports read as unused in package builds (type names
+// resolve program-wide there) but are required when this file is
+// compiled as an `arukellt test` root, where only explicit imports are
+// in scope for the test helpers' qualified struct literals.
+use parser::ast_node_record
+use parser::ast_span_record
+
+const ASTC_FORMAT_VERSION: i32 = 2
+const FNV_BASIS: i32 = 216613626
+const FNV_PRIME: i32 = 16777619
+
+// Cache stays capped: serializing a large AST costs more heap than the
+// frontend saves, and the linear-GC wasm32 target is heap-bound (#922).
+// Raise only with measured frontend-time benefit (#825 measurement).
+const ASTC_MAX_NODES: i32 = 500
 
 // ── Byte buffer helpers ──────────────────────────────────────────────
 
-use std::prelude::{byte_at, clone, to_string}
 fn buf_push_i32(buf: Vec<i32>, val: i32) {
     push(buf, val & 255)
     push(buf, (val >> 8) & 255)
@@ -40,22 +73,44 @@ fn buf_push_byte(buf: Vec<i32>, val: i32) {
     push(buf, val & 255)
 }
 
+fn fnv1a_bytes(bytes: Vec<i32>) -> i32 {
+    let mut h = FNV_BASIS
+    let n = len(bytes)
+    let mut i = 0
+    while i < n {
+        h = h * FNV_PRIME ^ (get_unchecked(bytes, i) & 255)
+        if h < 0 {
+            h = 0 - h
+        }
+        i = i + 1
+    }
+    h
+}
+
 // ── Serialization ────────────────────────────────────────────────────
 
 pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
+    let payload: Vec<i32> = Vec::new<i32>()
+    let n = len(nodes)
+    let mut i = 0
+    while i < n {
+        serialize_node(payload, get_unchecked(nodes, i))
+        i = i + 1
+    }
     let buf: Vec<i32> = Vec::new<i32>()
-    // Header
     push(buf, 65)  // 'A'
     push(buf, 83)  // 'S'
     push(buf, 84)  // 'T'
     push(buf, 67)  // 'C'
-    buf_push_i32(buf, 1)  // version
-    let n = len(nodes)
+    buf_push_i32(buf, ASTC_FORMAT_VERSION)
     buf_push_i32(buf, n)
-    let mut i = 0
-    while i < n {
-        serialize_node(buf, get_unchecked(nodes, i))
-        i = i + 1
+    buf_push_i32(buf, len(payload))
+    buf_push_i32(buf, fnv1a_bytes(payload))
+    let pn = len(payload)
+    let mut j = 0
+    while j < pn {
+        push(buf, get_unchecked(payload, j))
+        j = j + 1
     }
     buf
 }
@@ -84,46 +139,33 @@ fn serialize_node(buf: Vec<i32>, node: AstNode) {
         serialize_node(buf, get_unchecked(node.type_ann, ti))
         ti = ti + 1
     }
+    // NOTE: infix `|` is not an expression operator in Ark (it silently
+    // terminates the statement); bitwise ops use trait method syntax.
     let mut flags = 0
-    if node.is_mut { flags = flags | 1 }
-    if node.is_pub { flags = flags | 2 }
-    if node.is_async { flags = flags | 4 }
-    if node.is_move { flags = flags | 8 }
-    if node.is_component_export { flags = flags | 16 }
+    if node.is_mut { flags = (flags).bitor(1) }
+    if node.is_pub { flags = (flags).bitor(2) }
+    if node.is_async { flags = (flags).bitor(4) }
+    if node.is_move { flags = (flags).bitor(8) }
+    if node.is_component_export { flags = (flags).bitor(16) }
     buf_push_byte(buf, flags)
 }
 
 // ── Cache I/O ────────────────────────────────────────────────────────
 
-// Write serialized AST to cache file. Returns true on success.
-// Silently fails on error (e.g. heap exhaustion, path not found).
+// Serialize and write the cache file.  Returns false when the forest
+// exceeds ASTC_MAX_NODES or the write fails.
 pub fn write_ast_cache(path: String, nodes: Vec<AstNode>) -> bool {
-    // Don't write cache for very large ASTs (avoid heap exhaustion)
-    let node_count = count_nodes(nodes)
-    if node_count > 500 {
+    if count_nodes_vec(nodes) > ASTC_MAX_NODES {
         return false
     }
     let bytes = serialize_ast_nodes(nodes)
-    let result = fs::write_bytes(clone(path), bytes)
-    match result {
+    match fs::write_bytes(clone(path), bytes) {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }
 }
 
-// Count total nodes in an AST forest (including children).
-fn count_nodes(nodes: Vec<AstNode>) -> i32 {
-    let n = len(nodes)
-    let mut total = n
-    let mut i = 0
-    while i < n {
-        total = total + count_nodes_vec(get_unchecked(nodes, i).children)
-        total = total + count_nodes_vec(get_unchecked(nodes, i).type_ann)
-        i = i + 1
-    }
-    total
-}
-
+// Count total nodes in an AST forest (children and type_ann included).
 fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
     let n = len(nodes)
     let mut total = n
@@ -136,11 +178,134 @@ fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
     total
 }
 
-// Read and deserialize AST from cache file. Returns nodes on success, empty vec on failure.
-pub fn read_ast_cache(path: String) -> Vec<AstNode> {
-    let result = fs::read_to_string(clone(path))
-    match result {
-        Result::Ok(data) => ast_serialize_parse::deserialize_ast_nodes(data),
-        Result::Err(_) => Vec::new<AstNode>(),
+// Read and validate a cache file.  Err means unreadable or not a
+// well-formed v2 cache — callers must treat it as a cache miss, never as
+// an empty AST.
+pub fn read_ast_cache(path: String) -> Result<Vec<AstNode>, String> {
+    match fs::read_to_string(clone(path)) {
+        Result::Ok(data) => { return ast_serialize_parse::deserialize_ast_nodes(data) }
+        Result::Err(e) => { return Result::Err(e) }
+    }
+}
+
+// ── Tests ────────────────────────────────────────────────────────────
+
+fn astc_test_leaf() -> AstNode {
+    ast_node_record::AstNode {
+        kind: 7,
+        span: ast_span_record::Span { start: 5, end: 9 },
+        name_span: ast_span_record::Span { start: 1, end: 3 },
+        text: String_from("あいうえお"),
+        int_val: 4242,
+        float_val: 2.5,
+        op: 3,
+        children: Vec::new<AstNode>(),
+        type_ann: Vec::new<AstNode>(),
+        is_mut: true,
+        is_pub: false,
+        is_async: true,
+        is_component_export: false,
+        is_move: true,
+    }
+}
+
+fn astc_test_forest() -> Vec<AstNode> {
+    let root = ast_node_record::AstNode {
+        kind: 1,
+        span: ast_span_record::Span { start: 0, end: 40 },
+        name_span: ast_span_record::Span { start: 0, end: 4 },
+        text: String_from("root"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec::new<AstNode>(),
+        type_ann: Vec::new<AstNode>(),
+        is_mut: false,
+        is_pub: true,
+        is_async: false,
+        is_component_export: true,
+        is_move: false,
+    }
+    push(root.children, astc_test_leaf())
+    let nodes: Vec<AstNode> = Vec::new<AstNode>()
+    push(nodes, root)
+    nodes
+}
+
+fn astc_test_deserialize(bytes: Vec<i32>) -> Result<Vec<AstNode>, String> {
+    ast_serialize_parse::deserialize_ast_nodes(__intrinsic_string_from_bytes(bytes))
+}
+
+test mod "astc_codec" {
+    test "round_trip_preserves_fields" {
+        let bytes = serialize_ast_nodes(astc_test_forest())
+        match astc_test_deserialize(bytes) {
+            Result::Ok(back) => {
+                assert(len(back) == 1)
+                let root = get_unchecked(back, 0)
+                assert(root.kind == 1)
+                assert(root.is_pub)
+                assert(root.is_component_export)
+                assert(len(root.children) == 1)
+                let leaf = get_unchecked(root.children, 0)
+                assert(leaf.kind == 7)
+                assert(leaf.int_val == 4242)
+                assert(leaf.float_val == 2.5)
+                assert(eq(clone(leaf.text), "あいうえお"))
+                assert(leaf.is_mut && leaf.is_async && leaf.is_move)
+                assert(!leaf.is_pub && !leaf.is_component_export)
+                assert(leaf.span.start == 5 && leaf.span.end == 9)
+            }
+            Result::Err(_) => { assert(false) }
+        }
+    }
+
+    test "rejects_corrupt_header_fields" {
+        // version byte -> Err
+        let v1 = serialize_ast_nodes(astc_test_forest())
+        set(v1, 4, 1)
+        match astc_test_deserialize(v1) {
+            Result::Err(_) => { assert(true) }
+            Result::Ok(_) => { assert(false) }
+        }
+        // magic byte -> Err
+        let v2 = serialize_ast_nodes(astc_test_forest())
+        set(v2, 0, 90)
+        match astc_test_deserialize(v2) {
+            Result::Err(_) => { assert(true) }
+            Result::Ok(_) => { assert(false) }
+        }
+        // payload byte -> checksum Err
+        let v3 = serialize_ast_nodes(astc_test_forest())
+        set(v3, 25, 255)
+        match astc_test_deserialize(v3) {
+            Result::Err(_) => { assert(true) }
+            Result::Ok(_) => { assert(false) }
+        }
+    }
+
+    test "rejects_truncated_and_tiny_inputs" {
+        let empty_vec: Vec<i32> = Vec::new<i32>()
+        match astc_test_deserialize(empty_vec) {
+            Result::Err(_) => { assert(true) }
+            Result::Ok(_) => { assert(false) }
+        }
+        let trunc: Vec<i32> = Vec::new<i32>()
+        push(trunc, 65)
+        push(trunc, 83)
+        push(trunc, 84)
+        push(trunc, 67)
+        match astc_test_deserialize(trunc) {
+            Result::Err(_) => { assert(true) }
+            Result::Ok(_) => { assert(false) }
+        }
+    }
+
+    test "empty_forest_is_ok_not_corrupt" {
+        let bytes = serialize_ast_nodes(Vec::new<AstNode>())
+        match astc_test_deserialize(bytes) {
+            Result::Ok(back) => { assert(len(back) == 0) }
+            Result::Err(_) => { assert(false) }
+        }
     }
 }
