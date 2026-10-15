@@ -25,7 +25,6 @@ graph LR
   I801["801 GC 完了までのプラン"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
-  I825["825 AST cache format repair (not “re-enable as-is”)"]
   I851["851 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）"]
   I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I918["918 918 — `arukellt test` runner UX: filter, no-fail-fast, directory discovery"]
@@ -70,7 +69,6 @@ graph LR
 - **801** depends on: 686; blocks: none
 - **814** depends on: 791; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
-- **825** depends on: 823; blocks: none
 - **851** depends on: 827; blocks: 850
 - **917** depends on: 709; blocks: none
 - **918** depends on: 719; blocks: none

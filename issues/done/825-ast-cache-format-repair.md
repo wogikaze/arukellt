@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-17
 Updated: 2026-10-15
 ID: 825
@@ -115,6 +115,18 @@ read/write through real fs on wasm32: all cases passed.
   build but not under `arukellt test` or standalone roots; test helpers
   use qualified `ast_node_record::AstNode` literals.  Bare-name scoping
   rules deserve their own issue if they bite elsewhere.
+
+## Resolution
+
+Closed 2026-10-15 (commit 010c6e4bb).  The codec is repaired to format
+v2 and verified end-to-end on the real wasm32 target; the product path
+stays disabled by measurement (hit ~= cold at the 500-node cap) rather
+than by suspicion.  The temp+rename acceptance item was satisfied by
+substitution — the host fs facade exposes no rename, so the checksummed
+envelope carries the "never consume a partial file" guarantee — and the
+substitution is documented in the codec header and above.  The
+linear-backend tuple-tail miscompile and infix-`|` statement truncation
+found here are recorded in #922 (deterministic small repro).
 
 ## Non-goals
 
