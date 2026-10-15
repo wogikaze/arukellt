@@ -208,3 +208,43 @@ existing codec function hit it; nothing in the fixture suite exercises
 bare tuple tails on wasm32 (all tuple-returning code paths in src/
 either return early explicitly or were never reached at runtime — the
 AST cache was disabled for exactly this class of breakage).
+
+## Update 2026-10-15 (d) — the "emitter defect" was a parser defect; a live in-tree miscompile found
+
+Correction to (c): the bare-tuple-tail garbage was not emitted by the
+wasm32 backend — the **parser** folded the tail tuple into call
+arguments on the previous line's infix expression (#924, fixed).  With
+all-bound argument names the fold resolved cleanly and the typechecker
+accepted a call of an i32 callee (#926), so malformed call nodes
+reached emission.  wasm32-gc emitted validating-but-wrong code; wasm32
+emitted the drop/unreachable shape — hence the target asymmetry.
+
+Two consequences for this issue:
+
+1. **A real miscompile shipped inside the compiler.**
+   `src/compiler/wasm/intrinsic_vec_set_gc_layout.ark::vec_set_vec_flags`
+   ends with `let is_vec_sref = vec_type == SelfEmitCtx_vec_struct_ref_type(ctx)`
+   followed by a bare 4-tuple tail.  Under the parse bug it compiled as
+   `(vec_type == f(ctx))(is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)`
+   — `is_vec_sref` was produced by calling an i32/bool as a function.
+   Every selfhost binary built with the buggy parser therefore emitted
+   **wrong GC layout flags for vec_set on reference-typed Vec
+   elements**.  The name index, type table, and signature spine are
+   Vec<String>/Vec<record> structures — the same element class this
+   function misclassifies.
+
+2. **The s4-debug detonation landed.**  s3-debug.wasm (64KiB collect
+   threshold + 0x7EADBEEF sweep poison) crashed after ~1h20m in
+   `name_index_get` → `type_table_find_existing` → `TypeTable_intern`
+   ← `vt_to_mir_value` ← `sig_reg_register_fn` ←
+   `mir_build_signature_spine_from_view`: out-of-bounds read at
+   0x29f38fb8 against a 0x20370000 linear memory — a wild index, i.e. a
+   stale/poisoned slot value used as an index into the name index.
+   Deterministic, during MIR signature construction — squarely the
+   sref-vec corruption class that (1) describes.
+
+Next probe: rebuild the s2->s3->s4 chain with the #924-fixed parser and
+re-run the same flat-src compile.  If the detonation no longer
+reproduces, the miscompiled `vec_set_vec_flags` was the corruptor and
+this issue's "unrooted mid-expression window" hypothesis narrows to
+"sref vec_set layout flags" rather than a generic emitter defect.

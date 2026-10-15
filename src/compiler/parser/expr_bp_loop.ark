@@ -5,19 +5,28 @@ use parser::expr_infix
 use parser::expr_infix_result
 use parser::expr_prefix_dispatch
 use parser::pratt
+use parser::state_record
 
 fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
     core_api_cursor::skip_only_newlines(p)
     let mut lhs = expr_prefix_dispatch::parse_prefix(p)
     while true {
+        let line_mark = state_record::parser_position(p)
         let starts_after_newline = core_api_cursor::peek_kind(p) == tokens::TK_NEWLINE()
         core_api_cursor::skip_only_newlines(p)
         let k = core_api_cursor::peek_kind(p)
-        // A parenthesized expression at the start of the next line is a new
-        // statement, not an implicit call on the previous expression. Keep
-        // newline-separated tuple returns such as `let (x, _) = f()` and
-        // `(value, next)` structurally separate.
-        if starts_after_newline && k == tokens::TK_LPAREN() {
+        // A parenthesized or bracketed expression at the start of the next
+        // line is a new statement, not an implicit call or index on the
+        // previous expression. Keep newline-separated tuple returns such as
+        // `let (x, _) = f()` / `(value, next)` and tail array literals
+        // structurally separate.
+        // Restore the cursor to the newline so an enclosing infix frame
+        // re-observes the same boundary and also stops; without the restore,
+        // an inner right-hand-side parse consumes the newline and the outer
+        // frame then reads "expr newline (args)" as a call or "expr newline
+        // [i]" as an index.
+        if starts_after_newline && (k == tokens::TK_LPAREN() || k == tokens::TK_LBRACKET()) {
+            state_record::parser_set_position(p, line_mark)
             break
         }
         if pratt::is_expr_stop_token(k) {

@@ -475,6 +475,7 @@ run:functions/fn_zero_param_ref_return.ark
 run:functions/call_expr_callee.ark
 run:functions/vec_fn_push_call.ark
 run:functions/struct_fn_field_call.ark
+run:functions/tuple_tail_after_infix.ark
 run:collections/vec_option_i32.ark
 run:collections/vec_result_i32.ark
 run:collections/vec_vec_i32.ark
@@ -2204,6 +2205,7 @@ t3-compile:functions/fn_zero_param_ref_return.ark
 t3-compile:functions/call_expr_callee.ark
 t3-compile:functions/vec_fn_push_call.ark
 t3-compile:functions/struct_fn_field_call.ark
+t3-compile:functions/tuple_tail_after_infix.ark
 t3-compile:collections/vec_option_i32.ark
 t3-compile:collections/vec_result_i32.ark
 t3-compile:collections/vec_vec_i32.ark
@@ -2685,6 +2687,7 @@ t3-run:functions/fn_zero_param_ref_return.ark
 t3-run:functions/call_expr_callee.ark
 t3-run:functions/vec_fn_push_call.ark
 t3-run:functions/struct_fn_field_call.ark
+t3-run:functions/tuple_tail_after_infix.ark
 t3-run:collections/vec_option_i32.ark
 t3-run:collections/vec_result_i32.ark
 t3-run:collections/vec_vec_i32.ark

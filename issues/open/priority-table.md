@@ -14,8 +14,8 @@ Scoring criteria (0-5 each, total 25):
 | 1 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 2 | 5 | 3 | 11 |
 | 2 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 3 | 922 | 922 — linear-GC page-chain arena is append-only; high-churn... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 4 | 924 | wasm32-linear: bare tuple literal in tail position emits dr... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 5 | 925 | Infix `|` silently terminates a `let` RHS — remainder parse... | language | 0 | 0 | 1 | 5 | 4 | 10 |
+| 4 | 925 | Infix `|` silently terminates a `let` RHS — remainder parse... | language | 0 | 0 | 1 | 5 | 4 | 10 |
+| 5 | 926 | Typechecker accepts calls of non-function values (silent un... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
 | 6 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
 | 7 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
 | 8 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |

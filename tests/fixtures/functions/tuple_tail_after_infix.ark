@@ -1,0 +1,16 @@
+use std::host::stdio
+
+fn read_pair(pos: i32) -> (i32, i32) {
+    let word = pos * 10
+    let next = pos + 4
+    // A tuple literal on a fresh line after an infix expression is a
+    // separate tail statement, not call arguments on the let right-hand
+    // side.
+    (word, next)
+}
+
+fn main() {
+    let (w, p) = read_pair(3)
+    stdio::println((w).to_string())
+    stdio::println((p).to_string())
+}

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-15T01:19:01Z",
+  "generated_at": "2026-10-15T08:29:48Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -483,10 +483,10 @@
       }
     },
     {
-      "id": "924",
-      "path": "924-linear-tuple-tail-miscompile.md",
-      "title": "wasm32-linear: bare tuple literal in tail position emits drop+unreachable",
-      "track": "compiler",
+      "id": "925",
+      "path": "925-infix-pipe-statement-truncation.md",
+      "title": "Infix `|` silently terminates a `let` RHS — remainder parsed as garbage",
+      "track": "language",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],
@@ -500,16 +500,16 @@
       }
     },
     {
-      "id": "925",
-      "path": "925-infix-pipe-statement-truncation.md",
-      "title": "Infix `|` silently terminates a `let` RHS — remainder parsed as garbage",
-      "track": "language",
+      "id": "926",
+      "path": "926-noncallable-callee-silent-unknown.md",
+      "title": "Typechecker accepts calls of non-function values (silent unknown)",
+      "track": "compiler",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 4
+        "unchecked": 3
       },
       "orchestration": {
         "class": "implementation",
