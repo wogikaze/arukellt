@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-15T01:13:23Z",
+  "generated_at": "2026-10-15T01:19:01Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -457,8 +457,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 7
+        "checked": 1,
+        "unchecked": 6
       },
       "orchestration": {
         "class": "incremental",
@@ -480,6 +480,40 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "924",
+      "path": "924-linear-tuple-tail-miscompile.md",
+      "title": "wasm32-linear: bare tuple literal in tail position emits drop+unreachable",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "925",
+      "path": "925-infix-pipe-statement-truncation.md",
+      "title": "Infix `|` silently terminates a `let` RHS — remainder parsed as garbage",
+      "track": "language",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
       }
     },
     {
