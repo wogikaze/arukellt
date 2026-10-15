@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-14
-Updated: 2026-10-15
+Updated: 2026-10-16
 ID: 922
 Track: compiler
 Depends on: none
@@ -248,3 +248,60 @@ re-run the same flat-src compile.  If the detonation no longer
 reproduces, the miscompiled `vec_set_vec_flags` was the corruptor and
 this issue's "unrooted mid-expression window" hypothesis narrows to
 "sref vec_set layout flags" rather than a generic emitter defect.
+
+## Update 2026-10-16 — third pathology: quadratic free list + bootstrap deadlock
+
+With the #924 parser fix in, the next flat-src attempt (hopB / s3-newrt)
+was not a cycle or a UAF — a `wasmtime -D coredump` of the stalled run
+shows ALLOC_HEAD = 1,469,551 nodes and FREE_HEAD = 781,122 nodes with an
+average free span of ~19 bytes.  Three compounding defects in the linear
+runtime:
+
+1. **Unbounded first-fit scan.**  Every `AstNode_new` alloc (func 11188)
+   walks the entire free list until a fit; at ~781K sliver nodes each
+   alloc is O(781K) pointer chases — the compile is effectively infinite.
+2. **Remainder leak.**  A fit truncated `hi = lo + size` and dropped the
+   tail bytes outside every record — permanently leaking the remainder,
+   which is why the list fills with ~19B slivers.
+3. **commit_top destroys free spans.**  Popping a free record for a new
+   alloc-record slot consumed whatever span sat at the head, including
+   large reusable spans.
+
+Fix implemented (uncommitted->committed in `fix(#922)` patch): the free
+list is split into three size classes — SMALL (<=32B), MID (<=512B),
+HUGE — as globals 2/14/15.  Sweep classifies each freed record once by
+its full recorded span; alloc runs a same-class first-fit bounded to 64
+nodes and escalates to the next larger bucket whose head is a
+guaranteed fit (no walk); a reused span is adopted whole (no truncation
+leak); commit_top pops small->mid->huge before bumping metadata, so
+slivers are recycled for record slots and large spans survive.  The
+fn-entry safepoint and commit-edge gates now require all three buckets
+empty for the free-list term.  Verified: linear_gc_* fixtures +
+collections vec_string/hashmap compile via s2-runtime -> wasm32,
+wasm-tools validate clean, run exit 0.
+
+## Update 2026-10-16 (b) — bootstrap deadlock blocks a corrected binary
+
+A compiled compiler's codegen = its own source, but its *runtime* = the
+emitter of its parent.  No live binary currently pairs the #922-fixed
+allocator codegen with a usable runtime:
+
+- `s2-runtime.wasm` (new codegen, OLD runtime) stalls on flat-src at the
+  #927 fixpoint-mark cliff — RSS flat ~158MB, 10min/35min timeouts.
+- `gchost-v5m32.component.wasm` (GC runtime, OLD codegen) compiles
+  flat-src in ~3.5min but emits OLD-runtime wasm32 binaries that grind
+  on the quadratic free list (s3-newrt killed at 30min).
+- `gclean-v2.component.wasm` (GC runtime + NEW codegen vehicle) is
+  **invalid wasm**: func 6888 `edge_push_caller_segment` fails
+  validation at offset 0x2b9060 — `local.get $_t39` yields
+  `(ref null 25)` (Vec<Vec<i32>>) where `local.set $_t23` expects
+  `(ref null 10)` (Vec<i32>).  gc-emit type-mapping bug in
+  `push(table.caller_lists, list)` grow path
+  (`mir/lower/edge_discovery.ark:1343` ->
+  `wasm/intrinsic_vec_push_gc.ark` emit_gc_push_store_finish/growth).
+  Pre-existing emitter defect, unrelated to the allocator fix.
+
+Next: fix the gc-emit Vec<Vec<T>> push typing bug -> rebuild gclean-v2
+-> it emits new-runtime wasm32 binaries in minutes -> flat-src compile
+bounded-check -> pin refresh candidate (unblocks #927 and the #851
+flat-src acceptance run).

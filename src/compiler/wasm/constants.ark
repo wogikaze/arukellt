@@ -28,7 +28,15 @@ fn GLOBAL_GC_STRING_LITERAL_CACHE() -> i32 { 1 }
 // Linear fallback runtime globals. They are emitted only for `wasm32`; the
 // GC target keeps global 1 reserved for its literal cache.
 fn GLOBAL_LINEAR_GC_ALLOC_HEAD() -> i32 { 1 }
-fn GLOBAL_LINEAR_GC_FREE_HEAD() -> i32 { 2 }
+// The free list is split into three size classes so a first-fit walk only
+// touches spans that can plausibly serve the request. Without classes every
+// allocation scans the whole list; at selfhost-compile scale that is ~1M
+// sliver nodes per alloc and the compiler cannot finish a parse (#922).
+// SMALL holds spans <= LINEAR_GC_FREE_SMALL_LIMIT_BYTES, MID holds spans up
+// to LINEAR_GC_FREE_MID_LIMIT_BYTES, HUGE holds the rest. Sweep classifies
+// each freed record once; the recorded span never shrinks afterwards, so a
+// node's class is stable for the node's whole free-list life.
+fn GLOBAL_LINEAR_GC_FREE_SMALL_HEAD() -> i32 { 2 }
 fn GLOBAL_LINEAR_GC_ROOT_CURSOR() -> i32 { 3 }
 fn GLOBAL_LINEAR_GC_ROOT_LIMIT() -> i32 { 4 }
 fn GLOBAL_LINEAR_GC_METADATA_CURSOR() -> i32 { 5 }
@@ -61,6 +69,18 @@ fn GLOBAL_LINEAR_GC_CHAIN_COLLECT_MARK() -> i32 { 12 }
 // free list do not move the cursor, so refills still pause the term
 // naturally.
 fn GLOBAL_LINEAR_GC_METADATA_COLLECT_MARK() -> i32 { 13 }
+fn GLOBAL_LINEAR_GC_FREE_MID_HEAD() -> i32 { 14 }
+fn GLOBAL_LINEAR_GC_FREE_HUGE_HEAD() -> i32 { 15 }
+// Free-list class boundaries. A request of size S scans the class whose
+// limit is >= S; every span in a larger class fits S by construction, so
+// escalation can pop the bucket head without a fit check.
+fn LINEAR_GC_FREE_SMALL_LIMIT_BYTES() -> i32 { 32 }
+fn LINEAR_GC_FREE_MID_LIMIT_BYTES() -> i32 { 512 }
+// Same-class first-fit scan bound. Same-class spans can be smaller than the
+// request, so the walk is capped and misses escalate to the next class where
+// a fit is guaranteed; the bound keeps each allocation O(1) instead of
+// O(free list length) (#922).
+fn LINEAR_GC_FREE_SCAN_LIMIT() -> i32 { 64 }
 // Hysteresis width for the metadata-pressure term. Deliberately an eighth of
 // the pressure band: after a futile collect the term must still leave
 // several retry windows before the arena wall, because a live-set dip can
