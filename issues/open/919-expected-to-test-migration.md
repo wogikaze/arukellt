@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-11
-Updated: 2026-10-11
+Updated: 2026-10-15
 ID: 919
 Track: tooling
 Depends on: "719"
@@ -31,8 +31,8 @@ directory so progress is reviewable.
 
 ## Required work
 
-- [ ] Add `test:` kind to the fixture-parity harness
-      (`scripts/selfhost/checks.py` `run_fixture_parity`): run
+- [x] Add `test:` kind to the fixture-parity harness
+      (`scripts/selfhost/fixture_parity.py` `run_fixture_parity`): run
       `arukellt test` and assert exit 0 instead of diffing stdout.
 - [ ] Migrate the 609 empty-`.expected` fixtures to `test` / `test mod`
       blocks; delete the `.expected` file; flip manifest `run:` → `test:`.
@@ -41,6 +41,27 @@ directory so progress is reviewable.
       `.expected` as correctness check alongside `bench` runner).
 - [ ] Regenerate fixture-count docs per wave (project-state.toml +
       generated docs).
+
+## Update 2026-10-15 — harness kind landed + pilot dir
+
+- `test:` manifest kind implemented in
+  `scripts/selfhost/fixture_parity.py::run_fixture_parity` (the live gate —
+  the same-named legacy function in checks.py is rebound by
+  selfhost.__init__ and was left untouched).  Each `test:` entry runs
+  `arukellt test <file>` through `arukellt-selfhost.sh` with
+  `ARUKELLT_SELFHOST_WASM=<current s2>`; exit 0 = pass, trap/non-zero =
+  fixture failure.  Pinned bootstrap is not consulted (predates the test
+  harness).  `--filter-dir` on a test-only directory no longer errors on
+  the empty run: list.
+- Pilot: `test_syntax/basic.ark` flipped `t3-compile:` → `test:`.
+  Verified end-to-end:
+  `selfhost fixture-parity --filter-dir test_syntax` →
+  `test: PASS=1 FAIL=0`; `--filter-dir hello` (run-only) → PASS=5 FAIL=0
+  (no regression on the run path).
+- Remaining: the bulk .expected migration waves (609 empty + 585 golden).
+  Mechanical recipe per file: wrap body asserts in `test "…" {}`/`test
+  mod`, drop `.expected`, flip `run:`→`test:`, regenerate fixture
+  counts.
 
 ## Acceptance
 

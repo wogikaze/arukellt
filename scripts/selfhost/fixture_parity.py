@@ -362,10 +362,13 @@ def run_fixture_parity(
     if wasm_tools is None:
         return (1, "error: bytecodealliance wasm-tools not found\n")
 
+    current_wasm: list[Path | None] = [None]
+
     def prepare_current() -> tuple[Path | None, str]:
         current, err = _checks._ensure_current_selfhost(root, wasmtime, pinned)
         if current is None:
             return None, err
+        current_wasm[0] = current
         return _checks._ensure_aot_cwasm(current), ""
 
     compiler, err = _checks._with_runtime_lock(prepare_current, root)
@@ -375,6 +378,9 @@ def run_fixture_parity(
     fixtures, load_err = _checks._load_manifest_fixtures(root, "run")
     if load_err:
         return (1, load_err + "\n")
+    test_fixtures, test_err = _checks._load_manifest_fixtures(root, "test")
+    if test_err:
+        return (1, test_err + "\n")
     if filter_dirs:
         prefixes = tuple(
             str(Path(item).as_posix()).strip("/") + "/"
@@ -382,11 +388,12 @@ def run_fixture_parity(
             if str(item).strip("/")
         )
         fixtures = [fixture for fixture in fixtures if fixture.startswith(prefixes)]
-        if not fixtures:
+        test_fixtures = [f for f in test_fixtures if f.startswith(prefixes)]
+        if not fixtures and not test_fixtures:
             return (1, f"error: no run fixtures matched --filter-dir ({', '.join(filter_dirs)})\n")
-    if len(fixtures) < 10 and not filter_dirs:
+    if len(fixtures) < 10 and not filter_dirs and not test_fixtures:
         return (1, f"error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found)\n")
-    if not fixtures:
+    if not fixtures and not test_fixtures:
         return (1, "error: no run fixtures found\n")
 
     output_dir = _checks._build_dir(root) / "fixture-test"
@@ -439,12 +446,62 @@ def run_fixture_parity(
             continue
         lines.append(f"  FAIL: {item.fixture}")
         lines.extend(f"    {message}" for message in item.messages)
+
+    # test: fixtures (ADR-041 Phase 2d, #919).  Each entry runs
+    # "arukellt test <file>" under the CURRENT selfhost compiler via the
+    # run wrapper (test-mode compile + exec; trap = failure).  The pinned
+    # bootstrap predates the test harness, so there is no pinned oracle;
+    # exit 0 is the pass contract.  Invocation uses the plain .wasm path:
+    # the wrapper cannot pass --allow-precompiled to a .cwasm artifact.
+    test_pass = 0
+    test_fail = 0
+    if test_fixtures:
+        lines.append(
+            f"[fixture-test] test: {len(test_fixtures)} fixtures "
+            f"(arukellt test, current selfhost)"
+        )
+        wrapper = root / "scripts" / "run" / "arukellt-selfhost.sh"
+        current_arg = str(current_wasm[0] or compiler)
+        for fixture in test_fixtures:
+            ark_file = root / "tests" / "fixtures" / fixture
+            if not ark_file.is_file():
+                lines.append(f"  FAIL: {fixture} (test fixture not found on disk)")
+                test_fail += 1
+                continue
+            src_rel = str(Path("tests") / "fixtures" / fixture)
+            try:
+                proc = subprocess.run(
+                    [
+                        "env", f"ARUKELLT_SELFHOST_WASM={current_arg}",
+                        "bash", str(wrapper), "test", src_rel,
+                    ],
+                    cwd=str(root),
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                )
+                t_code = proc.returncode
+                t_out = ((proc.stdout or "") + "\n" + (proc.stderr or "")).strip()
+            except subprocess.TimeoutExpired:
+                t_code = -1
+                t_out = "timeout"
+            if t_code == 0:
+                test_pass += 1
+                continue
+            lines.append(f"  FAIL: {fixture} (arukellt test exit {t_code})")
+            if t_out:
+                lines.append(f"    {t_out[-160:]}")
+            test_fail += 1
+        lines.append(
+            f"[fixture-test] test: PASS={test_pass} FAIL={test_fail}"
+        )
+
     lines.append(
         f"[fixture-test] PASS={passed} FAIL={failed} "
         f"COMPILE_VALIDATE={len(results)} EXECUTED={executed} "
         f"RUNTIME_UNSUPPORTED={len(runtime_unsupported)}"
     )
-    return (0 if failed == 0 else 1, "\n".join(lines) + "\n")
+    return (0 if failed == 0 and test_fail == 0 else 1, "\n".join(lines) + "\n")
 
 
 def run_reference_fixture_parity(
