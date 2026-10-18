@@ -103,7 +103,7 @@ fn parse_struct_name_from_encoding(type_name: String) -> String {
     substring(type_name, first_colon + 1, last_colon)
 }
 
-fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
+pub fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
     if eq(clone(type_name), "vec:String") ||
     eq(clone(type_name), "vec:string") ||
     eq(clone(type_name), "Vec<String>") ||
@@ -154,6 +154,12 @@ fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    }
+    // Angle-bracket Vec<T>: route through the vec: spelling so Vec<i32>
+    // resolves to the i32-vec layout instead of falling through to -1.
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        let inner = substring(clone(type_name), 4, len(type_name) - 1)
+        return resolve_container_elem_gc_type(ctx, text::concat(String_from("vec:"), inner))
     }
     0 - 1
 }

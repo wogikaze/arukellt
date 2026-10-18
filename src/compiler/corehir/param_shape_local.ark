@@ -24,6 +24,26 @@ fn param_named_local_type_name(ann: AstNode) -> String {
     String_new()
 }
 
+// Render a Vec<T> annotation as vec:T. Nested Vec elements recurse so
+// Vec<Vec<i32>> → vec:vec:i32 — bare vec:Vec made every nested-vec element
+// indistinguishable and pushed consumers onto a vec:String guess (#922).
+fn vec_ann_local_type_name(ann: AstNode) -> String {
+    let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
+    decl_ann_name::decl_ann_is_name(elem, String_from("fnref")) {
+        return String_from("vec:fnref")
+    }
+    // Vec<(A, B)> keeps the tuple:<k,...> element spelling; decl_ann_name on
+    // a tuple node is empty and collapses the elem to i32 (#888).
+    if decl_ann_name::decl_ann_is_tuple(elem) {
+        return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
+    }
+    if decl_ann_name::decl_ann_is_generic(elem) && decl_ann_name::decl_ann_is_name(elem, String_from("Vec")) {
+        return text::concat(String_from("vec:"), vec_ann_local_type_name(elem))
+    }
+    text::concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+}
+
 fn fn_param_local_type_name(node: AstNode) -> String {
     if !param_shape_node::param_has_type_ann(node) {
         return String_new()
@@ -62,18 +82,7 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             }
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
-            let elem = decl_ann_children::decl_ann_child_at(ann, 1)
-            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
-            decl_ann_name::decl_ann_is_name(elem, String_from("fnref")) {
-                return String_from("vec:fnref")
-            }
-            // Vec<(A, B)> params keep the tuple:<k,...> element spelling;
-            // decl_ann_name on a tuple node is empty and collapses the elem
-            // to i32 (#888).
-            if decl_ann_name::decl_ann_is_tuple(elem) {
-                return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
-            }
-            return text::concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return vec_ann_local_type_name(ann)
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
@@ -156,15 +165,7 @@ fn method_param_local_type_name(node: AstNode) -> String {
             }
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
-            let elem = decl_ann_children::decl_ann_child_at(ann, 1)
-            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
-            decl_ann_name::decl_ann_is_name(elem, String_from("fnref")) {
-                return String_from("vec:fnref")
-            }
-            if decl_ann_name::decl_ann_is_tuple(elem) {
-                return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
-            }
-            return text::concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return vec_ann_local_type_name(ann)
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)

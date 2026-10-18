@@ -40,5 +40,5 @@ fn vec_set_vec_flags(vec_type: i32, ctx: SelfEmitCtx) -> (bool, bool, bool, bool
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
-    (is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
+    return (is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
 }

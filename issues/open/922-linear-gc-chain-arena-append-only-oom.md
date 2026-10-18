@@ -305,3 +305,113 @@ Next: fix the gc-emit Vec<Vec<T>> push typing bug -> rebuild gclean-v2
 -> it emits new-runtime wasm32 binaries in minutes -> flat-src compile
 bounded-check -> pin refresh candidate (unblocks #927 and the #851
 flat-src acceptance run).
+
+
+## Update 2026-10-16 (c) — coredump forensics: the "UAF" is a deterministic emitter arg/type confusion, not a GC sweep
+
+Instrumented s2-linear-dbg*.wasm builds (root-push/update calls inlined; debug
+globals 16/17/18 capture find_slot's name/index/last key) die at the
+same deterministic address every run: memory fault at 0x2de1c997 inside
+name_index_find_slot <- name_index_get <- type_table_find_existing <-
+TypeTable_intern <- mir_value_type_from_type_name <- vt_to_mir_value <-
+sig_reg_register_fn <- mir_build_signature_spine_from_view.
+
+Coredump state (/tmp/dbg3.core + dbg3segs.pkl/dbg3mem.bin/dbg3spans.pkl,
+scripts /tmp/dbgforen*.py):
+
+- index = 0x20178c45 = a fully consistent NameIndex
+  {capacity:1024, buckets*:{len:1024,cap:1024,data:0x221d2255},
+  keys*:{len:315,cap:512,data:0x221d5b81}, values*:{315,512,0x221d6381}}.
+  No bucket entry > 315; buckets[381]=291 -> keys[290]="SelfEmitCtx".
+- name = 0x1dd63cc1 = a 44-byte record {len:0, cap:8, data:self+12} —
+  byte-identical to the Vec::new<TypeId>() emission (alloc 44 =
+  12B header + 32B inline buffer) inside mir_value_type_from_type_name.
+  i.e. the name param slot received the freshly-created type_param_ids
+  empty Vec pointer, not a String data pointer.
+- Exact fault math: len(name) reads u32(name-4) = 0x201719ad
+  (the word before the record, not a real length), then
+  byte_at(name, name_len/2) = 0x1dd63cc1 + 0x201719ad/2 = 0x2de1c997
+  — the fault address to the byte. Deterministic across dbg/dbg2/dbg3.
+- name's record is LIVE and referenced: two parallel big element buffers
+  (0x20b004a9 32KB, 0x20b284a9 64KB — Vec<Vec<..>> element arrays) hold
+  it at the same slot (off +22544), and the adjacent 12-byte record at
+  0x1dd63ced — shape {tag:1, f4:name, f8:name} — matches a TypeInfo
+  whose name and type_args fields both point at the same Vec record
+  (field aliasing).
+
+Verified clean at every level of the forwarding chain in dbg3.wat:
+name_index_get forwards (index,name) verbatim, type_table_find_existing
+passes (name_head, name), TypeTable_intern passes (name,type_param_ids)
+in order, and the STRUCT branch of mir_value_type_from_type_name stores
+ into  and the fresh vec into / separately.
+So the Vec arrived *as*  — corruption is upstream of the
+find_slot call: either (a) a TypedFn/TypeInfo produced during typecheck whose
+name field holds a Vec record (e.g. {tag, name:String_new(),
+type_args:Vec::new()} fields aliased to the same temp), or (b) the
+push(returns, vt_to_mir_value(table, ret_vt, ret_type_name)) staging in
+sig_reg_register_fn leaked the returns/Vec::new scratch into the
+type_name arg slot — the empty-Vec shape matches both.
+
+Note the existing comment at signature_registry_entry.ark:37:
+"TypedFn.TypeInfo values are unsafe across the duplicate TypeInfo/TypedFn
+structs in the flat selfhost overlay" — this crash is exactly that class
+surfacing as an OOB on wasm32.
+
+Next: minimal repro — a record literal whose fields are two call results
+(String + Vec), or the sig_reg path on wasm32; check whether the emitted
+field stores alias a shared scratch temp. Related: the gc-emit
+Vec<Vec<T>> push typing bug (gclean-v2 func 6888 edge_push_caller_segment
+invalid: local.get  (ref 25, Vec<Vec<i32>>) into local.set 
+(ref 10, Vec<i32>)) is a *separate* pre-existing defect blocking the
+gclean-v2 "new codegen + GC runtime" bootstrap vehicle for the flat-src
+acceptance run.
+
+## Update 2026-10-19 — the gc-emit Vec<Vec<T>> typing bug is fixed
+
+Root cause: nested-vec type names collapsed to bare "vec:Vec" at three
+producer sites, so downstream consumers fell back to a vec:String guess
+and typed Vec<Vec<i32>> element/dest slots with the wrong GC struct.
+
+Fix (all verified on rebuilt s2-runtime):
+
+- mir/lower/return_typeinfo_names.ark: TY_VEC elements now recurse →
+  vec:vec:i32 (was vec:Vec); vec:Vec kept as the no-name fallback.
+- corehir/type_ann_param_name.ark: type_ann_shape_param_type_name
+  recurses for Vec-annotated elements.
+- corehir/param_shape_local.ark: shared vec_ann_local_type_name helper;
+  fn_param_local_type_name and method_param_local_type_name both use it
+  (fnref/tuple element cases unchanged).
+- wasm/intrinsic_vec_access_gc.ark: resolve_container_elem_gc_type is now
+  pub and maps the Vec<T> angle form through the vec: spelling.
+- wasm/code_ref_locals_infer_dest.ark: is_vec_push_call_callee case in
+  infer_ref_local_from_producer resolves the receiver's storage type via
+  find_call_source_local / wasm_ref_type_idx_for_local (fallback
+  resolve_vec_type_for_call), so if-join temps fed by differently-typed
+  push dests resolve both arms and under-declare as (ref null any).
+  infer_get_unchecked_elem_from_vec_arg maps vec:-prefixed elements to
+  the nested vec family's GC layout.
+- lexer/char.ark + wasm/intrinsic_vec_set_gc_layout.ark: explicit return
+  on bare tuple tails (vec_set_vec_flags was the in-tree tuple-tail
+  miscompile corruptor per item (d)).
+
+vec:vec:i32 maps to the same structref-vec layout as the old vec:Vec
+spelling — the ABI is unchanged; mono keys improve (Vec<Vec<String>> now
+specializes on Vec<String> instead of a bogus Vec<i32>).
+
+Verification (s2-runtime built 2026-10-19 03:35):
+- .build/p922/gcrepro/vv_push.wasm, .build/p922/vv/r2.wasm:
+  wasm-tools validate clean (previously invalid).
+- fixtures run: collections/vec_vec_i32 → 4, vec_vec_i32_get → 9,
+  vec_vec_string_get → ok (all match .expected).
+- target_capability gc_if_join_mixed_ref_temps (wasm32-gc+p2) and
+  gc_get_unchecked_dest_decl (wasm32 linear) compile clean.
+
+The speculative i32-scratch root-mirroring diff (~50 wasm emitter files,
+chasing the disproved mid-expression-sweep hypothesis) was reverted;
+archive at .build/p922/scratch-root-mirror-speculative.patch if the
+coverage question resurfaces.
+
+Next: rebuild gclean-v2 (gc runtime + new codegen vehicle, previously
+invalid at func 6888 edge_push_caller_segment — the bug fixed here),
+then bounded flat-src compile check and pin refresh to unblock #927 and
+the #851 acceptance run.
