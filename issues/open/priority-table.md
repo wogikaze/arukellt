@@ -15,31 +15,33 @@ Scoring criteria (0-5 each, total 25):
 | 2 | 927 | Selfhost compiler hangs compiling src/compiler/main.ark via... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
 | 3 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 4 | 922 | 922 — linear-GC page-chain arena is append-only; high-churn... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
-| 5 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 6 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
-| 7 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 8 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
-| 9 | 919 | 919 — `.expected` to `test:` fixture migration (ADR-041 Pha... | tooling | 0 | 0 | 1 | 5 | 3 | 9 |
-| 10 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 11 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 12 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 1 | 0 | 1 | 3 | 3 | 8 |
-| 13 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
-| 14 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
-| 15 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
-| 16 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
-| 17 | 818 | 818 — CoreOpRegistry production scaffold exit | compiler-internal | 0 | 0 | 1 | 5 | 2 | 8 |
-| 18 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 2 | 3 | 2 | 7 |
-| 19 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
-| 20 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
-| 21 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 22 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 23 | 917 | 917 — Free-function eradication execution (must-delete / as... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 24 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 25 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 26 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
-| 27 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
-| 28 | 801 | GC 完了までのプラン | gc | 0 | 0 | 1 | 1 | 4 | 6 |
-| 29 | 814 | 814 — Formatter/parser exceptions (23 files) | code-quality | 0 | 0 | 1 | 1 | 4 | 6 |
-| 30 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
-| 31 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
-| 32 | 918 | 918 — `arukellt test` runner UX: filter, no-fail-fast, dire... | tooling | 0 | 0 | 1 | 1 | 3 | 5 |
+| 5 | 928 | 928 — bare `clone` callee resolves to `String::clone`; wasm... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 6 | 929 | 929 — module-graph compile: bare `use X` from nested files ... | compiler | 0 | 0 | 1 | 5 | 4 | 10 |
+| 7 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 8 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
+| 9 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 10 | 850 | 850 — Compiler phase-arena implementation (wasm32-gc host o... | selfhost-infra | 0 | 0 | 1 | 5 | 3 | 9 |
+| 11 | 919 | 919 — `.expected` to `test:` fixture migration (ADR-041 Pha... | tooling | 0 | 0 | 1 | 5 | 3 | 9 |
+| 12 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 13 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 14 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 1 | 0 | 1 | 3 | 3 | 8 |
+| 15 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
+| 16 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
+| 17 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
+| 18 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
+| 19 | 818 | 818 — CoreOpRegistry production scaffold exit | compiler-internal | 0 | 0 | 1 | 5 | 2 | 8 |
+| 20 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 2 | 3 | 2 | 7 |
+| 21 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
+| 22 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
+| 23 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 24 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 25 | 917 | 917 — Free-function eradication execution (must-delete / as... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 26 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 27 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 28 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
+| 29 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
+| 30 | 801 | GC 完了までのプラン | gc | 0 | 0 | 1 | 1 | 4 | 6 |
+| 31 | 814 | 814 — Formatter/parser exceptions (23 files) | code-quality | 0 | 0 | 1 | 1 | 4 | 6 |
+| 32 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
+| 33 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 34 | 918 | 918 — `arukellt test` runner UX: filter, no-fail-fast, dire... | tooling | 0 | 0 | 1 | 1 | 3 | 5 |
