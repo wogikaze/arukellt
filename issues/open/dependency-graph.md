@@ -35,7 +35,6 @@ graph LR
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
-  I932["932 932 — fused in-loop emit re-scans growing state once per pushed"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -43,7 +42,6 @@ graph LR
   I680 --> I682
   I697 --> I710
   I851 --> I850
-  I851 --> I932
   I682 --> I683
   I681 --> I711
   I710 --> I711
@@ -73,7 +71,7 @@ graph LR
 - **801** depends on: 686; blocks: none
 - **814** depends on: 791; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
-- **851** depends on: 827; blocks: 850, 932
+- **851** depends on: 827; blocks: 850
 - **917** depends on: 709; blocks: none
 - **918** depends on: 719; blocks: none
 - **919** depends on: 719; blocks: none
@@ -83,7 +81,6 @@ graph LR
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none
-- **932** depends on: 851; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713
