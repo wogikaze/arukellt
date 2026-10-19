@@ -13,11 +13,11 @@ Cargo workspace, host-linker, or repository-specific runtime is involved.
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 6 244 452 bytes (≈ 5.96 MiB) |
-| sha256 | `3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852` |
-| Built from commit | Selfhost compiler source at `01c3ec26e` (includes the `wall_datetime_to_ms` memory64 scratch-address fix, `d73dbf509`), built through the structural Box/Slice prelude overlay described below |
-| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 8192)`, 512 MiB **memory32**) |
-| Producer | Direct Wasmtime selfhost compile of the current source by the previous pinned artifact (`ad2801cf…`), retried through the canonical structural `Box`/`Slice` prelude overlay because the predecessor predates generic enum payload lowering; the chain was then verified on the unpatched current source (`selfhost fixpoint`: `s2 == s3`, sha256 `3392235391fbc5fd1ea694087d3e228288c696f18e5eb76f253beb02a924598a`). No host-linker, bridge, adapter, or Rust code |
+| Size | 11 503 141 bytes (≈ 10.97 MiB) |
+| sha256 | `a2803831acaa5fac8c1f40767789c5ed12b87c2a5eebdaeb2f0dca896874e156` |
+| Built from commit | Selfhost compiler source at `58cc153e0` (the #922 linear-GC chain: boundary-aware marking, class-segregated free lists, arena capacity, heap-start memory sizing) |
+| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 8199)`, ≈ 512.7 MiB **memory32** — min pages now sized from the emitted heap start, `max(8192, ceil(heap_start/64KiB))`) |
+| Producer | Fixpoint artifact of the ADR-029 stage-2 → stage-3 chain run in an isolated worktree from the previous pinned artifact (`3f0ca605…`); the artifact recompiles the flat-src overlay **byte-identically** (`scale_v28.wasm == lin_comp_v28.wasm`, sha256 `a2803831…`), making it the stable fixpoint. No host-linker, bridge, adapter, or Rust code |
 
 ## Reproducibility recipe
 
@@ -77,7 +77,7 @@ behavioural drift in its body.
 ### Direct bootstrap and WASI P2 packaging
 
 Pinned bootstrap is direct `wasm32` / `wasi-p1` with guest memory32
-(`(memory 8192)`, 512 MiB). The compiler emits standard `wasm32-gc` /
+(`(memory 8199)`, ≈ 512.7 MiB). The compiler emits standard `wasm32-gc` /
 `wasi-p2` core modules for component work. `scripts/run/arukellt-selfhost.sh`
 and the fixture gate package those modules with the official WASI P2 WIT and
 `wasm-tools component embed/new`. There is no host-linker or compatibility
