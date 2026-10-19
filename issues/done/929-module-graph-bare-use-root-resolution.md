@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-19
 Updated: 2026-10-19
 ID: 929
@@ -81,9 +81,54 @@ resolution order for sources that already resolve.
 
 ## Acceptance
 
-- [ ] `compile src/compiler/main.ark` through the module-graph path
+- [x] `compile src/compiler/main.ark` through the module-graph path
       produces no "failed to load module" errors.
-- [ ] Sibling resolution order is unchanged (importer's dir still
+- [x] Sibling resolution order is unchanged (importer's dir still
       wins when both locations provide the module).
-- [ ] A module-run fixture covers bare `use` resolution from a nested
+- [x] A module-run fixture covers bare `use` resolution from a nested
       package file to a package-root module.
+
+## Fix (implemented 2026-10-19)
+
+`src/compiler/loader/module_graph.ark`: new
+`try_load_at_package_root` helper runs after the importer-relative
+(or qualified `root_dir`) candidates miss — for bare `use X` directly,
+and for the parent-module fallback of qualified imports (`use
+a::b::sym` → parent `a::b`). It returns early when `base_dir ==
+root_dir`, treats already-loaded/loading root candidates as resolved
+(preserving the circular-import error the dedup check pushes), and
+otherwise loads the module with `root_dir` as its base so recursive
+imports resolve from the real file location.
+
+Sibling order is preserved: the root retry only fires after every
+importer-relative candidate missed, and the parent fallback still
+prefers `module_base_dir_for_import(parent, importer_dir, ..)` before
+the root retry.
+
+Regression fixture:
+`tests/fixtures/modules/bare_use_root_fallback/` — `sub/user.ark` does
+`use helper` (sibling `sub/helper.ark` returns 1, package-root
+`helper.ark` returns 100 — expected output 8 proves the sibling won)
+and `use root_only` (only resolvable via the package-root fallback).
+A failing run prints 107 or reports "failed to load module
+`root_only`".
+
+## Done evidence (2026-10-19 close)
+
+Verified under `lin_comp_v29` and the canonical
+`.build/selfhost/arukellt-s2-runtime.wasm` (sha256 `b9913678`,
+byte-identical to the stage-2 `bootstrap-out.wasm` built by the
+refreshed pin — two producers, one output):
+
+- `compile src/compiler/main.ark --target wasm32-gc` finishes in
+  27.9 s with **zero** "failed to load module" errors; the remaining
+  diagnostics are E0100 cross-module visibility errors filed as #931.
+- `compile src/compiler/main/editor.ark` likewise reports no
+  analysis/dap/lsp misses.
+- `module-run:modules/bare_use_root_fallback/main.ark` prints `8`
+  under the new loader (sibling `sub/helper.ark` contributes 1, not
+  the root's 100 — order preserved; `root_only` resolves via the new
+  fallback). Under the previous loader binary (`lin_comp_v28`) the
+  same fixture fails — module loading error `root_only` — as expected.
+- `verify lane` PASS (fmt / lint / comment / semantic-debt /
+  code-quality ratchets) after `arukellt fmt` normalization.

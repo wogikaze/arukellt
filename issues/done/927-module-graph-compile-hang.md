@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-15
-Updated: 2026-10-15
+Updated: 2026-10-19
 ID: 927
 Track: compiler
 Depends on: ""
@@ -110,6 +110,38 @@ This matches the plan doc's prior note
 the permanent fix is a pinned bootstrap refresh or the gc-host s2
 path - the new collector only reaches s2 via a new pinned emitter.
 
+## Verification with the #922 mark fix (2026-10-19)
+
+`lin_comp_v28` (wasm32 + linear GC emitted by the fixed emitter, the
+s3-equivalent artifact, fixpoint-verified byte-identical against its
+own recompile) ran `compile src/compiler/main.ark --target wasm32-gc`
+to completion of module loading in ~27 s. The O(marked words x
+records) mark hang is gone. A control run under the current
+s2-runtime (still Oct-9-lineage internal GC) stayed at 100% CPU with
+an empty log past 10 min, matching the stale-mark diagnosis.
+
+The now-unmasked next failure is a pre-existing module-resolution
+miss set, not the hang: loading reports 16 "failed to load module"
+errors for bare `use analysis|dap|lsp|component|mir|resolver|
+native_c|wasm` inside nested files and the qualified parent fallback
+of `use mir_opt::optimize_fn`. Reproduced identically under the
+pinned bootstrap on a synthetic nested package and under the current
+s2-runtime on `src/compiler/main/editor.ark` alone - filed as #929.
+The flat-src canonical path is unaffected.
+
+Remaining durable fix per the note above: pin a fixed-GC s3 artifact
+so the shipped s2-runtime carries the new collector.
+
+The fixed artifact was then installed as the local
+`.build/selfhost/arukellt-s2-runtime.wasm` (lin_comp_v28 + the
+standard dedupe-export / memory32-normalize postprocessing,
+`_reject_invalid_compiler_wasm` clean): the same
+`compile src/compiler/main.ark --target wasm32-gc` finishes in
+26.2 s wall with only the #929 misses — done-when clause 1 met on
+the fixed runtime. Durability still requires the pinned bootstrap
+refresh; a `build-compiler` rebuild would revert the runtime to a
+stale-collector binary until the pin moves.
+
 ## Done when
 
 - `compile src/compiler/main.ark --target wasm32-gc` finishes under
@@ -118,6 +150,26 @@ path - the new collector only reaches s2 via a new pinned emitter.
   canonical).
 - If it is slowness rather than a loop: a documented budget + timing
   gate so regressions are visible.
+
+## Done evidence (2026-10-19 close)
+
+- Canonical `.build/selfhost/arukellt-s2-runtime.wasm` (sha256
+  `b9913678`, produced by `selfhost build-compiler` under the
+  refreshed pin `a2803831`) runs `compile src/compiler/main.ark
+  --target wasm32-gc` to completion in **27.9 s** — bounded time,
+  every day, not just on a hand-installed binary. The run emits
+  E0100 cross-module visibility diagnostics (filed as #931) and
+  zero module-load misses after the #929 loader fix.
+- The completion is a genuine hang fix, not slowness: pre-fix the
+  same command stayed at 100% CPU with an empty log past 70 min
+  (O(marked words x live records) mark scan). The post-fix mark is
+  O(live records) per collection with boundary-correct claiming.
+- Durability: the fix lives in the *emitted* collector, so it only
+  ships when the runtime binary is rebuilt by a fixed emitter.
+  `bootstrap/arukellt-selfhost.wasm` is now the fixpoint-verified
+  fixed-emitter artifact (commit `1b8baba76`), making every future
+  `build-compiler` output carry it — the regression channel is
+  closed at the source.
 
 ## Notes
 

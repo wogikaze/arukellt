@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-19T03:21:21Z",
+  "generated_at": "2026-10-19T04:48:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -466,40 +466,6 @@
       }
     },
     {
-      "id": "922",
-      "path": "922-linear-gc-chain-arena-append-only-oom.md",
-      "title": "922 — linear-GC page-chain arena is append-only; high-churn workloads exit CHAIN OOM",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "927",
-      "path": "927-module-graph-compile-hang.md",
-      "title": "Selfhost compiler hangs compiling src/compiler/main.ark via module graph",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "investigation",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "928",
       "path": "928-gc-clone-callee-resolves-to-string-clone.md",
       "title": "928 — bare `clone` callee resolves to `String::clone`; wasm32-gc emits invalid wasm for `clone(Vec<T>)`",
@@ -517,19 +483,36 @@
       }
     },
     {
-      "id": "929",
-      "path": "929-module-graph-bare-use-root-resolution.md",
-      "title": "929 — module-graph compile: bare `use X` from nested files and qualified-import parent fallback miss package-root modules",
+      "id": "930",
+      "path": "930-reference-parity-memory64-exec-leg.md",
+      "title": "930 — reference-parity execution leg cannot package memory64 cores;",
       "track": "compiler",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 3
+        "unchecked": 2
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "931",
+      "path": "931-module-graph-cross-file-private-access.md",
+      "title": "931 — module-graph compile: sibling files access each other's",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "research-needed",
         "upstream_notes": "none"
       }
     },

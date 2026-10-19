@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-10-14
-Updated: 2026-10-16
+Updated: 2026-10-19
 ID: 922
 Track: compiler
 Depends on: none
@@ -85,11 +85,33 @@ exceeding ~4M nodes).
 
 ## Acceptance
 
-- [ ] s2/s3-equivalent selfhost compile (flat-src) completes without
+- [x] s2/s3-equivalent selfhost compile (flat-src) completes without
       silent exit under the fixed emitter.
-- [ ] Linear-target fixture set passes; no new runtime-trap regressions.
-- [ ] Churn reproducer added as a regression fixture if a lightweight
+- [x] Linear-target fixture set passes; no new runtime-trap regressions.
+- [x] Churn reproducer added as a regression fixture if a lightweight
       variant exists.
+
+## Done evidence (2026-10-19 close)
+
+- Flat-src selfhost compile completes under the fixed emitter:
+  `lin_comp_v28` recompiles flat-src byte-identically (s2==s3-class
+  fixpoint, ADR-029); canonical `build-compiler` stage-2 under the
+  refreshed pin emits the same binary (b9913678) with no silent exit.
+- Acceptance fixture set 92/92 PASS (collections 20, generics_v1 23,
+  functions 21, for_loops 4, match_extensions 11, enums 13) compiled
+  and run under the fixed emitter; `fixture-parity --filter-dir
+  target_capability` 9/9 PASS on the fixed s2-runtime.
+- Regression fixtures in manifest (run: + t3-run:):
+  `linear_gc_chain_arena_reclaim` (churn reclaim) and
+  `linear_gc_boundary_handles` (boundary-mark reproducer; fails on
+  the half-fixed emitter, passes on the final one). The 6M-iteration
+  reproducer is intentionally not a fixture — too slow for the gate;
+  the arena-reclaim fixture covers the same contract.
+- Durability: pinned bootstrap refreshed to the fixpoint artifact
+  (`a2803831`, commit `1b8baba76`), so every canonical
+  `build-compiler` rebuild now produces an s2-runtime carrying the
+  fixed collector — this was the last gap where a rebuild could
+  silently restore the stale collector.
 
 ## Update 2026-10-15 — second pathology layer found and fixed
 

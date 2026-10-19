@@ -29,10 +29,9 @@ graph LR
   I917["917 917 — Free-function eradication execution (must-delete / associated-or-method waves)"]
   I918["918 918 — `arukellt test` runner UX: filter, no-fail-fast, directory discovery"]
   I919["919 919 — `.expected` to `test:` fixture migration (ADR-041 Phase 2d)"]
-  I922["922 922 — linear-GC page-chain arena is append-only; high-churn workloads exit CHAIN OOM"]
-  I927["927 Selfhost compiler hangs compiling src/compiler/main.ark via module graph"]
   I928["928 928 — bare `clone` callee resolves to `String::clone`; wasm32-gc emits invalid wasm for `clone(Vec<T>)`"]
-  I929["929 929 — module-graph compile: bare `use X` from nested files and qualified-import parent fallback miss package-root modules"]
+  I930["930 930 — reference-parity execution leg cannot package memory64 cores;"]
+  I931["931 931 — module-graph compile: sibling files access each other's"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I850["850 850 — Compiler phase-arena implementation (wasm32-gc host overlay)"]
@@ -76,10 +75,9 @@ graph LR
 - **917** depends on: 709; blocks: none
 - **918** depends on: 719; blocks: none
 - **919** depends on: 719; blocks: none
-- **922** depends on: none; blocks: none
-- **927** depends on: none; blocks: none
 - **928** depends on: none; blocks: none
-- **929** depends on: none; blocks: none
+- **930** depends on: none; blocks: none
+- **931** depends on: none; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **850** depends on: 851; blocks: none
