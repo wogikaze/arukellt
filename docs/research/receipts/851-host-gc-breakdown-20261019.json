@@ -41,5 +41,14 @@
   "defer_variant": 0,
   "defer_indirect": 0,
   "interpretation": "fid->mir_index unknown at push time dominates defers; callee-MIR dereference in infer_call_result_gc_type_* means push-time emit needs spine-equivalent callee typing (plan Phase 3 item a/b), not just an index map. defer-pending=0 after #932 incremental plan drain."
+ },
+ "fid_order_probe": {
+  "method": "emit_inloop_drain tail: compare fid_to_mir[raw] vs raw's ordinal among non-signature-only registry entries",
+  "ok": 1,
+  "diff": 11284,
+  "unmapped": 1069,
+  "nonsig_entries": 12354,
+  "fns": 11285,
+  "interpretation": "NEGATIVE RESULT: push order diverges from registry order almost everywhere (mid-stream/mono/synth pushes interleave). fid->mir_index cannot be predicted by simple registry ordinal; prediction would need simulating the push name sequence from the view (with synth-push interleavings), i.e. the designed discovery-first refactor, or making emit not consult callee MIR at all."
  }
 }

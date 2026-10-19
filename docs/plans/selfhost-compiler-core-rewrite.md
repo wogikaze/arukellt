@@ -1106,6 +1106,18 @@ Phase-3 実測（2026-10-19 第2弾 host 分解 + defer 国勢調査 — receipt
   （Oct-12 probeT で fn_index 正規化 ret 名 100% カバー済み、
   ret_variant_slot は callee-first 順で回避可）。
 
+- **fid 順序仮説は棄却済み（drain 末尾突合 probe、同日）**:
+  fid_to_mir[raw] vs registry 非 sig-only ordinal = ok 1 / diff 11284 /
+  unmapped 1069。push 順序と registry 順序はほぼ一致しない（mono /
+  synth / late push の割り込み）。fid→mir_index の事前確定には push
+  名系列を view から先読みするシミュレーション（= 設計済み
+  discovery パス）が必須。ordinal ショートカットは使えない。
+- **Vec push の alloc 仮説も棄却**: GC target の raw_array_grow は
+  capacity doubling 済み（new_len > old_cap で 2x 再配置）。総
+  allocation ~3.2GB は Vec copy ではなくオブジェクト個数由来 —
+  削るには構造削減（Phase 3 live-set / Phase 5 scratch reuse）しか
+  残っていない。
+
 
 ## Phase 4 — post-pass type propagation を消す
 
