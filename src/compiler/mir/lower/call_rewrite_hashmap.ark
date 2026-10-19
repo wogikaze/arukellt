@@ -7,6 +7,12 @@ use mir::mono_names
 use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
 use std::text
 fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
+    // Cheap gate before the six spelling probes below: each probe builds
+    // several concatenated candidate names, and almost every call site in
+    // real programs is not a HashMap constructor at all (#851).
+    if !starts_with(clone(callee_name), String_from("HashMap")) {
+        return String_new()
+    }
     if hashmap_constructor_matches(clone(callee_name), "i32", "i32") {
         return String_from("hash_map::hashmap_i32_i32_new")
     }

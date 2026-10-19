@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-19T04:48:23Z",
+  "generated_at": "2026-10-19T09:43:07Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -397,7 +397,8 @@
         "827"
       ],
       "blocks_issue_ids": [
-        "850"
+        "850",
+        "932"
       ],
       "acceptance": {
         "checked": 3,
@@ -580,6 +581,25 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
+      }
+    },
+    {
+      "id": "932",
+      "path": "932-fused-emit-per-push-quadratics.md",
+      "title": "932 — fused in-loop emit re-scans growing state once per pushed",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "851"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
       }
     },
     {

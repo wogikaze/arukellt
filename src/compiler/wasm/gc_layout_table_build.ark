@@ -1,7 +1,6 @@
 use std::host::process
 use std::host::stdio
 use mir::gc_layout_plan
-use mir::gc_layout_plan_validator
 use mir::module_gc_layout_plan
 use wasm::gc_layout_table
 
@@ -68,49 +67,66 @@ fn gc_layout_table_drain_plan(
     final_pass: bool
 ) {
     let plan = module_gc_layout_plan::MirModule_gc_layout_plan(mir)
-    if !gc_layout_plan_validator::mir_gc_layout_plan_valid(plan) {
+    let count = gc_layout_plan::mir_gc_layout_plan_binding_count(plan)
+    // The drain runs once per pushed function (#851 Phase 3), so the old
+    // whole-plan validation re-scanned every binding per push. Bindings
+    // are append/replace-only via mir_gc_layout_plan_bind; validating
+    // [plan_seen, count) checks each appended binding exactly once while
+    // keeping identical ICE coverage for a fresh table (plan_seen = 0).
+    if !gc_layout_plan::mir_gc_layout_plan_validate_range(plan, table.plan_seen) {
         stdio::eprintln("compiler ICE: backend received invalid MIR GC layout plan")
         process::exit(1)
     }
-    let count = gc_layout_plan::mir_gc_layout_plan_binding_count(plan)
     while table.plan_seen < count {
         push(table.plan_pending, table.plan_seen)
         table.plan_seen = table.plan_seen + 1
     }
-    let still_pending = Vec::new<i32>()
-    let pending_count = len(table.plan_pending)
-    let mut p = 0
-    while p < pending_count {
-        let index = get_unchecked(table.plan_pending, p)
-        let binding = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, index)
-        let type_idx = gc_layout_plan_type_index(
-            binding,
-            gc_type_base,
-            gc_enum_variant_type_map,
-            gc_struct_type_map
-        )
-        if type_idx < 0 {
-            if final_pass {
-                stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
-                process::exit(1)
-            }
-            push(still_pending, index)
-        } else {
-            let layout_id = gc_layout_table::gc_layout_table_register_key(
-                table,
-                gc_layout_table::GcLayoutKey_new(
-                    gc_layout_plan::mir_gc_layout_binding_type_id(binding),
-                    gc_layout_table::GcMemberKey_aggregate()
-                ),
-                gc_layout_table::WasmRefType_new(type_idx, 1),
-                gc_layout_plan_struct_type_index(binding, type_idx)
+    // Rescan pending only when its outcome can change (#851): a new canon
+    // assignment (module version bump), gc_type_base flipping to final,
+    // or fresh bindings appended this drain. Without that the per-push
+    // drain re-walked every stuck binding for every pushed function.
+    let state_changed = mir.gc_canon_version != table.drain_version_seen ||
+    gc_type_base != table.drain_base_seen ||
+    len(table.plan_pending) != table.drain_pending_seen
+    if len(table.plan_pending) > 0 && (final_pass || state_changed) {
+        let still_pending = Vec::new<i32>()
+        let pending_count = len(table.plan_pending)
+        let mut p = 0
+        while p < pending_count {
+            let index = get_unchecked(table.plan_pending, p)
+            let binding = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, index)
+            let type_idx = gc_layout_plan_type_index(
+                binding,
+                gc_type_base,
+                gc_enum_variant_type_map,
+                gc_struct_type_map
             )
-            if !gc_layout_table::gc_layout_id_is_valid(layout_id) {
-                stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
-                process::exit(1)
+            if type_idx < 0 {
+                if final_pass {
+                    stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
+                    process::exit(1)
+                }
+                push(still_pending, index)
+            } else {
+                let layout_id = gc_layout_table::gc_layout_table_register_key(
+                    table,
+                    gc_layout_table::GcLayoutKey_new(
+                        gc_layout_plan::mir_gc_layout_binding_type_id(binding),
+                        gc_layout_table::GcMemberKey_aggregate()
+                    ),
+                    gc_layout_table::WasmRefType_new(type_idx, 1),
+                    gc_layout_plan_struct_type_index(binding, type_idx)
+                )
+                if !gc_layout_table::gc_layout_id_is_valid(layout_id) {
+                    stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
+                    process::exit(1)
+                }
             }
+            p = p + 1
         }
-        p = p + 1
+        table.plan_pending = still_pending
     }
-    table.plan_pending = still_pending
+    table.drain_version_seen = mir.gc_canon_version
+    table.drain_base_seen = gc_type_base
+    table.drain_pending_seen = len(table.plan_pending)
 }

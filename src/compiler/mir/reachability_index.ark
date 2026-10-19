@@ -3,7 +3,7 @@ use corehir::function_id
 use corehir::signature_registry
 use mir::function_identity
 use mir::module_spine
-use mir::types
+
 use resolver
 
 // Explicit FunctionId.raw → MirFunction index. Never assume raw == mir index:
@@ -14,54 +14,31 @@ struct MirReachabilityIndex {
     fid_to_mir: Vec<i32>,
 }
 
-// Nested else-less `if` around `set(Vec, …)` was lowered with a Vec block
-// result into an i64 local (s3 validate: expected i64, found ref). Early
-// returns keep each guard as a statement with no merge value.
-fn mir_reachability_function_ordinal(functions: Vec<MirFunction>, fname: String, fi: i32) -> i32 {
-    let mut ordinal = 0
-    let mut i = 0
-    while i < fi {
-        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), clone(fname)) {
-            ordinal = ordinal + 1
-        }
-        i = i + 1
-    }
-    ordinal
-}
-
-fn mir_reachability_registry_id_for_ordinal(
-    registry: SignatureRegistry,
-    fname: String,
-    ordinal: i32
-) -> FunctionId {
-    let mut seen = 0
-    let mut i = 0
-    while i < signature_registry::signature_registry_entry_count(registry) {
-        if eq(signature_registry::signature_registry_mangled_at(registry, i), clone(fname)) &&
-        !signature_registry::signature_registry_is_signature_only(registry, i) {
-            if seen == ordinal {
-                return function_id::FunctionId_new(i)
-            }
-            seen = seen + 1
-        }
-        i = i + 1
-    }
-    function_id::FUNCTION_ID_INVALID()
-}
-
 fn mir_reachability_index_bind_fid(
     m: MirModule,
     fid_to_mir: Vec<i32>,
-    functions: Vec<MirFunction>,
     fname: String,
-    fi: i32
+    fi: i32,
+    ordinal: i32,
+    fid_chain_head: NameIndex,
+    fid_chain_next: Vec<i32>
 ) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
-    let registry = module_spine::MirModule_signature_registry(m)
-    let ordinal = mir_reachability_function_ordinal(functions, clone(fname), fi)
-    let fid = mir_reachability_registry_id_for_ordinal(registry, clone(fname), ordinal)
+    // Walk the prebuilt name chain ordinal steps -- the old code scanned
+    // the whole registry once per pushed function (#851).
+    let mut slot = name_index::name_index_get(fid_chain_head, clone(fname))
+    let mut step = ordinal
+    while step > 0 && slot >= 0 {
+        slot = get_unchecked(fid_chain_next, slot)
+        step = step - 1
+    }
+    let fid = if slot >= 0 {
+        function_id::FunctionId_new(slot)
+    } else {
+        function_id::FUNCTION_ID_INVALID()
+    }
     if !function_id::function_id_is_valid(fid) {
         return
     }
@@ -89,10 +66,35 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
     let name_to_mir = name_index::NameIndex_new(fn_count + fn_count)
     let fid_to_mir = Vec::new<i32>()
     let mut registry_count = 0
+    // Name -> ordered chain of non-signature-only registry slots, plus
+    // per-name ordinal counters: the old helpers re-scanned functions
+    // [0..fi) and the whole registry per fn, which made the build
+    // O(fns x registry) (#851). Chains preserve registry order via a
+    // head+tail pair so the ordinal-th entry matches the old scan.
+    let fid_chain_head = name_index::NameIndex_new(0)
+    let fid_chain_tail = name_index::NameIndex_new(0)
+    let fid_chain_next = Vec::new<i32>()
+    let ordinal_counts = name_index::NameIndex_new(0)
     if module_spine::MirModule_signature_spine_populated(m) {
-        registry_count = signature_registry::signature_registry_entry_count(
-            module_spine::MirModule_signature_registry(m)
-        )
+        let registry = module_spine::MirModule_signature_registry(m)
+        registry_count = signature_registry::signature_registry_entry_count(registry)
+        let mut ri = 0
+        while ri < registry_count {
+            if signature_registry::signature_registry_is_signature_only(registry, ri) {
+                push(fid_chain_next, 0 - 1)
+            } else {
+                let rname = signature_registry::signature_registry_mangled_at(registry, ri)
+                let tail = name_index::name_index_get(fid_chain_tail, clone(rname))
+                push(fid_chain_next, 0 - 1)
+                if tail < 0 {
+                    name_index::name_index_set(fid_chain_head, clone(rname), ri)
+                } else {
+                    set(fid_chain_next, tail, ri)
+                }
+                name_index::name_index_set(fid_chain_tail, rname, ri)
+            }
+            ri = ri + 1
+        }
     }
     let mut si = 0
     while si < registry_count {
@@ -104,7 +106,20 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
         let f = get_unchecked(functions, fi)
         let fname = function_identity::MirFunction_name(f)
         mir_reachability_index_bind_name(name_to_mir, clone(fname), fi)
-        mir_reachability_index_bind_fid(m, fid_to_mir, functions, fname, fi)
+        let mut ordinal = name_index::name_index_get(ordinal_counts, clone(fname))
+        if ordinal < 0 {
+            ordinal = 0
+        }
+        name_index::name_index_set(ordinal_counts, clone(fname), ordinal + 1)
+        mir_reachability_index_bind_fid(
+            m,
+            fid_to_mir,
+            fname,
+            fi,
+            ordinal,
+            fid_chain_head,
+            fid_chain_next
+        )
         fi = fi + 1
     }
     MirReachabilityIndex { name_to_mir: name_to_mir, fid_to_mir: fid_to_mir }

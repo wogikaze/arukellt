@@ -1,0 +1,38 @@
+{
+  "schema": "arukellt-issue-receipt-v1",
+  "recorded_at": "2026-10-19T18:45:00Z",
+  "issue": 932,
+  "parent_mission": 851,
+  "source_sha_base": "7b9cbff14afc61b9fb25c31acf92022b1d0bbaf9",
+  "host_baseline": ".build/selfhost/gc-host-v28.component.wasm",
+  "host_fixed": ".build/selfhost/blay3.component.wasm",
+  "host_fixed_sha256": "589ea6559d623dd508b8d3a50f848ae5d1d03aaa66bd5c1194665e7c09aa7f9f",
+  "overlay": ".build/selfhost/flat-src",
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "guest_profile_samples_10ms": {
+    "baseline_v28": 6178,
+    "after_layout_index": 2695,
+    "after_full_batch": 2248
+  },
+  "wall_seconds": {
+    "v28_same_source": [124.66, 127.78],
+    "fixed_binary_same_source": [88.12, 102.97, 140.22],
+    "note": "wall is host-GC dominated and load-noisy; guest samples are the stable signal (-64%)"
+  },
+  "self_fixpoint": {
+    "s2_sha256": "729dce4c3b411fefb54053dd92a2558785b6b1b9ecde209cae37da17975bf3bf",
+    "s3_sha256": "729dce4c3b411fefb54053dd92a2558785b6b1b9ecde209cae37da17975bf3bf",
+    "byte_identical": true
+  },
+  "fixture_parity": {
+    "count": 18,
+    "byte_identical": 18,
+    "compilers": ["blay3.component.wasm", "gc-host-v28.component.wasm"],
+    "suites": ["generics", "collections", "enums", "iterator", "stdlib_trait", "stdlib_string"]
+  },
+  "validate": "wasm-tools validate PASS",
+  "fmt": "arukellt fmt --check PASS (11 edited files)",
+  "profile_artifacts": ["/tmp/prof-fixed.json", "/tmp/prof-lay.json", "/tmp/prof-lay3.json"],
+  "notes": "v28 baseline guest profile: gc_layout_table_drain_plan ~38% incl, mir_gc_layout_binding_type_id ~19.5% self via per-push O(bindings^2) plan re-validation. Post-fix: drain/validator/plan accessors fully out of top-self; remaining leaf leaders are distributed eq/name_index/typecheck helpers."
+}

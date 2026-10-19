@@ -1,5 +1,3 @@
-use std::prelude::{clone}
-use mir::lower::ctx_types
 use mir::module_canon
 use mir::module_gc_enum
 use mir::module_gc_order
@@ -71,12 +69,18 @@ fn ctx_gc_canon_ensure_late(ctx: LowerCtx) {
         let packed = get_unchecked(order, i)
         let slot = packed / 2
         if packed % 2 == 0 {
-            let canon = ctx_gc_canon_ensure_struct_sig(
-                ctx,
-                module_gc_struct::MirModule_gc_struct_sig_at(m, slot)
-            )
-            module_gc_struct::MirModule_set_gc_struct_canon_idx(m, slot, canon)
-        } else {
+            // Slots whose canon index is already final do not need the
+            // ensure pass again -- canon_ensure is idempotent, and this
+            // loop runs once per pushed function while the order list
+            // only ever grows (#851).
+            if module_gc_struct::MirModule_gc_struct_canon_idx_at(m, slot) < 0 {
+                let canon = ctx_gc_canon_ensure_struct_sig(
+                    ctx,
+                    module_gc_struct::MirModule_gc_struct_sig_at(m, slot)
+                )
+                module_gc_struct::MirModule_set_gc_struct_canon_idx(m, slot, canon)
+            }
+        } else if module_gc_enum::MirModule_gc_enum_variant_canon_idx_at(m, slot) < 0 {
             let canon = ctx_gc_canon_ensure_sig(
                 ctx,
                 module_gc_enum::MirModule_gc_enum_variant_sig_at(m, slot)

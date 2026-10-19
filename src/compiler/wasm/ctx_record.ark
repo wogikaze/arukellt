@@ -648,6 +648,14 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
 // maps live on the module, so this explicit finalize is the single build
 // point (setters no longer carry order-dependent rebuild side-effects).
 fn SelfEmitCtx_finalize_gc_derived_indexes(ctx: SelfEmitCtx) {
+    // Rebuild only when the module canon state actually advanced (#851):
+    // this runs inside emit_inloop_prepare once per pushed function, and
+    // each rebuild allocates fresh NameIndexes plus per-name strings.
+    let seen = ctx.gc_layout_table.canon_version_seen
+    if seen == ctx.mir.gc_canon_version {
+        return
+    }
+    ctx.gc_layout_table.canon_version_seen = ctx.mir.gc_canon_version
     SelfEmitCtx_rebuild_gc_enum_variant_type_flags(ctx)
     SelfEmitCtx_rebuild_gc_enum_variant_name_index(ctx)
     SelfEmitCtx_rebuild_gc_struct_name_index(ctx)

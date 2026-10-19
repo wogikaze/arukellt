@@ -1046,6 +1046,34 @@ Phase-3 実装（2026-10-13 fused emit 第1段 — pre-prune drain 着地、
     埋め込まれ futile-collect で進まない — producer 速度の問題で
     emit 正しさとは別系（#922/#851 側）。
 
+Phase-3 実測（2026-10-19 per-push sweep quadratics — wasmtime
+--profile guest による guest wasm シンボル分解、receipt:
+[932-per-push-quadratics-20261019](../research/receipts/932-per-push-quadratics-20261019.json)、
+issue: #932）:
+
+- **旧 host の guest 内訳が確定**: --profile guest で旧 gc host の
+  コンパイルを分解すると、ctx_push_current_function（46.6% incl）→
+  emit_inloop_prepare（41%）→ gc_layout_table_drain_plan（38%）配下の
+  mir_gc_layout_plan_valid 系 accessor が leaf 時間の中心
+  （mir_gc_layout_binding_type_id 19.5% self）。
+  型検査 merge は犯行ではなかった（typecheck は guest の ~10%）—
+  Oct-12 keepclock で見えた typecheck 63s は s3-kc32 の旧型検査コード
+  自身の話で、現行 host の構造的ボトルネックは per-push sweep にあった。
+- **除いた quadratic（全て append-only 構造に index/watermark を付与）**:
+  MirGcLayoutPlan.index_by_raw（bind dedup O(1) + validator O(n) 化、
+  per-push O(bindings^2) → per-push O(new bindings)）、drain の
+  [plan_seen,count) 増分検証、ctx_gc_canon_ensure_late の確定済み
+  slot skip、MirModule.gc_canon_version 駆動の derived-index
+  rebuild gate（3 NameIndex rebuild/push を解消）、plan_pending
+  rescan の version/base/pending-growth gate、reachability index の
+  name->slot chain + ordinal counter 化（O(FxR) → O(F+R)）、
+  HashMap 呼出 rewrite の starts_with prefilter。
+- **効果**: guest プロファイル標本数は 6178 → 2695 → 2248（~64% 減）。
+  同一ソースの wall は v28 ~121-128s → fixed host ~88-103s（host GC が
+  wall の ~65-75% を占める領域に到達 — 次は allocation 量そのものを
+  削る Phase 5 arena 系が最大レバー）。s2==s3 byte-identical、
+  fixture 18/18 byte-parity、validate PASS。
+
 ## Phase 4 — post-pass type propagation を消す
 
 gate: **lower + 全 dataflow + reachability ≤ 3s、whole-module instruction scan = 0**。

@@ -58,6 +58,18 @@ struct GcLayoutTable {
     // type-section slot was not final yet (late canon ensure).
     plan_seen: i32,
     plan_pending: Vec<i32>,
+    // Last MirModule.gc_canon_version the emit-side derived indexes
+    // (name/type-idx lookups) were rebuilt against. The rebuild scan is
+    // O(types); gating it on this watermark stops it from running once
+    // per pushed function.
+    canon_version_seen: i32,
+    // Drain-scan watermarks (#851): the pending rescan only makes sense
+    // when something that could resolve a pending binding changed —
+    // a new canon assignment (version) or gc_type_base becoming final —
+    // or when fresh bindings were appended this drain.
+    drain_version_seen: i32,
+    drain_base_seen: i32,
+    drain_pending_seen: i32,
 }
 
 fn GcMemberKey_aggregate() -> GcMemberKey {
@@ -133,7 +145,11 @@ fn GcLayoutTable_new() -> GcLayoutTable {
         typed_lookup_count: 0,
         conflict_count: 0,
         plan_seen: 0,
-        plan_pending: Vec::new<i32>()
+        plan_pending: Vec::new<i32>(),
+        canon_version_seen: 0 - 1,
+        drain_version_seen: 0 - 1,
+        drain_base_seen: 0 - 2,
+        drain_pending_seen: 0 - 1
     }
 }
 

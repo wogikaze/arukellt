@@ -21,6 +21,13 @@ struct MirGcLayoutBinding {
 struct MirGcLayoutPlan {
     schema_version: i32,
     bindings: Vec<MirGcLayoutBinding>,
+    // TypeId.raw -> bindings slot side index (#851): both the bind dedup
+    // lookup and the validator's uniqueness check used to scan the whole
+    // vec, which made plan construction O(n^2) and -- worse -- every
+    // fused-emit drain call re-ran that O(n^2) pass per pushed function.
+    // -1 = no binding for that raw id. Maintained inside bind, which is
+    // the only writer, so the index can never disagree with the vec.
+    index_by_raw: Vec<i32>,
 }
 
 fn MirGcLayoutBinding_new(
@@ -39,6 +46,7 @@ fn MirGcLayoutPlan_new() -> MirGcLayoutPlan {
     MirGcLayoutPlan {
         schema_version: 1,
         bindings: Vec::new<MirGcLayoutBinding>(),
+        index_by_raw: Vec::new<i32>(),
     }
 }
 
@@ -67,6 +75,12 @@ fn mir_gc_layout_binding_source_value(binding: MirGcLayoutBinding) -> i32 {
 }
 
 fn mir_gc_layout_plan_find_type(plan: MirGcLayoutPlan, type_id_value: TypeId) -> i32 {
+    let raw = type_id::TypeId_raw(type_id_value)
+    if raw >= 0 && raw < len(plan.index_by_raw) {
+        return get_unchecked(plan.index_by_raw, raw)
+    }
+    // Invalid TypeIds are not indexed; keep the scan so a duplicate
+    // invalid binding is still found and replaced in place.
     let count = len(plan.bindings)
     let mut index = 0
     while index < count {
@@ -91,7 +105,57 @@ fn mir_gc_layout_plan_bind(
     let binding = MirGcLayoutBinding_new(type_id_value, source_kind, source_value)
     if existing >= 0 {
         set(plan.bindings, existing, binding)
+        mir_gc_layout_plan_validate_binding(plan, existing)
         return
     }
+    let raw = type_id::TypeId_raw(type_id_value)
+    if raw >= 0 {
+        while len(plan.index_by_raw) <= raw {
+            push(plan.index_by_raw, 0 - 1)
+        }
+        set(plan.index_by_raw, raw, len(plan.bindings))
+    }
     push(plan.bindings, binding)
+}
+
+// Field-level sanity for one binding plus the index-consistency check
+// that replaces the old pairwise duplicate scan: a duplicate TypeId can
+// only exist if some writer bypassed bind(), and then at most one slot
+// can match index_by_raw[raw], so the check still fails closed.
+pub fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> bool {
+    let binding = get_unchecked(plan.bindings, index)
+    let tid = binding.type_id
+    if !type_id::type_id_is_valid(tid) {
+        return false
+    }
+    let source_kind = binding.source_kind
+    if source_kind != MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() &&
+    source_kind != MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() &&
+    source_kind != MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
+        return false
+    }
+    if binding.source_value < 0 {
+        return false
+    }
+    let raw = type_id::TypeId_raw(tid)
+    if raw >= len(plan.index_by_raw) || get_unchecked(plan.index_by_raw, raw) != index {
+        return false
+    }
+    true
+}
+
+// Validate bindings[start, count). The fused-emit drain calls this per
+// push with start=plan_seen so every binding is checked once when it
+// first becomes visible, instead of re-validating the whole plan per
+// drain call.
+pub fn mir_gc_layout_plan_validate_range(plan: MirGcLayoutPlan, start: i32) -> bool {
+    let count = len(plan.bindings)
+    let mut index = start
+    while index < count {
+        if !mir_gc_layout_plan_validate_binding(plan, index) {
+            return false
+        }
+        index = index + 1
+    }
+    true
 }

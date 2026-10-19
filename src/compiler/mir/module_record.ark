@@ -71,6 +71,12 @@ pub struct MirModule {
     gc_struct_canon_idx: Vec<i32>,
     gc_enum_variant_canon_idx: Vec<i32>,
     gc_canon_prefix_done: bool,
+    // Monotonic version of module GC registration state (#851): bumped
+    // by MirModule_push_gc_{struct,enum_variant} on each new name and by
+    // the two MirModule_set_gc_*_canon_idx setters on each -1 -> final
+    // transition, so emit-side derived indexes can rebuild only when the
+    // state actually changed instead of on every pushed function.
+    gc_canon_version: i32,
     gc_layout_plan: MirGcLayoutPlan,
     spine_populated: bool,
     type_table: TypeTable,
@@ -114,6 +120,7 @@ fn MirModule_new() -> MirModule {
         gc_struct_canon_idx: Vec::new<i32>(),
         gc_enum_variant_canon_idx: Vec::new<i32>(),
         gc_canon_prefix_done: false,
+        gc_canon_version: 0,
         gc_layout_plan: gc_layout_plan::MirGcLayoutPlan_new(),
         spine_populated: false,
         type_table: type_table::TypeTable_new(),
