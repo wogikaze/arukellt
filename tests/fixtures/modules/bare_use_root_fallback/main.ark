@@ -1,0 +1,6 @@
+use std::host::stdio
+use sub::user
+
+fn main() {
+    stdio::println(user::describe().to_string())
+}

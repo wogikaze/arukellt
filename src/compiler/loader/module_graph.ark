@@ -112,16 +112,43 @@ fn load_local_module_or_parent(
         load_single_module(module_name, base_dir, root_dir, state)
         return
     }
+    if try_load_at_package_root(clone(module_name), clone(base_dir), clone(root_dir), state) {
+        return
+    }
     let parent_name = resolver::paths::use_module_parent_path(clone(module_name))
     if len(clone(parent_name)) > 0 {
-        let parent_base = module_base_dir_for_import(clone(parent_name), fallback_dir, clone(root_dir))
+        let parent_base = module_base_dir_for_import(clone(parent_name), clone(fallback_dir), clone(root_dir))
         let parent = module_file_load_local::read_local_module_source(clone(parent_name), clone(parent_base))
         if module_file_load_local::DriverLoadedSource_is_ok(parent) {
             load_single_module(parent_name, parent_base, root_dir, state)
             return
         }
+        if try_load_at_package_root(clone(parent_name), clone(parent_base), clone(root_dir), state) {
+            return
+        }
     }
     load_single_module(module_name, base_dir, root_dir, state)
+}
+
+// Importer-relative candidates already missed. A file in a nested package
+// dir can still reference a module that lives at the package root, so retry
+// there before reporting a miss. Runs after the sibling candidates so
+// existing resolution order is unchanged.
+fn try_load_at_package_root(module_name: String, tried_dir: String, root_dir: String, state: LoadState) -> bool {
+    if eq(clone(tried_dir), clone(root_dir)) {
+        return false
+    }
+    if module_local_decls::should_skip_local_module_read(clone(module_name), clone(root_dir), state) {
+        // Already loaded from the root location (or a circular edge, which
+        // pushed its own error) — resolved, nothing left to try.
+        return true
+    }
+    let at_root = module_file_load_local::read_local_module_source(clone(module_name), clone(root_dir))
+    if !module_file_load_local::DriverLoadedSource_is_ok(at_root) {
+        return false
+    }
+    load_single_module(module_name, root_dir, root_dir, state)
+    true
 }
 
 fn load_single_module(module_name: String, base_dir: String, root_dir: String, state: LoadState) {
