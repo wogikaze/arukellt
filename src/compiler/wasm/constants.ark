@@ -92,9 +92,11 @@ fn LINEAR_GC_META_RETRY_BYTES() -> i32 { 524288 }
 // root slots (grown downward from heap_start). Records are committed
 // monotonically between collections, so the arena must cover the program's
 // live record count plus the churn since the last sweep. A selfhost compile
-// holds millions of live records at once, so 128 MiB (~8M records) keeps the
-// compiler-scale workload far from the metadata guard.
-fn LINEAR_GC_METADATA_BYTES() -> i32 { 134217728 }
+// fills the record arena to ~127 MiB by MIR lowering (measured via a
+// roots-OOM fill diagnostic, #922): conservative marking keeps a large live
+// graph alive and every scanned i32 landing in the heap range can pin
+// extra subgraphs. 256 MiB (~16.7M records) doubles that measured watermark.
+fn LINEAR_GC_METADATA_BYTES() -> i32 { 268435456 }
 fn LINEAR_GC_ALLOCATION_RECORD_BYTES() -> i32 { 16 }
 // Page-table geometry: one entry per 64 KiB page of the wasm32 address
 // space, each entry pointing at the head of a {record,next} node chain.
@@ -105,9 +107,10 @@ fn LINEAR_GC_CHAIN_NODE_BYTES() -> i32 { 8 }
 // Chain-node arena. A node is only ever appended (stale nodes are filtered
 // by the record's current range), so the arena bounds total committed
 // page-records per collection cycle (rebuild_chains reclaims it); the live
-// footprint scales with live record count plus one node per covered page,
-// so 128 MiB keeps compiler-scale heaps far from the pressure band.
-fn LINEAR_GC_CHAIN_BYTES() -> i32 { 134217728 }
+// footprint scales with live record count plus one node per covered page.
+// Sized to cover the same ~16.7M-record live set as the metadata arena
+// (one node per covered page each, 256 MiB = ~33M nodes) (#922).
+fn LINEAR_GC_CHAIN_BYTES() -> i32 { 268435456 }
 fn LINEAR_GC_ROOT_SLOT_BYTES() -> i32 { 4 }
 // Free bytes remaining in the shared arena below which a function entry runs
 // the collector even under the payload watermark. Sweeping then refills the

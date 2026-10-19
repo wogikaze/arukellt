@@ -6,6 +6,7 @@ use wasm::runtime_abi_stdio_read_buffer
 use wasm::runtime_abi_stdio_read_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
@@ -61,6 +62,10 @@ fn emit_wasi_read_stdin_string(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_const(w, constants::FS_BUF_SIZE())
     helpers_memory::emit_i32_store_default(w)
     // WASI stdin.read keeps true i32 operands under Memory64.
+    // The read destination is the current heap top: ensure the whole
+    // FS_BUF_SIZE window is inside memory before the host write, same as
+    // the fs-read loop (#922).
+    helpers_core_heap::emit_heap_pre_grow_headroom(w, constants::FS_BUF_SIZE())
     helpers_io_const::emit_i32_const(w, 0)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_IOV())
     helpers_io_const::emit_i32_const(w, 1)

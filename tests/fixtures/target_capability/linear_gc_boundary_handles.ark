@@ -1,0 +1,247 @@
+use std::test
+use std::prelude::{byte_at, clone, eq}
+use std::text
+
+// #922: mark_candidate used to treat record ranges as half-open, so a
+// candidate equal to a record's hi never marked it — minimal {len@-4}
+// payloads (empty String: a 4-byte record whose handle is lo+4 == hi)
+// were swept while still referenced. Closing the interval then let a
+// boundary word cand == prev.hi == next.lo match the earlier chain node
+// and return before reaching the real owner. Boundary matches now mark
+// and keep walking; only strict interior hits return early, and both
+// registration paths cover the hi page so boundary candidates find the
+// record at all.
+// and return before reaching the real owner. Boundary matches now mark
+// and keep walking — with cand == hi only claimed by minimal span-4
+// records, the one layout where hi is a valid handle — and only strict
+// interior hits return early. Both registration paths cover the hi
+// page so boundary candidates find the record at all.
+//
+// Phase 1 builds adjacent [string header][external Vec<i32> backing]
+// record pairs so each backing's lo collides with the previous record's
+// hi on the shared page chain — the shadow shape the sweep miss needed.
+// Phase 2 holds empty strings across churn; their slots are only reused
+// by same-size payloads so a silent sweep stays invisible, but the
+// pattern keeps the hi-handle path exercised. Phase 3 replays the
+// module-loader shape (name Vec + slot-index rehash + churn) that first
+// surfaced the miss at selfhost scale.
+
+pub struct LoadState {
+    loaded_names: Vec<String>,
+    loaded_slots: Vec<i32>,
+    loading_stack: Vec<String>,
+    canary: String,
+}
+
+fn load_state_string_hash(name: String) -> i32 {
+    let mut hash = 216613626
+    let mut i = 0
+    while i < len(name) {
+        hash = hash * 16777619 ^ byte_at(name, i)
+        if hash < 0 {
+            hash = 0 - hash
+        }
+        i = i + 1
+    }
+    if hash < 0 {
+        return 0
+    }
+    hash
+}
+
+fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
+    let capacity = len(slots)
+    if capacity <= 0 {
+        return 0 - 1
+    }
+    let mut slot = load_state_string_hash(name) % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let bucket = get_unchecked(slots, slot)
+        if bucket == 0 {
+            return slot
+        }
+        if eq(get_unchecked(keys, bucket - 1), clone(name)) {
+            return slot
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
+    }
+    0 - 1
+}
+
+fn load_state_zero_slots(size: i32) -> Vec<i32> {
+    let slots = Vec::new<i32>()
+    let mut i = 0
+    while i < size {
+        push(slots, 0)
+        i = i + 1
+    }
+    slots
+}
+
+// Element-wise clones keep the module-loader shape (a fresh keys/slots
+// vec per probe) without going through the generic `clone(Vec<T>)`
+// intrinsic: under wasm32-gc the bare `clone` callee lookup still
+// resolves to `String::clone`, which emits a call whose argument type
+// does not match the callee signature and fails wasm validation (#928).
+fn load_state_clone_names(src: Vec<String>) -> Vec<String> {
+    let out: Vec<String> = Vec::new<String>()
+    let mut i = 0
+    while i < len(src) {
+        push(out, clone(get_unchecked(src, i)))
+        i = i + 1
+    }
+    out
+}
+
+fn load_state_clone_slots(src: Vec<i32>) -> Vec<i32> {
+    let out: Vec<i32> = Vec::new<i32>()
+    let mut i = 0
+    while i < len(src) {
+        push(out, get_unchecked(src, i))
+        i = i + 1
+    }
+    out
+}
+
+fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
+    let slots = load_state_zero_slots(capacity)
+    let mut i = 0
+    while i < len(keys) {
+        let slot = load_state_probe(load_state_clone_names(keys), slots, clone(get_unchecked(keys, i)))
+        set(slots, slot, i + 1)
+        i = i + 1
+    }
+    slots
+}
+
+fn LoadState_ensure_loaded_index(state: LoadState) {
+    let mut capacity = len(state.loaded_slots)
+    if capacity > 0 && len(state.loaded_names) * 2 < capacity {
+        return
+    }
+    if capacity == 0 {
+        capacity = 64
+    }
+    while capacity <= len(state.loaded_names) * 2 {
+        capacity = capacity * 2
+    }
+    state.loaded_slots = load_state_rehash(load_state_clone_names(state.loaded_names), capacity)
+}
+
+fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
+    if len(state.loaded_slots) <= 0 {
+        return false
+    }
+    let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), clone(name))
+    if slot < 0 {
+        return false
+    }
+    get_unchecked(state.loaded_slots, slot) > 0
+}
+
+fn LoadState_push_loaded(state: LoadState, name: String) {
+    push(state.loaded_names, name)
+    LoadState_ensure_loaded_index(state)
+    let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), clone(name))
+    if slot < 0 {
+        return
+    }
+    set(state.loaded_slots, slot, len(state.loaded_names))
+}
+
+fn stack_scan(state: LoadState, site: i32) -> i32 {
+    let v = state.loading_stack
+    let n = len(v)
+    let mut i = 0
+    if len(state.canary) != 45 {
+        return site * 10000 + 9999
+    }
+    while i < n {
+        let l = len(get_unchecked(v, i))
+        if l < 0 || l > 4096 {
+            return site * 10000 + i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn churn_big(slots: i32) -> i32 {
+    let junk: Vec<i32> = Vec::with_capacity<i32>(slots)
+    push(junk, slots)
+    len(junk)
+}
+
+fn churn_small(iters: i32) {
+    let mut j = 0
+    while j < iters {
+        let v: Vec<i32> = Vec::new<i32>()
+        push(v, j * 26544357 + 1)
+        j = j + 1
+    }
+}
+
+fn main() {
+    let mut keep: Vec<Vec<i32>> = Vec::new<Vec<i32>>()
+    let mut i = 0
+    while i < 64 {
+        let _pad = text::concat(String_from("pad"), i.to_string())
+        let v: Vec<i32> = Vec::with_capacity<i32>(16)
+        push(v, i * 7 + 3)
+        push(v, i * 13 + 5)
+        push(keep, v)
+        i = i + 1
+    }
+    churn_small(2000000)
+    i = 0
+    while i < len(keep) {
+        let v = get_unchecked(keep, i)
+        test::assert_eq_i32(len(v), 2)
+        test::assert_eq_i32(get_unchecked(v, 0), i * 7 + 3)
+        test::assert_eq_i32(get_unchecked(v, 1), i * 13 + 5)
+        i = i + 1
+    }
+
+    let keep_empty: Vec<String> = Vec::new<String>()
+    i = 0
+    while i < 512 {
+        push(keep_empty, text::concat(String_from(""), String_from("")))
+        i = i + 1
+    }
+    churn_small(1500000)
+    test::assert_eq_i32(len(keep_empty), 512)
+    i = 0
+    while i < len(keep_empty) {
+        test::assert_true(eq(get_unchecked(keep_empty, i), String_from("")))
+        i = i + 1
+    }
+
+    let state = LoadState {
+        loaded_names: Vec::new<String>(),
+        loaded_slots: Vec::new<i32>(),
+        loading_stack: Vec::new<String>(),
+        canary: String_from("CANARY0123456789abcdef_padding_for_heap_alloc")
+    }
+    i = 0
+    while i < 96 {
+        let stem = text::concat(String_from("mod"), i.to_string())
+        let path = text::concat(String_from("mod/dir/"), text::concat(clone(stem), String_from(".ark")))
+        if LoadState_has_loaded(state, clone(path)) == false {
+            LoadState_push_loaded(state, clone(path))
+        }
+        push(state.loading_stack, clone(path))
+        test::assert_eq_i32(stack_scan(state, 1), 0 - 1)
+        pop(state.loading_stack)
+        let _n = churn_big(524288)
+        i = i + 1
+    }
+    i = 0
+    while i < 96 {
+        let stem = text::concat(String_from("mod"), i.to_string())
+        let path = text::concat(String_from("mod/dir/"), text::concat(clone(stem), String_from(".ark")))
+        test::assert_true(LoadState_has_loaded(state, path))
+        i = i + 1
+    }
+}

@@ -72,8 +72,8 @@ fn emit_table_section(out: WasmWriter, mir: MirModule) {
     sections_table::emit_table_section(out, mir)
 }
 
-fn emit_memory_section(out: WasmWriter, target: String) {
-    sections_memory::emit_memory_section(out, target)
+fn emit_memory_section(out: WasmWriter, target: String, data_offset: i32) {
+    sections_memory::emit_memory_section(out, target, data_offset)
 }
 
 fn emit_global_section(out: WasmWriter, data_offset: i32, literal_cache: GcStringLiteralCacheGlobal, target: String) {

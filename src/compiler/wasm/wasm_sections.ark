@@ -189,7 +189,11 @@ fn emit_wasm_module_sections(
         sections_type_plan::TypeSectionPlan_linear_gc_type_map(type_plan)
     )
     wasm_sections_facade::emit_table_section(out, mir)
-    wasm_sections_facade::emit_memory_section(out, clone(target))
+    wasm_sections_facade::emit_memory_section(
+        out,
+        clone(target),
+        strings::EmitStringTablePlan_data_offset(strings)
+    )
     wasm_sections_facade::emit_global_section(
         out,
         strings::EmitStringTablePlan_data_offset(strings),

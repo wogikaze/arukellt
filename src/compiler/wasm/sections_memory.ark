@@ -1,10 +1,10 @@
-use std::prelude::{clone, i32_to_i64}
+use std::prelude::{clone, i32_to_i64, max}
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::emit_target
-fn emit_memory_section(out: WasmWriter, target: String) {
+fn emit_memory_section(out: WasmWriter, target: String, data_offset: i32) {
     let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
         // Keep the memory32 reservation within the bootstrap RSS contract;
@@ -16,7 +16,15 @@ fn emit_memory_section(out: WasmWriter, target: String) {
         }
         emit_memory_entry(mem_sec, pages, writer_core::writer_memory64(out))
     } else {
-        emit_memory_entry(mem_sec, initial_memory_pages(), false)
+        // The declared minimum must cover heap_start: the linear GC's root
+        // slots live just below it and fn-entry pushes write them before any
+        // allocation's ensure-grown check runs. Arena-reserved pages below
+        // heap_start stay untouched (no RSS), so this only costs address
+        // space — never less than the historical 512 MiB baseline so heap
+        // headroom is unchanged for small programs.
+        let heap_start = heap_start_from_data_offset(data_offset, true)
+        let pages = max(initial_memory_pages(), (heap_start + 65535) / 65536)
+        emit_memory_entry(mem_sec, pages, false)
     }
     writer_sections::emit_section(out, opcodes::SEC_MEMORY(), mem_sec)
 }

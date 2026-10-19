@@ -247,13 +247,14 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32, collec
     // Register the record on every page its range touches so mark_candidate
     // can jump straight to the covering chain instead of walking the arena.
     // local4 = first page, local5 = last page, local6 = new chain node.
+    // The last page uses hi, not hi-1: header-prefixed handles can equal hi
+    // (empty {len@-4} payloads), and when hi lands on a page boundary that
+    // handle's page is otherwise unregistered and the record misses a mark.
     emit_local_get(w, 1)
     emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
     emit_i32_shr_u(w)
     emit_local_set(w, 4)
     emit_local_get(w, 0)
-    emit_i32_const(w, 1)
-    emit_i32_sub(w)
     emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
     emit_i32_shr_u(w)
     emit_local_set(w, 5)
@@ -323,11 +324,30 @@ fn emit_linear_gc_runtime_commit_top_body(w: WasmWriter, exit_index: i32, collec
 // {record, next} nodes, one node per commit per covered page. The walk only
 // touches records that actually span that page, so candidates cost
 // O(records-per-page) instead of a full arena scan. Reuse and sweep leave
-// stale nodes behind; the [lo,hi) range check against the record's current
+// stale nodes behind; the [lo,hi] range check against the record's current
 // fields filters them, since disjoint ranges can never collide falsely.
+//
+// The interval is closed because header-prefixed handles can equal hi
+// ({len@-4} records: a 4-byte minimal payload's handle is lo+4 == hi).
+// That makes a boundary word ambiguous — cand == prev.hi == next.lo — so a
+// match on a boundary (cand == lo or cand == hi) marks the record but keeps
+// walking: the adjacent record may be the word's real owner. Only a strict
+// interior hit (lo < cand < hi) may return early, since disjoint payloads
+// give that word exactly one owner.
+//
+// Boundary hits are still ambiguous, so the walk always continues past
+// them, but whether the record claims the word differs by edge. A cand
+// equal to lo is a possible head pointer, so the record is always marked.
+// A cand equal to hi is a valid handle only for minimal {len@-4} records
+// (hi - lo == 4: the whole span is the header and the handle sits one
+// byte past it). For any larger span the same word is really the next
+// record's lo, and marking on the hi edge would retain a dead
+// predecessor every time a head pointer is scanned — on bump-adjacent
+// heaps that phantom retention dominates the live set.
 fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
-    emit_local_decls(w, 3)
-    // local1 = page index, local2 = chain node, local3 = record
+    emit_local_decls(w, 4)
+    // local1 = page index, local2 = chain node, local3 = record,
+    // local4 = found-boundary flag
     // Cheap reject before touching the page table: every payload lives in
     // [heap_start, heap_pointer), so values outside the live heap range can
     // never hit a record range. Most scanned words are ints, not pointers.
@@ -365,6 +385,8 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_i32_load(w, 0)
     emit_local_set(w, 2)
 
+    emit_i32_const(w, 0)
+    emit_local_set(w, 4)
     emit_void_block(w)
     emit_void_loop(w)
     emit_local_get(w, 2)
@@ -385,6 +407,22 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_i32_const(w, 8)
     emit_i32_add(w)
     emit_i32_load(w, 0)
+    emit_i32_le_u(w)
+    emit_i32_and(w)
+    emit_if_empty(w)
+    // Strict interior hit: the word's only possible owner, so return after
+    // handling this record whether or not it was already marked.
+    emit_local_get(w, 0)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_gt_u(w)
+    emit_local_get(w, 0)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
     emit_i32_lt_u(w)
     emit_i32_and(w)
     emit_if_empty(w)
@@ -394,20 +432,53 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_i32_load(w, 0)
     emit_i32_eqz(w)
     emit_if_empty(w)
-    emit_local_get(w, 3)
-    emit_i32_const(w, 12)
-    emit_i32_add(w)
-    emit_global_get(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
-    emit_i32_const(w, 1)
-    emit_i32_add(w)
-    emit_i32_store(w, 0)
-    emit_local_get(w, 3)
-    emit_global_set(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
+    emit_linear_gc_grey_push(w)
     emit_i32_const(w, 1)
     emit_return(w)
     emit_end(w)
     emit_i32_const(w, 0)
     emit_return(w)
+    emit_end(w)
+    // Boundary hit. is_handle_boundary = cand == lo, or cand == hi on a
+    // minimal {len@-4} record (hi - lo == 4). Either way the word may also
+    // belong to the adjacent record, so the walk never returns here.
+    emit_local_get(w, 0)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_eq(w)
+    emit_local_get(w, 0)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_eq(w)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 8)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 4)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_sub(w)
+    emit_i32_const(w, 4)
+    emit_i32_eq(w)
+    emit_i32_and(w)
+    emit_i32_or(w)
+    emit_if_empty(w)
+    emit_local_get(w, 3)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_i32_load(w, 0)
+    emit_i32_eqz(w)
+    emit_if_empty(w)
+    emit_linear_gc_grey_push(w)
+    emit_i32_const(w, 1)
+    emit_local_set(w, 4)
+    emit_end(w)
+    emit_end(w)
     emit_end(w)
 
     emit_local_get(w, 2)
@@ -418,8 +489,23 @@ fn emit_linear_gc_runtime_mark_candidate_body(w: WasmWriter) {
     emit_br(w, 0)
     emit_end(w)
     emit_end(w)
-    emit_i32_const(w, 0)
+    emit_local_get(w, 4)
     emit_end(w)
+}
+
+// Pushes the record in local3 onto the grey worklist. Caller guarantees the
+// mark field is still 0; the stored value is next_grey+1 so 0 stays
+// reserved for unmarked.
+fn emit_linear_gc_grey_push(w: WasmWriter) {
+    emit_local_get(w, 3)
+    emit_i32_const(w, 12)
+    emit_i32_add(w)
+    emit_global_get(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
+    emit_i32_const(w, 1)
+    emit_i32_add(w)
+    emit_i32_store(w, 0)
+    emit_local_get(w, 3)
+    emit_global_set(w, constants::GLOBAL_LINEAR_GC_GREY_HEAD())
 }
 
 // Rebuilds the page-table chains from the current allocation-record list.
@@ -477,8 +563,6 @@ fn emit_linear_gc_rebuild_chains(w: WasmWriter, exit_index: i32) {
     emit_i32_const(w, 8)
     emit_i32_add(w)
     emit_i32_load(w, 0)
-    emit_i32_const(w, 1)
-    emit_i32_sub(w)
     emit_i32_const(w, constants::LINEAR_GC_PAGE_SHIFT())
     emit_i32_shr_u(w)
     emit_local_set(w, 2)
@@ -990,6 +1074,7 @@ fn emit_i32_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_SUB()
 fn emit_i32_mul(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_MUL()) }
 fn emit_i32_and(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_AND()) }
 fn emit_i32_eqz(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQZ()) }
+fn emit_i32_eq(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQ()) }
 fn emit_i32_le_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LE_U()) }
 fn emit_i32_lt_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LT_U()) }
 fn emit_i32_ge_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_U()) }

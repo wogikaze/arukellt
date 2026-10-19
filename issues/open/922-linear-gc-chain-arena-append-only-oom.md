@@ -415,3 +415,114 @@ Next: rebuild gclean-v2 (gc runtime + new codegen vehicle, previously
 invalid at func 6888 edge_push_caller_segment — the bug fixed here),
 then bounded flat-src compile check and pin refresh to unblock #927 and
 the #851 acceptance run.
+
+## Update 2026-10-19 (b) — real mark-phase miss found and fixed: boundary-handle shadowing
+
+A dump-the-heap-graph diagnostic emitted into collect (post-mark,
+pre-sweep verifier over the live list) proved a genuine mark-phase miss
+in mark_candidate: a marked LoadState-shaped record held a word
+equal to a dead record's lo (ref=0x08040100, word==dead.lo).
+
+Mechanics: the page-chain walk returned on the *first* record whose
+range matched the candidate. Two edges combined to make that wrong:
+
+1. (hi-1)>>16 page-span registration (both in commit_top and
+   rebuild_chains) meant a {len@-4}-style handle equal to hi was only
+   reachable while hi sat inside the record's page; a hi on a page
+   boundary dropped the registration for the page the handle actually
+   lives on.
+2. With the range check closed to [lo,hi] (required, because minimal
+   4-byte records produce handle == hi), a boundary word
+   cand == prev.hi == next.lo matched the *earlier* chain node and
+   returned before reaching the record that actually owns it — so the
+   owner stayed unmarked and was swept while live.
+
+Fix: mark_candidate keeps the closed interval, marks on boundary hits
+(cand == lo or cand == hi) but keeps walking the chain, and returns
+early only on strict interior hits (lo < cand < hi), which are unique
+by construction since live payload ranges are disjoint. Both
+registration paths now cover the hi page (hi>>16, not (hi-1)>>16).
+
+Refinement (2026-10-19 (c)): the boundary mark is asymmetric. A cand
+equal to lo always marks (head pointers are the common handle shape).
+A cand equal to hi only marks minimal {len@-4} records (hi - lo == 4,
+the one layout where hi is a valid handle); for larger spans the word
+is really the adjacent record's lo and marking there only retains a
+dead predecessor. On bump-adjacent heaps the unrestricted hi mark
+turned every scanned head pointer into extra phantom retention.
+
+Deterministic verification harness (all since reverted):
+emit_linear_gc_verify_transitive dumped {dead, dead_lo, dead_hi,
+ref, ref_lo, ref_hi, slot_addr, word} plus the full page chain to fd 2
+and proc_exit(99) on the first marked-referrer-to-dead-record edge.
+Pre-fix builds fired it immediately; post-fix the same workloads run
+clean. New fixture linear_gc_boundary_handles constructs the
+adjacent-record collision deterministically (string header immediately
+followed by a Vec::with_capacity external backing whose lo equals
+the header's hi) — fails on the half-fixed (closed-interval +
+early-return) emitter, passes on both the pre-closed-interval and the
+fixed emitters. The full sweep-miss class is also exercised by the
+LoadState name/slot rehash loop at the tail of the same fixture.
+
+The earlier ~50-file i32 scratch-root mirror diff remains reverted and
+archived at .build/p922/scratch-root-mirror-speculative.patch: the
+verifier above showed the observed corruption came from the mark phase
+dropping transitive references, not from unmirrored locals, and the
+post-fix runtime passes the reproducer without it.
+
+## Update 2026-10-19 (c) — scale validation: flat-src compile reaches
+## fixpoint after boundary refinement + capacity + two latent OOB bugs
+
+With the mark-phase fix in place, the flat-src selfhost compile
+(lin_comp, wasm32 + linear GC, compiling src/compiler/main.ark) ran
+past all earlier corruption points and exited ROOTS OOM (121) at the
+MIR-lowering stage. An instrumented OOM encoded the arena fill as the
+exit status: the record arena was ~127 MiB of the 128 MiB capacity, so
+the OOM was genuine saturation — not a leak (the root stack uses ~1 MiB
+and is balanced by frame_enter/leave on every return path).
+
+Three further changes were needed to complete the compile:
+
+1. Boundary-hit refinement: marking on every cand == hi over-retained,
+   because a scanned head pointer (vec handle, backing ptr, struct ref
+   — all exact `lo` values) also matched the adjacent predecessor's hi
+   on bump-adjacent heaps, keeping its dead subgraph alive. The mark
+   now treats the two edges asymmetrically: cand == lo always marks;
+   cand == hi only marks minimal {len@-4} records (hi - lo == 4, the
+   one layout where hi is a valid handle). Either way the walk never
+   returns early on a boundary — strict interior hits remain the only
+   early exit.
+2. Arenas doubled to 256 MiB each (LINEAR_GC_METADATA_BYTES /
+   LINEAR_GC_CHAIN_BYTES): the measured ~127 MiB watermark at MIR
+   lowering gives the ~16.7M-record arena roughly 2x headroom.
+3. Two latent OOB bugs the larger heap_start exposed:
+   - initial memory was a fixed 512 MiB; heap_start (~525 MiB now)
+     crossed it, so the first fn-entry root_push wrote out of bounds.
+     emit_memory_section now declares max(512 MiB, ceil(heap_start))
+     for linear targets — arena-reserved pages stay untouched so the
+     cost is address space only.
+   - emit_fs_read_loop / emit_wasi_read_stdin_string wrote FS_BUF_SIZE
+     bytes into the bump heap top before advancing it; the bump ensure
+     only covers the pointer byte, so a heap top within 4096 of the
+     memory edge faulted in the WASI region check. Both loops now
+     pre-grow headroom before the host write (this also repaired
+     emit_heap_pre_grow_headroom, which had a latent `(result i32)` if
+     that produced nothing — dead code until these call sites).
+
+Result: lin_comp_v28 (wasm32 + linear GC, built by the fixed emitter)
+compiles flat-src main.ark to completion in ~30 min (EXIT=0), and the
+output is byte-identical to the compiler binary that produced it —
+the s2==s3 fixpoint for the linear target (ADR-029), the strongest
+available evidence that marking no longer corrupts live records at
+selfhost scale. Fixture linear_gc_boundary_handles passes under the
+final emitter and still fails on the half-fixed (closed-interval +
+early-return) emitter.
+
+Landing note (2026-10-19): the fixture's original draft called the
+generic `clone(Vec<T>)` intrinsic, which under wasm32-gc resolves the
+bare `clone` callee to `String::clone` and emits a module that fails
+`wasm-tools validate` (reproduces on the pinned bootstrap, so it is
+a pre-existing emitter bug — filed as #928). The landed fixture keeps
+the same heap shape via element-wise clone helpers instead; it passes
+the wasm32-gc parity path, the wasm32 linear run, and still traps on
+the half-fixed emitter.
