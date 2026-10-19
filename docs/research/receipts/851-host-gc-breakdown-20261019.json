@@ -1,0 +1,45 @@
+{
+ "schema": "arukellt-issue-receipt-v1",
+ "recorded_at": "2026-10-19T19:30:00Z",
+ "issue": 851,
+ "note": "host-side perf decomposition of gc+p2 flat-src main.ark compile after #932 fix; defer-reason census for emit_inloop_fn_emittable",
+ "host": ".build/selfhost/blay3.component.wasm",
+ "overlay": ".build/selfhost/flat-src",
+ "workload": "compile src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2 (cacheless flat-src selfhost compile)",
+ "wall_seconds": {
+  "default_copying_gc": 107.68,
+  "gc_heap_reservation_8gib": 92.28,
+  "collector_null": 25.75,
+  "collector_drc": 138.63
+ },
+ "peak_rss_kb": {
+  "default_copying_gc": 1139568,
+  "gc_heap_reservation_8gib": 1488032,
+  "collector_null": 3204276,
+  "collector_drc": 1831540
+ },
+ "host_perf_share_cycles": {
+  "tool": "perf record -F 499 -g on wasmtime 46.0.1",
+  "copying_heap_forward_pct": 31.65,
+  "copying_heap_scan_field_pct": 20.44,
+  "collect_increment_pct": 12.14,
+  "gcheap_index_pct": 10.23,
+  "memmove_pct": 6.82,
+  "array_len_pct": 1.81,
+  "gc_related_total_pct": 83.0,
+  "guest_samples_10ms_total": 2248
+ },
+ "interpretation": "CopyingHeap is Cheney semi-space; capacity self-sizes to ~2x live so gc-heap-reservation (VA limit) barely helps (-14%). GC cost ~= collections x live-bytes; collector=null shows the GC-free ceiling at ~26s wall, meaning ~80s of the 108s baseline is GC. Total allocation ~3.2GB, steady live ~550MB. drc (deferred RC) is strictly worse (138.6s) — write barriers + traces. Next lever must cut live bytes (Phase 3 per-fn body lifetime) and/or alloc bytes (Phase 5 arena); host knobs are exhausted.",
+ "defer_census_emit_inloop_fn_emittable": {
+  "method": "temporary eprintln probe in emit_inloop_fn_emittable on instr.component.wasm built from probe-instrumented source; run with collector=null",
+  "emit_ok": 4562,
+  "defer_fidmap": 4605,
+  "defer_storage": 1766,
+  "defer_resolve": 333,
+  "defer_disc": 18,
+  "defer_pending": 0,
+  "defer_variant": 0,
+  "defer_indirect": 0,
+  "interpretation": "fid->mir_index unknown at push time dominates defers; callee-MIR dereference in infer_call_result_gc_type_* means push-time emit needs spine-equivalent callee typing (plan Phase 3 item a/b), not just an index map. defer-pending=0 after #932 incremental plan drain."
+ }
+}

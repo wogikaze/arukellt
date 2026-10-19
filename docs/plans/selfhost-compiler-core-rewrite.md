@@ -1074,6 +1074,39 @@ issue: #932）:
   削る Phase 5 arena 系が最大レバー）。s2==s3 byte-identical、
   fixture 18/18 byte-parity、validate PASS。
 
+Phase-3 実測（2026-10-19 第2弾 host 分解 + defer 国勢調査 — receipt:
+[851-host-gc-breakdown-20261019](../research/receipts/851-host-gc-breakdown-20261019.json)）:
+
+- **perf record による host 分解が確定**: wasmtime copying GC が host
+  サンプルの ~76-83%（CopyingHeap::forward 31.7% + scan_field 20.4% +
+  collect_increment 12.1% + GcHeap::index 10.2% + memmove 6.8%）。
+  同一 flat-src main.ark compile の wall 比較: default 107.7s /
+  gc-heap-reservation=8GiB 92.3s / **collector=null 25.8s** /
+  collector=drc 138.6s。null が示す GC-free 天井 ~26s は guest
+  プロファイル ~22.5s と一致し、**~80s が純粋に GC コスト**。
+- **collector の構造（wasmtime 46.0.1 ソース確認）**: Cheney 型
+  semi-space で heap capacity は ~2x live に自動フィットするため
+  reservation（VA 上限）は collect 頻度をほぼ変えない。コストは
+  collections x live bytes —— live set と総 allocation（~3.2GB、
+  null 実行の RSS で計測）の両方を削る必要がある。drc は write
+  barrier + 定期 trace で悪化（+29%）。host 側 knob は尽きた。
+- **defer 国勢調査（emit_inloop_fn_emittable 一時 probe、probe 除去済み）**:
+  push 評価 11284 回のうち emit-ok 4562 / **defer-fidmap 4605** /
+  defer-storage 1766 / defer-resolve 333 / defer-disc 18 /
+  defer-pending・variant・indirect は 0。push 時 emit の最大障壁は
+  fid→mir_index の push 依存（callee が後から push されると unmapped）。
+- **fidmap 解除の条件分解**: fid→mir_index は push 順が registry 非
+  sig-only 名系列と一致すれば spine 構築時に ordinal で先読み可能
+  （fn_index_drain の same-name chain 消費規則のシミュレーションで
+  drain 時に検証できる）。ただし emit 側が callee の MirFunction を
+  dereference する経路（infer_call_result_gc_type_from_fn_at 系、
+  call_fallback_resolved、計 26 ファイル ~55 箇所の function_at
+  consult）があるため、pred index だけでは不十分 — callee MIR 無しで
+  drain 時と同じ推論結果を出す spine/prop_cache 供給が前提になる
+  （Oct-12 probeT で fn_index 正規化 ret 名 100% カバー済み、
+  ret_variant_slot は callee-first 順で回避可）。
+
+
 ## Phase 4 — post-pass type propagation を消す
 
 gate: **lower + 全 dataflow + reachability ≤ 3s、whole-module instruction scan = 0**。
