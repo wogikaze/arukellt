@@ -2123,6 +2123,7 @@ run:test_split.ark
 run:trait/basic_impl.ark
 run:trait/builtin_method.ark
 run:trait/builtin_vec_method.ark
+run:trait/display_dispatch.ark
 run:trait/method_chain.ark
 run:trait/operator_overload.ark
 run:trait/trait_impl.ark
@@ -3119,6 +3120,7 @@ t3-run:target_capability/linear_gc_boundary_handles.ark
 t3-run:target_capability/gc_get_unchecked_dest_decl.ark
 t3-run:trait/basic_impl.ark
 t3-run:trait/builtin_method.ark
+t3-run:trait/display_dispatch.ark
 t3-run:trait/method_chain.ark
 t3-run:trait/trait_core_v2.ark
 t3-run:trait/operator_overload.ark
