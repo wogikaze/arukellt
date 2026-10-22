@@ -151,7 +151,7 @@ lazy `TakeIter<FilterIter>` adapter and a generic `T: IntoIterator` consumer
 on both targets. This remains concrete `Vec<i32>` evidence, not a claim for
 arbitrary item representations or adapter combinations.
 
-### RFC-011 item 37 residual audit (refreshed 2026-09-26)
+### RFC-011 item 37 residual audit (refreshed 2026-09-26; status updated 2026-10-23)
 
 RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
 `FromIterator` share one trait surface. Audited against the current tree:
@@ -166,7 +166,7 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   implement `IntoIterator` through the unified item-generic
   `VecIter<T>`; lazy adapters now cover map/filter/take/skip, the
   enumerated compositions, chain, enumerate, zip, flat_map, peek,
-  step_by, scan (i32-instantiated), unique, and rev; `collect` is the
+  step_by, scan (i32 and String lanes), unique, and rev; `collect` is the
   canonical trait path (`Vec<Self::Item>`).
 - `for key in map` iterates every supported HashMap pair through the
   parametric `impl<K,V> IntoIterator for HashMap<K,V>` (keys snapshot
@@ -176,38 +176,43 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   same conversion + canonical `next` sequence as handwritten consumers;
   generic `T: Iterator` / `T: IntoIterator` consumers monomorphize to the
   same path. Non-iterable sources are rejected with E0200.
+- Method-level generics (ADR-079 / #887) infer the item type from the
+  callback: `VecIter<T>::map<U>` returns `MapIter<T, U>` and
+  `FilterIter<T>::map<U>` returns `FilterMapIter<T, U>`. A concrete-receiver
+  call that leaves `U` unresolved is a type error; explicit turbofish method
+  type arguments remain out of scope.
+- HashMap `values()` and `entries()` (ADR-066 / #888) expose eager snapshots
+  for every supported pair as `Vec<V>` / `Vec<(K, V)>`; bucket order is
+  implementation-defined and documented in spec §9.14.
+- Generic `ScanIter<T>` is verified beyond the i32 lane:
+  `tests/fixtures/stdlib_trait/iterator_scan_string.ark` exercises
+  `VecIter<String>::scan` with a `fn(String, String) -> Option<String>`
+  callback and passes on both backends. The #881 Option-record-field
+  type-index fix resolved the earlier bare-`T` fn-typed field concern.
 
 **Residual (open, with owner):**
 
-- Arbitrary item-generic adapters: the `MapIter<T, U>` / `FilterIter<T>` /
-  `MapFilterIter<T, U>` / `FilterMapIter<T>` / `TakeIter<I>` family is
-  item-generic and shared by the i32 and String lanes, but
-  `FilterIter<T>::map` stays `T -> T` (no method-level generics). The skip
-  compositions now share the item-generic `SkipIter<I>` / `SkipMapIter<I>` /
-  `SkipFilterIter<I>` adapters whose callbacks spell `fn(I::Item) -> I::Item`;
-  the former concrete `StringSkip*` types are removed. A map callback that
-  changes the item type (`fn(I::Item) -> U`) still needs method-level
-  generics, a compiler pipeline feature tracked by #887.
-- Generic `ScanIter<T>` is now verified beyond the i32 lane:
-  `tests/fixtures/stdlib_trait/iterator_scan_string.ark` exercises
-  `VecIter<String>::scan` with a `fn(String, String) -> Option<String>`
-  callback and passes on both backends. Earlier bare-`T` fn-typed field
-  concerns were resolved by the #881 Option-record-field type-index fix.
-- HashMap entry (key+value) enumeration and live-order guarantees
-  remain open; key-only `for` is done. Entry enumeration is new API
-  surface tracked by #888.
+- Bounded static dispatch: the `MapIter<T, U>` / `FilterIter<T>` /
+  `MapFilterIter<T, U>` / `FilterMapIter<T, U>` / `TakeIter<I>` family is
+  item-generic and shared by the i32 and String lanes, but every
+  instantiation is still statically monomorphized; `dyn Trait` remains out of
+  scope (ADR-076). The skip compositions share the item-generic
+  `SkipIter<I>` / `SkipMapIter<I>` / `SkipFilterIter<I>` adapters whose
+  callbacks spell `fn(I::Item) -> I::Item`; the former concrete
+  `StringSkip*` types are removed. A map callback that changes the item
+  type now uses the method-level `map<U>` form above.
 - Generic `for` source dispatch: a source whose iteration obligation is
-  not statically resolved stays rejected; the structural `next()`
-  fallback for custom iterators (`iterator/custom_iterator.ark`)
-  remains only as the compatibility path whose removal boundary is #878's
-  compat-layer orphan-entry acceptance.
-- Prelude monomorphic higher-order functions have no lazy replacement yet;
-  they stay `stable` until iterator coverage or an explicit eager decision
-  exists. Owner: #718 / #878.
-- `verify quick` exit 0 is blocked by the #686-owned T3 WASM
-  validation gate, whose last validate-fail is the `any_i32` pair-ABI
-  signature gap owned by #872; its 27 compile-fails are the
-  pre-existing generics-boundary / i64 / Ordering-match backlog.
+  not statically resolved stays rejected. The structural `next()` fallback
+  for custom iterators (`iterator/custom_iterator.ark`) remains the ADR-014
+  compatibility path until its removal window closes.
+- Prelude monomorphic higher-order helpers (`map_i32_i32`,
+  `filter_String`, …) remain user-reachable for the ADR-014 deprecation
+  window even though lazy `Iterator` replacements exist. Their retirement is
+  tracked by #703/#917.
+- `verify quick` exit 0 is still gated by pre-existing failures outside the
+  iterator work (#765 docs hard gates, the #686 T3 fixture validation gate,
+  and code-quality ratchet drift); the #880 close audit records the last
+  observed set.
 
 Dynamic dispatch (`dyn Trait`) is intentionally out of scope per ADR-076.
 It also covers `iter().skip(n).take(m).collect()` through `TakeIter<SkipIter>` and a
@@ -271,15 +276,19 @@ order.
 The reverse `iter().filter(keep_long_string).map(map_identity)` pipeline and
 its `Vec::from_iter` form are covered through `FilterMapIter<String>`;
 filtering clones the source handle, then mapping consumes only accepted
-originals. Method-level generics are not supported yet, so
-`FilterIter<T>::map` keeps the item type at `T -> T`.
+originals. Method-level generics (ADR-079) infer the item type from the
+callback: `VecIter<T>::map<U>` returns `MapIter<T, U>` and
+`FilterIter<T>::map<U>` returns `FilterMapIter<T, U>`. A concrete-receiver
+call that leaves `U` unresolved is a type error; explicit turbofish method
+type arguments remain out of scope.
 The same fixture passes that composed String source to a generic
 `total_string_lengths<T: IntoIterator>` consumer. The emitted
 `total_string_lengths__FilterMapIter_String` specialization crosses the
 adapter's identity `IntoIterator` conversion and canonical `next` loop on both
 published Wasm targets. This is bounded evidence for one non-numeric adapter
-composition; arbitrary item-generic dispatch and manifest-level deprecation
-remain open.
+composition; arbitrary dynamic item dispatch remains out of scope, and
+manifest-level deprecation remains for the nine non-deprecated `std::seq`
+adapters (#703/#917).
 Bounded callback compositions are also available: `map(...).take(n)` uses
 `TakeIter<MapIter<String, String>>`, while `filter(...).take(n)` uses
 `TakeIter<FilterIter<String>>`

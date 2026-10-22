@@ -1038,8 +1038,12 @@ The reverse `filter` followed by `map` composition runs through
 `FilterMapIter<String>`: the predicate receives a clone of the source item,
 and only an accepted original is passed to the mapping callback. Its `collect`
 and `FromIterator` paths use the same target-specific callback
-representations. Method-level generics are not supported yet, so
-`FilterIter<T>::map` keeps the item type at `T -> T`.
+representations. Method-level generics (ADR-079) are inferred from the
+callback argument: `VecIter<T>::map<U>(f: fn(T) -> U)` returns
+`MapIter<T, U>`, and `FilterIter<T>::map<U>(f: fn(T) -> U)` returns
+`FilterMapIter<T, U>`. A concrete-receiver call that leaves `U` unresolved
+is a type error. Explicit turbofish-style method type arguments are not part
+of the syntax.
 The same fixture sends this composed String adapter through a generic
 `total_string_lengths<T: IntoIterator>` consumer. Monomorphization emits
 `total_string_lengths__FilterMapIter_String`, which performs the adapter's

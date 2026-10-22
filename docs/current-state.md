@@ -331,8 +331,9 @@ associated-function lowering selects
 `Vec_String::from_iter__FilterIter_String`, producing valid GC references and
 linear-memory handles on the respective backends. A `T: Iterator` helper
 monomorphizes the same String source to the matching `FromIterator` symbol on
-both backends. Manifest-level deprecation and the final RFC-011 iterator
-residual audit are still open. The
+both backends. Manifest-level deprecation remains for the nine
+non-deprecated `std::seq` adapters (#703/#917); the RFC-011 item 37 audit is
+closed with its residuals tracked by #887/#888/#878. The
 `map(fn(String) -> String).filter(fn(String) -> bool).collect()` composition
 and its `Vec::from_iter` form are also covered through
 `MapFilterIter<String, String>`; the predicate receives a clone of the
@@ -340,9 +341,12 @@ mapped String, while the accepted mapped handle is yielded unchanged.
 The reverse `filter(...).map(...)` composition and its `Vec::from_iter`
 form are covered through `FilterMapIter<String>`, with the predicate
 consuming only a clone of the source handle before the accepted value reaches
-the mapping callback. Method-level generics are not supported yet, so
-`FilterIter<T>::map` keeps the item type at `T -> T`; the fully generic
-`T -> U` order is available through `MapIter<T, U>::filter`.
+the mapping callback. Method-level generics (ADR-079) infer the item type
+from the callback: `VecIter<T>::map<U>` returns `MapIter<T, U>` and
+`FilterIter<T>::map<U>` returns `FilterMapIter<T, U>`, so the earlier
+`T -> T` limitation is gone. A concrete-receiver call that leaves `U`
+unresolved is a type error; explicit turbofish method type arguments remain
+out of scope.
 The same fixture now passes this composed String source through a generic
 `total_string_lengths<T: IntoIterator>` consumer. Monomorphization emits
 `total_string_lengths__FilterMapIter_String`, and the `for` lowering crosses
@@ -375,8 +379,9 @@ generated calls. Embedded expressions remain single-evaluation and left-to-right
 The `string_interp/fstring_hygiene.ark` fixture covers f-string shadowing,
 evaluation order, direct iteration, and comprehension shadowing on both published
 Wasm targets; its diagnostic companion fixes ordinary unresolved-name handling
-inside an embedded expression. This is a focused #865 boundary; broader iterator
-genericity and final cross-backend audit remain tracked by #860/#875.
+inside an embedded expression. This remains a focused #865 boundary; broader
+iterator genericity landed with method-level generics (ADR-079 / #887), and
+the final cross-backend audit was closed by #880.
 
 ## Data Model (all Wasm targets)
 
