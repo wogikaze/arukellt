@@ -24,6 +24,14 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
     let mut rewritten = callee_name
     let mut return_local = 0 - 1
     if first_arg_idx >= 0 {
+        // Prefer the registered Display impl so `to_string(x)` and
+        // `x.to_string()` share one dispatch path (#702). The builtin
+        // fallbacks below remain for unresolved type variables and for
+        // builds whose fn index does not yet carry the impl method.
+        let impl_method = call_rewrite_method::mir_try_resolve_impl_method(ctx, "to_string", first_arg_idx)
+        if !eq(clone(impl_method), String_from("to_string")) {
+            return mir_string_call_rewrite_new(impl_method, 0 - 1)
+        }
         let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if eq(clone(arg_type), "char") {
             rewritten = "char_to_string"
