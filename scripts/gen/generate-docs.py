@@ -990,6 +990,8 @@ def extract_doc_entry(path: Path, base_dir: Path) -> DocEntry:
         "日付：",
         "決定日:",
         "決定日：",
+        "提案日:",
+        "提案日：",
         "作成日:",
         "作成日：",
         "改訂日:",

@@ -15,12 +15,12 @@
 | [000-writing-rfcs.md](000-writing-rfcs.md) | RFC の書き方 | NOTE | docs/rfcs/ は、ADR に載せるには大きすぎる設計提案・仕様草案・移行設計を置く場所である。 |
 | [001-playground-share-url-format.md](001-playground-share-url-format.md) | RFC-001: Playground Share URL Format（wire format） | DRAFT | 本 RFC は fragment ベース share URL の byte layout・符号化・版・上限・エラー処理 の正本である。 採択判断（なぜ fragment か等）は ADR-021。 |
 | [002-semantic-type-spine.md](002-semantic-type-spine.md) | RFC-002: Semantic Type Spine（詳細設計） | DRAFT | 関連 plan: typed-mir-signature-registry.md |
-| [003-portable-simd-semantics.md](003-portable-simd-semantics.md) | RFC-003: Portable SIMD operation semantics（NativeSimd ↔ Scalar） | DRAFT | 提案日: 2026-07-11 |
-| [004-trait-expressiveness.md](004-trait-expressiveness.md) | RFC-004: Trait expressiveness（Self・型引数・associated function・coherence） | DRAFT | 提案日: 2026-07-11 |
+| [003-portable-simd-semantics.md](003-portable-simd-semantics.md) | RFC-003: Portable SIMD operation semantics（NativeSimd ↔ Scalar） | DRAFT | ADR-037 の portable_simd_lowering: NativeSimd \| Scalar について、 どの操作が portable 契約に入り、何をもって同値とするかを固定する。 |
+| [004-trait-expressiveness.md](004-trait-expressiveness.md) | RFC-004: Trait expressiveness（Self・型引数・associated function・coherence） | DRAFT | ADR-036/038/039 が前提とする trait 面を、現行型システムで書ける最小表現に固定する。 この RFC の初期案は associated type を先送りしていたが、Language v2 の trait core では ADR-062 が Self::Item projection を含めて置き換える。 |
 | [005-prelude-compilation-restoration.md](005-prelude-compilation-restoration.md) | RFC-005: Prelude compilation restoration | ACCEPTED | 関連 issue: #816 関連 plan: intrinsic-layer-separation.md |
 | [006-sealed-raw-api.md](006-sealed-raw-api.md) | RFC-006: Sealed raw API for Vec/String representation | ACCEPTED | 関連 issue: #817 関連 plan: intrinsic-layer-separation.md |
 | [007-memory64-gc-layout-and-wasi-boundary.md](007-memory64-gc-layout-and-wasi-boundary.md) | RFC-007: Memory64 GC レイアウトと WASI P2 境界 | DRAFT | ADR-040（ACCEPTED） |
 | [008-native-cpp-c99-backend-runtime-abi.md](008-native-cpp-c99-backend-runtime-abi.md) | RFC-008: native-cpp C99 backend と runtime ABI | ACCEPTED | 関連 plan: native-cpp MVP implementation plan |
 | [009-verifiable-compiler-architecture.md](009-verifiable-compiler-architecture.md) | RFC-009: Verifiable Compiler Architecture | DRAFT | 関連 RFC: RFC-010: Proof-Driven Development |
 | [010-proof-driven-development.md](010-proof-driven-development.md) | RFC-010: Proof-Driven Development | DRAFT | 関連 RFC: RFC-009 |
-| [011-language-v2-semantics-redesign.md](011-language-v2-semantics-redesign.md) | RFC-011: 言語 v2 の意味論再設計案 | DRAFT | 提案日: 2026-09-18 |
+| [011-language-v2-semantics-redesign.md](011-language-v2-semantics-redesign.md) | RFC-011: 言語 v2 の意味論再設計案 | DRAFT | 本RFCは、受領した new-adr.md の45項目を、言語意味論、API、仕様、ターゲットの設計論点として整理したものである。 |

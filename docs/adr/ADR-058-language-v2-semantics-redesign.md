@@ -1,8 +1,10 @@
 # ADR-058: 言語 v2 の意味論と仕様境界を再設計する
 
-ステータス: **PROPOSED** — 所有権を含む言語意味論とターゲット実装を分離し、45項目の再設計を個別に判断する
+ステータス: **ACCEPTED** — 言語意味論とターゲット表現を分離し、45項目を後続ADRへ委譲する枠組みを採択する
 
 提案日: 2026-09-18
+
+決定日: 2026-10-23
 
 関連: [RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[ADR-002](ADR-002-memory-model.md)、[ADR-003](ADR-003-generics-strategy.md)、[ADR-007](ADR-007-targets.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-014](ADR-014-stability-labels.md)、[ADR-018](ADR-018-language-docs-classification.md)、[ADR-031](ADR-031-import-syntax-wit-unification.md)、[ADR-035](ADR-035-wasm-gc-implementation.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)
 
@@ -68,13 +70,21 @@ Wasm GC 対応ターゲットでは、managed aggregate や共有グラフを `s
 
 ### 5. この提案の効力範囲を限定する
 
-このADRが `PROPOSED` である間、現在の `ACCEPTED` ADRは変更しない。
+このADRを採択する前は、現在の `ACCEPTED` ADRを変更しない。
 
 `wasm32-gc` は引き続きprimary、`wasm32` はsupported、WASI P2はprimaryの既定host profileであり、GC表現は [ADR-035](ADR-035-wasm-gc-implementation.md) の契約に従う。本提案は Wasm GC の利用を弱めるものではなく、対応環境では優先 backend として積極的に使い、非対応環境向けの fallback を同一意味論の別 lowering として追加する候補である。
 
-本提案を採択するときは、RFC-011の各項目を検証し、GC依存の変更、ターゲット契約の変更、公開構文の変更、互換性方針の変更について、それぞれ後続の `ACCEPTED` ADRを作成する。
+採択に当たっては、RFC-011の各項目を検証し、GC依存の変更、ターゲット契約の変更、公開構文の変更、互換性方針の変更について、それぞれ後続の `ACCEPTED` ADRを作成した（ADR-059〜ADR-083）。
 
-後続ADRが採択されるまでは、既存の `ACCEPTED` ADRをこの提案の後継とはみなさない。
+採択前は、後続ADRが採択されるまで既存の `ACCEPTED` ADRをこの提案の後継とはみなさない。
+
+## 採択の範囲
+
+このADRは、言語意味論・ターゲット表現・公開API・仕様検証を別々の責務として扱う枠組みを採択する。
+
+45項目の個別決定は ADR-059〜ADR-083 が正本である。候補設計を精緻化した後続ADRは、本ADRの該当記述より優先する。実装状況、残差、fixture 件数はこのADRに置かず、`docs/current-state.md` と issues で管理する。
+
+したがって、本ADRの採択は45項目すべてが無条件に実装済みであることを意味しない。未実装・暫定の範囲は current-state の該当節と追跡 issue を正とする。
 
 ## 代替案と却下理由
 
@@ -110,7 +120,7 @@ fallback backendを採択する場合も、Wasm GC backendと別の言語意味�
 
 ## 再検討条件
 
-次のいずれかに該当した場合、この提案を分割、縮小、または却下する。
+次のいずれかに該当した場合、この決定を分割、縮小、または撤回する。
 
 - 所有権と借用の規則を、診断と実行可能な回帰試験を含めて定義できない。
 - GCと非GCの両方で同一の観測可能意味論を維持できない。
@@ -132,3 +142,4 @@ fallback backendを採択する場合も、Wasm GC backendと別の言語意味�
 - [ADR-044: trait とメソッド構文を言語機能として採択する](ADR-044-trait-method-syntax-adopted.md)
 - [ADR-046: 公開 free function の根絶](ADR-046-free-function-eradication.md)
 - [ADR-057: セルフホスト fixture 検証を current-only 並列ゲートへ移行](ADR-057-selfhost-current-only-fixture-gate.md)
+- v2 の個別決定: ADR-059〜ADR-083（対応表は RFC-011）

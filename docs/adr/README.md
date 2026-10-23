@@ -37,16 +37,16 @@
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: import 構文と WIT パッケージ識別子の統合 | トラック: language-design Issue: #123 |
 | [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | トラック: wasm-feature Issue: #069 廃止: なし（issue #019, #025 の GC-native クロージャ記述を精緻化） |
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | Issue #443 は複数の Wasm Component を 1 つの実行単位に合成する linking モデルを求める。 前提として #442（WIT interop）と #476（wac plug / wasm-tools compose smoke）がある。 |
-| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | 提案日: 2026-06-17 |
-| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 提案日: 2026-06-26 |
+| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | ADR-002 / ADR-006 / ADR-007 / ADR-013 / ADR-040 は次を既に決定している。 |
+| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 前提（採択前から実装済み・stable）: |
 | [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine | wasm32-gc の残存 validate-fail は局所修正の限界に出ている。根本原因は個別の型推論バグではなく、 コンパイルパイプライン各段で意味情報（型・シグネチャ・ABI）が失われ、emitter が 名前やスタックから型を掘り返していることである。 |
 | [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | Arukellt にはこれまで言語レベルのテスト構文がなく、arukellt test コマンドは check_only=true の型チェックラッパに過ぎなかった（src/compiler/main/project_run.ark cmd_test 参照）。テスト関数の検出は test_ / _test 命名規約のみ（Issue #458）で、 |
-| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | 提案日: 2026-07-10 |
+| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | intrinsic 周辺の構造には以下の問題がある: |
 | [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | 旧番号メモ: 調査草稿は誤って ADR-008 として公開されたのち ADR-043 へ移した。 調査本文の正本は docs/research/wasm-gc-post-mvp.md。 |
 | [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | 廃止: ADR-004-method-syntax-evaluation.md |
 | [ADR-046-free-function-eradication.md](ADR-046-free-function-eradication.md) | ADR-046: 公開 free function の根絶 | stdlib と prelude は長年 func(recv, …) 形の free function とモノモルフィック helper（_i32 等）を正面 API としてきた。ADR-044 / issue #709 は trait-first / メソッド構文を正規としたが、ADR-036 D5 は |
-| [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 提案日: 2026-07-13 採択日: 2026-07-13 |
-| [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 採択日: 2026-07-13 |
+| [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 採択日: 2026-07-13 |
+| [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 採択日: 2026-07-13 |
 | [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md) | ADR-049: Native C99 Selfhost Executor（セルフホスト native executor） | 廃止: ADR-045 |
 | [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
 | [ADR-051-formal-verification-hard-gates.md](ADR-051-formal-verification-hard-gates.md) | ADR-051: Formal verification hard gates | Arukellt uses a hybrid verification architecture. Proof-facing syntax may live in the language, but semantics, verification-condition generation, solver execution, translation validation, and receipt checking remain independently executable boundaries. |
@@ -55,6 +55,7 @@
 | [ADR-055-playground-compile-boundary.md](ADR-055-playground-compile-boundary.md) | ADR-055: Playground の compile 境界 | Playground には、core Wasm の import 名 arukellt_io を直接実装する TypeScript runner が残っていた。 |
 | [ADR-056-corehir-body-ownership-transfer.md](ADR-056-corehir-body-ownership-transfer.md) | ADR-056: CoreHIR 本体 forest の所有権移譲境界 | CoreHirBodyTable は、builder が構築し validator が検査した CoreHIR 本体を freeze 境界まで運ぶ artifact である。 |
 | [ADR-057-selfhost-current-only-fixture-gate.md](ADR-057-selfhost-current-only-fixture-gate.md) | ADR-057: セルフホスト fixture 検証を current-only 並列ゲートへ移行 | ADR-029 は、ピン留め selfhost wasm と現行 selfhost wasm の両方で各 run: fixture を コンパイル・package・実行し、出力を比較する fixture-parity ゲートを定義した。 |
+| [ADR-058-language-v2-semantics-redesign.md](ADR-058-language-v2-semantics-redesign.md) | ADR-058: 言語 v2 の意味論と仕様境界を再設計する | 受領した設計案は、所有権と借用、値の意味論、メモリ管理、Trait、エラー変換、数値変換、文字列、モジュール、文法、ターゲット、仕様検証を一つの再設計案として扱っている。 |
 | [ADR-059-language-v2-ownership-copy-mutability.md](ADR-059-language-v2-ownership-copy-mutability.md) | ADR-059: 言語 v2 の所有権・Copy・可変性 | Arukellt v2 は、所有権と値の意味論を Wasm GC の内部表現に依存させない。 現行の型検査器は binding に型だけを保持し、let mut の再代入検査、move-after-use、 ユーザー定義型の Copy opt-in を一貫して表現できない。 |
 | [ADR-060-language-v2-owned-adts-box-slice.md](ADR-060-language-v2-owned-adts-box-slice.md) | ADR-060: 言語 v2 の owned ADT・Box・Slice | ADR-059 は binding の move、明示的な Copy、let mut を採択した。 しかし、Option / Result / enum の payload、heap 上の値を表す Box<T>、 Vec の一部を読む view である slice について、所有権の境界と backend の表現がまだ同じ契約に接続されていなかった。 |
 | [ADR-061-language-v2-closure-capture-lifetime.md](ADR-061-language-v2-closure-capture-lifetime.md) | ADR-061: 言語 v2 のクロージャ捕捉・借用・escape | ADR-059 と ADR-060 は binding の move / Copy、owned value、Box<T>、Slice<T> の値境界を固定した。 |
@@ -85,10 +86,9 @@
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | 提案日: 2026-06-26 |
-| [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
-| [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | 提案日: 2026-07-30 |
-| [ADR-058-language-v2-semantics-redesign.md](ADR-058-language-v2-semantics-redesign.md) | ADR-058: 言語 v2 の意味論と仕様境界を再設計する | 提案日: 2026-09-18 |
+| [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | Issue #688-#697 は Arukellt の stdlib を「モノモルフィックな free function 集」から 「trait ベースのジェネリック API」へ移行する 10 個の連鎖的 issue 群である。 |
+| [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | SIMD は すでに experimental として実装・文書化されている（#698 done）。 |
+| [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | Arukelltに契約構文と外部solverを追加するだけでは、形式検証は一部利用者向けの付加機能に留まる。AI agentや人間が高速に変更する開発では、コード生成後に任意でproofを走らせるモデルではなく、仕様・実装・証明失敗・修正を一つのループとして扱う必要がある。 |
 
 ## 却下
 
