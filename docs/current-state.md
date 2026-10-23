@@ -303,7 +303,7 @@ This milestone does not claim complete lifetime / mutation-exclusion checking
 for views, or a completed tracing-GC runtime on the linear target. Those remain
 separate follow-up work.
 
-The iterator v2 boundary is partially implemented under ADR-076 and #860.
+The iterator v2 boundary is implemented under ADR-076 (#860).
 `Iterator` is an item-preserving producer with an associated `Item`,
 `next`, `collect`, and `count`; numeric `sum` and `fold` are expressed by
 separate capability traits for the current `i32` lane. `Vec<String>` now
@@ -331,8 +331,8 @@ associated-function lowering selects
 `Vec_String::from_iter__FilterIter_String`, producing valid GC references and
 linear-memory handles on the respective backends. A `T: Iterator` helper
 monomorphizes the same String source to the matching `FromIterator` symbol on
-both backends. Manifest-level deprecation remains for the nine
-non-deprecated `std::seq` adapters (#703/#917); the RFC-011 item 37 audit is
+both backends. Manifest-level deprecation remains for the non-deprecated
+`std::seq` adapters (#703/#917); the RFC-011 item 37 audit is
 closed with its residuals tracked by #887/#888/#878. The
 `map(fn(String) -> String).filter(fn(String) -> bool).collect()` composition
 and its `Vec::from_iter` form are also covered through
@@ -352,8 +352,9 @@ The same fixture now passes this composed String source through a generic
 `total_string_lengths__FilterMapIter_String`, and the `for` lowering crosses
 the adapter's identity `IntoIterator` conversion before `next` on both
 `wasm32-gc` and linear-memory `wasm32`. This remains bounded static
-monomorphization evidence; arbitrary item-generic dispatch and manifest-level
-deprecation are not complete.
+monomorphization evidence; arbitrary dynamic item dispatch is out of scope
+(ADR-076), and manifest-level deprecation remains for the non-deprecated
+`std::seq` adapters.
 The callback lane also provides bounded `map(...).take(n)` and
 `filter(...).take(n)` adapters through
 `TakeIter<MapIter<String, String>>` and `TakeIter<FilterIter<String>>`.
@@ -421,9 +422,9 @@ instructions on `wasm32-gc`. Unit, tuple, record, nested, `Option`, and
 `Result` variants are covered by a binary-inspection and runtime-parity guard.
 The same source fixtures lower through the linear-memory `wasm32` backend and
 produce matching observable output without Wasm GC instructions. This proves
-the aggregate meaning/representation boundary, not completion of the remaining
-GC collection, closure, managed-value, or final parity work tracked by #872,
-#874, and #875.
+the aggregate meaning/representation boundary. GC collection, closure,
+managed-value, and final parity work remain under the GC backend program
+tracked by #686 below.
 
 **Future:** Completing the Wasm GC backend remains tracked by issue #686 and
 ADR-035 / `docs/plans/wasm-gc-implementation.md`, including remaining GC

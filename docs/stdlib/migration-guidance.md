@@ -287,7 +287,7 @@ The same fixture passes that composed String source to a generic
 adapter's identity `IntoIterator` conversion and canonical `next` loop on both
 published Wasm targets. This is bounded evidence for one non-numeric adapter
 composition; arbitrary dynamic item dispatch remains out of scope, and
-manifest-level deprecation remains for the nine non-deprecated `std::seq`
+manifest-level deprecation remains for the non-deprecated `std::seq`
 adapters (#703/#917).
 Bounded callback compositions are also available: `map(...).take(n)` uses
 `TakeIter<MapIter<String, String>>`, while `filter(...).take(n)` uses

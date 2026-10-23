@@ -1504,7 +1504,7 @@ The v2 stable Prelude is the fixed set in the `[prelude_policy]` table of
 The current resolver still auto-imports the broader set of entries marked
 `prelude = true` for compatibility. That legacy behavior is explicitly
 recorded by `legacy_auto_import = true` and is not a v2 stability promise;
-the reduction is tracked by #878.
+the remaining reduction is tracked by #703/#917.
 
 ---
 
