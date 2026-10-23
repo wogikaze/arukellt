@@ -27,6 +27,7 @@ use mir::value_types
 use wasm::writer_core
 use wasm::sections_types_gc_phase7
 use wasm::intrinsic_vec_type
+use wasm::intrinsic_vec_access_gc
 use wasm::inst_ctx
 fn current_local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     let f = ctx_record::SelfEmitCtx_function_at(
@@ -70,12 +71,22 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
         push(local_ref_types, param_ref)
         pi = pi + 1
     }
+    // get_unchecked(...).field dests: the field use carries the concrete
+    // struct type, which the call-result spine can still spell as String.
+    // Declare those temps with the field's struct layout (#695).
+    let get_unchecked_types = intrinsic_vec_access_gc::build_get_unchecked_field_types(ctx, f)
     let mut li = param_count
     while li < local_count {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         writer_core::emit_leb128_u(body, 1)
         let val_type_pos = writer_core::writer_size(body)
-        emit_local_val_type(body, f, li, local_access::MirLocal_val_type(loc), ctx)
+        let field_type = intrinsic_vec_access_gc::get_unchecked_field_type_at(get_unchecked_types, li)
+        if field_type >= 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, field_type)
+        } else {
+            emit_local_val_type(body, f, li, local_access::MirLocal_val_type(loc), ctx)
+        }
         push(local_ref_types, writer_core::writer_ref_null_type_at(body, val_type_pos))
         li = li + 1
     }

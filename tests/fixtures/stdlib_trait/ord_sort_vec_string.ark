@@ -1,26 +1,27 @@
 // Generic Ord-based sort on non-i32 collections (#695):
 // Vec<String> lexicographic order via seq::sort_by, and descending
-// order via the cmp::Reverse<T> wrapper's Ord impl.
+// order via the cmp::Reverse<T> wrapper's Ord impl. Uses the v2 method
+// surface for Vec mutation and element access.
 use std::core::cmp
 use std::seq
 use std::test
 
 fn main() {
     let v: Vec<String> = Vec::new<String>()
-    push(v, String_from("banana"))
-    push(v, String_from("apple"))
-    push(v, String_from("cherry"))
+    v.push(String_from("banana"))
+    v.push(String_from("apple"))
+    v.push(String_from("cherry"))
     let s = seq::sort_by(v)
-    test::assert_true(get_unchecked(s, 0).eq(String_from("apple")))
-    test::assert_true(get_unchecked(s, 1).eq(String_from("banana")))
-    test::assert_true(get_unchecked(s, 2).eq(String_from("cherry")))
+    test::assert_true(s.get_unchecked(0).eq(String_from("apple")))
+    test::assert_true(s.get_unchecked(1).eq(String_from("banana")))
+    test::assert_true(s.get_unchecked(2).eq(String_from("cherry")))
 
     let r: Vec<cmp::Reverse<i32>> = Vec::new<cmp::Reverse<i32>>()
-    push(r, cmp::Reverse { inner: 1 })
-    push(r, cmp::Reverse { inner: 3 })
-    push(r, cmp::Reverse { inner: 2 })
+    r.push(cmp::Reverse { inner: 1 })
+    r.push(cmp::Reverse { inner: 3 })
+    r.push(cmp::Reverse { inner: 2 })
     let sr = seq::sort_by(r)
-    test::assert_eq_i32(get_unchecked(sr, 0).inner, 3)
-    test::assert_eq_i32(get_unchecked(sr, 1).inner, 2)
-    test::assert_eq_i32(get_unchecked(sr, 2).inner, 1)
+    test::assert_eq_i32(sr.get_unchecked(0).inner, 3)
+    test::assert_eq_i32(sr.get_unchecked(1).inner, 2)
+    test::assert_eq_i32(sr.get_unchecked(2).inner, 1)
 }
