@@ -592,3 +592,44 @@ impl Into<i64> for i32 {
         __intrinsic_i32_to_i64(self)
     }
 }
+
+/// Fallible conversion (experimental, ADR-084).
+///
+/// The canonical call surface is the associated function
+/// (`i32::try_from("42")`). The error type is `String` until associated
+/// error types are designed; `?` does not fall back to `TryFrom`.
+trait TryFrom<T> {
+    fn try_from(value: T) -> Result<TryFrom, String>
+}
+
+/// `TryFrom<String>` impl for `i32`.
+impl TryFrom<String> for i32 {
+    fn try_from(value: String) -> Result<i32, String> {
+        __core_parse_i32_impl(value)
+    }
+}
+
+/// `TryFrom<String>` impl for `i64`.
+impl TryFrom<String> for i64 {
+    fn try_from(value: String) -> Result<i64, String> {
+        __core_parse_i64_impl(value)
+    }
+}
+
+/// `TryFrom<String>` impl for `f64`.
+impl TryFrom<String> for f64 {
+    fn try_from(value: String) -> Result<f64, String> {
+        __core_parse_f64_impl(value)
+    }
+}
+
+/// `TryFrom<i64>` impl for `i32` — range-checked narrowing.
+impl TryFrom<i64> for i32 {
+    fn try_from(value: i64) -> Result<i32, String> {
+        if value > 2147483647i64 || value < -2147483648i64 {
+            Err(String_from("i64 value out of i32 range"))
+        } else {
+            Ok(__intrinsic_i64_to_i32(value))
+        }
+    }
+}

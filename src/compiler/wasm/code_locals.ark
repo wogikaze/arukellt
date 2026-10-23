@@ -128,7 +128,9 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     )
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     let scalar_vt = code_ref_locals::local_scalar_producer_vt(f, local_idx, ctx)
-    if scalar_vt >= 0 && !code_ref_locals::local_has_strong_ref_producer(f, local_idx, ctx) {
+    if scalar_vt >= 0 &&
+    !code_ref_locals::local_has_strong_ref_producer(f, local_idx, ctx) &&
+    !code_locals_struct::local_has_result_option_enum_type_name(clone(type_name)) {
         writer_core::emit_byte(body, code_locals_val_type::val_type_to_wasm_width(
                 scalar_vt,
                 writer_core::writer_memory64(body)
@@ -368,6 +370,16 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             writer_core::emit_leb128_s(body, variant_gc)
             return true
         }
+    }
+    // A GC ref whose named layout did not resolve still needs a ref local;
+    // the typed cast at the use site recovers the concrete type (#708).
+    // The legacy vt can lag behind the annotated Result/Option name, so the
+    // type name is also a signal for the base-ref fallback.
+    if vt == value_types::VT_GC_REF() ||
+    code_locals_struct::local_has_result_option_enum_type_name(clone(type_name)) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_byte(body, constants::WASM_STRUCTREF())
+        return true
     }
     false
 }

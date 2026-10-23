@@ -1,0 +1,21 @@
+// TryFrom associated functions for String -> i32/i64/f64 (ADR-084).
+use std::core::convert
+use std::test
+
+fn main() {
+    let n: Result<i32, String> = i32::try_from(String_from("42"))
+    match n {
+        Result::Ok(value) => test::assert_eq_i32(value, 42),
+        Result::Err(_) => test::assert_true(false),
+    }
+    let wide: Result<i64, String> = i64::try_from(String_from("9001"))
+    match wide {
+        Result::Ok(value) => test::assert_eq_i64(value, 9001i64),
+        Result::Err(_) => test::assert_true(false),
+    }
+    let real: Result<f64, String> = f64::try_from(String_from("1.5"))
+    match real {
+        Result::Ok(value) => test::assert_true(value > 1.0),
+        Result::Err(_) => test::assert_true(false),
+    }
+}
