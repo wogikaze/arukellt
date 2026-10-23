@@ -120,7 +120,11 @@ The current selfhost typechecker validates `?` before CoreHIR/MIR lowering.
 error propagation or one canonical `From<E> for E_target` implementation;
 `Option<T>` requires an enclosing `Option<_>`. Missing or ambiguous conversion,
 container mismatch, and invalid operands produce E0210. `TryFrom`/`TryInto` are
-not implicit `?` candidates.
+not implicit `?` candidates. Fallible conversion is explicit: ADR-084 fixes the
+experimental `TryFrom<T>` associated function (`i32::try_from("42")`) as the
+v2 surface and defers the `TryInto` method form until target-type-directed
+trait method resolution is adopted. The trait and impls are tracked by #708 and
+are not implemented yet.
 
 Parser and IR recovery states remain compiler-internal. A source-level
 `struct Error` or `enum Error` is a normal nominal type, covered by the

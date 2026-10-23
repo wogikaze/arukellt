@@ -613,6 +613,13 @@ Evidence: `tests/fixtures/question_mark/basic_propagate.ark`,
 `diagnostics/question_from_missing.ark`, and
 `question_mark/user_error_type.ark`.
 
+Fallible conversion is explicit and separate from `?`. ADR-084 fixes the
+experimental v2 surface as the `TryFrom<T>` associated function (called as
+`i32::try_from("42")`, with `String` as the initial error type); it is not
+implemented yet (#708). The `TryInto::try_into` method form is not part of the
+initial v2 surface; selecting its impl requires target-type-directed trait
+method resolution, which is not adopted yet.
+
 ### 3.10 If Expression
 
 <!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->

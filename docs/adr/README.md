@@ -81,6 +81,7 @@
 | [ADR-081-language-v2-borrow-capture-escape-cells.md](ADR-081-language-v2-borrow-capture-escape-cells.md) | ADR-081: 言語 v2 の mutable-borrow capture escape — promoted shared cell | ADR-061 §2 は borrow capture を含む closure の escape を一律 E0213 で拒否した。 一方 §3 は「environment が source mutation を保持できるなら mutable borrow も escape できる」ことを設計意図として残し、再検討条件に「両 backend で同一の観測可能意味論を fixture と receipt で示すこと」を要求していた。 |
 | [ADR-082-language-v2-match-exhaustiveness.md](ADR-082-language-v2-match-exhaustiveness.md) | ADR-082: 言語 v2 の match 網羅性 — 全 arm 非マッチは compile 時診断 | match の全 arm が非マッチのときの挙動はこれまで未規定であり、 backend で発散していた。 |
 | [ADR-083-language-v2-nested-closure-capture-through.md](ADR-083-language-v2-nested-closure-capture-through.md) | ADR-083: 言語 v2 の nested closure capture-through — 輸送は透過、所有権は各フレーム | nested closure が capture する変数は、直近の enclosing closure が 同じ変数を capture している場合にだけ backend が解決できた。 |
+| [ADR-084-language-v2-fallible-conversion-dispatch.md](ADR-084-language-v2-fallible-conversion-dispatch.md) | ADR-084: Language v2 の fallible conversion trait と dispatch 形式 | #708 は fallible conversion の TryFrom<T> / TryInto<U> の trait 定義、標準 impl、 ABI を決める issue である。ADR-063 は ? と From の境界、および TryFrom/TryInto を From/Into の subtrait にしないことを固定したが、両 trait の呼び出し形式と |
 
 ## 提案
 
