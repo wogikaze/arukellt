@@ -1918,6 +1918,7 @@ run:stdlib_trait/ord_sort_duplicates.ark
 run:stdlib_trait/ord_sort_empty.ark
 run:stdlib_trait/ord_sort_negative.ark
 run:stdlib_trait/ord_sort_reverse.ark
+run:stdlib_trait/ord_sort_reverse_len.ark
 run:stdlib_trait/ord_sort_single.ark
 run:stdlib_trait/ord_sort_stress.ark
 run:stdlib_trait/ord_sort_vec_string.ark
@@ -2958,6 +2959,7 @@ t3-run:stdlib_trait/iterator_query_consumers.ark
 t3-run:stdlib_trait/iterator_scan_string.ark
 t3-run:stdlib_trait/iterator_step_scan.ark
 t3-run:stdlib_trait/iterator_string_callbacks.ark
+t3-run:stdlib_trait/ord_sort_reverse_len.ark
 t3-run:stdlib_trait/ord_sort_vec_string.ark
 t3-run:stdlib_trait/read_write.ark
 t3-run:stdlib_trait/seek.ark
