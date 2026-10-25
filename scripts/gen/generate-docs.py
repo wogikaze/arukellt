@@ -236,7 +236,7 @@ let ver = component_model_version()     // e.g. "0.2"
                 ("`range_len(r)`", "Length of a half-open range."),
                 ("`error_message(e)`", "Convert a stdlib `Error` variant to a human-readable string."),
                 ("`Error::source()`", "Expose a rendered immediate cause through static dispatch."),
-                ("`hash_i32(n)`", "Hash an `i32` to a stable non-negative integer."),
+                ("`value.hash()`", "Hash a value through its registered `Hash` trait impl."),
             ],
             "typical_usage": """\
 ```ark

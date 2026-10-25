@@ -70,6 +70,16 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
         }
     }
     let mut bare_type = mir_bare_receiver_type_name(clone(arg_type))
+    // String locals carry the lowercase "string" spelling while impl owners
+    // use the canonical "String". Free `clone(s)` / `hash(s)` have no working
+    // free shim, so normalize before the receiver lookup to reach the same
+    // Clone / Hash impls as `s.clone()` / `s.hash()`. Other bare builtin
+    // calls keep their name-based prelude rewrites (#702).
+    if eq(clone(bare_type), String_from("string")) &&
+    (eq(clone(bare_method), String_from("clone")) ||
+        eq(clone(bare_method), String_from("hash"))) {
+        bare_type = String_from("String")
+    }
     if method_resolve::mir_is_vec_string_iteration_method(clone(bare_method)) &&
     method_resolve::mir_is_vec_string_type(clone(arg_type)) {
         bare_type = String_from("Vec_String")

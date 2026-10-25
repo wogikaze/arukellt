@@ -1830,8 +1830,8 @@ These functions are available via stdlib modules, not auto-imported.
 `duration_ns(a: i64, b: i64) -> i64`
 
 **Hash**:
-`hash_i32(x: i32) -> i32`,
-`hash_combine(a: i32, b: i32) -> i32`
+`combine(a: i32, b: i32) -> i32`; the canonical hash surface is the `Hash`
+trait method `value.hash()`
 
 **Seeded Random**:
 `seeded_random(seed: i32) -> i32`,

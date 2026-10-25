@@ -1,8 +1,8 @@
 //! Small hashing helpers used by the current collection implementations.
 //!
 //! Provides the `Hash` trait and built-in implementations for `i32`, `i64`,
-//! `String`, `bool`, `char`, and `f64`. Also exposes standalone `hash_i32`,
-//! `hash_string`, `combine`, and `hash_combine` functions.
+//! `String`, `bool`, `char`, and `f64`, plus the `combine` helper. The
+//! canonical dispatch surface is the receiver method `value.hash()`.
 //!
 //! **Hash policy:** All integer and string hashing uses a consistent FNV-1
 //! algorithm (offset_basis=216613626, prime=16777619) applied byte-by-byte
@@ -33,7 +33,8 @@ use std::prelude::{byte_at, f64_bits_hi, f64_bits_lo}
 ///
 /// 1. Define `Hash` trait and provide impls for i32 and String (this module).
 /// 2. Add Hash-bound generic `HashMap<K,V>` / `HashSet<T>` collection types.
-/// 3. Deprecate direct `hash_i32` / `hash_string` calls in favor of `Hash::hash()`.
+/// 3. Free `hash_i32` / `hash_string` shims are removed; callers use
+///    `value.hash()` (ADR-036).
 trait Hash {
     fn hash(self: Hash) -> i32
 }

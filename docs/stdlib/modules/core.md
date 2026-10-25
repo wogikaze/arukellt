@@ -18,7 +18,7 @@ The `std::core` family provides the fundamental building blocks shared across th
 | `range_len(r)` | Length of a half-open range. |
 | `error_message(e)` | Convert a stdlib `Error` variant to a human-readable string. |
 | `Error::source()` | Expose a rendered immediate cause through static dispatch. |
-| `hash_i32(n)` | Hash an `i32` to a stable non-negative integer. |
+| `value.hash()` | Hash a value through its registered `Hash` trait impl. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
@@ -114,8 +114,8 @@ variant and document the legacy form as deprecated.
 Small hashing helpers used by the current collection implementations.
 
 Provides the `Hash` trait and built-in implementations for `i32`, `i64`,
-`String`, `bool`, `char`, and `f64`. Also exposes standalone `hash_i32`,
-`hash_string`, `combine`, and `hash_combine` functions.
+`String`, `bool`, `char`, and `f64`, plus the `combine` helper. The
+canonical dispatch surface is the receiver method `value.hash()`.
 
 **Hash policy:** All integer and string hashing uses a consistent FNV-1
 algorithm (offset_basis=216613626, prime=16777619) applied byte-by-byte

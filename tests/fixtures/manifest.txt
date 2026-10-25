@@ -1753,6 +1753,7 @@ run:stdlib_trait/buf_read_full.ark
 run:stdlib_trait/clone_bool.ark
 run:stdlib_trait/clone_char.ark
 run:stdlib_trait/clone_default_from.ark
+run:stdlib_trait/clone_dispatch.ark
 run:stdlib_trait/clone_f64.ark
 run:stdlib_trait/clone_i32.ark
 run:stdlib_trait/clone_i64.ark
@@ -1797,6 +1798,7 @@ run:stdlib_trait/from_i64_to_i32.ark
 run:stdlib_trait/hash_bool_char.ark
 run:stdlib_trait/hash_combine.ark
 run:stdlib_trait/hash_deterministic.ark
+run:stdlib_trait/hash_dispatch.ark
 run:stdlib_trait/hash_i32.ark
 run:stdlib_trait/hash_string.ark
 run:stdlib_trait/hash_trait.ark
