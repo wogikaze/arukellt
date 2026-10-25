@@ -26,7 +26,7 @@ Rust's `std::io` is built on `Read` / `Write` / `BufRead` / `Seek` traits,
 enabling `io::copy`, `BufReader<File>`, and generic stream composition.
 
 The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
-(PROPOSED, 2026-10-25). This issue owns the implementation phases and progress.
+(ACCEPTED, 2026-10-25). This issue owns the implementation phases and progress.
 
 ## Current state
 
@@ -94,7 +94,7 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 
 ## Required work
 
-- [x] Design ADR-085 (PROPOSED, 2026-10-25).
+- [x] Design and accept ADR-085 (ACCEPTED, 2026-10-25).
 - [ ] **Phase A — trait core and memory newtypes**: define public `Read` /
   `Write` / `BufRead` / `Seek` / `SeekFrom`; add `Reader` / `Writer` newtypes
   and impls; remove `impl Read for Vec<i32>` / `impl Write for Vec<i32>`;

@@ -1,8 +1,10 @@
 # ADR-085: `std::io` の `Read` / `Write` / `BufRead` / `Seek` による I/O 統合
 
-ステータス: **PROPOSED** — `Vec<i32>` alias を型付きハンドルへ移行し、静的ディスパッチの I/O trait を `std::io` の正規 API とする
+ステータス: **ACCEPTED** — `Vec<i32>` alias を型付きハンドルへ移行し、静的ディスパッチの I/O trait を `std::io` の正規 API とする
 
 提案日: 2026-10-25
+
+決定日: 2026-10-25
 
 関連: [ADR-014](ADR-014-stability-labels.md)、[ADR-036](ADR-036-trait-stdlib-redesign.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-048](ADR-048-design-heuristics-application-order.md)
 関連: [ADR-054](ADR-054-host-linker-and-rust-runtime-retirement.md)、[ADR-059](ADR-059-language-v2-ownership-copy-mutability.md)、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-062](ADR-062-language-v2-trait-core-coherence.md)

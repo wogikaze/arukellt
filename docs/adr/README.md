@@ -82,6 +82,7 @@
 | [ADR-082-language-v2-match-exhaustiveness.md](ADR-082-language-v2-match-exhaustiveness.md) | ADR-082: 言語 v2 の match 網羅性 — 全 arm 非マッチは compile 時診断 | match の全 arm が非マッチのときの挙動はこれまで未規定であり、 backend で発散していた。 |
 | [ADR-083-language-v2-nested-closure-capture-through.md](ADR-083-language-v2-nested-closure-capture-through.md) | ADR-083: 言語 v2 の nested closure capture-through — 輸送は透過、所有権は各フレーム | nested closure が capture する変数は、直近の enclosing closure が 同じ変数を capture している場合にだけ backend が解決できた。 |
 | [ADR-084-language-v2-fallible-conversion-dispatch.md](ADR-084-language-v2-fallible-conversion-dispatch.md) | ADR-084: Language v2 の fallible conversion trait と dispatch 形式 | #708 は fallible conversion の TryFrom<T> / TryInto<U> の trait 定義、標準 impl、 ABI を決める issue である。ADR-063 は ? と From の境界、および TryFrom/TryInto を From/Into の subtrait にしないことを固定したが、両 trait の呼び出し形式と |
+| [ADR-085-io-trait-unification.md](ADR-085-io-trait-unification.md) | ADR-085: std::io の Read / Write / BufRead / Seek による I/O 統合 | std::io は Reader / Writer / BufReader / BufWriter を Vec<i32> の レイアウト約束として扱っている（[cursor, b0, ...] / [fd_tag, b0, ...]）。 |
 | [ADR-086-linear-collection-adts.md](ADR-086-linear-collection-adts.md) | ADR-086: std::collections の線形コレクション ADT — Deque / Queue / Stack / LinkedList | std/collections/linear.ark は Deque と PriorityQueue を Vec<i32> の内部レイアウト （[head, tail, count, cap, ...data]）に対する free function 群として公開している。 |
 
 ## 提案
@@ -91,7 +92,6 @@
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | Issue #688-#697 は Arukellt の stdlib を「モノモルフィックな free function 集」から 「trait ベースのジェネリック API」へ移行する 10 個の連鎖的 issue 群である。 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | SIMD は すでに experimental として実装・文書化されている（#698 done）。 |
 | [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | Arukelltに契約構文と外部solverを追加するだけでは、形式検証は一部利用者向けの付加機能に留まる。AI agentや人間が高速に変更する開発では、コード生成後に任意でproofを走らせるモデルではなく、仕様・実装・証明失敗・修正を一つのループとして扱う必要がある。 |
-| [ADR-085-io-trait-unification.md](ADR-085-io-trait-unification.md) | ADR-085: std::io の Read / Write / BufRead / Seek による I/O 統合 | std::io は Reader / Writer / BufReader / BufWriter を Vec<i32> の レイアウト約束として扱っている（[cursor, b0, ...] / [fd_tag, b0, ...]）。 |
 
 ## 却下
 
