@@ -5,6 +5,7 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
+use wasm::emit_target
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
 use wasm::inst_ctx
@@ -452,6 +453,12 @@ fn is_get_unchecked_callee_name(name: String) -> bool {
 // dest -> concrete struct map in one function pass and let emit_local_decls
 // declare those temps with the struct layout the store/field access uses.
 fn build_get_unchecked_field_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i32> {
+    // A resolved field type is a GC layout index. The linear target has no GC
+    // type region, so such an index names a func type and a local declared with
+    // it cannot hold the i32 the linear store emits (invalid wasm32 module).
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return Vec::new<i32>()
+    }
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut types = Vec::new<i32>()
     let mut i = 0
