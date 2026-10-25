@@ -693,12 +693,53 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             // and unresolved elems must not become GC refs here.
             return Option::None
         }
-        let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type_for_inst(ctx, inst)
-        match call_type {
-            Option::Some(_opt_v) => {
-                return call_type
+        // Everything below names a GC type index; the linear backend stores
+        // i32 handles and must never receive one (5.0 wasm32 regression).
+        if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            return Option::None
+        }
+        // A call that resolves to a MIR body takes its result from that
+        // function's declared return — the same MirFunction the call ABI is
+        // emitted from. The callee string is never consulted when func_id is
+        // valid (INV-4); the registry covers calls with no body and the
+        // intrinsic table covers invalid func_ids.
+        let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+        if fid_raw >= 0 {
+            let fn_idx = ctx_record::SelfEmitCtx_mir_index_for_func_id(ctx, fid_raw)
+            if fn_idx >= 0 {
+                let from_body = code_ref_locals_infer_callee::infer_call_result_gc_type_from_mir_function(
+                    ctx,
+                    fn_idx
+                )
+                match from_body {
+                    Option::Some(_opt_v) => {
+                        return from_body
+                    }
+                    Option::None => {}
+                }
+            } else {
+                let from_registry = code_ref_locals_infer_callee::infer_call_result_gc_type_from_registry_id(
+                    ctx,
+                    fid_raw
+                )
+                match from_registry {
+                    Option::Some(_opt_v) => {
+                        return from_registry
+                    }
+                    Option::None => {}
+                }
             }
-            Option::None => {}
+        } else {
+            let from_intrinsic = code_ref_locals_infer_callee::infer_intrinsic_call_result_gc_type_by_name(
+                ctx,
+                clone(callee)
+            )
+            match from_intrinsic {
+                Option::Some(_opt_v) => {
+                    return from_intrinsic
+                }
+                Option::None => {}
+            }
         }
     }
     if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {

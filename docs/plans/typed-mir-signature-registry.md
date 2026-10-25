@@ -69,7 +69,7 @@ subst を保存し、Phase 3 で Typed MIR がそれを参照する。
 
 ## Phase 5: emitter から型推論を削除
 
-### 進捗（2026-10-25, typed-MIR Phase 5.0/5.1 レーン）
+### 進捗（2026-10-25/26, typed-MIR Phase 5.0/5.1 レーン）
 
 Phase 5.0 完了:
 - `src/compiler/mir/inst_record.ark` / `src/compiler/mir/block_inst_access.ark` —
@@ -106,33 +106,70 @@ i64_demotion=38 open_ref_fallback=7 get_unchecked_field=4 branch_join=1`。
 W009=0, W010=0（`mir-verify` summary 自体が出ない = 全 warning 合計 0。
 W009/W010 はその合計に含まれる）。
 
-Phase 5.1（CALL result を callee 名から再導出しない）は保留:
-仕様どおり `infer_call_result_gc_type_for_inst` を
+Phase 5.1 の試行錯誤（履歴）: 仕様どおり `infer_call_result_gc_type_for_inst` を
 `mir_inst_result_type_at(inst, 0)` + `SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type`
-に置き換えると、次の wasm32-gc fixture が invalid Wasm になる
+に置き換えると、次の wasm32-gc fixture が invalid Wasm になった
 （pinned 58cc153e0 では valid）。
 
 - `question_mark/from_error` / `question_mark/error_ecosystem` /
   `question_mark/user_error_type` / `enums/enum_struct_variant`
 
-原因: `impl From<String> for AppError { fn from(...) -> AppError }` のような Self を
-含む impl method で、SignatureRegistry の return MVT（= call result TypeId）が
-`String` になり、callee MIR 関数の宣言 return（= 実際の wasm signature、`AppError`）
-と食い違う。INV-3 はこのクラスで成立しない。旧 emitter の
+原因: `impl From<String> for AppError { fn from(...) -> AppError }` のような impl
+method で、SignatureRegistry の return MVT（= call result TypeId）が `String` になり、
+callee MIR 関数の宣言 return（= 実際の wasm signature、`AppError`）と食い違う。
+INV-3 はこのクラスで成立しない。旧 emitter の
 `infer_call_result_gc_type_from_fn_at` rung がこの食い違いを吸収していた。
 W009 では検出できない（TypeId は存在するが誤っている）。
 
-次の 5.1 案: valid fid かつ MIR body がある呼び出しは
+5.1 実装（2026-10-26、wave/phase5-1）: valid `func_id` かつ MIR body がある呼び出しは
 `func_id -> SelfEmitCtx_mir_index_for_func_id` で callee MIR 関数の宣言 return を
-唯一の型源にする（callee 文字列を読まないので INV-4 は保たれる）。registry-by-id と
-intrinsic table は body がない場合だけ使う。GcLayoutTable 参照は `is_gc_target` で
-gate する（wasm32 に func type index を漏らさない）。enum-open / structref rung の
-削除には引き続き typechecker の Self 解決（R9）が必要。
+唯一の型源にする（callee 文字列を読まないので INV-4 は保たれる）。registry-by-id は
+body がない場合だけ、intrinsic/builtin-by-name table は `fid < 0` の場合だけ使う。
+`ctx_enrich_inst_result_types` は registry return の TypeId が invalid な CALL に
+`result_types` を捏造せず空のまま残す（W009 が拾う）。
+
+- `code_ref_locals_infer_callee.ark`: `infer_call_result_gc_type_from_fn_at` /
+  `resolve_fn_index_for_inference` / from_fn rung / 名前だけの entry point を削除。
+  `infer_call_result_gc_type_from_mir_function`（body あり）/
+  `infer_call_result_gc_type_from_registry_id`（body なし）/
+  `infer_intrinsic_call_result_gc_type_by_name`（fid < 0）へ整理。
+- bare `Result` / `Option` の return 名は関数 signature（`gc_enum_return_type_sig`）と
+  同じく enum-open に解決する（INV-5）。
+- typechecker 5.7 前提: `impl_method_sig` は
+  `corehir::decl_impl_target::impl_method_mangled_name` を使い、重複していた
+  `impl_self_type_name` を削除。`__<source>` suffix は canonical FnSig 名になり、
+  source-level `Owner::method` は index alias として残す（associated call の lookup
+  を維持）。non-generic impl の `Self` return は
+  `associated_types::resolve_impl_self_return` で impl target に解決する。
+- enum-open / structref rung の削除は 5.7 本体（concrete enum payload TypeId /
+  typechecker の overload 解決）待ち。
+
+5.1 の検証（wasm32-gc / wasm32）:
+- 回帰 4 件 + `structs/vec_elem_field_get` は両 target で compile+validate。
+  `from_error` / `error_ecosystem` / `user_error_type` は component 実行で `OK`、
+  `enum_struct_variant` は `75`/`24`、`vec_elem_field_get` は `x`。WAT は 5.0
+  baseline（f03493a36 の s2）と byte-identical。`from_error` の `$process` の From
+  dest `$_t5` は `(ref null 14)`（enum-open）で、`(ref null 0)`（String）ではない。
+  wasm sha256 は pinned 58cc153e0 の出力とも一致（`820a3c41…`）。
+- #693 IO lane probe（inherent / trait impl の `Result<Vec<i32>, E>` 直接呼び出し）は
+  call dest が structref fallback から `(ref null 14)` になり、`ref.cast` も消える。
+  free-call と generic-bound control の WAT は不変。
+- `verify lane` / `verify fixtures`（1805 compile+validate、102 runtime smoke）green。
+- `selfhost fixpoint`: 本レーンは未達（s2 `c01861e1…` vs s3 `bca6a14c…`）。
+  emitter/typechecker 変更が自己コンパイル出力を変えるためで、5.0 以降 main 側で
+  続いている fixpoint 診断とは独立。pinned 再 pin までは未達のまま。
+- 既知の残り: enum-open / structref rung の削除（5.7 本体）、`resolve_call_fn_ret_vt`
+  の call ABI vt は registry-first のまま（dest は MIR return と一致）、
+  `mono_return_vt` の名前逆引き（R2）、typechecker の source-spelling alias。
 
 削除対象（履歴）:
 - `code_ref_locals_infer.ark::find_stack_value_source` — 削除済み
 - `code_ref_locals_infer.ark::infer_ref_local_gc_type_depth` — 削除済み
 - `code_ref_locals.ark::infer_ref_local_gc_type` — 削除済み
+- `code_ref_locals_infer_callee.ark::infer_call_result_gc_type_from_fn_at` — 5.1 で削除
+- `code_ref_locals_infer_callee.ark::resolve_fn_index_for_inference` — 5.1 で削除
+- `typechecker/module_fns.ark::impl_self_type_name`（`decl_impl_target` との重複） —
+  5.1 で削除
 - `mono_return_vt.ark::mono_return_type_name` の名前逆引き部分 — 未着手（R2）
 
 修正対象:

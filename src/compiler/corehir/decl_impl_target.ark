@@ -184,13 +184,21 @@ fn impl_semantic_trait_id(decl: AstNode) -> i32 {
     semantic_trait_id::semantic_trait_id_from_trait_name(decl_ann_name::decl_ann_name(trait_ann))
 }
 
+// Source-level spelling of an impl method (`Owner::method`), before the
+// conversion-source suffix that keeps overloads distinct.
+fn impl_method_base_name(decl: AstNode, method_name: String) -> String {
+    text::concat(
+        impl_self_type_name(decl),
+        text::concat("::", clone(method_name))
+    )
+}
+
 // Trait implementations share the owner's public method namespace.  Conversion
 // traits select an implementation from a source type, so their lowering name
 // must retain that type to keep overloads distinct while preserving the
 // source-level associated-function spelling.
 fn impl_method_mangled_name(decl: AstNode, method_name: String) -> String {
-    let owner_name = impl_self_type_name(decl)
-    let base_name = text::concat(clone(owner_name), text::concat("::", clone(method_name)))
+    let base_name = impl_method_base_name(decl, clone(method_name))
     let source_name = impl_conversion_source_type_name(decl)
     if len(source_name) == 0 {
         return base_name

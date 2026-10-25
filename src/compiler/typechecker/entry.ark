@@ -10,14 +10,17 @@ use typechecker::module_env_merge
 use typechecker::module_fns
 use typechecker::module_wit
 use typechecker::contract_fn_sig
+use corehir::decl_impl_target
 use collections::name_index
 use resolver::ctx_record
 use resolver::modules
 
 // Index keys parallel to `collect_fn_sigs` output: a module-owned fn or
 // const decl earns a `mod::name` key so qualified calls hit the signature
-// of the module the resolver accepted, while impl methods and entry-module
-// decls stay bare-only. `combine_loaded_and_main_decls` lists each loaded
+// of the module the resolver accepted, while entry-module decls stay
+// bare-only. An impl method's key is its source-level `Owner::method`
+// spelling, an alias for the mangled signature name that keeps associated
+// calls resolving. `combine_loaded_and_main_decls` lists each loaded
 // module's decls before the entry module's, so one decl cursor tracks the
 // module boundaries.
 fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
@@ -55,11 +58,19 @@ fn push_sig_index_key(keys: Vec<String>, decl: AstNode, module_name: String) {
         return
     }
     if ast_decl_predicates::node_is_impl_decl(decl) {
+        let owner_name = decl_impl_target::impl_self_type_name(decl)
         let child_count = ast_access::node_child_count(decl)
         let mut ci = 0
         while ci < child_count {
-            if ast_decl_predicates::node_is_fn_decl(ast_access::node_child_at(decl, ci)) {
-                push(keys, String_new())
+            let child = ast_access::node_child_at(decl, ci)
+            if ast_decl_predicates::node_is_fn_decl(child) {
+                push(
+                    keys,
+                    text::concat(
+                        clone(owner_name),
+                        text::concat(String_from("::"), ast_access::node_text(child))
+                    )
+                )
             }
             ci = ci + 1
         }

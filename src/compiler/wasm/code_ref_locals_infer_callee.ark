@@ -1,6 +1,11 @@
-// Call-result GC typing via SignatureRegistry return TypeId / MirValueType.
-// Backend layout is never selected from a type name.
+// Call-result GC typing. A call that resolves to a MIR body takes its result
+// from that function's declared return; the SignatureRegistry return is used
+// only when the function has no body, and the intrinsic/builtin table only
+// when the func_id is invalid. The emitter never selects a MIR-body callee's
+// layout from its name (INV-4).
 
+use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
+use std::text
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::signature_entry
@@ -8,8 +13,6 @@ use corehir::signature_registry
 use corehir::type_id
 use corehir::type_table
 use mir::function_return_view
-use mir::function_identity
-use mir::inst_record
 use mir::post_pass_callee_lookup
 use mir::value_types
 use wasm::ctx_record
@@ -20,44 +23,10 @@ use wasm::sections_types_gc_phase7
 use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
-// Fallback: infer GC type from the called function's return type signature.
-use std::prelude::{byte_at, clone, contains, eq, starts_with, substring}
-use std::text
-fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
-    let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
-    let indexed = inst_ctx::resolve_fn_index(ctx, clone(callee))
-    if indexed >= 0 && indexed < function_count {
-        let indexed_name = function_identity::MirFunction_name(
-            ctx_record::SelfEmitCtx_function_at(ctx, indexed)
-        )
-        if eq(clone(indexed_name), clone(callee)) {
-            return indexed
-        }
-    }
-    let short_name = inst_ctx::strip_module_prefix(clone(callee))
-    let mut matched_index = 0 - 1
-    let mut match_count = 0
-    let mut function_index = 0
-    while function_index < function_count {
-        let function = ctx_record::SelfEmitCtx_function_at(ctx, function_index)
-        let function_name = function_identity::MirFunction_name(function)
-        if eq(clone(function_name), clone(callee)) ||
-        eq(clone(function_name), clone(short_name)) {
-            matched_index = function_index
-            match_count = match_count + 1
-        }
-        function_index = function_index + 1
-    }
-    if match_count == 1 {
-        return matched_index
-    }
-    if indexed >= 0 && indexed < function_count {
-        return indexed
-    }
-    0 - 1
-}
-
-fn infer_call_result_gc_type_from_fn_at(ctx: SelfEmitCtx, callee: String, fn_idx: i32) -> Option<i32> {
+// A call with a MIR body takes its result from the callee's declared return.
+// The emitted wasm signature is built from the same MirFunction, so a dest
+// declared here can never disagree with the call ABI (INV-5).
+fn infer_call_result_gc_type_from_mir_function(ctx: SelfEmitCtx, fn_idx: i32) -> Option<i32> {
     if fn_idx < 0 || fn_idx >= ctx_record::SelfEmitCtx_function_count(ctx) {
         return Option::None
     }
@@ -66,30 +35,10 @@ fn infer_call_result_gc_type_from_fn_at(ctx: SelfEmitCtx, callee: String, fn_idx
     let ret_name = function_return_view::MirFunction_return_type_name(called)
     // Same order as build_return_type_value_sig: collection / typed-spine
     // first. A bare element name (Diagnostic) must not beat Vec<Diagnostic>.
-    let from_coll = resolve_gc_type_from_return_type_name(ctx, clone(ret_name))
-    match from_coll {
+    let from_name = resolve_gc_type_from_return_type_name(ctx, clone(ret_name))
+    match from_name {
         Option::Some(_opt_v) => {
-            return from_coll
-        }
-        Option::None => {}
-    }
-    let from_reg = infer_call_result_gc_type_from_registry(ctx, clone(callee))
-    match from_reg {
-        Option::Some(reg_type) => {
-            // Typed spine may report enum-open or String for user structs
-            // (WitParsedInterface). Named gc_struct wins only then — not
-            // when the spine already bound a Vec/collection header.
-            if reg_type == ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) ||
-            reg_type == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                let named = resolve_named_struct_gc_type(ctx, clone(ret_name))
-                match named {
-                    Option::Some(_opt_v) => {
-                        return named
-                    }
-                    Option::None => {}
-                }
-            }
-            return from_reg
+            return from_name
         }
         Option::None => {}
     }
@@ -103,7 +52,8 @@ fn infer_call_result_gc_type_from_fn_at(ctx: SelfEmitCtx, callee: String, fn_idx
     infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
 }
 
-// Resolve call-result GC type from SignatureRegistry (host + builtin entries).
+// Registry-by-name fallback for a call whose func_id is invalid (host and
+// builtin entries). Never used for a call with a valid func_id (INV-4).
 fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(callee))
@@ -163,28 +113,44 @@ fn infer_call_result_gc_type_from_registry_id(ctx: SelfEmitCtx, fid_raw: i32) ->
     resolve_gc_type_from_return_type_name(ctx, ret_name)
 }
 
-fn infer_call_result_gc_type_from_registry_or_id(
-    ctx: SelfEmitCtx,
-    callee: String,
-    fid_raw: i32
-) -> Option<i32> {
-    if fid_raw >= 0 {
-        let by_id = infer_call_result_gc_type_from_registry_id(ctx, fid_raw)
-        match by_id {
-            Option::Some(_type) => {
-                return by_id
-            }
-            Option::None => {}
+// func_id is invalid for host intrinsics, builtin shims, and Vec constructors.
+// Those are the only calls whose result layout may still be selected by name
+// (INV-4); the registry-by-name lookup below is part of that allowlist.
+fn infer_intrinsic_call_result_gc_type_by_name(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    // Vec::new__T is a header constructor. A registry type that names only T
+    // (JsonField) must not type the dest as that struct.
+    let from_vec_new = infer_vec_new_return_gc_type(ctx, clone(callee))
+    match from_vec_new {
+        Option::Some(_opt_v) => {
+            return from_vec_new
         }
+        Option::None => {}
     }
-    infer_call_result_gc_type_from_registry(ctx, callee)
+    let from_registry = infer_call_result_gc_type_from_registry(ctx, clone(callee))
+    match from_registry {
+        Option::Some(_opt_v) => {
+            return from_registry
+        }
+        Option::None => {}
+    }
+    let intrinsic_tn = post_pass_callee_lookup::lookup_intrinsic_return_type_name(callee)
+    if len(intrinsic_tn) > 0 {
+        return resolve_gc_type_from_return_type_name(ctx, intrinsic_tn)
+    }
+    Option::None
 }
 
 fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
         return Option::None
     }
+    // Bare Option/Result is how a generic container return reaches MIR when
+    // its payload spelling is not carried in the return name. The function
+    // signature maps the same name to enum-open (gc_enum_return_type_sig), so
+    // the dest must as well (INV-5).
     if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
+    eq(clone(ret_name), "Option") ||
+    eq(clone(ret_name), "Result") ||
     starts_with(clone(ret_name), "Result_") ||
     starts_with(clone(ret_name), "Result:") ||
     starts_with(clone(ret_name), "Result<") ||
@@ -375,7 +341,8 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     Option::None
 }
 
-// Struct/enum-oriented tail of infer_call_result_gc_type_from_fn.
+// Struct/enum-oriented fallback for a MIR function return whose name does not
+// resolve through resolve_gc_type_from_return_type_name.
 fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> Option<i32> {
     if starts_with(clone(ret_name), "struct:") {
         let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
@@ -455,79 +422,4 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
         j = j + 1
     }
     byte_size
-}
-
-fn infer_call_result_gc_type_with_index_and_id(
-    ctx: SelfEmitCtx,
-    callee: String,
-    fn_idx: i32,
-    fid_raw: i32
-) -> Option<i32> {
-    // Vec::new__T is a header constructor. A MirFunction / registry TypeId
-    // that names only T (JsonField) must not type the dest as that struct.
-    let from_vec_new = infer_vec_new_return_gc_type(ctx, clone(callee))
-    match from_vec_new {
-        Option::Some(_opt_v) => {
-            return from_vec_new
-        }
-        Option::None => {}
-    }
-    // Named MirFunction return (gc_struct) wins over a registry TypeId that
-    // collapsed to String. Registry-first made call dests (ref null $string)
-    // while the callee wasm type returned a struct.
-    let from_fn = infer_call_result_gc_type_from_fn_at(ctx, clone(callee), fn_idx)
-    match from_fn {
-        Option::Some(from_fn_type) => {
-            if from_fn_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                return from_fn
-            }
-        }
-        Option::None => {}
-    }
-    // SignatureRegistry (host + builtin) when the callee is not in the MIR
-    // name index, or when both sides agree it is String (#725 / #842).
-    let from_reg = infer_call_result_gc_type_from_registry_or_id(ctx, clone(callee), fid_raw)
-    match from_reg {
-        Option::Some(_opt_v) => {
-            return from_reg
-        }
-        Option::None => {}
-    }
-    match from_fn {
-        Option::Some(_opt_v) => {
-            return from_fn
-        }
-        Option::None => {}
-    }
-    // String / split / chars / … → type_name then layout (post_pass table).
-    let intrinsic_tn = post_pass_callee_lookup::lookup_intrinsic_return_type_name(clone(callee))
-    if len(intrinsic_tn) > 0 {
-        let from_tn = resolve_gc_type_from_return_type_name(ctx, intrinsic_tn)
-        match from_tn {
-            Option::Some(_opt_v) => {
-                return from_tn
-            }
-            Option::None => {}
-        }
-    }
-    infer_vec_new_return_gc_type(ctx, callee)
-}
-
-fn infer_call_result_gc_type_with_index(ctx: SelfEmitCtx, callee: String, fn_idx: i32) -> Option<i32> {
-    infer_call_result_gc_type_with_index_and_id(ctx, callee, fn_idx, 0 - 1)
-}
-
-fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    let fn_idx = resolve_fn_index_for_inference(ctx, clone(callee))
-    infer_call_result_gc_type_with_index(ctx, callee, fn_idx)
-}
-
-fn infer_call_result_gc_type_for_inst(ctx: SelfEmitCtx, inst: MirInst) -> Option<i32> {
-    let callee = inst_record::mir_inst_str_val(inst)
-    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
-    if fid_raw >= 0 {
-        let fn_idx = ctx_record::SelfEmitCtx_mir_index_for_func_id(ctx, fid_raw)
-        return infer_call_result_gc_type_with_index_and_id(ctx, callee, fn_idx, fid_raw)
-    }
-    infer_call_result_gc_type(ctx, callee)
 }

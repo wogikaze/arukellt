@@ -1,5 +1,4 @@
-use std::prelude::{byte_at, clone, eq}
-use std::text
+use std::prelude::{clone, eq}
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::associated_types
@@ -10,6 +9,7 @@ use typechecker::impl_generics
 use typechecker::kinds
 use typechecker::sigs
 use typechecker::types
+use corehir::decl_impl_target
 fn collect_fn_sigs(decls: Vec<AstNode>, env: TypeEnv) -> Vec<FnSig> {
     let fn_sigs = Vec::new<FnSig>()
     let decl_count = len(decls)
@@ -64,12 +64,13 @@ fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> Fn
         sigs::fn_sig_from_fn_decl(method_decl)
     }
     let typed_sig = impl_self_param_sig(impl_decl, method_decl, bare_sig, impl_type_params)
-    let mangled_name = text::concat(
-        impl_self_type_name(impl_decl),
-        text::concat("::", contract_fn_sig::FnSig_name(bare_sig))
+    let mangled_name = decl_impl_target::impl_method_mangled_name(
+        impl_decl,
+        contract_fn_sig::FnSig_name(bare_sig)
     )
     let named_sig = contract_fn_sig::FnSig_with_name(typed_sig, mangled_name)
-    associated_types::resolve_impl_signature(env, impl_decl, named_sig)
+    let projected_sig = associated_types::resolve_impl_signature(env, impl_decl, named_sig)
+    associated_types::resolve_impl_self_return(impl_decl, projected_sig)
 }
 
 // A self param carries no type annotation, so it enters method signatures as
@@ -116,130 +117,4 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
         i = i + 1
     }
     contract_fn_sig::FnSig_with_types(sig, params, contract_fn_sig::FnSig_return_type(sig))
-}
-
-fn is_impl_type_param_name(name: String) -> bool {
-    if len(name) != 1 {
-        return false
-    }
-    let ch = byte_at(name, 0)
-    ch >= 65 && ch <= 90
-}
-
-fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
-    let count = len(declared)
-    let mut i = 0
-    while i < count {
-        if eq(get_unchecked(declared, i), clone(name)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-// Extract the impl target type name from an impl declaration.
-// For `impl Type { ... }` returns "Type".
-// For `impl Trait for Type { ... }` returns "Type" (the implementing type).
-fn impl_self_type_name(decl: AstNode) -> String {
-    let heads = impl_generics::head_count(decl)
-    let target = if heads >= 2 {
-        ast_access::node_type_ann_at(decl, 1)
-    } else if heads >= 1 {
-        ast_access::node_type_ann_at(decl, 0)
-    } else {
-        return ast_access::node_text(decl)
-    }
-    let declared = impl_generics::declared_type_param_names(decl)
-    let target_name = ast_access::node_text(target)
-    if eq(clone(target_name), String_from("Vec")) &&
-    ast_access::node_child_count(target) > 1 {
-        let elem = ast_access::node_child_at(target, 1)
-        if eq(ast_access::node_text(elem), String_from("String")) {
-            return String_from("Vec_String")
-        }
-    }
-    // Concrete HashMap<K, V> impls need a per-pair owner name so each impl
-    // method registers a unique HashMap_K_V::method symbol. Generic impl
-    // heads (HashMap<K, V> with type params) keep the bare HashMap owner.
-    if eq(clone(target_name), String_from("HashMap")) &&
-    ast_access::node_child_count(target) > 2 {
-        let key_node = ast_access::node_child_at(target, 1)
-        let value_node = ast_access::node_child_at(target, 2)
-        let key_key = impl_inst_arg_key(key_node, clone(declared))
-        let value_key = impl_inst_arg_key(value_node, clone(declared))
-        if len(key_key) > 0 && len(value_key) > 0 {
-            return text::concat(
-                String_from("HashMap_"),
-                text::concat(clone(key_key), text::concat(String_from("_"), clone(value_key)))
-            )
-        }
-    }
-    // Concrete user-generic impl targets need a per-instantiation owner so
-    // each impl method registers a unique Name_arg::method symbol (the same
-    // collision rule as HashMap_K_V). Type-parameter args keep the bare
-    // owner because the impl itself is generic (impl Pair<T> -> Pair).
-    // Vec and HashMap keep their established owner spellings above.
-    if ast_access::node_kind_is(target, kinds::NK_TYPE_GENERIC()) &&
-    !eq(clone(target_name), String_from("Vec")) &&
-    !eq(clone(target_name), String_from("HashMap")) {
-        let inst_suffix = impl_inst_arg_suffix(target, clone(declared))
-        if len(inst_suffix) > 0 {
-            return text::concat(
-                clone(target_name),
-                text::concat(String_from("_"), inst_suffix)
-            )
-        }
-    }
-    target_name
-}
-
-// Underscore-joined concrete key for the type arguments of a generic impl
-// target, or "" when any argument is a type parameter or has no owner-key
-// spelling. Children[0] is the head name, so iteration starts at 1.
-fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
-    let child_count = ast_access::node_child_count(target)
-    if child_count < 2 {
-        return String_new()
-    }
-    let mut suffix = String_new()
-    let mut i = 1
-    while i < child_count {
-        let key = impl_inst_arg_key(
-            ast_access::node_child_at(target, i),
-            clone(declared)
-        )
-        if len(key) == 0 {
-            return String_new()
-        }
-        if len(suffix) > 0 {
-            suffix = text::concat(suffix, String_from("_"))
-        }
-        suffix = text::concat(suffix, key)
-        i = i + 1
-    }
-    suffix
-}
-
-fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
-    if ast_access::node_kind_is(arg, kinds::NK_TYPE_NAMED()) {
-        let name = ast_access::node_text(arg)
-        if is_declared_impl_param(clone(name), clone(declared)) ||
-        is_impl_type_param_name(clone(name)) {
-            return String_new()
-        }
-        return name
-    }
-    if ast_access::node_kind_is(arg, kinds::NK_TYPE_GENERIC()) {
-        let base = ast_access::node_text(arg)
-        let inner = impl_inst_arg_suffix(arg, declared)
-        if len(inner) == 0 {
-            return String_new()
-        }
-        return text::concat(clone(base), text::concat(String_from("_"), inner))
-    }
-    if ast_access::node_kind_is(arg, kinds::NK_TYPE_FN()) {
-        return String_from("fnref")
-    }
-    String_new()
 }

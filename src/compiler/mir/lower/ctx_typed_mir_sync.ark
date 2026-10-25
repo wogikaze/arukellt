@@ -73,6 +73,14 @@ fn ctx_enrich_inst_result_types(ctx: LowerCtx, inst: MirInstDraft) -> MirInstDra
         inst_draft::MirInstDraft_func_id_raw(inst)
     )
     if len(mvts) > 0 {
+        let first = get_unchecked(mvts, 0)
+        // A registry return without a valid TypeId cannot describe the call's
+        // storage. Leave the result empty so W009 reports the gap; filling it
+        // from the legacy vt would only recreate the fake packed result that
+        // INV-1 rejects.
+        if !type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(first)) {
+            return inst
+        }
         inst_draft::MirInstDraft_set_result_types(inst, mvts)
         return inst
     }

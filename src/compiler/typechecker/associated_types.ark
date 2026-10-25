@@ -48,6 +48,59 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
     contract_fn_sig::FnSig_with_types(sig, params, return_type)
 }
 
+// `Self` in an impl method names the impl target. Trait impls resolve it
+// through resolve_impl_signature's projection pass; inherent impls keep the
+// bare type variable. A non-generic impl has no MonoInstance that could
+// substitute Self after a call binds a receiver, so its method return must
+// name the target now.
+fn resolve_impl_self_return(impl_node: AstNode, sig: FnSig) -> FnSig {
+    if len(impl_generics::type_param_names(impl_node)) > 0 {
+        return sig
+    }
+    let heads = impl_generics::head_count(impl_node)
+    if heads < 1 {
+        return sig
+    }
+    let self_ty = types::resolve_type_ann_node(
+        ast_access::node_type_ann_at(impl_node, heads - 1)
+    )
+    let return_type = resolve_self_type(self_ty, contract_fn_sig::FnSig_return_type(sig))
+    let params = Vec::new<TypeInfo>()
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < param_count {
+        push(params, contract_fn_sig::FnSig_param_at(sig, i))
+        i = i + 1
+    }
+    contract_fn_sig::FnSig_with_types(sig, params, return_type)
+}
+
+// A return annotation resolver can spell `Self` as a type variable or as a
+// concrete named type; both mean the impl target here. Container returns
+// (`Option<Self>`) resolve recursively.
+fn resolve_self_type(self_ty: TypeInfo, ty: TypeInfo) -> TypeInfo {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_TYPE_VAR() || tag == commands::TY_STRUCT() {
+        if eq(contract_type_access::TypeInfo_name(ty), String_from("Self")) {
+            return self_ty
+        }
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(ty)
+    if arg_count == 0 {
+        return ty
+    }
+    let resolved = contract_type_constructors::TypeInfo_empty_like(ty)
+    let mut i = 0
+    while i < arg_count {
+        contract_type_mutation::TypeInfo_push_type_arg(
+            resolved,
+            resolve_self_type(self_ty, contract_type_access::TypeInfo_type_arg_at(ty, i))
+        )
+        i = i + 1
+    }
+    resolved
+}
+
 fn resolve_projection_for_receiver(
     env: TypeEnv,
     trait_name: String,
