@@ -83,6 +83,9 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
             if resolve_module_qualified_enum_variant(ctx, node, clone(symbol_part), full_idx, full_kind) {
                 return
             }
+            if resolve_module_qualified_associated_fn(ctx, node, clone(path), clone(symbol_part), full_idx, full_kind) {
+                return
+            }
             scope_error::resolve_error(ctx, text::concat(String_from("undefined variant: "), clone(path)))
             return
         }
@@ -159,6 +162,36 @@ fn resolve_module_qualified_enum_variant(
         return true
     }
     false
+}
+
+// `module::Type::method` for an associated function exported by that module
+// (`io::Reader::from_bytes`). Rewrite to `Type::method`, the mangled impl
+// method name that MIR lowering already resolves for same-file associated
+// calls, instead of leaving the module prefix on the callee.
+fn resolve_module_qualified_associated_fn(
+    ctx: ResolveCtx,
+    node: AstNode,
+    path: String,
+    symbol_part: String,
+    full_idx: i32,
+    full_kind: i32
+) -> bool {
+    if full_idx < 0 || full_kind != commands::SYM_FN() {
+        return false
+    }
+    if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
+        scope_error::resolve_error(
+            ctx,
+            text::concat(
+                String_from("visibility error: `"),
+                text::concat(clone(symbol_part), String_from("` is private and cannot be accessed"))
+            )
+        )
+        return true
+    }
+    ast_access::set_node_text(node, clone(symbol_part))
+    ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+    true
 }
 
 fn path_has_nested_qualifier(symbol_part: String) -> bool {

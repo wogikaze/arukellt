@@ -1,33 +1,47 @@
-//! std::io — I/O abstraction layer.
+//! std::io — target-independent I/O abstraction (ADR-085 Phase A).
 //!
-//! Provides Reader, Writer, and buffered I/O over in-memory byte buffers,
-//! plus standard I/O (stdin/stdout/stderr) backed by host intrinsics.
+//! Defines the public `Read` / `Write` / `BufRead` / `Seek` traits, the
+//! `SeekFrom` origin, and the in-memory `Reader` / `Writer` newtypes. `Reader`
+//! implements `Read`, `BufRead`, and `Seek`; `Writer` implements `Write`.
 //!
-//! # STOP_IF notes
+//! # Contract notes
 //!
-//! - Bytes type = Vec<i32> (byte values masked to 0–255).
-//! - WASI stdin reading intrinsic is not available in the current runtime.
-//! `stdin()` returns an empty Reader. `read_stdin_line()` returns `Ok("")`.
-//! - stdout/stderr Writers emit synchronously via print intrinsics (no
-//! kernel-level fd buffering). `writer_flush` is therefore a no-op.
+//! - Bytes are `Vec<i32>` values masked to 0–255.
+//! - Handles are not `Copy`. A method call does not move the receiver: the
+//! cursor belongs to the handle, so successive calls share it (ADR-059 and
+//! ADR-085 D2). Moving a handle into an adapter transfers ownership.
+//! - `Read::read` returns an empty `Vec` at EOF; a negative `max_bytes` is
+//! `IoError::Other`. `Seek` rejects negative effective positions. Seeking past
+//! the end is allowed and reads report EOF.
+//! - `BufRead::read_line` returns `None` at EOF, so an empty line and EOF stay
+//! distinguishable.
 //!
-//! # Type aliases (runtime representation)
+//! # Representation
 //!
-//! - `Reader`    = `Vec<i32>`: `[cursor, b0, b1, ..., bn]`
-//! - `Writer`    = `Vec<i32>`: `[fd_tag, b0, b1, ..., bn]`
-//! - fd_tag: `0`=memory, `1`=stdout, `2`=stderr
-//! - `BufReader` = `Vec<i32>`: `[cursor, buf_cap, b0, b1, ..., bn]`
-//! - `BufWriter` = `Vec<i32>`: `[fd_tag, buf_cap, b0, b1, ..., bn]`
+//! `Reader` stores an owned byte image plus an i32 cursor, and `Writer` stores
+//! an owned byte image. Neither layout is a public contract (ADR-085 D3).
 //!
-//! # Error types
+//! # Compatibility surface
 //!
-//! `IoError` provides a typed error for I/O operations. Currently only
-//! `UnexpectedEof` is produced at runtime (by `reader_read_exact`);
-//! the other functions are typed with `IoError` for API consistency.
+//! The `reader_*` / `writer_*` / `buf_*` / `copy*` free functions predate the
+//! traits and keep their legacy `Vec<i32>` layout contracts while #693 moves
+//! callers to the newtypes. `stdin` / `stdout` / `stderr` remain host-backed
+//! compatibility functions; their trait handles belong to the `std::host`
+//! stdio work. WASI stdin reading is unavailable, so `stdin()` is empty and
+//! `read_stdin_line()` returns `Ok("")`.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
-use std::prelude::{byte_at}
+use std::prelude::{byte_at, i32_to_i64, i64_to_i32}
 use std::text
+
+const NEWLINE_BYTE: i32 = 10
+const BYTE_MASK: i32 = 255
+const COPY_CHUNK_BYTES: i32 = 256
+// The Reader cursor is an i32, so a Seek coordinate above this cannot be
+// represented without silent truncation (ADR-067). Keep the bound explicit.
+// The bound stays i32: a module-level i64 const is lowered as an accessor
+// call on wasm32 and breaks i64 locals in Result<i64> functions.
+const MAX_CURSOR_POSITION: i32 = 2147483647
 /// Typed error for I/O operations.
 pub enum IoError {
     /// Not enough data was available to fulfill a read request.
@@ -68,6 +82,248 @@ impl From<IoError> for String {
         io_error_message(err)
     }
 }
+
+// ─── Seek origin and traits (ADR-085) ────────────────────────────────────────
+/// Offset origin for `Seek::seek`.
+pub enum SeekFrom {
+    /// Offset from the start of the stream.
+    Start(i64),
+    /// Offset from the current position.
+    Current(i64),
+    /// Offset from the end of the stream.
+    End(i64),
+}
+
+/// Pull-based byte source (ADR-085).
+///
+/// `read` returns at most `max_bytes` bytes and advances the handle's cursor.
+/// An empty `Vec` means EOF; a negative `max_bytes` is `IoError::Other`. The
+/// receiver is written by value, but a method call does not move the handle:
+/// successive reads share the same cursor.
+///
+/// ## Protocol catalog: `Read`
+///
+/// | Type     | Status | Notes                                   |
+/// |----------|--------|-----------------------------------------|
+/// | Reader   | impl   | In-memory byte image (`[cursor, ...]`)  |
+/// | File     | Phase D| `std::host::fs` whole-file handle (#693) |
+pub trait Read {
+    fn read(self: Self, max_bytes: i32) -> Result<Vec<i32>, IoError>
+}
+
+/// Byte sink (ADR-085).
+///
+/// `write` appends `data` and returns the accepted byte count. `flush` is the
+/// sink's commitment boundary; the memory `Writer` has nothing to flush.
+///
+/// ## Protocol catalog: `Write`
+///
+/// | Type     | Status | Notes                                   |
+/// |----------|--------|-----------------------------------------|
+/// | Writer   | impl   | In-memory byte image (`[fd_tag=0, ...]`) |
+/// | File     | Phase D| `std::host::fs` whole-file handle (#693) |
+pub trait Write {
+    fn write(self: Self, data: Vec<i32>) -> Result<i32, IoError>
+    fn flush(self: Self) -> Result<(), IoError>
+}
+
+/// Buffered byte source layered over `Read` (ADR-085).
+///
+/// `fill_buf` returns an owned snapshot of the unconsumed bytes because the
+/// language has no lifetime-carrying borrow view. `consume` advances past at
+/// most that snapshot. `read_line` excludes the newline and returns `None`
+/// only at EOF, so an empty line stays distinguishable from EOF.
+pub trait BufRead: Read {
+    fn fill_buf(self: Self) -> Result<Vec<i32>, IoError>
+    fn consume(self: Self, amount: i32) -> Result<(), IoError>
+    fn read_line(self: Self) -> Result<Option<String>, IoError>
+}
+
+/// Random access over a byte stream (ADR-085).
+///
+/// `seek` takes a `SeekFrom` origin and returns the new absolute position.
+/// A negative effective position, or one above the i32 cursor range, is
+/// `IoError::Other`. `position` reports the current cursor.
+pub trait Seek {
+    fn seek(self: Self, from: SeekFrom) -> Result<i64, IoError>
+    fn position(self: Self) -> Result<i64, IoError>
+}
+
+// ─── Memory Reader / Writer newtypes (ADR-085 Phase A) ──────────────────────
+/// In-memory read handle over an owned byte image.
+///
+/// The byte image and cursor are private. Use `Reader::from_bytes` to wrap a
+/// raw `Vec<i32>` and `into_bytes` to recover the image. Handles are not
+/// `Copy`, so moving one into an adapter transfers ownership.
+pub struct Reader {
+    bytes: Vec<i32>,
+    cursor: i32,
+}
+
+impl Reader {
+    /// Creates a reader positioned at the start of `data`.
+    fn from_bytes(data: Vec<i32>) -> Reader {
+        Reader {
+            bytes: data,
+            cursor: 0,
+        }
+    }
+
+    /// Creates an empty reader positioned at EOF.
+    fn new() -> Reader {
+        Reader {
+            bytes: Vec::new<i32>(),
+            cursor: 0,
+        }
+    }
+
+    /// Returns the total byte count, independent of the cursor.
+    fn len(self: Reader) -> i32 {
+        len(self.bytes)
+    }
+
+    /// Returns true when the cursor is at or past the end of the image.
+    fn is_eof(self: Reader) -> bool {
+        self.cursor >= len(self.bytes)
+    }
+
+    /// Returns the full byte image, independent of the cursor.
+    fn into_bytes(self: Reader) -> Vec<i32> {
+        self.bytes
+    }
+}
+
+impl Read for Reader {
+    fn read(self: Reader, max_bytes: i32) -> Result<Vec<i32>, IoError> {
+        if max_bytes < 0 {
+            return Err(IoError::Other("read: max_bytes must be non-negative"))
+        }
+        let total: i32 = len(self.bytes)
+        let available: i32 = if self.cursor < total { total - self.cursor } else { 0 }
+        let count: i32 = if max_bytes < available { max_bytes } else { available }
+        let out: Vec<i32> = Vec::new<i32>()
+        let mut i: i32 = 0
+        while i < count {
+            push(out, get_unchecked(self.bytes, self.cursor + i))
+            i = i + 1
+        }
+        self.cursor = self.cursor + count
+        Ok(out)
+    }
+}
+
+impl BufRead for Reader {
+    fn fill_buf(self: Reader) -> Result<Vec<i32>, IoError> {
+        let total: i32 = len(self.bytes)
+        let out: Vec<i32> = Vec::new<i32>()
+        let mut i: i32 = self.cursor
+        while i < total {
+            push(out, get_unchecked(self.bytes, i))
+            i = i + 1
+        }
+        Ok(out)
+    }
+
+    fn consume(self: Reader, amount: i32) -> Result<(), IoError> {
+        if amount < 0 {
+            return Err(IoError::Other("consume: amount must be non-negative"))
+        }
+        let total: i32 = len(self.bytes)
+        let available: i32 = if self.cursor < total { total - self.cursor } else { 0 }
+        if amount > available {
+            return Err(IoError::Other("consume: amount exceeds buffered bytes"))
+        }
+        self.cursor = self.cursor + amount
+        Ok(())
+    }
+
+    fn read_line(self: Reader) -> Result<Option<String>, IoError> {
+        if self.cursor >= len(self.bytes) {
+            return Ok(Option::None)
+        }
+        let total: i32 = len(self.bytes)
+        let mut line: String = ""
+        let mut pos: i32 = self.cursor
+        let mut found_newline: bool = false
+        while pos < total && !found_newline {
+            let byte: i32 = get_unchecked(self.bytes, pos)
+            pos = pos + 1
+            if byte == NEWLINE_BYTE {
+                found_newline = true
+            } else {
+                line = __intrinsic_concat(line, char_to_string(byte))
+            }
+        }
+        self.cursor = pos
+        Ok(Option::Some(line))
+    }
+}
+
+impl Seek for Reader {
+    fn seek(self: Reader, from: SeekFrom) -> Result<i64, IoError> {
+        let target: i64 = match from {
+            SeekFrom::Start(offset) => offset,
+            SeekFrom::Current(offset) => i32_to_i64(self.cursor) + offset,
+            SeekFrom::End(offset) => i32_to_i64(len(self.bytes)) + offset,
+        }
+        if target < 0i64 {
+            return Err(IoError::Other("seek: negative position"))
+        }
+        if target > i32_to_i64(MAX_CURSOR_POSITION) {
+            return Err(IoError::Other("seek: position exceeds i32 range"))
+        }
+        self.cursor = i64_to_i32(target)
+        Ok(target)
+    }
+
+    fn position(self: Reader) -> Result<i64, IoError> {
+        Ok(i32_to_i64(self.cursor))
+    }
+}
+
+/// In-memory write handle over an owned byte image.
+///
+/// The image is private; `into_bytes` recovers it and `into_reader` reopens it
+/// as a cursor-0 `Reader`. Handles are not `Copy`.
+pub struct Writer {
+    bytes: Vec<i32>,
+}
+
+impl Writer {
+    /// Creates an empty writer.
+    fn new() -> Writer {
+        Writer {
+            bytes: Vec::new<i32>(),
+        }
+    }
+
+    /// Returns the buffered byte image.
+    fn into_bytes(self: Writer) -> Vec<i32> {
+        self.bytes
+    }
+
+    /// Converts the buffered bytes into a cursor-0 reader.
+    fn into_reader(self: Writer) -> Reader {
+        Reader::from_bytes(self.bytes)
+    }
+}
+
+impl Write for Writer {
+    fn write(self: Writer, data: Vec<i32>) -> Result<i32, IoError> {
+        let count: i32 = len(data)
+        let mut i: i32 = 0
+        while i < count {
+            push(self.bytes, get_unchecked(data, i) & BYTE_MASK)
+            i = i + 1
+        }
+        Ok(count)
+    }
+
+    fn flush(self: Writer) -> Result<(), IoError> {
+        Ok(())
+    }
+}
+
 // ─── Reader ──────────────────────────────────────────────────────────────────
 /// Creates a Reader over the given byte buffer.
 ///
@@ -295,11 +551,6 @@ pub fn writer_flush(w: Vec<i32>) -> Result<(), IoError> {
     Ok(())
 }
 
-/// Alias for `writer_flush`.
-pub fn flush(w: Vec<i32>) -> Result<(), IoError> {
-    writer_flush(w)
-}
-
 /// Returns the buffered bytes of a memory Writer.
 ///
 /// For stdout/stderr Writers, returns an empty Vec (bytes were already emitted).
@@ -456,313 +707,159 @@ pub fn copy(r: Vec<i32>, w: Vec<i32>) -> Result<i32, IoError> {
     copy_bytes(r, w)
 }
 
-// ─── Read / Write / BufRead / Seek traits (#693) ─────────────────────────────
+// ─── Legacy memory-buffer helpers (compatibility) ──────────────────────────
 //
-// Trait-based IO unification. These traits allow file, socket, stream, and
-// memory-buffer sources to be treated uniformly. The existing Vec<i32>-based
-// Reader/Writer aliases remain fully backward compatible; the traits layer
-// on top of the same runtime representation.
-//
-// ## Protocol catalog: `Read`
-//
-// | Type             | Status | Notes                              |
-// |------------------|--------|------------------------------------|
-// | Vec<i32> (mem)   | impl   | Memory buffer (Reader layout)      |
-// | FileHandle       | impl   | Wraps host fs fd                   |
-// | StdinHandle      | impl   | Wraps stdin                        |
-//
-// ## Protocol catalog: `Write`
-//
-// | Type             | Status | Notes                              |
-// |------------------|--------|------------------------------------|
-// | Vec<i32> (mem)   | impl   | Memory buffer (Writer layout)      |
-// | FileHandle       | impl   | Wraps host fs fd                   |
-// | StdoutHandle     | impl   | Wraps stdout                       |
-//
-// ## Protocol catalog: `BufRead`
-//
-// | Type             | Status | Notes                              |
-// |------------------|--------|------------------------------------|
-// | Vec<i32> (mem)   | impl   | Memory buffer (BufReader layout)   |
-//
-// ## Protocol catalog: `Seek`
-//
-// | Type             | Status | Notes                              |
-// |------------------|--------|------------------------------------|
-// | Vec<i32> (mem)   | impl   | Memory buffer (Reader layout)      |
+// These free functions keep the `Vec<i32>` layout contracts that predate the
+// newtypes. They are independent of the trait impls above: Phase E converts
+// them into wrappers and deprecates them under #693 / ADR-014.
 
-/// Trait for reading bytes from a source.
+/// Creates a new memory buffer for the legacy trait helpers.
 ///
-/// `read` pulls up to `len(buf)` bytes into the internal cursor, returning
-/// the number of bytes actually read (0 indicates EOF).
-trait Read {
-    fn read(self: Read, buf: Vec<i32>) -> i32
-}
-
-/// Trait for writing bytes to a destination.
-///
-/// `write` accepts a byte buffer and returns the number of bytes written.
-trait Write {
-    fn write(self: Write, buf: Vec<i32>) -> i32
-}
-
-/// Trait for buffered reading.
-///
-/// `fill_buf` returns the internal buffer contents without advancing the
-/// cursor. `consume` advances the cursor by `n` bytes.
-trait BufRead {
-    fn fill_buf(self: BufRead) -> Vec<i32>
-}
-
-/// Trait for seeking within a stream.
-///
-/// `seek` repositions the cursor to `pos` (absolute offset from start).
-/// Returns the new cursor position.
-trait Seek {
-    fn seek(self: Seek, pos: i64) -> i64
-}
-
-// ─── Memory buffer Read/Write/BufRead/Seek impls ─────────────────────────────
-//
-// The memory buffer uses the existing Reader/Writer Vec<i32> layout:
-//   Reader: [cursor, b0, b1, ..., bn]
-//   Writer: [fd_tag, b0, b1, ..., bn]  (fd_tag=0 for memory)
-// We implement the traits directly on Vec<i32> since the runtime
-// representation is shared.
-
-/// `Read` impl for `Vec<i32>` (memory buffer / Reader layout).
-impl Read for Vec<i32> {
-    fn read(self: Vec<i32>, buf: Vec<i32>) -> i32 {
-        let cursor: i32 = get_unchecked(self, 0)
-        let total: i32 = len(self) - 1
-        let available: i32 = total - cursor
-        let want: i32 = len(buf)
-        let count: i32 = if want < available {
-            want
-        } else {
-            available
-        }
-        let mut i: i32 = 0
-        while i < count {
-            set(buf, i, get_unchecked(self, 1 + cursor + i))
-            i = i + 1
-        }
-        set(self, 0, cursor + count)
-        count
-    }
-}
-
-/// `Write` impl for `Vec<i32>` (memory buffer / Writer layout).
-impl Write for Vec<i32> {
-    fn write(self: Vec<i32>, buf: Vec<i32>) -> i32 {
-        let tag: i32 = get_unchecked(self, 0)
-        let n: i32 = len(buf)
-        if tag == 0 {
-            let mut i: i32 = 0
-            while i < n {
-                push(self, get_unchecked(buf, i) & 255)
-                i = i + 1
-            }
-            n
-        } else {
-            let mut s: String = ""
-            let mut i: i32 = 0
-            while i < n {
-                s = __intrinsic_concat(s, char_to_string(get_unchecked(buf, i) & 255))
-                i = i + 1
-            }
-            if tag == 1 {
-                __intrinsic_print(s)
-            } else {
-                __intrinsic_eprintln(s)
-            }
-            n
-        }
-    }
-}
-
-/// `BufRead` impl for `Vec<i32>` (memory buffer / Reader layout).
-impl BufRead for Vec<i32> {
-    fn fill_buf(self: Vec<i32>) -> Vec<i32> {
-        let cursor: i32 = get_unchecked(self, 0)
-        let total: i32 = len(self) - 1
-        let out: Vec<i32> = Vec::new<i32>()
-        let mut i: i32 = cursor
-        while i < total {
-            push(out, get_unchecked(self, 1 + i))
-            i = i + 1
-        }
-        out
-    }
-}
-
-/// `Seek` impl for `Vec<i32>` (memory buffer / Reader layout).
-impl Seek for Vec<i32> {
-    fn seek(self: Vec<i32>, pos: i64) -> i64 {
-        let total: i32 = len(self) - 1
-        let p: i32 = __intrinsic_i64_to_i32(pos)
-        let clamped: i32 = if p < 0 {
-            0
-        } else {
-            if p > total {
-                total
-            } else {
-                p
-            }
-        }
-        set(self, 0, clamped)
-        __intrinsic_i32_to_i64(clamped)
-    }
-}
-
-// ─── Trait-based convenience functions (#693) ────────────────────────────────
-
-/// Creates a new memory buffer for trait-based Read/Write.
-///
-/// The buffer uses Reader layout `[cursor=0]` so it can be used as both
-/// a Read source (after writing bytes) and a Write destination.
+/// The buffer uses Reader layout `[cursor=0]` so it can be used as both a
+/// legacy Read source (after writing bytes) and a Write destination.
 pub fn new_memory_buffer() -> Vec<i32> {
     let buf: Vec<i32> = Vec::new<i32>()
     push(buf, 0)
     buf
 }
 
-/// Writes byte values into a memory buffer (Write trait dispatch).
+/// Appends byte values to a legacy memory buffer and returns the count.
 ///
-/// `buf` is a memory buffer created by `new_memory_buffer()`.
-/// `data` is a Vec<i32> of byte values (0–255).
-/// Returns the number of bytes written.
+/// `buf` must come from `new_memory_buffer()`.
 pub fn write_bytes(buf: Vec<i32>, data: Vec<i32>) -> i32 {
-    write(buf, data)
+    let count: i32 = len(data)
+    let mut i: i32 = 0
+    while i < count {
+        push(buf, get_unchecked(data, i) & BYTE_MASK)
+        i = i + 1
+    }
+    count
 }
 
-/// Reads up to `n` bytes from a memory buffer (Read trait dispatch).
+/// Reads up to `n` bytes from a legacy memory buffer.
 ///
-/// Returns a Vec<i32> of the bytes actually read.
+/// A negative `n` reads nothing and leaves the cursor unchanged, matching the
+/// pre-newtype helper.
 pub fn read_bytes(buf: Vec<i32>, n: i32) -> Vec<i32> {
+    let cursor: i32 = get_unchecked(buf, 0)
+    let total: i32 = len(buf) - 1
+    let available: i32 = total - cursor
+    let wanted: i32 = if n < available { n } else { available }
+    let count: i32 = if wanted < 0 { 0 } else { wanted }
     let out: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
-    while i < n {
-        push(out, 0)
+    while i < count {
+        push(out, get_unchecked(buf, 1 + cursor + i))
         i = i + 1
     }
-    let read_count: i32 = read(buf, out)
-    // Trim to bytes actually read — len(out) stays at n after the prefill.
-    let trimmed: Vec<i32> = Vec::new<i32>()
-    let mut j: i32 = 0
-    while j < read_count {
-        push(trimmed, get_unchecked(out, j))
-        j = j + 1
-    }
-    trimmed
+    set(buf, 0, cursor + count)
+    out
 }
 
-/// Seeks to absolute position `pos` in a memory buffer (Seek trait dispatch).
-/// Returns the new cursor position.
+/// Seeks to the absolute position `pos`, clamped to `[0, len]`.
+///
+/// The clamp is the legacy `seek_to` contract; `Seek::seek` does not clamp.
 pub fn seek_to(buf: Vec<i32>, pos: i64) -> i64 {
-    seek(buf, pos)
+    let total: i32 = len(buf) - 1
+    let requested: i32 = i64_to_i32(pos)
+    let clamped: i32 = if requested < 0 {
+        0
+    } else if requested > total {
+        total
+    } else {
+        requested
+    }
+    set(buf, 0, clamped)
+    i32_to_i64(clamped)
 }
 
-/// Returns the current cursor position of a memory buffer.
-pub fn position(buf: Vec<i32>) -> i64 {
-    __intrinsic_i32_to_i64(get_unchecked(buf, 0))
+/// Returns the current cursor position of a legacy memory buffer.
+///
+/// `position` was renamed because the ADR-085 `Seek::position` method occupies
+/// the `std::io` function namespace. The compatibility helper keeps the legacy
+/// `Vec<i32>` contract; callers move to `Reader::position()` when they adopt
+/// the newtype API.
+pub fn buffer_position(buf: Vec<i32>) -> i64 {
+    i32_to_i64(get_unchecked(buf, 0))
 }
 
-/// Returns the total number of bytes available in a memory buffer.
+/// Returns the total number of bytes available in a legacy memory buffer.
 pub fn buffer_len(buf: Vec<i32>) -> i64 {
     let total: i32 = len(buf) - 1
-    __intrinsic_i32_to_i64(total)
+    i32_to_i64(total)
 }
 
-/// Fills the internal buffer of a BufRead source (BufRead trait dispatch).
-/// Returns the remaining bytes without advancing the cursor.
+/// Returns the unread bytes of a legacy buffered source without advancing it.
 pub fn fill_buffer(buf: Vec<i32>) -> Vec<i32> {
-    fill_buf(buf)
-}
-
-/// Copies all bytes from a Read source to a Write destination via trait dispatch.
-///
-/// This is the trait-based generic copy that works with any type implementing
-/// Read and Write. It reads in chunks and writes them until EOF.
-/// Returns the total number of bytes copied.
-pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
-    // Monomorphic memory-buffer path: generic `<R: Read, W: Write>` mono still
-    // emits an empty unreachable body on wasm32-gc (#807). Trait dispatch for
-    // Vec buffers goes through the same Read/Write impls as before.
-    let chunk: Vec<i32> = Vec::new<i32>()
-    let mut i: i32 = 0
-    while i < 256 {
-        push(chunk, 0)
+    let cursor: i32 = get_unchecked(buf, 0)
+    let total: i32 = len(buf) - 1
+    let out: Vec<i32> = Vec::new<i32>()
+    let mut i: i32 = cursor
+    while i < total {
+        push(out, get_unchecked(buf, 1 + i))
         i = i + 1
     }
+    out
+}
+
+/// Copies all remaining bytes between legacy layout buffers.
+///
+/// The monomorphic form predates #693 Phase B; `Io::copy` will own the generic
+/// algorithm once two-bound monomorphisation is confirmed.
+pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut done: bool = false
     while !done {
-        let mut k: i32 = 0
-        while k < 256 {
-            set(chunk, k, 0)
-            k = k + 1
-        }
-        let n: i32 = read(from, chunk)
-        if n == 0 {
-            done = true
-        } else {
-            let to_write: Vec<i32> = Vec::new<i32>()
-            let mut j: i32 = 0
-            while j < n {
-                push(to_write, get_unchecked(chunk, j))
-                j = j + 1
-            }
-            let written: i32 = write(to, to_write)
-            total = total + written
+        match reader_read(from, COPY_CHUNK_BYTES) {
+            Result::Ok(chunk) => {
+                if len(chunk) == 0 {
+                    done = true
+                } else {
+                    total = total + write_bytes(to, chunk)
+                }
+            },
+            Result::Err(_) => done = true,
         }
     }
     total
 }
 
-// ─── File handle wrapper for Read/Write traits (#693) ────────────────────────
+// ─── Legacy FileHandle compatibility (#693) ────────────────────────────────
 //
-// FileHandle wraps a host file descriptor (fd) so that Read/Write traits
-// can be implemented for file I/O. The fd is obtained from std::host::fs
-// fd helpers. On current targets, file read/write is whole-file only;
-// the trait impls delegate to the existing intrinsics where possible.
+// `FileHandle` is the experimental fd wrapper from the partial #693 work. It
+// keeps the legacy Vec layout until Phase D's `std::host::fs::File` replaces
+// it. The fd must come from the `std::host::fs` fd helpers.
 
-/// Creates a FileHandle from a raw file descriptor.
-/// The fd must be obtained from std::host::fs fd helpers.
+/// Creates a legacy FileHandle from a raw file descriptor.
 pub fn file_from_fd(fd: i32) -> Vec<i32> {
-    let h: Vec<i32> = Vec::new<i32>()
-    push(h, fd)
-    push(h, 0)
-    h
+    let handle: Vec<i32> = Vec::new<i32>()
+    push(handle, fd)
+    push(handle, 0)
+    handle
 }
 
-/// Reads up to `len(buf)` bytes from a FileHandle into `buf`.
-/// Returns the number of bytes read (0 on EOF).
-/// Note: current WASI intrinsics do not support partial fd reads;
-/// this delegates to the memory buffer Read impl for testing.
+/// Reads up to `len(buf)` bytes from a legacy FileHandle into `buf`.
+///
+/// Returns the number of bytes read (0 at EOF).
 pub fn file_read(handle: Vec<i32>, buf: Vec<i32>) -> i32 {
-    read(handle, buf)
+    match reader_read(handle, len(buf)) {
+        Result::Ok(chunk) => {
+            let count: i32 = len(chunk)
+            let mut i: i32 = 0
+            while i < count {
+                set(buf, i, get_unchecked(chunk, i))
+                i = i + 1
+            }
+            count
+        },
+        Result::Err(_) => 0,
+    }
 }
 
-/// Writes `buf` bytes to a FileHandle.
-/// Returns the number of bytes written.
+/// Writes `buf` bytes to a legacy FileHandle and returns the accepted count.
 pub fn file_write(handle: Vec<i32>, buf: Vec<i32>) -> i32 {
-    write(handle, buf)
+    match writer_write(handle, buf) {
+        Result::Ok(count) => count,
+        Result::Err(_) => 0,
+    }
 }
-// cursor starts at 0
-// exit loop on newline
-// cursor = 0, no data
-// fd_tag = 1 (stdout)
-// fd_tag = 2 (stderr)
-// fd_tag = 0 (memory)
-// cursor
-// buf_cap hint
-// r layout: [cursor, b0..bn]
-// bytes are at 2..len(br)
-// exit loop on newline
-// inherit the underlying fd_tag
-// buf_cap
-// Auto-flush when buffered content reaches cap
-// Build string from buffered bytes and print to stdout
-// Build string from buffered bytes and print to stderr
-// Clear the buffer; preserve tag and cap header

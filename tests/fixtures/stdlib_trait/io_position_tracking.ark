@@ -11,18 +11,18 @@ fn main() {
     push(data, 5)
     let _w = io::write_bytes(buf, data)
 
-    let pos0: i64 = io::position(buf)
+    let pos0: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos0, 0)
 
     let _r1 = io::read_bytes(buf, 2)
-    let pos1: i64 = io::position(buf)
+    let pos1: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos1, 2)
 
     let _r2 = io::read_bytes(buf, 2)
-    let pos2: i64 = io::position(buf)
+    let pos2: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos2, 4)
 
     let _r3 = io::read_bytes(buf, 2)
-    let pos3: i64 = io::position(buf)
+    let pos3: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos3, 5)
 }

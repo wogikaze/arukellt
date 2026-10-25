@@ -21,6 +21,6 @@ fn main() {
     test::assert_eq_i32(get_unchecked(read, 3), 108)
     test::assert_eq_i32(get_unchecked(read, 4), 111)
 
-    let pos: i64 = io::position(buf)
+    let pos: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos, 5)
 }

@@ -8,9 +8,9 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 391 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 389 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 318 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 319 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -40,6 +40,13 @@
 | `IteratorSum` | Item, Output | no |
 | `IteratorFold` | Item, Accumulator | no |
 | `IoError` | - | no |
+| `SeekFrom` | - | no |
+| `Read` | - | no |
+| `Write` | - | no |
+| `BufRead` | - | no |
+| `Seek` | - | no |
+| `Reader` | - | no |
+| `Writer` | - | no |
 
 ## Prelude Values
 
@@ -578,6 +585,7 @@ let input = read_to_string()
 | `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Return the total number of bytes available in an io.traits memory buffer. |
+| `buffer_position` | `(Vec<i32>) -> i64` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Return the current cursor position of a legacy memory buffer. Renamed from position because the AD… |
 | `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
@@ -586,9 +594,7 @@ let input = read_to_string()
 | `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Read bytes from an io.traits FileHandle into a buffer. |
 | `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Write buffer bytes to an io.traits FileHandle. |
 | `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Fill the internal buffer of an io.traits BufRead source. |
-| `flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Create a new memory buffer for capability io.traits. |
-| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Return the current cursor position of an io.traits memory buffer. |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Read up to n bytes from a memory buffer via io.traits Read dispatch. |
 | `read_stdin_line` | `() -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |

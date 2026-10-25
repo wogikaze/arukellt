@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 792
+- **Canonical names:** 791
 - **Historical/deprecated names:** 19
-- **Total entries:** 811
+- **Total entries:** 810
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -126,6 +126,7 @@ Current public API names, sorted alphabetically.
 | `buf_writer_new` | `std::io` | `stable` | Io |
 | `buf_writer_write_str` | `std::io` | `stable` | Io |
 | `buffer_len` | `std::io` | `stable` | Io |
+| `buffer_position` | `std::io` | `experimental` | Io |
 | `buffered_reader` | `std::io` | `stable` | Io |
 | `buffered_writer` | `std::io` | `stable` | Io |
 | `builder_append` | `std::text` | `stable` | Text |
@@ -264,7 +265,6 @@ Current public API names, sorted alphabetically.
 | `flag` | `std::cli` | `stable` | Cli |
 | `flat_map_iter` | `std::core::iter` | `provisional` | Iter |
 | `floor` | `std::simd::f32x4` | `experimental` | Simd |
-| `flush` | `std::io` | `stable` | Io |
 | `fold_f64_f64` | `prelude` | `stable` | Collections |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
 | `fold_i64_i64` | `prelude` | `stable` | Collections |
@@ -542,7 +542,6 @@ Current public API names, sorted alphabetically.
 | `peek_iter` | `std::core::iter` | `provisional` | Iter |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
-| `position` | `std::io` | `stable` | Io |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `pq_len` | `std::collections::linear` | `stable` | Collections |
@@ -956,6 +955,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `buf_writer_new` | ✅ `stable` | `std::io` | Io |
 | `buf_writer_write_str` | ✅ `stable` | `std::io` | Io |
 | `buffer_len` | ✅ `stable` | `std::io` | Io |
+| `buffer_position` | ✅ `experimental` | `std::io` | Io |
 | `buffered_reader` | ✅ `stable` | `std::io` | Io |
 | `buffered_writer` | ✅ `stable` | `std::io` | Io |
 | `builder_append` | ✅ `stable` | `std::text` | Text |
@@ -1099,7 +1099,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | `flat_map_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
 | ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_fold_i32` · [migration guide](migration-guidance.md) |
@@ -1382,7 +1381,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `peek_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
-| `position` | ✅ `stable` | `std::io` | Io |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |

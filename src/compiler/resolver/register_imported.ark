@@ -11,6 +11,8 @@ use resolver::kinds
 use resolver::modules
 use resolver::register_exports
 use resolver::paths
+use resolver::impl_target
+use corehir::decl_impl_target
 fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = len(modules)
     let mut mi = 0
@@ -91,12 +93,69 @@ fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
                 } else {
                     if ast_decl_predicates::node_is_enum_decl(d) {
                         register_imported_enum_exports(ctx, clone(module_name), d, clone(symbol_name), is_pub)
+                    } else {
+                        if ast_decl_predicates::node_is_impl_decl(d) {
+                            register_imported_impl_exports(ctx, m, clone(module_name), d)
+                        }
                     }
                 }
             }
         }
         di = di + 1
     }
+}
+
+// Export the associated functions and methods of an impl block on a public
+// type declared by this module. `register_impl_method_headers` already binds
+// the mangled `Type::method` name inside the module scope, but module exports
+// only covered top-level decls. Without this, `io::Reader::from_bytes` has no
+// module member for a cross-module associated call to resolve.
+fn register_imported_impl_exports(ctx: ResolveCtx, m: ModuleDecls, module_name: String, impl_decl: AstNode) {
+    let type_name = impl_target::impl_self_type_name(impl_decl)
+    if len(clone(type_name)) == 0 {
+        return
+    }
+    if !module_declares_pub_type(m, clone(type_name)) {
+        return
+    }
+    let child_count = ast_access::node_child_count(impl_decl)
+    let mut ci = 0
+    while ci < child_count {
+        let method = ast_access::node_child_at(impl_decl, ci)
+        if ast_decl_predicates::node_is_fn_decl(method) {
+            let mangled = decl_impl_target::impl_method_mangled_name(
+                impl_decl,
+                ast_access::node_text(method)
+            )
+            register_exports::register_module_export(
+                ctx,
+                clone(module_name),
+                mangled,
+                commands::SYM_FN(),
+                true
+            )
+        }
+        ci = ci + 1
+    }
+}
+
+// Impl methods are only exported when their owner type is a public nominal
+// type declared by the same module. Builtin owners (`Vec<T>`, `String`) and
+// private helper structs must not leak module-qualified method entries.
+fn module_declares_pub_type(m: ModuleDecls, type_name: String) -> bool {
+    let mdecl_count = modules::module_decl_count(m)
+    let mut di = 0
+    while di < mdecl_count {
+        let d = modules::module_decl_at(m, di)
+        if ast_access::node_is_pub(d) && eq(ast_access::node_text(d), clone(type_name)) {
+            if ast_decl_predicates::node_is_struct_decl(d) ||
+            ast_decl_predicates::node_is_enum_decl(d) {
+                return true
+            }
+        }
+        di = di + 1
+    }
+    false
 }
 
 fn register_imported_enum_exports(ctx: ResolveCtx, module_name: String, enum_decl: AstNode, enum_name: String, is_pub: bool) {
