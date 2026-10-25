@@ -1,12 +1,12 @@
 ---
 Status: open
 Created: 2026-06-27
-Updated: 2026-07-12
+Updated: 2026-10-25
 ID: 703
 Track: stdlib-api
-Depends on: "700, 701, 691, 695"
-Orchestration class: blocked-by-upstream
-Orchestration upstream: "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+Depends on: "none"
+Orchestration class: implementation-ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 2
 Source: Method-syntax-first stdlib direction 2026-06-27 / ADR-036 D2 / ADR-046
@@ -16,116 +16,145 @@ Source: Method-syntax-first stdlib direction 2026-06-27 / ADR-036 D2 / ADR-046
 
 ## Summary
 
-Arukellt's stdlib has **parallel monomorphic and (planned) generic** APIs
-for `Vec` operations, sorting, and higher-order sequence functions.
-These monomorphic free APIs must be **removed** from the user-reachable
-surface ([ADR-046](../../docs/adr/ADR-046-free-function-eradication.md)).
+Remove the remaining **monomorphic free functions** from the user-reachable
+stdlib surface ([ADR-046](../../docs/adr/ADR-046-free-function-eradication.md)).
+The replacement shape is `Vec<T>` / `HashMap<K, V>` methods and the
+`std::core::iter` pipeline; there is no permanent free-function bridge.
 
-Deletion timing follows **ADR-014 + ADR-046 D4** (not “delete stable
-without notice”):
+Deletion timing follows **ADR-014 + ADR-046 D4**: provide the replacement,
+deprecate `stable` symbols for at least one complete release, then delete.
+`experimental` / already-deprecated symbols may be removed sooner, but only
+inside their recorded removal window.
 
-1. Provide the generic / method replacement (#700 / #701 / #691 / #695).
-2. Mark `stable` symbols deprecated (`deprecated_by` + W0009) for at least
-   one release with a migration guide.
-3. Delete after the deprecation window (`experimental` may delete sooner).
+## Ownership (Wave 0 correction)
 
-Bold cutover without deprecation applies only to `experimental` or
-already-deprecated symbols (ADR-036 D2 as clarified by ADR-046).
+The pre-2026-10 issue text claimed `Vec_new_*` / `Vec_push_*` constructors.
+Those were removed by [#845](../done/845-remove-vec-new-mangling.md); the
+remaining cutover is the following, single owner per family:
 
-Why remove the parallel surface:
+| Family | Symbols | Owner |
+|--------|---------|-------|
+| Deprecated prelude wrappers (`concat`, `char_at`, `print`, `println`) | 4 | #703 |
+| Deprecated `std::seq` helpers (`map_i32_i32`, `filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`, `binary_search`, `min_i32`, `max_i32`, `sum_i32`, `seq_reverse`, `seq_contains`, `unique`, `count_eq`) | 13 | #703 |
+| Stable prelude monomorphic seq/combinator frees (`sort_i32/i64/f64/String`, `map_*`, `filter_*`, `fold_*`, `contains_*`, `reverse_*`, `remove_i32`, `sum_*`, `product_*`, `any_*`, `find_*`, `map_option_*`, `map_result_*`) | 34 | #703 |
+| **#703 total** | **51** | **#703** |
+| Every other eradication family (numeric conversions, `HashMap_*` builtins, io, collections, wasm, simd, wit, test, …) | — | #917 |
 
-1. Monomorphic and generic variants coexisting confuses LLM code
-   generation.
-2. Free `*_i32` helpers block trait-first docs and scorecard zero.
-3. Deprecation metadata in `std/manifest.toml` already marks direction
-   for some symbols; this issue finishes the rest under ADR-014.
+`docs/data/stdlib-api-eradication.toml` is the machine-readable owner of
+this split: the `deprecated prelude wrappers`, `deprecated std::seq helpers`,
+and `monomorphic seq/combinator frees` rules all carry `owner = "703"`.
+#917 stays the execution umbrella for the other families and for the final
+retirement of the `std::seq` module itself (its non-deprecated generic
+helpers `lower_bound`, `upper_bound`, `binary_search_by`, `min_by`, … are
+registered entries owned by #917).
 
-## Current state
+## Current state (2026-10-25)
 
-**Monomorphic APIs to remove:**
-
-- `Vec_new_i32()`, `Vec_new_i64()`, `Vec_new_f64()`, `Vec_new_String()`,
-  `Vec_new_i32_with_cap(n)`, etc.
-  → replaced by `Vec::new<T>()`, `Vec::with_capacity<T>(n)` (#701)
-- `Vec_push_i32(v, x)`, `Vec_get_i32(v, i)`, `Vec_set_i32(v, i, x)`,
-  `Vec_len_i32(v)`, etc.
-  → replaced by `v.push(x)`, `v.get(i)`, `v.set(i, x)`, `v.len()` (#700)
-- `sort_i32(v)`, `sort_i64(v)`, `sort_f64(v)`, `sort_String(v)`
-  → replaced by `v.sort()` / `sort<T: Ord>(v)` (#695, #700)
-- `map_i32_i32(v, f)`, `filter_i32(v, f)`, `fold_i32_i32(v, init, f)`,
-  `any_i32(v, f)`, `find_i32(v, f)`, `contains_i32(v, x)`,
-  `reverse_i32(v)`, `remove_i32(v, x)`
-  → replaced by `v.map(f)`, `v.filter(f)`, `v.fold(init, f)`, etc.
-  via `Iterator` adapters (#691) and `impl Vec<T>` methods (#700)
-- `sum_i32(v)`, `product_i32(v)`
-  → replaced by `v.sum()` / `Iterator::sum<T: Add>` (#691)
-- `std::seq` module (`unique`, `seq_reverse`, `count_eq`,
-  `binary_search`, `min_i32`, `max_i32`)
-  → replaced by `std::iter` + `Vec<T>` methods
-
-**Already deprecated in `std/manifest.toml`:**
-- `Vec_new_i32` (deprecated_by: `Vec::new`)
-- `Vec_new_i64` (deprecated_by: `Vec::new`)
-- `filter_i32` (deprecated_by: `Vec::filter`)
-
-**Not yet deprecated (need generic replacement first):**
-- `sort_i32`, `map_i32_i32`, `fold_i32_i32`, `Vec_push_i32`, etc.
+- Upstream code issues #700 (method syntax), #701 (associated syntax),
+  #691 (`Iterator`), and #695 (`Ord`) are **closed**. #691 delivered the
+  concrete `i32` / `String` iterator lanes, not the full adapter surface.
+- The 4 prelude wrappers and 13 `std::seq` helpers already carry
+  `deprecated_by` in `std/manifest.toml`.
+- The 34 stable prelude monomorphic frees are **not yet deprecated** and
+  still ship as `stable` prelude entries.
+- `std/manifest.toml` is version `0.1.0`; `[deprecation_policy]` sets
+  `default_remove_in = "1.0.0"` and `minimum_complete_releases = 1`.
+  No #703 symbol may be deleted before that window closes.
+- The eradication gate now measures the real surface: 1431 top-level
+  `pub fn` declarations under `std/**/*.ark`, of which 447 have no manifest
+  entry. Eradication scope is 811 manifest public entries + 447
+  unregistered declarations = 1258 symbols
+  (`docs/stdlib/eradication.md`).
 
 ## Required work
 
-### Prerequisite (blocked by upstream issues)
+### Wave 0 — foundation (this lane)
 
-- [x] #700 lands `impl Vec<T>` with `push` / `get` / `set` / `len` /
-      `is_empty` / `clear` methods.
-- [x] #701 lands `Vec::new<T>()` syntax (via legacy rewrite — removal is **#845**).
-- [ ] #691 lands `Iterator` trait with `map` / `filter` / `fold` /
-      `any` / `find` / `sum` / `product` adapters.
-- [ ] #695 lands `Ord` trait for `sort` / `binary_search`.
+- [x] Measure the real std surface in
+      `scripts/check/check-stdlib-eradication.py` /
+      `docs/stdlib/eradication.md`, including unregistered `pub fn`
+      declarations and manifest entries without a declaration.
+- [x] Correct the ownership split in
+      `docs/data/stdlib-api-eradication.toml` (51 symbols here, #917 for
+      the other families).
+- [x] Stop advertising nonexistent generic frees (`sort<i32>(v)`,
+      `map<i32, i32>(v, f)`, `reverse<i32>`, `sum<i32>`, `product<i32>`,
+      …) in `docs/stdlib/migration-guidance.md`.
+- [x] Teach `scripts/check/check-compat-orphans.py` about `Type::method`
+      `deprecated_by` targets so Wave 1 can point at `Vec::sort()` and
+      similar replacements without a false orphan.
+- [ ] Add W0009 coverage for `std::seq` imports/calls — **blocked**, see
+      [W0009 coverage blocker](#w0009-coverage-blocker).
 
-### Cutover
+### Wave 1 — deprecate the 34 stable monomorphic frees
 
-- [ ] **Vec constructors** (`Vec_new_*` mangling + prelude): tracked by **#845**
-      (front-loaded from this issue).
-- [ ] **Deprecate** (if `stable`) then **delete** all monomorphic
-      sort/map/filter/fold functions from `std/seq/mod.ark` and prelude:
-      `sort_i32`, `sort_i64`, `sort_f64`, `sort_String`, `map_i32_i32`,
-      `filter_i32`, `fold_i32_i32`, `any_i32`, `find_i32`, `contains_i32`,
-      `reverse_i32`, `remove_i32`, `sum_i32`, `product_i32`.
-- [ ] **Delete** `std::seq` module entirely — replace with `std::iter`
-      (from #691) and `impl Vec<T>` methods (from #700).
-- [ ] **Update** `std/manifest.toml` — remove deleted entries; ensure
-      deprecation metadata existed for former `stable` symbols.
-- [ ] **Update** all in-tree callers (compiler source, fixtures,
-      benchmarks) to use method syntax / associated function syntax /
-      `Iterator` adapters.
-- [ ] **Migration guide**: Update `docs/stdlib/migration-guidance.md`
-      with before/after table for each deleted API.
-- [ ] **[breaking]** Create breaking change notice with migration guide.
+- [ ] Add `deprecated_by`, `deprecated_since`, and `remove_in` to the 34
+      prelude entries in `std/manifest.toml` (ADR-014 window).
+- [ ] Add the matching rows to `docs/stdlib/migration-guidance.md`.
+- [ ] W0009 / E0100 diagnostic coverage (blocked; see below).
+- [ ] Update in-tree callers (compiler source, fixtures, benchmarks) to
+      `v.sort()`, `v.iter().map(f).collect()`, `v.iter().sum()`, … as the
+      method replacements land (#697 for `Vec::sort`).
 
-### Fixtures
+### Wave 2 — delete inside the 1.0.0 window
 
-- [ ] All fixtures updated to use method syntax / generic API.
-- [ ] No fixture references `Vec_new_i32`, `sort_i32`, `map_i32_i32`,
-      etc.
-- [ ] `python3 scripts/manager.py verify --full` exits 0.
+- [ ] Delete the 51 manifest entries and their prelude / `std::seq`
+      implementations after `remove_in = 1.0.0` is reachable.
+- [ ] Do **not** delete the whole `std::seq` module in this issue: the
+      nine non-deprecated generic helpers belong to #917.
+- [ ] Update `std/manifest.toml`, generated docs, and the fixture set
+      (104 fixtures / 252 manifest lanes need the cutover; do not migrate
+      them before the deletion wave).
+- [ ] Publish the breaking-change notice with the before/after table.
+
+## W0009 coverage blocker
+
+`src/compiler/lint/deprecated_table.ark` has no live warning for the
+`std::seq` helpers, and the four deprecated prelude wrappers are gated
+before lint:
+
+- Bare prelude names (`concat`, `char_at`, `print`, `println`) fail name
+  resolution under the ADR-072 v2 prelude contract with **E0100** and a
+  `resolver::removed_names` migration hint. `deprecated_call_message` is
+  intentionally empty, so no W0009 can fire for a gated bare name.
+- `checks_extra.ark` only inspects `use` paths through
+  `deprecated_use_message` (module renames) and qualified calls through
+  `deprecated_qualified_call_message`, which dispatches `math` / `cmp` /
+  `convert` / `hash` only. A `seq::map_i32_i32(...)` path therefore emits
+  no warning.
+- `check-compat-orphans.py` currently maps qualified warning aliases to
+  `std::core::<mod>`; `seq` would need an explicit module mapping.
+
+Adding this coverage changes compiler warning behavior and needs a new
+`.selfhost.diag` golden, so it is out of scope for this docs/tooling-only
+foundation lane. Concrete unblock steps: (1) add
+`deprecated_seq_qualified_message` to `deprecated_table.ark`, (2) map
+`seq` → `std::seq` in the orphan checker, (3) add the diagnostic golden,
+(4) run the fixture suite. Tracked here and in #917.
 
 ## Acceptance
 
-- [ ] `std::seq` module deleted.
-- [ ] No monomorphic `Vec_*_i32` / `sort_*` / `map_*_*` / `fold_*_*`
-      functions in prelude or stdlib.
-- [ ] All in-tree code uses `Vec::new<T>()`, `v.push(x)`, `v.sort()`,
-      `v.map(f)`, etc.
-- [ ] `docs/stdlib/migration-guidance.md` documents the cutover.
-- [ ] `python3 scripts/manager.py verify --full` exits 0.
+- [ ] All 51 #703 symbols are removed from the user-reachable surface after
+      the ADR-014 window.
+- [ ] No `sort_*` / `map_*_*` / `fold_*_*` / `reverse_*` / `sum_*` /
+      `product_*` free function remains in prelude or `std::seq`.
+- [ ] All in-tree code uses `v.sort()`, `v.iter().map(f).collect()`,
+      `v.iter().sum()`, etc.
+- [ ] `docs/stdlib/migration-guidance.md` and the generated eradication
+      scorecard agree with `std/manifest.toml`.
+- [ ] `python3 scripts/check/check-stdlib-eradication.py` and
+      `python3 scripts/check/check-compat-orphans.py` pass.
+- [ ] `python3 scripts/manager.py verify full` exits 0.
 
 ## References
 
-- Depends on: #700 (builtin method syntax), #701 (associated function
-  syntax), #691 (Iterator), #695 (Ord)
-- Related: #697 (Vec operation extension), #709 (eradication policy),
-  #718 (free-function inventory)
-- ADR-046 (free-function eradication)
-- ADR-036 D2 (deletion policy; stable via ADR-014)
+- ADR-046 (free-function eradication), ADR-014 (stability labels),
+  ADR-036 D2 (deletion policy)
+- #709 (policy / scorecard, done), #917 (execution umbrella),
+  #845 (`Vec_new_*` removal, done), #697 (`Vec<T>` operation extension)
+- #700, #701, #691, #695 (closed upstream code work)
 - `std/prelude.ark`, `std/seq/mod.ark`, `std/manifest.toml`
-- `docs/stdlib/migration-guidance.md`, `docs/stdlib/trait-stdlib-redesign.md`
+- `docs/data/stdlib-api-eradication.toml`,
+  `docs/stdlib/eradication.md`, `docs/stdlib/migration-guidance.md`
+- `scripts/check/check-stdlib-eradication.py`,
+  `scripts/check/check-compat-orphans.py`

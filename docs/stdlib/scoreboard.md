@@ -36,10 +36,10 @@
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 17/24 (71%) | no |
 | `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
-| `std::simd::i16x8` | 10 | 0 | 0 | 10 | 0 | 8/10 (80%) | no |
+| `std::simd::i16x8` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::simd::i32x4` | 15 | 0 | 0 | 15 | 0 | 13/15 (87%) | no |
 | `std::simd::i64x2` | 10 | 0 | 0 | 10 | 0 | 10/10 (100%) | no |
-| `std::simd::i8x16` | 12 | 0 | 0 | 12 | 0 | 10/12 (83%) | no |
+| `std::simd::i8x16` | 10 | 0 | 0 | 10 | 0 | 10/10 (100%) | no |
 | `std::simd::u16x8` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u32x4` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
@@ -53,7 +53,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 815 APIs, 391 stable, 83 provisional, 322 experimental, 19 deprecated, 670/796 (84%) fixture coverage
+**Total**: 811 APIs, 391 stable, 83 provisional, 318 experimental, 19 deprecated, 670/792 (85%) fixture coverage
 
 ## Legend
 

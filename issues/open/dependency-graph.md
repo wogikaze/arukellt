@@ -63,8 +63,8 @@ graph LR
 - **697** depends on: 691, 695; blocks: 710
 - **699** depends on: 649, 698; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
-- **703** depends on: 700, 701, 691, 695; blocks: none
-- **708** depends on: 692, 707; blocks: none
+- **703** depends on: none; blocks: none
+- **708** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
 - **729** depends on: 843; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none

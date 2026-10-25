@@ -10,7 +10,8 @@ The compat layer spans four artifacts that must agree:
      names that no longer resolve
 
 An orphan is any of:
-  - a deprecated_by target that resolves to no manifest entry or decl
+  - a deprecated_by target that resolves to no manifest entry, decl,
+    or `Type::method` implementation
   - a lint-table entry whose call can never resolve (dead warning)
   - a removed_names entry for a name that still resolves (dormant hint)
   - a manifest-deprecated prelude name with no diagnostic coverage
@@ -65,6 +66,74 @@ def pub_decls(path: Path) -> set[str]:
     names = set(re.findall(r"^pub fn ([A-Za-z_][A-Za-z0-9_]*)", text, re.M))
     names |= set(re.findall(r"^pub (?:enum|struct|resource|trait) ([A-Za-z_][A-Za-z0-9_]*)", text, re.M))
     return names
+
+
+def _impl_blocks(text: str):
+    """Yield (header, body) for each top-level impl block in an Ark source."""
+    for match in re.finditer(r"^impl\b[^\n{]*\{", text, re.MULTILINE):
+        depth = 1
+        index = match.end()
+        in_string = False
+        in_line_comment = False
+        while index < len(text) and depth > 0:
+            char = text[index]
+            if in_line_comment:
+                if char == "\n":
+                    in_line_comment = False
+            elif in_string:
+                if char == "\\":
+                    index += 1
+                elif char == '"':
+                    in_string = False
+            elif char == "/" and text[index:index + 2] == "//":
+                in_line_comment = True
+                index += 1
+            elif char == '"':
+                in_string = True
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+            index += 1
+        yield match.group(0), text[match.end():index - 1]
+
+
+def method_decl_exists(root: Path, type_name: str, method: str) -> bool:
+    """True when std source declares `fn method` in an `impl ... Type ...` block."""
+    type_name = type_name.split("<", 1)[0].strip()
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", type_name):
+        return False
+    type_re = re.compile(r"\b{}\b".format(re.escape(type_name)))
+    method_re = re.compile(r"\bfn\s+{}\s*\(".format(re.escape(method)))
+    for path in (root / "std").rglob("*.ark"):
+        text = path.read_text(encoding="utf-8")
+        for header, body in _impl_blocks(text):
+            if type_re.search(header) and method_re.search(body):
+                return True
+    return False
+
+
+def resolve_deprecated_target(
+    target: str,
+    names_in_manifest: set[str],
+    module_names: set[tuple[str, str]],
+) -> bool:
+    """Resolve a manifest `deprecated_by` target.
+
+    Bare names resolve against manifest function names. ``std::a::b``
+    paths resolve against manifest `(module, name)` pairs or the mapped
+    std file. Other qualified targets are `Type::method` references and
+    must name a real method declared in an `impl` block under std.
+    """
+    if "::" not in target:
+        return target in names_in_manifest
+    module, _, leaf = target.rpartition("::")
+    if module.startswith("std::"):
+        if (module, leaf) in module_names:
+            return True
+        source = module_file(module)
+        return source is not None and leaf in pub_decls(source)
+    return method_decl_exists(ROOT, module, leaf)
 
 
 def table_names(text: str, fn_name: str) -> list[str]:
@@ -127,15 +196,7 @@ def main() -> int:
     deprecated_entries = [e for e in entries if e.get("deprecated_by")]
     for e in deprecated_entries:
         target = e["deprecated_by"]
-        if "::" in target:
-            mod, _, leaf = target.rpartition("::")
-            ok = (mod, leaf) in module_names
-            if not ok:
-                f = module_file(mod)
-                ok = f is not None and leaf in pub_decls(f)
-        else:
-            ok = target in names_in_manifest
-        if not ok:
+        if not resolve_deprecated_target(target, names_in_manifest, module_names):
             problems.append(
                 f"orphan deprecated_by: {e.get('name')} -> {target} resolves to nothing"
             )

@@ -54,9 +54,8 @@ The following public entries currently carry `deprecated_by` in
 The deprecated `std::seq` rows remain callable compatibility entries that
 delegate to the lazy `std::core::iter` pipeline or the generic
 `Ord`-based algorithms (ADR-076). Every monomorphic `std::seq` helper now
-carries `deprecated_by`; the legacy `Vec_*` names are not in this list
-yet and stay in their current stability tier until a callable replacement
-and a manifest-level deprecation target are available.
+carries `deprecated_by`; the legacy `Vec_*` constructors were removed by
+#845 and are no longer manifest entries.
 
 ## Iterator v2 status
 
@@ -345,12 +344,15 @@ let buf = Vec::with_capacity<i32>(64)
 
 ### Sort
 
+`sort<T>(v)` is not a public generic free function; the target shape is a
+`Vec<T>` method (`v.sort()`), which is planned under #697.
+
 | Old API | Replacement |
 |---------|-------------|
-| `sort_i32(v)` | `sort<i32>(v)` |
-| `sort_i64(v)` | `sort<i64>(v)` |
-| `sort_f64(v)` | `sort<f64>(v)` |
-| `sort_String(v)` | `sort<String>(v)` |
+| `sort_i32(v)` | `v.sort()` *(planned, #697)* |
+| `sort_i64(v)` | `v.sort()` *(planned, #697)* |
+| `sort_f64(v)` | `v.sort()` *(planned, #697)* |
+| `sort_String(v)` | `v.sort()` *(planned, #697)* |
 
 **Before:**
 
@@ -364,47 +366,50 @@ sort_String(names)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-sort<i32>(numbers)
-sort<String>(names)
+// Target method shape; Vec::sort lands with #697.
+numbers.sort()
+names.sort()
 ```
 
 ### Collection Operations (map, filter, fold, etc.)
 
-> Note (2026-09-23): for the `i32` pipeline helpers the canonical replacement
-> is now the lazy `std::core::iter` method chain — for example
-> `v.iter().map(f).collect()` — not a generic free function. The six
-> `std::seq` pipeline entries and the seven query helpers are already
-> deprecated under that contract; the prelude
-> rows below remain planned until the #718 / #878 migration wires their
-> trait-first replacements.
+> Note: for the `i32` pipeline helpers the canonical replacement is the lazy
+> `std::core::iter` method chain — for example `v.iter().map(f).collect()` —
+> not a generic free function such as `map<i32, i32>(v, f)`, which does not
+> exist. The six `std::seq` pipeline entries and the seven query helpers are
+> already deprecated under that contract. The 34 stable prelude monomorphic
+> frees are owned by #703 and still wait for the ADR-014 deprecation window.
+> Rows marked *planned* describe the target method/iterator shape; they are
+> not callable yet. The verified lanes are the concrete `i32` and `String`
+> iterator paths documented above.
 
 | Old API | Replacement |
 |---------|-------------|
-| `map_i32_i32(v, f)` | `map<i32, i32>(v, f)` |
-| `map_i64_i64(v, f)` | `map<i64, i64>(v, f)` |
-| `map_f64_f64(v, f)` | `map<f64, f64>(v, f)` |
-| `map_String_String(v, f)` | `map<String, String>(v, f)` |
-| `filter_i64(v, f)` | `filter<i64>(v, f)` |
-| `filter_f64(v, f)` | `filter<f64>(v, f)` |
-| `filter_String(v, f)` | `filter<String>(v, f)` |
-| `fold_i32_i32(v, init, f)` | `fold<i32, i32>(v, init, f)` |
-| `fold_i64_i64(v, init, f)` | `fold<i64, i64>(v, init, f)` |
-| `fold_f64_f64(v, init, f)` | `fold<f64, f64>(v, init, f)` |
-| `contains_i32(v, x)` | `contains<i32>(v, x)` |
-| `contains_String(v, x)` | `contains<String>(v, x)` |
-| `reverse_i32(v)` | `reverse<i32>(v)` |
-| `reverse_String(v)` | `reverse<String>(v)` |
-| `remove_i32(v, idx)` | `remove<i32>(v, idx)` |
-| `sum_i32(v)` | `sum<i32>(v)` |
-| `sum_i64(v)` | `sum<i64>(v)` |
-| `sum_f64(v)` | `sum<f64>(v)` |
-| `product_i32(v)` | `product<i32>(v)` |
-| `product_i64(v)` | `product<i64>(v)` |
-| `product_f64(v)` | `product<f64>(v)` |
-| `any_i32(v, f)` | `any<i32>(v, f)` |
-| `any_String(v, f)` | `any<String>(v, f)` |
-| `find_i32(v, f)` | `find<i32>(v, f)` |
-| `find_String(v, f)` | `find<String>(v, f)` |
+| `map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
+| `map_i64_i64(v, f)` | `v.iter().map(f).collect()` |
+| `map_f64_f64(v, f)` | `v.iter().map(f).collect()` |
+| `map_String_String(v, f)` | `v.iter().map(f).collect()` |
+| `filter_i64(v, f)` | `v.iter().filter(f).collect()` |
+| `filter_f64(v, f)` | `v.iter().filter(f).collect()` |
+| `filter_String(v, f)` | `v.iter().filter(f).collect()` |
+| `fold_i32_i32(v, init, f)` | `v.iter().fold(init, f)` |
+| `fold_i64_i64(v, init, f)` | `v.iter().fold(init, f)` |
+| `fold_f64_f64(v, init, f)` | `v.iter().fold(init, f)` |
+| `contains_i32(v, x)` | `v.iter().contains(x)` |
+| `contains_String(v, x)` | `v.iter().contains(x)` |
+| `reverse_i32(v)` | `v.iter().rev().collect()` |
+| `reverse_String(v)` | `v.iter().rev().collect()` |
+| `remove_i32(v, idx)` | `v.remove(idx)` *(planned)* |
+| `sum_i32(v)` | `v.iter().sum()` |
+| `sum_i64(v)` | `v.iter().sum()` |
+| `sum_f64(v)` | `v.iter().sum()` |
+| `product_i32(v)` | `v.iter().fold(1, fn(acc: i32, x: i32) -> i32 { acc * x })` |
+| `product_i64(v)` | `v.iter().fold(1, fn(acc: i64, x: i64) -> i64 { acc * x })` |
+| `product_f64(v)` | `v.iter().fold(1, fn(acc: f64, x: f64) -> f64 { acc * x })` |
+| `any_i32(v, f)` | `v.iter().any(f)` *(planned)* |
+| `any_String(v, f)` | `v.iter().any(f)` *(planned)* |
+| `find_i32(v, f)` | `v.iter().find(f)` *(planned)* |
+| `find_String(v, f)` | `v.iter().find(f)` *(planned)* |
 
 **Before:**
 
@@ -420,10 +425,10 @@ reverse_i32(numbers)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let doubled = map<i32, i32>(numbers, fn(x: i32) -> i32 { x * 2 })
-let total = fold<i32, i32>(numbers, 0, fn(acc: i32, x: i32) -> i32 { acc + x })
-let has_it = contains<i32>(numbers, 42)
-reverse<i32>(numbers)
+let doubled = numbers.iter().map(fn(x: i32) -> i32 { x * 2 }).collect()
+let total = numbers.iter().fold(0, fn(acc: i32, x: i32) -> i32 { acc + x })
+let has_it = numbers.iter().contains(42)
+let reversed = numbers.iter().rev().collect()
 ```
 
 ### HashMap Constructors and Operations
@@ -465,18 +470,23 @@ match when the previous value must be inspected. `contains_key`, `len`, and `is_
 are direct receiver methods. The currently supported concrete pairs and the removal
 conditions for the compatibility names are fixed in [ADR-066](../adr/ADR-066-language-v2-generic-public-api.md).
 
-The old HashMap names remain callable during the ADR-014 compatibility window. They are
-not marked with manifest `deprecated_by` until the manifest can name a method-level
-replacement; adding an unverifiable replacement string would make the deprecation record
-misleading.
+The old HashMap names remain callable during the ADR-014 compatibility window. The
+manifest now classifies them as `must delete` because `impl HashMap<K, V>` methods
+already exist. Method-level `deprecated_by` targets such as `HashMap::insert` can now be
+validated by the compat-orphan audit; adding them belongs to the #917 deprecation wave,
+not to this foundation change.
 
 ### Option/Result Map
 
+There is no generic free `map_option<...>` / `map_result<...>` function, and the
+`Option::map` / `Result::map` methods are still pending (#917). Use a pattern
+match until those methods land.
+
 | Old API | Replacement |
 |---------|-------------|
-| `map_option_i32_i32(o, f)` | `map_option<i32, i32>(o, f)` |
-| `map_option_String_String(o, f)` | `map_option<String, String>(o, f)` |
-| `map_result_i32_i32(r, f)` | `map_result<i32, i32>(r, f)` |
+| `map_option_i32_i32(o, f)` | `match o { Some(v) => Some(f(v)), None => None }` |
+| `map_option_String_String(o, f)` | `match o { Some(v) => Some(f(v)), None => None }` |
+| `map_result_i32_i32(r, f)` | `match r { Ok(v) => Ok(f(v)), Err(e) => Err(e) }` |
 
 **Before:**
 
@@ -489,7 +499,10 @@ let doubled = map_option_i32_i32(maybe_val, fn(x: i32) -> i32 { x * 2 })
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
+let doubled = match maybe_val {
+    Some(v) => Some(v * 2),
+    None => None,
+}
 ```
 
 ---
@@ -514,7 +527,7 @@ let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| Phase 1 — Mark | **Active** | `deprecated_by` added to manifest for initial batch (`Vec_new_i32`, `Vec_new_i64`, `filter_i32`) |
+| Phase 1 — Mark | **Complete** | Initial batch (`Vec_new_i32`, `Vec_new_i64`, `filter_i32`); the `Vec_new_*` names were removed by #845 |
 | Phase 2 — Expand | Planned | Remaining monomorphic APIs get `deprecated_by` as generic implementations land |
 | Phase 3 — Warn | **Active** | Post-resolve lint emits W0009 for deprecated API usage |
 | Phase 4 — Remove | Planned | Deprecated APIs removed in next major version |
