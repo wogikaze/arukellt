@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-19T10:02:06Z",
+  "generated_at": "2026-10-25T09:47:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -231,20 +231,15 @@
       "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
       "track": "stdlib-api",
       "status": "open",
-      "depends_on": [
-        "700",
-        "701",
-        "691",
-        "695"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 2,
-        "unchecked": 17
+        "checked": 4,
+        "unchecked": 15
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+        "class": "implementation-ready",
+        "upstream_notes": "none"
       }
     },
     {
@@ -253,18 +248,15 @@
       "title": "708 — `TryFrom` / `TryInto` traits for fallible conversions",
       "track": "stdlib-api",
       "status": "open",
-      "depends_on": [
-        "692",
-        "707"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 13
+        "checked": 10,
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#692 From/Into traits, #707 Self return type support"
+        "class": "normal",
+        "upstream_notes": null
       }
     },
     {

@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 391 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 322 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 318 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -854,10 +854,6 @@ let input = read_to_string()
 | `extract_lane` | `(v128, i32) -> i32` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `extract_lane` | `(v128, i32) -> f64` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `extract_lane` | `(v128, i32) -> i64` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane_s` | `(v128, i32) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane_s` | `(v128, i32) -> i32` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane_u` | `(v128, i32) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane_u` | `(v128, i32) -> i32` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `ge` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `gt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |

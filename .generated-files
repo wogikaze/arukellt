@@ -81,6 +81,7 @@ docs/stdlib/modules/toml.md | scripts/gen/generate-docs.py | python3 scripts/gen
 docs/stdlib/modules/wasm.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/wit.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/monomorphic-deprecation.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/stdlib/eradication.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 
 # process docs (generate-docs.py)
 docs/history/benchmarks/benchmark-results.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
@@ -95,3 +96,6 @@ docs/data/cli-surface.md | scripts/gen/generate-structured-state-docs.py | pytho
 docs/data/bootstrap-contract.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
 docs/data/component-availability.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
 docs/data/release-guarantees.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
+
+src/compiler/corehir/core_op_registry_generated.ark | scripts/gen/generate-core-ops-registry.py | python3 scripts/gen/generate-core-ops-registry.py
+src/compiler/corehir/core_op_binding_generated.ark | scripts/gen/generate-core-op-bindings.py | python3 scripts/gen/generate-core-op-bindings.py

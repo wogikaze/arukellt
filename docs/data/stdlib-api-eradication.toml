@@ -1,12 +1,17 @@
 # ADR-046 free-function eradication — classification source of truth.
 #
 # Every public stdlib free / monomorphic / prelude_wrapper symbol in
-# std/manifest.toml resolves to exactly one class here. The generated
-# scorecard and inventory live in docs/stdlib/eradication.md
-# (scripts/gen/generate-docs.py); coverage is enforced by
-# `python3 scripts/check/check-stdlib-eradication.py` and by
-# `docs regenerate` / `docs check`, which fail on any unclassified
-# manifest function.
+# std/manifest.toml resolves to exactly one class here. The same rules
+# also classify top-level `pub fn` declarations under std/**/*.ark that
+# have no manifest entry (~447 today); those are the unregistered public
+# free functions that made the "0 public free functions" scorecard
+# unmeasurable before issue #703. The generated scorecard and inventory
+# live in docs/stdlib/eradication.md (scripts/gen/generate-docs.py);
+# coverage is enforced by `python3 scripts/check/check-stdlib-eradication.py`
+# and by `docs regenerate` / `docs check`, which fail on any unclassified
+# manifest function, any unregistered source declaration that falls
+# through to [source_default], and any manifest entry that claims a std
+# declaration but has none.
 #
 # Class vocabulary (issue #709):
 #   must delete          — removal work only: the method/associated
@@ -17,21 +22,34 @@
 #                          / associated API before the free symbol can
 #                          retire; the owner issue tracks delivery.
 #   intrinsic-only       — stays a non-public `__intrinsic_*` or
-#                          `kind = "intrinsic"`/`"intrinsic_wrapper"`
-#                          bridge; never user-reachable API.
+#                          `kind = "intrinsic"` bridge; never
+#                          user-reachable API. `kind = "intrinsic_wrapper"`
+#                          is a public wrapper kind and is not accepted.
 #
 # Rule fields (all present fields must match; first match wins):
 #   label       — human-readable rule name for errors/docs
 #   name        — exact symbol name, or list of names
 #   prefix      — symbol name starts-with (string or list)
 #   kind        — manifest `kind` equals (string or list)
-#   module      — manifest `module` equals (string or list)
-#   module_pfx  — manifest `module` starts-with (string or list)
+#   module      — manifest/source `module` equals (string or list)
+#   module_pfx  — manifest/source `module` starts-with (string or list)
+#   path        — std source path equals (string or list), e.g.
+#                 "std/collections/hash_map.ark"
+#   path_pfx    — std source path starts-with (string or list)
 #   module_less — true when the entry has no `module` (prelude scope)
 #   deprecated  — true when the entry is deprecated (deprecated_by set
 #                 or stability = "deprecated")
+#   source_only — rule matches only unregistered std declarations
+#   manifest_only — rule matches only manifest `[[functions]]` entries
 # `owner` is an issue id (open or done) or "none" for intrinsic-only.
 # `replacement` is human-readable guidance for migration notes.
+#
+# Ownership split for #703 (single owner per family): #703 owns the
+# monomorphic cutover families — "deprecated prelude wrappers" (4),
+# "deprecated std::seq helpers" (13), and "monomorphic seq/combinator
+# frees" (34), 51 symbols total. The 34 stable frees still need the
+# ADR-014 deprecation window before deletion; #917 owns every other
+# family as the execution umbrella.
 
 [meta]
 policy_adr = "ADR-046"
@@ -47,11 +65,70 @@ prefix = "__intrinsic_"
 class = "intrinsic-only"
 owner = "none"
 
+# `memory_copy` / `memory_fill` are public `pub fn` wrappers in std::wasm,
+# not private bridges. Classifying them as intrinsic-only was the loophole
+# that let two user-reachable free functions escape the scorecard.
 [[rules]]
-label = "intrinsic wrappers"
-kind = "intrinsic_wrapper"
-class = "intrinsic-only"
-owner = "none"
+label = "wasm memory intrinsic wrappers"
+module = "std::wasm"
+name = ["memory_copy", "memory_fill"]
+class = "must delete"
+owner = "917"
+replacement = "keep only the non-public __intrinsic_memory_* bridge; no user-reachable replacement (experimental, ADR-014 D4)"
+
+# -- Unregistered std declarations (source-only overrides) --
+#
+# These families exist only as `pub fn` under std/**/*.ark with no manifest
+# entry. Rules are evaluated before the module-family defaults so each
+# family gets an explicit replacement/owner instead of the generic text.
+
+[[rules]]
+label = "hash set monomorphic adapters"
+source_only = true
+prefix = "hashset_"
+class = "associated-or-method"
+owner = "917"
+replacement = "HashSet methods once the HashSet type surface lands; see std::collections::hash"
+
+[[rules]]
+label = "hash_map monomorphic adapters"
+source_only = true
+module = "std::collections::hash_map"
+class = "associated-or-method"
+owner = "917"
+replacement = "HashMap methods (new/insert/get/contains_key/remove/len/is_empty exist; keys/values/entries methods pending)"
+
+[[rules]]
+label = "hash_string monomorphic adapters"
+source_only = true
+module = "std::collections::hash_string"
+class = "associated-or-method"
+owner = "917"
+replacement = "HashMap methods (same adapter family as std::collections::hash_map)"
+
+[[rules]]
+label = "hash_fn monomorphic adapters"
+source_only = true
+module = "std::collections::hash_fn"
+class = "associated-or-method"
+owner = "917"
+replacement = "HashMap methods for fn-valued maps (same adapter family)"
+
+[[rules]]
+label = "hash_str_fn monomorphic adapters"
+source_only = true
+module = "std::collections::hash_str_fn"
+class = "associated-or-method"
+owner = "917"
+replacement = "HashMap methods for fn-valued maps (same adapter family)"
+
+[[rules]]
+label = "collections sort free algorithms"
+source_only = true
+module = "std::collections::sort"
+class = "associated-or-method"
+owner = "697"
+replacement = "Vec::sort / sort_by / sort_by_key methods (Vec<T> operation extension)"
 
 # -- Prelude overrides (evaluated before the prelude default) --
 
@@ -61,7 +138,7 @@ module_less = true
 deprecated = true
 class = "must delete"
 owner = "703"
-replacement = "String / text methods and trait APIs already emitted"
+replacement = "manifest deprecated_by targets: byte_at, std::text::concat, std::host::stdio::{print,println}"
 
 [[rules]]
 name = "panic"
@@ -84,14 +161,14 @@ module_less = true
 name = ["assert_eq", "assert_ne", "assert_eq_i64", "assert_eq_str"]
 class = "must delete"
 owner = "917"
-replacement = "std::test::assert_* then Test associated API"
+replacement = "std::test::assert_* module functions (no Test associated API exists; harness-surface design is still open)"
 
 [[rules]]
 label = "monomorphic seq/combinator frees"
 module_less = true
 prefix = ["sort_", "map_", "filter_", "fold_", "any_", "find_", "contains_", "reverse_", "remove_", "sum_", "product_", "map_option_", "map_result_"]
 class = "must delete"
-owner = "917"
+owner = "703"
 replacement = "Iterator methods / generic std::seq equivalents"
 
 [[rules]]
@@ -106,9 +183,9 @@ replacement = "From/Into associated conversions"
 label = "monomorphic HashMap builtins"
 module_less = true
 prefix = "HashMap_"
-class = "associated-or-method"
+class = "must delete"
 owner = "917"
-replacement = "HashMap::<K,V>::new + m.insert / m.get / m.contains_key / m.len"
+replacement = "impl HashMap<K,V> methods (new/insert/get/contains_key/remove/len/is_empty) already exist; retire after the ADR-014 deprecation window"
 
 # -- Deprecated non-prelude symbols --
 
@@ -132,6 +209,7 @@ replacement = "module-associated equivalents"
 [[rules]]
 label = "prelude frees (default)"
 module_less = true
+manifest_only = true
 class = "associated-or-method"
 owner = "917"
 replacement = "method / associated equivalent on the receiver or namespace type"
@@ -149,8 +227,8 @@ replacement = "Read / Write / BufRead / Seek trait methods and Stdin/Stdout/Stde
 label = "std::test assert frees"
 module = "std::test"
 class = "associated-or-method"
-owner = "719"
-replacement = "Test associated API / harness assertion surface (#719)"
+owner = "917"
+replacement = "std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open"
 
 [[rules]]
 label = "std::seq remaining"
@@ -168,21 +246,21 @@ replacement = "Iterator trait methods / adapter associated fns"
 
 [[rules]]
 label = "std::collections frees"
-module = ["std::collections::hash", "std::collections::ordered", "std::collections::linear", "std::collections::compiler"]
+module_pfx = "std::collections"
 class = "associated-or-method"
 owner = "917"
 replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.)"
 
 [[rules]]
 label = "std::text frees"
-module = ["std::text", "std::text::rope"]
+module_pfx = "std::text"
 class = "associated-or-method"
 owner = "917"
 replacement = "String/str methods, Builder methods, Rope methods"
 
 [[rules]]
 label = "std::json/toml/csv frees"
-module = ["std::json", "std::toml", "std::csv"]
+module_pfx = ["std::json", "std::toml", "std::csv"]
 class = "associated-or-method"
 owner = "917"
 replacement = "Json/Toml/Csv value methods and associated parse/stringify"
@@ -210,14 +288,26 @@ replacement = "WasmBuilder/Module/Type associated functions and methods"
 
 [[rules]]
 label = "std::wit/component frees"
-module = ["std::wit", "std::component", "std::component::handle"]
+module_pfx = ["std::wit", "std::component"]
 class = "associated-or-method"
 owner = "917"
 replacement = "Wit/Component/Handle associated functions and methods"
 
 [[rules]]
 label = "host/core namespace frees"
-module = ["std::host::fs", "std::host::env", "std::host::process", "std::host::clock", "std::host::random", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::core::error", "std::core::hash", "std::path"]
+module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
 class = "associated-or-method"
 owner = "917"
 replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods"
+
+# -- Catch-all for unregistered std declarations --
+#
+# A top-level `pub fn` under std/**/*.ark whose name has no manifest entry
+# and matches no explicit rule lands here. This is an error class, not an
+# accepted classification: add an explicit `source_only` rule (or register
+# the symbol) so the real std surface stays measurable under ADR-046.
+[source_default]
+label = "unclassified std free declaration"
+class = "unregistered"
+owner = "917"
+replacement = "add a source_only rule with a method/associated replacement and owner"

@@ -33,6 +33,7 @@
 | `docs/stdlib/reference.md` | generated | `scripts/gen/generate-docs.py` | Stdlib API reference |
 | `docs/stdlib/modules/*.md` | generated | `scripts/gen/generate-docs.py` | Per-module reference pages |
 | `docs/stdlib/scoreboard.md` | generated | `scripts/gen/generate-docs.py` | Module maturity scoreboard |
+| `docs/stdlib/eradication.md` | generated | `scripts/gen/generate-docs.py` | ADR-046 free-function eradication scorecard and inventory |
 | `docs/data/project-state.toml` | product (SSOT input) | hand-maintained | Structured current-state numbers / target profiles |
 | `docs/data/sections.toml` | product (SSOT input) | hand-maintained | Docs section registry |
 | `docs/data/language-doc-classifications.toml` | product (SSOT input) | hand-maintained | Language doc classifications |
@@ -91,6 +92,9 @@ These files are auto-generated. Run the generator instead of editing manually:
 | `docs/stdlib/reference.md` | `python3 scripts/gen/generate-docs.py` |
 | `docs/stdlib/modules/*.md` | `python3 scripts/gen/generate-docs.py` |
 | `docs/stdlib/scoreboard.md` | `python3 scripts/gen/generate-docs.py` |
+| `docs/stdlib/eradication.md` | `python3 scripts/gen/generate-docs.py` |
+| `src/compiler/corehir/core_op_registry_generated.ark` | `python3 scripts/gen/generate-core-ops-registry.py` |
+| `src/compiler/corehir/core_op_binding_generated.ark` | `python3 scripts/gen/generate-core-op-bindings.py` |
 | `issues/open/index.md` | `python3 scripts/gen/generate-issue-index.py` |
 | `issues/open/index-meta.json` | `python3 scripts/gen/generate-issue-index.py` |
 | `issues/done/index.md` | `python3 scripts/gen/generate-issue-index.py` |

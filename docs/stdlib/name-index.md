@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 796
+- **Canonical names:** 792
 - **Historical/deprecated names:** 19
-- **Total entries:** 815
+- **Total entries:** 811
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -235,10 +235,6 @@ Current public API names, sorted alphabetically.
 | `extract_lane` | `std::simd::i32x4` | `experimental` | Simd |
 | `extract_lane` | `std::simd::f64x2` | `experimental` | Simd |
 | `extract_lane` | `std::simd::i64x2` | `experimental` | Simd |
-| `extract_lane_s` | `std::simd::i8x16` | `experimental` | Simd |
-| `extract_lane_s` | `std::simd::i16x8` | `experimental` | Simd |
-| `extract_lane_u` | `std::simd::i8x16` | `experimental` | Simd |
-| `extract_lane_u` | `std::simd::i16x8` | `experimental` | Simd |
 | `f32_to_f64` | `prelude` | `stable` | Scalar Conversion |
 | `f32_to_string` | `prelude` | `stable` | Convert |
 | `f64_bits_hi` | `prelude` | `stable` | Numeric |
@@ -1073,10 +1069,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `extract_lane` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `extract_lane` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `extract_lane` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `extract_lane_s` | ✅ `experimental` | `std::simd::i8x16` | Simd |
-| `extract_lane_s` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| `extract_lane_u` | ✅ `experimental` | `std::simd::i8x16` | Simd |
-| `extract_lane_u` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `f32_to_f64` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | `f64_bits_hi` | ✅ `stable` | `prelude` | Numeric |

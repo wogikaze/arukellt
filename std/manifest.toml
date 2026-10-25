@@ -7110,22 +7110,6 @@ params = []
 returns = "v128"
 
 [[functions]]
-name = "extract_lane_s"
-module = "std::simd::i8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "extract_lane_u"
-module = "std::simd::i8x16"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "i32"]
-returns = "i32"
-
-[[functions]]
 name = "replace_lane"
 module = "std::simd::i8x16"
 doc_category = "simd"
@@ -7206,22 +7190,6 @@ doc_category = "simd"
 stability = "experimental"
 params = []
 returns = "v128"
-
-[[functions]]
-name = "extract_lane_s"
-module = "std::simd::i16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "extract_lane_u"
-module = "std::simd::i16x8"
-doc_category = "simd"
-stability = "experimental"
-params = ["v128", "i32"]
-returns = "i32"
 
 [[functions]]
 name = "replace_lane"
