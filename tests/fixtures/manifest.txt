@@ -532,6 +532,7 @@ run:generics_v1/test_enum_return.ark
 run:generics_v1/test_parse_gc.ark
 run:generics_v1/test_parse_i32.ark
 run:generics_v1/trait_bound.ark
+run:generics_v1/trait_bounds_two_params_distinct_layouts.ark
 run:generics_v1/trait_dispatch_stdlib.ark
 run:generics_v1/trait_method_dispatch.ark
 run:generics_v1/trait_method_resolve.ark
@@ -2747,6 +2748,7 @@ t3-run:generics_v1/test_enum_return.ark
 t3-run:generics_v1/test_parse_gc.ark
 t3-run:generics_v1/test_parse_i32.ark
 t3-run:generics_v1/trait_bound.ark
+t3-run:generics_v1/trait_bounds_two_params_distinct_layouts.ark
 t3-run:generics_v1/trait_dispatch_stdlib.ark
 t3-run:generics_v1/trait_method_dispatch.ark
 t3-run:generics_v1/trait_method_resolve.ark

@@ -1,5 +1,6 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone}
 use mir::lower::fn_index_method_return_type
+use mir::lower::mono_suffix_parse
 use mir::lower::return_typeinfo
 use mir::lower_kinds
 use mir::mono
@@ -93,7 +94,7 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
     let tag = type_contracts::TypeInfo_tag(ty)
     if tag == lower_kinds::TY_TYPE_VAR() {
         let var_name = type_contracts::TypeInfo_name(ty)
-        let idx = mono_type_var_index(var_name)
+        let idx = mono_suffix_parse::mono_type_var_to_index(var_name)
         let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
         if idx >= 0 && idx < arg_count {
             return type_contracts::MonoInstance_type_arg_at(inst, idx)
@@ -112,15 +113,6 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
         ai = ai + 1
     }
     result
-}
-
-fn mono_type_var_index(var_name: String) -> i32 {
-    if eq(clone(var_name), "T") || eq(clone(var_name), "A") || eq(clone(var_name), "K") { return 0 }
-    if eq(clone(var_name), "E") || eq(clone(var_name), "B") { return 1 }
-    if eq(clone(var_name), "U") || eq(clone(var_name), "C") { return 2 }
-    if eq(clone(var_name), "V") || eq(clone(var_name), "D") { return 3 }
-    if eq(clone(var_name), "W") { return 4 }
-    0
 }
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {

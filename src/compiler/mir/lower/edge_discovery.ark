@@ -894,7 +894,7 @@ fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
     while i < len(args) {
         let arg = trim(clone(get_unchecked(args, i)))
         let mut out_arg = clone(arg)
-        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(arg)) && i < len(keys) {
+        if mono_suffix_parse::is_mono_type_var_name(clone(arg)) && i < len(keys) {
             out_arg = clone(get_unchecked(keys, i))
             changed = true
         }
@@ -931,7 +931,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
     }
     if starts_with(clone(work), String_from("vec:")) {
         let elem = substring(clone(work), 4, len(work))
-        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+        if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
             return ty
         }
         let concrete = edge_resolve_mono_type_key(clone(elem), clone(suffix))
@@ -942,7 +942,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
     }
     if starts_with(clone(work), String_from("option:")) {
         let elem = substring(clone(work), 7, len(work))
-        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+        if !mono_suffix_parse::is_mono_type_var_name(clone(elem)) {
             return ty
         }
         let concrete = edge_resolve_mono_type_key(clone(elem), clone(suffix))
@@ -970,10 +970,10 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         let val_seg = substring(clone(args), colon + 1, len(args))
         let mut key_out = clone(key_seg)
         let mut val_out = clone(val_seg)
-        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(key_seg)) {
+        if mono_suffix_parse::is_mono_type_var_name(clone(key_seg)) {
             key_out = clone(get_unchecked(keys, 0))
         }
-        if mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(val_seg)) {
+        if mono_suffix_parse::is_mono_type_var_name(clone(val_seg)) {
             val_out = clone(get_unchecked(keys, 1))
         }
         if eq(clone(key_out), clone(key_seg)) && eq(clone(val_out), clone(val_seg)) {
@@ -992,7 +992,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         }
         return ty
     }
-    if fn_index_method_return_type::method_return_type_name_is_type_var(clone(work)) {
+    if mono_suffix_parse::is_mono_type_var_name(clone(work)) {
         let concrete = edge_resolve_mono_type_key(clone(work), clone(suffix))
         if len(concrete) > 0 {
             return concrete

@@ -1,4 +1,5 @@
 use std::prelude::{byte_at, clone, eq, starts_with, substring}
+use std::text
 fn split_mono_suffix(suffix: String) -> Vec<String> {
     let result = Vec::new<String>()
     let slen = len(suffix)
@@ -19,18 +20,86 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
     result
 }
 
+// Fallback ordinal for a type-variable name when the function's declared
+// parameter list is unavailable. The declared list is authoritative; this
+// only preserves the historical single-letter convention for call sites
+// that carry nothing but a name. Ordinal placeholders (t0, T0, t12, ...)
+// bind by their numeric suffix.
 fn mono_type_var_to_index(type_var: String) -> i32 {
-    if eq(clone(type_var), "T") { return 0 }
-    if eq(clone(type_var), "E") { return 1 }
-    if eq(clone(type_var), "U") { return 2 }
-    if eq(clone(type_var), "V") { return 3 }
-    if eq(clone(type_var), "W") { return 4 }
-    if eq(clone(type_var), "K") { return 0 }
-    if eq(clone(type_var), "A") { return 0 }
-    if eq(clone(type_var), "B") { return 1 }
-    if eq(clone(type_var), "C") { return 2 }
-    if eq(clone(type_var), "D") { return 3 }
+    let mut name = clone(type_var)
+    if starts_with(clone(name), "?") {
+        name = substring(name, 1, len(name))
+    }
+    let name_len = len(name)
+    if name_len >= 2 {
+        let first = byte_at(clone(name), 0)
+        if first == 116 || first == 84 {
+            let mut num = 0
+            let mut all_digits = true
+            let mut i = 1
+            while i < name_len {
+                let digit = byte_at(clone(name), i)
+                if digit < 48 || digit > 57 {
+                    all_digits = false
+                } else {
+                    num = num * 10 + (digit - 48)
+                }
+                i = i + 1
+            }
+            if all_digits {
+                return num
+            }
+        }
+    }
+    if eq(clone(name), "T") { return 0 }
+    if eq(clone(name), "E") { return 1 }
+    if eq(clone(name), "U") { return 2 }
+    if eq(clone(name), "V") { return 3 }
+    if eq(clone(name), "W") { return 4 }
+    if eq(clone(name), "K") { return 0 }
+    if eq(clone(name), "A") { return 0 }
+    if eq(clone(name), "B") { return 1 }
+    if eq(clone(name), "C") { return 2 }
+    if eq(clone(name), "D") { return 3 }
     0
+}
+
+// Position of a type variable in the function's declared type-parameter
+// list, or -1 when it is not a declared name. MonoInstance type arguments
+// and the mangled suffix keys are both recorded in this declaration order,
+// so this is the only ordinal that binds R/W-style names to their own
+// concrete layouts.
+fn mono_type_var_decl_index(type_var: String, type_params: Vec<String>) -> i32 {
+    let mut name = clone(type_var)
+    if starts_with(clone(name), "?") {
+        name = substring(name, 1, len(name))
+    }
+    let count = len(type_params)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(type_params, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn mono_type_var_index(type_var: String, type_params: Vec<String>) -> i32 {
+    let declared = mono_type_var_decl_index(clone(type_var), type_params)
+    if declared >= 0 {
+        return declared
+    }
+    mono_type_var_to_index(type_var)
+}
+
+fn mono_type_var_name_at(index: i32) -> String {
+    if index == 0 { return "T" }
+    if index == 1 { return "E" }
+    if index == 2 { return "U" }
+    if index == 3 { return "V" }
+    if index == 4 { return "W" }
+    text::concat("T", (index).to_string())
 }
 
 fn extract_first_type_var(rest: String) -> String {
@@ -77,29 +146,30 @@ fn extract_mono_suffix(fn_name: String) -> String {
     String_new()
 }
 
-// True when a vec:/option: element name is a type variable that still needs
-// concrete substitution from the mono suffix / mono map.
-fn mono_elem_is_substitutable_type_var(elem: String) -> bool {
-    if len(elem) == 0 {
+// Structural type-variable test shared by param/return substitution, mono
+// suffix parsing and the wasm signature fallback. A hardcoded letter list
+// silently dropped R/Z/Y and left their params as TYPE_VAR (#693).
+fn is_mono_type_var_name(type_name: String) -> bool {
+    if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(elem), "?") {
-        return mono_elem_is_substitutable_type_var(substring(elem, 1, len(elem)))
+    if starts_with(clone(type_name), "?") {
+        return is_mono_type_var_name(substring(type_name, 1, len(type_name)))
     }
-    if len(elem) == 1 {
-        let c = byte_at(elem, 0)
+    if len(type_name) == 1 {
+        let c = byte_at(type_name, 0)
         if c >= 65 && c <= 90 {
             return true
         }
         return false
     }
     // Ordinal placeholders: t0, T0, t12, ...
-    let c0 = byte_at(elem, 0)
+    let c0 = byte_at(type_name, 0)
     if c0 == 116 || c0 == 84 {
         let mut i = 1
         let mut all_digit = true
-        while i < len(elem) {
-            let c = byte_at(elem, i)
+        while i < len(type_name) {
+            let c = byte_at(type_name, i)
             if c < 48 || c > 57 {
                 all_digit = false
             }

@@ -10,6 +10,7 @@ use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
 use mir::lower::fn_index_method_return_type
+use mir::lower::mono_suffix_parse
 use mir::module_spine
 use mir::value_types
 use corehir::function_id
@@ -25,7 +26,7 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
         let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
         let rtn = mono_return_type_name(ctx, clone(name), base_rtn)
         if len(rtn) > 0 &&
-        !fn_index_method_return_type::method_return_type_name_is_type_var(clone(rtn)) {
+        !mono_suffix_parse::is_mono_type_var_name(clone(rtn)) {
             let resolved_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
             if resolved_vt == value_types::VT_GC_REF() || resolved_vt == value_types::VT_REF() {
                 return resolved_vt
@@ -106,7 +107,7 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
         return fallback_name
     }
     if len(fallback_name) > 0 &&
-    !fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) &&
+    !mono_suffix_parse::is_mono_type_var_name(clone(fallback_name)) &&
     !starts_with(clone(fallback_name), "?") &&
     !is_container_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
@@ -176,7 +177,7 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
         return true
     }
     // Bare user struct names from MonoInstance TypeTable entries (Point).
-    if !fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
+    if !mono_suffix_parse::is_mono_type_var_name(clone(type_name)) {
         let first = byte_at(type_name, 0)
         if first >= 65 && first <= 90 {
             return true

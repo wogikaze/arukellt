@@ -37,6 +37,10 @@ fn mir_signature_fn_param_at(source: CoreHirMirSignatureSource, info_index: i32,
     fn_info::fn_info_param_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, param_index)
 }
 
+fn mir_signature_fn_type_params_at(source: CoreHirMirSignatureSource, info_index: i32) -> Vec<String> {
+    fn_info::fn_info_type_params_at(signature_source_record::mir_signature_source_fn_infos(source), info_index)
+}
+
 fn mir_signature_fn_is_entry_main_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: bool) -> bool {
     fn_info::fn_info_is_entry_main_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
 }

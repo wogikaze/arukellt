@@ -6,6 +6,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::mono_return_vt
+use mir::lower::mono_suffix_parse
 use mir::lower::call_type_fallback_stdlib
 use mir::typed_mir_compat
 use mir::value_types
@@ -194,7 +195,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
         if len(mono_rtn) > 0 {
             mark_call_result_from_return_type_name(ctx, dest, mono_rtn)
-        } else if len(rtn) > 1 && !is_mono_type_var_name(clone(rtn)) {
+        } else if len(rtn) > 1 && !mono_suffix_parse::is_mono_type_var_name(clone(rtn)) {
             mark_call_result_from_return_type_name(ctx, dest, rtn)
         }
     }
@@ -261,19 +262,6 @@ fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
         return
     }
     set_ref_vt_for_type_name(ctx, dest, type_name)
-}
-
-fn is_mono_type_var_name(type_name: String) -> bool {
-    eq(clone(type_name), "T") ||
-    eq(clone(type_name), "A") ||
-    eq(clone(type_name), "B") ||
-    eq(clone(type_name), "C") ||
-    eq(clone(type_name), "D") ||
-    eq(clone(type_name), "E") ||
-    eq(clone(type_name), "K") ||
-    eq(clone(type_name), "U") ||
-    eq(clone(type_name), "V") ||
-    eq(clone(type_name), "W")
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {

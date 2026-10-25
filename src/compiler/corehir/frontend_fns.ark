@@ -5,6 +5,8 @@ use corehir::decl_children
 use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::fn_info
+use corehir::frontend_ast_node
+use corehir::frontend_kind_map
 use corehir::param_shape
 use corehir::raw_dto
 fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
@@ -41,6 +43,27 @@ fn build_fn_params(decl: AstNode, param_count: i32) -> Vec<CoreHirParam> {
         i = i + 1
     }
     params
+}
+
+// Type-parameter names in declaration order, which is the order the
+// typechecker uses for MonoInstance type args and mangled keys. The
+// function's type annotations also carry the __return wrapper and proof
+// contracts; neither is a type parameter.
+fn build_fn_type_params(decl: AstNode) -> Vec<String> {
+    let names = Vec::new<String>()
+    let annotation_count = frontend_ast_node::corehir_node_type_ann_count(decl)
+    let mut i = 0
+    while i < annotation_count {
+        let annotation = frontend_ast_node::corehir_node_type_ann_at(decl, i)
+        if frontend_ast_node::corehir_node_kind(annotation) != frontend_kind_map::nk_proof_contract() {
+            let annotation_name = frontend_ast_node::corehir_node_text(annotation)
+            if !eq(clone(annotation_name), "__return") {
+                push(names, annotation_name)
+            }
+        }
+        i = i + 1
+    }
+    names
 }
 
 fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn_name: String) -> String {
@@ -92,6 +115,7 @@ fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<C
             let body_index = decl_children::decl_body_index(decl)
             let param_count = decl_children::decl_param_count(decl)
             let params = build_fn_params(decl, param_count)
+            let type_params = build_fn_type_params(decl)
             let fn_name = decl_node_identity::decl_name(decl)
             let info = fn_info::CoreHirFnInfo_new(
                 i,
@@ -101,6 +125,7 @@ fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<C
                 module_fn_is_stdlib(modules, i),
                 param_count,
                 params,
+                type_params,
                 body_index,
                 i == entry_main_decl_index
             )
