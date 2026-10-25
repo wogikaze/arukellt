@@ -61,6 +61,19 @@ fn ctx_current_block_last_inst_op(ctx: LowerCtx) -> i32 {
     block_inst_access::MirBlock_inst_op(block, count - 1)
 }
 
+fn ctx_current_block_last_inst_dest(ctx: LowerCtx) -> i32 {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let block = function_block_queries::MirFunction_block_at(
+        f,
+        ctx_current_storage::ctx_current_block_value(ctx)
+    )
+    let count = block_inst_access::MirBlock_inst_count(block)
+    if count <= 0 {
+        return 0 - 1
+    }
+    block_inst_access::MirBlock_inst_dest(block, count - 1)
+}
+
 fn ctx_alloc_block(ctx: LowerCtx) -> i32 {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     let idx = function_block_mutation::MirFunction_next_block(f)

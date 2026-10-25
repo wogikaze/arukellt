@@ -1,0 +1,33 @@
+// A method called through a struct field must pass that field as the
+// receiver before the method's explicit arguments.
+use std::host::stdio
+
+trait Read {
+    fn read(self: Read, n: i32) -> i32
+}
+
+struct Counter {
+    base: i32,
+}
+
+impl Read for Counter {
+    fn read(self: Counter, n: i32) -> i32 {
+        self.base + n
+    }
+}
+
+struct Adapter<T> {
+    inner: T,
+}
+
+impl Read for Adapter<T> {
+    fn read(self: Adapter<T>, n: i32) -> i32 {
+        self.inner.read(n) + 100
+    }
+}
+
+fn main() {
+    let a = Adapter { inner: Counter { base: 10 } }
+    stdio::println((a.read(3)).to_string())
+    stdio::println((a.read(7)).to_string())
+}
