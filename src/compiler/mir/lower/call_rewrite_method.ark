@@ -8,6 +8,7 @@ use std::text
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
 use mir::lower::method_resolve
+use mir::value_types
 fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if len(arg_type) == 0 {
         return String_new()
@@ -112,9 +113,21 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
         return associated_name
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    let source_name = mir_bare_receiver_type_name(clone(arg_type))
+    let mut source_name = mir_bare_receiver_type_name(clone(arg_type))
+    // Direct numeric literals carry only a value type, not a type-name
+    // spelling; let/param locals carry both. Recover scalar source names so
+    // `U::method(literal)` overloads dispatch like named locals.
+    if len(source_name) == 0 {
+        source_name = mir_scalar_source_type_name(ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx))
+    }
     if len(source_name) == 0 {
         return associated_name
+    }
+    // String literals and String_from results carry the builtin "string"
+    // local spelling while impl headers register the source as "String".
+    // Canonicalize before building the symbol suffix.
+    if eq(clone(source_name), String_from("string")) {
+        source_name = String_from("String")
     }
     let mut owner_name = mir_type_prefix(clone(associated_name))
     if eq(clone(associated_name), String_from("Vec::from_iter")) &&
@@ -130,4 +143,17 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
         return candidate
     }
     associated_name
+}
+
+fn mir_scalar_source_type_name(vt: i32) -> String {
+    if vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    if vt == value_types::VT_I32() {
+        return String_from("i32")
+    }
+    String_new()
 }
