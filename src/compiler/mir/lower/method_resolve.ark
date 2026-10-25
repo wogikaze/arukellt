@@ -595,14 +595,10 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
         if eq(clone(prefix), String_from("bool")) { return String_from("__intrinsic_i32_eq") }
         if eq(clone(prefix), String_from("char")) { return String_from("__intrinsic_i32_eq") }
     }
-    if eq(clone(bare_name), String_from("hash")) {
-        if eq(clone(prefix), String_from("i32")) { return String_from("hash_i32") }
-        if eq(clone(prefix), String_from("String")) { return String_from("hash_string") }
-        if eq(clone(prefix), String_from("i64")) { return String_from("hash_i64") }
-        if eq(clone(prefix), String_from("bool")) { return String_from("hash_i32") }
-        if eq(clone(prefix), String_from("char")) { return String_from("hash_i32") }
-        if eq(clone(prefix), String_from("f64")) { return String_from("hash_f64") }
-    }
+    // Hash dispatch resolves through the registered `Type::hash` impl, which
+    // shares the owner method namespace checked before this fallback. The
+    // former `hash_i32` / `hash_string` / ... shims were removed per ADR-036,
+    // so mapping to those names here would only produce a dangling callee.
     String_from("")
 }
 

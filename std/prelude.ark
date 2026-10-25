@@ -80,8 +80,12 @@ pub fn concat(a: String, b: String) -> String {
     string::concat(a, b)
 }
 
+// Free `clone` is the explicit-import signature shim for the
+// compiler-polymorphic `text.clone` CoreOp. The canonical surface is the
+// receiver method `s.clone()`, which the compiler prefers for concrete
+// receivers (#702).
 pub fn clone(s: String) -> String {
-    return s
+    s.clone()
 }
 
 pub fn to_lower(s: String) -> String {
