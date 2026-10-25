@@ -90,6 +90,7 @@
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | Issue #688-#697 は Arukellt の stdlib を「モノモルフィックな free function 集」から 「trait ベースのジェネリック API」へ移行する 10 個の連鎖的 issue 群である。 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | SIMD は すでに experimental として実装・文書化されている（#698 done）。 |
 | [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | Arukelltに契約構文と外部solverを追加するだけでは、形式検証は一部利用者向けの付加機能に留まる。AI agentや人間が高速に変更する開発では、コード生成後に任意でproofを走らせるモデルではなく、仕様・実装・証明失敗・修正を一つのループとして扱う必要がある。 |
+| [ADR-086-linear-collection-adts.md](ADR-086-linear-collection-adts.md) | ADR-086: std::collections の線形コレクション ADT — Deque / Queue / Stack / LinkedList | std/collections/linear.ark は Deque と PriorityQueue を Vec<i32> の内部レイアウト （[head, tail, count, cap, ...data]）に対する free function 群として公開している。 |
 
 ## 却下
 
