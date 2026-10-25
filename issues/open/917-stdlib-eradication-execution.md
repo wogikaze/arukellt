@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-11
-Updated: 2026-10-11
+Updated: 2026-10-25
 ID: 917
 Track: stdlib-api
 Depends on: "709"
@@ -25,19 +25,26 @@ classified there, in dependency-safe waves.
 
 ## Current state
 
-- `docs/data/stdlib-api-eradication.toml` classifies every
-  `std/manifest.toml` `[[functions]]` entry as `must delete`,
-  `associated-or-method`, or `intrinsic-only`, each with an owner
-  issue and a replacement note.
-- `scripts/check/check-stdlib-eradication.py` enforces full coverage:
-  no unclassified symbol, no dead rule, every public class has an owner.
+- `docs/data/stdlib-api-eradication.toml` now classifies both
+  `std/manifest.toml` `[[functions]]` entries and top-level `pub fn`
+  declarations under `std/**/*.ark`: 812 manifest functions + 447
+  unregistered declarations = **1258** symbols (`must delete` 106,
+  `associated-or-method` 1152, `intrinsic-only` 1).
+- `scripts/check/check-stdlib-eradication.py` enforces the dual surface:
+  no unclassified manifest entry or std declaration, no manifest entry
+  without a source declaration, no dead rule, every public class has an owner.
 - The generated scorecard counts remaining user-reachable free symbols;
   **zero** is the goal.
 - Migration precedent: #718 (done) delivered the Tier-1 wave — method /
   associated replacements emitted before frees retired.
+- Deletions are gated by ADR-014 (manifest 0.1.0, `remove_in 1.0.0`) and by
+  the surface replacements owned by #703/#697/#708/#693/#710/#702.
 
 ## Required work
 
+- [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
+      dual-surface (manifest + source declarations), and generate the real
+      1258-symbol scorecard.
 - [ ] Wave A — `must delete` entries whose replacement already exists
       (deprecated prelude wrappers, vec intrinsic-compat frees,
       monomorphic numeric conversions, `HashMap_*` builtins once
@@ -45,7 +52,8 @@ classified there, in dependency-safe waves.
       deprecation where the symbol is still reachable.
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
-      #702, #703, #708, #719, …), then retire the free symbol.
+      #702, #703, #708, #710, and the future Test / IO / collection
+      types), then retire the free symbol.
 - [ ] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [ ] Update user-facing docs/examples in the same PR that retires a
