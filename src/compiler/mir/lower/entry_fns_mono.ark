@@ -6,6 +6,7 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::entry_emit_top
 use mir::lower::entry_view_record
 use mir::lower::entry_view_fn
+use mir::lower::mono_suffix_parse
 use mir::lower::return_typeinfo
 use mir::lower::return_types
 use mir::lower_kinds
@@ -216,24 +217,10 @@ fn mono_return_type_arg_index_from_var_name(var_name: String, arg_count: i32) ->
     if len(var_name) == 0 {
         return 0
     }
-    let idx = type_var_to_index(var_name)
+    let idx = mono_suffix_parse::mono_type_var_to_index(var_name)
     if idx >= 0 && idx < arg_count {
         return idx
     }
-    0
-}
-
-fn type_var_to_index(var_name: String) -> i32 {
-    if eq(clone(var_name), "T") { return 0 }
-    if eq(clone(var_name), "E") { return 1 }
-    if eq(clone(var_name), "U") { return 2 }
-    if eq(clone(var_name), "V") { return 3 }
-    if eq(clone(var_name), "W") { return 4 }
-    if eq(clone(var_name), "K") { return 0 }
-    if eq(clone(var_name), "A") { return 0 }
-    if eq(clone(var_name), "B") { return 1 }
-    if eq(clone(var_name), "C") { return 2 }
-    if eq(clone(var_name), "D") { return 3 }
     0
 }
 

@@ -1,7 +1,7 @@
 // Mono type signature helpers.
 use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
 use std::text
-use mir::lower::fn_index_method_return_type
+use mir::lower::mono_suffix_parse
 use mir::module_gc_struct
 use wasm::emit_target
 use wasm::sections_types_gc
@@ -76,7 +76,7 @@ fn is_valid_type_key(key: String) -> bool {
     false
 }
 
-fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, param_ordinal: i32) -> String {
+fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, _param_ordinal: i32) -> String {
     // For specialized mono functions (name contains "__"), extract the
     // concrete type from the function name suffix and map it to a wasm type sig.
     // The suffix may contain multiple type parameters separated by "__"
@@ -97,8 +97,9 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
         return String_new()
     }
     // Determine which type parameter index to use based on the type variable name.
-    // Common conventions: T→0, E→1, U→2, V→3, K→0, W→4, etc.
-    let type_idx = type_var_name_to_index(type_var_name, key_count)
+    // The fallback table is centralized in mono_suffix_parse; declared
+    // ordinals are bound by the signature registry before this path is hit.
+    let type_idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var_name))
     if type_idx < 0 || type_idx >= key_count {
         return sections_types_sigs_mono_helpers::mono_type_key_to_sig(get_unchecked(type_keys, 0))
     }
@@ -109,7 +110,7 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
 // Extracts the concrete type key from the function name suffix and checks
 // if it's a registered gc_struct in the module.  Returns "gcsref<slot>" if
 // found, empty otherwise.
-fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_ordinal: i32, mir: MirModule) -> String {
+fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, _param_ordinal: i32, mir: MirModule) -> String {
     let full_suffix = extract_mono_suffix(fn_name)
     if len(full_suffix) == 0 {
         return String_new()
@@ -119,7 +120,7 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_or
     if key_count == 0 {
         return String_new()
     }
-    let type_idx = type_var_name_to_index(type_var_name, key_count)
+    let type_idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var_name))
     if type_idx < 0 || type_idx >= key_count {
         return String_new()
     }
@@ -150,30 +151,6 @@ fn split_by_double_underscore(s: String) -> Vec<String> {
         push(result, substring(s, start, slen))
     }
     result
-}
-
-// Map a type variable name (e.g. "T", "E") to a type parameter index.
-// Uses common naming conventions for generic type parameters.
-fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
-    // Strip leading "?" if present.
-    let name = if starts_with(clone(type_var_name), "?") {
-        substring(clone(type_var_name), 1, len(type_var_name))
-    } else {
-        clone(type_var_name)
-    }
-    // Common single-letter type variable conventions:
-    // T→0, E→1, U→2, V→3, W→4, K→0, A→0, B→1, C→2, D→3
-    if eq(clone(name), "T") { return 0 }
-    if eq(clone(name), "E") { return 1 }
-    if eq(clone(name), "U") { return 2 }
-    if eq(clone(name), "V") { return 3 }
-    if eq(clone(name), "W") { return 4 }
-    if eq(clone(name), "K") { return 0 }
-    if eq(clone(name), "A") { return 0 }
-    if eq(clone(name), "B") { return 1 }
-    if eq(clone(name), "C") { return 2 }
-    if eq(clone(name), "D") { return 3 }
-    0
 }
 
 // For mono method names like "Picker__echo__String", MIR may still carry the
@@ -217,7 +194,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         if starts_with(clone(var_probe), "?") {
             var_probe = substring(var_probe, 1, len(var_probe))
         }
-        let is_var_return = fn_index_method_return_type::method_return_type_name_is_type_var(clone(var_probe))
+        let is_var_return = mono_suffix_parse::is_mono_type_var_name(clone(var_probe))
         if !is_var_return && !mono_declared_return_is_receiver(clone(return_type_name), clone(receiver)) {
             return String_new()
         }

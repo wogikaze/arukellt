@@ -7,6 +7,7 @@ struct CoreHirFnInfo {
     is_stdlib: bool,
     param_count: i32,
     params: Vec<CoreHirParam>,
+    type_params: Vec<String>,
     body_index: i32,
     is_entry_main: bool,
 }
@@ -19,6 +20,7 @@ fn CoreHirFnInfo_new(
     is_stdlib: bool,
     param_count: i32,
     params: Vec<CoreHirParam>,
+    type_params: Vec<String>,
     body_index: i32,
     is_entry_main: bool
 ) -> CoreHirFnInfo {
@@ -30,6 +32,7 @@ fn CoreHirFnInfo_new(
         is_stdlib: is_stdlib,
         param_count: param_count,
         params: params,
+        type_params: type_params,
         body_index: body_index,
         is_entry_main: is_entry_main,
     }
@@ -96,6 +99,16 @@ fn fn_info_param_count_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallbac
 fn fn_info_param_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, param_index: i32) -> CoreHirParam {
     let info = get_unchecked(fn_infos, info_index)
     get_unchecked(info.params, param_index)
+}
+
+// Declared type-parameter names in source order. MonoInstance type args and
+// mangled suffix keys follow this order, so substituting by position binds
+// every generic parameter to its own concrete type (#693).
+fn fn_info_type_params_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32) -> Vec<String> {
+    if info_index >= 0 && info_index < len(fn_infos) {
+        return get_unchecked(fn_infos, info_index).type_params
+    }
+    Vec::new<String>()
 }
 
 fn fn_info_is_entry_main_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: bool) -> bool {
