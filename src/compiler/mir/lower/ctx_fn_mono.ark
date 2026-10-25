@@ -14,11 +14,12 @@ fn ctx_replace_fn_index(
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,
     fn_return_type_names: Vec<String>,
+    priority_fn_indices: Vec<i32>,
     qualified_names: Vec<String>,
     qualified_return_vts: Vec<i32>,
     qualified_return_type_names: Vec<String>
 ) {
-    ctx_fn_index::ctx_fn_index_replace(ctx, fn_names, fn_return_vts, fn_return_type_names)
+    ctx_fn_index::ctx_fn_index_replace(ctx, fn_names, fn_return_vts, fn_return_type_names, priority_fn_indices)
     ctx_fn_index::ctx_qualified_fn_index_replace(
         ctx,
         qualified_names,

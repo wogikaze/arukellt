@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, substring}
+use std::prelude::{byte_at, clone, eq, substring}
 use corehir::mir_signature_method
 use corehir::mod
 use mir::lower::decl_source
@@ -17,12 +17,19 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
     let fn_names = Vec::new<String>()
     let fn_return_vts = Vec::new<i32>()
     let fn_return_type_names = Vec::new<String>()
+    let priority_fn_indices = Vec::new<i32>()
     let mut fn_index = 0
     let mut d = 0
     while d < decl_count {
         let decl_name = decl_source::mir_decl_source_name_at(decl_source, d)
         if decl_source::mir_decl_source_is_fn_at(decl_source, d) {
+            let base_name_position = len(fn_names)
             fn_index = fn_index_fns::mir_index_top_level_fn(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
+            if mir_entry_generic_decl(source, d) &&
+            len(fn_names) > base_name_position &&
+            eq(get_unchecked(fn_names, base_name_position), clone(decl_name)) {
+                push(priority_fn_indices, base_name_position)
+            }
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
             let owner_name = signature_method::mir_signature_method_owner_name_for_impl(mod::view_signature_source(view), d, decl_name)
@@ -54,12 +61,29 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
         fn_names,
         synced_vts,
         fn_return_type_names,
+        priority_fn_indices,
         qualified_names,
         qualified_return_vts,
         qualified_return_type_names,
         entry_main_decl_index,
         typed_fn_count
     )
+}
+
+// The typechecker's build_fn_sig_index gives entry-module generic decls
+// (empty qualified name, type params) first claim on their bare names so an
+// imported concrete decl of the same name cannot shadow them (#914). The
+// flat MIR fn index needs the same priority for its bare-name return lookups.
+fn mir_entry_generic_decl(source: MirLowerFnIndexSource, decl_index: i32) -> bool {
+    let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
+    if fn_info_index < 0 {
+        return false
+    }
+    if len(fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)) > 0 {
+        return false
+    }
+    let typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, 0 - 1)
+    fn_index_source::mir_fn_index_source_decl_is_generic(source, typed_index)
 }
 
 fn mir_collect_qualified_fn_aliases(

@@ -26,6 +26,7 @@ fn mir_prepare_lower_ctx(
         fn_index::mir_fn_index_names(fn_index_info),
         fn_index::mir_fn_index_return_vts(fn_index_info),
         fn_index::mir_fn_index_return_type_names(fn_index_info),
+        fn_index::mir_fn_index_priority_fn_indices(fn_index_info),
         fn_index::mir_fn_index_qualified_names(fn_index_info),
         fn_index::mir_fn_index_qualified_return_vts(fn_index_info),
         fn_index::mir_fn_index_qualified_return_type_names(fn_index_info)
