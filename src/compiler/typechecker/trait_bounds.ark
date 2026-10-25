@@ -26,7 +26,7 @@ fn type_satisfies_trait_bound_at_depth(
     if is_builtin_trait_impl(resolved_ty, bound) {
         return true
     }
-    let match_count = matching_trait_impl_count(env, resolved_ty, bound)
+    let match_count = matching_trait_impl_count(env, resolved_ty, bound, depth)
     if match_count > 1 {
         unify::type_error(
             env,
@@ -116,13 +116,18 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     contract_trait_info::TraitInfo_new(String_new(), 0 - 1)
 }
 
-fn matching_trait_impl_count(env: TypeEnv, resolved_ty: TypeInfo, bound: TypeInfo) -> i32 {
+fn matching_trait_impl_count(
+    env: TypeEnv,
+    resolved_ty: TypeInfo,
+    bound: TypeInfo,
+    depth: i32
+) -> i32 {
     let count = len(env.trait_impls)
     let mut matches = 0
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
-        if trait_impl_matches(impl_info, resolved_ty, bound) {
+        if trait_impl_matches_at_depth(env, impl_info, resolved_ty, bound, depth) {
             matches = matches + 1
         }
         i = i + 1
@@ -130,23 +135,119 @@ fn matching_trait_impl_count(env: TypeEnv, resolved_ty: TypeInfo, bound: TypeInf
     matches
 }
 
-fn trait_impl_matches(impl_info: TraitImplInfo, resolved_ty: TypeInfo, bound: TypeInfo) -> bool {
+fn trait_impl_matches(
+    env: TypeEnv,
+    impl_info: TraitImplInfo,
+    resolved_ty: TypeInfo,
+    bound: TypeInfo
+) -> bool {
+    trait_impl_matches_at_depth(env, impl_info, resolved_ty, bound, 0)
+}
+
+fn trait_impl_matches_at_depth(
+    env: TypeEnv,
+    impl_info: TraitImplInfo,
+    resolved_ty: TypeInfo,
+    bound: TypeInfo,
+    depth: i32
+) -> bool {
     if !names::same_type_name(
         contract_trait_impl::TraitImplInfo_trait_name(impl_info),
         contract_type_access::TypeInfo_name(bound)
     ) {
         return false
     }
-    if !type_matches_pattern(
-        contract_trait_impl::TraitImplInfo_self_ty(impl_info),
-        resolved_ty
+    let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
+    if !type_matches_pattern(clone(self_ty), resolved_ty) {
+        return false
+    }
+    if !type_args_match(
+        contract_trait_impl_record::trait_impl_info_trait_args(impl_info),
+        bound
     ) {
         return false
     }
-    type_args_match(
-        contract_trait_impl_record::trait_impl_info_trait_args(impl_info),
-        bound
-    )
+    impl_bounds_satisfied(env, impl_info, clone(self_ty), resolved_ty, depth)
+}
+
+// ADR-078 §3: a parametric impl that matches a concrete instantiation must
+// check its declared bounds against the matched self arguments. Type
+// variables still defer (they may be constrained by the enclosing function
+// or by monomorphisation), preserving the existing demand-edge behaviour.
+fn impl_bounds_satisfied(
+    env: TypeEnv,
+    impl_info: TraitImplInfo,
+    self_pattern: TypeInfo,
+    resolved_ty: TypeInfo,
+    depth: i32
+) -> bool {
+    let bounds = contract_trait_impl_record::trait_impl_info_type_param_bounds(impl_info)
+    let count = len(bounds)
+    let mut i = 0
+    while i < count {
+        let param = get_unchecked(bounds, i)
+        let actual = match_impl_param(
+            clone(self_pattern),
+            clone(resolved_ty),
+            contract_type_param_bounds::TypeParamBounds_name(param)
+        )
+        if contract_type_access::TypeInfo_tag(actual) == commands::TY_UNKNOWN() {
+            return false
+        }
+        let bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(param)
+        let mut j = 0
+        while j < bound_count {
+            if !type_satisfies_trait_bound_at_depth(
+                env,
+                clone(actual),
+                contract_type_param_bounds::TypeParamBounds_bound_at(param, j),
+                depth + 1
+            ) {
+                return false
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    true
+}
+
+// Return the actual type bound to one named impl parameter by matching the
+// impl's self pattern against the candidate self type, or TY_UNKNOWN when the
+// parameter does not occur in the pattern.
+fn match_impl_param(pattern: TypeInfo, actual: TypeInfo, param_name: String) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(pattern) == commands::TY_TYPE_VAR() {
+        if eq(contract_type_access::TypeInfo_name(pattern), clone(param_name)) {
+            return actual
+        }
+        return type_names::type_info_simple(commands::TY_UNKNOWN())
+    }
+    if !trait_type_tags_match(
+        contract_type_access::TypeInfo_tag(pattern),
+        contract_type_access::TypeInfo_tag(actual)
+    ) || !names::same_type_name(
+        contract_type_access::TypeInfo_name(pattern),
+        contract_type_access::TypeInfo_name(actual)
+    ) {
+        return type_names::type_info_simple(commands::TY_UNKNOWN())
+    }
+    let pattern_count = contract_type_access::TypeInfo_type_arg_count(pattern)
+    if pattern_count != contract_type_access::TypeInfo_type_arg_count(actual) {
+        return type_names::type_info_simple(commands::TY_UNKNOWN())
+    }
+    let mut i = 0
+    while i < pattern_count {
+        let found = match_impl_param(
+            contract_type_access::TypeInfo_type_arg_at(pattern, i),
+            contract_type_access::TypeInfo_type_arg_at(actual, i),
+            clone(param_name)
+        )
+        if contract_type_access::TypeInfo_tag(found) != commands::TY_UNKNOWN() {
+            return found
+        }
+        i = i + 1
+    }
+    type_names::type_info_simple(commands::TY_UNKNOWN())
 }
 
 fn type_args_match(impl_args: Vec<TypeInfo>, bound: TypeInfo) -> bool {

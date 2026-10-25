@@ -1,20 +1,24 @@
 use std::prelude::{clone}
+use typechecker::contract_type_param_bounds
 use typechecker::contract_types_record
 struct TraitImplInfo {
     trait_name: String,
     trait_args: Vec<TypeInfo>,
     self_ty: TypeInfo,
+    type_param_bounds: Vec<TypeParamBounds>,
 }
 
 fn TraitImplInfo_new(
     trait_name: String,
     trait_args: Vec<TypeInfo>,
-    self_ty: TypeInfo
+    self_ty: TypeInfo,
+    type_param_bounds: Vec<TypeParamBounds>
 ) -> TraitImplInfo {
     TraitImplInfo {
         trait_name: trait_name,
         trait_args: trait_args,
         self_ty: self_ty,
+        type_param_bounds: type_param_bounds,
     }
 }
 
@@ -28,4 +32,8 @@ fn trait_impl_info_self_ty(info: TraitImplInfo) -> TypeInfo {
 
 fn trait_impl_info_trait_args(info: TraitImplInfo) -> Vec<TypeInfo> {
     info.trait_args
+}
+
+fn trait_impl_info_type_param_bounds(info: TraitImplInfo) -> Vec<TypeParamBounds> {
+    info.type_param_bounds
 }

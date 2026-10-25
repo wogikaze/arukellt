@@ -89,6 +89,10 @@ fn NK_ASSOC_TYPE() -> i32 { 99 }
 // Trait supertraits use the same metadata channel but must not count as
 // generic parameters or associated types.
 fn NK_TRAIT_SUPER() -> i32 { 100 }
+// Binder metadata for `impl<T: Bound> ...`; children are the declared type
+// parameters. It follows the trait/self heads so indices 0 and 1 keep their
+// existing meaning for every downstream consumer.
+fn NK_IMPL_GENERICS() -> i32 { 101 }
 
 // Arithmetic operator kinds.
 fn OP_ADD() -> i32 { 1 }

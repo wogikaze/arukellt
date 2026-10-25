@@ -316,7 +316,10 @@ diag:selfhost/parser_recovery_decls.ark
 diag:selfhost/ret_stmt_mismatch.ark
 diag:selfhost/ret_type_mismatch.ark
 diag:selfhost/trait_ambiguous_bound.ark
+diag:diagnostics/bounded_impl_bound_missing.ark
+diag:diagnostics/bounded_impl_unconstrained_param.ark
 diag:diagnostics/trait_blanket_impl.ark
+diag:diagnostics/trait_default_method_body.ark
 diag:diagnostics/trait_dyn_boundary.ark
 diag:diagnostics/error_supertrait_missing.ark
 diag:selfhost/trait_overlapping_impl.ark
@@ -512,6 +515,7 @@ run:generics/result_generic.ark
 run:generics/struct_option_vec_fn_fields.ark
 run:generics/two_params.ark
 run:generics/vec_generic.ark
+run:generics_v1/bounded_clone_impl.ark
 run:generics_v1/generic_inherent_struct_lit.ark
 run:generics_v1/generic_inferred_struct_lit.ark
 run:generics_v1/generic_inst_trait_impl.ark
@@ -2244,6 +2248,7 @@ t3-compile:generics/result_generic.ark
 t3-compile:generics/struct_option_vec_fn_fields.ark
 t3-compile:generics/two_params.ark
 t3-compile:generics/vec_generic.ark
+t3-compile:generics_v1/bounded_clone_impl.ark
 t3-compile:generics_v1/generic_method_call.ark
 t3-compile:generics_v1/generic_multi_param.ark
 t3-compile:generics_v1/generic_three_param.ark
@@ -2730,6 +2735,7 @@ t3-run:generics/result_generic.ark
 t3-run:generics/struct_option_vec_fn_fields.ark
 t3-run:generics/two_params.ark
 t3-run:generics/vec_generic.ark
+t3-run:generics_v1/bounded_clone_impl.ark
 t3-run:generics_v1/generic_inherent_struct_lit.ark
 t3-run:generics_v1/generic_inferred_struct_lit.ark
 t3-run:generics_v1/generic_method_call.ark

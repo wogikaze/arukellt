@@ -104,9 +104,17 @@ trait identity, ordered type arguments, and implementing type. It recognizes
 `type Item = Concrete`, and `Self::Item` projection for concrete impl methods.
 Duplicate concrete impls, user blanket impls, trait arity mismatches, and
 `dyn Trait` type positions are diagnosed as E0215–E0218; malformed associated
-items use E0219. Trait method calls in generic bounds substitute the bound's
-trait arguments before checking the call. Dispatch remains monomorphized and
-static; a dynamic object ABI is not inferred.
+items use E0219. Trait method declarations are signature-only: a declared body
+is rejected with E0221, the blocker record for ADR-062's out-of-scope default
+methods. Trait method calls in generic bounds substitute the bound's trait
+arguments before checking the call. Dispatch remains monomorphized and static;
+a dynamic object ABI is not inferred.
+
+Parametric impl headers accept an explicit binder, for example
+`impl<T: Clone> Clone for Deque<T>`. The declared parameters and bounds are
+recorded on the impl; the bounds are available while checking the impl method
+body and are enforced when a concrete receiver selects the impl. Impl
+parameters that do not occur in the self type are rejected, as ADR-078 requires.
 
 The same registry and source-level result are used for `wasm32-gc` and the
 `wasm32` linear-memory fallback. The positive #856 fixture generates and
@@ -253,8 +261,8 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3166 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1578 registry entries (not proof they fail)
+- Fixture registry: 3172 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1584 registry entries (not proof they fail)
 - Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3134 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, so the current registry remainder is 1546. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**

@@ -69,6 +69,10 @@ fn NK_PROOF_CONTRACT() -> i32 { 98 }
 fn NK_ASSOC_TYPE() -> i32 { 99 }
 // Trait supertraits are declaration metadata, not generic parameters.
 fn NK_TRAIT_SUPER() -> i32 { 100 }
+// Binder metadata for `impl<T: Bound> ...`; children are the declared type
+// parameters. It follows the trait/self heads, so indices 0 and 1 keep their
+// existing meaning.
+fn NK_IMPL_GENERICS() -> i32 { 101 }
 
 // Comparison operator kinds.
 fn OP_ADD() -> i32 { 1 }

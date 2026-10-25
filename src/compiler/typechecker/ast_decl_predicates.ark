@@ -5,6 +5,22 @@ fn node_is_fn_decl(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_FN_DECL())
 }
 
+// A `= expr` body sets the int-val marker; a block body is the final child.
+// Signature-only declarations keep every child as a parameter.
+fn node_fn_has_body(node: AstNode) -> bool {
+    if parser::ast::ast_node_int_val(node) == 1 {
+        return true
+    }
+    let count = ast_access::node_child_count(node)
+    if count == 0 {
+        return false
+    }
+    ast_access::node_kind_is(
+        ast_access::node_child_at(node, count - 1),
+        kinds::NK_BLOCK()
+    )
+}
+
 fn node_is_struct_decl(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_STRUCT_DECL())
 }

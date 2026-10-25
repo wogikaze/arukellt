@@ -1,0 +1,20 @@
+trait Bound {}
+
+trait Marker {
+    fn mark(self: Self) -> i32
+}
+
+struct Pair<T> {
+    value: T,
+}
+
+impl<T: Bound, U: Bound> Marker for Pair<T> {
+    fn mark(self: Pair<T>) -> i32 {
+        1
+    }
+}
+
+fn main() {
+    let pair = Pair { value: 7 }
+    pair.mark()
+}

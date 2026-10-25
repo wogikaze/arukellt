@@ -5,6 +5,7 @@ use typechecker::kinds
 use typechecker::ast_access
 use typechecker::contract_fn_sig
 use typechecker::contract_type_constructors
+use typechecker::contract_type_param_bounds
 use typechecker::sig_bounds
 use typechecker::types
 fn simple_type(tag: i32) -> TypeInfo {
@@ -100,12 +101,65 @@ fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
 
 // Like fn_sig_from_fn_decl but merges impl-level type parameters with the
 // method's own type parameters. This is needed for `impl Vec<T> { fn push(self, x: T) }`
-// where T comes from the impl block, not the method declaration.
-fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Vec<String>) -> FnSig {
-    let type_param_bounds = sig_bounds::collect_type_param_bounds(ast_access::node_type_ann(node))
-    let method_type_params = sig_bounds::collect_type_param_names(type_param_bounds)
-    let type_params = merge_type_params(impl_type_params, method_type_params)
+// where T comes from the impl block, not the method declaration. Impl-level
+// bounds are carried into the method signature so body checking can resolve
+// `self.field.method()` through the declared bound and call sites can enforce
+// the same obligation at instantiation.
+fn fn_sig_from_fn_decl_with_impl_type_params(
+    node: AstNode,
+    impl_type_params: Vec<String>,
+    impl_type_param_bounds: Vec<TypeParamBounds>
+) -> FnSig {
+    let method_bounds = sig_bounds::collect_type_param_bounds(ast_access::node_type_ann(node))
+    let method_type_params = sig_bounds::collect_type_param_names(method_bounds)
+    let type_params = merge_type_params(clone(impl_type_params), method_type_params)
+    let type_param_bounds = merge_type_param_bounds(
+        impl_type_params,
+        impl_type_param_bounds,
+        method_bounds
+    )
     fn_sig_from_fn_decl_with_params(node, type_params, type_param_bounds)
+}
+
+// Keep bounds aligned with merge_type_params: impl bounds first, then method
+// bounds for names the impl did not already declare.
+fn merge_type_param_bounds(
+    impl_params: Vec<String>,
+    impl_bounds: Vec<TypeParamBounds>,
+    method_bounds: Vec<TypeParamBounds>
+) -> Vec<TypeParamBounds> {
+    let merged = Vec::new<TypeParamBounds>()
+    let impl_count = len(impl_bounds)
+    let mut i = 0
+    while i < impl_count {
+        push(merged, get_unchecked(impl_bounds, i))
+        i = i + 1
+    }
+    let method_count = len(method_bounds)
+    let mut j = 0
+    while j < method_count {
+        let info = get_unchecked(method_bounds, j)
+        if !string_vec_contains(
+            clone(impl_params),
+            contract_type_param_bounds::TypeParamBounds_name(info)
+        ) {
+            push(merged, info)
+        }
+        j = j + 1
+    }
+    merged
+}
+
+fn string_vec_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 // Merge impl-level type params with method-level type params, avoiding duplicates.

@@ -6,6 +6,7 @@ use typechecker::associated_types
 use typechecker::contract_fn_sig
 use typechecker::contract_env_record
 use typechecker::contract_type_access
+use typechecker::impl_generics
 use typechecker::kinds
 use typechecker::sigs
 use typechecker::types
@@ -51,9 +52,14 @@ fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv) {
 }
 
 fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> FnSig {
-    let impl_type_params = extract_impl_type_params(impl_decl)
+    let impl_type_params = impl_generics::type_param_names(impl_decl)
+    let impl_type_param_bounds = impl_generics::type_param_bounds(impl_decl)
     let bare_sig = if len(impl_type_params) > 0 {
-        sigs::fn_sig_from_fn_decl_with_impl_type_params(method_decl, impl_type_params)
+        sigs::fn_sig_from_fn_decl_with_impl_type_params(
+            method_decl,
+            impl_type_params,
+            impl_type_param_bounds
+        )
     } else {
         sigs::fn_sig_from_fn_decl(method_decl)
     }
@@ -87,7 +93,7 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
     if !eq(ast_access::node_text(ast_access::node_child_at(method_decl, 0)), String_from("self")) {
         return sig
     }
-    if ast_access::node_type_ann_count(impl_decl) != 1 {
+    if impl_generics::head_count(impl_decl) != 1 {
         return sig
     }
     let head_type = ast_access::node_type_ann_at(impl_decl, 0)
@@ -112,45 +118,6 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
     contract_fn_sig::FnSig_with_types(sig, params, contract_fn_sig::FnSig_return_type(sig))
 }
 
-// Extract type parameter names from an impl block's head type.
-// For `impl Vec<T>` the head type is NK_TYPE_GENERIC("Vec", [T]) and
-// the type args (children[1..]) are the impl-level type parameters.
-// For non-generic impls like `impl String`, returns an empty vector.
-fn extract_impl_type_params(decl: AstNode) -> Vec<String> {
-    let ann_count = ast_access::node_type_ann_count(decl)
-    if ann_count < 1 {
-        return Vec::new<String>()
-    }
-    // For `impl Trait for Type`, the impl target is type_ann[1].
-    // For `impl Type`, the impl target is type_ann[0].
-    let head_idx = if ann_count >= 2 { 1 } else { 0 }
-    let head_type = ast_access::node_type_ann_at(decl, head_idx)
-    let params = Vec::new<String>()
-    collect_impl_type_params_from_node(head_type, params)
-    if ann_count >= 2 {
-        collect_impl_type_params_from_node(
-            ast_access::node_type_ann_at(decl, 0),
-            params
-        )
-    }
-    params
-}
-
-fn collect_impl_type_params_from_node(node: AstNode, params: Vec<String>) {
-    let name = ast_access::node_text(node)
-    if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
-    is_impl_type_param_name(clone(name)) &&
-    !string_vec_contains(params, clone(name)) {
-        push(params, clone(name))
-    }
-    let child_count = ast_access::node_child_count(node)
-    let mut i = 0
-    while i < child_count {
-        collect_impl_type_params_from_node(ast_access::node_child_at(node, i), params)
-        i = i + 1
-    }
-}
-
 fn is_impl_type_param_name(name: String) -> bool {
     if len(name) != 1 {
         return false
@@ -159,11 +126,11 @@ fn is_impl_type_param_name(name: String) -> bool {
     ch >= 65 && ch <= 90
 }
 
-fn string_vec_contains(names: Vec<String>, name: String) -> bool {
-    let count = len(names)
+fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
+    let count = len(declared)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(names, i), clone(name)) {
+        if eq(get_unchecked(declared, i), clone(name)) {
             return true
         }
         i = i + 1
@@ -175,14 +142,15 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
 // For `impl Type { ... }` returns "Type".
 // For `impl Trait for Type { ... }` returns "Type" (the implementing type).
 fn impl_self_type_name(decl: AstNode) -> String {
-    let ann_count = ast_access::node_type_ann_count(decl)
-    let target = if ann_count >= 2 {
+    let heads = impl_generics::head_count(decl)
+    let target = if heads >= 2 {
         ast_access::node_type_ann_at(decl, 1)
-    } else if ann_count >= 1 {
+    } else if heads >= 1 {
         ast_access::node_type_ann_at(decl, 0)
     } else {
         return ast_access::node_text(decl)
     }
+    let declared = impl_generics::declared_type_param_names(decl)
     let target_name = ast_access::node_text(target)
     if eq(clone(target_name), String_from("Vec")) &&
     ast_access::node_child_count(target) > 1 {
@@ -198,8 +166,8 @@ fn impl_self_type_name(decl: AstNode) -> String {
     ast_access::node_child_count(target) > 2 {
         let key_node = ast_access::node_child_at(target, 1)
         let value_node = ast_access::node_child_at(target, 2)
-        let key_key = impl_inst_arg_key(key_node)
-        let value_key = impl_inst_arg_key(value_node)
+        let key_key = impl_inst_arg_key(key_node, clone(declared))
+        let value_key = impl_inst_arg_key(value_node, clone(declared))
         if len(key_key) > 0 && len(value_key) > 0 {
             return text::concat(
                 String_from("HashMap_"),
@@ -215,7 +183,7 @@ fn impl_self_type_name(decl: AstNode) -> String {
     if ast_access::node_kind_is(target, kinds::NK_TYPE_GENERIC()) &&
     !eq(clone(target_name), String_from("Vec")) &&
     !eq(clone(target_name), String_from("HashMap")) {
-        let inst_suffix = impl_inst_arg_suffix(target)
+        let inst_suffix = impl_inst_arg_suffix(target, clone(declared))
         if len(inst_suffix) > 0 {
             return text::concat(
                 clone(target_name),
@@ -229,7 +197,7 @@ fn impl_self_type_name(decl: AstNode) -> String {
 // Underscore-joined concrete key for the type arguments of a generic impl
 // target, or "" when any argument is a type parameter or has no owner-key
 // spelling. Children[0] is the head name, so iteration starts at 1.
-fn impl_inst_arg_suffix(target: AstNode) -> String {
+fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
     let child_count = ast_access::node_child_count(target)
     if child_count < 2 {
         return String_new()
@@ -237,7 +205,10 @@ fn impl_inst_arg_suffix(target: AstNode) -> String {
     let mut suffix = String_new()
     let mut i = 1
     while i < child_count {
-        let key = impl_inst_arg_key(ast_access::node_child_at(target, i))
+        let key = impl_inst_arg_key(
+            ast_access::node_child_at(target, i),
+            clone(declared)
+        )
         if len(key) == 0 {
             return String_new()
         }
@@ -250,17 +221,18 @@ fn impl_inst_arg_suffix(target: AstNode) -> String {
     suffix
 }
 
-fn impl_inst_arg_key(arg: AstNode) -> String {
+fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_NAMED()) {
         let name = ast_access::node_text(arg)
-        if is_impl_type_param_name(clone(name)) {
+        if is_declared_impl_param(clone(name), clone(declared)) ||
+        is_impl_type_param_name(clone(name)) {
             return String_new()
         }
         return name
     }
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_GENERIC()) {
         let base = ast_access::node_text(arg)
-        let inner = impl_inst_arg_suffix(arg)
+        let inner = impl_inst_arg_suffix(arg, declared)
         if len(inner) == 0 {
             return String_new()
         }
