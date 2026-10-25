@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-29
-Updated: 2026-10-23
+Updated: 2026-10-25
 ID: 708
 Track: stdlib-api
 Depends on: ""
@@ -33,9 +33,10 @@ codegen 側の型伝播である。
   associated 形式は typecheck / codegen / run を通る（try_from_parse.ark）。
 - let 注釈 `Result<U, String>` の型/mvt は call-result temp へ伝播し、
   emitter は Result/Option/enum local を scalar に縮退させない。
-- `i32::try_from(String)` と `i32::try_from(i64)` は同じ mangled `i32::try_from`
-  を持ち、callee lookup が先頭 impl を選ぶ。そのため `i64 -> i32` narrowing は
-  まだ codegen できない。source 型を mangled / dispatch に含める必要がある。
+- `i32::try_from(String)` と `i32::try_from(i64)` は source 型を mangled name
+  (`i32::try_from__String` / `i32::try_from__i64`) に含めて登録し、callee lookup が
+  第 1 引数の型から選択する。`i64 -> i32` narrowing も codegen / run できる
+  （try_from_narrow.ark）。
 - `"x".try_into()` の method 形式は期待型から impl を選べないため採択しない
   （ADR-084）。
 
@@ -46,6 +47,9 @@ codegen 側の型伝播である。
 - [x] associated trait function の具象戻り型 `Result<U, String>` を call site / signature registry で解決する。
 - [x] let 注釈が付いた call-result temp に、注釈の `Result`/`Option` 型と mvt を伝播する
       （`src/compiler/mir/lower/stmt_let_store.ark`）。
+- [x] conversion impl の mangled name に source 型を含め、associated call を第 1 引数の
+      source 型で選択する（`src/compiler/corehir/decl_impl_target.ark` /
+      `src/compiler/mir/lower/call_rewrite_method.ark`）。
 - [x] probe と `try_from_parse.ark` を wasm32-gc で compile / validate / run する。
 
 ### Stdlib
@@ -56,8 +60,7 @@ codegen 側の型伝播である。
   - `impl TryFrom<String> for i32` — `parse_i32` 相当
   - `impl TryFrom<String> for i64` — `parse_i64` 相当
   - `impl TryFrom<String> for f64` — `parse_f64` 相当
-  - `impl TryFrom<i64> for i32` — 範囲検査付き narrowing（定義済み。same-target
-    mangling のため call は未対応）
+  - `impl TryFrom<i64> for i32` — 範囲検査付き narrowing
 - [x] `TryInto` method は追加しない（ADR-084 で保留）。
 
 ### Fixtures
@@ -65,23 +68,20 @@ codegen 側の型伝播である。
 - [x] `tests/fixtures/stdlib_trait/try_from_parse.ark` —
       `let n: Result<i32, String> = i32::try_from("42")` が `Ok(42)` になり、
       `i64` / `f64` の parse も成功する。
-- [ ] `tests/fixtures/stdlib_trait/try_from_narrow.ark` —
+- [x] `tests/fixtures/stdlib_trait/try_from_narrow.ark` —
       `i32::try_from(999999999999i64)` が `Err`、範囲内の `i32::try_from(42i64)` が `Ok(42)` になる。
-      same-target mangling の修正待ち。
-- [x] manifest に `run:` / `t3-run:` を登録する（try_from_parse）。
+- [x] manifest に `run:` / `t3-run:` を登録する（try_from_parse / try_from_narrow）。
 - [ ] `python3 scripts/manager.py verify quick` exits 0。
 
 ## Acceptance
 
 - [x] `i32::try_from("42")` returns `Ok(42)` as `Result<i32, String>`.
-- [ ] `i32::try_from(999999999999i64)` returns `Err` as `Result<i32, String>`.
+- [x] `i32::try_from(999999999999i64)` returns `Err` as `Result<i32, String>`.
 - [x] `TryFrom` trait and String impls are defined; `TryInto` method is not required here.
 - [ ] `python3 scripts/manager.py verify quick` exits 0.
 
 ## Remaining
 
-- `i32::try_from(String)` と `i32::try_from(i64)` を source 型込みの mangled name /
-  dispatch で区別し、narrowing fixture を通す。
 - `TryInto` method は ADR-084 の target-type-directed resolution 待ち。
 
 ## References

@@ -147,7 +147,7 @@ fn impl_conversion_source_type_name(decl: AstNode) -> String {
     }
     let trait_ann = decl_ann_member::decl_ann_at(decl, 0)
     let trait_name = decl_ann_name::decl_ann_name(trait_ann)
-    if !eq(clone(trait_name), "From") && !eq(clone(trait_name), "FromIterator") ||
+    if !impl_conversion_trait_has_source_type(clone(trait_name)) ||
     decl_ann_children::decl_ann_child_count(trait_ann) < 2 {
         return String_new()
     }
@@ -172,4 +172,13 @@ fn impl_conversion_source_type_name(decl: AstNode) -> String {
         i = i + 1
     }
     key
+}
+
+// Traits whose impl is selected by a source type. TryInto is deliberately
+// absent: ADR-084 defers its method form, and its mangled owner is the
+// receiver rather than the conversion source.
+fn impl_conversion_trait_has_source_type(trait_name: String) -> bool {
+    eq(clone(trait_name), "From") ||
+    eq(clone(trait_name), "FromIterator") ||
+    eq(clone(trait_name), "TryFrom")
 }

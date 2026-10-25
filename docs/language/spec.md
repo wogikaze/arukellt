@@ -616,9 +616,9 @@ Evidence: `tests/fixtures/question_mark/basic_propagate.ark`,
 Fallible conversion is explicit and separate from `?`. ADR-084 fixes the
 experimental v2 surface as the `TryFrom<T>` associated function (called as
 `i32::try_from("42")`, with `String` as the initial error type); it is
-available for `String -> i32/i64/f64` (#708). Same-target associated functions
-(for example the `i64 -> i32` narrowing) are not available yet: the callee
-lookup selects the first same-mangled impl. The `TryInto::try_into` method form
+available for `String -> i32/i64/f64` and range-checked `i64 -> i32` narrowing
+(#708). Associated overloads are selected by the source argument type, so
+same-target impls dispatch independently. The `TryInto::try_into` method form
 is not part of the initial v2 surface; selecting its impl requires
 target-type-directed trait method resolution, which is not adopted yet.
 

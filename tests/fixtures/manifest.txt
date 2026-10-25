@@ -1937,6 +1937,7 @@ run:stdlib_trait/seek_to_zero.ark
 run:stdlib_trait/seq_ord_generic_algorithms.ark
 run:stdlib_trait/self_return_add.ark
 run:stdlib_trait/self_return_clone.ark
+run:stdlib_trait/try_from_narrow.ark
 run:stdlib_trait/try_from_parse.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_any_all_match.ark
@@ -2969,6 +2970,7 @@ t3-run:stdlib_trait/self_return_add.ark
 t3-run:stdlib_trait/operator_generic.ark
 t3-run:stdlib_trait/self_return_clone.ark
 t3-run:stdlib_trait/clone_unbound_typevar.ark
+t3-run:stdlib_trait/try_from_narrow.ark
 t3-run:stdlib_trait/try_from_parse.ark
 t3-run:stdlib_vec/any_find.ark
 t3-run:stdlib_vec/vec_any_all_match.ark
