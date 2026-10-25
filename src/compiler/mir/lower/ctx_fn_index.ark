@@ -30,12 +30,37 @@ fn ctx_qualified_fn_return_type_name_at(ctx: LowerCtx, index: i32) -> String {
     clone(get_unchecked(ctx.qualified_fn_return_type_names, index))
 }
 
-fn ctx_fn_index_replace(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>) {
+fn ctx_fn_index_replace(
+    ctx: LowerCtx,
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    priority_fn_indices: Vec<i32>
+) {
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
     ctx.fn_return_type_names = fn_return_type_names
     let count = len(fn_names)
     let index = name_index::NameIndex_new(count)
+    // Entry-module generic decls claim their bare names before the in-order
+    // pass. Loaded modules are listed first and insert_first keeps the first
+    // writer, so an imported concrete decl sharing the name
+    // (std::core::identity(i32) vs fn identity<T>) would own the slot and
+    // bare-name return lookups would read the imported signature. This
+    // mirrors the typechecker's build_fn_sig_index priority (#914).
+    let priority_count = len(priority_fn_indices)
+    let mut p = 0
+    while p < priority_count {
+        let priority_index = get_unchecked(priority_fn_indices, p)
+        if priority_index >= 0 && priority_index < count {
+            name_index::name_index_insert_first(
+                index,
+                clone(get_unchecked(fn_names, priority_index)),
+                priority_index
+            )
+        }
+        p = p + 1
+    }
     let mut lengths = Vec::new<i32>()
     let mut i = 0
     while i < count {
