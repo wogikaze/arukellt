@@ -119,6 +119,19 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
         return
     }
 
+    // A local binding can shadow the module that a type import canonicalized
+    // to (`let deque` hides module `deque` inside `Deque::with_capacity`), so
+    // the head reaches here as SYM_LOCAL/SYM_PARAM and the module branch above
+    // never rewrites the resolved associated function to its source-level
+    // `Owner::method` spelling. Rewrite it from the resolved full path instead;
+    // the typechecker signature index and MIR lowering key impl methods by that
+    // spelling (#710 / #693).
+    if (head_kind == commands::SYM_LOCAL() || head_kind == commands::SYM_PARAM()) &&
+    path_has_nested_qualifier(clone(symbol_part)) &&
+    resolve_module_qualified_associated_fn(ctx, node, clone(path), clone(symbol_part), full_idx, full_kind) {
+        return
+    }
+
     // Other bound heads (struct/resource/fn): keep legacy module-qualified
     // function visibility checks when the full path exists.
     if full_idx >= 0 {
