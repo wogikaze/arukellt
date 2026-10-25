@@ -1,0 +1,401 @@
+//! `Deque<T>` — a double-ended queue with amortized O(1) push/pop at both ends.
+//!
+//! Storage is a pair of `Vec<T>` stacks: `front_items` holds the front half in
+//! reverse order and `back_items` holds the back half in order. When one side
+//! empties during a pop, the other side is reversed into it, so every element
+//! moves at most once per traversal between the two stacks. A growable ring
+//! buffer would need preallocated element slots; a generic struct field of
+//! `Vec<Option<T>>` (or raw slot writes) does not lower on `wasm32-gc`, so this
+//! representation is used instead while keeping the same public contract.
+//!
+//! `capacity` / `reserve` expose the logical reservation: pushes grow it and
+//! `reserve` rebuilds both stacks through `Vec::with_capacity` so the
+//! reservation is backed by the vector allocators.
+//!
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+use std::core::iter
+use std::core::clone
+use std::core::convert
+use std::text
+
+/// Double-ended queue with private two-stack storage.
+///
+/// Elements are reachable only through the methods below. Empty pops and peeks
+/// return `Option::None`; there is no `0` sentinel and no panic path.
+pub struct Deque<T> {
+    front_items: Vec<T>,
+    back_items: Vec<T>,
+    reserved: i32,
+}
+
+// Logical index → physical slot. `front_items` is stored back-to-front so the
+// last slot is the front element; `back_items` is stored front-to-back.
+fn deque_at<T>(deque: Deque<T>, index: i32) -> T {
+    let front_len: i32 = len(deque.front_items)
+    if index < front_len {
+        return get_unchecked(deque.front_items, front_len - 1 - index)
+    }
+    get_unchecked(deque.back_items, index - front_len)
+}
+
+fn deque_replace_at<T>(deque: Deque<T>, index: i32, value: T) -> T {
+    let front_len: i32 = len(deque.front_items)
+    if index < front_len {
+        let slot: i32 = front_len - 1 - index
+        let old: T = get_unchecked(deque.front_items, slot)
+        set(deque.front_items, slot, value)
+        return old
+    }
+    let slot: i32 = index - front_len
+    let old: T = get_unchecked(deque.back_items, slot)
+    set(deque.back_items, slot, value)
+    old
+}
+
+impl<T> Deque<T> {
+    /// Creates an empty deque.
+    fn new() -> Deque<T> {
+        Deque { front_items: Vec::new<T>(), back_items: Vec::new<T>(), reserved: 0 }
+    }
+
+    /// Creates an empty deque with a logical capacity reservation.
+    ///
+    /// A negative `capacity` is treated as `0`; this never panics.
+    fn with_capacity(capacity: i32) -> Deque<T> {
+        let cap: i32 = if capacity > 0 { capacity } else { 0 }
+        Deque { front_items: Vec::with_capacity<T>(cap), back_items: Vec::new<T>(), reserved: cap }
+    }
+
+    /// Inserts `value` at the back.
+    fn push_back(self: Deque<T>, value: T) {
+        push(self.back_items, value)
+        self.note_growth()
+    }
+
+    /// Inserts `value` at the front.
+    fn push_front(self: Deque<T>, value: T) {
+        push(self.front_items, value)
+        self.note_growth()
+    }
+
+    /// Removes and returns the back element, or `None` when empty.
+    fn pop_back(self: Deque<T>) -> Option<T> {
+        if len(self.back_items) == 0 {
+            while len(self.front_items) > 0 {
+                match pop(self.front_items) {
+                    Option::Some(value) => push(self.back_items, value),
+                    Option::None => { break },
+                }
+            }
+        }
+        pop(self.back_items)
+    }
+
+    /// Removes and returns the front element, or `None` when empty.
+    fn pop_front(self: Deque<T>) -> Option<T> {
+        if len(self.front_items) == 0 {
+            while len(self.back_items) > 0 {
+                match pop(self.back_items) {
+                    Option::Some(value) => push(self.front_items, value),
+                    Option::None => { break },
+                }
+            }
+        }
+        pop(self.front_items)
+    }
+
+    /// Peeks at the front element without removing it.
+    fn front(self: Deque<T>) -> Option<T> {
+        if len(self.front_items) > 0 {
+            return Option::Some(get_unchecked(self.front_items, len(self.front_items) - 1))
+        }
+        if len(self.back_items) > 0 {
+            return Option::Some(get_unchecked(self.back_items, 0))
+        }
+        Option::None
+    }
+
+    /// Peeks at the back element without removing it.
+    fn back(self: Deque<T>) -> Option<T> {
+        if len(self.back_items) > 0 {
+            return Option::Some(get_unchecked(self.back_items, len(self.back_items) - 1))
+        }
+        if len(self.front_items) > 0 {
+            return Option::Some(get_unchecked(self.front_items, 0))
+        }
+        Option::None
+    }
+
+    /// Returns the number of elements.
+    fn len(self: Deque<T>) -> i32 {
+        len(self.front_items) + len(self.back_items)
+    }
+
+    /// Returns true when the deque has no elements.
+    fn is_empty(self: Deque<T>) -> bool {
+        len(self.front_items) + len(self.back_items) == 0
+    }
+
+    /// Removes all elements while keeping the logical capacity reservation.
+    fn clear(self: Deque<T>) {
+        pop_all(self.front_items)
+        pop_all(self.back_items)
+    }
+
+    /// Returns the logical capacity reservation.
+    fn capacity(self: Deque<T>) -> i32 {
+        self.reserved
+    }
+
+    /// Ensures room for at least `len + additional` elements.
+    ///
+    /// `additional <= 0` is a no-op, matching the documented contract.
+    fn reserve(self: Deque<T>, additional: i32) {
+        if additional <= 0 {
+            return
+        }
+        let needed: i32 = len(self.front_items) + len(self.back_items) + additional
+        if self.reserved >= needed {
+            return
+        }
+        let front_cap: i32 = len(self.front_items)
+        let back_cap: i32 = needed - front_cap
+        let new_front: Vec<T> = Vec::with_capacity<T>(front_cap)
+        while len(self.front_items) > 0 {
+            match pop(self.front_items) {
+                Option::Some(value) => push(new_front, value),
+                Option::None => { break },
+            }
+        }
+        let new_back: Vec<T> = Vec::with_capacity<T>(back_cap)
+        while len(self.back_items) > 0 {
+            match pop(self.back_items) {
+                Option::Some(value) => push(new_back, value),
+                Option::None => { break },
+            }
+        }
+        self.front_items = new_front
+        self.back_items = new_back
+        self.reserved = needed
+    }
+
+    /// Returns a read-only cursor over the elements, front to back.
+    fn iter(self: Deque<T>) -> DequeIter<T> {
+        DequeIter { deque: self, index: 0 }
+    }
+
+    /// Returns a writable cursor whose `set_current` replaces the last element
+    /// returned by `next`.
+    fn iter_mut(self: Deque<T>) -> DequeIterMut<T> {
+        DequeIterMut { deque: self, index: 0, current: 0 - 1, stopped: false }
+    }
+
+    // Capacity is observable state. Pushes only ever raise it, and reserve
+    // raises it before rebuilding storage, so capacity() never reports less
+    // than len().
+    fn note_growth(self: Deque<T>) {
+        let count: i32 = len(self.front_items) + len(self.back_items)
+        if count > self.reserved {
+            self.reserved = count
+        }
+    }
+}
+
+fn pop_all<T>(values: Vec<T>) {
+    while len(values) > 0 {
+        match pop(values) {
+            Option::Some(_) => {},
+            Option::None => { break },
+        }
+    }
+}
+
+/// Read-only cursor over a `Deque<T>`, front to back.
+pub struct DequeIter<T> {
+    deque: Deque<T>,
+    index: i32,
+}
+
+impl Iterator for DequeIter<T> {
+    type Item = T
+
+    fn next(self: DequeIter<T>) -> Option<T> {
+        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        if self.index >= count {
+            return Option::None
+        }
+        let value: T = deque_at(self.deque, self.index)
+        self.index = self.index + 1
+        Option::Some(value)
+    }
+
+    fn collect(self: DequeIter<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
+        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        while self.index < count {
+            push(out, deque_at(self.deque, self.index))
+            self.index = self.index + 1
+        }
+        out
+    }
+
+    fn count(self: DequeIter<T>) -> i32 {
+        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let remaining: i32 = count - self.index
+        self.index = count
+        remaining
+    }
+}
+
+impl IntoIterator for DequeIter<T> {
+    type Item = T
+    type IntoIter = DequeIter<T>
+
+    fn into_iter(self: DequeIter<T>) -> DequeIter<T> {
+        self
+    }
+}
+
+/// Writable cursor over a `Deque<T>`, front to back.
+///
+/// `set_current` replaces the element returned by the previous `next` call and
+/// returns the old value. Before the first `next`, and after `next` has
+/// reported the end, it returns `None` and leaves the deque unchanged.
+pub struct DequeIterMut<T> {
+    deque: Deque<T>,
+    index: i32,
+    current: i32,
+    stopped: bool,
+}
+
+impl Iterator for DequeIterMut<T> {
+    type Item = T
+
+    fn next(self: DequeIterMut<T>) -> Option<T> {
+        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        if self.index >= count {
+            self.stopped = true
+            return Option::None
+        }
+        let value: T = deque_at(self.deque, self.index)
+        self.current = self.index
+        self.index = self.index + 1
+        Option::Some(value)
+    }
+
+    fn collect(self: DequeIterMut<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
+        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        while self.index < count {
+            push(out, deque_at(self.deque, self.index))
+            self.index = self.index + 1
+        }
+        out
+    }
+
+    fn count(self: DequeIterMut<T>) -> i32 {
+        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let remaining: i32 = count - self.index
+        self.index = count
+        remaining
+    }
+}
+
+impl<T> DequeIterMut<T> {
+    /// Replaces the last element yielded by `next` and returns the old value.
+    fn set_current(self: DequeIterMut<T>, value: T) -> Option<T> {
+        if self.stopped || self.current < 0 {
+            return Option::None
+        }
+        Option::Some(deque_replace_at(self.deque, self.current, value))
+    }
+}
+
+impl IntoIterator for DequeIterMut<T> {
+    type Item = T
+    type IntoIter = DequeIterMut<T>
+
+    fn into_iter(self: DequeIterMut<T>) -> DequeIterMut<T> {
+        self
+    }
+}
+
+/// Owning cursor over a `Deque<T>`, front to back.
+pub struct DequeIntoIter<T> {
+    deque: Deque<T>,
+}
+
+impl Iterator for DequeIntoIter<T> {
+    type Item = T
+
+    fn next(self: DequeIntoIter<T>) -> Option<T> {
+        self.deque.pop_front()
+    }
+
+    fn collect(self: DequeIntoIter<T>) -> Vec<T> {
+        let out: Vec<T> = Vec::new<T>()
+        while true {
+            match self.deque.pop_front() {
+                Option::Some(value) => push(out, value),
+                Option::None => { break },
+            }
+        }
+        out
+    }
+
+    fn count(self: DequeIntoIter<T>) -> i32 {
+        let remaining: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        self.deque.clear()
+        remaining
+    }
+}
+
+impl IntoIterator for DequeIntoIter<T> {
+    type Item = T
+    type IntoIter = DequeIntoIter<T>
+
+    fn into_iter(self: DequeIntoIter<T>) -> DequeIntoIter<T> {
+        self
+    }
+}
+
+impl IntoIterator for Deque<T> {
+    type Item = T
+    type IntoIter = DequeIntoIter<T>
+
+    fn into_iter(self: Deque<T>) -> DequeIntoIter<T> {
+        DequeIntoIter { deque: self }
+    }
+}
+
+impl<T: Clone> Clone for Deque<T> {
+    fn clone(self: Deque<T>) -> Deque<T> {
+        let copy: Deque<T> = Deque {
+            front_items: Vec::with_capacity<T>(self.reserved),
+            back_items: Vec::new<T>(),
+            reserved: self.reserved
+        }
+        let mut i: i32 = 0
+        while i < len(self.front_items) + len(self.back_items) {
+            copy.push_back((deque_at(self, i)).clone())
+            i = i + 1
+        }
+        copy
+    }
+}
+
+impl<T: Debug> Debug for Deque<T> {
+    fn fmt_debug(self: Deque<T>) -> String {
+        let mut out: String = String_from("Deque [")
+        let mut i: i32 = 0
+        while i < len(self.front_items) + len(self.back_items) {
+            if i > 0 {
+                out = text::concat(out, String_from(", "))
+            }
+            out = text::concat(out, (deque_at(self, i)).fmt_debug())
+            i = i + 1
+        }
+        text::concat(out, String_from("]"))
+    }
+}

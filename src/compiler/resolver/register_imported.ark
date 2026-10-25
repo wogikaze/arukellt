@@ -11,6 +11,7 @@ use resolver::kinds
 use resolver::modules
 use resolver::register_exports
 use resolver::paths
+use corehir::decl_impl_target
 fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = len(modules)
     let mut mi = 0
@@ -91,11 +92,38 @@ fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
                 } else {
                     if ast_decl_predicates::node_is_enum_decl(d) {
                         register_imported_enum_exports(ctx, clone(module_name), d, clone(symbol_name), is_pub)
+                    } else if ast_decl_predicates::node_is_impl_decl(d) {
+                        register_imported_impl_exports(ctx, clone(module_name), d)
                     }
                 }
             }
         }
         di = di + 1
+    }
+}
+
+// Associated functions are resolved through the scope symbol table, not the
+// receiver-dispatch table.  A module therefore has to publish its impl method
+// spellings (`Type::method`) or a declared generic struct's constructor
+// (`Deque::new<T>()`) only resolves inside its defining module.
+fn register_imported_impl_exports(ctx: ResolveCtx, module_name: String, impl_decl: AstNode) {
+    let method_count = ast_access::node_child_count(impl_decl)
+    let mut mi = 0
+    while mi < method_count {
+        let method = ast_access::node_child_at(impl_decl, mi)
+        if ast_decl_predicates::node_is_fn_decl(method) {
+            let mangled = decl_impl_target::impl_method_mangled_name(impl_decl, ast_access::node_text(method))
+            // A type import (`use std::collections::deque::Deque`) binds the
+            // last path segment as a module symbol, so `Deque::new<T>()`
+            // reaches the module-member branch instead of the owner-qualified
+            // one. Publish the bare spelling too; std type names are unique
+            // and the first definition wins, matching enum bare names.
+            if scope_lookup::lookup(ctx, clone(mangled)) < 0 {
+                scope_define::define_with_vis(ctx, clone(mangled), commands::SYM_FN(), true)
+            }
+            register_exports::register_module_export(ctx, clone(module_name), clone(mangled), commands::SYM_FN(), true)
+        }
+        mi = mi + 1
     }
 }
 

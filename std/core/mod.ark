@@ -74,12 +74,10 @@ pub fn range_inclusive_contains(r: RangeInclusive, value: i32) -> bool {
 pub fn cmp_i32(a: i32, b: i32) -> Ordering {
     if a < b {
         Ordering::Less
+    } else if a > b {
+        Ordering::Greater
     } else {
-        if a > b {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
-        }
+        Ordering::Equal
     }
 }
 

@@ -13,33 +13,62 @@
 | `experimental` | 318 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
 
-## Prelude Types
+## Public Types
 
-| Name | Generic Params | Prelude |
-|------|----------------|---------|
-| `Option` | T | yes |
-| `Result` | T, E | yes |
-| `String` | - | yes |
-| `Vec` | T | yes |
-| `HashMap` | K, V | yes |
-| `u8` | - | yes |
-| `u16` | - | yes |
-| `u32` | - | yes |
-| `u64` | - | yes |
-| `i8` | - | yes |
-| `i16` | - | yes |
-| `Box` | T | yes |
-| `Slice` | T | yes |
-| `Error` | - | no |
-| `Ordering` | - | no |
-| `Range` | - | no |
-| `RangeInclusive` | - | no |
-| `Iterator` | - | no |
-| `IntoIterator` | - | no |
-| `FromIterator` | T | no |
-| `IteratorSum` | Item, Output | no |
-| `IteratorFold` | Item, Accumulator | no |
-| `IoError` | - | no |
+### Structs
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `Box` | T | yes | provisional | Heap-allocated owned value. |
+| `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
+| `Range` | - | no | stable | Half-open integer range [start, end). |
+| `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
+| `Slice` | T | yes | provisional | Read-only contiguous view. |
+| `String` | - | yes | stable | UTF-8 string value. |
+| `Vec` | T | yes | - | Growable contiguous sequence. |
+
+### Enums
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `Error` | - | no | stable | Portable error category for fallible APIs. |
+| `IoError` | - | no | stable | I/O failure categories. |
+| `Option` | T | yes | stable | Optional value: either Some(T) or None. |
+| `Ordering` | - | no | stable | Result of an ordering comparison: Less, Equal, or Greater. |
+| `Result` | T, E | yes | stable | Operation result: either Ok(T) or Err(E). |
+
+### Traits
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `FromIterator` | T | no | provisional | Construction from an iterator. |
+| `IntoIterator` | - | no | provisional | Conversion into an iterator. |
+| `Iterator` | - | no | provisional | Pull-based iteration protocol. |
+| `IteratorFold` | Item, Accumulator | no | provisional | Numeric fold over an iterator. |
+| `IteratorSum` | Item, Output | no | provisional | Numeric summation over an iterator. |
+
+### Primitives
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `i16` | - | yes | - | Signed 16-bit integer. |
+| `i8` | - | yes | stable | Signed 8-bit integer. |
+| `u16` | - | yes | - | Unsigned 16-bit integer. |
+| `u32` | - | yes | stable | Unsigned 32-bit integer. |
+| `u64` | - | yes | - | Unsigned 64-bit integer. |
+| `u8` | - | yes | stable | Unsigned 8-bit integer. |
+
+### Type Methods and Trait Implementations
+
+| Type | Methods | Trait impls |
+|------|---------|-------------|
+| `FromIterator` | `from_iter` | - |
+| `IntoIterator` | `into_iter` | - |
+| `Iterator` | `next`, `collect`, `count` | - |
+| `IteratorFold` | `fold` | - |
+| `IteratorSum` | `sum` | - |
+| `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
+| `Range` | `contains`, `len` | - |
 
 ## Prelude Values
 

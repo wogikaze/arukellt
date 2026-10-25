@@ -1,0 +1,42 @@
+// Deque<T> construction, both-end pushes/pops, capacity and clear.
+use std::collections::deque::Deque
+use std::host::stdio
+
+fn show(value: Option<i32>) {
+    match value {
+        Option::Some(item) => stdio::println(item.to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
+
+fn main() {
+    let deque: Deque<i32> = Deque::new<i32>()
+    assert(deque.is_empty())
+    assert(deque.len() == 0)
+    assert(deque.capacity() == 0)
+
+    deque.push_back(2)
+    deque.push_back(3)
+    deque.push_front(1)
+    assert(deque.len() == 3)
+
+    show(deque.front())
+    show(deque.back())
+    show(deque.pop_front())
+    show(deque.pop_back())
+    show(deque.front())
+    show(deque.back())
+    show(deque.pop_front())
+    show(deque.pop_back())
+
+    let reserved: Deque<i32> = Deque::with_capacity<i32>(8)
+    assert(reserved.capacity() == 8)
+    reserved.reserve(4)
+    assert(reserved.capacity() == 8)
+    reserved.push_back(7)
+    reserved.clear()
+    assert(reserved.len() == 0)
+    assert(reserved.is_empty())
+    assert(reserved.capacity() == 8)
+    stdio::println((reserved.capacity()).to_string())
+}

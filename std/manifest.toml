@@ -60,30 +60,40 @@ intrinsic_compatibility_functions = [
 
 [[types]]
 name = "Option"
+kind = "enum"
+doc = "Optional value: either `Some(T)` or `None`."
 prelude = true
 stability = "stable"
 generic_params = ["T"]
 
 [[types]]
 name = "Result"
+kind = "enum"
+doc = "Operation result: either `Ok(T)` or `Err(E)`."
 prelude = true
 stability = "stable"
 generic_params = ["T", "E"]
 
 [[types]]
 name = "String"
+kind = "struct"
+doc = "UTF-8 string value."
 prelude = true
 stability = "stable"
 type_id = "string"
 
 [[types]]
 name = "Vec"
+kind = "struct"
+doc = "Growable contiguous sequence."
 prelude = true
 generic_params = ["T"]
 type_id = "vec"
 
 [[types]]
 name = "HashMap"
+kind = "struct"
+doc = "Hash-based key/value map."
 prelude = true
 stability = "provisional"
 generic_params = ["K", "V"]
@@ -1287,29 +1297,41 @@ doc_category = "string"
 # ── Scalar Types (v3) ─────────────
 [[types]]
 name = "u8"
+kind = "primitive"
+doc = "Unsigned 8-bit integer."
 prelude = true
 stability = "stable"
 
 [[types]]
 name = "u16"
+kind = "primitive"
+doc = "Unsigned 16-bit integer."
 prelude = true
 
 [[types]]
 name = "u32"
+kind = "primitive"
+doc = "Unsigned 32-bit integer."
 prelude = true
 stability = "stable"
 
 [[types]]
 name = "u64"
+kind = "primitive"
+doc = "Unsigned 64-bit integer."
 prelude = true
 
 [[types]]
 name = "i8"
+kind = "primitive"
+doc = "Signed 8-bit integer."
 prelude = true
 stability = "stable"
 
 [[types]]
 name = "i16"
+kind = "primitive"
+doc = "Signed 16-bit integer."
 prelude = true
 
 
@@ -1319,12 +1341,16 @@ prelude = true
 
 [[types]]
 name = "Box"
+kind = "struct"
+doc = "Heap-allocated owned value."
 prelude = true
 stability = "provisional"
 generic_params = ["T"]
 
 [[types]]
 name = "Slice"
+kind = "struct"
+doc = "Read-only contiguous view."
 prelude = true
 stability = "provisional"
 generic_params = ["T"]
@@ -1499,6 +1525,8 @@ doc_category = "host_stdio"
 # ── std::core Types (v3) ─────────────
 [[types]]
 name = "Error"
+kind = "enum"
+doc = "Portable error category for fallible APIs."
 module = "std::core::error"
 stability = "stable"
 prelude = false
@@ -1512,18 +1540,26 @@ availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "Ordering"
+kind = "enum"
+doc = "Result of an ordering comparison: `Less`, `Equal`, or `Greater`."
+methods = ["is_less", "is_less_or_equal", "is_greater", "is_greater_or_equal"]
 module = "std::core"
 stability = "stable"
 prelude = false
 
 [[types]]
 name = "Range"
+kind = "struct"
+doc = "Half-open integer range `[start, end)`."
+methods = ["contains", "len"]
 module = "std::core"
 stability = "stable"
 prelude = false
 
 [[types]]
 name = "RangeInclusive"
+kind = "struct"
+doc = "Closed integer range `[start, end]`."
 module = "std::core"
 stability = "stable"
 prelude = false
@@ -3505,18 +3541,27 @@ availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "Iterator"
+kind = "trait"
+doc = "Pull-based iteration protocol."
+methods = ["next", "collect", "count"]
 module = "std::core::iter"
 stability = "provisional"
 prelude = false
 
 [[types]]
 name = "IntoIterator"
+kind = "trait"
+doc = "Conversion into an iterator."
+methods = ["into_iter"]
 module = "std::core::iter"
 stability = "provisional"
 prelude = false
 
 [[types]]
 name = "FromIterator"
+kind = "trait"
+doc = "Construction from an iterator."
+methods = ["from_iter"]
 module = "std::core::iter"
 stability = "provisional"
 generic_params = ["T"]
@@ -3524,6 +3569,9 @@ prelude = false
 
 [[types]]
 name = "IteratorSum"
+kind = "trait"
+doc = "Numeric summation over an iterator."
+methods = ["sum"]
 module = "std::core::iter"
 stability = "provisional"
 generic_params = ["Item", "Output"]
@@ -3531,6 +3579,9 @@ prelude = false
 
 [[types]]
 name = "IteratorFold"
+kind = "trait"
+doc = "Numeric fold over an iterator."
+methods = ["fold"]
 module = "std::core::iter"
 stability = "provisional"
 generic_params = ["Item", "Accumulator"]
@@ -5046,6 +5097,8 @@ returns = "bool"
 
 [[types]]
 name = "IoError"
+kind = "enum"
+doc = "I/O failure categories."
 module = "std::io"
 stability = "stable"
 prelude = false

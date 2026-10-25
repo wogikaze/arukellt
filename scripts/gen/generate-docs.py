@@ -95,6 +95,26 @@ VALID_KIND_VALUES: frozenset[str] = frozenset(
     {"builtin", "intrinsic", "prelude_wrapper", "intrinsic_wrapper", "host_stub"}
 )
 
+# Valid values for `[[types]]` `kind`. ``primitive`` keeps builtin scalar
+# entries (u8, i32, ...) in the same registry as declared structs/enums/traits
+# without pretending they have a source declaration (#710 / ADR-086 §7).
+VALID_TYPE_KINDS: frozenset[str] = frozenset({"struct", "enum", "trait", "primitive"})
+
+# Required on every [[types]] entry. ``doc``, ``methods`` and ``trait_impls``
+# are optional; the registry is the membership surface, not a signature copy.
+TYPE_REQUIRED_FIELDS: tuple[str, ...] = ("name", "kind")
+
+# [[types]] fields that must be lists of strings when present.
+TYPE_LIST_FIELDS: tuple[str, ...] = ("generic_params", "methods", "trait_impls")
+
+# Display order for the generated Public Types groups.
+TYPE_GROUP_TITLES: tuple[tuple[str, str], ...] = (
+    ("struct", "Structs"),
+    ("enum", "Enums"),
+    ("trait", "Traits"),
+    ("primitive", "Primitives"),
+)
+
 # Extra required fields per `kind` value:
 FUNCTION_KIND_REQUIRED: dict[str, tuple[str, ...]] = {
     "host_stub": ("module",),
@@ -812,6 +832,15 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
         for entry in functions
         if entry.get("module") and entry.get("stability") != "deprecated"
     }
+    # `deprecated_by` may name a method replacement (`Deque::push_back`) so a
+    # stable free function can point at its method without a fake function
+    # entry. Method membership comes from the [[types]] registry (#710).
+    active_type_members = {
+        f"{entry.get('name')}::{method}"
+        for entry in manifest.get("types", [])
+        if entry.get("name") and entry.get("stability") != "deprecated"
+        for method in entry.get("methods", [])
+    }
 
     for entry in functions:
         fn_name = entry.get("name", "<unnamed>")
@@ -844,7 +873,11 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
         if stability == "deprecated" and not deprecated_by:
             violations.append(f"{label}: stability='deprecated' requires deprecated_by")
         if stability == "deprecated" and deprecated_by:
-            resolves = deprecated_by in active_names or deprecated_by in active_qualified
+            resolves = (
+                deprecated_by in active_names
+                or deprecated_by in active_qualified
+                or deprecated_by in active_type_members
+            )
             if not resolves:
                 violations.append(
                     f"{label}: deprecated_by must resolve to a public nondeprecated manifest symbol: {deprecated_by!r}"
@@ -879,6 +912,54 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
                 violations.append(
                     f"{label}: kind='{kind}' requires at least one of: {', '.join(alternatives)}"
                 )
+
+    violations.extend(validate_type_entries(manifest))
+    return violations
+
+
+def validate_type_entries(manifest: dict) -> list[str]:
+    """Validate every [[types]] entry against the Public Types schema.
+
+    ``kind`` is required so the generated reference groups by declaration
+    kind instead of a hardcoded struct/enum name list. Other registries
+    (#693 traits, #697 Vec methods) extend the same generic fields.
+    """
+    violations: list[str] = []
+    seen: dict[str, int] = {}
+    for index, entry in enumerate(manifest.get("types", []), 1):
+        name = entry.get("name", "<unnamed>")
+        label = f"type '{name}'"
+
+        for field in TYPE_REQUIRED_FIELDS:
+            if field not in entry:
+                violations.append(f"{label}: missing required field '{field}'")
+
+        kind = entry.get("kind")
+        if kind is not None and kind not in VALID_TYPE_KINDS:
+            violations.append(
+                f"{label}: invalid kind '{kind}'; must be one of {sorted(VALID_TYPE_KINDS)}"
+            )
+        elif kind is None:
+            # The missing-field violation above is enough; don't duplicate.
+            pass
+
+        stability = entry.get("stability")
+        if stability is not None and stability not in STABILITY_LABELS:
+            violations.append(
+                f"{label}: invalid stability '{stability}'; must be one of {list(STABILITY_LABELS)}"
+            )
+
+        for field in TYPE_LIST_FIELDS:
+            value = entry.get(field)
+            if value is None:
+                continue
+            if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+                violations.append(f"{label}: '{field}' must be a list of strings")
+
+        if name in seen:
+            violations.append(f"{label}: duplicate [[types]] entry (also at entry {seen[name]})")
+        else:
+            seen[name] = index
 
     return violations
 
@@ -3708,6 +3789,73 @@ def render_deprecation_table(manifest: dict) -> str:
     return "\n".join(lines)
 
 
+def render_public_types(types: list[dict]) -> list[str]:
+    """Render the [[types]] registry grouped by declared `kind`.
+
+    ADR-086 §7: Public Types are grouped into Structs / Enums / Traits instead
+    of one "Prelude Types" list, and methods/trait impls come from the same
+    registry. ``primitive`` keeps builtin scalars visible without pretending
+    they are declared structs.
+    """
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for entry in types:
+        grouped[entry.get("kind", "struct")].append(entry)
+
+    lines: list[str] = ["", "## Public Types", ""]
+    for kind, title in TYPE_GROUP_TITLES:
+        entries = sorted(grouped.get(kind, []), key=lambda item: item["name"])
+        if not entries:
+            continue
+        lines.extend(
+            [
+                f"### {title}",
+                "",
+                "| Name | Generic Params | Prelude | Stability | Summary |",
+                "|------|----------------|---------|-----------|---------|",
+            ]
+        )
+        for entry in entries:
+            generic = ", ".join(entry.get("generic_params", [])) or "-"
+            prelude = "yes" if entry.get("prelude") else "no"
+            stability = entry.get("stability") or "-"
+            summary = escape_table(str(entry.get("doc") or "-"))
+            lines.append(
+                f"| `{entry['name']}` | {generic} | {prelude} | {stability} | {summary} |"
+            )
+        lines.append("")
+
+    members = [
+        entry
+        for entry in sorted(types, key=lambda item: item["name"])
+        if entry.get("methods") or entry.get("trait_impls")
+    ]
+    if members:
+        lines.extend(
+            [
+                "### Type Methods and Trait Implementations",
+                "",
+                "| Type | Methods | Trait impls |",
+                "|------|---------|-------------|",
+            ]
+        )
+        for entry in members:
+            methods = ", ".join(f"`{name}`" for name in entry.get("methods", [])) or "-"
+            impls = ", ".join(f"`{name}`" for name in entry.get("trait_impls", [])) or "-"
+            lines.append(f"| `{entry['name']}` | {methods} | {impls} |")
+        lines.append("")
+
+    unknown = sorted(set(grouped) - {kind for kind, _ in TYPE_GROUP_TITLES})
+    for kind in unknown:
+        # Schema validation rejects unknown kinds before rendering; keep the
+        # entries visible if a caller renders a partial/manual manifest.
+        lines.extend([f"### Other ({kind})", ""])
+        for entry in sorted(grouped[kind], key=lambda item: item["name"]):
+            lines.append(f"- `{entry['name']}`")
+        lines.append("")
+
+    return lines
+
+
 def render_stdlib_reference(manifest: dict) -> str:
     types = manifest.get("types", [])
     values = manifest.get("values", [])
@@ -3741,18 +3889,7 @@ def render_stdlib_reference(manifest: dict) -> str:
     if dep_count:
         lines.append(f"| [deprecated](#deprecated-apis) | {dep_count} | Superseded — see migration guidance. |")
 
-    lines.extend([
-        "",
-        "## Prelude Types",
-        "",
-        "| Name | Generic Params | Prelude |",
-        "|------|----------------|---------|",
-    ])
-    for entry in types:
-        generic = ", ".join(entry.get("generic_params", [])) or "-"
-        lines.append(
-            f"| `{entry['name']}` | {generic} | {'yes' if entry.get('prelude') else 'no'} |"
-        )
+    lines.extend(render_public_types(types))
 
     lines.extend(["", "## Prelude Values", "", "| Name | Prelude |", "|------|---------|"])
     for entry in values:

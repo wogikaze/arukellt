@@ -1,0 +1,65 @@
+// Deque<T> cursors: iter/collect/count, iter_mut set_current, owning iteration.
+use std::collections::deque::Deque
+use std::host::stdio
+
+fn main() {
+    let deque: Deque<i32> = Deque::new<i32>()
+    deque.push_back(10)
+    deque.push_back(20)
+    deque.push_front(5)
+
+    let values: Vec<i32> = deque.iter().collect()
+    assert(len(values) == 3)
+    stdio::println((get_unchecked(values, 0)).to_string())
+    stdio::println((get_unchecked(values, 1)).to_string())
+    stdio::println((get_unchecked(values, 2)).to_string())
+    stdio::println((deque.iter().count()).to_string())
+
+    let mut cursor: DequeIterMut<i32> = deque.iter_mut()
+    match cursor.next() {
+        Option::Some(value) => {
+            match cursor.set_current(value + 1) {
+                Option::Some(old) => stdio::println((old).to_string()),
+                Option::None => stdio::println(String_from("none")),
+            }
+        },
+        Option::None => stdio::println(String_from("empty")),
+    }
+    match cursor.next() {
+        Option::Some(value) => {
+            match cursor.set_current(99) {
+                Option::Some(old) => stdio::println((old).to_string()),
+                Option::None => stdio::println(String_from("none")),
+            }
+        },
+        Option::None => stdio::println(String_from("empty")),
+    }
+    while true {
+        match cursor.next() {
+            Option::Some(_) => {},
+            Option::None => { break },
+        }
+    }
+    match cursor.set_current(0) {
+        Option::Some(_) => stdio::println(String_from("some")),
+        Option::None => stdio::println(String_from("none")),
+    }
+
+    stdio::println(deque.fmt_debug())
+
+    let mut total: i32 = 0
+    for value in deque.clone() {
+        total = total + value
+    }
+    stdio::println((total).to_string())
+
+    let mut owned: DequeIntoIter<i32> = deque.clone().into_iter()
+    match owned.next() {
+        Option::Some(value) => stdio::println((value).to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+    match owned.next() {
+        Option::Some(value) => stdio::println((value).to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
