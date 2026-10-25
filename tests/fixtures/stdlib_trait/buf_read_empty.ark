@@ -6,6 +6,6 @@ fn main() {
     let filled = io::fill_buffer(buf)
     test::assert_eq_i32(len(filled), 0)
 
-    let pos: i64 = io::position(buf)
+    let pos: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos, 0)
 }

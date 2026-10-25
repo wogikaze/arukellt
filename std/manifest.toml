@@ -5043,12 +5043,92 @@ params = ["f64", "f64", "f64"]
 returns = "bool"
 
 # === std::io ===
+#
+# ADR-085 Phase A: target-independent Read / Write / BufRead / Seek traits,
+# SeekFrom, and the memory Reader / Writer newtypes. The legacy free functions
+# below remain the compatibility surface until #693 Phase E.
+
+[[modules]]
+name = "std::io"
+stability = "stable"
+family = "core"
+doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, and memory Reader / Writer newtypes. Legacy reader_* / writer_* / buf_* free functions remain as compatibility wrappers during the #693 migration."
+availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "IoError"
 module = "std::io"
 stability = "stable"
 prelude = false
+kind = "enum"
+doc = "Typed I/O error with UnexpectedEof and Other variants; implements Display and Error."
+trait_impls = ["Display", "Error"]
+
+[[types]]
+name = "SeekFrom"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "enum"
+doc = "Offset origin for Seek: Start(i64), Current(i64), or End(i64)."
+methods = []
+
+[[types]]
+name = "Read"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "trait"
+doc = "Pull-based byte source. read(max_bytes) returns the bytes read; an empty Vec is EOF."
+methods = ["read"]
+
+[[types]]
+name = "Write"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "trait"
+doc = "Byte sink. write(data) returns the accepted count; flush commits the sink boundary."
+methods = ["write", "flush"]
+
+[[types]]
+name = "BufRead"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "trait"
+doc = "Buffered byte source over Read with fill_buf / consume / read_line; read_line returns None at EOF."
+methods = ["fill_buf", "consume", "read_line"]
+trait_impls = ["Read"]
+
+[[types]]
+name = "Seek"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "trait"
+doc = "Random access over a byte stream; seek takes SeekFrom and position reports the cursor."
+methods = ["seek", "position"]
+
+[[types]]
+name = "Reader"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+doc = "In-memory read handle over an owned byte image; implements Read, BufRead, and Seek."
+methods = ["from_bytes", "new", "len", "is_eof", "into_bytes"]
+trait_impls = ["Read", "BufRead", "Seek"]
+
+[[types]]
+name = "Writer"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+doc = "In-memory write handle over an owned byte image; implements Write."
+methods = ["new", "into_bytes", "into_reader"]
+trait_impls = ["Write"]
 
 [[functions]]
 name = "reader_from_bytes"
@@ -5187,14 +5267,6 @@ params = ["Vec<i32>"]
 returns = "Result<(), IoError>"
 
 [[functions]]
-name = "flush"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "Result<(), IoError>"
-
-[[functions]]
 name = "writer_to_bytes"
 module = "std::io"
 doc_category = "io"
@@ -5311,13 +5383,13 @@ returns = "i64"
 doc = "Seek to an absolute position via `io.traits` Seek dispatch."
 
 [[functions]]
-name = "position"
+name = "buffer_position"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "experimental"
 params = ["Vec<i32>"]
 returns = "i64"
-doc = "Return the current cursor position of an `io.traits` memory buffer."
+doc = "Return the current cursor position of a legacy memory buffer. Renamed from `position` because the ADR-085 `Seek::position` method owns that name; callers move to `Reader::position()` under #693 Phase E."
 
 [[functions]]
 name = "buffer_len"

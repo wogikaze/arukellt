@@ -24,7 +24,7 @@ fn main() {
     assert(get_unchecked(filled, 2) == 67)
 
     // Cursor should still be at 0 (fill_buf does not consume)
-    let pos: i64 = io::position(buf)
+    let pos: i64 = io::buffer_position(buf)
     assert(pos == 0i64)
 
     // Read 1 byte to advance cursor
@@ -39,7 +39,7 @@ fn main() {
     assert(get_unchecked(filled2, 1) == 67)
 
     // Cursor should be at 1
-    let pos2: i64 = io::position(buf)
+    let pos2: i64 = io::buffer_position(buf)
     assert(pos2 == 1i64)
 
     stdio::println("OK")

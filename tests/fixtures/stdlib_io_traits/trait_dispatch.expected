@@ -1,0 +1,21 @@
+2
+97
+3
+10
+0
+5
+2
+cd
+true
+consume: amount exceeds buffered bytes
+true
+false
+0
+1
+2
+3
+5
+seek: negative position
+seek: position exceeds i32 range
+5
+0

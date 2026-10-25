@@ -1,0 +1,136 @@
+// ADR-085 Phase A: memory Reader / Writer newtype roundtrip.
+//
+// The canonical constructors are `Writer::new`, `Reader::from_bytes`, and
+// `Reader::new`. Result-returning trait methods are invoked through generic
+// bounds because direct Result-returning method dispatch is a separate
+// typed-MIR Phase 5.1 compiler gap on wasm32-gc.
+use std::host::stdio
+use std::io
+use std::io::{Reader, Writer}
+
+struct ReadReport {
+    first_len: i32,
+    first_byte0: i32,
+    first_byte1: i32,
+    rest_len: i32,
+    rest_byte0: i32,
+    eof_len: i32,
+}
+
+fn payload() -> Vec<i32> {
+    let data: Vec<i32> = Vec::new<i32>()
+    push(data, 104)
+    push(data, 101)
+    push(data, 108)
+    push(data, 108)
+    push(data, 111)
+    data
+}
+
+fn write_once<T: io::Write>(sink: T, data: Vec<i32>) -> Result<i32, io::IoError> {
+    sink.write(data)
+}
+
+struct Handoff<T> {
+    sink: T,
+    written: i32,
+    flush_ok: bool,
+}
+
+fn write_and_flush<T: io::Write>(sink: T, data: Vec<i32>) -> Handoff<T> {
+    let written: i32 = match sink.write(data) {
+        Result::Ok(count) => count,
+        Result::Err(_) => 0,
+    }
+    let flush_ok: bool = match sink.flush() {
+        Result::Ok(_) => true,
+        Result::Err(_) => false,
+    }
+    let result: Handoff<T> = Handoff {
+        sink: sink,
+        written: written,
+        flush_ok: flush_ok,
+    }
+    result
+}
+
+fn read_report<T: io::Read>(source: T) -> Result<ReadReport, io::IoError> {
+    let first: Vec<i32> = match source.read(2) {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let rest: Vec<i32> = match source.read(8) {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let at_eof: Vec<i32> = match source.read(1) {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let first_byte0: i32 = if len(first) > 0 { get_unchecked(first, 0) } else { 0 }
+    let first_byte1: i32 = if len(first) > 1 { get_unchecked(first, 1) } else { 0 }
+    let rest_byte0: i32 = if len(rest) > 0 { get_unchecked(rest, 0) } else { 0 }
+    Ok(ReadReport {
+            first_len: len(first),
+            first_byte0: first_byte0,
+            first_byte1: first_byte1,
+            rest_len: len(rest),
+            rest_byte0: rest_byte0,
+            eof_len: len(at_eof),
+        })
+}
+
+fn main() {
+    let count_writer: Writer = Writer::new()
+    let count: Result<i32, io::IoError> = write_once(count_writer, payload())
+    match count {
+        Result::Ok(written) => stdio::println((written).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let bytes_writer: Writer = Writer::new()
+    let bytes_handoff: Handoff<io::Writer> = write_and_flush(bytes_writer, payload())
+    if !bytes_handoff.flush_ok {
+        stdio::println("flush failed")
+    }
+    let bytes: Vec<i32> = bytes_handoff.sink.into_bytes()
+    stdio::println((len(bytes)).to_string())
+    stdio::println((get_unchecked(bytes, 0)).to_string())
+    stdio::println((get_unchecked(bytes, 4)).to_string())
+
+    let roundtrip_writer: Writer = Writer::new()
+    let roundtrip_handoff: Handoff<io::Writer> = write_and_flush(roundtrip_writer, payload())
+    if !roundtrip_handoff.flush_ok {
+        stdio::println("flush failed")
+    }
+    let reader: Reader = roundtrip_handoff.sink.into_reader()
+    stdio::println((reader.len()).to_string())
+    stdio::println((reader.is_eof()).to_string())
+    match read_report(reader) {
+        Result::Ok(report) => {
+            stdio::println((report.first_len).to_string())
+            stdio::println((report.first_byte0).to_string())
+            stdio::println((report.first_byte1).to_string())
+            stdio::println((report.rest_len).to_string())
+            stdio::println((report.rest_byte0).to_string())
+            stdio::println((report.eof_len).to_string())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let from_bytes: Reader = Reader::from_bytes(payload())
+    stdio::println((from_bytes.len()).to_string())
+    let image: Vec<i32> = from_bytes.into_bytes()
+    stdio::println(len(image).to_string())
+    stdio::println((get_unchecked(image, 2)).to_string())
+
+    let empty: Reader = Reader::new()
+    stdio::println((empty.len()).to_string())
+    stdio::println((empty.is_eof()).to_string())
+    match read_report(empty) {
+        Result::Ok(report) => stdio::println((report.eof_len).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    stdio::println("done")
+}

@@ -17,6 +17,6 @@ fn main() {
     test::assert_eq_i32(get_unchecked(filled, 4), 5)
 
     // fill_buf does not consume
-    let pos: i64 = io::position(buf)
+    let pos: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos, 0)
 }

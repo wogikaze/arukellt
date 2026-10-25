@@ -1,0 +1,254 @@
+// ADR-085 Phase A: Read / Write / BufRead / Seek dispatch through generic
+// bounds (method syntax). Each helper owns one handle, so the fixture also
+// checks the non-Copy ownership boundary.
+use std::host::stdio
+use std::io
+use std::io::{Reader, Writer}
+
+struct ReadReport {
+    first_len: i32,
+    first_byte: i32,
+    rest_len: i32,
+    rest_byte: i32,
+    eof_len: i32,
+}
+
+struct BufReadReport {
+    pending_len: i32,
+    after_consume_len: i32,
+    line: String,
+    line_eof: bool,
+    consume_err: String,
+}
+
+struct LineReport {
+    first_has_line: bool,
+    second_has_line: bool,
+}
+
+struct SeekReport {
+    initial: i64,
+    from_start: i64,
+    from_current: i64,
+    from_end: i64,
+    past_end: i64,
+    negative_err: String,
+    overflow_err: String,
+}
+
+struct WriteReport {
+    written: i32,
+    empty_written: i32,
+}
+
+fn sample_data() -> Vec<i32> {
+    let data: Vec<i32> = Vec::new<i32>()
+    push(data, 97)
+    push(data, 98)
+    push(data, 10)
+    push(data, 99)
+    push(data, 100)
+    data
+}
+
+fn read_report<T: io::Read>(source: T) -> Result<ReadReport, io::IoError> {
+    let first: Vec<i32> = match source.read(2) {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let rest: Vec<i32> = match source.read(9) {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let at_eof: Vec<i32> = match source.read(1) {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let first_byte: i32 = if len(first) > 0 { get_unchecked(first, 0) } else { 0 }
+    let rest_byte: i32 = if len(rest) > 0 { get_unchecked(rest, 0) } else { 0 }
+    Ok(ReadReport {
+            first_len: len(first),
+            first_byte: first_byte,
+            rest_len: len(rest),
+            rest_byte: rest_byte,
+            eof_len: len(at_eof),
+        })
+}
+
+fn bufread_report<T: io::BufRead>(source: T) -> Result<BufReadReport, io::IoError> {
+    let pending: Vec<i32> = match source.fill_buf() {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    match source.consume(3) {
+        Result::Ok(_) => {
+        },
+        Result::Err(err) => return Err(err),
+    }
+    let after_consume: Vec<i32> = match source.fill_buf() {
+        Result::Ok(chunk) => chunk,
+        Result::Err(err) => return Err(err),
+    }
+    let line: String = match source.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(text) => text,
+            Option::None => String_from(""),
+        },
+        Result::Err(err) => return Err(err),
+    }
+    let line_eof: bool = match source.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(_) => false,
+            Option::None => true,
+        },
+        Result::Err(err) => return Err(err),
+    }
+    let consume_err: String = match source.consume(99) {
+        Result::Ok(_) => String_new(),
+        Result::Err(err) => io::io_error_message(err),
+    }
+    Ok(BufReadReport {
+            pending_len: len(pending),
+            after_consume_len: len(after_consume),
+            line: line,
+            line_eof: line_eof,
+            consume_err: consume_err,
+        })
+}
+
+fn line_report<T: io::BufRead>(source: T) -> Result<LineReport, io::IoError> {
+    let first: bool = match source.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(_) => true,
+            Option::None => false,
+        },
+        Result::Err(err) => return Err(err),
+    }
+    let second: bool = match source.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(_) => true,
+            Option::None => false,
+        },
+        Result::Err(err) => return Err(err),
+    }
+    Ok(LineReport {
+            first_has_line: first,
+            second_has_line: second,
+        })
+}
+
+fn seek_report<T: io::Seek>(source: T) -> Result<SeekReport, io::IoError> {
+    let initial: i64 = match source.position() {
+        Result::Ok(pos) => pos,
+        Result::Err(err) => return Err(err),
+    }
+    let from_start: i64 = match source.seek(io::SeekFrom::Start(1i64)) {
+        Result::Ok(pos) => pos,
+        Result::Err(err) => return Err(err),
+    }
+    let from_current: i64 = match source.seek(io::SeekFrom::Current(1i64)) {
+        Result::Ok(pos) => pos,
+        Result::Err(err) => return Err(err),
+    }
+    let from_end: i64 = match source.seek(io::SeekFrom::End(0i64 - 2i64)) {
+        Result::Ok(pos) => pos,
+        Result::Err(err) => return Err(err),
+    }
+    let negative_err: String = match source.seek(io::SeekFrom::Start(0i64 - 1i64)) {
+        Result::Ok(_) => String_new(),
+        Result::Err(err) => io::io_error_message(err),
+    }
+    let overflow_err: String = match source.seek(io::SeekFrom::Start(2147483648i64)) {
+        Result::Ok(_) => String_new(),
+        Result::Err(err) => io::io_error_message(err),
+    }
+    let past_end: i64 = match source.seek(io::SeekFrom::End(0i64)) {
+        Result::Ok(pos) => pos,
+        Result::Err(err) => return Err(err),
+    }
+    Ok(SeekReport {
+            initial: initial,
+            from_start: from_start,
+            from_current: from_current,
+            from_end: from_end,
+            past_end: past_end,
+            negative_err: negative_err,
+            overflow_err: overflow_err,
+        })
+}
+
+fn write_report<T: io::Write>(sink: T, data: Vec<i32>) -> Result<WriteReport, io::IoError> {
+    let written: i32 = match sink.write(data) {
+        Result::Ok(count) => count,
+        Result::Err(err) => return Err(err),
+    }
+    let empty: Vec<i32> = Vec::new<i32>()
+    let empty_written: i32 = match sink.write(empty) {
+        Result::Ok(count) => count,
+        Result::Err(err) => return Err(err),
+    }
+    match sink.flush() {
+        Result::Ok(_) => {
+        },
+        Result::Err(err) => return Err(err),
+    }
+    Ok(WriteReport {
+            written: written,
+            empty_written: empty_written,
+        })
+}
+
+fn main() {
+    match read_report(Reader::from_bytes(sample_data())) {
+        Result::Ok(report) => {
+            stdio::println((report.first_len).to_string())
+            stdio::println((report.first_byte).to_string())
+            stdio::println((report.rest_len).to_string())
+            stdio::println((report.rest_byte).to_string())
+            stdio::println((report.eof_len).to_string())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match bufread_report(io::Reader::from_bytes(sample_data())) {
+        Result::Ok(report) => {
+            stdio::println((report.pending_len).to_string())
+            stdio::println((report.after_consume_len).to_string())
+            stdio::println(report.line)
+            stdio::println((report.line_eof).to_string())
+            stdio::println(report.consume_err)
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let newline: Vec<i32> = Vec::new<i32>()
+    push(newline, 10)
+    match line_report(io::Reader::from_bytes(newline)) {
+        Result::Ok(report) => {
+            stdio::println((report.first_has_line).to_string())
+            stdio::println((report.second_has_line).to_string())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match seek_report(Reader::from_bytes(sample_data())) {
+        Result::Ok(report) => {
+            stdio::println((report.initial).to_string())
+            stdio::println((report.from_start).to_string())
+            stdio::println((report.from_current).to_string())
+            stdio::println((report.from_end).to_string())
+            stdio::println((report.past_end).to_string())
+            stdio::println(report.negative_err)
+            stdio::println(report.overflow_err)
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match write_report(Writer::new(), sample_data()) {
+        Result::Ok(report) => {
+            stdio::println((report.written).to_string())
+            stdio::println((report.empty_written).to_string())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}

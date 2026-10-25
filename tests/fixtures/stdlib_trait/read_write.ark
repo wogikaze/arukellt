@@ -34,7 +34,7 @@ fn main() {
     assert(get_unchecked(read, 4) == 111)  // 'o'
 
     // After reading all 5 bytes, cursor should be at 5
-    let pos: i64 = io::position(buf)
+    let pos: i64 = io::buffer_position(buf)
     assert(pos == 5i64)
 
     // Reading again should return 0 bytes (EOF)

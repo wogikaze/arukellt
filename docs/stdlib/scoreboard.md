@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
-| `prelude` | 144 | 119 | 21 | 0 | 4 | 125/140 (89%) | no |
+| `prelude` | 144 | 119 | 21 | 0 | 4 | 126/140 (90%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
@@ -27,7 +27,7 @@
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
-| `std::io` | 38 | 35 | 0 | 3 | 0 | 34/38 (89%) | no |
+| `std::io` | 37 | 33 | 0 | 4 | 0 | 36/37 (97%) | no |
 | `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
@@ -53,7 +53,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 811 APIs, 391 stable, 83 provisional, 318 experimental, 19 deprecated, 670/792 (85%) fixture coverage
+**Total**: 810 APIs, 389 stable, 83 provisional, 319 experimental, 19 deprecated, 673/791 (85%) fixture coverage
 
 ## Legend
 

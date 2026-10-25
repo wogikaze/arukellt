@@ -11,7 +11,7 @@ fn main() {
 
     // Advance cursor
     let _r = io::read_bytes(buf, 2)
-    let pos1: i64 = io::position(buf)
+    let pos1: i64 = io::buffer_position(buf)
     test::assert_eq_i64(pos1, 2)
 
     // Seek back to 0
