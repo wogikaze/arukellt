@@ -115,7 +115,7 @@ fn find_var_carrying_impl(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitI
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
-        if trait_bounds::trait_impl_matches(impl_info, ty, bound) &&
+        if trait_bounds::trait_impl_matches(env, impl_info, ty, bound) &&
         associated_types::type_contains_var(
             contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         ) {
@@ -126,7 +126,8 @@ fn find_var_carrying_impl(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitI
     contract_trait_impl::TraitImplInfo_new(
         String_new(),
         Vec::new<TypeInfo>(),
-        contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+        contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()),
+        Vec::new<TypeParamBounds>()
     )
 }
 

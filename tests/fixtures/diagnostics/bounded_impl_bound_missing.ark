@@ -1,0 +1,20 @@
+use std::core::clone
+
+struct NotClone {
+    value: i32,
+}
+
+struct Boxed<T> {
+    inner: T,
+}
+
+impl<T: Clone> Clone for Boxed<T> {
+    fn clone(self: Boxed<T>) -> Boxed<T> {
+        Boxed { inner: self.inner.clone() }
+    }
+}
+
+fn main() {
+    let boxed = Boxed { inner: NotClone { value: 1 } }
+    let copy = boxed.clone()
+}

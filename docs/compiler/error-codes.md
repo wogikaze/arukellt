@@ -571,6 +571,29 @@ declaration. Generic arity is otherwise not limited to a small fixed number.
 An impl defines an unknown, duplicate, or missing associated type. The v2 core
 requires a concrete definition for every associated type declared by a trait.
 
+### E0221 — trait method body is not supported
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | trait method body is not supported |
+
+ADR-062 keeps default methods out of the v2 trait core. The parser records a
+body on a trait method, but the typechecker does not check or lower it and no
+impl instance is emitted for it. Accepting the declaration would let calls fall
+through to the unresolved-call trap, so the typechecker rejects the body here.
+This diagnostic is the blocker record for adopting default methods later.
+
+<!-- skip-doc-check kind="invalid-example" reason="E0221 rejects the trait method body by design" -->
+```arukellt
+trait Answer {
+    fn answer(self: Self) -> i32 {
+        40 + 2
+    }
+}
+```
+
 ---
 
 ## v0 Version Constraints & Target Errors — `E03xx`
@@ -1016,6 +1039,7 @@ one, please file a bug report.
 | E0217 | error | typecheck | dyn Trait requires a separate dynamic-dispatch ABI |
 | E0218 | error | typecheck | trait arity mismatch |
 | E0219 | error | typecheck | invalid associated item |
+| E0221 | error | typecheck | trait method body is not supported |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |

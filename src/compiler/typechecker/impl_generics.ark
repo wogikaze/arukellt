@@ -1,0 +1,150 @@
+use std::prelude::{byte_at, clone, eq}
+use typechecker::ast_access
+use typechecker::contract_type_param_bounds
+use typechecker::kinds
+use typechecker::types
+
+// The binder of `impl<T: Bound> Trait for Ctor<T>` is one metadata annotation
+// after the trait/self heads. Keeping it out of indices 0 and 1 preserves the
+// impl-head contract used by the resolver, CoreHIR, and the rest of the
+// typechecker. `head_count` marks where the heads end.
+fn head_count(impl_node: AstNode) -> i32 {
+    let count = ast_access::node_type_ann_count(impl_node)
+    if count >= 2 &&
+    !ast_access::node_kind_is(
+        ast_access::node_type_ann_at(impl_node, 1),
+        kinds::NK_IMPL_GENERICS()
+    ) {
+        return 2
+    }
+    if count >= 1 {
+        return 1
+    }
+    0
+}
+
+fn generics_index(impl_node: AstNode) -> i32 {
+    let count = ast_access::node_type_ann_count(impl_node)
+    let mut i = 0
+    while i < count {
+        if ast_access::node_kind_is(
+            ast_access::node_type_ann_at(impl_node, i),
+            kinds::NK_IMPL_GENERICS()
+        ) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn declared_type_param_names(impl_node: AstNode) -> Vec<String> {
+    let names = Vec::new<String>()
+    let index = generics_index(impl_node)
+    if index < 0 {
+        return names
+    }
+    let binder = ast_access::node_type_ann_at(impl_node, index)
+    let count = ast_access::node_child_count(binder)
+    let mut i = 0
+    while i < count {
+        push(names, ast_access::node_text(ast_access::node_child_at(binder, i)))
+        i = i + 1
+    }
+    names
+}
+
+fn type_param_names(impl_node: AstNode) -> Vec<String> {
+    let declared = declared_type_param_names(impl_node)
+    if len(declared) > 0 {
+        return declared
+    }
+    // Implicit parametric impls (`impl Trait for Ctor<T>`) predate the binder
+    // syntax. Their parameters come from the head types using the existing
+    // single-uppercase convention; an explicit binder takes precedence.
+    let heads = head_count(impl_node)
+    let names = Vec::new<String>()
+    if heads >= 1 {
+        collect_implicit_param_names(
+            ast_access::node_type_ann_at(impl_node, heads - 1),
+            names
+        )
+    }
+    if heads >= 2 {
+        collect_implicit_param_names(
+            ast_access::node_type_ann_at(impl_node, 0),
+            names
+        )
+    }
+    names
+}
+
+fn collect_implicit_param_names(node: AstNode, names: Vec<String>) {
+    let name = ast_access::node_text(node)
+    if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
+    is_implicit_param_name(clone(name)) &&
+    !string_vec_contains(names, clone(name)) {
+        push(names, clone(name))
+    }
+    let count = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < count {
+        collect_implicit_param_names(ast_access::node_child_at(node, i), names)
+        i = i + 1
+    }
+}
+
+fn is_implicit_param_name(name: String) -> bool {
+    if len(name) != 1 {
+        return false
+    }
+    let ch = byte_at(name, 0)
+    ch >= 65 && ch <= 90
+}
+
+// One entry per declared parameter, even without a bound, so the caller can
+// align the entries with the signature's ordered type parameters.
+fn type_param_bounds(impl_node: AstNode) -> Vec<TypeParamBounds> {
+    let bounds = Vec::new<TypeParamBounds>()
+    let index = generics_index(impl_node)
+    if index < 0 {
+        return bounds
+    }
+    let binder = ast_access::node_type_ann_at(impl_node, index)
+    let declared = declared_type_param_names(impl_node)
+    let count = ast_access::node_child_count(binder)
+    let mut i = 0
+    while i < count {
+        let param = ast_access::node_child_at(binder, i)
+        let info = contract_type_param_bounds::TypeParamBounds_new(
+            ast_access::node_text(param)
+        )
+        let bound_count = ast_access::node_type_ann_count(param)
+        let mut j = 0
+        while j < bound_count {
+            contract_type_param_bounds::TypeParamBounds_push_bound(
+                info,
+                types::resolve_type_ann_node_generic(
+                    ast_access::node_type_ann_at(param, j),
+                    clone(declared)
+                )
+            )
+            j = j + 1
+        }
+        push(bounds, info)
+        i = i + 1
+    }
+    bounds
+}
+
+fn string_vec_contains(names: Vec<String>, name: String) -> bool {
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}

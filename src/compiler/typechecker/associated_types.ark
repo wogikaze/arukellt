@@ -10,14 +10,14 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_type_param_bounds
 use typechecker::contract_types_record
+use typechecker::impl_generics
 use typechecker::instantiate
 use typechecker::trait_method_record
 use typechecker::types
 use typechecker::names
 use typechecker::unify
 fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig {
-    let ann_count = ast_access::node_type_ann_count(impl_node)
-    if ann_count < 2 {
+    if impl_generics::head_count(impl_node) != 2 {
         return sig
     }
     let trait_node = ast_access::node_type_ann_at(impl_node, 0)

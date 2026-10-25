@@ -29,9 +29,10 @@ fn parse_type_param(p: Parser) -> AstNode {
     param
 }
 
-fn parse_generic_params_into_node(p: Parser, node: AstNode) {
+fn parse_generic_params(p: Parser) -> Vec<AstNode> {
+    let params = Vec::new<AstNode>()
     if core_api_cursor::peek_kind(p) != tokens::TK_LT() {
-        return
+        return params
     }
     p.pos = p.pos + 1
     let mut first = true
@@ -41,9 +42,19 @@ fn parse_generic_params_into_node(p: Parser, node: AstNode) {
         }
         first = false
         core_api_cursor::skip_newlines(p)
-        let param = parse_type_param(p)
-        core_ast_type_ann::AstNode_push_type_ann(node, param)
+        push(params, parse_type_param(p))
         core_api_cursor::skip_newlines(p)
     }
     core_api_expect::consume_closing_gt(p)
+    params
+}
+
+fn parse_generic_params_into_node(p: Parser, node: AstNode) {
+    let params = parse_generic_params(p)
+    let count = len(params)
+    let mut i = 0
+    while i < count {
+        core_ast_type_ann::AstNode_push_type_ann(node, get_unchecked(params, i))
+        i = i + 1
+    }
 }

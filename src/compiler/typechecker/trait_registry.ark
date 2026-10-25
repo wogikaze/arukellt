@@ -9,6 +9,7 @@ use typechecker::contract_trait_impl
 use typechecker::contract_trait_impl_record
 use typechecker::contract_trait_info
 use typechecker::contract_type_access
+use typechecker::impl_generics
 use typechecker::kinds
 use typechecker::names
 use typechecker::trait_bounds
@@ -17,7 +18,7 @@ use diagnostics::mod as diag_mod
 
 // Register declarations before impls so arity and associated-item checks use
 // the same local trait registry as obligation solving.
-use std::prelude::{args, byte_at, clone, eq, to_string}
+use std::prelude::{args, clone, eq, to_string}
 fn register_trait_decls(env: TypeEnv, decls: Vec<AstNode>) {
     let count = len(decls)
     let mut i = 0
@@ -31,6 +32,7 @@ fn register_trait_decls(env: TypeEnv, decls: Vec<AstNode>) {
 }
 
 fn register_trait_decl(env: TypeEnv, node: AstNode) {
+    reject_trait_default_methods(env, node)
     let trait_name = ast_access::node_text(node)
     if trait_info_index(env, clone(trait_name)) >= 0 {
         return
@@ -57,6 +59,34 @@ fn register_trait_decl(env: TypeEnv, node: AstNode) {
     push(env.trait_defs, info)
 }
 
+// ADR-062 keeps default methods out of the v2 trait core. The parser records
+// a body, but no impl instance is lowered for it; accepting it would resolve
+// calls to the drop+unreachable fallback. Rejecting the body here makes this
+// diagnostic the explicit blocker for adopting default methods later.
+fn reject_trait_default_methods(env: TypeEnv, trait_node: AstNode) {
+    let trait_name = ast_access::node_text(trait_node)
+    let child_count = ast_access::node_child_count(trait_node)
+    let mut i = 0
+    while i < child_count {
+        let child = ast_access::node_child_at(trait_node, i)
+        if ast_decl_predicates::node_is_fn_decl(child) &&
+        ast_decl_predicates::node_fn_has_body(child) {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_TRAIT_DEFAULT_METHOD(),
+                text::concat(
+                    String_from("trait method body is not supported (ADR-062): "),
+                    text::concat(
+                        clone(trait_name),
+                        text::concat("::", ast_access::node_text(child))
+                    )
+                )
+            )
+        }
+        i = i + 1
+    }
+}
+
 fn count_trait_type_params(node: AstNode) -> i32 {
     let count = ast_access::node_type_ann_count(node)
     let mut total = 0
@@ -78,7 +108,8 @@ fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
         trait_name,
         Vec::new<TypeInfo>(),
         self_ty,
-        String_new()
+        String_new(),
+        Vec::new<TypeParamBounds>()
     )
 }
 
@@ -87,7 +118,8 @@ fn register_trait_impl_entry(
     trait_name: String,
     trait_args: Vec<TypeInfo>,
     self_ty: TypeInfo,
-    display_self_ty: String
+    display_self_ty: String,
+    type_param_bounds: Vec<TypeParamBounds>
 ) {
     let count = len(env.trait_impls)
     let mut i = 0
@@ -149,7 +181,8 @@ fn register_trait_impl_entry(
         contract_trait_impl::TraitImplInfo_new(
             trait_name,
             trait_args,
-            self_ty
+            self_ty,
+            type_param_bounds
         )
     )
 }
@@ -158,18 +191,21 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
     if !ast_decl_predicates::node_is_impl_decl(node) {
         return
     }
-    let ann_count = ast_access::node_type_ann_count(node)
-    if ann_count < 2 {
+    if impl_generics::head_count(node) != 2 {
         return
     }
     let trait_node = ast_access::node_type_ann_at(node, 0)
     let self_node = ast_access::node_type_ann_at(node, 1)
-    let type_params = collect_impl_type_params(trait_node, self_node)
-    let trait_ref = types::resolve_type_ann_node_generic(trait_node, type_params)
-    let self_ty = types::resolve_type_ann_node_generic(self_node, type_params)
+    let type_params = impl_generics::type_param_names(node)
+    let type_param_bounds = impl_generics::type_param_bounds(node)
+    let trait_ref = types::resolve_type_ann_node_generic(trait_node, clone(type_params))
+    let self_ty = types::resolve_type_ann_node_generic(self_node, clone(type_params))
     let trait_name = ast_access::node_text(trait_node)
     let trait_args = type_args(trait_ref)
     if !validate_trait_arity(env, clone(trait_name), len(trait_args)) {
+        return
+    }
+    if !validate_impl_param_constraints(env, node, clone(self_ty)) {
         return
     }
     let contains_var = type_contains_var(trait_ref) || type_contains_var(self_ty)
@@ -197,17 +233,66 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
         clone(trait_name),
         trait_args,
         self_ty,
-        ast_access::node_text(self_node)
+        ast_access::node_text(self_node),
+        type_param_bounds
     )
     if !contains_var || is_parametric {
         register_impl_associated_types(
             env,
             clone(trait_name),
             types::resolve_type_ann_node(self_node),
-            collect_impl_type_params(trait_node, self_node),
+            type_params,
             node
         )
     }
+}
+
+// ADR-078 §2 rejects an impl parameter that never reaches the self type: it
+// could only be instantiated by guessing from trait arguments or method
+// bodies, which leaves the obligation unconstrained. An implicit (unbounded)
+// parametric impl has no declared binder, so this check does not narrow the
+// existing inferred-parameter convention.
+fn validate_impl_param_constraints(env: TypeEnv, node: AstNode, self_ty: TypeInfo) -> bool {
+    let declared = impl_generics::declared_type_param_names(node)
+    let mut i = 0
+    while i < len(declared) {
+        let name = get_unchecked(declared, i)
+        if !type_contains_named_var(self_ty, clone(name)) {
+            report_trait_error(
+                env,
+                codes::DIAG_TYPE_TRAIT_BOUND(),
+                text::concat(
+                    String_from("impl type parameter `"),
+                    text::concat(
+                        name,
+                        "` is not constrained by the self type"
+                    )
+                )
+            )
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn type_contains_named_var(ty: TypeInfo, name: String) -> bool {
+    if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() &&
+    eq(contract_type_access::TypeInfo_name(ty), clone(name)) {
+        return true
+    }
+    let count = contract_type_access::TypeInfo_type_arg_count(ty)
+    let mut i = 0
+    while i < count {
+        if type_contains_named_var(
+            contract_type_access::TypeInfo_type_arg_at(ty, i),
+            clone(name)
+        ) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn validate_trait_supertraits(env: TypeEnv) {
@@ -447,36 +532,6 @@ fn trait_info_at(env: TypeEnv, trait_name: String) -> TraitInfo {
         return contract_trait_info::TraitInfo_new(String_new(), 0 - 1)
     }
     get_unchecked(env.trait_defs, index)
-}
-
-fn collect_impl_type_params(trait_node: AstNode, self_node: AstNode) -> Vec<String> {
-    let names = Vec::new<String>()
-    collect_type_params_from_node(trait_node, names)
-    collect_type_params_from_node(self_node, names)
-    names
-}
-
-fn collect_type_params_from_node(node: AstNode, names: Vec<String>) {
-    let name = ast_access::node_text(node)
-    if ast_access::node_kind_is(node, kinds::NK_TYPE_NAMED()) &&
-    is_impl_type_param_name(clone(name)) &&
-    !string_vec_contains(names, clone(name)) {
-        push(names, clone(name))
-    }
-    let count = ast_access::node_child_count(node)
-    let mut i = 0
-    while i < count {
-        collect_type_params_from_node(ast_access::node_child_at(node, i), names)
-        i = i + 1
-    }
-}
-
-fn is_impl_type_param_name(name: String) -> bool {
-    if len(name) != 1 {
-        return false
-    }
-    let ch = byte_at(name, 0)
-    ch >= 65 && ch <= 90
 }
 
 fn string_vec_contains(names: Vec<String>, name: String) -> bool {

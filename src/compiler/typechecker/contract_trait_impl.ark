@@ -1,14 +1,17 @@
 use typechecker::contract_trait_impl_record
+use typechecker::contract_type_param_bounds
 
 fn TraitImplInfo_new(
     trait_name: String,
     trait_args: Vec<TypeInfo>,
-    self_ty: TypeInfo
+    self_ty: TypeInfo,
+    type_param_bounds: Vec<TypeParamBounds>
 ) -> TraitImplInfo {
     contract_trait_impl_record::TraitImplInfo_new(
         trait_name,
         trait_args,
-        self_ty
+        self_ty,
+        type_param_bounds
     )
 }
 

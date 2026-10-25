@@ -1,0 +1,20 @@
+trait Answer {
+    fn answer(self: Self) -> i32 {
+        40 + 2
+    }
+}
+
+struct Thing {
+    value: i32,
+}
+
+impl Answer for Thing {
+    fn answer(self: Thing) -> i32 {
+        self.value
+    }
+}
+
+fn main() {
+    let thing = Thing { value: 7 }
+    thing.answer()
+}
