@@ -4,8 +4,10 @@
 
 use std::prelude::{clone}
 use corehir::function_id
+use corehir::mir_value_type
 use corehir::signature_entry
 use corehir::signature_registry
+use corehir::type_id
 use corehir::type_info_to_mir_value
 use mir::inst_accessors_result_types
 use mir::inst_accessors_shape
@@ -121,7 +123,10 @@ fn call_result_types_status(m: MirModule, inst: MirInst) -> i32 {
     let expected = call_return_legacy_vt(m, inst)
     let actual_count = inst_accessors_result_types::MirInst_result_type_count(inst)
     if actual_count <= 0 {
-        if expected != value_types::VT_VOID() {
+        // INV-1: when the spine itself has no valid TypeId for the return, the
+        // instruction cannot carry one. W009 owns that gap; demanding a
+        // fabricated result here would only re-introduce a TypeId-invalid MVT.
+        if expected != value_types::VT_VOID() && call_return_type_id_is_known(m, inst) {
             return 1
         }
         return 0
@@ -135,6 +140,19 @@ fn call_result_types_status(m: MirModule, inst: MirInst) -> i32 {
         return 2
     }
     0
+}
+
+fn call_return_type_id_is_known(m: MirModule, inst: MirInst) -> bool {
+    let mvts = call_return_mvts_from_fid(
+        m,
+        inst_accessors_shape::MirInst_op(inst),
+        inst_record::mir_inst_func_id_raw(inst)
+    )
+    if len(mvts) <= 0 {
+        return false
+    }
+    let first = get_unchecked(mvts, 0)
+    type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(first))
 }
 
 fn call_return_mvts_from_fid(m: MirModule, op: i32, fid_raw: i32) -> Vec<MirValueType> {

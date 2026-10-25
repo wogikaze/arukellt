@@ -1,5 +1,6 @@
 use std::prelude::{clone, eq, starts_with}
 use std::text
+use corehir::function_id
 use mir::function_identity
 use mir::host_intrinsic_stub_names
 use mir::module_functions
@@ -7,8 +8,10 @@ use mir::block_inst_access
 use mir::function_block_queries
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
+use mir::inst_record
 use mir::opcodes
 use mir::spine_lookup
+use mir::value_types
 use mir::verify_report
 use collections::name_index
 fn verify_calls_in_module(m: MirModule, report: MirVerifyReport, verbose: bool) {
@@ -55,7 +58,34 @@ fn verify_one_call(inst: MirInst, m: MirModule, report: MirVerifyReport, verbose
     if !verify_fn_names_contains(fn_names, clone(callee)) {
         mir_verify_report_add_w003(report)
     }
+    verify_call_result_type_present(inst, report, verbose, caller)
     verify_call_inv8_result_types(inst, m, report, verbose, caller)
+}
+
+// W009: a call with a valid func_id and a GC/ref result but no typed result
+// cannot have its dest declared from the spine. Warning-only in 5.0 so the
+// census shows where lowering still fabricates a call result type.
+fn verify_call_result_type_present(
+    inst: MirInst,
+    report: MirVerifyReport,
+    verbose: bool,
+    caller: String
+) {
+    let fid = function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst))
+    if !function_id::function_id_is_valid(fid) {
+        return
+    }
+    let vt = inst_accessors_shape::MirInst_val_type(inst)
+    if vt != value_types::VT_GC_REF() && vt != value_types::VT_REF() {
+        return
+    }
+    if inst_record::mir_inst_result_type_count(inst) > 0 {
+        return
+    }
+    mir_verify_report_add_w009(report)
+    if verbose {
+        mir_verify_report_push_detail(report, text::concat("W009 call-missing-result-type ", caller))
+    }
 }
 
 fn verify_call_inv8_result_types(inst: MirInst, m: MirModule, report: MirVerifyReport, verbose: bool, caller: String) {

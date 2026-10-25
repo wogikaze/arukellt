@@ -69,11 +69,71 @@ subst を保存し、Phase 3 で Typed MIR がそれを参照する。
 
 ## Phase 5: emitter から型推論を削除
 
-削除対象:
-- `code_ref_locals_infer.ark::find_stack_value_source`
-- `code_ref_locals_infer.ark::infer_ref_local_gc_type_depth`
-- `code_ref_locals.ark::infer_ref_local_gc_type`
-- `mono_return_vt.ark::mono_return_type_name` の名前逆引き部分
+### 進捗（2026-10-25, typed-MIR Phase 5.0/5.1 レーン）
+
+Phase 5.0 完了:
+- `src/compiler/mir/inst_record.ark` / `src/compiler/mir/block_inst_access.ark` —
+  packed result は valid TypeId を要求する（INV-1）。legacy vt 由来の
+  `TYPE_ID_INVALID` は result として数えない。
+- `src/compiler/mir/inst_draft.ark` — `MirInstDraft_new_full` が legacy vt から
+  fake result を作らない。
+- `src/compiler/mir/lower/ctx_typed_mir_sync.ark` — valid な result TypeId を
+  legacy vt で上書きしない（INV-2）。
+- `src/compiler/mir/verify_local.ark` / `verify_call.ark` / `verify_report.ark` —
+  W009（valid func_id + GC/ref dest + valid result TypeId なし）と W010（valid local
+  TypeId + GcLayoutTable binding なし）を warning-only で追加。W007 は spine 側に
+  valid TypeId がない呼び出しを要求しない。
+- `src/compiler/wasm/code_locals.ark` — `--time` 時に rung 決定カウンタを出力する
+  （emit は非変更）。fused emit（#851 Phase 3）では本体が lowering 中の ctx で
+  吐かれるため、`mir/lower/emit_inloop.ark` の drain から同じフラグで出力する。
+- 未参照だった `wasm/code_ref_locals_infer.ark`（9 行）と
+  `wasm/code_ref_locals_stack_scan.ark`（72 行）を削除。
+- 既存 regression の修正: `wasm/intrinsic_vec_access_gc.ark` の
+  `build_get_unchecked_field_types` が非 GC target でも GcLayoutTable index を
+  返していた。wasm32 ではその index が func type を指すため、`get_unchecked`
+  struct temp が `(ref null <func type>)` で宣言され、i32 を store できず
+  invalid module になっていた（`structs/vec_elem_field_get.ark` の wasm32、
+  および fixpoint stage-3 の compiler wasm。7f5d56e50 系の main checkout でも
+  再現する 5.0 以前の regression）。`is_gc_target` で gate して修正。
+
+5.0 時点の census（`--time`、wasm32-gc、`stdlib_trait` / `stdlib_io` /
+`question_mark` / `enums` / `structs` / `stdlib_string` の `run:` 447 件）:
+`scalar_override=22997 direct_producer=9243 copied_local_set=4145 vec_type_name=3007
+spine_string_early=1913 scalar_width=1431 named_type=458 vec_constructor=482
+payload_extract=333 return_vec=250 enum_like=494 funcref=221 vec_access=90
+i64_demotion=38 open_ref_fallback=7 get_unchecked_field=4 branch_join=1`。
+`array_literal` / `direct_producer_late` / `spine_string_late` / `variant_slot` は 0。
+W009=0, W010=0（`mir-verify` summary 自体が出ない = 全 warning 合計 0。
+W009/W010 はその合計に含まれる）。
+
+Phase 5.1（CALL result を callee 名から再導出しない）は保留:
+仕様どおり `infer_call_result_gc_type_for_inst` を
+`mir_inst_result_type_at(inst, 0)` + `SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type`
+に置き換えると、次の wasm32-gc fixture が invalid Wasm になる
+（pinned 58cc153e0 では valid）。
+
+- `question_mark/from_error` / `question_mark/error_ecosystem` /
+  `question_mark/user_error_type` / `enums/enum_struct_variant`
+
+原因: `impl From<String> for AppError { fn from(...) -> AppError }` のような Self を
+含む impl method で、SignatureRegistry の return MVT（= call result TypeId）が
+`String` になり、callee MIR 関数の宣言 return（= 実際の wasm signature、`AppError`）
+と食い違う。INV-3 はこのクラスで成立しない。旧 emitter の
+`infer_call_result_gc_type_from_fn_at` rung がこの食い違いを吸収していた。
+W009 では検出できない（TypeId は存在するが誤っている）。
+
+次の 5.1 案: valid fid かつ MIR body がある呼び出しは
+`func_id -> SelfEmitCtx_mir_index_for_func_id` で callee MIR 関数の宣言 return を
+唯一の型源にする（callee 文字列を読まないので INV-4 は保たれる）。registry-by-id と
+intrinsic table は body がない場合だけ使う。GcLayoutTable 参照は `is_gc_target` で
+gate する（wasm32 に func type index を漏らさない）。enum-open / structref rung の
+削除には引き続き typechecker の Self 解決（R9）が必要。
+
+削除対象（履歴）:
+- `code_ref_locals_infer.ark::find_stack_value_source` — 削除済み
+- `code_ref_locals_infer.ark::infer_ref_local_gc_type_depth` — 削除済み
+- `code_ref_locals.ark::infer_ref_local_gc_type` — 削除済み
+- `mono_return_vt.ark::mono_return_type_name` の名前逆引き部分 — 未着手（R2）
 
 修正対象:
 - `src/compiler/wasm/code_locals.ark` — local型を `value_type` から直接取得

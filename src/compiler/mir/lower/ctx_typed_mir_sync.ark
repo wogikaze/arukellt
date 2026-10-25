@@ -1,4 +1,6 @@
 use std::prelude::{clone}
+use corehir::mir_value_type
+use corehir::type_id
 use mir::inst_draft
 use mir::function_locals_view
 use mir::local_access
@@ -45,14 +47,29 @@ fn ctx_local_mvt(ctx: LowerCtx, local_idx: i32) -> MirValueType {
     local_access::MirLocal_value_type(loc)
 }
 
+// INV-2: a result type that already carries a valid TypeId is authoritative.
+// Deriving it again from the legacy vt used to overwrite every typed result
+// with a TYPE_ID_INVALID MirValueType before it reached the block.
+fn ctx_inst_has_typed_result(inst: MirInstDraft) -> bool {
+    if inst_draft::MirInstDraft_result_type_count(inst) <= 0 {
+        return false
+    }
+    let first = inst_draft::MirInstDraft_result_type_at(inst, 0)
+    type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(first))
+}
+
 fn ctx_enrich_inst_result_types(ctx: LowerCtx, inst: MirInstDraft) -> MirInstDraft {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !spine_lookup::spine_populated(m) {
         return inst
     }
+    if ctx_inst_has_typed_result(inst) {
+        return inst
+    }
+    let op = inst_draft::MirInstDraft_op(inst)
     let mvts = spine_lookup::call_return_mvts_from_fid(
         m,
-        inst_draft::MirInstDraft_op(inst),
+        op,
         inst_draft::MirInstDraft_func_id_raw(inst)
     )
     if len(mvts) > 0 {

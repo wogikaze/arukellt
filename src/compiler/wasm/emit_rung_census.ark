@@ -1,0 +1,78 @@
+// Phase 5.0 census for the local-declaration ladder (code_locals.ark). Each id
+// counts decisions, never emitted bytes, and the summary is printed only under
+// `--time`.
+//
+// The counts are the evidence the later Phase 5 steps delete a rung with:
+// a rung whose count is 0 across the fixture set is not load-bearing.
+
+use std::text
+use std::host::stdio
+use wasm::ctx_record
+
+fn RUNG_GET_UNCHECKED_FIELD() -> i32 { 0 }
+fn RUNG_SCALAR_OVERRIDE() -> i32 { 1 }
+fn RUNG_BRANCH_JOIN() -> i32 { 2 }
+fn RUNG_ARRAY_LITERAL() -> i32 { 3 }
+fn RUNG_VEC_CONSTRUCTOR_DEST() -> i32 { 4 }
+fn RUNG_PAYLOAD_EXTRACT() -> i32 { 5 }
+fn RUNG_VEC_ACCESS() -> i32 { 6 }
+fn RUNG_COPIED_LOCAL_SET() -> i32 { 7 }
+fn RUNG_DIRECT_PRODUCER() -> i32 { 8 }
+fn RUNG_FUNCREF() -> i32 { 9 }
+fn RUNG_I64_DEMOTION() -> i32 { 10 }
+fn RUNG_RETURN_VEC() -> i32 { 11 }
+fn RUNG_DIRECT_PRODUCER_LATE() -> i32 { 12 }
+fn RUNG_SPINE_STRING_EARLY() -> i32 { 13 }
+fn RUNG_ENUM_LIKE() -> i32 { 14 }
+fn RUNG_VEC_TYPE_NAME() -> i32 { 15 }
+fn RUNG_NAMED_TYPE() -> i32 { 16 }
+fn RUNG_SPINE_STRING_LATE() -> i32 { 17 }
+fn RUNG_VARIANT_SLOT() -> i32 { 18 }
+fn RUNG_OPEN_REF_FALLBACK() -> i32 { 19 }
+fn RUNG_SCALAR_WIDTH_FALLBACK() -> i32 { 20 }
+
+fn emit_rung_name(rung: i32) -> String {
+    if rung == RUNG_GET_UNCHECKED_FIELD() { return "get_unchecked_field" }
+    if rung == RUNG_SCALAR_OVERRIDE() { return "scalar_override" }
+    if rung == RUNG_BRANCH_JOIN() { return "branch_join" }
+    if rung == RUNG_ARRAY_LITERAL() { return "array_literal" }
+    if rung == RUNG_VEC_CONSTRUCTOR_DEST() { return "vec_constructor" }
+    if rung == RUNG_PAYLOAD_EXTRACT() { return "payload_extract" }
+    if rung == RUNG_VEC_ACCESS() { return "vec_access" }
+    if rung == RUNG_COPIED_LOCAL_SET() { return "copied_local_set" }
+    if rung == RUNG_DIRECT_PRODUCER() { return "direct_producer" }
+    if rung == RUNG_FUNCREF() { return "funcref" }
+    if rung == RUNG_I64_DEMOTION() { return "i64_demotion" }
+    if rung == RUNG_RETURN_VEC() { return "return_vec" }
+    if rung == RUNG_DIRECT_PRODUCER_LATE() { return "direct_producer_late" }
+    if rung == RUNG_SPINE_STRING_EARLY() { return "spine_string_early" }
+    if rung == RUNG_ENUM_LIKE() { return "enum_like" }
+    if rung == RUNG_VEC_TYPE_NAME() { return "vec_type_name" }
+    if rung == RUNG_NAMED_TYPE() { return "named_type" }
+    if rung == RUNG_SPINE_STRING_LATE() { return "spine_string_late" }
+    if rung == RUNG_VARIANT_SLOT() { return "variant_slot" }
+    if rung == RUNG_OPEN_REF_FALLBACK() { return "open_ref_fallback" }
+    if rung == RUNG_SCALAR_WIDTH_FALLBACK() { return "scalar_width" }
+    "unknown"
+}
+
+fn emit_rung_census_print(ctx: SelfEmitCtx) {
+    let rungs = ctx_record::SelfEmitCtx_emit_census_rungs(ctx)
+    let mut index = 0
+    let mut line = String_new()
+    while index < len(rungs) {
+        let decisions = get_unchecked(rungs, index)
+        if decisions > 0 {
+            let entry = text::concat(
+                emit_rung_name(index),
+                text::concat("=", (decisions).to_string())
+            )
+            line = text::concat(line, text::concat(" ", entry))
+        }
+        index = index + 1
+    }
+    if len(line) == 0 {
+        return
+    }
+    stdio::eprintln(text::concat("[arukellt] emit-rung-census:", line))
+}

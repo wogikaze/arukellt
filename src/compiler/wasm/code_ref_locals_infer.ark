@@ -1,9 +1,0 @@
-//
-// Emit-time body-scan GC inference retired (#843).
-// Local GC types come from MirLocal.value_type / type_name / variant_slot
-// via SelfEmitCtx_wasm_ref_type_idx_for_local. Remaining helpers:
-// - code_ref_locals_stack_scan.ark — find_stack_value_source (post_pass)
-// - code_ref_locals_infer_dest.ark — multi-variant / producer helpers
-// - code_ref_locals_infer_callee.ark — CALL result GC type (registry + names)
-// - code_ref_locals_typename.ark — type_name prefix helpers
-// - post_pass_type_propagate.ark — MIR lowering time type propagation

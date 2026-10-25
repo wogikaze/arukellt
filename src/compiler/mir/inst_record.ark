@@ -30,9 +30,13 @@ fn mir_inst_val_type(inst: MirInst) -> i32 {
     get_unchecked(inst.home.val_types, inst.index)
 }
 
+// INV-1: a packed result is only real when its TypeId is valid. The legacy
+// vt default stored TYPE_ID_INVALID next to a ref repr, so every non-void
+// instruction appeared to carry a result type the emitter could not map.
 fn mir_inst_has_packed_result(inst: MirInst) -> bool {
-    get_unchecked(inst.home.type_ids, inst.index) >= 0 ||
-    get_unchecked(inst.home.type_reprs, inst.index) > 0
+    type_id::type_id_is_valid(
+        type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index))
+    )
 }
 
 fn mir_inst_result_types(inst: MirInst) -> Vec<MirValueType> {
@@ -62,6 +66,13 @@ fn mir_inst_result_type_at(inst: MirInst, _index: i32) -> MirValueType {
     // Packed single-result storage: callers gate on result_type_count > 0
     // and pass index 0, so read the columns directly instead of
     // materializing a Vec<MirValueType> per access.
+    if !mir_inst_has_packed_result(inst) {
+        return mir_value_type::MirValueType_new(
+            type_id::TYPE_ID_INVALID(),
+            0,
+            0
+        )
+    }
     mir_value_type::MirValueType_new(
         type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index)),
         get_unchecked(inst.home.type_reprs, inst.index),
