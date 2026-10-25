@@ -4,6 +4,7 @@ use std::text
 use mir::function_block_queries
 use mir::function_identity
 use mir::module_functions
+use mir::module_gc_layout_plan
 use mir::block_inst_access
 use mir::verify_call
 use mir::verify_local
@@ -15,12 +16,16 @@ fn verify_mir_warn_only(m: MirModule) -> MirVerifyReport {
 
 fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport {
     let report = verify_report::MirVerifyReport_new()
+    // W010 reads the lowering-produced layout plan; the emit-time GcLayoutTable
+    // is built from this plan, so a missing binding here is a missing binding
+    // when the local is declared.
+    let plan = module_gc_layout_plan::MirModule_gc_layout_plan(m)
     let count = module_functions::MirModule_function_count(m)
     let mut fi = 0
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)
         let fname = function_identity::MirFunction_name(f)
-        verify_local::verify_locals_in_function(f, report, verbose, clone(fname))
+        verify_local::verify_locals_in_function(f, plan, report, verbose, clone(fname))
         verify_local::verify_function_return(f, report, verbose)
         fi = fi + 1
     }

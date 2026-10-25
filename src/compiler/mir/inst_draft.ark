@@ -1,6 +1,5 @@
 use std::prelude::{clone}
 use corehir::mir_value_type
-use mir::typed_mir_compat
 pub struct MirInstDraft {
     op: i32,
     dest: i32,
@@ -33,7 +32,10 @@ fn MirInstDraft_new_full(
         float_val: float_val,
         str_val: str_val,
         val_type: val_type,
-        result_types: typed_mir_compat::result_types_from_legacy_vt(val_type),
+        // INV-1: an empty draft has no result type. The legacy vt default
+        // stored TYPE_ID_INVALID here, so every non-void instruction claimed
+        // a packed result before any pass had derived one.
+        result_types: Vec::new<MirValueType>(),
         func_id_raw: 0 - 1,
     }
 }

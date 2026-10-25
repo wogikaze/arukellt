@@ -55,8 +55,9 @@ fn MirBlock_inst_at(block: MirBlock, idx: i32) -> MirInst {
 }
 
 fn mir_block_export_packed_result(block: MirBlock, idx: i32) -> Vec<MirValueType> {
+    // INV-1: never export a result type whose TypeId is invalid.
     let stored = get_unchecked(block.type_ids, idx)
-    if stored < 0 {
+    if !type_id::type_id_is_valid(type_id::TypeId_new(stored)) {
         return Vec::new<MirValueType>()
     }
     let result = Vec::new<MirValueType>()

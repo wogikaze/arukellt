@@ -55,6 +55,7 @@ use wasm::inst_ctx
 use wasm::ctx_record
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
+use wasm::emit_rung_census
 use wasm::gc_layout_table
 use wasm::gc_layout_table_build
 use wasm::sections_types
@@ -600,4 +601,10 @@ fn emit_inloop_drain(
     art.core_op_shadow_mismatch_budget = ectx.core_op_shadow_mismatch_budget
     art.gc_layout_typed_lookups = gc_layout_table::gc_layout_table_typed_lookup_count(gc_layout)
     art.gc_layout_conflicts = gc_layout_table::gc_layout_table_conflict_count(gc_layout)
+    // Phase 5.0 ladder census: the declared bodies were emitted on this ctx,
+    // so its rung decisions are the ones to print. The emit-phase ctx only
+    // adopts the body bytes and never runs the local-declaration ladder.
+    if emit_spec::mir_lower_emit_spec_report_timing(spec) != 0 {
+        emit_rung_census::emit_rung_census_print(ectx)
+    }
 }

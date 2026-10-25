@@ -139,6 +139,9 @@ pub struct SelfEmitCtx {
     fid_chain_heads: NameIndex,
     fid_chain_next: Vec<i32>,
     fid_chains_live: bool,
+    // Phase 5.0 local-declaration ladder census, indexed by emit_rung_census
+    // rung id. Decisions only; it never feeds an emitted byte.
+    emit_census_rungs: Vec<i32>,
 }
 
 fn SelfEmitCtx_new(
@@ -258,6 +261,7 @@ fn SelfEmitCtx_new(
         fid_chain_heads: name_index::NameIndex_new(0),
         fid_chain_next: Vec::new<i32>(),
         fid_chains_live: false,
+        emit_census_rungs: Vec::new<i32>(),
     }
 }
 
@@ -810,6 +814,17 @@ fn SelfEmitCtx_mir_index_for_func_id(ctx: SelfEmitCtx, func_id_raw: i32) -> i32 
         return 0 - 1
     }
     get_unchecked(ctx.fid_to_mir, func_id_raw)
+}
+
+fn SelfEmitCtx_note_emit_census(ctx: SelfEmitCtx, rung: i32) {
+    while len(ctx.emit_census_rungs) <= rung {
+        push(ctx.emit_census_rungs, 0)
+    }
+    set(ctx.emit_census_rungs, rung, get_unchecked(ctx.emit_census_rungs, rung) + 1)
+}
+
+fn SelfEmitCtx_emit_census_rungs(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.emit_census_rungs
 }
 use mir::module_gc_enum
 use mir::module_gc_struct

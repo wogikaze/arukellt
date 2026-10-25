@@ -14,6 +14,7 @@ use wasm::wasm_sections_facade
 use wasm::gc_layout_table
 use wasm::gc_layout_table_build
 use wasm::gc_layout_audit
+use wasm::emit_rung_census
 use wasm::registry_return_audit
 use wasm::core_op_shadow
 use mir::module_functions
@@ -231,4 +232,8 @@ fn emit_wasm_module_sections(
     registry_return_audit::registry_audit_print_summary(ctx)
     core_op_shadow::core_op_shadow_print_summary(ctx)
     gc_layout_audit::gc_layout_audit_print_summary(ctx)
+    // Phase 5.0 ladder census rides the existing --time config gate.
+    if report_timing != 0 {
+        emit_rung_census::emit_rung_census_print(ctx)
+    }
 }

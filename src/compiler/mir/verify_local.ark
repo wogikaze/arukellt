@@ -6,6 +6,7 @@ use mir::function_identity
 use mir::function_locals_view
 use mir::function_param_view
 use mir::function_return_view
+use mir::gc_layout_plan
 use mir::local_access
 use mir::verify_report
 use mir::value_types
@@ -14,7 +15,13 @@ use mir::function_block_queries
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::opcodes
-fn verify_locals_in_function(f: MirFunction, report: MirVerifyReport, verbose: bool, fn_name: String) {
+fn verify_locals_in_function(
+    f: MirFunction,
+    plan: MirGcLayoutPlan,
+    report: MirVerifyReport,
+    verbose: bool,
+    fn_name: String
+) {
     let pc = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < pc {
@@ -24,10 +31,49 @@ fn verify_locals_in_function(f: MirFunction, report: MirVerifyReport, verbose: b
     let lc = function_locals_view::MirFunction_local_count(f)
     let mut li = 0
     while li < lc {
-        verify_one_local(function_locals_view::MirFunction_local_at(f, li), report, verbose, fn_name, "local")
+        let local = function_locals_view::MirFunction_local_at(f, li)
+        verify_one_local(local, report, verbose, fn_name, "local")
+        verify_local_gc_layout_binding(plan, local, report, verbose, fn_name)
         li = li + 1
     }
     verify_local_instruction_operands(f, lc, report, verbose, fn_name)
+}
+
+// W010: a GC/ref local whose valid TypeId has no GcLayoutTable binding cannot
+// be declared from the spine. Params are excluded — their storage comes from
+// the function's canon signature, not from this local declaration ladder.
+fn verify_local_gc_layout_binding(
+    plan: MirGcLayoutPlan,
+    local: MirLocal,
+    report: MirVerifyReport,
+    verbose: bool,
+    fn_name: String
+) {
+    if local_access::MirLocal_variant_slot(local) >= 0 {
+        return
+    }
+    let vt = local_access::MirLocal_val_type(local)
+    if vt != value_types::VT_GC_REF() && vt != value_types::VT_REF() {
+        return
+    }
+    let mvt = local_access::MirLocal_value_type(local)
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return
+    }
+    if gc_layout_plan::mir_gc_layout_plan_find_type(plan, tid) >= 0 {
+        return
+    }
+    mir_verify_report_add_w010(report)
+    if verbose {
+        mir_verify_report_push_detail(
+            report,
+            text::concat(
+                "W010 local-no-gc-layout ",
+                text::concat(fn_name, text::concat(" ", (type_id::TypeId_raw(tid)).to_string()))
+            )
+        )
+    }
 }
 
 fn verify_local_instruction_operands(
