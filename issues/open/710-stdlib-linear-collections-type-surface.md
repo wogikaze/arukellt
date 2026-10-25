@@ -6,7 +6,7 @@ ID: 710
 Track: stdlib-api
 Depends on: "691, 697, 701, 707, 709"
 Orchestration class: blocked-by-upstream
-Orchestration upstream: "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy; ADR-086 (PROPOSED) implementation prerequisites"
+Orchestration upstream: "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy; ADR-086 (ACCEPTED 2026-10-25) implementation prerequisites"
 Blocks v{N}: none
 Priority: 1
 Source: Stdlib collection type-surface audit 2026-07-01
@@ -42,11 +42,12 @@ should be type-first and reusable.
   and trait implementations.
 - `#697` tracks `Vec<T>` specifically, and `#687` tracks hash collections;
   neither fully owns linear collection ADTs.
-- The design is now recorded in
-  [ADR-086](../../docs/adr/ADR-086-linear-collection-adts.md) as **PROPOSED**.
-  Implementation has not started; the ADR is not an accepted current contract.
+- The design is recorded in
+  [ADR-086](../../docs/adr/ADR-086-linear-collection-adts.md) as **ACCEPTED**
+  (2026-10-25). Implementation has not started; the prerequisites below must be
+  proven before code lands.
 
-## Design decisions (ADR-086, PROPOSED)
+## Design decisions (ADR-086, ACCEPTED)
 
 The design record is
 [ADR-086: std::collections の線形コレクション ADT](../../docs/adr/ADR-086-linear-collection-adts.md).
@@ -177,11 +178,13 @@ The decisions this issue must implement are:
 - [x] Rejected alternatives (flat namespace, keep `linear`, Queue / Stack
       aliases, Rust-style `&mut` iterators, PriorityQueue in scope, universal
       `FromIterator<I>`, enum `List`) are recorded in ADR-086.
+- [x] ADR-086 was accepted on 2026-10-25; implementation remains gated by the
+      prerequisites above.
 
 ## References
 
 - [ADR-086](../../docs/adr/ADR-086-linear-collection-adts.md) — design record
-  (PROPOSED)
+  (ACCEPTED 2026-10-25)
 - #687 (HashMap / HashSet parity, done)
 - #691 (`Iterator` / `IntoIterator` / `FromIterator`, done)
 - #697 (`Vec<T>` operation extension)

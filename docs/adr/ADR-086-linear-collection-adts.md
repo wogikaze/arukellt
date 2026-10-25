@@ -1,8 +1,10 @@
 # ADR-086: std::collections の線形コレクション ADT — Deque / Queue / Stack / LinkedList
 
-ステータス: **PROPOSED** — 線形コレクションをモジュール名前空間の公開型・メソッド・イテレータとして定義し、free function から移行する
+ステータス: **ACCEPTED** — 線形コレクションをモジュール名前空間の公開型・メソッド・イテレータとして定義し、free function から移行する
 
 提案日: 2026-10-25
+
+決定日: 2026-10-25
 
 関連: [ADR-000](ADR-000-process.md)、[ADR-014](ADR-014-stability-labels.md)、[ADR-018](ADR-018-language-docs-classification.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-059](ADR-059-language-v2-ownership-copy-mutability.md)、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-066](ADR-066-language-v2-generic-public-api.md)、[ADR-076](ADR-076-language-v2-iterator-consumer-boundary.md)、[ADR-078](ADR-078-language-v2-parametric-trait-impl.md)、[ADR-080](ADR-080-language-v2-generic-element-boxing-policy.md)、[#710](../../issues/open/710-stdlib-linear-collections-type-surface.md)、[#711](../../issues/open/711-stdlib-docs-rich-reference-quality.md)
 
