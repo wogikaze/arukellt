@@ -78,20 +78,34 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
 // their result via a result local (mir_store_if_branch_result), so an
 // arg whose lowering ends at END holds the value in arg_idx, not on the
 // operand stack (#921).
-// Field reads have the same contract when they target the operand local:
-// the emit store policy materializes STRUCT_GET results into dest instead
-// of leaving them on the stack, so a following argument load would drop
-// the receiver (#693).
 fn mir_method_arg_leaves_no_stack(ctx: LowerCtx, arg_idx: i32) -> bool {
     if arg_idx < 0 {
         return false
     }
     let last_op = ctx_locals_emit::ctx_current_block_last_inst_op(ctx)
-    if last_op == opcodes::MIR_STRUCT_GET() || last_op == opcodes::MIR_GC_STRUCT_GET() {
-        return ctx_locals_emit::ctx_current_block_last_inst_dest(ctx) == arg_idx
-    }
     last_op == opcodes::MIR_STRUCT_SET() ||
     last_op == opcodes::MIR_ARRAY_SET() ||
     last_op == opcodes::MIR_GC_STRUCT_SET() ||
     last_op == opcodes::MIR_END()
+}
+
+// A receiver differs from a stack-passed argument: the method emit re-reads
+// it from its local, so a field read that the emit store policy materializes
+// into the operand local must be re-pushed. That only happens when explicit
+// arguments are lowered between the field get and the call; a zero-argument
+// call consumes the field get directly and the emitter forwards it to the
+// call operand. Re-pushing a zero-argument field receiver would materialize
+// the get and split the compiler's own bootstrap fixpoint (#693).
+fn mir_method_receiver_leaves_no_stack(ctx: LowerCtx, receiver_idx: i32, has_arguments: bool) -> bool {
+    if mir_method_arg_leaves_no_stack(ctx, receiver_idx) {
+        return true
+    }
+    if !has_arguments || receiver_idx < 0 {
+        return false
+    }
+    let last_op = ctx_locals_emit::ctx_current_block_last_inst_op(ctx)
+    if last_op != opcodes::MIR_STRUCT_GET() && last_op != opcodes::MIR_GC_STRUCT_GET() {
+        return false
+    }
+    ctx_locals_emit::ctx_current_block_last_inst_dest(ctx) == receiver_idx
 }
