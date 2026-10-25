@@ -137,6 +137,75 @@ Entries with `kind = "host_stub"` must additionally provide:
 
 ---
 
+## Public Types — `[[types]]`
+
+`[[types]]` is the registry for public types and traits (ADR-086 §7). The
+generator validates every entry with `validate_type_entries()` and
+`render_public_types()` renders them under **Public Types** grouped by
+declared `kind`.
+
+### Required Fields — Every `[[types]]` Entry
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Public type or trait identifier. |
+| `kind` | string | One of `struct`, `enum`, `trait`, `primitive`. |
+
+The declaration kind is data, not a hardcoded list of names. `primitive`
+covers builtin scalar entries (`u8`, `i16`, …) that are not declared with
+`pub struct` / `pub enum` but still appear in the registry.
+
+### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `doc` | string | One-line public summary. |
+| `generic_params` | list of strings | Declared type parameters, in order. |
+| `methods` | list of strings | Public inherent method and associated-function names. |
+| `trait_impls` | list of strings | Public trait names implemented for the type. |
+| `module` | string | Defining module for non-prelude entries. |
+| `prelude` | bool | `true` for auto-imported types. |
+| `stability` | string | Lifecycle label when the type has one. |
+| `type_id` | string | Reference into `data/core-ops.toml` `[[types]]`. |
+
+`methods` and `trait_impls` are **membership lists**, not signature or body
+copies. Signatures, bounds, and doc comments remain source-of-truth; the
+registry exists so generated docs can group types and so `deprecated_by` can
+resolve a method replacement. A separate extractor (#711) may enrich the
+entries from source.
+
+### `deprecated_by` and `Owner::member`
+
+A deprecated `[[functions]]` entry may set `deprecated_by = "Owner::member"`
+when the replacement is a method or associated function. The generator accepts
+the target when either:
+
+- it names a public nondeprecated manifest function (`name` or
+  `module::name`), or
+- it names `Type::method` where `Type` is a nondeprecated `[[types]]` entry
+  whose `methods` list contains `method`.
+
+`check-compat-orphans.py` additionally requires that `std/` source declares the
+method in an `impl` block, so a registry-only claim cannot hide a missing
+implementation.
+
+### Schema ownership and lane overlap
+
+This table is intentionally generic. Concurrent stdlib lanes extend the same
+entries instead of adding parallel registries:
+
+- **#693** (`Read` / `Write` / `BufRead` / `Seek`, ADR-085) adds `kind = "trait"`
+  entries and their `methods` / `trait_impls`.
+- **#697** (`Vec<T>` operation extension) may add `methods` / `trait_impls` to
+  the existing `Vec` entry.
+- **#710** (linear collection ADTs, ADR-086) adds the `kind` migration for
+  existing entries and later registers `Deque` / `Queue` / `Stack` /
+  `LinkedList`.
+
+When two lanes edit the same entry, keep both fields: `kind` is required, and
+`doc` / `methods` / `trait_impls` are additive list fields. Do not specialize
+the validator to a lane or type name.
+
 ## CI Enforcement
 
 Schema validation is integrated into the documentation generation pipeline:
@@ -176,6 +245,16 @@ FUNCTION_KIND_REQUIRED = {
 FUNCTION_KIND_REQUIRE_ONE_OF = {
     "host_stub": ("target", "targets"),
 }
+
+VALID_TYPE_KINDS = frozenset({"struct", "enum", "trait", "primitive"})
+TYPE_REQUIRED_FIELDS = ("name", "kind")
+TYPE_LIST_FIELDS = ("generic_params", "methods", "trait_impls")
+TYPE_GROUP_TITLES = (
+    ("struct", "Structs"),
+    ("enum", "Enums"),
+    ("trait", "Traits"),
+    ("primitive", "Primitives"),
+)
 ```
 
 The consistency gate verifies this table against the generator constants; a

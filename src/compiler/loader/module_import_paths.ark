@@ -2,6 +2,7 @@ use std::prelude::{clone}
 use resolver::ast_access
 use resolver::ast_decl_predicates
 use resolver::paths
+use loader::module_paths
 fn push_import_decl_paths(paths: Vec<String>, decl: AstNode) {
     let num_children = ast_access::node_child_count(decl)
     let decl_path = ast_access::node_text(decl)
@@ -27,7 +28,15 @@ fn push_import_decl_paths(paths: Vec<String>, decl: AstNode) {
         }
         return
     }
-    push(paths, decl_path)
+    // A single member path (`use std::collections::deque::Deque`) is not a
+    // module, so loading it directly fails silently and its defining module
+    // never loads. Load the parent module as well; the full path stays for
+    // real module imports, which resolve first.
+    push(paths, clone(decl_path))
+    let import_parent_path = paths::use_module_parent_path(clone(decl_path))
+    if len(clone(import_parent_path)) > 0 && module_paths::is_stdlib_path(clone(import_parent_path)) {
+        push(paths, import_parent_path)
+    }
 }
 
 pub fn collect_import_paths(decls: Vec<AstNode>) -> Vec<String> {

@@ -13,40 +13,76 @@
 | `experimental` | 319 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
 
-## Prelude Types
+## Public Types
 
-| Name | Generic Params | Prelude |
-|------|----------------|---------|
-| `Option` | T | yes |
-| `Result` | T, E | yes |
-| `String` | - | yes |
-| `Vec` | T | yes |
-| `HashMap` | K, V | yes |
-| `u8` | - | yes |
-| `u16` | - | yes |
-| `u32` | - | yes |
-| `u64` | - | yes |
-| `i8` | - | yes |
-| `i16` | - | yes |
-| `Box` | T | yes |
-| `Slice` | T | yes |
-| `Error` | - | no |
-| `Ordering` | - | no |
-| `Range` | - | no |
-| `RangeInclusive` | - | no |
-| `Iterator` | - | no |
-| `IntoIterator` | - | no |
-| `FromIterator` | T | no |
-| `IteratorSum` | Item, Output | no |
-| `IteratorFold` | Item, Accumulator | no |
-| `IoError` | - | no |
-| `SeekFrom` | - | no |
-| `Read` | - | no |
-| `Write` | - | no |
-| `BufRead` | - | no |
-| `Seek` | - | no |
-| `Reader` | - | no |
-| `Writer` | - | no |
+### Structs
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `Box` | T | yes | provisional | Heap-allocated owned value. |
+| `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
+| `Range` | - | no | stable | Half-open integer range [start, end). |
+| `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
+| `Reader` | - | no | experimental | In-memory read handle over an owned byte image; implements Read, BufRead, and Seek. |
+| `Slice` | T | yes | provisional | Read-only contiguous view. |
+| `String` | - | yes | stable | UTF-8 string value. |
+| `Vec` | T | yes | - | Growable contiguous sequence. |
+| `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
+
+### Enums
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `Error` | - | no | stable | Portable error category for fallible APIs. |
+| `IoError` | - | no | stable | Typed I/O error with UnexpectedEof and Other variants; implements Display and Error. |
+| `Option` | T | yes | stable | Optional value: either Some(T) or None. |
+| `Ordering` | - | no | stable | Result of an ordering comparison: Less, Equal, or Greater. |
+| `Result` | T, E | yes | stable | Operation result: either Ok(T) or Err(E). |
+| `SeekFrom` | - | no | experimental | Offset origin for Seek: Start(i64), Current(i64), or End(i64). |
+
+### Traits
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `BufRead` | - | no | experimental | Buffered byte source over Read with fill_buf / consume / read_line; read_line returns None at EOF. |
+| `FromIterator` | T | no | provisional | Construction from an iterator. |
+| `IntoIterator` | - | no | provisional | Conversion into an iterator. |
+| `Iterator` | - | no | provisional | Pull-based iteration protocol. |
+| `IteratorFold` | Item, Accumulator | no | provisional | Numeric fold over an iterator. |
+| `IteratorSum` | Item, Output | no | provisional | Numeric summation over an iterator. |
+| `Read` | - | no | experimental | Pull-based byte source. read(max_bytes) returns the bytes read; an empty Vec is EOF. |
+| `Seek` | - | no | experimental | Random access over a byte stream; seek takes SeekFrom and position reports the cursor. |
+| `Write` | - | no | experimental | Byte sink. write(data) returns the accepted count; flush commits the sink boundary. |
+
+### Primitives
+
+| Name | Generic Params | Prelude | Stability | Summary |
+|------|----------------|---------|-----------|---------|
+| `i16` | - | yes | - | Signed 16-bit integer. |
+| `i8` | - | yes | stable | Signed 8-bit integer. |
+| `u16` | - | yes | - | Unsigned 16-bit integer. |
+| `u32` | - | yes | stable | Unsigned 32-bit integer. |
+| `u64` | - | yes | - | Unsigned 64-bit integer. |
+| `u8` | - | yes | stable | Unsigned 8-bit integer. |
+
+### Type Methods and Trait Implementations
+
+| Type | Methods | Trait impls |
+|------|---------|-------------|
+| `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
+| `FromIterator` | `from_iter` | - |
+| `IntoIterator` | `into_iter` | - |
+| `IoError` | - | `Display`, `Error` |
+| `Iterator` | `next`, `collect`, `count` | - |
+| `IteratorFold` | `fold` | - |
+| `IteratorSum` | `sum` | - |
+| `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
+| `Range` | `contains`, `len` | - |
+| `Read` | `read` | - |
+| `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
+| `Seek` | `seek`, `position` | - |
+| `Write` | `write`, `flush` | - |
+| `Writer` | `new`, `into_bytes`, `into_reader` | `Write` |
 
 ## Prelude Values
 

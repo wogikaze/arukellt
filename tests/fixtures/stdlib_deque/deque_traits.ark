@@ -1,0 +1,26 @@
+// Deque<T> bounded Clone/Debug, including element types other than i32.
+use std::collections::deque::Deque
+use std::core::clone
+use std::core::convert
+use std::host::stdio
+
+fn main() {
+    let letters: Deque<String> = Deque::new<String>()
+    letters.push_back("beta")
+    letters.push_front("alpha")
+    let copy: Deque<String> = letters.clone()
+    letters.push_back("gamma")
+    assert(copy.len() == 2)
+    assert(letters.len() == 3)
+    stdio::println(copy.fmt_debug())
+    stdio::println((copy.len()).to_string())
+
+    let empty: Deque<i32> = Deque::new<i32>()
+    stdio::println(empty.fmt_debug())
+    assert(empty.is_empty())
+
+    let reserved: Deque<i32> = Deque::with_capacity<i32>(5)
+    reserved.push_back(1)
+    let clone_with_capacity: Deque<i32> = reserved.clone()
+    stdio::println((clone_with_capacity.capacity()).to_string())
+}

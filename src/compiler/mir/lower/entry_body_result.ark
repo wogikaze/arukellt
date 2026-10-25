@@ -1,7 +1,9 @@
 use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_types
+use mir::function_return_view
 use mir::lower::entry_body_input
 use mir::lower::param_sig_infer
 use mir::inst_return
@@ -11,6 +13,16 @@ use mir::value_types
 fn mir_emit_entry_body_result(ctx: LowerCtx, input: MirLowerEntryBodyInput) {
     if !mir_entry_body_input_can_emit_body(input) {
         return
+    }
+    // A tail struct literal in a generic constructor (`Deque::new<T>()`)
+    // must instantiate the declared return type. Otherwise the literal binds
+    // its type arguments from unresolved field values and falls back to the
+    // generic declaration layout (Vec<i32>) while the function signature uses
+    // the concrete instance (#710 / #845).
+    let current_func = ctx_current_storage::ctx_current_func_value(ctx)
+    let declared_return = function_return_view::MirFunction_return_type_name(current_func)
+    if len(clone(declared_return)) > 0 {
+        ctx.expected_struct_inst = declared_return
     }
     let result = entry_body_value::mir_lower_entry_body_value(ctx, input)
     // Expressions return a local index but do not leave a value on the

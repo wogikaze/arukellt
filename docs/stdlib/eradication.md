@@ -1110,7 +1110,7 @@ manifest-only scorecard could not see before #703.
 | `leading_zeros` | `std/core/math.ark:71` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `trailing_zeros` | `std/core/math.ark:103` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `popcount` | `std/core/math.ark:117` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `identity` | `std/core/mod.ark:120` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `identity` | `std/core/mod.ark:118` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_new` | `std/core/raw.ark:14` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_len` | `std/core/raw.ark:19` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_get_unchecked` | `std/core/raw.ark:24` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
