@@ -135,7 +135,7 @@ fn local_has_container_type_name(type_name: String) -> bool {
     }
     false
 }
-// GC-target local val type for hashmap/string/option/inferred types.
+// GC-target local val type for hashmap/string/inferred types.
 fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if starts_with(clone(type_name), "hashmap:") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
@@ -167,18 +167,9 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             return true
         }
     }
-    if starts_with(clone(type_name), "Option_") ||
-    starts_with(clone(type_name), "option:") ||
-    starts_with(clone(type_name), "Option:") ||
-    starts_with(clone(type_name), "Option<") {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
-        } else {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
-            return true
-        }
-    }
+    // Every Option spelling was already declared by emit_gc_local_enum_like
+    // (called unconditionally before this rung); keeping a second enum-open
+    // spelling here would let the two rungs drift.
     emit_gc_local_struct_type(body, type_name, vt, f, local_idx, ctx)
 }
 // GC-target local val type for struct:/raw struct names, with inference fallback.

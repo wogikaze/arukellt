@@ -45,9 +45,23 @@ fn registry_guard_signature_entry(ctx: SelfEmitCtx, inst: MirInst) -> SignatureE
     signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
 }
 
+// INV-5: the call ABI return and the dest local's storage type must come from
+// the same source. The dest route (code_ref_locals_infer_dest) reads
+// func_id -> SelfEmitCtx_mir_index_for_func_id -> MirFunction declared return;
+// the call ABI reads the same function here. The registry view is only kept
+// for the audit counters, never for the emitted call.
 fn resolve_call_fn_ret_vt(ctx: SelfEmitCtx, inst: MirInst, called: MirFunction) -> i32 {
-    if ctx_record::SelfEmitCtx_spine_populated(ctx) && inst_record::mir_inst_func_id_raw(inst) >= 0 {
-        return registry_resolve_legacy_return_vt(ctx, inst)
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw >= 0 {
+        let fn_idx = ctx_record::SelfEmitCtx_mir_index_for_func_id(ctx, fid_raw)
+        let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
+        if fn_idx >= 0 && fn_idx < function_count {
+            return function_return_view::MirFunction_return_type(
+                ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+            )
+        }
     }
+    // No MIR body behind the func_id (intrinsic/builtin): the resolved callee
+    // is the only function record that exists for this call.
     function_return_view::MirFunction_return_type(called)
 }

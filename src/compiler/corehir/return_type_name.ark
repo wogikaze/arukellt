@@ -1,6 +1,7 @@
-use std::prelude::{clone, eq}
+use std::prelude::{byte_at, clone, eq, index_of, substring}
 use std::text
 use corehir::decl_ann_children
+use corehir::decl_impl_target
 use corehir::type_ann_node
 use corehir::type_ann_local_name
 use corehir::decl_ann_name
@@ -109,4 +110,59 @@ fn return_index_type_name(node: AstNode) -> String {
         return name
     }
     ""
+}
+
+// An impl method return annotation can spell the receiver as `Self`. MIR
+// lowering and the SignatureRegistry consume this name without the impl
+// context, so an unresolved `Self` becomes an unknown named struct and the
+// call dest is declared as a scalar/structref while the callee returns the
+// concrete target. Substitute the target here; the typechecker performs the
+// same binding in associated_types::resolve_impl_self_return.
+fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> String {
+    let type_name = return_index_type_name(method_node)
+    if len(type_name) == 0 {
+        return type_name
+    }
+    let self_name = decl_impl_target::impl_self_type_name(impl_node)
+    if len(self_name) == 0 {
+        return type_name
+    }
+    replace_self_in_type_name(type_name, self_name)
+}
+
+fn replace_self_in_type_name(type_name: String, self_name: String) -> String {
+    let mut out = String_new()
+    let mut rest = type_name
+    while len(rest) > 0 {
+        let pos = index_of(clone(rest), String_from("Self"))
+        if pos < 0 {
+            out = text::concat(out, rest)
+            rest = String_new()
+        } else if is_self_type_token(rest, pos) {
+            out = text::concat(out, substring(rest, 0, pos))
+            out = text::concat(out, clone(self_name))
+            rest = substring(rest, pos + 4, len(rest))
+        } else {
+            out = text::concat(out, substring(rest, 0, pos + 1))
+            rest = substring(rest, pos + 1, len(rest))
+        }
+    }
+    out
+}
+
+// Type-name encodings separate components with `:`, `_`, `<` and `,`; only
+// an alphanumeric neighbour means the text is part of a longer identifier.
+fn is_self_type_token(type_name: String, pos: i32) -> bool {
+    if pos > 0 && is_type_name_ident_byte(byte_at(type_name, pos - 1)) {
+        return false
+    }
+    let after = pos + 4
+    if after < len(type_name) && is_type_name_ident_byte(byte_at(type_name, after)) {
+        return false
+    }
+    true
+}
+
+fn is_type_name_ident_byte(ch: i32) -> bool {
+    (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122)
 }

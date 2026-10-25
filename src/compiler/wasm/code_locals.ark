@@ -387,17 +387,10 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             return true
         }
     }
-    if variant_slot >= 0 &&
-    !code_locals_struct::local_has_container_type_name(clone(type_name)) &&
-    code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
-        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
-        if variant_gc >= 0 {
-            ctx_record::SelfEmitCtx_note_emit_census(ctx, emit_rung_census::RUNG_VARIANT_SLOT())
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, variant_gc)
-            return true
-        }
-    }
+    // The variant-slot declaration lives in emit_gc_local_enum_like only. It
+    // is called unconditionally before this rung with the same type_name and
+    // variant_slot, so a second copy here could never fire (census: 0) and
+    // would only risk drifting from the structured variant TypeId path.
     // A GC ref whose named layout did not resolve still needs a ref local;
     // the typed cast at the use site recovers the concrete type (#708).
     // The legacy vt can lag behind the annotated Result/Option name, so the

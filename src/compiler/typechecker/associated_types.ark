@@ -49,20 +49,20 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
 }
 
 // `Self` in an impl method names the impl target. Trait impls resolve it
-// through resolve_impl_signature's projection pass; inherent impls keep the
-// bare type variable. A non-generic impl has no MonoInstance that could
-// substitute Self after a call binds a receiver, so its method return must
-// name the target now.
+// through resolve_impl_signature's projection pass, but that pass leaves
+// inherent impls untouched and cannot resolve a `Self` the annotation
+// resolver spelled as a named type. Every impl method return therefore
+// resolves Self here, generic or not: the impl head's own type parameters
+// are kept as type variables so a later MonoInstance can substitute them
+// instead of a bare `Self` that no call can ever bind.
 fn resolve_impl_self_return(impl_node: AstNode, sig: FnSig) -> FnSig {
-    if len(impl_generics::type_param_names(impl_node)) > 0 {
-        return sig
-    }
     let heads = impl_generics::head_count(impl_node)
     if heads < 1 {
         return sig
     }
-    let self_ty = types::resolve_type_ann_node(
-        ast_access::node_type_ann_at(impl_node, heads - 1)
+    let self_ty = types::resolve_type_ann_node_generic(
+        ast_access::node_type_ann_at(impl_node, heads - 1),
+        impl_generics::type_param_names(impl_node)
     )
     let return_type = resolve_self_type(self_ty, contract_fn_sig::FnSig_return_type(sig))
     let params = Vec::new<TypeInfo>()

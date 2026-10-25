@@ -162,6 +162,61 @@ body がない場合だけ、intrinsic/builtin-by-name table は `fid < 0` の�
   の call ABI vt は registry-first のまま（dest は MIR return と一致）、
   `mono_return_vt` の名前逆引き（R2）、typechecker の source-spelling alias。
 
+### 進捗（2026-10-26, typed-MIR 5.7 前提）
+
+5.1 が残した「`Self` を返す impl method」の signature 同一性と INV-5 を実装した。
+
+- typechecker `associated_types::resolve_impl_self_return` は generic impl でも
+  `Self` を impl head に解決する。impl head の型引数は type variable のまま残すため、
+  MonoInstance が後から具体型を代入できる。`impl<T> Wrap<T> { fn make(value: T) -> Self }`
+  の body 戻り型検査が通る（base は E0200）。
+- corehir `return_type_name::return_index_type_name_for_impl` は impl method の
+  return 注釈の `Self` token を impl target 名へ置換する。MIR lowering と
+  SignatureRegistry は impl context を持たないため、`Self` のままだと call dest が
+  scalar/structref に宣言される。`impl Factory<i32> for Boxed { fn make(...) -> Self }`
+  の call dest は `(ref null 2)`（concrete struct TypeId）になり、base で
+  `type mismatch: expected i64` だった module が validate する。
+- `wasm/registry_return_resolve::resolve_call_fn_ret_vt` は call ABI も
+  `func_id -> SelfEmitCtx_mir_index_for_func_id -> MirFunction declared return` から
+  読む（INV-5）。registry view は audit 計測専用に残す。
+- 5.7 class の rung を 2 本削除した。`code_locals_struct::emit_gc_local_named_type` の
+  Option→enum-open 分岐は、同じ prefix を無条件で先に処理する
+  `emit_gc_local_enum_like` の後には到達しない。`code_locals::emit_gc_local_val_type`
+  の variant_slot rung は enum_like の variant 分岐と同じ guard で、census 0。
+  enum-open の名前分岐と structref fallback は残す（下表）。
+
+5.7 前提レーンの検証（s2 sha256 `747e8396…`、base s2 `60649bd6…`）:
+- 4 question_mark/enums fixture + `try_from_parse` / `try_from_narrow` +
+  `debug_result` / `debug_option` + `structs/vec_elem_field_get` の 9 件を
+  wasm32-gc / wasm32 で compile+validate。18 出力の WAT と wasm は base s2 と
+  byte-identical（sha256 一致）。
+- P2 component 実行は base と同じ: `from_error` / `error_ecosystem` /
+  `user_error_type` = `OK`、`enum_struct_variant` = `75`/`24`、
+  `vec_elem_field_get` = `x`、try_from/debug は assert で exit 0。
+- `from_error` WAT: `$AppError::from__String` の Io constructor dest は
+  `(ref null 40)`（type 40 = `(sub final 14 (struct (field i32) (field (ref null 0))))`）、
+  `$process` の Result::Err payload dest は `(ref null 42)`、Ok dest は
+  `(ref null 37)`。From call dest は callee の enum ABI と同じ `(ref null 14)`。
+- Self probe（fixture 外、base で fail する形）: non-generic trait impl `-> Self` は
+  invalid Wasm → valid + `7`、generic inherent impl `-> Self` は E0200 → valid + `7`、
+  両者を同時に呼ぶ probe は `16`。wasm32-gc component と wasm32 core の両方で確認。
+- `verify lane` PASS。`verify fixtures` PASS（1810 compile+validate、104 runtime
+  smoke）。`verify quick` / fixpoint は本レーンのゲートではない。
+
+残り:
+- generic **trait** impl の `Self` return を associated call すると、corehir の
+  return 名が impl owner の bare 名（`G`）になるため call dest が String のままに
+  なる probe がある（impl 側を `-> G<T>` と明示すると base でも valid）。修正は
+  owner を impl head の instantiation 綴り（`G<T>`）で置換することだが、
+  本レーンは 1 build 制約のため未変更・未検証。
+- enum-open 名前分岐 / structref fallback: `open_ref_fallback` は対象 9 fixture では
+  0 だが 5.0 census では全 fixture で 7 件あり、削除は full set で concrete TypeId が
+  揃うまで行わない。
+- `stmt_let_store` の enum/Result annotation 伝播と `mono_return_vt` の名前 fallback
+  （R2）は残る。
+- `selfhost fixpoint` は本レーンで未実行。fixpoint の可否はこの変更の主張に含めない
+  （pinned / 5.1 base の fixpoint 状態は本レーンとは独立）。
+
 削除対象（履歴）:
 - `code_ref_locals_infer.ark::find_stack_value_source` — 削除済み
 - `code_ref_locals_infer.ark::infer_ref_local_gc_type_depth` — 削除済み
