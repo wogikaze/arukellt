@@ -876,7 +876,12 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
     cache_tag = cwasm.with_suffix(cwasm.suffix + ".flags")
     if cwasm.is_file() and cwasm.stat().st_mtime >= wasm_path.stat().st_mtime:
         try:
-            if cache_tag.read_text(encoding="utf-8").strip() == WASMTIME_SELFHOST_AOT_CACHE_TAG:
+            tag = cache_tag.read_text(encoding="utf-8").strip()
+            # The bash wrapper appends ";wt=<wasmtime identity>" so a wasmtime
+            # upgrade invalidates the artifact. Accept both spellings.
+            if tag == WASMTIME_SELFHOST_AOT_CACHE_TAG or tag.startswith(
+                WASMTIME_SELFHOST_AOT_CACHE_TAG + ";"
+            ):
                 return cwasm
         except OSError:
             pass

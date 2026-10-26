@@ -71,7 +71,8 @@ def main() -> int:
         print(list_out, file=sys.stderr)
         return 1
 
-    help_out = _run(["--help"]).stdout + _run(["--help"]).stderr
+    help_result = _run(["--help"])
+    help_out = help_result.stdout + help_result.stderr
     if "--local" not in help_out:
         print("FAIL: usage missing --local", file=sys.stderr)
         print(help_out, file=sys.stderr)

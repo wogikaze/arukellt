@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -80,14 +81,49 @@ def _manifest_api_summary() -> tuple[int, int]:
     return len(functions), documented
 
 
-def collect_findings() -> tuple[list[Finding], ApiSummary]:
+def _changed_paths(base: str) -> list[Path]:
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=ACMR", base],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    paths = [ROOT / line for line in result.stdout.splitlines() if line.strip()]
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+    )
+    for raw in untracked.stdout.split(b"\0"):
+        if raw:
+            paths.append(ROOT / raw.decode("utf-8", errors="surrogateescape"))
+    selected: list[Path] = []
+    for path in sorted(set(paths)):
+        if not path.is_file():
+            continue
+        if not any(path.is_relative_to(scan_root) for scan_root in SCAN_ROOTS):
+            continue
+        selected.append(path)
+    return selected
+
+
+def collect_findings(scan_paths: list[Path] | None = None) -> tuple[list[Finding], ApiSummary]:
     findings: list[Finding] = []
     boundary_count = 0
     boundary_documented = 0
     internal_count = 0
 
-    for scan_root in SCAN_ROOTS:
-        for path in sorted(scan_root.rglob("*")):
+    if scan_paths is None:
+        candidates = (
+            path
+            for scan_root in SCAN_ROOTS
+            for path in sorted(scan_root.rglob("*"))
+        )
+    else:
+        candidates = iter(scan_paths)
+    for path in candidates:
             if not path.is_file() or path.suffix not in {".ark", ".py", ".sh"}:
                 continue
             if path.name == "checks_broken.py":
@@ -163,9 +199,11 @@ def _report(findings: list[Finding], api: ApiSummary) -> dict[str, object]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--changed", action="store_true")
+    parser.add_argument("--base", default="HEAD")
     args = parser.parse_args(argv)
     try:
-        findings, api = collect_findings()
+        findings, api = collect_findings(_changed_paths(args.base) if args.changed else None)
     except (OSError, ValueError, tomllib.TOMLDecodeError) as error:
         print(f"comment policy: ERROR: {error}")
         return 1

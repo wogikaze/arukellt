@@ -25,6 +25,7 @@ struct CliOptions {
     fmt_check: bool,
     fmt_fix: bool,
     fmt_inputs: Vec<String>,
+    lint_inputs: Vec<String>,
     world: String,
     compose_plug: String,
     compose_socket: String,
@@ -65,6 +66,7 @@ fn CliOptions_default() -> CliOptions {
         fmt_check: false,
         fmt_fix: false,
         fmt_inputs: Vec::new<String>(),
+        lint_inputs: Vec::new<String>(),
         world: String_new(),
         compose_plug: String_new(),
         compose_socket: String_new(),
@@ -138,6 +140,9 @@ fn cli_set_fmt_fix(opts: CliOptions, fmt_fix: bool) { opts.fmt_fix = fmt_fix }
 fn cli_fmt_input_count(opts: CliOptions) -> i32 { len(opts.fmt_inputs) }
 fn cli_fmt_input_at(opts: CliOptions, index: i32) -> String { clone(get_unchecked(opts.fmt_inputs, index)) }
 fn cli_add_fmt_input(opts: CliOptions, path: String) { push(opts.fmt_inputs, clone(path)) }
+fn cli_lint_input_count(opts: CliOptions) -> i32 { len(opts.lint_inputs) }
+fn cli_lint_input_at(opts: CliOptions, index: i32) -> String { clone(get_unchecked(opts.lint_inputs, index)) }
+fn cli_add_lint_input(opts: CliOptions, path: String) { push(opts.lint_inputs, clone(path)) }
 fn cli_world(opts: CliOptions) -> String { clone(opts.world) }
 fn cli_has_world(opts: CliOptions) -> bool { len(opts.world) > 0 }
 fn cli_set_world(opts: CliOptions, world: String) { opts.world = world }

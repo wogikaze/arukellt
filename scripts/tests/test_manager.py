@@ -136,8 +136,8 @@ class TestQualityCommands(unittest.TestCase):
         from scripts.quality.checks import run_lint_ratchet
 
         with mock.patch(
-            "scripts.quality.checks._lint_w0011_count",
-            return_value=(0, 2, ""),
+            "scripts.quality.checks._parallel_lint_w0011_counts",
+            return_value={"same.ark": (0, 2, "")},
         ), mock.patch(
             "scripts.quality.checks._base_lint_w0011_count",
             return_value=(2, ""),
@@ -148,8 +148,8 @@ class TestQualityCommands(unittest.TestCase):
             )
 
         with mock.patch(
-            "scripts.quality.checks._lint_w0011_count",
-            return_value=(0, 3, ""),
+            "scripts.quality.checks._parallel_lint_w0011_counts",
+            return_value={"increased.ark": (0, 3, "")},
         ), mock.patch(
             "scripts.quality.checks._base_lint_w0011_count",
             return_value=(2, ""),
@@ -170,7 +170,7 @@ class TestQualityCommands(unittest.TestCase):
             "warning[W0011|prefer-else-if] two\n",
         )
         with mock.patch(
-            "scripts.quality.checks._lint_w0011_count",
+            "scripts.quality.checks._parallel_lint_w0011_counts",
         ) as current_lint, mock.patch(
             "scripts.quality.checks._base_lint_w0011_count",
             return_value=(2, ""),
@@ -223,8 +223,8 @@ class TestQualityCommands(unittest.TestCase):
             "warning[W0011|prefer-else-if] imported diagnostic\n",
         )
         with mock.patch(
-            "scripts.quality.checks._lint_w0011_count",
-            return_value=(0, 0, ""),
+            "scripts.quality.checks._parallel_lint_w0011_counts",
+            return_value={"fixture.ark": (0, 0, "")},
         ) as current_lint, mock.patch(
             "scripts.quality.checks._base_lint_w0011_count",
             return_value=(0, ""),
@@ -240,7 +240,7 @@ class TestQualityCommands(unittest.TestCase):
                 ),
                 0,
             )
-        current_lint.assert_called_once_with(REPO_ROOT, "fixture.ark")
+        current_lint.assert_called_once_with(REPO_ROOT, ["fixture.ark"])
 
     def test_known_fixture_parity_exclusions_require_existing_issue_baseline(self):
         from scripts.quality.checks import _known_fixture_parity_exclusions

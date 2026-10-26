@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import hashlib
 import os
@@ -367,6 +368,40 @@ def _ci_job_body(workflow: str, job: str) -> str:
 
 
 _MANAGER_HELP_CACHE: dict[tuple[str, ...], bool] = {}
+_MANAGER_PARSER: argparse.ArgumentParser | None = None
+_MANAGER_PARSER_LOADED = False
+
+
+def _manager_parser() -> argparse.ArgumentParser | None:
+    """Import manager.py once and reuse its parser instead of one --help spawn per command."""
+    global _MANAGER_PARSER, _MANAGER_PARSER_LOADED
+    if _MANAGER_PARSER_LOADED:
+        return _MANAGER_PARSER
+    _MANAGER_PARSER_LOADED = True
+    try:
+        scripts_dir = str(Path(__file__).resolve().parents[1])
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+        import manager as manager_module  # noqa: PLC0415
+        _MANAGER_PARSER = manager_module.build_parser()
+    except Exception:
+        _MANAGER_PARSER = None
+    return _MANAGER_PARSER
+
+
+def _argparse_command_exists(parser: argparse.ArgumentParser, tokens: list[str]) -> bool:
+    node = parser
+    for token in tokens:
+        if token.startswith("-"):
+            continue
+        action = next(
+            (item for item in node._actions if isinstance(item, argparse._SubParsersAction)),
+            None,
+        )
+        if action is None or token not in action.choices:
+            return False
+        node = action.choices[token]
+    return True
 
 
 def _manager_command_exists(root: Path, canonical: str) -> bool:
@@ -382,6 +417,11 @@ def _manager_command_exists(root: Path, canonical: str) -> bool:
     cached = _MANAGER_HELP_CACHE.get(help_key)
     if cached is not None:
         return cached
+    parser = _manager_parser()
+    if parser is not None:
+        exists = _argparse_command_exists(parser, list(tokens[2:]))
+        _MANAGER_HELP_CACHE[help_key] = exists
+        return exists
     result = subprocess.run(
         [sys.executable, str(manager), *tokens[2:], "--help"],
         cwd=root,

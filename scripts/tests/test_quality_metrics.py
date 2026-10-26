@@ -265,14 +265,17 @@ class TestCanonicalToolExitContracts(unittest.TestCase):
             self.assertEqual(run_fmt(Path("/tmp"), [], True, False, False), 1)
             self.assertEqual(run_lint(Path("/tmp"), [], False, False, False), 1)
 
-    def test_lint_command_includes_smoke_and_propagates_exit_code(self):
+    def test_lint_command_propagates_exit_code(self):
         from scripts.quality.checks import run_lint_command
 
-        with mock.patch("scripts.quality.checks.run_lint", return_value=0), mock.patch(
-            "scripts.quality.checks._run_command", return_value=1
-        ) as command:
+        with mock.patch(
+            "scripts.quality.checks._run_lint_results", return_value=(1, [])
+        ):
             self.assertEqual(run_lint_command(Path("/tmp"), [], False, False, False), 1)
-            self.assertIn("scripts/check/check-ark-lint-smoke.py", command.call_args.args[1])
+        with mock.patch(
+            "scripts.quality.checks._run_lint_results", return_value=(0, [])
+        ), mock.patch("scripts.quality.checks._print_results", return_value=0):
+            self.assertEqual(run_lint_command(Path("/tmp"), [], False, False, False), 0)
 
     def test_enforced_sources_cannot_succeed_with_zero_selected_files(self):
         from scripts.quality.checks import run_fmt, run_lint

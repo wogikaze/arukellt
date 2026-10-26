@@ -177,14 +177,19 @@ fn component_path_for_all(opts: CliOptions) -> String {
 }
 
 pub fn cmd_compile_single(opts: CliOptions) {
+    let status = cmd_compile_single_status(opts)
+    if status != 0 {
+        process::exit(status)
+    }
+}
+
+pub fn cmd_compile_single_status(opts: CliOptions) -> i32 {
     if !validate_wit_paths(opts) {
-        process::exit(1)
-        return
+        return 1
     }
     let input_file = args_record::cli_input_file(opts)
     if !enforce_capability_denies(opts, clone(input_file)) {
-        process::exit(1)
-        return
+        return 1
     }
     let config = build_command_config(opts)
     let json_mode = args_record::cli_json_output(opts)
@@ -194,12 +199,12 @@ pub fn cmd_compile_single(opts: CliOptions) {
         print_compile_diagnostics(clone(input_file), result, json_mode)
     }
     if !result_record::compile_result_success(result) {
-        process::exit(1)
+        return 1
     }
     // check/lint stop after typecheck; warnings already printed above.
     let command = args_record::cli_command(opts)
     if command == kinds::CMD_CHECK() || command == kinds::CMD_LINT() {
-        return
+        return 0
     }
     handle_single_compile_success(opts, clone(input_file), result, json_mode)
 }
@@ -212,17 +217,18 @@ fn print_compile_success(input_file: String, result: CompileResult, json_mode: b
     stdio::eprintln(text::concat("compilation succeeded (phase ", text::concat(to_string(result_record::compile_result_phase_reached(result)), ")")))
 }
 
-fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) {
+fn handle_single_compile_success(opts: CliOptions, input_file: String, result: CompileResult, json_mode: bool) -> i32 {
     print_compile_success(clone(input_file), result, json_mode)
     if args_record::cli_has_output_file(opts) {
         if !write_compile_output(args_record::cli_output_file(opts), result_record::compile_result_output_bytes(result), json_mode) {
-            process::exit(1)
+            return 1
         }
-        return
+        return 0
     }
     if !json_mode {
         stdio::println(text::concat("ok: ", text::concat(to_string(result_record::compile_result_output_byte_count(result)), " bytes")))
     }
+    0
 }
 
 fn validate_wit_paths(opts: CliOptions) -> bool {

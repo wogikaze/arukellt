@@ -45,6 +45,7 @@ from verify.fixtures import (  # noqa: E402
 from verify.harness import GREEN, NC, RED, YELLOW, Harness  # noqa: E402
 from selfhost.checks import (  # noqa: E402
     SelfhostFixpointResult,
+    _ensure_aot_cwasm,
     _ensure_bootstrap_compiler_wasm,
     _ensure_runtime_compiler_wasm,
     _find_pinned_wasm,
@@ -7467,6 +7468,10 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
             print(err)
         return h.exit_code()
 
+    try:
+        _ensure_aot_cwasm(runtime)
+    except Exception:
+        pass
     print(f"{GREEN}✓ compiler wasm ready:{NC} {runtime}")
     print(f"  elapsed: {elapsed:.1f}s")
     print(

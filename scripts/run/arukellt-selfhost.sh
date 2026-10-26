@@ -42,6 +42,12 @@ SELFHOST_RUN_KIND="core"
 run_compiler() {
   local wasm_path="$1"
   shift
+  local cwasm
+  if cwasm="$(ensure_aot_cwasm "$wasm_path")"; then
+    "$WASMTIME_BIN" run --allow-precompiled "${WASMTIME_SELFHOST_FLAGS[@]}" \
+      --dir="$REPO_ROOT" "$cwasm" -- "$@"
+    return
+  fi
   if [[ "$SELFHOST_RUN_KIND" == "component" ]]; then
     "$WASMTIME_BIN" run --wasm gc --wasm function-references -W memory64=y \
       --dir="$REPO_ROOT" "$wasm_path" -- "$@"
@@ -240,25 +246,48 @@ has_p2_command_exports() {
   grep -Eq '\(export "cm32p2\|wasi:cli/run@0\.2\|run"' <<<"$printed"
 }
 
-prepare_selfhost_artifact() {
-  local input="$1"
-  local version
+# Cache the ABI classification and the AOT artifact outside the source tree.
+# The old path pretty-printed the entire 11 MB compiler to WAT on every
+# invocation just to sniff imports, and re-JITed it for every fmt/lint batch.
+abi_cache_path() {
+  local artifact="$1"
+  local base fingerprint
+  base="$(basename "$artifact")"
+  fingerprint="$(stat -c '%s-%Y' "$artifact" 2>/dev/null || printf 'unknown')"
+  printf '%s/.build/selfhost/abi/%s.%s.abi' "$REPO_ROOT" "$base" "$fingerprint"
+}
+
+read_cached_abi_kind() {
+  local artifact="$1" cache kind
+  cache="$(abi_cache_path "$artifact")"
+  [[ -f "$cache" ]] || return 1
+  kind="$(cat "$cache" 2>/dev/null)" || return 1
+  [[ -n "$kind" ]] || return 1
+  printf '%s\n' "$kind"
+}
+
+write_cached_abi_kind() {
+  local artifact="$1" kind="$2" cache
+  cache="$(abi_cache_path "$artifact")"
+  mkdir -p "$(dirname "$cache")" 2>/dev/null || return 0
+  printf '%s\n' "$kind" > "$cache" 2>/dev/null || true
+}
+
+detect_abi_kind() {
+  local input="$1" version
+  require_wasm_tools || return 1
   version="$(wasm_artifact_version "$input")"
   case "$version" in
     13)
-      require_wasm_tools || return 1
       if has_retired_abi "$input"; then
         echo "arukellt-selfhost: error — selected component uses a retired bridge/legacy ABI" >&2
         return 1
       fi
-      SELFHOST_RUN_KIND="component"
-      SELFHOST_RUN_PATH="$input"
-      return 0
+      printf 'component\n'
       ;;
     1)
       if has_core_import_module "$input" "wasi_snapshot_preview1"; then
-        SELFHOST_RUN_KIND="core"
-        SELFHOST_RUN_PATH="$input"
+        printf 'core-p1\n'
         return 0
       fi
       if has_retired_abi "$input"; then
@@ -269,7 +298,106 @@ prepare_selfhost_artifact() {
         echo "arukellt-selfhost: error — selected core has no official WASI P1 or P2 ABI" >&2
         return 1
       fi
-      require_wasm_tools || return 1
+      printf 'core-p2\n'
+      ;;
+    *)
+      echo "arukellt-selfhost: error — selected selfhost artifact is not a Wasm core/component" >&2
+      return 1
+      ;;
+  esac
+}
+
+aot_cwasm_path() {
+  local artifact="$1"
+  local base fingerprint
+  case "$artifact" in
+    "$REPO_ROOT"/.build/*)
+      # Share the artifact with scripts/selfhost/checks.py (_ensure_aot_cwasm).
+      printf '%s.collector-copying.cwasm' "${artifact%.wasm}"
+      ;;
+    *)
+      base="$(basename "$artifact")"
+      fingerprint="$(stat -c '%s-%Y' "$artifact" 2>/dev/null || printf 'unknown')"
+      printf '%s/.build/selfhost/aot/%s.%s.cwasm' "$REPO_ROOT" "$base" "$fingerprint"
+      ;;
+  esac
+}
+
+aot_cache_tag() {
+  local wasmtime_path
+  wasmtime_path="$(command -v "$WASMTIME_BIN" 2>/dev/null || printf '%s' "$WASMTIME_BIN")"
+  printf 'collector=copying;wt=%s' \
+    "$(stat -Lc '%s-%Y' "$wasmtime_path" 2>/dev/null || printf 'unknown')"
+}
+
+cached_cwasm_tag_matches() {
+  local tag="$1" expected="$2" actual
+  [[ -f "$tag" ]] || return 1
+  actual="$(cat "$tag" 2>/dev/null)" || return 1
+  [[ "$actual" == "$expected" || "$actual" == "${expected%%;*}" ]]
+}
+
+ensure_aot_cwasm() {
+  local artifact="$1"
+  local cwasm tag expected lock
+  cwasm="$(aot_cwasm_path "$artifact")"
+  tag="$cwasm.tag"
+  expected="$(aot_cache_tag)"
+  if cached_cwasm_tag_matches "$tag" "$expected"; then
+    printf '%s\n' "$cwasm"
+    return 0
+  fi
+  mkdir -p "$(dirname "$cwasm")" 2>/dev/null || return 1
+  lock="$cwasm.lock"
+  (
+    if command -v flock >/dev/null 2>&1; then
+      flock -x 9
+    fi
+    if cached_cwasm_tag_matches "$tag" "$expected"; then
+      exit 0
+    fi
+    if ! "$WASMTIME_BIN" compile "${WASMTIME_SELFHOST_FLAGS[@]}" -C collector=copying \
+      -o "${cwasm}.tmp.$$" "$artifact" >/dev/null 2>&1; then
+      rm -f "${cwasm}.tmp.$$"
+      exit 1
+    fi
+    mv -f "${cwasm}.tmp.$$" "$cwasm" || exit 1
+    printf '%s\n' "$expected" > "$tag" || true
+  ) 9>"$lock" || return 1
+  [[ -f "$cwasm" ]] || return 1
+  printf '%s\n' "$cwasm"
+}
+
+run_compiler_artifact() {
+  local artifact="$1"
+  shift
+  local cwasm
+  if cwasm="$(ensure_aot_cwasm "$artifact")"; then
+    exec "$WASMTIME_BIN" run --allow-precompiled "${WASMTIME_SELFHOST_FLAGS[@]}" \
+      --dir="$REPO_ROOT" "$cwasm" -- "$@"
+  fi
+  exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$artifact" -- "$@"
+}
+
+prepare_selfhost_artifact() {
+  local input="$1"
+  local kind
+  if ! kind="$(read_cached_abi_kind "$input")"; then
+    kind="$(detect_abi_kind "$input")" || return 1
+    write_cached_abi_kind "$input" "$kind"
+  fi
+  case "$kind" in
+    component)
+      SELFHOST_RUN_KIND="component"
+      SELFHOST_RUN_PATH="$input"
+      return 0
+      ;;
+    core-p1)
+      SELFHOST_RUN_KIND="core"
+      SELFHOST_RUN_PATH="$input"
+      return 0
+      ;;
+    core-p2)
       local package_dir="$REPO_ROOT/.build/selfhost/official-p2"
       local stem
       stem="$(basename "$input" .wasm)"
@@ -277,21 +405,24 @@ prepare_selfhost_artifact() {
       local output="$package_dir/$stem.component.wasm"
       local embedded="$package_dir/$stem.embedded.wasm"
       if [[ ! -f "$output" || "$output" -ot "$input" || "$output" -ot "$WASI_P2_WIT_DIR" ]]; then
-        "$WASM_TOOLS_BIN" component embed "$WASI_P2_WIT_DIR" --world command \
-          "$input" -o "$embedded"
-        "$WASM_TOOLS_BIN" component new "$embedded" --reject-legacy-names \
-          --realloc-via-memory-grow -o "$output"
-      fi
-      if has_retired_abi "$output"; then
-        echo "arukellt-selfhost: error — official P2 packaging retained a retired ABI" >&2
-        return 1
+        (
+          if command -v flock >/dev/null 2>&1; then
+            flock -x 9
+          fi
+          if [[ ! -f "$output" || "$output" -ot "$input" || "$output" -ot "$WASI_P2_WIT_DIR" ]]; then
+            "$WASM_TOOLS_BIN" component embed "$WASI_P2_WIT_DIR" --world command \
+              "$input" -o "$embedded"
+            "$WASM_TOOLS_BIN" component new "$embedded" --reject-legacy-names \
+              --realloc-via-memory-grow -o "$output"
+          fi
+        ) 9>"$package_dir/.package.lock"
       fi
       SELFHOST_RUN_KIND="component"
       SELFHOST_RUN_PATH="$output"
       return 0
       ;;
     *)
-      echo "arukellt-selfhost: error — selected selfhost artifact is not a Wasm core/component" >&2
+      echo "arukellt-selfhost: error — unknown selfhost ABI kind: $kind" >&2
       return 1
       ;;
   esac
@@ -981,11 +1112,11 @@ fi
 
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
-    exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
+    run_compiler_artifact "$wasm" "$@"
   fi
   echo "arukellt-selfhost: debug-adapter requires a .dap-script" >&2
   exit 2
 fi
 
 # Default: fmt / lint / compile / version / …, always through direct Wasmtime.
-exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
+run_compiler_artifact "$wasm" "$@"
