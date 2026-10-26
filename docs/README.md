@@ -8,7 +8,7 @@
 - **Release readiness: NOT READY**
 - Failing release checks: 3
 - Distinct incidents: 3
-- Updated: 2026-10-25
+- Updated: 2026-10-26
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `jco_transpile`=`smoke`; `component_cli`=`provisional` — The selfhost compiler emits the standard WASI P2 core ABI and the launcher uses the official wasm-tools component pipeline. Repository-specific bridges, post-linkers, and legacy compatibility paths are not supported. ([axes](data/component-availability.md))

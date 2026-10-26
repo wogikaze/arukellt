@@ -111,6 +111,7 @@ All 18 module pages carry curated overviews.
 
 | File | Summary |
 |------|---------|
+| [changelog.md](changelog.md) | Stdlib の公開 API lifecycle（deprecation / removal / tier change）を記録する手動管理の changelog。 |
 | [collections-hashmap-rust-diff.md](collections-hashmap-rust-diff.md) | This page records the intentional differences between Arukellt's current std::collections hash collections and Rust's std::collections::HashMap / HashSet APIs. |
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. python3 scripts/gen/generate-docs.py validates every [[functions]] entry in std/manifest.toml against these rules before producing any output. |
 | [modernization/511-numeric-tag-inventory.md](modernization/511-numeric-tag-inventory.md) | This artifact inventories the current public numeric-tag sum-type surfaces in std::json, std::toml, std::wit, and the adjacent raw-value helpers in std::bytes that set the boundary for what should and should not migrate under |

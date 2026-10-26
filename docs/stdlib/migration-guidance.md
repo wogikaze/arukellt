@@ -19,9 +19,33 @@ bindings (`char_at`, `concat`, `print`, `println`) are gated under the
 ADR-072 v2 prelude contract: a bare call fails name resolution with
 **E0100** plus a migration hint instead of reaching lint. They remain
 callable during the window through an explicit `use std::prelude::{name}`
-import or their canonical replacement. All deprecated entries will be
-removed in a future major version per the
-[Stability Policy](stability-policy.md#deprecation-process).
+import or their canonical replacement. Deprecated entries are removed under the
+[Stability Policy](stability-policy.md#deprecation-process). During 0.x, `stable`
+removals may happen earlier under the explicit
+[ADR-087 exception](#0x-deprecation-exception-adr-014-addendum).
+
+---
+
+## 0.x deprecation exception (ADR-014 addendum)
+
+Arukellt does not cut 1.0.0 yet. While the project version is 0.x, a **`stable`**
+stdlib API may be removed earlier than the normal ADR-014 deprecation window only
+through the explicit exception recorded in
+[ADR-087](../adr/ADR-087-0x-deprecation-exception.md). Every removal wave must
+satisfy all of:
+
+1. **W0009** is implemented and fires for the API usage.
+2. This guide records the before/after and a reachable replacement (or states that
+   the functionality retires).
+3. [changelog.md](changelog.md) records the date, the ADR-087 reference, the target
+   symbols, the removal reason, and the replacement.
+
+Under the exception, the manifest `remove_in` value is an **upper bound**: removal
+may happen earlier, but not later. The exception is 0.x-only; from 1.0.0 onward the
+normal policy applies and the exception is void. The exception is not a blanket
+"stdlib is provisional" cutover: each wave must name its symbols and record the
+three items above. See [Stability Policy](stability-policy.md#deprecation-process)
+and the [changelog](changelog.md).
 
 ---
 
@@ -431,8 +455,11 @@ names.sort_by(cmp)
 > `std::core::iter` method chain — for example `v.iter().map(f).collect()` —
 > not a generic free function such as `map<i32, i32>(v, f)`, which does not
 > exist. The six `std::seq` pipeline entries and the seven query helpers are
-> already deprecated under that contract. The 34 stable prelude monomorphic
-> frees are owned by #703 and still wait for the ADR-014 deprecation window.
+> already deprecated under that contract. The 34 prelude monomorphic frees are
+> owned by #703; the 33 `stable` ones wait for the
+> [ADR-087 conditions](#0x-deprecation-exception-adr-014-addendum) (W0009,
+> migration guide, changelog), not for a 1.0.0 tag. The provisional
+> `filter_i32` follows an individual provisional decision.
 > Rows marked *planned* describe the target method/iterator shape; they are
 > not callable yet. The verified lanes are the concrete `i32` and `String`
 > iterator paths documented above.
@@ -584,12 +611,14 @@ let doubled = match maybe_val {
 | Phase 1 — Mark | **Complete** | Initial batch (`Vec_new_i32`, `Vec_new_i64`, `filter_i32`); the `Vec_new_*` names were removed by #845 |
 | Phase 2 — Expand | Planned | Remaining monomorphic APIs get `deprecated_by` as generic implementations land |
 | Phase 3 — Warn | **Active** | Post-resolve lint emits W0009 for deprecated API usage |
-| Phase 4 — Remove | Planned | Deprecated APIs removed in next major version |
+| Phase 4 — Remove | Planned | Deprecated APIs are removed at the major boundary; `stable` removals during 0.x require the [ADR-087 exception](#0x-deprecation-exception-adr-014-addendum) |
 
 ## See Also
 
 - [API Reference](reference.md) — deprecated entries shown with ~~strikethrough~~
 - [Monomorphic Deprecation Table](monomorphic-deprecation.md) — concise status table
 - [Stability Policy](stability-policy.md) — deprecation lifecycle rules
+- [ADR-087: 0.x deprecation exception](../adr/ADR-087-0x-deprecation-exception.md) — conditions for early `stable` removal
+- [Stdlib API Changelog](changelog.md) — recorded lifecycle changes and removal waves
 - [Prelude Migration (v3)](prelude-migration.md) — historical migration context
 - [Error Code W0009](../compiler/error-codes.md#w0009-deprecated-api) — deprecation warning

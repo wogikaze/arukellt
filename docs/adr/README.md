@@ -84,6 +84,7 @@
 | [ADR-084-language-v2-fallible-conversion-dispatch.md](ADR-084-language-v2-fallible-conversion-dispatch.md) | ADR-084: Language v2 の fallible conversion trait と dispatch 形式 | #708 は fallible conversion の TryFrom<T> / TryInto<U> の trait 定義、標準 impl、 ABI を決める issue である。ADR-063 は ? と From の境界、および TryFrom/TryInto を From/Into の subtrait にしないことを固定したが、両 trait の呼び出し形式と |
 | [ADR-085-io-trait-unification.md](ADR-085-io-trait-unification.md) | ADR-085: std::io の Read / Write / BufRead / Seek による I/O 統合 | std::io は Reader / Writer / BufReader / BufWriter を Vec<i32> の レイアウト約束として扱っている（[cursor, b0, ...] / [fd_tag, b0, ...]）。 |
 | [ADR-086-linear-collection-adts.md](ADR-086-linear-collection-adts.md) | ADR-086: std::collections の線形コレクション ADT — Deque / Queue / Stack / LinkedList | std/collections/linear.ark は Deque と PriorityQueue を Vec<i32> の内部レイアウト （[head, tail, count, cap, ...data]）に対する free function 群として公開している。 |
+| [ADR-087-0x-deprecation-exception.md](ADR-087-0x-deprecation-exception.md) | ADR-087: 0.x 期の stable stdlib 削除例外（ADR-014 追補） | ADR-014 は公開 stdlib エントリに stable / provisional / experimental / deprecated の 4 段階を適用し、stable の破壊的変更を「事前告知付きの 移行ガイド経由」に限定した。ADR-046 D4 はこれを |
 
 ## 提案
 

@@ -74,6 +74,9 @@ prelude free を「推奨メソッドの恒久エイリアス」として残す�
 「stdlib 全体が provisional だから一括 bold cutover」は認めない
 （ADR-036 D2 と同趣旨。#703 の削除実行も本節に揃える）。
 
+0.x 期の `stable` 削除例外は [ADR-087](ADR-087-0x-deprecation-exception.md)
+（ADR-014 追補）に従う。
+
 ### D5: 実行の所有者
 
 - 方針・分類・scorecard: issue #709

@@ -42,6 +42,7 @@ Arukellt の言語仕様と stdlib は拡大している。ユーザーは、本
 
 ## 参照
 
+- [ADR-087](ADR-087-0x-deprecation-exception.md) — 0.x 期の `stable` 削除例外（追補。ADR-014 の決定自体は維持する）
 - `docs/language/spec.md`
 - `std/manifest.toml`
 - `scripts/gen/generate-docs.py` — `format_stability_counts()` とリファレンス表の安定性列

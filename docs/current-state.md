@@ -4,7 +4,7 @@
 > including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-10-25.
+> Updated: 2026-10-26.
 > Generated-At: 2026-07-15
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
@@ -563,6 +563,28 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - `parse_i64` baseline shape: `Result<i64, String>`
 - `parse_f64` baseline shape: `Result<f64, String>`
 - The observed outputs are frozen in `tests/baselines/api-baseline.json`
+
+## Stdlib Deprecation Policy (ADR-087)
+
+- [ADR-014](adr/ADR-014-stability-labels.md)'s four stability labels remain in
+  force. [ADR-087](adr/ADR-087-0x-deprecation-exception.md) is an explicit
+  ADR-014 addendum, not a replacement of the label semantics.
+- **1.0.0 is not cut.** A 1.0.0 tag requires re-evidencing the three
+  release-blocking items (fixture harness, selfhost CLI parity, selfhost diag
+  parity). The generated readiness block above and
+  [`data/release-guarantees.toml`](data/release-guarantees.toml) own the current
+  blocker state.
+- **0.x exception:** while the project version is 0.x, a `stable` public stdlib
+  entry may be removed earlier than the normal deprecation window only when
+  W0009 fires for the API, [`stdlib/migration-guidance.md`](stdlib/migration-guidance.md)
+  records a reachable replacement, and [`stdlib/changelog.md`](stdlib/changelog.md)
+  records the removal wave. Under the exception, the manifest `remove_in` value
+  is an **upper bound** (earlier removal is allowed; later is not).
+- **Scope:** stable public stdlib entries only. Language spec, CLI, ABI, target,
+  compiler-phase, and non-stdlib APIs are outside the exception.
+- **From 1.0.0:** the exception is void and the normal ADR-014 policy applies
+  unchanged. The exception does not change today's stdlib surface; free-function
+  elimination remains tracked by #917 and #703.
 
 ## Recent Milestones
 

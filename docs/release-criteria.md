@@ -48,7 +48,7 @@ These work but the API or behavior may change without a deprecation cycle:
 
 ## Stability Policy
 
-- `stable` features: no breaking changes without a major version bump + migration guide
+- `stable` features: no breaking changes without a major version bump + migration guide. During 0.x only, `stable` stdlib removals follow the explicit [ADR-087](adr/ADR-087-0x-deprecation-exception.md) exception (W0009 + migration guide + [changelog](stdlib/changelog.md)); from 1.0.0 the normal rule applies.
 - `provisional` features: may break with minor version bump + changelog entry
 - `experimental` features: may break at any time; no migration guide required
 - See [docs/stdlib-compatibility.md](stdlib-compatibility.md) for stdlib API policy
@@ -58,4 +58,5 @@ These work but the API or behavior may change without a deprecation cycle:
 - [docs/current-state.md](current-state.md) — current implementation status
 - [docs/adr/ADR-013-primary-target.md](adr/ADR-013-primary-target.md) — tier system
 - [docs/adr/ADR-014-stability-labels.md](adr/ADR-014-stability-labels.md) — label definitions
+- [docs/adr/ADR-087-0x-deprecation-exception.md](adr/ADR-087-0x-deprecation-exception.md) — 0.x stable-removal exception (ADR-014 addendum)
 - [docs/adr/ADR-015-no-panic-in-user-paths.md](adr/ADR-015-no-panic-in-user-paths.md) — panic policy

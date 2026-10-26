@@ -7,7 +7,8 @@ Every public API in the Arukellt standard library carries one of four lifecycle 
 ### Stable
 
 - Backward-compatible within a major version.
-- Breaking changes only occur on major version bumps.
+- Breaking changes only occur on major version bumps, except for the explicit
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception below.
 - Compatibility commitment within the stated versioning policy.
 - This label does not claim that the project or implementation is production-ready;
   release readiness is owned by [`../current-state.md`](../current-state.md).
@@ -43,7 +44,7 @@ An Experimental module becomes Stable when:
 1. The API has been unchanged for at least one minor release cycle.
 2. Test coverage meets the project baseline.
 3. At least one ADR documents the design rationale.
-4. The change is recorded in the changelog.
+4. The change is recorded in the [stdlib changelog](changelog.md).
 
 ## Error / Result Naming Conventions
 
@@ -94,6 +95,13 @@ A Stable API is deprecated before removal:
 1. Mark with `@deprecated` annotation and document the replacement.
 2. Keep the deprecated API available until the next major version, and for at least one complete release.
 3. Remove no earlier than that major-version boundary, with a migration guide.
+4. During 0.x only, a `stable` API may be removed earlier under the explicit
+   [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) exception. The removal
+   wave must (a) have W0009 implemented and firing for the API, (b) record the
+   replacement in [migration-guidance.md](migration-guidance.md), and (c) record
+   the wave in [changelog.md](changelog.md). Under that exception `remove_in` is
+   an upper bound, not the earliest removal. The exception ends at 1.0.0; the
+   normal rule above then applies unchanged.
 
 ---
 
@@ -116,7 +124,9 @@ compiler bridges, which never appear in the public surface.
   and by `docs regenerate` / `docs check`: any unclassified manifest symbol
   fails the gate.
 - Retirement follows the deprecation process above; execution waves are
-  tracked in issue #917 under policy issue #709.
+  tracked in issue #917 under policy issue #709. During 0.x, `stable` removals
+  additionally require the three [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
+  conditions (W0009, migration guide, changelog).
 
 ---
 
@@ -154,6 +164,9 @@ Every tier change must update **both** the manifest source of truth and the gene
   - Value must be the canonical replacement function name (e.g., `"Vec::new<i32>"`)
 - [ ] **Set `stability = "deprecated"`** on the same entry
 - [ ] **Add migration example** to `docs/stdlib/migration-guidance.md`
+- [ ] **Record the wave** in [changelog.md](changelog.md) with the date, ADR/issue,
+      target symbols, removal reason, and replacement. A `stable` removal during 0.x
+      needs this entry under [ADR-087](../adr/ADR-087-0x-deprecation-exception.md).
 - [ ] **Regenerate documentation**
   - Run `python3 scripts/gen/generate-docs.py`
   - Verify `~~strikethrough~~` and `⚠️ Deprecated` badge appear in reference.md
