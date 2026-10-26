@@ -1,0 +1,154 @@
+// ADR-085 Phase C: BufWriter<W> capacity, auto-flush, and into_inner.
+//
+// `write` / `flush` go through generic bounds so the adapter is exercised as
+// a Write implementation; write_string and into_inner are inherent methods.
+use std::host::stdio
+use std::io
+use std::io::{BufWriter, Writer}
+use std::text
+
+struct RejectingWriter {
+    calls: i32,
+}
+
+impl io::Write for RejectingWriter {
+    fn write(self: RejectingWriter, _data: Vec<i32>) -> Result<i32, io::IoError> {
+        self.calls = self.calls + 1
+        Ok(0)
+    }
+
+    fn flush(self: RejectingWriter) -> Result<(), io::IoError> {
+        Ok(())
+    }
+}
+
+struct OneByteWriter {
+    bytes: Vec<i32>,
+}
+
+impl io::Write for OneByteWriter {
+    fn write(self: OneByteWriter, data: Vec<i32>) -> Result<i32, io::IoError> {
+        if len(data) == 0 {
+            return Ok(0)
+        }
+        push(self.bytes, get_unchecked(data, 0))
+        Ok(1)
+    }
+
+    fn flush(self: OneByteWriter) -> Result<(), io::IoError> {
+        Ok(())
+    }
+}
+
+fn write_bytes_to<T: io::Write>(sink: T, data: Vec<i32>) -> Result<i32, io::IoError> {
+    sink.write(data)
+}
+
+fn flush_sink<T: io::Write>(sink: T) -> Result<(), io::IoError> {
+    sink.flush()
+}
+
+fn main() {
+    let writer: Writer = Writer::new()
+    let buffered: BufWriter<Writer> = BufWriter::new<Writer>(writer, 4)
+    let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, text::to_utf8_bytes("AB"))
+    match write_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let flush_result: Result<(), io::IoError> = flush_sink(buffered)
+    match flush_result {
+        Result::Ok(_) => stdio::println("flush ok"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let text_result: Result<i32, io::IoError> = buffered.write_string("cd")
+    match text_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, text::to_utf8_bytes("EFG"))
+    match write_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let inner_result: Result<Writer, io::IoError> = buffered.into_inner()
+    match inner_result {
+        Result::Ok(inner) => {
+            let bytes: Vec<i32> = inner.into_bytes()
+            stdio::println((len(bytes)).to_string())
+            stdio::println((get_unchecked(bytes, 0)).to_string())
+            stdio::println((get_unchecked(bytes, 6)).to_string())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let zero: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 0)
+    let write_result: Result<i32, io::IoError> = write_bytes_to(zero, text::to_utf8_bytes("HI"))
+    match write_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let write_result: Result<i32, io::IoError> = write_bytes_to(zero, text::to_utf8_bytes("J"))
+    match write_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let zero_result: Result<Writer, io::IoError> = zero.into_inner()
+    match zero_result {
+        Result::Ok(inner) => stdio::println((len(inner.into_bytes())).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let pending: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 100)
+    let write_result: Result<i32, io::IoError> = write_bytes_to(pending, text::to_utf8_bytes("K"))
+    match write_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let pending_result: Result<Writer, io::IoError> = pending.into_inner()
+    match pending_result {
+        Result::Ok(inner) => stdio::println((len(inner.into_bytes())).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let text_writer: Writer = Writer::new()
+    let writer_text_result: Result<i32, io::IoError> = text_writer.write_string("hé")
+    match writer_text_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    stdio::println((len(text_writer.into_bytes())).to_string())
+
+    let empty: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 8)
+    let flush_result: Result<(), io::IoError> = flush_sink(empty)
+    match flush_result {
+        Result::Ok(_) => stdio::println("empty flush ok"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let rejected: BufWriter<RejectingWriter> =
+    BufWriter::new<RejectingWriter>(RejectingWriter { calls: 0 }, 1)
+    let write_result: Result<i32, io::IoError> = write_bytes_to(rejected, text::to_utf8_bytes("A"))
+    match write_result {
+        Result::Ok(_) => stdio::println("unexpected buffered write"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let partial: BufWriter<OneByteWriter> =
+    BufWriter::new<OneByteWriter>(OneByteWriter { bytes: Vec::new<i32>() }, 4)
+    let write_result: Result<i32, io::IoError> = write_bytes_to(partial, text::to_utf8_bytes("ABC"))
+    match write_result {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let flush_result: Result<(), io::IoError> = flush_sink(partial)
+    match flush_result {
+        Result::Ok(_) => stdio::println("partial flush ok"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let partial_result: Result<OneByteWriter, io::IoError> = partial.into_inner()
+    match partial_result {
+        Result::Ok(inner) => stdio::println((len(inner.bytes)).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}

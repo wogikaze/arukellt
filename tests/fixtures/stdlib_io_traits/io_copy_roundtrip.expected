@@ -1,0 +1,19 @@
+5
+5
+104
+111
+0
+2
+3
+108
+111
+5
+need 3 have 2
+need 4 have 2
+read_exact: amount must be non-negative
+hello
+read_to_string: input is not valid UTF-8
+5
+104
+write_all: writer accepted no bytes
+5

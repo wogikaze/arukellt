@@ -1,8 +1,10 @@
-//! std::io — target-independent I/O abstraction (ADR-085 Phase A).
+//! std::io — target-independent I/O abstraction (ADR-085 Phases A–C).
 //!
 //! Defines the public `Read` / `Write` / `BufRead` / `Seek` traits, the
-//! `SeekFrom` origin, and the in-memory `Reader` / `Writer` newtypes. `Reader`
-//! implements `Read`, `BufRead`, and `Seek`; `Writer` implements `Write`.
+//! `SeekFrom` origin, the in-memory `Reader` / `Writer` newtypes, the
+//! receiver-less generic algorithms on `Io`, and the generic `BufReader<R>` /
+//! `BufWriter<W>` adapters. `Reader` implements `Read`, `BufRead`, and `Seek`;
+//! `Writer` implements `Write`.
 //!
 //! # Contract notes
 //!
@@ -306,6 +308,11 @@ impl Writer {
     fn into_reader(self: Writer) -> Reader {
         Reader::from_bytes(self.bytes)
     }
+
+    /// Writes `text` as UTF-8 bytes and returns the accepted byte count.
+    fn write_string(self: Writer, text: String) -> Result<i32, IoError> {
+        self.write(text::to_utf8_bytes(text))
+    }
 }
 
 impl Write for Writer {
@@ -321,6 +328,417 @@ impl Write for Writer {
 
     fn flush(self: Writer) -> Result<(), IoError> {
         Ok(())
+    }
+}
+
+// ─── Generic algorithms (ADR-085 Phase B) ────────────────────────────────────
+/// Namespace for receiver-less generic algorithms over `Read` and `Write`.
+///
+/// ADR-046 forbids user-reachable free functions, and the language cannot put
+/// associated functions in a module namespace, so the algorithms live on this
+/// empty type and are called as `Io::copy(reader, writer)`.
+pub struct Io {}
+
+impl Io {
+    /// Copies every remaining byte from `from` to `to` in bounded chunks.
+    ///
+    /// Returns the transferred byte count. A read error, a write error, or a
+    /// writer that accepts zero bytes aborts the copy and returns the error;
+    /// the partial count is never reported as success.
+    fn copy<R: Read, W: Write>(from: R, to: W) -> Result<i64, IoError> {
+        let mut total: i64 = 0i64
+        let mut done: bool = false
+        while !done {
+            let read_result: Result<Vec<i32>, IoError> = from.read(COPY_CHUNK_BYTES)
+            let chunk: Vec<i32> = match read_result {
+                Result::Ok(bytes) => bytes,
+                Result::Err(err) => return Err(err),
+            }
+            if len(chunk) == 0 {
+                done = true
+            } else {
+                let write_result: Result<(), IoError> = Io::write_all(to, chunk)
+                match write_result {
+                    Result::Ok(_) => total = total + i32_to_i64(len(chunk)),
+                    Result::Err(err) => return Err(err),
+                }
+            }
+        }
+        Ok(total)
+    }
+
+    /// Reads exactly `amount` bytes or fails with `UnexpectedEof`.
+    ///
+    /// A negative `amount` is `IoError::Other`. The source is asked for at
+    /// most the number of bytes still missing, so the handle is not advanced
+    /// past the requested range.
+    fn read_exact<R: Read>(from: R, amount: i32) -> Result<Vec<i32>, IoError> {
+        if amount < 0 {
+            return Err(IoError::Other("read_exact: amount must be non-negative"))
+        }
+        let out: Vec<i32> = Vec::new<i32>()
+        let mut remaining: i32 = amount
+        while remaining > 0 {
+            let read_result: Result<Vec<i32>, IoError> = from.read(remaining)
+            let chunk: Vec<i32> = match read_result {
+                Result::Ok(bytes) => bytes,
+                Result::Err(err) => return Err(err),
+            }
+            if len(chunk) == 0 {
+                let needed: String = text::format_i32(amount)
+                let have: String = text::format_i32(len(out))
+                let message: String = text::concat("need ", text::concat(needed, text::concat(" have ", have)))
+                return Err(IoError::UnexpectedEof(message))
+            }
+            if len(chunk) > remaining {
+                return Err(IoError::Other("read_exact: source returned more than requested"))
+            }
+            let mut i: i32 = 0
+            while i < len(chunk) {
+                push(out, get_unchecked(chunk, i))
+                i = i + 1
+            }
+            remaining = remaining - len(chunk)
+        }
+        Ok(out)
+    }
+
+    /// Reads every byte from `from` until EOF and returns them.
+    fn read_to_end<R: Read>(from: R) -> Result<Vec<i32>, IoError> {
+        let out: Vec<i32> = Vec::new<i32>()
+        let mut done: bool = false
+        while !done {
+            let read_result: Result<Vec<i32>, IoError> = from.read(COPY_CHUNK_BYTES)
+            let chunk: Vec<i32> = match read_result {
+                Result::Ok(bytes) => bytes,
+                Result::Err(err) => return Err(err),
+            }
+            if len(chunk) == 0 {
+                done = true
+            } else {
+                let mut i: i32 = 0
+                while i < len(chunk) {
+                    push(out, get_unchecked(chunk, i))
+                    i = i + 1
+                }
+            }
+        }
+        Ok(out)
+    }
+
+    /// Writes all of `data`, retrying when the sink accepts only a prefix.
+    ///
+    /// A sink that accepts zero bytes for a non-empty chunk would loop forever,
+    /// so that case is reported as `IoError::Other`.
+    fn write_all<W: Write>(to: W, data: Vec<i32>) -> Result<(), IoError> {
+        let total: i32 = len(data)
+        let mut offset: i32 = 0
+        while offset < total {
+            let rest: Vec<i32> = Vec::new<i32>()
+            let mut i: i32 = offset
+            while i < total {
+                push(rest, get_unchecked(data, i))
+                i = i + 1
+            }
+            let write_result: Result<i32, IoError> = to.write(rest)
+            let accepted: i32 = match write_result {
+                Result::Ok(count) => count,
+                Result::Err(err) => return Err(err),
+            }
+            if accepted <= 0 {
+                return Err(IoError::Other("write_all: writer accepted no bytes"))
+            }
+            if accepted > total - offset {
+                return Err(IoError::Other("write_all: writer accepted more bytes than supplied"))
+            }
+            offset = offset + accepted
+        }
+        Ok(())
+    }
+
+    /// Reads until EOF and decodes the bytes as UTF-8.
+    ///
+    /// Invalid UTF-8 is `IoError::Other`; unlike `text::from_utf8`, this
+    /// convenience does not replace invalid sequences silently.
+    fn read_to_string<R: Read>(from: R) -> Result<String, IoError> {
+        let read_result: Result<Vec<i32>, IoError> = Io::read_to_end(from)
+        let bytes: Vec<i32> = match read_result {
+            Result::Ok(data) => data,
+            Result::Err(err) => return Err(err),
+        }
+        match text::try_from_utf8(bytes) {
+            Option::Some(decoded) => Ok(decoded),
+            Option::None => Err(IoError::Other("read_to_string: input is not valid UTF-8")),
+        }
+    }
+}
+
+// ─── Generic buffered adapters (ADR-085 Phase C) ────────────────────────────
+// A non-positive capacity is normalised to one byte rather than rejecting the
+// constructor: an adapter with a zero-length fill would never make progress.
+const MIN_BUFFER_CAPACITY: i32 = 1
+
+/// Buffered byte source layered over a `Read` handle.
+///
+/// The adapter owns `inner` (handles are not `Copy`) and an owned buffer. Reads
+/// are served from the buffer; `fill_buf` returns an owned snapshot because the
+/// language has no lifetime-carrying borrow view. `Seek` is implemented only
+/// when the inner handle is `Seek`.
+pub struct BufReader<R> {
+    inner: R,
+    buffer: Vec<i32>,
+    start: i32,
+    end: i32,
+    capacity: i32,
+}
+
+impl<R: Read> BufReader<R> {
+    /// Wraps `inner` with a buffer of `capacity` bytes (at least one).
+    fn new(inner: R, capacity: i32) -> BufReader<R> {
+        let cap: i32 = if capacity > 0 { capacity } else { MIN_BUFFER_CAPACITY }
+        BufReader {
+            inner: inner,
+            buffer: Vec::new<i32>(),
+            start: 0,
+            end: 0,
+            capacity: cap,
+        }
+    }
+
+    fn buffered(self: BufReader<R>) -> i32 {
+        self.end - self.start
+    }
+
+    // Refill only when the buffer has no unread bytes; keeping a partially
+    // consumed buffer preserves the bytes that a following read must see.
+    fn refill(self: BufReader<R>) -> Result<(), IoError> {
+        if self.buffered() > 0 {
+            return Ok(())
+        }
+        self.start = 0
+        self.end = 0
+        let read_result: Result<Vec<i32>, IoError> = self.inner.read(self.capacity)
+        let chunk: Vec<i32> = match read_result {
+            Result::Ok(bytes) => bytes,
+            Result::Err(err) => return Err(err),
+        }
+        self.buffer = chunk
+        self.end = len(self.buffer)
+        Ok(())
+    }
+}
+
+impl<R: Read> Read for BufReader<R> {
+    fn read(self: BufReader<R>, max_bytes: i32) -> Result<Vec<i32>, IoError> {
+        if max_bytes < 0 {
+            return Err(IoError::Other("read: max_bytes must be non-negative"))
+        }
+        let out: Vec<i32> = Vec::new<i32>()
+        while len(out) < max_bytes {
+            if self.buffered() == 0 {
+                match self.refill() {
+                    Result::Ok(_) => {
+                    },
+                    Result::Err(err) => return Err(err),
+                }
+                if self.buffered() == 0 {
+                    break
+                }
+            }
+            let available: i32 = self.buffered()
+            let wanted: i32 = max_bytes - len(out)
+            let take: i32 = if wanted < available { wanted } else { available }
+            let mut i: i32 = 0
+            while i < take {
+                push(out, get_unchecked(self.buffer, self.start + i))
+                i = i + 1
+            }
+            self.start = self.start + take
+        }
+        Ok(out)
+    }
+}
+
+impl<R: Read> BufRead for BufReader<R> {
+    fn fill_buf(self: BufReader<R>) -> Result<Vec<i32>, IoError> {
+        if self.buffered() == 0 {
+            match self.refill() {
+                Result::Ok(_) => {
+                },
+                Result::Err(err) => return Err(err),
+            }
+        }
+        let out: Vec<i32> = Vec::new<i32>()
+        let mut i: i32 = self.start
+        while i < self.end {
+            push(out, get_unchecked(self.buffer, i))
+            i = i + 1
+        }
+        Ok(out)
+    }
+
+    fn consume(self: BufReader<R>, amount: i32) -> Result<(), IoError> {
+        if amount < 0 {
+            return Err(IoError::Other("consume: amount must be non-negative"))
+        }
+        if amount > self.buffered() {
+            return Err(IoError::Other("consume: amount exceeds buffered bytes"))
+        }
+        self.start = self.start + amount
+        Ok(())
+    }
+
+    fn read_line(self: BufReader<R>) -> Result<Option<String>, IoError> {
+        let line: String = ""
+        let mut consumed_any: bool = false
+        let mut found_newline: bool = false
+        while !found_newline {
+            if self.buffered() == 0 {
+                match self.refill() {
+                    Result::Ok(_) => {
+                    },
+                    Result::Err(err) => return Err(err),
+                }
+                if self.buffered() == 0 {
+                    break
+                }
+            }
+            let mut pos: i32 = self.start
+            while pos < self.end && !found_newline {
+                let byte: i32 = get_unchecked(self.buffer, pos)
+                pos = pos + 1
+                if byte == NEWLINE_BYTE {
+                    found_newline = true
+                } else {
+                    line = text::concat(line, char_to_string(byte))
+                }
+            }
+            if pos > self.start {
+                consumed_any = true
+            }
+            self.start = pos
+        }
+        if !consumed_any {
+            return Ok(Option::None)
+        }
+        Ok(Option::Some(line))
+    }
+}
+
+impl<R: Seek> Seek for BufReader<R> {
+    fn seek(self: BufReader<R>, from: SeekFrom) -> Result<i64, IoError> {
+        let unread: i32 = self.end - self.start
+        let result: Result<i64, IoError> = match from {
+            SeekFrom::Start(offset) => self.inner.seek(SeekFrom::Start(offset)),
+            SeekFrom::End(offset) => self.inner.seek(SeekFrom::End(offset)),
+            SeekFrom::Current(offset) => {
+                let position_result: Result<i64, IoError> = self.inner.position()
+                match position_result {
+                    Result::Ok(pos) => self.inner.seek(SeekFrom::Start(pos - i32_to_i64(unread) + offset)),
+                    Result::Err(err) => Err(err),
+                }
+            },
+        }
+        let position: i64 = match result {
+            Result::Ok(pos) => pos,
+            Result::Err(err) => return Err(err),
+        }
+        self.buffer = Vec::new<i32>()
+        self.start = 0
+        self.end = 0
+        Ok(position)
+    }
+
+    fn position(self: BufReader<R>) -> Result<i64, IoError> {
+        let unread: i32 = self.end - self.start
+        let position_result: Result<i64, IoError> = self.inner.position()
+        match position_result {
+            Result::Ok(pos) => Ok(pos - i32_to_i64(unread)),
+            Result::Err(err) => Err(err),
+        }
+    }
+}
+
+/// Buffered byte sink layered over a `Write` handle.
+///
+/// Writes are appended to an owned buffer and flushed when the buffer reaches
+/// the configured capacity (or after every write when the capacity is
+/// non-positive). `into_inner` flushes before returning the owned handle.
+pub struct BufWriter<W> {
+    inner: W,
+    buffer: Vec<i32>,
+    capacity: i32,
+}
+
+impl<W: Write> BufWriter<W> {
+    /// Wraps `inner` with a buffer that flushes at `capacity` bytes.
+    fn new(inner: W, capacity: i32) -> BufWriter<W> {
+        let cap: i32 = if capacity > 0 { capacity } else { 0 }
+        BufWriter {
+            inner: inner,
+            buffer: Vec::new<i32>(),
+            capacity: cap,
+        }
+    }
+
+    /// Writes `text` as UTF-8 bytes through the buffer.
+    fn write_string(self: BufWriter<W>, text: String) -> Result<i32, IoError> {
+        self.append(text::to_utf8_bytes(text))
+    }
+
+    /// Flushes the buffer and returns the owned inner handle.
+    fn into_inner(self: BufWriter<W>) -> Result<W, IoError> {
+        match self.flush_buffer() {
+            Result::Ok(_) => Ok(self.inner),
+            Result::Err(err) => Err(err),
+        }
+    }
+
+    // Appends first and then applies the capacity policy. `write_string` and
+    // the trait `write` share this so the accepted count and the auto-flush
+    // threshold cannot drift apart.
+    fn append(self: BufWriter<W>, data: Vec<i32>) -> Result<i32, IoError> {
+        let count: i32 = len(data)
+        let mut i: i32 = 0
+        while i < count {
+            push(self.buffer, get_unchecked(data, i) & BYTE_MASK)
+            i = i + 1
+        }
+        if self.capacity <= 0 || len(self.buffer) >= self.capacity {
+            match self.flush_buffer() {
+                Result::Ok(_) => {
+                },
+                Result::Err(err) => return Err(err),
+            }
+        }
+        Ok(count)
+    }
+
+    // Shared by the trait flush, the capacity-triggered flush in `append`, and
+    // `into_inner`; keeping one copy makes the "clear only on success" rule
+    // hold at every call site.
+    fn flush_buffer(self: BufWriter<W>) -> Result<(), IoError> {
+        if len(self.buffer) == 0 {
+            return Ok(())
+        }
+        let write_result: Result<(), IoError> = Io::write_all(self.inner, self.buffer)
+        match write_result {
+            Result::Ok(_) => {
+                self.buffer = Vec::new<i32>()
+                Ok(())
+            },
+            Result::Err(err) => Err(err),
+        }
+    }
+}
+
+impl<W: Write> Write for BufWriter<W> {
+    fn write(self: BufWriter<W>, data: Vec<i32>) -> Result<i32, IoError> {
+        self.append(data)
+    }
+
+    fn flush(self: BufWriter<W>) -> Result<(), IoError> {
+        self.flush_buffer()
     }
 }
 
@@ -688,9 +1106,10 @@ pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
 }
 
 // ─── Copy utility ─────────────────────────────────────────────────────────────
-/// Copies all remaining bytes from a Reader to a Writer.
+/// Copies all remaining bytes from a Reader layout to a Writer layout.
 ///
-/// Returns the total number of bytes transferred.
+/// Compatibility surface: `Io::copy` owns the generic algorithm; this wrapper
+/// keeps the legacy `Vec<i32>` layout and `i32` count until Phase E.
 pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, IoError> {
     let cursor: i32 = get_unchecked(from, 0)
     let total: i32 = len(from) - 1
@@ -804,8 +1223,8 @@ pub fn fill_buffer(buf: Vec<i32>) -> Vec<i32> {
 
 /// Copies all remaining bytes between legacy layout buffers.
 ///
-/// The monomorphic form predates #693 Phase B; `Io::copy` will own the generic
-/// algorithm once two-bound monomorphisation is confirmed.
+/// The monomorphic form predates #693 Phase B. `Io::copy` owns the generic
+/// algorithm; this helper stays as legacy scaffolding until Phase E.
 pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut done: bool = false

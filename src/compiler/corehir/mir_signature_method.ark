@@ -21,6 +21,10 @@ fn mir_signature_method_param_count_at(source: CoreHirMirSignatureSource, info_i
     method_info::method_info_param_count_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
 }
 
+fn mir_signature_method_type_param_count_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
+    method_info::method_info_type_param_count_at(signature_source_record::mir_signature_source_method_infos(source), info_index, fallback)
+}
+
 fn mir_signature_method_param_at(source: CoreHirMirSignatureSource, info_index: i32, param_index: i32) -> CoreHirParam {
     method_info::method_info_param_at(signature_source_record::mir_signature_source_method_infos(source), info_index, param_index)
 }

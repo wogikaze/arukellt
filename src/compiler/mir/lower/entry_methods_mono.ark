@@ -21,6 +21,15 @@ fn mir_emit_method_mono_bodies(
 ) {
     let generic_rtn = entry_view_method::mir_entry_method_return_type_name_at(entry_view, method_info_index)
     let method_mono_emit_count_raw = mono::mono_index_count(midx, clone(mangled))
+    // A generic impl method with no recorded instance has no call site: its
+    // template body would lower type-variable receivers/params as scalar
+    // placeholders, which is not valid Wasm on gc. Top-level generic fns are
+    // already pruned this way; do the same for impl methods. Non-generic
+    // methods keep their single concrete body.
+    if method_mono_emit_count_raw == 0 &&
+    entry_view_method::mir_entry_method_type_param_count_at(entry_view, method_info_index, 0) > 0 {
+        return
+    }
     let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(generic_rtn), method_mono_emit_count_raw > 0)
     let method_mono_emit_count = method_mono_emit_count_raw + 1
     let mut method_mono_emit_i = 0
