@@ -1,11 +1,13 @@
 use std::prelude::{clone, eq, starts_with, substring}
 use std::text
+use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_mono_type_params
 use mir::lower::method_emit
 use mir::lower::method_resolve
 use mir::lower::ctx_locals_emit
+use mir::lower_kinds
 use mir::opcodes
 fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i32) -> String {
     let mut struct_name = ""
@@ -63,8 +65,8 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     method_resolve::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, span_start)
 }
 
-fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
-    method_emit::mir_emit_method_call(ctx, callee_name, arg_count, first_arg_idx)
+fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
+    method_emit::mir_emit_method_call(ctx, callee_name, arg_count, first_arg_idx, value_arg_idx)
 }
 
 // Method-call operands are stack-passed: every producer must leave its
@@ -108,4 +110,46 @@ fn mir_method_receiver_leaves_no_stack(ctx: LowerCtx, receiver_idx: i32, has_arg
         return false
     }
     ctx_locals_emit::ctx_current_block_last_inst_dest(ctx) == receiver_idx
+}
+
+// A scalar literal argument followed by a field-access argument needs an
+// explicit reload: the emit store policy materializes scalar constants ahead
+// of a LOCAL_GET + STRUCT_GET base chain so an assignment's RHS cannot sit
+// under the base operand stack (#807). In call-argument position that store
+// leaves the literal in its local while the call still expects it on the
+// operand stack, so the intrinsic's operand pops underflow. Reloading the
+// literal local both forces that store and restores the operand; the
+// pattern is only reachable from a currently invalid call, so the extra
+// load does not change valid call emission.
+fn mir_method_arg_needs_repush_before_field_access(ctx: LowerCtx, arg_idx: i32) -> bool {
+    if arg_idx < 0 {
+        return false
+    }
+    let last_op = ctx_locals_emit::ctx_current_block_last_inst_op(ctx)
+    last_op == opcodes::MIR_CONST_I32() ||
+    last_op == opcodes::MIR_CONST_I64() ||
+    last_op == opcodes::MIR_CONST_F64()
+}
+
+// Whether lowering this expression starts by loading a field base (and then
+// emitting STRUCT_GET). Only the leading shape matters: the store policy
+// decision above is made while that first base load is the next instruction.
+// Calls and operators lower their first child first; other shapes (if/match,
+// struct literals, ...) start with their own control or construction.
+fn mir_expr_leads_with_field_access(node: AstNode) -> bool {
+    let kind = ast_node::node_kind(node)
+    if kind == lower_kinds::NK_FIELD_ACCESS() {
+        return true
+    }
+    if kind == lower_kinds::NK_METHOD_CALL() ||
+    kind == lower_kinds::NK_CALL() ||
+    kind == lower_kinds::NK_BINARY() ||
+    kind == lower_kinds::NK_UNARY() ||
+    kind == lower_kinds::NK_INDEX() ||
+    kind == lower_kinds::NK_TRY() {
+        if ast_node::node_child_count(node) > 0 {
+            return mir_expr_leads_with_field_access(ast_node::node_child_at(node, 0))
+        }
+    }
+    false
 }

@@ -41,7 +41,12 @@ fn emit_gc_ref_struct_get_store(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, 
             writer_core::emit_local_get(w, dest)
             return
         }
-        if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 < 0 {
+        // A recorded receiver is re-pushed by the lowering
+        // (mir_method_receiver_leaves_no_stack), so the duplicate is only
+        // safe to skip when this value *is* that receiver. Any other operand
+        // of a recorded call (a field get passed as an argument) must still
+        // be pushed or the call loses one operand.
+        if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 != dest {
             writer_core::emit_local_get(w, dest)
             return
         }

@@ -56,7 +56,7 @@ fn try_emit_ref_func_inst(
     let mut found = 0
     let mut i = 0
     while i < fn_count {
-        let f = get_unchecked(functions, i)
+        let f = functions.get_unchecked(i)
         if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
             mir_fn_idx = i
             found = 1
@@ -70,7 +70,7 @@ fn try_emit_ref_func_inst(
             mir_fn_idx,
             ctx_record::SelfEmitCtx_target(ctx),
             ctx_record::SelfEmitCtx_wasi_version(ctx),
-            len(bindings)
+            bindings.len()
         )
         defined_idx
     }
@@ -155,7 +155,12 @@ fn try_emit_local_get_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
         return true
     }
     inst_locals::emit_local_get(w, inst, ctx)
-    if next_op == opcodes::MIR_LOCAL_SET() {
+    // Only a stack-valued LOCAL_SET consumes this local.get, so only then is
+    // the stored value this one and the destination's ref type authoritative.
+    // A local-to-local copy (arg1 >= 0) is lowered with its own source load,
+    // so this value is an unrelated operand: casting it retypes e.g. a Vec
+    // receiver to the copied String and breaks the call's operand stack.
+    if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         inst_locals::emit_gc_ref_cast_to_dest(w, ctx, next_arg0)
     }
     inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)

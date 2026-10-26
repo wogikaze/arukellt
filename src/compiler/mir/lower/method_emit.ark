@@ -1,6 +1,7 @@
 use std::prelude::{clone, eq, index_of, starts_with, substring}
 use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
+use mir::lower::call_rewrite_vec
 use mir::lower::call_emit_dest
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
@@ -10,7 +11,7 @@ use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::inst_call
 use mir::value_types
-fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
+fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(clone(callee_name))
     if eq(clone(bare_method), "to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, "to_string", first_arg_idx)
@@ -20,7 +21,18 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
         }
         callee_name = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
     }
-    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_name), first_arg_idx, 0 - 1, false, 0)
+    // Pass the value argument like a direct call, but only for the vec push
+    // family: the rewrite widens an i32 literal to the element type when the
+    // receiver is Vec<i64> (`v.push(10)`), and the intrinsic's i64 value
+    // scratch rejects the unwidened i32 operand (#917). Other trailing-arg
+    // i64 heuristics are direct-call contracts; applying them to arbitrary
+    // methods emits an i64 widen the linear target's code does not expect.
+    let mut push_value_arg_idx = 0 - 1
+    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) ||
+    starts_with(clone(callee_name), String_from("__core_vec_push_")) {
+        push_value_arg_idx = value_arg_idx
+    }
+    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_name), first_arg_idx, push_value_arg_idx, false, 0)
     let return_local = call_rewrite::MirCallRewrite_return_local(call_rewrite)
     if return_local >= 0 {
         return return_local
@@ -41,19 +53,16 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
     if dest >= 0 {
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
-    // Record the vec/receiver local on get_unchecked/push-style calls so GC
-    // emit and mir_opt fallback resolution read arg0 instead of scanning
-    // staged args — non-contiguous staging (tuple/record arg construction
-    // interleaves LOCAL_GETs) otherwise resolves the wrong local (#888).
-    // Same contract as mir_emit_direct_call; len/is_empty stay unrecorded
-    // for STRUCT_GET→CALL stack-compose (#807 / #834).
+    // Record the vec/receiver local on calls whose emit resolves types from
+    // it (printlike, vec intrinsics) instead of scanning staged operands:
+    // non-contiguous staging (composed arguments interleave LOCAL_GETs)
+    // otherwise resolves the wrong local (#888, #917). Same contract as
+    // mir_emit_direct_call; len/is_empty stay unrecorded for the
+    // STRUCT_GET→CALL stack-compose that depends on CALL.arg0 < 0
+    // (#807 / #834).
     if first_arg_idx >= 0 && (
         call_args::mir_is_printlike_callee(clone(callee_name)) ||
-        call_type_vec::is_get_unchecked_callee(clone(callee_name)) ||
-        eq(clone(callee_name), String_from("push")) ||
-        eq(clone(callee_name), String_from("vec_push")) ||
-        eq(clone(callee_name), String_from("push_char")) ||
-        starts_with(clone(callee_name), String_from("push__"))
+        call_type_vec::is_vec_receiver_recording_callee(clone(callee_name))
     ) {
         ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))
     } else {
@@ -70,5 +79,5 @@ fn mir_method_bare_name(mangled: String) -> String {
     if pos < 0 {
         return clone(mangled)
     }
-    substring(mangled, pos + 2, len(mangled))
+    substring(mangled, pos + 2, mangled.len())
 }

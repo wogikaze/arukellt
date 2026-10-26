@@ -1,4 +1,4 @@
-use std::prelude::{clone, ends_with, eq, starts_with}
+use std::prelude::{clone, ends_with, starts_with}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_call
@@ -53,10 +53,10 @@ fn mir_emit_direct_call(
     }
     if stage_call_args {
         let mut push_i64_needs_extend = call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite)
-        let staged_count = len(staged_arg_locals)
+        let staged_count = staged_arg_locals.len()
         if !push_i64_needs_extend && staged_count > 0 {
             let last_param = staged_count - 1
-            let last_local = get_unchecked(staged_arg_locals, last_param)
+            let last_local = staged_arg_locals.get_unchecked(last_param)
             if ctx_api_local_types::ctx_local_vt(ctx, last_local) == value_types::VT_I32() {
                 if call_arg_i64::mir_callee_param_is_i64(ctx, clone(callee_name), last_param) {
                     push_i64_needs_extend = true
@@ -67,10 +67,10 @@ fn mir_emit_direct_call(
         // table; map it onto the last staged arg, matching the old emit
         // order (extend applied to the final pushed value).
         if push_i64_needs_extend && staged_count > 0 {
-            while len(arg_widen_i64) < staged_count {
-                push(arg_widen_i64, 0)
+            while arg_widen_i64.len() < staged_count {
+                arg_widen_i64.push(0)
             }
-            set(arg_widen_i64, staged_count - 1, 1)
+            arg_widen_i64.set(staged_count - 1, 1)
         }
         call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, arg_widen_i64)
     }
@@ -80,17 +80,14 @@ fn mir_emit_direct_call(
     if receiver_writeback >= 0 {
         recorded_first = receiver_writeback
     }
-    // Record the vec/receiver local on get_unchecked/push-style calls so GC emit
-    // can resolve element types when MirLocal.type_name was poisoned (#730).
+    // Record the vec/receiver local on calls whose emit resolves types from
+    // it (printlike, vec intrinsics) so GC emit reads the lowering's truth
+    // instead of scanning stack operands (#730, #917).
     // Do not record first_arg on len/is_empty: STRUCT_GET→CALL stack-compose
     // keeps the vec on the stack only when CALL.arg0 < 0 (#807 / #834).
     if recorded_first >= 0 && (
         call_args::mir_is_printlike_callee(clone(callee_name)) ||
-        call_type_vec::is_get_unchecked_callee(clone(callee_name)) ||
-        eq(clone(callee_name), String_from("push")) ||
-        eq(clone(callee_name), String_from("vec_push")) ||
-        eq(clone(callee_name), String_from("push_char")) ||
-        starts_with(clone(callee_name), String_from("push__"))
+        call_type_vec::is_vec_receiver_recording_callee(clone(callee_name))
     ) {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, recorded_first, dest_vt))
     } else if lane_immediate >= 0 && mir_is_simd_lane_immediate_callee(clone(callee_name)) {

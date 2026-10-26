@@ -75,7 +75,7 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
                 // them must reach the hashmap adapter rewrite below, not
                 // String::is_empty (#874).
                 !starts_with(clone(arg_ty), String_from("HashMap")) &&
-                len(call_rewrite_hashmap::hashmap_family_for_type(clone(arg_ty))) == 0 &&
+                call_rewrite_hashmap::hashmap_family_for_type(clone(arg_ty)).len() == 0 &&
                 (
                     ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_REF() ||
                     ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_GC_REF()
@@ -94,11 +94,11 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
     }
     let hashmap_constructor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(rewritten))
-    if len(hashmap_constructor) > 0 {
+    if hashmap_constructor.len() > 0 {
         rewritten = hashmap_constructor
     }
     let hashmap_method = call_rewrite_hashmap::mir_rewrite_hashmap_method(ctx, clone(rewritten), first_arg_idx)
-    if len(hashmap_method) > 0 {
+    if hashmap_method.len() > 0 {
         rewritten = hashmap_method
     }
     if eq(clone(rewritten), "to_string") {
@@ -114,7 +114,11 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     // i32 (#726 seek / io_copy / io_backward_compat).
     // Two-arg calls often skip staging (child_count == 2); emit the
     // extend immediately in that case, matching vec_push_i64.
-    if !push_i64_needs_extend && second_arg_idx >= 0 {
+    // The vec push rewrite emits the widen itself for an unstaged call, so a
+    // push callee must not also take the name/spine trailing-arg widen (it
+    // would push a second i64_extend_i32 and break the operand stack).
+    if !push_i64_needs_extend && second_arg_idx >= 0 &&
+    !call_rewrite_vec::is_vec_push_callee(clone(rewritten)) {
         if ctx_api_local_types::ctx_local_vt(ctx, second_arg_idx) == value_types::VT_I32() {
             // Prefer spine param type; fall back to historic trailing-arg names.
             if call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(rewritten), 1) || callee_needs_i64_trailing_arg(clone(rewritten)) {
@@ -179,6 +183,9 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
 
 fn callee_needs_i64_trailing_arg(callee_name: String) -> bool {
     if ends_with(clone(callee_name), String_from("assert_eq_i64")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("seek_to")) {
         return true
     }
     if eq(clone(callee_name), String_from("seek")) {

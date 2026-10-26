@@ -1,6 +1,8 @@
 use mir::lower::ctx_api_emit
 use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_aggregate
 use mir::lower::core_expr_shape_calls
+use mir::lower::core_expr_shape_ops
 use mir::inst_local_get
 use mir::lower::method
 
@@ -10,7 +12,7 @@ fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
         return 0 - 1
     }
     let receiver_expr_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
-    let receiver_expr = get_unchecked(exprs, receiver_expr_index)
+    let receiver_expr = exprs.get_unchecked(receiver_expr_index)
     let receiver_is_composed = core_expr_shape_calls::mir_core_expr_is_method_call(receiver_expr) ||
     core_expr_shape_calls::mir_core_expr_is_call(receiver_expr)
     let receiver_idx = lower_core_expr(ctx, exprs, receiver_expr_index)
@@ -19,27 +21,74 @@ fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(receiver_idx))
     }
     let callee_name = method::mir_initial_method_callee(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), receiver_idx)
-    let first_method_arg_idx = lower_core_method_first_arg(ctx, exprs, expr, child_count)
-    method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, core_expr_shape_accessors::mir_core_expr_span_start(expr)), child_count, receiver_idx)
+    let method_arg_indices = lower_core_method_arg_indices(ctx, exprs, expr, child_count)
+    let first_method_arg_idx = method_arg_indices.get_unchecked(0)
+    let value_method_arg_idx = method_arg_indices.get_unchecked(1)
+    let resolved_callee = method::mir_resolve_method_callee(
+        ctx,
+        callee_name,
+        first_method_arg_idx,
+        core_expr_shape_accessors::mir_core_expr_span_start(expr)
+    )
+    method::mir_emit_method_call(ctx, resolved_callee, child_count, receiver_idx, value_method_arg_idx)
 }
 
-fn lower_core_method_first_arg(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
+// Returns [first argument, trailing value argument] locals (-1 when absent).
+// The vec push rewrite needs the trailing value to widen an i32 literal for
+// Vec<i64> receivers (#917), mirroring the direct-call path.
+fn lower_core_method_arg_indices(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> Vec<i32> {
     let mut a = 1
     let mut first_method_arg_idx = 0 - 1
+    let mut last_method_arg_idx = 0 - 1
     while a < child_count {
         let method_arg_expr_index = core_expr_shape_accessors::mir_core_expr_child(expr, a)
-        let method_arg_expr = get_unchecked(exprs, method_arg_expr_index)
+        let method_arg_expr = exprs.get_unchecked(method_arg_expr_index)
         let arg_is_composed = core_expr_shape_calls::mir_core_expr_is_method_call(method_arg_expr) ||
         core_expr_shape_calls::mir_core_expr_is_call(method_arg_expr)
         let method_arg_idx = lower_core_expr(ctx, exprs, method_arg_expr_index)
+        let arg_is_scalar_const = method::mir_method_arg_needs_repush_before_field_access(ctx, method_arg_idx)
         if (arg_is_composed && method_arg_idx >= 0) ||
         method::mir_method_arg_leaves_no_stack(ctx, method_arg_idx) {
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
+        }
+        // See body_method: a following field-access argument materializes
+        // this literal ahead of the base load (#807), dropping it from the
+        // call's operand stack. Reload it so the call keeps every operand.
+        if arg_is_scalar_const && a + 1 < child_count &&
+        mir_core_expr_leads_with_field_access(
+            exprs,
+            exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, a + 1))
+        ) {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(method_arg_idx))
         }
         if a == 1 {
             first_method_arg_idx = method_arg_idx
         }
+        last_method_arg_idx = method_arg_idx
         a = a + 1
     }
-    first_method_arg_idx
+    let indices = Vec::new<i32>()
+    indices.push(first_method_arg_idx)
+    indices.push(last_method_arg_idx)
+    indices
+}
+
+// Leading-shape mirror of method::mir_expr_leads_with_field_access for the
+// CoreHIR body path. CoreHIR children are indices into the flat expr table.
+fn mir_core_expr_leads_with_field_access(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
+    if core_expr_shape_aggregate::mir_core_expr_is_field_access(expr) {
+        return true
+    }
+    if core_expr_shape_calls::mir_core_expr_is_method_call(expr) ||
+    core_expr_shape_calls::mir_core_expr_is_call(expr) ||
+    core_expr_shape_calls::mir_core_expr_is_try(expr) ||
+    core_expr_shape_ops::mir_core_expr_is_binary(expr) ||
+    core_expr_shape_ops::mir_core_expr_is_unary(expr) ||
+    core_expr_shape_aggregate::mir_core_expr_is_index(expr) {
+        if core_expr_shape_accessors::mir_core_expr_child_count(expr) > 0 {
+            let child_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
+            return mir_core_expr_leads_with_field_access(exprs, exprs.get_unchecked(child_index))
+        }
+    }
+    false
 }
