@@ -94,6 +94,21 @@ helpers are included alongside any other deprecated public entry.
 | `linked_list_to_vec` | `std::collections::linked_list` | `deprecated` | `LinkedList::iter` | `0.1.0` | `1.0.0` | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
 | `get_var` | `std::env` | `deprecated` | `var` | `0.1.0` | `1.0.0` | Alias for env::var. Use var instead. |
 | `exists` | `std::host::fs` | `deprecated` | `is_readable_file` | `0.1.0` | `1.0.0` | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query. |
+| `buf_reader_new` | `std::io` | `deprecated` | `BufReader::new` | `0.1.0` | `1.0.0` | Deprecated compatibility adapter over the legacy [cursor, ...] layout; use BufReader::new. |
+| `buf_reader_read_line` | `std::io` | `deprecated` | `BufReader::read_line` | `0.1.0` | `1.0.0` | Deprecated compatibility line reader over the legacy layout; use BufRead::read_line (Option<String>). |
+| `buf_writer_flush` | `std::io` | `deprecated` | `BufWriter::flush` | `0.1.0` | `1.0.0` | Superseded API |
+| `buf_writer_new` | `std::io` | `deprecated` | `BufWriter::new` | `0.1.0` | `1.0.0` | Deprecated compatibility adapter over the legacy [fd_tag, ...] layout; use BufWriter::new. |
+| `buf_writer_write_str` | `std::io` | `deprecated` | `BufWriter::write_string` | `0.1.0` | `1.0.0` | Deprecated compatibility string writer over the legacy layout; use BufWriter::write_string. |
+| `buffered_reader` | `std::io` | `deprecated` | `BufReader::new` | `0.1.0` | `1.0.0` | Deprecated alias for buf_reader_new; use BufReader::new. |
+| `buffered_writer` | `std::io` | `deprecated` | `BufWriter::new` | `0.1.0` | `1.0.0` | Deprecated alias for buf_writer_new; use BufWriter::new. |
+| `reader_from_bytes` | `std::io` | `deprecated` | `Reader::from_bytes` | `0.1.0` | `1.0.0` | Deprecated legacy constructor for the [cursor, ...] layout; use Reader::from_bytes. Retained while the buf_ adapters still consume that layout. |
+| `write_all` | `std::io` | `deprecated` | `Io::write_all` | `0.1.0` | `1.0.0` | Deprecated convenience wrapper; use Io::write_all. |
+| `write_string` | `std::io` | `deprecated` | `Writer::write_string` | `0.1.0` | `1.0.0` | Deprecated convenience wrapper; use Writer::write_string. |
+| `writer_flush` | `std::io` | `deprecated` | `Writer::flush` | `0.1.0` | `1.0.0` | Deprecated no-op flush over the legacy tagged layout; use Writer::flush. |
+| `writer_new` | `std::io` | `deprecated` | `Writer::new` | `0.1.0` | `1.0.0` | Deprecated legacy tagged-layout constructor; use Writer::new. |
+| `writer_to_bytes` | `std::io` | `deprecated` | `Writer::into_bytes` | `0.1.0` | `1.0.0` | Deprecated legacy image accessor; use Writer::into_bytes. |
+| `writer_write` | `std::io` | `deprecated` | `Writer::write` | `0.1.0` | `1.0.0` | Deprecated legacy tagged write (memory or stdout/stderr tags); use Writer::write for memory handles. |
+| `writer_write_str` | `std::io` | `deprecated` | `Writer::write_string` | `0.1.0` | `1.0.0` | Deprecated legacy tagged string write; use Writer::write_string for memory handles. |
 | `binary_search` | `std::seq` | `deprecated` | `std::seq::binary_search_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
 | `count_eq` | `std::seq` | `deprecated` | `std::core::iter::iter_count_eq_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target) or std::core::iter::iter_count_eq_i32(v, target). |
 | `filter_i32` | `std::seq` | `deprecated` | `std::core::iter::collect_filter_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect() or std::core::iter::collect_filter_i32(v, f). |
@@ -108,4 +123,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `std::core::iter::collect_take_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collect_take_i32(v, n). |
 | `unique` | `std::seq` | `deprecated` | `std::core::iter::iter_unique_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_unique_i32(v). |
 
-Total deprecated public entries: **97**.
+Total deprecated public entries: **112**.

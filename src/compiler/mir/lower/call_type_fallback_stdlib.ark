@@ -43,8 +43,8 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
         return true
     }
-    // Only host fs write_bytes returns Result — not std::io::write_bytes
-    // (Vec,Vec)->i32 memory-buffer helper (#807).
+    // Host fs write_bytes is the only Result-returning write_bytes; the
+    // std::io memory-buffer helper was retired in ADR-085 Phase F (#807).
     if eq(clone(cn), "fs_write_bytes") ||
     eq(clone(cn), "__runtime_abi_fs_write_bytes") ||
     eq(clone(callee_name), String_from("fs::write_bytes")) ||

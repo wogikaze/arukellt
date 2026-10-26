@@ -27,12 +27,28 @@
 //!
 //! # Compatibility surface
 //!
-//! The `reader_*` / `writer_*` / `buf_*` / `copy*` free functions predate the
-//! traits and keep their legacy `Vec<i32>` layout contracts while #693 moves
-//! callers to the newtypes. `stdin` / `stdout` / `stderr` remain host-backed
-//! compatibility functions; their trait handles belong to the `std::host`
-//! stdio work. WASI stdin reading is unavailable, so `stdin()` is empty and
-//! `read_stdin_line()` returns `Ok("")`.
+//! ADR-085 Phase E/F moved the canonical surface to the traits and deleted the
+//! legacy free functions that the newtypes and `Io` fully replace. Two
+//! deprecated `Vec<i32>`-layout families stay callable under the ADR-014
+//! window because their migration is not proven yet:
+//!
+//! - `reader_from_bytes` plus the `buf_*` adapters keep the legacy
+//!   `[cursor, ...]` source layout until the generic-adapter dispatch residual
+//!   (#693) no longer traps for migrated fixtures.
+//! - `writer_new` / `writer_write*` / `writer_flush` / `writer_to_bytes` keep
+//!   the tagged `[fd_tag, ...]` layout because `stdout()` / `stderr()` are not
+//!   typed `Write` handles yet; `std::host::stdio` owns that migration.
+//!
+//! Both families carry `deprecated_by` / `remove_in` and W0009 coverage. The
+//! removed `reader_*` read methods, `copy*`, `new_memory_buffer` / `write_bytes`
+//! / `read_bytes` / `seek_to` / `buffer_position` / `buffer_len` /
+//! `fill_buffer`, and the experimental `file_*` fd lane surface as E0100 with
+//! a replacement hint from `resolver::removed_names`.
+//!
+//! `stdin` / `stdout` / `stderr` / `read_stdin_line` / `print_bytes` remain
+//! host-backed compatibility functions; their trait handles belong to the
+//! `std::host` stdio work. WASI stdin reading is unavailable, so `stdin()` is
+//! empty and `read_stdin_line()` returns `Ok("")`.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 use std::prelude::{byte_at, i32_to_i64, i64_to_i32}
@@ -747,7 +763,11 @@ impl<W: Write> Write for BufWriter<W> {
 // ─── Reader ──────────────────────────────────────────────────────────────────
 /// Creates a Reader over the given byte buffer.
 ///
-/// Reader layout: `[cursor=0, b0, b1, …, bn]`
+/// Deprecated legacy constructor for the `[cursor=0, b0, b1, …, bn]` layout;
+/// use `Reader::from_bytes`. It stays callable while the `buf_*` compatibility
+/// adapters still consume that layout (ADR-085 Phase E, W0009). Deletion
+/// condition: the generic adapter dispatch residual (#693) is fixed and the
+/// `buf_*` fixtures move to `BufReader` / `BufWriter`.
 pub fn reader_from_bytes(data: Vec<i32>) -> Vec<i32> {
     let r: Vec<i32> = Vec::new<i32>()
     push(r, 0)
@@ -758,87 +778,6 @@ pub fn reader_from_bytes(data: Vec<i32>) -> Vec<i32> {
         i = i + 1
     }
     r
-}
-
-/// Returns true when the Reader cursor is at or past the end of available data.
-pub fn reader_eof(r: Vec<i32>) -> bool {
-    let cursor: i32 = get_unchecked(r, 0)
-    let total: i32 = len(r) - 1
-    cursor >= total
-}
-
-/// Reads up to `n` bytes from the Reader, advancing its cursor.
-///
-/// Returns the bytes actually read (fewer than `n` when near EOF).
-pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
-    let cursor: i32 = get_unchecked(r, 0)
-    let total: i32 = len(r) - 1
-    let available: i32 = total - cursor
-    let count: i32 = if n < available {
-        n
-    } else {
-        available
-    }
-    let out: Vec<i32> = Vec::new<i32>()
-    let mut i: i32 = 0
-    while i < count {
-        push(out, get_unchecked(r, 1 + cursor + i))
-        i = i + 1
-    }
-    set(r, 0, cursor + count)
-    Ok(out)
-}
-
-/// Reads exactly `n` bytes; returns `Err` if fewer than `n` bytes remain.
-pub fn reader_read_exact(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
-    let cursor: i32 = get_unchecked(r, 0)
-    let total: i32 = len(r) - 1
-    let available: i32 = total - cursor
-    if available < n {
-        let msg: String = __intrinsic_concat("UnexpectedEof: need ", __intrinsic_i32_to_string(n))
-        let msg2: String = __intrinsic_concat(msg, " have ")
-        Err(IoError::UnexpectedEof(__intrinsic_concat(msg2, __intrinsic_i32_to_string(available))))
-    } else {
-        let out: Vec<i32> = Vec::new<i32>()
-        let mut i: i32 = 0
-        while i < n {
-            push(out, get_unchecked(r, 1 + cursor + i))
-            i = i + 1
-        }
-        set(r, 0, cursor + n)
-        Ok(out)
-    }
-}
-
-/// Reads all remaining bytes from the Reader.
-pub fn reader_read_all(r: Vec<i32>) -> Result<Vec<i32>, IoError> {
-    let cursor: i32 = get_unchecked(r, 0)
-    let total: i32 = len(r) - 1
-    let remaining: i32 = total - cursor
-    reader_read(r, remaining)
-}
-
-/// Reads bytes until a newline (`0x0A`) or EOF, returning the line as a String.
-///
-/// The newline character is consumed but not included in the returned string.
-pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
-    let cursor: i32 = get_unchecked(r, 0)
-    let total: i32 = len(r) - 1
-    let mut line: String = ""
-    let mut pos: i32 = cursor
-    let mut stop: bool = false
-    // Consume through newline (excluded from line) or EOF; leave cursor for the next line.
-    while pos < total && !stop {
-        let b: i32 = get_unchecked(r, 1 + pos)
-        pos = pos + 1
-        if b == 10 {
-            stop = true
-        } else {
-            line = __intrinsic_concat(line, char_to_string(b))
-        }
-    }
-    set(r, 0, pos)
-    Ok(line)
 }
 
 // ─── Standard I/O (stdin / stdout / stderr) ──────────────────────────────────
@@ -889,6 +828,10 @@ pub fn print_bytes(data: Vec<i32>) {
 
 // ─── Writer ──────────────────────────────────────────────────────────────────
 /// Creates an in-memory Writer.
+///
+/// Deprecated legacy tagged-layout constructor; use `Writer::new`. Retained for
+/// the `stdout()` / `stderr()` compatibility path and old callers (ADR-085
+/// Phase E, W0009).
 pub fn writer_new() -> Vec<i32> {
     let w: Vec<i32> = Vec::new<i32>()
     push(w, 0)
@@ -896,6 +839,10 @@ pub fn writer_new() -> Vec<i32> {
 }
 
 /// Writes `data` bytes to the Writer. Returns the number of bytes written.
+///
+/// Deprecated in favour of `Writer::write` for memory handles. The
+/// `stdout()` / `stderr()` tags still need this free function because those
+/// handles are not `Writer` values (ADR-085 Phase E, W0009).
 ///
 /// - Memory writers buffer the bytes.
 /// - stdout/stderr writers emit synchronously via print intrinsics.
@@ -926,6 +873,10 @@ pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, IoError> {
 }
 
 /// Writes a string to the Writer. Returns the number of bytes written.
+///
+/// Deprecated in favour of `Writer::write_string` for memory handles; the
+/// tagged stdout/stderr path has no typed `Write` handle yet (ADR-085 Phase E,
+/// W0009).
 pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
     let tag: i32 = get_unchecked(w, 0)
     let n: i32 = len(s)
@@ -948,6 +899,8 @@ pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
 }
 
 /// Writes all bytes in `data`; returns `()` on success.
+///
+/// Deprecated in favour of `Io::write_all` (ADR-085 Phase E, W0009).
 pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), IoError> {
     match writer_write(w, data) {
         Result::Ok(_) => Ok(()),
@@ -956,6 +909,8 @@ pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), IoError> {
 }
 
 /// Writes a string; returns `()` on success.
+///
+/// Deprecated in favour of `Writer::write_string` (ADR-085 Phase E, W0009).
 pub fn write_string(w: Vec<i32>, s: String) -> Result<(), IoError> {
     match writer_write_str(w, s) {
         Result::Ok(_) => Ok(()),
@@ -965,6 +920,8 @@ pub fn write_string(w: Vec<i32>, s: String) -> Result<(), IoError> {
 
 /// Flushes the Writer.
 ///
+/// Deprecated in favour of `Writer::flush` (ADR-085 Phase E, W0009).
+///
 /// stdout/stderr Writers already emit synchronously, so this is always a no-op.
 /// Memory Writers buffer locally; no underlying fd to flush.
 pub fn writer_flush(w: Vec<i32>) -> Result<(), IoError> {
@@ -972,6 +929,8 @@ pub fn writer_flush(w: Vec<i32>) -> Result<(), IoError> {
 }
 
 /// Returns the buffered bytes of a memory Writer.
+///
+/// Deprecated in favour of `Writer::into_bytes` (ADR-085 Phase E, W0009).
 ///
 /// For stdout/stderr Writers, returns an empty Vec (bytes were already emitted).
 pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
@@ -988,8 +947,17 @@ pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
     out
 }
 
-// ─── Buffered I/O ─────────────────────────────────────────────────────────────
+// ─── Legacy buffered layout compatibility ───────────────────────────────────
+//
+// The `buf_*` entry points below are deprecated compatibility adapters over the
+// legacy `Vec<i32>` layouts (ADR-085 Phase E, W0009). The canonical adapters are
+// the generic `BufReader<R>` / `BufWriter<W>` above. This family stays during
+// the ADR-014 window because migrating its fixtures to the generic adapters
+// currently exposes the generic-adapter dispatch residual tracked by #693.
+
 /// Creates a BufReader wrapping a Reader, with a read-ahead hint of `cap` bytes.
+///
+/// Deprecated in favour of `BufReader::new` (ADR-085 Phase E, W0009).
 ///
 /// BufReader layout: `[cursor=0, buf_cap, b0, b1, …, bn]`
 /// (The cap hint is stored but does not change in-memory behavior.)
@@ -1007,13 +975,18 @@ pub fn buf_reader_new(r: Vec<i32>, cap: i32) -> Vec<i32> {
 }
 
 /// Alias for `buf_reader_new` (issue API name).
+///
+/// Deprecated in favour of `BufReader::new` (ADR-085 Phase E, W0009).
 pub fn buffered_reader(r: Vec<i32>, buf_size: i32) -> Vec<i32> {
     buf_reader_new(r, buf_size)
 }
 
 /// Reads a line from a BufReader.
 ///
-/// BufReader bytes start at index 2. Newline is consumed but not included.
+/// Deprecated in favour of `BufRead::read_line` (ADR-085 Phase E, W0009).
+///
+/// BufReader bytes start at index 2. Newline is consumed but not included;
+/// EOF returns an empty string here, unlike the `Option::None` of the method.
 pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
     let cursor: i32 = get_unchecked(br, 0)
     let total: i32 = len(br) - 2
@@ -1036,6 +1009,8 @@ pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
 
 /// Creates a BufWriter wrapping a Writer, with a flush threshold of `cap` bytes.
 ///
+/// Deprecated in favour of `BufWriter::new` (ADR-085 Phase E, W0009).
+///
 /// BufWriter layout: `[fd_tag, buf_cap, b0, b1, …, bn]`
 /// Auto-flushes when the buffer reaches `cap`.
 pub fn buf_writer_new(w: Vec<i32>, cap: i32) -> Vec<i32> {
@@ -1047,11 +1022,15 @@ pub fn buf_writer_new(w: Vec<i32>, cap: i32) -> Vec<i32> {
 }
 
 /// Alias for `buf_writer_new` (issue API name).
+///
+/// Deprecated in favour of `BufWriter::new` (ADR-085 Phase E, W0009).
 pub fn buffered_writer(w: Vec<i32>, buf_size: i32) -> Vec<i32> {
     buf_writer_new(w, buf_size)
 }
 
 /// Writes a string to a BufWriter.
+///
+/// Deprecated in favour of `BufWriter::write_string` (ADR-085 Phase E, W0009).
 ///
 /// Auto-flushes to the underlying output when the buffer reaches buf_cap.
 pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
@@ -1070,6 +1049,8 @@ pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
 }
 
 /// Flushes the BufWriter: emits all buffered bytes to the underlying output.
+///
+/// Deprecated in favour of `BufWriter::flush` (ADR-085 Phase E, W0009).
 ///
 /// - stdout/stderr: prints buffered content, then clears the buffer.
 /// - memory: clears the buffer (bytes are considered consumed by the caller).
@@ -1105,182 +1086,4 @@ pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
         push(bw, cap)
     }
     Ok(())
-}
-
-// ─── Copy utility ─────────────────────────────────────────────────────────────
-/// Copies all remaining bytes from a Reader layout to a Writer layout.
-///
-/// Compatibility surface: `Io::copy` owns the generic algorithm; this wrapper
-/// keeps the legacy `Vec<i32>` layout and `i32` count until Phase E.
-pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, IoError> {
-    let cursor: i32 = get_unchecked(from, 0)
-    let total: i32 = len(from) - 1
-    let remaining: i32 = total - cursor
-    let r: Result<Vec<i32>, IoError> = reader_read(from, remaining)
-    match r {
-        Result::Ok(data) => writer_write(to, data),
-        Result::Err(e) => Err(e),
-    }
-}
-
-/// Alias for `copy_bytes` (issue API name).
-pub fn copy(r: Vec<i32>, w: Vec<i32>) -> Result<i32, IoError> {
-    copy_bytes(r, w)
-}
-
-// ─── Legacy memory-buffer helpers (compatibility) ──────────────────────────
-//
-// These free functions keep the `Vec<i32>` layout contracts that predate the
-// newtypes. They are independent of the trait impls above: Phase E converts
-// them into wrappers and deprecates them under #693 / ADR-014.
-
-/// Creates a new memory buffer for the legacy trait helpers.
-///
-/// The buffer uses Reader layout `[cursor=0]` so it can be used as both a
-/// legacy Read source (after writing bytes) and a Write destination.
-pub fn new_memory_buffer() -> Vec<i32> {
-    let buf: Vec<i32> = Vec::new<i32>()
-    push(buf, 0)
-    buf
-}
-
-/// Appends byte values to a legacy memory buffer and returns the count.
-///
-/// `buf` must come from `new_memory_buffer()`.
-pub fn write_bytes(buf: Vec<i32>, data: Vec<i32>) -> i32 {
-    let count: i32 = len(data)
-    let mut i: i32 = 0
-    while i < count {
-        push(buf, get_unchecked(data, i) & BYTE_MASK)
-        i = i + 1
-    }
-    count
-}
-
-/// Reads up to `n` bytes from a legacy memory buffer.
-///
-/// A negative `n` reads nothing and leaves the cursor unchanged, matching the
-/// pre-newtype helper.
-pub fn read_bytes(buf: Vec<i32>, n: i32) -> Vec<i32> {
-    let cursor: i32 = get_unchecked(buf, 0)
-    let total: i32 = len(buf) - 1
-    let available: i32 = total - cursor
-    let wanted: i32 = if n < available { n } else { available }
-    let count: i32 = if wanted < 0 { 0 } else { wanted }
-    let out: Vec<i32> = Vec::new<i32>()
-    let mut i: i32 = 0
-    while i < count {
-        push(out, get_unchecked(buf, 1 + cursor + i))
-        i = i + 1
-    }
-    set(buf, 0, cursor + count)
-    out
-}
-
-/// Seeks to the absolute position `pos`, clamped to `[0, len]`.
-///
-/// The clamp is the legacy `seek_to` contract; `Seek::seek` does not clamp.
-pub fn seek_to(buf: Vec<i32>, pos: i64) -> i64 {
-    let total: i32 = len(buf) - 1
-    let requested: i32 = i64_to_i32(pos)
-    let clamped: i32 = if requested < 0 {
-        0
-    } else if requested > total {
-        total
-    } else {
-        requested
-    }
-    set(buf, 0, clamped)
-    i32_to_i64(clamped)
-}
-
-/// Returns the current cursor position of a legacy memory buffer.
-///
-/// `position` was renamed because the ADR-085 `Seek::position` method occupies
-/// the `std::io` function namespace. The compatibility helper keeps the legacy
-/// `Vec<i32>` contract; callers move to `Reader::position()` when they adopt
-/// the newtype API.
-pub fn buffer_position(buf: Vec<i32>) -> i64 {
-    i32_to_i64(get_unchecked(buf, 0))
-}
-
-/// Returns the total number of bytes available in a legacy memory buffer.
-pub fn buffer_len(buf: Vec<i32>) -> i64 {
-    let total: i32 = len(buf) - 1
-    i32_to_i64(total)
-}
-
-/// Returns the unread bytes of a legacy buffered source without advancing it.
-pub fn fill_buffer(buf: Vec<i32>) -> Vec<i32> {
-    let cursor: i32 = get_unchecked(buf, 0)
-    let total: i32 = len(buf) - 1
-    let out: Vec<i32> = Vec::new<i32>()
-    let mut i: i32 = cursor
-    while i < total {
-        push(out, get_unchecked(buf, 1 + i))
-        i = i + 1
-    }
-    out
-}
-
-/// Copies all remaining bytes between legacy layout buffers.
-///
-/// The monomorphic form predates #693 Phase B. `Io::copy` owns the generic
-/// algorithm; this helper stays as legacy scaffolding until Phase E.
-pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
-    let mut total: i32 = 0
-    let mut done: bool = false
-    while !done {
-        match reader_read(from, COPY_CHUNK_BYTES) {
-            Result::Ok(chunk) => {
-                if len(chunk) == 0 {
-                    done = true
-                } else {
-                    total = total + write_bytes(to, chunk)
-                }
-            },
-            Result::Err(_) => done = true,
-        }
-    }
-    total
-}
-
-// ─── Legacy FileHandle compatibility (#693) ────────────────────────────────
-//
-// `FileHandle` is the experimental fd wrapper from the partial #693 work. It
-// keeps the legacy Vec layout until Phase D's `std::host::fs::File` replaces
-// it. The fd must come from the `std::host::fs` fd helpers.
-
-/// Creates a legacy FileHandle from a raw file descriptor.
-pub fn file_from_fd(fd: i32) -> Vec<i32> {
-    let handle: Vec<i32> = Vec::new<i32>()
-    push(handle, fd)
-    push(handle, 0)
-    handle
-}
-
-/// Reads up to `len(buf)` bytes from a legacy FileHandle into `buf`.
-///
-/// Returns the number of bytes read (0 at EOF).
-pub fn file_read(handle: Vec<i32>, buf: Vec<i32>) -> i32 {
-    match reader_read(handle, len(buf)) {
-        Result::Ok(chunk) => {
-            let count: i32 = len(chunk)
-            let mut i: i32 = 0
-            while i < count {
-                set(buf, i, get_unchecked(chunk, i))
-                i = i + 1
-            }
-            count
-        },
-        Result::Err(_) => 0,
-    }
-}
-
-/// Writes `buf` bytes to a legacy FileHandle and returns the accepted count.
-pub fn file_write(handle: Vec<i32>, buf: Vec<i32>) -> i32 {
-    match writer_write(handle, buf) {
-        Result::Ok(count) => count,
-        Result::Err(_) => 0,
-    }
 }

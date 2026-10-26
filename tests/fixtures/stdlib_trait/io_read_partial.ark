@@ -2,18 +2,20 @@ use std::io
 use std::test
 
 fn main() {
-    let buf = io::new_memory_buffer()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 10)
     push(data, 20)
     push(data, 30)
-
-    let _w = io::write_bytes(buf, data)
+    let r: io::Reader = io::Reader::from_bytes(data)
 
     // Request 10 bytes but only 3 available
-    let read = io::read_bytes(buf, 10)
-    test::assert_eq_i32(len(read), 3)
-    test::assert_eq_i32(get_unchecked(read, 0), 10)
-    test::assert_eq_i32(get_unchecked(read, 1), 20)
-    test::assert_eq_i32(get_unchecked(read, 2), 30)
+    match r.read(10) {
+        Result::Ok(read) => {
+            test::assert_eq_i32(len(read), 3)
+            test::assert_eq_i32(get_unchecked(read, 0), 10)
+            test::assert_eq_i32(get_unchecked(read, 1), 20)
+            test::assert_eq_i32(get_unchecked(read, 2), 30)
+        },
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

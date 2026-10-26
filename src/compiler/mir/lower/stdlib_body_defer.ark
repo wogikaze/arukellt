@@ -38,14 +38,11 @@ fn mir_is_seq_iterator_compatibility_entry(qualified_name: String) -> bool {
 /// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
 /// using the first parameter type when needed.
 fn mir_should_defer_stdlib_body_with_param0(decl_name: String, param0: CoreHirParam) -> bool {
-    // std::io::write_bytes(Vec,Vec)->i32 must lower (Write dispatch).
-    // std::host::fs::write_bytes(String,Vec)->Result stays deferred and
-    // reaches the fs intrinsic via fs:: / __intrinsic_ aliases (#807).
+    // std::host::fs::write_bytes(String, Vec)->Result stays deferred so the fs
+    // intrinsic lowering owns the body; the retired std::io memory-buffer
+    // write_bytes was the only non-path overload (#807).
     if eq(clone(decl_name), String_from("write_bytes")) {
-        let p0 = param::param_type_name(param0)
-        let is_fs_path = eq(clone(p0), String_from("String")) ||
-        eq(clone(p0), String_from("string"))
-        return is_fs_path
+        return true
     }
     // Bare `join` core_op is string.join(Vec,String). path::join(String,String)
     // must lower; otherwise call sites become drop+unreachable (#807).
