@@ -9,7 +9,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 315 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 63 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 318 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 97 | Superseded — see migration guidance. |
 
@@ -204,26 +204,6 @@
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `HashMap_String_String_contains_key` | `(HashMap<String, String>, String) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_String_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_String_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_String_len` | `(HashMap<String, String>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_i32_contains_key` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_String_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_String_contains_key` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_String_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_String_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_String_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | ~~`any_String`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
 | ~~`any_f64`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<f64>, fn(f64) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_f64` | - |
 | ~~`any_i32`~~ ⚠️ Deprecated → `VecIter::any` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |

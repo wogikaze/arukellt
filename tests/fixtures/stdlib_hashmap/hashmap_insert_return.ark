@@ -1,5 +1,4 @@
 use std::collections::hash
-use std::collections::hash_map
 use std::test
 
 fn assert_none(v: Option<i32>) {
@@ -23,8 +22,8 @@ fn main() {
     assert_some(hash::hashmap_insert(raw, 7, 700), 70)
     assert_some(hash::hashmap_get_option(raw, 7), 700)
 
-    let m = HashMap_i32_i32_new()
-    assert_none(hash_map::hashmap_i32_i32_insert(m, 1, 10))
-    assert_some(hash_map::hashmap_i32_i32_insert(m, 1, 11), 10)
-    assert_some(hash_map::hashmap_i32_i32_get(m, 1), 11)
+    let m = HashMap::new<i32, i32>()
+    assert_none(m.insert(1, 10))
+    assert_some(m.insert(1, 11), 10)
+    assert_some(m.get(1), 11)
 }

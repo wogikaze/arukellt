@@ -100,11 +100,10 @@ fn mir_callee_param_mvt(ctx: LowerCtx, callee_name: String, param_idx: i32) -> M
         }
     }
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
-        // Builtin spellings (HashMap_i32_fn_insert and friends) are rewritten
-        // to their stdlib adapter callee at emit time, so the spine only knows
-        // the adapter's signature.  Resolve the same alias here or bare fn
-        // args lose their fn-typed parameter slot and lower to 0-param calls
-        // (#874).
+        // The non-public __hm_* storage spellings are rewritten to a stdlib
+        // function at emit time, so the spine only knows the rewritten
+        // signature. Resolve the same alias here or bare fn args lose their
+        // fn-typed parameter slot and lower to 0-param calls (#874).
         let alias = hash_aliases::hashmap_builtin_alias(clone(callee_name))
         if !eq(clone(alias), clone(callee_name)) {
             param_mvt = spine_lookup::function_param_mvt(m, alias, param_idx)

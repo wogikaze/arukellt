@@ -156,25 +156,19 @@ the selected representation is linear memory.
 
 ### Generic dispatch
 
-The compiler registers generic signatures for:
-
-- `HashMap_new<K,V>() -> HashMap<K,V>`
-- `HashMap_insert<K,V>(m, key: K, value: V) -> Option<V>`
-- `HashMap_get<K,V>(m, key: K) -> Option<V>`
-- `HashMap_contains_key<K,V>(m, key: K) -> bool`
-- `HashMap_remove<K,V>(m, key: K) -> Option<V>`
-- `HashMap_len<K,V>(m) -> i32`
-- `HashMap_is_empty<K,V>(m) -> bool`
-
-Each monomorphized instance is selected from the source receiver type and
-is aliased by the emitter to the appropriate concrete adapter. The generated
-name is an implementation detail, not a public API.
+`impl HashMap<K,V>` in `std::collections::hash_map` is the only public
+spelling: `HashMap::new<K,V>()` plus receiver methods. The `i32`->`i32`
+pair lowers directly to the flat store functions in this module
+(`hashmap_new`, `hashmap_insert`, `hashmap_get_option`,
+`hashmap_contains`, `hashmap_remove`, `hashmap_size`, `hashmap_keys`,
+`hashmap_values`, `hashmap_entry_pairs`); the other supported pairs use
+the typed `hash_map::hashmap_*` adapters. No `HashMap_*` free builtins
+remain.
 
 ### Compatibility implementation
 
-Type-suffixed wrappers remain during the ADR-014 migration window. The
-functions in this module operate on `Vec<i32>` and serve as the raw
-compatibility implementation layer.
+The functions in this module operate on `Vec<i32>` and serve as the raw
+implementation layer for the `i32`->`i32` family.
 
 ### Hash policy
 

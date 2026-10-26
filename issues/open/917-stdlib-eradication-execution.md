@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-11
-Updated: 2026-10-26
+Updated: 2026-10-27
 ID: 917
 Track: stdlib-api
 Depends on: "709"
@@ -23,13 +23,13 @@ This issue owns the **execution**: actually deleting, deprecating, or
 replacing every public free / `prelude_wrapper` / monomorphic helper
 classified there, in dependency-safe waves.
 
-## Current state (2026-10-27)
+## Current state (2026-10-26)
 
-- `docs/data/stdlib-api-eradication.toml` classifies both
+- `docs/data/stdlib-api-eradication.toml` now classifies both
   `std/manifest.toml` `[[functions]]` entries and top-level `pub fn`
-  declarations under `std/**/*.ark`: 814 manifest functions (813 public) +
-  403 unregistered declarations = **1216** public symbols
-  (`must delete` 119, `associated-or-method` 1097, `intrinsic-only` 1).
+  declarations under `std/**/*.ark`: 816 manifest functions (815 public) +
+  413 unregistered declarations = **1228** public symbols
+  (`must delete` 122, `associated-or-method` 1106, `intrinsic-only` 1).
 - `scripts/check/check-stdlib-eradication.py` enforces the dual surface:
   no unclassified manifest entry or std declaration, no manifest entry
   without a source declaration, no dead rule, every public class has an owner.
@@ -103,20 +103,16 @@ classified there, in dependency-safe waves.
   `docs check` 6/6; `check-stdlib-eradication` and `check-compat-orphans`
   clean; `verify lane` PASS; `check-cross-backend-parity.py` 4/4 new run
   fixtures parity (wasm32-gc component vs wasm32 linear).
-- **Residuals**: the 31 Wave-2 deletions, the 20 `HashMap_*` builtins, the
-  1124 `associated-or-method` replacements, the `i8_to_i32` deferral, the 3
+- **Residuals**: the 31 Wave-2 deletions, the 1097
+  `associated-or-method` replacements, the `i8_to_i32` deferral, the 3
   deferred intrinsic bodies (`i32_to_u16`, `i32_to_i16`, `u64_to_u32`), the
   i64/f64/String iterator consumer lanes, and the compiler/std migration of
   the ~9k vec intrinsic-compat call sites.
-- Provisional decisions (21): the 20 `HashMap_*` builtins are deferred —
-  they are compiler lowering targets (`resolver::builtins_hash`,
-  `typechecker::builtins_hash`, `mir::lower::call_type_hash`,
-  `wasm::hash_aliases`, `native_c::core_call`) with the adapter layer in
-  `std/collections/hash_map.ark`, so a manifest-only deletion would merely
-  hide still-callable builtins. `filter_i32` is deferred with the
-  deprecated `std::seq::filter_i32` family (W0009 qualified coverage and the
-  ADR-014 window). Both decisions are recorded in the eradication TOML and
-  the migration guide.
+- Provisional decision (1): `filter_i32` is deferred with the deprecated
+  `std::seq::filter_i32` family (W0009 qualified coverage and the ADR-014
+  window). The 20 `HashMap_*` builtins were retired on 2026-10-27
+  (`wave/917-hashmap`); their compiler registrations and the i32→i32
+  adapters were removed together, so no still-callable builtin remains.
 
 ### Landed slice (wave/917-1124)
 
@@ -146,53 +142,36 @@ classified there, in dependency-safe waves.
   the 20 `std::core::raw` representation bridges (need a RawArray/RawString
   namespace surface). No stable manifest entry was touched.
 
-### Landed slice (wave/917-1106, 2026-10-27)
+### Landed slice (wave/917-hashmap, 2026-10-27)
 
-- **WIT world builder conversion (ADR-044/ADR-046)**: retired 10 public free
-  functions — the 9 `std::wit::world` builders (`world_new`, `world_import`,
-  `world_export`, `world_name`, `world_exports_len`, `interface_new`,
-  `interface_add_func`, `wit_func_new`, `wit_param_new`) and
-  `std::wit::types::wit_param`, which existed only as the forwarder behind
-  `wit_param_new`.
-- **Replacement surface**: associated functions `World::new`,
-  `Interface::new`, `WitFunc::new`, `WitParam::new`; receiver methods
-  `w.add_import(iface)`, `w.add_export(iface)`, `w.name()`,
-  `w.exports_len()`, `iface.add_func(func)`. `import` and `export` are
-  keywords, so the mutators are spelled `add_import` / `add_export`.
-- **Lifecycle**: all 10 symbols were unregistered source declarations with no
-  `std/manifest.toml` entry, so neither the ADR-014 window nor the ADR-087
-  0.x exception applied. W0009 does not cover unregistered declarations, and
-  E0100 is a bare-prelude removal hint; every removed call was qualified, so
-  no W0009/E0100 table entry was added. Migration and changelog rows record
-  the removal instead.
-- **Fixtures**: migrated `stdlib_wit/world_build.ark` and
-  `stdlib_wit/wit_print.ark` to the method surface and added
-  `stdlib_wit/world_methods_wasm32.ark` (with `.flags`, `.expected`) for the
-  linear target; `run:` count 1835 -> 1836.
-- **Scorecard delta**: 1226 -> **1216** public symbols (`associated-or-method`
-  1107 -> **1097**; `must delete` 119 and `intrinsic-only` 1 unchanged);
-  `pub fn` declarations 1397 -> **1387**; unregistered 413 -> **403**;
-  manifest public entries 813 and `prelude_wrapper` 96 unchanged.
-- **Deferred with blocker**: `std::wit::ast` (23 declarations) stays
-  `associated-or-method`. Methods on the recursive `WitNode` enum that bind
-  variant payloads (`child_count`, `child_at`, `field_name_at`, …) emit
-  invalid core Wasm under wasm32-gc: `wasm-tools validate` reports
-  `type mismatch: expected (ref null $type), found (ref null $type)` because
-  the method receiver is `ref.cast` to the wrong variant struct type. The
-  free-function form of the same bodies validates, so this is a
-  method-receiver/monomorphization gap, not a parser defect. `import_metadata`
-  has to be an associated function for the same reason. Do not convert the
-  AST accessors until that compiler gap is fixed.
-- **Incidental compiler gap (worked around)**: std-internal module-qualified
-  associated calls to a new impl function (`types::WitParam::new`) also lower
-  to a deferred-body `unreachable` stub under s2. The two std call sites
-  (`std/wit/ast.ark`, `std/wit/parser.ark`) use the unqualified
-  `WitParam::new` spelling; `wit_ast_parse.ark` then compiles and validates.
-  This belongs to the same associated-call lowering family as the `WitNode`
-  deferral and should be fixed before the rest of `std::wit` is widened.
-- **Residual in this family**: `std::wit::printer::print_wit`, the remaining
-  `std::wit::types` frees, and `std::wit::scan` / `std::wit::names` stay in
-  the `std::wit/component frees` rule.
+- Retired the 20 `provisional` monomorphic `HashMap_*` builtins and the
+  compiler registrations that kept them callable: `resolver::builtins_hash`
+  (the 60-name typed list), `typechecker::builtins_hash` (return types),
+  `mir::lower::call_type_hash`, `wasm::hash_aliases`,
+  `wasm::sections_types_gc_override`, `mir::lower::signature_registry_builtin`,
+  `mir::lower::ctx_fn_return_vt`, `wasm::intrinsic_hashmap_str`, the native-c
+  callee map, and the loader's legacy-spelling auto-load rules.
+- Retired the 10 `std/collections/hash_map.ark` i32→i32 adapters in the same
+  change. `HashMap<i32, i32>` now lowers directly to the flat
+  `std::collections::hash` store (`hashmap_new` / `hashmap_insert` /
+  `hashmap_get_option` / `hashmap_contains` / `hashmap_remove` /
+  `hashmap_size` / `hashmap_is_empty` / `hashmap_keys` / `hashmap_values` /
+  `hashmap_entry_pairs`). The other supported pairs keep their typed
+  `hash_map::` adapters; they consume only public source functions now.
+- Added the E0100 removed-name hint (prefix `HashMap_`) and migrated fixtures,
+  cookbook/migration docs, and the changelog. All 20 fixture call sites now
+  use the methods.
+- Scorecard delta: 1226 → **1196** public symbols (`must delete` 119 → 99,
+  `associated-or-method` 1107 → 1097); manifest public entries 813 → 793;
+  1397 → 1387 `pub fn` declarations; 413 → 403 unregistered.
+- Verification: s2 rebuilt after the final compiler edits; `verify fixtures`
+  1835/1835 compile+validate PASS; both-target (wasm32-gc / wasm32) parity for
+  the 6 pair families, `hashmap_insert_return`, `hashmap_entries_values`, the
+  two typed i32→i32 fixtures, and the renamed `collections/hashmap_*_method`
+  fixtures; `docs check` 6/6, `check-stdlib-eradication`,
+  `check-compat-orphans`, and `selfhost fixpoint` (s2 == s3 at
+  `3617a54e…`; the pin-built stage-2 was one generation behind, so the
+  self-built stage-3 was adopted as stage-2 for the final check).
 
 ## Required work
 
@@ -210,7 +189,10 @@ classified there, in dependency-safe waves.
         converted to `deprecated` with W0009 + migration + changelog
         (ADR-087); 3 stale non-callable entries retired. The physical
         deletion of the deprecated set is Wave 2. Residual: `i8_to_i32`
-        deferral, 20 `HashMap_*` builtins (compiler retirement).
+        deferral.
+      - Landed 2026-10-27 (`wave/917-hashmap`): the 20 `HashMap_*` builtins
+        and the i32→i32 adapters were retired; the compiler registrations
+        and fixtures migrated to `HashMap<K, V>` methods.
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
       #702, #703, #708, #710, and the future Test / IO / collection
@@ -222,9 +204,6 @@ classified there, in dependency-safe waves.
       - Landed 2026-10-26 (`wave/917-stable64`): 31 seq/combinator frees
         deprecated (Wave 1) with W0009 + iterator/Vec method replacements;
         deletion is Wave 2.
-      - Landed 2026-10-27 (`wave/917-1106`): 10 `std::wit` world builder
-        frees retired after the `World` / `Interface` / `WitFunc` /
-        `WitParam` method surface. 1097 associated-or-method symbols remain.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

@@ -1,9 +1,11 @@
 use mir::lower::ctx_api_local_types
 use mir::mono_names
 
-// HashMap's source-level generic methods are semantic shells. Lower each
-// supported pair to the existing typed adapter so GC and linear-memory targets
-// share the same operation and Option/bool result contract.
+// HashMap's source-level generic methods are semantic shells. The i32->i32
+// pair is the flat Vec<i32> store in std::collections::hash, so its methods
+// lower directly to those implementation functions. Every other supported
+// pair keeps a typed hash_map::/hash_fn::/hash_str_fn:: adapter so GC and
+// linear-memory targets share one operation and Option/bool result contract.
 use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
 use std::text
 fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
@@ -14,7 +16,7 @@ fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
         return String_new()
     }
     if hashmap_constructor_matches(clone(callee_name), "i32", "i32") {
-        return String_from("hash_map::hashmap_i32_i32_new")
+        return String_from("hashmap_new")
     }
     if hashmap_constructor_matches(clone(callee_name), "String", "i32") {
         return String_from("hash_map::hashmap_str_i32_new")
@@ -49,23 +51,58 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
     if len(method) == 0 {
         return String_new()
     }
-    if eq(clone(method), String_from("contains_key")) {
-        return text::concat(clone(family), String_from("_contains"))
+    hashmap_family_method_target(clone(family), clone(method))
+}
+
+// Method name -> implementation spelling for one pair family. The i32->i32
+// family is the only one whose implementation names do not follow
+// `<family>_<method>` (get -> hashmap_get_option, len -> hashmap_size,
+// entries -> hashmap_entry_pairs), so it owns a table.
+fn hashmap_i32_i32_method_target(method: String) -> String {
+    if eq(clone(method), String_from("insert")) {
+        return String_from("hashmap_insert")
     }
-    if eq(clone(method), String_from("insert")) ||
-    eq(clone(method), String_from("get")) ||
-    eq(clone(method), String_from("remove")) ||
-    eq(clone(method), String_from("len")) ||
-    eq(clone(method), String_from("keys")) ||
-    eq(clone(method), String_from("values")) ||
-    eq(clone(method), String_from("entries")) ||
-    eq(clone(method), String_from("is_empty")) {
-        return text::concat(clone(family), text::concat(String_from("_"), method))
+    if eq(clone(method), String_from("get")) {
+        return String_from("hashmap_get_option")
+    }
+    if eq(clone(method), String_from("contains_key")) {
+        return String_from("hashmap_contains")
+    }
+    if eq(clone(method), String_from("remove")) {
+        return String_from("hashmap_remove")
+    }
+    if eq(clone(method), String_from("len")) {
+        return String_from("hashmap_size")
+    }
+    if eq(clone(method), String_from("is_empty")) {
+        return String_from("hashmap_is_empty")
+    }
+    if eq(clone(method), String_from("keys")) {
+        return String_from("hashmap_keys")
+    }
+    if eq(clone(method), String_from("values")) {
+        return String_from("hashmap_values")
+    }
+    if eq(clone(method), String_from("entries")) {
+        return String_from("hashmap_entry_pairs")
     }
     String_new()
 }
 
+fn hashmap_family_method_target(family: String, method: String) -> String {
+    if eq(clone(family), String_from("hash::ii")) {
+        return hashmap_i32_i32_method_target(method)
+    }
+    if eq(clone(method), String_from("contains_key")) {
+        return text::concat(clone(family), String_from("_contains"))
+    }
+    text::concat(clone(family), text::concat(String_from("_"), method))
+}
+
 fn mir_hashmap_target_is_adapter(callee_name: String) -> bool {
+    // Qualified adapter targets whose short name would otherwise be run
+    // through mono target resolution. The i32->i32 direct targets use the
+    // bare hashmap_* emit names and resolve like the old builtin aliases.
     starts_with(clone(callee_name), String_from("hash_map::hashmap_")) ||
     starts_with(clone(callee_name), String_from("hash_fn::hashmap_")) ||
     starts_with(clone(callee_name), String_from("hash_str_fn::hashmap_"))
@@ -139,7 +176,7 @@ fn hashmap_family_for_type(type_name: String) -> String {
     let normalized = hashmap_pair_alias_for_type_name(type_name)
     if eq(clone(normalized), String_from("hashmap:i32i32")) ||
     eq(clone(normalized), String_from("HashMap_i32_i32")) {
-        return String_from("hash_map::hashmap_i32_i32")
+        return String_from("hash::ii")
     }
     if eq(clone(normalized), String_from("hashmap:si32")) ||
     eq(clone(normalized), String_from("HashMap_String_i32")) {
@@ -252,7 +289,7 @@ fn hashmap_angle_val_tag(seg: String) -> String {
 
 fn hashmap_family_for_callee(callee_name: String) -> String {
     if ends_with(clone(callee_name), String_from("__i32__i32")) {
-        return String_from("hash_map::hashmap_i32_i32")
+        return String_from("hash::ii")
     }
     if ends_with(clone(callee_name), String_from("__String__i32")) {
         return String_from("hash_map::hashmap_str_i32")

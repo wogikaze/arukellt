@@ -1,18 +1,18 @@
 use std::test
 
 fn main() {
-    let m = HashMap_i32_i32_new()
-    HashMap_i32_i32_insert(m, 1, 100)
-    HashMap_i32_i32_insert(m, 2, 200)
-    HashMap_i32_i32_insert(m, 3, 300)
-    match HashMap_i32_i32_get(m, 2) {
+    let m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 100)
+    let _ = m.insert(2, 200)
+    let _ = m.insert(3, 300)
+    match m.get(2) {
         Option::Some(v) => test::assert_eq_i32(v, 200),
         None => panic("expected Some(200)"),
     }
-    test::assert_eq_i32(HashMap_i32_i32_len(m), 3)
-    test::assert_true(HashMap_i32_i32_contains_key(m, 1))
-    test::assert_false(HashMap_i32_i32_contains_key(m, 99))
-    match HashMap_i32_i32_get(m, 99) {
+    test::assert_eq_i32(m.len(), 3)
+    test::assert_true(m.contains_key(1))
+    test::assert_false(m.contains_key(99))
+    match m.get(99) {
         Option::Some(v) => panic("expected None for key 99"),
         None => {
         },

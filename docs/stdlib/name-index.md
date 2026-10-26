@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 716
+- **Canonical names:** 696
 - **Historical/deprecated names:** 97
-- **Total entries:** 813
+- **Total entries:** 793
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -260,36 +260,16 @@ Current public API names, sorted alphabetically.
 | `hashmap_extend` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
-| `HashMap_i32_i32_contains_key` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_i32_get` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_i32_insert` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_i32_len` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_i32_new` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_String_contains_key` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_String_get` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_String_insert` | `prelude` | `provisional` | Collections |
-| `HashMap_i32_String_len` | `prelude` | `provisional` | Collections |
 | `hashmap_insert` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_new` | `std::collections::hash` | `stable` | Collections |
-| `HashMap_new_i32_String` | `prelude` | `provisional` | Collections |
-| `HashMap_new_String_i32` | `prelude` | `provisional` | Collections |
-| `HashMap_new_String_String` | `prelude` | `provisional` | Collections |
 | `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_remove_entry` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_set` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_size` | `std::collections::hash` | `stable` | Collections |
-| `HashMap_String_i32_contains_key` | `prelude` | `provisional` | Collections |
-| `HashMap_String_i32_get` | `prelude` | `provisional` | Collections |
-| `HashMap_String_i32_insert` | `prelude` | `provisional` | Collections |
-| `HashMap_String_i32_len` | `prelude` | `provisional` | Collections |
-| `HashMap_String_String_contains_key` | `prelude` | `provisional` | Collections |
-| `HashMap_String_String_get` | `prelude` | `provisional` | Collections |
-| `HashMap_String_String_insert` | `prelude` | `provisional` | Collections |
-| `HashMap_String_String_len` | `prelude` | `provisional` | Collections |
 | `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
@@ -1136,36 +1116,16 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_extend` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get_option` | ✅ `stable` | `std::collections::hash` | Collections |
-| `HashMap_i32_i32_contains_key` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_i32_get` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_i32_insert` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_i32_len` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_i32_new` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_String_contains_key` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_String_get` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_String_insert` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_i32_String_len` | ✅ `provisional` | `prelude` | Collections |
 | `hashmap_insert` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| `HashMap_new_i32_String` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_new_String_i32` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_new_String_String` | ✅ `provisional` | `prelude` | Collections |
 | `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_remove_entry` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
-| `HashMap_String_i32_contains_key` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_i32_get` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_i32_insert` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_i32_len` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_String_contains_key` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_String_get` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_String_insert` | ✅ `provisional` | `prelude` | Collections |
-| `HashMap_String_String_len` | ✅ `provisional` | `prelude` | Collections |
 | `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
