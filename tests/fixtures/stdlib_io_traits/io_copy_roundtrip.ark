@@ -1,0 +1,137 @@
+// ADR-085 Phase B: Io::copy and the generic algorithms over Read / Write.
+//
+// copy stops at EOF and returns the transferred byte count; a rejecting sink
+// must surface its error instead of reporting a partial copy as success.
+use std::host::stdio
+use std::io
+use std::io::{Io, Reader, Writer}
+
+struct RejectingWriter {
+    calls: i32,
+}
+
+impl io::Write for RejectingWriter {
+    fn write(self: RejectingWriter, _data: Vec<i32>) -> Result<i32, io::IoError> {
+        self.calls = self.calls + 1
+        Ok(0)
+    }
+
+    fn flush(self: RejectingWriter) -> Result<(), io::IoError> {
+        Ok(())
+    }
+}
+
+struct OneByteWriter {
+    bytes: Vec<i32>,
+}
+
+impl io::Write for OneByteWriter {
+    fn write(self: OneByteWriter, data: Vec<i32>) -> Result<i32, io::IoError> {
+        if len(data) == 0 {
+            return Ok(0)
+        }
+        push(self.bytes, get_unchecked(data, 0))
+        Ok(1)
+    }
+
+    fn flush(self: OneByteWriter) -> Result<(), io::IoError> {
+        Ok(())
+    }
+}
+
+fn payload() -> Vec<i32> {
+    let data: Vec<i32> = Vec::new<i32>()
+    push(data, 104)
+    push(data, 101)
+    push(data, 108)
+    push(data, 108)
+    push(data, 111)
+    data
+}
+
+fn read_some<T: io::Read>(source: T, max_bytes: i32) -> Result<Vec<i32>, io::IoError> {
+    source.read(max_bytes)
+}
+
+fn print_copy_count(from: Reader, to: Writer) {
+    match Io::copy(from, to) {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
+
+fn main() {
+    let writer: Writer = Writer::new()
+    print_copy_count(Reader::from_bytes(payload()), writer)
+    let image: Vec<i32> = writer.into_bytes()
+    stdio::println((len(image)).to_string())
+    stdio::println((get_unchecked(image, 0)).to_string())
+    stdio::println((get_unchecked(image, 4)).to_string())
+
+    print_copy_count(Reader::new(), Writer::new())
+
+    let partial: Reader = Reader::from_bytes(payload())
+    match read_some(partial, 2) {
+        Result::Ok(head) => stdio::println((len(head)).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let rest_writer: Writer = Writer::new()
+    print_copy_count(partial, rest_writer)
+    let rest: Vec<i32> = rest_writer.into_bytes()
+    stdio::println((get_unchecked(rest, 0)).to_string())
+    stdio::println((get_unchecked(rest, 2)).to_string())
+
+    match Io::read_to_end(Reader::from_bytes(payload())) {
+        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let small: Vec<i32> = Vec::new<i32>()
+    push(small, 65)
+    push(small, 66)
+    match Io::read_exact(Reader::from_bytes(small), 3) {
+        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    match Io::read_exact(Reader::from_bytes(small), 4) {
+        Result::Ok(_) => stdio::println("unexpected exact read"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    match Io::read_exact(Reader::from_bytes(small), 0 - 1) {
+        Result::Ok(_) => stdio::println("unexpected negative read"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match Io::read_to_string(Reader::from_bytes(payload())) {
+        Result::Ok(text) => stdio::println(text),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    let invalid: Vec<i32> = Vec::new<i32>()
+    push(invalid, 255)
+    match Io::read_to_string(Reader::from_bytes(invalid)) {
+        Result::Ok(_) => stdio::println("unexpected utf8 success"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let all_writer: Writer = Writer::new()
+    match Io::write_all(all_writer, payload()) {
+        Result::Ok(_) => {
+            let all: Vec<i32> = all_writer.into_bytes()
+            stdio::println((len(all)).to_string())
+            stdio::println((get_unchecked(all, 0)).to_string())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let rejected: RejectingWriter = RejectingWriter { calls: 0 }
+    match Io::copy(Reader::from_bytes(payload()), rejected) {
+        Result::Ok(_) => stdio::println("unexpected copy success"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    let partial_sink: OneByteWriter = OneByteWriter { bytes: Vec::new<i32>() }
+    match Io::copy(Reader::from_bytes(payload()), partial_sink) {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}

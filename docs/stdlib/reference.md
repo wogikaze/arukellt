@@ -20,7 +20,10 @@
 | Name | Generic Params | Prelude | Stability | Summary |
 |------|----------------|---------|-----------|---------|
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
+| `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
+| `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
+| `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `Range` | - | no | stable | Half-open integer range [start, end). |
 | `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
 | `Reader` | - | no | experimental | In-memory read handle over an owned byte image; implements Read, BufRead, and Seek. |
@@ -70,8 +73,11 @@
 | Type | Methods | Trait impls |
 |------|---------|-------------|
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
+| `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
+| `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
 | `FromIterator` | `from_iter` | - |
 | `IntoIterator` | `into_iter` | - |
+| `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |
 | `Iterator` | `next`, `collect`, `count` | - |
 | `IteratorFold` | `fold` | - |
@@ -82,7 +88,7 @@
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Seek` | `seek`, `position` | - |
 | `Write` | `write`, `flush` | - |
-| `Writer` | `new`, `into_bytes`, `into_reader` | `Write` |
+| `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
 
 ## Prelude Values
 

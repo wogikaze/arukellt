@@ -1146,6 +1146,9 @@ run:stdlib_io_rw/stdout_write.ark
 run:stdlib_io_rw/writer_basic.ark
 run:stdlib_io_traits/reader_writer_roundtrip.ark
 run:stdlib_io_traits/trait_dispatch.ark
+run:stdlib_io_traits/io_copy_roundtrip.ark
+run:stdlib_io_traits/buf_reader_lines.ark
+run:stdlib_io_traits/buf_writer_flush.ark
 run:stdlib_json/json_array_of_objects.ark
 run:stdlib_json/json_as_array.ark
 run:stdlib_json/json_as_bool.ark
@@ -2876,6 +2879,9 @@ t3-run:stdlib_io/to_string_char_local.ark
 t3-run:stdlib_io2/io_basic.ark
 t3-run:stdlib_io_traits/reader_writer_roundtrip.ark
 t3-run:stdlib_io_traits/trait_dispatch.ark
+t3-run:stdlib_io_traits/io_copy_roundtrip.ark
+t3-run:stdlib_io_traits/buf_reader_lines.ark
+t3-run:stdlib_io_traits/buf_writer_flush.ark
 t3-run:stdlib_json/json_perf_decode.ark
 t3-run:stdlib_json/json_perf_encode.ark
 t3-run:stdlib_map/map_string.ark

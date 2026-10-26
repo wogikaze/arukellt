@@ -9,6 +9,7 @@ struct CoreHirMethodInfo {
     name: String,
     mangled_name: String,
     param_count: i32,
+    type_param_count: i32,
     params: Vec<CoreHirParam>,
     body_index: i32,
     return_vt: i32,
@@ -23,6 +24,7 @@ fn CoreHirMethodInfo_new(
     name: String,
     mangled_name: String,
     param_count: i32,
+    type_param_count: i32,
     params: Vec<CoreHirParam>,
     body_index: i32,
     return_vt: i32,
@@ -36,6 +38,7 @@ fn CoreHirMethodInfo_new(
         name: name,
         mangled_name: mangled_name,
         param_count: param_count,
+        type_param_count: type_param_count,
         params: params,
         body_index: body_index,
         return_vt: return_vt,
@@ -77,6 +80,13 @@ fn method_info_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: 
     if info_index >= 0 && info_index < len(method_infos) {
         let info = get_unchecked(method_infos, info_index)
         return info.param_count
+    }
+    fallback
+}
+
+fn method_info_type_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
+    if info_index >= 0 && info_index < len(method_infos) {
+        return get_unchecked(method_infos, info_index).type_param_count
     }
     fallback
 }

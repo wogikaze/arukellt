@@ -5103,7 +5103,7 @@ returns = "bool"
 name = "std::io"
 stability = "stable"
 family = "core"
-doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, and memory Reader / Writer newtypes. Legacy reader_* / writer_* / buf_* free functions remain as compatibility wrappers during the #693 migration."
+doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. Legacy reader_* / writer_* / buf_* free functions remain as compatibility wrappers during the #693 migration."
 availability = { t1 = true, t3 = true }
 
 [[types]]
@@ -5178,7 +5178,38 @@ stability = "experimental"
 prelude = false
 kind = "struct"
 doc = "In-memory write handle over an owned byte image; implements Write."
-methods = ["new", "into_bytes", "into_reader"]
+methods = ["new", "into_bytes", "into_reader", "write_string"]
+trait_impls = ["Write"]
+
+[[types]]
+name = "Io"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+doc = "Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all."
+methods = ["copy", "read_exact", "read_to_end", "read_to_string", "write_all"]
+
+[[types]]
+name = "BufReader"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+generic_params = ["R"]
+doc = "Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek."
+methods = ["new"]
+trait_impls = ["Read", "BufRead", "Seek"]
+
+[[types]]
+name = "BufWriter"
+module = "std::io"
+stability = "experimental"
+prelude = false
+kind = "struct"
+generic_params = ["W"]
+doc = "Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner."
+methods = ["new", "write_string", "into_inner"]
 trait_impls = ["Write"]
 
 [[functions]]

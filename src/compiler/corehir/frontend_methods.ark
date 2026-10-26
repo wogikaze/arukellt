@@ -3,6 +3,7 @@ use corehir::decl_impl_target
 use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::decl_node_identity
+use corehir::frontend_fns
 use corehir::method_info
 use corehir::param_shape
 use corehir::return_type
@@ -31,6 +32,8 @@ fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
                 let method = decl_member_collections::decl_method_at(decl, mi)
                 let body_index = decl_member_collections::method_body_index(method)
                 let param_count = decl_member_collections::method_param_count(method)
+                let type_param_count = len(decl_impl_target::declared_impl_param_names(decl)) +
+                len(frontend_fns::build_fn_type_params(method))
                 let params = build_method_params(method, param_count)
                 let method_name = decl_node_identity::method_name(method)
                 let mangled = decl_impl_target::impl_method_mangled_name(decl, clone(method_name))
@@ -45,6 +48,7 @@ fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
                         method_name,
                         mangled,
                         param_count,
+                        type_param_count,
                         params,
                         body_index,
                         return_vt,

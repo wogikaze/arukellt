@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-10-25
+Updated: 2026-10-26
 ID: 693
 Track: stdlib-api
 Depends on: "688, 692"
@@ -30,19 +30,22 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 
 ## Current state
 
-- `Reader` / `Writer` / `BufReader` / `BufWriter` are `Vec<i32>` aliases with a
-  documented byte-layout convention. They are not distinct types.
+- Phases A–C are implemented: `Read` / `Write` / `BufRead` / `Seek` /
+  `SeekFrom`, the memory `Reader` / `Writer` newtypes, the receiver-less
+  `Io` algorithms, and the generic `BufReader<R: Read>` / `BufWriter<W:
+  Write>` adapters are public.
+- `Reader` / `Writer` are distinct newtypes with private layouts. `BufReader`
+  and `BufWriter` are generic adapters; the legacy `reader_*` / `writer_*` /
+  `buf_*` free functions keep their `Vec<i32>` layout contracts until Phase E.
 - `IoError` enum (`UnexpectedEof`, `Other`) is stable and implements `Display`
   and `std::error::Error`.
-- The public API is a set of concrete free functions (`reader_from_bytes`,
-  `reader_read`, `writer_write`, `buffered_writer`, ...). There is no public
-  trait surface.
-- The initial #693 implementation (`d4c5f09f6`) added non-`pub` traits, free
-  helper functions (`new_memory_buffer`, `read_bytes`, `write_bytes`, ...), and
-  a monomorphic `copy_trait` workaround. This is scaffolding, not the target
-  surface; ADR-085 replaces its shape.
-- `impl Read for Vec<i32>` and `impl Write for Vec<i32>` conflate source and
-  sink on the same type. ADR-085 removes these impls in favour of newtypes.
+- The initial #693 scaffolding (non-`pub` traits, `new_memory_buffer` /
+  `read_bytes` / `write_bytes` helpers, and the monomorphic `copy_trait`
+  workaround) is no longer the public shape. The helpers remain as legacy
+  compatibility functions until Phase E; `copy_trait` stays scaffolding and is
+  not part of the target surface.
+- `impl Read for Vec<i32>` and `impl Write for Vec<i32>` were removed in
+  Phase A, so source and sink can no longer be conflated on the same type.
 - `std::host::fs` is a path-based whole-file surface
   (`read_to_string` / `write_string` / `write_bytes` and read probes) with
   experimental `fd_seek` / `fd_tell` / `fd_fdstat_get`. There is no `File`
@@ -95,22 +98,22 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 ## Required work
 
 - [x] Design and accept ADR-085 (ACCEPTED, 2026-10-25).
-- [ ] **Phase A — trait core and memory newtypes**: define public `Read` /
+- [x] **Phase A — trait core and memory newtypes**: define public `Read` /
   `Write` / `BufRead` / `Seek` / `SeekFrom`; add `Reader` / `Writer` newtypes
   and impls; remove `impl Read for Vec<i32>` / `impl Write for Vec<i32>`;
   register `std::io` as a manifest module and the traits as manifest
   `[[types]]` entries (experimental); add positive and negative fixtures on
-  both targets; keep the old free functions working.
-- [ ] **Phase B — generic algorithms**: add `Io::copy`, `Io::read_exact`,
-  `Io::read_to_end`, `Io::write_all`; add the `Io::copy` fixture
-  (memory -> memory) and error-propagation fixtures.
-  Compiler prerequisite: monomorphization of a generic function with two
-  independently dispatched trait-bound parameters must produce valid Wasm.
-- [ ] **Phase C — buffered adapters**: add generic `BufReader<R: Read>` and
-  `BufWriter<W: Write>`, including `BufRead` and conditional `Seek`; replace
-  the concrete buffered implementations behind compatibility wrappers.
-  Compiler prerequisite: dispatch of a user-defined trait method through a
-  generic field must produce valid Wasm.
+  both targets; keep the old free functions working. (Landed at `7d1e0700c`.)
+- [x] **Phase B — generic algorithms**: add `Io::copy`, `Io::read_exact`,
+  `Io::read_to_end`, `Io::write_all`, plus the `Io::read_to_string` UTF-8
+  convenience; add the `Io::copy` fixture (memory -> memory) and
+  error-propagation fixtures. Both targets compile and run the Phase B
+  fixtures under `tests/fixtures/stdlib_io_traits/`.
+- [x] **Phase C — buffered adapters**: add generic `BufReader<R: Read>` and
+  `BufWriter<W: Write>`, including `BufRead` and conditional `Seek`; the
+  legacy `buf_reader_*` / `buf_writer_*` entry points keep their `Vec<i32>`
+  layout contracts until Phase E. Field-receiver dispatch is verified on both
+  targets.
 - [ ] **Phase D — File**: add the byte-oriented host read primitive and
   `std::host::fs::File` (`open` / `create`, `Read` / `Write` / `Seek`,
   `flush` / `close`); add the file-reader -> memory-writer `Io::copy` fixture;
@@ -128,9 +131,9 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 
 ## Acceptance
 
-- [ ] `Read` / `Write` / `BufRead` / `Seek` are public traits with the ADR-085
+- [x] `Read` / `Write` / `BufRead` / `Seek` are public traits with the ADR-085
   signatures and receiver model.
-- [ ] Memory `Reader` / `Writer` implement the traits; `Vec<i32>` itself no
+- [x] Memory `Reader` / `Writer` implement the traits; `Vec<i32>` itself no
   longer implements `Read` or `Write`.
 - [ ] `std::host::fs::File` implements `Read` / `Write` / `Seek` in its
   documented whole-file mode.
@@ -140,21 +143,22 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   entry points are compatibility wrappers.
 - [ ] Existing `std::io` consumers are migrated or documented with a removal
   window; no stable API is removed without the ADR-014 process.
-- [ ] Both `wasm32-gc` and `wasm32` compile/run the trait fixtures.
+- [x] Both `wasm32-gc` and `wasm32` compile/run the trait fixtures.
 - [ ] `python3 scripts/manager.py verify quick` exits 0 (after the dependent
   phases; this issue remains open until then).
 
 ## Dependencies and open questions
 
-- **Compiler: two-bound generic dispatch.** On the current selfhost runtime
-  artifact (2026-10-23), a generic function with two differently-bounded type
-  parameters that dispatches methods on both produced invalid core Wasm in a
-  probe. `Io::copy` requires this; confirm against the current compiler and
-  track the gap before Phase B.
-- **Compiler: generic-field user-trait dispatch.** A generic adapter struct
-  whose impl calls a user-defined trait method on a generic field produced
-  invalid core Wasm in the same artifact. `BufReader` / `BufWriter` require
-  this; confirm and track before Phase C.
+- **Compiler: two-bound generic dispatch — resolved 2026-10-26.**
+  `Io::copy<Reader, Writer>` and the other two-bound helpers compile, validate,
+  and run on both `wasm32-gc` and `wasm32`. Unused generic impl method templates
+  are now pruned: their type-variable bodies lowered as scalar placeholders and
+  failed GC validation (`copy_alias` exposed this through the unused `Io::copy`
+  template).
+- **Compiler: generic-field user-trait dispatch — resolved 2026-10-26.**
+  `BufReader<R>` / `BufWriter<W>` dispatch `self.inner.read(...)` /
+  `self.inner.write(...)` on a generic field; the adapters validate and run on
+  both targets.
 - **Host: byte read.** `__runtime_abi_fs_read_file` returns `String`. `File`'s
   read side needs a byte-oriented host primitive (or an official WASI
   filesystem boundary that returns bytes). This is a Phase D prerequisite.

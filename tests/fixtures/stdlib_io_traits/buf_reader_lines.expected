@@ -1,0 +1,25 @@
+alpha
+beta
+
+gamma
+<eof>
+4
+consume ok
+2
+consume: amount exceeds buffered bytes
+4
+99
+102
+2
+0
+abcdef
+6
+2
+3
+100
+5
+102
+2
+65
+hello
+<eof>
