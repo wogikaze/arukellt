@@ -199,20 +199,6 @@ doc_category = "string"
 # ── String operations ────────────────────────
 
 [[functions]]
-name = "concat"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_concat"
-params = ["String", "String"]
-returns = "String"
-prelude = true
-stability = "deprecated"
-deprecated_by = "std::text::concat"
-doc_category = "string"
-doc = "Concatenate two strings and return the result."
-availability = { t1 = true, t3 = true }
-examples = [{code = "let s = concat(\"hello\", \" world\")", description = "Join two string literals", output = "hello world"}]
-
-[[functions]]
 name = "clone"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_string_clone"
@@ -303,18 +289,6 @@ returns = "i32"
 prelude = true
 stability = "stable"
 doc_category = "string"
-
-[[functions]]
-name = "char_at"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_char_at"
-params = ["String", "i32"]
-returns = "i32"
-prelude = true
-stability = "deprecated"
-deprecated_by = "byte_at"
-doc_category = "string"
-doc = "Return the raw byte at a byte index. Use byte_at for the explicit compatibility API."
 
 [[functions]]
 name = "substring"
@@ -1530,26 +1504,6 @@ returns = "()"
 prelude = true
 stability = "stable"
 doc_category = "host_process"
-
-[[functions]]
-name = "print"
-kind = "builtin"
-params = ["String"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "std::host::stdio::print"
-doc_category = "host_stdio"
-
-[[functions]]
-name = "println"
-kind = "builtin"
-params = ["String"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "std::host::stdio::println"
-doc_category = "host_stdio"
 
 # ── std::core Types (v3) ─────────────
 [[types]]
@@ -4371,26 +4325,6 @@ doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
-
-[[functions]]
-name = "memory_copy"
-module = "std::wasm"
-doc_category = "wasm"
-kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_memory_copy"
-stability = "experimental"
-params = ["i32", "i32", "i32"]
-returns = "()"
-
-[[functions]]
-name = "memory_fill"
-module = "std::wasm"
-doc_category = "wasm"
-kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_memory_fill"
-stability = "experimental"
-params = ["i32", "i32", "i32"]
-returns = "()"
 
 [[functions]]
 name = "valtype_v128"

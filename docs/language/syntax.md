@@ -145,7 +145,7 @@ for item in values(v) {
 ```ark
 push(v, 42)
 let n = len(v)
-let s2 = concat(s1, s2)
+let s2 = text::concat(s1, s2)
 let text = to_string(n)
 ```
 

@@ -75,11 +75,6 @@ pub fn eq(a: String, b: String) -> bool {
 }
 
 // String operations
-// @deprecated: use `a.concat(b)` (String method) instead. See ADR-036.
-pub fn concat(a: String, b: String) -> String {
-    string::concat(a, b)
-}
-
 // Free `clone` is the explicit-import signature shim for the
 // compiler-polymorphic `text.clone` CoreOp. The canonical surface is the
 // receiver method `s.clone()`, which the compiler prefers for concrete
@@ -102,10 +97,6 @@ pub fn slice(s: String, start: i32, end: i32) -> String {
 
 pub fn trim(s: String) -> String {
     panic(String_new()); return String_new()
-}
-
-pub fn char_at(s: String, i: i32) -> i32 {
-    panic(String_new()); return 0
 }
 
 pub fn substring(s: String, start: i32, end: i32) -> String {
@@ -434,7 +425,8 @@ pub fn assert(cond: bool) {
 /// pulling Convert/Debug into the auto-prelude regresses W0011 on clean fixtures.
 pub fn assert_eq(a: i32, b: i32) {
     if a != b {
-        let msg = concat("assert_eq failed: expected ", concat((b).to_string(), concat(", got ", (a).to_string())))
+        let expected = string::concat((b).to_string(), string::concat(", got ", (a).to_string()))
+        let msg = string::concat("assert_eq failed: expected ", expected)
         panic(msg)
     }
 }
@@ -448,7 +440,8 @@ pub fn assert_ne(a: i32, b: i32) {
 /// Legacy i64 equality assertion (compat). Prefer `test::assert_eq_i64`.
 pub fn assert_eq_i64(a: i64, b: i64) {
     if a != b {
-        let msg = concat("assert_eq_i64 failed: expected ", concat((b).to_string(), concat(", got ", (a).to_string())))
+        let expected = string::concat((b).to_string(), string::concat(", got ", (a).to_string()))
+        let msg = string::concat("assert_eq_i64 failed: expected ", expected)
         panic(msg)
     }
 }
@@ -456,7 +449,8 @@ pub fn assert_eq_i64(a: i64, b: i64) {
 /// Legacy String equality assertion (compat). Prefer `test::assert_eq_string`.
 pub fn assert_eq_str(a: String, b: String) {
     if a != b {
-        let msg = concat("assert_eq_str failed: expected \"", concat(b, concat("\", got \"", concat(a, "\""))))
+        let expected = string::concat(b, string::concat("\", got \"", string::concat(a, "\"")))
+        let msg = string::concat("assert_eq_str failed: expected \"", expected)
         panic(msg)
     }
 }
@@ -666,14 +660,6 @@ pub fn product_i32(v: Vec<i32>) -> i32 {
 // =============================================================================
 
 // IO
-pub fn println(s: String) {
-    panic(String_new())
-}
-
-pub fn print(s: String) {
-    panic(String_new())
-}
-
 pub fn to_string(n: i32) -> String {
     panic(String_new()); return String_new()
 }

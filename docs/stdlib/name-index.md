@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 780
-- **Historical/deprecated names:** 41
-- **Total entries:** 821
+- **Canonical names:** 778
+- **Historical/deprecated names:** 37
+- **Total entries:** 815
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -455,8 +455,6 @@ Current public API names, sorted alphabetically.
 | `max` | `std::simd::f64x2` | `experimental` | Simd |
 | `max_by` | `std::seq` | `provisional` | Seq |
 | `max_by_key` | `std::seq` | `provisional` | Seq |
-| `memory_copy` | `std::wasm` | `experimental` | Wasm |
-| `memory_fill` | `std::wasm` | `experimental` | Wasm |
 | `metadata` | `std::fs` | `provisional` | Fs |
 | `min` | `prelude` | `stable` | Math |
 | `min` | `std::simd::f32x4` | `experimental` | Simd |
@@ -811,8 +809,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`char_at`~~ | `byte_at` | String | [migration-guidance.md](migration-guidance.md) |
-| ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -843,8 +839,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`print`~~ | `std::host::stdio::print` | Host Stdio | [migration-guidance.md](migration-guidance.md) |
-| ~~`println`~~ | `std::host::stdio::println` | Host Stdio | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
@@ -990,7 +984,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `canonical_abi_version` | ✅ `experimental` | `std::component` | Component |
 | `ceil` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `chain_iter` | ✅ `provisional` | `std::core::iter` | Iter |
-| ~~`char_at`~~ | ⚠️ deprecated | `prelude` | → `byte_at` · [migration guide](migration-guidance.md) |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `chars` | ✅ `stable` | `std::text` | Text |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
@@ -1022,7 +1015,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `components` | ✅ `stable` | `std::path` | Path |
 | `concat` | ✅ `stable` | `std::text` | Text |
-| ~~`concat`~~ | ⚠️ deprecated | `prelude` | → `std::text::concat` · [migration guide](migration-guidance.md) |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `contains` | ✅ `stable` | `std::text` | Text |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
@@ -1326,8 +1318,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `max_by` | ✅ `provisional` | `std::seq` | Seq |
 | `max_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::max_by` · [migration guide](migration-guidance.md) |
-| `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
-| `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
 | `min` | ✅ `stable` | `prelude` | Math |
 | `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
@@ -1411,10 +1401,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| ~~`print`~~ | ⚠️ deprecated | `prelude` | → `std::host::stdio::print` · [migration guide](migration-guidance.md) |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| ~~`println`~~ | ⚠️ deprecated | `prelude` | → `std::host::stdio::println` · [migration guide](migration-guidance.md) |
 | `product_i32` | ✅ `stable` | `prelude` | Collections |
 | `push` | ✅ `stable` | `prelude` | Collections |
 | `push_char` | ✅ `stable` | `prelude` | String |

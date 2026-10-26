@@ -1,7 +1,7 @@
-use std::wasm
-
+// Verifies the non-public bulk-memory bridge after ADR-046 retired the
+// experimental `wasm::memory_copy` / `wasm::memory_fill` wrappers.
 fn main() -> i32 {
-    wasm::memory_fill(256, 42, 4)
-    wasm::memory_copy(260, 256, 4)
+    __intrinsic_memory_fill(256, 42, 4)
+    __intrinsic_memory_copy(260, 256, 4)
     0
 }

@@ -7,7 +7,7 @@ Source-backed docs for WebAssembly helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::wasm` module exposes WebAssembly binary-format constants and low-level memory operations. It provides the magic bytes, version bytes, section IDs, value-type constants, and bulk memory helpers (`memory_copy`, `memory_fill`) needed to build or inspect Wasm modules programmatically.
+The `std::wasm` module exposes WebAssembly binary-format constants and low-level v128 memory access helpers. It provides the magic bytes, version bytes, section IDs, and value-type constants needed to build or inspect Wasm modules programmatically. Bulk memory copy/fill are compiler intrinsics only (`__intrinsic_memory_*`); ADR-046 keeps no public free wrapper.
 
 **Recommended API highlights:**
 
@@ -16,8 +16,7 @@ The `std::wasm` module exposes WebAssembly binary-format constants and low-level
 | `wasm_magic()` / `wasm_version()` | The 4-byte Wasm magic number and version bytes. |
 | `section_type()` … `section_data()` | Section ID constants for all standard Wasm sections. |
 | `valtype_i32()` … `valtype_f64()` | Value-type constants matching the Wasm binary encoding. |
-| `memory_copy(dst, src, len)` | Bulk memory copy (like `memory.copy`). |
-| `memory_fill(dst, val, len)` | Bulk memory fill (like `memory.fill`). |
+| `v128_load(ptr, offset)` / `v128_store(ptr, offset, v)` | v128 memory access helpers (ADR-037). |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
@@ -39,8 +38,8 @@ let i32_type = valtype_i32()       // 0x7f
 ## Module `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)
-- Manifest-backed functions: 79
-- Stability: experimental 79
+- Manifest-backed functions: 77
+- Stability: experimental 77
 
 Experimental WebAssembly helpers.
 
@@ -246,8 +245,6 @@ Return the number of bytes needed to encode x as unsigned LEB128.
 | `op_i32_add` | `() -> i32` | `experimental` | ✅ functional | - |
 | `op_i32_sub` | `() -> i32` | `experimental` | ✅ functional | - |
 | `op_i32_mul` | `() -> i32` | `experimental` | ✅ functional | - |
-| `memory_copy` | `(i32, i32, i32) -> ()` | `experimental` | ✅ functional | - |
-| `memory_fill` | `(i32, i32, i32) -> ()` | `experimental` | ✅ functional | - |
 
 #### `std::wasm::op_unreachable`
 

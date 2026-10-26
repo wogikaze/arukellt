@@ -1556,7 +1556,6 @@ import. Non-prelude functions require a `use` or `import` declaration.
 | `byte_at(s: String, i: i32) -> i32` | Raw UTF-8 byte at a byte index |
 | `byte_len(s: String) -> i32` | UTF-8 byte length |
 | `eq(a: String, b: String) -> bool` | Equality |
-| `concat(a: String, b: String) -> String` | Concatenation |
 | `clone(s: String) -> String` | Clone |
 | `starts_with(s: String, prefix: String) -> bool` | Prefix test |
 | `ends_with(s: String, suffix: String) -> bool` | Suffix test |
@@ -1888,8 +1887,9 @@ trait method `value.hash()`
 `u32_from_be_bytes(v: Vec<i32>) -> i32`
 
 **Linear Memory** (`wasm32` target / linear lowering helpers):
-`memory_copy(dst: i32, src: i32, len: i32)`,
-`memory_fill(dst: i32, val: i32, len: i32)`,
+bulk `memory.copy` / `memory.fill` are compiler intrinsics only
+(`__intrinsic_memory_copy`, `__intrinsic_memory_fill`); the experimental
+`std::wasm` free wrappers were removed under ADR-046,
 `leb128_encode_i32(n: i32) -> Vec<i32>`,
 `leb128_encode_u32(n: i32) -> Vec<i32>`
 

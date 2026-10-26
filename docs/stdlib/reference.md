@@ -10,8 +10,8 @@
 |------|-------|-------------|
 | `stable` | 378 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 319 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 41 | Superseded — see migration guidance. |
+| `experimental` | 317 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 37 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -608,9 +608,7 @@ let n = random::random_i32_range(1, 7)
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
-| ~~`print`~~ ⚠️ Deprecated → `std::host::stdio::print` | `(String) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
-| ~~`println`~~ ⚠️ Deprecated → `std::host::stdio::println` | `(String) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
 | `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
 
@@ -1016,9 +1014,7 @@ let input = read_to_string()
 | `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
 | `byte_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_at` | - |
 | `byte_len` | `(String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_len` | - |
-| ~~`char_at`~~ ⚠️ Deprecated → `byte_at` | `(String, i32) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_at` | Return the raw byte at a byte index. Use byte_at for the explicit compatibility API. |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
-| ~~`concat`~~ ⚠️ Deprecated → `std::text::concat` | `(String, String) -> String` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `contains_string` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
@@ -1045,16 +1041,6 @@ let input = read_to_string()
 | `trim` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
 | `trim_end` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_end` | - |
 | `trim_start` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim_start` | - |
-
-### `concat` — `prelude`
-
-_Example — Join two string literals:_
-
-```ark
-let s = concat("hello", " world")
-```
-
-Expected output: `hello world`
 
 ## Test
 
@@ -1174,8 +1160,6 @@ Expected output: `hello world`
 | `limits_max` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the maximum of a Limits (only valid if limits_has_max is true). |
 | `limits_min` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the minimum of a Limits. |
 | `limits_unbounded` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a Limits with only a minimum (no maximum). |
-| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
-| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
 | `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a function export to the module. |
 | `module_add_func` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a function with the given type index to the module. Returns its function index. |
 | `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a memory with the given Limits to the module. Returns its memory index. |
@@ -1265,13 +1249,11 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **41 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **37 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`char_at`~~ | `byte_at` | [migration-guidance.md](migration-guidance.md) |
-| ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1302,8 +1284,6 @@ Expected output: `hello world`
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`print`~~ | `std::host::stdio::print` | [migration-guidance.md](migration-guidance.md) |
-| ~~`println`~~ | `std::host::stdio::println` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `std::core::iter::collect_skip_i32` | [migration-guidance.md](migration-guidance.md) |

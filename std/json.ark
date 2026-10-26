@@ -51,7 +51,7 @@ pub fn json_escape(s: String) -> String {
     while i < n {
         let c = byte_at(s, i)
         if c == 34 {
-            out = concat(out, "\\\"")
+            out = text::concat(out, "\\\"")
         } else {
             if c == 92 {
                 out = text::concat(out, "\\\\")

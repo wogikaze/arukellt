@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
-| `prelude` | 144 | 119 | 21 | 0 | 4 | 125/140 (89%) | no |
+| `prelude` | 140 | 119 | 21 | 0 | 0 | 125/140 (89%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
@@ -51,10 +51,10 @@
 | `std::text::rope` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
-| `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
+| `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 821 APIs, 378 stable, 83 provisional, 319 experimental, 41 deprecated, 658/780 (84%) fixture coverage
+**Total**: 815 APIs, 378 stable, 83 provisional, 317 experimental, 37 deprecated, 656/778 (84%) fixture coverage
 
 ## Legend
 
@@ -70,4 +70,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wasm` (47%), `std::wit` (44%).
+`std::wasm` (45%), `std::wit` (44%).

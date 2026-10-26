@@ -697,16 +697,16 @@ match toml_parse("[server]\\nhost = \\"localhost\\"") {
         "overview": {
             "summary": (
                 "The `std::wasm` module exposes WebAssembly binary-format constants and low-level "
-                "memory operations. It provides the magic bytes, version bytes, section IDs, "
-                "value-type constants, and bulk memory helpers (`memory_copy`, `memory_fill`) "
-                "needed to build or inspect Wasm modules programmatically."
+                "v128 memory access helpers. It provides the magic bytes, version bytes, section "
+                "IDs, and value-type constants needed to build or inspect Wasm modules "
+                "programmatically. Bulk memory copy/fill are compiler intrinsics only "
+                "(`__intrinsic_memory_*`); ADR-046 keeps no public free wrapper."
             ),
             "highlights": [
                 ("`wasm_magic()` / `wasm_version()`", "The 4-byte Wasm magic number and version bytes."),
                 ("`section_type()` … `section_data()`", "Section ID constants for all standard Wasm sections."),
                 ("`valtype_i32()` … `valtype_f64()`", "Value-type constants matching the Wasm binary encoding."),
-                ("`memory_copy(dst, src, len)`", "Bulk memory copy (like `memory.copy`)."),
-                ("`memory_fill(dst, val, len)`", "Bulk memory fill (like `memory.fill`)."),
+                ("`v128_load(ptr, offset)` / `v128_store(ptr, offset, v)`", "v128 memory access helpers (ADR-037)."),
             ],
             "typical_usage": """\
 > ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).

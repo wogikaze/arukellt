@@ -17,10 +17,10 @@ pub fn removed_name_hint(name: String) -> String {
 }
 
 fn removed_name_specific_hint(name: String) -> String {
-    if eq(clone(name), "concat") { return "deprecated prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
-    if eq(clone(name), "char_at") { return "deprecated prelude wrapper; use `byte_at(s, i)` via `use std::prelude::{byte_at}`" }
-    if eq(clone(name), "println") { return "deprecated prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
-    if eq(clone(name), "print") { return "deprecated prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
+    if eq(clone(name), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
+    if eq(clone(name), "char_at") { return "removed prelude wrapper; use `byte_at(s, i)` via `use std::prelude::{byte_at}`" }
+    if eq(clone(name), "println") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
+    if eq(clone(name), "print") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
     if eq(clone(name), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
     if eq(clone(name), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
     if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs` and call `fs::is_readable_file(...)`" }
