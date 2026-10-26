@@ -1,0 +1,60 @@
+// LinkedList<T> both-end operations, free-list reuse, clear, and owning iteration.
+use std::collections::linked_list::LinkedList
+use std::host::stdio
+
+fn show(value: Option<i32>) {
+    match value {
+        Option::Some(item) => stdio::println(item.to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
+
+fn main() {
+    let list: LinkedList<i32> = LinkedList::new<i32>()
+    assert(list.is_empty())
+    assert(list.len() == 0)
+    show(list.front())
+    show(list.back())
+    show(list.pop_front())
+    show(list.pop_back())
+
+    list.push_back(2)
+    list.push_back(3)
+    list.push_front(1)
+    assert(list.len() == 3)
+    show(list.front())
+    show(list.back())
+    let values: Vec<i32> = list.iter().collect()
+    assert(len(values) == 3)
+    stdio::println((get_unchecked(values, 0)).to_string())
+    stdio::println((get_unchecked(values, 1)).to_string())
+    stdio::println((get_unchecked(values, 2)).to_string())
+
+    show(list.pop_front())
+    show(list.pop_back())
+    show(list.front())
+    show(list.back())
+    show(list.pop_front())
+    show(list.pop_front())
+    assert(list.is_empty())
+
+    list.push_back(7)
+    show(list.pop_front())
+    list.push_back(8)
+    assert(list.len() == 1)
+    show(list.front())
+    list.clear()
+    assert(list.is_empty())
+    assert(list.len() == 0)
+    list.push_back(9)
+    show(list.front())
+
+    let owned: LinkedList<i32> = LinkedList::new<i32>()
+    owned.push_back(4)
+    owned.push_back(5)
+    let mut total: i32 = 0
+    for value in owned {
+        total = total + value
+    }
+    stdio::println((total).to_string())
+}

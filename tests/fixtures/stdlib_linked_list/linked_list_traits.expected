@@ -1,0 +1,7 @@
+LinkedList ["alpha", "beta"]
+LinkedList ["alpha", "beta", "gamma"]
+LinkedList []
+alpha
+alpha
+LinkedList ["changed", "beta"]
+LinkedList []

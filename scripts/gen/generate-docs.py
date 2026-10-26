@@ -182,22 +182,28 @@ let s = string_from_bytes(back)  // "hello"
         "modules": [
             "std::collections::compiler",
             "std::collections::hash",
+            "std::collections::deque",
+            "std::collections::linked_list",
             "std::collections::linear",
             "std::collections::ordered",
         ],
         "overview": {
             "summary": (
                 "The `std::collections` family provides the primary collection data structures "
-                "for Arukellt programs: hash maps, double-ended queues, min-heap priority queues, "
-                "sorted maps, and bitsets. The canonical HashMap surface is generic and "
-                "statically monomorphized; lower-level containers remain available for "
-                "compatibility and compiler-facing work."
+                "for Arukellt programs: hash maps, double-ended queues, FIFO queues, LIFO stacks, "
+                "linked lists, min-heap priority queues, sorted maps, and bitsets. The canonical "
+                "HashMap and linear-collection surfaces are generic and statically monomorphized; "
+                "lower-level containers remain available for compatibility and compiler-facing work."
             ),
             "highlights": [
                 ("`HashMap::new` / `.insert` / `.get`", "Generic HashMap API with static dispatch."),
                 ("`.contains_key` / `.remove` / `.len`", "Typed lookup, removal, and size operations."),
                 ("`hashmap_new` / `hashmap_get` / `hashmap_set`", "Raw i32 → i32 compatibility implementation."),
-                ("`deque_push_back` / `deque_pop_front`", "FIFO / ring-buffer deque."),
+                ("`Deque::new` / `.push_back` / `.pop_front`", "Generic double-ended queue with both-end operations."),
+                ("`Queue::new` / `.push` / `.pop`", "FIFO queue newtype over `Deque<T>`."),
+                ("`Stack::new` / `.push` / `.pop`", "LIFO stack newtype over `Deque<T>`."),
+                ("`LinkedList::new` / `.push_back` / `.iter_mut`", "Node-pool doubly-linked list with cursors."),
+                ("`deque_push_back` / `deque_pop_front`", "Legacy monomorphic i32 deque (migration window)."),
                 ("`pq_push` / `pq_pop`", "Min-heap priority queue — smallest element first."),
                 ("`sorted_map_insert` / `sorted_map_get`", "Sorted-vector map for ordered iteration."),
                 ("`bitset_mark` / `bitset_test`", "Compact bit-flag set backed by a `Vec<i32>`."),

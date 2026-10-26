@@ -1,0 +1,48 @@
+// LinkedList<T> cursors: iter/collect/count and iter_mut set_current.
+use std::collections::linked_list::LinkedList
+use std::collections::linked_list::LinkedListIter
+use std::collections::linked_list::LinkedListIterMut
+use std::host::stdio
+
+fn show(value: Option<i32>) {
+    match value {
+        Option::Some(item) => stdio::println(item.to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
+
+fn main() {
+    let list: LinkedList<i32> = LinkedList::new<i32>()
+    list.push_back(10)
+    list.push_back(20)
+    list.push_front(5)
+
+    let mut cursor: LinkedListIter<i32> = list.iter()
+    show(cursor.next())
+    show(cursor.next())
+    stdio::println((cursor.count()).to_string())
+    stdio::println((list.iter().count()).to_string())
+
+    let mut before: LinkedListIterMut<i32> = list.iter_mut()
+    show(before.set_current(99))
+
+    let mut writable: LinkedListIterMut<i32> = list.iter_mut()
+    match writable.next() {
+        Option::Some(value) => show(writable.set_current(value + 1)),
+        Option::None => show(Option::None),
+    }
+    match writable.next() {
+        Option::Some(value) => show(writable.set_current(value + 1)),
+        Option::None => show(Option::None),
+    }
+    show(writable.next())
+    show(writable.next())
+    show(writable.set_current(0))
+    stdio::println(list.fmt_debug())
+
+    let values: Vec<i32> = list.iter().collect()
+    assert(len(values) == 3)
+    stdio::println((get_unchecked(values, 0)).to_string())
+    stdio::println((get_unchecked(values, 1)).to_string())
+    stdio::println((get_unchecked(values, 2)).to_string())
+}

@@ -5487,6 +5487,174 @@ params = ["Vec<i32>", "Vec<i32>"]
 returns = "i32"
 doc = "Write buffer bytes to an `io.traits` FileHandle."
 
+# ── std::collections::deque / linked_list (ADR-086) ─────────────────────────
+# Public linear collection ADTs. The legacy std::collections::linear free
+# functions below stay available during the ADR-014 deprecation window.
+
+[[modules]]
+name = "std::collections::deque"
+stability = "provisional"
+family = "collections"
+doc = "`Deque<T>` plus the `Queue<T>` FIFO and `Stack<T>` LIFO newtypes and their shared cursors (ADR-086)."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "Deque"
+kind = "struct"
+doc = "Double-ended queue with amortized O(1) push/pop at both ends."
+module = "std::collections::deque"
+stability = "provisional"
+generic_params = ["T"]
+methods = [
+    "new",
+    "with_capacity",
+    "push_back",
+    "push_front",
+    "pop_back",
+    "pop_front",
+    "front",
+    "back",
+    "len",
+    "is_empty",
+    "clear",
+    "capacity",
+    "reserve",
+    "iter",
+    "iter_mut",
+]
+trait_impls = ["IntoIterator", "Clone", "Debug"]
+
+[[types]]
+name = "DequeIter"
+kind = "struct"
+doc = "Read-only front-to-back cursor over a `Deque<T>`."
+module = "std::collections::deque"
+stability = "provisional"
+generic_params = ["T"]
+trait_impls = ["Iterator", "IntoIterator"]
+
+[[types]]
+name = "DequeIterMut"
+kind = "struct"
+doc = "Writable front-to-back cursor over a `Deque<T>` with `set_current`."
+module = "std::collections::deque"
+stability = "provisional"
+generic_params = ["T"]
+methods = ["set_current"]
+trait_impls = ["Iterator", "IntoIterator"]
+
+[[types]]
+name = "DequeIntoIter"
+kind = "struct"
+doc = "Owning front-to-back cursor over a `Deque<T>`."
+module = "std::collections::deque"
+stability = "provisional"
+generic_params = ["T"]
+trait_impls = ["Iterator", "IntoIterator"]
+
+[[types]]
+name = "Queue"
+kind = "struct"
+doc = "First-in first-out queue restricted to `Deque<T>` push-at-back / pop-at-front."
+module = "std::collections::deque"
+stability = "provisional"
+generic_params = ["T"]
+methods = [
+    "new",
+    "with_capacity",
+    "push",
+    "pop",
+    "front",
+    "back",
+    "len",
+    "is_empty",
+    "clear",
+    "capacity",
+    "reserve",
+    "iter",
+]
+trait_impls = ["IntoIterator", "Clone", "Debug"]
+
+[[types]]
+name = "Stack"
+kind = "struct"
+doc = "Last-in first-out stack restricted to `Deque<T>` push / pop at the back."
+module = "std::collections::deque"
+stability = "provisional"
+generic_params = ["T"]
+methods = [
+    "new",
+    "with_capacity",
+    "push",
+    "pop",
+    "peek",
+    "len",
+    "is_empty",
+    "clear",
+    "capacity",
+    "reserve",
+    "iter",
+]
+trait_impls = ["IntoIterator", "Clone", "Debug"]
+
+[[modules]]
+name = "std::collections::linked_list"
+stability = "provisional"
+family = "collections"
+doc = "`LinkedList<T>` node-pool list with O(1) both-end operations and front-to-back cursors (ADR-086)."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "LinkedList"
+kind = "struct"
+doc = "Doubly-linked list with O(1) push/pop at both ends."
+module = "std::collections::linked_list"
+stability = "provisional"
+generic_params = ["T"]
+methods = [
+    "new",
+    "push_front",
+    "push_back",
+    "pop_front",
+    "pop_back",
+    "front",
+    "back",
+    "len",
+    "is_empty",
+    "clear",
+    "iter",
+    "iter_mut",
+]
+trait_impls = ["IntoIterator", "Clone", "Debug"]
+
+[[types]]
+name = "LinkedListIter"
+kind = "struct"
+doc = "Read-only front-to-back cursor over a `LinkedList<T>`."
+module = "std::collections::linked_list"
+stability = "provisional"
+generic_params = ["T"]
+trait_impls = ["Iterator", "IntoIterator"]
+
+[[types]]
+name = "LinkedListIterMut"
+kind = "struct"
+doc = "Writable front-to-back cursor over a `LinkedList<T>` with `set_current`."
+module = "std::collections::linked_list"
+stability = "provisional"
+generic_params = ["T"]
+methods = ["set_current"]
+trait_impls = ["Iterator", "IntoIterator"]
+
+[[types]]
+name = "LinkedListIntoIter"
+kind = "struct"
+doc = "Owning front-to-back cursor over a `LinkedList<T>`."
+module = "std::collections::linked_list"
+stability = "provisional"
+generic_params = ["T"]
+trait_impls = ["Iterator", "IntoIterator"]
+
 # ── std::collections::linear (Deque and PriorityQueue, i32 monomorphic) ──────
 # Generics not yet available; these are i32-only per STOP_IF in issue #045.
 # All Deque functions use a Vec<i32> as a ring-buffer:
