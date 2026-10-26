@@ -1,0 +1,6 @@
+use std::seq
+
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    let _sum: i32 = seq::sum_i32(values)
+}

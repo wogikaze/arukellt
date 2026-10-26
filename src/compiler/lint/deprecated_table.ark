@@ -54,6 +54,10 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg3) > 0 {
         return msg3
     }
+    let msg4 = deprecated_seq_qualified_message(path)
+    if len(msg4) > 0 {
+        return msg4
+    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -89,6 +93,55 @@ fn deprecated_convert_qualified_message(path: String) -> String {
     String_new()
 }
 
+// ── Deprecated std::seq helpers (ADR-076 / #703) ───────────────────────
+
+// The compatibility helpers stay callable through `use std::seq` until the
+// ADR-014 window closes.  They are keyed by the qualified call text because
+// the bare names overlap the still-stable prelude frees (for example
+// `sum_i32`), which must not warn before Wave 1 deprecates them.
+fn deprecated_seq_qualified_message(path: String) -> String {
+    if eq(clone(path), "seq::map_i32_i32") {
+        return "use `v.iter().map(f).collect()` or `std::core::iter::collect_map_i32(v, f)` instead"
+    }
+    if eq(clone(path), "seq::filter_i32") {
+        return "use `v.iter().filter(f).collect()` or `std::core::iter::collect_filter_i32(v, f)` instead"
+    }
+    if eq(clone(path), "seq::take_i32") {
+        return "use `v.iter().take(n).collect()` or `std::core::iter::collect_take_i32(v, n)` instead"
+    }
+    if eq(clone(path), "seq::skip_i32") {
+        return "use `v.iter().skip(n).collect()` or `std::core::iter::collect_skip_i32(v, n)` instead"
+    }
+    if eq(clone(path), "seq::fold_i32_i32") {
+        return "use `v.iter().fold(init, f)` or `std::core::iter::iter_fold_i32(v, init, f)` instead"
+    }
+    if eq(clone(path), "seq::binary_search") {
+        return "use `std::seq::binary_search_by(v, target)` instead"
+    }
+    if eq(clone(path), "seq::min_i32") {
+        return "use `std::seq::min_by(v)` instead"
+    }
+    if eq(clone(path), "seq::max_i32") {
+        return "use `std::seq::max_by(v)` instead"
+    }
+    if eq(clone(path), "seq::sum_i32") {
+        return "use `v.iter().sum()` or `std::core::iter::iter_sum_i32(v)` instead"
+    }
+    if eq(clone(path), "seq::seq_reverse") {
+        return "use `v.iter().rev().collect()` or `std::core::iter::iter_reverse_i32(v)` instead"
+    }
+    if eq(clone(path), "seq::seq_contains") {
+        return "use `v.iter().contains(target)` or `std::core::iter::iter_contains_i32(v, target)` instead"
+    }
+    if eq(clone(path), "seq::unique") {
+        return "use `v.iter().unique().collect()` or `std::core::iter::iter_unique_i32(v)` instead"
+    }
+    if eq(clone(path), "seq::count_eq") {
+        return "use `v.iter().count_eq(target)` or `std::core::iter::iter_count_eq_i32(v, target)` instead"
+    }
+    String_new()
+}
+
 fn deprecated_hash_qualified_message(path: String) -> String {
     // std::core::hash only exposes 'combine'; removed names are covered by
     // resolver::removed_names instead of this live-call table.
@@ -107,4 +160,38 @@ test mod "deprecated" {
     }
     test "math_popcount" { assert(len(deprecated_qualified_call_message("math::popcount")) > 0) }
     test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
+    test "seq_deprecated_helpers" {
+        assert(len(deprecated_qualified_call_message("seq::map_i32_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::filter_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::take_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::skip_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::fold_i32_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::binary_search")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::min_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::max_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::sum_i32")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::seq_reverse")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::seq_contains")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::unique")) > 0)
+        assert(len(deprecated_qualified_call_message("seq::count_eq")) > 0)
+    }
+    test "seq_generic_helpers_not_deprecated" {
+        assert(len(deprecated_qualified_call_message("seq::binary_search_by")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::binary_search_by_key")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::lower_bound")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::upper_bound")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::sort_by")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::min_by")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::max_by")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::min_by_key")) == 0)
+        assert(len(deprecated_qualified_call_message("seq::max_by_key")) == 0)
+    }
+    test "stable_prelude_frees_not_deprecated" {
+        // The 34 stable prelude monomorphic frees are not deprecated until
+        // #703 Wave 1; W0009 must not warn on their bare or qualified names.
+        assert(len(deprecated_call_message("sum_i32")) == 0)
+        assert(len(deprecated_call_message("sort_i32")) == 0)
+        assert(len(deprecated_call_message("map_i32_i32")) == 0)
+        assert(len(deprecated_qualified_call_message("sum_i32")) == 0)
+    }
 }
