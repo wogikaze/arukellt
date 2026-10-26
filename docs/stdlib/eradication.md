@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1418 `pub fn` declarations under
-`std/**/*.ark`; 987 map to a manifest entry and
-431 are unregistered. Eradication scope = 815 manifest
-public entries + 431 unregistered declarations = **1246 symbols**.
+**Real surface denominator:** 1419 `pub fn` declarations under
+`std/**/*.ark`; 988 map to a manifest entry and
+431 are unregistered. Eradication scope = 816 manifest
+public entries + 431 unregistered declarations = **1247 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1246 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1418 | — |
+| Eradication-scope symbols (real std surface) | 1247 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1419 | — |
 | Unregistered std declarations (no manifest entry) | 431 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 815 | 0 |
+| Manifest public entries (registered scope) | 816 | 0 |
 | `prelude_wrapper` entries | 96 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 148 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -38,7 +38,7 @@ public entries + 431 unregistered declarations = **1246 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 122 |
-| `associated-or-method` | Replacement must land as method/associated first | 1124 |
+| `associated-or-method` | Replacement must land as method/associated first | 1125 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -78,7 +78,7 @@ registered entries and unregistered `pub fn` declarations.
 | std::simd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 104 | 79 | SIMD vector methods (add/sub/extract_lane/etc.) |
 | std::wasm builder frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 77 | 34 | WasmBuilder/Module/Type associated functions and methods |
 | std::wit/component frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 23 | 64 | Wit/Component/Handle associated functions and methods |
-| host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 77 | 40 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
+| host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 78 | 40 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
 
 ## Inventory (manifest entries)
 
@@ -506,6 +506,7 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `is_dir` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `is_file` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `is_readable_file` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `read_bytes` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `read_to_string` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `write_bytes` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `write_string` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -1123,8 +1124,8 @@ manifest-only scorecard could not see before #703.
 | `csv_parse` | `std/csv/mod.ark:130` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_stringify` | `std/csv/mod.ark:149` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `read_stdin` | `std/host/stdio.ark:13` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `io_error_message` | `std/io/mod.ark:56` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `copy_trait` | `std/io/mod.ark:1228` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `io_error_message` | `std/io/mod.ark:58` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `copy_trait` | `std/io/mod.ark:1230` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `json_hex_nibble` | `std/json.ark:99` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `json_hex_byte` | `std/json.ark:108` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `json_hex_value` | `std/json.ark:197` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

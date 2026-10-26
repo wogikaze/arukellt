@@ -402,6 +402,7 @@ parse-only:wit_import/parse/with_alias.ark
 run:arrays/array_literal.ark
 run:arrays/array_repeat.ark
 run:associated_fn/i32_from.ark
+run:associated_fn/impl_result_payload.ark
 run:associated_fn/string_from.ark
 run:associated_fn/vec_new.ark
 run:closure_capture/capture_struct.ark
@@ -1153,6 +1154,8 @@ run:stdlib_io_traits/trait_dispatch.ark
 run:stdlib_io_traits/io_copy_roundtrip.ark
 run:stdlib_io_traits/buf_reader_lines.ark
 run:stdlib_io_traits/buf_writer_flush.ark
+run:stdlib_io_traits/file_copy_to_memory.ark
+run:stdlib_io_traits/file_read_eof.ark
 run:stdlib_json/json_array_of_objects.ark
 run:stdlib_json/json_as_array.ark
 run:stdlib_json/json_as_bool.ark
@@ -2377,6 +2380,8 @@ t3-compile:stdlib_io/print_hello.ark
 t3-compile:stdlib_io/println_multi.ark
 t3-compile:stdlib_io/to_string.ark
 t3-compile:stdlib_io/to_string_char_local.ark
+t3-compile:stdlib_io_traits/file_copy_to_memory.ark
+t3-compile:stdlib_io_traits/file_read_eof.ark
 t3-compile:stdlib_map/map_string.ark
 t3-compile:stdlib_math/abs_min_max.ark
 t3-compile:stdlib_math/clamp_i32.ark
@@ -2687,6 +2692,7 @@ t3-compile:variables/tuple.ark
 t3-compile:wasi_p2_native/hello.ark
 t3-run:arrays/array_literal.ark
 t3-run:arrays/array_repeat.ark
+t3-run:associated_fn/impl_result_payload.ark
 t3-run:closure_capture/capture_struct.ark
 t3-run:closure_capture/copy_capture_snapshot.ark
 t3-run:closure_capture/nested_shadow_move_scope.ark
@@ -2910,6 +2916,8 @@ t3-run:stdlib_io_traits/trait_dispatch.ark
 t3-run:stdlib_io_traits/io_copy_roundtrip.ark
 t3-run:stdlib_io_traits/buf_reader_lines.ark
 t3-run:stdlib_io_traits/buf_writer_flush.ark
+t3-run:stdlib_io_traits/file_copy_to_memory.ark
+t3-run:stdlib_io_traits/file_read_eof.ark
 t3-run:stdlib_json/json_perf_decode.ark
 t3-run:stdlib_json/json_perf_encode.ark
 t3-run:stdlib_map/map_string.ark

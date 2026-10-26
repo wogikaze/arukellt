@@ -28,6 +28,15 @@ def require(path: str, markers: tuple[str, ...]) -> int:
     return 0
 
 
+def require_any(paths: tuple[str, ...], markers: tuple[str, ...]) -> int:
+    """Check markers across the files that make up one std module surface."""
+    text = "\n".join((ROOT / path).read_text(encoding="utf-8") for path in paths)
+    for marker in markers:
+        if marker not in text:
+            return fail(f"{', '.join(paths)}: missing {marker}")
+    return 0
+
+
 def _compile_and_run(rel: str) -> tuple[int, str, str]:
     fixture = ROOT / rel
     BUILD.mkdir(parents=True, exist_ok=True)
@@ -84,11 +93,9 @@ def main() -> int:
             "std/host/fs.ark",
             (
                 "pub fn read_to_string(",
-                "pub fn write_string(",
-                "pub fn write_bytes(",
+                "pub fn read_bytes(",
                 "pub fn is_readable_file(",
                 "__runtime_abi_fs_read_file",
-                "__runtime_abi_fs_write_file",
             ),
         ),
         (
@@ -107,6 +114,13 @@ def main() -> int:
         ("src/compiler/main/usage.ark", ("--deny-process",)),
         ("docs/cli-reference.md", ("Host capability defaults", "--deny-process")),
     )
+    # The write helpers are re-exported from std/host/fs/write.ark so the
+    # parent can import std::io for File without a resolver name collision.
+    if require_any(
+        ("std/host/fs.ark", "std/host/fs/write.ark"),
+        ("pub fn write_string(", "pub fn write_bytes(", "__runtime_abi_fs_write_file"),
+    ):
+        return 1
     for path, markers in checks:
         if require(path, markers):
             return 1

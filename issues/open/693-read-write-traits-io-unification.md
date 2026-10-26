@@ -33,7 +33,7 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 - Phases A–C are implemented: `Read` / `Write` / `BufRead` / `Seek` /
   `SeekFrom`, the memory `Reader` / `Writer` newtypes, the receiver-less
   `Io` algorithms, and the generic `BufReader<R: Read>` / `BufWriter<W:
-  Write>` adapters are public.
+  Write>` adapters are public. Phase D's read side is also implemented below.
 - `Reader` / `Writer` are distinct newtypes with private layouts. `BufReader`
   and `BufWriter` are generic adapters; the legacy `reader_*` / `writer_*` /
   `buf_*` free functions keep their `Vec<i32>` layout contracts until Phase E.
@@ -47,9 +47,14 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 - `impl Read for Vec<i32>` and `impl Write for Vec<i32>` were removed in
   Phase A, so source and sink can no longer be conflated on the same type.
 - `std::host::fs` is a path-based whole-file surface
-  (`read_to_string` / `write_string` / `write_bytes` and read probes) with
-  experimental `fd_seek` / `fd_tell` / `fd_fdstat_get`. There is no `File`
-  constructor and no byte-oriented read primitive yet.
+  (`read_to_string` / `read_bytes` / `write_string` / `write_bytes` and read
+  probes) with experimental `fd_seek` / `fd_tell` / `fd_fdstat_get`.
+  `read_bytes` preserves NUL and invalid UTF-8, so it is the byte-oriented
+  primitive behind `File::open`.
+- `std::host::fs::File` is the Phase D read side: `File::open` loads a
+  read-only whole-file image, `Read` / `Seek` operate on that image, and
+  `close` rejects later operations. `File::create`, `Write`, and `flush`
+  (the whole-file write side) remain open under this phase.
 - `std::io` is declared stable in `std/manifest.toml`, while
   `src/compiler/lint/deprecated_table.ark` still says `std::io` moved to
   `std::host::stdio`. The abstraction module and the host stdio surface need to
@@ -117,7 +122,10 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
 - [ ] **Phase D — File**: add the byte-oriented host read primitive and
   `std::host::fs::File` (`open` / `create`, `Read` / `Write` / `Seek`,
   `flush` / `close`); add the file-reader -> memory-writer `Io::copy` fixture;
-  record target availability in the manifest.
+  record target availability in the manifest. Status: read side landed and
+  runtime-green (`fs::read_bytes`, `File::open`, `Read`, `Seek`, `close`, the
+  file roundtrip / EOF fixtures on `wasm32-gc` memory32+P2 and `wasm32`);
+  `File::create`, `Write`, and `flush` remain open.
 - [ ] **Phase E — compatibility and deprecation**: turn the old free functions
   into newtype wrappers, add `deprecated_by` / removal metadata, migrate
   fixtures and docs, and remove the stale `std::io`-moved-to-`std::host::stdio`
@@ -159,9 +167,36 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   `BufReader<R>` / `BufWriter<W>` dispatch `self.inner.read(...)` /
   `self.inner.write(...)` on a generic field; the adapters validate and run on
   both targets.
-- **Host: byte read.** `__runtime_abi_fs_read_file` returns `String`. `File`'s
-  read side needs a byte-oriented host primitive (or an official WASI
-  filesystem boundary that returns bytes). This is a Phase D prerequisite.
+- **Compiler: impl-method Result payloads — resolved 2026-10-26.**
+  `corehir/return_type_name.ark` kept a bare `Result` return spelling for impl
+  methods, so `match File::open(...)` was rejected by MIR lowering as an
+  untyped Option/Result scrutinee. Method returns now encode
+  `result:<ok>:<err>` with the same spelling free functions use; the Phase D
+  fixture exercises the Ok/Err binds without fixture-side annotations.
+- **Compiler: generic match-payload instantiation — open (2026-10-26).**
+  A payload bound from `match` keeps the enum declaration's type variable
+  (`Result<T, E>` / `MyEnum<T>::Ok`), so passing it to a generic callee
+  (`print_read<T: Read>`, `Io::copy<R, W>`) cannot infer a concrete type
+  argument. The call then binds the unspecialized template body, whose
+  `unreachable` stub was the Phase D runtime trap. A general fix in match
+  binding (substituting the scrutinee type arguments) regressed 121
+  generic/iterator fixtures with `E0200 i32 vs struct`; it was reverted. The
+  Phase D fixtures bind the handle and byte image with explicit types, which
+  mints the `File` / `Writer` mono instances without changing inference for
+  other matches. The compiler-side inference remains an open residual.
+- **Compiler: GC local layout placeholder for inline match payloads — open
+  (2026-10-26).** `get_unchecked` on an inline `Result<Vec<i32>, _>` payload
+  lowered `array.get` (i32) into a temp declared as the size-class structref
+  placeholder (the 0x1813 / 0x2991 validation mismatch); memory64 reported the
+  same mismatch as i64. `file_read_eof` pins the byte image with an explicit
+  `Vec<i32>` binding so its byte / EOF / seek / close contract stays checked on
+  both targets.
+- **Host: byte read — resolved for the read side 2026-10-26.**
+  `__runtime_abi_fs_read_file` returns `String`, but the emitted value is the
+  raw byte image (no UTF-8 validation), so `fs::read_bytes` exposes it as
+  `Vec<i32>` through `text::to_utf8_bytes`. The Phase D fixture reads NUL,
+  0x80, 0xFF, and a valid UTF-8 sequence to keep the byte contract checked. A
+  future descriptor/resource streaming API is still a separate ADR.
 - **Default methods.** ADR-062 leaves default methods out of scope. This is why
   `Io` exists as a namespace type for `copy` / `read_exact` / `read_to_end` /
   `write_all`, and why `BufRead::read_line` is a required method. Revisit only

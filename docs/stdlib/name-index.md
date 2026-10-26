@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 778
+- **Canonical names:** 779
 - **Historical/deprecated names:** 37
-- **Total entries:** 815
+- **Total entries:** 816
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -553,6 +553,7 @@ Current public API names, sorted alphabetically.
 | `range_iter` | `std::core::iter` | `provisional` | Iter |
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
+| `read_bytes` | `std::host::fs` | `experimental` | Host Fs |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_bytes` | `std::io` | `stable` | Io |
 | `read_dir` | `std::fs` | `provisional` | Fs |
@@ -1417,6 +1418,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_iter` | ✅ `provisional` | `std::core::iter` | Iter |
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
+| `read_bytes` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_bytes` | ✅ `stable` | `std::io` | Io |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |

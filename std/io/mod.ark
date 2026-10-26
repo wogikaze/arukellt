@@ -1,10 +1,12 @@
-//! std::io — target-independent I/O abstraction (ADR-085 Phases A–C).
+//! std::io — target-independent I/O abstraction (ADR-085 Phases A–D).
 //!
 //! Defines the public `Read` / `Write` / `BufRead` / `Seek` traits, the
 //! `SeekFrom` origin, the in-memory `Reader` / `Writer` newtypes, the
 //! receiver-less generic algorithms on `Io`, and the generic `BufReader<R>` /
 //! `BufWriter<W>` adapters. `Reader` implements `Read`, `BufRead`, and `Seek`;
-//! `Writer` implements `Write`.
+//! `Writer` implements `Write`. `std::host::fs::File` implements `Read` and
+//! `Seek` for the read-side of Phase D; its write side (`File::create` /
+//! `Write` / `flush`) is still open under #693.
 //!
 //! # Contract notes
 //!
@@ -108,7 +110,7 @@ pub enum SeekFrom {
 /// | Type     | Status | Notes                                   |
 /// |----------|--------|-----------------------------------------|
 /// | Reader   | impl   | In-memory byte image (`[cursor, ...]`)  |
-/// | File     | Phase D| `std::host::fs` whole-file handle (#693) |
+/// | File     | impl   | `std::host::fs` read-only whole-file image |
 pub trait Read {
     fn read(self: Self, max_bytes: i32) -> Result<Vec<i32>, IoError>
 }
@@ -123,7 +125,7 @@ pub trait Read {
 /// | Type     | Status | Notes                                   |
 /// |----------|--------|-----------------------------------------|
 /// | Writer   | impl   | In-memory byte image (`[fd_tag=0, ...]`) |
-/// | File     | Phase D| `std::host::fs` whole-file handle (#693) |
+/// | File     | open   | Whole-file write side is not implemented yet (#693) |
 pub trait Write {
     fn write(self: Self, data: Vec<i32>) -> Result<i32, IoError>
     fn flush(self: Self) -> Result<(), IoError>
