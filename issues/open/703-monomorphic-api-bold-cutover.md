@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-27
-Updated: 2026-10-25
+Updated: 2026-10-26
 ID: 703
 Track: stdlib-api
 Depends on: "none"
@@ -48,23 +48,31 @@ retirement of the `std::seq` module itself (its non-deprecated generic
 helpers `lower_bound`, `upper_bound`, `binary_search_by`, `min_by`, … are
 registered entries owned by #917).
 
-## Current state (2026-10-25)
+## Current state (2026-10-26)
 
 - Upstream code issues #700 (method syntax), #701 (associated syntax),
   #691 (`Iterator`), and #695 (`Ord`) are **closed**. #691 delivered the
   concrete `i32` / `String` iterator lanes, not the full adapter surface.
-- The 4 prelude wrappers and 13 `std::seq` helpers already carry
-  `deprecated_by` in `std/manifest.toml`.
+- The 4 prelude wrappers were **removed by #917** under the 0.x exception
+  (`stability-policy.md#0x-eradication-exception-917`); the 13 `std::seq`
+  helpers carry `deprecated_by` but still wait for W0009 qualified-call
+  coverage.
 - The 34 stable prelude monomorphic frees are **not yet deprecated** and
-  still ship as `stable` prelude entries.
+  still ship as `stable` prelude entries. The user's 0.x policy holds their
+  deletion for the ADR-014 addendum; W0009 coverage for the 13 `std::seq`
+  helpers is still the gate for the seq family.
 - `std/manifest.toml` is version `0.1.0`; `[deprecation_policy]` sets
   `default_remove_in = "1.0.0"` and `minimum_complete_releases = 1`.
-  No #703 symbol may be deleted before that window closes.
-- The eradication gate now measures the real surface: 1431 top-level
-  `pub fn` declarations under `std/**/*.ark`, of which 447 have no manifest
-  entry. Eradication scope is 811 manifest public entries + 447
-  unregistered declarations = 1258 symbols
+  No #703 stable symbol may be deleted before that window closes; early
+  removal is limited to the 0.x exception classes (experimental and
+  already-gated deprecated prelude bindings).
+- The eradication gate now measures the real surface: 1418 top-level
+  `pub fn` declarations under `std/**/*.ark`, of which 431 have no manifest
+  entry. Eradication scope is 815 manifest public entries + 431
+  unregistered declarations = 1246 symbols
   (`docs/stdlib/eradication.md`).
+- #917 also retired 6 free duplicates in `std/collections/sort.ark` after
+  the #697 `Vec<T>` methods landed; the 4 no-argument frees remain.
 
 ## Required work
 
@@ -75,8 +83,8 @@ registered entries owned by #917).
       `docs/stdlib/eradication.md`, including unregistered `pub fn`
       declarations and manifest entries without a declaration.
 - [x] Correct the ownership split in
-      `docs/data/stdlib-api-eradication.toml` (51 symbols here, #917 for
-      the other families).
+      `docs/data/stdlib-api-eradication.toml` (47 symbols here after the
+      #917 removal of the 4 prelude wrappers; #917 owns the other families).
 - [x] Stop advertising nonexistent generic frees (`sort<i32>(v)`,
       `map<i32, i32>(v, f)`, `reverse<i32>`, `sum<i32>`, `product<i32>`,
       …) in `docs/stdlib/migration-guidance.md`.
@@ -85,6 +93,9 @@ registered entries owned by #917).
       similar replacements without a false orphan.
 - [ ] Add W0009 coverage for `std::seq` imports/calls — **blocked**, see
       [W0009 coverage blocker](#w0009-coverage-blocker).
+- [x] Wave A non-seq subset: the 4 deprecated prelude wrappers were
+      removed by #917 (manifest + `std/prelude.ark`), with the E0100
+      migration hints kept and internal call sites qualified.
 
 ### Wave 1 — deprecate the 34 stable monomorphic frees
 

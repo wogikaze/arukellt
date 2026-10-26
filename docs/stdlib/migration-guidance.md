@@ -19,8 +19,10 @@ bindings (`char_at`, `concat`, `print`, `println`) are gated under the
 ADR-072 v2 prelude contract: a bare call fails name resolution with
 **E0100** plus a migration hint instead of reaching lint. They remain
 callable during the window through an explicit `use std::prelude::{name}`
-import or their canonical replacement. All deprecated entries will be
-removed in a future major version per the
+import or their canonical replacement — unless a wave has removed them
+under the [0.x exception](stability-policy.md#0x-eradication-exception-917)
+below. All other deprecated entries will be removed in a future major
+version per the
 [Stability Policy](stability-policy.md#deprecation-process).
 
 ---
@@ -33,8 +35,6 @@ The following public entries currently carry `deprecated_by` in
 
 | Deprecated API | Replacement |
 |----------------|-------------|
-| `char_at` | `byte_at` |
-| `concat` | `std::text::concat` |
 | `std::env::get_var` | `std::env::var` |
 | `std::host::fs::exists` | `std::host::fs::is_readable_file` |
 | `std::seq::map_i32_i32` | `v.iter().map(f).collect()` or `std::core::iter::collect_map_i32` |
@@ -98,6 +98,27 @@ New code should use `Deque<T>` / `Queue<T>` / `Stack<T>` from
 `std::collections::deque` and `LinkedList<T>` from
 `std::collections::linked_list`; the type surfaces carry `FromIterator`,
 `Clone`, `Debug`, and `Eq` where the element type permits.
+
+## Removed in the 0.x eradication wave (#917)
+
+These entries were removed early under the
+[0.x exception](stability-policy.md#0x-eradication-exception-917). They were
+either experimental (outside the stability contract) or already gated behind
+the v2 prelude with a shipped replacement.
+
+| Removed API | Replacement | Removal basis |
+|-------------|-------------|---------------|
+| `std::wasm::memory_copy` | non-public `__intrinsic_memory_copy` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
+| `std::wasm::memory_fill` | non-public `__intrinsic_memory_fill` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
+| bare `concat(a, b)` | `std::text::concat(a, b)` or `a.concat(b)` | deprecated wrapper; E0100 hint retained |
+| bare `char_at(s, i)` | `byte_at(s, i)` | deprecated wrapper; E0100 hint retained |
+| bare `print(s)` | `std::host::stdio::print(s)` | deprecated binding; E0100 hint retained |
+| bare `println(s)` | `std::host::stdio::println(s)` | deprecated binding; E0100 hint retained |
+
+The `concat`, `char_at`, `print`, and `println` hints in
+`src/compiler/resolver/removed_names.ark` remain active, so old sources still
+get the replacement path with **E0100** rather than a bare undefined-name
+error.
 
 ## Iterator v2 status
 
@@ -527,8 +548,12 @@ conditions for the compatibility names are fixed in [ADR-066](../adr/ADR-066-lan
 The old HashMap names remain callable during the ADR-014 compatibility window. The
 manifest now classifies them as `must delete` because `impl HashMap<K, V>` methods
 already exist. Method-level `deprecated_by` targets such as `HashMap::insert` can now be
-validated by the compat-orphan audit; adding them belongs to the #917 deprecation wave,
-not to this foundation change.
+validated by the compat-orphan audit. #917 deferred this family: the 20 provisional
+names are the compiler's own lowering targets (`resolver::builtins_hash`,
+`typechecker::builtins_hash`, `mir::lower::call_type_hash`, `wasm::hash_aliases`,
+`native_c::core_call`) and `std/collections/hash_map.ark` is their adapter layer, so the
+next wave must retire the compiler registrations and adapters together instead of
+deleting manifest entries alone.
 
 ### Option/Result Map
 
@@ -584,7 +609,7 @@ let doubled = match maybe_val {
 | Phase 1 — Mark | **Complete** | Initial batch (`Vec_new_i32`, `Vec_new_i64`, `filter_i32`); the `Vec_new_*` names were removed by #845 |
 | Phase 2 — Expand | Planned | Remaining monomorphic APIs get `deprecated_by` as generic implementations land |
 | Phase 3 — Warn | **Active** | Post-resolve lint emits W0009 for deprecated API usage |
-| Phase 4 — Remove | Planned | Deprecated APIs removed in next major version |
+| Phase 4 — Remove | **Started** | The 0.x exception removed the 2 experimental `std::wasm` helpers and the 4 gated prelude wrappers (#917); stable and `std::seq` families still wait for the ADR-014 addendum / W0009 |
 
 ## See Also
 

@@ -95,7 +95,7 @@ fn main() {
 
 ## String
 
-`concat()`のdeprecated prelude wrapperではなく、現在利用可能な
+`concat()`のprelude wrapperはADR-046の0.x例外で削除済みです。現在利用可能な
 `std::text::concat`を明示importします。planned method syntaxはcore pathで
 案内しません。
 

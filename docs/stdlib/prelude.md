@@ -50,6 +50,12 @@ and stdlib code. Other `prelude = true` entries are no longer auto-imported:
 bare calls fail with E0100 and a migration hint, and the name resolves only
 through `use std::prelude::{name}` or its canonical replacement module.
 
+The bare `concat`, `char_at`, `print`, and `println` bindings were removed
+from the published surface in the #917 0.x eradication wave
+([0.x exception](stability-policy.md#0x-eradication-exception-917)). Calling
+them still fails with E0100 and the resolver hint that names the replacement
+(`std::text::concat`, `byte_at`, and `std::host::stdio`).
+
 ## Legacy compatibility and migration
 
 Only entries marked `stability = "deprecated"` in `std/manifest.toml` are

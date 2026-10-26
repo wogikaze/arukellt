@@ -371,7 +371,7 @@ fn toml_strip_underscores(s: String) -> String {
     while i < n {
         let c = byte_at(s, i)
         if c != 95 {
-            out = concat(out, slice(s, i, i + 1))
+            out = text::concat(out, slice(s, i, i + 1))
         }
         i = i + 1
     }
@@ -521,7 +521,7 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
         }
         match toml_parse_float_token(core) {
             Result::Ok(f) => return TomlValStep_ok(TomlValue::Float(f), end),
-            Result::Err(e) => return TomlValStep_err(concat("invalid float: ", e), pos),
+            Result::Err(e) => return TomlValStep_err(text::concat("invalid float: ", e), pos),
         }
     }
     // Decimal integer.
@@ -532,7 +532,7 @@ fn toml_parse_number_or_datetime_at(s: String, pos: i32) -> TomlValStep {
     }
     match parse_i64(core) {
         Result::Ok(v) => return TomlValStep_ok(TomlValue::Integer(v), end),
-        Result::Err(e) => return TomlValStep_err(concat("invalid integer: ", e), pos),
+        Result::Err(e) => return TomlValStep_err(text::concat("invalid integer: ", e), pos),
     }
 }
 
@@ -780,7 +780,7 @@ fn toml_navigate_table_count(root: Vec<TomlField>, path: Vec<String>, count: i32
                         _ => return Err("array element is not a table"),
                     }
                 },
-                _ => return Err(concat("key exists as non-table: ", seg)),
+                _ => return Err(text::concat("key exists as non-table: ", seg)),
             }
         } else {
             let new_fields = Vec::new<TomlField>()
@@ -818,7 +818,7 @@ fn toml_append_array_table(root: Vec<TomlField>, path: Vec<String>) -> Result<Ve
                 push(arr, TomlValue::Table(new_fields))
                 Ok(new_fields)
             },
-            _ => Err(concat("key exists as non-array: ", last_seg)),
+            _ => Err(text::concat("key exists as non-array: ", last_seg)),
         }
     } else {
         let arr = Vec::new<TomlValue>()
@@ -842,7 +842,7 @@ fn toml_insert_key(fields: Vec<TomlField>, key_path: Vec<String>, value: TomlVal
     }
     let last_seg = get_unchecked(key_path, klen - 1)
     if toml_find_field_index(parent, last_seg) >= 0 {
-        return Err(concat("duplicate key: ", last_seg))
+        return Err(text::concat("duplicate key: ", last_seg))
     }
     push(parent, TomlField { key: last_seg, value: value })
     Ok(())
@@ -939,7 +939,7 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
 /// Serialize a `TomlValue` back to text.
 pub fn toml_stringify(v: TomlValue) -> String {
     match v {
-        TomlValue::String(s) => concat("\"", concat(s, "\"")),
+        TomlValue::String(s) => text::concat("\"", text::concat(s, "\"")),
         TomlValue::Integer(i) => (i).to_string(),
         TomlValue::Float(f) => (f).to_string(),
         TomlValue::Boolean(b) => if b { "true" } else { "false" },

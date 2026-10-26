@@ -490,14 +490,9 @@ pub fn op_i64_mul() -> i32 {
     126
 }
 
-// Bulk memory operations
-pub fn memory_copy(dst: i32, src: i32, len: i32) {
-    __intrinsic_memory_copy(dst, src, len)
-}
-
-pub fn memory_fill(ptr: i32, val: i32, len: i32) {
-    __intrinsic_memory_fill(ptr, val, len)
-}
+// Bulk memory operations have no public wrapper: ADR-046 keeps only the
+// non-public `__intrinsic_memory_*` bridge (the `memory_copy` / `memory_fill`
+// wrappers were experimental and were removed under ADR-014 D4).
 // func_type_count
 // func_count
 // mem_count

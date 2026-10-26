@@ -95,6 +95,22 @@ A Stable API is deprecated before removal:
 2. Keep the deprecated API available until the next major version, and for at least one complete release.
 3. Remove no earlier than that major-version boundary, with a migration guide.
 
+### 0.x eradication exception (#917)
+
+Before 1.0.0 the project has no scheduled 1.0.0 release, so the
+`remove_in = "1.0.0"` policy default is not by itself evidence that a
+removal window closed. The #917 eradication wave may remove early **only**
+these classes, and each wave must record the exception:
+
+- `experimental` entries — outside the stability contract (ADR-014 D4);
+- `deprecated` prelude bindings that the v2 prelude already gates with
+  **E0100** plus a resolver migration hint, and whose replacement is
+  shipped and tested.
+
+`stable` entries still require the ADR-014 deprecation-window addendum,
+and the `std::seq` helpers still require W0009 qualified-call coverage.
+Early removals must cite this exception explicitly in the migration guide.
+
 ---
 
 ## Free-Function Eradication (ADR-046)

@@ -15,21 +15,21 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1430 `pub fn` declarations under
-`std/**/*.ark`; 994 map to a manifest entry and
-436 are unregistered. Eradication scope = 821 manifest
-public entries + 436 unregistered declarations = **1257 symbols**.
+**Real surface denominator:** 1418 `pub fn` declarations under
+`std/**/*.ark`; 987 map to a manifest entry and
+431 are unregistered. Eradication scope = 815 manifest
+public entries + 431 unregistered declarations = **1246 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1257 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1430 | — |
-| Unregistered std declarations (no manifest entry) | 436 | 0 |
+| Eradication-scope symbols (real std surface) | 1246 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1418 | — |
+| Unregistered std declarations (no manifest entry) | 431 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 821 | 0 |
-| `prelude_wrapper` entries | 98 | 0 |
+| Manifest public entries (registered scope) | 815 | 0 |
+| `prelude_wrapper` entries | 96 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 148 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
@@ -37,8 +37,8 @@ public entries + 436 unregistered declarations = **1257 symbols**.
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 128 |
-| `associated-or-method` | Replacement must land as method/associated first | 1129 |
+| `must delete` | Replacement already exists or functionality retires | 122 |
+| `associated-or-method` | Replacement must land as method/associated first | 1124 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -50,14 +50,12 @@ registered entries and unregistered `pub fn` declarations.
 | Rule | Class | Owner | Manifest | Source | Replacement |
 |------|-------|-------|----------|--------|-------------|
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
-| wasm memory intrinsic wrappers | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 2 | 0 | keep only the non-public __intrinsic_memory_* bridge; no user-reachable replacement (experimental, ADR-014 D4) |
 | hash set monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 15 | HashSet methods once the HashSet type surface lands; see std::collections::hash |
 | hash_map monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 60 | HashMap methods (new/insert/get/contains_key/remove/len/is_empty exist; keys/values/entries methods pending) |
 | hash_string monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 29 | HashMap methods (same adapter family as std::collections::hash_map) |
 | hash_fn monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 11 | HashMap methods for fn-valued maps (same adapter family) |
 | hash_str_fn monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 11 | HashMap methods for fn-valued maps (same adapter family) |
-| collections sort free algorithms | `associated-or-method` | [#697](../../issues/open/697-vec-operation-extension.md) | 0 | 9 | Vec::sort / sort_by / sort_by_key methods (Vec<T> operation extension) |
-| deprecated prelude wrappers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 4 | 0 | manifest deprecated_by targets: byte_at, std::text::concat, std::host::stdio::{print,println} |
+| collections sort free algorithms | `associated-or-method` | [#697](../../issues/open/697-vec-operation-extension.md) | 0 | 4 | Vec::sort_by / sort_by_key / sort_unstable_by / sort_unstable_by_key / partition / is_sorted_by methods (landed #697; the six free duplicates retired in #917); sort/sort_unstable/is_sorted/select_nth await no-argument methods |
 | panic | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 1 | 0 | associated on a core namespace type (e.g. Std::panic) or an explicit ADR exception |
 | vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 10 | 0 | v.push(x) / v.len() / Vec methods (already emitted via impl Vec<T>) |
 | assertion frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | std::test::assert_* module functions (no Test associated API exists; harness-surface design is still open) |
@@ -117,9 +115,7 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `assert_eq_i64` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert_eq_str` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert_ne` | `(prelude)` | `must delete` | assertion frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `char_at` | `(prelude)` | `must delete` | deprecated prelude wrappers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `clear` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `concat` | `(prelude)` | `must delete` | deprecated prelude wrappers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `contains_String` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `contains_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `contains_string` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
@@ -158,8 +154,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `map_option_i32_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `map_result_i32_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `pop` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `print` | `(prelude)` | `must delete` | deprecated prelude wrappers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `println` | `(prelude)` | `must delete` | deprecated prelude wrappers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `product_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `push` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `remove_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
@@ -214,8 +208,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `sum_i32` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `take_i32` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `unique` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `memory_copy` | `std::wasm` | `must delete` | wasm memory intrinsic wrappers | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `memory_fill` | `std::wasm` | `must delete` | wasm memory intrinsic wrappers | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `Box_new` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_from` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_new` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -1065,15 +1057,10 @@ manifest-only scorecard could not see before #703.
 | `hashmap_str_val_set` | `std/collections/hash_string.ark:637` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashmap_str_val_get` | `std/collections/hash_string.ark:641` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `btree_set_find_idx` | `std/collections/ordered.ark:164` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `sort` | `std/collections/sort.ark:46` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `sort_by_key` | `std/collections/sort.ark:64` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `sort_unstable` | `std/collections/sort.ark:74` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `sort_unstable_by` | `std/collections/sort.ark:79` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `sort_unstable_by_key` | `std/collections/sort.ark:84` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `partition` | `std/collections/sort.ark:258` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `is_sorted` | `std/collections/sort.ark:275` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `is_sorted_by` | `std/collections/sort.ark:288` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
-| `select_nth` | `std/collections/sort.ark:305` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
+| `sort` | `std/collections/sort.ark:42` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
+| `sort_unstable` | `std/collections/sort.ark:52` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
+| `is_sorted` | `std/collections/sort.ark:115` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
+| `select_nth` | `std/collections/sort.ark:132` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
 | `trie_new` | `std/collections/trie.ark:120` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `trie_insert` | `std/collections/trie.ark:130` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `trie_get` | `std/collections/trie.ark:156` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

@@ -3,7 +3,7 @@
 # Every public stdlib free / monomorphic / prelude_wrapper symbol in
 # std/manifest.toml resolves to exactly one class here. The same rules
 # also classify top-level `pub fn` declarations under std/**/*.ark that
-# have no manifest entry (~447 today); those are the unregistered public
+# have no manifest entry (431 today); those are the unregistered public
 # free functions that made the "0 public free functions" scorecard
 # unmeasurable before issue #703. The generated scorecard and inventory
 # live in docs/stdlib/eradication.md (scripts/gen/generate-docs.py);
@@ -45,11 +45,11 @@
 # `replacement` is human-readable guidance for migration notes.
 #
 # Ownership split for #703 (single owner per family): #703 owns the
-# monomorphic cutover families — "deprecated prelude wrappers" (4),
-# "deprecated std::seq helpers" (13), and "monomorphic seq/combinator
-# frees" (34), 51 symbols total. The 34 stable frees still need the
-# ADR-014 deprecation window before deletion; #917 owns every other
-# family as the execution umbrella.
+# monomorphic cutover families — "deprecated std::seq helpers" (13) and
+# "monomorphic seq/combinator frees" (34), 47 symbols left after the
+# deprecated prelude wrappers were removed by #917. The 33 stable
+# monomorphic frees still need the ADR-014 deprecation window (W0009) before
+# deletion; #917 owns every other family as the execution umbrella.
 
 [meta]
 policy_adr = "ADR-046"
@@ -65,16 +65,9 @@ prefix = "__intrinsic_"
 class = "intrinsic-only"
 owner = "none"
 
-# `memory_copy` / `memory_fill` are public `pub fn` wrappers in std::wasm,
-# not private bridges. Classifying them as intrinsic-only was the loophole
-# that let two user-reachable free functions escape the scorecard.
-[[rules]]
-label = "wasm memory intrinsic wrappers"
-module = "std::wasm"
-name = ["memory_copy", "memory_fill"]
-class = "must delete"
-owner = "917"
-replacement = "keep only the non-public __intrinsic_memory_* bridge; no user-reachable replacement (experimental, ADR-014 D4)"
+# `memory_copy` / `memory_fill` were public `pub fn` wrappers in std::wasm.
+# They were experimental, so ADR-014 D4 allowed the #917 wave to delete them
+# directly; only the non-public `__intrinsic_memory_*` bridge remains.
 
 # -- Unregistered std declarations (source-only overrides) --
 #
@@ -128,17 +121,9 @@ source_only = true
 module = "std::collections::sort"
 class = "associated-or-method"
 owner = "697"
-replacement = "Vec::sort / sort_by / sort_by_key methods (Vec<T> operation extension)"
+replacement = "Vec::sort_by / sort_by_key / sort_unstable_by / sort_unstable_by_key / partition / is_sorted_by methods (landed #697; the six free duplicates retired in #917); sort/sort_unstable/is_sorted/select_nth await no-argument methods"
 
 # -- Prelude overrides (evaluated before the prelude default) --
-
-[[rules]]
-label = "deprecated prelude wrappers"
-module_less = true
-deprecated = true
-class = "must delete"
-owner = "703"
-replacement = "manifest deprecated_by targets: byte_at, std::text::concat, std::host::stdio::{print,println}"
 
 [[rules]]
 name = "panic"
@@ -170,6 +155,10 @@ prefix = ["sort_", "map_", "filter_", "fold_", "any_", "find_", "contains_", "re
 class = "must delete"
 owner = "703"
 replacement = "Iterator methods / generic std::seq equivalents"
+# Deferred by #917 (2026-10-26): of the 34 entries, 33 are stable and wait
+# for the ADR-014 deprecation-window addendum plus W0009 coverage; the
+# remaining `filter_i32` is provisional and shares the deprecated
+# std::seq::filter_i32 window.
 
 [[rules]]
 label = "monomorphic numeric conversions"
@@ -186,6 +175,12 @@ prefix = "HashMap_"
 class = "must delete"
 owner = "917"
 replacement = "impl HashMap<K,V> methods (new/insert/get/contains_key/remove/len/is_empty) already exist; retire after the ADR-014 deprecation window"
+# Deferred by #917 (2026-10-26): these 20 provisional names are the compiler's
+# own lowering targets (resolver::builtins_hash, typechecker::builtins_hash,
+# mir::lower::call_type_hash, wasm::hash_aliases, native_c::core_call), and
+# std/collections/hash_map.ark is their adapter layer. Deleting the manifest
+# entries alone would hide still-callable builtins from the scorecard, so the
+# next wave must retire the compiler registrations and adapters together.
 
 # -- Deprecated non-prelude symbols --
 
