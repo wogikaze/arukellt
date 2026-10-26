@@ -37,15 +37,11 @@ pub fn deprecated_call_message(_name: String) -> String {
     String_new()
 }
 
-// ── Deprecated qualified path calls (math::abs_i32 → x.abs()) ──────────
+// ── Deprecated qualified path calls (cmp::min → a.cmp(b)) ──────────────
 
 // Returns a non-empty replacement message if the qualified path call is deprecated.
-// `path` is the full qualified path, e.g. "math::abs_i32" or "cmp::min".
+// `path` is the full qualified path, e.g. "seq::sum_i32" or "cmp::min".
 pub fn deprecated_qualified_call_message(path: String) -> String {
-    let msg = deprecated_math_qualified_message(path)
-    if len(msg) > 0 {
-        return msg
-    }
     let msg2 = deprecated_cmp_qualified_message(path)
     if len(msg2) > 0 {
         return msg2
@@ -59,26 +55,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
         return msg4
     }
     return deprecated_hash_qualified_message(path)
-}
-
-fn deprecated_math_qualified_message(path: String) -> String {
-    // std::core::math functions
-    if eq(clone(path), "math::is_power_of_two") {
-        return "use `n.is_power_of_two()` (Integer trait) instead"
-    }
-    if eq(clone(path), "math::next_power_of_two") {
-        return "use `n.next_power_of_two()` (Integer trait) instead"
-    }
-    if eq(clone(path), "math::leading_zeros") {
-        return "use `n.leading_zeros()` (Integer trait) instead"
-    }
-    if eq(clone(path), "math::trailing_zeros") {
-        return "use `n.trailing_zeros()` (Integer trait) instead"
-    }
-    if eq(clone(path), "math::popcount") {
-        return "use `n.popcount()` (Integer trait) instead"
-    }
-    String_new()
 }
 
 fn deprecated_cmp_qualified_message(path: String) -> String {
@@ -158,7 +134,7 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("concat")) == 0)
         assert(len(deprecated_call_message("char_at")) == 0)
     }
-    test "math_popcount" { assert(len(deprecated_qualified_call_message("math::popcount")) > 0) }
+    test "math_helpers_removed" { assert(len(deprecated_qualified_call_message("math::popcount")) == 0) }
     test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
     test "seq_deprecated_helpers" {
         assert(len(deprecated_qualified_call_message("seq::map_i32_i32")) > 0)

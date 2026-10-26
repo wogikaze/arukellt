@@ -28,8 +28,8 @@ classified there, in dependency-safe waves.
 - `docs/data/stdlib-api-eradication.toml` now classifies both
   `std/manifest.toml` `[[functions]]` entries and top-level `pub fn`
   declarations under `std/**/*.ark`: 816 manifest functions (815 public) +
-  431 unregistered declarations = **1246** public symbols
-  (`must delete` 122, `associated-or-method` 1124, `intrinsic-only` 1).
+  413 unregistered declarations = **1228** public symbols
+  (`must delete` 122, `associated-or-method` 1106, `intrinsic-only` 1).
 - `scripts/check/check-stdlib-eradication.py` enforces the dual surface:
   no unclassified manifest entry or std declaration, no manifest entry
   without a source declaration, no dead rule, every public class has an owner.
@@ -74,6 +74,34 @@ classified there, in dependency-safe waves.
   ADR-014 window). Both decisions are recorded in the eradication TOML and
   the migration guide.
 
+### Landed slice (wave/917-1124)
+
+- Retired the 22 public free functions of the `std::core` value-helper
+  family (18 scorecard-counted): the 12 `std::core::either` helpers became
+  `Either` enum constructors / inherent methods, the 7 `std::core::math`
+  numeric helpers became `i32::gcd` / `i32::lcm` plus `Integer` trait methods
+  (`gcd` was name-collided with the prelude wrapper and is not counted), and
+  the 3 Option-returning `std::core::convert` parse adapters became
+  `TryFrom<String>` associated functions (`i32::try_from`, …); those three
+  declarations were already uncounted because the prelude `parse_*` entries
+  own their names.
+- All removals are unregistered source declarations, so no manifest
+  deprecation window or ADR-087 exception applied. `std::core::math` remains
+  as the owner of the checked / saturating arithmetic trait impls.
+- Added both-target fixtures: `stdlib_core/either_methods*.ark`,
+  `stdlib_core/integer_methods*.ark`, and
+  `stdlib_trait/try_from_parse_wasm32.ark`; migrated the existing
+  either/math/convert fixtures to the method surface.
+- Removed the 5 dead `math::*` W0009 table entries and the
+  `convert::parse_*` signature-registry / body-defer special cases from
+  `src/compiler` (stage-2 rebuilt once).
+- Scorecard delta: 1246 -> **1228** public symbols (`associated-or-method`
+  1124 -> 1106); 1418 -> 1396 `pub fn` declarations; 431 -> 413
+  unregistered; manifest 815 and `prelude_wrapper` 96 unchanged.
+- Residual in this family: `std::core::mod::identity` (no method receiver) and
+  the 20 `std::core::raw` representation bridges (need a RawArray/RawString
+  namespace surface). No stable manifest entry was touched.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -92,7 +120,9 @@ classified there, in dependency-safe waves.
       #702, #703, #708, #710, and the future Test / IO / collection
       types), then retire the free symbol.
       - Landed 2026-10-26: 6 `std::collections::sort` frees retired after
-        the #697 `Vec<T>` methods; 1124 associated-or-method symbols remain.
+        the #697 `Vec<T>` methods; the `std::core` value-helper family
+        (18 counted) retired after the `Either` / `Integer` / `TryFrom`
+        replacements. 1106 associated-or-method symbols remain.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

@@ -123,6 +123,66 @@ New code should use `Deque<T>` / `Queue<T>` / `Stack<T>` from
 `std::collections::linked_list`; the type surfaces carry `FromIterator`,
 `Clone`, `Debug`, and `Eq` where the element type permits.
 
+## Removed in the 0.x eradication wave (#917)
+
+These entries were removed early under the
+[0.x exception](stability-policy.md#0x-eradication-exception-917). They were
+either experimental (outside the stability contract) or already gated behind
+the v2 prelude with a shipped replacement.
+
+| Removed API | Replacement | Removal basis |
+|-------------|-------------|---------------|
+| `std::wasm::memory_copy` | non-public `__intrinsic_memory_copy` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
+| `std::wasm::memory_fill` | non-public `__intrinsic_memory_fill` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
+| bare `concat(a, b)` | `std::text::concat(a, b)` or `a.concat(b)` | deprecated wrapper; E0100 hint retained |
+| bare `char_at(s, i)` | `byte_at(s, i)` | deprecated wrapper; E0100 hint retained |
+| bare `print(s)` | `std::host::stdio::print(s)` | deprecated binding; E0100 hint retained |
+| bare `println(s)` | `std::host::stdio::println(s)` | deprecated binding; E0100 hint retained |
+
+The `concat`, `char_at`, `print`, and `println` hints in
+`src/compiler/resolver/removed_names.ark` remain active, so old sources still
+get the replacement path with **E0100** rather than a bare undefined-name
+error.
+
+## Removed in the #917 core-helper wave
+
+This wave retired the unregistered `std::core` value helpers. None of the
+removed symbols had a `std::manifest.toml` entry, so no ADR-014 deprecation
+window applied. The replacements are inherent methods, enum constructors, and
+the `Integer` / `TryFrom` trait surface, exercised on both `wasm32-gc` and
+`wasm32` by `tests/fixtures/stdlib_core/either_methods*.ark`,
+`tests/fixtures/stdlib_core/integer_methods*.ark`, and
+`tests/fixtures/stdlib_trait/try_from_parse*.ark`.
+
+| Removed API | Replacement | Notes |
+|-------------|-------------|-------|
+| `std::core::either::left(v)` | `Either::Left(v)` | enum constructor |
+| `std::core::either::right(v)` | `Either::Right(v)` | enum constructor |
+| `std::core::either::is_left(e)` | `e.is_left()` | |
+| `std::core::either::is_right(e)` | `e.is_right()` | |
+| `std::core::either::from_left(e, fallback)` | `e.from_left(fallback)` | |
+| `std::core::either::from_right(e, fallback)` | `e.from_right(fallback)` | |
+| `std::core::either::left_to_option(e)` | `e.left_to_option()` | |
+| `std::core::either::right_to_option(e)` | `e.right_to_option()` | |
+| `std::core::either::swap(e)` | `e.swap()` | |
+| `std::core::either::map_left(e, f)` | `e.map_left(f)` | |
+| `std::core::either::map_right(e, f)` | `e.map_right(f)` | |
+| `std::core::either::either_fold(e, l, r)` | `e.fold(l, r)` | renamed to the method shape |
+| `std::core::math::gcd(a, b)` | `a.gcd(b)` | also available as the prelude `gcd` wrapper |
+| `std::core::math::lcm(a, b)` | `a.lcm(b)` | new inherent `i32` method |
+| `std::core::math::is_power_of_two(n)` | `n.is_power_of_two()` | `Integer` trait |
+| `std::core::math::next_power_of_two(n)` | `n.next_power_of_two()` | `Integer` trait |
+| `std::core::math::leading_zeros(n)` | `n.leading_zeros()` | `Integer` trait |
+| `std::core::math::trailing_zeros(n)` | `n.trailing_zeros()` | `Integer` trait |
+| `std::core::math::popcount(n)` | `n.popcount()` | `Integer` trait |
+| `std::core::convert::parse_i32(s)` | `i32::try_from(s)` | returns `Result<i32, String>`; the free helper returned `Option` |
+| `std::core::convert::parse_i64(s)` | `i64::try_from(s)` | returns `Result<i64, String>` |
+| `std::core::convert::parse_f64(s)` | `f64::try_from(s)` | returns `Result<f64, String>` |
+
+The `std::core::math` module itself remains: it still hosts the checked /
+saturating arithmetic trait impls (`checked_add`, `saturating_mul`, …) used by
+existing callers. Only its numeric free helpers were retired.
+
 ## Iterator v2 status
 
 The current iterator implementation is intentionally narrower than the final

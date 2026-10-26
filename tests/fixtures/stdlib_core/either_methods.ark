@@ -1,0 +1,43 @@
+// Either method surface: enum constructors plus inherent methods
+// (ADR-044 / ADR-046). wasm32-gc lane.
+use std::core::either::{Either}
+use std::test
+
+fn double(x: i32) -> i32 { x * 2 }
+
+fn main() {
+    let left = Either::Left(7)
+    let right = Either::Right(9)
+
+    test::assert_true(left.is_left())
+    test::assert_false(left.is_right())
+    test::assert_false(right.is_left())
+    test::assert_true(right.is_right())
+
+    test::assert_eq_i32(left.from_left(0), 7)
+    test::assert_eq_i32(right.from_left(5), 5)
+    test::assert_eq_i32(right.from_right(0), 9)
+    test::assert_eq_i32(left.from_right(5), 5)
+
+    test::assert_true(left.swap().is_right())
+    test::assert_eq_i32(left.swap().from_right(0), 7)
+
+    test::assert_eq_i32(left.map_left(double).from_left(0), 14)
+    test::assert_eq_i32(right.map_right(double).from_right(0), 18)
+    test::assert_eq_i32(right.map_left(double).from_right(0), 9)
+    test::assert_eq_i32(left.map_right(double).from_left(0), 7)
+
+    test::assert_eq_i32(left.fold(double, double), 14)
+    test::assert_eq_i32(right.fold(double, double), 18)
+
+    let left_option: Option<i32> = left.left_to_option()
+    match left_option {
+        Some(v) => test::assert_eq_i32(v, 7),
+        None => test::assert_true(false),
+    }
+    let right_option: Option<i32> = right.right_to_option()
+    match right_option {
+        Some(v) => test::assert_eq_i32(v, 9),
+        None => test::assert_true(false),
+    }
+}

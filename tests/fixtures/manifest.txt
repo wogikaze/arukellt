@@ -860,6 +860,8 @@ run:stdlib_core/either_is_left_right.ark
 run:stdlib_core/either_left_right.ark
 run:stdlib_core/either_map_left.ark
 run:stdlib_core/either_map_right.ark
+run:stdlib_core/either_methods.ark
+run:stdlib_core/either_methods_wasm32.ark
 run:stdlib_core/either_swap.ark
 run:stdlib_core/error_all_variants.ark
 run:stdlib_core/error_basic.ark
@@ -883,6 +885,8 @@ run:stdlib_core/hash_string_deterministic.ark
 run:stdlib_core/hash_string_empty.ark
 run:stdlib_core/hash_string_long.ark
 run:stdlib_core/hash_string_single_char.ark
+run:stdlib_core/integer_methods.ark
+run:stdlib_core/integer_methods_wasm32.ark
 run:stdlib_core/iter_chain.ark
 run:stdlib_core/iter_filter.ark
 run:stdlib_core/iter_fold_sum.ark
@@ -1963,6 +1967,7 @@ run:stdlib_trait/self_return_add.ark
 run:stdlib_trait/self_return_clone.ark
 run:stdlib_trait/try_from_narrow.ark
 run:stdlib_trait/try_from_parse.ark
+run:stdlib_trait/try_from_parse_wasm32.ark
 run:stdlib_vec/vec_algorithms.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_any_all_match.ark

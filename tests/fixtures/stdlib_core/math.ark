@@ -1,4 +1,4 @@
-use std::core::math
+use std::core::convert
 use std::host::stdio
 
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
     stdio::println(15.clamp(0, 10).to_string())
     stdio::println((-5).clamp(0, 10).to_string())
     stdio::println(2.pow(10).to_string())
-    stdio::println(math::gcd(12, 8).to_string())
+    stdio::println(12.gcd(8).to_string())
 }

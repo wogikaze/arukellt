@@ -3,7 +3,7 @@
 # Every public stdlib free / monomorphic / prelude_wrapper symbol in
 # std/manifest.toml resolves to exactly one class here. The same rules
 # also classify top-level `pub fn` declarations under std/**/*.ark that
-# have no manifest entry (431 today); those are the unregistered public
+# have no manifest entry (413 today); those are the unregistered public
 # free functions that made the "0 public free functions" scorecard
 # unmeasurable before issue #703. The generated scorecard and inventory
 # live in docs/stdlib/eradication.md (scripts/gen/generate-docs.py);
@@ -310,6 +310,17 @@ module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random",
 class = "associated-or-method"
 owner = "917"
 replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods"
+# Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
+# so no manifest deprecation window was involved:
+#   std::core::either (12 counted)   -> Either enum constructors + methods
+#   std::core::math (6 counted; gcd  -> a.gcd(b) / a.lcm(b) / Integer trait
+#     is name-collided with the
+#     prelude wrapper and uncounted)
+#   std::core::convert parse_* (3)   -> TryFrom<String> associated functions
+#     (uncounted: the prelude parse_* entries already own those names)
+# Residual in this rule: std::core::mod identity and the 20 std::core::raw
+# representation bridges, which need a RawArray/RawString namespace surface
+# before they can retire. The other families (host, fs, path, …) are untouched.
 
 # -- Catch-all for unregistered std declarations --
 #

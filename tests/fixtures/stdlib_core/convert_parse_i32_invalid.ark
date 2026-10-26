@@ -2,19 +2,24 @@ use std::core::convert
 use std::test
 
 fn main() {
-    match convert::parse_i32("abc") {
-        Option::Some(v) => panic("expected None for abc"),
-        None => {
-        },
+    let text: Result<i32, String> = i32::try_from("abc")
+    let rejected_text: bool = match text {
+        Ok(_) => false,
+        Err(_) => true,
     }
-    match convert::parse_i32("") {
-        Option::Some(v) => panic("expected None for empty"),
-        None => {
-        },
+    test::assert_true(rejected_text)
+
+    let empty: Result<i32, String> = i32::try_from("")
+    let rejected_empty: bool = match empty {
+        Ok(_) => false,
+        Err(_) => true,
     }
-    match convert::parse_i32("12.5") {
-        Option::Some(v) => panic("expected None for 12.5"),
-        None => {
-        },
+    test::assert_true(rejected_empty)
+
+    let decimal: Result<i32, String> = i32::try_from("12.5")
+    let rejected_decimal: bool = match decimal {
+        Ok(_) => false,
+        Err(_) => true,
     }
+    test::assert_true(rejected_decimal)
 }

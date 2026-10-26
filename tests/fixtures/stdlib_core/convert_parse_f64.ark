@@ -2,17 +2,20 @@ use std::core::convert
 use std::test
 
 fn main() {
-    match convert::parse_f64("3.14") {
-        Option::Some(v) => test::assert_eq_f64(v, 3.14),
-        None => panic("expected Some(3.14)"),
+    let first: Result<f64, String> = f64::try_from("3.14")
+    match first {
+        Ok(v) => test::assert_eq_f64(v, 3.14),
+        Err(_) => panic("expected Ok(3.14)"),
     }
-    match convert::parse_f64("0.0") {
-        Option::Some(v) => test::assert_eq_f64(v, 0.0),
-        None => panic("expected Some(0.0)"),
+    let zero: Result<f64, String> = f64::try_from("0.0")
+    match zero {
+        Ok(v) => test::assert_eq_f64(v, 0.0),
+        Err(_) => panic("expected Ok(0.0)"),
     }
-    match convert::parse_f64("abc") {
-        Option::Some(v) => panic("expected None for abc"),
-        None => {
-        },
+    let text: Result<f64, String> = f64::try_from("abc")
+    let rejected: bool = match text {
+        Ok(_) => false,
+        Err(_) => true,
     }
+    test::assert_true(rejected)
 }

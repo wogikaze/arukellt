@@ -1,0 +1,20 @@
+// Either method surface on the linear wasm32 target. Same source-level
+// expectations as either_methods.ark; the .flags sidecar selects wasm32.
+use std::core::either::{Either}
+use std::test
+
+fn double(x: i32) -> i32 { x * 2 }
+
+fn main() {
+    let left = Either::Left(7)
+    let right = Either::Right(9)
+
+    test::assert_true(left.is_left())
+    test::assert_true(right.is_right())
+    test::assert_eq_i32(left.from_left(0), 7)
+    test::assert_eq_i32(right.from_right(0), 9)
+    test::assert_eq_i32(left.map_left(double).from_left(0), 14)
+    test::assert_eq_i32(right.map_right(double).from_right(0), 18)
+    test::assert_eq_i32(left.fold(double, double), 14)
+    test::assert_eq_i32(right.swap().from_left(0), 9)
+}

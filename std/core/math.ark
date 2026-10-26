@@ -1,128 +1,11 @@
-// std::core::math — mathematical functions
+// std::core::math — checked / saturating arithmetic traits
 //
-// ADR-046 / #718: bit ops live on `trait Integer` in std::core::convert.
-// Deprecated free wrappers below forward to Integer methods for migration.
-
-pub fn gcd(a: i32, b: i32) -> i32 {
-    let mut x = a
-    let mut y = b
-    if x < 0 {
-        x = 0 - x
-    }
-    if y < 0 {
-        y = 0 - y
-    }
-    while y != 0 {
-        let t = y
-        y = x - x / y * y
-        x = t
-    }
-    x
-}
-
-// ── number theory ───────────────────────────────────────────────────────────
-
-/// Least common multiple of `a` and `b`. Returns 0 if either is 0.
-pub fn lcm(a: i32, b: i32) -> i32 {
-    if a == 0 || b == 0 {
-        return 0
-    }
-    let g = gcd(a, b)
-    let mut x = a
-    if x < 0 {
-        x = 0 - x
-    }
-    let mut y = b
-    if y < 0 {
-        y = 0 - y
-    }
-    x / g * y
-}
-
-/// Deprecated migration wrapper (ADR-046 / #718): use `n.is_power_of_two()`
-/// (`Integer` trait).
-///
-/// Bodies are inlined (not `n.method()`) so method resolve cannot fall back to
-/// this free function and recurse (#807).
-pub fn is_power_of_two(n: i32) -> bool {
-    n > 0 && (n & (n - 1)) == 0
-}
-
-/// Deprecated migration wrapper (ADR-046 / #718): use `n.next_power_of_two()`.
-pub fn next_power_of_two(n: i32) -> i32 {
-    if n <= 1 {
-        return 1
-    }
-    let mut x = n - 1
-    x = x | (x >> 1)
-    x = x | (x >> 2)
-    x = x | (x >> 4)
-    x = x | (x >> 8)
-    x = x | (x >> 16)
-    let result = x + 1
-    if result <= 0 {
-        1073741824
-    } else {
-        result
-    }
-}
-
-/// Deprecated migration wrapper (ADR-046 / #718): use `n.leading_zeros()`.
-pub fn leading_zeros(n: i32) -> i32 {
-    if n == 0 {
-        return 32
-    }
-    if n < 0 {
-        return 0
-    }
-    let mut count = 0
-    let mut x = n
-    if (x & 0xFFFF0000) == 0 {
-        count = count + 16
-        x = x << 16
-    }
-    if (x & 0xFF000000) == 0 {
-        count = count + 8
-        x = x << 8
-    }
-    if (x & 0xF0000000) == 0 {
-        count = count + 4
-        x = x << 4
-    }
-    if (x & 0xC0000000) == 0 {
-        count = count + 2
-        x = x << 2
-    }
-    if (x & 0x80000000) == 0 {
-        count = count + 1
-    }
-    count
-}
-
-/// Deprecated migration wrapper (ADR-046 / #718): use `n.trailing_zeros()`.
-pub fn trailing_zeros(n: i32) -> i32 {
-    if n == 0 {
-        return 32
-    }
-    let mut count = 0
-    let mut x = n
-    while (x & 1) == 0 {
-        count = count + 1
-        x = x >> 1
-    }
-    count
-}
-
-/// Deprecated migration wrapper (ADR-046 / #718): use `n.popcount()`.
-pub fn popcount(n: i32) -> i32 {
-    let mut count = 0
-    let mut x = n
-    while x != 0 {
-        x = x & (x - 1)
-        count = count + 1
-    }
-    count
-}
+// ADR-046 / #917: the former numeric free helpers (gcd, lcm,
+// is_power_of_two, next_power_of_two, leading_zeros, trailing_zeros,
+// popcount) were retired by the core-helper wave. `gcd` / `lcm` are inherent
+// i32 methods and the bit ops are `Integer` trait methods, both in
+// std::core::convert. This module keeps the checked / saturating arithmetic
+// trait impls that were outside that conversion.
 
 // ── checked arithmetic traits ───────────────────────────────────────────────
 
@@ -315,36 +198,36 @@ impl SaturatingMul for i64 {
 }
 
 test mod "math" {
-    test "gcd_positive" { assert(gcd(12, 18) == 6) }
-    test "gcd_zero_left" { assert(gcd(0, 5) == 5) }
-    test "gcd_zero_right" { assert(gcd(7, 0) == 7) }
-    test "gcd_negative_input" { assert(gcd(0 - 6, 9) == 3) }
-    test "gcd_coprime" { assert(gcd(7, 13) == 1) }
-    test "gcd_commutative" { assert(gcd(18, 12) == gcd(12, 18)) }
-    test "lcm_basic" { assert(lcm(4, 6) == 12) }
-    test "lcm_zero_left" { assert(lcm(0, 5) == 0) }
-    test "lcm_zero_right" { assert(lcm(5, 0) == 0) }
-    test "lcm_negative_input" { assert(lcm(0 - 3, 4) == 12) }
-    test "lcm_product_identity" { assert(gcd(6, 10) * lcm(6, 10) == 60) }
-    test "is_power_of_two_one" { assert(is_power_of_two(1)) }
-    test "is_power_of_two_16" { assert(is_power_of_two(16)) }
-    test "is_power_of_two_zero" { assert(is_power_of_two(0) == false) }
-    test "is_power_of_two_six" { assert(is_power_of_two(6) == false) }
-    test "is_power_of_two_negative" { assert(is_power_of_two(0 - 2) == false) }
-    test "next_power_of_two_one" { assert(next_power_of_two(1) == 1) }
-    test "next_power_of_two_five" { assert(next_power_of_two(5) == 8) }
-    test "next_power_of_two_exact" { assert(next_power_of_two(16) == 16) }
-    test "next_power_of_two_seventeen" { assert(next_power_of_two(17) == 32) }
-    test "leading_zeros_zero" { assert(leading_zeros(0) == 32) }
-    test "leading_zeros_one" { assert(leading_zeros(1) == 31) }
-    test "leading_zeros_high_bit" { assert(leading_zeros(0 - 2147483648) == 0) }
-    test "leading_zeros_byte_boundary" { assert(leading_zeros(255) == 24) }
-    test "trailing_zeros_zero" { assert(trailing_zeros(0) == 32) }
-    test "trailing_zeros_one" { assert(trailing_zeros(1) == 0) }
-    test "trailing_zeros_eight" { assert(trailing_zeros(8) == 3) }
-    test "trailing_zeros_min_i32" { assert(trailing_zeros(0 - 2147483648) == 31) }
-    test "popcount_zero" { assert(popcount(0) == 0) }
-    test "popcount_one" { assert(popcount(1) == 1) }
-    test "popcount_255" { assert(popcount(255) == 8) }
-    test "popcount_all_bits" { assert(popcount(0 - 1) == 32) }
+    test "gcd_positive" { assert(12.gcd(18) == 6) }
+    test "gcd_zero_left" { assert(0.gcd(5) == 5) }
+    test "gcd_zero_right" { assert(7.gcd(0) == 7) }
+    test "gcd_negative_input" { assert((0 - 6).gcd(9) == 3) }
+    test "gcd_coprime" { assert(7.gcd(13) == 1) }
+    test "gcd_commutative" { assert(18.gcd(12) == 12.gcd(18)) }
+    test "lcm_basic" { assert(4.lcm(6) == 12) }
+    test "lcm_zero_left" { assert(0.lcm(5) == 0) }
+    test "lcm_zero_right" { assert(5.lcm(0) == 0) }
+    test "lcm_negative_input" { assert((0 - 3).lcm(4) == 12) }
+    test "lcm_product_identity" { assert(6.gcd(10) * 6.lcm(10) == 60) }
+    test "is_power_of_two_one" { assert(1.is_power_of_two()) }
+    test "is_power_of_two_16" { assert(16.is_power_of_two()) }
+    test "is_power_of_two_zero" { assert(0.is_power_of_two() == false) }
+    test "is_power_of_two_six" { assert(6.is_power_of_two() == false) }
+    test "is_power_of_two_negative" { assert((0 - 2).is_power_of_two() == false) }
+    test "next_power_of_two_one" { assert(1.next_power_of_two() == 1) }
+    test "next_power_of_two_five" { assert(5.next_power_of_two() == 8) }
+    test "next_power_of_two_exact" { assert(16.next_power_of_two() == 16) }
+    test "next_power_of_two_seventeen" { assert(17.next_power_of_two() == 32) }
+    test "leading_zeros_zero" { assert(0.leading_zeros() == 32) }
+    test "leading_zeros_one" { assert(1.leading_zeros() == 31) }
+    test "leading_zeros_high_bit" { assert((0 - 2147483648).leading_zeros() == 0) }
+    test "leading_zeros_byte_boundary" { assert(255.leading_zeros() == 24) }
+    test "trailing_zeros_zero" { assert(0.trailing_zeros() == 32) }
+    test "trailing_zeros_one" { assert(1.trailing_zeros() == 0) }
+    test "trailing_zeros_eight" { assert(8.trailing_zeros() == 3) }
+    test "trailing_zeros_min_i32" { assert((0 - 2147483648).trailing_zeros() == 31) }
+    test "popcount_zero" { assert(0.popcount() == 0) }
+    test "popcount_one" { assert(1.popcount() == 1) }
+    test "popcount_255" { assert(255.popcount() == 8) }
+    test "popcount_all_bits" { assert((0 - 1).popcount() == 32) }
 }

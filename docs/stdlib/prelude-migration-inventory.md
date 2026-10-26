@@ -11,16 +11,17 @@ etc.) may remain even after facade work; rows call out *replaceable* patterns
 where an explicit `std::text`, `std::core::convert`, or `std::collections`
 path already exists.
 
-**Caveat:** `std::core::convert::parse_*` returns `Option<_>` while prelude
-`parse_*` returns `Result<_, String>`. Call sites need a small adapter when
-moving.
+**Caveat:** the `std::core::convert::parse_*` adapters that returned `Option<_>`
+were retired by the #917 core-helper wave. Use the `TryFrom<String>` associated
+functions (`i32::try_from(s)`), which return `Result<_, String>` and match the
+prelude `parse_*` shape.
 
 | File | Approximate pattern | Suggested wrapper target |
 |------|---------------------|--------------------------|
-| `std/json/mod.ark` | `concat`, `slice`, `eq`, `char_at`, `len`; `i32_to_string`; `parse_i32` (`Result`) | `use std::text` for `concat` / `slice_bytes` / `contains` where applicable; `text::format_i32` (or `core::convert::i32_to_string`); `core::convert::parse_i32` + `Result`/`Option` shim |
+| `std/json/mod.ark` | `concat`, `slice`, `eq`, `char_at`, `len`; `i32_to_string`; `parse_i32` (`Result`) | `use std::text` for `concat` / `slice_bytes` / `contains` where applicable; `text::format_i32`; `i32::try_from(s)` for numeric parsing |
 | `std/path/mod.ark` | `concat`, `slice`, `eq`, `char_at`, `len` (mixes `text::is_empty` with prelude); `normalize` / `components` use `__intrinsic_split` / `__intrinsic_join` and `Vec` cursor idioms | `text::concat`, `text::split`, `text::join` instead of raw intrinsics; keep or centralize `last_index_of` in-module; `collections::vec` patterns for `Vec<String>` scratch buffers |
 | `std/test/mod.ark` | Message building via `concat` chains; `i32_to_string`, `i64_to_string`, `f64_to_string`, `bool_to_string`; `eq`, `contains`; `String_new` | `text::concat`, `text::format_*` (or `core::convert::*`); `text::contains`; keep `panic` / `String_new` as tiny-prelude if desired |
-| `std/toml/mod.ark` | Same shape as JSON: `split`, `trim`, `concat`, `slice`, `char_at`, `contains`, `parse_i32` | Same family as `std/json/mod.ark`: `std::text` + `std::core::convert` |
+| `std/toml/mod.ark` | Same shape as JSON: `split`, `trim`, `concat`, `slice`, `char_at`, `contains`, `parse_i32` | Same family as `std/json/mod.ark`: `std::text` + `i32::try_from` / `f64::try_from` |
 | `std/csv/mod.ark` | `split`, `concat`, `slice`, `char_at` on line fields | `text::split`, `text::concat`, byte-safe slicing via `text::slice_bytes` where appropriate |
 | `std/io/mod.ark` | Heavy `len` / `push` / `pop` / `get_unchecked` / `set` on `Vec<i32>` used as cursors and byte buffers | Prefer **module-local** private helpers (already the right “facade” boundary) so I/O layout stays in `std::io`; optional `std::bytes` alignment for byte vectors |
 
@@ -65,8 +66,8 @@ Covers numeric / boolean / string conversion helpers.
 | `i64_to_string(n)`     | `core::convert::i64_to_string(n)`       | |
 | `f64_to_string(n)`     | `core::convert::f64_to_string(n)`       | |
 | `bool_to_string(b)`    | `core::convert::bool_to_string(b)`      | |
-| `parse_i32(s)`         | `core::convert::parse_i32(s)`           | returns `Option<i32>`; prelude returns `Result<i32,String>` — add adapter if needed |
-| `parse_f64(s)`         | `core::convert::parse_f64(s)`           | same Option vs Result caveat |
+| `parse_i32(s)`         | `i32::try_from(s)`                      | returns `Result<i32, String>` |
+| `parse_f64(s)`         | `f64::try_from(s)`                      | returns `Result<f64, String>` |
 
 ### std::io
 

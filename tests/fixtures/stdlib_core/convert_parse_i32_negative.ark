@@ -2,12 +2,14 @@ use std::core::convert
 use std::test
 
 fn main() {
-    match convert::parse_i32("-42") {
-        Option::Some(v) => test::assert_eq_i32(v, -42),
-        None => panic("expected Some(-42)"),
+    let first: Result<i32, String> = i32::try_from("-42")
+    match first {
+        Ok(v) => test::assert_eq_i32(v, -42),
+        Err(_) => panic("expected Ok(-42)"),
     }
-    match convert::parse_i32("-1") {
-        Option::Some(v) => test::assert_eq_i32(v, -1),
-        None => panic("expected Some(-1)"),
+    let second: Result<i32, String> = i32::try_from("-1")
+    match second {
+        Ok(v) => test::assert_eq_i32(v, -1),
+        Err(_) => panic("expected Ok(-1)"),
     }
 }

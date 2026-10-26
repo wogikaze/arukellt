@@ -5,9 +5,9 @@ fn main() {
     stdio::println(42.to_string())
     stdio::println(3.14.to_string())
     stdio::println(true.to_string())
-    let parsed = convert::parse_i32("123")
+    let parsed: Result<i32, String> = i32::try_from("123")
     match parsed {
-        Option::Some(v) => stdio::println(v.to_string()),
-        None => stdio::println("parse failed"),
+        Ok(v) => stdio::println(v.to_string()),
+        Err(_) => stdio::println("parse failed"),
     }
 }

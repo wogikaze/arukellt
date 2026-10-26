@@ -267,13 +267,9 @@ fn sig_reg_option_return_names() -> Vec<String> {
     push(names, "find_f64")
     push(names, "find_String")
     push(names, "parse_i32")
-    push(names, "convert::parse_i32")
     push(names, "parse_i64")
-    push(names, "convert::parse_i64")
     push(names, "parse_f64")
-    push(names, "convert::parse_f64")
     push(names, "parse_u64")
-    push(names, "convert::parse_u64")
     names
 }
 

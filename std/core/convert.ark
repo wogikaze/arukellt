@@ -164,38 +164,20 @@ impl Debug for String {
 // Deprecated free functions (i32_to_string, i64_to_string, f64_to_string,
 // bool_to_string) have been removed per ADR-036. Use inherent method
 // `x.to_string()` instead.
-
-pub fn parse_i32(s: String) -> Option<i32> {
-    // Option adapter over the Result-canonical parse CoreOp (#822).
-    match __core_parse_i32_impl(s) {
-        Ok(n) => Some(n),
-        Err(_) => None,
-    }
-}
-
-pub fn parse_i64(s: String) -> Option<i64> {
-    match __core_parse_i64_impl(s) {
-        Ok(n) => Some(n),
-        Err(_) => None,
-    }
-}
-
-pub fn parse_f64(s: String) -> Option<f64> {
-    match __core_parse_f64_impl(s) {
-        Ok(n) => Some(n),
-        Err(_) => None,
-    }
-}
+//
+// The Option-returning `parse_i32` / `parse_i64` / `parse_f64` adapters were
+// removed by the #917 core-helper wave. Use the `TryFrom<String>` associated
+// functions (`i32::try_from(s)`), which return `Result<T, String>`.
 
 // ---------------------------------------------------------------------------
 // Integer trait — shared bit / power-of-two ops (ADR-046 trait-first / #718).
-// Prefer `n.is_power_of_two()` over free `math::is_power_of_two(n)`.
+// Prefer `n.is_power_of_two()` over the removed free math helpers.
 // ---------------------------------------------------------------------------
 
 /// Trait for integer bit / power-of-two operations (ADR-046 trait-first).
 ///
 /// Call sites: `n.is_power_of_two()`, `n.popcount()`, etc.
-/// Prefer this over free `math::is_power_of_two(n)`.
+/// The former free `math::is_power_of_two(n)` wrapper was retired by #917.
 trait Integer {
     fn is_power_of_two(self: Self) -> bool
     fn next_power_of_two(self: Self) -> Self
@@ -411,6 +393,18 @@ impl i32 {
     /// Returns the greatest common divisor of `self` and `other`.
     fn gcd(self: i32, other: i32) -> i32 {
         __core_math_gcd_impl(self, other)
+    }
+
+    /// Returns the least common multiple of `self` and `other`, or 0 when
+    /// either operand is zero.
+    fn lcm(self: i32, other: i32) -> i32 {
+        if self == 0 || other == 0 {
+            return 0
+        }
+        let divisor: i32 = __core_math_gcd_impl(self, other)
+        let left: i32 = if self < 0 { 0 - self } else { self }
+        let right: i32 = if other < 0 { 0 - other } else { other }
+        left / divisor * right
     }
 }
 

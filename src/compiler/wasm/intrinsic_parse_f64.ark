@@ -23,7 +23,7 @@ fn emit_parse_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-// Handler for: parse_i32, convert::parse_i32
+// Handler for: parse_f64
 
 fn emit_parse_f64_init(w: WasmWriter, s_str: i32, s_len_local: i32) {
     emit_parse_f64_source(w, s_str, s_len_local)

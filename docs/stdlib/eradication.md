@@ -15,18 +15,18 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1418 `pub fn` declarations under
-`std/**/*.ark`; 987 map to a manifest entry and
-431 are unregistered. Eradication scope = 815 manifest
-public entries + 431 unregistered declarations = **1246 symbols**.
+**Real surface denominator:** 1396 `pub fn` declarations under
+`std/**/*.ark`; 983 map to a manifest entry and
+413 are unregistered. Eradication scope = 815 manifest
+public entries + 413 unregistered declarations = **1228 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1246 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1418 | — |
-| Unregistered std declarations (no manifest entry) | 431 | 0 |
+| Eradication-scope symbols (real std surface) | 1228 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1396 | — |
+| Unregistered std declarations (no manifest entry) | 413 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
 | Manifest public entries (registered scope) | 815 | 0 |
 | `prelude_wrapper` entries | 96 | 0 |
@@ -38,7 +38,7 @@ public entries + 431 unregistered declarations = **1246 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 122 |
-| `associated-or-method` | Replacement must land as method/associated first | 1124 |
+| `associated-or-method` | Replacement must land as method/associated first | 1106 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -78,7 +78,7 @@ registered entries and unregistered `pub fn` declarations.
 | std::simd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 104 | 79 | SIMD vector methods (add/sub/extract_lane/etc.) |
 | std::wasm builder frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 77 | 34 | WasmBuilder/Module/Type associated functions and methods |
 | std::wit/component frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 23 | 64 | Wit/Component/Handle associated functions and methods |
-| host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 77 | 40 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
+| host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 77 | 22 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
 
 ## Inventory (manifest entries)
 
@@ -1081,24 +1081,6 @@ manifest-only scorecard could not see before #703.
 | `handle_table_i32_get` | `std/component/handle.ark:20` | `std::component::handle` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `handle_table_i32_drop` | `std/component/handle.ark:24` | `std::component::handle` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `handle_table_i32_len` | `std/component/handle.ark:28` | `std::component::handle` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `left` | `std/core/either.ark:22` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `right` | `std/core/either.ark:27` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_left` | `std/core/either.ark:34` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_right` | `std/core/either.ark:42` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `from_left` | `std/core/either.ark:52` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `from_right` | `std/core/either.ark:60` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `left_to_option` | `std/core/either.ark:68` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `right_to_option` | `std/core/either.ark:76` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `swap` | `std/core/either.ark:86` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `map_left` | `std/core/either.ark:94` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `map_right` | `std/core/either.ark:102` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `either_fold` | `std/core/either.ark:110` | `std::core::either` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `lcm` | `std/core/math.ark:26` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_power_of_two` | `std/core/math.ark:47` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `next_power_of_two` | `std/core/math.ark:52` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `leading_zeros` | `std/core/math.ark:71` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `trailing_zeros` | `std/core/math.ark:103` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `popcount` | `std/core/math.ark:117` | `std::core::math` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `identity` | `std/core/mod.ark:118` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_new` | `std/core/raw.ark:14` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_len` | `std/core/raw.ark:19` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

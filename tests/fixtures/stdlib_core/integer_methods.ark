@@ -1,0 +1,17 @@
+// Integer method surface: gcd/lcm inherent methods and the Integer trait
+// bit helpers (ADR-044 / ADR-046). wasm32-gc lane.
+use std::core::convert
+use std::test
+
+fn main() {
+    test::assert_eq_i32(12.gcd(8), 4)
+    test::assert_eq_i32(4.lcm(6), 12)
+    test::assert_eq_i32(0.lcm(5), 0)
+
+    test::assert_true(16.is_power_of_two())
+    test::assert_false(0.is_power_of_two())
+    test::assert_eq_i32(5.next_power_of_two(), 8)
+    test::assert_eq_i32(0.leading_zeros(), 32)
+    test::assert_eq_i32(8.trailing_zeros(), 3)
+    test::assert_eq_i32(255.popcount(), 8)
+}

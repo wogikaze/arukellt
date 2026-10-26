@@ -35,3 +35,24 @@
 - **Not in this wave**: `stable` の `must delete` 64 件。特に prelude monomorphic
   seq/combinator の 33 件は W0009 実装（別 lane）まで削除しない。314 件の `stable`
   free→method 置換は replacement の追加として進める。
+
+## 2026-10-26 — #917 core-helper wave (`wave/917-1124`)
+
+- **Wave**: ADR-046 associated-or-method execution, one `std::core` module
+  family. No `std::manifest.toml` entry was involved, so the ADR-087 0.x
+  exception was not needed.
+- **Removed**: 22 public free functions (18 scorecard-counted) — the 12
+  `std::core::either` helpers, the 7 `std::core::math` numeric helpers (`gcd`,
+  `lcm`, `is_power_of_two`, `next_power_of_two`, `leading_zeros`,
+  `trailing_zeros`, `popcount`; `gcd` shares its name with the prelude wrapper
+  and is not counted), and the 3 Option-returning `std::core::convert` parse
+  adapters (not counted: the prelude `parse_*` entries own those names).
+- **Reason**: the replacements already shipped as `Either` enum constructors /
+  inherent methods, `i32` inherent `gcd` / `lcm` plus `Integer` trait methods,
+  and `TryFrom<String>` associated functions.
+- **Replacement**: `migration-guidance.md#removed-in-the-917-core-helper-wave`.
+- **Scorecard**: 1246 → 1228 symbols (`associated-or-method` 1124 → 1106,
+  unregistered 431 → 413); 1418 → 1396 `pub fn` declarations.
+- **Not in this wave**: `stable` manifest entries (still need the ADR-087
+  W0009 sequence), the 20 `HashMap_*` builtins, the stable 64 / `std::seq` 33,
+  and the deferred provisional items.

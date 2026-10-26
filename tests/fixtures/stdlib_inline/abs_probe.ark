@@ -373,13 +373,15 @@ pub fn probe_parse_ops() -> bool {
         Ok(n) => n > 0.49 && n < 0.51,
         Err(_) => false,
     }
-    let opt_ok = match convert::parse_i32("9") {
-        Some(n) => n == 9,
-        None => false,
+    let parsed_ok: Result<i32, String> = i32::try_from("9")
+    let opt_ok = match parsed_ok {
+        Ok(n) => n == 9,
+        Err(_) => false,
     }
-    let opt_bad = match convert::parse_f64("nope") {
-        Some(_) => false,
-        None => true,
+    let parsed_bad: Result<f64, String> = f64::try_from("nope")
+    let opt_bad = match parsed_bad {
+        Ok(_) => false,
+        Err(_) => true,
     }
     ok_i32 && bad_i32 && ok_i64 && ok_f64 && opt_ok && opt_bad
 }
