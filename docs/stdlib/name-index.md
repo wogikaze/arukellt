@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 696
-- **Historical/deprecated names:** 97
-- **Total entries:** 793
+- **Canonical names:** 664
+- **Historical/deprecated names:** 112
+- **Total entries:** 776
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -110,16 +110,7 @@ Current public API names, sorted alphabetically.
 | `buf_push_u32_le` | `std::bytes` | `stable` | Bytes |
 | `buf_push_u64_le` | `std::bytes` | `stable` | Bytes |
 | `buf_push_u8` | `std::bytes` | `stable` | Bytes |
-| `buf_reader_new` | `std::io` | `stable` | Io |
-| `buf_reader_read_line` | `std::io` | `stable` | Io |
 | `buf_with_capacity` | `std::bytes` | `stable` | Bytes |
-| `buf_writer_flush` | `std::io` | `stable` | Io |
-| `buf_writer_new` | `std::io` | `stable` | Io |
-| `buf_writer_write_str` | `std::io` | `stable` | Io |
-| `buffer_len` | `std::io` | `stable` | Io |
-| `buffer_position` | `std::io` | `experimental` | Io |
-| `buffered_reader` | `std::io` | `stable` | Io |
-| `buffered_writer` | `std::io` | `stable` | Io |
 | `builder_append` | `std::text` | `stable` | Text |
 | `builder_append_char` | `std::text` | `stable` | Text |
 | `builder_append_line` | `std::text` | `stable` | Text |
@@ -173,8 +164,6 @@ Current public API names, sorted alphabetically.
 | `concat` | `std::text` | `stable` | Text |
 | `contains` | `prelude` | `stable` | String |
 | `contains` | `std::text` | `stable` | Text |
-| `copy` | `std::io` | `stable` | Io |
-| `copy_bytes` | `std::io` | `stable` | Io |
 | `cos_approx` | `std::signal` | `stable` | Signal |
 | `csv_count_rows` | `std::csv` | `experimental` | Csv |
 | `csv_get_row_raw` | `std::csv` | `experimental` | Csv |
@@ -217,11 +206,7 @@ Current public API names, sorted alphabetically.
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `fft` | `std::signal` | `stable` | Signal |
-| `file_from_fd` | `std::io` | `experimental` | Io |
 | `file_name` | `std::path` | `stable` | Path |
-| `file_read` | `std::io` | `experimental` | Io |
-| `file_write` | `std::io` | `experimental` | Io |
-| `fill_buffer` | `std::io` | `stable` | Io |
 | `filter_i32` | `prelude` | `provisional` | Collections |
 | `filter_iter` | `std::core::iter` | `provisional` | Iter |
 | `find_key_pos` | `std::json` | `experimental` | Json |
@@ -426,7 +411,6 @@ Current public API names, sorted alphabetically.
 | `new` | `std::simd::i32x4` | `experimental` | Simd |
 | `new` | `std::simd::f64x2` | `experimental` | Simd |
 | `new` | `std::simd::i64x2` | `experimental` | Simd |
-| `new_memory_buffer` | `std::io` | `stable` | Io |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `normalize` | `std::path` | `stable` | Path |
 | `not` | `std::simd::v128` | `experimental` | Simd |
@@ -487,7 +471,6 @@ Current public API names, sorted alphabetically.
 | `range_new` | `std::core` | `stable` | Core |
 | `read_bytes` | `std::host::fs` | `experimental` | Host Fs |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
-| `read_bytes` | `std::io` | `stable` | Io |
 | `read_dir` | `std::fs` | `provisional` | Fs |
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_string` | `std::fs` | `stable` | Fs |
@@ -498,12 +481,6 @@ Current public API names, sorted alphabetically.
 | `read_u32_le` | `std::bytes` | `stable` | Bytes |
 | `read_u64_le` | `std::bytes` | `stable` | Bytes |
 | `read_u8` | `std::bytes` | `stable` | Bytes |
-| `reader_eof` | `std::io` | `stable` | Io |
-| `reader_from_bytes` | `std::io` | `stable` | Io |
-| `reader_read` | `std::io` | `stable` | Io |
-| `reader_read_all` | `std::io` | `stable` | Io |
-| `reader_read_exact` | `std::io` | `stable` | Io |
-| `reader_read_line` | `std::io` | `stable` | Io |
 | `reftype_externref` | `std::wasm` | `experimental` | Wasm |
 | `reftype_funcref` | `std::wasm` | `experimental` | Wasm |
 | `repeat` | `prelude` | `stable` | String |
@@ -539,7 +516,6 @@ Current public API names, sorted alphabetically.
 | `section_type` | `std::wasm` | `experimental` | Wasm |
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
-| `seek_to` | `std::io` | `stable` | Io |
 | `shl` | `std::simd::i32x4` | `experimental` | Simd |
 | `shr_s` | `std::simd::i32x4` | `experimental` | Simd |
 | `shr_u` | `std::simd::i32x4` | `experimental` | Simd |
@@ -693,17 +669,9 @@ Current public API names, sorted alphabetically.
 | `wit_type_u64` | `std::wit` | `experimental` | Wit |
 | `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
-| `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
-| `write_bytes` | `std::io` | `stable` | Io |
 | `write_string` | `std::fs` | `stable` | Fs |
 | `write_string` | `std::host::fs` | `provisional` | Host Fs |
-| `write_string` | `std::io` | `stable` | Io |
-| `writer_flush` | `std::io` | `stable` | Io |
-| `writer_new` | `std::io` | `stable` | Io |
-| `writer_to_bytes` | `std::io` | `stable` | Io |
-| `writer_write` | `std::io` | `stable` | Io |
-| `writer_write_str` | `std::io` | `stable` | Io |
 | `xor` | `std::simd::v128` | `experimental` | Simd |
 | `zero` | `std::simd::f32x4` | `experimental` | Simd |
 | `zero` | `std::simd::i32x4` | `experimental` | Simd |
@@ -736,6 +704,13 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_reader_new`~~ | `BufReader::new` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_reader_read_line`~~ | `BufReader::read_line` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_writer_flush`~~ | `BufWriter::flush` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_writer_new`~~ | `BufWriter::new` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`buf_writer_write_str`~~ | `BufWriter::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`buffered_reader`~~ | `BufReader::new` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`buffered_writer`~~ | `BufWriter::new` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`contains_i32`~~ | `VecIter::contains` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`contains_String`~~ | `VecIter::contains` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`contains_string`~~ | `String::contains` | String | [migration-guidance.md](migration-guidance.md) |
@@ -802,6 +777,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`product_i32`~~ | `VecIter::fold` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`reader_from_bytes`~~ | `Reader::from_bytes` | Io | [migration-guidance.md](migration-guidance.md) |
 | ~~`remove_i32`~~ | `Vec::drain` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`reverse_i32`~~ | `VecIter::rev` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`reverse_String`~~ | `VecIter::rev` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -823,6 +799,13 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `std::core::iter::iter_unique_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`write_all`~~ | `Io::write_all` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`write_string`~~ | `Writer::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`writer_flush`~~ | `Writer::flush` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`writer_new`~~ | `Writer::new` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`writer_to_bytes`~~ | `Writer::into_bytes` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`writer_write`~~ | `Writer::write` | Io | [migration-guidance.md](migration-guidance.md) |
+| ~~`writer_write_str`~~ | `Writer::write_string` | Io | [migration-guidance.md](migration-guidance.md) |
 
 ---
 
@@ -931,16 +914,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `buf_push_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_push_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_push_u8` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_reader_new` | ✅ `stable` | `std::io` | Io |
-| `buf_reader_read_line` | ✅ `stable` | `std::io` | Io |
+| ~~`buf_reader_new`~~ | ⚠️ deprecated | `std::io` | → `BufReader::new` · [migration guide](migration-guidance.md) |
+| ~~`buf_reader_read_line`~~ | ⚠️ deprecated | `std::io` | → `BufReader::read_line` · [migration guide](migration-guidance.md) |
 | `buf_with_capacity` | ✅ `stable` | `std::bytes` | Bytes |
-| `buf_writer_flush` | ✅ `stable` | `std::io` | Io |
-| `buf_writer_new` | ✅ `stable` | `std::io` | Io |
-| `buf_writer_write_str` | ✅ `stable` | `std::io` | Io |
-| `buffer_len` | ✅ `stable` | `std::io` | Io |
-| `buffer_position` | ✅ `experimental` | `std::io` | Io |
-| `buffered_reader` | ✅ `stable` | `std::io` | Io |
-| `buffered_writer` | ✅ `stable` | `std::io` | Io |
+| ~~`buf_writer_flush`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::flush` · [migration guide](migration-guidance.md) |
+| ~~`buf_writer_new`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::new` · [migration guide](migration-guidance.md) |
+| ~~`buf_writer_write_str`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::write_string` · [migration guide](migration-guidance.md) |
+| ~~`buffered_reader`~~ | ⚠️ deprecated | `std::io` | → `BufReader::new` · [migration guide](migration-guidance.md) |
+| ~~`buffered_writer`~~ | ⚠️ deprecated | `std::io` | → `BufWriter::new` · [migration guide](migration-guidance.md) |
 | `builder_append` | ✅ `stable` | `std::text` | Text |
 | `builder_append_char` | ✅ `stable` | `std::text` | Text |
 | `builder_append_line` | ✅ `stable` | `std::text` | Text |
@@ -997,8 +978,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`contains_i32`~~ | ⚠️ deprecated | `prelude` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
 | ~~`contains_String`~~ | ⚠️ deprecated | `prelude` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
 | ~~`contains_string`~~ | ⚠️ deprecated | `prelude` | → `String::contains` · [migration guide](migration-guidance.md) |
-| `copy` | ✅ `stable` | `std::io` | Io |
-| `copy_bytes` | ✅ `stable` | `std::io` | Io |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_count_eq_i32` · [migration guide](migration-guidance.md) |
 | `csv_count_rows` | ✅ `experimental` | `std::csv` | Csv |
@@ -1058,11 +1037,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fft` | ✅ `stable` | `std::signal` | Signal |
-| `file_from_fd` | ✅ `experimental` | `std::io` | Io |
 | `file_name` | ✅ `stable` | `std::path` | Path |
-| `file_read` | ✅ `experimental` | `std::io` | Io |
-| `file_write` | ✅ `experimental` | `std::io` | Io |
-| `fill_buffer` | ✅ `stable` | `std::io` | Io |
 | ~~`filter_f64`~~ | ⚠️ deprecated | `prelude` | → `VecIter::filter` · [migration guide](migration-guidance.md) |
 | `filter_i32` | ✅ `provisional` | `prelude` | Collections |
 | ~~`filter_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::collect_filter_i32` · [migration guide](migration-guidance.md) |
@@ -1310,7 +1285,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `new` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `new` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `new` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `new_memory_buffer` | ✅ `stable` | `std::io` | Io |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `normalize` | ✅ `stable` | `std::path` | Path |
 | `not` | ✅ `experimental` | `std::simd::v128` | Simd |
@@ -1374,7 +1348,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
-| `read_bytes` | ✅ `stable` | `std::io` | Io |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
@@ -1385,12 +1358,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u8` | ✅ `stable` | `std::bytes` | Bytes |
-| `reader_eof` | ✅ `stable` | `std::io` | Io |
-| `reader_from_bytes` | ✅ `stable` | `std::io` | Io |
-| `reader_read` | ✅ `stable` | `std::io` | Io |
-| `reader_read_all` | ✅ `stable` | `std::io` | Io |
-| `reader_read_exact` | ✅ `stable` | `std::io` | Io |
-| `reader_read_line` | ✅ `stable` | `std::io` | Io |
+| ~~`reader_from_bytes`~~ | ⚠️ deprecated | `std::io` | → `Reader::from_bytes` · [migration guide](migration-guidance.md) |
 | `reftype_externref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `reftype_funcref` | ✅ `experimental` | `std::wasm` | Wasm |
 | ~~`remove_i32`~~ | ⚠️ deprecated | `prelude` | → `Vec::drain` · [migration guide](migration-guidance.md) |
@@ -1429,7 +1397,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `section_type` | ✅ `experimental` | `std::wasm` | Wasm |
 | `seeded_random` | ✅ `stable` | `std::random` | Random |
 | `seeded_range` | ✅ `stable` | `std::random` | Random |
-| `seek_to` | ✅ `stable` | `std::io` | Io |
 | ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_contains_i32` · [migration guide](migration-guidance.md) |
 | ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `std::core::iter::iter_reverse_i32` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
@@ -1601,17 +1568,16 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_u64` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
-| `write_all` | ✅ `stable` | `std::io` | Io |
+| ~~`write_all`~~ | ⚠️ deprecated | `std::io` | → `Io::write_all` · [migration guide](migration-guidance.md) |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
-| `write_bytes` | ✅ `stable` | `std::io` | Io |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
 | `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
-| `write_string` | ✅ `stable` | `std::io` | Io |
-| `writer_flush` | ✅ `stable` | `std::io` | Io |
-| `writer_new` | ✅ `stable` | `std::io` | Io |
-| `writer_to_bytes` | ✅ `stable` | `std::io` | Io |
-| `writer_write` | ✅ `stable` | `std::io` | Io |
-| `writer_write_str` | ✅ `stable` | `std::io` | Io |
+| ~~`write_string`~~ | ⚠️ deprecated | `std::io` | → `Writer::write_string` · [migration guide](migration-guidance.md) |
+| ~~`writer_flush`~~ | ⚠️ deprecated | `std::io` | → `Writer::flush` · [migration guide](migration-guidance.md) |
+| ~~`writer_new`~~ | ⚠️ deprecated | `std::io` | → `Writer::new` · [migration guide](migration-guidance.md) |
+| ~~`writer_to_bytes`~~ | ⚠️ deprecated | `std::io` | → `Writer::into_bytes` · [migration guide](migration-guidance.md) |
+| ~~`writer_write`~~ | ⚠️ deprecated | `std::io` | → `Writer::write` · [migration guide](migration-guidance.md) |
+| ~~`writer_write_str`~~ | ⚠️ deprecated | `std::io` | → `Writer::write_string` · [migration guide](migration-guidance.md) |
 | `xor` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `zero` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `zero` | ✅ `experimental` | `std::simd::i32x4` | Simd |

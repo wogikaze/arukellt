@@ -3,16 +3,33 @@ use std::io
 use std::test
 
 fn main() {
-    let buf: Vec<i32> = io::new_memory_buffer()
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 65)
     bytes::bytes_push(data, 66)
-    let n: i32 = io::write_bytes(buf, data)
-    test::assert_eq_i32(n, 2)
-    test::assert_eq_i64(io::buffer_len(buf), 2)
-    test::assert_eq_i64(io::buffer_position(buf), 0)
-    let read: Vec<i32> = io::read_bytes(buf, 2)
-    test::assert_eq_i32(bytes::bytes_len(read), 2)
-    test::assert_eq_i32(bytes::bytes_get(read, 0), 65)
-    test::assert_eq_i64(io::buffer_position(buf), 2)
+    let w: io::Writer = io::Writer::new()
+    let n: Result<i32, io::IoError> = w.write(data)
+    match n {
+        Result::Ok(count) => test::assert_eq_i32(count, 2),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let image: Vec<i32> = w.into_bytes()
+    test::assert_eq_i32(bytes::bytes_len(image), 2)
+    let r: io::Reader = io::Reader::from_bytes(image)
+    test::assert_eq_i32(r.len(), 2)
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let read: Result<Vec<i32>, io::IoError> = r.read(2)
+    match read {
+        Result::Ok(chunk) => {
+            test::assert_eq_i32(bytes::bytes_len(chunk), 2)
+            test::assert_eq_i32(bytes::bytes_get(chunk, 0), 65)
+        },
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 2),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

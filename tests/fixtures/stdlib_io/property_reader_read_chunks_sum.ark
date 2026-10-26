@@ -9,11 +9,11 @@ fn main() {
     bytes::bytes_push(data, 3)
     bytes::bytes_push(data, 4)
     bytes::bytes_push(data, 5)
-    let r: Vec<i32> = io::reader_from_bytes(data)
+    let r: io::Reader = io::Reader::from_bytes(data)
     let mut total: i32 = 0
     let mut i: i32 = 0
     while i < 5 {
-        let res: Result<Vec<i32>, io::IoError> = io::reader_read(r, 1)
+        let res: Result<Vec<i32>, io::IoError> = r.read(1)
         match res {
             Result::Ok(chunk) => total = total + bytes::bytes_len(chunk),
             Result::Err(e) => panic(io::io_error_message(e)),
@@ -21,5 +21,5 @@ fn main() {
         i = i + 1
     }
     test::assert_eq_i32(total, 5)
-    test::assert_true(io::reader_eof(r))
+    test::assert_true(r.is_eof())
 }

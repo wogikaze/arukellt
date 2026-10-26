@@ -1,46 +1,53 @@
-// Issue #693: BufRead trait for buffered reading.
+// Issue #693: Reader implements BufRead.
 //
-// Verifies that the BufRead trait's fill_buf returns remaining bytes
-// without advancing the cursor, and that repeated calls are consistent.
+// fill_buf returns the unconsumed bytes without advancing the cursor, and
+// repeated calls stay consistent; read advances the shared cursor.
 use std::host::stdio
 use std::io
 
 fn main() {
-    // Create a memory buffer and write "ABC" (65, 66, 67)
-    let buf = io::new_memory_buffer()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 65)  // 'A'
     push(data, 66)  // 'B'
     push(data, 67)  // 'C'
+    let r: io::Reader = io::Reader::from_bytes(data)
 
-    let written: i32 = io::write_bytes(buf, data)
-    assert(written == 3)
+    match r.fill_buf() {
+        Result::Ok(filled) => {
+            assert(len(filled) == 3)
+            assert(get_unchecked(filled, 0) == 65)
+            assert(get_unchecked(filled, 1) == 66)
+            assert(get_unchecked(filled, 2) == 67)
+        },
+        Result::Err(_e) => assert(false),
+    }
 
-    // fill_buf should return all 3 bytes without advancing cursor
-    let filled: Vec<i32> = io::fill_buffer(buf)
-    assert(len(filled) == 3)
-    assert(get_unchecked(filled, 0) == 65)
-    assert(get_unchecked(filled, 1) == 66)
-    assert(get_unchecked(filled, 2) == 67)
+    match r.position() {
+        Result::Ok(pos) => assert(pos == 0i64),
+        Result::Err(_e) => assert(false),
+    }
 
-    // Cursor should still be at 0 (fill_buf does not consume)
-    let pos: i64 = io::buffer_position(buf)
-    assert(pos == 0i64)
+    match r.read(1) {
+        Result::Ok(one) => {
+            assert(len(one) == 1)
+            assert(get_unchecked(one, 0) == 65)
+        },
+        Result::Err(_e) => assert(false),
+    }
 
-    // Read 1 byte to advance cursor
-    let one: Vec<i32> = io::read_bytes(buf, 1)
-    assert(len(one) == 1)
-    assert(get_unchecked(one, 0) == 65)
+    match r.fill_buf() {
+        Result::Ok(filled2) => {
+            assert(len(filled2) == 2)
+            assert(get_unchecked(filled2, 0) == 66)
+            assert(get_unchecked(filled2, 1) == 67)
+        },
+        Result::Err(_e) => assert(false),
+    }
 
-    // fill_buf should now return remaining 2 bytes
-    let filled2: Vec<i32> = io::fill_buffer(buf)
-    assert(len(filled2) == 2)
-    assert(get_unchecked(filled2, 0) == 66)
-    assert(get_unchecked(filled2, 1) == 67)
-
-    // Cursor should be at 1
-    let pos2: i64 = io::buffer_position(buf)
-    assert(pos2 == 1i64)
+    match r.position() {
+        Result::Ok(pos) => assert(pos == 1i64),
+        Result::Err(_e) => assert(false),
+    }
 
     stdio::println("OK")
 }

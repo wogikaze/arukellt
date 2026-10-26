@@ -1,19 +1,22 @@
 use std::io
+use std::io::SeekFrom
 use std::test
 
 fn main() {
-    let buf = io::new_memory_buffer()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 1)
     push(data, 2)
     push(data, 3)
-    let _w = io::write_bytes(buf, data)
+    let r: io::Reader = io::Reader::from_bytes(data)
 
-    let blen: i64 = io::buffer_len(buf)
-    let pos: i64 = io::seek_to(buf, blen)
-    test::assert_eq_i64(pos, 3)
+    test::assert_eq_i32(r.len(), 3)
+    match r.seek(SeekFrom::Start(3i64)) {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 3),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 
-    // Reading at end returns 0 bytes
-    let r = io::read_bytes(buf, 1)
-    test::assert_eq_i32(len(r), 0)
+    match r.read(1) {
+        Result::Ok(one) => test::assert_eq_i32(len(one), 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

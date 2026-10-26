@@ -8,8 +8,8 @@ fn main() {
     bytes::bytes_push(data, 2)
     bytes::bytes_push(data, 3)
     bytes::bytes_push(data, 4)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let res: Result<Vec<i32>, io::IoError> = io::reader_read_exact(r, 4)
+    let r: io::Reader = io::Reader::from_bytes(data)
+    let res: Result<Vec<i32>, io::IoError> = io::Io::read_exact(r, 4)
     match res {
         Result::Ok(chunk) => {
             test::assert_eq_i32(bytes::bytes_len(chunk), 4)
@@ -18,5 +18,5 @@ fn main() {
         },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    test::assert_true(io::reader_eof(r))
+    test::assert_true(r.is_eof())
 }

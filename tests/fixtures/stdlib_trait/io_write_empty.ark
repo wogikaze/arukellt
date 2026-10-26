@@ -2,12 +2,13 @@ use std::io
 use std::test
 
 fn main() {
-    let buf = io::new_memory_buffer()
+    let w: io::Writer = io::Writer::new()
     let data: Vec<i32> = Vec::new<i32>()
 
-    let written = io::write_bytes(buf, data)
-    test::assert_eq_i32(written, 0)
+    match w.write(data) {
+        Result::Ok(written) => test::assert_eq_i32(written, 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 
-    let blen: i64 = io::buffer_len(buf)
-    test::assert_eq_i64(blen, 0)
+    test::assert_eq_i32(w.into_bytes().len(), 0)
 }

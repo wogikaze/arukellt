@@ -1,0 +1,27 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    // 300 bytes span more than one COPY_CHUNK_BYTES (256) read, so the copy
+    // loop must continue past the first chunk instead of reporting a partial
+    // transfer as success.
+    let data: Vec<i32> = bytes::bytes_new()
+    let mut i: i32 = 0
+    while i < 300 {
+        bytes::bytes_push(data, i % 251)
+        i = i + 1
+    }
+    let src: io::Reader = io::Reader::from_bytes(data)
+    let dst: io::Writer = io::Writer::new()
+    let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
+    match res {
+        Result::Ok(n) => test::assert_eq_i64(n, 300),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let b: Vec<i32> = dst.into_bytes()
+    test::assert_eq_i32(bytes::bytes_len(b), 300)
+    test::assert_eq_i32(bytes::bytes_get(b, 0), 0)
+    test::assert_eq_i32(bytes::bytes_get(b, 256), 5)
+    test::assert_eq_i32(bytes::bytes_get(b, 299), 48)
+}

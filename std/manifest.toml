@@ -5036,7 +5036,7 @@ returns = "bool"
 name = "std::io"
 stability = "stable"
 family = "core"
-doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. Legacy reader_* / writer_* / buf_* free functions remain as compatibility wrappers during the #693 migration."
+doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The reader_* / buf_* Vec-layout entry points and the tagged writer_* family remain deprecated compatibility wrappers under the #693 removal window; the other legacy free functions were retired in ADR-085 Phase F."
 availability = { t1 = true, t3 = true }
 
 [[types]]
@@ -5149,49 +5149,13 @@ trait_impls = ["Write"]
 name = "reader_from_bytes"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Reader::from_bytes"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated legacy constructor for the `[cursor, ...]` layout; use `Reader::from_bytes`. Retained while the `buf_*` adapters still consume that layout."
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
-
-[[functions]]
-name = "reader_eof"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "bool"
-
-[[functions]]
-name = "reader_read"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "i32"]
-returns = "Result<Vec<i32>, IoError>"
-
-[[functions]]
-name = "reader_read_exact"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "i32"]
-returns = "Result<Vec<i32>, IoError>"
-
-[[functions]]
-name = "reader_read_all"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "Result<Vec<i32>, IoError>"
-
-[[functions]]
-name = "reader_read_line"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "Result<String, IoError>"
 
 [[functions]]
 name = "stdin"
@@ -5237,7 +5201,11 @@ returns = "()"
 name = "writer_new"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Writer::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated legacy tagged-layout constructor; use `Writer::new`."
 params = []
 returns = "Vec<i32>"
 
@@ -5245,7 +5213,11 @@ returns = "Vec<i32>"
 name = "writer_write"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Writer::write"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated legacy tagged write (memory or stdout/stderr tags); use `Writer::write` for memory handles."
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Result<i32, IoError>"
 
@@ -5253,7 +5225,11 @@ returns = "Result<i32, IoError>"
 name = "writer_write_str"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Writer::write_string"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated legacy tagged string write; use `Writer::write_string` for memory handles."
 params = ["Vec<i32>", "String"]
 returns = "Result<i32, IoError>"
 
@@ -5261,7 +5237,11 @@ returns = "Result<i32, IoError>"
 name = "write_all"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Io::write_all"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated convenience wrapper; use `Io::write_all`."
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Result<(), IoError>"
 
@@ -5269,7 +5249,11 @@ returns = "Result<(), IoError>"
 name = "write_string"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Writer::write_string"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated convenience wrapper; use `Writer::write_string`."
 params = ["Vec<i32>", "String"]
 returns = "Result<(), IoError>"
 
@@ -5277,7 +5261,11 @@ returns = "Result<(), IoError>"
 name = "writer_flush"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Writer::flush"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated no-op flush over the legacy tagged layout; use `Writer::flush`."
 params = ["Vec<i32>"]
 returns = "Result<(), IoError>"
 
@@ -5285,7 +5273,11 @@ returns = "Result<(), IoError>"
 name = "writer_to_bytes"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Writer::into_bytes"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated legacy image accessor; use `Writer::into_bytes`."
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 
@@ -5293,7 +5285,11 @@ returns = "Vec<i32>"
 name = "buf_reader_new"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufReader::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated compatibility adapter over the legacy `[cursor, ...]` layout; use `BufReader::new`."
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
@@ -5301,7 +5297,11 @@ returns = "Vec<i32>"
 name = "buffered_reader"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufReader::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated alias for `buf_reader_new`; use `BufReader::new`."
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
@@ -5309,7 +5309,11 @@ returns = "Vec<i32>"
 name = "buf_reader_read_line"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufReader::read_line"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated compatibility line reader over the legacy layout; use `BufRead::read_line` (`Option<String>`)."
 params = ["Vec<i32>"]
 returns = "Result<String, IoError>"
 
@@ -5317,7 +5321,11 @@ returns = "Result<String, IoError>"
 name = "buf_writer_new"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufWriter::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated compatibility adapter over the legacy `[fd_tag, ...]` layout; use `BufWriter::new`."
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
@@ -5325,7 +5333,11 @@ returns = "Vec<i32>"
 name = "buffered_writer"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufWriter::new"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated alias for `buf_writer_new`; use `BufWriter::new`."
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
@@ -5333,7 +5345,11 @@ returns = "Vec<i32>"
 name = "buf_writer_write_str"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufWriter::write_string"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc = "Deprecated compatibility string writer over the legacy layout; use `BufWriter::write_string`."
 params = ["Vec<i32>", "String"]
 returns = "Result<i32, IoError>"
 
@@ -5341,119 +5357,12 @@ returns = "Result<i32, IoError>"
 name = "buf_writer_flush"
 module = "std::io"
 doc_category = "io"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "BufWriter::flush"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["Vec<i32>"]
 returns = "Result<(), IoError>"
-
-[[functions]]
-name = "copy_bytes"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<i32, IoError>"
-
-[[functions]]
-name = "copy"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<i32, IoError>"
-
-[[functions]]
-name = "new_memory_buffer"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = []
-returns = "Vec<i32>"
-doc = "Create a new memory buffer for capability `io.traits`."
-
-[[functions]]
-name = "write_bytes"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "i32"
-doc = "Write byte values into a memory buffer via `io.traits` Write dispatch."
-
-[[functions]]
-name = "read_bytes"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-doc = "Read up to n bytes from a memory buffer via `io.traits` Read dispatch."
-
-[[functions]]
-name = "seek_to"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>", "i64"]
-returns = "i64"
-doc = "Seek to an absolute position via `io.traits` Seek dispatch."
-
-[[functions]]
-name = "buffer_position"
-module = "std::io"
-doc_category = "io"
-stability = "experimental"
-params = ["Vec<i32>"]
-returns = "i64"
-doc = "Return the current cursor position of a legacy memory buffer. Renamed from `position` because the ADR-085 `Seek::position` method owns that name; callers move to `Reader::position()` under #693 Phase E."
-
-[[functions]]
-name = "buffer_len"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "i64"
-doc = "Return the total number of bytes available in an `io.traits` memory buffer."
-
-[[functions]]
-name = "fill_buffer"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-doc = "Fill the internal buffer of an `io.traits` BufRead source."
-
-[[functions]]
-name = "file_from_fd"
-module = "std::io"
-doc_category = "io"
-stability = "experimental"
-params = ["i32"]
-returns = "Vec<i32>"
-doc = "Create an `io.traits` FileHandle from a raw file descriptor."
-
-[[functions]]
-name = "file_read"
-module = "std::io"
-doc_category = "io"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "i32"
-doc = "Read bytes from an `io.traits` FileHandle into a buffer."
-
-[[functions]]
-name = "file_write"
-module = "std::io"
-doc_category = "io"
-stability = "experimental"
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "i32"
-doc = "Write buffer bytes to an `io.traits` FileHandle."
-
-# ── std::collections::deque / linked_list (ADR-086) ─────────────────────────
-# Public linear collection ADTs. The legacy std::collections::linear free
-# functions below stay available during the ADR-014 deprecation window.
 
 [[modules]]
 name = "std::collections::deque"

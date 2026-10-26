@@ -2,23 +2,29 @@ use std::io
 use std::test
 
 fn main() {
-    // "AB\nCD" — read_line should return "AB" and consume the newline
+    // "AB\nCD" - read_line returns "AB" and consumes the newline
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
     push(data, 66)
     push(data, 10)
     push(data, 67)
     push(data, 68)
-    let reader = io::reader_from_bytes(data)
+    let reader: io::Reader = io::Reader::from_bytes(data)
 
-    match io::reader_read_line(reader) {
-        Result::Ok(line) => test::assert_eq_string(line, "AB"),
+    match reader.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "AB"),
+            Option::None => panic("expected Ok"),
+        },
         Result::Err(_e) => panic("expected Ok"),
     }
 
     // Second read should get "CD" (no trailing newline)
-    match io::reader_read_line(reader) {
-        Result::Ok(line) => test::assert_eq_string(line, "CD"),
+    match reader.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "CD"),
+            Option::None => panic("expected Ok"),
+        },
         Result::Err(_e) => panic("expected Ok"),
     }
 }

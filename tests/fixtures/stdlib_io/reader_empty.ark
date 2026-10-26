@@ -4,6 +4,6 @@ use std::test
 
 fn main() {
     let data: Vec<i32> = bytes::bytes_new()
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    test::assert_true(io::reader_eof(r))
+    let r: io::Reader = io::Reader::from_bytes(data)
+    test::assert_true(r.is_eof())
 }

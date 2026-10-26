@@ -9,20 +9,29 @@ fn main() {
     bytes::bytes_push(data, 66)
     bytes::bytes_push(data, 10)
     bytes::bytes_push(data, 67)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let l1: Result<String, io::IoError> = io::reader_read_line(r)
+    let r: io::Reader = io::Reader::from_bytes(data)
+    let l1: Result<Option<String>, io::IoError> = r.read_line()
     match l1 {
-        Result::Ok(s) => test::assert_eq_string(s, "A"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "A"),
+            Option::None => panic("expected line A"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    let l2: Result<String, io::IoError> = io::reader_read_line(r)
+    let l2: Result<Option<String>, io::IoError> = r.read_line()
     match l2 {
-        Result::Ok(s) => test::assert_eq_string(s, "B"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "B"),
+            Option::None => panic("expected line B"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    let l3: Result<String, io::IoError> = io::reader_read_line(r)
+    let l3: Result<Option<String>, io::IoError> = r.read_line()
     match l3 {
-        Result::Ok(s) => test::assert_eq_string(s, "C"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "C"),
+            Option::None => panic("expected line C"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

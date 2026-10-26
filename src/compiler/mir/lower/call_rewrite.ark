@@ -181,9 +181,6 @@ fn callee_needs_i64_trailing_arg(callee_name: String) -> bool {
     if ends_with(clone(callee_name), String_from("assert_eq_i64")) {
         return true
     }
-    if ends_with(clone(callee_name), String_from("seek_to")) {
-        return true
-    }
     if eq(clone(callee_name), String_from("seek")) {
         return true
     }

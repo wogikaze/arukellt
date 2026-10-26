@@ -6,15 +6,21 @@ fn main() {
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 10)
     bytes::bytes_push(data, 88)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let res: Result<String, io::IoError> = io::reader_read_line(r)
+    let r: io::Reader = io::Reader::from_bytes(data)
+    let res: Result<Option<String>, io::IoError> = r.read_line()
     match res {
-        Result::Ok(line) => test::assert_eq_string(line, ""),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, ""),
+            Option::None => panic("expected an empty line"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    let res2: Result<String, io::IoError> = io::reader_read_line(r)
+    let res2: Result<Option<String>, io::IoError> = r.read_line()
     match res2 {
-        Result::Ok(line) => test::assert_eq_string(line, "X"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "X"),
+            Option::None => panic("expected the trailing line"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

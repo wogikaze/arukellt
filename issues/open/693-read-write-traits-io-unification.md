@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-10-26
+Updated: 2026-10-27
 ID: 693
 Track: stdlib-api
 Depends on: "688, 692"
@@ -34,9 +34,14 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   `SeekFrom`, the memory `Reader` / `Writer` newtypes, the receiver-less
   `Io` algorithms, and the generic `BufReader<R: Read>` / `BufWriter<W:
   Write>` adapters are public. Phase D's read side is also implemented below.
+- Phases E and F are implemented: the `reader_*` read methods, `copy*`, the
+  legacy memory-buffer helpers, and the experimental `file_*` fd lane are
+  removed with E0100 replacement hints. The retained compatibility family
+  (`reader_from_bytes`, `buf_*`, and the tagged `writer_*` entry points) carries
+  `deprecated` metadata, W0009 coverage, and recorded deletion conditions.
 - `Reader` / `Writer` are distinct newtypes with private layouts. `BufReader`
-  and `BufWriter` are generic adapters; the legacy `reader_*` / `writer_*` /
-  `buf_*` free functions keep their `Vec<i32>` layout contracts until Phase E.
+  and `BufWriter` are the canonical generic adapters; the legacy `buf_*`
+  entry points remain deprecated `Vec<i32>`-layout wrappers.
 - `IoError` enum (`UnexpectedEof`, `Other`) is stable and implements `Display`
   and `std::error::Error`.
 - The initial #693 scaffolding (non-`pub` traits, `new_memory_buffer` /
@@ -126,14 +131,15 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   runtime-green (`fs::read_bytes`, `File::open`, `Read`, `Seek`, `close`, the
   file roundtrip / EOF fixtures on `wasm32-gc` memory32+P2 and `wasm32`);
   `File::create`, `Write`, and `flush` remain open.
-- [ ] **Phase E — compatibility and deprecation**: turn the old free functions
-  into newtype wrappers, add `deprecated_by` / removal metadata, migrate
-  fixtures and docs, and remove the stale `std::io`-moved-to-`std::host::stdio`
-  guidance. Reconcile the manifest labels of the partial #693 helper free
-  functions before removing them.
-- [ ] **Phase F — removal**: after the ADR-014 deprecation window, remove the
-  legacy free functions and align `std::io` with trait / method / associated
-  surface. Sync with #703.
+- [x] **Phase E — compatibility and deprecation**: the retained free functions
+  carry `deprecated_by` / `deprecated_since` / `remove_in`, W0009 is live for
+  the qualified calls, the stale `std::io`-moved-to-`std::host::stdio`
+  guidance is gone, and the fixtures / migration guide record the new surface.
+  The 15-entry window is 0.1.0 → 1.0.0 (ADR-014, shortened under ADR-087).
+- [x] **Phase F — removal**: the fully-replaced free functions were retired
+  under the ADR-087 0.x exception (W0009 + migration guide + changelog), with
+  E0100 replacement hints; `std::io` now exposes the trait / method /
+  associated surface, with the recorded compatibility residuals below.
 - [ ] Regenerate stdlib docs and manifest, then run the applicable verification
   gates (`verify quick` at merge/CI; `verify lane` during implementation).
 
@@ -145,12 +151,13 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   longer implements `Read` or `Write`.
 - [ ] `std::host::fs::File` implements `Read` / `Write` / `Seek` in its
   documented whole-file mode.
-- [ ] A generic `Io::copy` fixture moves bytes between two different source
+- [x] A generic `Io::copy` fixture moves bytes between two different source
   types through the traits (file reader -> memory writer, and memory -> memory).
-- [ ] `BufReader<R>` / `BufWriter<W>` are generic adapters and the old buffered
-  entry points are compatibility wrappers.
-- [ ] Existing `std::io` consumers are migrated or documented with a removal
-  window; no stable API is removed without the ADR-014 process.
+- [x] `BufReader<R>` / `BufWriter<W>` are generic adapters and the old buffered
+  entry points are deprecated compatibility wrappers with a removal window.
+- [x] Existing `std::io` consumers are migrated or documented with a removal
+  window; the `stable` removals follow the ADR-087 exception (W0009 +
+  migration guide + changelog).
 - [x] Both `wasm32-gc` and `wasm32` compile/run the trait fixtures.
 - [ ] `python3 scripts/manager.py verify quick` exits 0 (after the dependent
   phases; this issue remains open until then).
@@ -201,13 +208,26 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   `Io` exists as a namespace type for `copy` / `read_exact` / `read_to_end` /
   `write_all`, and why `BufRead::read_line` is a required method. Revisit only
   if default methods are adopted.
-- **Stability labels.** The partial #693 helper free functions currently carry
-  a mix of `stable` and `experimental` manifest labels. Their classification
-  must be corrected according to ADR-014 before any removal.
-- **Stale module guidance.** `src/compiler/lint/deprecated_table.ark` and
-  `docs/compiler/error-codes.md` still describe `std::io` as moved to
-  `std::host::stdio`. Remove or rewrite that guidance when `std::io` is
-  registered as the canonical abstraction module.
+- **Stability labels — resolved 2026-10-27.** The retained compatibility
+  family is `deprecated` with `deprecated_since = "0.1.0"` and
+  `remove_in = "1.0.0"`; the removed entries are gone. The 15 retained names
+  are `reader_from_bytes`, the seven `buf_*` entry points, and the seven tagged
+  `writer_*` entry points.
+- **Stale module guidance — resolved 2026-10-27.** `deprecated_table.ark` no
+  longer warns that `std::io` moved to `std::host::stdio`, and
+  `docs/compiler/error-codes.md` uses the `std::time` → `std::host::clock`
+  example. `std::io` is the canonical abstraction module.
+- **Residual: generic-adapter dispatch.** Migrating the `buf_*` fixtures to
+  `BufReader` / `BufWriter` still exposes the generic-impl dispatch trap
+  (`BufReader::read_line` lowers to `unreachable` when the mono instance is not
+  instantiated through a preceding `read` call). The retained `buf_*` wrappers
+  stay deprecated until the compiler lane fixes it.
+- **Residual: host stdio handles.** `stdout()` / `stderr()` are still tagged
+  `Vec<i32>` handles, so the `writer_*` family stays deprecated until
+  `std::host::stdio` exposes typed handles with `Write` impls.
+- **Residual: File write side.** `File::create`, `Write`, and `flush` remain
+  open; the fd-lane `file_*` helpers were retired in favour of the whole-file
+  `File` contract.
 
 ## References
 

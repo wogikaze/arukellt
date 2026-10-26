@@ -7,11 +7,11 @@ fn main() {
     bytes::bytes_push(data, 10)
     bytes::bytes_push(data, 20)
     bytes::bytes_push(data, 30)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let res: Result<Vec<i32>, io::IoError> = io::reader_read_exact(r, 3)
+    let r: io::Reader = io::Reader::from_bytes(data)
+    let res: Result<Vec<i32>, io::IoError> = io::Io::read_exact(r, 3)
     match res {
         Result::Ok(_) => (),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    test::assert_true(io::reader_eof(r))
+    test::assert_true(r.is_eof())
 }

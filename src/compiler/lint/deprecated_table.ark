@@ -2,14 +2,11 @@
 // Central registry of deprecated module paths, prelude function names,
 // and target aliases.  Used by lint::checks for W0009 and W0002.
 
-// ── Deprecated module paths (use std::io → use std::host::stdio) ───────
+// ── Deprecated module paths ─────────────────────────────────────────────
 
 // Returns a non-empty replacement message if the `use` path is deprecated.
 use std::prelude::{clone, eq}
 pub fn deprecated_use_message(path: String) -> String {
-    if eq(clone(path), "std::io") {
-        return "module `std::io` has moved to `std::host::stdio`"
-    }
     if eq(clone(path), "std::time") {
         return "import `use std::host::clock` and call `clock::monotonic_now()`"
     }
@@ -261,7 +258,66 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg4) > 0 {
         return msg4
     }
+    let msg5 = deprecated_io_qualified_message(path)
+    if len(msg5) > 0 {
+        return msg5
+    }
     return deprecated_hash_qualified_message(path)
+}
+
+// ── Deprecated std::io compatibility family (ADR-085 Phase E) ─────────
+//
+// These Vec-layout entry points survive the Phase F removal as deprecated
+// wrappers (the host-tagged writer path and the buffered layout adapters), so
+// their calls stay warnable under ADR-014 until the recorded deletion
+// conditions land. Qualified keys avoid colliding with bare prelude names.
+fn deprecated_io_qualified_message(path: String) -> String {
+    if eq(clone(path), "io::reader_from_bytes") {
+        return "use `Reader::from_bytes(data)` from `use std::io::Reader` instead"
+    }
+    if eq(clone(path), "io::writer_new") {
+        return "use `Writer::new()` from `use std::io::Writer` instead"
+    }
+    if eq(clone(path), "io::writer_write") {
+        return "use `w.write(data)` on `Writer` instead"
+    }
+    if eq(clone(path), "io::writer_write_str") {
+        return "use `w.write_string(s)` on `Writer` instead"
+    }
+    if eq(clone(path), "io::write_all") {
+        return "use `Io::write_all(w, data)` from `use std::io::Io` instead"
+    }
+    if eq(clone(path), "io::write_string") {
+        return "use `w.write_string(s)` on `Writer` instead"
+    }
+    if eq(clone(path), "io::writer_flush") {
+        return "use `w.flush()` on `Writer` instead"
+    }
+    if eq(clone(path), "io::writer_to_bytes") {
+        return "use `w.into_bytes()` on `Writer` instead"
+    }
+    if eq(clone(path), "io::buf_reader_new") {
+        return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead"
+    }
+    if eq(clone(path), "io::buffered_reader") {
+        return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead"
+    }
+    if eq(clone(path), "io::buf_reader_read_line") {
+        return "use `br.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)"
+    }
+    if eq(clone(path), "io::buf_writer_new") {
+        return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead"
+    }
+    if eq(clone(path), "io::buffered_writer") {
+        return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead"
+    }
+    if eq(clone(path), "io::buf_writer_write_str") {
+        return "use `bw.write_string(s)` on `BufWriter` instead"
+    }
+    if eq(clone(path), "io::buf_writer_flush") {
+        return "use `bw.flush()` on `BufWriter` instead"
+    }
+    String_new()
 }
 
 fn deprecated_cmp_qualified_message(path: String) -> String {
@@ -332,7 +388,11 @@ fn deprecated_hash_qualified_message(path: String) -> String {
 }
 
 test mod "deprecated" {
-    test "io" { assert(len(deprecated_use_message("std::io")) > 0) }
+    test "std_io_import_no_longer_deprecated" {
+        // ADR-085 D1: std::io is the canonical abstraction module, so a plain
+        // `use std::io` must not emit the retired moved-to-host-stdio warning.
+        assert(len(deprecated_use_message("std::io")) == 0)
+    }
     test "fs" { assert(len(deprecated_use_message("std::fs")) > 0) }
     test "gated_prelude_names_not_double_warned" {
         // Gated prelude names fail resolution with E0100; W0009 must not
@@ -436,6 +496,31 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("product_i32")) > 0)
         assert(len(deprecated_call_message("map_option_i32_i32")) > 0)
         assert(len(deprecated_call_message("contains_string")) > 0)
+    }
+    test "io_compat_frees_warn_w0009" {
+        assert(len(deprecated_qualified_call_message("io::reader_from_bytes")) > 0)
+        assert(len(deprecated_qualified_call_message("io::writer_new")) > 0)
+        assert(len(deprecated_qualified_call_message("io::writer_write")) > 0)
+        assert(len(deprecated_qualified_call_message("io::writer_write_str")) > 0)
+        assert(len(deprecated_qualified_call_message("io::write_all")) > 0)
+        assert(len(deprecated_qualified_call_message("io::write_string")) > 0)
+        assert(len(deprecated_qualified_call_message("io::writer_flush")) > 0)
+        assert(len(deprecated_qualified_call_message("io::writer_to_bytes")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buf_reader_new")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buffered_reader")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buf_reader_read_line")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buf_writer_new")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buffered_writer")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buf_writer_write_str")) > 0)
+        assert(len(deprecated_qualified_call_message("io::buf_writer_flush")) > 0)
+    }
+    test "removed_io_frees_have_no_w0009_entry" {
+        // These are E0100 removals; a live W0009 entry would be a dead warning.
+        assert(len(deprecated_qualified_call_message("io::reader_read")) == 0)
+        assert(len(deprecated_qualified_call_message("io::copy")) == 0)
+        assert(len(deprecated_qualified_call_message("io::new_memory_buffer")) == 0)
+        assert(len(deprecated_qualified_call_message("io::seek_to")) == 0)
+        assert(len(deprecated_qualified_call_message("io::print_bytes")) == 0)
     }
     test "retired_stale_builtin_entries_are_not_warned" {
         // `clear`, `map_option_String_String`, and `map_result_i32_i32`

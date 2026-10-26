@@ -157,9 +157,6 @@ fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
     if contains(clone(callee_name), String_from("i64")) {
         return true
     }
-    if ends_with(clone(callee_name), String_from("seek_to")) {
-        return true
-    }
     if eq(clone(callee_name), String_from("seek")) {
         return true
     }

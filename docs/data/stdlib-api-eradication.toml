@@ -198,6 +198,14 @@ owner = "710"
 replacement = "LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8"
 
 [[rules]]
+label = "deprecated std::io compat frees"
+module = "std::io"
+deprecated = true
+class = "must delete"
+owner = "693"
+replacement = "Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The Vec-layout wrappers stay through the #693 window: reader_from_bytes / buf_* until the generic-adapter dispatch residual is fixed and their fixtures migrate; writer_write* / writer_flush / writer_to_bytes until std::host::stdio exposes typed Read / Write handles for stdout() / stderr()."
+
+[[rules]]
 label = "deprecated std::seq helpers"
 module = "std::seq"
 deprecated = true
@@ -229,7 +237,7 @@ label = "std::io and host stdio frees"
 module = ["std::io", "std::host::stdio"]
 class = "associated-or-method"
 owner = "693"
-replacement = "Read / Write / BufRead / Seek trait methods and Stdin/Stdout/Stderr associated"
+replacement = "Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes (the typed-handle replacement is still open under #693; the remaining free functions are the host-backed compatibility surface, not the target API)"
 
 [[rules]]
 label = "std::test assert frees"

@@ -15,30 +15,28 @@ fn main() {
     bytes::bytes_push(data, 114)
     bytes::bytes_push(data, 108)
     bytes::bytes_push(data, 100)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    stdio::println((io::reader_eof(r)).to_string())
-    let res: Result<Vec<i32>, io::IoError> = io::reader_read(r, 5)
+    let r: io::Reader = io::Reader::from_bytes(data)
+    stdio::println((r.is_eof()).to_string())
+    let res: Result<Vec<i32>, io::IoError> = r.read(5)
     match res {
         Result::Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    // After reading "Hello", cursor sits on '\n'. First read_line consumes it
-    // (empty line); second returns the remainder "World".
-    let res2: Result<String, io::IoError> = io::reader_read_line(r)
-    match res2 {
-        Result::Ok(line) => stdio::println(line),
+    // After reading "Hello", cursor sits on the newline. The first read_line
+    // consumes it (empty line); the second returns the remainder "World".
+    match r.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(line) => stdio::println(line),
+            Option::None => stdio::println("<eof>"),
+        },
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let res3: Result<String, io::IoError> = io::reader_read_line(r)
-    match res3 {
-        Result::Ok(line) => stdio::println(line),
+    match r.read_line() {
+        Result::Ok(found) => match found {
+            Option::Some(line) => stdio::println(line),
+            Option::None => stdio::println("<eof>"),
+        },
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    stdio::println((io::reader_eof(r)).to_string())
+    stdio::println((r.is_eof()).to_string())
 }
-// Build bytes: "Hello\nWorld"
-// reader_eof should be false
-// read 5 bytes -> "Hello"
-// read_line -> "" (newline after Hello)
-// read_line -> "World"
-// reader_eof should now be true

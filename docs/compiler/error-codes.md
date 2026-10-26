@@ -116,7 +116,10 @@ interface example {
 | **Phase** | resolve |
 | **Message** | unresolved name |
 
-A symbol is used but has no definition in scope.
+A symbol is used but has no definition in scope. A removed module member keeps
+its migration hint, for example
+`undefined module member: io::reader_read; use `r.read(n)` on `Reader` instead`
+(ADR-085 Phase F).
 
 ```arukellt
 fn main() {
@@ -180,12 +183,12 @@ An `use` declaration references a module path that does not exist. This
 commonly occurs when a standard library module has been relocated.
 
 ```arukellt
-use std::io
+use std::time
 
 fn main() {}
 ```
 
-> **Fix:** `std::io` moved to `std::host::stdio`.
+> **Fix:** import `use std::host::clock` and call `clock::monotonic_now()`.
 
 ### E0120 — registry unreachable
 
