@@ -2,13 +2,14 @@ use std::bytes
 use std::host::stdio
 use std::io
 use std::text
+
 fn main() {
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 72)
     bytes::bytes_push(data, 105)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    // Try to read_exact 5 bytes from a 2-byte reader → IoError::UnexpectedEof
-    match io::reader_read_exact(r, 5) {
+    let r: io::Reader = io::Reader::from_bytes(data)
+    // Try to read_exact 5 bytes from a 2-byte reader -> IoError::UnexpectedEof
+    match io::Io::read_exact(r, 5) {
         Result::Ok(_) => stdio::println("unexpected-ok"),
         Result::Err(err) => match err {
             io::IoError::UnexpectedEof(msg) => stdio::println(msg),
@@ -16,5 +17,3 @@ fn main() {
         },
     }
 }
-// Build a 2-byte reader: "Hi"
-// Try read_exact(5) → should produce IoError::UnexpectedEof

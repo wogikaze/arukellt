@@ -248,7 +248,8 @@ diag:diagnostics/deprecated_assertion_free.ark
 diag:diagnostics/deprecated_assertion_free_wasm32.ark
 diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
-diag:diagnostics/deprecated_std_io_import.ark
+diag:diagnostics/deprecated_io_free_function.ark
+diag:diagnostics/removed_io_free_function.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/deprecated_import_syntax.ark
 diag:diagnostics/duplicate_def.ark
@@ -1069,7 +1070,7 @@ run:stdlib_io/buf_writer_write_str_small.ark
 run:stdlib_io/buffered_reader_alias.ark
 run:stdlib_io/buffered_writer_alias.ark
 run:stdlib_io/clock_random.ark
-run:stdlib_io/copy_alias.ark
+run:stdlib_io/copy_multiple_chunks.ark
 run:stdlib_io/copy_bytes_empty.ark
 run:stdlib_io/copy_bytes_full.ark
 run:stdlib_io/eprintln.ark
@@ -1093,7 +1094,7 @@ run:stdlib_io/memory_buffer_fill_buffer.ark
 run:stdlib_io/memory_buffer_len.ark
 run:stdlib_io/memory_buffer_position.ark
 run:stdlib_io/memory_buffer_seek.ark
-run:stdlib_io/memory_buffer_seek_clamp.ark
+run:stdlib_io/memory_buffer_seek_past_end.ark
 run:stdlib_io/memory_buffer_seek_zero.ark
 run:stdlib_io/memory_buffer_write_read.ark
 run:stdlib_io/metadata_not_supported.ark
@@ -1846,7 +1847,7 @@ run:stdlib_trait/hash_trait.ark
 run:stdlib_trait/hash_trait_nested.ark
 run:stdlib_trait/into_i32_to_i64.ark
 run:stdlib_trait/into_i64_to_i32.ark
-run:stdlib_trait/io_backward_compat.ark
+run:stdlib_trait/io_writer_into_reader.ark
 run:stdlib_trait/io_copy.ark
 run:stdlib_trait/io_copy_empty.ark
 run:stdlib_trait/io_error_message.ark
@@ -2500,7 +2501,7 @@ t3-compile:stdlib_trait/format_debug_match_binding.ark
 t3-compile:stdlib_trait/format_debug_point.ark
 t3-compile:stdlib_trait/hash_trait.ark
 t3-compile:stdlib_trait/hash_trait_nested.ark
-t3-compile:stdlib_trait/io_backward_compat.ark
+t3-compile:stdlib_trait/io_writer_into_reader.ark
 t3-compile:stdlib_trait/io_copy.ark
 t3-compile:stdlib_trait/iterator_adapters.ark
 t3-compile:stdlib_trait/iterator_desugar_equiv.ark
@@ -3030,7 +3031,7 @@ t3-run:stdlib_trait/eq_trait_string.ark
 t3-run:stdlib_trait/hash_trait.ark
 t3-run:stdlib_trait/hash_trait_nested.ark
 t3-run:stdlib_trait/integer_trait.ark
-t3-run:stdlib_trait/io_backward_compat.ark
+t3-run:stdlib_trait/io_writer_into_reader.ark
 t3-run:stdlib_trait/io_copy.ark
 t3-run:stdlib_trait/iterator_adapters.ark
 t3-run:stdlib_trait/iterator_desugar_equiv.ark

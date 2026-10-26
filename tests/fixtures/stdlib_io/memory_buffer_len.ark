@@ -3,12 +3,18 @@ use std::io
 use std::test
 
 fn main() {
-    let buf: Vec<i32> = io::new_memory_buffer()
-    test::assert_eq_i64(io::buffer_len(buf), 0)
+    let w: io::Writer = io::Writer::new()
+    let r: io::Reader = w.into_reader()
+    test::assert_eq_i32(r.len(), 0)
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 1)
     bytes::bytes_push(data, 2)
     bytes::bytes_push(data, 3)
-    let _: i32 = io::write_bytes(buf, data)
-    test::assert_eq_i64(io::buffer_len(buf), 3)
+    let w2: io::Writer = io::Writer::new()
+    match w2.write(data) {
+        Result::Ok(count) => test::assert_eq_i32(count, 3),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let r2: io::Reader = w2.into_reader()
+    test::assert_eq_i32(r2.len(), 3)
 }

@@ -1,61 +1,55 @@
-// Issue #693: Seek trait for repositioning within a stream.
+// Issue #693: Seek moves the Reader cursor with SeekFrom origins.
 //
-// Verifies that the Seek trait can reposition the cursor in a memory
-// buffer, including clamping to valid bounds.
+// The legacy `seek_to` clamp is gone: seeking past the end is allowed and
+// reads report EOF, while a negative effective position is an error.
 use std::host::stdio
 use std::io
+use std::io::SeekFrom
 
 fn main() {
-    // Create a memory buffer with "ABCDE" (65, 66, 67, 68, 69)
-    let buf = io::new_memory_buffer()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 65)  // 'A'
     push(data, 66)  // 'B'
     push(data, 67)  // 'C'
     push(data, 68)  // 'D'
     push(data, 69)  // 'E'
+    let r: io::Reader = io::Reader::from_bytes(data)
+    assert(r.len() == 5)
 
-    let written: i32 = io::write_bytes(buf, data)
-    assert(written == 5)
+    match r.seek(SeekFrom::Start(2i64)) {
+        Result::Ok(pos) => assert(pos == 2i64),
+        Result::Err(_e) => assert(false),
+    }
+    match r.read(1) {
+        Result::Ok(one) => {
+            assert(len(one) == 1)
+            assert(get_unchecked(one, 0) == 67)
+        },
+        Result::Err(_e) => assert(false),
+    }
 
-    // Seek to position 2
-    let pos1: i64 = io::seek_to(buf, 2i64)
-    assert(pos1 == 2i64)
+    match r.seek(SeekFrom::Start(0i64)) {
+        Result::Ok(pos) => assert(pos == 0i64),
+        Result::Err(_e) => assert(false),
+    }
+    match r.read(1) {
+        Result::Ok(one) => assert(get_unchecked(one, 0) == 65),
+        Result::Err(_e) => assert(false),
+    }
 
-    // Read from position 2 -> should get 'C' (67)
-    let r1: Vec<i32> = io::read_bytes(buf, 1)
-    assert(len(r1) == 1)
-    assert(get_unchecked(r1, 0) == 67)
+    match r.seek(SeekFrom::End(0i64)) {
+        Result::Ok(pos) => assert(pos == 5i64),
+        Result::Err(_e) => assert(false),
+    }
+    match r.read(1) {
+        Result::Ok(one) => assert(len(one) == 0),
+        Result::Err(_e) => assert(false),
+    }
 
-    // Seek back to position 0
-    let pos2: i64 = io::seek_to(buf, 0i64)
-    assert(pos2 == 0i64)
-
-    // Read from position 0 -> should get 'A' (65)
-    let r2: Vec<i32> = io::read_bytes(buf, 1)
-    assert(len(r2) == 1)
-    assert(get_unchecked(r2, 0) == 65)
-
-    // Seek to position 4 (last byte)
-    let pos3: i64 = io::seek_to(buf, 4i64)
-    assert(pos3 == 4i64)
-
-    // Read from position 4 -> should get 'E' (69)
-    let r3: Vec<i32> = io::read_bytes(buf, 1)
-    assert(len(r3) == 1)
-    assert(get_unchecked(r3, 0) == 69)
-
-    // Seek past end should clamp to end (5)
-    let pos4: i64 = io::seek_to(buf, 100i64)
-    assert(pos4 == 5i64)
-
-    // Reading at end should return 0 bytes
-    let r4: Vec<i32> = io::read_bytes(buf, 1)
-    assert(len(r4) == 0)
-
-    // Seek to negative should clamp to 0
-    let pos5: i64 = io::seek_to(buf, -1i64)
-    assert(pos5 == 0i64)
+    match r.seek(SeekFrom::Start(0i64 - 1i64)) {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => assert(true),
+    }
 
     stdio::println("OK")
 }

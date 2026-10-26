@@ -103,7 +103,7 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
             }
             ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         } else {
-            scope_error::resolve_error(ctx, text::concat(String_from("undefined module member: "), clone(path)))
+            scope_error::resolve_unknown_member(ctx, clone(module_part), clone(symbol_part), clone(path))
         }
         return
     }

@@ -24,11 +24,11 @@
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
 | `std::host::clock` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
 | `std::host::env` | 5 | 5 | 0 | 0 | 0 | 5/5 (100%) | yes |
-| `std::host::fs` | 11 | 1 | 5 | 4 | 1 | 7/10 (70%) | yes |
+| `std::host::fs` | 11 | 1 | 5 | 4 | 1 | 6/10 (60%) | yes |
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
-| `std::io` | 37 | 33 | 0 | 4 | 0 | 33/37 (89%) | no |
+| `std::io` | 20 | 5 | 0 | 0 | 15 | 4/5 (80%) | no |
 | `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
@@ -54,7 +54,7 @@
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 813 APIs, 315 stable, 83 provisional, 318 experimental, 97 deprecated, 609/716 (85%) fixture coverage
+**Total**: 796 APIs, 287 stable, 83 provisional, 314 experimental, 112 deprecated, 579/684 (85%) fixture coverage
 
 ## Legend
 

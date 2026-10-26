@@ -59,6 +59,35 @@ fn removed_name_specific_hint(name: String) -> String {
     String_new()
 }
 
+// Module-qualified calls cannot use the bare-name table above: the resolver
+// only knows the removed member name after the module head resolved. Keep the
+// per-module entries here so ADR-085 Phase F removals still produce an E0100
+// migration hint instead of a bare "undefined module member".
+pub fn removed_module_member_hint(module: String, name: String) -> String {
+    if !eq(clone(module), "io") {
+        return String_new()
+    }
+    if eq(clone(name), "reader_eof") { return "use `r.is_eof()` on `Reader` instead" }
+    if eq(clone(name), "reader_read") { return "use `r.read(n)` on `Reader` instead" }
+    if eq(clone(name), "reader_read_exact") { return "use `Io::read_exact(r, n)` from `use std::io::Io` instead" }
+    if eq(clone(name), "reader_read_all") { return "use `Io::read_to_end(r)` from `use std::io::Io` instead" }
+    if eq(clone(name), "reader_read_line") { return "use `r.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)" }
+    if eq(clone(name), "copy_bytes") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
+    if eq(clone(name), "copy") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
+    if eq(clone(name), "copy_trait") { return "use `Io::copy(from, to)` from `use std::io::Io` instead" }
+    if eq(clone(name), "new_memory_buffer") { return "use `Reader::new()` for a source or `Writer::new()` for a sink instead" }
+    if eq(clone(name), "write_bytes") { return "use `w.write(data)` on `Writer` instead" }
+    if eq(clone(name), "read_bytes") { return "use `r.read(n)` on `Reader` instead" }
+    if eq(clone(name), "seek_to") { return "use `r.seek(SeekFrom::Start(pos))` from `use std::io::{Seek, SeekFrom}` instead" }
+    if eq(clone(name), "buffer_position") { return "use `r.position()` from `use std::io::Seek` instead" }
+    if eq(clone(name), "buffer_len") { return "use `r.len()` on `Reader` instead" }
+    if eq(clone(name), "fill_buffer") { return "use `r.fill_buf()` from `use std::io::BufRead` instead" }
+    if eq(clone(name), "file_from_fd") { return "the experimental fd lane was retired; use `std::host::fs::File::open(path)` instead" }
+    if eq(clone(name), "file_read") { return "the experimental fd lane was retired; use `Read::read` on `std::host::fs::File` instead" }
+    if eq(clone(name), "file_write") { return "the experimental fd lane was retired; use `std::host::fs::File::create` and `Write::write` instead (write side open under #693)" }
+    String_new()
+}
+
 // Prelude decls outside the ADR-072 stable set: still public in
 // std::prelude but no longer auto-imported. The hint keeps the call
 // working through an explicit selective import.
@@ -210,5 +239,22 @@ test mod "removed_names" {
     test "live names have no hint" {
         assert(len(removed_name_hint("len")) == 0)
         assert(len(removed_name_hint("panic")) == 0)
+    }
+    test "removed io module members have hints" {
+        assert(len(removed_module_member_hint(String_from("io"), String_from("reader_read"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("copy"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("seek_to"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("fill_buffer"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("file_read"))) > 0)
+    }
+    test "live io compat members have no removal hint" {
+        // reader_from_bytes and the buf_* / writer_* families stay callable
+        // as deprecated compatibility wrappers under the #693 window.
+        assert(len(removed_module_member_hint(String_from("io"), String_from("reader_from_bytes"))) == 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write"))) == 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_reader_new"))) == 0)
+    }
+    test "other modules do not get io hints" {
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("reader_read"))) == 0)
     }
 }

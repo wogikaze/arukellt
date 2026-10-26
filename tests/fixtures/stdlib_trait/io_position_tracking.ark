@@ -2,27 +2,40 @@ use std::io
 use std::test
 
 fn main() {
-    let buf = io::new_memory_buffer()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 1)
     push(data, 2)
     push(data, 3)
     push(data, 4)
     push(data, 5)
-    let _w = io::write_bytes(buf, data)
+    let r: io::Reader = io::Reader::from_bytes(data)
 
-    let pos0: i64 = io::buffer_position(buf)
-    test::assert_eq_i64(pos0, 0)
-
-    let _r1 = io::read_bytes(buf, 2)
-    let pos1: i64 = io::buffer_position(buf)
-    test::assert_eq_i64(pos1, 2)
-
-    let _r2 = io::read_bytes(buf, 2)
-    let pos2: i64 = io::buffer_position(buf)
-    test::assert_eq_i64(pos2, 4)
-
-    let _r3 = io::read_bytes(buf, 2)
-    let pos3: i64 = io::buffer_position(buf)
-    test::assert_eq_i64(pos3, 5)
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.read(2) {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 2),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.read(2) {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 4),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.read(2) {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 5),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

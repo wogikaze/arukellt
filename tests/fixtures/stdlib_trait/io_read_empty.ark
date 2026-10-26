@@ -2,10 +2,13 @@ use std::io
 use std::test
 
 fn main() {
-    let buf = io::new_memory_buffer()
-    let read = io::read_bytes(buf, 10)
-    test::assert_eq_i32(len(read), 0)
-
-    let pos: i64 = io::buffer_position(buf)
-    test::assert_eq_i64(pos, 0)
+    let r: io::Reader = io::Reader::new()
+    match r.read(10) {
+        Result::Ok(read) => test::assert_eq_i32(len(read), 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r.position() {
+        Result::Ok(pos) => test::assert_eq_i64(pos, 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

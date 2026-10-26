@@ -1,0 +1,5 @@
+use std::io
+
+fn main() {
+    let _: Vec<i32> = io::reader_from_bytes(Vec::new<i32>())
+}

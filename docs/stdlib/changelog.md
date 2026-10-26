@@ -16,6 +16,59 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::io trait cutover (ADR-085 Phase E/F, #693)
+
+- **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D1–D10,
+  [ADR-046](../adr/ADR-046-free-function-eradication.md) D3/D4, and the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x removal exception.
+  The canonical surface is `Reader` / `Writer`, `Read` / `Write` / `BufRead` /
+  `Seek`, the `Io` algorithms, the generic `BufReader<R>` / `BufWriter<W>`
+  adapters, and `std::host::fs::File`.
+- **Conditions**: (1) W0009 is live for the retained compatibility family in
+  `src/compiler/lint/deprecated_table.ark` with unit coverage and a live diag
+  fixture; (2) [migration-guidance.md](migration-guidance.md) records every
+  before/after and the behavior differences; (3) this entry.
+- **Converted to `deprecated` (15)** with
+  `deprecated_since = "0.1.0"` and `remove_in = "1.0.0"`:
+  `reader_from_bytes` → `Reader::from_bytes`; `buf_reader_new` /
+  `buffered_reader` → `BufReader::new`; `buf_reader_read_line` →
+  `BufReader::read_line`; `buf_writer_new` / `buffered_writer` →
+  `BufWriter::new`; `buf_writer_write_str` → `BufWriter::write_string`;
+  `buf_writer_flush` → `BufWriter::flush`; `writer_new` → `Writer::new`;
+  `writer_write` → `w.write`; `writer_write_str` / `write_string` →
+  `w.write_string`; `write_all` → `Io::write_all`; `writer_flush` →
+  `w.flush`; `writer_to_bytes` → `w.into_bytes`.
+  Two reasons keep this window open instead of deleting the family now:
+  `reader_from_bytes` / `buf_*` retain the legacy `Vec<i32>` layout until the
+  generic-adapter dispatch residual (#693) allows their fixtures to move, and
+  `writer_*` keeps the tagged `stdout()` / `stderr()` handles writable until
+  `std::host::stdio` exposes typed `Write` handles.
+- **Removed (18)** with E0100 replacement hints in
+  `src/compiler/resolver/removed_names.ark`:
+  `reader_eof`, `reader_read`, `reader_read_exact`, `reader_read_all`,
+  `reader_read_line`, `copy_bytes`, `copy`, `copy_trait`, `new_memory_buffer`,
+  `write_bytes`, `read_bytes`, `seek_to`, `buffer_position`, `buffer_len`,
+  `fill_buffer`, `file_from_fd`, `file_read`, `file_write` (the last three were
+  the experimental fd lane; ADR-014 allowed direct retirement). The 17
+  manifest entries were removed and `copy_trait` was source-only.
+- **Guidance fix**: `use std::io` no longer emits the retired
+  "moved to `std::host::stdio`" W0009; `std::io` is the canonical abstraction
+  module (ADR-085 D1). `docs/compiler/error-codes.md` E0104 now uses the
+  `std::time` → `std::host::clock` example.
+- **Scorecard**: eradication scope 1226 → **1208** (manifest public entries
+  813 → **796**, unregistered std declarations 413 → **412**); `must delete`
+  119 → **134**, `associated-or-method` 1107 → **1074**. Stability:
+  `stable` 315 → **287**, `experimental` 318 → **314**, `deprecated`
+  97 → **112**.
+- **Evidence**: W0009
+  `tests/fixtures/diagnostics/deprecated_io_free_function.ark`, E0100
+  `tests/fixtures/diagnostics/removed_io_free_function.ark`, and the migrated
+  `stdlib_io*` / `stdlib_trait` / `question_mark` fixtures compiled and run on
+  both `wasm32-gc` and `wasm32`. `python3 scripts/manager.py verify fixtures`
+  reports 1835/1835 compile+validate, 0 failed, 105 runtime smoke; the 68
+  changed io fixtures additionally produced identical `wasm32-gc` component and
+  `wasm32` core output.
+
 ## 2026-10-26 — 0.x deprecation exception (ADR-014 addendum)
 
 - **Policy**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) を採択した。

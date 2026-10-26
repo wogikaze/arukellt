@@ -252,6 +252,30 @@ The following public entries currently carry `deprecated_by` in
 | `std::collections::linked_list::linked_list_is_empty` | `l.is_empty()` |
 | `std::collections::linked_list::linked_list_clear` | `l.clear()` |
 | `std::collections::linked_list::linked_list_to_vec` | `l.iter().collect()` |
+| `std::io::reader_from_bytes` | `Reader::from_bytes(data)` |
+| `std::io::buf_reader_new` | `BufReader::new(r, cap)` |
+| `std::io::buffered_reader` | `BufReader::new(r, cap)` |
+| `std::io::buf_reader_read_line` | `br.read_line()` (`Option<String>`, `None` at EOF) |
+| `std::io::buf_writer_new` | `BufWriter::new(w, cap)` |
+| `std::io::buffered_writer` | `BufWriter::new(w, cap)` |
+| `std::io::buf_writer_write_str` | `bw.write_string(s)` |
+| `std::io::buf_writer_flush` | `bw.flush()` |
+| `std::io::writer_new` | `Writer::new()` |
+| `std::io::writer_write` | `w.write(data)` |
+| `std::io::writer_write_str` | `w.write_string(s)` |
+| `std::io::write_all` | `Io::write_all(w, data)` |
+| `std::io::write_string` | `w.write_string(s)` |
+| `std::io::writer_flush` | `w.flush()` |
+| `std::io::writer_to_bytes` | `w.into_bytes()` |
+
+The `std::io` rows are the ADR-085 Phase E compatibility window
+([#693](https://github.com/wogikaze/arukellt/issues/693)). They keep W0009
+coverage; `reader_from_bytes` and `buf_*` retain the legacy `Vec<i32>` layout
+until the generic-adapter dispatch residual is fixed, and `writer_*` keeps the
+tagged `stdout()` / `stderr()` handles writable until `std::host::stdio`
+exposes typed `Write` handles. Every other legacy `std::io` free function was
+removed in the same wave; see
+[std::io trait migration](#stdio-trait-migration-adr-085-phase-ef-2026-10-27).
 
 The deprecated `std::seq` rows remain callable compatibility entries that
 delegate to the lazy `std::core::iter` pipeline or the generic
@@ -338,6 +362,84 @@ the `Integer` / `TryFrom` trait surface, exercised on both `wasm32-gc` and
 The `std::core::math` module itself remains: it still hosts the checked /
 saturating arithmetic trait impls (`checked_add`, `saturating_mul`, …) used by
 existing callers. Only its numeric free helpers were retired.
+
+## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
+
+The [ADR-085](../adr/ADR-085-io-trait-unification.md) migration replaced the
+`Vec<i32>` layout conventions with the `Reader` / `Writer` newtypes, the
+`Read` / `Write` / `BufRead` / `Seek` traits, the `Io` generic algorithms, the
+generic `BufReader<R>` / `BufWriter<W>` adapters, and `std::host::fs::File`.
+The canonical imports are `use std::io::{Reader, Writer, Io, BufReader,
+BufWriter, Read, Write, BufRead, Seek, SeekFrom}` and `use std::host::fs::File`.
+
+Removed in this wave (E0100 with a replacement hint; no manifest entry
+remains):
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `io::reader_eof(r)` | `r.is_eof()` |
+| `io::reader_read(r, n)` | `r.read(n)` |
+| `io::reader_read_exact(r, n)` | `Io::read_exact(r, n)` |
+| `io::reader_read_all(r)` | `Io::read_to_end(r)` |
+| `io::reader_read_line(r)` | `r.read_line()` (`Option<String>`, `None` at EOF) |
+| `io::copy_bytes(from, to)` / `io::copy(from, to)` | `Io::copy(from, to)` (`i64` count) |
+| `io::copy_trait(from, to)` | `Io::copy(from, to)` |
+| `io::new_memory_buffer()` | `Reader::new()` for a source, `Writer::new()` for a sink |
+| `io::write_bytes(buf, data)` | `w.write(data)` |
+| `io::read_bytes(buf, n)` | `r.read(n)` |
+| `io::seek_to(buf, pos)` | `r.seek(SeekFrom::Start(pos))` |
+| `io::buffer_position(buf)` | `r.position()` |
+| `io::buffer_len(buf)` | `r.len()` |
+| `io::fill_buffer(buf)` | `r.fill_buf()` |
+| `io::file_from_fd` / `io::file_read` / `io::file_write` | `std::host::fs::File` (read side; the whole-file write side is still open under #693) |
+
+Behavior differences to account for while migrating:
+
+- `Read::read` returns an empty `Vec` at EOF and rejects a negative
+  `max_bytes` with `IoError::Other`; the legacy `read_bytes` returned an empty
+  `Vec` for a negative count.
+- `BufRead::read_line` returns `Option<String>` and `None` at EOF; the legacy
+  `reader_read_line` / `buf_reader_read_line` returned `Ok("")` at EOF.
+- `Seek::seek` rejects a negative effective position and allows seeking past
+  the end (reads then report EOF); the legacy `seek_to` clamped into
+  `[0, len]`.
+- `Io::read_exact` reports `UnexpectedEof` with a `need N have M` message;
+  the legacy `reader_read_exact` prefixed it with `UnexpectedEof:`.
+- `Io::copy` returns `i64` and stops on the first read or write error.
+
+**Before:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
+```ark
+let r = io::reader_from_bytes(data)
+let chunk = io::reader_read_exact(r, 4)?
+let w = io::writer_new()
+io::write_bytes(w, chunk)
+let pos = io::seek_to(w, 0)
+```
+
+**After:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
+```ark
+let r: Reader = Reader::from_bytes(data)
+let chunk = Io::read_exact(r, 4)?
+let w: Writer = Writer::new()
+w.write(chunk)?
+let pos = w.into_reader().seek(SeekFrom::Start(0))?
+```
+
+Evidence for the wave:
+
+- `tests/fixtures/diagnostics/deprecated_io_free_function.ark` (W0009 live for
+  the retained compatibility family).
+- `tests/fixtures/diagnostics/removed_io_free_function.ark` (E0100 replacement
+  hint for a removed member).
+- The migrated `tests/fixtures/stdlib_io*`, `tests/fixtures/stdlib_trait/`, and
+  `tests/fixtures/question_mark/error_ecosystem.ark` fixtures compile and run
+  on both `wasm32-gc` and `wasm32`.
+- `use std::io` no longer emits the retired "moved to `std::host::stdio`"
+  W0009 warning (ADR-085 D1); `std::io` is the canonical abstraction module.
 
 ## Iterator v2 status
 

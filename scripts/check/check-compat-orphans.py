@@ -46,6 +46,7 @@ STABLE_TABLE = ROOT / "src" / "compiler" / "resolver" / "prelude_stable.ark"
 # to the std module that owns the called free function.
 QUALIFIED_WARN_MODULES = {
     "cmp": "std::core::cmp",
+    "io": "std::io",
     "convert": "std::core::convert",
     "hash": "std::core::hash",
     "math": "std::core::math",
@@ -141,6 +142,7 @@ def main() -> int:
         "deprecated_convert_qualified_message",
         "deprecated_hash_qualified_message",
         "deprecated_seq_qualified_message",
+        "deprecated_io_qualified_message",
     ):
         qual_warn_paths += table_names(lint_text, fn)
     # The bare-name table is split into family helpers for readability; the

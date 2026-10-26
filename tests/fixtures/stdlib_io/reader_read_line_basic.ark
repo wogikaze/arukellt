@@ -7,11 +7,14 @@ fn main() {
     bytes::bytes_push(data, 72)
     bytes::bytes_push(data, 105)
     bytes::bytes_push(data, 10)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let res: Result<String, io::IoError> = io::reader_read_line(r)
+    let r: io::Reader = io::Reader::from_bytes(data)
+    let res: Result<Option<String>, io::IoError> = r.read_line()
     match res {
-        Result::Ok(line) => test::assert_eq_string(line, "Hi"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "Hi"),
+            Option::None => panic("expected a line before EOF"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    test::assert_true(io::reader_eof(r))
+    test::assert_true(r.is_eof())
 }

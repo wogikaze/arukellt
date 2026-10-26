@@ -2,17 +2,22 @@ use std::io
 use std::test
 
 fn main() {
-    let buf = io::new_memory_buffer()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
+    let w: io::Writer = io::Writer::new()
+    match w.write(data) {
+        Result::Ok(written) => test::assert_eq_i32(written, 1),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 
-    let written = io::write_bytes(buf, data)
-    test::assert_eq_i32(written, 1)
+    let r: io::Reader = w.into_reader()
+    test::assert_eq_i32(r.len(), 1)
 
-    let blen: i64 = io::buffer_len(buf)
-    test::assert_eq_i64(blen, 1)
-
-    let read = io::read_bytes(buf, 1)
-    test::assert_eq_i32(len(read), 1)
-    test::assert_eq_i32(get_unchecked(read, 0), 65)
+    match r.read(1) {
+        Result::Ok(read) => {
+            test::assert_eq_i32(len(read), 1)
+            test::assert_eq_i32(get_unchecked(read, 0), 65)
+        },
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

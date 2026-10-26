@@ -3,6 +3,7 @@ use std::host::stdio
 use std::io
 use std::prelude::{parse_i32}
 use std::text
+
 enum AppError {
     Io(String),
     Parse(String),
@@ -43,8 +44,8 @@ fn parse_count(text: String) -> Result<i32, String> {
 }
 
 fn read_exact(data: Vec<i32>) -> Result<Vec<i32>, IoError> {
-    let reader = io::reader_from_bytes(data)
-    io::reader_read_exact(reader, 1)
+    let reader: io::Reader = io::Reader::from_bytes(data)
+    io::Io::read_exact(reader, 1)
 }
 
 fn read_and_parse(data: Vec<i32>, text: String) -> Result<i32, AppError> {
