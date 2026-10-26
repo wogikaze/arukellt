@@ -1,4 +1,22 @@
-//! Vec sub-module — construction helpers use sealed raw API (#817 / RFC-006).
+//! Vec sub-module — inherent method surface over the builtin `Vec<T>`.
+//!
+//! Importing `std::collections::vec` registers the `impl Vec<T>` block, so the
+//! methods below are available as `v.method(...)`. The basic prelude builtins
+//! (`push` / `pop` / `get` / `set` / `len` / `get_unchecked`) stay callable
+//! without this import; the extension surface is module-gated because it uses
+//! generic method bodies and module-owned return types.
+//!
+//! Operations follow ADR-036 / ADR-066: associated constructors and receiver
+//! methods only. There is no user-reachable free-function spelling for the
+//! extension operations (ADR-046).
+//!
+//! Window and chunk helpers return an eager `Vec<Vec<T>>` because the language
+//! has no borrowed element references yet (ADR-060 / ADR-086 §5). `drain` and
+//! `splice` likewise return the removed elements as an owned `Vec<T>` instead
+//! of borrowing the source.
+use std::core
+use std::core::cmp
+use std::core::iter
 use std::core::raw
 
 /// Creates a new empty `Vec<i32>`.
@@ -10,13 +28,38 @@ pub fn new_i32() -> Vec<i32> {
 // Inherent impl block for Vec<T> — method syntax (approach (a) for #700).
 //
 // Bodies call free CoreOp aliases (`vec_len` / `push` / …). Those lower via
-// #822 normal_call fallbacks or MIR rewrites to sealed raw; do not call
-// `raw::` here or generic method shells become `unreachable` on LM.
+// #822 normal_call fallbacks or MIR rewrites to sealed raw.
 //
-// Associated constructors are an exception: they have no `self`, and must call
-// `raw::raw_array_new` directly (same as free `new_i32`) so mono bodies lower
-// through the `raw.array_new` CoreOp (#845).
+// Constructors call `raw::raw_array_new` directly (same as free `new_i32`) so
+// mono bodies lower through the `raw.array_new` CoreOp. Extension helpers with
+// an explicit `self: Vec<T>` receiver instantiate `Vec::with_capacity<T>`
+// correctly and use the source constructor instead.
 // ---------------------------------------------------------------------------
+
+// `Ordering` results are funnelled through non-generic predicates: a direct
+// `match` on a comparator call leaves the MIR result temporary typed as the
+// generic enum fallback and fails wasm32-gc validation when the payload is
+// consumed.
+fn ordering_is_less(ordering: Ordering) -> bool {
+    match ordering {
+        Ordering::Less => true,
+        _ => false,
+    }
+}
+
+fn ordering_is_greater(ordering: Ordering) -> bool {
+    match ordering {
+        Ordering::Greater => true,
+        _ => false,
+    }
+}
+
+fn ordering_is_equal(ordering: Ordering) -> bool {
+    match ordering {
+        Ordering::Equal => true,
+        _ => false,
+    }
+}
 
 impl Vec<T> {
     /// Creates a new empty vector.
@@ -62,5 +105,388 @@ impl Vec<T> {
     /// Returns the element at `idx` without bounds checking.
     fn get_unchecked(self, idx: i32) -> T {
         get_unchecked(self, idx)
+    }
+
+    /// Returns every contiguous window of `width` elements, in order.
+    ///
+    /// Each item is an owned `Vec<T>` because the language has no borrowed
+    /// element references yet. A non-positive width returns an empty result
+    /// instead of trapping.
+    fn windows(self: Vec<T>, width: i32) -> Vec<Vec<T>> {
+        let windows: Vec<Vec<T>> = Vec::new<Vec<T>>()
+        let count: i32 = vec_len(self)
+        if width <= 0 {
+            return windows
+        }
+        let mut start: i32 = 0
+        while start + width <= count {
+            let window: Vec<T> = Vec::with_capacity<T>(width)
+            let mut offset: i32 = 0
+            while offset < width {
+                push(window, get_unchecked(self, start + offset))
+                offset = offset + 1
+            }
+            push(windows, window)
+            start = start + 1
+        }
+        windows
+    }
+
+    /// Returns consecutive chunks of at most `width` elements.
+    ///
+    /// The final chunk keeps the shorter tail. A non-positive width returns an
+    /// empty result instead of trapping.
+    fn chunks(self: Vec<T>, width: i32) -> Vec<Vec<T>> {
+        let chunks: Vec<Vec<T>> = Vec::new<Vec<T>>()
+        let count: i32 = vec_len(self)
+        if width <= 0 {
+            return chunks
+        }
+        let mut start: i32 = 0
+        while start < count {
+            let mut stop: i32 = start + width
+            if stop > count {
+                stop = count
+            }
+            let chunk: Vec<T> = Vec::with_capacity<T>(stop - start)
+            let mut index: i32 = start
+            while index < stop {
+                push(chunk, get_unchecked(self, index))
+                index = index + 1
+            }
+            push(chunks, chunk)
+            start = stop
+        }
+        chunks
+    }
+
+    /// Returns consecutive full chunks of `width` elements; a trailing partial
+    /// chunk is dropped.
+    ///
+    /// A non-positive width returns an empty result instead of trapping.
+    fn chunks_exact(self: Vec<T>, width: i32) -> Vec<Vec<T>> {
+        let chunks: Vec<Vec<T>> = Vec::new<Vec<T>>()
+        let count: i32 = vec_len(self)
+        if width <= 0 {
+            return chunks
+        }
+        let mut start: i32 = 0
+        while start + width <= count {
+            let chunk: Vec<T> = Vec::with_capacity<T>(width)
+            let mut index: i32 = start
+            while index < start + width {
+                push(chunk, get_unchecked(self, index))
+                index = index + 1
+            }
+            push(chunks, chunk)
+            start = start + width
+        }
+        chunks
+    }
+
+    /// Keeps only elements for which `keep` returns true, preserving order.
+    ///
+    /// The filter is applied in place; removed elements are dropped as the
+    /// logical length shrinks, and the capacity is retained.
+    fn retain(self: Vec<T>, keep: fn(T) -> bool) {
+        let count: i32 = vec_len(self)
+        let mut read: i32 = 0
+        let mut write: i32 = 0
+        while read < count {
+            let current = get_unchecked(self, read)
+            let keep_current: bool = keep(current)
+            if keep_current {
+                if write != read {
+                    vec_set(self, write, current)
+                }
+                write = write + 1
+            }
+            read = read + 1
+        }
+        while vec_len(self) > write {
+            match vec_pop(self) {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+    }
+
+    /// Shortens the vector to at most `new_len` elements.
+    ///
+    /// A negative length is treated as zero. Capacity is retained.
+    fn truncate(self: Vec<T>, new_len: i32) {
+        let target: i32 = if new_len < 0 { 0 } else { new_len }
+        while vec_len(self) > target {
+            match vec_pop(self) {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+    }
+
+    /// Moves every element of `other` to the end of this vector and empties
+    /// `other`, matching `Vec::append` ownership transfer.
+    fn append(self: Vec<T>, other: Vec<T>) {
+        let count: i32 = vec_len(other)
+        let mut i: i32 = 0
+        while i < count {
+            push(self, get_unchecked(other, i))
+            i = i + 1
+        }
+        while vec_len(other) > 0 {
+            match vec_pop(other) {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+    }
+
+    /// Removes the half-open range `[start, end)` and returns the removed
+    /// elements in order.
+    ///
+    /// Both bounds are clamped into `[0, len]`; an inverted or empty range
+    /// removes nothing. The return value is an owned `Vec<T>` because the
+    /// language cannot yet express a borrowed `Drain` cursor.
+    fn drain(self: Vec<T>, start: i32, end: i32) -> Vec<T> {
+        let count: i32 = vec_len(self)
+        let from: i32 = if start < 0 { 0 } else if start > count { count } else { start }
+        let mut to: i32 = if end < 0 { 0 } else if end > count { count } else { end }
+        if to < from {
+            to = from
+        }
+        let removed: Vec<T> = Vec::with_capacity<T>(to - from)
+        let mut i: i32 = from
+        while i < to {
+            push(removed, get_unchecked(self, i))
+            i = i + 1
+        }
+        let mut read: i32 = to
+        let mut write: i32 = from
+        while read < count {
+            vec_set(self, write, get_unchecked(self, read))
+            read = read + 1
+            write = write + 1
+        }
+        let keep_count: i32 = count - (to - from)
+        while vec_len(self) > keep_count {
+            match vec_pop(self) {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+        removed
+    }
+
+    /// Replaces the half-open range `[start, end)` with `replacement` and
+    /// returns the removed elements in order.
+    ///
+    /// Bounds follow `drain`. The appended replacement is rotated into place,
+    /// so the returned value is the pre-replacement range content.
+    fn splice(self: Vec<T>, start: i32, end: i32, replacement: Vec<T>) -> Vec<T> {
+        let count: i32 = vec_len(self)
+        let from: i32 = if start < 0 { 0 } else if start > count { count } else { start }
+        let mut to: i32 = if end < 0 { 0 } else if end > count { count } else { end }
+        if to < from {
+            to = from
+        }
+        let removed: Vec<T> = self.drain(from, to)
+        let inserted: i32 = vec_len(replacement)
+        let mut i: i32 = 0
+        while i < inserted {
+            push(self, get_unchecked(replacement, i))
+            i = i + 1
+        }
+        let total: i32 = vec_len(self)
+        let mut moved: i32 = 0
+        while moved < inserted {
+            let mut j: i32 = total - 1
+            while j > from {
+                let left = get_unchecked(self, j - 1)
+                let right = get_unchecked(self, j)
+                vec_set(self, j - 1, right)
+                vec_set(self, j, left)
+                j = j - 1
+            }
+            moved = moved + 1
+        }
+        removed
+    }
+
+    /// Sorts the vector in place with a comparator.
+    ///
+    /// Uses stable insertion sort. The body stays local because a generic free
+    /// algorithm call is not reachable from this Vec method on the current
+    /// adapter path.
+    fn sort_by(self: Vec<T>, cmp: fn(T, T) -> Ordering) {
+        let count: i32 = vec_len(self)
+        let mut index: i32 = 1
+        while index < count {
+            let current = get_unchecked(self, index)
+            let mut slot: i32 = index - 1
+            while slot >= 0 {
+                let previous = get_unchecked(self, slot)
+                let should_shift = ordering_is_greater(cmp(previous, current))
+                if !should_shift {
+                    break
+                }
+                vec_set(self, slot + 1, previous)
+                slot = slot - 1
+            }
+            vec_set(self, slot + 1, current)
+            index = index + 1
+        }
+    }
+
+    /// Sorts the vector in place by a key function.
+    fn sort_by_key<K: Ord>(self: Vec<T>, key: fn(T) -> K) {
+        let count: i32 = vec_len(self)
+        let mut index: i32 = 1
+        while index < count {
+            let current = get_unchecked(self, index)
+            let mut slot: i32 = index - 1
+            while slot >= 0 {
+                let previous = get_unchecked(self, slot)
+                let should_shift = ordering_is_less(key(current).cmp(key(previous)))
+                if !should_shift {
+                    break
+                }
+                vec_set(self, slot + 1, previous)
+                slot = slot - 1
+            }
+            vec_set(self, slot + 1, current)
+            index = index + 1
+        }
+    }
+
+    /// Sorts the vector in place with a comparator, without a stability
+    /// promise.
+    fn sort_unstable_by(self: Vec<T>, cmp: fn(T, T) -> Ordering) {
+        self.sort_by(cmp)
+    }
+
+    /// Sorts the vector in place by a key function, without a stability
+    /// promise.
+    fn sort_unstable_by_key<K: Ord>(self: Vec<T>, key: fn(T) -> K) {
+        self.sort_by_key(key)
+    }
+
+    /// Removes consecutive elements that a comparator considers equivalent.
+    ///
+    /// The comparator receives `(previous, current)` in current order and
+    /// returns `Ordering::Equal` for the same bucket. The first element of each
+    /// run is kept.
+    fn dedup_by(self: Vec<T>, same_bucket: fn(T, T) -> Ordering) {
+        let count: i32 = vec_len(self)
+        if count < 2 {
+            return
+        }
+        let mut write: i32 = 1
+        let mut read: i32 = 1
+        while read < count {
+            let previous = get_unchecked(self, write - 1)
+            let current = get_unchecked(self, read)
+            let same: bool = ordering_is_equal(same_bucket(previous, current))
+            if !same {
+                if write != read {
+                    vec_set(self, write, current)
+                }
+                write = write + 1
+            }
+            read = read + 1
+        }
+        while vec_len(self) > write {
+            match vec_pop(self) {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+    }
+
+    /// Reorders elements so every element satisfying `pred` precedes the rest,
+    /// and returns the index of the first element that does not satisfy it.
+    fn partition(self: Vec<T>, pred: fn(T) -> bool) -> i32 {
+        let count: i32 = vec_len(self)
+        let mut write: i32 = 0
+        let mut read: i32 = 0
+        while read < count {
+            let current = get_unchecked(self, read)
+            let matches: bool = pred(current)
+            if matches {
+                if write != read {
+                    let displaced = get_unchecked(self, write)
+                    vec_set(self, write, current)
+                    vec_set(self, read, displaced)
+                }
+                write = write + 1
+            }
+            read = read + 1
+        }
+        write
+    }
+
+    /// Returns true when the vector is ordered by `cmp` in non-decreasing
+    /// order.
+    fn is_sorted_by(self: Vec<T>, cmp: fn(T, T) -> Ordering) -> bool {
+        let count: i32 = vec_len(self)
+        let mut index: i32 = 1
+        while index < count {
+            let previous = get_unchecked(self, index - 1)
+            let current = get_unchecked(self, index)
+            let out_of_order = ordering_is_greater(cmp(previous, current))
+            if out_of_order {
+                return false
+            }
+            index = index + 1
+        }
+        true
+    }
+
+    /// Returns the index of an element whose key equals `target_key` in a
+    /// vector sorted by `key`, or `-1` when absent.
+    fn binary_search_by_key<K: Ord>(self: Vec<T>, target_key: K, key: fn(T) -> K) -> i32 {
+        let mut lo: i32 = 0
+        let mut hi: i32 = vec_len(self) - 1
+        while lo <= hi {
+            let mid: i32 = lo + (hi - lo) / 2
+            let ordering = key(get_unchecked(self, mid)).cmp(target_key)
+            if ordering_is_equal(ordering) {
+                return mid
+            }
+            if ordering_is_less(ordering) {
+                lo = mid + 1
+            } else {
+                hi = mid - 1
+            }
+        }
+        0 - 1
+    }
+
+    /// Grows or shrinks the vector to exactly `new_len` elements.
+    ///
+    /// Growth copies the element handle into each new slot (the current value
+    /// model treats clone as identity for immutable / copy-on-write values).
+    /// A negative length is treated as zero.
+    fn resize(self: Vec<T>, new_len: i32, value: T) {
+        let target: i32 = if new_len < 0 { 0 } else { new_len }
+        let old_len: i32 = vec_len(self)
+        if target <= old_len {
+            self.truncate(target)
+            return
+        }
+        push(self, value)
+        while vec_len(self) < target {
+            push(self, get_unchecked(self, old_len))
+        }
+    }
+
+    /// Appends every element of `other` to this vector, leaving `other`
+    /// unchanged. Element handles are copied; no `Clone` dispatch is required.
+    fn extend(self: Vec<T>, other: Vec<T>) {
+        let count: i32 = vec_len(other)
+        let mut index: i32 = 0
+        while index < count {
+            push(self, get_unchecked(other, index))
+            index = index + 1
+        }
     }
 }

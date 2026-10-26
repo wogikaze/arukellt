@@ -89,6 +89,35 @@ doc = "Growable contiguous sequence."
 prelude = true
 generic_params = ["T"]
 type_id = "vec"
+methods = [
+    "new",
+    "with_capacity",
+    "push",
+    "pop",
+    "get",
+    "set",
+    "len",
+    "is_empty",
+    "get_unchecked",
+    "windows",
+    "chunks",
+    "chunks_exact",
+    "retain",
+    "truncate",
+    "append",
+    "drain",
+    "splice",
+    "sort_by",
+    "sort_by_key",
+    "sort_unstable_by",
+    "sort_unstable_by_key",
+    "dedup_by",
+    "partition",
+    "is_sorted_by",
+    "binary_search_by_key",
+    "resize",
+    "extend",
+]
 
 [[types]]
 name = "HashMap"
@@ -3089,6 +3118,15 @@ stability = "stable"
 doc = "Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor."
 params = ["Vec<i32>"]
 returns = "i64"
+
+# === std::collections::vec ===
+
+[[modules]]
+name = "std::collections::vec"
+stability = "provisional"
+family = "collections"
+doc = "Inherent `Vec<T>` method extension: eager window / chunk helpers, in-place mutation, comparator / key algorithms, and handle-copy `resize` / `extend`. Import this module to register the extension methods; the basic prelude operations remain builtin."
+availability = { t1 = true, t3 = true }
 
 # === std::collections::hash ===
 

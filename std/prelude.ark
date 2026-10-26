@@ -38,7 +38,7 @@ use std::core::scalar_format
 //   |-------------------------------|--------------------------------------|
 //   | `map_i32_i32(v, f)`           | `v.map(f)` (Iterator trait, #691)    |
 //   | `filter_i32(v, f)`            | `v.filter(f)` (Iterator trait, #691) |
-//   | `sort_i32(v)`                 | `v.sort()` (Vec method, #697)        |
+//   | `sort_i32(v)`                 | `v.sort_by(cmp)` (Vec method, #697)  |
 //   | `concat(a, b)`                | `a.concat(b)` (String method)        |
 //   | `(n).to_string()`            | `n.to_string()` (Display trait, #702)|
 //   | `clone(s)`                    | `s.clone()` (Clone trait, #692)       |
@@ -278,7 +278,7 @@ pub fn panic(s: String) {
 // once issues #688–#697 are complete. Use trait-based method syntax instead.
 // =============================================================================
 // Vec sorting (deprecated)
-// @deprecated: use `v.sort()` (Vec method, #697) instead. See ADR-036.
+// @deprecated: use `v.sort_by(cmp)` (Vec method, #697) instead. See ADR-036.
 fn __core_seq_sort_i32_impl(v: Vec<i32>) {
     let mut index = 1
     while index < len(v) {
