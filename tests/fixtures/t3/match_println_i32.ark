@@ -1,9 +1,9 @@
 use std::host::stdio
 
 fn main() {
-    let m = HashMap_i32_i32_new()
-    HashMap_i32_i32_insert(m, 2, 200)
-    match HashMap_i32_i32_get(m, 2) {
+    let m = HashMap::new<i32, i32>()
+    let _ = m.insert(2, 200)
+    match m.get(2) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println((-1).to_string()),
     }

@@ -1,17 +1,16 @@
 // Typed map: i32->i32 remove
-use std::collections::hash_map
 use std::test
 
 fn main() {
-    let m = hash_map::hashmap_i32_i32_new()
-    hash_map::hashmap_i32_i32_insert(m, 1, 10)
-    hash_map::hashmap_i32_i32_insert(m, 2, 20)
+    let m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
+    let _ = m.insert(2, 20)
 
-    match hash_map::hashmap_i32_i32_remove(m, 1) {
+    match m.remove(1) {
         Option::Some(v) => test::assert_eq_i32(v, 10),
         None => panic("expected Some(10)"),
     }
-    test::assert_eq_i32(hash_map::hashmap_i32_i32_len(m), 1)
-    test::assert_false(hash_map::hashmap_i32_i32_contains(m, 1))
-    test::assert_true(hash_map::hashmap_i32_i32_contains(m, 2))
+    test::assert_eq_i32(m.len(), 1)
+    test::assert_false(m.contains_key(1))
+    test::assert_true(m.contains_key(2))
 }

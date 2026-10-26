@@ -9,7 +9,7 @@ Patterns for HashMap, Deque, Vec sorting, and collection algorithms.
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let counts = HashMap_new_String_i32()
+let counts = HashMap::new<String, i32>()
 
 let words = Vec_new_String()
 push(words, "apple")
@@ -23,21 +23,21 @@ let n = len(words)
 let mut i = 0
 while i < n {
     let word = get(words, i)
-    let current = hashmap_get(counts, word)
+    let current = counts.get(word)
     match current {
-        Some(c) => hashmap_insert(counts, word, c + 1),
-        None    => hashmap_insert(counts, word, 1),
+        Some(c) => { let _ = counts.insert(word, c + 1) },
+        None    => { let _ = counts.insert(word, 1) },
     }
     i = i + 1
 }
 
 // Print counts
-let keys = hashmap_keys(counts)
+let keys = counts.keys()
 let nk = len(keys)
 let mut j = 0
 while j < nk {
     let k = get(keys, j)
-    let v = unwrap(hashmap_get(counts, k))
+    let v = unwrap(counts.get(k))
     println(concat(k, concat(": ", to_string(v))))
     j = j + 1
 }
@@ -48,21 +48,21 @@ while j < nk {
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let name_to_id = HashMap_new_String_i32()
-let id_to_name = HashMap_new_i32_String()
+let name_to_id = HashMap::new<String, i32>()
+let id_to_name = HashMap::new<i32, String>()
 
 fn register(name: String, id: i32) {
-    hashmap_insert(name_to_id, name, id)
-    hashmap_insert(id_to_name, id, name)
+    let _ = name_to_id.insert(name, id)
+    let _ = id_to_name.insert(id, name)
 }
 
 register("alice", 1)
 register("bob", 2)
 
-let id = unwrap(hashmap_get(name_to_id, "alice"))
+let id = unwrap(name_to_id.get("alice"))
 println(to_string(id)) // 1
 
-let name = unwrap(hashmap_get(id_to_name, 2))
+let name = unwrap(id_to_name.get(2))
 println(name) // "bob"
 ```
 

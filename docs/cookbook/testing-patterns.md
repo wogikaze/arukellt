@@ -98,12 +98,12 @@ assert_eq(get(unsorted, 1), 2)
 assert_eq(get(unsorted, 2), 3)
 
 // Test HashMap
-let m = HashMap_new_String_i32()
-hashmap_insert(m, "a", 1)
-hashmap_insert(m, "b", 2)
-assert_eq(hashmap_len(m), 2)
-assert(hashmap_contains_key(m, "a"))
-assert_eq(unwrap(hashmap_get(m, "b")), 2)
+let m = HashMap::new<String, i32>()
+let _ = m.insert("a", 1)
+let _ = m.insert("b", 2)
+assert_eq(m.len(), 2)
+assert(m.contains_key("a"))
+assert_eq(unwrap(m.get("b")), 2)
 ```
 
 ## Testing Path Operations

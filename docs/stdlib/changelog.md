@@ -98,3 +98,33 @@
   3 件の deferred-body trap も Wave 2 の前提。vec intrinsic-compat は
   compiler / std 内の約 9k 呼び出しの移行、i64/f64/String consumer lane の
   実装、call-site migration を前提とする。
+
+## 2026-10-27 — HashMap builtin retirement（#917）
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function
+  根絶と #917 の実行 wave。対象は `provisional` の monomorphic `HashMap_*` builtin 20 件で
+  あり、`stable` ではないため ADR-087 の deprecation window は適用されない。移行は
+  W0009 ではなく、未解決名に対する **E0100** の removed-name hint で案内する。
+- **Removed (20 manifest builtins)**: `HashMap_i32_i32_{new,insert,get,contains_key,len}`、
+  `HashMap_new_String_i32` / `HashMap_String_i32_{insert,get,contains_key,len}`、
+  `HashMap_new_i32_String` / `HashMap_i32_String_{insert,get,contains_key,len}`、
+  `HashMap_new_String_String` / `HashMap_String_String_{insert,get,contains_key,len}`。
+  manifest entry だけでなく、`resolver::builtins_hash` / `typechecker::builtins_hash` /
+  `mir::lower::call_type_hash` / `wasm::hash_aliases` / `native_c::core_call` の lowering
+  登録と、`std/collections/hash_map.ark` の i32→i32 adapter 10 件を同時に削除した。
+- **Replacement**: `impl HashMap<K,V>` の `new` / `insert` / `get` / `contains_key` /
+  `remove` / `len` / `is_empty` / `keys` / `values` / `entries` のみが公開綴りである。
+  `HashMap<i32, i32>` は `std::collections::hash` の flat store 実装へ直接 lower し、
+  他の pair は `hash_map::` typed adapter を維持する。旧 spelling は
+  `src/compiler/resolver/removed_names.ark` の `HashMap_` prefix hint で
+  `HashMap::new<K, V>()` と receiver methods を案内する。
+- **Evidence**: `hashmap_basic`, `hashmap_insert_return`, 6 pair family fixture、
+  `hashmap_fn_growth`, `typed_i32_i32_remove`, `collections/hashmap_entries_values`、
+  `collections/hashmap_*_method` を wasm32-gc / `--target wasm32` の両方で
+  compile + execute し、stdout を比較した。t3 compile fixtures、native-cpp scenario、
+  benchmark も method 綴りへ移行した。
+- **Scorecard**: eradication scope 1226 → **1196**（`must delete` 119 → 99、
+  `associated-or-method` 1107 → 1097）。manifest 公開 entry 813 → **793**、
+  `pub fn` 宣言 1397 → **1387**、unregistered 413 → **403**。
+  `prelude_wrapper` 96 は不変。`HashMap` methods の `keys` / `values` / `entries` は
+  引き続き typechecker が直接型付けする。

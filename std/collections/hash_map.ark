@@ -1,75 +1,20 @@
-//! std::collections::hash_map — HashMap API wrappers
+//! std::collections::hash_map — HashMap generic API
 //!
-//! Provides typed adapters for the generic `HashMap<K,V>` source API.
-//! `HashMap::new<K,V>()` and receiver methods are lowered to these adapters;
-//! the type-suffixed calls below remain compatibility implementation names.
+//! `impl HashMap<K, V>` is the only public spelling: `HashMap::new<K, V>()`
+//! plus receiver methods. `HashMap<i32, i32>` is the flat `Vec<i32>` store in
+//! `std::collections::hash`, so its methods lower directly there. The typed
+//! `hashmap_*` adapters below cover the remaining supported pairs and forward
+//! to `hash_string` / `hash_fn` / `hash_str_fn`.
 //!
 //! Typed String maps forward to `hash_string::*` by qualified name. Calling
-//! `HashMap_*` aliases that rewrite to the same short name as these wrappers
-//! causes self-recursion / missing `*_set` bodies (#807).
+//! same-short-name aliases that rewrite onto these wrappers causes
+//! self-recursion / missing `*_set` bodies (#807).
 
-use std::collections::hash
 use std::collections::hash_fn
 use std::collections::hash_string
 use std::collections::hash_str_fn
 use std::core::iter
 use std::prelude::{clone, eq}
-
-/// Create a new HashMap<i32, i32> (alias for HashMap_i32_i32_new).
-pub fn hashmap_i32_i32_new() -> HashMap<i32, i32> {
-    HashMap_i32_i32_new()
-}
-
-/// Insert into a HashMap<i32, i32> and return the previous value if present.
-pub fn hashmap_i32_i32_insert(m: HashMap<i32, i32>, key: i32, value: i32) -> Option<i32> {
-    let old: Option<i32> = HashMap_i32_i32_get(m, key)
-    HashMap_i32_i32_insert(m, key, value)
-    old
-}
-
-/// Get from a HashMap<i32, i32>.
-pub fn hashmap_i32_i32_get(m: HashMap<i32, i32>, key: i32) -> Option<i32> {
-    HashMap_i32_i32_get(m, key)
-}
-
-/// Check containment in a HashMap<i32, i32>.
-pub fn hashmap_i32_i32_contains(m: HashMap<i32, i32>, key: i32) -> bool {
-    HashMap_i32_i32_contains_key(m, key)
-}
-
-/// Remove a key from a HashMap<i32, i32> and return its previous value, or
-/// None if the key was absent. Mirrors Rust's `HashMap::remove`.
-pub fn hashmap_i32_i32_remove(m: HashMap<i32, i32>, key: i32) -> Option<i32> {
-    HashMap_i32_i32_remove(m, key)
-}
-
-/// Return the number of entries in a HashMap<i32, i32>.
-pub fn hashmap_i32_i32_len(m: HashMap<i32, i32>) -> i32 {
-    HashMap_i32_i32_len(m)
-}
-
-/// Returns true if the HashMap<i32, i32> has no entries.
-pub fn hashmap_i32_i32_is_empty(m: HashMap<i32, i32>) -> bool {
-    HashMap_i32_i32_len(m) == 0
-}
-
-/// Return a Vec<i32> of all keys currently in a HashMap<i32, i32>.
-/// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_i32_keys(m: HashMap<i32, i32>) -> Vec<i32> {
-    HashMap_i32_i32_keys(m)
-}
-
-/// Return a Vec<i32> of all values currently in a HashMap<i32, i32>.
-/// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_i32_values(m: HashMap<i32, i32>) -> Vec<i32> {
-    HashMap_i32_i32_values(m)
-}
-
-/// Return a Vec<(i32, i32)> snapshot of all entries in a HashMap<i32, i32>.
-/// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_i32_entries(m: HashMap<i32, i32>) -> Vec<(i32, i32)> {
-    HashMap_i32_i32_entries(m)
-}
 
 /// Create a new HashMap<String, i32>.
 pub fn hashmap_str_i32_new() -> HashMap<String, i32> {

@@ -1,42 +1,21 @@
 use std::prelude::{clone, eq}
+// The user-reachable HashMap_<K>_<V>_* builtins were retired by #917, so this
+// table now only maps the non-public __hm_* storage bridge. The two families
+// lower differently on linear targets, so they keep separate tables.
 fn hashmap_builtin_alias(name: String) -> String {
-    let internal = hashmap_internal_builtin_alias(clone(name))
-    if !eq(clone(internal), clone(name)) {
-        return internal
+    let constructor = hashmap_new_builtin_alias(clone(name))
+    if !eq(clone(constructor), clone(name)) {
+        return constructor
     }
-    let i32_i32 = hashmap_i32_i32_builtin_alias(clone(name))
-    if !eq(clone(i32_i32), clone(name)) {
-        return i32_i32
-    }
-    let string_i32 = hashmap_string_i32_builtin_alias(clone(name))
-    if !eq(clone(string_i32), clone(name)) {
-        return string_i32
-    }
-    let i32_string = hashmap_i32_string_builtin_alias(clone(name))
-    if !eq(clone(i32_string), clone(name)) {
-        return i32_string
-    }
-    let i32_fn = hashmap_i32_fn_builtin_alias(clone(name))
-    if !eq(clone(i32_fn), clone(name)) {
-        return i32_fn
-    }
-    let string_fn = hashmap_string_fn_builtin_alias(clone(name))
-    if !eq(clone(string_fn), clone(name)) {
-        return string_fn
-    }
-    let string_string = hashmap_string_string_builtin_alias(clone(name))
-    if !eq(clone(string_string), clone(name)) {
-        return string_string
-    }
-    clone(name)
+    hashmap_with_capacity_builtin_alias(name)
 }
 
-// The __hm_*_new builtins lower to an inline GC struct on wasm32-gc but
-// to a call of the flat Vec<i32> hashmap_new constructor on linear
-// targets. Reachability must retain that body: nothing in Ark source
-// calls it by name, so without this edge the pruner drops it and the
-// emitted call index resolves to an import.
-fn hashmap_internal_builtin_alias(name: String) -> String {
+// The __hm_*_new builtins lower to an inline GC struct on wasm32-gc but to a
+// call of the flat Vec<i32> hashmap_new constructor on linear targets.
+// Reachability must retain that body: nothing in Ark source calls it by name,
+// so without this edge the pruner drops it and the emitted call index
+// resolves to an import.
+fn hashmap_new_builtin_alias(name: String) -> String {
     if eq(clone(name), "__hm_si_new") ||
     eq(clone(name), "__hm_is_new") ||
     eq(clone(name), "__hm_if_new") ||
@@ -44,200 +23,18 @@ fn hashmap_internal_builtin_alias(name: String) -> String {
     eq(clone(name), "__hm_ss_new") {
         return "hashmap_new"
     }
-    // __hm_*_new_with_cap lowers to the flat Vec<i32> constructor with a
-    // caller-supplied capacity on linear targets (#895 growth donor).
+    clone(name)
+}
+
+// __hm_*_new_with_cap lowers to the flat Vec<i32> constructor with a
+// caller-supplied capacity on linear targets (#895 growth donor).
+fn hashmap_with_capacity_builtin_alias(name: String) -> String {
     if eq(clone(name), "__hm_si_new_with_cap") ||
     eq(clone(name), "__hm_is_new_with_cap") ||
     eq(clone(name), "__hm_if_new_with_cap") ||
     eq(clone(name), "__hm_sf_new_with_cap") ||
     eq(clone(name), "__hm_ss_new_with_cap") {
         return "hashmap_with_capacity"
-    }
-    clone(name)
-}
-
-fn hashmap_i32_i32_builtin_alias(name: String) -> String {
-    if eq(clone(name), "HashMap_i32_i32_new") {
-        return "hashmap_new"
-    }
-    if eq(clone(name), "HashMap_i32_i32_insert") {
-        return "hashmap_set"
-    }
-    if eq(clone(name), "HashMap_i32_i32_get") {
-        return "hashmap_get_option"
-    }
-    if eq(clone(name), "HashMap_i32_i32_contains_key") {
-        return "hashmap_contains"
-    }
-    if eq(clone(name), "HashMap_i32_i32_remove") {
-        return "hashmap_remove"
-    }
-    if eq(clone(name), "HashMap_i32_i32_len") {
-        return "hashmap_size"
-    }
-    if eq(clone(name), "HashMap_i32_i32_keys") {
-        return "hashmap_keys"
-    }
-    if eq(clone(name), "HashMap_i32_i32_values") {
-        return "hashmap_values"
-    }
-    if eq(clone(name), "HashMap_i32_i32_entries") {
-        return "hashmap_entry_pairs"
-    }
-    clone(name)
-}
-
-fn hashmap_i32_string_builtin_alias(name: String) -> String {
-    if eq(clone(name), "HashMap_new_i32_String") || eq(clone(name), "HashMap_i32_String_new") {
-        return "hash_string::hashmap_i32_str_new"
-    }
-    if eq(clone(name), "HashMap_i32_String_insert") {
-        return "hash_string::hashmap_i32_str_set"
-    }
-    if eq(clone(name), "HashMap_i32_String_get") {
-        return "hash_string::hashmap_i32_str_get"
-    }
-    if eq(clone(name), "HashMap_i32_String_contains_key") {
-        return "hash_string::hashmap_i32_str_contains"
-    }
-    if eq(clone(name), "HashMap_i32_String_remove") {
-        return "hash_string::hashmap_i32_str_remove"
-    }
-    if eq(clone(name), "HashMap_i32_String_len") {
-        return "hash_string::hashmap_i32_str_len"
-    }
-    if eq(clone(name), "HashMap_i32_String_keys") {
-        return "hash_string::hashmap_i32_str_keys"
-    }
-    if eq(clone(name), "HashMap_i32_String_values") {
-        return "hash_string::hashmap_i32_str_values"
-    }
-    if eq(clone(name), "HashMap_i32_String_entries") {
-        return "hash_string::hashmap_i32_str_entries"
-    }
-    clone(name)
-}
-
-fn hashmap_i32_fn_builtin_alias(name: String) -> String {
-    if eq(clone(name), "HashMap_new_i32_fn") || eq(clone(name), "HashMap_i32_fn_new") {
-        return "hash_fn::hashmap_i32_fn_new"
-    }
-    if eq(clone(name), "HashMap_i32_fn_insert") {
-        return "hash_fn::hashmap_i32_fn_set"
-    }
-    if eq(clone(name), "HashMap_i32_fn_get") {
-        return "hash_fn::hashmap_i32_fn_get"
-    }
-    if eq(clone(name), "HashMap_i32_fn_contains_key") {
-        return "hash_fn::hashmap_i32_fn_contains"
-    }
-    if eq(clone(name), "HashMap_i32_fn_remove") {
-        return "hash_fn::hashmap_i32_fn_remove"
-    }
-    if eq(clone(name), "HashMap_i32_fn_len") {
-        return "hash_fn::hashmap_i32_fn_len"
-    }
-    if eq(clone(name), "HashMap_i32_fn_keys") {
-        return "hash_fn::hashmap_i32_fn_keys"
-    }
-    if eq(clone(name), "HashMap_i32_fn_values") {
-        return "hash_fn::hashmap_i32_fn_values"
-    }
-    if eq(clone(name), "HashMap_i32_fn_entries") {
-        return "hash_fn::hashmap_i32_fn_entries"
-    }
-    clone(name)
-}
-
-fn hashmap_string_fn_builtin_alias(name: String) -> String {
-    if eq(clone(name), "HashMap_new_String_fn") || eq(clone(name), "HashMap_String_fn_new") {
-        return "hash_str_fn::hashmap_str_fn_new"
-    }
-    if eq(clone(name), "HashMap_String_fn_insert") {
-        return "hash_str_fn::hashmap_str_fn_set"
-    }
-    if eq(clone(name), "HashMap_String_fn_get") {
-        return "hash_str_fn::hashmap_str_fn_get"
-    }
-    if eq(clone(name), "HashMap_String_fn_contains_key") {
-        return "hash_str_fn::hashmap_str_fn_contains"
-    }
-    if eq(clone(name), "HashMap_String_fn_remove") {
-        return "hash_str_fn::hashmap_str_fn_remove"
-    }
-    if eq(clone(name), "HashMap_String_fn_len") {
-        return "hash_str_fn::hashmap_str_fn_len"
-    }
-    if eq(clone(name), "HashMap_String_fn_keys") {
-        return "hash_str_fn::hashmap_str_fn_keys"
-    }
-    if eq(clone(name), "HashMap_String_fn_values") {
-        return "hash_str_fn::hashmap_str_fn_values"
-    }
-    if eq(clone(name), "HashMap_String_fn_entries") {
-        return "hash_str_fn::hashmap_str_fn_entries"
-    }
-    clone(name)
-}
-
-fn hashmap_string_i32_builtin_alias(name: String) -> String {
-    if eq(clone(name), "HashMap_new_String_i32") || eq(clone(name), "HashMap_String_i32_new") {
-        return "hash_string::hashmap_str_i32_new"
-    }
-    if eq(clone(name), "HashMap_String_i32_insert") {
-        return "hash_string::hashmap_str_set"
-    }
-    if eq(clone(name), "HashMap_String_i32_get") {
-        return "hash_string::hashmap_str_get"
-    }
-    if eq(clone(name), "HashMap_String_i32_contains_key") {
-        return "hash_string::hashmap_str_contains"
-    }
-    if eq(clone(name), "HashMap_String_i32_remove") {
-        return "hash_string::hashmap_str_remove"
-    }
-    if eq(clone(name), "HashMap_String_i32_len") {
-        return "hash_string::hashmap_str_len"
-    }
-    if eq(clone(name), "HashMap_String_i32_keys") {
-        return "hash_string::hashmap_str_i32_keys"
-    }
-    if eq(clone(name), "HashMap_String_i32_values") {
-        return "hash_string::hashmap_str_i32_values"
-    }
-    if eq(clone(name), "HashMap_String_i32_entries") {
-        return "hash_string::hashmap_str_i32_entries"
-    }
-    clone(name)
-}
-
-fn hashmap_string_string_builtin_alias(name: String) -> String {
-    if eq(clone(name), "HashMap_new_String_String") || eq(clone(name), "HashMap_String_String_new") {
-        return "hash_string::hashmap_str_str_new"
-    }
-    if eq(clone(name), "HashMap_String_String_insert") {
-        return "hash_string::hashmap_str_str_set"
-    }
-    if eq(clone(name), "HashMap_String_String_get") {
-        return "hash_string::hashmap_str_str_get"
-    }
-    if eq(clone(name), "HashMap_String_String_contains_key") {
-        return "hash_string::hashmap_str_str_contains"
-    }
-    if eq(clone(name), "HashMap_String_String_remove") {
-        return "hash_string::hashmap_str_str_remove"
-    }
-    if eq(clone(name), "HashMap_String_String_len") {
-        return "hash_string::hashmap_str_str_len"
-    }
-    if eq(clone(name), "HashMap_String_String_keys") {
-        return "hash_string::hashmap_str_str_keys"
-    }
-    if eq(clone(name), "HashMap_String_String_values") {
-        return "hash_string::hashmap_str_str_values"
-    }
-    if eq(clone(name), "HashMap_String_String_entries") {
-        return "hash_string::hashmap_str_str_entries"
     }
     clone(name)
 }

@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-11
-Updated: 2026-10-26
+Updated: 2026-10-27
 ID: 917
 Track: stdlib-api
 Depends on: "709"
@@ -103,20 +103,16 @@ classified there, in dependency-safe waves.
   `docs check` 6/6; `check-stdlib-eradication` and `check-compat-orphans`
   clean; `verify lane` PASS; `check-cross-backend-parity.py` 4/4 new run
   fixtures parity (wasm32-gc component vs wasm32 linear).
-- **Residuals**: the 31 Wave-2 deletions, the 20 `HashMap_*` builtins, the
-  1124 `associated-or-method` replacements, the `i8_to_i32` deferral, the 3
+- **Residuals**: the 31 Wave-2 deletions, the 1097
+  `associated-or-method` replacements, the `i8_to_i32` deferral, the 3
   deferred intrinsic bodies (`i32_to_u16`, `i32_to_i16`, `u64_to_u32`), the
   i64/f64/String iterator consumer lanes, and the compiler/std migration of
   the ~9k vec intrinsic-compat call sites.
-- Provisional decisions (21): the 20 `HashMap_*` builtins are deferred —
-  they are compiler lowering targets (`resolver::builtins_hash`,
-  `typechecker::builtins_hash`, `mir::lower::call_type_hash`,
-  `wasm::hash_aliases`, `native_c::core_call`) with the adapter layer in
-  `std/collections/hash_map.ark`, so a manifest-only deletion would merely
-  hide still-callable builtins. `filter_i32` is deferred with the
-  deprecated `std::seq::filter_i32` family (W0009 qualified coverage and the
-  ADR-014 window). Both decisions are recorded in the eradication TOML and
-  the migration guide.
+- Provisional decision (1): `filter_i32` is deferred with the deprecated
+  `std::seq::filter_i32` family (W0009 qualified coverage and the ADR-014
+  window). The 20 `HashMap_*` builtins were retired on 2026-10-27
+  (`wave/917-hashmap`); their compiler registrations and the i32→i32
+  adapters were removed together, so no still-callable builtin remains.
 
 ### Landed slice (wave/917-1124)
 
@@ -146,6 +142,37 @@ classified there, in dependency-safe waves.
   the 20 `std::core::raw` representation bridges (need a RawArray/RawString
   namespace surface). No stable manifest entry was touched.
 
+### Landed slice (wave/917-hashmap, 2026-10-27)
+
+- Retired the 20 `provisional` monomorphic `HashMap_*` builtins and the
+  compiler registrations that kept them callable: `resolver::builtins_hash`
+  (the 60-name typed list), `typechecker::builtins_hash` (return types),
+  `mir::lower::call_type_hash`, `wasm::hash_aliases`,
+  `wasm::sections_types_gc_override`, `mir::lower::signature_registry_builtin`,
+  `mir::lower::ctx_fn_return_vt`, `wasm::intrinsic_hashmap_str`, the native-c
+  callee map, and the loader's legacy-spelling auto-load rules.
+- Retired the 10 `std/collections/hash_map.ark` i32→i32 adapters in the same
+  change. `HashMap<i32, i32>` now lowers directly to the flat
+  `std::collections::hash` store (`hashmap_new` / `hashmap_insert` /
+  `hashmap_get_option` / `hashmap_contains` / `hashmap_remove` /
+  `hashmap_size` / `hashmap_is_empty` / `hashmap_keys` / `hashmap_values` /
+  `hashmap_entry_pairs`). The other supported pairs keep their typed
+  `hash_map::` adapters; they consume only public source functions now.
+- Added the E0100 removed-name hint (prefix `HashMap_`) and migrated fixtures,
+  cookbook/migration docs, and the changelog. All 20 fixture call sites now
+  use the methods.
+- Scorecard delta: 1226 → **1196** public symbols (`must delete` 119 → 99,
+  `associated-or-method` 1107 → 1097); manifest public entries 813 → 793;
+  1397 → 1387 `pub fn` declarations; 413 → 403 unregistered.
+- Verification: s2 rebuilt after the final compiler edits; `verify fixtures`
+  1835/1835 compile+validate PASS; both-target (wasm32-gc / wasm32) parity for
+  the 6 pair families, `hashmap_insert_return`, `hashmap_entries_values`, the
+  two typed i32→i32 fixtures, and the renamed `collections/hashmap_*_method`
+  fixtures; `docs check` 6/6, `check-stdlib-eradication`,
+  `check-compat-orphans`, and `selfhost fixpoint` (s2 == s3 at
+  `3617a54e…`; the pin-built stage-2 was one generation behind, so the
+  self-built stage-3 was adopted as stage-2 for the final check).
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -162,24 +189,21 @@ classified there, in dependency-safe waves.
         converted to `deprecated` with W0009 + migration + changelog
         (ADR-087); 3 stale non-callable entries retired. The physical
         deletion of the deprecated set is Wave 2. Residual: `i8_to_i32`
-        deferral, 20 `HashMap_*` builtins (compiler retirement).
+        deferral.
+      - Landed 2026-10-27 (`wave/917-hashmap`): the 20 `HashMap_*` builtins
+        and the i32→i32 adapters were retired; the compiler registrations
+        and fixtures migrated to `HashMap<K, V>` methods.
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
       #702, #703, #708, #710, and the future Test / IO / collection
       types), then retire the free symbol.
       - Landed 2026-10-26: 6 `std::collections::sort` frees retired after
-<<<<<<< HEAD
         the #697 `Vec<T>` methods; the `std::core` value-helper family
         (18 counted) retired after the `Either` / `Integer` / `TryFrom`
-        replacements. 1106 associated-or-method symbols remain.
-||||||| 42c3dbdd4
-        the #697 `Vec<T>` methods; 1124 associated-or-method symbols remain.
-=======
-        the #697 `Vec<T>` methods; 1124 associated-or-method symbols remain.
+        replacements.
       - Landed 2026-10-26 (`wave/917-stable64`): 31 seq/combinator frees
         deprecated (Wave 1) with W0009 + iterator/Vec method replacements;
         deletion is Wave 2.
->>>>>>> wave/917-stable64
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

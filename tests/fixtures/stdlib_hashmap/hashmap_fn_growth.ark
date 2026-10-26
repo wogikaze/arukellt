@@ -13,34 +13,33 @@ fn triple(n: i32) -> i32 {
 // fn-valued HashMap families share the same capacity-growth path as the
 // scalar/String families (#895).
 fn main() {
-    let m = HashMap_i32_fn_new()
+    let m = HashMap::new<i32, fn(i32) -> i32>()
     let mut i: i32 = 0
     while i < 40 {
-        if i % 2 == 0 {
-            let _p = HashMap_i32_fn_insert(m, i, double)
-        } else {
-            let _p = HashMap_i32_fn_insert(m, i, triple)
-        }
+        // Select the fn value before the call: branch-local method calls on
+        // a HashMap receiver are a separate edge-inference gap.
+        let f: fn(i32) -> i32 = if i % 2 == 0 { double } else { triple }
+        let _p = m.insert(i, f)
         i = i + 1
     }
-    test::assert_eq_i32(HashMap_i32_fn_len(m), 40)
-    match HashMap_i32_fn_get(m, 10) {
+    test::assert_eq_i32(m.len(), 40)
+    match m.get(10) {
         Some(f) => test::assert_eq_i32(f(5), 10),
         None => panic("missing grown fn entry"),
     }
-    match HashMap_i32_fn_get(m, 39) {
+    match m.get(39) {
         Some(f) => test::assert_eq_i32(f(5), 15),
         None => panic("missing grown fn entry"),
     }
 
-    let s = HashMap_String_fn_new()
+    let s = HashMap::new<String, fn(i32) -> i32>()
     i = 0
     while i < 40 {
-        let _ps = HashMap_String_fn_insert(s, text::concat("f_", (i).to_string()), double)
+        let _ps = s.insert(text::concat("f_", (i).to_string()), double)
         i = i + 1
     }
-    test::assert_eq_i32(HashMap_String_fn_len(s), 40)
-    match HashMap_String_fn_get(s, "f_39") {
+    test::assert_eq_i32(s.len(), 40)
+    match s.get("f_39") {
         Some(f) => test::assert_eq_i32(f(7), 14),
         None => panic("missing grown String->fn entry"),
     }

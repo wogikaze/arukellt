@@ -727,21 +727,33 @@ let has_it = numbers.iter().contains(42)
 let reversed = numbers.iter().rev().collect()
 ```
 
-### HashMap Constructors and Operations
+### HashMap Constructors and Operations (removed, 2026-10-27)
 
-| Old API | Replacement |
-|---------|-------------|
-| `HashMap_new_i32_i32()` | `HashMap::new<i32, i32>()` |
-| `HashMap_new_i32_String()` | `HashMap::new<i32, String>()` |
-| `HashMap_new_String_i32()` | `HashMap::new<String, i32>()` |
-| `HashMap_new_String_String()` | `HashMap::new<String, String>()` |
-| `HashMap_i32_i32_new()` | `HashMap::new<i32, i32>()` |
-| `HashMap_i32_i32_insert(m, k, v)` | `m.insert(k, v)` |
-| `HashMap_i32_i32_get(m, k)` | `m.get(k)` |
-| `HashMap_i32_i32_contains_key(m, k)` | `m.contains_key(k)` |
-| `HashMap_i32_i32_remove(m, k)` | `m.remove(k)` |
-| `HashMap_i32_i32_len(m)` | `m.len()` |
-| `HashMap_i32_i32_is_empty(m)` | `m.is_empty()` |
+The 20 monomorphic `HashMap_*` builtins were `provisional` compiler lowering
+targets: the resolver registered them, the wasm/native-c layers aliased them,
+and `std/collections/hash_map.ark` called them. The [#917](https://github.com/wogikaze/arukellt/issues/917)
+wave retired the compiler registrations and the `i32`→`i32` adapters together,
+so `impl HashMap<K, V>` methods are the only spelling. `provisional` entries
+do not get an ADR-014 deprecation window; the retired names fail resolution
+with an **E0100** removed-name hint that names the method replacement.
+
+| Removed builtin | Replacement |
+|-----------------|-------------|
+| `HashMap_new_i32_i32()` / `HashMap_i32_i32_new()` | `HashMap::new<i32, i32>()` |
+| `HashMap_new_i32_String()` / `HashMap_i32_String_new()` | `HashMap::new<i32, String>()` |
+| `HashMap_new_String_i32()` / `HashMap_String_i32_new()` | `HashMap::new<String, i32>()` |
+| `HashMap_new_String_String()` / `HashMap_String_String_new()` | `HashMap::new<String, String>()` |
+| `HashMap_new_i32_fn()` / `HashMap_i32_fn_new()` | `HashMap::new<i32, fn(i32) -> i32>()` |
+| `HashMap_new_String_fn()` / `HashMap_String_fn_new()` | `HashMap::new<String, fn(i32) -> i32>()` |
+| `<pair>_insert(m, k, v)` | `m.insert(k, v)` (returns `Option<V>`) |
+| `<pair>_get(m, k)` | `m.get(k)` |
+| `<pair>_contains_key(m, k)` | `m.contains_key(k)` |
+| `<pair>_remove(m, k)` | `m.remove(k)` |
+| `<pair>_len(m)` | `m.len()` |
+| `<pair>_is_empty(m)` | `m.is_empty()` |
+| `<pair>_keys(m)` | `m.keys()` |
+| `<pair>_values(m)` | `m.values()` |
+| `<pair>_entries(m)` | `m.entries()` |
 
 **Before:**
 
@@ -762,15 +774,15 @@ let v = m.get(1)
 ```
 
 The generic method returns `Option<V>` for `insert`, `get`, and `remove`; use a pattern
-match when the previous value must be inspected. `contains_key`, `len`, and `is_empty`
-are direct receiver methods. The currently supported concrete pairs and the removal
-conditions for the compatibility names are fixed in [ADR-066](../adr/ADR-066-language-v2-generic-public-api.md).
+match when the previous value must be inspected. `contains_key`, `len`, `is_empty`,
+`keys`, `values`, and `entries` are direct receiver methods. The supported concrete
+pairs and the removal conditions for the remaining `hash_map::` adapters are fixed in
+[ADR-066](../adr/ADR-066-language-v2-generic-public-api.md).
 
-The old HashMap names remain callable during the ADR-014 compatibility window. The
-manifest now classifies them as `must delete` because `impl HashMap<K, V>` methods
-already exist. Method-level `deprecated_by` targets such as `HashMap::insert` can now be
-validated by the compat-orphan audit; adding them belongs to the #917 deprecation wave,
-not to this foundation change.
+`HashMap<i32, i32>` is the flat `Vec<i32>` store in
+[`std::collections::hash`](../../std/collections/hash.ark), so its methods lower
+directly there; the other pairs keep the typed `hash_map::hashmap_*` adapters. Neither
+the adapters nor the lowering names are public API.
 
 ### Option/Result Map
 

@@ -91,7 +91,7 @@ source_only = true
 module = "std::collections::hash_map"
 class = "associated-or-method"
 owner = "917"
-replacement = "HashMap methods (new/insert/get/contains_key/remove/len/is_empty exist; keys/values/entries methods pending)"
+replacement = "HashMap methods (new/insert/get/contains_key/remove/len/is_empty/keys/values/entries)"
 
 [[rules]]
 label = "hash_string monomorphic adapters"
@@ -172,19 +172,12 @@ class = "must delete"
 owner = "917"
 replacement = "canonical scalar conversion methods (ADR-067): u8/u16/i16::to_i32 (`i8_to_i32` deferred: its method frame still traps under wasm32-gc), u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi"
 
-[[rules]]
-label = "monomorphic HashMap builtins"
-module_less = true
-prefix = "HashMap_"
-class = "must delete"
-owner = "917"
-replacement = "impl HashMap<K,V> methods (new/insert/get/contains_key/remove/len/is_empty) already exist; retire after the ADR-014 deprecation window"
-# Deferred by #917 (2026-10-26): these 20 provisional names are the compiler's
-# own lowering targets (resolver::builtins_hash, typechecker::builtins_hash,
-# mir::lower::call_type_hash, wasm::hash_aliases, native_c::core_call), and
-# std/collections/hash_map.ark is their adapter layer. Deleting the manifest
-# entries alone would hide still-callable builtins from the scorecard, so the
-# next wave must retire the compiler registrations and adapters together.
+# The 20 monomorphic HashMap_* builtins (new/insert/get/contains_key/len for
+# the four i32/String pairs) were retired by #917 on 2026-10-27. They were the
+# compiler's own lowering targets, so the wave removed the resolver /
+# typechecker / MIR / wasm / native-c registrations together with the i32->i32
+# adapters; `impl HashMap<K,V>` methods are the only spelling now, and the
+# retired names fail resolution with an E0100 removed-name hint.
 
 # -- Deprecated non-prelude symbols --
 

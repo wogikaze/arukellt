@@ -252,34 +252,6 @@ fn native_c_core_hashmap_family_supported(type_name: String) -> bool {
     false
 }
 
-fn native_c_core_hashmap_type_from_callee(callee: String) -> String {
-    if eq(clone(callee), String_from("HashMap_i32_i32_new")) {
-        return String_from("hashmap:i32i32")
-    }
-    if eq(clone(callee), String_from("HashMap_new_i32_i32")) {
-        return String_from("hashmap:i32i32")
-    }
-    if eq(clone(callee), String_from("HashMap_new_String_i32")) {
-        return String_from("hashmap:si32")
-    }
-    if eq(clone(callee), String_from("HashMap_String_i32_new")) {
-        return String_from("hashmap:si32")
-    }
-    if eq(clone(callee), String_from("HashMap_new_i32_String")) {
-        return String_from("hashmap:i32str")
-    }
-    if eq(clone(callee), String_from("HashMap_i32_String_new")) {
-        return String_from("hashmap:i32str")
-    }
-    if eq(clone(callee), String_from("HashMap_new_String_String")) {
-        return String_from("hashmap:strstr")
-    }
-    if eq(clone(callee), String_from("HashMap_String_String_new")) {
-        return String_from("hashmap:strstr")
-    }
-    String_new()
-}
-
 /// kind: 0 = i32, 1 = String.
 fn native_c_core_hashmap_key_kind(type_name: String) -> i32 {
     if starts_with(clone(type_name), String_from("hashmap:si32")) {

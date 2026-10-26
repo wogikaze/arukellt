@@ -14,31 +14,15 @@ fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverCo
     module_state::LoadState_set_cache_dir(load_state, config_record::config_cache_dir(config))
     module_graph::load_stdlib_module("std::prelude", load_state)
     module_graph::load_imported_modules(decls, config_record::config_source_dir(config), load_state)
-    // Canonical v2 HashMap syntax lowers to typed adapters in the dedicated
-    // module. Load it even when the source contains no legacy `HashMap_*`
-    // spelling; otherwise the lowering target has no function index entry.
+    // Canonical v2 HashMap syntax lowers into the dedicated adapter module.
+    // The module imports the hash implementations it dispatches to, so a
+    // source that only writes `HashMap::` and receiver methods loads the
+    // whole family transitively.
     if contains(clone(source), "HashMap::") {
         module_graph::load_stdlib_module("std::collections::hash_map", load_state)
     }
-    if contains(clone(source), "HashMap_") || contains(clone(source), "HashSet_") {
+    if contains(clone(source), "HashSet_") {
         module_graph::load_stdlib_module("std::collections::hash", load_state)
-    }
-    if contains(clone(source), "HashMap_String") ||
-    contains(clone(source), "HashMap_new_String") ||
-    contains(clone(source), "HashMap_i32_String") ||
-    contains(clone(source), "HashMap_new_i32_String") ||
-    contains(clone(source), "HashSet_String") {
-        module_graph::load_stdlib_module("std::collections::hash_string", load_state)
-    }
-    // Separate module so HashMap_i32_String rebuilds do not require __hm_if_* (#833).
-    if contains(clone(source), "HashMap_i32_fn") ||
-    contains(clone(source), "HashMap_new_i32_fn") {
-        module_graph::load_stdlib_module("std::collections::hash_fn", load_state)
-    }
-    // Separate module so String/String rebuilds do not require __hm_sf_* (#838).
-    if contains(clone(source), "HashMap_String_fn") ||
-    contains(clone(source), "HashMap_new_String_fn") {
-        module_graph::load_stdlib_module("std::collections::hash_str_fn", load_state)
     }
     load_state
 }

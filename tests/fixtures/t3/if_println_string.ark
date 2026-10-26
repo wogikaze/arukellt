@@ -1,8 +1,8 @@
 use std::host::stdio
 
 fn main() {
-    let m = HashMap_i32_i32_new()
-    if HashMap_i32_i32_contains_key(m, 1) {
+    let m = HashMap::new<i32, i32>()
+    if m.contains_key(1) {
         stdio::println(String_from("found"))
     }
 }
