@@ -33,6 +33,9 @@ except ModuleNotFoundError:  # python < 3.11
     import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(ROOT / "scripts" / "gen"))
+
+from stdlib_eradication import method_decl_exists  # noqa: E402
 MANIFEST = ROOT / "std" / "manifest.toml"
 PRELUDE = ROOT / "std" / "prelude.ark"
 LINT_TABLE = ROOT / "src" / "compiler" / "lint" / "deprecated_table.ark"
@@ -76,51 +79,6 @@ def pub_decls(path: Path) -> set[str]:
     names = set(re.findall(r"^pub fn ([A-Za-z_][A-Za-z0-9_]*)", text, re.M))
     names |= set(re.findall(r"^pub (?:enum|struct|resource|trait) ([A-Za-z_][A-Za-z0-9_]*)", text, re.M))
     return names
-
-
-def _impl_blocks(text: str):
-    """Yield (header, body) for each top-level impl block in an Ark source."""
-    for match in re.finditer(r"^impl\b[^\n{]*\{", text, re.MULTILINE):
-        depth = 1
-        index = match.end()
-        in_string = False
-        in_line_comment = False
-        while index < len(text) and depth > 0:
-            char = text[index]
-            if in_line_comment:
-                if char == "\n":
-                    in_line_comment = False
-            elif in_string:
-                if char == "\\":
-                    index += 1
-                elif char == '"':
-                    in_string = False
-            elif char == "/" and text[index:index + 2] == "//":
-                in_line_comment = True
-                index += 1
-            elif char == '"':
-                in_string = True
-            elif char == "{":
-                depth += 1
-            elif char == "}":
-                depth -= 1
-            index += 1
-        yield match.group(0), text[match.end():index - 1]
-
-
-def method_decl_exists(root: Path, type_name: str, method: str) -> bool:
-    """True when std source declares `fn method` in an `impl ... Type ...` block."""
-    type_name = type_name.split("<", 1)[0].strip()
-    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", type_name):
-        return False
-    type_re = re.compile(r"\b{}\b".format(re.escape(type_name)))
-    method_re = re.compile(r"\bfn\s+{}\s*\(".format(re.escape(method)))
-    for path in (root / "std").rglob("*.ark"):
-        text = path.read_text(encoding="utf-8")
-        for header, body in _impl_blocks(text):
-            if type_re.search(header) and method_re.search(body):
-                return True
-    return False
 
 
 def resolve_deprecated_target(
@@ -185,6 +143,15 @@ def main() -> int:
         "deprecated_seq_qualified_message",
     ):
         qual_warn_paths += table_names(lint_text, fn)
+    # The bare-name table is split into family helpers for readability; the
+    # coverage checks must see every entry, not only the dispatcher body.
+    for fn in (
+        "deprecated_numeric_call_message",
+        "deprecated_vec_call_message",
+        "deprecated_assert_call_message",
+        "deprecated_seq_call_message",
+    ):
+        call_warn_names += table_names(lint_text, fn)
     removed_names = table_names(removed_text, "removed_name_hint")
     removed_names += table_names(removed_text, "removed_name_specific_hint")
     removed_names += table_names(removed_text, "is_gated_prelude_name")
@@ -197,7 +164,12 @@ def main() -> int:
         auto = set(policy.get("stable_functions", [])) | set(
             policy.get("intrinsic_compatibility_functions", [])
         )
-    bare_resolvable = auto | builtins
+    auto_resolvable = auto | builtins
+    # Gated prelude decls are not auto-imported, but an explicit
+    # `use std::prelude::{name}` makes the call resolve, so a W0009 entry for
+    # them is live. Only the removed-name hints (rule 4) require the stricter
+    # auto-resolvable set.
+    callable_names = auto_resolvable | prelude_decls
     problems: list[str] = []
     notes: list[str] = []
 
@@ -234,7 +206,7 @@ def main() -> int:
                 f"orphan W0002 entry: deprecated module path {path} does not resolve"
             )
     for name in call_warn_names:
-        if name not in bare_resolvable:
+        if name not in callable_names:
             problems.append(
                 f"orphan W0009 entry: {name} cannot be called (not a prelude decl or builtin)"
             )
@@ -254,7 +226,7 @@ def main() -> int:
 
     # 4. removed_names entries must be genuinely unreachable as bare names.
     for name in removed_names:
-        if name in bare_resolvable:
+        if name in auto_resolvable:
             problems.append(
                 f"dormant removed_names entry: {name} still resolves as a bare name"
             )

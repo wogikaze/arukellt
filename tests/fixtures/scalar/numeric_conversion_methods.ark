@@ -1,0 +1,76 @@
+// Receiver-method replacements for the deprecated numeric conversion frees
+// (#917 / ADR-087). Every call below uses the canonical ADR-067 method form.
+// Results are stored before comparison: chained conversion calls / method
+// results used directly in a condition currently hit a GC MIR temp gap.
+// i8_to_i32 is still stable (no receiver method; the method frame traps under
+// wasm32-gc). i32::to_u16_wrapping, i32::to_i16_wrapping, and
+// u64::to_u32_wrapping are not exercised here: their intrinsic bodies are still
+// deferred compiler stubs, so they trap exactly like the deprecated free
+// wrappers (Wave-2 blocker).
+use std::core::convert
+use std::host::process
+
+fn main() {
+    let a: u8 = 255u8
+    let c: u16 = 1000u16
+    let d: i16 = -2i16
+    let a_i32 = (a).to_i32()
+    let c_i32 = (c).to_i32()
+    let d_i32 = (d).to_i32()
+    if a_i32 != 255 {
+        process::exit(1)
+    }
+    if c_i32 != 1000 {
+        process::exit(1)
+    }
+    if d_i32 != -2 {
+        process::exit(1)
+    }
+
+    let e: i32 = 300
+    let e_u8 = (e).to_u8_wrapping()
+    let e_i8 = (e).to_i8_wrapping()
+    let _e_u32 = (e).to_u32_bits()
+    if e_u8 != 44u8 {
+        process::exit(1)
+    }
+    if e_i8 != 44i8 {
+        process::exit(1)
+    }
+
+    let f: u32 = 1000u32
+    let f_u64 = (f).to_u64()
+    if f_u64 != 1000u64 {
+        process::exit(1)
+    }
+
+    let h: i32 = 42
+    let h_wide: i64 = (h).into()
+    if h_wide != 42i64 {
+        process::exit(1)
+    }
+    let i: i64 = 42i64
+    let i_narrow = (i).to_i32_checked().unwrap_or(0)
+    if i_narrow != 42 {
+        process::exit(1)
+    }
+
+    let j: f32 = 1.5f32
+    let j_wide = (j).to_f64()
+    if j_wide != 1.5f64 {
+        process::exit(1)
+    }
+    let k: f64 = 1.5f64
+    let k_narrow = (k).to_f32()
+    if k_narrow != 1.5f32 {
+        process::exit(1)
+    }
+    let k_lo = (k).to_bits_lo()
+    let k_hi = (k).to_bits_hi()
+    if k_lo != 0 {
+        process::exit(1)
+    }
+    if k_hi == 0 {
+        process::exit(1)
+    }
+}

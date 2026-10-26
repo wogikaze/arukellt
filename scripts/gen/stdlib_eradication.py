@@ -259,3 +259,56 @@ def owner_issue_path(root: Path, owner: str):
         for path in (root / "issues" / bucket).glob("{}-*.md".format(owner)):
             return path
     return None
+
+_IMPL_HEADER_RE = re.compile(r"^impl\b[^\n{]*\{", re.MULTILINE)
+
+
+def iter_impl_blocks(text: str):
+    """Yield ``(header, body)`` for each top-level ``impl`` block in an Ark file."""
+    for match in _IMPL_HEADER_RE.finditer(text):
+        depth = 1
+        index = match.end()
+        in_string = False
+        in_line_comment = False
+        while index < len(text) and depth > 0:
+            char = text[index]
+            if in_line_comment:
+                if char == "\n":
+                    in_line_comment = False
+            elif in_string:
+                if char == "\\":
+                    index += 1
+                elif char == '"':
+                    in_string = False
+            elif char == "/" and text[index:index + 2] == "//":
+                in_line_comment = True
+                index += 1
+            elif char == '"':
+                in_string = True
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+            index += 1
+        yield match.group(0), text[match.end():index - 1]
+
+
+def method_decl_exists(root: Path, type_name: str, method: str) -> bool:
+    """True when std source declares ``fn method`` in an ``impl ... Type`` block.
+
+    Method-level generics (``fn map<U>(...``) are accepted. This is the shared
+    source-of-truth check for ``deprecated_by = "Type::method"`` targets.
+    """
+    type_name = type_name.split("<", 1)[0].strip()
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", type_name):
+        return False
+    type_re = re.compile(r"\b{}\b".format(re.escape(type_name)))
+    method_re = re.compile(
+        r"\bfn\s+{}\s*(?:<[^>]*>)?\s*\(".format(re.escape(method))
+    )
+    for path in (root / "std").rglob("*.ark"):
+        text = path.read_text(encoding="utf-8")
+        for header, body in iter_impl_blocks(text):
+            if type_re.search(header) and method_re.search(body):
+                return True
+    return False

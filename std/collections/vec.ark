@@ -18,6 +18,7 @@ use std::core
 use std::core::cmp
 use std::core::iter
 use std::core::raw
+use std::prelude::Slice
 
 /// Creates a new empty `Vec<i32>`.
 pub fn new_i32() -> Vec<i32> {
@@ -488,5 +489,24 @@ impl Vec<T> {
             push(self, get_unchecked(other, index))
             index = index + 1
         }
+    }
+
+    /// Removes every element, keeping the allocated capacity.
+    ///
+    /// The pop loop mirrors `truncate(0)` instead of calling it: a generic
+    /// impl method calling a sibling generic method currently lowers the
+    /// callee to an unreachable stub in the GC emitter (#917).
+    fn clear(self: Vec<T>) {
+        while vec_len(self) > 0 {
+            match vec_pop(self) {
+                Option::Some(_) => {},
+                Option::None => { break },
+            }
+        }
+    }
+
+    /// Returns a bounded view over `start..end` without copying the elements.
+    fn as_slice(self: Vec<T>, start: i32, end: i32) -> Slice<T> {
+        Slice::View(self, start, end)
     }
 }

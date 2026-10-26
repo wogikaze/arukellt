@@ -754,6 +754,24 @@ pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
     }
 }
 
+// Receiver methods for the slice view. The free helpers above remain the
+// deprecated compatibility spelling until the slice family is retired.
+impl Slice<T> {
+    /// Returns the number of elements covered by this view.
+    fn len(self: Slice<T>) -> i32 {
+        match self {
+            Slice::View(_, start, end) => end - start,
+        }
+    }
+
+    /// Returns the element at `index` within this view.
+    fn get(self: Slice<T>, index: i32) -> T {
+        match self {
+            Slice::View(source, start, _) => get_unchecked(source, start + index),
+        }
+    }
+}
+
 // Collections
 pub fn contains_string(s: String, sub: String) -> bool {
     panic(String_new()); return false

@@ -107,17 +107,27 @@ A Stable API is deprecated before removal:
 
 Before 1.0.0 the project has no scheduled 1.0.0 release, so the
 `remove_in = "1.0.0"` policy default is not by itself evidence that a
-removal window closed. The #917 eradication wave may remove early **only**
-these classes, and each wave must record the exception:
+removal window closed. [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
+is the ADR-014 addendum that defines the exception:
 
-- `experimental` entries — outside the stability contract (ADR-014 D4);
+- `experimental` entries may be removed directly (ADR-014 D4);
 - `deprecated` prelude bindings that the v2 prelude already gates with
-  **E0100** plus a resolver migration hint, and whose replacement is
-  shipped and tested.
+  **E0100** plus a resolver migration hint may be removed once their
+  replacement is shipped and tested;
+- `stable` entries may be removed early only when the wave records all three
+  ADR-087 conditions: (1) W0009 is implemented and fires for the API usage,
+  (2) [migration-guidance.md](migration-guidance.md) records the before/after
+  and a reachable replacement (or states that the functionality retires), and
+  (3) [changelog.md](changelog.md) records the date, ADR-087 reference,
+  symbols, reason, and replacement.
 
-`stable` entries still require the ADR-014 deprecation-window addendum,
-and the `std::seq` helpers still require W0009 qualified-call coverage.
-Early removals must cite this exception explicitly in the migration guide.
+Under the exception `remove_in` is an **upper bound**. Early removals must
+cite the exception explicitly in the migration guide. The first ADR-087 wave
+(2026-10-26) converted 60 `stable` entries to `deprecated` (one deferral: `i8_to_i32`) with W0009 coverage
+and retired 3 stale non-callable entries; their physical deletion is Wave 2.
+The `std::seq` qualified-call W0009 coverage for the 13 deprecated helpers
+remains in place, and the 31 converted seq/combinator entries now emit W0009
+for their bare names.
 
 ---
 

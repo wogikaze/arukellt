@@ -46,10 +46,12 @@
 #
 # Ownership split for #703 (single owner per family): #703 owns the
 # monomorphic cutover families — "deprecated std::seq helpers" (13) and
-# "monomorphic seq/combinator frees" (34), 47 symbols left after the
-# deprecated prelude wrappers were removed by #917. The 33 stable
-# monomorphic frees still need the ADR-014 deprecation window (W0009) before
-# deletion; #917 owns every other family as the execution umbrella.
+# "monomorphic seq/combinator frees" (34). The 31 callable stable entries
+# were deprecated (W0009 + migration guide + changelog) in the ADR-087 0.x
+# wave; their physical deletion is Wave 2. The provisional `filter_i32`
+# remains an individual deferral, and the two stale, non-callable builtin
+# entries (`map_option_String_String`, `map_result_i32_i32`) were retired in
+# the same wave. #917 owns every other family as the execution umbrella.
 
 [meta]
 policy_adr = "ADR-046"
@@ -138,7 +140,7 @@ module_less = true
 name = ["push", "pop", "len", "get", "set", "get_unchecked", "clear", "as_slice", "slice_len", "slice_get"]
 class = "must delete"
 owner = "917"
-replacement = "v.push(x) / v.len() / Vec methods (already emitted via impl Vec<T>)"
+replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly."
 
 [[rules]]
 label = "assertion frees"
@@ -146,7 +148,7 @@ module_less = true
 name = ["assert_eq", "assert_ne", "assert_eq_i64", "assert_eq_str"]
 class = "must delete"
 owner = "917"
-replacement = "std::test::assert_* module functions (no Test associated API exists; harness-surface design is still open)"
+replacement = "std::test::assert_eq_i32(actual, expected), assert_ne_i32(actual, unexpected), assert_eq_i64(...), assert_eq_string(...); the deprecated prelude wrappers delegate to the same assertions"
 
 [[rules]]
 label = "monomorphic seq/combinator frees"
@@ -154,11 +156,13 @@ module_less = true
 prefix = ["sort_", "map_", "filter_", "fold_", "any_", "find_", "contains_", "reverse_", "remove_", "sum_", "product_", "map_option_", "map_result_"]
 class = "must delete"
 owner = "703"
-replacement = "Iterator methods / generic std::seq equivalents"
-# Deferred by #917 (2026-10-26): of the 34 entries, 33 are stable and wait
-# for the ADR-014 deprecation-window addendum plus W0009 coverage; the
-# remaining `filter_i32` is provisional and shares the deprecated
-# std::seq::filter_i32 window.
+replacement = "Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container"
+# Wave 1 landed 2026-10-26 under ADR-087: the 31 callable stable entries carry
+# stability = "deprecated", deprecated_by, deprecated_since, and remove_in,
+# and the bare names have W0009 coverage. The i64/f64/String iterator lanes
+# remain planned, so those rows describe the target shape rather than a
+# verified call path yet. `filter_i32` stays provisional (deferred). Physical
+# deletion is Wave 2 after the W0009 window.
 
 [[rules]]
 label = "monomorphic numeric conversions"
@@ -166,7 +170,7 @@ module_less = true
 prefix = ["u8_to_i32", "u16_to_i32", "i8_to_i32", "i16_to_i32", "i32_to_u8", "i32_to_u16", "i32_to_i8", "i32_to_i16", "u32_to_u64", "u64_to_u32", "i32_to_i64", "i64_to_i32", "f32_to_f64", "f64_to_f32", "i32_to_u32", "f64_bits_lo", "f64_bits_hi"]
 class = "must delete"
 owner = "917"
-replacement = "From/Into associated conversions"
+replacement = "canonical scalar conversion methods (ADR-067): u8/u16/i16::to_i32 (`i8_to_i32` deferred: its method frame still traps under wasm32-gc), u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi"
 
 [[rules]]
 label = "monomorphic HashMap builtins"

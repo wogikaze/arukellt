@@ -359,7 +359,10 @@ intrinsic = "__intrinsic_f64_bits_lo"
 params = ["f64"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f64::to_bits_lo"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "numeric"
 
 [[functions]]
@@ -369,7 +372,10 @@ intrinsic = "__intrinsic_f64_bits_hi"
 params = ["f64"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f64::to_bits_hi"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "numeric"
 
 # --- Scalar type conversion functions (issue #040) ---
@@ -380,7 +386,10 @@ intrinsic = "__intrinsic_u8_to_i32"
 params = ["u8"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "u8::to_i32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -390,7 +399,10 @@ intrinsic = "__intrinsic_u16_to_i32"
 params = ["u16"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "u16::to_i32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -410,7 +422,10 @@ intrinsic = "__intrinsic_i16_to_i32"
 params = ["i16"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i16::to_i32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -420,7 +435,10 @@ intrinsic = "__intrinsic_i32_to_u8"
 params = ["i32"]
 returns = "u8"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32::to_u8_wrapping"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -430,7 +448,10 @@ intrinsic = "__intrinsic_i32_to_u16"
 params = ["i32"]
 returns = "u16"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32::to_u16_wrapping"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -440,7 +461,10 @@ intrinsic = "__intrinsic_i32_to_i8"
 params = ["i32"]
 returns = "i8"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32::to_i8_wrapping"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -450,7 +474,10 @@ intrinsic = "__intrinsic_i32_to_i16"
 params = ["i32"]
 returns = "i16"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32::to_i16_wrapping"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -460,7 +487,10 @@ intrinsic = "__intrinsic_u32_to_u64"
 params = ["u32"]
 returns = "u64"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "u32::to_u64"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -470,7 +500,10 @@ intrinsic = "__intrinsic_u64_to_u32"
 params = ["u64"]
 returns = "u32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "u64::to_u32_wrapping"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -480,7 +513,10 @@ intrinsic = "__intrinsic_i32_to_i64"
 params = ["i32"]
 returns = "i64"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32::into"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -490,7 +526,10 @@ intrinsic = "__intrinsic_i64_to_i32"
 params = ["i64"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i64::to_i32_checked"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -500,7 +539,10 @@ intrinsic = "__intrinsic_f32_to_f64"
 params = ["f32"]
 returns = "f64"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f32::to_f64"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -510,7 +552,10 @@ intrinsic = "__intrinsic_f64_to_f32"
 params = ["f64"]
 returns = "f32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f64::to_f32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "scalar_conversion"
 
 [[functions]]
@@ -602,7 +647,10 @@ kind = "builtin"
 params = ["Vec<T>", "T"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::push"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 doc = "Append an element to the end of a Vec, mutating it in place."
 availability = { t1 = true, t3 = true }
@@ -614,7 +662,10 @@ kind = "builtin"
 params = ["Vec<T>"]
 returns = "Option<T>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::pop"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 doc = "Remove and return the last element of a Vec. Returns None if the Vec is empty."
 availability = { t1 = true, t3 = true }
@@ -625,7 +676,10 @@ kind = "builtin"
 params = ["Vec<T>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::len"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 doc = "Return the number of elements in a Vec."
 availability = { t1 = true, t3 = true }
@@ -637,7 +691,10 @@ kind = "builtin"
 params = ["Vec<T>", "i32"]
 returns = "Option<T>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::get"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -646,7 +703,10 @@ kind = "builtin"
 params = ["Vec<T>", "i32"]
 returns = "T"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::get_unchecked"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -655,27 +715,24 @@ kind = "builtin"
 params = ["Vec<T>", "i32", "T"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::set"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # NOTE: clear is in the prelude function registry but lacks a typechecker
 # function signature.
-[[functions]]
-name = "clear"
-kind = "builtin"
-params = ["Vec<T>"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
 [[functions]]
 name = "as_slice"
 kind = "builtin"
 params = ["Vec<T>", "i32", "i32"]
 returns = "Slice<T>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::as_slice"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -684,7 +741,10 @@ kind = "builtin"
 params = ["Slice<T>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Slice::len"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -693,7 +753,10 @@ kind = "builtin"
 params = ["Slice<T>", "i32"]
 returns = "T"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Slice::get"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # ── Vec sorting ──────────────────────────────
@@ -705,7 +768,10 @@ intrinsic = "__intrinsic_sort_i32"
 params = ["Vec<i32>"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::sort_by"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -715,7 +781,10 @@ intrinsic = "__intrinsic_sort_i64"
 params = ["Vec<i64>"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::sort_by"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -725,7 +794,10 @@ intrinsic = "__intrinsic_sort_f64"
 params = ["Vec<f64>"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::sort_by"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -735,7 +807,10 @@ intrinsic = "__intrinsic_sort_String"
 params = ["Vec<String>"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::sort_by"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # ── Vec higher-order (i32) ───────────────────
@@ -747,7 +822,10 @@ intrinsic = "__intrinsic_map_i32_i32"
 params = ["Vec<i32>", "fn(i32) -> i32"]
 returns = "Vec<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::map"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -767,7 +845,10 @@ intrinsic = "__intrinsic_fold_i32_i32"
 params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::fold"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -777,7 +858,10 @@ intrinsic = "__intrinsic_any_i32"
 params = ["Vec<i32>", "fn(i32) -> bool"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::any"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -787,7 +871,10 @@ intrinsic = "__intrinsic_find_i32"
 params = ["Vec<i32>", "fn(i32) -> bool"]
 returns = "Option<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::find"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -797,7 +884,10 @@ intrinsic = "__intrinsic_contains_i32"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::contains"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -807,7 +897,10 @@ intrinsic = "__intrinsic_reverse_i32"
 params = ["Vec<i32>"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::rev"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -817,7 +910,10 @@ intrinsic = "__intrinsic_remove_i32"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Vec::drain"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -826,7 +922,10 @@ kind = "prelude_wrapper"
 params = ["Vec<i32>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::sum"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -835,7 +934,10 @@ kind = "prelude_wrapper"
 params = ["Vec<i32>"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::fold"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # ── Vec higher-order (i64) ───────────────────
@@ -847,7 +949,10 @@ intrinsic = "__intrinsic_map_i64_i64"
 params = ["Vec<i64>", "fn(i64) -> i64"]
 returns = "Vec<i64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::map"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -857,7 +962,10 @@ intrinsic = "__intrinsic_filter_i64"
 params = ["Vec<i64>", "fn(i64) -> bool"]
 returns = "Vec<i64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::filter"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -867,7 +975,10 @@ intrinsic = "__intrinsic_fold_i64_i64"
 params = ["Vec<i64>", "i64", "fn(i64, i64) -> i64"]
 returns = "i64"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::fold"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # ── Vec higher-order (f64) ───────────────────
@@ -879,7 +990,10 @@ intrinsic = "__intrinsic_map_f64_f64"
 params = ["Vec<f64>", "fn(f64) -> f64"]
 returns = "Vec<f64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::map"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -889,7 +1003,10 @@ intrinsic = "__intrinsic_filter_f64"
 params = ["Vec<f64>", "fn(f64) -> bool"]
 returns = "Vec<f64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::filter"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # ── Vec higher-order (String) ────────────────
@@ -901,7 +1018,10 @@ intrinsic = "__intrinsic_map_String_String"
 params = ["Vec<String>", "fn(String) -> String"]
 returns = "Vec<String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::map"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -911,7 +1031,10 @@ intrinsic = "__intrinsic_filter_String"
 params = ["Vec<String>", "fn(String) -> bool"]
 returns = "Vec<String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::filter"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -921,7 +1044,10 @@ intrinsic = "__intrinsic_contains_String"
 params = ["Vec<String>", "String"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::contains"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 [[functions]]
@@ -931,7 +1057,10 @@ intrinsic = "__intrinsic_reverse_String"
 params = ["Vec<String>"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::rev"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 # ── Option/Result operations (direct builtins) ─
@@ -1005,31 +1134,13 @@ intrinsic = "__intrinsic_map_option_i32_i32"
 params = ["Option<i32>", "fn(i32) -> i32"]
 returns = "Option<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Option::map"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "option_result"
 
 # NOTE: map_option_String_String is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "map_option_String_String"
-kind = "builtin"
-params = ["Option<String>", "fn(String) -> String"]
-returns = "Option<String>"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# NOTE: map_result_i32_i32 is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
-[[functions]]
-name = "map_result_i32_i32"
-kind = "builtin"
-params = ["Result<i32, E>", "fn(i32) -> i32"]
-returns = "Result<i32, E>"
-prelude = true
-stability = "stable"
-doc_category = "option_result"
-
-# ── Box ──────────────────────────────────────
-
 [[functions]]
 name = "Box_new"
 kind = "builtin"
@@ -1067,7 +1178,10 @@ intrinsic = "__intrinsic_assert_eq"
 params = ["i32", "i32"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::test::assert_eq_i32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "assert"
 
 [[functions]]
@@ -1077,7 +1191,10 @@ intrinsic = "__intrinsic_assert_ne"
 params = ["i32", "i32"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::test::assert_ne_i32"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "assert"
 
 [[functions]]
@@ -1087,7 +1204,10 @@ intrinsic = "__intrinsic_assert_eq_i64"
 params = ["i64", "i64"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::test::assert_eq_i64"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "assert"
 
 [[functions]]
@@ -1097,7 +1217,10 @@ intrinsic = "__intrinsic_assert_eq_str"
 params = ["String", "String"]
 returns = "()"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "std::test::assert_eq_string"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "assert"
 
 # ── HashMap<i32, i32> ───────────────────────
@@ -7971,7 +8094,10 @@ intrinsic = "__intrinsic_any_i64"
 params = ["Vec<i64>", "fn(i64) -> bool"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::any"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -7982,7 +8108,10 @@ intrinsic = "__intrinsic_any_f64"
 params = ["Vec<f64>", "fn(f64) -> bool"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::any"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -7993,7 +8122,10 @@ intrinsic = "__intrinsic_any_String"
 params = ["Vec<String>", "fn(String) -> bool"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::any"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -8004,7 +8136,10 @@ intrinsic = "__intrinsic_find_i64"
 params = ["Vec<i64>", "fn(i64) -> bool"]
 returns = "Option<i64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::find"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -8015,7 +8150,10 @@ intrinsic = "__intrinsic_find_f64"
 params = ["Vec<f64>", "fn(f64) -> bool"]
 returns = "Option<f64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::find"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -8026,7 +8164,10 @@ intrinsic = "__intrinsic_find_String"
 params = ["Vec<String>", "fn(String) -> bool"]
 returns = "Option<String>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::find"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -8037,7 +8178,10 @@ intrinsic = "__intrinsic_fold_f64_f64"
 params = ["Vec<f64>", "f64", "fn(f64, f64) -> f64"]
 returns = "f64"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "VecIter::fold"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "collections"
 
 
@@ -8070,7 +8214,10 @@ intrinsic = "__intrinsic_contains"
 params = ["String", "String"]
 returns = "bool"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "String::contains"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "string"
 
 
@@ -8125,7 +8272,10 @@ intrinsic = "__intrinsic_i32_to_u32"
 params = ["i32"]
 returns = "u32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32::to_u32_bits"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 doc_category = "convert"
 
 

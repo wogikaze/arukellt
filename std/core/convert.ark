@@ -3,6 +3,7 @@
 // Unified namespace for type conversions (wraps existing intrinsics).
 
 use std::text
+use std::prelude::{f32_to_f64, f64_bits_hi, f64_bits_lo, f64_to_f32, i32_to_i16, i32_to_i8, i32_to_u16, i32_to_u32, i32_to_u8, i16_to_i32, u16_to_i32, u32_to_u64, u64_to_u32, u8_to_i32}
 /// Trait for types that can be converted to a human-readable string
 /// representation.
 ///
@@ -406,6 +407,31 @@ impl i32 {
         let right: i32 = if other < 0 { 0 - other } else { other }
         left / divisor * right
     }
+
+    /// Converts to `u8` by masking with `0xFF` (wrapping at the target width).
+    fn to_u8_wrapping(self: i32) -> u8 {
+        i32_to_u8(self)
+    }
+
+    /// Converts to `u16` by masking with `0xFFFF` (wrapping at the target width).
+    fn to_u16_wrapping(self: i32) -> u16 {
+        i32_to_u16(self)
+    }
+
+    /// Converts to `i8` by truncating to the low 8 bits.
+    fn to_i8_wrapping(self: i32) -> i8 {
+        i32_to_i8(self)
+    }
+
+    /// Converts to `i16` by truncating to the low 16 bits.
+    fn to_i16_wrapping(self: i32) -> i16 {
+        i32_to_i16(self)
+    }
+
+    /// Reinterprets the i32 bit pattern as `u32` (no numeric conversion).
+    fn to_u32_bits(self: i32) -> u32 {
+        i32_to_u32(self)
+    }
 }
 
 /// Inherent methods on `i64`.
@@ -516,6 +542,21 @@ impl f64 {
             self
         }
     }
+
+    /// Rounds to `f32` with the WebAssembly / IEEE binary32 rounding mode.
+    fn to_f32(self: f64) -> f32 {
+        f64_to_f32(self)
+    }
+
+    /// Returns the low 32 bits of the IEEE 754 binary64 bit pattern.
+    fn to_bits_lo(self: f64) -> i32 {
+        f64_bits_lo(self)
+    }
+
+    /// Returns the high 32 bits of the IEEE 754 binary64 bit pattern.
+    fn to_bits_hi(self: f64) -> i32 {
+        f64_bits_hi(self)
+    }
 }
 
 /// Inherent methods on `bool`.
@@ -625,5 +666,67 @@ impl TryFrom<i64> for i32 {
         } else {
             Ok(__intrinsic_i64_to_i32(value))
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Narrow-integer alias widening (#917 / ADR-067 §5).
+//
+// `u8`, `i8`, `u16`, `i16`, `u32`, and `u64` share the i32/i64 runtime
+// representation, but ADR-067 keeps them nominally distinct at the source
+// level. These methods are the canonical explicit conversion surface for the
+// deprecated `*_to_*` prelude wrappers.
+// ---------------------------------------------------------------------------
+
+/// Inherent methods on `u8`.
+impl u8 {
+    /// Zero-extends the low 8 bits to `i32`.
+    fn to_i32(self: u8) -> i32 {
+        u8_to_i32(self)
+    }
+}
+
+// `i8 -> i32` has no receiver method yet: the free wrapper works at call
+// sites, but the same sign-extension intrinsic called from a std method body
+// currently traps under wasm32-gc. `i8_to_i32` stays stable until the emitter
+// handles the method frame (Wave-2 blocker, #917).
+
+/// Inherent methods on `u16`.
+impl u16 {
+    /// Zero-extends the low 16 bits to `i32`.
+    fn to_i32(self: u16) -> i32 {
+        u16_to_i32(self)
+    }
+}
+
+/// Inherent methods on `i16`.
+impl i16 {
+    /// Sign-extends the low 16 bits to `i32`.
+    fn to_i32(self: i16) -> i32 {
+        i16_to_i32(self)
+    }
+}
+
+/// Inherent methods on `u32`.
+impl u32 {
+    /// Zero-extends to `u64`.
+    fn to_u64(self: u32) -> u64 {
+        u32_to_u64(self)
+    }
+}
+
+/// Inherent methods on `u64`.
+impl u64 {
+    /// Truncates to the low 32 bits (wrapping at the target width).
+    fn to_u32_wrapping(self: u64) -> u32 {
+        u64_to_u32(self)
+    }
+}
+
+/// Inherent methods on `f32`.
+impl f32 {
+    /// Widens to `f64` exactly (all `f32` values are representable).
+    fn to_f64(self: f32) -> f64 {
+        f32_to_f64(self)
     }
 }
