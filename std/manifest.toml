@@ -5553,7 +5553,7 @@ methods = [
     "iter",
     "iter_mut",
 ]
-trait_impls = ["IntoIterator", "Clone", "Debug"]
+trait_impls = ["IntoIterator", "FromIterator", "Clone", "Eq", "Debug"]
 
 [[types]]
 name = "DequeIter"
@@ -5604,7 +5604,7 @@ methods = [
     "reserve",
     "iter",
 ]
-trait_impls = ["IntoIterator", "Clone", "Debug"]
+trait_impls = ["IntoIterator", "FromIterator", "Clone", "Eq", "Debug"]
 
 [[types]]
 name = "Stack"
@@ -5626,7 +5626,7 @@ methods = [
     "reserve",
     "iter",
 ]
-trait_impls = ["IntoIterator", "Clone", "Debug"]
+trait_impls = ["IntoIterator", "FromIterator", "Clone", "Eq", "Debug"]
 
 [[modules]]
 name = "std::collections::linked_list"
@@ -5656,7 +5656,7 @@ methods = [
     "iter",
     "iter_mut",
 ]
-trait_impls = ["IntoIterator", "Clone", "Debug"]
+trait_impls = ["IntoIterator", "FromIterator", "Clone", "Eq", "Debug"]
 
 [[types]]
 name = "LinkedListIter"
@@ -5686,16 +5686,136 @@ stability = "provisional"
 generic_params = ["T"]
 trait_impls = ["Iterator", "IntoIterator"]
 
-# ── std::collections::linear (Deque and PriorityQueue, i32 monomorphic) ──────
-# Generics not yet available; these are i32-only per STOP_IF in issue #045.
-# All Deque functions use a Vec<i32> as a ring-buffer:
+# ── std::collections::linked_list legacy frees (ADR-086 migration) ──────────
+# These remain callable with unchanged runtime behavior. They are registered
+# as deprecated so each free function carries the `LinkedList<T>` method that
+# replaces it. Deletion follows the [deprecation_policy] window (deprecated
+# since 0.1.0, removable at 1.0.0) after in-tree callers migrate.
+
+[[functions]]
+name = "linked_list_new"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::new"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty monomorphic i32 list over a `Vec<i32>` node pool."
+
+[[functions]]
+name = "linked_list_push_front"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::push_front"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Push a value to the front of the legacy i32 list."
+
+[[functions]]
+name = "linked_list_push_back"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::push_back"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Push a value to the back of the legacy i32 list."
+
+[[functions]]
+name = "linked_list_pop_front"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::pop_front"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Pop the front value of the legacy i32 list, or the caller's fallback when empty."
+
+[[functions]]
+name = "linked_list_pop_back"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::pop_back"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Pop the back value of the legacy i32 list, or the caller's fallback when empty."
+
+[[functions]]
+name = "linked_list_front"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::front"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Peek the front value of the legacy i32 list, or the caller's fallback when empty."
+
+[[functions]]
+name = "linked_list_back"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::back"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Peek the back value of the legacy i32 list, or the caller's fallback when empty."
+
+[[functions]]
+name = "linked_list_len"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::len"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in the legacy i32 list."
+
+[[functions]]
+name = "linked_list_is_empty"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::is_empty"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true when the legacy i32 list is empty."
+
+[[functions]]
+name = "linked_list_clear"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::clear"
+params = ["Vec<i32>"]
+returns = "()"
+doc = "Remove all elements from the legacy i32 list, keeping node capacity."
+
+[[functions]]
+name = "linked_list_to_vec"
+module = "std::collections::linked_list"
+doc_category = "collections"
+stability = "deprecated"
+deprecated_by = "LinkedList::iter"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Copy the legacy i32 list into a `Vec<i32>` in front-to-back order."
+
+# ── std::collections::linear (legacy Deque free functions, i32 monomorphic) ─
+# The PriorityQueue entries further down remain stable; only the deque_*
+# helpers are deprecated. They keep the historical Vec<i32> layout and
+# sentinel behavior:
 #   layout [head, tail, count, cap, ...data(cap)]
+# The deprecation window comes from [deprecation_policy] (since 0.1.0,
+# removable at 1.0.0); ADR-086 §8 keeps the old layout for that window.
 
 [[functions]]
 name = "deque_new"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::new"
 params = []
 returns = "Vec<i32>"
 doc = "Create a new empty Deque backed by a ring buffer (i32, monomorphic)."
@@ -5704,7 +5824,8 @@ doc = "Create a new empty Deque backed by a ring buffer (i32, monomorphic)."
 name = "deque_push_front"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::push_front"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 doc = "Prepend a value to the front of the deque."
@@ -5713,7 +5834,8 @@ doc = "Prepend a value to the front of the deque."
 name = "deque_push_back"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::push_back"
 params = ["Vec<i32>", "i32"]
 returns = "()"
 doc = "Append a value to the back of the deque."
@@ -5722,7 +5844,8 @@ doc = "Append a value to the back of the deque."
 name = "deque_pop_front"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::pop_front"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Remove and return the front element. Panics if empty."
@@ -5731,7 +5854,8 @@ doc = "Remove and return the front element. Panics if empty."
 name = "deque_pop_back"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::pop_back"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Remove and return the back element. Panics if empty."
@@ -5740,7 +5864,8 @@ doc = "Remove and return the back element. Panics if empty."
 name = "deque_front"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::front"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Peek at the front element without removing it. Returns 0 when empty."
@@ -5749,7 +5874,8 @@ doc = "Peek at the front element without removing it. Returns 0 when empty."
 name = "deque_back"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::back"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Peek at the back element without removing it. Returns 0 when empty."
@@ -5758,7 +5884,8 @@ doc = "Peek at the back element without removing it. Returns 0 when empty."
 name = "deque_len"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::len"
 params = ["Vec<i32>"]
 returns = "i32"
 doc = "Return the number of elements in the deque."
@@ -5767,7 +5894,8 @@ doc = "Return the number of elements in the deque."
 name = "deque_is_empty"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::is_empty"
 params = ["Vec<i32>"]
 returns = "bool"
 doc = "Return true if the deque contains no elements."
@@ -5776,7 +5904,8 @@ doc = "Return true if the deque contains no elements."
 name = "deque_clear"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::clear"
 params = ["Vec<i32>"]
 returns = "()"
 doc = "Reset the deque to empty (preserves allocated capacity)."
@@ -5785,7 +5914,8 @@ doc = "Reset the deque to empty (preserves allocated capacity)."
 name = "deque_to_vec"
 module = "std::collections::linear"
 doc_category = "collections"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Deque::iter"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
 doc = "Copy all deque elements (front to back) into a new Vec<i32>."

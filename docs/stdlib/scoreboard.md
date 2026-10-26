@@ -10,7 +10,8 @@
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
 | `std::collections::hash` | 42 | 42 | 0 | 0 | 0 | 41/42 (98%) | no |
-| `std::collections::linear` | 18 | 18 | 0 | 0 | 0 | 18/18 (100%) | no |
+| `std::collections::linear` | 18 | 7 | 0 | 0 | 11 | 7/7 (100%) | no |
+| `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::collections::ordered` | 37 | 10 | 0 | 27 | 0 | 36/37 (97%) | no |
 | `std::component` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::component::handle` | 5 | 0 | 0 | 5 | 0 | 5/5 (100%) | no |
@@ -53,7 +54,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 810 APIs, 389 stable, 83 provisional, 319 experimental, 19 deprecated, 669/791 (85%) fixture coverage
+**Total**: 821 APIs, 378 stable, 83 provisional, 319 experimental, 41 deprecated, 658/780 (84%) fixture coverage
 
 ## Legend
 

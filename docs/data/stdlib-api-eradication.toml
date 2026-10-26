@@ -190,6 +190,22 @@ replacement = "impl HashMap<K,V> methods (new/insert/get/contains_key/remove/len
 # -- Deprecated non-prelude symbols --
 
 [[rules]]
+label = "legacy linear deque frees"
+module = "std::collections::linear"
+prefix = "deque_"
+class = "must delete"
+owner = "710"
+replacement = "Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window"
+
+[[rules]]
+label = "legacy linked_list frees"
+module = "std::collections::linked_list"
+prefix = "linked_list_"
+class = "must delete"
+owner = "710"
+replacement = "LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8"
+
+[[rules]]
 label = "deprecated std::seq helpers"
 module = "std::seq"
 deprecated = true

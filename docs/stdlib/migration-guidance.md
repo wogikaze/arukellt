@@ -50,12 +50,54 @@ The following public entries currently carry `deprecated_by` in
 | `std::seq::binary_search` | `std::seq::binary_search_by` |
 | `std::seq::min_i32` | `std::seq::min_by` |
 | `std::seq::max_i32` | `std::seq::max_by` |
+| `std::collections::linear::deque_new` | `Deque::new<T>()` or `Deque::with_capacity<T>(n)` |
+| `std::collections::linear::deque_push_front` | `d.push_front(v)` |
+| `std::collections::linear::deque_push_back` | `d.push_back(v)` |
+| `std::collections::linear::deque_pop_front` | `d.pop_front()` (`Option<T>`, `None` when empty) |
+| `std::collections::linear::deque_pop_back` | `d.pop_back()` (`Option<T>`, `None` when empty) |
+| `std::collections::linear::deque_front` | `d.front()` (`Option<T>`, `None` when empty) |
+| `std::collections::linear::deque_back` | `d.back()` (`Option<T>`, `None` when empty) |
+| `std::collections::linear::deque_len` | `d.len()` |
+| `std::collections::linear::deque_is_empty` | `d.is_empty()` |
+| `std::collections::linear::deque_clear` | `d.clear()` |
+| `std::collections::linear::deque_to_vec` | `d.iter().collect()` |
+| `std::collections::linked_list::linked_list_new` | `LinkedList::new<T>()` |
+| `std::collections::linked_list::linked_list_push_front` | `l.push_front(v)` |
+| `std::collections::linked_list::linked_list_push_back` | `l.push_back(v)` |
+| `std::collections::linked_list::linked_list_pop_front` | `l.pop_front()` (`Option<T>`, `None` when empty) |
+| `std::collections::linked_list::linked_list_pop_back` | `l.pop_back()` (`Option<T>`, `None` when empty) |
+| `std::collections::linked_list::linked_list_front` | `l.front()` (`Option<T>`, `None` when empty) |
+| `std::collections::linked_list::linked_list_back` | `l.back()` (`Option<T>`, `None` when empty) |
+| `std::collections::linked_list::linked_list_len` | `l.len()` |
+| `std::collections::linked_list::linked_list_is_empty` | `l.is_empty()` |
+| `std::collections::linked_list::linked_list_clear` | `l.clear()` |
+| `std::collections::linked_list::linked_list_to_vec` | `l.iter().collect()` |
 
 The deprecated `std::seq` rows remain callable compatibility entries that
 delegate to the lazy `std::core::iter` pipeline or the generic
 `Ord`-based algorithms (ADR-076). Every monomorphic `std::seq` helper now
 carries `deprecated_by`; the legacy `Vec_*` constructors were removed by
 #845 and are no longer manifest entries.
+
+The `deque_*` and `linked_list_*` rows are the ADR-086 linear collection
+migration ([#710](https://github.com/wogikaze/arukellt/issues/710)). They keep
+their monomorphic `Vec<i32>` layout for the [ADR-014](../adr/ADR-014-stability-labels.md)
+deprecation window, so the observable differences from the type API are:
+
+- Empty `deque_pop_front` / `deque_pop_back` panic on the legacy layout while
+  `Deque::pop_front()` / `pop_back()` return `Option::None`.
+- `deque_front` / `deque_back` return the `0` sentinel when empty while
+  `Deque::front()` / `back()` return `Option::None`.
+- `linked_list_pop_front` / `pop_back` / `front` / `back` take a `fallback`
+  value while the `LinkedList<T>` methods return `Option<T>`.
+- `deque_new` preallocates a fixed capacity of 16; `Deque::new<T>()` makes no
+  capacity claim, so use `Deque::with_capacity<T>(n)` when a reservation is
+  required.
+
+New code should use `Deque<T>` / `Queue<T>` / `Stack<T>` from
+`std::collections::deque` and `LinkedList<T>` from
+`std::collections::linked_list`; the type surfaces carry `FromIterator`,
+`Clone`, `Debug`, and `Eq` where the element type permits.
 
 ## Iterator v2 status
 

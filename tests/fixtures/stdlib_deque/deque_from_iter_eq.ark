@@ -1,0 +1,75 @@
+// Deque<T> / Queue<T> / Stack<T> built from a Vec cursor, and logical Eq.
+use std::collections::deque::Deque
+use std::collections::deque::Queue
+use std::collections::deque::Stack
+use std::host::stdio
+
+fn show(value: Option<i32>) {
+    match value {
+        Option::Some(item) => stdio::println(item.to_string()),
+        Option::None => stdio::println(String_from("none")),
+    }
+}
+
+fn main() {
+    let source: Vec<i32> = Vec::new<i32>()
+    push(source, 1)
+    push(source, 2)
+    push(source, 3)
+
+    let deque: Deque<i32> = Deque::from_iter(source.iter())
+    assert(deque.len() == 3)
+    assert(deque.capacity() == 3)
+    stdio::println(deque.fmt_debug())
+
+    // Same logical order through a different stack split: push_front fills
+    // the front stack, so comparing storage slots would report a difference.
+    let mirrored: Deque<i32> = Deque::new<i32>()
+    mirrored.push_front(3)
+    mirrored.push_front(2)
+    mirrored.push_front(1)
+    assert(deque.eq(mirrored))
+    assert(mirrored.eq(deque))
+    stdio::println(String_from("mirrored equal"))
+
+    // Capacity is storage state, not collection state.
+    let reserved: Deque<i32> = Deque::with_capacity<i32>(9)
+    reserved.push_back(1)
+    reserved.push_back(2)
+    reserved.push_back(3)
+    assert(deque.eq(reserved))
+    stdio::println(String_from("capacity ignored"))
+
+    let different: Deque<i32> = Deque::new<i32>()
+    different.push_back(1)
+    different.push_back(2)
+    different.push_back(4)
+    assert(!deque.eq(different))
+    stdio::println(String_from("unequal detected"))
+
+    let empty_source: Vec<i32> = Vec::new<i32>()
+    let empty: Deque<i32> = Deque::from_iter(empty_source.iter())
+    assert(empty.is_empty())
+    assert(empty.eq(Deque::new<i32>()))
+    stdio::println(empty.fmt_debug())
+
+    let words: Vec<String> = Vec::new<String>()
+    push(words, "alpha")
+    push(words, "beta")
+    let letters: Deque<String> = Deque::from_iter(words.iter())
+    stdio::println(letters.fmt_debug())
+    let letters_again: Deque<String> = Deque::from_iter(words.iter())
+    assert(letters.eq(letters_again))
+
+    let queue: Queue<i32> = Queue::from_iter(source.iter())
+    stdio::println(queue.fmt_debug())
+    assert(queue.eq(Queue::from_iter(source.iter())))
+    show(queue.pop())
+    show(queue.front())
+
+    let stack: Stack<i32> = Stack::from_iter(source.iter())
+    stdio::println(stack.fmt_debug())
+    assert(stack.eq(Stack::from_iter(source.iter())))
+    show(stack.peek())
+    show(stack.pop())
+}

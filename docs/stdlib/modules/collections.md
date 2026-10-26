@@ -293,26 +293,33 @@ type checker does not yet reject a push / pop / clear while an iterator is
 alive. Do not structurally modify a collection during iteration; the
 borrow / lifetime design will enforce this later (ADR-086 §5).
 
+`FromIterator<VecIter<T>>` fills the logical front-to-back order from a
+`Vec` cursor and `Eq` compares length plus that order while ignoring the
+capacity reservation. ADR-078 §3 allows one parametric impl per
+(trait, self constructor), so the collection's own cursors cannot be added
+as further `FromIterator` sources; the shared `VecIter<T>` source is used
+for `Deque`, `Queue`, and `Stack`.
+
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### `std::collections::deque` — Public Types
 
-| Name | Kind | Summary |
-|------|------|---------|
-| `Deque` | `struct` | Double-ended queue with private two-stack storage. |
-| `DequeIter` | `struct` | Read-only cursor over a Deque<T>, front to back. |
-| `DequeIterMut` | `struct` | Writable cursor over a Deque<T>, front to back. |
-| `DequeIntoIter` | `struct` | Owning cursor over a Deque<T>, front to back. |
-| `Queue` | `struct` | First-in first-out queue backed by Deque<T>. |
-| `Stack` | `struct` | Last-in first-out stack backed by Deque<T>. |
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Deque` | `struct` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` | Double-ended queue with private two-stack storage. |
+| `DequeIter` | `struct` | - | `Iterator`, `IntoIterator` | Read-only cursor over a Deque<T>, front to back. |
+| `DequeIterMut` | `struct` | `set_current` | `Iterator`, `IntoIterator` | Writable cursor over a Deque<T>, front to back. |
+| `DequeIntoIter` | `struct` | - | `Iterator`, `IntoIterator` | Owning cursor over a Deque<T>, front to back. |
+| `Queue` | `struct` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` | First-in first-out queue backed by Deque<T>. |
+| `Stack` | `struct` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` | Last-in first-out stack backed by Deque<T>. |
 
 _No manifest-backed functions in this module._
 
 ## Module `std::collections::linked_list`
 
 - Source: [`../../../std/collections/linked_list.ark`](../../../std/collections/linked_list.ark)
-- Manifest-backed functions: 0
-- Stability: n/a
+- Manifest-backed functions: 11
+- Stability: deprecated 11
 
 `LinkedList<T>` and legacy free-function helpers for a doubly-linked list.
 
@@ -331,6 +338,11 @@ checker does not yet reject a push / pop / clear while an iterator is alive.
 Do not structurally modify a list during iteration; the borrow / lifetime
 design will enforce this later (ADR-086 §5).
 
+`FromIterator<VecIter<T>>` appends the cursor values front to back, and `Eq`
+compares length plus iteration order while ignoring node-pool state.
+ADR-078 §3 allows one parametric impl per (trait, self constructor), so the
+list cursors cannot be added as further `FromIterator` sources.
+
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### Legacy layout
@@ -345,27 +357,92 @@ where `head`, `tail`, `free_head` are node indices or `-1` (nil).
 
 ### `std::collections::linked_list` — Public Types
 
-| Name | Kind | Summary |
-|------|------|---------|
-| `LinkedList` | `struct` | Doubly-linked list with O(1) push / pop at both ends. |
-| `LinkedListIter` | `struct` | Read-only cursor over a LinkedList<T>, front to back. |
-| `LinkedListIterMut` | `struct` | Writable cursor over a LinkedList<T>, front to back. |
-| `LinkedListIntoIter` | `struct` | Owning cursor over a LinkedList<T>, front to back. |
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `LinkedList` | `struct` | `new`, `push_front`, `push_back`, `pop_front`, `pop_back`, `front`, `back`, `len`, `is_empty`, `clear`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` | Doubly-linked list with O(1) push / pop at both ends. |
+| `LinkedListIter` | `struct` | - | `Iterator`, `IntoIterator` | Read-only cursor over a LinkedList<T>, front to back. |
+| `LinkedListIterMut` | `struct` | `set_current` | `Iterator`, `IntoIterator` | Writable cursor over a LinkedList<T>, front to back. |
+| `LinkedListIntoIter` | `struct` | - | `Iterator`, `IntoIterator` | Owning cursor over a LinkedList<T>, front to back. |
 
-_No manifest-backed functions in this module._
+### `std::collections::linked_list` — Public API
+
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| ~~`linked_list_new`~~ ⚠️ Deprecated → `LinkedList::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | Create a new empty legacy i32 list over a Vec<i32> node pool. |
+| ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | Push a value to the front of the legacy i32 list. O(1). |
+| ~~`linked_list_push_back`~~ ⚠️ Deprecated → `LinkedList::push_back` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | Push a value to the back of the legacy i32 list. O(1). |
+| ~~`linked_list_pop_front`~~ ⚠️ Deprecated → `LinkedList::pop_front` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Pop and return the front value of the legacy i32 list, or fallback if empty. O(1). |
+| ~~`linked_list_pop_back`~~ ⚠️ Deprecated → `LinkedList::pop_back` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Pop and return the back value of the legacy i32 list, or fallback if empty. O(1). |
+| ~~`linked_list_front`~~ ⚠️ Deprecated → `LinkedList::front` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Peek the front value of the legacy i32 list, or fallback if empty. O(1). |
+| ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Peek the back value of the legacy i32 list, or fallback if empty. O(1). |
+| ~~`linked_list_len`~~ ⚠️ Deprecated → `LinkedList::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Return the number of elements in the legacy i32 list. O(1). |
+| ~~`linked_list_is_empty`~~ ⚠️ Deprecated → `LinkedList::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | Return true if the legacy i32 list is empty. O(1). |
+| ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Remove all elements from the legacy i32 list. O(1) (resets headers). |
+| ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Copy the legacy i32 list into a Vec<i32> in front-to-back order. O(n). |
+
+#### `std::collections::linked_list::linked_list_new`
+
+Create a new empty monomorphic i32 list over a `Vec<i32>` node pool.
+
+#### `std::collections::linked_list::linked_list_push_front`
+
+Push a value to the front of the legacy i32 list.
+
+#### `std::collections::linked_list::linked_list_push_back`
+
+Push a value to the back of the legacy i32 list.
+
+#### `std::collections::linked_list::linked_list_pop_front`
+
+Pop the front value of the legacy i32 list, or the caller's fallback when empty.
+
+#### `std::collections::linked_list::linked_list_pop_back`
+
+Pop the back value of the legacy i32 list, or the caller's fallback when empty.
+
+#### `std::collections::linked_list::linked_list_front`
+
+Peek the front value of the legacy i32 list, or the caller's fallback when empty.
+
+#### `std::collections::linked_list::linked_list_back`
+
+Peek the back value of the legacy i32 list, or the caller's fallback when empty.
+
+#### `std::collections::linked_list::linked_list_len`
+
+Return the number of elements in the legacy i32 list.
+
+#### `std::collections::linked_list::linked_list_is_empty`
+
+Return true when the legacy i32 list is empty.
+
+#### `std::collections::linked_list::linked_list_clear`
+
+Remove all elements from the legacy i32 list, keeping node capacity.
+
+#### `std::collections::linked_list::linked_list_to_vec`
+
+Copy the legacy i32 list into a `Vec<i32>` in front-to-back order.
+
+> ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::linear`
 
 - Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
 - Manifest-backed functions: 18
-- Stability: stable 18
+- Stability: deprecated 11, stable 7
 
-Linear collection helpers: deque and priority queue.
+Legacy linear collection helpers: monomorphic deque and priority queue.
 
-Provides a ring-buffer `Deque` (double-ended queue with `push_back`,
-`push_front`, `pop_back`, `pop_front`) and a min-heap `PriorityQueue`.
-All current implementations are monomorphic `i32` containers backed by
-`Vec<i32>`.
+The `deque_*` functions are the pre-ADR-086 free-function surface: an
+`i32` ring buffer laid out as `[head, tail, count, cap, ...data(cap)]`.
+They stay callable through the ADR-014 deprecation window, but new code
+should use `std::collections::deque::Deque<T>` (plus `Queue<T>` /
+`Stack<T>`); the manifest points every `deque_*` entry at its method
+replacement.
+
+`PriorityQueue` (`pq_*`) is a binary min-heap, not a linear ADT, and keeps
+its own owner (ADR-086 §8).
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -373,13 +450,13 @@ All current implementations are monomorphic `i32` containers backed by
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `deque_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `deque_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | - |
+| ~~`deque_new`~~ ⚠️ Deprecated → `Deque::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
+| ~~`deque_push_back`~~ ⚠️ Deprecated → `Deque::push_back` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
+| ~~`deque_push_front`~~ ⚠️ Deprecated → `Deque::push_front` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
+| ~~`deque_pop_front`~~ ⚠️ Deprecated → `Deque::pop_front` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`deque_pop_back`~~ ⚠️ Deprecated → `Deque::pop_back` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`deque_len`~~ ⚠️ Deprecated → `Deque::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`deque_is_empty`~~ ⚠️ Deprecated → `Deque::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | - |
 
 #### `std::collections::linear::deque_new`
 
@@ -453,10 +530,10 @@ Reset the priority queue to empty (preserves allocated storage).
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `deque_front` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Peek at the front element without removing it. |
-| `deque_back` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Peek at the back element without removing it. |
-| `deque_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Reset the deque to empty (preserves capacity). |
-| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Copy all deque elements (front to back) into a new Vec<i32>. |
+| ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Peek at the front element without removing it. |
+| ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Peek at the back element without removing it. |
+| ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Reset the deque to empty (preserves capacity). |
+| ~~`deque_to_vec`~~ ⚠️ Deprecated → `Deque::iter` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Copy all deque elements (front to back) into a new Vec<i32>. |
 
 #### `std::collections::linear::deque_front`
 
@@ -473,6 +550,8 @@ Reset the deque to empty (preserves allocated capacity).
 #### `std::collections::linear::deque_to_vec`
 
 Copy all deque elements (front to back) into a new Vec<i32>.
+
+> ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::ordered`
 

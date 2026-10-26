@@ -15,6 +15,11 @@
 //! Do not structurally modify a list during iteration; the borrow / lifetime
 //! design will enforce this later (ADR-086 §5).
 //!
+//! `FromIterator<VecIter<T>>` appends the cursor values front to back, and `Eq`
+//! compares length plus iteration order while ignoring node-pool state.
+//! ADR-078 §3 allows one parametric impl per (trait, self constructor), so the
+//! list cursors cannot be added as further `FromIterator` sources.
+//!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 //!
 //! ## Legacy layout
@@ -33,6 +38,7 @@
 // `Vec::new<T>` and fails wasm32-gc validation (#710).
 
 use std::core::clone
+use std::core::cmp
 use std::core::convert
 use std::core::iter
 use std::text
@@ -143,7 +149,7 @@ fn free_node(buf: Vec<i32>, node: i32) {
 
 // ── public API ──────────────────────────────────────────────────────────────
 
-/// Create a new empty `LinkedList<T>`.
+/// Create a new empty legacy i32 list over a `Vec<i32>` node pool.
 pub fn linked_list_new() -> Vec<i32> {
     let buf = Vec::new<i32>()
     push(buf, NIL)  // head
@@ -154,7 +160,7 @@ pub fn linked_list_new() -> Vec<i32> {
     buf
 }
 
-/// Push a value to the front of the list. O(1).
+/// Push a value to the front of the legacy i32 list. O(1).
 pub fn linked_list_push_front(buf: Vec<i32>, value: i32) {
     let node = alloc_node(buf)
     set_slot_value(buf, node, value)
@@ -169,7 +175,7 @@ pub fn linked_list_push_front(buf: Vec<i32>, value: i32) {
     set_header_count(buf, header_count(buf) + 1)
 }
 
-/// Push a value to the back of the list. O(1).
+/// Push a value to the back of the legacy i32 list. O(1).
 pub fn linked_list_push_back(buf: Vec<i32>, value: i32) {
     let node = alloc_node(buf)
     set_slot_value(buf, node, value)
@@ -184,7 +190,7 @@ pub fn linked_list_push_back(buf: Vec<i32>, value: i32) {
     set_header_count(buf, header_count(buf) + 1)
 }
 
-/// Pop and return the front value, or `fallback` if empty. O(1).
+/// Pop and return the front value of the legacy i32 list, or `fallback` if empty. O(1).
 pub fn linked_list_pop_front(buf: Vec<i32>, fallback: i32) -> i32 {
     let head = header_head(buf)
     if head == NIL {
@@ -203,7 +209,7 @@ pub fn linked_list_pop_front(buf: Vec<i32>, fallback: i32) -> i32 {
     value
 }
 
-/// Pop and return the back value, or `fallback` if empty. O(1).
+/// Pop and return the back value of the legacy i32 list, or `fallback` if empty. O(1).
 pub fn linked_list_pop_back(buf: Vec<i32>, fallback: i32) -> i32 {
     let tail = header_tail(buf)
     if tail == NIL {
@@ -222,7 +228,7 @@ pub fn linked_list_pop_back(buf: Vec<i32>, fallback: i32) -> i32 {
     value
 }
 
-/// Peek the front value without removing it, or `fallback` if empty. O(1).
+/// Peek the front value of the legacy i32 list, or `fallback` if empty. O(1).
 pub fn linked_list_front(buf: Vec<i32>, fallback: i32) -> i32 {
     let head = header_head(buf)
     if head == NIL {
@@ -231,7 +237,7 @@ pub fn linked_list_front(buf: Vec<i32>, fallback: i32) -> i32 {
     slot_value(buf, head)
 }
 
-/// Peek the back value without removing it, or `fallback` if empty. O(1).
+/// Peek the back value of the legacy i32 list, or `fallback` if empty. O(1).
 pub fn linked_list_back(buf: Vec<i32>, fallback: i32) -> i32 {
     let tail = header_tail(buf)
     if tail == NIL {
@@ -240,17 +246,17 @@ pub fn linked_list_back(buf: Vec<i32>, fallback: i32) -> i32 {
     slot_value(buf, tail)
 }
 
-/// Return the number of elements in the list. O(1).
+/// Return the number of elements in the legacy i32 list. O(1).
 pub fn linked_list_len(buf: Vec<i32>) -> i32 {
     header_count(buf)
 }
 
-/// Return true if the list is empty. O(1).
+/// Return true if the legacy i32 list is empty. O(1).
 pub fn linked_list_is_empty(buf: Vec<i32>) -> bool {
     header_count(buf) == 0
 }
 
-/// Remove all elements from the list. O(1) (resets headers).
+/// Remove all elements from the legacy i32 list. O(1) (resets headers).
 pub fn linked_list_clear(buf: Vec<i32>) {
     set_header_head(buf, NIL)
     set_header_tail(buf, NIL)
@@ -259,7 +265,7 @@ pub fn linked_list_clear(buf: Vec<i32>) {
     // Note: capacity stays; node slots are reused on next push.
 }
 
-/// Convert the list to a `Vec<T>` in front-to-back order. O(n).
+/// Copy the legacy i32 list into a `Vec<i32>` in front-to-back order. O(n).
 pub fn linked_list_to_vec(buf: Vec<i32>) -> Vec<i32> {
     let result = Vec::new<i32>()
     let mut node = header_head(buf)
@@ -663,9 +669,75 @@ impl<T: Clone> Clone for LinkedList<T> {
     }
 }
 
+/// Equality compares length and logical front-to-back order.
+///
+/// The node-pool capacity and recycled slots are storage state, not list
+/// state, so the same logical list compares equal (ADR-086 §6).
+impl<T: Eq> Eq for LinkedList<T> {
+    fn eq(self: LinkedList<T>, other: LinkedList<T>) -> bool {
+        if self.length != other.length {
+            return false
+        }
+        let mut left: i32 = self.head
+        let mut right: i32 = other.head
+        while left != NIL {
+            // Read the value log inline rather than through
+            // `linked_list_value_at`: the helper return loses the concrete
+            // element type in the monomorphised impl, and the `eq` call then
+            // validates with a boxed ABI on wasm32-gc.
+            let left_value: T = get_unchecked(self.values, get_unchecked(self.node_values, left))
+            let right_value: T = get_unchecked(other.values, get_unchecked(other.node_values, right))
+            if !left_value.eq(right_value) {
+                return false
+            }
+            left = get_unchecked(self.next_links, left)
+            right = get_unchecked(other.next_links, right)
+        }
+        true
+    }
+}
+
 impl<T: Debug> Debug for LinkedList<T> {
     fn fmt_debug(self: LinkedList<T>) -> String {
         text::concat(String_from("LinkedList "), linked_list_debug_items(self))
+    }
+}
+
+// ADR-078 §3 permits at most one parametric impl per (trait, self
+// constructor), so `LinkedList<T>` cannot also implement the other ADR-086 §6
+// sources (`LinkedListIter<T>` / `LinkedListIntoIter<T>`). `VecIter<T>` is the
+// uniform cross-collection source, so it is the implemented one.
+impl<T> FromIterator<VecIter<T>> for LinkedList<T> {
+    fn from_iter(it: VecIter<T>) -> LinkedList<T> {
+        let values: Vec<T> = it.collect()
+        let count: i32 = len(values)
+        let node_values: Vec<i32> = Vec::new<i32>()
+        let prev_links: Vec<i32> = Vec::new<i32>()
+        let next_links: Vec<i32> = Vec::new<i32>()
+        // The value log is already in traversal order, so node `i` owns value
+        // `i` and the links are simply the adjacent indices. Building the pool
+        // from indices keeps this path free of element movement.
+        let mut index: i32 = 0
+        while index < count {
+            push(node_values, index)
+            push(prev_links, index - 1)
+            push(next_links, index + 1)
+            index = index + 1
+        }
+        if count > 0 {
+            set(next_links, count - 1, NIL)
+        }
+        let head: i32 = if count > 0 { 0 } else { NIL }
+        LinkedList {
+            values: values,
+            node_values: node_values,
+            prev_links: prev_links,
+            next_links: next_links,
+            head: head,
+            tail: count - 1,
+            free_head: NIL,
+            length: count
+        }
     }
 }
 

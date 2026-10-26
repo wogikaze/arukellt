@@ -49,11 +49,11 @@ that other stdlib modules build upon.
 
 ### `std::core` — Public Types
 
-| Name | Kind | Summary |
-|------|------|---------|
-| `Ordering` | `enum` | Ordering relationship between two values. |
-| `Range` | `struct` | Half-open integer range [start, end). |
-| `RangeInclusive` | `struct` | Closed integer range [start, end]. |
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Ordering` | `enum` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - | Ordering relationship between two values. |
+| `Range` | `struct` | `contains`, `len` | - | Half-open integer range [start, end). |
+| `RangeInclusive` | `struct` | - | - | Closed integer range [start, end]. |
 
 ### `std::core` — Public API
 

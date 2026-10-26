@@ -24,10 +24,18 @@
 //! alive. Do not structurally modify a collection during iteration; the
 //! borrow / lifetime design will enforce this later (ADR-086 §5).
 //!
+//! `FromIterator<VecIter<T>>` fills the logical front-to-back order from a
+//! `Vec` cursor and `Eq` compares length plus that order while ignoring the
+//! capacity reservation. ADR-078 §3 allows one parametric impl per
+//! (trait, self constructor), so the collection's own cursors cannot be added
+//! as further `FromIterator` sources; the shared `VecIter<T>` source is used
+//! for `Deque`, `Queue`, and `Stack`.
+//!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::core::iter
 use std::core::clone
+use std::core::cmp
 use std::core::convert
 use std::text
 
@@ -63,6 +71,37 @@ fn deque_replace_at<T>(deque: Deque<T>, index: i32, value: T) -> T {
     let old: T = get_unchecked(deque.back_items, slot)
     set(deque.back_items, slot, value)
     old
+}
+
+// Logical-order equality shared by `Deque`, `Queue`, and `Stack`. Comparing
+// the two stacks slot by slot would report `[front 1, 2]` and `[back 1, 2]`
+// as different even though both read front to back as `1, 2`, so each side
+// maps its logical index onto whichever stack currently owns that element.
+fn deque_items_eq<T: Eq>(left: Deque<T>, right: Deque<T>) -> bool {
+    let left_front: i32 = len(left.front_items)
+    let right_front: i32 = len(right.front_items)
+    let count: i32 = left_front + len(left.back_items)
+    if count != right_front + len(right.back_items) {
+        return false
+    }
+    let mut index: i32 = 0
+    while index < count {
+        let left_value: T = if index < left_front {
+            get_unchecked(left.front_items, left_front - 1 - index)
+        } else {
+            get_unchecked(left.back_items, index - left_front)
+        }
+        let right_value: T = if index < right_front {
+            get_unchecked(right.front_items, right_front - 1 - index)
+        } else {
+            get_unchecked(right.back_items, index - right_front)
+        }
+        if !left_value.eq(right_value) {
+            return false
+        }
+        index = index + 1
+    }
+    true
 }
 
 fn normalized_capacity(capacity: i32) -> i32 {
@@ -401,9 +440,36 @@ impl<T: Clone> Clone for Deque<T> {
     }
 }
 
+/// Equality compares length and logical front-to-back order.
+///
+/// The capacity reservation is storage state, not collection state, so a
+/// reserved-but-empty deque equals an unreserved empty deque (ADR-086 §6).
+impl<T: Eq> Eq for Deque<T> {
+    fn eq(self: Deque<T>, other: Deque<T>) -> bool {
+        deque_items_eq(self, other)
+    }
+}
+
 impl<T: Debug> Debug for Deque<T> {
     fn fmt_debug(self: Deque<T>) -> String {
         text::concat(String_from("Deque "), deque_debug_items(self))
+    }
+}
+
+// ADR-078 §3 permits at most one parametric impl per (trait, self
+// constructor), so `Deque<T>` cannot also implement the other ADR-086 §6
+// sources (`DequeIter<T>` / `DequeIntoIter<T>`): they would overlap on the
+// same constructor head. `Vec` is the one producer that feeds every
+// collection kind, so the shared `VecIter<T>` source is the implemented one.
+impl<T> FromIterator<VecIter<T>> for Deque<T> {
+    fn from_iter(it: VecIter<T>) -> Deque<T> {
+        let items: Vec<T> = it.collect()
+        let count: i32 = len(items)
+        Deque {
+            front_items: Vec::new<T>(),
+            back_items: items,
+            reserved: count
+        }
     }
 }
 
@@ -535,6 +601,26 @@ impl<T: Debug> Debug for Queue<T> {
     }
 }
 
+impl<T: Eq> Eq for Queue<T> {
+    fn eq(self: Queue<T>, other: Queue<T>) -> bool {
+        deque_items_eq(self.deque, other.deque)
+    }
+}
+
+impl<T> FromIterator<VecIter<T>> for Queue<T> {
+    fn from_iter(it: VecIter<T>) -> Queue<T> {
+        let items: Vec<T> = it.collect()
+        let count: i32 = len(items)
+        Queue {
+            deque: Deque {
+                front_items: Vec::new<T>(),
+                back_items: items,
+                reserved: count
+            }
+        }
+    }
+}
+
 /// Last-in first-out stack backed by `Deque<T>`.
 ///
 /// `push` appends at the back, and `pop` / `peek` address the back. `iter`
@@ -637,5 +723,25 @@ impl<T: Debug> Debug for Stack<T> {
     fn fmt_debug(self: Stack<T>) -> String {
         let rendered: String = self.deque.fmt_debug()
         text::concat(String_from("Stack "), slice(rendered, 6, len(rendered)))
+    }
+}
+
+impl<T: Eq> Eq for Stack<T> {
+    fn eq(self: Stack<T>, other: Stack<T>) -> bool {
+        deque_items_eq(self.deque, other.deque)
+    }
+}
+
+impl<T> FromIterator<VecIter<T>> for Stack<T> {
+    fn from_iter(it: VecIter<T>) -> Stack<T> {
+        let items: Vec<T> = it.collect()
+        let count: i32 = len(items)
+        Stack {
+            deque: Deque {
+                front_items: Vec::new<T>(),
+                back_items: items,
+                reserved: count
+            }
+        }
     }
 }

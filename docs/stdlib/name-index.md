@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 791
-- **Historical/deprecated names:** 19
-- **Total entries:** 810
+- **Canonical names:** 780
+- **Historical/deprecated names:** 41
+- **Total entries:** 821
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -199,17 +199,6 @@ Current public API names, sorted alphabetically.
 | `cursor_new` | `std::bytes` | `stable` | Bytes |
 | `cursor_pos` | `std::bytes` | `stable` | Bytes |
 | `cursor_remaining` | `std::bytes` | `stable` | Bytes |
-| `deque_back` | `std::collections::linear` | `stable` | Collections |
-| `deque_clear` | `std::collections::linear` | `stable` | Collections |
-| `deque_front` | `std::collections::linear` | `stable` | Collections |
-| `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
-| `deque_len` | `std::collections::linear` | `stable` | Collections |
-| `deque_new` | `std::collections::linear` | `stable` | Collections |
-| `deque_pop_back` | `std::collections::linear` | `stable` | Collections |
-| `deque_pop_front` | `std::collections::linear` | `stable` | Collections |
-| `deque_push_back` | `std::collections::linear` | `stable` | Collections |
-| `deque_push_front` | `std::collections::linear` | `stable` | Collections |
-| `deque_to_vec` | `std::collections::linear` | `stable` | Collections |
 | `div` | `std::simd::f32x4` | `experimental` | Simd |
 | `div` | `std::simd::f64x2` | `experimental` | Simd |
 | `duration_ms` | `std::time` | `stable` | Time |
@@ -825,10 +814,32 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`char_at`~~ | `byte_at` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_is_empty`~~ | `Deque::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_len`~~ | `Deque::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_new`~~ | `Deque::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_pop_back`~~ | `Deque::pop_back` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_pop_front`~~ | `Deque::pop_front` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_push_back`~~ | `Deque::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_push_front`~~ | `Deque::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_to_vec`~~ | `Deque::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `std::core::iter::collect_filter_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `std::core::iter::iter_fold_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_back`~~ | `LinkedList::back` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_clear`~~ | `LinkedList::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_front`~~ | `LinkedList::front` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_is_empty`~~ | `LinkedList::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_len`~~ | `LinkedList::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_new`~~ | `LinkedList::new` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_pop_back`~~ | `LinkedList::pop_back` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_pop_front`~~ | `LinkedList::pop_front` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_push_back`~~ | `LinkedList::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_push_front`~~ | `LinkedList::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_to_vec`~~ | `LinkedList::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
@@ -1031,17 +1042,17 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `cursor_new` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_pos` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_remaining` | ✅ `stable` | `std::bytes` | Bytes |
-| `deque_back` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_clear` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_front` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_len` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_new` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_pop_back` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_pop_front` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_push_back` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_push_front` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_to_vec` | ✅ `stable` | `std::collections::linear` | Collections |
+| ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
+| ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
+| ~~`deque_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::front` · [migration guide](migration-guidance.md) |
+| ~~`deque_is_empty`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::is_empty` · [migration guide](migration-guidance.md) |
+| ~~`deque_len`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::len` · [migration guide](migration-guidance.md) |
+| ~~`deque_new`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::new` · [migration guide](migration-guidance.md) |
+| ~~`deque_pop_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::pop_back` · [migration guide](migration-guidance.md) |
+| ~~`deque_pop_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::pop_front` · [migration guide](migration-guidance.md) |
+| ~~`deque_push_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_back` · [migration guide](migration-guidance.md) |
+| ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
+| ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
 | `div` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `div` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `duration_ms` | ✅ `stable` | `std::time` | Time |
@@ -1286,6 +1297,17 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `limits_unbounded` | ✅ `experimental` | `std::wasm` | Wasm |
 | `lines` | ✅ `stable` | `prelude` | String |
 | `lines` | ✅ `stable` | `std::text` | Text |
+| ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::front` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_is_empty`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::is_empty` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_len`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::len` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_new`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::new` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_pop_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::pop_back` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_pop_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::pop_front` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_push_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_back` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_push_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_front` · [migration guide](migration-guidance.md) |
+| ~~`linked_list_to_vec`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::iter` · [migration guide](migration-guidance.md) |
 | `lower_bound` | ✅ `provisional` | `std::seq` | Seq |
 | `lt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |

@@ -934,6 +934,7 @@ run:stdlib_fs/exists_probe_contract.ark
 run:stdlib_fs/host_capability_contract.ark
 run:stdlib_hash/hash_basic.ark
 run:stdlib_deque/deque_basic.ark
+run:stdlib_deque/deque_from_iter_eq.ark
 run:stdlib_deque/deque_iter.ark
 run:stdlib_deque/deque_traits.ark
 run:stdlib_deque/queue_stack.ark
@@ -1290,6 +1291,7 @@ run:stdlib_linear/linear_basic.ark
 run:stdlib_linear/pq_ops.ark
 run:stdlib_linear/pq_sort.ark
 run:stdlib_linked_list/linked_list_basic.ark
+run:stdlib_linked_list/linked_list_from_iter_eq.ark
 run:stdlib_linked_list/linked_list_iter.ark
 run:stdlib_linked_list/linked_list_traits.ark
 run:stdlib_map/map_string.ark
@@ -2332,10 +2334,12 @@ t3-compile:regression/type_table/enum_match_variants.ark
 t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
 t3-compile:stdlib_deque/deque_basic.ark
+t3-compile:stdlib_deque/deque_from_iter_eq.ark
 t3-compile:stdlib_deque/deque_iter.ark
 t3-compile:stdlib_deque/deque_traits.ark
 t3-compile:stdlib_deque/queue_stack.ark
 t3-compile:stdlib_linked_list/linked_list_basic.ark
+t3-compile:stdlib_linked_list/linked_list_from_iter_eq.ark
 t3-compile:stdlib_linked_list/linked_list_iter.ark
 t3-compile:stdlib_linked_list/linked_list_traits.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
@@ -2843,10 +2847,12 @@ t3-run:stdlib_env/env_var_or_default.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_fs/host_capability_contract.ark
 t3-run:stdlib_deque/deque_basic.ark
+t3-run:stdlib_deque/deque_from_iter_eq.ark
 t3-run:stdlib_deque/deque_iter.ark
 t3-run:stdlib_deque/deque_traits.ark
 t3-run:stdlib_deque/queue_stack.ark
 t3-run:stdlib_linked_list/linked_list_basic.ark
+t3-run:stdlib_linked_list/linked_list_from_iter_eq.ark
 t3-run:stdlib_linked_list/linked_list_iter.ark
 t3-run:stdlib_linked_list/linked_list_traits.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark

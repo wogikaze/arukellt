@@ -1,0 +1,12 @@
+Deque [1, 2, 3]
+mirrored equal
+capacity ignored
+unequal detected
+Deque []
+Deque ["alpha", "beta"]
+Queue [1, 2, 3]
+1
+2
+Stack [1, 2, 3]
+3
+3

@@ -3145,6 +3145,7 @@ def render_curated_overview_section(overview: dict, *, overview_only: bool = Fal
 def render_stdlib_module_page(
     page: dict,
     manifest_functions_by_module: dict[str, list[dict]],
+    manifest_types_by_module: dict[str, dict[str, dict]],
     source_modules: dict[str, StdlibSourceModule],
     manifest_modules: dict[str, dict],
 ) -> str:
@@ -3233,19 +3234,45 @@ def render_stdlib_module_page(
 
         type_items = [item for item in source_module.items if item.kind != "fn"]
         if type_items:
+            registered_types = manifest_types_by_module.get(module_name, {})
+            has_member_data = any(
+                registered_types.get(item.name, {}).get("methods")
+                or registered_types.get(item.name, {}).get("trait_impls")
+                for item in type_items
+            )
             lines.extend(
                 [
                     "",
                     f"### `{module_name}` — Public Types",
                     "",
-                    "| Name | Kind | Summary |",
-                    "|------|------|---------|",
                 ]
             )
-            for item in type_items:
-                lines.append(
-                    f"| `{item.name}` | `{item.kind}` | {source_doc_summary(item.docs)} |"
+            if has_member_data:
+                lines.extend(
+                    [
+                        "| Name | Kind | Methods | Trait impls | Summary |",
+                        "|------|------|---------|-------------|---------|",
+                    ]
                 )
+                for item in type_items:
+                    entry = registered_types.get(item.name, {})
+                    methods = ", ".join(f"`{name}`" for name in entry.get("methods", [])) or "-"
+                    impls = ", ".join(f"`{name}`" for name in entry.get("trait_impls", [])) or "-"
+                    lines.append(
+                        f"| `{item.name}` | `{item.kind}` | {methods} | {impls} | "
+                        f"{source_doc_summary(item.docs)} |"
+                    )
+            else:
+                lines.extend(
+                    [
+                        "| Name | Kind | Summary |",
+                        "|------|------|---------|",
+                    ]
+                )
+                for item in type_items:
+                    lines.append(
+                        f"| `{item.name}` | `{item.kind}` | {source_doc_summary(item.docs)} |"
+                    )
 
         if not functions:
             lines.extend(["", "_No manifest-backed functions in this module._"])
@@ -4569,6 +4596,15 @@ def main() -> int:
     manifest_modules_by_name: dict[str, dict] = {
         mod["name"]: mod for mod in manifest.get("modules", []) if "name" in mod
     }
+    # Module pages show the registered methods / trait impls next to each
+    # declared type so a reader does not have to jump to the reference page
+    # (ADR-086 §7). Types without registry members keep the two-column table.
+    manifest_types_by_module: dict[str, dict[str, dict]] = defaultdict(dict)
+    for entry in manifest.get("types", []):
+        module_name = entry.get("module")
+        type_name = entry.get("name")
+        if module_name and type_name:
+            manifest_types_by_module[module_name][type_name] = entry
     source_modules = collect_stdlib_source_modules()
     examples = collect_examples(state)
     fixture_total = fixture_count()
@@ -4676,7 +4712,13 @@ def main() -> int:
     for page in STDLIB_MODULE_PAGES:
         write_file(
             DOCS / "stdlib" / page["path"],
-            render_stdlib_module_page(page, manifest_functions_by_module, source_modules, manifest_modules_by_name),
+            render_stdlib_module_page(
+                page,
+                manifest_functions_by_module,
+                manifest_types_by_module,
+                source_modules,
+                manifest_modules_by_name,
+            ),
             args.check,
             stale,
         )

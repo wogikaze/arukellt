@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 389 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 378 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 319 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 41 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -85,7 +85,7 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
-| `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `Clone`, `Debug` |
+| `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
@@ -96,17 +96,17 @@
 | `Iterator` | `next`, `collect`, `count` | - |
 | `IteratorFold` | `fold` | - |
 | `IteratorSum` | `sum` | - |
-| `LinkedList` | `new`, `push_front`, `push_back`, `pop_front`, `pop_back`, `front`, `back`, `len`, `is_empty`, `clear`, `iter`, `iter_mut` | `IntoIterator`, `Clone`, `Debug` |
+| `LinkedList` | `new`, `push_front`, `push_back`, `pop_front`, `pop_back`, `front`, `back`, `len`, `is_empty`, `clear`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `LinkedListIntoIter` | - | `Iterator`, `IntoIterator` |
 | `LinkedListIter` | - | `Iterator`, `IntoIterator` |
 | `LinkedListIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
-| `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `Clone`, `Debug` |
+| `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Range` | `contains`, `len` | - |
 | `Read` | `read` | - |
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Seek` | `seek`, `position` | - |
-| `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `Clone`, `Debug` |
+| `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
 
@@ -255,17 +255,17 @@
 | `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
-| `deque_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
-| `deque_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
-| `deque_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return true if the deque contains no elements. |
-| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the number of elements in the deque. |
-| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Append a value to the back of the deque. |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Prepend a value to the front of the deque. |
-| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
+| ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
+| ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
+| ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
+| ~~`deque_is_empty`~~ ⚠️ Deprecated → `Deque::is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return true if the deque contains no elements. |
+| ~~`deque_len`~~ ⚠️ Deprecated → `Deque::len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return the number of elements in the deque. |
+| ~~`deque_new`~~ ⚠️ Deprecated → `Deque::new` | `() -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
+| ~~`deque_pop_back`~~ ⚠️ Deprecated → `Deque::pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
+| ~~`deque_pop_front`~~ ⚠️ Deprecated → `Deque::pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
+| ~~`deque_push_back`~~ ⚠️ Deprecated → `Deque::push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Append a value to the back of the deque. |
+| ~~`deque_push_front`~~ ⚠️ Deprecated → `Deque::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Prepend a value to the front of the deque. |
+| ~~`deque_to_vec`~~ ⚠️ Deprecated → `Deque::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
@@ -335,6 +335,17 @@
 | `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Look up the String for a given Symbol, or None if out of range. |
 | `interner_new` | `() -> Vec<String>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new Interner (value<->Symbol bidirectional map). |
 | `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
+| ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
+| ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |
+| ~~`linked_list_front`~~ ⚠️ Deprecated → `LinkedList::front` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the front value of the legacy i32 list, or the caller's fallback when empty. |
+| ~~`linked_list_is_empty`~~ ⚠️ Deprecated → `LinkedList::is_empty` | `(Vec<i32>) -> bool` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Return true when the legacy i32 list is empty. |
+| ~~`linked_list_len`~~ ⚠️ Deprecated → `LinkedList::len` | `(Vec<i32>) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Return the number of elements in the legacy i32 list. |
+| ~~`linked_list_new`~~ ⚠️ Deprecated → `LinkedList::new` | `() -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty monomorphic i32 list over a Vec<i32> node pool. |
+| ~~`linked_list_pop_back`~~ ⚠️ Deprecated → `LinkedList::pop_back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Pop the back value of the legacy i32 list, or the caller's fallback when empty. |
+| ~~`linked_list_pop_front`~~ ⚠️ Deprecated → `LinkedList::pop_front` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Pop the front value of the legacy i32 list, or the caller's fallback when empty. |
+| ~~`linked_list_push_back`~~ ⚠️ Deprecated → `LinkedList::push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the back of the legacy i32 list. |
+| ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the front of the legacy i32 list. |
+| ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
 | `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
 | `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
 | `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
@@ -1253,7 +1264,7 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **19 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **41 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1261,10 +1272,32 @@ Expected output: `hello world`
 | ~~`char_at`~~ | `byte_at` | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_is_empty`~~ | `Deque::is_empty` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_len`~~ | `Deque::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_new`~~ | `Deque::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_pop_back`~~ | `Deque::pop_back` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_pop_front`~~ | `Deque::pop_front` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
+| ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `std::core::iter::collect_filter_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `std::core::iter::iter_fold_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_front`~~ | `LinkedList::front` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_is_empty`~~ | `LinkedList::is_empty` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_len`~~ | `LinkedList::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_new`~~ | `LinkedList::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_pop_back`~~ | `LinkedList::pop_back` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_pop_front`~~ | `LinkedList::pop_front` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_push_back`~~ | `LinkedList::push_back` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_push_front`~~ | `LinkedList::push_front` | [migration-guidance.md](migration-guidance.md) |
+| ~~`linked_list_to_vec`~~ | `LinkedList::iter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`map_i32_i32`~~ | `std::core::iter::collect_map_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |

@@ -16,9 +16,9 @@ Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
 **Real surface denominator:** 1430 `pub fn` declarations under
-`std/**/*.ark`; 983 map to a manifest entry and
-447 are unregistered. Eradication scope = 810 manifest
-public entries + 447 unregistered declarations = **1257 symbols**.
+`std/**/*.ark`; 994 map to a manifest entry and
+436 are unregistered. Eradication scope = 821 manifest
+public entries + 436 unregistered declarations = **1257 symbols**.
 
 ## Scorecard
 
@@ -26,9 +26,9 @@ public entries + 447 unregistered declarations = **1257 symbols**.
 |--------|-------|------|
 | Eradication-scope symbols (real std surface) | 1257 | 0 |
 | `pub fn` declarations under `std/**/*.ark` | 1430 | — |
-| Unregistered std declarations (no manifest entry) | 447 | 0 |
+| Unregistered std declarations (no manifest entry) | 436 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 810 | 0 |
+| Manifest public entries (registered scope) | 821 | 0 |
 | `prelude_wrapper` entries | 98 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 148 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -37,8 +37,8 @@ public entries + 447 unregistered declarations = **1257 symbols**.
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 106 |
-| `associated-or-method` | Replacement must land as method/associated first | 1151 |
+| `must delete` | Replacement already exists or functionality retires | 128 |
+| `associated-or-method` | Replacement must land as method/associated first | 1129 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -64,6 +64,8 @@ registered entries and unregistered `pub fn` declarations.
 | monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 34 | 0 | Iterator methods / generic std::seq equivalents |
 | monomorphic numeric conversions | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 17 | 0 | From/Into associated conversions |
 | monomorphic HashMap builtins | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 20 | 0 | impl HashMap<K,V> methods (new/insert/get/contains_key/remove/len/is_empty) already exist; retire after the ADR-014 deprecation window |
+| legacy linear deque frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window |
+| legacy linked_list frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8 |
 | deprecated std::seq helpers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 13 | 0 | Iterator adapters / Vec methods (#691) |
 | deprecated module frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 2 | 0 | module-associated equivalents |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 54 | 0 | method / associated equivalent on the receiver or namespace type |
@@ -71,7 +73,7 @@ registered entries and unregistered `pub fn` declarations.
 | std::test assert frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 18 | 0 | std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
 | std::core::iter frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 44 | 0 | Iterator trait methods / adapter associated fns |
-| std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 111 | 31 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
+| std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
 | std::text frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 47 | 11 | String/str methods, Builder methods, Rope methods |
 | std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 53 | 42 | Json/Toml/Csv value methods and associated parse/stringify |
 | std::bytes frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 45 | 8 | Bytes/Buf/Cursor methods and associated encoders |
@@ -175,6 +177,28 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `u32_to_u64` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `u64_to_u32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `u8_to_i32` | `(prelude)` | `must delete` | monomorphic numeric conversions | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `deque_back` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_clear` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_front` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_is_empty` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_len` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_new` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_pop_back` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_pop_front` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_push_back` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_push_front` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `deque_to_vec` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_back` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_clear` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_front` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_is_empty` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_len` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_new` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_pop_back` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_pop_front` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_push_back` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_push_front` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
+| `linked_list_to_vec` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
 | `get_var` | `std::env` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `exists` | `std::host::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `binary_search` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
@@ -354,17 +378,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `hashset_str_remove` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_to_vec` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_union` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_back` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_clear` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_front` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_is_empty` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_len` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_new` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_pop_back` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_pop_front` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_push_back` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_push_front` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_to_vec` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pq_clear` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pq_is_empty` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pq_len` | `std::collections::linear` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -1051,17 +1064,6 @@ manifest-only scorecard could not see before #703.
 | `hashmap_str_str_entries` | `std/collections/hash_string.ark:622` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashmap_str_val_set` | `std/collections/hash_string.ark:637` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashmap_str_val_get` | `std/collections/hash_string.ark:641` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_new` | `std/collections/linked_list.ark:147` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_push_front` | `std/collections/linked_list.ark:158` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_push_back` | `std/collections/linked_list.ark:173` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_pop_front` | `std/collections/linked_list.ark:188` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_pop_back` | `std/collections/linked_list.ark:207` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_front` | `std/collections/linked_list.ark:226` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_back` | `std/collections/linked_list.ark:235` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_len` | `std/collections/linked_list.ark:244` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_is_empty` | `std/collections/linked_list.ark:249` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_clear` | `std/collections/linked_list.ark:254` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `linked_list_to_vec` | `std/collections/linked_list.ark:263` | `std::collections::linked_list` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `btree_set_find_idx` | `std/collections/ordered.ark:164` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sort` | `std/collections/sort.ark:46` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
 | `sort_by_key` | `std/collections/sort.ark:64` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
