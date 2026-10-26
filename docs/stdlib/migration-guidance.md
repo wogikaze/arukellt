@@ -386,15 +386,27 @@ let buf = Vec::with_capacity<i32>(64)
 
 ### Sort
 
-`sort<T>(v)` is not a public generic free function; the target shape is a
-`Vec<T>` method (`v.sort()`), which is planned under #697.
+`sort<T>(v)` is not a public generic free function; the canonical shape is
+the `Vec<T>` method surface from `std::collections::vec`. The comparator and
+key forms landed under #697:
 
 | Old API | Replacement |
 |---------|-------------|
-| `sort_i32(v)` | `v.sort()` *(planned, #697)* |
-| `sort_i64(v)` | `v.sort()` *(planned, #697)* |
-| `sort_f64(v)` | `v.sort()` *(planned, #697)* |
-| `sort_String(v)` | `v.sort()` *(planned, #697)* |
+| `sort_i32(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
+| `sort_i64(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
+| `sort_f64(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
+| `sort_String(v)` | `v.sort_by(cmp)` / `v.sort_by_key(key)` |
+
+The no-argument `v.sort()`, plus `is_sorted`, `dedup`, `binary_search_by`, and
+`select_nth`, are not shipped yet. Both an `Ord`-bounded inherent impl on
+`Vec<T>` and a concrete `impl Vec<i32>` lower to an unreachable body with the
+current selfhost compiler, so those methods stay as the #697 residual and the
+monomorphic wrappers remain available. The comparator surface that does work is
+`sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`,
+`dedup_by`, `partition`, `is_sorted_by`, and `binary_search_by_key`. Window and
+chunk helpers (`windows`, `chunks`, `chunks_exact`) return an eager
+`Vec<Vec<T>>`; `resize` and `extend` copy element handles without a `Clone`
+bound, and `drain` / `splice` return the removed elements as an owned `Vec<T>`.
 
 **Before:**
 
@@ -408,9 +420,9 @@ sort_String(names)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-// Target method shape; Vec::sort lands with #697.
-numbers.sort()
-names.sort()
+// Comparator forms are available from std::collections::vec (#697).
+numbers.sort_by(cmp)
+names.sort_by(cmp)
 ```
 
 ### Collection Operations (map, filter, fold, etc.)

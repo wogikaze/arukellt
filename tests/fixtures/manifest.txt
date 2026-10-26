@@ -1961,6 +1961,7 @@ run:stdlib_trait/self_return_add.ark
 run:stdlib_trait/self_return_clone.ark
 run:stdlib_trait/try_from_narrow.ark
 run:stdlib_trait/try_from_parse.ark
+run:stdlib_vec/vec_algorithms.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_any_all_match.ark
 run:stdlib_vec/vec_any_first_element.ark
@@ -1998,6 +1999,7 @@ run:stdlib_vec/vec_get_out_of_bounds.ark
 run:stdlib_vec/vec_get_unchecked_first.ark
 run:stdlib_vec/vec_get_unchecked_last.ark
 run:stdlib_vec/vec_get_unchecked_middle.ark
+run:stdlib_vec/vec_in_place.ark
 run:stdlib_vec/vec_is_empty_after_pop_all.ark
 run:stdlib_vec/vec_is_empty_after_push.ark
 run:stdlib_vec/vec_is_empty_new.ark
@@ -2078,6 +2080,7 @@ run:stdlib_vec/vec_stress_sort_100.ark
 run:stdlib_vec/vec_sum_basic.ark
 run:stdlib_vec/vec_sum_empty.ark
 run:stdlib_vec/vec_sum_negative.ark
+run:stdlib_vec/vec_windows_chunks.ark
 run:stdlib_vec_ops/contains_i32.ark
 run:stdlib_vec_ops/contains_string.ark
 run:stdlib_vec_ops/product_i32.ark
@@ -2497,6 +2500,7 @@ t3-compile:stdlib_trait/self_return_add.ark
 t3-compile:stdlib_trait/operator_generic.ark
 t3-compile:stdlib_trait/self_return_clone.ark
 t3-compile:stdlib_trait/clone_unbound_typevar.ark
+t3-compile:stdlib_vec/vec_algorithms.ark
 t3-compile:stdlib_vec/any_find.ark
 t3-compile:stdlib_vec/vec_any_all_match.ark
 t3-compile:stdlib_vec/vec_any_first_element.ark
@@ -2534,6 +2538,7 @@ t3-compile:stdlib_vec/vec_get_out_of_bounds.ark
 t3-compile:stdlib_vec/vec_get_unchecked_first.ark
 t3-compile:stdlib_vec/vec_get_unchecked_last.ark
 t3-compile:stdlib_vec/vec_get_unchecked_middle.ark
+t3-compile:stdlib_vec/vec_in_place.ark
 t3-compile:stdlib_vec/vec_is_empty_after_pop_all.ark
 t3-compile:stdlib_vec/vec_is_empty_after_push.ark
 t3-compile:stdlib_vec/vec_is_empty_new.ark
@@ -2614,6 +2619,7 @@ t3-compile:stdlib_vec/vec_stress_sort_100.ark
 t3-compile:stdlib_vec/vec_sum_basic.ark
 t3-compile:stdlib_vec/vec_sum_empty.ark
 t3-compile:stdlib_vec/vec_sum_negative.ark
+t3-compile:stdlib_vec/vec_windows_chunks.ark
 t3-compile:stdlib_vec_ops/contains_i32.ark
 t3-compile:stdlib_vec_ops/contains_string.ark
 t3-compile:stdlib_vec_ops/product_i32.ark
@@ -3020,6 +3026,7 @@ t3-run:stdlib_trait/self_return_clone.ark
 t3-run:stdlib_trait/clone_unbound_typevar.ark
 t3-run:stdlib_trait/try_from_narrow.ark
 t3-run:stdlib_trait/try_from_parse.ark
+t3-run:stdlib_vec/vec_algorithms.ark
 t3-run:stdlib_vec/any_find.ark
 t3-run:stdlib_vec/vec_any_all_match.ark
 t3-run:stdlib_vec/vec_any_first_element.ark
@@ -3057,6 +3064,7 @@ t3-run:stdlib_vec/vec_get_out_of_bounds.ark
 t3-run:stdlib_vec/vec_get_unchecked_first.ark
 t3-run:stdlib_vec/vec_get_unchecked_last.ark
 t3-run:stdlib_vec/vec_get_unchecked_middle.ark
+t3-run:stdlib_vec/vec_in_place.ark
 t3-run:stdlib_vec/vec_is_empty_after_pop_all.ark
 t3-run:stdlib_vec/vec_is_empty_after_push.ark
 t3-run:stdlib_vec/vec_is_empty_new.ark
@@ -3136,6 +3144,7 @@ t3-run:stdlib_vec/vec_stress_sort_100.ark
 t3-run:stdlib_vec/vec_sum_basic.ark
 t3-run:stdlib_vec/vec_sum_empty.ark
 t3-run:stdlib_vec/vec_sum_negative.ark
+t3-run:stdlib_vec/vec_windows_chunks.ark
 t3-run:stdlib_vec_ops/contains_i32.ark
 t3-run:stdlib_vec_ops/contains_string.ark
 t3-run:stdlib_vec_ops/product_i32.ark

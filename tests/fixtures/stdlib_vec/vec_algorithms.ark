@@ -1,0 +1,108 @@
+// Vec<T> comparator and key algorithms: sort variants, dedup_by, binary
+// search by key, and partition.
+use std::collections::vec
+use std::core
+use std::core::cmp
+use std::host::stdio
+
+fn ascending(a: i32, b: i32) -> Ordering {
+    a.cmp(b)
+}
+
+fn descending(a: i32, b: i32) -> Ordering {
+    b.cmp(a)
+}
+
+fn negate_key(value: i32) -> i32 {
+    0 - value
+}
+
+fn identity(value: i32) -> i32 {
+    value
+}
+
+fn same_value(a: i32, b: i32) -> Ordering {
+    if a == b {
+        Ordering::Equal
+    } else {
+        Ordering::Less
+    }
+}
+
+fn same_parity(a: i32, b: i32) -> Ordering {
+    if a % 2 == b % 2 {
+        Ordering::Equal
+    } else {
+        Ordering::Less
+    }
+}
+
+fn is_even(value: i32) -> bool {
+    value % 2 == 0
+}
+
+fn print_values(values: Vec<i32>) {
+    let mut i: i32 = 0
+    while i < len(values) {
+        stdio::println((get_unchecked(values, i)).to_string())
+        i = i + 1
+    }
+}
+
+fn main() {
+    let sorted: Vec<i32> = Vec::new<i32>()
+    push(sorted, 30)
+    push(sorted, 10)
+    push(sorted, 20)
+    sorted.sort_by(descending)
+    stdio::println(sorted.is_sorted_by(descending).to_string())
+    stdio::println(sorted.is_sorted_by(ascending).to_string())
+    print_values(sorted)
+    sorted.sort_by_key(negate_key)
+    print_values(sorted)
+    sorted.sort_unstable_by(ascending)
+    print_values(sorted)
+    sorted.sort_unstable_by_key(negate_key)
+    print_values(sorted)
+
+    let deduped: Vec<i32> = Vec::new<i32>()
+    push(deduped, 1)
+    push(deduped, 1)
+    push(deduped, 2)
+    push(deduped, 3)
+    push(deduped, 3)
+    push(deduped, 3)
+    push(deduped, 4)
+    deduped.dedup_by(same_value)
+    stdio::println((len(deduped)).to_string())
+    print_values(deduped)
+
+    let parity: Vec<i32> = Vec::new<i32>()
+    push(parity, 1)
+    push(parity, 3)
+    push(parity, 2)
+    push(parity, 4)
+    push(parity, 6)
+    push(parity, 5)
+    parity.dedup_by(same_parity)
+    stdio::println((len(parity)).to_string())
+    print_values(parity)
+
+    let search: Vec<i32> = Vec::new<i32>()
+    push(search, 10)
+    push(search, 20)
+    push(search, 20)
+    push(search, 30)
+    stdio::println((search.binary_search_by_key(30, identity)).to_string())
+    stdio::println((search.binary_search_by_key(15, identity)).to_string())
+
+    let partitioned: Vec<i32> = Vec::new<i32>()
+    push(partitioned, 1)
+    push(partitioned, 2)
+    push(partitioned, 3)
+    push(partitioned, 4)
+    push(partitioned, 5)
+    push(partitioned, 6)
+    stdio::println((partitioned.partition(is_even)).to_string())
+    print_values(partitioned)
+}

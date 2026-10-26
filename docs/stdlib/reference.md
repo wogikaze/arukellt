@@ -107,6 +107,7 @@
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend` | - |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
 
