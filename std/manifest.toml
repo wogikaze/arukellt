@@ -2557,7 +2557,7 @@ availability = { t1 = true, t3 = true, note = "Honest rejection." }
 name = "std::host::fs"
 stability = "stable"
 family = "host"
-doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are whole-file I/O. is_readable_file/exists are read-probes (NOT path-existence). is_dir is an explicit unsupported stub. fd_* helpers are experimental `wasm32`-only."
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, read_bytes, write_string, write_bytes are whole-file I/O. File is a read-only whole-file image handle implementing std::io Read and Seek. is_readable_file/exists are read-probes (NOT path-existence). is_dir is an explicit unsupported stub. fd_* helpers are experimental `wasm32`-only."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -2572,6 +2572,18 @@ doc = "Read the entire contents of a file at the given path and return them as a
 errors = "Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 examples = [{code = "let txt = fs::read_to_string(\"data.txt\")\nmatch txt { Ok(s) => println(s), Err(e) => eprintln(e) }", description = "Read a text file and print it"}]
+
+[[functions]]
+name = "read_bytes"
+module = "std::host::fs"
+stability = "experimental"
+params = ["String"]
+returns = "Result<Vec<i32>, String>"
+intrinsic = "__runtime_abi_fs_read_file"
+doc_category = "host_fs"
+doc = "Read the entire file at the given path as raw byte values (0–255), preserving NUL and invalid UTF-8."
+errors = "Returns Err if the file does not exist or permission is denied."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
 name = "write_string"
@@ -2670,6 +2682,16 @@ intrinsic = "__intrinsic_fd_fdstat_get"
 doc_category = "host_fs"
 doc = "Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success)."
 availability = { t1 = true, t3 = false, note = "`wasm32` / WASI P1 only." }
+
+[[types]]
+name = "File"
+module = "std::host::fs"
+stability = "experimental"
+prelude = false
+kind = "struct"
+doc = "Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6)."
+methods = ["open", "close"]
+trait_impls = ["Read", "Seek"]
 
 # === std::host::stdio ===
 

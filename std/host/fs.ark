@@ -4,17 +4,93 @@
 //! metadata, directory iteration, and mutation APIs were removed with the
 //! repository-specific host runtime; use an official WASI filesystem WIT
 //! import when those capabilities are required.
+//!
+//! `File` is a whole-file image handle (ADR-085 D6): `File::open` reads the
+//! path's bytes once, and `Read` / `Seek` operate on that image. The host
+//! surface still has no open / read / write / close descriptor API, so the
+//! image is the visibility boundary. `File::create` and the `Write` side are
+//! not part of this read-side phase (#693 Phase D).
+//!
+//! `write_string` and `write_bytes` are defined in the `write` child module and
+//! re-exported here. Keeping them out of this file avoids a resolver collision
+//! between their names and the legacy `std::io` helpers, which would otherwise
+//! be visible through the `std::io` import used by `File`.
+use std::io::{IoError, Read, Reader, Seek, SeekFrom}
+use std::text
+pub use std::host::fs::write::{write_bytes, write_string}
 
 pub fn read_to_string(path: String) -> Result<String, String> {
     __runtime_abi_fs_read_file(path)
 }
 
-pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    __runtime_abi_fs_write_file(path, contents)
+/// Reads the entire file at `path` as raw byte values (0–255).
+///
+/// Unlike `read_to_string`, the result is not decoded: every file byte is
+/// preserved, including NUL and invalid UTF-8. The fs read intrinsic stores
+/// the raw file bytes in the returned `String` without UTF-8 validation, so
+/// `to_utf8_bytes` copies that byte image rather than decoding it. The
+/// whole-file image is the current host capability; this is the byte-oriented
+/// primitive behind `File::open` (#693 Phase D).
+pub fn read_bytes(path: String) -> Result<Vec<i32>, String> {
+    match __runtime_abi_fs_read_file(path) {
+        Result::Ok(contents) => Result::Ok(text::to_utf8_bytes(contents)),
+        Result::Err(message) => Result::Err(message),
+    }
 }
 
-pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
-    __runtime_abi_fs_write_bytes(path, bytes)
+/// Read-only whole-file handle opened from a path.
+///
+/// The file image is loaded once by `open`; later host changes to the path are
+/// not observed. Handles are not `Copy`: moving one into an adapter transfers
+/// ownership. `close` marks the handle unusable instead of silently reopening
+/// the image.
+pub struct File {
+    reader: Reader,
+    closed: bool,
+}
+
+impl File {
+    /// Opens `path` as a read-only byte image.
+    fn open(path: String) -> Result<File, IoError> {
+        match read_bytes(path) {
+            Result::Ok(image) => Ok(File { reader: Reader::from_bytes(image), closed: false }),
+            Result::Err(message) => Err(IoError::Other(message)),
+        }
+    }
+
+    /// Marks the handle closed; later reads and seeks return an error.
+    fn close(self: File) -> Result<(), IoError> {
+        if self.closed {
+            return Err(IoError::Other("file: already closed"))
+        }
+        self.closed = true
+        Ok(())
+    }
+}
+
+impl Read for File {
+    fn read(self: File, max_bytes: i32) -> Result<Vec<i32>, IoError> {
+        if self.closed {
+            return Err(IoError::Other("read: file is closed"))
+        }
+        self.reader.read(max_bytes)
+    }
+}
+
+impl Seek for File {
+    fn seek(self: File, from: SeekFrom) -> Result<i64, IoError> {
+        if self.closed {
+            return Err(IoError::Other("seek: file is closed"))
+        }
+        self.reader.seek(from)
+    }
+
+    fn position(self: File) -> Result<i64, IoError> {
+        if self.closed {
+            return Err(IoError::Other("position: file is closed"))
+        }
+        self.reader.position()
+    }
 }
 
 pub fn exists(path: String) -> bool {

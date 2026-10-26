@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 315 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 83 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 317 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 318 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 97 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -26,6 +26,7 @@
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
+| `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `LinkedList` | T | no | provisional | Doubly-linked list with O(1) push/pop at both ends. |
@@ -89,6 +90,7 @@
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `File` | `open`, `close` | `Read`, `Seek` |
 | `FromIterator` | `from_iter` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
@@ -551,9 +553,14 @@ match home { Some(p) => println(p), None => println("not set") }
 | `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
 | `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
 | `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing … |
+| `read_bytes` | `(String) -> Result<Vec<i32>, String>` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire file at the given path as raw byte values (0–255), preserving NUL and invalid UTF-8. |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+
+### `read_bytes` — `std::host::fs`
+
+**Errors:** Returns Err if the file does not exist or permission is denied.
 
 ### `read_to_string` — `std::host::fs`
 

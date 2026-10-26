@@ -2,6 +2,9 @@ use std::prelude::{byte_at, clone, eq, index_of, substring}
 use std::text
 use corehir::decl_ann_children
 use corehir::decl_impl_target
+use corehir::decl_layout_shape
+use corehir::frontend_fns
+use corehir::semantic_trait_id
 use corehir::type_ann_node
 use corehir::type_ann_local_name
 use corehir::decl_ann_name
@@ -9,6 +12,10 @@ use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::return_ann_shape
 fn return_index_type_name(node: AstNode) -> String {
+    return_index_type_name_with_result_payload(node, true)
+}
+
+fn return_index_type_name_with_result_payload(node: AstNode, encode_result: bool) -> String {
     let child_count = return_ann_shape::return_ann_child_count(node)
     if child_count <= 0 {
         return ""
@@ -86,6 +93,29 @@ fn return_index_type_name(node: AstNode) -> String {
                 return "hashmap:strfn"
             }
         }
+        // Result payloads must survive into the method return spelling so
+        // MIR lowering can type `Ok` / `Err` binds. A bare `Result` made every
+        // impl method returning Result an untyped scrutinee (#693 Phase D).
+        if encode_result && eq(clone(name), "Result") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
+            let ok_ty = decl_ann_children::decl_ann_child_at(ret, 1)
+            let err_ty = decl_ann_children::decl_ann_child_at(ret, 2)
+            let ok_name = decl_layout_shape::decl_layout_type_name(ok_ty)
+            let err_name = decl_layout_shape::decl_layout_type_name(err_ty)
+            let ok_segment = if len(ok_name) == 0 || eq(clone(ok_name), String_from("()")) {
+                String_from("void")
+            } else {
+                ok_name
+            }
+            let err_segment = if len(err_name) == 0 || eq(clone(err_name), String_from("()")) {
+                String_from("void")
+            } else {
+                err_name
+            }
+            return text::concat(
+                String_from("result:"),
+                text::concat(ok_segment, text::concat(String_from(":"), err_segment))
+            )
+        }
         // User generic struct returns keep their instantiation args
         // (GenTakeIter<VecIter>) so MIR lowering sees the same Name<args>
         // spelling that params and locals already use, and can derive
@@ -120,7 +150,10 @@ fn return_index_type_name(node: AstNode) -> String {
 // (`G<T>`, not the bare owner `G`) here; the typechecker performs the same
 // binding in associated_types::resolve_impl_self_return.
 fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> String {
-    let type_name = return_index_type_name(method_node)
+    let type_name = return_index_type_name_with_result_payload(
+        method_node,
+        impl_can_encode_result_payload(impl_node, method_node)
+    )
     if len(type_name) == 0 {
         return type_name
     }
@@ -129,6 +162,21 @@ fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> 
         return type_name
     }
     replace_self_in_type_name(type_name, self_name)
+}
+
+// Result payload spellings are safe for non-generic inherent methods whose
+// construction and call sites share one concrete layout. Trait impls keep the
+// bare spelling because the trait declaration owns the dispatch ABI, and
+// generic methods keep it because mono instances resolve their return name
+// separately (#693 Phase D).
+fn impl_can_encode_result_payload(impl_node: AstNode, method_node: AstNode) -> bool {
+    if decl_impl_target::impl_semantic_trait_id(impl_node) != semantic_trait_id::SEMANTIC_TRAIT_ID_NONE() {
+        return false
+    }
+    if len(decl_impl_target::declared_impl_param_names(impl_node)) > 0 {
+        return false
+    }
+    len(frontend_fns::build_fn_type_params(method_node)) == 0
 }
 
 fn replace_self_in_type_name(type_name: String, self_name: String) -> String {

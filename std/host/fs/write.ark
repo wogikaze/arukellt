@@ -1,0 +1,15 @@
+//! Whole-file write helpers re-exported by `std::host::fs`.
+//!
+//! They live in this child module so the parent can import `std::io` for the
+//! read-side `File` without its local `write_bytes` / `write_string` names
+//! colliding with the legacy `std::io` helpers of the same name.
+/// Write a UTF-8 string to a file, creating or truncating it.
+pub fn write_string(path: String, contents: String) -> Result<(), String> {
+    __runtime_abi_fs_write_file(path, contents)
+}
+
+/// Write a byte sequence (0–255 per element) to a file, creating or
+/// truncating it.
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
+    __runtime_abi_fs_write_bytes(path, bytes)
+}

@@ -1,0 +1,38 @@
+8
+0
+128
+255
+10
+3
+0
+65
+127
+3
+128
+195
+169
+2
+255
+10
+0
+read: max_bytes must be non-negative
+8
+2
+1
+127
+4
+1
+195
+7
+1
+10
+10
+0
+seek: negative position
+seek: position exceeds i32 range
+closed
+read: file is closed
+position: file is closed
+file: already closed
+file open error
+file open error

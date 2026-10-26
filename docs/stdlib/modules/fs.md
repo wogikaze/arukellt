@@ -39,10 +39,10 @@ write_string("output.txt", "hello")
 ## Module `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 10
-- Stability: deprecated 1, experimental 3, provisional 5, stable 1
+- Manifest-backed functions: 11
+- Stability: deprecated 1, experimental 4, provisional 5, stable 1
 
-> ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 2/10 APIs have limited or placeholder semantics
+> ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 2/11 APIs have limited or placeholder semantics
 
 Host filesystem helpers backed directly by WASI file-descriptor calls.
 
@@ -51,13 +51,29 @@ metadata, directory iteration, and mutation APIs were removed with the
 repository-specific host runtime; use an official WASI filesystem WIT
 import when those capabilities are required.
 
+`File` is a whole-file image handle (ADR-085 D6): `File::open` reads the
+path's bytes once, and `Read` / `Seek` operate on that image. The host
+surface still has no open / read / write / close descriptor API, so the
+image is the visibility boundary. `File::create` and the `Write` side are
+not part of this read-side phase (#693 Phase D).
+
+`write_string` and `write_bytes` are defined in the `write` child module and
+re-exported here. Keeping them out of this file avoids a resolver collision
+between their names and the legacy `std::io` helpers, which would otherwise
+be visible through the `std::io` import used by `File`.
+
+### `std::host::fs` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `File` | `struct` | `open`, `close` | `Read`, `Seek` | Read-only whole-file handle opened from a path. |
+
 ### `std::host::fs` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
 | `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | - |
-| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | - |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | - |
+| `read_bytes` | `(String) -> Result<Vec<i32>, String>` | `experimental` | ✅ functional | Reads the entire file at path as raw byte values (0–255). |
 | ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | - |
 | `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | - |
 | `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | - |
@@ -65,6 +81,8 @@ import when those capabilities are required.
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | - |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | - |
+| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | - |
 
 #### `std::host::fs::read_to_string`
 
@@ -81,21 +99,13 @@ let txt = fs::read_to_string("data.txt")
 match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 ```
 
-#### `std::host::fs::write_string`
+#### `std::host::fs::read_bytes`
 
-Write a UTF-8 string to the given file path, creating or truncating the file.
-
-**Availability:** Requires the --dir capability flag at runtime.
-
-**Errors:** Returns Err if the path is not writable or the directory does not exist.
-
-#### `std::host::fs::write_bytes`
-
-Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path.
+Read the entire file at the given path as raw byte values (0–255), preserving NUL and invalid UTF-8.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
-**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
+**Errors:** Returns Err if the file does not exist or permission is denied.
 
 #### `std::host::fs::exists`
 
@@ -138,6 +148,22 @@ Return the current file offset for an open file descriptor.
 Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
 **Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
+
+#### `std::host::fs::write_bytes`
+
+Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
+
+#### `std::host::fs::write_string`
+
+Write a UTF-8 string to the given file path, creating or truncating the file.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or the directory does not exist.
 
 > ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 

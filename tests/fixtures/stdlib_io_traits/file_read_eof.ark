@@ -1,0 +1,100 @@
+// ADR-085 Phase D: File::open loads the whole-file byte image; reads advance
+// the image cursor, an empty Vec means EOF, and Seek moves over the same
+// image. file_image.bin contains NUL and invalid-UTF-8 bytes so the host
+// primitive is proven to be byte-oriented rather than UTF-8 decoded.
+use std::host::fs
+use std::host::stdio
+use std::io
+use std::io::{Read, Seek, SeekFrom}
+
+fn print_read<T: io::Read>(source: T, max_bytes: i32) {
+    match source.read(max_bytes) {
+        Result::Ok(bytes) => {
+            stdio::println((len(bytes)).to_string())
+            let mut i: i32 = 0
+            while i < len(bytes) {
+                stdio::println((get_unchecked(bytes, i)).to_string())
+                i = i + 1
+            }
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
+
+fn print_position<T: io::Seek>(source: T) {
+    match source.position() {
+        Result::Ok(position) => stdio::println((position).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
+
+fn print_seek<T: io::Seek>(source: T, from: SeekFrom) {
+    match source.seek(from) {
+        Result::Ok(position) => stdio::println((position).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
+
+fn main() {
+    match fs::read_bytes("tests/fixtures/stdlib_io_traits/file_image.bin") {
+        Result::Ok(image) => {
+            // Explicit Vec binding for the inline Result<Vec<i32>, String>
+            // match payload: the GC emitter still declares the get_unchecked
+            // array.get temp with the size-class struct layout placeholder
+            // (the 0x1813 validation mismatch). Typing the image here keeps
+            // that compiler residual out of the byte/EOF/seek/close contract.
+            let image: Vec<i32> = image
+            stdio::println((len(image)).to_string())
+            stdio::println((get_unchecked(image, 0)).to_string())
+            stdio::println((get_unchecked(image, 3)).to_string())
+            stdio::println((get_unchecked(image, 6)).to_string())
+            stdio::println((get_unchecked(image, 7)).to_string())
+        },
+        Result::Err(err) => stdio::println(err),
+    }
+
+    match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
+        Result::Ok(file) => {
+            // Explicit handle type keeps the generic print helpers on a
+            // concrete mono instance; the match payload itself only carries a
+            // type variable (#693 Phase D generic dispatch).
+            let file: fs::File = file
+            print_read(file, 3)
+            print_read(file, 3)
+            print_read(file, 3)
+            print_read(file, 3)
+            print_read(file, 0 - 1)
+            print_position(file)
+            print_seek(file, SeekFrom::Start(2i64))
+            print_read(file, 1)
+            print_seek(file, SeekFrom::Current(1i64))
+            print_read(file, 1)
+            print_seek(file, SeekFrom::End(0i64 - 1i64))
+            print_read(file, 1)
+            print_seek(file, SeekFrom::End(2i64))
+            print_read(file, 1)
+            print_seek(file, SeekFrom::Start(0i64 - 1i64))
+            print_seek(file, SeekFrom::Start(2147483648i64))
+            match file.close() {
+                Result::Ok(_) => stdio::println("closed"),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+            print_read(file, 1)
+            print_position(file)
+            match file.close() {
+                Result::Ok(_) => stdio::println("closed"),
+                Result::Err(err) => stdio::println(io::io_error_message(err)),
+            }
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match fs::File::open("tests/fixtures/stdlib_io_traits/missing_image.bin") {
+        Result::Ok(_) => stdio::println("unexpected open"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+    match fs::read_bytes("tests/fixtures/stdlib_io_traits/missing_image.bin") {
+        Result::Ok(_) => stdio::println("unexpected read"),
+        Result::Err(err) => stdio::println(err),
+    }
+}

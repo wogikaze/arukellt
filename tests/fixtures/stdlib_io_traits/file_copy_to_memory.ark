@@ -1,0 +1,71 @@
+// ADR-085 Phase D: Io::copy moves a File's remaining bytes into an in-memory
+// Writer through the Read / Write traits, so the generic algorithm sees a
+// host-backed source rather than the memory Reader.
+use std::host::fs
+use std::host::stdio
+use std::io
+use std::io::{Io, Seek, SeekFrom, Writer}
+
+fn print_byte_values(bytes: Vec<i32>) {
+    stdio::println((len(bytes)).to_string())
+    let mut i: i32 = 0
+    while i < len(bytes) {
+        stdio::println((get_unchecked(bytes, i)).to_string())
+        i = i + 1
+    }
+}
+
+fn print_copy_count<T: io::Read, U: io::Write>(from: T, to: U) {
+    match Io::copy(from, to) {
+        Result::Ok(count) => stdio::println((count).to_string()),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
+
+fn print_seek<T: io::Seek>(source: T, from: SeekFrom) {
+    match source.seek(from) {
+        Result::Ok(_) => {
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
+
+fn main() {
+    match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
+        Result::Ok(file) => {
+            // Explicit handle type keeps Io::copy on the File/Writer mono
+            // instance; the match payload alone stays a type variable.
+            let file: fs::File = file
+            let writer: Writer = Writer::new()
+            print_copy_count(file, writer)
+            print_byte_values(writer.into_bytes())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
+        Result::Ok(file) => {
+            let file: fs::File = file
+            print_seek(file, SeekFrom::Start(3i64))
+            let writer: Writer = Writer::new()
+            print_copy_count(file, writer)
+            print_byte_values(writer.into_bytes())
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
+        Result::Ok(file) => {
+            let file: fs::File = file
+            print_seek(file, SeekFrom::End(0i64))
+            let writer: Writer = Writer::new()
+            print_copy_count(file, writer)
+        },
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+
+    match fs::File::open("tests/fixtures/stdlib_io_traits/missing_image.bin") {
+        Result::Ok(_) => stdio::println("unexpected open"),
+        Result::Err(err) => stdio::println(io::io_error_message(err)),
+    }
+}
