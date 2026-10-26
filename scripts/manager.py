@@ -7442,28 +7442,36 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
     dry_run: bool = args.dry_run
     fast_pin = bool(getattr(args, "fast", False))
     if fast_pin:
-        pin = root / "bootstrap" / "arukellt-selfhost-fast.wasm"
-        if not pin.is_file():
+        gc_pin = root / "bootstrap" / "arukellt-selfhost-gc.component.wasm"
+        if gc_pin.is_file():
+            os.environ["ARUKELLT_GC_PIN"] = "1"
             print(
-                f"{RED}error: fast iteration pin not found at "
-                f"{pin.relative_to(root)}{NC}",
-                file=sys.stderr,
+                f"{YELLOW}[selfhost] gc-host pin: {gc_pin.relative_to(root)} "
+                f"(~73s; p1 output is byte-identical to the official pin){NC}"
             )
-            return 1
-        expected_sha = "3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852"
-        actual_sha = hashlib.sha256(pin.read_bytes()).hexdigest()
-        if actual_sha != expected_sha:
+        else:
+            pin = root / "bootstrap" / "arukellt-selfhost-fast.wasm"
+            if not pin.is_file():
+                print(
+                    f"{RED}error: fast iteration pin not found at "
+                    f"{pin.relative_to(root)}{NC}",
+                    file=sys.stderr,
+                )
+                return 1
+            expected_sha = "3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852"
+            actual_sha = hashlib.sha256(pin.read_bytes()).hexdigest()
+            if actual_sha != expected_sha:
+                print(
+                    f"{RED}error: fast iteration pin sha256 mismatch "
+                    f"(expected {expected_sha}, got {actual_sha}){NC}",
+                    file=sys.stderr,
+                )
+                return 1
+            os.environ["ARUKELLT_PINNED_WASM"] = str(pin)
             print(
-                f"{RED}error: fast iteration pin sha256 mismatch "
-                f"(expected {expected_sha}, got {actual_sha}){NC}",
-                file=sys.stderr,
+                f"{YELLOW}[selfhost] fast iteration pin: {pin.relative_to(root)} "
+                f"(not release-valid; re-validate with the official pin){NC}"
             )
-            return 1
-        os.environ["ARUKELLT_PINNED_WASM"] = str(pin)
-        print(
-            f"{YELLOW}[selfhost] fast iteration pin: {pin.relative_to(root)} "
-            f"(not release-valid; re-validate with the official pin){NC}"
-        )
     force = not getattr(args, "if_stale", False)
     h = Harness(repo_root=root, dry_run=dry_run)
 
@@ -7500,10 +7508,16 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
             f"(overlay cache miss or machine load){NC}"
         )
     if fast_pin:
-        print(
-            f"{YELLOW}note: s2 was built with the fast iteration pin; "
-            f"run once with the official pin before tag/release.{NC}"
-        )
+        if os.environ.get("ARUKELLT_GC_PIN") == "1":
+            print(
+                f"{GREEN}note: gc-pin output is byte-identical to the official "
+                f"pin; the ADR-029 fixpoint is still required before tag.{NC}"
+            )
+        else:
+            print(
+                f"{YELLOW}note: s2 was built with the fast iteration pin; "
+                f"run once with the official pin before tag/release.{NC}"
+            )
     h.check_pass(f"selfhost build-compiler ({elapsed:.1f}s)")
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")

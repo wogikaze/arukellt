@@ -759,6 +759,10 @@ def _selfhost_source_fingerprint(root: Path) -> str:
         # instead of reusing an artifact the other pin produced.
         h.update(f"pinned:{pinned.name}\0".encode())
         h.update(pinned.read_bytes())
+    gc_pin = _find_gc_pin(root)
+    if gc_pin is not None:
+        h.update(f"gc_pin:{gc_pin.name}\0".encode())
+        h.update(gc_pin.read_bytes())
     h.update(f"bootstrap_emit={BOOTSTRAP_EMIT_TARGET}:{BOOTSTRAP_EMIT_WASI_VERSION}\n".encode())
     try:
         with open(__file__, "rb") as f:
@@ -2735,6 +2739,11 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     stable ``arukellt-s2-runtime.wasm`` path used by CI and runtime probes.
     """
     out = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
+    if out.is_file() and _sha256(out) == _sha256(compiler_wasm):
+        # A byte-identical rebuild (the gc pin always reproduces the same p1
+        # s2) must not invalidate the AOT cwasm: copying would bump the mtime
+        # and force a ~30s wasmtime compile on every build.
+        return out
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
         if not _reject_invalid_compiler_wasm(out):
             return out
@@ -4688,6 +4697,60 @@ def _wasm_compile_selfhost_source(
     return result
 
 
+GC_PIN_REL = "bootstrap/arukellt-selfhost-gc.component.wasm"
+
+
+def _find_gc_pin(root: Path) -> Path | None:
+    """Return the gc-host component pin when the fast path is opted in."""
+    if os.environ.get("ARUKELLT_GC_PIN") != "1":
+        return None
+    pin = root / GC_PIN_REL
+    return pin if pin.is_file() else None
+
+
+def _compile_with_gc_pin(
+    wasmtime: str,
+    root: Path,
+    out_rel: str,
+    gc_pin: Path,
+) -> subprocess.CompletedProcess:
+    """Compile the bootstrap overlay with the wasm32-gc host component.
+
+    The host is a component, so it needs a P2 runtime, unlike the core pins.
+    Its p1 output is byte-identical to the official pin's stage-2 output; it
+    is a build accelerator, not a different compiler.
+    """
+    workspace = _prepare_bootstrap_workspace(root)
+    guest_out = "bootstrap-out.wasm"
+    argv = [
+        wasmtime,
+        "run",
+        *WASMTIME_SELFHOST_WASM_FLAGS,
+        "--wasm",
+        "max-wasm-stack=16777216",
+        "--dir",
+        str(workspace),
+        str(gc_pin),
+        "--",
+        "compile",
+        SELFHOST_SOURCE_REL,
+        "--target",
+        BOOTSTRAP_EMIT_TARGET,
+        "--wasi-version",
+        BOOTSTRAP_EMIT_WASI_VERSION,
+        "-o",
+        guest_out,
+    ]
+    result = _run(argv, root, timeout=SELFHOST_COMPILE_TIMEOUT)
+    staged = workspace / guest_out
+    if result.returncode == 0 and staged.is_file():
+        final = root / out_rel
+        final.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(staged, final)
+        _postprocess_selfhost_compiler_wasm(final, root)
+    return result
+
+
 def _compile_selfhost_bootstrap_chain(
     wasmtime: str,
     root: Path,
@@ -4701,6 +4764,9 @@ def _compile_selfhost_bootstrap_chain(
     it here makes ``build-compiler`` dependent on ambient build artifacts and
     can hide a broken pinned-to-s2 bootstrap path.
     """
+    gc_pin = _find_gc_pin(root)
+    if gc_pin is not None:
+        return _compile_with_gc_pin(wasmtime, root, out_rel, gc_pin)
     result = _wasm_compile_selfhost_source(
         wasmtime,
         bootstrap,

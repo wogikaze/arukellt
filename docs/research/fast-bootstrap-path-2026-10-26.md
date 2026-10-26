@@ -44,10 +44,15 @@ was for the Oct-11 source, not today's.
 
 ## Conclusion
 
-No existing fast artifact produces a faithful current compiler. The official
-pin's 20-40 min is the current price of correctness. Reducing it requires
-#851 Phase 3 (or fixing the miscompiles in a replacement host, which is the
-same compiler work).
+The pre-built fast artifacts are not faithful: the 10/10 core pin miscompiles
+the gc fixture path, and the Oct-11 gc host emits invalid gc wasm.
+
+The working path is to rebuild the gc host from the current source with the
+official s2 (one-time, 19.5 min) and package it as a P2 component. That
+component compiles the overlay to p1 in 73 s and its output is byte-identical
+to the official s2 (`e55825fd…`). It is committed as
+`bootstrap/arukellt-selfhost-gc.component.wasm` and used by
+`build-compiler --fast`.
 
 ## Reproduce
 
