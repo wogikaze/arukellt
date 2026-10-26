@@ -1,0 +1,10 @@
+// std::test assertion replacements for the deprecated prelude assert_* frees
+// (#917 / ADR-087).
+use std::test
+
+fn main() {
+    test::assert_eq_i32(1 + 1, 2)
+    test::assert_ne_i32(1, 2)
+    test::assert_eq_i64(2i64, 2i64)
+    test::assert_eq_string(String_from("a"), String_from("a"))
+}

@@ -10,6 +10,66 @@ helpers are included alongside any other deprecated public entry.
 
 | API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |
 |-----|--------|-----------|-------------|------------------|------------------|--------|
+| `any_String` | `prelude` | `deprecated` | `VecIter::any` | `0.1.0` | `1.0.0` | Superseded API |
+| `any_f64` | `prelude` | `deprecated` | `VecIter::any` | `0.1.0` | `1.0.0` | Superseded API |
+| `any_i32` | `prelude` | `deprecated` | `VecIter::any` | `0.1.0` | `1.0.0` | Superseded API |
+| `any_i64` | `prelude` | `deprecated` | `VecIter::any` | `0.1.0` | `1.0.0` | Superseded API |
+| `as_slice` | `prelude` | `deprecated` | `Vec::as_slice` | `0.1.0` | `1.0.0` | Superseded API |
+| `assert_eq` | `prelude` | `deprecated` | `std::test::assert_eq_i32` | `0.1.0` | `1.0.0` | Superseded API |
+| `assert_eq_i64` | `prelude` | `deprecated` | `std::test::assert_eq_i64` | `0.1.0` | `1.0.0` | Superseded API |
+| `assert_eq_str` | `prelude` | `deprecated` | `std::test::assert_eq_string` | `0.1.0` | `1.0.0` | Superseded API |
+| `assert_ne` | `prelude` | `deprecated` | `std::test::assert_ne_i32` | `0.1.0` | `1.0.0` | Superseded API |
+| `contains_String` | `prelude` | `deprecated` | `VecIter::contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `contains_i32` | `prelude` | `deprecated` | `VecIter::contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `contains_string` | `prelude` | `deprecated` | `String::contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `f32_to_f64` | `prelude` | `deprecated` | `f32::to_f64` | `0.1.0` | `1.0.0` | Superseded API |
+| `f64_bits_hi` | `prelude` | `deprecated` | `f64::to_bits_hi` | `0.1.0` | `1.0.0` | Superseded API |
+| `f64_bits_lo` | `prelude` | `deprecated` | `f64::to_bits_lo` | `0.1.0` | `1.0.0` | Superseded API |
+| `f64_to_f32` | `prelude` | `deprecated` | `f64::to_f32` | `0.1.0` | `1.0.0` | Superseded API |
+| `filter_String` | `prelude` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Superseded API |
+| `filter_f64` | `prelude` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Superseded API |
+| `filter_i64` | `prelude` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Superseded API |
+| `find_String` | `prelude` | `deprecated` | `VecIter::find` | `0.1.0` | `1.0.0` | Superseded API |
+| `find_f64` | `prelude` | `deprecated` | `VecIter::find` | `0.1.0` | `1.0.0` | Superseded API |
+| `find_i32` | `prelude` | `deprecated` | `VecIter::find` | `0.1.0` | `1.0.0` | Superseded API |
+| `find_i64` | `prelude` | `deprecated` | `VecIter::find` | `0.1.0` | `1.0.0` | Superseded API |
+| `fold_f64_f64` | `prelude` | `deprecated` | `VecIter::fold` | `0.1.0` | `1.0.0` | Superseded API |
+| `fold_i32_i32` | `prelude` | `deprecated` | `VecIter::fold` | `0.1.0` | `1.0.0` | Superseded API |
+| `fold_i64_i64` | `prelude` | `deprecated` | `VecIter::fold` | `0.1.0` | `1.0.0` | Superseded API |
+| `get` | `prelude` | `deprecated` | `Vec::get` | `0.1.0` | `1.0.0` | Superseded API |
+| `get_unchecked` | `prelude` | `deprecated` | `Vec::get_unchecked` | `0.1.0` | `1.0.0` | Superseded API |
+| `i16_to_i32` | `prelude` | `deprecated` | `i16::to_i32` | `0.1.0` | `1.0.0` | Superseded API |
+| `i32_to_i16` | `prelude` | `deprecated` | `i32::to_i16_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
+| `i32_to_i64` | `prelude` | `deprecated` | `i32::into` | `0.1.0` | `1.0.0` | Superseded API |
+| `i32_to_i8` | `prelude` | `deprecated` | `i32::to_i8_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
+| `i32_to_u16` | `prelude` | `deprecated` | `i32::to_u16_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
+| `i32_to_u32` | `prelude` | `deprecated` | `i32::to_u32_bits` | `0.1.0` | `1.0.0` | Superseded API |
+| `i32_to_u8` | `prelude` | `deprecated` | `i32::to_u8_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
+| `i64_to_i32` | `prelude` | `deprecated` | `i64::to_i32_checked` | `0.1.0` | `1.0.0` | Superseded API |
+| `len` | `prelude` | `deprecated` | `Vec::len` | `0.1.0` | `1.0.0` | Return the number of elements in a Vec. |
+| `map_String_String` | `prelude` | `deprecated` | `VecIter::map` | `0.1.0` | `1.0.0` | Superseded API |
+| `map_f64_f64` | `prelude` | `deprecated` | `VecIter::map` | `0.1.0` | `1.0.0` | Superseded API |
+| `map_i32_i32` | `prelude` | `deprecated` | `VecIter::map` | `0.1.0` | `1.0.0` | Superseded API |
+| `map_i64_i64` | `prelude` | `deprecated` | `VecIter::map` | `0.1.0` | `1.0.0` | Superseded API |
+| `map_option_i32_i32` | `prelude` | `deprecated` | `Option::map` | `0.1.0` | `1.0.0` | Superseded API |
+| `pop` | `prelude` | `deprecated` | `Vec::pop` | `0.1.0` | `1.0.0` | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `product_i32` | `prelude` | `deprecated` | `VecIter::fold` | `0.1.0` | `1.0.0` | Superseded API |
+| `push` | `prelude` | `deprecated` | `Vec::push` | `0.1.0` | `1.0.0` | Append an element to the end of a Vec, mutating it in place. |
+| `remove_i32` | `prelude` | `deprecated` | `Vec::drain` | `0.1.0` | `1.0.0` | Superseded API |
+| `reverse_String` | `prelude` | `deprecated` | `VecIter::rev` | `0.1.0` | `1.0.0` | Superseded API |
+| `reverse_i32` | `prelude` | `deprecated` | `VecIter::rev` | `0.1.0` | `1.0.0` | Superseded API |
+| `set` | `prelude` | `deprecated` | `Vec::set` | `0.1.0` | `1.0.0` | Superseded API |
+| `slice_get` | `prelude` | `deprecated` | `Slice::get` | `0.1.0` | `1.0.0` | Superseded API |
+| `slice_len` | `prelude` | `deprecated` | `Slice::len` | `0.1.0` | `1.0.0` | Superseded API |
+| `sort_String` | `prelude` | `deprecated` | `Vec::sort_by` | `0.1.0` | `1.0.0` | Superseded API |
+| `sort_f64` | `prelude` | `deprecated` | `Vec::sort_by` | `0.1.0` | `1.0.0` | Superseded API |
+| `sort_i32` | `prelude` | `deprecated` | `Vec::sort_by` | `0.1.0` | `1.0.0` | Superseded API |
+| `sort_i64` | `prelude` | `deprecated` | `Vec::sort_by` | `0.1.0` | `1.0.0` | Superseded API |
+| `sum_i32` | `prelude` | `deprecated` | `VecIter::sum` | `0.1.0` | `1.0.0` | Superseded API |
+| `u16_to_i32` | `prelude` | `deprecated` | `u16::to_i32` | `0.1.0` | `1.0.0` | Superseded API |
+| `u32_to_u64` | `prelude` | `deprecated` | `u32::to_u64` | `0.1.0` | `1.0.0` | Superseded API |
+| `u64_to_u32` | `prelude` | `deprecated` | `u64::to_u32_wrapping` | `0.1.0` | `1.0.0` | Superseded API |
+| `u8_to_i32` | `prelude` | `deprecated` | `u8::to_i32` | `0.1.0` | `1.0.0` | Superseded API |
 | `deque_back` | `std::collections::linear` | `deprecated` | `Deque::back` | `0.1.0` | `1.0.0` | Peek at the back element without removing it. Returns 0 when empty. |
 | `deque_clear` | `std::collections::linear` | `deprecated` | `Deque::clear` | `0.1.0` | `1.0.0` | Reset the deque to empty (preserves allocated capacity). |
 | `deque_front` | `std::collections::linear` | `deprecated` | `Deque::front` | `0.1.0` | `1.0.0` | Peek at the front element without removing it. Returns 0 when empty. |
@@ -48,4 +108,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `std::core::iter::collect_take_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect() or std::core::iter::collect_take_i32(v, n). |
 | `unique` | `std::seq` | `deprecated` | `std::core::iter::iter_unique_i32` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect() or std::core::iter::iter_unique_i32(v). |
 
-Total deprecated public entries: **37**.
+Total deprecated public entries: **97**.

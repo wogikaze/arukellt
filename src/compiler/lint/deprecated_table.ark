@@ -27,16 +27,222 @@ pub fn deprecated_use_message(path: String) -> String {
 
 // ── Deprecated bare prelude calls ──────────────────────────────────────
 
-// Returns a non-empty replacement message if the bare function name is
-// deprecated.  Under the v2 prelude contract every deprecated bare
-// prelude name is gated: it fails name resolution with E0100 plus a
-// resolver::removed_names migration hint before lint runs, so this table
-// is intentionally empty.  Keep the dispatch point so a future
-// deprecated-but-still-resolvable bare name has a documented home.
-pub fn deprecated_call_message(_name: String) -> String {
+pub fn deprecated_call_message(name: String) -> String {
+    let numeric = deprecated_numeric_call_message(clone(name))
+    if len(numeric) > 0 {
+        return numeric
+    }
+    let vec = deprecated_vec_call_message(clone(name))
+    if len(vec) > 0 {
+        return vec
+    }
+    let assertion = deprecated_assert_call_message(clone(name))
+    if len(assertion) > 0 {
+        return assertion
+    }
+    return deprecated_seq_call_message(name)
+}
+
+// The stable must-delete wave converted 60 entries to `deprecated` under
+// ADR-087. Their bare names warn here while they remain resolvable; physical
+// deletion is Wave 2. `clear`, `map_option_String_String`, and
+// `map_result_i32_i32` were stale non-callable entries and were retired
+// directly; `i8_to_i32` is a deferral and stays stable.
+fn deprecated_numeric_call_message(name: String) -> String {
+    if eq(clone(name), "u8_to_i32") {
+        return "use `(x).to_i32()` on the `u8` value instead"
+    }
+    if eq(clone(name), "u16_to_i32") {
+        return "use `(x).to_i32()` on the `u16` value instead"
+    }
+    if eq(clone(name), "i16_to_i32") {
+        return "use `(x).to_i32()` on the `i16` value instead"
+    }
+    if eq(clone(name), "i32_to_u8") {
+        return "use `(x).to_u8_wrapping()` instead"
+    }
+    if eq(clone(name), "i32_to_u16") {
+        return "use `(x).to_u16_wrapping()` instead"
+    }
+    if eq(clone(name), "i32_to_i8") {
+        return "use `(x).to_i8_wrapping()` instead"
+    }
+    if eq(clone(name), "i32_to_i16") {
+        return "use `(x).to_i16_wrapping()` instead"
+    }
+    if eq(clone(name), "u32_to_u64") {
+        return "use `(x).to_u64()` instead"
+    }
+    if eq(clone(name), "u64_to_u32") {
+        return "use `(x).to_u32_wrapping()` instead"
+    }
+    if eq(clone(name), "i32_to_i64") {
+        return "use `(x).into()` instead"
+    }
+    if eq(clone(name), "i64_to_i32") {
+        return "use `(x).to_i32_checked()` (or wrapping/saturating) instead"
+    }
+    if eq(clone(name), "f32_to_f64") {
+        return "use `(x).to_f64()` instead"
+    }
+    if eq(clone(name), "f64_to_f32") {
+        return "use `(x).to_f32()` instead"
+    }
+    if eq(clone(name), "i32_to_u32") {
+        return "use `(x).to_u32_bits()` instead"
+    }
+    if eq(clone(name), "f64_bits_lo") {
+        return "use `(x).to_bits_lo()` instead"
+    }
+    if eq(clone(name), "f64_bits_hi") {
+        return "use `(x).to_bits_hi()` instead"
+    }
     String_new()
 }
 
+fn deprecated_vec_call_message(name: String) -> String {
+    if eq(clone(name), "push") {
+        return "use the Vec method `v.push(x)` instead"
+    }
+    if eq(clone(name), "pop") {
+        return "use the Vec method `v.pop()` instead"
+    }
+    if eq(clone(name), "len") {
+        return "use the Vec/String method `v.len()` instead"
+    }
+    if eq(clone(name), "get") {
+        return "use the Vec method `v.get(idx)` instead"
+    }
+    if eq(clone(name), "set") {
+        return "use the Vec method `v.set(idx, val)` instead"
+    }
+    if eq(clone(name), "get_unchecked") {
+        return "use the Vec method `v.get_unchecked(idx)` instead"
+    }
+    if eq(clone(name), "as_slice") {
+        return "use the Vec method `v.as_slice(start, end)` instead"
+    }
+    if eq(clone(name), "slice_len") {
+        return "use the Slice method `view.len()` instead"
+    }
+    if eq(clone(name), "slice_get") {
+        return "use the Slice method `view.get(idx)` instead"
+    }
+    String_new()
+}
+
+fn deprecated_assert_call_message(name: String) -> String {
+    if eq(clone(name), "assert_eq") {
+        return "use `std::test::assert_eq_i32(actual, expected)` instead"
+    }
+    if eq(clone(name), "assert_ne") {
+        return "use `std::test::assert_ne_i32(actual, unexpected)` instead"
+    }
+    if eq(clone(name), "assert_eq_i64") {
+        return "use `std::test::assert_eq_i64(actual, expected)` instead"
+    }
+    if eq(clone(name), "assert_eq_str") {
+        return "use `std::test::assert_eq_string(actual, expected)` instead"
+    }
+    String_new()
+}
+
+fn deprecated_seq_call_message(name: String) -> String {
+    if eq(clone(name), "sort_i32") {
+        return "use `v.sort_by(cmp)` instead"
+    }
+    if eq(clone(name), "sort_i64") {
+        return "use `v.sort_by(cmp)` instead"
+    }
+    if eq(clone(name), "sort_f64") {
+        return "use `v.sort_by(cmp)` instead"
+    }
+    if eq(clone(name), "sort_String") {
+        return "use `v.sort_by(cmp)` instead"
+    }
+    if eq(clone(name), "map_i32_i32") {
+        return "use `v.iter().map(f).collect()` instead"
+    }
+    if eq(clone(name), "map_i64_i64") {
+        return "use `v.iter().map(f).collect()` instead"
+    }
+    if eq(clone(name), "map_f64_f64") {
+        return "use `v.iter().map(f).collect()` instead"
+    }
+    if eq(clone(name), "map_String_String") {
+        return "use `v.iter().map(f).collect()` instead"
+    }
+    if eq(clone(name), "filter_i64") {
+        return "use `v.iter().filter(f).collect()` instead"
+    }
+    if eq(clone(name), "filter_f64") {
+        return "use `v.iter().filter(f).collect()` instead"
+    }
+    if eq(clone(name), "filter_String") {
+        return "use `v.iter().filter(f).collect()` instead"
+    }
+    if eq(clone(name), "fold_i32_i32") {
+        return "use `v.iter().fold(init, f)` instead"
+    }
+    if eq(clone(name), "fold_i64_i64") {
+        return "use `v.iter().fold(init, f)` instead"
+    }
+    if eq(clone(name), "fold_f64_f64") {
+        return "use `v.iter().fold(init, f)` instead"
+    }
+    if eq(clone(name), "any_i32") {
+        return "use `v.iter().any(f)` instead"
+    }
+    if eq(clone(name), "any_i64") {
+        return "use `v.iter().any(f)` instead"
+    }
+    if eq(clone(name), "any_f64") {
+        return "use `v.iter().any(f)` instead"
+    }
+    if eq(clone(name), "any_String") {
+        return "use `v.iter().any(f)` instead"
+    }
+    if eq(clone(name), "find_i32") {
+        return "use `v.iter().find(f)` instead"
+    }
+    if eq(clone(name), "find_i64") {
+        return "use `v.iter().find(f)` instead"
+    }
+    if eq(clone(name), "find_f64") {
+        return "use `v.iter().find(f)` instead"
+    }
+    if eq(clone(name), "find_String") {
+        return "use `v.iter().find(f)` instead"
+    }
+    if eq(clone(name), "contains_i32") {
+        return "use `v.iter().contains(target)` instead"
+    }
+    if eq(clone(name), "contains_String") {
+        return "use `v.iter().contains(target)` instead"
+    }
+    if eq(clone(name), "reverse_i32") {
+        return "use `v.iter().rev().collect()` instead"
+    }
+    if eq(clone(name), "reverse_String") {
+        return "use `v.iter().rev().collect()` (the String rev lane is planned) instead"
+    }
+    if eq(clone(name), "remove_i32") {
+        return "use `v.drain(idx, idx + 1)` instead"
+    }
+    if eq(clone(name), "sum_i32") {
+        return "use `v.iter().sum()` instead"
+    }
+    if eq(clone(name), "product_i32") {
+        return "use `v.iter().fold(1, mul)` instead"
+    }
+    if eq(clone(name), "map_option_i32_i32") {
+        return "use `o.map(f)` via `use std::core::container` instead"
+    }
+    if eq(clone(name), "contains_string") {
+        return "use the String method `s.contains(sub)` instead"
+    }
+    String_new()
+}
 // ── Deprecated qualified path calls (math::abs_i32 → x.abs()) ──────────
 
 // Returns a non-empty replacement message if the qualified path call is deprecated.
@@ -186,12 +392,80 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("seq::min_by_key")) == 0)
         assert(len(deprecated_qualified_call_message("seq::max_by_key")) == 0)
     }
-    test "stable_prelude_frees_not_deprecated" {
-        // The 34 stable prelude monomorphic frees are not deprecated until
-        // #703 Wave 1; W0009 must not warn on their bare or qualified names.
-        assert(len(deprecated_call_message("sum_i32")) == 0)
-        assert(len(deprecated_call_message("sort_i32")) == 0)
-        assert(len(deprecated_call_message("map_i32_i32")) == 0)
-        assert(len(deprecated_qualified_call_message("sum_i32")) == 0)
+    test "numeric_frees_warn_w0009" {
+        assert(len(deprecated_call_message("u8_to_i32")) > 0)
+        assert(len(deprecated_call_message("u16_to_i32")) > 0)
+        assert(len(deprecated_call_message("i16_to_i32")) > 0)
+        assert(len(deprecated_call_message("i32_to_u8")) > 0)
+        assert(len(deprecated_call_message("i32_to_u16")) > 0)
+        assert(len(deprecated_call_message("i32_to_i8")) > 0)
+        assert(len(deprecated_call_message("i32_to_i16")) > 0)
+        assert(len(deprecated_call_message("u32_to_u64")) > 0)
+        assert(len(deprecated_call_message("u64_to_u32")) > 0)
+        assert(len(deprecated_call_message("i32_to_i64")) > 0)
+        assert(len(deprecated_call_message("i64_to_i32")) > 0)
+        assert(len(deprecated_call_message("f32_to_f64")) > 0)
+        assert(len(deprecated_call_message("f64_to_f32")) > 0)
+        assert(len(deprecated_call_message("i32_to_u32")) > 0)
+        assert(len(deprecated_call_message("f64_bits_lo")) > 0)
+        assert(len(deprecated_call_message("f64_bits_hi")) > 0)
+    }
+    test "vec_frees_warn_w0009" {
+        assert(len(deprecated_call_message("push")) > 0)
+        assert(len(deprecated_call_message("pop")) > 0)
+        assert(len(deprecated_call_message("len")) > 0)
+        assert(len(deprecated_call_message("get")) > 0)
+        assert(len(deprecated_call_message("set")) > 0)
+        assert(len(deprecated_call_message("get_unchecked")) > 0)
+        assert(len(deprecated_call_message("as_slice")) > 0)
+        assert(len(deprecated_call_message("slice_len")) > 0)
+        assert(len(deprecated_call_message("slice_get")) > 0)
+    }
+    test "assert_frees_warn_w0009" {
+        assert(len(deprecated_call_message("assert_eq")) > 0)
+        assert(len(deprecated_call_message("assert_ne")) > 0)
+        assert(len(deprecated_call_message("assert_eq_i64")) > 0)
+        assert(len(deprecated_call_message("assert_eq_str")) > 0)
+    }
+    test "seq_frees_warn_w0009" {
+        assert(len(deprecated_call_message("sort_i32")) > 0)
+        assert(len(deprecated_call_message("sort_i64")) > 0)
+        assert(len(deprecated_call_message("sort_f64")) > 0)
+        assert(len(deprecated_call_message("sort_String")) > 0)
+        assert(len(deprecated_call_message("map_i32_i32")) > 0)
+        assert(len(deprecated_call_message("map_i64_i64")) > 0)
+        assert(len(deprecated_call_message("map_f64_f64")) > 0)
+        assert(len(deprecated_call_message("map_String_String")) > 0)
+        assert(len(deprecated_call_message("filter_i64")) > 0)
+        assert(len(deprecated_call_message("filter_f64")) > 0)
+        assert(len(deprecated_call_message("filter_String")) > 0)
+        assert(len(deprecated_call_message("fold_i32_i32")) > 0)
+        assert(len(deprecated_call_message("fold_i64_i64")) > 0)
+        assert(len(deprecated_call_message("fold_f64_f64")) > 0)
+        assert(len(deprecated_call_message("any_i32")) > 0)
+        assert(len(deprecated_call_message("any_i64")) > 0)
+        assert(len(deprecated_call_message("any_f64")) > 0)
+        assert(len(deprecated_call_message("any_String")) > 0)
+        assert(len(deprecated_call_message("find_i32")) > 0)
+        assert(len(deprecated_call_message("find_i64")) > 0)
+        assert(len(deprecated_call_message("find_f64")) > 0)
+        assert(len(deprecated_call_message("find_String")) > 0)
+        assert(len(deprecated_call_message("contains_i32")) > 0)
+        assert(len(deprecated_call_message("contains_String")) > 0)
+        assert(len(deprecated_call_message("reverse_i32")) > 0)
+        assert(len(deprecated_call_message("reverse_String")) > 0)
+        assert(len(deprecated_call_message("remove_i32")) > 0)
+        assert(len(deprecated_call_message("sum_i32")) > 0)
+        assert(len(deprecated_call_message("product_i32")) > 0)
+        assert(len(deprecated_call_message("map_option_i32_i32")) > 0)
+        assert(len(deprecated_call_message("contains_string")) > 0)
+    }
+    test "retired_stale_builtin_entries_are_not_warned" {
+        // `clear`, `map_option_String_String`, and `map_result_i32_i32`
+        // were stale non-callable builtin entries; they were retired with
+        // their method replacements instead of being deprecated.
+        assert(len(deprecated_call_message("clear")) == 0)
+        assert(len(deprecated_call_message("map_option_String_String")) == 0)
+        assert(len(deprecated_call_message("map_result_i32_i32")) == 0)
     }
 }

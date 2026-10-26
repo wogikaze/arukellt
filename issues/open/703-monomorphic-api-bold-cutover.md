@@ -55,8 +55,14 @@ registered entries owned by #917).
   concrete `i32` / `String` iterator lanes, not the full adapter surface.
 - The 4 prelude wrappers and 13 `std::seq` helpers already carry
   `deprecated_by` in `std/manifest.toml`.
-- The 34 stable prelude monomorphic frees are **not yet deprecated** and
-  still ship as `stable` prelude entries.
+- Wave 1 landed 2026-10-26 (branch `wave/917-stable64`): 31 of the 34 prelude
+  monomorphic frees carry `stability = "deprecated"`, `deprecated_by`,
+  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`, and their bare names
+  emit W0009. Two entries (`map_option_String_String`, `map_result_i32_i32`)
+  were stale non-callable builtins and were retired directly; `filter_i32`
+  remains provisional (individual deferral). The i64/f64/String iterator
+  consumer lanes are still planned, so some replacement rows describe the
+  target shape rather than a verified call path.
 - `std/manifest.toml` is version `0.1.0`; `[deprecation_policy]` sets
   `default_remove_in = "1.0.0"` and `minimum_complete_releases = 1`.
   No #703 symbol may be deleted before that window closes.
@@ -89,19 +95,24 @@ registered entries owned by #917).
 
 ### Wave 1 — deprecate the 34 stable monomorphic frees
 
-- [ ] Add `deprecated_by`, `deprecated_since`, and `remove_in` to the 34
-      prelude entries in `std/manifest.toml` (ADR-014 window).
-- [ ] Add the matching rows to `docs/stdlib/migration-guidance.md`.
-- [ ] W0009 diagnostic coverage for the 34 stable frees (their warning
-      entries land with the `deprecated_by` metadata above).
+- [x] Add `deprecated_by`, `deprecated_since`, and `remove_in` to the 31
+      callable prelude entries in `std/manifest.toml` (ADR-014 window).
+      `map_option_String_String` / `map_result_i32_i32` were retired as stale
+      non-callable entries; `filter_i32` stays provisional (defer).
+- [x] Add the matching rows to `docs/stdlib/migration-guidance.md`.
+- [x] W0009 diagnostic coverage for the 31 stable frees (bare-name table +
+      per-symbol unit assertions + live diag fixtures on wasm32-gc/wasm32).
 - [ ] Update in-tree callers (compiler source, fixtures, benchmarks) to
       `v.sort()`, `v.iter().map(f).collect()`, `v.iter().sum()`, … as the
-      method replacements land (#697 for `Vec::sort`).
+      method replacements land (#697 for `Vec::sort`). This is Wave 2 work:
+      the i64/f64/String consumer lanes and collected-Vec receiver methods
+      still hit compiler emitter gaps.
 
 ### Wave 2 — delete inside the 1.0.0 window
 
-- [ ] Delete the 51 manifest entries and their prelude / `std::seq`
-      implementations after `remove_in = 1.0.0` is reachable.
+- [ ] Delete the 49 remaining manifest entries and their prelude / `std::seq`
+      implementations after the W0009 window / ADR-087 conditions are
+      recorded. Two stale entries were already retired in Wave 1.
 - [ ] Do **not** delete the whole `std::seq` module in this issue: the
       nine non-deprecated generic helpers belong to #917.
 - [ ] Update `std/manifest.toml`, generated docs, and the fixture set

@@ -64,6 +64,50 @@ classified there, in dependency-safe waves.
 - Scorecard delta: 1257 -> **1246** public symbols (`must delete` 128 ->
   122, `associated-or-method` 1129 -> 1124); 1430 -> 1418 `pub fn`
   declarations; 436 -> 431 unregistered; 98 -> 96 `prelude_wrapper` entries.
+
+### Landed slice (wave/917-stable64, 2026-10-26)
+
+- **Stable-64 lifecycle conversion (ADR-087 Wave 1)**: 60 `stable` entries
+  now carry `stability = "deprecated"`, `deprecated_by`,
+  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"` — 16 numeric
+  conversions, 9 vec intrinsic-compat frees, 4 assertion frees, and 31
+  seq/combinator frees. `i8_to_i32` is an individual deferral: its method
+  frame still traps under wasm32-gc, so it stays stable. `filter_i32` stays
+  provisional.
+- **Retired stale non-callable entries (3)**: `clear`,
+  `map_option_String_String`, `map_result_i32_i32` had no declaration and no
+  resolver registration; they were removed with E0100 hints and method /
+  `match` replacements.
+- **Replacement surface**: canonical scalar conversion methods in
+  `std/core/convert.ark` (`u8/u16/i16::to_i32`, `i32::to_u8_wrapping` /
+  `to_i8_wrapping` / `to_u32_bits`, `u32::to_u64`, `i32::into`,
+  `i64::to_i32_checked`, `f32::to_f64`, `f64::to_f32`, `f64::to_bits_*`);
+  `Vec::clear` / `as_slice` and `Slice::len` / `get`;
+  `VecIter::any` / `find` / `IteratorContains<String>`;
+  `std/core/container.ark` (`Option<T>::map`, `Result<i32,i32>::map`).
+- **W0009**: 60 bare-name entries in `src/compiler/lint/deprecated_table.ark`
+  with per-symbol unit assertions and live diag fixtures on wasm32-gc and
+  `--target wasm32`. The existing qualified `std::seq` coverage for the 13
+  deprecated helpers is unchanged.
+- **Fixture evidence**: 4 run fixtures (`scalar/numeric_conversion_methods`,
+  `collections/vec_method_replacements`, `iterator/seq_method_replacements`,
+  `stdlib_test/assertion_replacements`) plus 8 diag fixtures (4 symbols × 2
+  targets) — 12 new manifest entries; `run:` count 1823 -> 1827.
+- **Scorecard delta**: 1246 -> **1243** public symbols; `must delete`
+  122 -> 119; `associated-or-method` 1124 unchanged. Stability: `stable`
+  378 -> **315**, `deprecated` 37 -> **97**; manifest public entries 815 ->
+  **812**; `prelude_wrapper` entries stay 96 (deprecation, not deletion).
+- **Verification (wave/917-stable64)**: `verify fixtures` 1827 compile+validate
+  PASS / 0 FAIL (1823 + 4 new run fixtures); `selfhost diag-parity` PASS with
+  the rebuilt s2 (114 diag fixtures, including the 8 new W0009 fixtures);
+  `docs check` 6/6; `check-stdlib-eradication` and `check-compat-orphans`
+  clean; `verify lane` PASS; `check-cross-backend-parity.py` 4/4 new run
+  fixtures parity (wasm32-gc component vs wasm32 linear).
+- **Residuals**: the 31 Wave-2 deletions, the 20 `HashMap_*` builtins, the
+  1124 `associated-or-method` replacements, the `i8_to_i32` deferral, the 3
+  deferred intrinsic bodies (`i32_to_u16`, `i32_to_i16`, `u64_to_u32`), the
+  i64/f64/String iterator consumer lanes, and the compiler/std migration of
+  the ~9k vec intrinsic-compat call sites.
 - Provisional decisions (21): the 20 `HashMap_*` builtins are deferred —
   they are compiler lowering targets (`resolver::builtins_hash`,
   `typechecker::builtins_hash`, `mir::lower::call_type_hash`,
@@ -79,20 +123,27 @@ classified there, in dependency-safe waves.
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
       dual-surface (manifest + source declarations), and generate the real
       1258-symbol scorecard.
-- [ ] Wave A — `must delete` entries whose replacement already exists
+- [x] Wave A — `must delete` entries whose replacement already exists
       (deprecated prelude wrappers, vec intrinsic-compat frees,
       monomorphic numeric conversions, `HashMap_*` builtins once
       `impl HashMap<K,V>` methods cover them). Apply ADR-014
       deprecation where the symbol is still reachable.
       - Landed 2026-10-26: the 2 experimental `std::wasm` helpers and the
-        4 deprecated gated prelude wrappers. Reset: stable 64 (ADR-014
-        addendum), `HashMap_*` 20 (compiler-side retirement).
+        4 deprecated gated prelude wrappers.
+      - Landed 2026-10-26 (`wave/917-stable64`): 60 of the stable 64 were
+        converted to `deprecated` with W0009 + migration + changelog
+        (ADR-087); 3 stale non-callable entries retired. The physical
+        deletion of the deprecated set is Wave 2. Residual: `i8_to_i32`
+        deferral, 20 `HashMap_*` builtins (compiler retirement).
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
       #702, #703, #708, #710, and the future Test / IO / collection
       types), then retire the free symbol.
       - Landed 2026-10-26: 6 `std::collections::sort` frees retired after
         the #697 `Vec<T>` methods; 1124 associated-or-method symbols remain.
+      - Landed 2026-10-26 (`wave/917-stable64`): 31 seq/combinator frees
+        deprecated (Wave 1) with W0009 + iterator/Vec method replacements;
+        deletion is Wave 2.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

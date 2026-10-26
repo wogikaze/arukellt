@@ -38,6 +38,7 @@ from stdlib_eradication import (
     iter_source_declarations,
     load_eradication,
     manifest_entries_without_decl,
+    method_decl_exists,
     owner_issue_path,
     rule_label,
 )
@@ -848,6 +849,18 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
         for method in entry.get("methods", [])
     }
 
+    def resolves_std_method(target: str) -> bool:
+        """Accept `Type::method` declared in a std impl block (#917).
+
+        The manifest `[[types]]` registry is the preferred membership list,
+        but scalar / iterator / container methods are declared directly in
+        `std/**/*.ark`; the compat-orphan audit uses the same source check.
+        """
+        if target.startswith("std::") or "::" not in target:
+            return False
+        type_name, _, method = target.rpartition("::")
+        return method_decl_exists(ROOT, type_name, method)
+
     for entry in functions:
         fn_name = entry.get("name", "<unnamed>")
         label = f"function '{fn_name}'"
@@ -883,6 +896,7 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
                 deprecated_by in active_names
                 or deprecated_by in active_qualified
                 or deprecated_by in active_type_members
+                or resolves_std_method(deprecated_by)
             )
             if not resolves:
                 violations.append(

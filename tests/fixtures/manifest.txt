@@ -240,6 +240,14 @@ diag:diagnostics/capability_stub.ark
 diag:diagnostics/deprecated_prelude_println.ark
 diag:diagnostics/deprecated_seq_map_i32_i32.ark
 diag:diagnostics/deprecated_seq_sum_i32_wasm32.ark
+diag:diagnostics/deprecated_numeric_conversion.ark
+diag:diagnostics/deprecated_numeric_conversion_wasm32.ark
+diag:diagnostics/deprecated_vec_intrinsic.ark
+diag:diagnostics/deprecated_vec_intrinsic_wasm32.ark
+diag:diagnostics/deprecated_assertion_free.ark
+diag:diagnostics/deprecated_assertion_free_wasm32.ark
+diag:diagnostics/deprecated_seq_monomorphic.ark
+diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/deprecated_std_io_import.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/deprecated_import_syntax.ark
@@ -499,6 +507,7 @@ run:collections/hashmap_i32_string_builtin.ark
 run:collections/hashmap_string_fn_call.ark
 run:collections/hashmap_string_fn_builtin.ark
 run:collections/hashmap_i32_fn_zero_call.ark
+run:collections/vec_method_replacements.ark
 run:collections/result_vec_fn.ark
 run:collections/hashmap_entries_values.ark
 run:collections/vec_fn_param_get.ark
@@ -566,6 +575,7 @@ run:integration/linked_list.ark
 run:integration/sort_vec.ark
 run:integration/word_counter.ark
 run:iterator/custom_iterator.ark
+run:iterator/seq_method_replacements.ark
 run:iterator/generic_scan_iter.ark
 run:lang_uplift/comprehension_guard.ark
 run:lang_uplift/guard_const_enum_destructure.ark
@@ -624,6 +634,7 @@ run:regression/vec_struct_len.ark
 run:scalar/comparison.ark
 run:scalar/const_i32.ark
 run:scalar/conversion.ark
+run:scalar/numeric_conversion_methods.ark
 run:scalar/numeric_explicit_conversions.ark
 run:scalar/f32_basic.ark
 run:scalar/f32_local.ark
@@ -1567,6 +1578,7 @@ run:stdlib_string/trim_end.ark
 run:stdlib_string/trim_no_whitespace.ark
 run:stdlib_string/trim_start.ark
 run:stdlib_test/assert_eq_fail.ark
+run:stdlib_test/assertion_replacements.ark
 run:stdlib_test/assert_eq_generic.ark
 run:stdlib_test/assert_eq_generic_fail.ark
 run:stdlib_test/snapshot_fail.ark

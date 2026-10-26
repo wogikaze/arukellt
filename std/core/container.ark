@@ -1,0 +1,47 @@
+//! Container mapping methods for `Option` and `Result`.
+//!
+//! These are the receiver-method replacements for the deprecated prelude
+//! `map_option_*` / `map_result_*` frees (#917 / ADR-046). Import this module
+//! where the method spelling is needed:
+//!
+//! ```ignore
+//! use std::core::container
+//! let doubled = maybe.map(double)
+//! ```
+//!
+//! The compiler does not yet accept a fully generic inherent impl on the
+//! builtin `Option` / `Result` enums, so the impls are concrete over the item
+//! and error types the deprecated frees cover.
+
+/// Mapping helpers on `Option<i32>`.
+impl Option<i32> {
+    /// Applies `f` to the contained value, preserving `None`.
+    fn map(self: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
+        match self {
+            Some(value) => Some(f(value)),
+            None => None,
+        }
+    }
+}
+
+/// Mapping helpers on `Option<String>`.
+impl Option<String> {
+    /// Applies `f` to the contained value, preserving `None`.
+    fn map(self: Option<String>, f: fn(String) -> String) -> Option<String> {
+        match self {
+            Some(value) => Some(f(value)),
+            None => None,
+        }
+    }
+}
+
+/// Mapping helpers on `Result<i32, i32>`.
+impl Result<i32, i32> {
+    /// Applies `f` to the `Ok` value, preserving `Err`.
+    fn map(self: Result<i32, i32>, f: fn(i32) -> i32) -> Result<i32, i32> {
+        match self {
+            Ok(value) => Ok(f(value)),
+            Err(error) => Err(error),
+        }
+    }
+}

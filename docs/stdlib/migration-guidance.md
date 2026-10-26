@@ -47,6 +47,162 @@ normal policy applies and the exception is void. The exception is not a blanket
 three items above. See [Stability Policy](stability-policy.md#deprecation-process)
 and the [changelog](changelog.md).
 
+## Stable-64 deprecation wave (ADR-087, 2026-10-26)
+
+The [#917](https://github.com/wogikaze/arukellt/issues/917) wave converted the
+`stable` `must delete` families listed by [ADR-087](../adr/ADR-087-0x-deprecation-exception.md)
+to `stability = "deprecated"` with `deprecated_by`, `deprecated_since = "0.1.0"`,
+and `remove_in = "1.0.0"` (60 entries; `i8_to_i32` is an individual deferral). The bare names emit **W0009** while they remain
+resolvable; the gated prelude names also need an explicit
+`use std::prelude::{name}` before the warning can fire. `remove_in` is an upper
+bound under ADR-087, not the earliest removal. Physical deletion is Wave 2: the
+`vec` intrinsic-compat names are compiler lowering targets used throughout the
+compiler/std sources, and the `i64` / `f64` / `String` iterator lanes listed as
+*planned* below are not callable yet.
+
+Three stale, non-callable builtin manifest entries were retired directly in the
+same wave because they had no declaration and no resolver registration:
+`clear`, `map_option_String_String`, and `map_result_i32_i32`. Their method /
+`match` replacements are shown below; old sources get an **E0100** removed-name
+hint.
+
+### Removed in the same wave
+
+Three stale builtin entries had no declaration and no resolver registration, so
+no call could reach them. They were retired directly instead of being
+deprecated; old sources get an **E0100** removed-name hint.
+
+| Removed API | Replacement | Basis |
+|-------------|-------------|-------|
+| `clear(v)` | `v.clear()` | stale non-callable builtin entry (ADR-087 wave) |
+| `map_option_String_String(o, f)` | `match o { Some(v) => Some(f(v)), None => None }` | stale non-callable builtin entry |
+| `map_result_i32_i32(r, f)` | `match r { Ok(v) => Ok(f(v)), Err(e) => Err(e) }` | stale non-callable builtin entry |
+
+The earlier #917 slice removed the 2 `experimental` `std::wasm` helpers
+(`memory_copy` / `memory_fill`, non-public `__intrinsic_*` bridge only) and the
+4 gated deprecated prelude bindings (`concat`, `char_at`, `print`, `println`,
+E0100 hints retained). Those removals were made under ADR-014 D4 / the 0.x
+exception before ADR-087; their migration rows remain in
+[`wasm.md`](modules/wasm.md) and the prelude documentation.
+
+### Numeric conversions (16 deprecated + 1 deferral)
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `u8_to_i32(x)` | `(x).to_i32()` |
+| `u16_to_i32(x)` | `(x).to_i32()` |
+| `i8_to_i32(x)` | **deferred**: no receiver method yet (the `i8` method frame traps under wasm32-gc); the free remains stable |
+| `i16_to_i32(x)` | `(x).to_i32()` |
+| `i32_to_u8(x)` | `(x).to_u8_wrapping()` |
+| `i32_to_u16(x)` | `(x).to_u16_wrapping()` (method and free currently share the deferred-body trap) |
+| `i32_to_i8(x)` | `(x).to_i8_wrapping()` |
+| `i32_to_i16(x)` | `(x).to_i16_wrapping()` (method and free currently share the deferred-body trap) |
+| `u32_to_u64(x)` | `(x).to_u64()` |
+| `u64_to_u32(x)` | `(x).to_u32_wrapping()` (method and free currently share the deferred-body trap) |
+| `i32_to_i64(x)` | `(x).into()` |
+| `i64_to_i32(x)` | `(x).to_i32_checked()` / `to_i32_wrapping()` / `to_i32_saturating()` |
+| `f32_to_f64(x)` | `(x).to_f64()` |
+| `f64_to_f32(x)` | `(x).to_f32()` |
+| `i32_to_u32(x)` | `(x).to_u32_bits()` |
+| `f64_bits_lo(x)` | `(x).to_bits_lo()` |
+| `f64_bits_hi(x)` | `(x).to_bits_hi()` |
+
+### Vec intrinsic-compat frees (10)
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `push(v, x)` | `v.push(x)` |
+| `pop(v)` | `v.pop()` |
+| `len(v)` | `v.len()` |
+| `get(v, i)` | `v.get(i)` |
+| `set(v, i, x)` | `v.set(i, x)` |
+| `get_unchecked(v, i)` | `v.get_unchecked(i)` |
+| `clear(v)` | `v.clear()` — stale non-callable entry, retired |
+| `as_slice(v, s, e)` | `v.as_slice(s, e)` |
+| `slice_len(view)` | `view.len()` |
+| `slice_get(view, i)` | `view.get(i)` |
+
+### Assertion frees (4)
+
+`test` below is `std::test`; import it with `use std::test`.
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `assert_eq(a, b)` | `test::assert_eq_i32(a, b)` |
+| `assert_ne(a, b)` | `test::assert_ne_i32(a, b)` |
+| `assert_eq_i64(a, b)` | `test::assert_eq_i64(a, b)` |
+| `assert_eq_str(a, b)` | `test::assert_eq_string(a, b)` |
+
+### Monomorphic seq/combinator frees (33)
+
+The `Vec` / iterator replacements are the target shape. The `i32` and `String`
+producer adapters are the verified lanes; rows marked *planned* describe the
+`i64` / `f64` / `String` consumer lanes that are pending. `filter_i32` is
+provisional and remains an individual deferral, not part of this table.
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `sort_i32(v)` | `v.sort_by(cmp)` |
+| `sort_i64(v)` | `v.sort_by(cmp)` |
+| `sort_f64(v)` | `v.sort_by(cmp)` |
+| `sort_String(v)` | `v.sort_by(cmp)` |
+| `map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
+| `map_i64_i64(v, f)` | `v.iter().map(f).collect()` (i64 lane planned) |
+| `map_f64_f64(v, f)` | `v.iter().map(f).collect()` (f64 lane planned) |
+| `map_String_String(v, f)` | `v.iter().map(f).collect()` |
+| `filter_i64(v, f)` | `v.iter().filter(f).collect()` (i64 lane planned) |
+| `filter_f64(v, f)` | `v.iter().filter(f).collect()` (f64 lane planned) |
+| `filter_String(v, f)` | `v.iter().filter(f).collect()` |
+| `fold_i32_i32(v, init, f)` | `v.iter().fold(init, f)` |
+| `fold_i64_i64(v, init, f)` | `v.iter().fold(init, f)` (i64 lane planned) |
+| `fold_f64_f64(v, init, f)` | `v.iter().fold(init, f)` (f64 lane planned) |
+| `any_i32(v, f)` | `v.iter().any(f)` |
+| `any_i64(v, f)` | `v.iter().any(f)` (i64 lane planned) |
+| `any_f64(v, f)` | `v.iter().any(f)` (f64 lane planned) |
+| `any_String(v, f)` | `v.iter().any(f)` (String lane planned) |
+| `find_i32(v, f)` | `v.iter().find(f)` |
+| `find_i64(v, f)` | `v.iter().find(f)` (i64 lane planned) |
+| `find_f64(v, f)` | `v.iter().find(f)` (f64 lane planned) |
+| `find_String(v, f)` | `v.iter().find(f)` (String lane planned) |
+| `contains_i32(v, x)` | `v.iter().contains(x)` |
+| `contains_String(v, x)` | `v.iter().contains(x)` |
+| `reverse_i32(v)` | `v.iter().rev().collect()` |
+| `reverse_String(v)` | `v.iter().rev().collect()` (String rev lane planned) |
+| `remove_i32(v, i)` | `v.drain(i, i + 1)` |
+| `sum_i32(v)` | `v.iter().sum()` |
+| `product_i32(v)` | `v.iter().fold(1, mul)` |
+| `map_option_i32_i32(o, f)` | `o.map(f)` via `use std::core::container`, or a `match` |
+| `map_option_String_String(o, f)` | stale non-callable entry, retired; use a `match` |
+| `map_result_i32_i32(r, f)` | stale non-callable entry, retired; use a `match` |
+| `contains_string(s, sub)` | `s.contains(sub)` |
+
+**Before:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
+```ark
+let doubled = map_i32_i32(values, double)
+let total = sum_i32(values)
+sort_i32(values)
+push(values, 4)
+let msg = assert_eq_i64(a, b)
+```
+
+**After:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
+```ark
+use std::core::container
+use std::core::iter
+use std::collections::vec
+use std::test
+
+let doubled = values.iter().map(double).collect()
+let total = values.iter().sum()
+values.sort_by(cmp)
+values.push(4)
+test::assert_eq_i64(a, b)
+```
+
 ---
 
 ## Currently Deprecated APIs
@@ -454,12 +610,11 @@ names.sort_by(cmp)
 > Note: for the `i32` pipeline helpers the canonical replacement is the lazy
 > `std::core::iter` method chain — for example `v.iter().map(f).collect()` —
 > not a generic free function such as `map<i32, i32>(v, f)`, which does not
-> exist. The six `std::seq` pipeline entries and the seven query helpers are
-> already deprecated under that contract. The 34 prelude monomorphic frees are
-> owned by #703; the 33 `stable` ones wait for the
-> [ADR-087 conditions](#0x-deprecation-exception-adr-014-addendum) (W0009,
-> migration guide, changelog), not for a 1.0.0 tag. The provisional
-> `filter_i32` follows an individual provisional decision.
+> exist. The 31 callable `stable` prelude monomorphic frees were deprecated in
+> the [ADR-087 wave](#stable-64-deprecation-wave-adr-087-2026-10-26) (W0009,
+> migration guide, changelog); two stale entries were retired and `filter_i32`
+> remains deferred. The set remains owned by #703 for Wave 2 deletion.
+> The provisional `filter_i32` follows an individual provisional decision.
 > Rows marked *planned* describe the target method/iterator shape; they are
 > not callable yet. The verified lanes are the concrete `i32` and `String`
 > iterator paths documented above.
@@ -559,15 +714,17 @@ not to this foundation change.
 
 ### Option/Result Map
 
-There is no generic free `map_option<...>` / `map_result<...>` function, and the
-`Option::map` / `Result::map` methods are still pending (#917). Use a pattern
-match until those methods land.
+The receiver methods landed with the #917 wave in `std::core::container`:
+`Option<i32>::map`, `Option<String>::map`, and `Result<i32, i32>::map`. Import
+the module to use the method spelling. `map_option_String_String` and
+`map_result_i32_i32` were stale non-callable builtin entries and were retired;
+the `Option<i32>` method covers the callable `map_option_i32_i32` replacement.
 
 | Old API | Replacement |
 |---------|-------------|
-| `map_option_i32_i32(o, f)` | `match o { Some(v) => Some(f(v)), None => None }` |
-| `map_option_String_String(o, f)` | `match o { Some(v) => Some(f(v)), None => None }` |
-| `map_result_i32_i32(r, f)` | `match r { Ok(v) => Ok(f(v)), Err(e) => Err(e) }` |
+| `map_option_i32_i32(o, f)` | `o.map(f)` via `use std::core::container`, or `match o { Some(v) => Some(f(v)), None => None }` |
+| `map_option_String_String(o, f)` | retired (stale non-callable entry); use a `match` |
+| `map_result_i32_i32(r, f)` | retired (stale non-callable entry); use a `match` |
 
 **Before:**
 
@@ -611,7 +768,7 @@ let doubled = match maybe_val {
 | Phase 1 — Mark | **Complete** | Initial batch (`Vec_new_i32`, `Vec_new_i64`, `filter_i32`); the `Vec_new_*` names were removed by #845 |
 | Phase 2 — Expand | Planned | Remaining monomorphic APIs get `deprecated_by` as generic implementations land |
 | Phase 3 — Warn | **Active** | Post-resolve lint emits W0009 for deprecated API usage |
-| Phase 4 — Remove | Planned | Deprecated APIs are removed at the major boundary; `stable` removals during 0.x require the [ADR-087 exception](#0x-deprecation-exception-adr-014-addendum) |
+| Phase 4 — Remove | **Started** | The ADR-087 stable-64 wave deprecated 61 entries and retired 3 stale non-callable entries (#917); the 2 experimental `std::wasm` helpers and 4 gated prelude bindings were removed earlier. Physical deletion of the deprecated set is Wave 2 under the [ADR-087 exception](#0x-deprecation-exception-adr-014-addendum) |
 
 ## See Also
 

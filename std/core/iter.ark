@@ -296,6 +296,31 @@ impl VecIter<T> {
     fn scan(self: VecIter<T>, init: T, f: fn(T, T) -> Option<T>) -> ScanIter<T> {
         ScanIter { vec: self.vec, index: self.index, length: self.length, state: init, f: f }
     }
+
+    /// Returns true when `f` accepts at least one remaining element.
+    fn any(self: VecIter<T>, f: fn(T) -> bool) -> bool {
+        let mut index = self.index
+        while index < self.length {
+            if f(get_unchecked(self.vec, index)) {
+                return true
+            }
+            index = index + 1
+        }
+        false
+    }
+
+    /// Returns the first remaining element accepted by `f`.
+    fn find(self: VecIter<T>, f: fn(T) -> bool) -> Option<T> {
+        let mut index = self.index
+        while index < self.length {
+            let value = get_unchecked(self.vec, index)
+            if f(value) {
+                return Some(value)
+            }
+            index = index + 1
+        }
+        None
+    }
 }
 
 /// i32-only adapters whose item type is fixed by the concrete `UniqueIter`
@@ -1677,6 +1702,19 @@ impl IteratorFold<i32, i32> for RevIter {
 impl IteratorContains<i32> for VecIter<i32> {
     fn contains(self: VecIter<i32>, target: i32) -> bool {
         contains_iterator_i32(self, target)
+    }
+}
+
+impl IteratorContains<String> for VecIter<String> {
+    fn contains(self: VecIter<String>, target: String) -> bool {
+        let mut index = self.index
+        while index < self.length {
+            if __intrinsic_string_eq(get_unchecked(self.vec, index), clone(target)) {
+                return true
+            }
+            index = index + 1
+        }
+        false
     }
 }
 
