@@ -771,7 +771,7 @@ def _selfhost_source_fingerprint(root: Path) -> str:
         h.update(f"pinned:{pinned.name}\0".encode())
         h.update(pinned.read_bytes())
     gc_pin = _find_gc_pin(root)
-    if gc_pin is not None:
+    if gc_pin is not None and (pinned is None or gc_pin.resolve() != pinned.resolve()):
         h.update(f"gc_pin:{gc_pin.name}\0".encode())
         h.update(gc_pin.read_bytes())
     h.update(f"bootstrap_emit={BOOTSTRAP_EMIT_TARGET}:{BOOTSTRAP_EMIT_WASI_VERSION}\n".encode())
@@ -4703,15 +4703,26 @@ def _wasm_compile_selfhost_source(
     return result
 
 
-GC_PIN_REL = "bootstrap/arukellt-selfhost-gc.component.wasm"
+def _is_wasm_component(path: Path) -> bool:
+    """True for a WebAssembly component, false for a core module."""
+    try:
+        header = path.read_bytes()[:8]
+    except OSError:
+        return False
+    return len(header) == 8 and header[:4] == b"\0asm" and header[4:8] == b"\x0d\0\x01\0"
 
 
 def _find_gc_pin(root: Path) -> Path | None:
-    """Return the gc-host component pin when the fast path is opted in."""
-    if os.environ.get("ARUKELLT_GC_PIN") != "1":
+    """Return the official pin when it is a gc-host component.
+
+    The official pin was refreshed to a wasm32-gc/wasi-p2 component; the
+    previous core module stays at ``bootstrap/arukellt-selfhost-core.wasm``
+    as the trust anchor and as an explicit override target.
+    """
+    pin = _find_pinned_wasm(root)
+    if pin is None or not _is_wasm_component(pin):
         return None
-    pin = root / GC_PIN_REL
-    return pin if pin.is_file() else None
+    return pin
 
 
 def _compile_with_gc_pin(

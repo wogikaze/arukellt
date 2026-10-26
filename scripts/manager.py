@@ -6984,12 +6984,13 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     p_bc = sub.add_parser(
         "build-compiler",
         aliases=["build-s2", "rebuild-s2"],
-        help="Refresh arukellt-s2.wasm after compiler edits (stage-2 only; --fast ~40s)",
+        help="Refresh arukellt-s2.wasm after compiler edits (stage-2 only; ~95s)",
         description=(
             "Rebuild .build/selfhost/arukellt-s2.wasm from current src/compiler (stage-2 only).\n"
             "Skips stage-3 and the s2==s3 fixpoint compare.\n"
-            "Official pin: 20-40 min today (linear-GC compile path, #851).\n"
-            "--fast uses bootstrap/arukellt-selfhost-fast.wasm: ~40s, iteration only.\n"
+            "Official pin: wasm32-gc P2 component; ~73s compile, ~95s end to end.\n"
+            "The previous core module stays at bootstrap/arukellt-selfhost-core.wasm\n"
+            "as the trust anchor and as an ARUKELLT_PINNED_WASM override target.\n"
             "\n"
             "Use this after editing src/compiler/** or when T3/validate needs a fresh emitter.\n"
             "Do NOT use `selfhost fixpoint --build` for that — fixpoint also builds s3 and is much slower.\n"
@@ -7009,10 +7010,7 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
         "--fast",
         action="store_true",
         default=False,
-        help=(
-            "Use the fast iteration pin (bootstrap/arukellt-selfhost-fast.wasm). "
-            "~40s instead of 20-40min; not release-valid."
-        ),
+        help="Kept for compatibility; the official gc pin is already the default",
     )
     p_ne = sub.add_parser(
         "native-executor",
@@ -7442,36 +7440,10 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
     dry_run: bool = args.dry_run
     fast_pin = bool(getattr(args, "fast", False))
     if fast_pin:
-        gc_pin = root / "bootstrap" / "arukellt-selfhost-gc.component.wasm"
-        if gc_pin.is_file():
-            os.environ["ARUKELLT_GC_PIN"] = "1"
-            print(
-                f"{YELLOW}[selfhost] gc-host pin: {gc_pin.relative_to(root)} "
-                f"(~73s; p1 output is byte-identical to the official pin){NC}"
-            )
-        else:
-            pin = root / "bootstrap" / "arukellt-selfhost-fast.wasm"
-            if not pin.is_file():
-                print(
-                    f"{RED}error: fast iteration pin not found at "
-                    f"{pin.relative_to(root)}{NC}",
-                    file=sys.stderr,
-                )
-                return 1
-            expected_sha = "3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852"
-            actual_sha = hashlib.sha256(pin.read_bytes()).hexdigest()
-            if actual_sha != expected_sha:
-                print(
-                    f"{RED}error: fast iteration pin sha256 mismatch "
-                    f"(expected {expected_sha}, got {actual_sha}){NC}",
-                    file=sys.stderr,
-                )
-                return 1
-            os.environ["ARUKELLT_PINNED_WASM"] = str(pin)
-            print(
-                f"{YELLOW}[selfhost] fast iteration pin: {pin.relative_to(root)} "
-                f"(not release-valid; re-validate with the official pin){NC}"
-            )
+        print(
+            f"{YELLOW}[selfhost] --fast is the default now: the official pin is "
+            f"the gc-host component bootstrap/arukellt-selfhost.wasm{NC}"
+        )
     force = not getattr(args, "if_stale", False)
     h = Harness(repo_root=root, dry_run=dry_run)
 
@@ -7508,16 +7480,10 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
             f"(overlay cache miss or machine load){NC}"
         )
     if fast_pin:
-        if os.environ.get("ARUKELLT_GC_PIN") == "1":
-            print(
-                f"{GREEN}note: gc-pin output is byte-identical to the official "
-                f"pin; the ADR-029 fixpoint is still required before tag.{NC}"
-            )
-        else:
-            print(
-                f"{YELLOW}note: s2 was built with the fast iteration pin; "
-                f"run once with the official pin before tag/release.{NC}"
-            )
+        print(
+            f"{GREEN}note: the official gc pin reproduces the core pin's s2 "
+            f"byte-for-byte; the ADR-029 fixpoint is still required before tag.{NC}"
+        )
     h.check_pass(f"selfhost build-compiler ({elapsed:.1f}s)")
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")

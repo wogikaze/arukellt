@@ -8,20 +8,18 @@ Normative decision: [`../adr/ADR-029-selfhost-native-verification-contract.md`](
 Status summary: [`../state/compiler.md`](../state/compiler.md).  
 Structured SSOT: [`../data/bootstrap-contract.toml`](../data/bootstrap-contract.toml).
 
-The pinned bootstrap and the generated stage-2/stage-3 selfhost compiler
-artifacts are direct `wasm32` / `wasi-p1` core modules with memory32 initial
-pages set to `16384` (1 GiB). This reservation is part of the bootstrap
-contract: the compiler's own data and working set must fit when it emits the
-next compiler under stock Wasmtime. User-facing `wasm32-gc` / `wasi-p2` output
-is still packaged as an official WASI component with the checked-in WIT world.
+The official pinned bootstrap is a `wasm32-gc` / `wasi-p2` component
+(`bootstrap/arukellt-selfhost.wasm`). It emits the stage-2/stage-3 compiler as
+`wasm32` / `wasi-p1` core modules with memory32; the emitted compiler contract
+is unchanged. The previous core pin stays at
+`bootstrap/arukellt-selfhost-core.wasm` as the trust anchor and as an explicit
+override. User-facing `wasm32-gc` / `wasi-p2` output is still packaged as an
+official WASI component with the checked-in WIT world.
 
-The pinned stage-0 compiler predates generic enum payload lowering used by the
-current `std/prelude.ark`. `selfhost build-compiler` detects only that exact
-`unbox` / `slice_get` mismatch and retries in an isolated bootstrap workspace
-with a source-only structural `Box` / `Slice` overlay. The checked-in prelude,
-user source semantics, and emitted user artifacts are not rewritten; the
-overlay is a migration bridge until the pinned bootstrap is refreshed and the
-ADR-029 fixpoint is re-established.
+The core override pin predates generic enum payload lowering used by the
+current `std/prelude.ark`. `selfhost build-compiler` keeps the structural
+`Box` / `Slice` retry for that path. The checked-in prelude, user source
+semantics, and emitted user artifacts are not rewritten.
 
 The isolated WIT parser closure in that overlay also normalizes qualified type
 names (`types::WitType`, `ast::WitNode`, and related record types) to the flat
@@ -47,24 +45,20 @@ runs stage-3 and floods long builds under parallel agents.
 
 Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 
-### Fast iteration pin
+### Bootstrap pin
 
-The official pin's stage-2 build is 20-40 minutes today: the pinned linear-GC
-compile path dominates (#851). For emitter iteration, `--fast` uses the
-wasm32-gc host component
-`bootstrap/arukellt-selfhost-gc.component.wasm`, which is the current source
-compiled for gc by the official s2. It produces the p1 s2 in about 95 seconds
-and the output is byte-identical to the official pin's (`e55825fd…`):
+`bootstrap/arukellt-selfhost.wasm` is the official gc-host component. It
+reproduces the core pin's `wasm32` / `wasi-p1` s2 byte-for-byte (`e55825fd…`)
+in about 73 seconds (95 seconds end to end):
 
 ```bash
-python3 scripts/manager.py selfhost build-compiler --fast
+python3 scripts/manager.py selfhost build-compiler
 ```
 
-Because the bytes are identical, fixture and fixpoint results stay valid. The
-ADR-029 fixpoint is still required before a tag. If the gc component is
-missing, `--fast` falls back to `bootstrap/arukellt-selfhost-fast.wasm`
-(40-60 s, but its s2 is not fixture-valid on the wasm32-gc path, so use it only
-for p1 smoke work). Provenance and removal conditions:
+The previous core pin is at `bootstrap/arukellt-selfhost-core.wasm` and can be
+selected with `ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`;
+that path costs 20-40 minutes. The ADR-029 fixpoint is still required before a
+tag. Provenance and removal conditions:
 [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md).
 
 ### How to iterate without unnecessary rebuilds

@@ -4,20 +4,40 @@ This directory holds the **committed pinned-reference selfhost wasm** used as
 the trusted bootstrap base for selfhost verification (see
 [ADR-029](../docs/adr/ADR-029-selfhost-native-verification-contract.md)).
 
-The pinned wasm is the source-of-truth for bootstrapping on a fresh clone.
-It is a direct WASI Preview 1 core module executed by Wasmtime; no Rust binary,
-Cargo workspace, host-linker, or repository-specific runtime is involved.
+## Official artifact (gc-host component)
 
-## Artifact
+`bootstrap/arukellt-selfhost.wasm` is a WASI Preview 2 component compiled for
+`wasm32-gc` by the previous core pin's s2. It emits the `wasm32` / `wasi-p1` s2
+byte-identically to the core pin in about 73 seconds.
 
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
+| Size | 8 150 045 bytes |
+| sha256 | `04d4446bbad63f33e7543c5b94d1126932f2852262a77bcbf9d48cecba9d1f14` |
+| Built from commit | `dcec26f0c` (the branch this artifact is committed on) |
+| Build target | `wasm32-gc` / `wasi-p2` core, packaged as a P2 component |
+| Producer | The core pin (`bootstrap/arukellt-selfhost-core.wasm`) compiled the flat overlay for gc (19.5 min, one-time); `wasm-tools component embed/new` packaged it with the official WASI CLI WIT |
+| p1 output | byte-identical to the core pin's s2 (`e55825fdee92…`) |
+
+Why the change: the core pin's in-wasm linear GC made stage-2 builds take
+21-41 minutes. The gc component runs on Wasmtime's collector and reproduces
+the same compiler in 73 s (about 95 s end to end).
+
+## Trust anchor (core module)
+
+`bootstrap/arukellt-selfhost-core.wasm` is the previous official pin. It stays
+committed as the provenance chain for the gc component and as an explicit
+override (`ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`).
+
+| Field | Value |
+|-------|-------|
+| Path | `bootstrap/arukellt-selfhost-core.wasm` |
 | Size | 11 503 141 bytes (≈ 10.97 MiB) |
 | sha256 | `a2803831acaa5fac8c1f40767789c5ed12b87c2a5eebdaeb2f0dca896874e156` |
-| Built from commit | Selfhost compiler source at `58cc153e0` (the #922 linear-GC chain: boundary-aware marking, class-segregated free lists, arena capacity, heap-start memory sizing) |
-| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 8199)`, ≈ 512.7 MiB **memory32** — min pages now sized from the emitted heap start, `max(8192, ceil(heap_start/64KiB))`) |
-| Producer | Fixpoint artifact of the ADR-029 stage-2 → stage-3 chain run in an isolated worktree from the previous pinned artifact (`3f0ca605…`); the artifact recompiles the flat-src overlay **byte-identically** (`scale_v28.wasm == lin_comp_v28.wasm`, sha256 `a2803831…`), making it the stable fixpoint. No host-linker, bridge, adapter, or Rust code |
+| Built from commit | Selfhost compiler source at `58cc153e0` (#922 linear-GC chain) |
+| Build target | `wasm32` / `wasi-p1` direct core, memory32 (≈ 512.7 MiB) |
+| Producer | Fixpoint artifact of the ADR-029 stage-2 → stage-3 chain from the previous pin (`3f0ca605…`); recompiles the flat overlay byte-identically (`a2803831…`) |
 
 ## Reproducibility recipe
 
@@ -91,38 +111,10 @@ clone can therefore verify the compiler without a prior local build. Pinned
 fixture-output comparison is reserved for explicit artifact refreshes instead
 of being multiplied across every normal fixture test.
 
-## Fast iteration pins (development only)
+## Legacy iteration pin (fallback only)
 
-### gc-host component (primary)
-
-`bootstrap/arukellt-selfhost-gc.component.wasm` is the current source compiled
-for `wasm32-gc` / `wasi-p2` by the official s2, then packaged with
-`wasm-tools component embed/new`. `build-compiler --fast` runs it as a P2
-component and uses its p1 output as s2.
-
-| Field | Value |
-|-------|-------|
-| Path | `bootstrap/arukellt-selfhost-gc.component.wasm` |
-| Size | 8 150 045 bytes |
-| sha256 | `04d4446bbad63f33e7543c5b94d1126932f2852262a77bcbf9d48cecba9d1f14` |
-| Built from | `src/compiler` at `dcec26f0c` by the official s2 (`e55825fd…`) |
-| Build target | `wasm32-gc` / `wasi-p2` core, packaged as a component |
-| p1 output | byte-identical to the official pin's s2 (`e55825fd…`) |
-
-Why: the official pin's linear-GC bootstrap takes 21-41 min. The gc component
-compiles the same overlay for p1 in 73 s (about 95 s end to end with the
-overlay and runtime checks), and the bytes match the official output, so
-fixture and fixpoint evidence stays valid. The one-time cost is the official
-s2's 19.5 min gc build plus packaging.
-
-Scope: `build-compiler --fast` and iteration. The official pin still owns the
-trust chain; run the ADR-029 fixpoint before a tag. Remove the component when
-the official pin's stage-2 build is <=60 s again (#851 Phase 3).
-
-### Legacy core pin (fallback only)
-
-`bootstrap/arukellt-selfhost-fast.wasm` is the previous 10/10 core pin. It
-compiles the current source for p1 in 40-60 s, but its s2 is not fixture-valid
-on the `wasm32-gc` path (`stdlib_trait/iterator_string_callbacks.ark` hangs
-with `--memory-width memory32`). `--fast` uses it only when the gc component is
-absent.
+`bootstrap/arukellt-selfhost-fast.wasm` is the previous 10/10 core pin kept for
+`wasm32` / `wasi-p1` smoke work. Its s2 is not fixture-valid on the `wasm32-gc`
+path (`stdlib_trait/iterator_string_callbacks.ark` hangs with
+`--memory-width memory32`), so do not use it for the fixture or fixpoint gates.
+Remove it when no lane needs the old p1 bootstrap.

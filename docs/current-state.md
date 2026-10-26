@@ -89,12 +89,13 @@ closure_capture/nested_capture fixtures produce 5/6/7 and 5/10 on both
 targets; two mutable-borrow nested captures of one source are E0214.
 The retired
 capability diagnostic E0220 no longer exists in the implementation.
-The committed pinned bootstrap (sha256 `3f0ca605…`) handles the current
-generic enum `Box` / `Slice` prelude directly. `selfhost build-compiler`
-retains the guarded, source-only structural overlay as a fallback path for
-older pinned artifacts; the checked-in prelude and user artifacts are
-unchanged. The bootstrap chain on the current source is fixpoint-clean
-(`s2 == s3`, sha256 `33922353…`).
+The committed pinned bootstrap is a `wasm32-gc` / `wasi-p2` P2 component
+(sha256 `04d4446b…`). It emits the previous core pin's `wasm32` / `wasi-p1`
+`memory32` s2 byte-for-byte in about 73 seconds. The core pin
+(sha256 `a2803831…`) stays at `bootstrap/arukellt-selfhost-core.wasm` as the
+trust anchor and as an explicit override; `selfhost build-compiler` keeps the
+guarded structural `Box` / `Slice` overlay for that older path. The bootstrap
+chain on the current source is fixpoint-clean (`s2 == s3`, sha256 `e55825fd…`).
 
 ### Language v2 trait core (#856 / ADR-062)
 

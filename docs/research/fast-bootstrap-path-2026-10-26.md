@@ -51,8 +51,8 @@ The working path is to rebuild the gc host from the current source with the
 official s2 (one-time, 19.5 min) and package it as a P2 component. That
 component compiles the overlay to p1 in 73 s and its output is byte-identical
 to the official s2 (`e55825fd…`). It is committed as
-`bootstrap/arukellt-selfhost-gc.component.wasm` and used by
-`build-compiler --fast`.
+`bootstrap/arukellt-selfhost.wasm` and is now the default bootstrap pin; the
+previous core module is kept at `bootstrap/arukellt-selfhost-core.wasm`.
 
 ## Reproduce
 
