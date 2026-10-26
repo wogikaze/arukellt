@@ -203,12 +203,45 @@ body がない場合だけ、intrinsic/builtin-by-name table は `fid < 0` の�
 - `verify lane` PASS。`verify fixtures` PASS（1810 compile+validate、104 runtime
   smoke）。`verify quick` / fixpoint は本レーンのゲートではない。
 
+### 進捗（2026-10-26, typed-MIR 5.7 残差: generic trait impl の `Self` return）
+
+5.7 前提レーンが残した「generic trait impl の `Self` return を associated call
+すると call dest が impl owner の bare 名で型付けられる」を解消した。
+
+- corehir `decl_impl_target::impl_self_local_type_name` を追加し、impl head の
+  local-type 綴り（`G<T>`）を返す。`return_type_name::return_index_type_name_for_impl`
+  は return 注釈の `Self` token をこの綴りで置換する。owner key
+  (`impl_self_type_name`) は generic impl では bare `G` のまま維持する
+  （method symbol の互換性）。
+- typechecker `associated_types::resolve_impl_signature` は impl head を
+  `resolve_type_ann_node_generic`（declared impl type params 付き）で解決する。
+  `resolve_type_ann_node` では `G<T>` の T が named struct になり、trait
+  projection が `Self` を MonoInstance で代入できない receiver に置換していた。
+  generic inherent impl は projection pass を通らないため、この差は generic
+  trait impl だけに現れていた。corehir 側だけの置換（最初の build）では
+  新 fixture は依然 invalid で、この typechecker 側の修正で両 target valid に
+  なった。
+- 回帰 fixture `trait/impl_self_return.ark` は `impl<T> Tr<T> for G<T>` の
+  `-> Self` を `G::make(7)` / `G::make(String)` の 2 instantiation で associated
+  call し、non-generic trait impl と generic inherent impl の `Self` return も
+  同じ fixture で実行する。expected は `27` / `ab`。
+
+検証（s2 sha256 `c1a47978…`、base s2 `2bbef352…`）:
+- 新 fixture は base s2 で wasm32-gc が `func 17 ... type mismatch` で invalid、
+  wasm32 は valid。修正後は wasm32-gc / wasm32 の両方で compile+validate。
+  WAT の call dest は `(ref null 0)`（String fallback）から `(ref null 2)`
+  （G<i32>）になり、`ref.cast` も消える。
+- 新 fixture + 対象 9 fixture の 20 出力を両 target で compile+validate（20/20）。
+  対象 9 fixture の 18 出力は base s2 と byte-identical（sha256 一致）。
+- 新 fixture の P2 component 実行は `27`/`ab`。5.7 の Self probe
+  （non-generic trait `-> Self` / generic inherent `-> Self` / explicit `G<T>`）と
+  2 instantiation probe も両 target で compile+validate。
+- `verify lane` PASS。`verify fixtures` PASS（1818 compile+validate、105 runtime
+  smoke、FAIL=0）。
+- `selfhost fixpoint` PASS。s2 と s3 は sha256 `c1a47978…` で一致
+  （pinned `a2803831…` から構築）。
+
 残り:
-- generic **trait** impl の `Self` return を associated call すると、corehir の
-  return 名が impl owner の bare 名（`G`）になるため call dest が String のままに
-  なる probe がある（impl 側を `-> G<T>` と明示すると base でも valid）。修正は
-  owner を impl head の instantiation 綴り（`G<T>`）で置換することだが、
-  本レーンは 1 build 制約のため未変更・未検証。
 - enum-open 名前分岐 / structref fallback: `open_ref_fallback` は対象 9 fixture では
   0 だが 5.0 census では全 fixture で 7 件あり、削除は full set で concrete TypeId が
   揃うまで行わない。

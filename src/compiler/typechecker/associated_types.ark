@@ -23,7 +23,14 @@ fn resolve_impl_signature(env: TypeEnv, impl_node: AstNode, sig: FnSig) -> FnSig
     let trait_node = ast_access::node_type_ann_at(impl_node, 0)
     let self_node = ast_access::node_type_ann_at(impl_node, 1)
     let trait_name = ast_access::node_text(trait_node)
-    let self_ty = types::resolve_type_ann_node(self_node)
+    // Keep the impl head's type parameters as type variables, as
+    // resolve_impl_self_return does. Otherwise T resolves as a named struct
+    // and the projection pass below binds `Self` to a receiver whose type
+    // argument no MonoInstance can substitute.
+    let self_ty = types::resolve_type_ann_node_generic(
+        self_node,
+        impl_generics::type_param_names(impl_node)
+    )
     let params = Vec::new<TypeInfo>()
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0

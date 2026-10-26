@@ -1,0 +1,54 @@
+// Impl methods that return `Self` must keep the impl head's instantiation
+// at an associated call: a generic trait impl returns G<T>, and a generic
+// inherent impl returns Wrap<T>. The non-generic trait impl covers the
+// concrete Self binding these names share.
+use std::host::stdio
+
+struct G<T> {
+    value: T,
+}
+
+trait Tr<T> {
+    fn make(value: T) -> Self
+}
+
+impl<T> Tr<T> for G<T> {
+    fn make(value: T) -> Self {
+        G { value: value }
+    }
+}
+
+struct Boxed {
+    value: i32,
+}
+
+trait Factory<T> {
+    fn make(value: T) -> Self
+}
+
+impl Factory<i32> for Boxed {
+    fn make(value: i32) -> Self {
+        Boxed { value: value }
+    }
+}
+
+struct Wrap<T> {
+    value: T,
+}
+
+impl<T> Wrap<T> {
+    fn make(value: T) -> Self {
+        Wrap { value: value }
+    }
+}
+
+fn main() {
+    // Two G<T> instantiations prove the return name stays generic until the
+    // call site selects i32 or String.
+    let numbers: G<i32> = G::make(7)
+    let words: G<String> = G::make(String_from("ab"))
+    let boxed = Boxed::make(9)
+    let wrapped: Wrap<i32> = Wrap::make(11)
+    stdio::println((numbers.value + boxed.value + wrapped.value).to_string())
+    stdio::println(words.value)
+}
