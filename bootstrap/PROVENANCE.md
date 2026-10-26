@@ -114,5 +114,9 @@ pin, so the patch cannot leak into an official-pin build.
 
 Scope: stage-2 `build-compiler` only. Never use it for tag/release or ADR-029
 fixpoint decisions; run one official-pin build and the official fixpoint before
-merge. Remove this artifact when the official pin's stage-2 build is <=60 s
-again (#851 Phase 3), or when it stops compiling the current source.
+merge. An s2 built with this pin is not fixture-valid on the current
+`wasm32-gc` path: `stdlib_trait/iterator_string_callbacks.ark` compiles in 43 s
+for `wasm32/p1` but hangs past the fixture timeout when the gate compiles it
+with `--memory-width memory32`. Remove this artifact when the official pin's
+stage-2 build is <=60 s again (#851 Phase 3), or when it stops compiling the
+current source.

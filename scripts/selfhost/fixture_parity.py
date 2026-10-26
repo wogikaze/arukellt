@@ -54,7 +54,20 @@ def _worker_count() -> int:
             return max(1, int(raw))
         except ValueError:
             pass
-    return min(4, max(1, os.cpu_count() or 1))
+    return min(8, max(1, os.cpu_count() or 1))
+
+
+def _compile_timeout_seconds() -> float:
+    """Per-fixture compile timeout; raise it for slow iteration compilers."""
+    raw = os.environ.get("ARUKELLT_FIXTURE_COMPILE_TIMEOUT", "").strip()
+    if raw:
+        try:
+            value = float(raw)
+        except ValueError:
+            value = 0.0
+        if value > 0:
+            return value
+    return 30.0
 
 
 def _expected_path(root: Path, fixture: str) -> Path:
@@ -149,7 +162,7 @@ def _compile_current_fixture(
         "-o",
         guest_output,
     ]
-    result = _checks._run(argv, root, timeout=30)
+    result = _checks._run(argv, root, timeout=_compile_timeout_seconds())
     detail = (result.stderr or result.stdout or "").strip()
     return result.returncode, detail
 

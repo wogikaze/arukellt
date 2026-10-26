@@ -59,7 +59,11 @@ python3 scripts/manager.py selfhost build-compiler --fast
 
 The fast pin is development-only. Run one official-pin build and the ADR-029
 fixpoint before merge or tag; an s2 built with `--fast` is not release
-evidence. Provenance and removal conditions:
+evidence. It is also not fixture-valid on the current `wasm32-gc` path: the
+old pin miscompiles at least one gc fixture, which hangs when compiled with
+`--memory-width memory32` (`stdlib_trait/iterator_string_callbacks.ark`). Use
+`--fast` for stage-2 iteration and p1 smoke work; the official pin owns the
+fixture gate. Provenance and removal conditions:
 [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md).
 
 ### How to iterate without unnecessary rebuilds

@@ -5234,6 +5234,13 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
                 f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
             )
         return runtime, ""
+    print(
+        f"{YELLOW}[selfhost] s2 is older than the compiler source; rebuilding "
+        f"with {_find_pinned_wasm(root)}. This is 20-40 min with the official "
+        f"pin; run `selfhost build-compiler --fast` first for iteration.{NC}",
+        file=sys.stderr,
+        flush=True,
+    )
     runtime, err, _elapsed = rebuild_current_s2(root, force=True)
     return runtime, err
 
