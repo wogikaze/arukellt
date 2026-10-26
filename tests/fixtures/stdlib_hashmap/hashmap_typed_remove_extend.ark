@@ -1,4 +1,4 @@
-use std::collections::hash_map
+// Typed map: i32->i32 remove, plus i32 HashSet wrappers.
 use std::collections::hash_set
 use std::host::stdio
 use std::prelude::{assert_eq}
@@ -17,19 +17,19 @@ fn expect_none_i32(v: Option<i32>) {
 }
 
 fn main() {
-    // Typed HashMap<i32,i32> remove wrapper.
-    let m = hash_map::hashmap_i32_i32_new()
-    let _ = hash_map::hashmap_i32_i32_insert(m, 1, 10)
-    let _ = hash_map::hashmap_i32_i32_insert(m, 2, 20)
-    assert_eq(hash_map::hashmap_i32_i32_len(m), 2)
+    // Typed HashMap<i32,i32> method surface.
+    let m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 10)
+    let _ = m.insert(2, 20)
+    assert_eq(m.len(), 2)
 
-    expect_some_i32(hash_map::hashmap_i32_i32_remove(m, 1), 10)
-    assert(!hash_map::hashmap_i32_i32_contains(m, 1))
-    assert(hash_map::hashmap_i32_i32_contains(m, 2))
-    assert_eq(hash_map::hashmap_i32_i32_len(m), 1)
+    expect_some_i32(m.remove(1), 10)
+    assert(!m.contains_key(1))
+    assert(m.contains_key(2))
+    assert_eq(m.len(), 1)
 
-    expect_none_i32(hash_map::hashmap_i32_i32_remove(m, 999))
-    assert(!hash_map::hashmap_i32_i32_is_empty(m))
+    expect_none_i32(m.remove(999))
+    assert(!m.is_empty())
 
     // Typed HashSet<i32> capacity/clear/extend wrappers.
     let s = hash_set::hashset_i32_new()

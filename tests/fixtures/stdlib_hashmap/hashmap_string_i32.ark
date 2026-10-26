@@ -1,25 +1,25 @@
 use std::test
 
 fn main() {
-    let m = HashMap_new_String_i32()
-    HashMap_String_i32_insert(m, "apple", 3)
-    HashMap_String_i32_insert(m, "banana", 7)
-    HashMap_String_i32_insert(m, "cherry", 1)
-    HashMap_String_i32_insert(m, "banana", 42)
-    test::assert_eq_i32(HashMap_String_i32_len(m), 3)
-    match HashMap_String_i32_get(m, "apple") {
+    let m = HashMap::new<String, i32>()
+    let _ = m.insert("apple", 3)
+    let _ = m.insert("banana", 7)
+    let _ = m.insert("cherry", 1)
+    let _ = m.insert("banana", 42)
+    test::assert_eq_i32(m.len(), 3)
+    match m.get("apple") {
         Option::Some(v) => test::assert_eq_i32(v, 3),
         None => panic("expected Some(3)"),
     }
-    match HashMap_String_i32_get(m, "banana") {
+    match m.get("banana") {
         Option::Some(v) => test::assert_eq_i32(v, 42),
         None => panic("expected Some(42)"),
     }
-    match HashMap_String_i32_get(m, "durian") {
+    match m.get("durian") {
         Option::Some(v) => panic("expected None"),
         None => {
         },
     }
-    test::assert_true(HashMap_String_i32_contains_key(m, "cherry"))
-    test::assert_false(HashMap_String_i32_contains_key(m, "mango"))
+    test::assert_true(m.contains_key("cherry"))
+    test::assert_false(m.contains_key("mango"))
 }

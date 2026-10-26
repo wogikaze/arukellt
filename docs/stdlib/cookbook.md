@@ -3,9 +3,8 @@
 > **Current-first**: 実装の現在地は [../current-state.md](../current-state.md) を参照してください。
 > API リファレンスは [reference.md](reference.md) を参照してください。
 
-> **Deprecated API note**: この cookbook のコード例は現行 bootstrap で動く
-> monomorphic API（`Vec_new_i32()`, `concat()`, `HashMap_i32_i32_new()` など）
-> を使用しています。これらは `std/manifest.toml` で `stability = "deprecated"`
+> **Deprecated API note**: この cookbook のコード例の一部は現行 bootstrap で動く
+> monomorphic API（`Vec_new_i32()`, `concat()` など）を使用しています。これらは `std/manifest.toml` で `stability = "deprecated"`
 > とマークされており、推奨APIは trait-based method syntax（ADR-036）です。
 > ADR-046 により free function は全件撲滅対象です（[eradication.md](eradication.md)）。
 > 移行状況は [migration-guidance.md](migration-guidance.md) を参照してください。
@@ -201,21 +200,21 @@ fn main() {
 ```ark
 use std::test
 fn main() {
-    let m = HashMap_i32_i32_new()
-    HashMap_i32_i32_insert(m, 1, 100)
-    HashMap_i32_i32_insert(m, 2, 200)
-    HashMap_i32_i32_insert(m, 3, 300)
+    let m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 100)
+    let _ = m.insert(2, 200)
+    let _ = m.insert(3, 300)
 
-    match HashMap_i32_i32_get(m, 2) {
+    match m.get(2) {
         Option::Some(v) => test::assert_eq_i32(v, 200),
         None => panic("expected Some(200)"),
     }
 
-    test::assert_eq_i32(HashMap_i32_i32_len(m), 3)
+    test::assert_eq_i32(m.len(), 3)
 
-    test::assert_true(HashMap_i32_i32_contains_key(m, 1))
+    test::assert_true(m.contains_key(1))
 
-    match HashMap_i32_i32_get(m, 99) {
+    match m.get(99) {
         Option::Some(v) => panic("expected None for key 99"),
         None => {
         },
@@ -223,8 +222,9 @@ fn main() {
 }
 ```
 
-> **Note**: HashMap API は現在 `i32 → i32` 専用バリアントのみ提供されています。
-> 他のキー・バリュー型は将来のリリースで追加予定です。
+> **Note**: `HashMap<i32, i32>` のほか、`String` / `i32` / `fn` の組み合わせを
+> 提供します。`HashMap_*` の旧 builtin 名は削除済みで、現在の綴りは
+> `HashMap::new<K, V>()` と receiver methods のみです。
 
 ---
 

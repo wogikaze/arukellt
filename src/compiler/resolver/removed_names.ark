@@ -17,6 +17,13 @@ pub fn removed_name_hint(name: String) -> String {
 }
 
 fn removed_name_specific_hint(name: String) -> String {
+    if text::starts_with(clone(name), String_from("HashMap_")) {
+        return text::concat(
+            String_from("removed HashMap builtin; use `HashMap::new<K, V>()` plus receiver methods "),
+            String_from("(`m.insert(k, v)`, `m.get(k)`, `m.contains_key(k)`, `m.remove(k)`, `m.len()`, "),
+            String_from("`m.is_empty()`, `m.keys()`, `m.values()`, `m.entries()`)")
+        )
+    }
     if eq(clone(name), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
     if eq(clone(name), "clear") { return "removed free function; use the Vec method `v.clear()`" }
     if eq(clone(name), "map_option_String_String") { return "removed free function; use `o.map(f)` via `use std::core::container`" }
@@ -184,6 +191,11 @@ test mod "removed_names" {
         assert(len(removed_name_hint("bool_to_string")) > 0)
     }
     test "vec ctor" { assert(len(removed_name_hint("Vec_new_i32")) > 0) }
+    test "hashmap builtins" {
+        assert(len(removed_name_hint("HashMap_i32_i32_new")) > 0)
+        assert(len(removed_name_hint("HashMap_new_String_i32")) > 0)
+        assert(len(removed_name_hint("HashMap_String_fn_get")) > 0)
+    }
     test "io env fs" {
         assert(len(removed_name_hint("read_to_string")) > 0)
         assert(len(removed_name_hint("exists")) > 0)

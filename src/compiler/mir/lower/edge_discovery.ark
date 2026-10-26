@@ -378,17 +378,18 @@ fn edge_add_callee_candidates(ctx: LowerCtx, out: Vec<String>, raw: String, span
 }
 
 // Receiver-type environment: emit resolves recv.m() through the
-// receiver's local type — hashmap:<pair> receivers rewrite to
-// hash_map::hashmap_<pair>_m adapter bodies
+// receiver's local type — hashmap:<pair> receivers rewrite to a
+// hash_map::hashmap_<pair>_m adapter or, for i32->i32, directly to the
+// bare hashmap_* store functions
 // (call_rewrite_hashmap::mir_rewrite_hashmap_method) and impl methods
 // register under Owner::m / InstOwner::m
 // (call_rewrite_method::mir_try_resolve_impl_method) — so the bare
 // spelling "m" reaches neither when no mono instance spells the pair.
-// HashMap<i32,i32>::values is adapter-only: the worklist dropped
-// hashmap_i32_i32_values and the emitted call stubbed to unreachable
-// (2026-10-13 hashmap_entries_values regression). let/param bindings
-// give the AST walk the same receiver types the MIR side reads via
-// ctx_get_local_type.
+// The rewritten HashMap target (hashmap_values or a per-pair adapter) is
+// invisible to the AST walk, so the worklist dropped it and
+// the emitted call stubbed to unreachable (2026-10-13
+// hashmap_entries_values regression). let/param bindings give the AST
+// walk the same receiver types the MIR side reads via ctx_get_local_type.
 fn edge_env_get(names: Vec<String>, types: Vec<String>, name: String) -> String {
     let mut i = 0
     while i < len(names) {
@@ -414,8 +415,8 @@ fn edge_env_set(names: Vec<String>, types: Vec<String>, name: String, ty: String
 }
 
 // fn_index return type for a spelling, trying the after-last-`::` suffix
-// a qualified candidate needs (hash_map::hashmap_i32_i32_new registers
-// under the bare emit name).
+// a qualified candidate needs (the bare hashmap_new emit name is what the
+// rewrite registers).
 fn edge_fn_index_return_type(ctx: LowerCtx, name: String) -> String {
     let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
     if ni >= 0 {
@@ -433,12 +434,17 @@ fn edge_fn_index_return_type(ctx: LowerCtx, name: String) -> String {
 
 // Registered return type for a callee spelling. The hashmap-constructor
 // rewrite runs first: HashMap__new__i32__i32 also names the generic
-// HashMap::new decl whose return is the unsubstituted HashMap<K, V>,
-// while the hash_map::hashmap_i32_i32_new adapter carries the concrete
-// pair name the receiver-type dispatch needs.
+// HashMap::new decl whose return is the unsubstituted HashMap<K, V>, so
+// the concrete pair must come from the rewrite rather than the bare decl.
 fn edge_call_return_type(ctx: LowerCtx, name: String) -> String {
     let ctor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(clone(name))
     if len(ctor) > 0 {
+        // HashMap<i32,i32> lowers to the flat store, whose declared return
+        // type is Vec<i32>. The source expression is still a HashMap pair,
+        // and the receiver-type dispatch below needs that pair name.
+        if eq(clone(ctor), String_from("hashmap_new")) {
+            return String_from("hashmap:i32i32")
+        }
         let crt = edge_fn_index_return_type(ctx, clone(ctor))
         if len(crt) > 0 {
             return crt
@@ -510,10 +516,9 @@ fn edge_push_typed_method_candidates(out: Vec<String>, recv_ty: String, method: 
     if len(family) > 0 {
         let meth = call_rewrite_hashmap::hashmap_method_name(clone(method))
         if len(meth) > 0 {
-            if eq(clone(meth), String_from("contains_key")) {
-                push(out, text::concat(clone(family), String_from("_contains")))
-            } else {
-                push(out, text::concat(clone(family), text::concat(String_from("_"), clone(meth))))
+            let target = call_rewrite_hashmap::hashmap_family_method_target(clone(family), clone(meth))
+            if len(target) > 0 {
+                push(out, target)
             }
         }
         let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
@@ -576,19 +581,18 @@ fn edge_resolve_method_site(
     if contains(clone(owner_ty), String_from("<")) {
         owner_ty = method_resolve::mir_inst_owner_name(clone(owner_ty))
     }
-    // HashMap pair receivers lower to per-pair adapter bodies
-    // (hash_map::hashmap_i32_i32_values) plus the pair-owner impl spell
-    // — both shapes the emit hashmap rewrite produces.
+    // HashMap pair receivers lower to a per-pair adapter body
+    // (hash_map::hashmap_str_i32_values) or, for the flat i32->i32 store,
+    // directly to std::collections::hash (hashmap_values), plus the
+    // pair-owner impl spell — the shapes the emit hashmap rewrite produces.
     let family = call_rewrite_hashmap::hashmap_family_for_type(clone(owner_ty))
     if len(family) > 0 {
         let meth = call_rewrite_hashmap::hashmap_method_name(clone(method))
         if len(meth) > 0 {
-            let adapter = if eq(clone(meth), String_from("contains_key")) {
-                text::concat(clone(family), String_from("_contains"))
-            } else {
-                text::concat(clone(family), text::concat(String_from("_"), clone(meth)))
+            let target = call_rewrite_hashmap::hashmap_family_method_target(clone(family), clone(meth))
+            if len(target) > 0 {
+                edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, target))
             }
-            edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, adapter))
         }
         let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
         if len(pair_owner) > 0 {
@@ -1471,8 +1475,9 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
 // (call_rewrite_hashmap, call_rewrite_vec*, hash_aliases, the coreop and
 // scalar intrinsic maps). Expanding them on resolved names keeps the
 // bodies emit actually calls — without this the worklist keeps
-// HashMap::values but drops hash_map::hashmap_i32_i32_values and the
-// emitted call traps (2026-10-13 hashmap_entries_values regression).
+// HashMap::values but drops the rewritten target (for example
+// hashmap_values) and the emitted call traps (2026-10-13
+// hashmap_entries_values regression).
 fn edge_rewrite_targets(name: String, out: Vec<String>) {
     let alias = hash_aliases::hashmap_builtin_alias(clone(name))
     if !eq(clone(alias), clone(name)) {
@@ -1485,10 +1490,9 @@ fn edge_rewrite_targets(name: String, out: Vec<String>) {
     let meth = call_rewrite_hashmap::hashmap_method_name(clone(name))
     let fam = call_rewrite_hashmap::hashmap_family_for_callee(clone(name))
     if len(meth) > 0 && len(fam) > 0 {
-        if eq(clone(meth), String_from("contains_key")) {
-            push(out, text::concat(clone(fam), String_from("_contains")))
-        } else {
-            push(out, text::concat(clone(fam), text::concat(String_from("_"), clone(meth))))
+        let target = call_rewrite_hashmap::hashmap_family_method_target(clone(fam), clone(meth))
+        if len(target) > 0 {
+            push(out, target)
         }
     }
     let vec_coreop = method_resolve::mir_vec_method_prefer_coreop_name(clone(name))

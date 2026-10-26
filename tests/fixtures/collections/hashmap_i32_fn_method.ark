@@ -5,9 +5,9 @@ fn double(n: i32) -> i32 {
 }
 
 fn main() {
-    let m = HashMap_String_fn_new()
-    let _ = HashMap_String_fn_insert(m, "x", double)
-    match HashMap_String_fn_get(m, "x") {
+    let m = HashMap::new<i32, fn(i32) -> i32>()
+    let _ = m.insert(1, double)
+    match m.get(1) {
         Some(f) => stdio::println((f(5)).to_string()),
         None => stdio::println("missing"),
     }

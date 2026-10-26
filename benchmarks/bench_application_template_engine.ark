@@ -18,7 +18,7 @@ fn expand(s: String, ctx: HashMap<String, String>) -> String {
             let prefix: String = substring(s, 0, start)
             let var_name: String = substring(s, start + 1, end)
             let suffix: String = substring(s, end + 1, len(s))
-            match HashMap_String_String_get(ctx, var_name) {
+            match ctx.get(var_name) {
                 Option::Some(val) => {
                     let expanded_val: String = expand(val, ctx)
                     text::concat(text::concat(prefix, expanded_val), expand(suffix, ctx))
@@ -33,12 +33,12 @@ fn expand(s: String, ctx: HashMap<String, String>) -> String {
 
 fn main() {
     // Build variable context
-    let ctx: HashMap<String, String> = HashMap_new_String_String()
-    HashMap_String_String_insert(ctx, "name", "Benchmark")
-    HashMap_String_String_insert(ctx, "greeting", "Hello {name}")
-    HashMap_String_String_insert(ctx, "welcome", "{greeting}, welcome to")
-    HashMap_String_String_insert(ctx, "final", "{welcome} Arukellt!")
-    HashMap_String_String_insert(ctx, "place", "World")
+    let ctx: HashMap<String, String> = HashMap::new<String, String>()
+    let _ = ctx.insert("name", "Benchmark")
+    let _ = ctx.insert("greeting", "Hello {name}")
+    let _ = ctx.insert("welcome", "{greeting}, welcome to")
+    let _ = ctx.insert("final", "{welcome} Arukellt!")
+    let _ = ctx.insert("place", "World")
 
     // Render multiple templates
     let t1: String = String_from("{final}")

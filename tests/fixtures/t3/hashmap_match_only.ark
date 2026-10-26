@@ -1,17 +1,17 @@
 use std::host::stdio
 
 fn main() {
-    let m = HashMap_i32_i32_new()
-    HashMap_i32_i32_insert(m, 1, 100)
-    match HashMap_i32_i32_get(m, 2) {
+    let m = HashMap::new<i32, i32>()
+    let _ = m.insert(1, 100)
+    match m.get(2) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println((-1).to_string()),
     }
-    stdio::println((HashMap_i32_i32_len(m)).to_string())
-    if HashMap_i32_i32_contains_key(m, 1) {
+    stdio::println((m.len()).to_string())
+    if m.contains_key(1) {
         stdio::println(String_from("found"))
     }
-    match HashMap_i32_i32_get(m, 99) {
+    match m.get(99) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println(String_from("not found")),
     }

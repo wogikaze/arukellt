@@ -1,25 +1,25 @@
 use std::test
 
 fn main() {
-    let m = HashMap_new_String_String()
-    HashMap_String_String_insert(m, "greeting", "hello")
-    HashMap_String_String_insert(m, "farewell", "goodbye")
-    HashMap_String_String_insert(m, "color", "red")
-    HashMap_String_String_insert(m, "color", "blue")
-    test::assert_eq_i32(HashMap_String_String_len(m), 3)
-    match HashMap_String_String_get(m, "greeting") {
+    let m = HashMap::new<String, String>()
+    let _ = m.insert("greeting", "hello")
+    let _ = m.insert("farewell", "goodbye")
+    let _ = m.insert("color", "red")
+    let _ = m.insert("color", "blue")
+    test::assert_eq_i32(m.len(), 3)
+    match m.get("greeting") {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
         None => panic("expected Some(hello)"),
     }
-    match HashMap_String_String_get(m, "color") {
+    match m.get("color") {
         Option::Some(v) => test::assert_eq_string(v, "blue"),
         None => panic("expected Some(blue)"),
     }
-    match HashMap_String_String_get(m, "missing") {
+    match m.get("missing") {
         Option::Some(v) => panic("expected None"),
         None => {
         },
     }
-    test::assert_true(HashMap_String_String_contains_key(m, "farewell"))
-    test::assert_false(HashMap_String_String_contains_key(m, "unknown"))
+    test::assert_true(m.contains_key("farewell"))
+    test::assert_false(m.contains_key("unknown"))
 }

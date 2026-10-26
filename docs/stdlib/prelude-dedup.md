@@ -31,7 +31,7 @@ These categories do **not** correspond to importable modules:
 | `box` | 2 | `Box_new`, `unbox` | No — prelude only |
 | `control` | 1 | `panic` | No — prelude only |
 | `io` | 3 | `println`, `print`, `eprintln` | No — prelude only |
-| *(none)* | 7 | `Vec_new`, `HashMap_new` | No — prelude only |
+| *(none)* | 7 | `Vec_new`, `String_new` | No — prelude only |
 
 > **Important**: `std::math`, `std::string`, `std::collections` are **not** importable
 > modules. The LSP may suggest them as virtual modules for completion, but they are
@@ -63,7 +63,7 @@ These modules exist in `std/manifest.toml` and require `use` to access:
 | `std::wit` | 14 | `type_id`, `canonical_abi` |
 | `std::component` | 2 | `abi_version`, `model_version` |
 | `std::core` | 3 | `hash`, `ordering` |
-| `std::collections::hash` | 5 | `HashMap_new`, `HashMap_insert` |
+| `std::collections::hash` | 5 | `hashmap_new`, `hashmap_set`, `hashmap_get_option` |
 | `std::collections::linear` | 13 | `Vec_new`, `deque_new` |
 | `std::collections::ordered` | 10 | `BTreeMap_new` |
 

@@ -1,0 +1,11 @@
+{
+  "search.useIgnoreFiles": true,
+  "search.exclude": {
+    "**/.ark-t3-check": true,
+    "**/.build": true,
+    "**/.worktrees": true
+  },
+  "gitlens.integrations.enabled": false,
+  "gitlens.advanced.repositorySearch.enabled": false,
+  "gitlens.plusFeatures.enabled": false
+}

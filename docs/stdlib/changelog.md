@@ -99,38 +99,32 @@
   compiler / std 内の約 9k 呼び出しの移行、i64/f64/String consumer lane の
   実装、call-site migration を前提とする。
 
-## 2026-10-27 — WIT builder wave（#917、ADR-044/ADR-046）
+## 2026-10-27 — HashMap builtin retirement（#917）
 
-- **対象**: `std::wit::world` の builder free 9 件
-  (`world_new`, `world_import`, `world_export`, `world_name`,
-  `world_exports_len`, `interface_new`, `interface_add_func`,
-  `wit_func_new`, `wit_param_new`) と、その forwarder だった
-  `std::wit::types::wit_param`。
-- **変更**: 型付き associated function / receiver method へ置換した。
-  `World::new` / `Interface::new` / `WitFunc::new` / `WitParam::new`、
-  `w.add_import(iface)` / `w.add_export(iface)` / `w.name()` /
-  `w.exports_len()` / `iface.add_func(func)`。`import` / `export` は
-  keyword のため method 名は `add_import` / `add_export` とした。
-- **Basis**: 削除対象はすべて未登録の source 宣言であり、
-  `std/manifest.toml` entry を持たない。したがって ADR-014 の
-  deprecation window も ADR-087 の 0.x 例外も適用されず、W0009 は
-  対象外。qualified call のみだったため E0100 removed-name hint も
-  追加しない（W0009 は manifest の deprecated entry、E0100 は bare
-  prelude 名の削除が対象）。
-- **Scorecard**: eradication scope 1226 → **1216**
-  (`associated-or-method` 1107 → **1097**、`must delete` 119 と
-  `intrinsic-only` 1 は不変)。`pub fn` 宣言 1397 → **1387**、
-  unregistered 413 → **403**。manifest 公開 entry 813 と
-  `prelude_wrapper` 96 は不変。
-- **Evidence**: `stdlib_wit/world_build.ark` と
-  `stdlib_wit/wit_print.ark` を method surface へ移行し、
-  `stdlib_wit/world_methods_wasm32.ark` を追加（run: 1835 → 1836）。
-  wasm32-gc は `--emit component`、wasm32 は `--target wasm32` で
-  compile + wasm-tools validate + 実行し、`check-cross-backend-parity.py`
-  で stdout の一致を確認した。
-- **Residual**: `std::wit::ast`（23 宣言）は recursive `WitNode` enum の
-  method receiver で payload を bind する method が wasm32-gc で不正な
-  Wasm を生成するため defer。std 内部の module-qualified associated call
-  (`types::WitParam::new`) も deferred-body stub になるため、std 内の
-  call site は unqualified綴りを使う。`std::wit::printer::print_wit`、
-  残る `std::wit::types` / `scan` / `names` の free も #917 に残る。
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の free-function
+  根絶と #917 の実行 wave。対象は `provisional` の monomorphic `HashMap_*` builtin 20 件で
+  あり、`stable` ではないため ADR-087 の deprecation window は適用されない。移行は
+  W0009 ではなく、未解決名に対する **E0100** の removed-name hint で案内する。
+- **Removed (20 manifest builtins)**: `HashMap_i32_i32_{new,insert,get,contains_key,len}`、
+  `HashMap_new_String_i32` / `HashMap_String_i32_{insert,get,contains_key,len}`、
+  `HashMap_new_i32_String` / `HashMap_i32_String_{insert,get,contains_key,len}`、
+  `HashMap_new_String_String` / `HashMap_String_String_{insert,get,contains_key,len}`。
+  manifest entry だけでなく、`resolver::builtins_hash` / `typechecker::builtins_hash` /
+  `mir::lower::call_type_hash` / `wasm::hash_aliases` / `native_c::core_call` の lowering
+  登録と、`std/collections/hash_map.ark` の i32→i32 adapter 10 件を同時に削除した。
+- **Replacement**: `impl HashMap<K,V>` の `new` / `insert` / `get` / `contains_key` /
+  `remove` / `len` / `is_empty` / `keys` / `values` / `entries` のみが公開綴りである。
+  `HashMap<i32, i32>` は `std::collections::hash` の flat store 実装へ直接 lower し、
+  他の pair は `hash_map::` typed adapter を維持する。旧 spelling は
+  `src/compiler/resolver/removed_names.ark` の `HashMap_` prefix hint で
+  `HashMap::new<K, V>()` と receiver methods を案内する。
+- **Evidence**: `hashmap_basic`, `hashmap_insert_return`, 6 pair family fixture、
+  `hashmap_fn_growth`, `typed_i32_i32_remove`, `collections/hashmap_entries_values`、
+  `collections/hashmap_*_method` を wasm32-gc / `--target wasm32` の両方で
+  compile + execute し、stdout を比較した。t3 compile fixtures、native-cpp scenario、
+  benchmark も method 綴りへ移行した。
+- **Scorecard**: eradication scope 1226 → **1196**（`must delete` 119 → 99、
+  `associated-or-method` 1107 → 1097）。manifest 公開 entry 813 → **793**、
+  `pub fn` 宣言 1397 → **1387**、unregistered 413 → **403**。
+  `prelude_wrapper` 96 は不変。`HashMap` methods の `keys` / `values` / `entries` は
+  引き続き typechecker が直接型付けする。
