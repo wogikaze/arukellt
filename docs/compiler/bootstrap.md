@@ -36,7 +36,7 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | Depends on the current selfhost artifact | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | 20-40 min with the official pin; ~40-60 s with `--fast` | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
 | Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist | Does not refresh the emitter by itself |
 | Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | stage-3 alone can be **tens of minutes** today on gc+p2 | **Not** for routine iteration. gc-host ≤10s is [#851](../../issues/open/851-selfhost-compiler-core-rewrite.md) / [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md) |
 
@@ -46,6 +46,21 @@ Do **not** use `fixpoint --build --no-cache` to “just rebuild s2” — that a
 runs stage-3 and floods long builds under parallel agents.
 
 Copy files with `/bin/cp -f` (never interactive `cp -iv`).
+
+### Fast iteration pin
+
+The official pin's stage-2 build is 20-40 minutes today: the pinned linear-GC
+compile path dominates (#851). For emitter iteration, `--fast` uses
+`bootstrap/arukellt-selfhost-fast.wasm` and finishes in about 40-60 seconds:
+
+```bash
+python3 scripts/manager.py selfhost build-compiler --fast
+```
+
+The fast pin is development-only. Run one official-pin build and the ADR-029
+fixpoint before merge or tag; an s2 built with `--fast` is not release
+evidence. Provenance and removal conditions:
+[`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md).
 
 ### How to iterate without unnecessary rebuilds
 
@@ -60,8 +75,10 @@ Recommended loop:
 
 1. Classify failures / read WAT with the **current** s2 (no rebuild).
 2. Batch all planned `src/compiler/**` edits.
-3. **One** `selfhost build-compiler`.
-4. Re-validate **many** fixtures / the whole lane list against that s2.
+3. **One** `selfhost build-compiler --fast` (~60 s with the iteration pin).
+4. Re-validate **many** fixtures against that s2. Use
+   `selfhost fixture-parity --filter-dir <area>` while a batch is in flight,
+   and `ARUKELLT_FIXTURE_WORKERS=12 verify fixtures` at a checkpoint.
 5. Only rebuild again after the next batch of source edits.
 
 Parallel agents must **share** one rebuilt s2 (parent rebuilds once); each lane

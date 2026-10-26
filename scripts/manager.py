@@ -6984,10 +6984,12 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     p_bc = sub.add_parser(
         "build-compiler",
         aliases=["build-s2", "rebuild-s2"],
-        help="Refresh arukellt-s2.wasm after compiler edits (stage-2 only, ~50s; USE THIS by default)",
+        help="Refresh arukellt-s2.wasm after compiler edits (stage-2 only; --fast ~40s)",
         description=(
             "Rebuild .build/selfhost/arukellt-s2.wasm from current src/compiler (stage-2 only).\n"
-            "Skips stage-3 and the s2==s3 fixpoint compare. Typical warm-cache time: ~50s.\n"
+            "Skips stage-3 and the s2==s3 fixpoint compare.\n"
+            "Official pin: 20-40 min today (linear-GC compile path, #851).\n"
+            "--fast uses bootstrap/arukellt-selfhost-fast.wasm: ~40s, iteration only.\n"
             "\n"
             "Use this after editing src/compiler/** or when T3/validate needs a fresh emitter.\n"
             "Do NOT use `selfhost fixpoint --build` for that — fixpoint also builds s3 and is much slower.\n"
@@ -7002,6 +7004,15 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
         action="store_true",
         default=False,
         help="Skip rebuild when s2 already matches the current source fingerprint",
+    )
+    p_bc.add_argument(
+        "--fast",
+        action="store_true",
+        default=False,
+        help=(
+            "Use the fast iteration pin (bootstrap/arukellt-selfhost-fast.wasm). "
+            "~40s instead of 20-40min; not release-valid."
+        ),
     )
     p_ne = sub.add_parser(
         "native-executor",
@@ -7429,6 +7440,30 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
     """Stage-2 only rebuild for emitter iteration (canonical: selfhost build-compiler)."""
     root = _repo_root()
     dry_run: bool = args.dry_run
+    fast_pin = bool(getattr(args, "fast", False))
+    if fast_pin:
+        pin = root / "bootstrap" / "arukellt-selfhost-fast.wasm"
+        if not pin.is_file():
+            print(
+                f"{RED}error: fast iteration pin not found at "
+                f"{pin.relative_to(root)}{NC}",
+                file=sys.stderr,
+            )
+            return 1
+        expected_sha = "3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852"
+        actual_sha = hashlib.sha256(pin.read_bytes()).hexdigest()
+        if actual_sha != expected_sha:
+            print(
+                f"{RED}error: fast iteration pin sha256 mismatch "
+                f"(expected {expected_sha}, got {actual_sha}){NC}",
+                file=sys.stderr,
+            )
+            return 1
+        os.environ["ARUKELLT_PINNED_WASM"] = str(pin)
+        print(
+            f"{YELLOW}[selfhost] fast iteration pin: {pin.relative_to(root)} "
+            f"(not release-valid; re-validate with the official pin){NC}"
+        )
     force = not getattr(args, "if_stale", False)
     h = Harness(repo_root=root, dry_run=dry_run)
 
@@ -7463,6 +7498,11 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
         print(
             f"{YELLOW}warning: build-compiler exceeded 60s "
             f"(overlay cache miss or machine load){NC}"
+        )
+    if fast_pin:
+        print(
+            f"{YELLOW}note: s2 was built with the fast iteration pin; "
+            f"run once with the official pin before tag/release.{NC}"
         )
     h.check_pass(f"selfhost build-compiler ({elapsed:.1f}s)")
     total, passed, skipped, failed = h.summary()

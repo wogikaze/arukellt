@@ -126,5 +126,26 @@ class TestVerifyFullFixpointDryRun(unittest.TestCase):
         self.assertIn("full verify", out)
 
 
+class TestPinAwareCaches(unittest.TestCase):
+    """The fast iteration pin must not reuse official-pin caches."""
+
+    def test_fingerprint_and_overlay_key_include_the_resolved_pin(self) -> None:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from selfhost import checks
+
+        official = REPO_ROOT / checks.PINNED_WASM_REL
+        fast = REPO_ROOT / "bootstrap" / "arukellt-selfhost-fast.wasm"
+        if not official.is_file() or not fast.is_file():
+            self.skipTest("pinned artifacts are not both present")
+        with patch.dict("os.environ", {"ARUKELLT_PINNED_WASM": str(official)}):
+            official_fingerprint = checks._selfhost_source_fingerprint(REPO_ROOT)
+            official_overlay = checks._compiler_source_content_hash(REPO_ROOT)
+        with patch.dict("os.environ", {"ARUKELLT_PINNED_WASM": str(fast)}):
+            fast_fingerprint = checks._selfhost_source_fingerprint(REPO_ROOT)
+            fast_overlay = checks._compiler_source_content_hash(REPO_ROOT)
+        self.assertNotEqual(official_fingerprint, fast_fingerprint)
+        self.assertNotEqual(official_overlay, fast_overlay)
+
+
 if __name__ == "__main__":
     unittest.main()

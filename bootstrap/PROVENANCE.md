@@ -90,3 +90,29 @@ selfhost compiler used by the fixture gate all start from this binary. A fresh
 clone can therefore verify the compiler without a prior local build. Pinned
 fixture-output comparison is reserved for explicit artifact refreshes instead
 of being multiplied across every normal fixture test.
+
+## Fast iteration pin (development only)
+
+`bootstrap/arukellt-selfhost-fast.wasm` is a second, development-only pin used
+by `python3 scripts/manager.py selfhost build-compiler --fast`.
+
+| Field | Value |
+|-------|-------|
+| Path | `bootstrap/arukellt-selfhost-fast.wasm` |
+| Size | 6 244 452 bytes |
+| sha256 | `3f0ca60531c729025c9dab244b65b884abacd73084996120dd8df901a6797852` |
+| Built from commit | `01c3ec26e` (predates #849 and #922) |
+| Build target | `wasm32` / `wasi-p1` direct core (guest memory 8192) |
+| Original fixpoint | `s2 == s3` sha256 `33922353…` |
+
+Why: the official pin's stage-2 build regressed from ~40 s to 21-41 min after
+the #922 linear-GC change. This pin compiles the same current source in ~40 s,
+which keeps the edit loop usable. The generic-enum fallback in
+`_compile_selfhost_bootstrap_chain` applies the structural `Box` / `Slice`
+overlay; the overlay cache and the bootstrap copy are keyed by the resolved
+pin, so the patch cannot leak into an official-pin build.
+
+Scope: stage-2 `build-compiler` only. Never use it for tag/release or ADR-029
+fixpoint decisions; run one official-pin build and the official fixpoint before
+merge. Remove this artifact when the official pin's stage-2 build is <=60 s
+again (#851 Phase 3), or when it stops compiling the current source.

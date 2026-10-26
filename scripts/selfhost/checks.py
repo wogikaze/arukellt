@@ -752,9 +752,12 @@ def _selfhost_source_fingerprint(root: Path) -> str:
             h.update(f"{rel}\0".encode())
             h.update(p.read_bytes())
             h.update(b"\0")
-    pinned = root / PINNED_WASM_REL
-    if pinned.is_file():
-        h.update(b"pinned\0")
+    pinned = _find_pinned_wasm(root)
+    if pinned is not None:
+        # Hash the resolved name as well as the bytes: switching between the
+        # official pin and the fast iteration pin must invalidate a cached s2
+        # instead of reusing an artifact the other pin produced.
+        h.update(f"pinned:{pinned.name}\0".encode())
         h.update(pinned.read_bytes())
     h.update(f"bootstrap_emit={BOOTSTRAP_EMIT_TARGET}:{BOOTSTRAP_EMIT_WASI_VERSION}\n".encode())
     try:
@@ -2578,7 +2581,10 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
     out = _resolve_build_rel(root, BOOTSTRAP_WASM_REL)
     source_mtime = max(pinned.stat().st_mtime, Path(__file__).stat().st_mtime)
     if out.is_file() and out.stat().st_mtime >= source_mtime:
-        return None if _reject_invalid_compiler_wasm(out) else out
+        # mtime alone is not enough after switching between the official and
+        # fast pins: the older pin can leave a newer copy from the other pin.
+        if _sha256(out) == _sha256(pinned):
+            return None if _reject_invalid_compiler_wasm(out) else out
     out.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(pinned, out)
     return None if _reject_invalid_compiler_wasm(out) else out
@@ -4198,6 +4204,12 @@ def _compiler_source_content_hash(root: Path) -> str:
     digest.update(
         f"overlay_emit_target={os.environ.get('ARUKELLT_OVERLAY_EMIT_TARGET', BOOTSTRAP_EMIT_TARGET)}\n".encode()
     )
+    # The fast iteration pin needs the structural Box/Slice patch, and that
+    # patch mutates the shared overlay in place. Keying the cache by pin keeps
+    # an official-pin build from reusing a fast-pin overlay (and vice versa).
+    pinned = _find_pinned_wasm(root)
+    pin_id = f"{pinned.name}:{_sha256(pinned)[:16]}" if pinned is not None else "none"
+    digest.update(f"pin={pin_id}\n".encode())
     # Hash checks.py itself (overlay logic depends on it)
     try:
         with open(__file__, "rb") as f:
