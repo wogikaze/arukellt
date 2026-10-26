@@ -39,6 +39,16 @@ LINT_TABLE = ROOT / "src" / "compiler" / "lint" / "deprecated_table.ark"
 REMOVED_TABLE = ROOT / "src" / "compiler" / "resolver" / "removed_names.ark"
 STABLE_TABLE = ROOT / "src" / "compiler" / "resolver" / "prelude_stable.ark"
 
+# Qualified W0009 table keys use the call-site module alias.  Map each alias
+# to the std module that owns the called free function.
+QUALIFIED_WARN_MODULES = {
+    "cmp": "std::core::cmp",
+    "convert": "std::core::convert",
+    "hash": "std::core::hash",
+    "math": "std::core::math",
+    "seq": "std::seq",
+}
+
 
 def manifest_entries(manifest: dict) -> list[dict]:
     out: list[dict] = []
@@ -172,6 +182,7 @@ def main() -> int:
         "deprecated_cmp_qualified_message",
         "deprecated_convert_qualified_message",
         "deprecated_hash_qualified_message",
+        "deprecated_seq_qualified_message",
     ):
         qual_warn_paths += table_names(lint_text, fn)
     removed_names = table_names(removed_text, "removed_name_hint")
@@ -229,8 +240,13 @@ def main() -> int:
             )
     for path in qual_warn_paths:
         mod, _, leaf = path.partition("::")
-        # Qualified warning aliases resolve to std::core::<mod> today.
-        f = module_file(f"std::core::{mod}")
+        module = QUALIFIED_WARN_MODULES.get(mod)
+        if module is None:
+            problems.append(
+                f"orphan W0009 qualified entry: {path} has no warning-module mapping"
+            )
+            continue
+        f = module_file(module)
         if f is None or leaf not in pub_decls(f):
             problems.append(
                 f"orphan W0009 qualified entry: {path} resolves to no pub decl"

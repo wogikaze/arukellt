@@ -1,0 +1,10 @@
+use std::seq
+
+fn double(value: i32) -> i32 {
+    value * 2
+}
+
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    let _mapped: Vec<i32> = seq::map_i32_i32(values, double)
+}

@@ -72,7 +72,7 @@ phase = "lint-post-resolve"
 summary = "deprecated API usage with the manifest-recorded replacement"
 maturity = "implemented"
 emitted = true
-fixture = "tests/fixtures/selfhost/lsp_stdlib_definition.lsp-expected"
+fixture = "tests/fixtures/diagnostics/deprecated_seq_map_i32_i32.ark"
 
 [[diagnostics]]
 code = "W0010"

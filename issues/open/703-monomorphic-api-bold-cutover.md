@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-27
-Updated: 2026-10-25
+Updated: 2026-10-26
 ID: 703
 Track: stdlib-api
 Depends on: "none"
@@ -83,15 +83,17 @@ registered entries owned by #917).
 - [x] Teach `scripts/check/check-compat-orphans.py` about `Type::method`
       `deprecated_by` targets so Wave 1 can point at `Vec::sort()` and
       similar replacements without a false orphan.
-- [ ] Add W0009 coverage for `std::seq` imports/calls — **blocked**, see
-      [W0009 coverage blocker](#w0009-coverage-blocker).
+- [x] Add W0009 coverage for qualified `std::seq` calls (the 13 deprecated
+      helpers), with both-target diagnostic fixtures. See
+      [W0009 coverage status](#w0009-coverage-status).
 
 ### Wave 1 — deprecate the 34 stable monomorphic frees
 
 - [ ] Add `deprecated_by`, `deprecated_since`, and `remove_in` to the 34
       prelude entries in `std/manifest.toml` (ADR-014 window).
 - [ ] Add the matching rows to `docs/stdlib/migration-guidance.md`.
-- [ ] W0009 / E0100 diagnostic coverage (blocked; see below).
+- [ ] W0009 diagnostic coverage for the 34 stable frees (their warning
+      entries land with the `deprecated_by` metadata above).
 - [ ] Update in-tree callers (compiler source, fixtures, benchmarks) to
       `v.sort()`, `v.iter().map(f).collect()`, `v.iter().sum()`, … as the
       method replacements land (#697 for `Vec::sort`).
@@ -107,30 +109,36 @@ registered entries owned by #917).
       them before the deletion wave).
 - [ ] Publish the breaking-change notice with the before/after table.
 
-## W0009 coverage blocker
+## W0009 coverage status
 
-`src/compiler/lint/deprecated_table.ark` has no live warning for the
-`std::seq` helpers, and the four deprecated prelude wrappers are gated
-before lint:
+`src/compiler/lint/deprecated_table.ark` maps every deprecated
+`std::seq` helper to a replacement message, and
+`deprecated_qualified_call_message` dispatches the `seq` entries.
+`scripts/check/check-compat-orphans.py` maps the `seq` warning alias to
+`std::seq`, so the table cannot silently retain dead entries.
 
-- Bare prelude names (`concat`, `char_at`, `print`, `println`) fail name
-  resolution under the ADR-072 v2 prelude contract with **E0100** and a
-  `resolver::removed_names` migration hint. `deprecated_call_message` is
-  intentionally empty, so no W0009 can fire for a gated bare name.
-- `checks_extra.ark` only inspects `use` paths through
-  `deprecated_use_message` (module renames) and qualified calls through
-  `deprecated_qualified_call_message`, which dispatches `math` / `cmp` /
-  `convert` / `hash` only. A `seq::map_i32_i32(...)` path therefore emits
-  no warning.
-- `check-compat-orphans.py` currently maps qualified warning aliases to
-  `std::core::<mod>`; `seq` would need an explicit module mapping.
+Coverage is limited to qualified calls (`use std::seq` plus
+`seq::map_i32_i32(...)`) because the bare helper names overlap the
+still-stable prelude frees (`sum_i32`, `sort_i32`, ...), which must not
+warn before Wave 1 deprecates them.
 
-Adding this coverage changes compiler warning behavior and needs a new
-`.selfhost.diag` golden, so it is out of scope for this docs/tooling-only
-foundation lane. Concrete unblock steps: (1) add
-`deprecated_seq_qualified_message` to `deprecated_table.ark`, (2) map
-`seq` → `std::seq` in the orphan checker, (3) add the diagnostic golden,
-(4) run the fixture suite. Tracked here and in #917.
+Live-call evidence:
+
+- `tests/fixtures/diagnostics/deprecated_seq_map_i32_i32.ark` exercises
+  the default `wasm32-gc` target and expects the W0009 replacement.
+- `tests/fixtures/diagnostics/deprecated_seq_sum_i32_wasm32.ark` passes
+  `--target wasm32 --wasi-version wasi-p1` through its `.flags` sidecar
+  and expects the W0009 replacement.
+- Both fixtures are listed under `diag:` in
+  `tests/fixtures/manifest.txt`, so
+  `python3 scripts/manager.py selfhost diag-parity` compares their output
+  with the committed goldens.
+
+The four deprecated bare prelude wrappers (`concat`, `char_at`, `print`,
+`println`) remain outside W0009: the ADR-072 v2 prelude gates them before
+lint with **E0100** and a `resolver::removed_names` migration hint. The
+34 stable prelude monomorphic frees remain warning-free until their
+`deprecated_by` metadata lands in Wave 1.
 
 ## Acceptance
 
