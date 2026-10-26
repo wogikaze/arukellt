@@ -63,7 +63,7 @@ fn parse_type_name(name: String) -> types::WitType {
 }
 
 fn parse_wit_param(name: String, ty: types::WitType) -> types::WitParam {
-    types::wit_param(name, ty)
+    WitParam::new(name, ty)
 }
 
 fn parse_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
@@ -112,11 +112,11 @@ fn parse_func_line(s: String, pos: i32) -> (world::WitFunc, i32) {
                 if i < len(s) && byte_at(s, i) == 59 {
                     i = i + 1
                 }
-                return (world::wit_func_new(fname, params, result), i)
+                return (world::WitFunc::new(fname, params, result), i)
             }
         }
     }
-    (world::wit_func_new(String_from(""), Vec::new<WitParam>(), Option::None), pos)
+    (world::WitFunc::new(String_from(""), Vec::new<WitParam>(), Option::None), pos)
 }
 
 pub fn parse_wit(source: String) -> Result<world::World, error::Error> {
@@ -131,7 +131,7 @@ pub fn parse_wit(source: String) -> Result<world::World, error::Error> {
     if i >= len(source) || byte_at(source, i) != 123 {
         return Err(error::Error::ParseError { kind: String_from("expected {"), input: source })
     }
-    let w = world::world_new(wname)
+    let w = world::World::new(wname)
     i = parse_skip_ws(source, i + 1)
     while i < len(source) {
         i = parse_skip_ws(source, i)
@@ -145,7 +145,7 @@ pub fn parse_wit(source: String) -> Result<world::World, error::Error> {
         if i >= len(source) || byte_at(source, i) != 123 {
             return Err(error::Error::ParseError { kind: String_from("expected interface {"), input: source })
         }
-        let iface = world::interface_new(iname)
+        let iface = world::Interface::new(iname)
         i = parse_skip_ws(source, i + 1)
         while i < len(source) {
             i = parse_skip_ws(source, i)
@@ -155,14 +155,14 @@ pub fn parse_wit(source: String) -> Result<world::World, error::Error> {
             }
             let (func, p5) = parse_func_line(source, i)
             if len(func.name) > 0 {
-                world::interface_add_func(iface, func)
+                iface.add_func(func)
             }
             i = p5
         }
         if eq(section, "export") {
-            world::world_export(w, iface)
+            w.add_export(iface)
         } else {
-            world::world_import(w, iface)
+            w.add_import(iface)
         }
     }
     Err(error::Error::ParseError { kind: String_from("unterminated world"), input: source })

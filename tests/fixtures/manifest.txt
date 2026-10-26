@@ -2123,6 +2123,7 @@ run:stdlib_wit/wit_print.ark
 run:stdlib_wit/wit_type_basic.ark
 run:stdlib_wit/wit_types.ark
 run:stdlib_wit/world_build.ark
+run:stdlib_wit/world_methods_wasm32.ark
 run:string_interp/fstring_basic.ark
 run:string_interp/fstring_debug_specifier.ark
 run:string_interp/fstring_expr.ark

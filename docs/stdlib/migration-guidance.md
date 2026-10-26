@@ -339,6 +339,40 @@ The `std::core::math` module itself remains: it still hosts the checked /
 saturating arithmetic trait impls (`checked_add`, `saturating_mul`, …) used by
 existing callers. Only its numeric free helpers were retired.
 
+## Removed in the #917 WIT builder wave (2026-10-27)
+
+This wave retired the `std::wit` world builder free functions. They were
+unregistered source declarations (no `std/manifest.toml` entry), so no
+ADR-014 / ADR-087 deprecation window applied, and there is no W0009 or E0100
+surface to add: every removed call was module-qualified (`world::world_new`),
+W0009 covers deprecated manifest entries, and E0100 covers removed bare
+prelude names.
+
+The replacements are associated functions on the builder types and receiver
+methods for mutation. `std::wit::types::wit_param` retired with the same wave
+because it existed only as the forwarder behind `world::wit_param_new`; the
+canonical constructor is now `WitParam::new`.
+
+| Removed API | Replacement | Notes |
+|-------------|-------------|-------|
+| `world::world_new(name)` | `World::new(name)` | associated function |
+| `world::world_import(w, iface)` | `w.add_import(iface)` | `import` is a keyword, so the method is `add_import` |
+| `world::world_export(w, iface)` | `w.add_export(iface)` | `export` is a keyword, so the method is `add_export` |
+| `world::world_name(w)` | `w.name()` | |
+| `world::world_exports_len(w)` | `w.exports_len()` | |
+| `world::interface_new(name)` | `Interface::new(name)` | associated function |
+| `world::interface_add_func(iface, func)` | `iface.add_func(func)` | |
+| `world::wit_func_new(name, params, result)` | `WitFunc::new(name, params, result)` | associated function |
+| `world::wit_param_new(name, ty)` | `WitParam::new(name, ty)` | defined in `std::wit::types` |
+| `types::wit_param(name, ty)` | `WitParam::new(name, ty)` | retired with the builder wave |
+
+The method surface is exercised on both targets by
+`tests/fixtures/stdlib_wit/world_build.ark`,
+`tests/fixtures/stdlib_wit/wit_print.ark`, and
+`tests/fixtures/stdlib_wit/world_methods_wasm32.ark`.
+`std::wit::world` itself remains as the owner of the `World`, `Interface`,
+and `WitFunc` types.
+
 ## Iterator v2 status
 
 The current iterator implementation is intentionally narrower than the final

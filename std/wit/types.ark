@@ -44,8 +44,18 @@ pub struct WitVariantCase {
     ty: Option<WitType>,
 }
 
-pub fn wit_param(name: String, ty: WitType) -> WitParam {
-    WitParam { name: name, ty: ty }
+impl WitParam {
+    /// Create a named parameter with its WIT type.
+    ///
+    /// std-internal callers must use the unqualified `WitParam::new` spelling:
+    /// the current s2 defers the body of a module-qualified associated call
+    /// here, which emits an invalid `unreachable` stub (#917).
+    fn new(name: String, ty: WitType) -> WitParam {
+        WitParam {
+            name: name,
+            ty: ty,
+        }
+    }
 }
 
 pub fn wit_type_bool() -> WitType {

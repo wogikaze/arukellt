@@ -98,3 +98,39 @@
   3 件の deferred-body trap も Wave 2 の前提。vec intrinsic-compat は
   compiler / std 内の約 9k 呼び出しの移行、i64/f64/String consumer lane の
   実装、call-site migration を前提とする。
+
+## 2026-10-27 — WIT builder wave（#917、ADR-044/ADR-046）
+
+- **対象**: `std::wit::world` の builder free 9 件
+  (`world_new`, `world_import`, `world_export`, `world_name`,
+  `world_exports_len`, `interface_new`, `interface_add_func`,
+  `wit_func_new`, `wit_param_new`) と、その forwarder だった
+  `std::wit::types::wit_param`。
+- **変更**: 型付き associated function / receiver method へ置換した。
+  `World::new` / `Interface::new` / `WitFunc::new` / `WitParam::new`、
+  `w.add_import(iface)` / `w.add_export(iface)` / `w.name()` /
+  `w.exports_len()` / `iface.add_func(func)`。`import` / `export` は
+  keyword のため method 名は `add_import` / `add_export` とした。
+- **Basis**: 削除対象はすべて未登録の source 宣言であり、
+  `std/manifest.toml` entry を持たない。したがって ADR-014 の
+  deprecation window も ADR-087 の 0.x 例外も適用されず、W0009 は
+  対象外。qualified call のみだったため E0100 removed-name hint も
+  追加しない（W0009 は manifest の deprecated entry、E0100 は bare
+  prelude 名の削除が対象）。
+- **Scorecard**: eradication scope 1226 → **1216**
+  (`associated-or-method` 1107 → **1097**、`must delete` 119 と
+  `intrinsic-only` 1 は不変)。`pub fn` 宣言 1397 → **1387**、
+  unregistered 413 → **403**。manifest 公開 entry 813 と
+  `prelude_wrapper` 96 は不変。
+- **Evidence**: `stdlib_wit/world_build.ark` と
+  `stdlib_wit/wit_print.ark` を method surface へ移行し、
+  `stdlib_wit/world_methods_wasm32.ark` を追加（run: 1835 → 1836）。
+  wasm32-gc は `--emit component`、wasm32 は `--target wasm32` で
+  compile + wasm-tools validate + 実行し、`check-cross-backend-parity.py`
+  で stdout の一致を確認した。
+- **Residual**: `std::wit::ast`（23 宣言）は recursive `WitNode` enum の
+  method receiver で payload を bind する method が wasm32-gc で不正な
+  Wasm を生成するため defer。std 内部の module-qualified associated call
+  (`types::WitParam::new`) も deferred-body stub になるため、std 内の
+  call site は unqualified綴りを使う。`std::wit::printer::print_wit`、
+  残る `std::wit::types` / `scan` / `names` の free も #917 に残る。

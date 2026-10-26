@@ -1,7 +1,13 @@
 //! WIT world and interface builders (#044).
+//!
+//! The builder entry points are associated functions on `World`,
+//! `Interface`, and `WitFunc`; mutations are receiver methods. The former
+//! free `world_*` / `interface_*` / `wit_*` builders were retired by the
+//! #917 wave (ADR-044/ADR-046).
 
 use std::wit::types
 use std::prelude::{clone}
+
 pub struct WitFunc {
     name: String,
     params: Vec<types::WitParam>,
@@ -19,42 +25,59 @@ pub struct World {
     exports: Vec<Interface>,
 }
 
-pub fn world_new(name: String) -> World {
-    World {
-        name: name,
-        imports: Vec::new<Interface>(),
-        exports: Vec::new<Interface>(),
+impl WitFunc {
+    /// Create a function signature for a world or interface member.
+    fn new(name: String, params: Vec<types::WitParam>, result: Option<types::WitType>) -> WitFunc {
+        WitFunc {
+            name: name,
+            params: params,
+            result: result,
+        }
     }
 }
 
-pub fn world_import(w: World, iface: Interface) {
-    push(w.imports, iface)
+impl Interface {
+    /// Create an empty interface with the given name.
+    fn new(name: String) -> Interface {
+        Interface {
+            name: name,
+            functions: Vec::new<WitFunc>(),
+        }
+    }
+
+    /// Append a function to the interface body.
+    fn add_func(self: Interface, func: WitFunc) {
+        push(self.functions, func)
+    }
 }
 
-pub fn world_export(w: World, iface: Interface) {
-    push(w.exports, iface)
-}
+impl World {
+    /// Create an empty world with the given name.
+    fn new(name: String) -> World {
+        World {
+            name: name,
+            imports: Vec::new<Interface>(),
+            exports: Vec::new<Interface>(),
+        }
+    }
 
-pub fn interface_new(name: String) -> Interface {
-    Interface { name: name, functions: Vec::new<WitFunc>() }
-}
+    /// Append an imported interface to the world.
+    fn add_import(self: World, iface: Interface) {
+        push(self.imports, iface)
+    }
 
-pub fn interface_add_func(iface: Interface, func: WitFunc) {
-    push(iface.functions, func)
-}
+    /// Append an exported interface to the world.
+    fn add_export(self: World, iface: Interface) {
+        push(self.exports, iface)
+    }
 
-pub fn wit_func_new(name: String, params: Vec<types::WitParam>, result: Option<types::WitType>) -> WitFunc {
-    WitFunc { name: name, params: params, result: result }
-}
+    /// Return the world name.
+    fn name(self: World) -> String {
+        clone(self.name)
+    }
 
-pub fn wit_param_new(name: String, ty: types::WitType) -> types::WitParam {
-    types::wit_param(name, ty)
-}
-
-pub fn world_name(w: World) -> String {
-    clone(w.name)
-}
-
-pub fn world_exports_len(w: World) -> i32 {
-    len(w.exports)
+    /// Return the number of exported interfaces.
+    fn exports_len(self: World) -> i32 {
+        len(self.exports)
+    }
 }

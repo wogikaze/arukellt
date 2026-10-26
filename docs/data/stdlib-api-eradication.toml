@@ -307,6 +307,20 @@ module_pfx = ["std::wit", "std::component"]
 class = "associated-or-method"
 owner = "917"
 replacement = "Wit/Component/Handle associated functions and methods"
+# Retired by #917 (2026-10-27, wave/917-1106): the WIT world builder family
+# was unregistered source declarations, so no manifest deprecation window
+# applied:
+#   std::wit::world (9)  -> World/Interface/WitFunc associated functions and
+#                           receiver methods (add_import, add_export,
+#                           add_func, name, exports_len)
+#   std::wit::types (1)  -> WitParam::new; the old `wit_param` free was only
+#                           the builder forwarder, so it retired with the
+#                           same wave
+# Residual in this rule: std::wit::ast (23 declarations) is deferred with a
+# compiler blocker — methods that bind payloads of the recursive WitNode enum
+# emit invalid Wasm under wasm32-gc until method-receiver monomorphization is
+# fixed. std::wit::printer::print_wit and the remaining types/scan/names frees
+# also stay in this rule.
 
 [[rules]]
 label = "host/core namespace frees"

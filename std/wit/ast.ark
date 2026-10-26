@@ -833,7 +833,7 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
-        push(params, types::wit_param(pname, ty))
+        push(params, WitParam::new(pname, ty))
         i = p_skip_ws_comments(s, p2)
         if i < n && byte_at(s, i) == 44 {
             i = i + 1

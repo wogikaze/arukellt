@@ -23,13 +23,13 @@ This issue owns the **execution**: actually deleting, deprecating, or
 replacing every public free / `prelude_wrapper` / monomorphic helper
 classified there, in dependency-safe waves.
 
-## Current state (2026-10-26)
+## Current state (2026-10-27)
 
-- `docs/data/stdlib-api-eradication.toml` now classifies both
+- `docs/data/stdlib-api-eradication.toml` classifies both
   `std/manifest.toml` `[[functions]]` entries and top-level `pub fn`
-  declarations under `std/**/*.ark`: 816 manifest functions (815 public) +
-  413 unregistered declarations = **1228** public symbols
-  (`must delete` 122, `associated-or-method` 1106, `intrinsic-only` 1).
+  declarations under `std/**/*.ark`: 814 manifest functions (813 public) +
+  403 unregistered declarations = **1216** public symbols
+  (`must delete` 119, `associated-or-method` 1097, `intrinsic-only` 1).
 - `scripts/check/check-stdlib-eradication.py` enforces the dual surface:
   no unclassified manifest entry or std declaration, no manifest entry
   without a source declaration, no dead rule, every public class has an owner.
@@ -146,6 +146,54 @@ classified there, in dependency-safe waves.
   the 20 `std::core::raw` representation bridges (need a RawArray/RawString
   namespace surface). No stable manifest entry was touched.
 
+### Landed slice (wave/917-1106, 2026-10-27)
+
+- **WIT world builder conversion (ADR-044/ADR-046)**: retired 10 public free
+  functions — the 9 `std::wit::world` builders (`world_new`, `world_import`,
+  `world_export`, `world_name`, `world_exports_len`, `interface_new`,
+  `interface_add_func`, `wit_func_new`, `wit_param_new`) and
+  `std::wit::types::wit_param`, which existed only as the forwarder behind
+  `wit_param_new`.
+- **Replacement surface**: associated functions `World::new`,
+  `Interface::new`, `WitFunc::new`, `WitParam::new`; receiver methods
+  `w.add_import(iface)`, `w.add_export(iface)`, `w.name()`,
+  `w.exports_len()`, `iface.add_func(func)`. `import` and `export` are
+  keywords, so the mutators are spelled `add_import` / `add_export`.
+- **Lifecycle**: all 10 symbols were unregistered source declarations with no
+  `std/manifest.toml` entry, so neither the ADR-014 window nor the ADR-087
+  0.x exception applied. W0009 does not cover unregistered declarations, and
+  E0100 is a bare-prelude removal hint; every removed call was qualified, so
+  no W0009/E0100 table entry was added. Migration and changelog rows record
+  the removal instead.
+- **Fixtures**: migrated `stdlib_wit/world_build.ark` and
+  `stdlib_wit/wit_print.ark` to the method surface and added
+  `stdlib_wit/world_methods_wasm32.ark` (with `.flags`, `.expected`) for the
+  linear target; `run:` count 1835 -> 1836.
+- **Scorecard delta**: 1226 -> **1216** public symbols (`associated-or-method`
+  1107 -> **1097**; `must delete` 119 and `intrinsic-only` 1 unchanged);
+  `pub fn` declarations 1397 -> **1387**; unregistered 413 -> **403**;
+  manifest public entries 813 and `prelude_wrapper` 96 unchanged.
+- **Deferred with blocker**: `std::wit::ast` (23 declarations) stays
+  `associated-or-method`. Methods on the recursive `WitNode` enum that bind
+  variant payloads (`child_count`, `child_at`, `field_name_at`, …) emit
+  invalid core Wasm under wasm32-gc: `wasm-tools validate` reports
+  `type mismatch: expected (ref null $type), found (ref null $type)` because
+  the method receiver is `ref.cast` to the wrong variant struct type. The
+  free-function form of the same bodies validates, so this is a
+  method-receiver/monomorphization gap, not a parser defect. `import_metadata`
+  has to be an associated function for the same reason. Do not convert the
+  AST accessors until that compiler gap is fixed.
+- **Incidental compiler gap (worked around)**: std-internal module-qualified
+  associated calls to a new impl function (`types::WitParam::new`) also lower
+  to a deferred-body `unreachable` stub under s2. The two std call sites
+  (`std/wit/ast.ark`, `std/wit/parser.ark`) use the unqualified
+  `WitParam::new` spelling; `wit_ast_parse.ark` then compiles and validates.
+  This belongs to the same associated-call lowering family as the `WitNode`
+  deferral and should be fixed before the rest of `std::wit` is widened.
+- **Residual in this family**: `std::wit::printer::print_wit`, the remaining
+  `std::wit::types` frees, and `std::wit::scan` / `std::wit::names` stay in
+  the `std::wit/component frees` rule.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -168,18 +216,15 @@ classified there, in dependency-safe waves.
       #702, #703, #708, #710, and the future Test / IO / collection
       types), then retire the free symbol.
       - Landed 2026-10-26: 6 `std::collections::sort` frees retired after
-<<<<<<< HEAD
         the #697 `Vec<T>` methods; the `std::core` value-helper family
         (18 counted) retired after the `Either` / `Integer` / `TryFrom`
-        replacements. 1106 associated-or-method symbols remain.
-||||||| 42c3dbdd4
-        the #697 `Vec<T>` methods; 1124 associated-or-method symbols remain.
-=======
-        the #697 `Vec<T>` methods; 1124 associated-or-method symbols remain.
+        replacements.
       - Landed 2026-10-26 (`wave/917-stable64`): 31 seq/combinator frees
         deprecated (Wave 1) with W0009 + iterator/Vec method replacements;
         deletion is Wave 2.
->>>>>>> wave/917-stable64
+      - Landed 2026-10-27 (`wave/917-1106`): 10 `std::wit` world builder
+        frees retired after the `World` / `Interface` / `WitFunc` /
+        `WitParam` method surface. 1097 associated-or-method symbols remain.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a
