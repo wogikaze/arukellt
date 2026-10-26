@@ -1,4 +1,5 @@
-//! `Deque<T>` — a double-ended queue with amortized O(1) push/pop at both ends.
+//! `Deque<T>`, `Queue<T>`, and `Stack<T>` — linear collections over shared
+//! two-stack storage.
 //!
 //! Storage is a pair of `Vec<T>` stacks: `front_items` holds the front half in
 //! reverse order and `back_items` holds the back half in order. When one side
@@ -11,6 +12,17 @@
 //! `capacity` / `reserve` expose the logical reservation: pushes grow it and
 //! `reserve` rebuilds both stacks through `Vec::with_capacity` so the
 //! reservation is backed by the vector allocators.
+//!
+//! `Queue<T>` and `Stack<T>` are restricted newtypes over `Deque<T>`. Their
+//! `push` / `pop` names encode the direction so callers do not have to
+//! remember which `Deque` end implements FIFO or LIFO. They share the
+//! `DequeIter` / `DequeIntoIter` cursors instead of declaring look-alike
+//! iterator types.
+//!
+//! Cursors hold the collection handle rather than a borrowed reference, so the
+//! type checker does not yet reject a push / pop / clear while an iterator is
+//! alive. Do not structurally modify a collection during iteration; the
+//! borrow / lifetime design will enforce this later (ADR-086 §5).
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -53,6 +65,10 @@ fn deque_replace_at<T>(deque: Deque<T>, index: i32, value: T) -> T {
     old
 }
 
+fn normalized_capacity(capacity: i32) -> i32 {
+    if capacity > 0 { capacity } else { 0 }
+}
+
 impl<T> Deque<T> {
     /// Creates an empty deque.
     fn new() -> Deque<T> {
@@ -63,7 +79,7 @@ impl<T> Deque<T> {
     ///
     /// A negative `capacity` is treated as `0`; this never panics.
     fn with_capacity(capacity: i32) -> Deque<T> {
-        let cap: i32 = if capacity > 0 { capacity } else { 0 }
+        let cap: i32 = normalized_capacity(capacity)
         Deque { front_items: Vec::with_capacity<T>(cap), back_items: Vec::new<T>(), reserved: cap }
     }
 
@@ -387,15 +403,239 @@ impl<T: Clone> Clone for Deque<T> {
 
 impl<T: Debug> Debug for Deque<T> {
     fn fmt_debug(self: Deque<T>) -> String {
-        let mut out: String = String_from("Deque [")
-        let mut i: i32 = 0
-        while i < len(self.front_items) + len(self.back_items) {
-            if i > 0 {
-                out = text::concat(out, String_from(", "))
-            }
-            out = text::concat(out, (deque_at(self, i)).fmt_debug())
-            i = i + 1
+        text::concat(String_from("Deque "), deque_debug_items(self))
+    }
+}
+
+fn deque_debug_items<T: Debug>(deque: Deque<T>) -> String {
+    let mut out: String = String_from("[")
+    let mut index: i32 = 0
+    let count: i32 = len(deque.front_items) + len(deque.back_items)
+    while index < count {
+        if index > 0 {
+            out = text::concat(out, String_from(", "))
         }
-        text::concat(out, String_from("]"))
+        out = text::concat(out, (deque_at(deque, index)).fmt_debug())
+        index = index + 1
+    }
+    text::concat(out, String_from("]"))
+}
+
+/// First-in first-out queue backed by `Deque<T>`.
+///
+/// `push` appends at the back and `pop` removes from the front. `front` and
+/// `back` observe both ends without removing elements. Empty pops and peeks
+/// return `Option::None`. `iter` walks front to back, the same order as `pop`.
+pub struct Queue<T> {
+    deque: Deque<T>,
+}
+
+impl<T> Queue<T> {
+    /// Creates an empty queue.
+    fn new() -> Queue<T> {
+        // Calling Deque::new<T>() from generic wrapper code emits the
+        // unmonomorphized constructor on wasm32-gc; the nested literal lets the
+        // field-type instantiation select the concrete Deque layout.
+        Queue {
+            deque: Deque {
+                front_items: Vec::new<T>(),
+                back_items: Vec::new<T>(),
+                reserved: 0
+            }
+        }
+    }
+
+    /// Creates an empty queue with a logical capacity reservation.
+    ///
+    /// A negative `capacity` is treated as `0`; this never panics.
+    fn with_capacity(capacity: i32) -> Queue<T> {
+        let cap: i32 = normalized_capacity(capacity)
+        Queue {
+            deque: Deque {
+                front_items: Vec::with_capacity<T>(cap),
+                back_items: Vec::new<T>(),
+                reserved: cap
+            }
+        }
+    }
+
+    /// Appends `value` at the back of the queue.
+    fn push(self: Queue<T>, value: T) {
+        self.deque.push_back(value)
+    }
+
+    /// Removes and returns the front element, or `None` when empty.
+    fn pop(self: Queue<T>) -> Option<T> {
+        self.deque.pop_front()
+    }
+
+    /// Peeks at the front element without removing it.
+    fn front(self: Queue<T>) -> Option<T> {
+        self.deque.front()
+    }
+
+    /// Peeks at the back element without removing it.
+    fn back(self: Queue<T>) -> Option<T> {
+        self.deque.back()
+    }
+
+    /// Returns the number of elements.
+    fn len(self: Queue<T>) -> i32 {
+        self.deque.len()
+    }
+
+    /// Returns true when the queue has no elements.
+    fn is_empty(self: Queue<T>) -> bool {
+        self.deque.is_empty()
+    }
+
+    /// Removes all elements while keeping the logical capacity reservation.
+    fn clear(self: Queue<T>) {
+        self.deque.clear()
+    }
+
+    /// Returns the logical capacity reservation.
+    fn capacity(self: Queue<T>) -> i32 {
+        self.deque.capacity()
+    }
+
+    /// Ensures room for at least `len + additional` elements.
+    fn reserve(self: Queue<T>, additional: i32) {
+        self.deque.reserve(additional)
+    }
+
+    /// Returns a read-only cursor over the elements, front to back.
+    fn iter(self: Queue<T>) -> DequeIter<T> {
+        DequeIter { deque: self.deque, index: 0 }
+    }
+}
+
+impl IntoIterator for Queue<T> {
+    type Item = T
+    type IntoIter = DequeIntoIter<T>
+
+    fn into_iter(self: Queue<T>) -> DequeIntoIter<T> {
+        DequeIntoIter { deque: self.deque }
+    }
+}
+
+impl<T: Clone> Clone for Queue<T> {
+    fn clone(self: Queue<T>) -> Queue<T> {
+        Queue { deque: self.deque.clone() }
+    }
+}
+
+impl<T: Debug> Debug for Queue<T> {
+    fn fmt_debug(self: Queue<T>) -> String {
+        // Format through the wrapped deque and replace its prefix. Passing the
+        // nested generic struct field through the shared free function does not
+        // lower on wasm32-gc, but the field method call does.
+        let rendered: String = self.deque.fmt_debug()
+        text::concat(String_from("Queue "), slice(rendered, 6, len(rendered)))
+    }
+}
+
+/// Last-in first-out stack backed by `Deque<T>`.
+///
+/// `push` appends at the back, and `pop` / `peek` address the back. `iter`
+/// walks bottom to top (push order), which is the reverse of `pop` order, so a
+/// stack traversal is not silently LIFO. Empty pops and peeks return
+/// `Option::None`.
+pub struct Stack<T> {
+    deque: Deque<T>,
+}
+
+impl<T> Stack<T> {
+    /// Creates an empty stack.
+    fn new() -> Stack<T> {
+        // Same nested-literal requirement as Queue::new.
+        Stack {
+            deque: Deque {
+                front_items: Vec::new<T>(),
+                back_items: Vec::new<T>(),
+                reserved: 0
+            }
+        }
+    }
+
+    /// Creates an empty stack with a logical capacity reservation.
+    ///
+    /// A negative `capacity` is treated as `0`; this never panics.
+    fn with_capacity(capacity: i32) -> Stack<T> {
+        let cap: i32 = normalized_capacity(capacity)
+        Stack {
+            deque: Deque {
+                front_items: Vec::with_capacity<T>(cap),
+                back_items: Vec::new<T>(),
+                reserved: cap
+            }
+        }
+    }
+
+    /// Pushes `value` on top of the stack.
+    fn push(self: Stack<T>, value: T) {
+        self.deque.push_back(value)
+    }
+
+    /// Removes and returns the top element, or `None` when empty.
+    fn pop(self: Stack<T>) -> Option<T> {
+        self.deque.pop_back()
+    }
+
+    /// Peeks at the top element without removing it.
+    fn peek(self: Stack<T>) -> Option<T> {
+        self.deque.back()
+    }
+
+    /// Returns the number of elements.
+    fn len(self: Stack<T>) -> i32 {
+        self.deque.len()
+    }
+
+    /// Returns true when the stack has no elements.
+    fn is_empty(self: Stack<T>) -> bool {
+        self.deque.is_empty()
+    }
+
+    /// Removes all elements while keeping the logical capacity reservation.
+    fn clear(self: Stack<T>) {
+        self.deque.clear()
+    }
+
+    /// Returns the logical capacity reservation.
+    fn capacity(self: Stack<T>) -> i32 {
+        self.deque.capacity()
+    }
+
+    /// Ensures room for at least `len + additional` elements.
+    fn reserve(self: Stack<T>, additional: i32) {
+        self.deque.reserve(additional)
+    }
+
+    /// Returns a read-only cursor over the elements, bottom to top.
+    fn iter(self: Stack<T>) -> DequeIter<T> {
+        DequeIter { deque: self.deque, index: 0 }
+    }
+}
+
+impl IntoIterator for Stack<T> {
+    type Item = T
+    type IntoIter = DequeIntoIter<T>
+
+    fn into_iter(self: Stack<T>) -> DequeIntoIter<T> {
+        DequeIntoIter { deque: self.deque }
+    }
+}
+
+impl<T: Clone> Clone for Stack<T> {
+    fn clone(self: Stack<T>) -> Stack<T> {
+        Stack { deque: self.deque.clone() }
+    }
+}
+
+impl<T: Debug> Debug for Stack<T> {
+    fn fmt_debug(self: Stack<T>) -> String {
+        let rendered: String = self.deque.fmt_debug()
+        text::concat(String_from("Stack "), slice(rendered, 6, len(rendered)))
     }
 }

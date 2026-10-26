@@ -102,7 +102,7 @@ All 18 module pages carry curated overviews.
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `HashMap`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`, `Box`, `Slice`
 - Prelude values: `Some`, `None`, `Ok`, `Err`
 - Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 172, `component` 7, `control` 1, `conversion` 5, `convert` 2, `core` 8, `csv` 7, `env` 6, `fs` 8, `host_clock` 2, `host_env` 6, `host_fs` 10, `host_process` 4, `host_random` 4, `host_stdio` 6, `io` 37, `iter` 44, `json` 32, `math` 6, `numeric` 2, `option_result` 9, `path` 9, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 22, `signal` 10, `simd` 104, `string` 33, `test` 18, `text` 47, `time` 3, `toml` 14, `wasm` 79, `wit` 16
-- Source-backed modules: 28
+- Source-backed modules: 30
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 
 ## Additional Documents

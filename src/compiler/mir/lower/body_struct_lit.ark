@@ -1,4 +1,4 @@
-use std::prelude::{clone}
+use std::prelude::{clone, eq}
 use mir::lower::ast_node
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
@@ -6,6 +6,7 @@ use mir::lower::ctx_api_variants
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_struct_mono
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::inst_const_i32
@@ -29,6 +30,22 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let mut has_base = false
     let field_names = Vec::new<String>()
     let field_vals = Vec::new<i32>()
+    // When this literal's type is already known (`Queue<String>`), a field
+    // declared as `Deque<T>` must instantiate as `Deque<String>` before the
+    // nested literal is lowered. Otherwise the nested literal falls back to
+    // the generic declaration and emits i32 Vec slots for reference elements
+    // (#710).
+    let outer_expected = clone(ctx.expected_struct_inst)
+    let mut outer_params = Vec::new<String>()
+    let mut outer_args = Vec::new<String>()
+    if eq(ctx_struct_mono::generic_inst_base_name(clone(outer_expected)), clone(struct_name)) {
+        outer_args = ctx_struct_mono::generic_inst_args(clone(outer_expected))
+        if len(outer_args) > 0 {
+            outer_params = struct_lit::struct_lit_split_params(
+                ctx_struct_mono::ctx_generic_struct_params(ctx, clone(struct_name))
+            )
+        }
+    }
     let mut f = 0
     while f < child_count {
         let field = ast_node::node_child_at(node, f)
@@ -41,12 +58,28 @@ fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let fc = ast_node::node_child_count(field)
             if fc >= 1 {
                 let init = ast_node::node_child_at(field, 0)
+                let saved_expected = clone(ctx.expected_struct_inst)
+                if len(outer_params) > 0 && len(outer_params) == len(outer_args) {
+                    let fi = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), ast_node::node_text(field))
+                    if fi >= 0 {
+                        let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(struct_name), fi)
+                        let sub = ctx_struct_mono::ctx_substitute_generic_field_type(
+                            ft,
+                            clone(outer_params),
+                            clone(outer_args)
+                        )
+                        if len(sub) > 0 {
+                            ctx.expected_struct_inst = sub
+                        }
+                    }
+                }
                 let mut val_idx = 0 - 1
                 if mir_struct_lit_field_fn_ident(ctx, clone(struct_name), ast_node::node_text(field), init) {
                     val_idx = value_variants::lower_function_value(ctx, ast_node::node_text(init))
                 } else {
                     val_idx = lower_expr(ctx, init)
                 }
+                ctx.expected_struct_inst = saved_expected
                 // Field sets run after struct.new, so the stack-composed
                 // value must land in its local now; otherwise the linear
                 // store policy leaves it under the next producer.

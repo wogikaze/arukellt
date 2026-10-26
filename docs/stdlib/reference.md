@@ -22,12 +22,22 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
+| `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
+| `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
+| `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
+| `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
+| `LinkedList` | T | no | provisional | Doubly-linked list with O(1) push/pop at both ends. |
+| `LinkedListIntoIter` | T | no | provisional | Owning front-to-back cursor over a LinkedList<T>. |
+| `LinkedListIter` | T | no | provisional | Read-only front-to-back cursor over a LinkedList<T>. |
+| `LinkedListIterMut` | T | no | provisional | Writable front-to-back cursor over a LinkedList<T> with set_current. |
+| `Queue` | T | no | provisional | First-in first-out queue restricted to Deque<T> push-at-back / pop-at-front. |
 | `Range` | - | no | stable | Half-open integer range [start, end). |
 | `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
 | `Reader` | - | no | experimental | In-memory read handle over an owned byte image; implements Read, BufRead, and Seek. |
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
+| `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `String` | - | yes | stable | UTF-8 string value. |
 | `Vec` | T | yes | - | Growable contiguous sequence. |
 | `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
@@ -75,6 +85,10 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
+| `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `Clone`, `Debug` |
+| `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
+| `DequeIter` | - | `Iterator`, `IntoIterator` |
+| `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `FromIterator` | `from_iter` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
@@ -82,11 +96,17 @@
 | `Iterator` | `next`, `collect`, `count` | - |
 | `IteratorFold` | `fold` | - |
 | `IteratorSum` | `sum` | - |
+| `LinkedList` | `new`, `push_front`, `push_back`, `pop_front`, `pop_back`, `front`, `back`, `len`, `is_empty`, `clear`, `iter`, `iter_mut` | `IntoIterator`, `Clone`, `Debug` |
+| `LinkedListIntoIter` | - | `Iterator`, `IntoIterator` |
+| `LinkedListIter` | - | `Iterator`, `IntoIterator` |
+| `LinkedListIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
+| `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `Clone`, `Debug` |
 | `Range` | `contains`, `len` | - |
 | `Read` | `read` | - |
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Seek` | `seek`, `position` | - |
+| `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `Clone`, `Debug` |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
 

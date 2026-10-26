@@ -7,7 +7,7 @@ Source-backed docs for the currently supported collection modules.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::collections` family provides the primary collection data structures for Arukellt programs: hash maps, double-ended queues, min-heap priority queues, sorted maps, and bitsets. The canonical HashMap surface is generic and statically monomorphized; lower-level containers remain available for compatibility and compiler-facing work.
+The `std::collections` family provides the primary collection data structures for Arukellt programs: hash maps, double-ended queues, FIFO queues, LIFO stacks, linked lists, min-heap priority queues, sorted maps, and bitsets. The canonical HashMap and linear-collection surfaces are generic and statically monomorphized; lower-level containers remain available for compatibility and compiler-facing work.
 
 **Recommended API highlights:**
 
@@ -16,7 +16,11 @@ The `std::collections` family provides the primary collection data structures fo
 | `HashMap::new` / `.insert` / `.get` | Generic HashMap API with static dispatch. |
 | `.contains_key` / `.remove` / `.len` | Typed lookup, removal, and size operations. |
 | `hashmap_new` / `hashmap_get` / `hashmap_set` | Raw i32 → i32 compatibility implementation. |
-| `deque_push_back` / `deque_pop_front` | FIFO / ring-buffer deque. |
+| `Deque::new` / `.push_back` / `.pop_front` | Generic double-ended queue with both-end operations. |
+| `Queue::new` / `.push` / `.pop` | FIFO queue newtype over `Deque<T>`. |
+| `Stack::new` / `.push` / `.pop` | LIFO stack newtype over `Deque<T>`. |
+| `LinkedList::new` / `.push_back` / `.iter_mut` | Node-pool doubly-linked list with cursors. |
+| `deque_push_back` / `deque_pop_front` | Legacy monomorphic i32 deque (migration window). |
 | `pq_push` / `pq_pop` | Min-heap priority queue — smallest element first. |
 | `sorted_map_insert` / `sorted_map_get` | Sorted-vector map for ordered iteration. |
 | `bitset_mark` / `bitset_test` | Compact bit-flag set backed by a `Vec<i32>`. |
@@ -256,6 +260,99 @@ Remove all elements from a HashSet<i32>, resetting size to 0.
 #### `std::collections::hash::hashset_extend`
 
 Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend.
+
+## Module `std::collections::deque`
+
+- Source: [`../../../std/collections/deque.ark`](../../../std/collections/deque.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+`Deque<T>`, `Queue<T>`, and `Stack<T>` — linear collections over shared
+two-stack storage.
+
+Storage is a pair of `Vec<T>` stacks: `front_items` holds the front half in
+reverse order and `back_items` holds the back half in order. When one side
+empties during a pop, the other side is reversed into it, so every element
+moves at most once per traversal between the two stacks. A growable ring
+buffer would need preallocated element slots; a generic struct field of
+`Vec<Option<T>>` (or raw slot writes) does not lower on `wasm32-gc`, so this
+representation is used instead while keeping the same public contract.
+
+`capacity` / `reserve` expose the logical reservation: pushes grow it and
+`reserve` rebuilds both stacks through `Vec::with_capacity` so the
+reservation is backed by the vector allocators.
+
+`Queue<T>` and `Stack<T>` are restricted newtypes over `Deque<T>`. Their
+`push` / `pop` names encode the direction so callers do not have to
+remember which `Deque` end implements FIFO or LIFO. They share the
+`DequeIter` / `DequeIntoIter` cursors instead of declaring look-alike
+iterator types.
+
+Cursors hold the collection handle rather than a borrowed reference, so the
+type checker does not yet reject a push / pop / clear while an iterator is
+alive. Do not structurally modify a collection during iteration; the
+borrow / lifetime design will enforce this later (ADR-086 §5).
+
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### `std::collections::deque` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `Deque` | `struct` | Double-ended queue with private two-stack storage. |
+| `DequeIter` | `struct` | Read-only cursor over a Deque<T>, front to back. |
+| `DequeIterMut` | `struct` | Writable cursor over a Deque<T>, front to back. |
+| `DequeIntoIter` | `struct` | Owning cursor over a Deque<T>, front to back. |
+| `Queue` | `struct` | First-in first-out queue backed by Deque<T>. |
+| `Stack` | `struct` | Last-in first-out stack backed by Deque<T>. |
+
+_No manifest-backed functions in this module._
+
+## Module `std::collections::linked_list`
+
+- Source: [`../../../std/collections/linked_list.ark`](../../../std/collections/linked_list.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+`LinkedList<T>` and legacy free-function helpers for a doubly-linked list.
+
+`LinkedList<T>` is a `Vec`-backed node pool with a free list. Node metadata
+(`prev` / `next` indices and a value index) lives in parallel `Vec<i32>`
+vectors, and element values live in an append-only `Vec<T>` log. Both-end
+push / pop and peek are O(1); front-to-back traversal is O(n). `clear` drops
+the value log and keeps the node-pool capacity.
+
+The older `linked_list_*` free functions below operate on a monomorphic
+`Vec<i32>` layout and remain only for the ADR-086 migration window. New code
+should use `LinkedList<T>`.
+
+Cursors hold the list handle rather than a borrowed reference, so the type
+checker does not yet reject a push / pop / clear while an iterator is alive.
+Do not structurally modify a list during iteration; the borrow / lifetime
+design will enforce this later (ADR-086 §5).
+
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+
+### Legacy layout
+
+The backing `Vec<i32>` stores:
+```text
+[head, tail, free_head, count, capacity,
+node_0_prev, node_0_next, node_0_value,
+node_1_prev, node_1_next, node_1_value, ...]
+```
+where `head`, `tail`, `free_head` are node indices or `-1` (nil).
+
+### `std::collections::linked_list` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `LinkedList` | `struct` | Doubly-linked list with O(1) push / pop at both ends. |
+| `LinkedListIter` | `struct` | Read-only cursor over a LinkedList<T>, front to back. |
+| `LinkedListIterMut` | `struct` | Writable cursor over a LinkedList<T>, front to back. |
+| `LinkedListIntoIter` | `struct` | Owning cursor over a LinkedList<T>, front to back. |
+
+_No manifest-backed functions in this module._
 
 ## Module `std::collections::linear`
 
