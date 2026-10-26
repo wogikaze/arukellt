@@ -6,6 +6,7 @@ use corehir::decl_ann_name
 use corehir::decl_node_identity
 use corehir::frontend_ast_node
 use corehir::semantic_trait_id
+use corehir::type_ann_local_name
 use corehir::type_ann_node
 use parser::kinds
 
@@ -37,6 +38,25 @@ fn impl_self_type_name(decl: AstNode) -> String {
         return decl_node_identity::decl_name(decl)
     }
     impl_target_type_name(target, declared_impl_param_names(decl))
+}
+
+// Local-type spelling of the impl head, including its type arguments
+// (`G<T>`). The owner name above stays the bare owner for generic impls so
+// every instantiation shares one symbol; a substituted `Self` return needs
+// the instantiated spelling so MIR can bind the impl's type parameters.
+fn impl_self_local_type_name(decl: AstNode) -> String {
+    let heads = impl_head_count(decl)
+    if heads < 1 {
+        return String_new()
+    }
+    let local_name = type_ann_local_name::type_ann_shape_local_type_name(
+        decl_ann_member::decl_ann_at(decl, heads - 1),
+        0
+    )
+    if len(local_name) > 0 {
+        return local_name
+    }
+    impl_self_type_name(decl)
 }
 
 fn declared_impl_param_names(decl: AstNode) -> Vec<String> {

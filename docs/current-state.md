@@ -4,7 +4,7 @@
 > including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-10-26.
+> Updated: 2026-10-25.
 > Generated-At: 2026-07-15
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
@@ -253,9 +253,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3224 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1636 registry entries (not proof they fail)
-- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3216 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture was added, so the current registry remainder is 1628, after the stdlib_vec extension run/t3 fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
+- Fixture registry: 3227 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1639 registry entries (not proof they fail)
+- Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3201 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture was added, so the current registry remainder is 1613, after the stdlib_deque run/t3 fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -563,28 +563,6 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - `parse_i64` baseline shape: `Result<i64, String>`
 - `parse_f64` baseline shape: `Result<f64, String>`
 - The observed outputs are frozen in `tests/baselines/api-baseline.json`
-
-## Stdlib Deprecation Policy (ADR-087)
-
-- [ADR-014](adr/ADR-014-stability-labels.md)'s four stability labels remain in
-  force. [ADR-087](adr/ADR-087-0x-deprecation-exception.md) is an explicit
-  ADR-014 addendum, not a replacement of the label semantics.
-- **1.0.0 is not cut.** A 1.0.0 tag requires re-evidencing the three
-  release-blocking items (fixture harness, selfhost CLI parity, selfhost diag
-  parity). The generated readiness block above and
-  [`data/release-guarantees.toml`](data/release-guarantees.toml) own the current
-  blocker state.
-- **0.x exception:** while the project version is 0.x, a `stable` public stdlib
-  entry may be removed earlier than the normal deprecation window only when
-  W0009 fires for the API, [`stdlib/migration-guidance.md`](stdlib/migration-guidance.md)
-  records a reachable replacement, and [`stdlib/changelog.md`](stdlib/changelog.md)
-  records the removal wave. Under the exception, the manifest `remove_in` value
-  is an **upper bound** (earlier removal is allowed; later is not).
-- **Scope:** stable public stdlib entries only. Language spec, CLI, ABI, target,
-  compiler-phase, and non-stdlib APIs are outside the exception.
-- **From 1.0.0:** the exception is void and the normal ADR-014 policy applies
-  unchanged. The exception does not change today's stdlib surface; free-function
-  elimination remains tracked by #917 and #703.
 
 ## Recent Milestones
 

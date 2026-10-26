@@ -116,14 +116,15 @@ fn return_index_type_name(node: AstNode) -> String {
 // lowering and the SignatureRegistry consume this name without the impl
 // context, so an unresolved `Self` becomes an unknown named struct and the
 // call dest is declared as a scalar/structref while the callee returns the
-// concrete target. Substitute the target here; the typechecker performs the
-// same binding in associated_types::resolve_impl_self_return.
+// concrete target. Substitute the impl head's instantiated local name
+// (`G<T>`, not the bare owner `G`) here; the typechecker performs the same
+// binding in associated_types::resolve_impl_self_return.
 fn return_index_type_name_for_impl(impl_node: AstNode, method_node: AstNode) -> String {
     let type_name = return_index_type_name(method_node)
     if len(type_name) == 0 {
         return type_name
     }
-    let self_name = decl_impl_target::impl_self_type_name(impl_node)
+    let self_name = decl_impl_target::impl_self_local_type_name(impl_node)
     if len(self_name) == 0 {
         return type_name
     }
