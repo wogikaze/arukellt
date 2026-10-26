@@ -647,6 +647,57 @@ def run_fmt(root: Path, paths: list[str], check: bool, dry_run: bool, json_outpu
     return _print_results("fmt", per_file, json_output)
 
 
+def _lint_batch_args_unsupported(result: ToolResult) -> bool:
+    return result.returncode != 0 and (
+        "unexpected argument" in result.output
+        or "unrecognized arguments" in result.output
+    )
+
+
+def _run_lint_batches(
+    root: Path,
+    batches: list[tuple[bool, bool, list[str]]],
+    dry_run: bool,
+) -> list[ToolResult]:
+    """Run (local, deny, paths) lint batches, splitting results per file.
+
+    A compiler that predates multi-file lint rejects the extra positional
+    arguments; fall back to one process per file so pinned bootstraps and
+    stale build artifacts keep working.
+    """
+    wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
+    jobs: list[tuple[str, tuple[str, ...]]] = []
+    for index, (local, deny, batch) in enumerate(batches):
+        args = [wrapper, "lint"]
+        if local:
+            args.append("--local")
+        if deny:
+            args.extend(("--deny", "prefer-else-if"))
+        args.extend(batch)
+        jobs.append((f"batch:{index}", tuple(args)))
+    if not jobs:
+        return []
+    raw_results = _run_parallel(root, jobs, dry_run, timeout=180)
+    if dry_run:
+        return raw_results
+    results: list[ToolResult] = []
+    for (local, deny, batch), raw in zip(batches, raw_results):
+        if len(batch) > 1 and _lint_batch_args_unsupported(raw):
+            fallback: list[tuple[str, tuple[str, ...]]] = []
+            for path in batch:
+                args = [wrapper, "lint"]
+                if local:
+                    args.append("--local")
+                if deny:
+                    args.extend(("--deny", "prefer-else-if"))
+                args.append(path)
+                fallback.append((path, tuple(args)))
+            results.extend(_run_parallel(root, fallback, False, timeout=180))
+            continue
+        results.extend(_split_batch_lint_result(raw, batch))
+    return results
+
+
 def _run_lint_results(
     root: Path,
     paths: list[str],
@@ -662,31 +713,17 @@ def _run_lint_results(
         fmt_rc = run_fmt(root, selected, check=False, dry_run=dry_run, json_output=json_output)
         if fmt_rc != 0:
             return fmt_rc, []
-    wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
-    jobs: list[tuple[str, tuple[str, ...]]] = []
-    batch_groups: list[list[str]] = []
     batch_size = _batch_size("ARUKELLT_LINT_BATCH", 24)
+    batches: list[tuple[bool, bool, list[str]]] = []
     for local, group in (
         (True, [p for p in selected if p.startswith(ARK_PACKAGE_ROOTS)]),
         (False, [p for p in selected if not p.startswith(ARK_PACKAGE_ROOTS)]),
     ):
         for batch in _balanced_batches(root, group, batch_size):
-            args = [wrapper, "lint"]
-            if local:
-                args.append("--local")
-            if deny_prefer_else_if:
-                args.extend(("--deny", "prefer-else-if"))
-            args.extend(batch)
-            jobs.append((f"batch:{len(batch_groups)}", tuple(args)))
-            batch_groups.append(list(batch))
-    if not jobs:
-        return 0, []
-    raw_results = _run_parallel(root, jobs, dry_run, timeout=180)
+            batches.append((local, deny_prefer_else_if, batch))
+    results = _run_lint_batches(root, batches, dry_run)
     if dry_run:
-        return 0, raw_results
-    results: list[ToolResult] = []
-    for batch, raw in zip(batch_groups, raw_results):
-        results.extend(_split_batch_lint_result(raw, batch))
+        return 0, results
     results = _apply_parser_failure_baseline(root, results)
     return 0, results
 
@@ -761,22 +798,18 @@ def _parallel_lint_w0011_counts(
     """Run fallback current-file W0011 counts in batches, not one process per file."""
     if not paths:
         return {}
-    wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
     batch_size = _batch_size("ARUKELLT_LINT_BATCH", 24)
-    batches = _balanced_batches(root, paths, batch_size)
-    jobs = [
-        (f"batch:{index}", (wrapper, "lint", "--local", *batch))
-        for index, batch in enumerate(batches)
+    batches: list[tuple[bool, bool, list[str]]] = [
+        (True, False, batch)
+        for batch in _balanced_batches(root, paths, batch_size)
     ]
-    raw_results = _run_parallel(root, jobs, False, timeout=180)
     counts: dict[str, tuple[int, int, str]] = {}
-    for batch, raw in zip(batches, raw_results):
-        for result in _split_batch_lint_result(raw, batch):
-            counts[result.path] = (
-                result.returncode,
-                result.output.count("[W0011|"),
-                result.output,
-            )
+    for result in _run_lint_batches(root, batches, False):
+        counts[result.path] = (
+            result.returncode,
+            result.output.count("[W0011|"),
+            result.output,
+        )
     for path in paths:
         if path not in counts:
             counts[path] = (1, 0, "lint count missing")
