@@ -146,6 +146,17 @@ class TestPinAwareCaches(unittest.TestCase):
         self.assertNotEqual(official_fingerprint, fast_fingerprint)
         self.assertNotEqual(official_overlay, fast_overlay)
 
+    def test_fingerprint_inputs_use_the_bootstrap_closure(self) -> None:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from selfhost import checks
+
+        inputs = {path.resolve() for path in checks._selfhost_fingerprint_inputs(REPO_ROOT)}
+        self.assertIn((REPO_ROOT / "src" / "compiler" / "main.ark").resolve(), inputs)
+        self.assertIn((REPO_ROOT / "std" / "prelude.ark").resolve(), inputs)
+        self.assertNotIn(
+            (REPO_ROOT / "std" / "collections" / "vec.ark").resolve(), inputs
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

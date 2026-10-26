@@ -733,25 +733,36 @@ def _sha256(path: Path) -> str:
 
 # ── Fixpoint cache helpers ───────────────────────────────────────────────────
 
-def _selfhost_source_fingerprint(root: Path) -> str:
-    """Content-hash of all inputs that determine fixpoint output.
+def _selfhost_fingerprint_inputs(root: Path) -> list[Path]:
+    """Files that determine the stage-2/stage-3 compiler binary.
 
-    Includes every ``src/compiler/**/*.ark`` and ``std/**/*.ark`` file plus
-    the pinned bootstrap wasm.  If any of these change, the cache is invalidated.
+    Only ``src/compiler`` and the bootstrap std closure are compiled into the
+    compiler. Other std modules are read by the compiler when it builds user
+    code, so they must not invalidate the s2/s3 cache.
+    """
+    inputs = sorted((root / "src" / "compiler").rglob("*.ark"))
+    inputs.extend(root / rel for rel in BOOTSTRAP_STD_SOURCE_FILES)
+    inputs.append(Path(__file__))
+    return [path for path in inputs if path.is_file()]
+
+
+def _selfhost_source_fingerprint(root: Path) -> str:
+    """Content-hash of the inputs that determine the compiler binary.
+
+    The closure is ``src/compiler/**/*.ark`` plus the bootstrap std files, not
+    every ``std/**/*.ark`` file, so a collections-only edit does not force a
+    20-40 minute rebuild.
     """
     h = hashlib.sha256()
     h.update(f"v{FIXPOINT_CACHE_VERSION}\n".encode())
-    for base in ("src/compiler", "std"):
-        d = root / base
-        if not d.is_dir():
-            continue
-        for p in sorted(d.rglob("*.ark")):
-            if not p.is_file():
-                continue
+    for p in _selfhost_fingerprint_inputs(root):
+        try:
             rel = p.relative_to(root).as_posix()
-            h.update(f"{rel}\0".encode())
-            h.update(p.read_bytes())
-            h.update(b"\0")
+        except ValueError:
+            rel = p.name
+        h.update(f"{rel}\0".encode())
+        h.update(p.read_bytes())
+        h.update(b"\0")
     pinned = _find_pinned_wasm(root)
     if pinned is not None:
         # Hash the resolved name as well as the bytes: switching between the
@@ -764,11 +775,6 @@ def _selfhost_source_fingerprint(root: Path) -> str:
         h.update(f"gc_pin:{gc_pin.name}\0".encode())
         h.update(gc_pin.read_bytes())
     h.update(f"bootstrap_emit={BOOTSTRAP_EMIT_TARGET}:{BOOTSTRAP_EMIT_WASI_VERSION}\n".encode())
-    try:
-        with open(__file__, "rb") as f:
-            h.update(f.read())
-    except OSError:
-        pass
     return h.hexdigest()
 
 
@@ -5069,23 +5075,29 @@ def _run_fixpoint_locked(
 
     if build or not s3.is_file():
         emit(f"{YELLOW}[selfhost] Building stage 3 (s2.wasm → s3.wasm)...{NC}")
-        stage3_compiler = _fixpoint_stage3_compiler(root, pinned, s2)
-        if stage3_compiler is None:
+        gc_pin = _find_gc_pin(root)
+        stage3_compiler = None if gc_pin is not None else _fixpoint_stage3_compiler(root, pinned, s2)
+        if gc_pin is None and stage3_compiler is None:
             emit(f"{RED}error: failed to prepare stage-3 compiler wasm{NC}")
             _fixpoint_cache_try_write(
                 root, fingerprint, 2, False, True, "\n".join(lines), s2=s2,
             )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         try:
-            r = _wasm_compile_selfhost_source(
-                wasmtime,
-                stage3_compiler,
-                s3_rel,
-                root,
-                use_s3_cache=True,
-                target=BOOTSTRAP_EMIT_TARGET,
-                wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
-            )
+            if gc_pin is not None:
+                # Cross-target fixpoint: the current source compiled for gc
+                # must reproduce the p1 s2 byte-for-byte (#851).
+                r = _compile_with_gc_pin(wasmtime, root, s3_rel, gc_pin)
+            else:
+                r = _wasm_compile_selfhost_source(
+                    wasmtime,
+                    stage3_compiler,
+                    s3_rel,
+                    root,
+                    use_s3_cache=True,
+                    target=BOOTSTRAP_EMIT_TARGET,
+                    wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+                )
         except BootstrapOverlayError as e:
             emit(f"{RED}✗ bootstrap overlay patch failed during stage 3:{NC}")
             emit(f"  {e}")
