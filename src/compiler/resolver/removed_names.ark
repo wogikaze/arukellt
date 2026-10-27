@@ -116,6 +116,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "names") {
         return removed_wit_name_member_hint(name)
     }
+    if eq(clone(module), "ast") {
+        return removed_wit_ast_member_hint(name)
+    }
     if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
         return String_from("use `w.to_wit()` on `World` instead")
     }
@@ -133,12 +136,6 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "iter") {
         return removed_iter_member_hint(name)
-    }
-    if eq(clone(module), "bytes") {
-        return removed_bytes_member_hint(name)
-    }
-    if eq(clone(module), "hash_map") || eq(clone(module), "hash_string") || eq(clone(module), "hash_fn") || eq(clone(module), "hash_str_fn") {
-        return hashmap_method_replacement_hint()
     }
     if !eq(clone(module), "io") {
         return String_new()
@@ -174,18 +171,6 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
     if eq(clone(name), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
     if eq(clone(name), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
-    String_new()
-}
-
-fn removed_bytes_member_hint(name: String) -> String {
-    if eq(clone(name), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
-    if eq(clone(name), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
-    if eq(clone(name), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
-    if eq(clone(name), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
-    if eq(clone(name), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
     String_new()
 }
 
@@ -368,6 +353,33 @@ fn removed_wit_name_member_hint(name: String) -> String {
     if eq(clone(name), "kebab_to_snake") { return String_from("use `WitName::to_snake(name)` instead") }
     if eq(clone(name), "pascal_case") { return String_from("use `WitName::to_pascal(name)` instead") }
     if eq(clone(name), "capitalize_first") { return String_from("use `WitName::capitalize(name)` instead") }
+    String_new()
+}
+
+fn removed_wit_ast_member_hint(name: String) -> String {
+    if eq(clone(name), "ast_kind") { return String_from("use `node.kind()` on `WitNode` instead") }
+    if eq(clone(name), "ast_name") { return String_from("use `node.name()` on `WitNode` instead") }
+    if eq(clone(name), "ast_child_count") { return String_from("use `node.child_count()` on `WitNode` instead") }
+    if eq(clone(name), "ast_child_at") { return String_from("use `node.child_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_first_interface_name") { return String_from("use `node.first_interface_name()` on `WitNode` instead") }
+    if eq(clone(name), "ast_field_name_at") { return String_from("use `node.field_name_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_field_type_at") { return String_from("use `node.field_type_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_enum_variant_at") { return String_from("use `node.enum_variant_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_flags_member_at") { return String_from("use `node.flags_member_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_variant_case_name_at") { return String_from("use `node.variant_case_name_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_variant_case_has_payload") { return String_from("use `node.variant_case_has_payload(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_variant_case_type_at") { return String_from("use `node.variant_case_type_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_param_count") { return String_from("use `node.func_param_count()` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_param_name_at") { return String_from("use `node.func_param_name_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_param_type_at") { return String_from("use `node.func_param_type_at(index)` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_has_result") { return String_from("use `node.func_has_result()` on `WitNode` instead") }
+    if eq(clone(name), "ast_func_result") { return String_from("use `node.func_result()` on `WitNode` instead") }
+    if eq(clone(name), "ast_type_alias_target") { return String_from("use `node.type_alias_target()` on `WitNode` instead") }
+    if eq(clone(name), "ast_use_path") { return String_from("use `node.use_path()` on `WitNode` instead") }
+    if eq(clone(name), "ast_use_alias") { return String_from("use `node.use_alias()` on `WitNode` instead") }
+    if eq(clone(name), "parse") { return String_from("use `WitNode::parse(source)` instead") }
+    if eq(clone(name), "parse_import_text") { return String_from("use `WitNode::import_metadata(source)` instead") }
+    if eq(clone(name), "ast_import_serialized") { return String_from("use `node.import_serialized()` on `WitNode` instead") }
     String_new()
 }
 
@@ -571,16 +583,15 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_full"))) == 0)
         assert(len(removed_module_member_hint(String_from("types"), String_from("WitParam"))) == 0)
     }
-    test "bytes_retired_helpers_have_hints" {
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("hex_char"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("hex_val_char"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_hex_val_char"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u8"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u16_le"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u32_le"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u32_be"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_bytes"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("read_u8"))) == 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("Bytes"))) == 0)
+    test "removed wit ast frees have method hints" {
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_kind"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_child_at"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_field_name_at"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("parse_import_text"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_import_serialized"))) > 0)
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("parse"))) > 0)
+    }
+    test "live wit ast members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("ast"), String_from("WitNode"))) == 0)
     }
 }

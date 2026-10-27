@@ -1,0 +1,82 @@
+// Recursive enum receiver methods that bind variant payloads (#917).
+// The method form must emit valid core Wasm on wasm32-gc exactly like the
+// free-function form; the wildcard receiver copy is the regression shape.
+use std::host::stdio
+use std::prelude::{clone, eq, get_unchecked, len}
+
+pub enum Node {
+    Leaf(String),
+    Branch(String, Vec<Node>),
+}
+
+impl Node {
+    fn child_count(self: Node) -> i32 {
+        match self {
+            Node::Branch(_, items) => len(items),
+            _ => 0,
+        }
+    }
+
+    fn child_at(self: Node, index: i32) -> Node {
+        match self {
+            Node::Branch(_, items) => {
+                if index < 0 || index >= len(items) {
+                    Node::Leaf(String_from("oob"))
+                } else {
+                    get_unchecked(items, index)
+                }
+            },
+            _ => Node::Leaf(String_from("none")),
+        }
+    }
+
+    fn first_leaf_name(self: Node) -> String {
+        match self {
+            Node::Branch(_, items) => {
+                let mut i = 0
+                while i < len(items) {
+                    match get_unchecked(items, i) {
+                        Node::Leaf(name) => return clone(name),
+                        _ => {},
+                    }
+                    i = i + 1
+                }
+                String_new()
+            },
+            Node::Leaf(name) => clone(name),
+        }
+    }
+}
+
+fn free_child_count(node: Node) -> i32 {
+    match node {
+        Node::Branch(_, items) => len(items),
+        _ => 0,
+    }
+}
+
+fn free_first_leaf_name(node: Node) -> String {
+    match node {
+        Node::Leaf(name) => clone(name),
+        _ => String_new(),
+    }
+}
+
+fn main() {
+    let first = Node::Leaf(String_from("a"))
+    let items = Vec::new<Node>()
+    push(items, first)
+    push(items, Node::Leaf(String_from("b")))
+    let branch = Node::Branch(String_from("root"), items)
+
+    assert(branch.child_count() == 2)
+    assert(free_child_count(branch) == 2)
+    assert(eq(branch.child_at(0).first_leaf_name(), String_from("a")))
+    assert(eq(branch.child_at(1).first_leaf_name(), String_from("b")))
+    assert(eq(branch.child_at(9).first_leaf_name(), String_from("oob")))
+    assert(eq(branch.first_leaf_name(), String_from("a")))
+    assert(first.child_count() == 0)
+    assert(eq(free_first_leaf_name(first), String_from("a")))
+
+    stdio::println(String_from("OK"))
+}

@@ -1,0 +1,5 @@
+use std::wit::ast
+
+fn main() {
+    let _kind = ast::ast_kind(String_from("world"))
+}

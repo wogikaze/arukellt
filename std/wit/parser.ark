@@ -2,6 +2,8 @@
 //!
 //! `parse_full` is the WIT 1.0 parser entry point. `parse_wit` is retained as
 //! the historical World-shaped compatibility API for existing stdlib callers.
+//! Both delegate to the canonical `WitNode::parse` /
+//! `WitNode::import_metadata` associated functions in `std::wit::ast`.
 
 use std::core::error
 use std::wit::ast
@@ -10,13 +12,13 @@ use std::wit::types::{WitType}
 use std::wit::world
 use std::prelude::{byte_at, eq, slice}
 pub fn parse_full(source: String) -> WitNode {
-    ast::parse(source)
+    WitNode::parse(source)
 }
 
 /// Parse the canonical WIT document and return compiler-safe metadata text.
 /// Recursive AST values do not cross the std::wit/compiler boundary.
 pub fn parse_full_import_text(source: String) -> String {
-    ast::parse_import_text(source)
+    WitNode::import_metadata(source)
 }
 
 fn parse_skip_ws(s: String, pos: i32) -> i32 {

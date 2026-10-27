@@ -16,48 +16,44 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-27 — std::bytes method surface and deprecation wave (#917)
+## 2026-10-27 — WIT AST method wave（#917、wave/wit-ast-methods）
 
-- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) /
-  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md), executed by
-  [#917](https://github.com/wogikaze/arukellt/issues/917) on
-  `wave/next-bytes`.
-- **Added**: the canonical byte surface over the shared `Vec<i32>` layout:
-  `push_byte`/`push_u16_le`/`push_u32_le`/`push_u64_le`/`extend_bytes`/
-  `freeze`/`byte_cursor`/`cursor_pos`/`cursor_remaining`, the `read_*` and
-  `try_read_*` cursor readers, `read_leb128_*`, `equals_bytes`/`concat_bytes`/
-  `slice_bytes`, `to_hex`/`to_base64`, the `to_u16_le`/`to_u32_le`/`to_u32_be`
-  decoders, and the `Bytes` namespace (`from_array`, `from_hex`,
-  `from_base64`, `from_u16_le`, `from_u32_le`, `from_u32_be`,
-  `from_leb128_u32`, `from_leb128_i32`, `from_leb128_u64`).
-- **Deprecated (45)**: every registered `std::bytes` free function now carries
-  `stability = "deprecated"`, its `deprecated_by` method/associated target,
-  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. Qualified calls emit
-  W0009 from `deprecated_bytes_qualified_message`. They remain callable until
-  the ADR-087 deletion wave.
-- **Removed (8, E0100)**: the unregistered helpers `hex_char`,
-  `hex_val_char`, `try_hex_val_char`, `try_read_u8`, `try_read_u16_le`,
-  `try_read_u32_le`, `try_read_u32_be`, and `try_read_bytes`. Qualified calls
-  now fail resolution with a `resolver::removed_names` hint naming the method
-  or `Bytes::from_*` replacement.
-- **Fixtures**: added the dual-target
-  `stdlib_bytes/bytes_method_surface.ark` / `_wasm32.ark` run pair and the
-  `diagnostics/deprecated_bytes_free.ark` / `_wasm32.ark` W0009 goldens. The
-  six cursor `try_read_*` fixtures and five hex-helper fixtures were migrated
-  to the method surface (the helper-only fixtures became
-  `hex_encode_nibbles`, `hex_decode_digit_values`, `hex_decode_invalid_pairs`,
-  `hex_decode_single_digit`, and `hex_decode_partial_invalid`).
-- **Scorecard delta**: 888 → **880** eradication-scope symbols; 263 → **255**
-  unregistered declarations; 1012 → **1004** `pub fn` declarations under
-  `std/`. The 45 newly deprecated entries moved from `associated-or-method`
-  to `must delete` because their replacements are live (818 → **765**
-  associated, 70 → **115** must delete). Manifest public entries stay 625 and
-  the 45 deprecated bytes entries stay counted until deletion.
-- **Residuals**: the 45 deprecated `std::bytes` frees await the ADR-087
-  deletion wave; `read_u64_le` keeps its `-1` sentinel because `Some(i64)`
-  construction still emits invalid Wasm, and `try_read_u64_le` stays
-  deferred. The fixture call sites outside the migrated families still use
-  the deprecated spellings during the warning window.
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶と [ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)
+  の method-first surface。対象は `std::wit::ast` の **23 source 宣言**
+  （`ast_*` accessor 20、`parse_import_text`、`ast_import_serialized`、
+  `parse`）。manifest entry を持たない未登録宣言なので ADR-014 の
+  deprecation window は適用されない。E0100 は
+  `resolver::removed_names::removed_module_member_hint` の `ast` alias に
+  追加した。
+- **Compiler fix**: recursive enum の receiver method で `self` local が
+  bare impl-owner 名（`WitNode`）で宣言され、receiver を copy する match
+  wildcard が struct table 経由で string 型（`(ref null 0)`）に落ちていた。
+  free function の parameter は `enum:WitNode` を使うため valid。method
+  receiver の local type name を enum-open spelling に正規化し、wildcard
+  local を `(ref null 14)`（open enum）で宣言する。同じ body の
+  free-function WAT は不変。
+- **Replacement**: `WitNode` receiver method `kind` / `name` /
+  `child_count` / `child_at` / `first_interface_name` /
+  `field_name_at` / `field_type_at` / `enum_variant_at` /
+  `flags_member_at` / `variant_case_name_at` /
+  `variant_case_has_payload` / `variant_case_type_at` /
+  `func_param_count` / `func_param_name_at` / `func_param_type_at` /
+  `func_has_result` / `func_result` / `type_alias_target` /
+  `use_path` / `use_alias` / `import_serialized`、associated function
+  `WitNode::parse(source)` / `WitNode::import_metadata(source)`。
+- **Scorecard**: `pub fn` 宣言 1012 → **989**、unregistered 263 → **241**、
+  eradication scope 888 → **866**（`associated-or-method`）。
+  manifest 公開 entry 625 と `prelude_wrapper` 65 は不変。
+- **Evidence**: `verify fixtures` 1845 compile+validate / 0 FAIL（105
+  runtime smoke）。新 fixture `stdlib_wit/wit_ast_methods.ark` は
+  wasm32-gc component で `OK`、linear twin は `--target wasm32` で
+  compile+validate+実行 `OK`。旧 fixture `wit_ast_parse.ark` は全
+  accessor を method で実行し `OK`。E0100 は
+  `diagnostics/removed_wit_ast_free*.ark` で両 target を検査。
+- **Residual**: `std::wit::parser` の 3 free（`parse_full` /
+  `parse_full_import_text` / `parse_wit`）と `std::component` /
+  `std::component::handle` は #917 に残る。
 
 ## 2026-10-27 — iterator collect lane fixes (#917, #691)
 

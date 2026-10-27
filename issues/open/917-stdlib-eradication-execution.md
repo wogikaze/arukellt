@@ -23,13 +23,13 @@ This issue owns the **execution**: actually deleting, deprecating, or
 replacing every public free / `prelude_wrapper` / monomorphic helper
 classified there, in dependency-safe waves.
 
-## Current state (2026-10-27)
+## Current state (2026-10-26)
 
 - `docs/data/stdlib-api-eradication.toml` now classifies both
   `std/manifest.toml` `[[functions]]` entries and top-level `pub fn`
-  declarations under `std/**/*.ark`: 626 manifest functions (625 public) +
-  255 unregistered declarations = **880** public symbols
-  (`must delete` 115, `associated-or-method` 765, `intrinsic-only` 1).
+  declarations under `std/**/*.ark`: 816 manifest functions (815 public) +
+  413 unregistered declarations = **1228** public symbols
+  (`must delete` 122, `associated-or-method` 1106, `intrinsic-only` 1).
 - `scripts/check/check-stdlib-eradication.py` enforces the dual surface:
   no unclassified manifest entry or std declaration, no manifest entry
   without a source declaration, no dead rule, every public class has an owner.
@@ -342,57 +342,50 @@ classified there, in dependency-safe waves.
   pre-existing linear lowering bug), and the generic-`for` site pinning
   remains for adapter bodies other than the two collect hooks fixed here.
 
-### Landed slice (wave/next-bytes, 2026-10-27)
+### Landed slice (wave/wit-ast-methods, 2026-10-27)
 
-- Landed the `std::bytes` replacement surface over the shared `Vec<i32>`
-  layout: `Bytes` namespace associated constructors/decoders
-  (`from_array`, `from_hex`, `from_base64`, `from_u16_le`, `from_u32_le`,
-  `from_u32_be`, `from_leb128_u32`, `from_leb128_i32`, `from_leb128_u64`);
-  `Vec<i32>` methods `push_byte`, `equals_bytes`, `concat_bytes`,
-  `slice_bytes`, `to_hex`, `to_base64`, `to_u16_le`, `to_u32_le`,
-  `to_u32_be`, `push_u16_le`, `push_u32_le`, `push_u64_le`,
-  `extend_bytes`, `freeze`, `byte_cursor`, `cursor_pos`,
-  `cursor_remaining`, `read_u8` / `read_u16_le` / `read_u32_le` /
-  `read_u64_le` / `read_u32_be` / `read_bytes`, the five `try_read_*`
-  `Option` readers, and `read_leb128_u32` / `read_leb128_i32` /
-  `read_leb128_u64`. `bytes_from_string` / `string_from_bytes` /
-  `byte_length` route to the existing `String::to_utf8_bytes` /
-  `String::from_utf8_lossy` / `String::len_bytes` methods.
-- Deprecated the 45 registered `stable` free functions under ADR-087 with
-  `deprecated_by`, `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`;
-  qualified calls emit W0009 from
-  `lint::deprecated_table::deprecated_bytes_qualified_message`. The 45 move
-  from `associated-or-method` to `must delete` because the replacement is
-  live; deletion is the remaining ADR-087 wave.
-- Retired the 8 unregistered helpers (`hex_char`, `hex_val_char`,
-  `try_hex_val_char`, `try_read_u8`, `try_read_u16_le`, `try_read_u32_le`,
-  `try_read_u32_be`, `try_read_bytes`). Qualified calls fail with E0100
-  hints from `resolver::removed_names::removed_bytes_member_hint`; the compat
-  checker now maps the `bytes` alias to `std::bytes`.
-- Fixtures: migrated the six cursor `try_read_*` fixtures and the five hex
-  helper fixtures (renamed to `hex_encode_nibbles`, `hex_decode_digit_values`,
-  `hex_decode_invalid_pairs`, `hex_decode_single_digit`,
-  `hex_decode_partial_invalid`); added the dual-target
-  `stdlib_bytes/bytes_method_surface.ark` / `_wasm32.ark` run pair and the
-  `diagnostics/deprecated_bytes_free.ark` / `_wasm32.ark` W0009 pair.
-- Scorecard: 888 → **880** eradication-scope symbols; `associated-or-method`
-  818 → **765**; `must delete` 70 → **115**; unregistered 263 → **255**;
-  `pub fn` declarations 1012 → **1004**; manifest public entries stay 625.
-- Evidence: s2 rebuilt once; WAT probe confirmed the `Bytes::*` associated
-  calls and `impl Vec<i32>` receivers lower as `$Bytes::from_hex` /
-  `$Vec::byte_cursor` etc. and validate on both targets; the new and migrated
-  fixtures compile, validate, and run on `wasm32-gc` and `--target wasm32`;
-  `selfhost diag-parity` 122 PASS / 2 pre-existing `hash_map` failures (same at b57df8a48); `verify fixtures` 1845/1845 PASS;
-  `docs check` 6/6; `check-stdlib-eradication` and `check-compat-orphans`
-  clean; `verify lane` PASS; cross-backend parity 3/3 for the new run fixture,
-  `cursor_try_read`, and `hex_decode_partial_invalid`.
-- Residuals: the 45 deprecated frees await the ADR-087 deletion wave;
-  `try_read_u64_le` stays deferred (`Some(i64)` construction emits invalid
-  Wasm); call sites outside the migrated families keep the deprecated
-  spellings and emit W0009 during the window; the two
-  `removed_hashmap_adapter*` diag fixtures fail against their goldens because
-  the `hash_map` module-member hint was never added (pre-existing at
-  b57df8a48, hash-family lane).
+- Fixed the compiler gap that deferred `std::wit::ast`: a receiver method on a
+  recursive enum bound its `self` local with the bare impl-owner name
+  (`WitNode`) instead of the canonical open-enum spelling (`enum:WitNode`).
+  The match wildcard that copies the receiver then resolved through the
+  struct/type table and declared a `(ref null <string>)` local, which cannot
+  accept the `(ref null <open-enum>)` receiver; the same bodies as free
+  functions validate because free params already use the enum spelling.
+  The fix normalizes the method receiver's local type name in
+  `mir/lower/params_method.ark`; the WAT diff is a local decl
+  `(ref null 0)` → `(ref null 14)` plus the matching wildcard copy store.
+- Retired the 22 `std::wit::ast` source declarations (20 `ast_*` accessors,
+  `parse_import_text`, `ast_import_serialized`) plus `parse`: `WitNode`
+  receiver methods (`kind`, `name`, `child_count`, `child_at`,
+  `first_interface_name`, `field_name_at`, …, `use_alias`,
+  `import_serialized`) and associated functions `WitNode::parse` /
+  `WitNode::import_metadata`. The accessors use explicit variant arms /
+  or-pattern fallbacks so the pinned bootstrap (which predates the receiver
+  fix) can still compile the module.
+- E0100: `resolver::removed_names::removed_module_member_hint` now maps the
+  `ast` module alias to method/migration hints, with unit assertions.
+- Fixtures: `stdlib_wit/wit_ast_parse.ark` migrated to the method surface and
+  extended over every accessor; new `stdlib_wit/wit_ast_methods.ark`
+  (+ `_wasm32` linear twin) reproduces the recursive-enum receiver form with
+  wildcard payload binds; new `diagnostics/removed_wit_ast_free*.ark` assert
+  the E0100 hints.
+- Scorecard: `pub fn` declarations 1012 → **989**, unregistered 263 → **241**,
+  eradication scope 888 → **866** (`associated-or-method` 796,
+  `must delete` 70, `intrinsic-only` 1). Manifest public entries 625 and
+  `prelude_wrapper` 65 unchanged.
+- Verification: s2 rebuild from the pinned bootstrap PASS; `verify fixtures`
+  **1845 PASS / 0 FAIL** (1845 compile+validate, 105 runtime smoke); the new
+  gc method fixture executes as a WASI P2 component and prints `OK`; the
+  linear twin compiles, validates and executes `OK` on `--target wasm32`;
+  wasm32-gc / wasm32 WAT diff for the probe is the wildcard local decl
+  `(ref null 0)` → `(ref null 14)` only; `selfhost fixpoint --build` PASS
+  (s2 == s3 at `1d38bc97…`); `docs regenerate` / `docs check` 6/6;
+  `verify lane` (quality changed) PASS.
+- Residual: the 3 `std::wit::parser` frees and the `std::component` /
+  `std::component::handle` families remain in the `std::wit/component frees`
+  rule. `verify lane --gate diag-parity` still reports the 2 pre-existing
+  `removed_hashmap_adapter*` fixtures (the base `removed_names.ark` has no
+  `hash_map` module hint); this change neither introduces nor fixes them.
 
 ## Required work
 
@@ -430,9 +423,11 @@ classified there, in dependency-safe waves.
         deletion is Wave 2.
       - Landed 2026-10-27 (`wave/917-nextgroup`): the 33 non-AST
         `std::wit` symbols retired after `WitType` methods, the `WitText` /
-        `WitName` namespace types, and `World::to_wit` landed. `std::wit::ast`
-        and the parser frees stay deferred with the recursive `WitNode`
-        receiver shape.
+        `WitName` namespace types, and `World::to_wit` landed.
+      - Landed 2026-10-27 (`wave/wit-ast-methods`): the 23 `std::wit::ast`
+        symbols retired after the method-receiver enum-open lowering fix
+        landed (`WitNode::parse` / `WitNode::import_metadata` and the
+        `WitNode` accessor methods); only the parser frees remain deferred.
       - Landed 2026-10-27 (`wave/917-iter44`): the 44 eager
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
