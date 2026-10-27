@@ -11,6 +11,7 @@
 Arukellt v2 の source semantics は Wasm GC の内部表現に依存しない。
 
 - `let` binding の move / `Copy` / `let mut` は ADR-059 に従う。
+- 関数呼び出しは非 `Copy` 引数を move せず、呼び出しの間だけ借用する。呼び出しをまたぐ書き換えは `mut` 仮引数と可変 place の組でだけ許可する（ADR-088）。
 - `Option` / `Result` / enum は owned tagged ADT である。
 - `Box<T>` は非 `Copy` の一意所有値、`Slice<T>` は source collection と bounded range を保持する非 `Copy` の読み取り view である（ADR-060）。
 - `as_slice` は source binding を消費しない。closure capture の borrow / move / escape は ADR-061 の規則に従う。
@@ -22,7 +23,7 @@ Arukellt v2 の source semantics は Wasm GC の内部表現に依存しない�
 |-----------|------|----------|
 | `wasm32-gc` | **primary**（ADR-013） | Wasm GC `struct` / `array` / `ref` を優先する lowering（移行途中の箇所あり — current-state） |
 | `wasm32` | **supported** 互換 | 同一言語意味論の **linear-memory lowering**。tracing GC fallback は段階導入中 |
-| `native-cpp` | scaffold | ADR-049のexecutor設計では同一GC意味論をprocess-lifetime arenaへlower。未実装 |
+| `native-cpp` | scaffold | 同一 GC 意味論を process-lifetime arena へ lower する（ADR-049）。experimental な `run --target native-cpp` を提供（ADR-050）。実装は partial |
 | `native-llvm` | scaffold | 未決定。ADR-049の対象外 |
 
 「設計上の primary」と「ある時点の実装完成度」は分ける:
@@ -46,15 +47,44 @@ GC object の共有、linear-memory の pointer、将来の tracing collector �
 
 <!-- fixture: spec_examples/memory_model_move.ark -->
 ```ark
-let v1: Vec<i32> = Vec::new<i32>()
-push(v1, 10)
+let mut v1: Vec<i32> = Vec::new<i32>()
+v1.push(10)
 
-let v2 = v1
-push(v2, 20)
+let mut v2 = v1
+v2.push(20)
 ```
 
 この種のコードでは、`v1` と `v2` の move / mutation 可否は binding と `Copy` 契約で決まり、
-GC reference だから自動的に alias 可能とはみなさない。共有 view が必要な場合は `as_slice` のような明示 API を使う。
+GC reference だから自動的に alias 可能とはみなさない。`let mut v2 = v1` で `v1` は move され、以後は使えない。
+共有 view が必要な場合は `as_slice` のような明示 API を使う。
+
+## 関数呼び出し境界（ADR-088）
+
+関数呼び出しは所有権の境界ではない。非 `Copy` の実引数は呼び出しの間だけ借用され、caller の binding は move されない。
+
+```text
+fn total(v: Vec<i32>) -> i32 { … }      // 共有仮引数: v を通した書き換えは不可
+fn fill(mut v: Vec<i32>) { v.push(1) }  // mut 仮引数: 書き換えは caller から見える
+
+let xs = Vec::new<i32>()
+total(xs)              // OK: 借用のみ。xs は引き続き使える
+let mut ys = Vec::new<i32>()
+fill(ys)               // OK: ys は可変 place
+fill(xs)               // error: xs は不変 binding
+```
+
+- 共有仮引数 `p: T` と receiver `self: T` からは書き換えられない。書き換えるには `mut p: T` / `mut self: T` を宣言する。
+- `mut` 仮引数へ渡せるのは、`let mut` binding、`mut` 仮引数、それらを根とする field / element place、一時値だけである。
+- 同じ place を一つの呼び出しで `mut` 仮引数とほかの仮引数へ同時に渡すことはできない。
+- callee が借用した値を返却・保存すると、その値は複製されず GC reference として共有される。
+  言語が保証するのは「不変 binding と共有仮引数を根とする経路からは書き換えが起きない」ことであり、
+  別名から `mut` 経路で書き換えた結果は元の binding からも見える。この観測結果は全 target で同一である。
+- `Box<T>` は一意所有のため共有 escape の対象外で、借用した `Box<T>` 仮引数は返却・保存・`unbox` できない。
+
+**実装状態**: 現行コンパイラは `mut` 仮引数を解析せず、どの仮引数・receiver からの書き換えも受理している。
+規則の詳細は [spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、実装は
+[#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md) と
+[#944](../../issues/open/944-move-after-use-not-diagnosed.md) で追跡する。
 
 ## String / Vec（現行実装メモ）
 
@@ -68,18 +98,19 @@ owned ADT、Box、Slice の source-level 契約は両 target で同じである�
 
 ## Closure 表現
 
-closures は MIR lowerer により **named functions** としてコンパイルされる。
 通常の非 `Copy` capture は shared borrow、body が source を変更する capture は mutable borrow、
 `move |...|` は move capture として型検査する。shared-borrow capture を含む closure の return、aggregate 保存、
 callback 引数への escape は E0213、borrow 中の source への再代入・再 move は E0214 とする（ADR-061）。
 mutable-borrow(rebind)capture は source place を共有 heap cell に昇格し、env が live alias を運ぶため
-escape できる（ADR-081）。
-キャプチャはヒープ環境 struct ではなく関数パラメータ経由で渡す（現行 fixture 集合向け）。
+escape できる（ADR-081）。nested closure は中間 frame を transport slot として経由して外側の名前を捕捉する（ADR-083）。
 
-- Class A/B の関数値は typed funcref（`(ref $sig)`）+ `ref.func` / `call_ref`
-- Class C / 動的ディスパッチは当面 `call_indirect` + table（ADR-033）
-- move/capture-free の escaping closure と mutable managed environment は、GC / linear-memory の両方で
-  同じ source semantics を保つ environment lowering（#872 / #874）へ移行する。
+表現（compiler-private）:
+
+- escape しない closure は MIR lowerer が **named function** へ持ち上げ、capture を追加引数として渡す。
+- move / `Copy` capture を持つ escaping closure と mutable-borrow capture は、managed な `{fnptr, env}` pair で
+  表現し、env が capture ごとの field または昇格した共有 cell を保持する（#872 / #891）。
+- 関数値は typed funcref（`(ref $sig)`）+ `ref.func` / `call_ref` を使い、動的ディスパッチは `call_indirect` + table（ADR-033）。
+- 観測可能な capture の意味は `wasm32-gc` と `wasm32` で同一である。
 
 ## 参照先
 
