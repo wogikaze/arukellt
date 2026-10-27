@@ -12,8 +12,6 @@
 | `std::collections::linear` | 18 | 7 | 0 | 0 | 11 | 7/7 (100%) | no |
 | `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::collections::ordered` | 37 | 10 | 0 | 27 | 0 | 36/37 (97%) | no |
-| `std::component` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
-| `std::component::handle` | 5 | 0 | 0 | 5 | 0 | 5/5 (100%) | no |
 | `std::core` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::core::error` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
 | `std::core::hash` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
@@ -33,23 +31,21 @@
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
 | `std::seq` | 22 | 0 | 9 | 0 | 13 | 9/9 (100%) | no |
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
-| `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 17/24 (71%) | no |
-| `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
-| `std::simd::i16x8` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
-| `std::simd::i32x4` | 15 | 0 | 0 | 15 | 0 | 13/15 (87%) | no |
-| `std::simd::i64x2` | 10 | 0 | 0 | 10 | 0 | 10/10 (100%) | no |
-| `std::simd::i8x16` | 10 | 0 | 0 | 10 | 0 | 10/10 (100%) | no |
+| `std::simd::f32x4` | 1 | 0 | 0 | 1 | 0 | 1/1 (100%) | no |
+| `std::simd::f64x2` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
+| `std::simd::i16x8` | 3 | 0 | 0 | 3 | 0 | 3/3 (100%) | no |
+| `std::simd::i64x2` | 5 | 0 | 0 | 5 | 0 | 5/5 (100%) | no |
+| `std::simd::i8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u16x8` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u32x4` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
-| `std::simd::v128` | 7 | 0 | 0 | 7 | 0 | 4/7 (57%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
-| `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
+| `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 580 APIs, 206 stable, 19 provisional, 287 experimental, 68 deprecated, 437/512 (85%) fixture coverage
+**Total**: 434 APIs, 206 stable, 19 provisional, 141 experimental, 68 deprecated, 340/366 (93%) fixture coverage
 
 ## Legend
 
@@ -65,4 +61,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wasm` (45%).
+`std::wasm` (0%).

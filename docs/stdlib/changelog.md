@@ -16,6 +16,54 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::wasm builder namespace surface (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1/D4.
+  The `std::wasm` builder family was `experimental`, so the migrated free
+  functions could be deleted directly; no ADR-087 stable window or W0009
+  entry applies. A qualified old call now fails with an E0100 hint.
+- **Added (7 namespace types)**: `Section`, `ValType`, `Opcode`, `FuncType`,
+  `Limits`, `WasmModuleBuilder`, and `Leb128` in `std::wasm`. The manifest
+  registers them as `[[types]]` entries with `stability = "experimental"`.
+  `FuncType` and `Limits` are nominal values with private fields; the builder
+  is the former `Vec<i32>` counter state as a struct with receiver methods.
+- **Removed (72 manifest + 34 source-only)**: the matching `[[functions]]`
+  entries and top-level `pub fn` declarations, including the 45 opcode
+  constants, 11 section IDs, 9 value/reference-type constants, the 4
+  `numtype_*` duplicates, the 5 FuncType helpers, the 5 Limits helpers, the
+  10 module helpers, the 2 module header helpers, and the 2 LEB128 helpers.
+- **v128**:
+  - 7 bitwise frees (`v128_and` … `v128_any_true`) point at the existing
+    `std::simd::v128::V128` associated functions.
+  - 6 identity `v128_reinterpret_*` frees retire with no replacement: v128 is
+    one type in Ark, so the conversion was already a no-op.
+  - 5 load/store frees (`v128_load`, `v128_store`, `v128_load_splat`,
+    `v128_load_lane`, `v128_store_lane`) stay experimental. The
+    `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter
+    lowering: the call compiles to `unreachable` (valid Wasm, but it traps) in
+    both the free and the associated spelling, and no `v128.load` /
+    `v128.store` instruction is emitted. The `V128Memory` method surface is
+    not advertised until the intrinsic lowering lands.
+- **Diagnostics**: `resolver::removed_names::removed_module_member_hint` maps
+  module `wasm` to the owning type (Section / ValType / Opcode / FuncType /
+  Limits / WasmModuleBuilder / Leb128, `V128` for the bitwise ops, or the
+  no-op note for the reinterprets) and is pinned by unit assertions.
+  `diagnostics/removed_wasm_free.ark` + `_wasm32.ark` are the dual-target
+  E0100 goldens.
+- **Fixtures**: five existing `stdlib_wasm` fixtures were migrated; the new
+  `stdlib_wasm/wasm_method_surface.ark` + `_wasm32.ark` pair compiles,
+  validates, and runs on `wasm32-gc` (P2 component) and `--target wasm32`
+  (wasi-p1), asserting the full associated surface.
+- **Scorecard**: regenerated 728 → **622** public symbols by tree count
+  (`associated-or-method` 658 → **552**; manifest public entries 506 → **434**;
+  unregistered declarations 222 → **188**; `pub fn` declarations 789 → **683**).
+  The group itself drops from 77 manifest + 34 source to 5 manifest + 0 source.
+  The committed `eradication.md` at the base was stale (813), so regeneration
+  also reconciles that pre-existing drift.
+- **Residual**: the 5 v128 memory frees above (method lowering blocked, and
+  the free form's runtime memory guard still traps), and the regenerated-doc
+  drift reconciliation recorded in the wave receipt on issue #917.
+
 ## 2026-10-27 — std::bytes free surface removed (#917, ADR-087 Wave 2)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4, the

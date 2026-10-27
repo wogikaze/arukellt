@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 206 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 141 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -22,26 +22,42 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
+| `Component` | - | no | experimental | Namespace for Component Model version constants; canonical_abi_version and model_version are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
+| `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
+| `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
 | `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
+| `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
+| `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
 | `HashSet` | T | no | provisional | Set of unique i32 values; new, insert, contains, remove, len, is_empty lower to the flat hash store. |
+| `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
+| `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
+| `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
+| `I8x16` | - | no | experimental | 16 × 8-bit signed integer lane associated operations over v128. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
+| `Leb128` | - | no | experimental | Unsigned LEB128 encoding utilities. |
+| `Limits` | - | no | experimental | Memory limits: a minimum page count plus an optional maximum. |
 | `LinkedList` | T | no | provisional | Doubly-linked list with O(1) push/pop at both ends. |
 | `LinkedListIntoIter` | T | no | provisional | Owning front-to-back cursor over a LinkedList<T>. |
 | `LinkedListIter` | T | no | provisional | Read-only front-to-back cursor over a LinkedList<T>. |
 | `LinkedListIterMut` | T | no | provisional | Writable front-to-back cursor over a LinkedList<T> with set_current. |
+| `Opcode` | - | no | experimental | Opcode constants for the Wasm MVP instruction subset. |
 | `Queue` | T | no | provisional | First-in first-out queue restricted to Deque<T> push-at-back / pop-at-front. |
 | `Range` | - | no | stable | Half-open integer range [start, end). |
 | `RangeInclusive` | - | no | stable | Closed integer range [start, end]. |
 | `Reader` | - | no | experimental | In-memory read handle over an owned byte image; implements Read, BufRead, and Seek. |
+| `Section` | - | no | experimental | Section IDs for the standard Wasm sections. |
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `String` | - | yes | stable | UTF-8 string value. |
+| `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
+| `ValType` | - | no | experimental | Value-type constants matching the Wasm binary encoding, including the reference types. |
 | `Vec` | T | yes | - | Growable contiguous sequence. |
+| `WasmModuleBuilder` | - | no | experimental | Minimal Wasm module builder that counts signatures, functions, memories, and exports and encodes the module header. |
 | `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
 
 ### Enums
@@ -87,31 +103,47 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
+| `Component` | `canonical_abi_version`, `model_version` | - |
 | `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
+| `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
 | `File` | `open`, `close` | `Read`, `Seek` |
 | `FromIterator` | `from_iter` | - |
+| `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
+| `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
 | `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty` | - |
+| `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u` | - |
+| `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u` | - |
+| `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s` | - |
+| `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |
 | `Iterator` | `next`, `collect`, `count` | - |
 | `IteratorFold` | `fold` | - |
 | `IteratorSum` | `sum` | - |
+| `Leb128` | `encode_u32`, `size_u32` | - |
+| `Limits` | `unbounded`, `bounded`, `min`, `has_max`, `max` | - |
 | `LinkedList` | `new`, `push_front`, `push_back`, `pop_front`, `pop_back`, `front`, `back`, `len`, `is_empty`, `clear`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `LinkedListIntoIter` | - | `Iterator`, `IntoIterator` |
 | `LinkedListIter` | - | `Iterator`, `IntoIterator` |
 | `LinkedListIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `Opcode` | `unreachable`, `nop`, `block`, `loop_`, `if_`, `else_`, `end`, `br`, `br_if`, `return_`, `call`, `drop`, `select`, `local_get`, `local_set`, `local_tee`, `global_get`, `global_set`, `i32_load`, `i32_store`, `memory_size`, `memory_grow`, `i32_const`, `i64_const`, `f32_const`, `f64_const`, `i32_eqz`, `i32_eq`, `i32_ne`, `i32_lt_s`, `i32_gt_s`, `i32_le_s`, `i32_ge_s`, `i32_add`, `i32_sub`, `i32_mul`, `i32_div_s`, `i32_and`, `i32_or`, `i32_xor`, `i32_shl`, `i32_shr_s`, `i64_add`, `i64_sub`, `i64_mul` | - |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
 | `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Range` | `contains`, `len` | - |
 | `Read` | `read` | - |
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
+| `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true` | - |
+| `ValType` | `i32`, `i64`, `f32`, `f64`, `v128`, `funcref`, `externref` | - |
 | `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend` | - |
+| `WasmModuleBuilder` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
 
@@ -311,18 +343,6 @@ let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
-
-## Component
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
-| `component_model_version` | `() -> String` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
-| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Drop a handle and return its value, if still live. |
-| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Look up a live handle without removing it. |
-| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Return the number of live handles in the table. |
-| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
-| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 
 ## Control
 
@@ -728,106 +748,39 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abs` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `abs` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `abs` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `all_true` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `and` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `andnot` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `any_true` | `(v128) -> i32` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `bitmask` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `bitselect` | `(v128, v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ceil` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `div` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `div` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `eq` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `eq` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> f32` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> i32` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> f64` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> i64` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ge` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `gt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `le` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `lt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `max` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `max` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `min` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `min` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ne` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ne` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `nearest` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(f32, f32, f32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(i32, i32, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(f64, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(i64, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `not` | `(v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `or` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `shl` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `shr_s` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `shr_u` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i64) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sqrt` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sqrt` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `trunc` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `xor` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
@@ -922,83 +875,11 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |
-| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the valtype constant for the i-th result of a FuncType. |
-| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants). |
-| `functype_param_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the number of parameter types in a FuncType. |
-| `functype_result_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the number of result types in a FuncType. |
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>. |
-| `leb128_size_u32` | `(i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the number of bytes needed to encode x as unsigned LEB128. |
-| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a Limits with both minimum and maximum. |
-| `limits_has_max` | `(Vec<i32>) -> bool` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return true if this Limits has a maximum. |
-| `limits_max` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the maximum of a Limits (only valid if limits_has_max is true). |
-| `limits_min` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the minimum of a Limits. |
-| `limits_unbounded` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a Limits with only a minimum (no maximum). |
-| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a function export to the module. |
-| `module_add_func` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a function with the given type index to the module. Returns its function index. |
-| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a memory with the given Limits to the module. Returns its memory index. |
-| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Register a FuncType in the module type section. Returns its index. |
-| `module_encode_header` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the Wasm binary magic+version header (8 bytes). |
-| `module_export_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of exports added to the module builder. |
-| `module_func_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of functions added to the module builder. |
-| `module_mem_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of memories added to the module builder. |
-| `module_new` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Create a new empty WasmModuleBuilder. |
-| `module_type_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of registered types in the module builder. |
-| `op_call` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: call (0x10). |
-| `op_end` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: end (0x0b). |
-| `op_i32_add` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.add (0x6a). |
-| `op_i32_const` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.const (0x41). |
-| `op_i32_eq` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.eq (0x46). |
-| `op_i32_eqz` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.eqz (0x45). |
-| `op_i32_mul` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.mul (0x6c). |
-| `op_i32_sub` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.sub (0x6b). |
-| `op_i64_const` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i64.const (0x42). |
-| `op_local_get` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: local.get (0x20). |
-| `op_local_set` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: local.set (0x21). |
-| `op_local_tee` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: local.tee (0x22). |
-| `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: nop (0x01). |
-| `op_return` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: return (0x0f). |
-| `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
-| `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reference type byte for externref. |
-| `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reference type byte for funcref. |
-| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `v128_and` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise AND of two v128 vectors. |
-| `v128_andnot` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
-| `v128_any_true` | `(v128) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return 1 if any bit in the v128 is set, 0 otherwise. |
-| `v128_bitselect` | `(v128, v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise select: for each bit, choose a if c bit is 1 else b. |
 | `v128_load` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a v128 from linear memory at ptr + offset. |
 | `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a single lane from linear memory into a v128 vector. |
 | `v128_load_splat` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a single byte from linear memory and splat it to all 16 lanes. |
-| `v128_not` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise NOT of a v128 vector. |
-| `v128_or` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise OR of two v128 vectors. |
-| `v128_reinterpret_f32x4` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as f32x4 (no-op, same bits). |
-| `v128_reinterpret_f64x2` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as f64x2 (no-op, same bits). |
-| `v128_reinterpret_i16x8` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i16x8 (no-op, same bits). |
-| `v128_reinterpret_i32x4` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i32x4 (no-op, same bits). |
-| `v128_reinterpret_i64x2` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i64x2 (no-op, same bits). |
-| `v128_reinterpret_i8x16` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i8x16 (no-op, same bits). |
 | `v128_store` | `(i32, i32, v128) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Store a v128 to linear memory at ptr + offset. |
 | `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Store a single lane from a v128 vector to linear memory. |
-| `v128_xor` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise XOR of two v128 vectors. |
-| `valtype_externref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for externref (0x6f). Reference-types proposal. |
-| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `valtype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for funcref (0x70). Reference-types proposal. |
-| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `valtype_v128` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for SIMD v128 (0x7b). Requires SIMD proposal. |
-| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
-| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
 
 ## Deprecated APIs
 

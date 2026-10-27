@@ -708,28 +708,35 @@ match toml_parse("[server]\\nhost = \\"localhost\\"") {
         "modules": ["std::wasm"],
         "overview": {
             "summary": (
-                "The `std::wasm` module exposes WebAssembly binary-format constants and low-level "
-                "v128 memory access helpers. It provides the magic bytes, version bytes, section "
-                "IDs, and value-type constants needed to build or inspect Wasm modules "
-                "programmatically. Bulk memory copy/fill are compiler intrinsics only "
+                "The `std::wasm` module exposes the WebAssembly binary format as associated "
+                "functions and receiver methods: the module header, section IDs, value types, "
+                "opcodes, FuncType / Limits values, a minimal module builder, and LEB128 "
+                "encoding. The v128 bitwise operations live on `std::simd::v128::V128`; the "
+                "five experimental v128 load/store frees remain until their associated form "
+                "lowers. Bulk memory copy/fill are compiler intrinsics only "
                 "(`__intrinsic_memory_*`); ADR-046 keeps no public free wrapper."
             ),
             "highlights": [
-                ("`wasm_magic()` / `wasm_version()`", "The 4-byte Wasm magic number and version bytes."),
-                ("`section_type()` … `section_data()`", "Section ID constants for all standard Wasm sections."),
-                ("`valtype_i32()` … `valtype_f64()`", "Value-type constants matching the Wasm binary encoding."),
-                ("`v128_load(ptr, offset)` / `v128_store(ptr, offset, v)`", "v128 memory access helpers (ADR-037)."),
+                ("`WasmModuleBuilder::new()` / `m.add_type(ft)` / `m.type_count()` / `WasmModuleBuilder::encode_header()`", "Minimal module builder with the magic / version header and the current section-count stubs."),
+                ("`Section::type_id()` … `Section::data_id()`", "Section ID constants for all standard Wasm sections."),
+                ("`ValType::i32()` … `ValType::externref()`, `Opcode::i32_add()`", "Value-type and opcode constants matching the Wasm binary encoding."),
+                ("`FuncType::new(params, results)` / `ft.get_param(idx)`, `Limits::bounded(min, max)` / `l.has_max()`", "Nominal function-signature and memory-limit values with validated receiver methods."),
+                ("`Leb128::encode_u32(x)` / `Leb128::size_u32(x)`", "Unsigned LEB128 encoding and size helpers."),
             ],
             "typical_usage": """\
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
+> **Eradication note (ADR-046):** the old free spellings are retired. A
+> qualified call such as `wasm::module_new()` fails resolution with an E0100
+> migration hint (issue #917).
 
 ```ark
-import std::wasm
+use std::wasm
 
-let magic = wasm_magic()    // [0x00, 0x61, 0x73, 0x6d]
-let ver   = wasm_version()  // [0x01, 0x00, 0x00, 0x00]
-let type_section = section_type()  // 1
-let i32_type = valtype_i32()       // 0x7f
+let m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
+let ft: wasm::FuncType = wasm::FuncType::new(params, results)
+let type_index: i32 = m.add_type(ft)
+let section: i32 = wasm::Section::type_id()
+let opcode: i32 = wasm::Opcode::i32_add()
+let encoded: Vec<i32> = wasm::Leb128::encode_u32(128)
 ```""",
         },
     },

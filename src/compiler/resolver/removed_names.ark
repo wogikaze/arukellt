@@ -186,6 +186,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
         .concat(clone(module))
         .concat("` instead")
     }
+    if eq(clone(module), "wasm") {
+        return removed_wasm_member_hint(name)
+    }
     if !eq(clone(module), "io") {
         return String_new()
     }
@@ -585,6 +588,62 @@ fn removed_simd_lane_type(module: String) -> String {
     String_new()
 }
 
+// The std::wasm builder frees became associated functions / methods in #917.
+// A removed qualified call still needs a concrete type name, so map the old
+// free name to its owning namespace type instead of a bare "undefined member".
+// The five v128 load/store frees are still live, so they keep no hint.
+fn removed_wasm_member_hint(name: String) -> String {
+    if is_live_wasm_memory_free(clone(name)) {
+        return String_new()
+    }
+    if clone(name).starts_with(String_from("v128_reinterpret_")) {
+        return String_from("removed no-op helper; v128 is one type, so pass the value directly")
+    }
+    if clone(name).starts_with(String_from("v128_")) {
+        return String_from("removed free function; use the `V128` associated function from `use std::simd::v128` instead")
+    }
+    let owner: String = removed_wasm_owner_type(clone(name))
+    if len(clone(owner)) == 0 {
+        return String_from("removed std::wasm free function; see docs/stdlib/migration-guidance.md for the type surface")
+    }
+    "removed free function; use the `".concat(owner)
+    .concat("` associated function from `use std::wasm` instead")
+}
+
+fn is_live_wasm_memory_free(name: String) -> bool {
+    eq(clone(name), "v128_load") || eq(clone(name), "v128_store") ||
+    eq(clone(name), "v128_load_splat") || eq(clone(name), "v128_load_lane") ||
+    eq(clone(name), "v128_store_lane")
+}
+
+fn removed_wasm_owner_type(name: String) -> String {
+    if clone(name).starts_with(String_from("section_")) {
+        return String_from("Section")
+    }
+    if clone(name).starts_with(String_from("valtype_")) ||
+    clone(name).starts_with(String_from("reftype_")) ||
+    clone(name).starts_with(String_from("numtype_")) {
+        return String_from("ValType")
+    }
+    if clone(name).starts_with(String_from("op_")) {
+        return String_from("Opcode")
+    }
+    if clone(name).starts_with(String_from("functype_")) {
+        return String_from("FuncType")
+    }
+    if clone(name).starts_with(String_from("limits_")) {
+        return String_from("Limits")
+    }
+    if clone(name).starts_with(String_from("leb128_")) {
+        return String_from("Leb128")
+    }
+    if eq(clone(name), "wasm_magic") || eq(clone(name), "wasm_version") ||
+    clone(name).starts_with(String_from("module_")) {
+        return String_from("WasmModuleBuilder")
+    }
+    String_new()
+}
+
 test mod "removed_names" {
     test "to_string family" {
         assert(len(removed_name_hint("i32_to_string")) > 0)
@@ -748,5 +807,26 @@ test mod "removed_names" {
     test "non-simd modules keep no simd hint" {
         assert(len(removed_module_member_hint(String_from("f32x4x"), String_from("splat"))) == 0)
         assert(len(removed_module_member_hint(String_from("text"), String_from("splat"))) == 0)
+    }
+    test "removed wasm builder frees have type hints" {
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("module_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("wasm_magic"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("functype_get_param"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("limits_bounded"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("section_type"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("valtype_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("numtype_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("op_i32_add"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("leb128_encode_u32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_and"))) > 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_reinterpret_i8x16"))) > 0)
+    }
+    test "live wasm v128 memory frees keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_load"))) == 0)
+        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_store_lane"))) == 0)
+    }
+    test "non-wasm modules keep no wasm hint" {
+        assert(len(removed_module_member_hint(String_from("wasmx"), String_from("module_new"))) == 0)
+        assert(len(removed_module_member_hint(String_from("text"), String_from("module_new"))) == 0)
     }
 }

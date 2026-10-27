@@ -1,506 +1,596 @@
 //! Experimental WebAssembly helpers.
 //!
-//! Exposes magic bytes, version bytes, section IDs, value-type constants,
-//! opcode constants, FuncType/Limits constructors, a minimal WasmModuleBuilder,
-//! and LEB128 encoding utilities.
+//! Exposes the Wasm module header, section IDs, value-type constants, opcode
+//! constants, FuncType / Limits values, a minimal Wasm module builder, LEB128
+//! encoding, and the five experimental v128 load/store helpers. The builder
+//! and constant helpers are associated functions or methods on their owning
+//! types; the v128 load/store helpers stay top-level free functions because
+//! their method form does not lower yet (ADR-046). The raw v128 bitwise
+//! operations live on `std::simd::v128::V128`.
 //!
 //! All APIs are Experimental and may change in v4+.
-use std::prelude::{max, min}
-pub fn wasm_magic() -> Vec<i32> {
-    let b: Vec<i32> = Vec::new<i32>()
-    push(b, 0)
-    push(b, 97)
-    push(b, 115)
-    push(b, 109)
-    b
-}
 
-pub fn wasm_version() -> Vec<i32> {
-    let b: Vec<i32> = Vec::new<i32>()
-    push(b, 1)
-    push(b, 0)
-    push(b, 0)
-    push(b, 0)
-    b
-}
+/// Section IDs for the standard Wasm sections.
+pub struct Section {}
 
-// Section IDs
-pub fn section_type() -> i32 {
-    1
-}
-
-pub fn section_import() -> i32 {
-    2
-}
-
-pub fn section_function() -> i32 {
-    3
-}
-
-pub fn section_table() -> i32 {
-    4
-}
-
-pub fn section_memory() -> i32 {
-    5
-}
-
-pub fn section_global() -> i32 {
-    6
-}
-
-pub fn section_export() -> i32 {
-    7
-}
-
-pub fn section_start() -> i32 {
-    8
-}
-
-pub fn section_element() -> i32 {
-    9
-}
-
-pub fn section_code() -> i32 {
-    10
-}
-
-pub fn section_data() -> i32 {
-    11
-}
-
-// Value types
-pub fn valtype_i32() -> i32 {
-    127
-}
-
-pub fn valtype_i64() -> i32 {
-    126
-}
-
-pub fn valtype_f32() -> i32 {
-    125
-}
-
-pub fn valtype_f64() -> i32 {
-    124
-}
-
-// Extended value types (reference-types proposal)
-pub fn valtype_v128() -> i32 {
-    123
-}
-
-pub fn valtype_funcref() -> i32 {
-    112
-}
-
-pub fn valtype_externref() -> i32 {
-    111
-}
-
-// NumType constants (subset: numeric value types only)
-pub fn numtype_i32() -> i32 {
-    127
-}
-
-pub fn numtype_i64() -> i32 {
-    126
-}
-
-pub fn numtype_f32() -> i32 {
-    125
-}
-
-pub fn numtype_f64() -> i32 {
-    124
-}
-
-// RefType constants
-pub fn reftype_funcref() -> i32 {
-    112
-}
-
-pub fn reftype_externref() -> i32 {
-    111
-}
-
-// --- FuncType ---
-//
-// Backed by Vec<i32>.
-// Layout: [param_count, p0, p1, ..., result_count, r0, r1, ...]
-//
-// functype_new(params: Vec<i32>, results: Vec<i32>) -> Vec<i32>
-pub fn functype_new(params: Vec<i32>, results: Vec<i32>) -> Vec<i32> {
-    let ft: Vec<i32> = Vec::new<i32>()
-    let plen: i32 = len(params)
-    push(ft, plen)
-    let mut pi: i32 = 0
-    while pi < plen {
-        push(ft, get_unchecked(params, pi))
-        pi = pi + 1
+impl Section {
+    /// Type section ID (`1`).
+    fn type_id() -> i32 {
+        1
     }
-    let rlen: i32 = len(results)
-    push(ft, rlen)
-    let mut ri: i32 = 0
-    while ri < rlen {
-        push(ft, get_unchecked(results, ri))
-        ri = ri + 1
+
+    /// Import section ID (`2`).
+    fn import_id() -> i32 {
+        2
     }
-    ft
+
+    /// Function section ID (`3`).
+    fn function_id() -> i32 {
+        3
+    }
+
+    /// Table section ID (`4`).
+    fn table_id() -> i32 {
+        4
+    }
+
+    /// Memory section ID (`5`).
+    fn memory_id() -> i32 {
+        5
+    }
+
+    /// Global section ID (`6`).
+    fn global_id() -> i32 {
+        6
+    }
+
+    /// Export section ID (`7`).
+    fn export_id() -> i32 {
+        7
+    }
+
+    /// Start section ID (`8`).
+    fn start_id() -> i32 {
+        8
+    }
+
+    /// Element section ID (`9`).
+    fn element_id() -> i32 {
+        9
+    }
+
+    /// Code section ID (`10`).
+    fn code_id() -> i32 {
+        10
+    }
+
+    /// Data section ID (`11`).
+    fn data_id() -> i32 {
+        11
+    }
 }
 
-pub fn functype_param_count(ft: Vec<i32>) -> i32 {
-    get_unchecked(ft, 0)
+/// Value-type constants matching the Wasm binary encoding.
+///
+/// The reference types (`funcref` / `externref`) and the numeric types share
+/// one namespace; the retired `numtype_*` aliases used the same bytes.
+pub struct ValType {}
+
+impl ValType {
+    /// `i32` value type (`0x7f`).
+    fn i32() -> i32 {
+        127
+    }
+
+    /// `i64` value type (`0x7e`).
+    fn i64() -> i32 {
+        126
+    }
+
+    /// `f32` value type (`0x7d`).
+    fn f32() -> i32 {
+        125
+    }
+
+    /// `f64` value type (`0x7c`).
+    fn f64() -> i32 {
+        124
+    }
+
+    /// `v128` value type (`0x7b`).
+    fn v128() -> i32 {
+        123
+    }
+
+    /// `funcref` value type (`0x70`).
+    fn funcref() -> i32 {
+        112
+    }
+
+    /// `externref` value type (`0x6f`).
+    fn externref() -> i32 {
+        111
+    }
 }
 
-pub fn functype_result_count(ft: Vec<i32>) -> i32 {
-    let plen: i32 = get_unchecked(ft, 0)
-    get_unchecked(ft, 1 + plen)
+/// Opcode constants for the Wasm MVP instruction subset.
+pub struct Opcode {}
+
+impl Opcode {
+    /// `unreachable` (`0x00`).
+    fn unreachable() -> i32 {
+        0
+    }
+
+    /// `nop` (`0x01`).
+    fn nop() -> i32 {
+        1
+    }
+
+    /// `block` (`0x02`).
+    fn block() -> i32 {
+        2
+    }
+
+    /// `loop` (`0x03`).
+    fn loop_() -> i32 {
+        3
+    }
+
+    /// `if` (`0x04`).
+    fn if_() -> i32 {
+        4
+    }
+
+    /// `else` (`0x05`).
+    fn else_() -> i32 {
+        5
+    }
+
+    /// `end` (`0x0b`).
+    fn end() -> i32 {
+        11
+    }
+
+    /// `br` (`0x0c`).
+    fn br() -> i32 {
+        12
+    }
+
+    /// `br_if` (`0x0d`).
+    fn br_if() -> i32 {
+        13
+    }
+
+    /// `return` (`0x0f`).
+    fn return_() -> i32 {
+        15
+    }
+
+    /// `call` (`0x10`).
+    fn call() -> i32 {
+        16
+    }
+
+    /// `drop` (`0x1a`).
+    fn drop() -> i32 {
+        26
+    }
+
+    /// `select` (`0x1b`).
+    fn select() -> i32 {
+        27
+    }
+
+    /// `local.get` (`0x20`).
+    fn local_get() -> i32 {
+        32
+    }
+
+    /// `local.set` (`0x21`).
+    fn local_set() -> i32 {
+        33
+    }
+
+    /// `local.tee` (`0x22`).
+    fn local_tee() -> i32 {
+        34
+    }
+
+    /// `global.get` (`0x23`).
+    fn global_get() -> i32 {
+        35
+    }
+
+    /// `global.set` (`0x24`).
+    fn global_set() -> i32 {
+        36
+    }
+
+    /// `i32.load` (`0x28`).
+    fn i32_load() -> i32 {
+        40
+    }
+
+    /// `i32.store` (`0x36`).
+    fn i32_store() -> i32 {
+        54
+    }
+
+    /// `memory.size` (`0x3f`).
+    fn memory_size() -> i32 {
+        63
+    }
+
+    /// `memory.grow` (`0x40`).
+    fn memory_grow() -> i32 {
+        64
+    }
+
+    /// `i32.const` (`0x41`).
+    fn i32_const() -> i32 {
+        65
+    }
+
+    /// `i64.const` (`0x42`).
+    fn i64_const() -> i32 {
+        66
+    }
+
+    /// `f32.const` (`0x43`).
+    fn f32_const() -> i32 {
+        67
+    }
+
+    /// `f64.const` (`0x44`).
+    fn f64_const() -> i32 {
+        68
+    }
+
+    /// `i32.eqz` (`0x45`).
+    fn i32_eqz() -> i32 {
+        69
+    }
+
+    /// `i32.eq` (`0x46`).
+    fn i32_eq() -> i32 {
+        70
+    }
+
+    /// `i32.ne` (`0x47`).
+    fn i32_ne() -> i32 {
+        71
+    }
+
+    /// `i32.lt_s` (`0x48`).
+    fn i32_lt_s() -> i32 {
+        72
+    }
+
+    /// `i32.gt_s` (`0x4a`).
+    fn i32_gt_s() -> i32 {
+        74
+    }
+
+    /// `i32.le_s` (`0x4c`).
+    fn i32_le_s() -> i32 {
+        76
+    }
+
+    /// `i32.ge_s` (`0x4e`).
+    fn i32_ge_s() -> i32 {
+        78
+    }
+
+    /// `i32.add` (`0x6a`).
+    fn i32_add() -> i32 {
+        106
+    }
+
+    /// `i32.sub` (`0x6b`).
+    fn i32_sub() -> i32 {
+        107
+    }
+
+    /// `i32.mul` (`0x6c`).
+    fn i32_mul() -> i32 {
+        108
+    }
+
+    /// `i32.div_s` (`0x6d`).
+    fn i32_div_s() -> i32 {
+        109
+    }
+
+    /// `i32.and` (`0x71`).
+    fn i32_and() -> i32 {
+        113
+    }
+
+    /// `i32.or` (`0x72`).
+    fn i32_or() -> i32 {
+        114
+    }
+
+    /// `i32.xor` (`0x73`).
+    fn i32_xor() -> i32 {
+        115
+    }
+
+    /// `i32.shl` (`0x74`).
+    fn i32_shl() -> i32 {
+        116
+    }
+
+    /// `i32.shr_s` (`0x75`).
+    fn i32_shr_s() -> i32 {
+        117
+    }
+
+    /// `i64.add` (`0x7c`).
+    fn i64_add() -> i32 {
+        124
+    }
+
+    /// `i64.sub` (`0x7d`).
+    fn i64_sub() -> i32 {
+        125
+    }
+
+    /// `i64.mul` (`0x7e`).
+    fn i64_mul() -> i32 {
+        126
+    }
 }
 
-pub fn functype_get_param(ft: Vec<i32>, idx: i32) -> i32 {
-    get_unchecked(ft, 1 + idx)
+/// A Wasm function signature: parameter types followed by result types.
+///
+/// Both lists hold `ValType` constants. The layout is private; use the
+/// associated constructor and the receiver methods.
+pub struct FuncType {
+    params: Vec<i32>,
+    results: Vec<i32>,
 }
 
-pub fn functype_get_result(ft: Vec<i32>, idx: i32) -> i32 {
-    let plen: i32 = get_unchecked(ft, 0)
-    get_unchecked(ft, 2 + plen + idx)
-}
-
-// --- Limits ---
-//
-// Backed by Vec<i32>.
-// Layout: [min, has_max, max]
-pub fn limits_unbounded(min: i32) -> Vec<i32> {
-    let l: Vec<i32> = Vec::new<i32>()
-    push(l, min)
-    push(l, 0)
-    push(l, 0)
-    l
-}
-
-pub fn limits_bounded(min: i32, max: i32) -> Vec<i32> {
-    let l: Vec<i32> = Vec::new<i32>()
-    push(l, min)
-    push(l, 1)
-    push(l, max)
-    l
-}
-
-pub fn limits_min(l: Vec<i32>) -> i32 {
-    get_unchecked(l, 0)
-}
-
-pub fn limits_has_max(l: Vec<i32>) -> bool {
-    get_unchecked(l, 1) == 1
-}
-
-pub fn limits_max(l: Vec<i32>) -> i32 {
-    get_unchecked(l, 2)
-}
-
-// --- WasmModuleBuilder ---
-//
-// Minimal stub producing a valid Wasm MVP binary (magic + version only).
-// Functions/memories/exports are counted but not yet encoded into full sections.
-//
-// State Vec<i32> layout: [func_type_count, func_count, mem_count, export_count]
-pub fn module_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec::new<i32>()
-    push(m, 0)
-    push(m, 0)
-    push(m, 0)
-    push(m, 0)
-    m
-}
-
-pub fn module_add_type(m: Vec<i32>, ft: Vec<i32>) -> i32 {
-    let idx: i32 = get_unchecked(m, 0)
-    set(m, 0, idx + 1)
-    idx
-}
-
-pub fn module_add_func(m: Vec<i32>, type_idx: i32) -> i32 {
-    let idx: i32 = get_unchecked(m, 1)
-    set(m, 1, idx + 1)
-    idx
-}
-
-pub fn module_add_memory(m: Vec<i32>, limits: Vec<i32>) -> i32 {
-    let idx: i32 = get_unchecked(m, 2)
-    set(m, 2, idx + 1)
-    idx
-}
-
-pub fn module_add_export_func(m: Vec<i32>, name: String, func_idx: i32) {
-    let cnt: i32 = get_unchecked(m, 3)
-    set(m, 3, cnt + 1)
-}
-
-pub fn module_type_count(m: Vec<i32>) -> i32 {
-    get_unchecked(m, 0)
-}
-
-pub fn module_func_count(m: Vec<i32>) -> i32 {
-    get_unchecked(m, 1)
-}
-
-pub fn module_mem_count(m: Vec<i32>) -> i32 {
-    get_unchecked(m, 2)
-}
-
-pub fn module_export_count(m: Vec<i32>) -> i32 {
-    get_unchecked(m, 3)
-}
-
-/// Encode the module to a Wasm binary header (magic + version).
-/// Full section encoding is a v4 task; this stub returns a valid 8-byte header.
-pub fn module_encode_header() -> Vec<i32> {
-    let out: Vec<i32> = Vec::new<i32>()
-    push(out, 0)
-    push(out, 97)
-    push(out, 115)
-    push(out, 109)
-    push(out, 1)
-    push(out, 0)
-    push(out, 0)
-    push(out, 0)
-    out
-}
-
-// --- LEB128 encoding ---
-/// Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes.
-pub fn leb128_encode_u32(x: i32) -> Vec<i32> {
-    let out: Vec<i32> = Vec::new<i32>()
-    let mut val: i32 = x
-    let mut done: bool = false
-    while done == false {
-        let byte: i32 = val & 127
-        val = val / 128
-        if val == 0 {
-            push(out, byte)
-            done = true
-        } else {
-            push(out, byte | 128)
+impl FuncType {
+    /// Build a signature from parameter and result type lists.
+    fn new(params: Vec<i32>, results: Vec<i32>) -> FuncType {
+        FuncType {
+            params: params,
+            results: results,
         }
     }
-    out
+
+    /// Number of parameter types.
+    fn param_count(self: FuncType) -> i32 {
+        self.params.len()
+    }
+
+    /// Number of result types.
+    fn result_count(self: FuncType) -> i32 {
+        self.results.len()
+    }
+
+    /// Parameter type at `idx` (0-based, unchecked).
+    fn get_param(self: FuncType, idx: i32) -> i32 {
+        self.params.get_unchecked(idx)
+    }
+
+    /// Result type at `idx` (0-based, unchecked).
+    fn get_result(self: FuncType, idx: i32) -> i32 {
+        self.results.get_unchecked(idx)
+    }
 }
 
-/// Return the number of bytes needed to encode x as unsigned LEB128.
-pub fn leb128_size_u32(x: i32) -> i32 {
-    if x < 128 {
-        1
-    } else {
-        if x < 16384 {
-            2
-        } else {
-            if x < 2097152 {
-                3
+/// Memory limits: a minimum page count plus an optional maximum.
+pub struct Limits {
+    min: i32,
+    has_max: bool,
+    max: i32,
+}
+
+impl Limits {
+    /// Unbounded limits with only a minimum.
+    fn unbounded(min: i32) -> Limits {
+        Limits {
+            min: min,
+            has_max: false,
+            max: 0,
+        }
+    }
+
+    /// Bounded limits with a minimum and a maximum.
+    fn bounded(min: i32, max: i32) -> Limits {
+        Limits {
+            min: min,
+            has_max: true,
+            max: max,
+        }
+    }
+
+    /// Minimum page count.
+    fn min(self: Limits) -> i32 {
+        self.min
+    }
+
+    /// True when a maximum is present.
+    fn has_max(self: Limits) -> bool {
+        self.has_max
+    }
+
+    /// Maximum page count; `0` when `has_max()` is false.
+    fn max(self: Limits) -> i32 {
+        self.max
+    }
+}
+
+/// Minimal Wasm module builder.
+///
+/// Counts function signatures, functions, memories, and exports. Section
+/// encoding is still a stub: the counts are observable, but only the module
+/// header is encoded. `magic()`, `version()`, and `encode_header()` are
+/// associated functions because they do not read builder state.
+pub struct WasmModuleBuilder {
+    type_count: i32,
+    func_count: i32,
+    mem_count: i32,
+    export_count: i32,
+}
+
+impl WasmModuleBuilder {
+    /// Create an empty builder with zero entries.
+    fn new() -> WasmModuleBuilder {
+        WasmModuleBuilder {
+            type_count: 0,
+            func_count: 0,
+            mem_count: 0,
+            export_count: 0,
+        }
+    }
+
+    /// Register a function signature and return its type index.
+    fn add_type(self: WasmModuleBuilder, ft: FuncType) -> i32 {
+        let idx: i32 = self.type_count
+        self.type_count = idx + 1
+        idx
+    }
+
+    /// Register a function of `type_idx` and return its function index.
+    fn add_func(self: WasmModuleBuilder, type_idx: i32) -> i32 {
+        let idx: i32 = self.func_count
+        self.func_count = idx + 1
+        idx
+    }
+
+    /// Register a memory and return its memory index.
+    fn add_memory(self: WasmModuleBuilder, limits: Limits) -> i32 {
+        let idx: i32 = self.mem_count
+        self.mem_count = idx + 1
+        idx
+    }
+
+    /// Record a function export.
+    ///
+    /// The name and index are part of the encoding contract but the stub only
+    /// counts the export until section encoding lands.
+    fn add_export_func(self: WasmModuleBuilder, name: String, func_idx: i32) {
+        self.export_count = self.export_count + 1
+    }
+
+    /// Number of registered function signatures.
+    fn type_count(self: WasmModuleBuilder) -> i32 {
+        self.type_count
+    }
+
+    /// Number of registered functions.
+    fn func_count(self: WasmModuleBuilder) -> i32 {
+        self.func_count
+    }
+
+    /// Number of registered memories.
+    fn mem_count(self: WasmModuleBuilder) -> i32 {
+        self.mem_count
+    }
+
+    /// Number of recorded exports.
+    fn export_count(self: WasmModuleBuilder) -> i32 {
+        self.export_count
+    }
+
+    /// The 4-byte Wasm magic number (`\0asm`).
+    fn magic() -> Vec<i32> {
+        let header: Vec<i32> = Vec::new<i32>()
+        header.push(0)
+        header.push(97)
+        header.push(115)
+        header.push(109)
+        header
+    }
+
+    /// The 4-byte Wasm version (`1.0.0.0`).
+    fn version() -> Vec<i32> {
+        let header: Vec<i32> = Vec::new<i32>()
+        header.push(1)
+        header.push(0)
+        header.push(0)
+        header.push(0)
+        header
+    }
+
+    /// Encode the 8-byte Wasm binary header (magic + version).
+    ///
+    /// Full section encoding is a v4 task; this returns the valid prefix.
+    fn encode_header() -> Vec<i32> {
+        let out: Vec<i32> = Vec::new<i32>()
+        out.push(0)
+        out.push(97)
+        out.push(115)
+        out.push(109)
+        out.push(1)
+        out.push(0)
+        out.push(0)
+        out.push(0)
+        out
+    }
+}
+
+/// Unsigned LEB128 encoding utilities.
+pub struct Leb128 {}
+
+impl Leb128 {
+    /// Encode a u32 as unsigned LEB128 and return its bytes.
+    fn encode_u32(x: i32) -> Vec<i32> {
+        let out: Vec<i32> = Vec::new<i32>()
+        let mut val: i32 = x
+        let mut done: bool = false
+        while done == false {
+            let byte: i32 = val & 127
+            val = val / 128
+            if val == 0 {
+                out.push(byte)
+                done = true
             } else {
-                if x < 268435456 {
-                    4
+                out.push(byte | 128)
+            }
+        }
+        out
+    }
+
+    /// Number of bytes needed to encode `x` as unsigned LEB128.
+    fn size_u32(x: i32) -> i32 {
+        if x < 128 {
+            1
+        } else {
+            if x < 16384 {
+                2
+            } else {
+                if x < 2097152 {
+                    3
                 } else {
-                    5
+                    if x < 268435456 {
+                        4
+                    } else {
+                        5
+                    }
                 }
             }
         }
     }
 }
 
-// --- Opcode constants (Wasm MVP subset) ---
-pub fn op_unreachable() -> i32 {
-    0
-}
-
-pub fn op_nop() -> i32 {
-    1
-}
-
-pub fn op_block() -> i32 {
-    2
-}
-
-pub fn op_loop() -> i32 {
-    3
-}
-
-pub fn op_if() -> i32 {
-    4
-}
-
-pub fn op_else() -> i32 {
-    5
-}
-
-pub fn op_end() -> i32 {
-    11
-}
-
-pub fn op_br() -> i32 {
-    12
-}
-
-pub fn op_br_if() -> i32 {
-    13
-}
-
-pub fn op_return() -> i32 {
-    15
-}
-
-pub fn op_call() -> i32 {
-    16
-}
-
-pub fn op_drop() -> i32 {
-    26
-}
-
-pub fn op_select() -> i32 {
-    27
-}
-
-pub fn op_local_get() -> i32 {
-    32
-}
-
-pub fn op_local_set() -> i32 {
-    33
-}
-
-pub fn op_local_tee() -> i32 {
-    34
-}
-
-pub fn op_global_get() -> i32 {
-    35
-}
-
-pub fn op_global_set() -> i32 {
-    36
-}
-
-pub fn op_i32_load() -> i32 {
-    40
-}
-
-pub fn op_i32_store() -> i32 {
-    54
-}
-
-pub fn op_memory_size() -> i32 {
-    63
-}
-
-pub fn op_memory_grow() -> i32 {
-    64
-}
-
-pub fn op_i32_const() -> i32 {
-    65
-}
-
-pub fn op_i64_const() -> i32 {
-    66
-}
-
-pub fn op_f32_const() -> i32 {
-    67
-}
-
-pub fn op_f64_const() -> i32 {
-    68
-}
-
-pub fn op_i32_eqz() -> i32 {
-    69
-}
-
-pub fn op_i32_eq() -> i32 {
-    70
-}
-
-pub fn op_i32_ne() -> i32 {
-    71
-}
-
-pub fn op_i32_lt_s() -> i32 {
-    72
-}
-
-pub fn op_i32_gt_s() -> i32 {
-    74
-}
-
-pub fn op_i32_le_s() -> i32 {
-    76
-}
-
-pub fn op_i32_ge_s() -> i32 {
-    78
-}
-
-pub fn op_i32_add() -> i32 {
-    106
-}
-
-pub fn op_i32_sub() -> i32 {
-    107
-}
-
-pub fn op_i32_mul() -> i32 {
-    108
-}
-
-pub fn op_i32_div_s() -> i32 {
-    109
-}
-
-pub fn op_i32_and() -> i32 {
-    113
-}
-
-pub fn op_i32_or() -> i32 {
-    114
-}
-
-pub fn op_i32_xor() -> i32 {
-    115
-}
-
-pub fn op_i32_shl() -> i32 {
-    116
-}
-
-pub fn op_i32_shr_s() -> i32 {
-    117
-}
-
-pub fn op_i64_add() -> i32 {
-    124
-}
-
-pub fn op_i64_sub() -> i32 {
-    125
-}
-
-pub fn op_i64_mul() -> i32 {
-    126
-}
-
-// Bulk memory operations have no public wrapper: ADR-046 keeps only the
-// non-public `__intrinsic_memory_*` bridge (the `memory_copy` / `memory_fill`
-// wrappers were experimental and were removed under ADR-014 D4).
-// func_type_count
-// func_count
-// mem_count
-// export_count
-// magic: \0asm
-// version: 1
-
-// --- v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3) ---
+// --- v128 memory access (ADR-037 §11) ---
+//
+// The raw v128 bitwise operations are owned by `std::simd::v128::V128`. The
+// six retired `v128_reinterpret_*` helpers were identity functions: v128 is
+// one type, so no conversion is needed.
+//
+// The five load/store helpers stay top-level free functions. The
+// `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter
+// lowering: the call compiles to `unreachable`, so the module validates but
+// every call traps. This holds for a top-level body and an `impl` body alike,
+// and `wasm-tools print` shows no `v128.load` / `v128.store` instruction.
+// No `V128Memory` associated surface is advertised until the emitter
+// implements the intrinsic (#917).
 
 /// Load a v128 from linear memory at ptr + offset.
 pub fn v128_load(ptr: i32, offset: i32) -> v128 {
@@ -526,58 +616,3 @@ pub fn v128_load_lane(ptr: i32, offset: i32, v: v128, lane: i32) -> v128 {
 pub fn v128_store_lane(ptr: i32, offset: i32, v: v128, lane: i32) {
     __wasm_v128_store_lane(ptr, offset, v, lane)
 }
-
-/// Bitwise AND of two v128 vectors.
-pub fn v128_and(a: v128, b: v128) -> v128 {
-    __simd_v128_and(a, b)
-}
-
-/// Bitwise OR of two v128 vectors.
-pub fn v128_or(a: v128, b: v128) -> v128 {
-    __simd_v128_or(a, b)
-}
-
-/// Bitwise XOR of two v128 vectors.
-pub fn v128_xor(a: v128, b: v128) -> v128 {
-    __simd_v128_xor(a, b)
-}
-
-/// Bitwise NOT of a v128 vector.
-pub fn v128_not(a: v128) -> v128 {
-    __simd_v128_not(a)
-}
-
-/// Bitwise ANDNOT (a & ~b) of two v128 vectors.
-pub fn v128_andnot(a: v128, b: v128) -> v128 {
-    __simd_v128_andnot(a, b)
-}
-
-/// Bitwise select: for each bit, choose a if c bit is 1 else b.
-pub fn v128_bitselect(a: v128, b: v128, c: v128) -> v128 {
-    __simd_v128_bitselect(a, b, c)
-}
-
-/// Return 1 if any bit in the v128 is set, 0 otherwise.
-pub fn v128_any_true(a: v128) -> i32 {
-    __simd_v128_any_true(a)
-}
-
-// --- v128 reinterpret family (no-op at v128 level, just type casting) ---
-
-/// Reinterpret v128 as i8x16 (no-op, same bits).
-pub fn v128_reinterpret_i8x16(v: v128) -> v128 { v }
-
-/// Reinterpret v128 as i16x8 (no-op, same bits).
-pub fn v128_reinterpret_i16x8(v: v128) -> v128 { v }
-
-/// Reinterpret v128 as i32x4 (no-op, same bits).
-pub fn v128_reinterpret_i32x4(v: v128) -> v128 { v }
-
-/// Reinterpret v128 as i64x2 (no-op, same bits).
-pub fn v128_reinterpret_i64x2(v: v128) -> v128 { v }
-
-/// Reinterpret v128 as f32x4 (no-op, same bits).
-pub fn v128_reinterpret_f32x4(v: v128) -> v128 { v }
-
-/// Reinterpret v128 as f64x2 (no-op, same bits).
-pub fn v128_reinterpret_f64x2(v: v128) -> v128 { v }
