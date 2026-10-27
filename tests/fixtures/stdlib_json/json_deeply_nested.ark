@@ -4,11 +4,11 @@ use std::text
 fn main() {
     match json::parse("{\"a\":{\"b\":{\"c\":{\"d\":42}}}}") {
         Result::Ok(v) => {
-            match json::json_get(v, "a") {
-                Option::Some(a) => match json::json_get(a, "b") {
-                    Option::Some(b) => match json::json_get(b, "c") {
-                        Option::Some(c) => match json::json_get(c, "d") {
-                            Option::Some(d) => match json::json_as_i32(d) {
+            match v.get_field("a") {
+                Option::Some(a) => match a.get_field("b") {
+                    Option::Some(b) => match b.get_field("c") {
+                        Option::Some(c) => match c.get_field("d") {
+                            Option::Some(d) => match d.as_i32() {
                                 Option::Some(n) => test::assert_eq_i32(n, 42),
                                 None => panic("expected number"),
                             },
@@ -21,6 +21,6 @@ fn main() {
                 None => panic("expected key a"),
             }
         },
-        Result::Err(e) => panic("parse deeply nested failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse deeply nested failed: ".concat(e.message())),
     }
 }

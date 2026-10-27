@@ -5,8 +5,8 @@ use std::test
 fn main() {
     let t = toml::toml_parse("count = 42")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "count") {
-            Option::Some(v) => match toml::toml_as_int(v) {
+        Result::Ok(table) => match table.get_field("count") {
+            Option::Some(v) => match v.as_int() {
                 Option::Some(n) => test::assert_eq_i32(n, 42),
                 None => assert(false),
             },

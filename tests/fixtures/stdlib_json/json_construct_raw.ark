@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let v = json::json_raw("12345")
-    test::assert_eq_string(json::stringify(v), "12345")
+    test::assert_eq_string(v.to_text(), "12345")
     let v2 = json::json_raw("custom")
-    test::assert_eq_string(json::stringify(v2), "custom")
+    test::assert_eq_string(v2.to_text(), "custom")
 }

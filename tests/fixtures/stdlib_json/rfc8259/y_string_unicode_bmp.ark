@@ -5,7 +5,7 @@ use std::text
 fn main() {
     // U+00E9 LATIN SMALL LETTER E WITH ACUTE
     match json::parse("\"\\u00E9\"") {
-        Result::Ok(v) => match json::json_as_string(v) {
+        Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 test::assert_eq_i32(len(s), 2)
                 test::assert_eq_i32(byte_at(s, 0), 195)
@@ -13,6 +13,6 @@ fn main() {
             },
             None => panic("expected string"),
         },
-        Result::Err(e) => panic("parse bmp unicode failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse bmp unicode failed: ".concat(e.message())),
     }
 }

@@ -3,10 +3,10 @@ use std::test
 use std::text
 fn main() {
     match json::parse("\"a\\tb\"") {
-        Result::Ok(v) => match json::json_as_string(v) {
+        Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "a\tb"),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic("parse tab failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse tab failed: ".concat(e.message())),
     }
 }

@@ -4,18 +4,18 @@ use std::text
 fn main() {
     match json::parse("{\"name\":\"alice\",\"age\":30}") {
         Result::Ok(obj) => {
-            match json::json_get(obj, "name") {
+            match obj.get_field("name") {
                 Option::Some(v) => {
-                    match json::json_as_string(v) {
+                    match v.as_string() {
                         Option::Some(s) => stdio::println(s),
                         None => stdio::println("not string"),
                     }
                 },
                 None => stdio::println("key not found"),
             }
-            match json::json_get(obj, "age") {
+            match obj.get_field("age") {
                 Option::Some(v) => {
-                    match json::json_as_i32(v) {
+                    match v.as_i32() {
                         Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
@@ -23,22 +23,22 @@ fn main() {
                 None => stdio::println("key not found"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     match json::parse("[10,20,30]") {
         Result::Ok(arr) => {
-            match json::json_get_index(arr, 0) {
+            match arr.get_index(0) {
                 Option::Some(v) => {
-                    match json::json_as_i32(v) {
+                    match v.as_i32() {
                         Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
                 },
                 None => stdio::println("index not found"),
             }
-            match json::json_get_index(arr, 2) {
+            match arr.get_index(2) {
                 Option::Some(v) => {
-                    match json::json_as_i32(v) {
+                    match v.as_i32() {
                         Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
@@ -46,7 +46,7 @@ fn main() {
                 None => stdio::println("index not found"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
 }
 // json_get: access object field

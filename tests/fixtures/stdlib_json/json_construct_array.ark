@@ -10,13 +10,13 @@ fn main() {
     test::assert_eq_string(s, "[1,2,3]")
     // Verify the constructed array parses back correctly
     match json::parse(s) {
-        Result::Ok(v) => match json::json_get_index(v, 1) {
-            Option::Some(e) => match json::json_as_i32(e) {
+        Result::Ok(v) => match v.get_index(1) {
+            Option::Some(e) => match e.as_i32() {
                 Option::Some(n) => test::assert_eq_i32(n, 2),
                 None => panic("expected number"),
             },
             None => panic("expected element at 1"),
         },
-        Result::Err(e) => panic("re-parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
     }
 }

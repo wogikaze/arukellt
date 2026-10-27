@@ -8,16 +8,16 @@ use std::text
 fn check_roundtrip(raw: String) {
     match json::parse(raw) {
         Result::Ok(v) => {
-            let s1 = json::stringify(v)
+            let s1 = v.to_text()
             match json::parse(s1) {
                 Result::Ok(v2) => {
-                    let s2 = json::stringify(v2)
+                    let s2 = v2.to_text()
                     test::assert_eq_string(s1, s2)
                 },
-                Result::Err(e) => panic("re-parse failed: ".concat(json::parse_error_message(e))),
+                Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
 }
 

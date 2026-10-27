@@ -7,20 +7,20 @@ fn main() {
     let input1 = String_from("point = { x = 1, y = 2 }")
     match toml::toml_parse(input1) {
         Result::Ok(table) => {
-            match toml::toml_get(table, String_from("point")) {
+            match table.get_field(String_from("point")) {
                 Option::Some(pt) => {
-                    match toml::toml_get(pt, String_from("x")) {
+                    match pt.get_field(String_from("x")) {
                         Option::Some(x) => {
-                            match toml::toml_as_int(x) {
+                            match x.as_int() {
                                 Option::Some(n) => assert(n == 1),
                                 None => assert(false),
                             }
                         },
                         None => assert(false),
                     }
-                    match toml::toml_get(pt, String_from("y")) {
+                    match pt.get_field(String_from("y")) {
                         Option::Some(y) => {
-                            match toml::toml_as_int(y) {
+                            match y.as_int() {
                                 Option::Some(n) => assert(n == 2),
                                 None => assert(false),
                             }
@@ -38,13 +38,13 @@ fn main() {
     let input2 = String_from("a.b.c = 42")
     match toml::toml_parse(input2) {
         Result::Ok(table) => {
-            match toml::toml_get(table, String_from("a")) {
+            match table.get_field(String_from("a")) {
                 Option::Some(a) => {
-                    match toml::toml_get(a, String_from("b")) {
+                    match a.get_field(String_from("b")) {
                         Option::Some(b) => {
-                            match toml::toml_get(b, String_from("c")) {
+                            match b.get_field(String_from("c")) {
                                 Option::Some(c) => {
-                                    match toml::toml_as_int(c) {
+                                    match c.as_int() {
                                         Option::Some(n) => assert(n == 42),
                                         None => assert(false),
                                     }
@@ -65,9 +65,9 @@ fn main() {
     let input3 = String_from("[[items]]\nname = \"first\"\n[[items]]\nname = \"second\"")
     match toml::toml_parse(input3) {
         Result::Ok(table) => {
-            match toml::toml_get(table, String_from("items")) {
+            match table.get_field(String_from("items")) {
                 Option::Some(arr) => {
-                    match toml::toml_as_array(arr) {
+                    match arr.as_array() {
                         Option::Some(items) => {
                             assert(len(items) == 2)
                         },

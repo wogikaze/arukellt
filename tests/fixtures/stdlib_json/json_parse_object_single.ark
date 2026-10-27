@@ -4,15 +4,15 @@ use std::text
 fn main() {
     match json::parse("{\"key\":\"value\"}") {
         Result::Ok(v) => {
-            test::assert_true(json::is_object(v))
-            match json::json_get(v, "key") {
-                Option::Some(fv) => match json::json_as_string(fv) {
+            test::assert_true(v.is_object())
+            match v.get_field("key") {
+                Option::Some(fv) => match fv.as_string() {
                     Option::Some(s) => test::assert_eq_string(s, "value"),
                     None => panic("expected string value"),
                 },
                 None => panic("expected key \"key\""),
             }
         },
-        Result::Err(e) => panic("parse object failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse object failed: ".concat(e.message())),
     }
 }

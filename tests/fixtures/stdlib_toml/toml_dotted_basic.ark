@@ -5,10 +5,10 @@ use std::test
 fn main() {
     let t = toml::toml_parse("a.b.c = 42")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "a") {
-            Option::Some(a) => match toml::toml_get(a, "b") {
-                Option::Some(b) => match toml::toml_get(b, "c") {
-                    Option::Some(v) => match toml::toml_as_int(v) {
+        Result::Ok(table) => match table.get_field("a") {
+            Option::Some(a) => match a.get_field("b") {
+                Option::Some(b) => match b.get_field("c") {
+                    Option::Some(v) => match v.as_int() {
                         Option::Some(n) => test::assert_eq_i32(n, 42),
                         None => assert(false),
                     },

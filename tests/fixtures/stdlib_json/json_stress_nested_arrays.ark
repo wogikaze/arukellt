@@ -4,11 +4,11 @@ use std::text
 fn main() {
     match json::parse("[[[[1]]]]") {
         Result::Ok(v) => {
-            match json::json_get_index(v, 0) {
-                Option::Some(l1) => match json::json_get_index(l1, 0) {
-                    Option::Some(l2) => match json::json_get_index(l2, 0) {
-                        Option::Some(l3) => match json::json_get_index(l3, 0) {
-                            Option::Some(l4) => match json::json_as_i32(l4) {
+            match v.get_index(0) {
+                Option::Some(l1) => match l1.get_index(0) {
+                    Option::Some(l2) => match l2.get_index(0) {
+                        Option::Some(l3) => match l3.get_index(0) {
+                            Option::Some(l4) => match l4.as_i32() {
                                 Option::Some(n) => test::assert_eq_i32(n, 1),
                                 None => panic("expected number"),
                             },
@@ -21,6 +21,6 @@ fn main() {
                 None => panic("expected element"),
             }
         },
-        Result::Err(e) => panic("parse deeply nested arrays failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse deeply nested arrays failed: ".concat(e.message())),
     }
 }

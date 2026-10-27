@@ -5,9 +5,9 @@ use std::test
 fn main() {
     let t = toml::toml_parse("[\"my table\"]\nval = 1")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "my table") {
-            Option::Some(s) => match toml::toml_get(s, "val") {
-                Option::Some(v) => match toml::toml_as_int(v) {
+        Result::Ok(table) => match table.get_field("my table") {
+            Option::Some(s) => match s.get_field("val") {
+                Option::Some(v) => match v.as_int() {
                     Option::Some(n) => test::assert_eq_i32(n, 1),
                     None => assert(false),
                 },

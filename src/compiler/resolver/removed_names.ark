@@ -115,8 +115,6 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "i64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
     if eq(clone(name), "f64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
     if eq(clone(name), "bool_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
-    let canonical_hint = removed_canonical_member_hint(clone(name))
-    if len(clone(canonical_hint)) > 0 { return canonical_hint }
     if eq(clone(name), "Vec_new") { return "removed Vec constructor; use `Vec::new<T>()`" }
     if eq(clone(name), "Vec_new_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
     if eq(clone(name), "Vec_new_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
@@ -160,9 +158,6 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "handle") {
         return removed_component_handle_member_hint(name)
     }
-    if eq(clone(module), "canonical") {
-        return removed_canonical_member_hint(name)
-    }
     if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
         return String_from("use `w.to_wit()` on `World` instead")
     }
@@ -183,6 +178,15 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if eq(clone(module), "bytes") {
         return removed_bytes_member_hint(name)
+    }
+    if eq(clone(module), "canonical") {
+        return removed_canonical_member_hint(name)
+    }
+    if eq(clone(module), "json") {
+        return removed_json_member_hint(name)
+    }
+    if eq(clone(module), "toml") {
+        return removed_toml_member_hint(name)
     }
     let simd_type = removed_simd_lane_type(clone(module))
     if len(clone(simd_type)) > 0 {
@@ -228,6 +232,119 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
     if eq(clone(name), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
     if eq(clone(name), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
+    String_new()
+}
+
+fn removed_bytes_member_hint(name: String) -> String {
+    if eq(clone(name), "bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
+    if eq(clone(name), "bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
+    if eq(clone(name), "bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
+    if eq(clone(name), "bytes_push") { return String_from("use `b.push_byte(x)` instead") }
+    if eq(clone(name), "bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
+    if eq(clone(name), "bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
+    if eq(clone(name), "string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
+    if eq(clone(name), "bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
+    if eq(clone(name), "bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
+    if eq(clone(name), "byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
+    if eq(clone(name), "hex_encode") { return String_from("use `b.to_hex()` instead") }
+    if eq(clone(name), "hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
+    if eq(clone(name), "u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
+    if eq(clone(name), "u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
+    if eq(clone(name), "bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "buf_new") { return String_from("use `Vec::new<i32>()` instead") }
+    if eq(clone(name), "buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
+    if eq(clone(name), "buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
+    if eq(clone(name), "buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
+    if eq(clone(name), "buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
+    if eq(clone(name), "buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
+    if eq(clone(name), "buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
+    if eq(clone(name), "buf_freeze") { return String_from("use `b.freeze()` (identity; both layouts are `Vec<i32>`)") }
+    if eq(clone(name), "buf_len") { return String_from("use `b.len()` on the byte vector instead") }
+    if eq(clone(name), "cursor_new") { return String_from("use `data.byte_cursor()` instead") }
+    if eq(clone(name), "cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
+    if eq(clone(name), "cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
+    if eq(clone(name), "read_u8") { return String_from("use `c.read_u8()` instead") }
+    if eq(clone(name), "read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
+    if eq(clone(name), "read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
+    if eq(clone(name), "read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
+    if eq(clone(name), "read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
+    if eq(clone(name), "read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
+    if eq(clone(name), "base64_encode") { return String_from("use `b.to_base64()` instead") }
+    if eq(clone(name), "base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
+    if eq(clone(name), "leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
+    if eq(clone(name), "leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
+    if eq(clone(name), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
+    if eq(clone(name), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
+    if eq(clone(name), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
+    if eq(clone(name), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
+    if eq(clone(name), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
+    if eq(clone(name), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
+    String_new()
+}
+
+fn removed_canonical_member_hint(name: String) -> String {
+    if eq(clone(name), "canonical_scratch_new") {
+        return String_from("use `Component::scratch_new()` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lower_string") {
+        return String_from("use `Component::lower_string(scratch, s)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_string") {
+        return String_from("use `Component::lift_string(scratch, slice)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_string_at") {
+        return String_from("use `Component::lift_string_at(scratch, ptr, len)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lower_list_i32") {
+        return String_from("use `Component::lower_list_i32(scratch, items)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_list_i32") {
+        return String_from("use `Component::lift_list_i32(scratch, slice)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_list_i32_at") {
+        return String_from("use `Component::lift_list_i32_at(scratch, ptr, count)` from `use std::component::Component` instead")
+    }
+    String_new()
+}
+
+fn removed_json_member_hint(name: String) -> String {
+    if eq(clone(name), "json_get") { return "use `v.get_field(key)` on `JsonValue` instead" }
+    if eq(clone(name), "json_get_index") { return "use `v.get_index(index)` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_string") { return "use `v.as_string()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_i32") { return "use `v.as_i32()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_bool") { return "use `v.as_bool()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_f64") { return "use `v.as_f64()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_array") { return "use `v.as_array()` on `JsonValue` instead" }
+    if eq(clone(name), "is_null") { return "use `v.is_null()` on `JsonValue` instead" }
+    if eq(clone(name), "is_bool") { return "use `v.is_bool()` on `JsonValue` instead" }
+    if eq(clone(name), "is_number") { return "use `v.is_number()` on `JsonValue` instead" }
+    if eq(clone(name), "is_string") { return "use `v.is_string()` on `JsonValue` instead" }
+    if eq(clone(name), "is_array") { return "use `v.is_array()` on `JsonValue` instead" }
+    if eq(clone(name), "is_object") { return "use `v.is_object()` on `JsonValue` instead" }
+    if eq(clone(name), "stringify") { return "use `v.to_text()` on `JsonValue` instead" }
+    if eq(clone(name), "parse_error_message") { return "use `e.message()` on `JsonParseError` instead" }
+    String_new()
+}
+
+fn removed_toml_member_hint(name: String) -> String {
+    if eq(clone(name), "toml_get") { return "use `v.get_field(key)` on `TomlValue` instead" }
+    if eq(clone(name), "toml_table_keys") { return "use `v.table_keys()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_string") { return "use `v.as_string()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_int") { return "use `v.as_int()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_bool") { return "use `v.as_bool()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_float") { return "use `v.as_float()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_array") { return "use `v.as_array()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_table") { return "use `v.as_table()` on `TomlValue` instead" }
     String_new()
 }
 
@@ -315,67 +432,6 @@ fn removed_text_member_hint(name: String) -> String {
     if eq(clone(name), "builder_append_line") { return String_from("use `s.concat(text).concat(newline)` instead") }
     if eq(clone(name), "builder_build") { return String_from("use the builder string directly instead") }
     if eq(clone(name), "builder_len") { return String_from("use `s.len()` on `String` instead") }
-    String_new()
-}
-
-// The std::bytes free surface was retired in the ADR-087 Wave 2 deletion
-// (#917). Every qualified old call now fails resolution with an E0100 hint
-// naming the `Vec<i32>` / `Bytes` replacement; the eight unregistered helpers
-// that were retired with the method surface carry hints here too.
-fn removed_bytes_member_hint(name: String) -> String {
-    if eq(clone(name), "bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(name), "bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(name), "bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
-    if eq(clone(name), "bytes_push") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(name), "bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
-    if eq(clone(name), "bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
-    if eq(clone(name), "string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
-    if eq(clone(name), "bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
-    if eq(clone(name), "bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
-    if eq(clone(name), "byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
-    if eq(clone(name), "hex_encode") { return String_from("use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
-    if eq(clone(name), "u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
-    if eq(clone(name), "u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
-    if eq(clone(name), "bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "buf_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(name), "buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
-    if eq(clone(name), "buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(name), "buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
-    if eq(clone(name), "buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
-    if eq(clone(name), "buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
-    if eq(clone(name), "buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
-    if eq(clone(name), "buf_freeze") { return String_from("use `b.freeze()` (identity; both layouts are `Vec<i32>`)") }
-    if eq(clone(name), "buf_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(name), "cursor_new") { return String_from("use `data.byte_cursor()` instead") }
-    if eq(clone(name), "cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
-    if eq(clone(name), "cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
-    if eq(clone(name), "read_u8") { return String_from("use `c.read_u8()` instead") }
-    if eq(clone(name), "read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
-    if eq(clone(name), "read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
-    if eq(clone(name), "read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
-    if eq(clone(name), "read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
-    if eq(clone(name), "read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
-    if eq(clone(name), "base64_encode") { return String_from("use `b.to_base64()` instead") }
-    if eq(clone(name), "base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
-    if eq(clone(name), "leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
-    if eq(clone(name), "leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
-    if eq(clone(name), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
-    if eq(clone(name), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
-    if eq(clone(name), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
-    if eq(clone(name), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
-    if eq(clone(name), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
     String_new()
 }
 
@@ -511,31 +567,6 @@ fn removed_wit_parser_member_hint(name: String) -> String {
 fn removed_component_member_hint(name: String) -> String {
     if eq(clone(name), "canonical_abi_version") { return String_from("use `Component::canonical_abi_version()` instead") }
     if eq(clone(name), "component_model_version") { return String_from("use `Component::model_version()` instead") }
-    String_new()
-}
-
-fn removed_canonical_member_hint(name: String) -> String {
-    if eq(clone(name), "canonical_scratch_new") {
-        return String_from("use `Component::scratch_new()` from `use std::component::Component` instead")
-    }
-    if eq(clone(name), "canonical_lower_string") {
-        return String_from("use `Component::lower_string(scratch, s)` from `use std::component::Component` instead")
-    }
-    if eq(clone(name), "canonical_lift_string") {
-        return String_from("use `Component::lift_string(scratch, slice)` from `use std::component::Component` instead")
-    }
-    if eq(clone(name), "canonical_lift_string_at") {
-        return String_from("use `Component::lift_string_at(scratch, ptr, len)` from `use std::component::Component` instead")
-    }
-    if eq(clone(name), "canonical_lower_list_i32") {
-        return String_from("use `Component::lower_list_i32(scratch, items)` from `use std::component::Component` instead")
-    }
-    if eq(clone(name), "canonical_lift_list_i32") {
-        return String_from("use `Component::lift_list_i32(scratch, slice)` from `use std::component::Component` instead")
-    }
-    if eq(clone(name), "canonical_lift_list_i32_at") {
-        return String_from("use `Component::lift_list_i32_at(scratch, ptr, count)` from `use std::component::Component` instead")
-    }
     String_new()
 }
 
@@ -805,19 +836,6 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("component"), String_from("canonical_abi_version"))) > 0)
         assert(len(removed_module_member_hint(String_from("component"), String_from("component_model_version"))) > 0)
     }
-    test "removed canonical frees have associated-function hints" {
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_scratch_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lower_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_string_at"))) > 0)
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lower_list_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_list_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_list_i32_at"))) > 0)
-        assert(len(removed_name_hint(String_from("canonical_lift_string"))) > 0)
-    }
-    test "live canonical members keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("canonical"), String_from("CanonicalSlice"))) == 0)
-    }
     test "removed component handle frees have method hints" {
         assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_table_new"))) > 0)
         assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_new"))) > 0)
@@ -856,71 +874,13 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("f32x4x"), String_from("splat"))) == 0)
         assert(len(removed_module_member_hint(String_from("text"), String_from("splat"))) == 0)
     }
-    test "removed bytes frees have method hints" {
-        let names = Vec::new<String>()
-        push(names, "bytes_new")
-        push(names, "bytes_len")
-        push(names, "bytes_get")
-        push(names, "bytes_push")
-        push(names, "bytes_eq")
-        push(names, "bytes_from_string")
-        push(names, "string_from_bytes")
-        push(names, "bytes_concat")
-        push(names, "bytes_slice")
-        push(names, "byte_length")
-        push(names, "hex_encode")
-        push(names, "hex_decode")
-        push(names, "leb128_encode_u32")
-        push(names, "leb128_encode_i32")
-        push(names, "u16_to_le_bytes")
-        push(names, "u16_from_le_bytes")
-        push(names, "u32_to_le_bytes")
-        push(names, "u32_from_le_bytes")
-        push(names, "u32_to_be_bytes")
-        push(names, "u32_from_be_bytes")
-        push(names, "bytes_from_array")
-        push(names, "buf_new")
-        push(names, "buf_with_capacity")
-        push(names, "buf_push_u8")
-        push(names, "buf_push_u16_le")
-        push(names, "buf_push_u32_le")
-        push(names, "buf_push_u64_le")
-        push(names, "buf_extend")
-        push(names, "buf_freeze")
-        push(names, "buf_len")
-        push(names, "cursor_new")
-        push(names, "cursor_pos")
-        push(names, "cursor_remaining")
-        push(names, "read_u8")
-        push(names, "read_u16_le")
-        push(names, "read_u32_le")
-        push(names, "read_u64_le")
-        push(names, "read_u32_be")
-        push(names, "read_bytes")
-        push(names, "base64_encode")
-        push(names, "base64_decode")
-        push(names, "leb128_decode_u32")
-        push(names, "leb128_decode_i32")
-        push(names, "leb128_encode_u64")
-        push(names, "leb128_decode_u64")
-        let mut i = 0
-        while i < len(names) {
-            assert(len(removed_module_member_hint(String_from("bytes"), get_unchecked(names, i))) > 0)
-            i = i + 1
-        }
+    test "removed json/toml value frees have method hints" {
+        assert(len(removed_module_member_hint(String_from("json"), String_from("json_get"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("json_as_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("stringify"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("parse_error_message"))) > 0)
+        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_get"))) > 0)
+        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_as_string"))) > 0)
     }
-    test "retired bytes helpers have hints" {
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("hex_char"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("hex_val_char"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_hex_val_char"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u8"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u16_le"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u32_le"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u32_be"))) > 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_bytes"))) > 0)
-    }
-    test "live bytes members keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("Bytes"))) == 0)
-        assert(len(removed_module_member_hint(String_from("bytes"), String_from("push_byte"))) == 0)
-    }
+
 }

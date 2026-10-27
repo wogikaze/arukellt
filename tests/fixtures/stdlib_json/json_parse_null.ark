@@ -4,10 +4,10 @@ use std::text
 fn main() {
     match json::parse("null") {
         Result::Ok(v) => {
-            test::assert_true(json::is_null(v))
-            test::assert_false(json::is_bool(v))
-            test::assert_false(json::is_string(v))
+            test::assert_true(v.is_null())
+            test::assert_false(v.is_bool())
+            test::assert_false(v.is_string())
         },
-        Result::Err(e) => panic("parse null failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse null failed: ".concat(e.message())),
     }
 }

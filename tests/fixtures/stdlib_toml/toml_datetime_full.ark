@@ -5,8 +5,8 @@ use std::test
 fn main() {
     let t = toml::toml_parse("dt = 1979-05-27T07:32:00Z")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "dt") {
-            Option::Some(v) => match toml::toml_as_string(v) {
+        Result::Ok(table) => match table.get_field("dt") {
+            Option::Some(v) => match v.as_string() {
                 Option::Some(s) => test::assert_eq_string(s, "1979-05-27T07:32:00Z"),
                 None => assert(false),
             },

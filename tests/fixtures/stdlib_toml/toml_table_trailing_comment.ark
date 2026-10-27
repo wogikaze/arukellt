@@ -5,9 +5,9 @@ use std::test
 fn main() {
     let t = toml::toml_parse("[server] # comment\nhost = \"x\"")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "server") {
-            Option::Some(s) => match toml::toml_get(s, "host") {
-                Option::Some(v) => match toml::toml_as_string(v) {
+        Result::Ok(table) => match table.get_field("server") {
+            Option::Some(s) => match s.get_field("host") {
+                Option::Some(v) => match v.as_string() {
                     Option::Some(str) => test::assert_eq_string(str, "x"),
                     None => assert(false),
                 },

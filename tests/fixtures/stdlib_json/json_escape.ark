@@ -12,12 +12,12 @@ fn main() {
     stdio::println(backslash_str)
     match json::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
-            match json::json_as_string(v) {
+            match v.as_string() {
                 Option::Some(s) => stdio::println((len(s)).to_string()),
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
 }
 // json_encode_string handles special characters

@@ -4,10 +4,10 @@ use std::text
 fn main() {
     let raw = "\"abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\""
     match json::parse(raw) {
-        Result::Ok(v) => match json::json_as_string(v) {
+        Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_i32(len(s), 62),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic("parse long string failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse long string failed: ".concat(e.message())),
     }
 }

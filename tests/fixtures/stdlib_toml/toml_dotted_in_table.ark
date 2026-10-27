@@ -5,10 +5,10 @@ use std::test
 fn main() {
     let t = toml::toml_parse("[section]\na.b = 5")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "section") {
-            Option::Some(s) => match toml::toml_get(s, "a") {
-                Option::Some(a) => match toml::toml_get(a, "b") {
-                    Option::Some(v) => match toml::toml_as_int(v) {
+        Result::Ok(table) => match table.get_field("section") {
+            Option::Some(s) => match s.get_field("a") {
+                Option::Some(a) => match a.get_field("b") {
+                    Option::Some(v) => match v.as_int() {
                         Option::Some(n) => test::assert_eq_i32(n, 5),
                         None => assert(false),
                     },

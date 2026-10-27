@@ -4,26 +4,26 @@ use std::text
 fn main() {
     match json::parse("0") {
         Result::Ok(v) => {
-            test::assert_true(json::is_number(v))
-            match json::json_as_i32(v) {
+            test::assert_true(v.is_number())
+            match v.as_i32() {
                 Option::Some(n) => test::assert_eq_i32(n, 0),
                 None => panic("expected Some(0)"),
             }
         },
-        Result::Err(e) => panic("parse 0 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 0 failed: ".concat(e.message())),
     }
     match json::parse("42") {
-        Result::Ok(v) => match json::json_as_i32(v) {
+        Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 42),
             None => panic("expected Some(42)"),
         },
-        Result::Err(e) => panic("parse 42 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 42 failed: ".concat(e.message())),
     }
     match json::parse("999999") {
-        Result::Ok(v) => match json::json_as_i32(v) {
+        Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 999999),
             None => panic("expected Some(999999)"),
         },
-        Result::Err(e) => panic("parse 999999 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 999999 failed: ".concat(e.message())),
     }
 }

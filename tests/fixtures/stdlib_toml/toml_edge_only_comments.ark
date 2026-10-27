@@ -6,7 +6,7 @@ fn main() {
     let t = toml::toml_parse("# first\n# second\n# third")
     match t {
         Result::Ok(table) => {
-            let keys = toml::toml_table_keys(table)
+            let keys = table.table_keys()
             test::assert_eq_i32(len(keys), 0)
         },
         Result::Err(_) => assert(false),

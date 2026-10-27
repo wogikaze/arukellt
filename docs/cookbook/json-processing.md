@@ -52,6 +52,23 @@ let b2 = json::json_parse_bool("false")
 assert(b2 == false)
 ```
 
+## Inspect a Parsed Value
+
+```ark
+use std::json
+
+match json::parse("{\"port\":8080}") {
+    Result::Ok(root) => match root.get_field("port") {
+        Option::Some(port) => match port.as_i32() {
+            Option::Some(n) => println(n.to_string()),
+            Option::None => println("port is not an integer"),
+        },
+        Option::None => println("port missing"),
+    },
+    Result::Err(e) => println(e.message()),
+}
+```
+
 ## Build a Simple JSON-like Output
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->

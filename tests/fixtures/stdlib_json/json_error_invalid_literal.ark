@@ -4,14 +4,14 @@ use std::test
 fn main() {
     match json::parse("tru") {
         Result::Ok(_) => panic("expected error for tru"),
-        Result::Err(e) => test::assert_eq_string(json::parse_error_message(e), "invalid true"),
+        Result::Err(e) => test::assert_eq_string(e.message(), "invalid true"),
     }
     match json::parse("fals") {
         Result::Ok(_) => panic("expected error for fals"),
-        Result::Err(e) => test::assert_eq_string(json::parse_error_message(e), "invalid false"),
+        Result::Err(e) => test::assert_eq_string(e.message(), "invalid false"),
     }
     match json::parse("nul") {
         Result::Ok(_) => panic("expected error for nul"),
-        Result::Err(e) => test::assert_eq_string(json::parse_error_message(e), "invalid null"),
+        Result::Err(e) => test::assert_eq_string(e.message(), "invalid null"),
     }
 }

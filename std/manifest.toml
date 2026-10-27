@@ -3743,15 +3743,6 @@ returns = "Result<JsonValue, JsonParseError>"
 doc = "Parse a full JSON document and reject trailing non-whitespace after the first top-level value."
 
 [[functions]]
-name = "stringify"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "String"
-doc = "Serialize a JsonValue back to its JSON text."
-
-[[functions]]
 name = "stringify_pretty"
 module = "std::json"
 doc_category = "json"
@@ -3759,104 +3750,6 @@ stability = "experimental"
 params = ["JsonValue", "i32"]
 returns = "String"
 doc = "Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged."
-
-[[functions]]
-name = "is_null"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "bool"
-
-[[functions]]
-name = "is_bool"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "bool"
-
-[[functions]]
-name = "is_number"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "bool"
-
-[[functions]]
-name = "is_string"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "bool"
-
-[[functions]]
-name = "is_array"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "bool"
-
-[[functions]]
-name = "is_object"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "bool"
-
-[[functions]]
-name = "json_as_bool"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "Option<bool>"
-
-[[functions]]
-name = "json_as_string"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "Option<String>"
-
-[[functions]]
-name = "json_as_i32"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "Option<i32>"
-
-[[functions]]
-name = "json_as_f64"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue"]
-returns = "Option<f64>"
-
-[[functions]]
-name = "json_get"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue", "String"]
-returns = "Option<JsonValue>"
-doc = "Look up a named field in a JSON object value."
-
-[[functions]]
-name = "json_get_index"
-module = "std::json"
-doc_category = "json"
-stability = "experimental"
-params = ["JsonValue", "i32"]
-returns = "Option<JsonValue>"
-doc = "Return the element at index in a JSON array value."
 
 [[functions]]
 name = "json_encode_string"
@@ -3976,48 +3869,6 @@ stability = "experimental"
 params = ["TomlValue"]
 returns = "String"
 doc = "Serialize a TomlValue back to text."
-
-[[functions]]
-name = "toml_get"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["TomlValue", "String"]
-returns = "Option<TomlValue>"
-doc = "Look up a key in a TOML table value (nested tables via successive calls)."
-
-[[functions]]
-name = "toml_table_keys"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["TomlValue"]
-returns = "Vec<String>"
-doc = "Return all keys of a TOML table as a string vector."
-
-[[functions]]
-name = "toml_as_string"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["TomlValue"]
-returns = "Option<String>"
-
-[[functions]]
-name = "toml_as_int"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["TomlValue"]
-returns = "Option<i32>"
-
-[[functions]]
-name = "toml_as_bool"
-module = "std::toml"
-doc_category = "toml"
-stability = "experimental"
-params = ["TomlValue"]
-returns = "Option<bool>"
 
 [[functions]]
 name = "toml_find_section"

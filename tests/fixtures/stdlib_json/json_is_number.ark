@@ -4,17 +4,17 @@ use std::text
 fn main() {
     match json::parse("42") {
         Result::Ok(v) => {
-            test::assert_true(json::is_number(v))
-            test::assert_false(json::is_null(v))
-            test::assert_false(json::is_bool(v))
-            test::assert_false(json::is_string(v))
-            test::assert_false(json::is_array(v))
-            test::assert_false(json::is_object(v))
+            test::assert_true(v.is_number())
+            test::assert_false(v.is_null())
+            test::assert_false(v.is_bool())
+            test::assert_false(v.is_string())
+            test::assert_false(v.is_array())
+            test::assert_false(v.is_object())
         },
-        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
     match json::parse("3.14") {
-        Result::Ok(v) => test::assert_true(json::is_number(v)),
-        Result::Err(e) => panic("parse float failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_true(v.is_number()),
+        Result::Err(e) => panic("parse float failed: ".concat(e.message())),
     }
 }

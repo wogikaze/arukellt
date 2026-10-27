@@ -25,7 +25,7 @@
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::io` | 7 | 5 | 0 | 0 | 2 | 4/5 (80%) | no |
-| `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
+| `std::json` | 19 | 0 | 0 | 19 | 0 | 14/19 (74%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
@@ -42,10 +42,10 @@
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
-| `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
+| `std::toml` | 9 | 0 | 0 | 9 | 0 | 7/9 (78%) | no |
 | `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 434 APIs, 206 stable, 19 provisional, 141 experimental, 68 deprecated, 340/366 (93%) fixture coverage
+**Total**: 416 APIs, 206 stable, 19 provisional, 123 experimental, 68 deprecated, 322/348 (93%) fixture coverage
 
 ## Legend
 

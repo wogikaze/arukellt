@@ -3,7 +3,7 @@ use std::test
 use std::text
 fn main() {
     match json::parse("{}") {
-        Result::Ok(v) => test::assert_eq_bool(json::is_object(v), true),
-        Result::Err(e) => panic("parse empty object failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_eq_bool(v.is_object(), true),
+        Result::Err(e) => panic("parse empty object failed: ".concat(e.message())),
     }
 }

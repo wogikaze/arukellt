@@ -3,44 +3,44 @@ use std::json
 use std::text
 fn main() {
     match json::parse("null") {
-        Result::Ok(v) => stdio::println((json::is_null(v)).to_string()),
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Ok(v) => stdio::println((v.is_null()).to_string()),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     match json::parse("true") {
         Result::Ok(v) => {
-            match json::json_as_bool(v) {
+            match v.as_bool() {
                 Option::Some(b) => stdio::println((b).to_string()),
                 None => stdio::println("not bool"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     match json::parse("false") {
         Result::Ok(v) => {
-            match json::json_as_bool(v) {
+            match v.as_bool() {
                 Option::Some(b) => stdio::println((b).to_string()),
                 None => stdio::println("not bool"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     match json::parse("\"hello\"") {
         Result::Ok(v) => {
-            match json::json_as_string(v) {
+            match v.as_string() {
                 Option::Some(s) => stdio::println(s),
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     match json::parse("42") {
         Result::Ok(v) => {
-            match json::json_as_i32(v) {
+            match v.as_i32() {
                 Option::Some(n) => stdio::println((n).to_string()),
                 None => stdio::println("not number"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
 }
 // Parse null

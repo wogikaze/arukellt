@@ -6,18 +6,18 @@ fn main() {
     let raw = "[1,2,3,99]"
     match json::parse(raw) {
         Result::Ok(arr) => {
-            match json::json_get_index(arr, 0) {
+            match arr.get_index(0) {
                 Option::Some(v) => {
-                    match json::json_as_i32(v) {
+                    match v.as_i32() {
                         Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
                 },
                 None => stdio::println("index not found"),
             }
-            match json::json_get_index(arr, 3) {
+            match arr.get_index(3) {
                 Option::Some(v) => {
-                    match json::json_as_i32(v) {
+                    match v.as_i32() {
                         Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
@@ -25,12 +25,12 @@ fn main() {
                 None => stdio::println("index not found"),
             }
             // Stringify and re-parse
-            let s = json::stringify(arr)
+            let s = arr.to_text()
             match json::parse(s) {
                 Result::Ok(arr2) => {
-                    match json::json_get_index(arr2, 2) {
+                    match arr2.get_index(2) {
                         Option::Some(v2) => {
-                            match json::json_as_i32(v2) {
+                            match v2.as_i32() {
                                 Option::Some(n2) => stdio::println((n2).to_string()),
                                 None => stdio::println("not number"),
                             }
@@ -38,10 +38,10 @@ fn main() {
                         None => stdio::println("index not found"),
                     }
                 },
-                Result::Err(e) => stdio::println("re-parse error:".concat(json::parse_error_message(e))),
+                Result::Err(e) => stdio::println("re-parse error:".concat(e.message())),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
 }
 // array round-trip: parse → index → stringify → re-parse → index

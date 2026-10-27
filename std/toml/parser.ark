@@ -46,6 +46,116 @@ pub struct TomlField {
     value: TomlValue,
 }
 
+impl TomlValue {
+    fn as_string(self: TomlValue) -> Option<String> {
+        match self {
+            TomlValue::String(s) => Some(s),
+            TomlValue::Integer(_) => None,
+            TomlValue::Float(_) => None,
+            TomlValue::Boolean(_) => None,
+            TomlValue::Array(_) => None,
+            TomlValue::Table(_) => None,
+        }
+    }
+
+    fn as_int(self: TomlValue) -> Option<i32> {
+        match self {
+            TomlValue::Integer(i) => Some(i64_to_i32(i)),
+            TomlValue::String(_) => None,
+            TomlValue::Float(_) => None,
+            TomlValue::Boolean(_) => None,
+            TomlValue::Array(_) => None,
+            TomlValue::Table(_) => None,
+        }
+    }
+
+    fn as_bool(self: TomlValue) -> Option<bool> {
+        match self {
+            TomlValue::Boolean(b) => Some(b),
+            TomlValue::String(_) => None,
+            TomlValue::Integer(_) => None,
+            TomlValue::Float(_) => None,
+            TomlValue::Array(_) => None,
+            TomlValue::Table(_) => None,
+        }
+    }
+
+    fn as_float(self: TomlValue) -> Option<f64> {
+        match self {
+            TomlValue::Float(f) => Some(f),
+            TomlValue::String(_) => None,
+            TomlValue::Integer(_) => None,
+            TomlValue::Boolean(_) => None,
+            TomlValue::Array(_) => None,
+            TomlValue::Table(_) => None,
+        }
+    }
+
+    fn as_array(self: TomlValue) -> Option<Vec<TomlValue>> {
+        match self {
+            TomlValue::Array(items) => Some(items),
+            TomlValue::String(_) => None,
+            TomlValue::Integer(_) => None,
+            TomlValue::Float(_) => None,
+            TomlValue::Boolean(_) => None,
+            TomlValue::Table(_) => None,
+        }
+    }
+
+    fn as_table(self: TomlValue) -> Option<Vec<TomlField>> {
+        match self {
+            TomlValue::Table(fields) => Some(fields),
+            TomlValue::String(_) => None,
+            TomlValue::Integer(_) => None,
+            TomlValue::Float(_) => None,
+            TomlValue::Boolean(_) => None,
+            TomlValue::Array(_) => None,
+        }
+    }
+
+    fn get_field(self: TomlValue, key: String) -> Option<TomlValue> {
+        match self {
+            TomlValue::Table(fields) => {
+                let n = len(fields)
+                let mut i = 0
+                while i < n {
+                    let f = get_unchecked(fields, i)
+                    if eq(f.key, key) {
+                        return Some(f.value)
+                    }
+                    i = i + 1
+                }
+                None
+            },
+            TomlValue::String(_) => None,
+            TomlValue::Integer(_) => None,
+            TomlValue::Float(_) => None,
+            TomlValue::Boolean(_) => None,
+            TomlValue::Array(_) => None,
+        }
+    }
+
+    fn table_keys(self: TomlValue) -> Vec<String> {
+        let result = Vec::new<String>()
+        match self {
+            TomlValue::Table(fields) => {
+                let n = len(fields)
+                let mut i = 0
+                while i < n {
+                    push(result, get_unchecked(fields, i).key)
+                    i = i + 1
+                }
+            },
+            TomlValue::String(_) => {},
+            TomlValue::Integer(_) => {},
+            TomlValue::Float(_) => {},
+            TomlValue::Boolean(_) => {},
+            TomlValue::Array(_) => {},
+        }
+        result
+    }
+}
+
 /// Legacy tagged struct accessors — prefer `TomlValue` enum variants.
 pub struct TomlValueRaw {
     tag: i32,
@@ -975,83 +1085,4 @@ fn toml_stringify_array(items: Vec<TomlValue>) -> String {
         i = i + 1
     }
     out.concat("]")
-}
-
-// ─── Value extractors ────────────────────────────────────────────────────────
-pub fn toml_as_string(v: TomlValue) -> Option<String> {
-    match v {
-        TomlValue::String(s) => Some(s),
-        _ => None,
-    }
-}
-
-pub fn toml_as_int(v: TomlValue) -> Option<i32> {
-    match v {
-        TomlValue::Integer(i) => Some(i64_to_i32(i)),
-        _ => None,
-    }
-}
-
-pub fn toml_as_bool(v: TomlValue) -> Option<bool> {
-    match v {
-        TomlValue::Boolean(b) => Some(b),
-        _ => None,
-    }
-}
-
-pub fn toml_as_float(v: TomlValue) -> Option<f64> {
-    match v {
-        TomlValue::Float(f) => Some(f),
-        _ => None,
-    }
-}
-
-pub fn toml_as_array(v: TomlValue) -> Option<Vec<TomlValue>> {
-    match v {
-        TomlValue::Array(items) => Some(items),
-        _ => None,
-    }
-}
-
-pub fn toml_as_table(v: TomlValue) -> Option<Vec<TomlField>> {
-    match v {
-        TomlValue::Table(fields) => Some(fields),
-        _ => None,
-    }
-}
-
-// ─── Table accessor ──────────────────────────────────────────────────────────
-/// Look up a key in a TOML table value.
-pub fn toml_get(v: TomlValue, key: String) -> Option<TomlValue> {
-    match v {
-        TomlValue::Table(fields) => {
-            let n = len(fields)
-            let mut i = 0
-            while i < n {
-                let f = get_unchecked(fields, i)
-                if eq(f.key, key) {
-                    return Some(f.value)
-                }
-                i = i + 1
-            }
-            None
-        },
-        _ => None,
-    }
-}
-
-pub fn toml_table_keys(v: TomlValue) -> Vec<String> {
-    let result = Vec::new<String>()
-    match v {
-        TomlValue::Table(fields) => {
-            let n = len(fields)
-            let mut i = 0
-            while i < n {
-                push(result, get_unchecked(fields, i).key)
-                i = i + 1
-            }
-        },
-        _ => {},
-    }
-    result
 }
