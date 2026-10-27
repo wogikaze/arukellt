@@ -23,13 +23,13 @@ This issue owns the **execution**: actually deleting, deprecating, or
 replacing every public free / `prelude_wrapper` / monomorphic helper
 classified there, in dependency-safe waves.
 
-## Current state (2026-10-26)
+## Current state (2026-10-27)
 
 - `docs/data/stdlib-api-eradication.toml` now classifies both
   `std/manifest.toml` `[[functions]]` entries and top-level `pub fn`
-  declarations under `std/**/*.ark`: 816 manifest functions (815 public) +
-  413 unregistered declarations = **1228** public symbols
-  (`must delete` 122, `associated-or-method` 1106, `intrinsic-only` 1).
+  declarations under `std/**/*.ark`: 626 manifest functions (625 public) +
+  255 unregistered declarations = **880** public symbols
+  (`must delete` 115, `associated-or-method` 765, `intrinsic-only` 1).
 - `scripts/check/check-stdlib-eradication.py` enforces the dual surface:
   no unclassified manifest entry or std declaration, no manifest entry
   without a source declaration, no dead rule, every public class has an owner.
@@ -341,6 +341,58 @@ classified there, in dependency-safe waves.
   `wasm32` (the eager implementation traps the same way, so it is a separate
   pre-existing linear lowering bug), and the generic-`for` site pinning
   remains for adapter bodies other than the two collect hooks fixed here.
+
+### Landed slice (wave/next-bytes, 2026-10-27)
+
+- Landed the `std::bytes` replacement surface over the shared `Vec<i32>`
+  layout: `Bytes` namespace associated constructors/decoders
+  (`from_array`, `from_hex`, `from_base64`, `from_u16_le`, `from_u32_le`,
+  `from_u32_be`, `from_leb128_u32`, `from_leb128_i32`, `from_leb128_u64`);
+  `Vec<i32>` methods `push_byte`, `equals_bytes`, `concat_bytes`,
+  `slice_bytes`, `to_hex`, `to_base64`, `to_u16_le`, `to_u32_le`,
+  `to_u32_be`, `push_u16_le`, `push_u32_le`, `push_u64_le`,
+  `extend_bytes`, `freeze`, `byte_cursor`, `cursor_pos`,
+  `cursor_remaining`, `read_u8` / `read_u16_le` / `read_u32_le` /
+  `read_u64_le` / `read_u32_be` / `read_bytes`, the five `try_read_*`
+  `Option` readers, and `read_leb128_u32` / `read_leb128_i32` /
+  `read_leb128_u64`. `bytes_from_string` / `string_from_bytes` /
+  `byte_length` route to the existing `String::to_utf8_bytes` /
+  `String::from_utf8_lossy` / `String::len_bytes` methods.
+- Deprecated the 45 registered `stable` free functions under ADR-087 with
+  `deprecated_by`, `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`;
+  qualified calls emit W0009 from
+  `lint::deprecated_table::deprecated_bytes_qualified_message`. The 45 move
+  from `associated-or-method` to `must delete` because the replacement is
+  live; deletion is the remaining ADR-087 wave.
+- Retired the 8 unregistered helpers (`hex_char`, `hex_val_char`,
+  `try_hex_val_char`, `try_read_u8`, `try_read_u16_le`, `try_read_u32_le`,
+  `try_read_u32_be`, `try_read_bytes`). Qualified calls fail with E0100
+  hints from `resolver::removed_names::removed_bytes_member_hint`; the compat
+  checker now maps the `bytes` alias to `std::bytes`.
+- Fixtures: migrated the six cursor `try_read_*` fixtures and the five hex
+  helper fixtures (renamed to `hex_encode_nibbles`, `hex_decode_digit_values`,
+  `hex_decode_invalid_pairs`, `hex_decode_single_digit`,
+  `hex_decode_partial_invalid`); added the dual-target
+  `stdlib_bytes/bytes_method_surface.ark` / `_wasm32.ark` run pair and the
+  `diagnostics/deprecated_bytes_free.ark` / `_wasm32.ark` W0009 pair.
+- Scorecard: 888 → **880** eradication-scope symbols; `associated-or-method`
+  818 → **765**; `must delete` 70 → **115**; unregistered 263 → **255**;
+  `pub fn` declarations 1012 → **1004**; manifest public entries stay 625.
+- Evidence: s2 rebuilt once; WAT probe confirmed the `Bytes::*` associated
+  calls and `impl Vec<i32>` receivers lower as `$Bytes::from_hex` /
+  `$Vec::byte_cursor` etc. and validate on both targets; the new and migrated
+  fixtures compile, validate, and run on `wasm32-gc` and `--target wasm32`;
+  `selfhost diag-parity` 122 PASS / 2 pre-existing `hash_map` failures (same at b57df8a48); `verify fixtures` 1845/1845 PASS;
+  `docs check` 6/6; `check-stdlib-eradication` and `check-compat-orphans`
+  clean; `verify lane` PASS; cross-backend parity 3/3 for the new run fixture,
+  `cursor_try_read`, and `hex_decode_partial_invalid`.
+- Residuals: the 45 deprecated frees await the ADR-087 deletion wave;
+  `try_read_u64_le` stays deferred (`Some(i64)` construction emits invalid
+  Wasm); call sites outside the migrated families keep the deprecated
+  spellings and emit W0009 during the window; the two
+  `removed_hashmap_adapter*` diag fixtures fail against their goldens because
+  the `hash_map` module-member hint was never added (pre-existing at
+  b57df8a48, hash-family lane).
 
 ## Required work
 

@@ -586,6 +586,79 @@ retired; their `string::*` spellings also carry E0100 hints.
 | `text::builder_len` | `s.len()` |
 
 
+## std::bytes method wave (ADR-087, 2026-10-27)
+
+The [#917](https://github.com/wogikaze/arukellt/issues/917) bytes wave landed
+the receiver / associated surface for the shared `Vec<i32>` byte layout and
+made the 45 registered `stable` free functions `deprecated` with W0009,
+`deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. They stay callable
+through the 0.x window; the method surface is the replacement. The eight
+unregistered helpers (`hex_char`, `hex_val_char`, `try_hex_val_char`, and the
+five `try_read_*` readers) were retired immediately with E0100 hints because
+they had no manifest lifecycle entry.
+
+`Bytes`, `ByteBuf`, and `ByteCursor` are still `Vec<i32>` at runtime. Import
+`use std::bytes` for the methods and `use std::bytes::Bytes` for the
+receiver-less constructors/decoders.
+
+| Deprecated free | Replacement |
+|-----------------|-------------|
+| `bytes::bytes_new` | `Vec::new<i32>()` |
+| `bytes::bytes_from_string` | `s.to_utf8_bytes()` |
+| `bytes::string_from_bytes` | `String::from_utf8_lossy(b)` |
+| `bytes::bytes_len` / `bytes::buf_len` | `b.len()` |
+| `bytes::bytes_get` | `b.get_unchecked(i)` |
+| `bytes::bytes_push` / `bytes::buf_push_u8` | `b.push_byte(x)` |
+| `bytes::bytes_eq` | `a.equals_bytes(b)` |
+| `bytes::bytes_concat` | `a.concat_bytes(b)` |
+| `bytes::bytes_slice` | `b.slice_bytes(start, end)` |
+| `bytes::byte_length` | `s.len_bytes()` |
+| `bytes::hex_encode` | `b.to_hex()` |
+| `bytes::hex_decode` | `Bytes::from_hex(s)` |
+| `bytes::leb128_encode_u32` | `Bytes::from_leb128_u32(x)` |
+| `bytes::leb128_encode_i32` | `Bytes::from_leb128_i32(x)` |
+| `bytes::leb128_encode_u64` | `Bytes::from_leb128_u64(x)` |
+| `bytes::u16_to_le_bytes` | `Bytes::from_u16_le(x)` |
+| `bytes::u16_from_le_bytes` | `b.to_u16_le()` |
+| `bytes::u32_to_le_bytes` | `Bytes::from_u32_le(x)` |
+| `bytes::u32_from_le_bytes` | `b.to_u32_le()` |
+| `bytes::u32_to_be_bytes` | `Bytes::from_u32_be(x)` |
+| `bytes::u32_from_be_bytes` | `b.to_u32_be()` |
+| `bytes::bytes_from_array` | `Bytes::from_array(xs)` |
+| `bytes::buf_new` | `Vec::new<i32>()` |
+| `bytes::buf_with_capacity` | `Vec::with_capacity<i32>(cap)` |
+| `bytes::buf_push_u16_le` | `b.push_u16_le(x)` |
+| `bytes::buf_push_u32_le` | `b.push_u32_le(x)` |
+| `bytes::buf_push_u64_le` | `b.push_u64_le(x)` |
+| `bytes::buf_extend` | `b.extend_bytes(other)` |
+| `bytes::buf_freeze` | `b.freeze()` (identity; both layouts are `Vec<i32>`) |
+| `bytes::cursor_new` | `data.byte_cursor()` |
+| `bytes::cursor_pos` | `c.cursor_pos()` |
+| `bytes::cursor_remaining` | `c.cursor_remaining()` |
+| `bytes::read_u8` | `c.read_u8()` |
+| `bytes::read_u16_le` | `c.read_u16_le()` |
+| `bytes::read_u32_le` | `c.read_u32_le()` |
+| `bytes::read_u64_le` | `c.read_u64_le()` |
+| `bytes::read_u32_be` | `c.read_u32_be()` |
+| `bytes::read_bytes` | `c.read_bytes(n)` |
+| `bytes::base64_encode` | `b.to_base64()` |
+| `bytes::base64_decode` | `Bytes::from_base64(s)` |
+| `bytes::leb128_decode_u32` | `c.read_leb128_u32()` |
+| `bytes::leb128_decode_i32` | `c.read_leb128_i32()` |
+| `bytes::leb128_decode_u64` | `c.read_leb128_u64()` |
+| `bytes::hex_char` (removed) | `b.to_hex()` |
+| `bytes::hex_val_char` (removed) | `Bytes::from_hex(s)` |
+| `bytes::try_hex_val_char` (removed) | `Bytes::from_hex(s)` |
+| `bytes::try_read_u8` (removed) | `c.try_read_u8()` |
+| `bytes::try_read_u16_le` (removed) | `c.try_read_u16_le()` |
+| `bytes::try_read_u32_le` (removed) | `c.try_read_u32_le()` |
+| `bytes::try_read_u32_be` (removed) | `c.try_read_u32_be()` |
+| `bytes::try_read_bytes` (removed) | `c.try_read_bytes(n)` |
+
+The dual-target fixtures are `stdlib_bytes/bytes_method_surface*.ark`; the
+W0009 goldens are `diagnostics/deprecated_bytes_free*.ark`. The 45 deprecated
+manifest entries remain until the ADR-087 deletion wave.
+
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 
 The [ADR-085](../adr/ADR-085-io-trait-unification.md) migration replaced the

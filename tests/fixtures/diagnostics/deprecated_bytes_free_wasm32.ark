@@ -1,0 +1,9 @@
+// W0009 on the linear wasm32 target for the std::bytes deprecation wave.
+use std::bytes
+use std::test
+
+fn main() {
+    let b: Vec<i32> = bytes::buf_new()
+    bytes::buf_push_u16_le(b, 258)
+    test::assert_eq_i32(bytes::buf_len(b), 2)
+}

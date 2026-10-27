@@ -1,0 +1,16 @@
+use std::bytes
+use std::bytes::Bytes
+use std::test
+
+fn main() {
+    let b: Vec<i32> = Bytes::from_hex("0123456789abcdef")
+    test::assert_eq_i32(b.len(), 8)
+    test::assert_eq_i32(b.get_unchecked(0), 1)
+    test::assert_eq_i32(b.get_unchecked(1), 35)
+    test::assert_eq_i32(b.get_unchecked(2), 69)
+    test::assert_eq_i32(b.get_unchecked(3), 103)
+    test::assert_eq_i32(b.get_unchecked(4), 137)
+    test::assert_eq_i32(b.get_unchecked(5), 171)
+    test::assert_eq_i32(b.get_unchecked(6), 205)
+    test::assert_eq_i32(b.get_unchecked(7), 239)
+}

@@ -1868,29 +1868,33 @@ trait method `value.hash()`
 `format_f64(f: f64) -> String`,
 `format_bool(b: bool) -> String`
 
-**Bytes**:
-`bytes_new() -> Vec<i32>`,
-`bytes_push(v: Vec<i32>, b: i32)`,
-`bytes_get(v: Vec<i32>, i: i32) -> i32`,
-`bytes_len(v: Vec<i32>) -> i32`,
-`bytes_eq(a: Vec<i32>, b: Vec<i32>) -> bool`,
-`hex_encode(v: Vec<i32>) -> String`,
-`hex_decode(s: String) -> Vec<i32>`
+**Bytes** (`std::bytes`; `Bytes` = `Vec<i32>`):
+methods `b.push_byte(x)`, `b.len()`, `b.get_unchecked(i)`,
+`b.equals_bytes(other)`, `b.concat_bytes(other)`, `b.slice_bytes(start, end)`,
+`b.to_hex()`, `b.to_base64()`, `b.push_u16_le(x)`, `b.push_u32_le(x)`,
+`b.push_u64_le(x)`, `b.extend_bytes(other)`, `b.freeze()`,
+`data.byte_cursor()`, `c.cursor_pos()`, `c.cursor_remaining()`,
+`c.read_u8()` / `read_u16_le` / `read_u32_le` / `read_u64_le` /
+`read_u32_be` / `read_bytes(n)`, the `c.try_read_*` `Option` readers, and
+`c.read_leb128_u32` / `read_leb128_i32` / `read_leb128_u64`;
+associated `Bytes::from_array(xs)`, `Bytes::from_hex(s)`,
+`Bytes::from_base64(s)`, `Bytes::from_u16_le(x)`, `Bytes::from_u32_le(x)`,
+`Bytes::from_u32_be(x)`, `Bytes::from_leb128_u32(x)`,
+`Bytes::from_leb128_i32(x)`, `Bytes::from_leb128_u64(x)`.
+Import `use std::bytes` for the methods and `use std::bytes::Bytes` for the
+associated functions. The 45 registered free functions (`bytes_new`,
+`bytes_push`, `hex_encode`, `cursor_new`, …) are deprecated under ADR-087 and
+emit W0009 while they remain callable.
 
 **Endian Conversion**:
-`u16_to_le_bytes(n: i32) -> Vec<i32>`,
-`u16_from_le_bytes(v: Vec<i32>) -> i32`,
-`u32_to_le_bytes(n: i32) -> Vec<i32>`,
-`u32_from_le_bytes(v: Vec<i32>) -> i32`,
-`u32_to_be_bytes(n: i32) -> Vec<i32>`,
-`u32_from_be_bytes(v: Vec<i32>) -> i32`
+`Bytes::from_u16_le(x)` / `b.to_u16_le()`,
+`Bytes::from_u32_le(x)` / `b.to_u32_le()`,
+`Bytes::from_u32_be(x)` / `b.to_u32_be()`
 
 **Linear Memory** (`wasm32` target / linear lowering helpers):
 bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 (`__intrinsic_memory_copy`, `__intrinsic_memory_fill`); the experimental
-`std::wasm` free wrappers were removed under ADR-046,
-`leb128_encode_i32(n: i32) -> Vec<i32>`,
-`leb128_encode_u32(n: i32) -> Vec<i32>`
+`std::wasm` free wrappers were removed under ADR-046.
 
 **Collections — Search & Sort**:
 `binary_search(v: Vec<i32>, x: i32) -> i32`,

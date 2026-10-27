@@ -1,120 +1,692 @@
-//! Binary data helpers built on `Vec<i32>`.
+//! Binary data helpers over the shared `Vec<i32>` byte layout.
 //!
-//! Each element is treated as a byte in the `0..=255` range.
+//! Each element is treated as a byte in the `0..=255` range. `Bytes`,
+//! `ByteBuf`, and `ByteCursor` are all `Vec<i32>` at runtime; the canonical
+//! API is the method / associated surface on this module:
 //!
-//! # Type aliases (runtime representation)
+//! - `b.push_byte(x)`, `b.len()`, `b.get_unchecked(i)` for byte buffers;
+//!   `String::to_utf8_bytes` / `String::from_utf8_lossy` for text conversion.
+//! - `Bytes::from_hex(s)` / `b.to_hex()`, `Bytes::from_base64(s)` /
+//!   `b.to_base64()`.
+//! - `Bytes::from_u16_le(x)` / `b.to_u16_le()` and the u32 LE/BE pairs.
+//! - `Bytes::from_leb128_*` / `c.read_leb128_*`.
+//! - `data.byte_cursor()` plus `c.cursor_pos()`, `c.cursor_remaining()`,
+//!   `c.read_u8()`, `c.try_read_u8()`, and the wider readers.
 //!
-//! - `Bytes`      = `Vec<i32>` (treated as immutable)
-//! - `ByteBuf`    = `Vec<i32>` (mutable buffer)
-//! - `ByteCursor` = `Vec<i32>` where index 0 is the cursor position and
-//! indices 1..n hold the data bytes
+//! The public free functions below are deprecated under ADR-087 and remain
+//! callable only through the 0.x deprecation window; W0009 names the
+//! replacement and `remove_in` is the upper bound.
 //!
-//! # Limitations
+//! `try_read_u64_le` stays deferred: constructing `Some(i64)` still emits
+//! invalid Wasm, so use `c.read_u64_le()` and its `-1` sentinel.
 //!
-//! u8/u16/u32/u64 are not first-class types in the current runtime.
-//! All byte values are represented as i32 (masked to 0-255 on write).
-//! 64-bit values use i64.
-//! Vec<u8> is unavailable; Vec<i32> is used throughout.
+//! u8/u16/u32/u64 are not first-class types in the current runtime. All byte
+//! values are represented as i32 (masked to 0-255 on write); 64-bit values
+//! use i64. Vec<u8> is unavailable; Vec<i32> is used throughout.
 
 use std::collections::string
 use std::text
-// --- Byte buffer creation ---
 use std::prelude::{eq, i32_to_i64, i64_to_i32, slice}
-pub fn bytes_new() -> Vec<i32> {
-    let b: Vec<i32> = Vec::new<i32>()
-    b
-}
 
-/// Create a byte buffer from the raw bytes of a UTF-8 string.
-pub fn bytes_from_string(s: String) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let n = len(s)
-    let mut i = 0
-    while i < n {
-        push(result, string::byte_at(s, i))
-        i = i + 1
+/// Namespace for byte-vector constructors and decoders.
+///
+/// Ark has no module-level associated functions, so the receiver-less
+/// encoders live on an empty type (ADR-046). Every function returns the
+/// shared `Vec<i32>` byte layout.
+pub struct Bytes {}
+
+impl Bytes {
+    /// Copies `xs` into a new byte buffer, masking each element to 8 bits.
+    fn from_array(xs: Vec<i32>) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let n = len(xs)
+        let mut i = 0
+        while i < n {
+            push(result, get_unchecked(xs, i) & 255)
+            i = i + 1
+        }
+        result
     }
-    result
-}
 
-/// Decode the buffer as UTF-8, replacing each invalid sequence with U+FFFD.
-pub fn string_from_bytes(b: Vec<i32>) -> String {
-    let result = Vec::new<i32>()
-    let n = len(b)
-    let mut i = 0
-    while i < n {
-        let byte_val = get_unchecked(b, i) & 255
-        push(result, byte_val)
-        i = i + 1
-    }
-    String::from_utf8_lossy(result)
-}
-
-pub fn bytes_len(b: Vec<i32>) -> i32 {
-    len(b)
-}
-
-pub fn bytes_get(b: Vec<i32>, index: i32) -> i32 {
-    get_unchecked(b, index)
-}
-
-pub fn bytes_push(b: Vec<i32>, byte: i32) {
-    push(b, byte & 255)
-}
-
-pub fn bytes_eq(a: Vec<i32>, b: Vec<i32>) -> bool {
-    let al: i32 = len(a)
-    let bl: i32 = len(b)
-    if al != bl {
-        false
-    } else {
+    /// Decodes a hex string. Invalid pairs are skipped, matching `hex_decode`.
+    fn from_hex(s: String) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let n: i32 = len(s)
         let mut i: i32 = 0
-        let mut same: bool = true
+        while i + 1 < n {
+            let hi_ch: String = slice(s, i, i + 1)
+            let lo_ch: String = slice(s, i + 1, i + 2)
+            let hi: i32 = hex_val_char(hi_ch)
+            let lo: i32 = hex_val_char(lo_ch)
+            if hi >= 0 {
+                if lo >= 0 {
+                    push(result, hi * 16 + lo)
+                }
+            }
+            i = i + 2
+        }
+        result
+    }
+
+    /// Decodes a base64 string. Invalid quartets are skipped.
+    fn from_base64(s: String) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let n = len(s)
+        let mut i = 0
+        while i + 3 < n {
+            let c0 = base64_val(slice(s, i, i + 1))
+            let c1 = base64_val(slice(s, i + 1, i + 2))
+            let c2 = base64_val(slice(s, i + 2, i + 3))
+            let c3 = base64_val(slice(s, i + 3, i + 4))
+            if c0 >= 0 {
+                if c1 >= 0 {
+                    push(result, (c0 << 2) | (c1 >> 4))
+                    if c2 >= 0 {
+                        push(result, ((c1 & 15) << 4) | (c2 >> 2))
+                        if c3 >= 0 {
+                            push(result, ((c2 & 3) << 6) | c3)
+                        }
+                    }
+                }
+            }
+            i = i + 4
+        }
+        result
+    }
+
+    /// Encodes the low 16 bits of `x` as two little-endian bytes.
+    fn from_u16_le(x: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        push(result, x & 255)
+        push(result, x >> 8 & 255)
+        result
+    }
+
+    /// Encodes `x` as four little-endian bytes.
+    fn from_u32_le(x: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        push(result, x & 255)
+        push(result, x >> 8 & 255)
+        push(result, x >> 16 & 255)
+        push(result, x >> 24 & 255)
+        result
+    }
+
+    /// Encodes `x` as four big-endian bytes.
+    fn from_u32_be(x: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        push(result, x >> 24 & 255)
+        push(result, x >> 16 & 255)
+        push(result, x >> 8 & 255)
+        push(result, x & 255)
+        result
+    }
+
+    /// Encodes an unsigned LEB128 u32 value.
+    fn from_leb128_u32(x: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let mut val: i32 = x
+        let mut done: bool = false
+        while done == false {
+            let byte: i32 = val & 127
+            val = val >> 7
+            if val != 0 {
+                push(result, byte | 128)
+            } else {
+                push(result, byte)
+                done = true
+            }
+        }
+        result
+    }
+
+    /// Encodes a signed LEB128 i32 value.
+    fn from_leb128_i32(x: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let mut val: i32 = x
+        let mut done: bool = false
+        while done == false {
+            let byte: i32 = val & 127
+            val = val >> 7
+            if val == 0 {
+                if (byte & 64) == 0 {
+                    push(result, byte)
+                    done = true
+                } else {
+                    push(result, byte | 128)
+                    push(result, 0)
+                    done = true
+                }
+            } else {
+                if val == 0 - 1 {
+                    if (byte & 64) != 0 {
+                        push(result, byte)
+                        done = true
+                    } else {
+                        push(result, byte | 128)
+                        push(result, 127)
+                        done = true
+                    }
+                } else {
+                    push(result, byte | 128)
+                }
+            }
+        }
+        result
+    }
+
+    /// Encodes an unsigned LEB128 u64 value (represented as i64).
+    fn from_leb128_u64(x: i64) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let mut val: i64 = x
+        let mut done: bool = false
+        while done == false {
+            let byte: i32 = i64_to_i32(val & i32_to_i64(127))
+            val = val >> i32_to_i64(7)
+            if val != i32_to_i64(0) {
+                push(result, byte | 128)
+            } else {
+                push(result, byte)
+                done = true
+            }
+        }
+        result
+    }
+}
+
+/// Byte-buffer, encoder, and cursor methods over `Vec<i32>`.
+///
+/// The cursor layout is `c[0] = position`, `c[1..] = data bytes`; the methods
+/// below advance that position in place. `try_*` readers are the preferred
+/// spelling and return `Option` instead of the legacy `-1` sentinel.
+impl Vec<i32> {
+    /// Appends one byte, masking the value to 0-255.
+    fn push_byte(self: Vec<i32>, byte: i32) {
+        push(self, byte & 255)
+    }
+
+    /// Compares length and byte content.
+    fn equals_bytes(self: Vec<i32>, other: Vec<i32>) -> bool {
+        let al: i32 = len(self)
+        let bl: i32 = len(other)
+        if al != bl {
+            return false
+        }
+        let mut i: i32 = 0
         while i < al {
-            if get_unchecked(a, i) != get_unchecked(b, i) {
-                same = false
+            if get_unchecked(self, i) != get_unchecked(other, i) {
+                return false
             }
             i = i + 1
         }
-        same
+        true
     }
+
+    /// Returns a new buffer containing `self` followed by `other`.
+    fn concat_bytes(self: Vec<i32>, other: Vec<i32>) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let an = len(self)
+        let bn = len(other)
+        let mut i = 0
+        while i < an {
+            push(result, get_unchecked(self, i))
+            i = i + 1
+        }
+        i = 0
+        while i < bn {
+            push(result, get_unchecked(other, i))
+            i = i + 1
+        }
+        result
+    }
+
+    /// Extracts `[start, end)` as a new buffer.
+    fn slice_bytes(self: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        let mut i = start
+        while i < end {
+            push(result, get_unchecked(self, i))
+            i = i + 1
+        }
+        result
+    }
+
+    /// Encodes every byte as two lowercase hex digits.
+    fn to_hex(self: Vec<i32>) -> String {
+        let mut result: String = ""
+        let mut i: i32 = 0
+        let n: i32 = len(self)
+        while i < n {
+            let byte: i32 = get_unchecked(self, i) & 255
+            let hi: i32 = byte >> 4
+            let lo: i32 = byte & 15
+            result = result.concat(hex_char(hi).concat(hex_char(lo)))
+            i = i + 1
+        }
+        result
+    }
+
+    /// Encodes the bytes as standard base64 with `=` padding.
+    fn to_base64(self: Vec<i32>) -> String {
+        let mut result = ""
+        let n = len(self)
+        let mut i = 0
+        while i < n {
+            let b0 = get_unchecked(self, i) & 255
+            let b1 = if i + 1 < n {
+                get_unchecked(self, i + 1) & 255
+            } else {
+                0
+            }
+            let b2 = if i + 2 < n {
+                get_unchecked(self, i + 2) & 255
+            } else {
+                0
+            }
+            // Parenthesize: `==`/`<<` bind tighter than `&` in Ark.
+            let idx0 = b0 >> 2
+            let idx1 = ((b0 & 3) << 4) | (b1 >> 4)
+            let idx2 = ((b1 & 15) << 2) | (b2 >> 6)
+            let idx3 = b2 & 63
+            result = result.concat(base64_char(idx0))
+            result = result.concat(base64_char(idx1))
+            if i + 1 < n {
+                result = result.concat(base64_char(idx2))
+            } else {
+                result = result.concat("=")
+            }
+            if i + 2 < n {
+                result = result.concat(base64_char(idx3))
+            } else {
+                result = result.concat("=")
+            }
+            i = i + 3
+        }
+        result
+    }
+
+    /// Reads two little-endian bytes as i32.
+    fn to_u16_le(self: Vec<i32>) -> i32 {
+        let lo: i32 = get_unchecked(self, 0) & 255
+        let hi: i32 = get_unchecked(self, 1) & 255
+        lo + hi * 256
+    }
+
+    /// Reads four little-endian bytes as i32.
+    fn to_u32_le(self: Vec<i32>) -> i32 {
+        let b0: i32 = get_unchecked(self, 0) & 255
+        let b1: i32 = get_unchecked(self, 1) & 255
+        let b2: i32 = get_unchecked(self, 2) & 255
+        let b3: i32 = get_unchecked(self, 3) & 255
+        b0 + b1 * 256 + b2 * 65536 + b3 * 16777216
+    }
+
+    /// Reads four big-endian bytes as i32.
+    fn to_u32_be(self: Vec<i32>) -> i32 {
+        let b0: i32 = get_unchecked(self, 0) & 255
+        let b1: i32 = get_unchecked(self, 1) & 255
+        let b2: i32 = get_unchecked(self, 2) & 255
+        let b3: i32 = get_unchecked(self, 3) & 255
+        b0 * 16777216 + b1 * 65536 + b2 * 256 + b3
+    }
+
+    /// Appends the low 16 bits of `x` as little-endian bytes.
+    fn push_u16_le(self: Vec<i32>, x: i32) {
+        push(self, x & 255)
+        push(self, x >> 8 & 255)
+    }
+
+    /// Appends `x` as four little-endian bytes.
+    fn push_u32_le(self: Vec<i32>, x: i32) {
+        push(self, x & 255)
+        push(self, x >> 8 & 255)
+        push(self, x >> 16 & 255)
+        push(self, x >> 24 & 255)
+    }
+
+    /// Appends `x` as eight little-endian bytes.
+    fn push_u64_le(self: Vec<i32>, x: i64) {
+        let mask: i64 = i32_to_i64(255)
+        push(self, i64_to_i32(x & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(8) & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(16) & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(24) & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(32) & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(40) & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(48) & mask))
+        push(self, i64_to_i32(x >> i32_to_i64(56) & mask))
+    }
+
+    /// Appends every byte of `other`.
+    fn extend_bytes(self: Vec<i32>, other: Vec<i32>) {
+        let n = len(other)
+        let mut i = 0
+        while i < n {
+            push(self, get_unchecked(other, i))
+            i = i + 1
+        }
+    }
+
+    /// Marks a buffer as finished. `Bytes` and `ByteBuf` share the same
+    /// `Vec<i32>` layout, so this returns the buffer unchanged.
+    fn freeze(self: Vec<i32>) -> Vec<i32> {
+        self
+    }
+
+    /// Wraps `self` as a cursor (`c[0] = 0`, then the data bytes).
+    fn byte_cursor(self: Vec<i32>) -> Vec<i32> {
+        let c: Vec<i32> = Vec::new<i32>()
+        push(c, 0)
+        let n = len(self)
+        let mut i = 0
+        while i < n {
+            push(c, get_unchecked(self, i))
+            i = i + 1
+        }
+        c
+    }
+
+    /// Returns the current cursor position.
+    fn cursor_pos(self: Vec<i32>) -> i32 {
+        get_unchecked(self, 0)
+    }
+
+    /// Returns the number of unread bytes.
+    fn cursor_remaining(self: Vec<i32>) -> i32 {
+        len(self) - 1 - get_unchecked(self, 0)
+    }
+
+    /// Reads one byte and advances the cursor; returns -1 at EOF.
+    fn read_u8(self: Vec<i32>) -> i32 {
+        let pos = get_unchecked(self, 0)
+        if self.cursor_remaining() < 1 {
+            0 - 1
+        } else {
+            let byte = get_unchecked(self, pos + 1)
+            set(self, 0, pos + 1)
+            byte
+        }
+    }
+
+    /// Reads two little-endian bytes; returns -1 when fewer than 2 remain.
+    fn read_u16_le(self: Vec<i32>) -> i32 {
+        if self.cursor_remaining() < 2 {
+            0 - 1
+        } else {
+            let b0 = self.read_u8() & 255
+            let b1 = self.read_u8() & 255
+            b0 + b1 * 256
+        }
+    }
+
+    /// Reads four little-endian bytes; returns -1 when fewer than 4 remain.
+    fn read_u32_le(self: Vec<i32>) -> i32 {
+        if self.cursor_remaining() < 4 {
+            0 - 1
+        } else {
+            let b0 = self.read_u8() & 255
+            let b1 = self.read_u8() & 255
+            let b2 = self.read_u8() & 255
+            let b3 = self.read_u8() & 255
+            b0 + b1 * 256 + b2 * 65536 + b3 * 16777216
+        }
+    }
+
+    /// Reads eight little-endian bytes as i64; returns -1 at EOF.
+    fn read_u64_le(self: Vec<i32>) -> i64 {
+        if self.cursor_remaining() < 8 {
+            i32_to_i64(0) - i32_to_i64(1)
+        } else {
+            let b0 = i32_to_i64(self.read_u8() & 255)
+            let b1 = i32_to_i64(self.read_u8() & 255)
+            let b2 = i32_to_i64(self.read_u8() & 255)
+            let b3 = i32_to_i64(self.read_u8() & 255)
+            let b4 = i32_to_i64(self.read_u8() & 255)
+            let b5 = i32_to_i64(self.read_u8() & 255)
+            let b6 = i32_to_i64(self.read_u8() & 255)
+            let b7 = i32_to_i64(self.read_u8() & 255)
+            let k256: i64 = i32_to_i64(256)
+            let k65536: i64 = i32_to_i64(65536)
+            let k16m: i64 = i32_to_i64(16777216)
+            let k32: i64 = k65536 * k65536
+            let k40: i64 = k32 * k256
+            let k48: i64 = k32 * k65536
+            let k56: i64 = k48 * k256
+            b0 + b1 * k256 + b2 * k65536 + b3 * k16m + b4 * k32 + b5 * k40 + b6 * k48 + b7 * k56
+        }
+    }
+
+    /// Reads four big-endian bytes; returns -1 when fewer than 4 remain.
+    fn read_u32_be(self: Vec<i32>) -> i32 {
+        if self.cursor_remaining() < 4 {
+            0 - 1
+        } else {
+            let b0 = self.read_u8() & 255
+            let b1 = self.read_u8() & 255
+            let b2 = self.read_u8() & 255
+            let b3 = self.read_u8() & 255
+            b0 * 16777216 + b1 * 65536 + b2 * 256 + b3
+        }
+    }
+
+    /// Reads `n` bytes into a new buffer; returns an empty buffer at EOF.
+    fn read_bytes(self: Vec<i32>, n: i32) -> Vec<i32> {
+        let result: Vec<i32> = Vec::new<i32>()
+        if self.cursor_remaining() < n {
+            result
+        } else {
+            let mut i = 0
+            while i < n {
+                push(result, self.read_u8())
+                i = i + 1
+            }
+            result
+        }
+    }
+
+    /// Reads one byte as `Option`; `None` at EOF.
+    fn try_read_u8(self: Vec<i32>) -> Option<i32> {
+        if self.cursor_remaining() < 1 {
+            None
+        } else {
+            let pos = get_unchecked(self, 0)
+            let byte = get_unchecked(self, pos + 1)
+            set(self, 0, pos + 1)
+            Some(byte)
+        }
+    }
+
+    /// Reads two little-endian bytes as `Option`; `None` when short.
+    fn try_read_u16_le(self: Vec<i32>) -> Option<i32> {
+        if self.cursor_remaining() < 2 {
+            None
+        } else {
+            let b0 = self.read_u8() & 255
+            let b1 = self.read_u8() & 255
+            Some(b0 + b1 * 256)
+        }
+    }
+
+    /// Reads four little-endian bytes as `Option`; `None` when short.
+    fn try_read_u32_le(self: Vec<i32>) -> Option<i32> {
+        if self.cursor_remaining() < 4 {
+            None
+        } else {
+            let b0 = self.read_u8() & 255
+            let b1 = self.read_u8() & 255
+            let b2 = self.read_u8() & 255
+            let b3 = self.read_u8() & 255
+            Some(b0 + b1 * 256 + b2 * 65536 + b3 * 16777216)
+        }
+    }
+
+    /// Reads four big-endian bytes as `Option`; `None` when short.
+    fn try_read_u32_be(self: Vec<i32>) -> Option<i32> {
+        if self.cursor_remaining() < 4 {
+            None
+        } else {
+            let b0 = self.read_u8() & 255
+            let b1 = self.read_u8() & 255
+            let b2 = self.read_u8() & 255
+            let b3 = self.read_u8() & 255
+            Some(b0 * 16777216 + b1 * 65536 + b2 * 256 + b3)
+        }
+    }
+
+    /// Reads `n` bytes as `Option`; `None` when short.
+    fn try_read_bytes(self: Vec<i32>, n: i32) -> Option<Vec<i32>> {
+        if self.cursor_remaining() < n {
+            None
+        } else {
+            let result: Vec<i32> = Vec::new<i32>()
+            let mut i = 0
+            while i < n {
+                push(result, self.read_u8())
+                i = i + 1
+            }
+            Some(result)
+        }
+    }
+
+    /// Decodes an unsigned LEB128 u32 from the cursor.
+    fn read_leb128_u32(self: Vec<i32>) -> i32 {
+        let mut result = 0
+        let mut shift = 0
+        let mut done = false
+        while done == false {
+            if self.cursor_remaining() < 1 {
+                done = true
+            } else {
+                let byte = self.read_u8()
+                result = result | ((byte & 127) << shift)
+                shift = shift + 7
+                if (byte & 128) == 0 {
+                    done = true
+                }
+                if shift >= 35 {
+                    done = true
+                }
+            }
+        }
+        result
+    }
+
+    /// Decodes a signed LEB128 i32 from the cursor.
+    fn read_leb128_i32(self: Vec<i32>) -> i32 {
+        let mut result = 0
+        let mut shift = 0
+        let mut last_byte = 0
+        let mut done = false
+        while done == false {
+            if self.cursor_remaining() < 1 {
+                done = true
+            } else {
+                let byte = self.read_u8()
+                last_byte = byte
+                result = result | ((byte & 127) << shift)
+                shift = shift + 7
+                if (byte & 128) == 0 {
+                    done = true
+                }
+                if shift >= 35 {
+                    done = true
+                }
+            }
+        }
+        if shift < 32 {
+            if (last_byte & 64) != 0 {
+                result = result | ((0 - 1) << shift)
+            }
+        }
+        result
+    }
+
+    /// Decodes an unsigned LEB128 u64 from the cursor as i64.
+    fn read_leb128_u64(self: Vec<i32>) -> i64 {
+        let mut result: i64 = i32_to_i64(0)
+        let mut shift: i64 = i32_to_i64(0)
+        let mut done: bool = false
+        while done == false {
+            if self.cursor_remaining() < 1 {
+                done = true
+            } else {
+                let byte = self.read_u8()
+                let chunk = i32_to_i64(byte & 127) << shift
+                result = result | chunk
+                shift = shift + i32_to_i64(7)
+                if (byte & 128) == 0 {
+                    done = true
+                }
+                if shift >= i32_to_i64(70) {
+                    done = true
+                }
+            }
+        }
+        result
+    }
+}
+
+// ── Deprecated free-function surface (ADR-087 Wave 1) ───────────────────────
+// The method / associated surface above is canonical. These wrappers stay
+// resolvable through the 0.x deprecation window; the manifest carries the
+// W0009 replacement and remove_in metadata, and the changelog records the
+// wave. Remove them when the ADR-087 window closes.
+/// Deprecated: use `Vec::new` instead.
+pub fn bytes_new() -> Vec<i32> {
+    Vec::new<i32>()
+}
+
+/// Create a byte buffer from the raw bytes of a UTF-8 string.
+/// Deprecated: use `String::to_utf8_bytes` instead.
+pub fn bytes_from_string(s: String) -> Vec<i32> {
+    s.to_utf8_bytes()
+}
+
+/// Decode the buffer as UTF-8, replacing each invalid sequence with U+FFFD.
+/// Deprecated: use `String::from_utf8_lossy` instead.
+pub fn string_from_bytes(b: Vec<i32>) -> String {
+    String::from_utf8_lossy(b)
+}
+
+/// Deprecated: use `Vec::len` instead.
+pub fn bytes_len(b: Vec<i32>) -> i32 {
+    b.len()
+}
+
+/// Deprecated: use `Vec::get_unchecked` instead.
+pub fn bytes_get(b: Vec<i32>, index: i32) -> i32 {
+    b.get_unchecked(index)
+}
+
+/// Deprecated: use `Vec::push_byte` instead.
+pub fn bytes_push(b: Vec<i32>, byte: i32) {
+    b.push_byte(byte)
+}
+
+/// Deprecated: use `Vec::equals_bytes` instead.
+pub fn bytes_eq(a: Vec<i32>, b: Vec<i32>) -> bool {
+    a.equals_bytes(b)
 }
 
 /// Concatenate two byte buffers into a new one.
+/// Deprecated: use `Vec::concat_bytes` instead.
 pub fn bytes_concat(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let an = len(a)
-    let bn = len(b)
-    let mut i = 0
-    while i < an {
-        push(result, get_unchecked(a, i))
-        i = i + 1
-    }
-    i = 0
-    while i < bn {
-        push(result, get_unchecked(b, i))
-        i = i + 1
-    }
-    result
+    a.concat_bytes(b)
 }
 
 /// Extract a sub-range of bytes as a new buffer.
+/// Deprecated: use `Vec::slice_bytes` instead.
 pub fn bytes_slice(b: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let mut i = start
-    while i < end {
-        push(result, get_unchecked(b, i))
-        i = i + 1
-    }
-    result
+    b.slice_bytes(start, end)
 }
 
+/// Deprecated: use `String::len_bytes` instead.
 pub fn byte_length(s: String) -> i32 {
-    len(s)
+    s.len_bytes()
 }
 
 // --- Hex encoding ---
-pub fn hex_char(nibble: i32) -> String {
+fn hex_char(nibble: i32) -> String {
     if nibble < 10 {
         (nibble).to_string()
     } else {
@@ -142,21 +714,12 @@ pub fn hex_char(nibble: i32) -> String {
     }
 }
 
+/// Deprecated: use `Vec::to_hex` instead.
 pub fn hex_encode(b: Vec<i32>) -> String {
-    let mut result: String = ""
-    let mut i: i32 = 0
-    let n: i32 = len(b)
-    while i < n {
-        let byte: i32 = get_unchecked(b, i) & 255
-        let hi: i32 = byte >> 4
-        let lo: i32 = byte & 15
-        result = result.concat(hex_char(hi).concat(hex_char(lo)))
-        i = i + 1
-    }
-    result
+    b.to_hex()
 }
 
-pub fn hex_val_char(ch: String) -> i32 {
+fn hex_val_char(ch: String) -> i32 {
     if eq(ch, "0") {
         0
     } else {
@@ -248,413 +811,176 @@ pub fn hex_val_char(ch: String) -> i32 {
     }
 }
 
-/// Return the nibble value (0–15) of a single hex character, or None if the
-/// character is not a valid hex digit.
-///
-/// # Migration
-/// Prefer this over `hex_val_char` which returns the legacy -1 error sentinel.
-pub fn try_hex_val_char(ch: String) -> Option<i32> {
-    let v = hex_val_char(ch)
-    if v < 0 {
-        None
-    } else {
-        Some(v)
-    }
-}
-
+/// Deprecated: use `Bytes::from_hex` instead.
 pub fn hex_decode(s: String) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let n: i32 = len(s)
-    let mut i: i32 = 0
-    while i + 1 < n {
-        let hi_ch: String = slice(s, i, i + 1)
-        let lo_ch: String = slice(s, i + 1, i + 2)
-        let hi: i32 = hex_val_char(hi_ch)
-        let lo: i32 = hex_val_char(lo_ch)
-        if hi >= 0 {
-            if lo >= 0 {
-                push(result, hi * 16 + lo)
-            }
-        }
-        i = i + 2
-    }
-    result
+    Bytes::from_hex(s)
 }
 
 // --- LEB128 encoding ---
+/// Deprecated: use `Bytes::from_leb128_u32` instead.
 pub fn leb128_encode_u32(x: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let mut val: i32 = x
-    let mut done: bool = false
-    while done == false {
-        let byte: i32 = val & 127
-        val = val >> 7
-        if val != 0 {
-            push(result, byte | 128)
-        } else {
-            push(result, byte)
-            done = true
-        }
-    }
-    result
+    Bytes::from_leb128_u32(x)
 }
 
+/// Deprecated: use `Bytes::from_leb128_i32` instead.
 pub fn leb128_encode_i32(x: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let mut val: i32 = x
-    let mut done: bool = false
-    while done == false {
-        let byte: i32 = val & 127
-        val = val >> 7
-        if val == 0 {
-            if (byte & 64) == 0 {
-                push(result, byte)
-                done = true
-            } else {
-                push(result, byte | 128)
-                push(result, 0)
-                done = true
-            }
-        } else {
-            if val == 0 - 1 {
-                if (byte & 64) != 0 {
-                    push(result, byte)
-                    done = true
-                } else {
-                    push(result, byte | 128)
-                    push(result, 127)
-                    done = true
-                }
-            } else {
-                push(result, byte | 128)
-            }
-        }
-    }
-    result
+    Bytes::from_leb128_i32(x)
 }
 
 // --- Endian utilities ---
+/// Deprecated: use `Bytes::from_u16_le` instead.
 pub fn u16_to_le_bytes(x: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    push(result, x & 255)
-    push(result, x >> 8 & 255)
-    result
+    Bytes::from_u16_le(x)
 }
 
+/// Deprecated: use `Vec::to_u16_le` instead.
 pub fn u16_from_le_bytes(b: Vec<i32>) -> i32 {
-    let lo: i32 = get_unchecked(b, 0) & 255
-    let hi: i32 = get_unchecked(b, 1) & 255
-    lo + hi * 256
+    b.to_u16_le()
 }
 
+/// Deprecated: use `Bytes::from_u32_le` instead.
 pub fn u32_to_le_bytes(x: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    push(result, x & 255)
-    push(result, x >> 8 & 255)
-    push(result, x >> 16 & 255)
-    push(result, x >> 24 & 255)
-    result
+    Bytes::from_u32_le(x)
 }
 
+/// Deprecated: use `Vec::to_u32_le` instead.
 pub fn u32_from_le_bytes(b: Vec<i32>) -> i32 {
-    let b0: i32 = get_unchecked(b, 0) & 255
-    let b1: i32 = get_unchecked(b, 1) & 255
-    let b2: i32 = get_unchecked(b, 2) & 255
-    let b3: i32 = get_unchecked(b, 3) & 255
-    b0 + b1 * 256 + b2 * 65536 + b3 * 16777216
+    b.to_u32_le()
 }
 
+/// Deprecated: use `Bytes::from_u32_be` instead.
 pub fn u32_to_be_bytes(x: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    push(result, x >> 24 & 255)
-    push(result, x >> 16 & 255)
-    push(result, x >> 8 & 255)
-    push(result, x & 255)
-    result
+    Bytes::from_u32_be(x)
 }
 
+/// Deprecated: use `Vec::to_u32_be` instead.
 pub fn u32_from_be_bytes(b: Vec<i32>) -> i32 {
-    let b0: i32 = get_unchecked(b, 0) & 255
-    let b1: i32 = get_unchecked(b, 1) & 255
-    let b2: i32 = get_unchecked(b, 2) & 255
-    let b3: i32 = get_unchecked(b, 3) & 255
-    b0 * 16777216 + b1 * 65536 + b2 * 256 + b3
+    b.to_u32_be()
 }
 
 // ─── bytes_from_array ───────────────────────────────────────────────────────
 // NOTE: Vec<u8> is not a distinct type in the current runtime; xs is Vec<i32>
 // with byte values in 0..=255.
+/// Deprecated: use `Bytes::from_array` instead.
 pub fn bytes_from_array(xs: Vec<i32>) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let n = len(xs)
-    let mut i = 0
-    while i < n {
-        push(result, get_unchecked(xs, i) & 255)
-        i = i + 1
-    }
-    result
+    Bytes::from_array(xs)
 }
 
 // ─── ByteBuf ─────────────────────────────────────────────────────────────────
 // ByteBuf is represented as Vec<i32> (mutable accumulator for byte output).
+/// Deprecated: use `Vec::new` instead.
 pub fn buf_new() -> Vec<i32> {
     Vec::new<i32>()
 }
 
 /// Allocate a ByteBuf with a preallocated capacity hint.
-/// Capacity is advisory only; the current runtime does not expose
-/// Vec::with_capacity, so this behaves identically to buf_new().
+/// Deprecated: use `Vec::with_capacity` instead.
 pub fn buf_with_capacity(cap: i32) -> Vec<i32> {
-    Vec::new<i32>()
+    Vec::with_capacity<i32>(cap)
 }
 
+/// Deprecated: use `Vec::push_byte` instead.
 pub fn buf_push_u8(buf: Vec<i32>, x: i32) {
-    push(buf, x & 255)
+    buf.push_byte(x)
 }
 
+/// Deprecated: use `Vec::push_u16_le` instead.
 pub fn buf_push_u16_le(buf: Vec<i32>, x: i32) {
-    push(buf, x & 255)
-    push(buf, x >> 8 & 255)
+    buf.push_u16_le(x)
 }
 
+/// Deprecated: use `Vec::push_u32_le` instead.
 pub fn buf_push_u32_le(buf: Vec<i32>, x: i32) {
-    push(buf, x & 255)
-    push(buf, x >> 8 & 255)
-    push(buf, x >> 16 & 255)
-    push(buf, x >> 24 & 255)
+    buf.push_u32_le(x)
 }
 
 /// Push a 64-bit little-endian value.
 /// x is passed as i64; bytes are extracted with 8-bit masks.
+/// Deprecated: use `Vec::push_u64_le` instead.
 pub fn buf_push_u64_le(buf: Vec<i32>, x: i64) {
-    let mask: i64 = i32_to_i64(255)
-    push(buf, i64_to_i32(x & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(8) & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(16) & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(24) & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(32) & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(40) & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(48) & mask))
-    push(buf, i64_to_i32(x >> i32_to_i64(56) & mask))
+    buf.push_u64_le(x)
 }
 
+/// Deprecated: use `Vec::extend_bytes` instead.
 pub fn buf_extend(buf: Vec<i32>, bytes: Vec<i32>) {
-    let n = len(bytes)
-    let mut i = 0
-    while i < n {
-        push(buf, get_unchecked(bytes, i))
-        i = i + 1
-    }
+    buf.extend_bytes(bytes)
 }
 
 /// Freeze a ByteBuf into an immutable Bytes value.
 /// In the current runtime both types are Vec<i32>, so this is identity.
+/// Deprecated: use `Vec::freeze` instead.
 pub fn buf_freeze(buf: Vec<i32>) -> Vec<i32> {
-    buf
+    buf.freeze()
 }
 
+/// Deprecated: use `Vec::len` instead.
 pub fn buf_len(buf: Vec<i32>) -> i32 {
-    len(buf)
+    buf.len()
 }
 
 // ─── ByteCursor ──────────────────────────────────────────────────────────────
 // Layout: c[0] = current position (i32), c[1..] = data bytes (i32 each).
 // Cursor reads advance the position stored at index 0 via `set`.
+/// Deprecated: use `Vec::byte_cursor` instead.
 pub fn cursor_new(data: Vec<i32>) -> Vec<i32> {
-    let c: Vec<i32> = Vec::new<i32>()
-    push(c, 0)
-    let n = len(data)
-    let mut i = 0
-    while i < n {
-        push(c, get_unchecked(data, i))
-        i = i + 1
-    }
-    c
+    data.byte_cursor()
 }
 
+/// Deprecated: use `Vec::cursor_pos` instead.
 pub fn cursor_pos(c: Vec<i32>) -> i32 {
-    get_unchecked(c, 0)
+    c.cursor_pos()
 }
 
+/// Deprecated: use `Vec::cursor_remaining` instead.
 pub fn cursor_remaining(c: Vec<i32>) -> i32 {
-    len(c) - 1 - get_unchecked(c, 0)
+    c.cursor_remaining()
 }
 
 /// Read one byte from the cursor and advance its position.
 /// Returns -1 if no bytes remain (error sentinel).
+/// Deprecated: use `Vec::read_u8` instead.
 pub fn read_u8(c: Vec<i32>) -> i32 {
-    let pos = get_unchecked(c, 0)
-    if cursor_remaining(c) < 1 {
-        0 - 1
-    } else {
-        let byte = get_unchecked(c, pos + 1)
-        set(c, 0, pos + 1)
-        byte
-    }
+    c.read_u8()
 }
 
 /// Read two bytes little-endian from the cursor.
 /// Returns -1 if fewer than 2 bytes remain.
+/// Deprecated: use `Vec::read_u16_le` instead.
 pub fn read_u16_le(c: Vec<i32>) -> i32 {
-    if cursor_remaining(c) < 2 {
-        0 - 1
-    } else {
-        let b0 = read_u8(c) & 255
-        let b1 = read_u8(c) & 255
-        b0 + b1 * 256
-    }
+    c.read_u16_le()
 }
 
 /// Read four bytes little-endian from the cursor.
 /// Returns -1 if fewer than 4 bytes remain.
+/// Deprecated: use `Vec::read_u32_le` instead.
 pub fn read_u32_le(c: Vec<i32>) -> i32 {
-    if cursor_remaining(c) < 4 {
-        0 - 1
-    } else {
-        let b0 = read_u8(c) & 255
-        let b1 = read_u8(c) & 255
-        let b2 = read_u8(c) & 255
-        let b3 = read_u8(c) & 255
-        b0 + b1 * 256 + b2 * 65536 + b3 * 16777216
-    }
+    c.read_u32_le()
 }
 
 /// Read eight bytes little-endian from the cursor as i64.
 /// Returns -1 (as i64) if fewer than 8 bytes remain.
+/// Deprecated: use `Vec::read_u64_le` instead.
 pub fn read_u64_le(c: Vec<i32>) -> i64 {
-    if cursor_remaining(c) < 8 {
-        i32_to_i64(0) - i32_to_i64(1)
-    } else {
-        let b0 = i32_to_i64(read_u8(c) & 255)
-        let b1 = i32_to_i64(read_u8(c) & 255)
-        let b2 = i32_to_i64(read_u8(c) & 255)
-        let b3 = i32_to_i64(read_u8(c) & 255)
-        let b4 = i32_to_i64(read_u8(c) & 255)
-        let b5 = i32_to_i64(read_u8(c) & 255)
-        let b6 = i32_to_i64(read_u8(c) & 255)
-        let b7 = i32_to_i64(read_u8(c) & 255)
-        let k256: i64 = i32_to_i64(256)
-        let k65536: i64 = i32_to_i64(65536)
-        let k16m: i64 = i32_to_i64(16777216)
-        let k32: i64 = k65536 * k65536
-        let k40: i64 = k32 * k256
-        let k48: i64 = k32 * k65536
-        let k56: i64 = k48 * k256
-        b0 + b1 * k256 + b2 * k65536 + b3 * k16m + b4 * k32 + b5 * k40 + b6 * k48 + b7 * k56
-    }
+    c.read_u64_le()
 }
 
 /// Read four bytes big-endian from the cursor.
 /// Returns -1 if fewer than 4 bytes remain.
+/// Deprecated: use `Vec::read_u32_be` instead.
 pub fn read_u32_be(c: Vec<i32>) -> i32 {
-    if cursor_remaining(c) < 4 {
-        0 - 1
-    } else {
-        let b0 = read_u8(c) & 255
-        let b1 = read_u8(c) & 255
-        let b2 = read_u8(c) & 255
-        let b3 = read_u8(c) & 255
-        b0 * 16777216 + b1 * 65536 + b2 * 256 + b3
-    }
+    c.read_u32_be()
 }
 
 /// Read n bytes from the cursor into a new byte buffer.
 /// Returns an empty buffer if fewer than n bytes remain.
+/// Deprecated: use `Vec::read_bytes` instead.
 pub fn read_bytes(c: Vec<i32>, n: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    if cursor_remaining(c) < n {
-        result
-    } else {
-        let mut i = 0
-        while i < n {
-            push(result, read_u8(c))
-            i = i + 1
-        }
-        result
-    }
+    c.read_bytes(n)
 }
 
-// ─── ByteCursor Option-returning variants (preferred over sentinel returns) ───
-//
-// # no-sentinel-i32 rule
-// New public APIs in std::bytes must NOT return a raw i32 sentinel (-1) to
-// signal absence or failure.  Use the `try_*` variants below instead.
-// The legacy `read_u8` / `read_u16_le` / ... functions are kept only as
-// backward-compatible adapters for existing call sites.
-
-/// Read one byte from the cursor and advance its position.
-/// Returns None if no bytes remain.
-pub fn try_read_u8(c: Vec<i32>) -> Option<i32> {
-    if cursor_remaining(c) < 1 {
-        None
-    } else {
-        let pos = get_unchecked(c, 0)
-        let byte = get_unchecked(c, pos + 1)
-        set(c, 0, pos + 1)
-        Some(byte)
-    }
-}
-
-/// Read two bytes little-endian from the cursor.
-/// Returns None if fewer than 2 bytes remain.
-pub fn try_read_u16_le(c: Vec<i32>) -> Option<i32> {
-    if cursor_remaining(c) < 2 {
-        None
-    } else {
-        let b0 = read_u8(c) & 255
-        let b1 = read_u8(c) & 255
-        Some(b0 + b1 * 256)
-    }
-}
-
-/// Read four bytes little-endian from the cursor.
-/// Returns None if fewer than 4 bytes remain.
-pub fn try_read_u32_le(c: Vec<i32>) -> Option<i32> {
-    if cursor_remaining(c) < 4 {
-        None
-    } else {
-        let b0 = read_u8(c) & 255
-        let b1 = read_u8(c) & 255
-        let b2 = read_u8(c) & 255
-        let b3 = read_u8(c) & 255
-        Some(b0 + b1 * 256 + b2 * 65536 + b3 * 16777216)
-    }
-}
-
-// NOTE: try_read_u64_le (Option<i64>) is deferred: the current runtime has a
-// code-generation bug where user-constructed Some(i64_value) produces invalid
-// Wasm (type mismatch i32/i64).  Use read_u64_le (legacy -1 sentinel) until
-// the compiler issue is resolved.
-
-/// Read four bytes big-endian from the cursor.
-/// Returns None if fewer than 4 bytes remain.
-pub fn try_read_u32_be(c: Vec<i32>) -> Option<i32> {
-    if cursor_remaining(c) < 4 {
-        None
-    } else {
-        let b0 = read_u8(c) & 255
-        let b1 = read_u8(c) & 255
-        let b2 = read_u8(c) & 255
-        let b3 = read_u8(c) & 255
-        Some(b0 * 16777216 + b1 * 65536 + b2 * 256 + b3)
-    }
-}
-
-/// Read n bytes from the cursor into a new byte buffer.
-/// Returns None if fewer than n bytes remain.
-pub fn try_read_bytes(c: Vec<i32>, n: i32) -> Option<Vec<i32>> {
-    if cursor_remaining(c) < n {
-        None
-    } else {
-        let result: Vec<i32> = Vec::new<i32>()
-        let mut i = 0
-        while i < n {
-            push(result, read_u8(c))
-            i = i + 1
-        }
-        Some(result)
-    }
-}
+// The `try_*` readers on `Vec<i32>` are the no-sentinel surface: they return
+// `Option` instead of the legacy `-1` / empty-buffer failure convention. The
+// deprecated `read_*` frees above stay during the ADR-087 window.
 
 // ─── Base64 encoding ─────────────────────────────────────────────────────────
 fn base64_alphabet() -> String {
@@ -927,215 +1253,101 @@ fn base64_val(ch: String) -> i32 {
     }
 }
 
+/// Deprecated: use `Vec::to_base64` instead.
 pub fn base64_encode(b: Vec<i32>) -> String {
-    let mut result = ""
-    let n = len(b)
-    let mut i = 0
-    while i < n {
-        let b0 = get_unchecked(b, i) & 255
-        let b1 = if i + 1 < n {
-            get_unchecked(b, i + 1) & 255
-        } else {
-            0
-        }
-        let b2 = if i + 2 < n {
-            get_unchecked(b, i + 2) & 255
-        } else {
-            0
-        }
-        // Parenthesize: `==`/`<<` bind tighter than `&` in Ark (unlike the
-        // intended `(x & mask) << n` form).
-        let idx0 = b0 >> 2
-        let idx1 = ((b0 & 3) << 4) | (b1 >> 4)
-        let idx2 = ((b1 & 15) << 2) | (b2 >> 6)
-        let idx3 = b2 & 63
-        result = result.concat(base64_char(idx0))
-        result = result.concat(base64_char(idx1))
-        if i + 1 < n {
-            result = result.concat(base64_char(idx2))
-        } else {
-            result = result.concat("=")
-        }
-        if i + 2 < n {
-            result = result.concat(base64_char(idx3))
-        } else {
-            result = result.concat("=")
-        }
-        i = i + 3
-    }
-    result
+    b.to_base64()
 }
 
+/// Deprecated: use `Bytes::from_base64` instead.
 pub fn base64_decode(s: String) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let n = len(s)
-    let mut i = 0
-    while i + 3 < n {
-        let c0 = base64_val(slice(s, i, i + 1))
-        let c1 = base64_val(slice(s, i + 1, i + 2))
-        let c2 = base64_val(slice(s, i + 2, i + 3))
-        let c3 = base64_val(slice(s, i + 3, i + 4))
-        if c0 >= 0 {
-            if c1 >= 0 {
-                push(result, (c0 << 2) | (c1 >> 4))
-                if c2 >= 0 {
-                    push(result, ((c1 & 15) << 4) | (c2 >> 2))
-                    if c3 >= 0 {
-                        push(result, ((c2 & 3) << 6) | c3)
-                    }
-                }
-            }
-        }
-        i = i + 4
-    }
-    result
+    Bytes::from_base64(s)
 }
 
 // ─── LEB128 decode ───────────────────────────────────────────────────────────
 /// Decode an unsigned LEB128 u32 from a ByteCursor.
 /// Returns 0 if the cursor is empty or the encoding is malformed/overlong.
 /// Advances the cursor position by the number of bytes consumed.
+/// Deprecated: use `Vec::read_leb128_u32` instead.
 pub fn leb128_decode_u32(c: Vec<i32>) -> i32 {
-    let mut result = 0
-    let mut shift = 0
-    let mut done = false
-    while done == false {
-        if cursor_remaining(c) < 1 {
-            done = true
-        } else {
-            let byte = read_u8(c)
-            result = result | ((byte & 127) << shift)
-            shift = shift + 7
-            if (byte & 128) == 0 {
-                done = true
-            }
-            if shift >= 35 {
-                done = true
-            }
-        }
-    }
-    result
+    c.read_leb128_u32()
 }
 
 /// Decode a signed LEB128 i32 from a ByteCursor.
 /// Advances the cursor position.
+/// Deprecated: use `Vec::read_leb128_i32` instead.
 pub fn leb128_decode_i32(c: Vec<i32>) -> i32 {
-    let mut result = 0
-    let mut shift = 0
-    let mut last_byte = 0
-    let mut done = false
-    while done == false {
-        if cursor_remaining(c) < 1 {
-            done = true
-        } else {
-            let byte = read_u8(c)
-            last_byte = byte
-            result = result | ((byte & 127) << shift)
-            shift = shift + 7
-            if (byte & 128) == 0 {
-                done = true
-            }
-            if shift >= 35 {
-                done = true
-            }
-        }
-    }
-    if shift < 32 {
-        if (last_byte & 64) != 0 {
-            result = result | ((0 - 1) << shift)
-        }
-    }
-    result
+    c.read_leb128_i32()
 }
 
 // ─── LEB128 u64 ──────────────────────────────────────────────────────────────
 // NOTE: u64 is not a distinct type; i64 is used throughout.
+/// Deprecated: use `Bytes::from_leb128_u64` instead.
 pub fn leb128_encode_u64(x: i64) -> Vec<i32> {
-    let result: Vec<i32> = Vec::new<i32>()
-    let mut val: i64 = x
-    let mut done: bool = false
-    while done == false {
-        let byte: i32 = i64_to_i32(val & i32_to_i64(127))
-        val = val >> i32_to_i64(7)
-        if val != i32_to_i64(0) {
-            push(result, byte | 128)
-        } else {
-            push(result, byte)
-            done = true
-        }
-    }
-    result
+    Bytes::from_leb128_u64(x)
 }
 
 /// Decode an unsigned LEB128 u64 from a ByteCursor.
 /// Returns the decoded value as i64.
+/// Deprecated: use `Vec::read_leb128_u64` instead.
 pub fn leb128_decode_u64(c: Vec<i32>) -> i64 {
-    let mut result: i64 = i32_to_i64(0)
-    let mut shift: i64 = i32_to_i64(0)
-    let mut done: bool = false
-    while done == false {
-        if cursor_remaining(c) < 1 {
-            done = true
-        } else {
-            let byte = read_u8(c)
-            let chunk = i32_to_i64(byte & 127) << shift
-            result = result | chunk
-            shift = shift + i32_to_i64(7)
-            if (byte & 128) == 0 {
-                done = true
-            }
-            if shift >= i32_to_i64(70) {
-                done = true
-            }
-        }
-    }
-    result
+    c.read_leb128_u64()
 }
 test mod "bytes" {
-    test "new_empty" { assert(bytes_len(bytes_new()) == 0) }
-    test "from_str" { assert(bytes_len(bytes_from_string("ab")) == 2) }
-    test "push" { assert(bytes_len(bytes_push(bytes_new(), 255)) == 1) }
+    test "new_empty" {
+        let b: Vec<i32> = Vec::new<i32>()
+        assert(b.len() == 0)
+    }
+    test "from_str" {
+        let b: Vec<i32> = "ab".to_utf8_bytes()
+        assert(b.len() == 2)
+    }
+    test "push" {
+        let b: Vec<i32> = Vec::new<i32>()
+        b.push_byte(255)
+        assert(b.len() == 1)
+    }
 }
 
 test mod "bytes_ops" {
     test "get_reads_byte" {
-        let b = bytes_from_string("ab")
-        assert(bytes_get(b, 0) == 97)
-        assert(bytes_get(b, 1) == 98)
+        let b: Vec<i32> = "ab".to_utf8_bytes()
+        assert(b.get_unchecked(0) == 97)
+        assert(b.get_unchecked(1) == 98)
     }
     test "eq_identical" {
-        let a = bytes_from_string("xy")
-        let b = bytes_from_string("xy")
-        assert(bytes_eq(a, b))
+        let a: Vec<i32> = "xy".to_utf8_bytes()
+        let b: Vec<i32> = "xy".to_utf8_bytes()
+        assert(a.equals_bytes(b))
     }
     test "eq_different_len" {
-        let a = bytes_from_string("x")
-        let b = bytes_from_string("xy")
-        assert(bytes_eq(a, b) == false)
+        let a: Vec<i32> = "x".to_utf8_bytes()
+        let b: Vec<i32> = "xy".to_utf8_bytes()
+        assert(a.equals_bytes(b) == false)
     }
     test "concat_appends" {
-        let a = bytes_from_string("ab")
-        let c = bytes_from_string("cd")
-        let r = bytes_concat(a, c)
-        assert(bytes_len(r) == 4)
-        assert(bytes_get(r, 3) == 100)
+        let a: Vec<i32> = "ab".to_utf8_bytes()
+        let c: Vec<i32> = "cd".to_utf8_bytes()
+        let r: Vec<i32> = a.concat_bytes(c)
+        assert(r.len() == 4)
+        assert(r.get_unchecked(3) == 100)
     }
     test "slice_middle" {
-        let b = bytes_from_string("abcd")
-        let s = bytes_slice(b, 1, 3)
-        assert(bytes_len(s) == 2)
-        assert(bytes_get(s, 0) == 98)
+        let b: Vec<i32> = "abcd".to_utf8_bytes()
+        let s: Vec<i32> = b.slice_bytes(1, 3)
+        assert(s.len() == 2)
+        assert(s.get_unchecked(0) == 98)
     }
     test "string_roundtrip" {
-        let b = bytes_from_string("hi")
-        assert(string_from_bytes(b) == "hi")
+        let b: Vec<i32> = "hi".to_utf8_bytes()
+        let s: String = String::from_utf8_lossy(b)
+        assert(s.to_utf8_bytes().equals_bytes("hi".to_utf8_bytes()))
     }
-    test "byte_length_ascii" { assert(byte_length("abc") == 3) }
+    test "byte_length_ascii" { assert("abc".len_bytes() == 3) }
     test "hex_char_digits" {
-        assert(hex_char(0) == "0")
-        assert(hex_char(9) == "9")
-        assert(hex_char(10) == "a")
-        assert(hex_char(15) == "f")
+        assert(eq(hex_char(0), "0"))
+        assert(eq(hex_char(9), "9"))
+        assert(eq(hex_char(10), "a"))
+        assert(eq(hex_char(15), "f"))
     }
     test "hex_val_char_valid" {
         assert(hex_val_char("0") == 0)
@@ -1145,108 +1357,148 @@ test mod "bytes_ops" {
         assert(hex_val_char("F") == 15)
     }
     test "hex_encode_ascii" {
-        let b = bytes_from_string("a")
-        assert(hex_encode(b) == "61")
+        let b: Vec<i32> = "a".to_utf8_bytes()
+        assert(eq(b.to_hex(), "61"))
     }
     test "hex_decode_roundtrip" {
-        let d = hex_decode("dead")
-        assert(bytes_len(d) == 2)
-        assert(bytes_get(d, 0) == 222)
-        assert(bytes_get(d, 1) == 173)
+        let d: Vec<i32> = Bytes::from_hex("dead")
+        assert(d.len() == 2)
+        assert(d.get_unchecked(0) == 222)
+        assert(d.get_unchecked(1) == 173)
+    }
+    test "from_array_masks" {
+        let xs: Vec<i32> = Vec::new<i32>()
+        push(xs, 0)
+        push(xs, 257)
+        let b: Vec<i32> = Bytes::from_array(xs)
+        assert(b.get_unchecked(0) == 0)
+        assert(b.get_unchecked(1) == 1)
     }
 }
 
 test mod "bytes_endian" {
     test "u16_le_layout" {
-        let b = u16_to_le_bytes(4660)
-        assert(bytes_get(b, 0) == 52)
-        assert(bytes_get(b, 1) == 18)
+        let b: Vec<i32> = Bytes::from_u16_le(4660)
+        assert(b.get_unchecked(0) == 52)
+        assert(b.get_unchecked(1) == 18)
     }
     test "u16_le_roundtrip" {
-        let b = u16_to_le_bytes(258)
-        assert(u16_from_le_bytes(b) == 258)
+        let b: Vec<i32> = Bytes::from_u16_le(258)
+        assert(b.to_u16_le() == 258)
     }
     test "u32_le_layout" {
-        let b = u32_to_le_bytes(1)
-        assert(bytes_len(b) == 4)
-        assert(bytes_get(b, 0) == 1)
-        assert(bytes_get(b, 3) == 0)
+        let b: Vec<i32> = Bytes::from_u32_le(1)
+        assert(b.len() == 4)
+        assert(b.get_unchecked(0) == 1)
+        assert(b.get_unchecked(3) == 0)
     }
-    test "u32_le_roundtrip" { assert(u32_from_le_bytes(u32_to_le_bytes(70000)) == 70000) }
+    test "u32_le_roundtrip" {
+        let b: Vec<i32> = Bytes::from_u32_le(70000)
+        assert(b.to_u32_le() == 70000)
+    }
     test "u32_be_layout" {
-        let b = u32_to_be_bytes(1)
-        assert(bytes_get(b, 0) == 0)
-        assert(bytes_get(b, 3) == 1)
+        let b: Vec<i32> = Bytes::from_u32_be(1)
+        assert(b.get_unchecked(0) == 0)
+        assert(b.get_unchecked(3) == 1)
     }
-    test "u32_be_roundtrip" { assert(u32_from_be_bytes(u32_to_be_bytes(70000)) == 70000) }
+    test "u32_be_roundtrip" {
+        let b: Vec<i32> = Bytes::from_u32_be(70000)
+        assert(b.to_u32_be() == 70000)
+    }
     test "leb128_small_single_byte" {
-        let e = leb128_encode_u32(127)
-        assert(bytes_len(e) == 1)
-        assert(bytes_get(e, 0) == 127)
+        let e: Vec<i32> = Bytes::from_leb128_u32(127)
+        assert(e.len() == 1)
+        assert(e.get_unchecked(0) == 127)
     }
     test "leb128_128_two_bytes" {
-        let e = leb128_encode_u32(128)
-        assert(bytes_len(e) == 2)
-        assert(bytes_get(e, 0) == 128)
-        assert(bytes_get(e, 1) == 1)
+        let e: Vec<i32> = Bytes::from_leb128_u32(128)
+        assert(e.len() == 2)
+        assert(e.get_unchecked(0) == 128)
+        assert(e.get_unchecked(1) == 1)
     }
     test "leb128_u32_decode_roundtrip" {
-        let e = leb128_encode_u32(624485)
-        let c = cursor_new(e)
-        assert(leb128_decode_u32(c) == 624485)
+        let e: Vec<i32> = Bytes::from_leb128_u32(624485)
+        let c: Vec<i32> = e.byte_cursor()
+        assert(c.read_leb128_u32() == 624485)
+    }
+    test "leb128_i32_decode_negative" {
+        let e: Vec<i32> = Bytes::from_leb128_i32(0 - 64)
+        let c: Vec<i32> = e.byte_cursor()
+        assert(c.read_leb128_i32() == 0 - 64)
+    }
+    test "leb128_u64_roundtrip" {
+        let e: Vec<i32> = Bytes::from_leb128_u64(i32_to_i64(300))
+        let c: Vec<i32> = e.byte_cursor()
+        assert(c.read_leb128_u64() == i32_to_i64(300))
     }
 }
 
 test mod "bytes_buf_cursor" {
     test "buf_push_u8" {
-        let b = buf_new()
-        buf_push_u8(b, 65)
-        assert(buf_len(b) == 1)
+        let b: Vec<i32> = Vec::new<i32>()
+        b.push_byte(65)
+        assert(b.len() == 1)
     }
     test "buf_push_u16_le_two_bytes" {
-        let b = buf_new()
-        buf_push_u16_le(b, 258)
-        assert(buf_len(b) == 2)
-        assert(bytes_get(b, 0) == 2)
-        assert(bytes_get(b, 1) == 1)
+        let b: Vec<i32> = Vec::new<i32>()
+        b.push_u16_le(258)
+        assert(b.len() == 2)
+        assert(b.get_unchecked(0) == 2)
+        assert(b.get_unchecked(1) == 1)
     }
     test "buf_push_u32_le_four_bytes" {
-        let b = buf_new()
-        buf_push_u32_le(b, 1)
-        assert(buf_len(b) == 4)
+        let b: Vec<i32> = Vec::new<i32>()
+        b.push_u32_le(1)
+        assert(b.len() == 4)
+    }
+    test "buf_push_u64_le_eight_bytes" {
+        let b: Vec<i32> = Vec::new<i32>()
+        b.push_u64_le(i32_to_i64(1))
+        assert(b.len() == 8)
     }
     test "buf_extend_appends" {
-        let b = buf_new()
-        buf_push_u8(b, 1)
-        buf_extend(b, bytes_from_string("xy"))
-        assert(buf_len(b) == 3)
+        let b: Vec<i32> = Vec::new<i32>()
+        b.push_byte(1)
+        b.extend_bytes("xy".to_utf8_bytes())
+        assert(b.len() == 3)
+    }
+    test "buf_freeze_keeps_bytes" {
+        let b: Vec<i32> = "ok".to_utf8_bytes()
+        let frozen: Vec<i32> = b.freeze()
+        assert(frozen.equals_bytes(b))
     }
     test "cursor_read_u8_advances" {
-        let c = cursor_new(bytes_from_string("ab"))
-        assert(read_u8(c) == 97)
-        assert(cursor_pos(c) == 1)
-        assert(cursor_remaining(c) == 1)
+        let c: Vec<i32> = "ab".to_utf8_bytes().byte_cursor()
+        assert(c.read_u8() == 97)
+        assert(c.cursor_pos() == 1)
+        assert(c.cursor_remaining() == 1)
     }
     test "cursor_read_u16_le" {
-        let c = cursor_new(u16_to_le_bytes(258))
-        assert(read_u16_le(c) == 258)
+        let c: Vec<i32> = Bytes::from_u16_le(258).byte_cursor()
+        assert(c.read_u16_le() == 258)
     }
     test "cursor_read_u32_le" {
-        let c = cursor_new(u32_to_le_bytes(70000))
-        assert(read_u32_le(c) == 70000)
+        let c: Vec<i32> = Bytes::from_u32_le(70000).byte_cursor()
+        assert(c.read_u32_le() == 70000)
     }
-    test "try_read_u8_empty_is_none" {
-        let c = cursor_new(bytes_new())
-        let r = match try_read_u8(c) {
+    test "cursor_try_read_u8_empty_is_none" {
+        let c: Vec<i32> = Vec::new<i32>().byte_cursor()
+        let r = match c.try_read_u8() {
             Option::Some(v) => 1,
             Option::None => 2,
         }
         assert(r == 2)
     }
-    test "read_bytes_takes_n" {
-        let c = cursor_new(bytes_from_string("abcd"))
-        let r = read_bytes(c, 2)
-        assert(bytes_len(r) == 2)
-        assert(cursor_remaining(c) == 2)
+    test "cursor_read_bytes_takes_n" {
+        let c: Vec<i32> = "abcd".to_utf8_bytes().byte_cursor()
+        let r: Vec<i32> = c.read_bytes(2)
+        assert(r.len() == 2)
+        assert(c.cursor_remaining() == 2)
+    }
+    test "base64_roundtrip" {
+        let b: Vec<i32> = "hi".to_utf8_bytes()
+        let encoded: String = b.to_base64()
+        let decoded: Vec<i32> = Bytes::from_base64(encoded)
+        assert(decoded.equals_bytes(b))
     }
 }
