@@ -7,24 +7,12 @@ struct Point {
 }
 
 fn main() {
-    let text = text::concat(String_from("ab"), String_from("c"))
+    let text = String_from("ab").concat(String_from("c"))
     let mut numbers = Vec::new<i32>()
     push(numbers, 1)
     push(numbers, 2)
     let point = Point { x: 3, y: 4 }
     stdio::println(
-        text::concat(
-            text,
-            text::concat(
-                String_from("|"),
-                text::concat(
-                    to_string(len(numbers)),
-                    text::concat(
-                        String_from("|"),
-                        text::concat(to_string(point.x), text::concat(String_from(","), to_string(point.y)))
-                    )
-                )
-            )
-        )
+        text.concat(String_from("|").concat(to_string(len(numbers)).concat(String_from("|").concat(to_string(point.x).concat(String_from(",").concat(to_string(point.y)))))))
     )
 }

@@ -32,7 +32,7 @@ fn lint_config_deny(config: LintConfig) -> Vec<String> { config.deny }
 // Returns an empty LintConfig if ark.toml doesn't exist or has no [lint] section.
 pub fn load_lint_config(project_dir: String) -> LintConfig {
     let config = LintConfig_new()
-    let manifest_path = text::concat(clone(project_dir), String_from("/ark.toml"))
+    let manifest_path = clone(project_dir).concat(String_from("/ark.toml"))
     let read_result = fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {

@@ -638,7 +638,7 @@ use std::prelude::{eq, slice, to_lower, to_upper, trim}
 use std::text
 
 let s = String_from("hello")
-let t = text::concat(s, String_from(" world"))
+let t = s.concat(String_from(" world"))
 let upper = to_upper(s)
 let lower = to_lower(s)
 let n = len(s)
@@ -651,14 +651,16 @@ String values are valid UTF-8. The byte APIs and Unicode scalar APIs use differe
 index domains:
 
 - byte_at and byte_len inspect UTF-8 bytes.
-- std::text::len_chars and std::text::codepoint_at use Unicode scalar indices.
-- std::text::slice_bytes requires UTF-8 boundaries; std::text::slice_chars uses
-  scalar indices.
-- std::text::chars returns one String per scalar value. Combining marks are
+- `s.len_chars()` and `s.codepoint_at(i)` use Unicode scalar indices.
+- `s.slice_bytes(start, end)` requires UTF-8 boundaries;
+  `s.slice_chars(start, end)` uses scalar indices.
+- `s.chars()` returns one String per scalar value. Combining marks are
   separate scalars; grapheme clusters and normalization are not implicit.
 
-std::text::try_from_utf8 rejects invalid input. std::text::from_utf8 replaces each
-invalid sequence with U+FFFD. char_to_string and push_char encode a char as canonical
+`String::try_from_utf8(bytes)` rejects invalid input.
+`String::from_utf8_lossy(bytes)` replaces each invalid sequence with U+FFFD.
+These constructors replace the deprecated `std::text::try_from_utf8` /
+`std::text::from_utf8` module frees. char_to_string and push_char encode a char as canonical
 UTF-8. The deprecated char_at name remains a raw byte compatibility API; new code
 should use byte_at or codepoint_at according to its intent.
 
@@ -701,7 +703,7 @@ Combine with `concat` to build strings from mixed values:
 use std::prelude::{to_string}
 use std::text
 
-let msg = text::concat(String_from("count: "), to_string(n))
+let msg = String_from("count: ").concat(to_string(n))
 ```
 
 #### Other numeric conversions

@@ -204,13 +204,13 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
-        let mt = text::concat(String_from("enum:"), p_type_name)
+        let mt = String_from("enum:").concat(p_type_name)
         push(result, mt)
         push(result, clone(mt))
         return result
     }
     if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
-        let mt = text::concat(String_from("?"), clone(p_type_name))
+        let mt = String_from("?").concat(clone(p_type_name))
         push(result, mt)
         push(result, clone(mt))
         return result
@@ -223,25 +223,25 @@ fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
         return type_name
     }
     if starts_with(clone(type_name), String_from("Option_")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option:")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("?Option:")) {
-        return text::concat(String_from("option:"), substring(type_name, 8, len(type_name)))
+        return String_from("option:").concat(substring(type_name, 8, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name) - 1))
     }
     if starts_with(clone(type_name), String_from("Result:")) {
-        return text::concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+        return String_from("result:").concat(substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("?Result:")) {
-        return text::concat(String_from("result:"), substring(type_name, 8, len(type_name)))
+        return String_from("result:").concat(substring(type_name, 8, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Result_")) {
-        return text::concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+        return String_from("result:").concat(substring(type_name, 7, len(type_name)))
     }
     String_new()
 }

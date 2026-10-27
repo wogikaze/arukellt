@@ -18,7 +18,7 @@ fn parse_ident_pattern(p: Parser, t: Token) -> AstNode {
         while peek_kind(p) == tokens::TK_COLONCOLON() {
             p.pos = p.pos + 1
             let seg_tok = expect_token(p, tokens::TK_IDENT())
-            path_text = text::concat(path_text, text::concat(String_from("::"), token_state::Token_text(seg_tok)))
+            path_text = path_text.concat(String_from("::").concat(token_state::Token_text(seg_tok)))
         }
         let node = AstNode_new(kinds::NK_PAT_VARIANT(), tok_span(t))
         core_ast_text_fields::AstNode_set_text(node, path_text)

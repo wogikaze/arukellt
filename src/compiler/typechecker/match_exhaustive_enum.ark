@@ -19,7 +19,7 @@ fn check_enum_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_
         enum_idx = enum_idx + 1
     }
     if !found_enum {
-        unify::type_error(env, text::concat("non-exhaustive match: unknown enum '", clone(enum_name)))
+        unify::type_error(env, "non-exhaustive match: unknown enum '".concat(clone(enum_name)))
     }
 }
 
@@ -41,13 +41,13 @@ fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
     if eq(clone(resolved_name), clone(declared_name)) {
         return true
     }
-    if ends_with(resolved_name, text::concat("::", declared_name)) {
+    if ends_with(resolved_name, "::".concat(declared_name)) {
         return true
     }
     // The scrutinee type may carry the unqualified name (Ordering from a
     // trait signature) while the enum decl is registered under its module
     // path (cmp::Ordering). Accept the suffix match in both directions.
-    ends_with(declared_name, text::concat("::", resolved_name))
+    ends_with(declared_name, "::".concat(resolved_name))
 }
 
 fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {
@@ -56,8 +56,7 @@ fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, 
     while v < variant_count {
         let vname = contract_enum_info::EnumInfo_variant_at(edef, v)
         if !match_exhaustive_covered::is_variant_covered(coverage, vname) {
-            unify::type_error(env, text::concat("non-exhaustive match: missing ",
-                    text::concat(clone(enum_name), text::concat("::", clone(vname)))))
+            unify::type_error(env, "non-exhaustive match: missing ".concat(clone(enum_name).concat("::".concat(clone(vname)))))
         }
         v = v + 1
     }

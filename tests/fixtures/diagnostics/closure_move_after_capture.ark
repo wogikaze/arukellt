@@ -2,7 +2,7 @@ use std::text
 fn main() {
     let source = String_from("move:")
     let format = move |n: i32| -> String {
-        text::concat(source, n.to_string())
+        source.concat(n.to_string())
     }
     let reused = source
 }

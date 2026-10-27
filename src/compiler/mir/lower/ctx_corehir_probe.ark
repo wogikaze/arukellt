@@ -71,7 +71,7 @@ fn mir_probe_dump_body_calls(caller: String, exprs: Vec<CoreHirExpr>, root: i32)
     let names = mir_probe_corehir_call_names(exprs, root)
     let mut i = 0
     while i < len(names) {
-        stdio::eprintln(text::concat("[probeK] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(names, i))))))
+        stdio::eprintln("[probeK] ".concat(clone(caller).concat(" -> ".concat(clone(get_unchecked(names, i))))))
         i = i + 1
     }
 }
@@ -84,7 +84,7 @@ fn mir_probe_dump_ast_calls(caller: String, node: AstNode) {
     mir_probe_ast_call_names(node, names)
     let mut i = 0
     while i < len(names) {
-        stdio::eprintln(text::concat("[probeA] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(names, i))))))
+        stdio::eprintln("[probeA] ".concat(clone(caller).concat(" -> ".concat(clone(get_unchecked(names, i))))))
         i = i + 1
     }
 }
@@ -101,7 +101,7 @@ fn mir_probe_ast_call_names(node: AstNode, names: Vec<String>) {
         push(names, frontend_ast_identity::corehir_node_text(callee))
     }
     if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
-        push(names, text::concat("m:", frontend_ast_identity::corehir_node_text(node)))
+        push(names, "m:".concat(frontend_ast_identity::corehir_node_text(node)))
     }
     let child_count = frontend_ast_children::corehir_node_child_count(node)
     let mut ci = 0
@@ -158,7 +158,7 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
         }
         let caller = function_identity::MirFunction_name(module_functions::MirModule_function_at(m, mir))
         if payload >= 0 {
-            stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> fid:", to_string(payload)))))
+            stdio::eprintln("[probeR] ".concat(clone(caller).concat(" -> fid:".concat(to_string(payload)))))
             continue
         }
         let ni = 0 - payload - 10
@@ -166,12 +166,12 @@ fn mir_probe_dump_recorded_edges(m: MirModule, edges: Vec<i32>, fn_names: Vec<St
             continue
         }
         if ni < bias && ni < len(fn_names) {
-            stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(fn_names, ni))))))
+            stdio::eprintln("[probeR] ".concat(clone(caller).concat(" -> ".concat(clone(get_unchecked(fn_names, ni))))))
             continue
         }
         let oi = ni - bias
         if oi >= 0 && oi < len(edge_names) {
-            stdio::eprintln(text::concat("[probeR] ", text::concat(clone(caller), text::concat(" -> ", clone(get_unchecked(edge_names, oi))))))
+            stdio::eprintln("[probeR] ".concat(clone(caller).concat(" -> ".concat(clone(get_unchecked(edge_names, oi))))))
         }
     }
 }
@@ -199,20 +199,14 @@ fn mir_probe_dump_return_table_diff(ctx: LowerCtx, module: MirModule) {
         let want = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, ii))
         let mir = name_index::name_index_get(mir_by_name, clone(name))
         if mir < 0 {
-            stdio::eprintln(text::concat("[probeT-miss] ", clone(name)))
+            stdio::eprintln("[probeT-miss] ".concat(clone(name)))
             ii = ii + 1
             continue
         }
         let got = function_return_view::MirFunction_return_type_name(module_functions::MirModule_function_at(module, mir))
         if !eq(clone(got), clone(want)) {
             stdio::eprintln(
-                text::concat(
-                    "[probeT] ",
-                    text::concat(
-                        clone(name),
-                        text::concat(" : mir=", text::concat(clone(got), text::concat(" fnidx=", clone(want))))
-                    )
-                )
+                "[probeT] ".concat(clone(name).concat(" : mir=".concat(clone(got).concat(" fnidx=".concat(clone(want))))))
             )
         }
         ii = ii + 1
@@ -221,7 +215,7 @@ fn mir_probe_dump_return_table_diff(ctx: LowerCtx, module: MirModule) {
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(module, mi)
         if ctx_fn_index::ctx_fn_index_find(ctx, function_identity::MirFunction_name(f)) < 0 {
-            stdio::eprintln(text::concat("[probeT-extra] ", function_identity::MirFunction_name(f)))
+            stdio::eprintln("[probeT-extra] ".concat(function_identity::MirFunction_name(f)))
         }
         mi = mi + 1
     }
@@ -270,7 +264,7 @@ fn mir_probe_dump_ast_edge_coverage(
     let mut dbg = 0
     while dbg < len(functions) {
         stdio::eprintln(
-            text::concat("[probeE-fn] ", function_identity::MirFunction_name(get_unchecked(functions, dbg)))
+            "[probeE-fn] ".concat(function_identity::MirFunction_name(get_unchecked(functions, dbg)))
         )
         dbg = dbg + 1
     }
@@ -312,7 +306,7 @@ fn mir_probe_dump_ast_edge_coverage(
                 cur_state = 0 - 1
                 nocaller = nocaller + 1
                 if printed < 50 {
-                    stdio::eprintln(text::concat("[probeE-nocaller] ", clone(cur_caller)))
+                    stdio::eprintln("[probeE-nocaller] ".concat(clone(cur_caller)))
                     printed = printed + 1
                 }
             } else {
@@ -358,32 +352,15 @@ fn mir_probe_dump_ast_edge_coverage(
         missed = missed + 1
         if printed < 50 {
             stdio::eprintln(
-                text::concat("[probeE-miss] ", text::concat(clone(cur_caller), text::concat(" -> ", clone(cname))))
+                "[probeE-miss] ".concat(clone(cur_caller).concat(" -> ".concat(clone(cname))))
             )
             printed = printed + 1
         }
     }
     stdio::eprintln(
-        text::concat(
-            "[probeE] covered=",
-            text::concat(
-                to_string(covered),
-                text::concat(
-                    "/",
-                    text::concat(
-                        to_string(total),
-                        text::concat(
-                            " miss=",
-                            text::concat(
-                                to_string(missed),
-                                text::concat(
-                                    " nocaller=",
-                                    text::concat(to_string(nocaller), text::concat(" unresolved=", to_string(unresolved)))
-                                )
-                            )
-                        )
-                    )
-                )
+        "[probeE] covered=".concat(
+            to_string(covered).concat(
+                "/".concat(to_string(total).concat(" miss=".concat(to_string(missed).concat(" nocaller=".concat(to_string(nocaller).concat(" unresolved=".concat(to_string(unresolved))))))))
             )
         )
     )
@@ -485,7 +462,7 @@ fn mir_probe_dump_ast_reach_diff(
         if len(cidxs) == 0 {
             nocall = nocall + 1
             if printed < 40 {
-                stdio::eprintln(text::concat("[probeE-nocall] ", clone(caller)))
+                stdio::eprintln("[probeE-nocall] ".concat(clone(caller)))
                 printed = printed + 1
             }
             continue
@@ -520,7 +497,7 @@ fn mir_probe_dump_ast_reach_diff(
             under = under + 1
             if uprint < 60 {
                 stdio::eprintln(
-                    text::concat("[probeE-ureach] ", function_identity::MirFunction_name(get_unchecked(functions, fi2)))
+                    "[probeE-ureach] ".concat(function_identity::MirFunction_name(get_unchecked(functions, fi2)))
                 )
                 uprint = uprint + 1
             }
@@ -531,26 +508,9 @@ fn mir_probe_dump_ast_reach_diff(
         fi2 = fi2 + 1
     }
     stdio::eprintln(
-        text::concat(
-            "[probeE-reach] recorded=",
-            text::concat(
-                to_string(rec_total),
-                text::concat(
-                    " ast=",
-                    text::concat(
-                        to_string(ast_total),
-                        text::concat(
-                            " under=",
-                            text::concat(
-                                to_string(under),
-                                text::concat(
-                                    " over=",
-                                    text::concat(to_string(over), text::concat(" nocall=", to_string(nocall)))
-                                )
-                            )
-                        )
-                    )
-                )
+        "[probeE-reach] recorded=".concat(
+            to_string(rec_total).concat(
+                " ast=".concat(to_string(ast_total).concat(" under=".concat(to_string(under).concat(" over=".concat(to_string(over).concat(" nocall=".concat(to_string(nocall))))))))
             )
         )
     )

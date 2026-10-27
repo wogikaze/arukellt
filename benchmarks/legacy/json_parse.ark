@@ -37,7 +37,7 @@ fn main() {
     let mut s: String = String_from("")
     let mut i: i32 = 0
     while i < 400 {
-        s = text::concat(s, String_from("{\"key\":\"value\",\"num\":42}"))
+        s = s.concat(String_from("{\"key\":\"value\",\"num\":42}"))
         i = i + 1
     }
     let total_len: i32 = len(s)

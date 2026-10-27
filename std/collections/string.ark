@@ -3,10 +3,6 @@
 //! Representation-sensitive helpers go through `std::core::raw` (RFC-006).
 use std::core::raw
 use std::prelude::{to_lowercase}
-pub fn concat(a: String, b: String) -> String {
-    __core_string_concat_impl(a, b)
-}
-
 pub fn eq(a: String, b: String) -> bool {
     __core_string_eq_impl(a, b)
 }
@@ -79,6 +75,72 @@ fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
         let second = raw::raw_string_byte_at_unchecked(s, index + 1)
         let third = raw::raw_string_byte_at_unchecked(s, index + 2)
         let fourth = raw::raw_string_byte_at_unchecked(s, index + 3)
+        if !__core_string_is_continuation_byte(second) ||
+        !__core_string_is_continuation_byte(third) ||
+        !__core_string_is_continuation_byte(fourth) {
+            return 0
+        }
+        if first == 240 && second < 144 {
+            return 0
+        }
+        if first == 244 && second > 143 {
+            return 0
+        }
+        return 4
+    }
+    0
+}
+
+// Byte-vector variant used by `String::from_utf8_lossy` and
+// `String::try_from_utf8`. It mirrors the string helper so out-of-range
+// elements stay invalid instead of being truncated by the runtime's
+// byte-string constructor.
+fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
+    let byte_len = len(bytes)
+    if index < 0 || index >= byte_len {
+        return 0
+    }
+    let first = get_unchecked(bytes, index)
+    if first < 0 || first > 255 {
+        return 0
+    }
+    if first <= 127 {
+        return 1
+    }
+    if first >= 194 && first <= 223 {
+        if index + 1 >= byte_len {
+            return 0
+        }
+        if __core_string_is_continuation_byte(get_unchecked(bytes, index + 1)) {
+            return 2
+        }
+        return 0
+    }
+    if first >= 224 && first <= 239 {
+        if index + 2 >= byte_len {
+            return 0
+        }
+        let second = get_unchecked(bytes, index + 1)
+        let third = get_unchecked(bytes, index + 2)
+        if !__core_string_is_continuation_byte(second) ||
+        !__core_string_is_continuation_byte(third) {
+            return 0
+        }
+        if first == 224 && second < 160 {
+            return 0
+        }
+        if first == 237 && second > 159 {
+            return 0
+        }
+        return 3
+    }
+    if first >= 240 && first <= 244 {
+        if index + 3 >= byte_len {
+            return 0
+        }
+        let second = get_unchecked(bytes, index + 1)
+        let third = get_unchecked(bytes, index + 2)
+        let fourth = get_unchecked(bytes, index + 3)
         if !__core_string_is_continuation_byte(second) ||
         !__core_string_is_continuation_byte(third) ||
         !__core_string_is_continuation_byte(fourth) {
@@ -607,32 +669,8 @@ pub fn lines(s: String) -> Vec<String> {
     __core_string_lines_impl(s)
 }
 
-pub fn chars(s: String) -> Vec<String> {
-    __core_string_chars_impl(s)
-}
-
 pub fn byte_at(s: String, index: i32) -> i32 {
     __core_string_char_at_impl(s, index)
-}
-
-pub fn len_chars(s: String) -> i32 {
-    __core_string_char_len_impl(s)
-}
-
-pub fn codepoint_at(s: String, char_index: i32) -> Option<char> {
-    __core_string_codepoint_at_impl(s, char_index)
-}
-
-pub fn try_slice_bytes(s: String, start: i32, end: i32) -> Option<String> {
-    __core_string_try_slice_bytes_impl(s, start, end)
-}
-
-pub fn slice_chars(s: String, start: i32, end: i32) -> String {
-    __core_string_slice_chars_impl(s, start, end)
-}
-
-pub fn try_slice_chars(s: String, start: i32, end: i32) -> Option<String> {
-    __core_string_try_slice_chars_impl(s, start, end)
 }
 
 pub fn push_char(s: String, c: char) {
@@ -645,6 +683,51 @@ pub fn push_char(s: String, c: char) {
 
 /// Inherent methods on `String` — method-syntax wrappers around intrinsics.
 impl String {
+
+    /// Decodes `bytes` as UTF-8, replacing each invalid sequence with U+FFFD.
+    fn from_utf8_lossy(bytes: Vec<i32>) -> String {
+        let result = Vec::new<i32>()
+        let byte_len = len(bytes)
+        let mut index = 0
+        while index < byte_len {
+            let width = __core_string_utf8_width_vec_impl(bytes, index)
+            if width == 0 {
+                push(result, 239)
+                push(result, 191)
+                push(result, 189)
+                index = index + 1
+            } else {
+                let mut offset = 0
+                while offset < width {
+                    push(result, get_unchecked(bytes, index + offset))
+                    offset = offset + 1
+                }
+                index = index + width
+            }
+        }
+        __intrinsic_string_from_bytes(result)
+    }
+
+    /// Decodes `bytes` as UTF-8 and returns `None` when the input is invalid.
+    fn try_from_utf8(bytes: Vec<i32>) -> Option<String> {
+        let result = Vec::new<i32>()
+        let byte_len = len(bytes)
+        let mut index = 0
+        while index < byte_len {
+            let width = __core_string_utf8_width_vec_impl(bytes, index)
+            if width == 0 {
+                return None
+            }
+            let mut offset = 0
+            while offset < width {
+                push(result, get_unchecked(bytes, index + offset))
+                offset = offset + 1
+            }
+            index = index + width
+        }
+        Some(__intrinsic_string_from_bytes(result))
+    }
+
     /// Returns the length of the string in bytes.
     fn len(self: String) -> i32 {
         __core_string_len_impl(self)
@@ -683,6 +766,24 @@ impl String {
     /// Returns the scalar-indexed half-open slice `[start, end)`.
     fn slice_chars(self: String, start: i32, end: i32) -> String {
         __core_string_slice_chars_impl(self, start, end)
+    }
+
+    /// Returns the scalar-indexed slice, or `None` for an invalid range.
+    fn try_slice_chars(self: String, start: i32, end: i32) -> Option<String> {
+        __core_string_try_slice_chars_impl(self, start, end)
+    }
+
+    /// Returns the byte slice when both bounds are UTF-8 boundaries.
+    fn try_slice_bytes(self: String, start: i32, end: i32) -> Option<String> {
+        __core_string_try_slice_bytes_impl(self, start, end)
+    }
+
+    /// Returns the byte slice, or the empty string for invalid bounds.
+    fn slice_bytes(self: String, start: i32, end: i32) -> String {
+        match __core_string_try_slice_bytes_impl(self, start, end) {
+            Option::Some(value) => value,
+            Option::None => "",
+        }
     }
 
     /// Returns the byte index of the first occurrence of `sub`, or -1.
@@ -735,6 +836,88 @@ impl String {
         __core_string_trim_impl(self)
     }
 
+    /// Returns a copy with leading whitespace removed.
+    fn trim_start(self: String) -> String {
+        __core_string_trim_start_impl(self)
+    }
+
+    /// Returns a copy with trailing whitespace removed.
+    fn trim_end(self: String) -> String {
+        __core_string_trim_end_impl(self)
+    }
+
+    /// Returns the canonical UTF-8 bytes of the string.
+    fn to_utf8_bytes(self: String) -> Vec<i32> {
+        let result = Vec::new<i32>()
+        let byte_len = __core_string_len_bytes_impl(self)
+        let mut index = 0
+        while index < byte_len {
+            push(result, __core_string_char_at_impl(self, index))
+            index = index + 1
+        }
+        result
+    }
+
+    /// Returns `self` with `text` inserted at byte position `pos`.
+    fn insert_text(self: String, pos: i32, text: String) -> String {
+        let byte_len = __core_string_len_bytes_impl(self)
+        let safe_pos = if pos < 0 {
+            0
+        } else {
+            if pos > byte_len {
+                byte_len
+            } else {
+                pos
+            }
+        }
+        let before = __core_string_slice_impl(self, 0, safe_pos)
+        let after = __core_string_slice_impl(self, safe_pos, byte_len)
+        __core_string_concat_impl(
+            __core_string_concat_impl(before, text),
+            after
+        )
+    }
+
+    /// Returns `self` without the bytes in `[start, end)`.
+    fn delete_range(self: String, start: i32, end: i32) -> String {
+        let byte_len = __core_string_len_bytes_impl(self)
+        let safe_start = if start < 0 {
+            0
+        } else {
+            if start > byte_len {
+                byte_len
+            } else {
+                start
+            }
+        }
+        let safe_end = if end < safe_start {
+            safe_start
+        } else {
+            if end > byte_len {
+                byte_len
+            } else {
+                end
+            }
+        }
+        let before = __core_string_slice_impl(self, 0, safe_start)
+        let after = __core_string_slice_impl(self, safe_end, byte_len)
+        __core_string_concat_impl(before, after)
+    }
+
+    /// Counts the lines in `self` (one more than the number of newline bytes).
+    fn line_count(self: String) -> i32 {
+        let byte_len = __core_string_len_bytes_impl(self)
+        let mut count = 1
+        let mut index = 0
+        while index < byte_len {
+            if __core_string_char_at_impl(self, index) == 10 {
+                count = count + 1
+            }
+            index = index + 1
+        }
+        count
+    }
+
     /// Returns a copy with all occurrences of `from` replaced by `to`.
     fn replace(self: String, from: String, to: String) -> String {
         __core_string_replace_impl(self, from, to)
@@ -778,5 +961,12 @@ impl String {
     /// Splits `self` into one valid UTF-8 String per Unicode scalar value.
     fn chars(self: String) -> Vec<String> {
         __core_string_chars_impl(self)
+    }
+}
+
+impl Vec<String> {
+    /// Joins the elements with `separator` between each element.
+    fn join(self: Vec<String>, separator: String) -> String {
+        __core_string_join_impl(self, separator)
     }
 }

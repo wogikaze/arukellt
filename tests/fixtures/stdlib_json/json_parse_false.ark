@@ -10,6 +10,6 @@ fn main() {
                 None => panic("expected Some(false)"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse false failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse false failed: ".concat(json::parse_error_message(e))),
     }
 }

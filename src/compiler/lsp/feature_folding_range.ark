@@ -58,13 +58,13 @@ fn find_brace_end_line(text: String, start_line: i32) -> i32 {
 fn append_folding_entry(out: String, start_line: i32, end_line: i32) -> String {
     let mut body = out
     if len(body) > 1 {
-        body = text::builder_append(body, String_from(","))
+        body = body.concat(String_from(","))
     }
-    body = text::builder_append(body, String_from("{\"startLine\":"))
-    body = text::builder_append(body, to_string(start_line))
-    body = text::builder_append(body, String_from(",\"endLine\":"))
-    body = text::builder_append(body, to_string(end_line))
-    body = text::builder_append(body, String_from(",\"kind\":\"region\"}"))
+    body = body.concat(String_from("{\"startLine\":"))
+    body = body.concat(to_string(start_line))
+    body = body.concat(String_from(",\"endLine\":"))
+    body = body.concat(to_string(end_line))
+    body = body.concat(String_from(",\"kind\":\"region\"}"))
     body
 }
 
@@ -88,11 +88,11 @@ pub fn handle_folding_range(state: LspState, body: String) {
         }
         line = line + 1
     }
-    items = text::builder_append(items, String_from("]"))
+    items = items.concat(String_from("]"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = text::builder_append(out, to_string(id))
-    out = text::builder_append(out, String_from(",\"result\":"))
-    out = text::builder_append(out, items)
-    out = text::builder_append(out, String_from("}"))
+    out = out.concat(to_string(id))
+    out = out.concat(String_from(",\"result\":"))
+    out = out.concat(items)
+    out = out.concat(String_from("}"))
     framing::append_framed(state, out)
 }

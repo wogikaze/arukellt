@@ -5,6 +5,6 @@ fn main() {
     let doc = "name = \"unclosed"
     match toml::toml_parse(doc) {
         Result::Ok(_) => stdio::println("unexpected ok"),
-        Result::Err(e) => stdio::println(text::concat("error:", e)),
+        Result::Err(e) => stdio::println("error:".concat(e)),
     }
 }

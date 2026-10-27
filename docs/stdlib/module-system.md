@@ -9,7 +9,7 @@ accepted only as a migration form and emits `W0101` at parse phase.
 use std::core
 use std::text as t
 use std::collections::string
-use std::text::string::{split, join}
+use std::collections::string::{split, join}
 ```
 
 `use path::to::module` loads the module and uses its final path segment as the
@@ -122,7 +122,7 @@ std/
 allowing bare calls without module qualification:
 
 ```arukellt
-use std::text::string::{split, join}
+use std::collections::string::{split, join}
 
 fn main() {
     let parts = split("a,b", ",")    // resolves to string::split

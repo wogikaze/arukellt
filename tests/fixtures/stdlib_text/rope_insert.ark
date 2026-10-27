@@ -1,21 +1,20 @@
 use std::test
-use std::text::rope
 
 fn main() {
-    let r = rope::rope_from_string("hello")
+    let r = "hello".clone()
     // Insert at end
-    let r2 = rope::rope_insert(r, 5, " world")
-    test::assert_eq_string(rope::rope_to_string(r2), "hello world")
+    let r2 = r.insert_text(5, " world")
+    test::assert_eq_string(r2.clone(), "hello world")
     // Insert at beginning
-    let r3 = rope::rope_insert(r, 0, ">>")
-    test::assert_eq_string(rope::rope_to_string(r3), ">>hello")
+    let r3 = r.insert_text(0, ">>")
+    test::assert_eq_string(r3.clone(), ">>hello")
     // Insert in middle
-    let r4 = rope::rope_insert(r, 2, "XX")
-    test::assert_eq_string(rope::rope_to_string(r4), "heXXllo")
+    let r4 = r.insert_text(2, "XX")
+    test::assert_eq_string(r4.clone(), "heXXllo")
     // Insert at out-of-bounds position (clamped to end)
-    let r5 = rope::rope_insert(r, 100, "!")
-    test::assert_eq_string(rope::rope_to_string(r5), "hello!")
+    let r5 = r.insert_text(100, "!")
+    test::assert_eq_string(r5.clone(), "hello!")
     // Insert at negative position (clamped to 0)
-    let r6 = rope::rope_insert(r, -1, ">>")
-    test::assert_eq_string(rope::rope_to_string(r6), ">>hello")
+    let r6 = r.insert_text(-1, ">>")
+    test::assert_eq_string(r6.clone(), ">>hello")
 }

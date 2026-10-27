@@ -48,7 +48,7 @@ fn verify_one_call(inst: MirInst, m: MirModule, report: MirVerifyReport, verbose
     if len(callee) == 0 {
         mir_verify_report_add_w002(report)
         if verbose {
-            mir_verify_report_push_detail(report, text::concat("W002 empty-callee in ", caller))
+            mir_verify_report_push_detail(report, "W002 empty-callee in ".concat(caller))
         }
         return
     }
@@ -84,7 +84,7 @@ fn verify_call_result_type_present(
     }
     mir_verify_report_add_w009(report)
     if verbose {
-        mir_verify_report_push_detail(report, text::concat("W009 call-missing-result-type ", caller))
+        mir_verify_report_push_detail(report, "W009 call-missing-result-type ".concat(caller))
     }
 }
 
@@ -93,14 +93,14 @@ fn verify_call_inv8_result_types(inst: MirInst, m: MirModule, report: MirVerifyR
     if status == 1 {
         mir_verify_report_add_w007(report)
         if verbose {
-            mir_verify_report_push_detail(report, text::concat("W007 call-missing-result-types ", caller))
+            mir_verify_report_push_detail(report, "W007 call-missing-result-types ".concat(caller))
         }
         return
     }
     if status == 2 {
         mir_verify_report_add_w007(report)
         if verbose {
-            mir_verify_report_push_detail(report, text::concat("W007 call-result-vt-mismatch ", caller))
+            mir_verify_report_push_detail(report, "W007 call-result-vt-mismatch ".concat(caller))
         }
     }
 }

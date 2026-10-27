@@ -34,21 +34,21 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
         while ai < ac {
             let a = phi_access::MirPhi_arg_at(phi, ai)
             let mut line = "phi_elim_copy bb"
-            line = text::builder_append(line, to_string(phi_access::MirPhiArg_pred_block(a)))
-            line = text::builder_append(line, "->bb")
-            line = text::builder_append(line, to_string(join_block_id))
-            line = text::builder_append(line, ": ")
-            line = text::builder_append(line, clone(merge_name))
-            line = text::builder_append(line, " <- ")
-            line = text::builder_append(line, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(a)))
+            line = line.concat(to_string(phi_access::MirPhiArg_pred_block(a)))
+            line = line.concat("->bb")
+            line = line.concat(to_string(join_block_id))
+            line = line.concat(": ")
+            line = line.concat(clone(merge_name))
+            line = line.concat(" <- ")
+            line = line.concat(dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(a)))
             stdio::println(line)
             ai = ai + 1
         }
         let mut tail = "phi_elim_join bb"
-        tail = text::builder_append(tail, to_string(join_block_id))
-        tail = text::builder_append(tail, ": ")
-        tail = text::builder_append(tail, clone(merge_name))
-        tail = text::builder_append(tail, " (phi removed)")
+        tail = tail.concat(to_string(join_block_id))
+        tail = tail.concat(": ")
+        tail = tail.concat(clone(merge_name))
+        tail = tail.concat(" (phi removed)")
         stdio::println(tail)
         pi = pi + 1
     }

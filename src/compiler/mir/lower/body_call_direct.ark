@@ -168,7 +168,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         } else {
             "Vec__with_capacity__"
         }
-        text::concat(constructor, element_name)
+        constructor.concat(element_name)
     }
 
     fn mir_hashmap_constructor_name(callee: AstNode) -> String {
@@ -183,10 +183,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         contains(clone(key_name), "::") || contains(clone(value_name), "::") {
             return "HashMap::new"
         }
-        text::concat(
-            "HashMap__new__",
-            text::concat(key_name, text::concat("__", value_name))
-        )
+        "HashMap__new__".concat(key_name.concat("__".concat(value_name)))
     }
 
     // Type-argument spelling for `HashMap::new<K, V>` callees. fn(i32) -> i32

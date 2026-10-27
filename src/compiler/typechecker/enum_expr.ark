@@ -101,7 +101,7 @@ fn enum_names_match(declared_name: String, enum_name: String) -> bool {
     if eq(clone(declared_name), clone(enum_name)) {
         return true
     }
-    ends_with(clone(declared_name), text::concat("::", clone(enum_name)))
+    ends_with(clone(declared_name), "::".concat(clone(enum_name)))
 }
 
 fn unknown_type() -> TypeInfo {

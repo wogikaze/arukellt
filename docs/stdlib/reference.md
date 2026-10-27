@@ -8,9 +8,9 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 287 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 251 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 298 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -938,58 +938,6 @@ let input = read_to_string()
 | `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
-
-## Text
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_build` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_len` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `builder_new` | `() -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Split into one valid UTF-8 String per Unicode scalar value. |
-| `codepoint_at` | `(String, i32) -> Option<char>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the Unicode scalar at a scalar index, or None when out of range. |
-| `concat` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_concat` | - |
-| `contains` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_contains` | - |
-| `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_ends_with` | - |
-| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Decode bytes as UTF-8, replacing each invalid sequence with U+FFFD. |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_index_of` | - |
-| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_join` | - |
-| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the number of Unicode scalar values. |
-| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
-| `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a Rope from an existing String. |
-| `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
-| `rope_len` | `(String) -> i32` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Return the byte length of the Rope. |
-| `rope_line_count` | `(String) -> i32` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Count the number of lines (newlines + 1) in the Rope. |
-| `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a new empty Rope. |
-| `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
-| `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Convert the Rope to a String. |
-| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string. |
-| `slice_chars` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string. |
-| `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_split` | - |
-| `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_starts_with` | - |
-| `to_lower` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_lower` | - |
-| `to_upper` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_upper` | - |
-| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Return the canonical UTF-8 bytes of the string. |
-| `trim` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `trim_end` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `trim_start` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
-| `try_from_utf8` | `(Vec<i32>) -> Option<String>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | Decode bytes as UTF-8 and return None when the complete input is invalid. |
-| `try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return a byte slice when both bounds are UTF-8 boundaries, or None. |
-| `try_slice_chars` | `(String, i32, i32) -> Option<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | Return the scalar-indexed slice, or None for an invalid range. |
 
 ## Time
 

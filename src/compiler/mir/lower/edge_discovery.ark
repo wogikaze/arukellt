@@ -224,7 +224,7 @@ fn edge_mono_base_key(name: String) -> String {
     }
     let owner = substring(clone(base), 0, first)
     let rest = substring(base, first + 2, len(clone(base)))
-    text::concat(owner, text::concat("::", rest))
+    owner.concat("::".concat(rest))
 }
 
 fn edge_index_builtins(ctx: LowerCtx, table: AstEdgeTable) {
@@ -488,7 +488,7 @@ fn edge_ctor_spelling(callee: AstNode) -> String {
         if len(tag) == 0 {
             return String_new()
         }
-        name = text::concat(clone(name), text::concat(String_from("__"), clone(tag)))
+        name = clone(name).concat(String_from("__").concat(clone(tag)))
         i = i + 1
     }
     mono::mono_safe_name(name)
@@ -523,19 +523,19 @@ fn edge_push_typed_method_candidates(out: Vec<String>, recv_ty: String, method: 
         }
         let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
         if len(pair_owner) > 0 {
-            push(out, text::concat(clone(pair_owner), text::concat(String_from("::"), clone(method))))
+            push(out, clone(pair_owner).concat(String_from("::").concat(clone(method))))
         }
     }
     let bare_owner = call_rewrite_method::mir_bare_receiver_type_name(clone(owner_ty))
     if len(bare_owner) > 0 {
-        push(out, text::concat(clone(bare_owner), text::concat(String_from("::"), clone(method))))
+        push(out, clone(bare_owner).concat(String_from("::").concat(clone(method))))
     }
     // Per-instantiation impl owner (GenTakeIter<VecIter> ->
     // GenTakeIter_VecIter::m); differs from bare_owner only for generic
     // receivers the pair form did not already cover.
     let inst_owner = method_resolve::mir_inst_owner_name(clone(recv_ty))
     if len(inst_owner) > 0 && !eq(clone(inst_owner), clone(bare_owner)) {
-        push(out, text::concat(clone(inst_owner), text::concat(String_from("::"), clone(method))))
+        push(out, clone(inst_owner).concat(String_from("::").concat(clone(method))))
     }
 }
 
@@ -596,10 +596,7 @@ fn edge_resolve_method_site(
         }
         let pair_owner = method_resolve::mir_hashmap_impl_owner_name(clone(owner_ty))
         if len(pair_owner) > 0 {
-            let declared = text::concat(
-                clone(pair_owner),
-                text::concat(String_from("::"), clone(method))
-            )
+            let declared = clone(pair_owner).concat(String_from("::").concat(clone(method)))
             edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, declared))
         }
     }
@@ -615,10 +612,7 @@ fn edge_resolve_method_site(
     }
     let mut oi = 0
     while oi < len(owners) {
-        let declared = text::concat(
-            clone(get_unchecked(owners, oi)),
-            text::concat(String_from("::"), clone(method))
-        )
+        let declared = clone(get_unchecked(owners, oi)).concat(String_from("::").concat(clone(method)))
         edge_push_resolved_once(out, edge_desugar_resolved(ctx, span_start, clone(declared)))
         // Preferred coreop / intrinsic leaves: when the owner method maps
         // onto a coreop name (Vec::read -> vec_read) or a builtin
@@ -893,7 +887,7 @@ fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
         return ty
     }
     let mut changed = false
-    let mut rebuilt = text::concat(head, String_from("<"))
+    let mut rebuilt = head.concat(String_from("<"))
     let mut i = 0
     while i < len(args) {
         let arg = trim(clone(get_unchecked(args, i)))
@@ -903,15 +897,15 @@ fn edge_subst_angle_args(ty: String, keys: Vec<String>) -> String {
             changed = true
         }
         if i > 0 {
-            rebuilt = text::concat(rebuilt, String_from(","))
+            rebuilt = rebuilt.concat(String_from(","))
         }
-        rebuilt = text::concat(rebuilt, out_arg)
+        rebuilt = rebuilt.concat(out_arg)
         i = i + 1
     }
     if !changed {
         return ty
     }
-    text::concat(rebuilt, String_from(">"))
+    rebuilt.concat(String_from(">"))
 }
 
 // Substitute the type variables of one local-type spelling through a mono
@@ -942,7 +936,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         if len(concrete) == 0 {
             return ty
         }
-        return text::concat(String_from("vec:"), concrete)
+        return String_from("vec:").concat(concrete)
     }
     if starts_with(clone(work), String_from("option:")) {
         let elem = substring(clone(work), 7, len(work))
@@ -953,7 +947,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         if len(concrete) == 0 {
             return ty
         }
-        return text::concat(String_from("option:"), concrete)
+        return String_from("option:").concat(concrete)
     }
     if starts_with(clone(work), String_from("hashmap:")) {
         // Unresolved hashmap:K:V spellings alias the pair positionally
@@ -983,10 +977,7 @@ fn edge_subst_param_type(ty: String, emit_name: String) -> String {
         if eq(clone(key_out), clone(key_seg)) && eq(clone(val_out), clone(val_seg)) {
             return ty
         }
-        return text::concat(
-            String_from("HashMap_"),
-            text::concat(clone(key_out), text::concat(String_from("_"), val_out))
-        )
+        return String_from("HashMap_").concat(clone(key_out).concat(String_from("_").concat(val_out)))
     }
     if contains(clone(work), String_from("<")) {
         let keys = mono_suffix_parse::split_mono_suffix(clone(suffix))
@@ -1040,7 +1031,7 @@ fn edge_is_scalar_type_name(ty: String) -> bool {
 // them literally (fn_index + aliases + rewrites) without the bare/base
 // fan-out a raw Owner::m suffix would trigger.
 fn edge_precise_mark(name: String) -> String {
-    text::concat(String_from("#"), name)
+    String_from("#").concat(name)
 }
 
 // Precise candidates for a for/comprehension desugar, mirroring

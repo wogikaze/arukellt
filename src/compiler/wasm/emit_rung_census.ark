@@ -61,16 +61,13 @@ fn emit_rung_census_print(ctx: SelfEmitCtx) {
     while index < len(rungs) {
         let decisions = get_unchecked(rungs, index)
         if decisions > 0 {
-            let entry = text::concat(
-                emit_rung_name(index),
-                text::concat("=", (decisions).to_string())
-            )
-            line = text::concat(line, text::concat(" ", entry))
+            let entry = emit_rung_name(index).concat("=".concat((decisions).to_string()))
+            line = line.concat(" ".concat(entry))
         }
         index = index + 1
     }
     if len(line) == 0 {
         return
     }
-    stdio::eprintln(text::concat("[arukellt] emit-rung-census:", line))
+    stdio::eprintln("[arukellt] emit-rung-census:".concat(line))
 }

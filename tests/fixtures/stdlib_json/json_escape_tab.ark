@@ -7,6 +7,6 @@ fn main() {
             Option::Some(s) => test::assert_eq_string(s, "a\tb"),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse tab failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse tab failed: ".concat(json::parse_error_message(e))),
     }
 }

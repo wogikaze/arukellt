@@ -33,7 +33,7 @@ fn resolve_array_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if starts_with(clone(local_name), String_from("array:")) {
         // Array literals use a separate marker because their value is the
         // backing array itself, unlike Vec<T>'s one-field header.
-        tname = text::concat(String_from("vec:"), substring(local_name, 6, len(local_name)))
+        tname = String_from("vec:").concat(substring(local_name, 6, len(local_name)))
     }
     let resolved = array_type_from_type_name(ctx, clone(tname))
     if resolved >= 0 {

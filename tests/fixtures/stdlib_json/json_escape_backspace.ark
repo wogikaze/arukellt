@@ -7,6 +7,6 @@ fn main() {
             Option::Some(s) => test::assert_eq_i32(len(s), 3),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse backspace failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse backspace failed: ".concat(json::parse_error_message(e))),
     }
 }

@@ -72,10 +72,10 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
         let mut prefix = String_new()
         let mut d = 0
         while d < line_indent {
-            prefix = text::builder_append(prefix, "    ")
+            prefix = prefix.concat("    ")
             d = d + 1
         }
-        push(out, text::concat(prefix, trimmed))
+        push(out, prefix.concat(trimmed))
         if closes_else {
             indent = line_indent + 1
         } else {

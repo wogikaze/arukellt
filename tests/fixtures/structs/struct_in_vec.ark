@@ -12,7 +12,7 @@ fn main() {
     let mut i: i32 = 0
     while i < len(points) {
         let p: Point = get_unchecked(points, i)
-        stdio::println(text::concat(text::concat((p.x).to_string(), String_from(",")), (p.y).to_string()))
+        stdio::println((p.x).to_string().concat(String_from(",")).concat((p.y).to_string()))
         i = i + 1
     }
 }

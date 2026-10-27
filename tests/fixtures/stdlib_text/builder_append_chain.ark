@@ -2,18 +2,18 @@ use std::test
 use std::text
 
 fn main() {
-    let sb = text::builder_new()
-    let sb = text::builder_append(sb, "Hello")
-    let sb = text::builder_append(sb, ", ")
-    let sb = text::builder_append(sb, "world")
-    let sb = text::builder_append(sb, "!")
-    test::assert_eq_string(text::builder_build(sb), "Hello, world!")
-    test::assert_eq_i32(text::builder_len(sb), 13)
+    let sb = ""
+    let sb = sb.concat("Hello")
+    let sb = sb.concat(", ")
+    let sb = sb.concat("world")
+    let sb = sb.concat("!")
+    test::assert_eq_string(sb, "Hello, world!")
+    test::assert_eq_i32(sb.len(), 13)
 
     // Append char
-    let sb2 = text::builder_new()
-    let sb2 = text::builder_append(sb2, "Hi")
-    let sb2 = text::builder_append_char(sb2, '!')
-    test::assert_eq_string(text::builder_build(sb2), "Hi!")
-    test::assert_eq_i32(text::builder_len(sb2), 3)
+    let sb2 = ""
+    let sb2 = sb2.concat("Hi")
+    let sb2 = sb2.concat(('!').to_string())
+    test::assert_eq_string(sb2, "Hi!")
+    test::assert_eq_i32(sb2.len(), 3)
 }

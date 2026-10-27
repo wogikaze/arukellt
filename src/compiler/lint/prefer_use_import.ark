@@ -104,7 +104,7 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         }
         let uses = count_same_path(paths, clone(path))
         if uses >= threshold {
-            let msg = text::concat(text::concat("qualified path `", clone(path)), "` used repeatedly; prefer `use` and call the short name")
+            let msg = "qualified path `".concat(clone(path)).concat("` used repeatedly; prefer `use` and call the short name")
             let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }

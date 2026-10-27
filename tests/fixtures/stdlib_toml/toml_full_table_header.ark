@@ -34,7 +34,7 @@ fn main() {
             }
         },
         Result::Err(e) => {
-            stdio::println(text::concat(String_from("parse error: "), e))
+            stdio::println(String_from("parse error: ").concat(e))
             assert(false)
         },
     }

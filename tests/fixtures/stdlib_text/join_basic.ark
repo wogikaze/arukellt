@@ -2,8 +2,8 @@ use std::test
 use std::text
 
 fn main() {
-    let parts = text::split("a,b,c", ",")
-    test::assert_eq_string(text::join(parts, "-"), "a-b-c")
-    test::assert_eq_string(text::join(parts, ", "), "a, b, c")
-    test::assert_eq_string(text::join(parts, ""), "abc")
+    let parts = "a,b,c".split(",")
+    test::assert_eq_string(parts.join("-"), "a-b-c")
+    test::assert_eq_string(parts.join(", "), "a, b, c")
+    test::assert_eq_string(parts.join(""), "abc")
 }

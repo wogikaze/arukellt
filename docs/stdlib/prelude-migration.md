@@ -52,8 +52,8 @@ Do **not** treat the counts and timeline here as the current source of truth for
 | `reverse_i32(v)` | `seq::reverse_i32(v)` |
 | `contains_i32(v, x)` | `seq::contains(v, x)` |
 | `remove_i32(v, i)` | `collections::remove(v, i)` |
-| `f64_to_string(x)` | `text::format_f64(x)` |
-| `i64_to_string(x)` | `text::format_i64(x)` |
+| `f64_to_string(x)` | `x.to_string()` |
+| `i64_to_string(x)` | `x.to_string()` |
 
 > The bare seq names in this historical table (`sort_i32`, `sort_String`,
 > `reverse_i32`, `contains_i32`, `remove_i32`) were removed in the ADR-087

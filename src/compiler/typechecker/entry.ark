@@ -53,7 +53,7 @@ fn push_sig_index_key(keys: Vec<String>, decl: AstNode, module_name: String) {
         if len(module_name) == 0 {
             push(keys, String_new())
         } else {
-            push(keys, text::concat(module_name, text::concat(String_from("::"), ast_access::node_text(decl))))
+            push(keys, module_name.concat(String_from("::").concat(ast_access::node_text(decl))))
         }
         return
     }
@@ -66,10 +66,7 @@ fn push_sig_index_key(keys: Vec<String>, decl: AstNode, module_name: String) {
             if ast_decl_predicates::node_is_fn_decl(child) {
                 push(
                     keys,
-                    text::concat(
-                        clone(owner_name),
-                        text::concat(String_from("::"), ast_access::node_text(child))
-                    )
+                    clone(owner_name).concat(String_from("::").concat(ast_access::node_text(child)))
                 )
             }
             ci = ci + 1

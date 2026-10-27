@@ -71,16 +71,7 @@ fn ctx_pcell_cell_spelling(ctx: LowerCtx, local_idx: i32) -> String {
     if idx < 0 {
         return String_new()
     }
-    text::concat(
-        "struct:",
-        text::concat(
-            clone(get_unchecked(ctx.pcell_cell_names, idx)),
-            text::concat(
-                ":",
-                to_string(closure_env::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx)))
-            )
-        )
-    )
+    "struct:".concat(clone(get_unchecked(ctx.pcell_cell_names, idx)).concat(":".concat(to_string(closure_env::closure_env_slot_width(get_unchecked(ctx.pcell_vts, idx))))))
 }
 
 fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
@@ -111,7 +102,7 @@ fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
 fn ctx_pcell_cell_name_for(ctx: LowerCtx, payload_type: String, payload_vt: i32) -> String {
     let mut key = clone(payload_type)
     if len(key) == 0 {
-        key = text::concat("vt:", to_string(payload_vt))
+        key = "vt:".concat(to_string(payload_vt))
     }
     let mut i = 0
     while i < len(ctx.pcell_reg_keys) {
@@ -120,20 +111,20 @@ fn ctx_pcell_cell_name_for(ctx: LowerCtx, payload_type: String, payload_vt: i32)
         }
         i = i + 1
     }
-    let cell_name = text::concat("__cell_", to_string(len(ctx.pcell_reg_cells)))
+    let cell_name = "__cell_".concat(to_string(len(ctx.pcell_reg_cells)))
     push(ctx.pcell_reg_keys, key)
     push(ctx.pcell_reg_cells, clone(cell_name))
     push(ctx.pcell_reg_vts, payload_vt)
     push(ctx.pcell_reg_types, clone(payload_type))
     if ctx.is_gc_target {
-        let mut field_sig = text::concat("_f0_", ctx_pcell_vt_sig(payload_vt))
+        let mut field_sig = "_f0_".concat(ctx_pcell_vt_sig(payload_vt))
         if len(payload_type) > 0 {
             field_sig = ctx_gc_struct::gc_struct_field_sig_for_type(ctx, payload_type, 0)
         }
         ctx_gc_struct::ctx_register_gc_struct(
             ctx,
             clone(cell_name),
-            text::concat("GS", field_sig)
+            "GS".concat(field_sig)
         )
     }
     cell_name
@@ -174,14 +165,8 @@ fn ctx_promote_capture_cell(ctx: LowerCtx, name: String) -> i32 {
     let cell_name = ctx_pcell_cell_name_for(ctx, clone(payload_type), payload_vt)
     let slot_width = closure_env::closure_env_slot_width(payload_vt)
     let ref_vt = closure_env::closure_env_ref_vt(ctx)
-    let cell_local_type = text::concat(
-        "struct:",
-        text::concat(clone(cell_name), text::concat(":", to_string(slot_width)))
-    )
-    let ref_name = text::concat(
-        "__cellref_",
-        text::concat(clone(name), text::concat("_", to_string(src_li)))
-    )
+    let cell_local_type = "struct:".concat(clone(cell_name).concat(":".concat(to_string(slot_width))))
+    let ref_name = "__cellref_".concat(clone(name).concat("_".concat(to_string(src_li))))
     let ref_li = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(ref_name), ref_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, ref_li, cell_local_type)
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(
@@ -221,7 +206,7 @@ fn ctx_pcell_cap_param_name(cap_type: String, cname: String) -> String {
     if !ctx_pcell_cap_type_is_cell(clone(cap_type)) {
         return cname
     }
-    text::concat("__cellarg_", cname)
+    "__cellarg_".concat(cname)
 }
 
 // Bind a synth cap param that carries a promoted cell ref: allocate a

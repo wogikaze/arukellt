@@ -8,7 +8,7 @@ enum RpnOp { Invalid, Add, Sub, Mul }
 
 fn is_ascii_ws(c: i32) -> bool { c == 32 || c == 9 || c == 13 }
 
-fn print_error(msg: String) { stdio::println(text::concat("error: ", msg)) }
+fn print_error(msg: String) { stdio::println("error: ".concat(msg)) }
 
 fn print_stack_count_error(count: i32) {
     stdio::print("error: stack has ")
@@ -16,7 +16,7 @@ fn print_stack_count_error(count: i32) {
     stdio::println(" values")
 }
 
-fn print_result(val: i32) { stdio::println(text::concat("ok: result = ", (val).to_string())) }
+fn print_result(val: i32) { stdio::println("ok: result = ".concat((val).to_string())) }
 
 fn operator_from_token(tok: String) -> RpnOp {
     if eq(tok, "+") { RpnOp::Add }
@@ -43,7 +43,7 @@ fn process_token(stack: Vec<i32>, tok: String) -> Vec<i32> {
     match operator_from_token(tok) {
         RpnOp::Invalid => match parse_i32(tok) {
             Result::Ok(val) => { push(stack, val); stack }
-            Result::Err(_) => { print_error(text::concat("invalid token: ", tok)); stack }
+            Result::Err(_) => { print_error("invalid token: ".concat(tok)); stack }
         }
         op => apply_op(stack, op),
     }

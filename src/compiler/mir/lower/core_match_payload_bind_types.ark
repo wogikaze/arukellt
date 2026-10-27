@@ -144,7 +144,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
     if len(field_type) > 0 &&
     ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(field_type)) &&
     !ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(field_type)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, text::concat("enum:", field_type))
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "enum:".concat(field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
@@ -158,7 +158,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived_field)) {
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, derived_field)
         } else {
-            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, text::concat("enum:", field_type))
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "enum:".concat(field_type))
         }
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
@@ -177,11 +177,11 @@ fn normalize_core_payload_vec_type_name(field_type: String) -> String {
     }
     if starts_with(clone(field_type), "Vec<") && ends_with(clone(field_type), ">") {
         let inner = substring(clone(field_type), 4, len(field_type) - 1)
-        return text::concat("vec:", inner)
+        return "vec:".concat(inner)
     }
     if starts_with(clone(field_type), "Vec_") {
         let inner = substring(clone(field_type), 4, len(field_type))
-        return text::concat("vec:", inner)
+        return "vec:".concat(inner)
     }
     String_new()
 }
@@ -218,10 +218,10 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
     }
     if starts_with(clone(elem_ty), "Vec<") && ends_with(clone(elem_ty), ">") {
         let inner = substring(clone(elem_ty), 4, len(elem_ty) - 1)
-        return text::concat("vec:", inner)
+        return "vec:".concat(inner)
     }
     if starts_with(clone(elem_ty), "Vec_") {
-        return text::concat("vec:", substring(clone(elem_ty), 4, len(elem_ty)))
+        return "vec:".concat(substring(clone(elem_ty), 4, len(elem_ty)))
     }
     elem_ty
 }

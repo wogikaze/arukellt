@@ -52,7 +52,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // same collision rule as HashMap_K_V.
     struct_name = method_resolve::mir_inst_owner_name(clone(struct_name))
     if len(struct_name) > 0 {
-        return text::concat(clone(struct_name), text::concat("::", clone(method_name)))
+        return clone(struct_name).concat("::".concat(clone(method_name)))
     }
     method_name
 }

@@ -2,24 +2,24 @@ use std::host::stdio
 use std::text
 
 fn main() {
-    let sb = text::builder_new()
-    let sb = text::builder_append(sb, "Hello")
-    let sb = text::builder_append(sb, ", ")
-    let sb = text::builder_append(sb, "world")
-    stdio::println(text::builder_build(sb))
-    let sb2 = text::builder_new()
-    let sb2 = text::builder_append_line(sb2, "line1")
-    let sb2 = text::builder_append_line(sb2, "line2")
-    let sb2 = text::builder_append(sb2, "line3")
-    stdio::println(text::builder_build(sb2))
-    let sb3 = text::builder_new()
-    stdio::println((text::builder_len(sb3)).to_string())
-    let sb3 = text::builder_append(sb3, "abc")
-    stdio::println((text::builder_len(sb3)).to_string())
-    let sb4 = text::builder_new()
-    let sb4 = text::builder_append(sb4, "Hi")
-    let sb4 = text::builder_append_char(sb4, '!')
-    stdio::println(text::builder_build(sb4))
+    let sb = ""
+    let sb = sb.concat("Hello")
+    let sb = sb.concat(", ")
+    let sb = sb.concat("world")
+    stdio::println(sb)
+    let sb2 = ""
+    let sb2 = sb2.concat("line1").concat("\n")
+    let sb2 = sb2.concat("line2").concat("\n")
+    let sb2 = sb2.concat("line3")
+    stdio::println(sb2)
+    let sb3 = ""
+    stdio::println((sb3.len()).to_string())
+    let sb3 = sb3.concat("abc")
+    stdio::println((sb3.len()).to_string())
+    let sb4 = ""
+    let sb4 = sb4.concat("Hi")
+    let sb4 = sb4.concat(('!').to_string())
+    stdio::println(sb4)
 }
 // builder_new + builder_append + builder_build
 // builder_append_line

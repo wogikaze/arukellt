@@ -4,6 +4,6 @@ use std::text
 fn main() {
     let a = String_from("123")
     let b = String_from("456")
-    test::assert_eq_string(text::concat(a, b), "123456")
-    test::assert_false(eq(text::concat(a, b), text::concat(b, a)))
+    test::assert_eq_string(a.concat(b), "123456")
+    test::assert_false(eq(a.concat(b), b.concat(a)))
 }

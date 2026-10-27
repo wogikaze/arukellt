@@ -8,14 +8,14 @@ fn main() {
     let m = HashMap::new<String, i32>()
     let mut i: i32 = 0
     while i < 100 {
-        let _prev = m.insert(text::concat("key_", (i).to_string()), i * 7)
+        let _prev = m.insert("key_".concat((i).to_string()), i * 7)
         i = i + 1
     }
     test::assert_eq_i32(m.len(), 100)
     let mut sum: i32 = 0
     i = 0
     while i < 100 {
-        match m.get(text::concat("key_", (i).to_string())) {
+        match m.get("key_".concat((i).to_string())) {
             Option::Some(v) => sum = sum + v,
             None => sum = sum - 100000,
         }
@@ -26,7 +26,7 @@ fn main() {
     // Remove + reinsert after growth keeps len and lookups consistent.
     i = 0
     while i < 30 {
-        match m.remove(text::concat("key_", (i).to_string())) {
+        match m.remove("key_".concat((i).to_string())) {
             Option::Some(_) => sum = sum + 1,
             None => sum = sum - 100000,
         }
@@ -35,14 +35,14 @@ fn main() {
     test::assert_eq_i32(m.len(), 70)
     test::assert_false(m.contains_key("key_5"))
     test::assert_true(m.contains_key("key_50"))
-    let _prev2 = m.insert(text::concat("key_", (200).to_string()), 1)
+    let _prev2 = m.insert("key_".concat((200).to_string()), 1)
     test::assert_eq_i32(m.len(), 71)
 
     // The remaining intrinsic families grow through the same Ark path.
     let mi = HashMap::new<i32, String>()
     i = 0
     while i < 60 {
-        let _previ = mi.insert(i, text::concat("v", (i).to_string()))
+        let _previ = mi.insert(i, "v".concat((i).to_string()))
         i = i + 1
     }
     test::assert_eq_i32(mi.len(), 60)
@@ -54,7 +54,7 @@ fn main() {
     let ms = HashMap::new<String, String>()
     i = 0
     while i < 60 {
-        let _prevs = ms.insert(text::concat("s_", (i).to_string()), text::concat("w_", (i).to_string()))
+        let _prevs = ms.insert("s_".concat((i).to_string()), "w_".concat((i).to_string()))
         i = i + 1
     }
     test::assert_eq_i32(ms.len(), 60)

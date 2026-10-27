@@ -6,7 +6,7 @@ use typechecker::names
 fn mono_type_key(ty: TypeInfo) -> String {
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_TYPE_VAR() {
-        return text::concat("?", contract_type_access::TypeInfo_name(ty))
+        return "?".concat(contract_type_access::TypeInfo_name(ty))
     }
     let mut base = ""
     if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() || tag == commands::TY_RESOURCE() {
@@ -37,16 +37,16 @@ fn mono_type_key(ty: TypeInfo) -> String {
     if arg_count == 0 {
         return base
     }
-    let mut result = text::concat(base, "<")
+    let mut result = base.concat("<")
     let mut i = 0
     while i < arg_count {
         let arg = contract_type_access::TypeInfo_type_arg_at(ty, i)
         if i > 0 {
-            result = text::builder_append(result, ",")
+            result = result.concat(",")
         }
-        result = text::builder_append(result, mono_type_key(arg))
+        result = result.concat(mono_type_key(arg))
         i = i + 1
     }
-    result = text::builder_append(result, ">")
+    result = result.concat(">")
     result
 }

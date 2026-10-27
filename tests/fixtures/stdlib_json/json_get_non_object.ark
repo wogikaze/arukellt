@@ -9,7 +9,7 @@ fn main() {
                 None => {},
             }
         },
-        Result::Err(e) => panic(text::concat("parse failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
     }
     match json::parse("[1,2]") {
         Result::Ok(v) => {
@@ -18,6 +18,6 @@ fn main() {
                 None => {},
             }
         },
-        Result::Err(e) => panic(text::concat("parse array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse array failed: ".concat(json::parse_error_message(e))),
     }
 }

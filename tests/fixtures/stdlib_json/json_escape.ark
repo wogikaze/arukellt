@@ -17,7 +17,7 @@ fn main() {
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
     }
 }
 // json_encode_string handles special characters

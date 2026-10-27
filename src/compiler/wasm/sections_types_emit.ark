@@ -433,7 +433,7 @@ fn find_fnsig_type_idx(canon_types: Vec<String>, type_name: String, memory64: bo
     if len(param_tok) == 0 || len(ret_tok) == 0 {
         return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
     }
-    let wanted = text::concat(param_tok, text::concat(String_from("_1"), ret_tok))
+    let wanted = param_tok.concat(String_from("_1").concat(ret_tok))
     let n = len(canon_types)
     let mut i = 0
     while i < n {

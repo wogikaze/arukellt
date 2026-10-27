@@ -3,15 +3,15 @@ use std::text
 
 fn main() {
     // Tab whitespace
-    test::assert_eq_string(text::trim("\thello\t"), "hello")
-    test::assert_eq_string(text::trim_start("\thello"), "hello")
-    test::assert_eq_string(text::trim_end("hello\t"), "hello")
+    test::assert_eq_string("\thello\t".trim(), "hello")
+    test::assert_eq_string("\thello".trim_start(), "hello")
+    test::assert_eq_string("hello\t".trim_end(), "hello")
     // Newline whitespace
-    test::assert_eq_string(text::trim("\nhello\n"), "hello")
-    test::assert_eq_string(text::trim_start("\nhello"), "hello")
-    test::assert_eq_string(text::trim_end("hello\n"), "hello")
+    test::assert_eq_string("\nhello\n".trim(), "hello")
+    test::assert_eq_string("\nhello".trim_start(), "hello")
+    test::assert_eq_string("hello\n".trim_end(), "hello")
     // Carriage return
-    test::assert_eq_string(text::trim("\rhello\r"), "hello")
+    test::assert_eq_string("\rhello\r".trim(), "hello")
     // Mixed whitespace
-    test::assert_eq_string(text::trim(" \t\n hello \r\n "), "hello")
+    test::assert_eq_string(" \t\n hello \r\n ".trim(), "hello")
 }

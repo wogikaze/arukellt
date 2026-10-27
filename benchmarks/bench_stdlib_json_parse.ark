@@ -6,10 +6,7 @@ use std::json::parser
 use std::text
 fn main() {
     // Build a JSON object string
-    let json_str = text::concat(
-        "{\"name\":\"bench\",\"count\":42,\"active\":true,\"tags\":[\"a\",\"b\",\"c\"],\"meta\":{\"v\":1}}",
-        ""
-    )
+    let json_str = "{\"name\":\"bench\",\"count\":42,\"active\":true,\"tags\":[\"a\",\"b\",\"c\"],\"meta\":{\"v\":1}}".concat("")
 
     let mut sum: i32 = 0
     let mut iter: i32 = 0

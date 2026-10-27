@@ -3,9 +3,9 @@ use std::text
 
 fn main() {
     // No match — string unchanged
-    test::assert_eq_string(text::replace("hello", "xyz", "!"), "hello")
+    test::assert_eq_string("hello".replace("xyz", "!"), "hello")
     // Empty string with no match
-    test::assert_eq_string(text::replace("", "a", "b"), "")
+    test::assert_eq_string("".replace("a", "b"), "")
     // Replace with same string
-    test::assert_eq_string(text::replace("abc", "b", "b"), "abc")
+    test::assert_eq_string("abc".replace("b", "b"), "abc")
 }

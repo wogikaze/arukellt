@@ -16,9 +16,9 @@ fn main() {
     stdio::println(full)
     let empty = slice(ascii, 2, 2)
     stdio::println((len(empty)).to_string())
-    stdio::println((text::len_bytes("abc")).to_string())
-    stdio::println((text::is_empty("")).to_string())
-    stdio::println((text::is_empty("a")).to_string())
+    stdio::println(("abc".len_bytes()).to_string())
+    stdio::println(("".is_empty()).to_string())
+    stdio::println(("a".is_empty()).to_string())
 }
 // UTF-8 byte length vs perceived character count
 // Arukellt len() measures BYTES, not Unicode scalars.

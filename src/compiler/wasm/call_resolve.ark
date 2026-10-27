@@ -259,8 +259,8 @@ fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_nam
         let sole = mir_function_sole_call_target(f)
         let stem = mir_module_stem_from_qualified(clone(sole))
         if len(stem) > 0 {
-            return text::concat(stem, text::concat("__", clone(short_name)))
+            return stem.concat("__".concat(clone(short_name)))
         }
     }
-    text::concat(text::concat(clone(short_name), "__"), to_string(seen_count))
+    clone(short_name).concat("__").concat(to_string(seen_count))
 }

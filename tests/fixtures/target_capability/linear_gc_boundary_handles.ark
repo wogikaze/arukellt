@@ -187,7 +187,7 @@ fn main() {
     let mut keep: Vec<Vec<i32>> = Vec::new<Vec<i32>>()
     let mut i = 0
     while i < 64 {
-        let _pad = text::concat(String_from("pad"), i.to_string())
+        let _pad = String_from("pad").concat(i.to_string())
         let v: Vec<i32> = Vec::with_capacity<i32>(16)
         push(v, i * 7 + 3)
         push(v, i * 13 + 5)
@@ -207,7 +207,7 @@ fn main() {
     let keep_empty: Vec<String> = Vec::new<String>()
     i = 0
     while i < 512 {
-        push(keep_empty, text::concat(String_from(""), String_from("")))
+        push(keep_empty, String_from("").concat(String_from("")))
         i = i + 1
     }
     churn_small(1500000)
@@ -226,8 +226,8 @@ fn main() {
     }
     i = 0
     while i < 96 {
-        let stem = text::concat(String_from("mod"), i.to_string())
-        let path = text::concat(String_from("mod/dir/"), text::concat(clone(stem), String_from(".ark")))
+        let stem = String_from("mod").concat(i.to_string())
+        let path = String_from("mod/dir/").concat(clone(stem).concat(String_from(".ark")))
         if LoadState_has_loaded(state, clone(path)) == false {
             LoadState_push_loaded(state, clone(path))
         }
@@ -239,8 +239,8 @@ fn main() {
     }
     i = 0
     while i < 96 {
-        let stem = text::concat(String_from("mod"), i.to_string())
-        let path = text::concat(String_from("mod/dir/"), text::concat(clone(stem), String_from(".ark")))
+        let stem = String_from("mod").concat(i.to_string())
+        let path = String_from("mod/dir/").concat(clone(stem).concat(String_from(".ark")))
         test::assert_true(LoadState_has_loaded(state, path))
         i = i + 1
     }

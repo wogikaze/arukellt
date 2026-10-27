@@ -13,7 +13,7 @@ fn main() {
     stdio::println((f(5)).to_string())
     let s = String_from("hello ")
     let g = |x: i32| -> String {
-        text::concat(s, (x).to_string())
+        s.concat((x).to_string())
     }
     stdio::println(g(42))
 }

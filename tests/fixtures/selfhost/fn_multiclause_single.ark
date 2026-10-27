@@ -3,7 +3,7 @@
 use std::host::stdio
 use std::prelude::{clone}
 use std::text
-fn greet(name: String) -> String = text::concat(String_from("Hello, "), text::concat(clone(name), String_from("!")))
+fn greet(name: String) -> String = String_from("Hello, ").concat(clone(name).concat(String_from("!")))
 
 fn main() {
     stdio::println(greet(String_from("World")))

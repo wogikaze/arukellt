@@ -133,19 +133,16 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
             let mut pi = 0
             while pi < closure_params {
                 if pi > 0 {
-                    params = text::concat(params, String_from(","))
+                    params = params.concat(String_from(","))
                 }
                 let mut pseg = local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(mf, pi))
                 if len(pseg) == 0 {
                     pseg = String_from("i32")
                 }
-                params = text::concat(params, pseg)
+                params = params.concat(pseg)
                 pi = pi + 1
             }
-            return text::concat(
-                String_from("fnsig:"),
-                text::concat(clone(params), text::concat(String_from(";"), ret_seg_multi))
-            )
+            return String_from("fnsig:").concat(clone(params).concat(String_from(";").concat(ret_seg_multi)))
         }
         return "fnref2"
     }
@@ -164,7 +161,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
         if len(ret_seg) == 0 || type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
             return "fnref"
         }
-        return text::concat(String_from("fnsig:;"), ret_seg)
+        return String_from("fnsig:;").concat(ret_seg)
     }
     let param = function_param_view::MirFunction_param_at(mf, 0)
     let mut param_seg = local_access::MirLocal_type_name(param)
@@ -181,10 +178,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
     type_ann_node::fn_sig_segment_is_i32_family(clone(ret_seg)) {
         return String_from("fnref")
     }
-    text::concat(
-        String_from("fnsig:"),
-        text::concat(clone(param_seg), text::concat(String_from(";"), ret_seg))
-    )
+    String_from("fnsig:").concat(clone(param_seg).concat(String_from(";").concat(ret_seg)))
 }
 
 fn ctx_closure_lookup(ctx: LowerCtx, name: String) -> i32 {

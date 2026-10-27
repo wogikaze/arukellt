@@ -40,17 +40,17 @@ fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic)
     let msg = record::diagnostic_message(diag)
     let phase = diagnostic_phase_name(clone(code), clone(msg))
     let mut out = severity::severity_name(sev)
-    out = text::builder_append(out, String_from("["))
-    out = text::builder_append(out, text::concat(code, text::concat(String_from("|"), text::concat(phase, text::concat(String_from("]: "), msg)))))
+    out = out.concat(String_from("["))
+    out = out.concat(code.concat(String_from("|").concat(phase.concat((String_from("]: ")).concat(msg)))))
     let span = record::diagnostic_span(diag)
     let start = record::diagnostic_span_start(span)
     let end = record::diagnostic_span_end(span)
     if start > 0 || end > 0 {
-        out = text::builder_append(out, text::concat(String_from("\n  --> "), source_map_offsets::location_text(clone(source), clone(source_file), start)))
+        out = out.concat(String_from("\n  --> ").concat(source_map_offsets::location_text(clone(source), clone(source_file), start)))
         return out
     }
     if len(source_file) > 0 {
-        out = text::builder_append(out, text::concat(String_from("\n  --> "), clone(source_file)))
+        out = out.concat(String_from("\n  --> ").concat(clone(source_file)))
     }
     out
 }

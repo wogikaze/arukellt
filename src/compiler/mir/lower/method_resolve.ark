@@ -146,7 +146,7 @@ fn mir_inst_owner_name(type_name: String) -> String {
         // its methods register under the bare owner.
         return base
     }
-    text::concat(clone(base), text::concat(String_from("_"), suffix))
+    clone(base).concat(String_from("_").concat(suffix))
 }
 
 // Bare owner spelling for a generic local type: "WrapIter<i32>" -> "WrapIter".
@@ -192,9 +192,9 @@ fn mir_inst_key_suffix(inner: String) -> String {
                 return String_new()
             }
             if len(suffix) > 0 {
-                suffix = text::concat(suffix, String_from("_"))
+                suffix = suffix.concat(String_from("_"))
             }
-            suffix = text::concat(suffix, key)
+            suffix = suffix.concat(key)
             seg_start = j + 1
         }
         j = j + 1
@@ -235,21 +235,12 @@ fn mir_hashmap_decl_owner_name(inner: String) -> String {
         return String_from("HashMap")
     }
     if mir_inst_seg_is_named(clone(val_seg)) {
-        return text::concat(
-            String_from("HashMap_"),
-            text::concat(
-                mir_inst_named_seg_key(key_seg),
-                text::concat(String_from("_"), mir_inst_named_seg_key(val_seg))
-            )
-        )
+        return String_from("HashMap_").concat(mir_inst_named_seg_key(key_seg).concat(String_from("_").concat(mir_inst_named_seg_key(val_seg))))
     }
     // Function-valued pairs keep the shared fnref owner key that impl
     // registration and inst_arg_key use (HashMap_i32_fnref, #691).
     if mir_inst_seg_is_fn(clone(val_seg)) {
-        return text::concat(
-            String_from("HashMap_"),
-            text::concat(mir_inst_named_seg_key(key_seg), String_from("_fnref"))
-        )
+        return String_from("HashMap_").concat(mir_inst_named_seg_key(key_seg).concat(String_from("_fnref")))
     }
     String_from("HashMap")
 }
@@ -316,7 +307,7 @@ fn mir_inst_arg_key(seg: String) -> String {
         if len(elem_key) == 0 {
             return String_new()
         }
-        return text::concat(String_from("Vec_"), elem_key)
+        return String_from("Vec_").concat(elem_key)
     }
     if starts_with(clone(seg), String_from("hashmap:")) {
         let owner = mir_hashmap_impl_owner_name(seg)
@@ -363,10 +354,7 @@ fn mir_inst_arg_key(seg: String) -> String {
             if len(arg_suffix) == 0 {
                 return String_new()
             }
-            return text::concat(
-                substring(clone(seg), 0, k),
-                text::concat(String_from("_"), arg_suffix)
-            )
+            return substring(clone(seg), 0, k).concat(String_from("_").concat(arg_suffix))
         }
         k = k + 1
     }
@@ -479,7 +467,7 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     }
     let method_mono_type_key = mir_method_mono_type_key(ctx, first_method_arg_idx)
     if len(method_mono_type_key) > 0 {
-        let method_mono_candidate = mono::mono_safe_name(text::concat(clone(callee_name), text::concat(String_from("__"), method_mono_type_key)))
+        let method_mono_candidate = mono::mono_safe_name(clone(callee_name).concat(String_from("__").concat(method_mono_type_key)))
         if ctx_has_fn_name(ctx, clone(method_mono_candidate)) {
             return method_mono_candidate
         }
@@ -618,7 +606,7 @@ fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
     if !contains(clone(owner), String_from("_")) {
         return String_new()
     }
-    let method_suffix = text::concat("::", clone(method))
+    let method_suffix = "::".concat(clone(method))
     let inst_count = len(ctx.mono_instances)
     let mut i = 0
     while i < inst_count {
@@ -627,16 +615,13 @@ fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
         if ends_with(clone(inst_fn), clone(method_suffix)) {
             let inst_owner = substring(clone(inst_fn), 0, len(inst_fn) - len(method_suffix))
             let owner_safe = mono::mono_safe_name(inst_owner)
-            let recv_prefix = text::concat(clone(owner_safe), String_from("_"))
+            let recv_prefix = clone(owner_safe).concat(String_from("_"))
             if starts_with(clone(owner), clone(recv_prefix)) {
                 let recv_args = substring(clone(owner), len(recv_prefix), len(owner))
                 let mangled_safe = mono::mono_safe_name(
                     mono_instance_shape::mir_mono_instance_mangled_name(inst)
                 )
-                let arg_prefix = text::concat(
-                    clone(owner_safe),
-                    text::concat("__", text::concat(clone(method), "__"))
-                )
+                let arg_prefix = clone(owner_safe).concat("__".concat(clone(method).concat("__")))
                 if starts_with(clone(mangled_safe), clone(arg_prefix)) {
                     let inst_args = substring(clone(mangled_safe), len(arg_prefix), len(mangled_safe))
                     if mir_mono_arg_segments_eq(clone(recv_args), inst_args) &&

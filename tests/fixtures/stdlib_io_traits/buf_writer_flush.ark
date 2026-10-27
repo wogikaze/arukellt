@@ -51,7 +51,7 @@ fn flush_sink<T: io::Write>(sink: T) -> Result<(), io::IoError> {
 fn main() {
     let writer: Writer = Writer::new()
     let buffered: BufWriter<Writer> = BufWriter::new<Writer>(writer, 4)
-    let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, text::to_utf8_bytes("AB"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, "AB".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -66,7 +66,7 @@ fn main() {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
-    let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, text::to_utf8_bytes("EFG"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, "EFG".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -83,12 +83,12 @@ fn main() {
     }
 
     let zero: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 0)
-    let write_result: Result<i32, io::IoError> = write_bytes_to(zero, text::to_utf8_bytes("HI"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(zero, "HI".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
     }
-    let write_result: Result<i32, io::IoError> = write_bytes_to(zero, text::to_utf8_bytes("J"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(zero, "J".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -100,7 +100,7 @@ fn main() {
     }
 
     let pending: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 100)
-    let write_result: Result<i32, io::IoError> = write_bytes_to(pending, text::to_utf8_bytes("K"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(pending, "K".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -128,7 +128,7 @@ fn main() {
 
     let rejected: BufWriter<RejectingWriter> =
     BufWriter::new<RejectingWriter>(RejectingWriter { calls: 0 }, 1)
-    let write_result: Result<i32, io::IoError> = write_bytes_to(rejected, text::to_utf8_bytes("A"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(rejected, "A".to_utf8_bytes())
     match write_result {
         Result::Ok(_) => stdio::println("unexpected buffered write"),
         Result::Err(err) => stdio::println(io::io_error_message(err)),
@@ -136,7 +136,7 @@ fn main() {
 
     let partial: BufWriter<OneByteWriter> =
     BufWriter::new<OneByteWriter>(OneByteWriter { bytes: Vec::new<i32>() }, 4)
-    let write_result: Result<i32, io::IoError> = write_bytes_to(partial, text::to_utf8_bytes("ABC"))
+    let write_result: Result<i32, io::IoError> = write_bytes_to(partial, "ABC".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
         Result::Err(err) => stdio::println(io::io_error_message(err)),

@@ -4,6 +4,6 @@ use std::text
 fn main() {
     let name = String_from("world")
     let x = 42
-    stdio::println(text::concat("hello ", to_string(name)))
-    stdio::println(text::concat("x = ", to_string(x)))
+    stdio::println("hello ".concat(to_string(name)))
+    stdio::println("x = ".concat(to_string(x)))
 }

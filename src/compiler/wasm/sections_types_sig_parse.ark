@@ -38,9 +38,9 @@ fn parse_sub_struct_sig(sig: String) -> String {
         let body_start = s_start + 3
         let at = find_type_sig_char(sig, 64)
         if at >= body_start {
-            return text::concat("GS_", substring(clone(sig), body_start, at))
+            return "GS_".concat(substring(clone(sig), body_start, at))
         }
-        return text::concat("GS_", substring(clone(sig), body_start, len(sig)))
+        return "GS_".concat(substring(clone(sig), body_start, len(sig)))
     }
     "GS_f0_i32"
 }

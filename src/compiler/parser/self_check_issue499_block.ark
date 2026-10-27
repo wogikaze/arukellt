@@ -12,10 +12,10 @@ fn issue499_parser_block_body_lexer_integration_self_check() -> String {
     let decls = self_check_issue499_parse::issue499_parse_decls(parse)
     let error_count = self_check_issue499_parse::issue499_parse_error_count(parse)
     if error_count != 0 {
-        return text::concat("issue499 block body fail: parse errors=", to_string(error_count))
+        return "issue499 block body fail: parse errors=".concat(to_string(error_count))
     }
     if len(decls) != 1 {
-        return text::concat("issue499 block body fail: decl count=", to_string(len(decls)))
+        return "issue499 block body fail: decl count=".concat(to_string(len(decls)))
     }
     let fn_decl = get_unchecked(decls, 0)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {

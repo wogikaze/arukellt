@@ -1,5 +1,5 @@
 // Export with String result maps to WIT string.
 use std::text
 export fn number_label(n: i32) -> String {
-    text::concat(String_from("n="), (n).to_string())
+    String_from("n=").concat((n).to_string())
 }

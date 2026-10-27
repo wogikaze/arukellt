@@ -158,7 +158,7 @@ impl Debug for char {
 /// best-effort scalar impl (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md).
 impl Debug for String {
     fn fmt_debug(self: String) -> String {
-        text::concat("\"", text::concat(self, "\""))
+        "\"".concat(self.concat("\""))
     }
 }
 

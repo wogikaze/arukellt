@@ -181,8 +181,8 @@ fn sig_reg_leaf_instance_name_match(
         if eq(clone(inst_name), clone(qualified_name)) {
             return true
         }
-        if ends_with(clone(inst_name), text::concat(String_from("::"), clone(qualified_name))) ||
-        ends_with(clone(qualified_name), text::concat(String_from("::"), clone(inst_name))) {
+        if ends_with(clone(inst_name), String_from("::").concat(clone(qualified_name))) ||
+        ends_with(clone(qualified_name), String_from("::").concat(clone(inst_name))) {
             return true
         }
         return false

@@ -26,7 +26,7 @@ fn mir_set_array_type_from_value(ctx: LowerCtx, dest: i32, val_idx: i32) {
     if len(elem_type) == 0 {
         return
     }
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, text::concat("array:", clone(elem_type)))
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, "array:".concat(clone(elem_type)))
     ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
 }
 

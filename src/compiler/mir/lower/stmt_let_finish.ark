@@ -57,7 +57,7 @@ fn apply_vec_ctor_fn_turbofish_name(ctx: LowerCtx, node: AstNode, local_idx: i32
         if len(tuple_name) == 0 {
             return
         }
-        let vec_ty = text::concat(String_from("vec:"), tuple_name)
+        let vec_ty = String_from("vec:").concat(tuple_name)
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(vec_ty))
         ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
         if val_idx >= 0 {

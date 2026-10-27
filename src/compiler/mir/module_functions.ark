@@ -164,18 +164,8 @@ fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
         return
     }
     stdio::eprintln(
-        text::concat(
-            "[arukellt] mir.counts: functions=",
-            text::concat(
-                to_string(MirModule_function_count(m)),
-                text::concat(
-                    " locals=",
-                    text::concat(
-                        to_string(MirModule_local_count(m)),
-                        text::concat(" insts=", to_string(MirModule_inst_count(m)))
-                    )
-                )
-            )
+        "[arukellt] mir.counts: functions=".concat(
+            to_string(MirModule_function_count(m)).concat(" locals=".concat(to_string(MirModule_local_count(m)).concat(" insts=".concat(to_string(MirModule_inst_count(m))))))
         )
     )
 }

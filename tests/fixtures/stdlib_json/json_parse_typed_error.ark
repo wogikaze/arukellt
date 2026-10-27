@@ -6,9 +6,9 @@ fn main() {
         Result::Ok(v) => stdio::println(json::stringify(v)),
         Result::Err(err) => match err {
             json::JsonParseError::EmptyInput => stdio::println("empty-input"),
-            json::JsonParseError::InvalidLiteral(kind) => stdio::println(text::concat("invalid-literal:", kind)),
+            json::JsonParseError::InvalidLiteral(kind) => stdio::println("invalid-literal:".concat(kind)),
             json::JsonParseError::TrailingCharacters => stdio::println("trailing-characters"),
-            json::JsonParseError::UnexpectedCharacter(ch) => stdio::println(text::concat("unexpected-char:", (ch).to_string())),
+            json::JsonParseError::UnexpectedCharacter(ch) => stdio::println("unexpected-char:".concat((ch).to_string())),
         },
     }
 }

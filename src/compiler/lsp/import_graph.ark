@@ -23,11 +23,11 @@ pub fn is_path_imported(text: String, import_path: String) -> bool {
 }
 
 pub fn stdlib_import_path(module_path: String, symbol_name: String) -> String {
-    text::concat(module_path, text::concat("::", symbol_name))
+    module_path.concat("::".concat(symbol_name))
 }
 
 pub fn build_use_statement(import_path: String) -> String {
-    text::concat("use ", text::concat(import_path, "\n"))
+    "use ".concat(import_path.concat("\n"))
 }
 
 pub fn first_use_insert_offset(text: String) -> i32 {

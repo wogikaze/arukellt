@@ -7,6 +7,6 @@ fn main() {
             Option::Some(s) => test::assert_eq_string(s, "line1\nline2"),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse newline failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse newline failed: ".concat(json::parse_error_message(e))),
     }
 }

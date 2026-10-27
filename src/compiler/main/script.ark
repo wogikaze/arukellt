@@ -21,11 +21,11 @@ pub fn cmd_script(opts: CliOptions) {
                 stdio::println(clone(found))
                 return
             }
-            stdio::eprintln(text::concat(String_from("error: script '"), text::concat(clone(script_name), String_from("' not found in ark.toml [scripts]"))))
+            stdio::eprintln(String_from("error: script '").concat(clone(script_name).concat(String_from("' not found in ark.toml [scripts]"))))
             process::exit(1)
         },
         Result::Err(e) => {
-            stdio::eprintln(text::concat(String_from("error: cannot read ark.toml: "), e))
+            stdio::eprintln(String_from("error: cannot read ark.toml: ").concat(e))
             process::exit(1)
         },
     }

@@ -63,7 +63,7 @@ pub fn flag(args: Vec<String>, name: String) -> bool {
 /// - `--flag=value`  (embedded `=`)
 pub fn option(args: Vec<String>, name: String) -> Option<String> {
     let n = len(args)
-    let prefix = text::concat(name, "=")
+    let prefix = name.concat("=")
     let prefix_len = len(prefix)
     let mut i = 0
     while i < n {

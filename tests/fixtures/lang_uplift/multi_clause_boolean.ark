@@ -3,7 +3,7 @@ fn is_positive(x) -> bool | x > 0 = true
 fn is_positive(_) -> bool = false
 
 fn main() {
-    __intrinsic_print(text::concat((is_positive(5)).to_string(), "\n"))
-    __intrinsic_print(text::concat((is_positive(-3)).to_string(), "\n"))
-    __intrinsic_print(text::concat((is_positive(0)).to_string(), "\n"))
+    __intrinsic_print((is_positive(5)).to_string().concat("\n"))
+    __intrinsic_print((is_positive(-3)).to_string().concat("\n"))
+    __intrinsic_print((is_positive(0)).to_string().concat("\n"))
 }

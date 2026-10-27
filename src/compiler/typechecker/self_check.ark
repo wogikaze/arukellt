@@ -13,14 +13,14 @@ fn main() {
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     if len(p.errors) != 0 {
-        stdio::println(text::concat("TypeChecker parse errors: ", to_string(len(p.errors))))
+        stdio::println("TypeChecker parse errors: ".concat(to_string(len(p.errors))))
         return
     }
     let resolve_ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), Vec::new<String>())
     let result = entry::typecheck_module(decls, resolve_ctx, Vec::new<String>())
     let error_count = contract_result_state::typecheck_result_error_count(result)
     if error_count != 0 {
-        stdio::println(text::concat("TypeChecker errors: ", to_string(error_count)))
+        stdio::println("TypeChecker errors: ".concat(to_string(error_count)))
         return
     }
     stdio::println("TypeChecker OK.")

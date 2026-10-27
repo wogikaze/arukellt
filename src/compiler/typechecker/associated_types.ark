@@ -181,7 +181,7 @@ fn resolve_trait_method_type(
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
         let prefix = String_from("Self::")
-        if text::starts_with(clone(name), clone(prefix)) {
+        if clone(name).starts_with(clone(prefix)) {
             let assoc_name = substring(name, len(prefix), len(name))
             let resolved = lookup_associated_type(
                 env,
@@ -249,7 +249,7 @@ fn resolve_projection(
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
         let prefix = String_from("Self::")
-        if text::starts_with(clone(name), clone(prefix)) {
+        if clone(name).starts_with(clone(prefix)) {
             let assoc_name = substring(name, len(prefix), len(name))
             let resolved = lookup_associated_type(env, clone(trait_name), receiver, assoc_name)
             if contract_type_access::TypeInfo_tag(resolved) != commands::TY_UNKNOWN() {
@@ -289,7 +289,7 @@ fn unresolved_projection_for_receiver(receiver: TypeInfo, assoc_name: String) ->
     let receiver_name = contract_type_access::TypeInfo_name(receiver)
     contract_type_constructors::TypeInfo_named(
         commands::TY_STRUCT(),
-        text::concat(clone(receiver_name), text::concat("::", assoc_name))
+        clone(receiver_name).concat("::".concat(assoc_name))
     )
 }
 

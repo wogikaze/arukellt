@@ -45,16 +45,16 @@ fn ctx_normalize_payload_field_type_name(type_name: String) -> String {
         return substring(type_name, 5, len(type_name))
     }
     if starts_with(clone(type_name), String_from("option:")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option_")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option:")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name)))
     }
     if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
-        return text::concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+        return String_from("option:").concat(substring(type_name, 7, len(type_name) - 1))
     }
     type_name
 }
@@ -151,7 +151,7 @@ fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> Strin
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     // Bare `Table` → unique `TomlValue::Table` (#726).
     if !contains(clone(variant_name), String_from("::")) {
-        let suffix = text::concat(String_from("::"), clone(variant_name))
+        let suffix = String_from("::").concat(clone(variant_name))
         let mut si = 0
         let mut found = String_new()
         let mut hits = 0
@@ -369,7 +369,7 @@ fn ctx_struct_field_is_v128(ctx: LowerCtx, struct_name: String, field_idx: i32) 
 fn normalize_gc_field_type_name(type_name: String) -> String {
     if starts_with(clone(type_name), String_from("vec:")) {
         let elem = substring(clone(type_name), 4, len(type_name))
-        return text::concat(String_from("vec:"), normalize_gc_field_type_name(elem))
+        return String_from("vec:").concat(normalize_gc_field_type_name(elem))
     }
     if starts_with(clone(type_name), String_from("Vec<")) &&
     ends_with(clone(type_name), String_from(">")) {
@@ -377,14 +377,14 @@ fn normalize_gc_field_type_name(type_name: String) -> String {
         if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
             return String_from("vec:String")
         }
-        return text::concat(String_from("vec:"), normalize_gc_field_type_name(clone(elem)))
+        return String_from("vec:").concat(normalize_gc_field_type_name(clone(elem)))
     }
     if starts_with(clone(type_name), String_from("Vec_")) {
         let elem = substring(clone(type_name), 4, len(type_name))
         if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
             return String_from("vec:String")
         }
-        return text::concat(String_from("vec:"), normalize_gc_field_type_name(clone(elem)))
+        return String_from("vec:").concat(normalize_gc_field_type_name(clone(elem)))
     }
     let base = strip_module_prefix(clone(type_name))
     if eq(clone(base), String_from("Vec")) {

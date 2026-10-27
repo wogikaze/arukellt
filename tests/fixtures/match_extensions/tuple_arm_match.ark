@@ -17,7 +17,7 @@ fn main() {
     let s = Opt::Some(42)
     let t1 = (s, 7)
     match t1 {
-        (Opt::Some(v), _) => stdio::println(text::concat("some:", (v).to_string())),
+        (Opt::Some(v), _) => stdio::println("some:".concat((v).to_string())),
         (Opt::None, _) => stdio::println("none"),
         _ => stdio::println("miss"),
     }
@@ -56,7 +56,7 @@ fn main() {
     let opt: Option<i32> = Option::Some(5)
     let t4 = (opt, "k")
     match t4 {
-        (Option::Some(v), k) => stdio::println(text::concat(k, (v).to_string())),
+        (Option::Some(v), k) => stdio::println(k.concat((v).to_string())),
         (Option::None, _) => stdio::println("none-elem"),
         _ => stdio::println("other"),
     }

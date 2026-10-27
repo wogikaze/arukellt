@@ -21,6 +21,6 @@ fn main() {
                 None => panic("expected key a"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse deeply nested failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse deeply nested failed: ".concat(json::parse_error_message(e))),
     }
 }

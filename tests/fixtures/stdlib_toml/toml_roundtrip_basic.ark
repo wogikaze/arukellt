@@ -20,6 +20,6 @@ fn main() {
                 stdio::println("roundtrip mismatch")
             }
         },
-        Result::Err(e) => stdio::println(text::concat("error:", e)),
+        Result::Err(e) => stdio::println("error:".concat(e)),
     }
 }

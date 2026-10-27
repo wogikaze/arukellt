@@ -2,8 +2,8 @@ use std::text::fmt
 use std::test
 
 fn main() {
-    test::assert_eq_string(fmt::format_debug(42), "42")
-    test::assert_eq_string(fmt::format_debug(0), "0")
-    test::assert_eq_string(fmt::format_debug(100), "100")
-    test::assert_eq_string(fmt::format_debug(999999), "999999")
+    test::assert_eq_string((42).fmt_debug(), "42")
+    test::assert_eq_string((0).fmt_debug(), "0")
+    test::assert_eq_string((100).fmt_debug(), "100")
+    test::assert_eq_string((999999).fmt_debug(), "999999")
 }

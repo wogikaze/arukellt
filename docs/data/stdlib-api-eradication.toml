@@ -192,6 +192,18 @@ class = "must delete"
 owner = "703"
 replacement = "Iterator adapters / Vec methods (#691)"
 
+# The std::text free surface was fully retired by #917 on 2026-10-27.
+#   String methods: len_bytes, trim/trim_start/trim_end, replace, lines,
+#     chars, pad_left_with/pad_right_with, repeat, len_chars, codepoint_at,
+#     slice_bytes/try_slice_bytes, slice_chars/try_slice_chars, split,
+#     concat, starts_with, ends_with, contains, to_lower, to_upper,
+#     to_utf8_bytes, insert_text, delete_range, line_count
+#   Associated: String::from_utf8_lossy, String::try_from_utf8
+#   Vec<String>::join
+#   DebugFormat::vec_i32 ... result_string_string
+# The qualified removals carry E0100 hints from resolver::removed_names.
+# No std::text free symbol remains, so this family has no live rule.
+
 [[rules]]
 label = "deprecated module frees"
 deprecated = true
@@ -245,13 +257,6 @@ module_pfx = "std::collections"
 class = "associated-or-method"
 owner = "917"
 replacement = "collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.)"
-
-[[rules]]
-label = "std::text frees"
-module_pfx = "std::text"
-class = "associated-or-method"
-owner = "917"
-replacement = "String/str methods, Builder methods, Rope methods"
 
 [[rules]]
 label = "std::json/toml/csv frees"

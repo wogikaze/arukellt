@@ -1,10 +1,12 @@
 // Fixture: use_destructure_multi.ark
-// Issue #039: `use std::text::{string, fmt}` loads both sub-modules; qualified
-// calls `string::...` and `fmt::...` resolve (multi-name destructure import).
-use std::text::{string, fmt}
+// Issue #039: `use std::collections::{string}` and `use std::text::{fmt}`
+// load both sub-modules; qualified calls resolve (multi-name destructure
+// import).
+use std::collections::{string}
+use std::text::{fmt}
 
 fn main() {
     let parts = string::split("a,b", ",")
     let n = len(parts)
-    __intrinsic_println(fmt::format_i32(n))
+    __intrinsic_println((n).to_string())
 }

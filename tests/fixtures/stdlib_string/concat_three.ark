@@ -4,6 +4,6 @@ fn main() {
     let a = String_from("one-")
     let b = String_from("two-")
     let c = String_from("three")
-    let ab = text::concat(a, b)
-    test::assert_eq_string(text::concat(ab, c), "one-two-three")
+    let ab = a.concat(b)
+    test::assert_eq_string(ab.concat(c), "one-two-three")
 }

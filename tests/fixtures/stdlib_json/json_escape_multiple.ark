@@ -7,6 +7,6 @@ fn main() {
             Option::Some(s) => test::assert_eq_string(s, "a\tb\nc\\d\"e"),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse multiple escapes failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse multiple escapes failed: ".concat(json::parse_error_message(e))),
     }
 }

@@ -13,7 +13,7 @@ fn make_some<T>(value: T) -> Option<T> {
 fn describe<T: Debug>(x: T) -> String {
     let opt = make_some(x)
     match opt {
-        Option::Some(val) => fmt::format_debug(val),
+        Option::Some(val) => val.fmt_debug(),
         None => "none",
     }
 }

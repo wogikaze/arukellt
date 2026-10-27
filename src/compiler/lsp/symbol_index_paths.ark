@@ -4,7 +4,7 @@ pub fn file_path_to_uri(path: String) -> String {
     if starts_with(clone(path), "file://") {
         return path
     }
-    text::concat("file://", path)
+    "file://".concat(path)
 }
 
 pub fn uri_to_file_path(uri: String) -> String {
@@ -35,7 +35,7 @@ fn extract_workspace_folder_uri(body: String) -> String {
 }
 
 pub fn extract_json_string_field(body: String, key: String) -> String {
-    let key_pat = text::concat(text::concat("\"", clone(key)), "\"")
+    let key_pat = "\"".concat(clone(key)).concat("\"")
     let pos = index_of(clone(body), key_pat)
     if pos < 0 {
         return String_new()
@@ -74,9 +74,9 @@ pub fn join_path(base: String, rel: String) -> String {
         return rel
     }
     if ends_with(clone(base), "/") {
-        return text::concat(base, rel)
+        return base.concat(rel)
     }
-    text::concat(text::concat(base, "/"), rel)
+    base.concat("/").concat(rel)
 }
 
 pub fn resolve_relative_path(base: String, rel: String) -> String {
@@ -94,7 +94,7 @@ pub fn resolve_relative_path(base: String, rel: String) -> String {
 }
 
 pub fn find_dependency_path(content: String, dep_name: String) -> String {
-    let needle = text::concat(clone(dep_name), " = { path = \"")
+    let needle = clone(dep_name).concat(" = { path = \"")
     let pos = index_of(clone(content), needle)
     if pos < 0 {
         return String_new()

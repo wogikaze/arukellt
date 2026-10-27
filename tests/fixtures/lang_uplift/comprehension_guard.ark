@@ -13,5 +13,5 @@ fn main() {
     for v in values(filtered) {
         sum = sum + v
     }
-    __intrinsic_print(text::concat((sum).to_string(), "\n"))
+    __intrinsic_print((sum).to_string().concat("\n"))
 }

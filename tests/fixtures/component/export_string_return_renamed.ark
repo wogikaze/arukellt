@@ -1,5 +1,5 @@
 // Export with renamed String result maps to WIT string.
 use std::text
 export fn describe_count(n: i32) -> String {
-    text::concat(String_from("count="), (n).to_string())
+    String_from("count=").concat((n).to_string())
 }

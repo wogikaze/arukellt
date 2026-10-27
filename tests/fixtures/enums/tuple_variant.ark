@@ -7,8 +7,8 @@ enum Shape {
 
 fn describe(s: Shape) -> String {
     match s {
-        Shape::Circle(r) => text::concat(String_from("circle r="), (r).to_string()),
-        Shape::Rectangle(w, h) => text::concat(text::concat(String_from("rect "), (w).to_string()), text::concat(String_from("x"), (h).to_string())),
+        Shape::Circle(r) => String_from("circle r=").concat((r).to_string()),
+        Shape::Rectangle(w, h) => String_from("rect ").concat((w).to_string()).concat(String_from("x").concat((h).to_string())),
     }
 }
 

@@ -55,7 +55,7 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let ev_count = len(ev_names)
     let mut ei = 0
-    let prefix = text::concat(clone(bare), "::")
+    let prefix = clone(bare).concat("::")
     while ei < ev_count {
         let nm = clone(get_unchecked(ev_names, ei))
         if starts_with(clone(nm), clone(prefix)) {
@@ -162,7 +162,7 @@ pub fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i3
     // resolves to the i32-vec layout instead of falling through to -1.
     if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
         let inner = substring(clone(type_name), 4, len(type_name) - 1)
-        return resolve_container_elem_gc_type(ctx, text::concat(String_from("vec:"), inner))
+        return resolve_container_elem_gc_type(ctx, String_from("vec:").concat(inner))
     }
     0 - 1
 }
@@ -597,7 +597,7 @@ fn option_some_suffix_for_container_elem(elem_name: String) -> String {
     if !ctx_gc_struct::gc_struct_field_type_is_container(clone(elem_name)) {
         return String_new()
     }
-    text::concat("_f1", ctx_gc_struct::gc_struct_container_ref_suffix(clone(elem_name)))
+    "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(clone(elem_name)))
 }
 
 // Map a named GC struct to `_f1_gcsref<slot>` for Option::Some payloads.
@@ -607,7 +607,7 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
     let mut i = 0
     while i < count {
         if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
-            return text::concat("_f1_gcsref", (i).to_string())
+            return "_f1_gcsref".concat((i).to_string())
         }
         i = i + 1
     }
@@ -623,7 +623,7 @@ fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let ev_count = len(ev_names)
     let mut ei = 0
-    let prefix = text::concat(clone(bare), "::")
+    let prefix = clone(bare).concat("::")
     while ei < ev_count {
         let nm = clone(get_unchecked(ev_names, ei))
         if starts_with(clone(nm), clone(prefix)) {

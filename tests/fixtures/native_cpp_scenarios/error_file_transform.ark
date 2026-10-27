@@ -7,7 +7,7 @@ fn transform_line(line: String) -> Result<String, String> {
     if len(line) == 0 {
         Err(String_from("empty-line"))
     } else {
-        Ok(text::concat(String_from("OK:"), line))
+        Ok(String_from("OK:").concat(line))
     }
 }
 

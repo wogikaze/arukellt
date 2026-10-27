@@ -30,6 +30,6 @@ fn main() {
                 None => panic("expected key data"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse mixed nested failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse mixed nested failed: ".concat(json::parse_error_message(e))),
     }
 }

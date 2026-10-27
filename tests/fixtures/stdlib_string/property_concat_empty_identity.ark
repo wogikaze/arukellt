@@ -3,6 +3,6 @@ use std::prelude::{eq}
 use std::text
 fn main() {
     let s = String_from("data")
-    test::assert_true(eq(text::concat(s, String_from("")), s))
-    test::assert_true(eq(text::concat(String_from(""), s), s))
+    test::assert_true(eq(s.concat(String_from("")), s))
+    test::assert_true(eq(String_from("").concat(s), s))
 }

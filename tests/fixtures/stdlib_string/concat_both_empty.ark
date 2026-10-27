@@ -4,7 +4,7 @@ use std::text
 fn main() {
     let a = String_from("")
     let b = String_from("")
-    let c = text::concat(a, b)
+    let c = a.concat(b)
     test::assert_eq_i32(len(c), 0)
     test::assert_true(is_empty(c))
 }

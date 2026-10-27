@@ -218,7 +218,7 @@ The following public entries currently carry `deprecated_by` in
 | Deprecated API | Replacement |
 |----------------|-------------|
 | `char_at` | `byte_at` |
-| `concat` | `std::text::concat` |
+| `concat` | `a.concat(b)` |
 | `std::env::get_var` | `std::env::var` |
 | `std::host::fs::exists` | `std::host::fs::is_readable_file` |
 | `std::seq::map_i32_i32` | `v.iter().map(f).collect()` |
@@ -307,7 +307,7 @@ the v2 prelude with a shipped replacement.
 |-------------|-------------|---------------|
 | `std::wasm::memory_copy` | non-public `__intrinsic_memory_copy` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
 | `std::wasm::memory_fill` | non-public `__intrinsic_memory_fill` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
-| bare `concat(a, b)` | `std::text::concat(a, b)` or `a.concat(b)` | deprecated wrapper; E0100 hint retained |
+| bare `concat(a, b)` | `a.concat(b)` | deprecated wrapper; E0100 hint retained |
 | bare `char_at(s, i)` | `byte_at(s, i)` | deprecated wrapper; E0100 hint retained |
 | bare `print(s)` | `std::host::stdio::print(s)` | deprecated binding; E0100 hint retained |
 | bare `println(s)` | `std::host::stdio::println(s)` | deprecated binding; E0100 hint retained |
@@ -495,6 +495,96 @@ The migrated fixtures (`tests/fixtures/stdlib_core/iter_*.ark` and
 `stdlib_trait/iterator_*.ark`) and the new
 `stdlib_trait/iterator_method_surface*.ark` pair cover the method surface on
 both `wasm32-gc` and linear-memory `wasm32`.
+
+## Removed in the #917 std::text wave (2026-10-27)
+
+### Removed now (experimental / unregistered)
+
+These calls are gone. Qualified calls fail resolution with an E0100 hint
+from `resolver::removed_names`.
+
+| Removed | Replacement |
+|---------|-------------|
+| `rope::rope_new()` | an empty string literal |
+| `rope::rope_from_string(s)` | `s.clone()` |
+| `rope::rope_len(r)` | `r.len()` |
+| `rope::rope_to_string(r)` | `r.clone()` |
+| `rope::rope_insert(r, pos, text)` | `r.insert_text(pos, text)` |
+| `rope::rope_delete(r, start, end)` | `r.delete_range(start, end)` |
+| `rope::rope_slice(r, start, end)` | `r.slice(start, end)` |
+| `rope::rope_line_count(r)` | `r.line_count()` |
+| `fmt::format_i32(n)` | `(n).to_string()` |
+| `fmt::format_i64(n)` | `(n).to_string()` |
+| `fmt::format_f64(n)` | `(n).to_string()` |
+| `fmt::format_bool(b)` | `(b).to_string()` |
+| `fmt::pad_left(s, width, fill)` | `s.pad_left_with(width, fill)` |
+| `fmt::pad_right(s, width, fill)` | `s.pad_right_with(width, fill)` |
+| `fmt::format_debug(v)` | `v.fmt_debug()` |
+| `fmt::write_debug_to(buf, v)` | `buf.concat(v.fmt_debug())` |
+| `fmt::debug_format_vec_i32(v)` | `fmt::DebugFormat::vec_i32(v)` |
+| `fmt::debug_format_vec_i64(v)` | `fmt::DebugFormat::vec_i64(v)` |
+| `fmt::debug_format_vec_f64(v)` | `fmt::DebugFormat::vec_f64(v)` |
+| `fmt::debug_format_vec_bool(v)` | `fmt::DebugFormat::vec_bool(v)` |
+| `fmt::debug_format_vec_string(v)` | `fmt::DebugFormat::vec_string(v)` |
+| `fmt::debug_format_option_i32(o)` | `fmt::DebugFormat::option_i32(o)` |
+| `fmt::debug_format_option_string(o)` | `fmt::DebugFormat::option_string(o)` |
+| `fmt::debug_format_result_i32_string(r)` | `fmt::DebugFormat::result_i32_string(r)` |
+| `fmt::debug_format_result_string_string(r)` | `fmt::DebugFormat::result_string_string(r)` |
+
+The six `fmt::format_*` / `fmt::pad_*` entries above were duplicate
+declarations of the corresponding `std::text` manifest entries, so they are
+not counted as additional removals in the eradication scorecard.
+
+### Removed in Wave 2 (stable)
+
+Wave 1 added the method/associated replacements and made these 36 `stable`
+entries `deprecated` with W0009 coverage for qualified `text::*` calls. The
+Wave 2 deletion removed the manifest entries and declarations; qualified calls
+now fail with an E0100 hint from `resolver::removed_names`. The same change
+removed the seven duplicate `std::collections::string` frees (`concat`,
+`chars`, `len_chars`, `codepoint_at`, `try_slice_bytes`, `slice_chars`,
+`try_slice_chars`) that became unregistered when the `std::text` entries
+retired; their `string::*` spellings also carry E0100 hints.
+
+| Removed | Replacement |
+|---------|-------------|
+| `text::len_bytes` | `s.len_bytes()` |
+| `text::is_empty` | `s.is_empty()` |
+| `text::index_of` | `s.index_of(sub)` |
+| `text::trim` | `s.trim()` |
+| `text::trim_start` | `s.trim_start()` |
+| `text::trim_end` | `s.trim_end()` |
+| `text::replace` | `s.replace(from, to)` |
+| `text::lines` | `s.lines()` |
+| `text::chars` | `s.chars()` |
+| `text::pad_left` | `s.pad_left_with(width, fill)` |
+| `text::pad_right` | `s.pad_right_with(width, fill)` |
+| `text::format_i32` | `(n).to_string() on i32` |
+| `text::format_i64` | `(n).to_string() on i64` |
+| `text::format_f64` | `(n).to_string() on f64` |
+| `text::format_bool` | `(b).to_string() on bool` |
+| `text::repeat` | `s.repeat(n)` |
+| `text::len_chars` | `s.len_chars()` |
+| `text::codepoint_at` | `s.codepoint_at(i)` |
+| `text::slice_bytes` | `s.slice_bytes(start, end)` |
+| `text::try_slice_bytes` | `s.try_slice_bytes(start, end)` |
+| `text::slice_chars` | `s.slice_chars(start, end)` |
+| `text::try_slice_chars` | `s.try_slice_chars(start, end)` |
+| `text::split` | `s.split(sep)` |
+| `text::join` | `parts.join(sep)` |
+| `text::concat` | `a.concat(b)` |
+| `text::starts_with` | `s.starts_with(prefix)` |
+| `text::ends_with` | `s.ends_with(suffix)` |
+| `text::contains` | `s.contains(sub)` |
+| `text::to_lower` | `s.to_lower()` |
+| `text::to_upper` | `s.to_upper()` |
+| `text::builder_new` | an empty string literal |
+| `text::builder_append` | `s.concat(text)` |
+| `text::builder_append_char` | `s.concat(c.to_string())` |
+| `text::builder_append_line` | `s.concat(text).concat("\n")` |
+| `text::builder_build` | `the builder value directly` |
+| `text::builder_len` | `s.len()` |
+
 
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 

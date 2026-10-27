@@ -20,6 +20,6 @@ fn main() {
                 None => panic("expected element at 3"),
             }
         },
-        Result::Err(e) => panic(text::concat("parse array failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse array failed: ".concat(json::parse_error_message(e))),
     }
 }

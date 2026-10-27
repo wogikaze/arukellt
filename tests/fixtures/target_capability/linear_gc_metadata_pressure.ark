@@ -19,9 +19,9 @@ fn main() {
     let mut keep: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < 20000 {
-        let _n = churn(text::concat(String_from("k-"), i.to_string()))
+        let _n = churn(String_from("k-").concat(i.to_string()))
         if i % 5000 == 0 {
-            push(keep, text::concat(String_from("alive-"), i.to_string()))
+            push(keep, String_from("alive-").concat(i.to_string()))
         }
         i = i + 1
     }

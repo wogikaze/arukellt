@@ -452,7 +452,7 @@ impl<T: Eq> Eq for Deque<T> {
 
 impl<T: Debug> Debug for Deque<T> {
     fn fmt_debug(self: Deque<T>) -> String {
-        text::concat(String_from("Deque "), deque_debug_items(self))
+        String_from("Deque ").concat(deque_debug_items(self))
     }
 }
 
@@ -479,12 +479,12 @@ fn deque_debug_items<T: Debug>(deque: Deque<T>) -> String {
     let count: i32 = len(deque.front_items) + len(deque.back_items)
     while index < count {
         if index > 0 {
-            out = text::concat(out, String_from(", "))
+            out = out.concat(String_from(", "))
         }
-        out = text::concat(out, (deque_at(deque, index)).fmt_debug())
+        out = out.concat((deque_at(deque, index)).fmt_debug())
         index = index + 1
     }
-    text::concat(out, String_from("]"))
+    out.concat(String_from("]"))
 }
 
 /// First-in first-out queue backed by `Deque<T>`.
@@ -597,7 +597,7 @@ impl<T: Debug> Debug for Queue<T> {
         // nested generic struct field through the shared free function does not
         // lower on wasm32-gc, but the field method call does.
         let rendered: String = self.deque.fmt_debug()
-        text::concat(String_from("Queue "), slice(rendered, 6, len(rendered)))
+        String_from("Queue ").concat(slice(rendered, 6, len(rendered)))
     }
 }
 
@@ -722,7 +722,7 @@ impl<T: Clone> Clone for Stack<T> {
 impl<T: Debug> Debug for Stack<T> {
     fn fmt_debug(self: Stack<T>) -> String {
         let rendered: String = self.deque.fmt_debug()
-        text::concat(String_from("Stack "), slice(rendered, 6, len(rendered)))
+        String_from("Stack ").concat(slice(rendered, 6, len(rendered)))
     }
 }
 

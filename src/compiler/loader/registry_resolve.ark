@@ -3,11 +3,11 @@ use std::prelude::{clone, ends_with, eq, starts_with, substring}
 use std::text
 use loader::registry_config
 fn registry_error_unreachable(url: String, reason: String) -> String {
-    text::concat("registry unreachable: ", text::concat(clone(url), text::concat(" (", text::concat(reason, ")"))))
+    "registry unreachable: ".concat(clone(url).concat(" (".concat(reason.concat(")"))))
 }
 
 fn registry_error_not_found(package_name: String) -> String {
-    text::concat("package '", text::concat(clone(package_name), "' not found in registry"))
+    "package '".concat(clone(package_name).concat("' not found in registry"))
 }
 
 fn starts_with_http(url: String) -> bool {
@@ -24,7 +24,7 @@ fn file_registry_root(package_root: String, registry_url: String) -> String {
     }
     if starts_with(clone(registry_url), "file://./") {
         let rel = substring(registry_url, 7, len(registry_url))
-        return text::concat(clone(package_root), text::concat("/", rel))
+        return clone(package_root).concat("/".concat(rel))
     }
     if starts_with(clone(registry_url), "file://") {
         return substring(registry_url, 7, len(registry_url))
@@ -33,11 +33,11 @@ fn file_registry_root(package_root: String, registry_url: String) -> String {
 }
 
 fn registry_package_primary_path(registry_root: String, package_name: String) -> String {
-    text::concat(clone(registry_root), text::concat("/", text::concat(clone(package_name), ".ark")))
+    clone(registry_root).concat("/".concat(clone(package_name).concat(".ark")))
 }
 
 fn registry_package_mod_path(registry_root: String, package_name: String) -> String {
-    text::concat(clone(registry_root), text::concat("/", text::concat(clone(package_name), "/mod.ark")))
+    clone(registry_root).concat("/".concat(clone(package_name).concat("/mod.ark")))
 }
 
 fn read_local_registry_source(registry_root: String, package_name: String) -> Result<String, String> {
@@ -56,9 +56,9 @@ fn read_local_registry_source(registry_root: String, package_name: String) -> Re
 
 fn http_registry_fetch_url(registry_url: String, package_name: String) -> String {
     if ends_with(clone(registry_url), "/") {
-        return text::concat(clone(registry_url), text::concat(clone(package_name), ".ark"))
+        return clone(registry_url).concat(clone(package_name).concat(".ark"))
     }
-    text::concat(clone(registry_url), text::concat("/", text::concat(clone(package_name), ".ark")))
+    clone(registry_url).concat("/".concat(clone(package_name).concat(".ark")))
 }
 
 fn read_http_registry_source(registry_url: String, package_name: String) -> Result<String, String> {

@@ -28,7 +28,7 @@ fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
         let kind_token = core_api_cursor::bump(p)
         let kind_name = token_state::Token_text(kind_token)
         if !eq(clone(kind_name), "requires") && !eq(clone(kind_name), "ensures") {
-            core_api_expect::error(p, text::concat("unsupported proof contract kind: ", kind_name))
+            core_api_expect::error(p, "unsupported proof contract kind: ".concat(kind_name))
             return false
         }
         core_api_cursor::skip_newlines(p)

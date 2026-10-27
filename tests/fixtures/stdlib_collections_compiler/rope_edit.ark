@@ -1,29 +1,28 @@
 use std::host::stdio
-use std::text::rope
 
 fn main() {
     // Start with a base string
-    let r = rope::rope_from_string("Hello World")
-    stdio::println(rope::rope_to_string(r))
+    let r = "Hello World".clone()
+    stdio::println(r.clone())
     // Insert comma at position 5 (after "Hello")
-    let r2 = rope::rope_insert(r, 5, ",")
-    stdio::println(rope::rope_to_string(r2))
+    let r2 = r.insert_text(5, ",")
+    stdio::println(r2.clone())
     // Insert exclamation at end
-    let r3 = rope::rope_insert(r2, 12, "!")
-    stdio::println(rope::rope_to_string(r3))
+    let r3 = r2.insert_text(12, "!")
+    stdio::println(r3.clone())
     // Delete " World" (indices 6..12)
-    let r4 = rope::rope_delete(r3, 6, 12)
-    stdio::println(rope::rope_to_string(r4))
+    let r4 = r3.delete_range(6, 12)
+    stdio::println(r4.clone())
     // Slice the remaining text
-    let s = rope::rope_slice(r4, 0, 6)
+    let s = r4.slice(0, 6)
     stdio::println(s)
     // Empty rope
-    let empty = rope::rope_new()
-    stdio::println((rope::rope_len(empty)).to_string())
+    let empty = ""
+    stdio::println((empty.len()).to_string())
     // Insert into empty rope
-    let e2 = rope::rope_insert(empty, 0, "hello")
-    stdio::println(rope::rope_to_string(e2))
+    let e2 = empty.insert_text(0, "hello")
+    stdio::println(e2.clone())
     // Delete from beginning
-    let e3 = rope::rope_delete(e2, 0, 2)
-    stdio::println(rope::rope_to_string(e3))
+    let e3 = e2.delete_range(0, 2)
+    stdio::println(e3.clone())
 }

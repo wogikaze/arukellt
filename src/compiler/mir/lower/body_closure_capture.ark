@@ -156,7 +156,7 @@ fn mir_closure_snapshot_copy_captures(ctx: LowerCtx, caps: Vec<String>, scope: S
             continue
         }
         let vt = ctx_api_local_types::ctx_local_vt(ctx, li)
-        let snap_name = text::concat(text::concat("__capsnap_", clone(scope)), text::concat("_", to_string(ci)))
+        let snap_name = "__capsnap_".concat(clone(scope)).concat("_".concat(to_string(ci)))
         let snap = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(snap_name), vt)
         let cap_type = mir_closure_lookup_capture_type(ctx, li)
         if len(cap_type) > 0 {

@@ -72,7 +72,7 @@ fn strip_embedded_module_path_prefixes(type_name: String) -> String {
         if start < 0 {
             start = 0
         }
-        result = text::concat(substring(result, 0, start), substring(result, sep + 2, n))
+        result = substring(result, 0, start).concat(substring(result, sep + 2, n))
         guard = guard + 1
     }
     result

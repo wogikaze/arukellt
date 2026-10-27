@@ -18,6 +18,6 @@ fn main() {
             },
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse escapes failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse escapes failed: ".concat(json::parse_error_message(e))),
     }
 }

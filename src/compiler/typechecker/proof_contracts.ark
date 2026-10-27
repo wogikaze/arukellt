@@ -54,7 +54,7 @@ fn proof_expression_identifiers_are_bound(
         let name = ast_access::node_text(node)
         let binding_type = scope::scope_lookup(contract_scope, clone(name))
         if contract_type_access::TypeInfo_tag(binding_type) == commands::TY_UNKNOWN() {
-            unify::type_error(env, text::concat("unknown proof identifier: ", name))
+            unify::type_error(env, "unknown proof identifier: ".concat(name))
             return false
         }
     }
@@ -98,7 +98,7 @@ fn check_proof_contracts(
             )
         }
         if ast_access::node_child_count(contract) == 0 {
-            unify::type_error(env, text::concat("empty proof contract: ", kind_name))
+            unify::type_error(env, "empty proof contract: ".concat(kind_name))
             i = i + 1
             continue
         }
@@ -119,10 +119,7 @@ fn check_proof_contracts(
         if contract_type_access::TypeInfo_tag(actual) != commands::TY_BOOL() {
             unify::type_error(
                 env,
-                text::concat(
-                    text::concat("proof contract must have type bool, found ", name_display::type_display_name(actual)),
-                    text::concat(" in ", kind_name)
-                )
+                "proof contract must have type bool, found ".concat(name_display::type_display_name(actual)).concat(" in ".concat(kind_name))
             )
         }
         i = i + 1

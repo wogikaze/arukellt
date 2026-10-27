@@ -16,8 +16,8 @@ fn mono_safe_name(name: String) -> String {
     let mut i = 0
     while i < n {
         if is_mono_unsafe_char(byte_at(name, i)) {
-            out = text::builder_append(out, substring(name, run_start, i))
-            out = text::builder_append(out, "_")
+            out = out.concat(substring(name, run_start, i))
+            out = out.concat("_")
             run_start = i + 1
         }
         i = i + 1
@@ -25,7 +25,7 @@ fn mono_safe_name(name: String) -> String {
     if run_start == 0 {
         return name
     }
-    text::builder_append(out, substring(name, run_start, n))
+    out.concat(substring(name, run_start, n))
 }
 
 // Compare a possibly-unsafe mangled name against an already-safe name without

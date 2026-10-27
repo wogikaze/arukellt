@@ -4,12 +4,12 @@
 use std::text
 
 fn main() {
-    let empty = text::is_empty("")
+    let empty = "".is_empty()
     if empty {
         __intrinsic_println("yes")
     } else {
         __intrinsic_println("no")
     }
-    let n = text::len_bytes("hello")
+    let n = "hello".len_bytes()
     __intrinsic_println(__intrinsic_i32_to_string(n))
 }

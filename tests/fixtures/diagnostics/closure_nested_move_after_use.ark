@@ -3,7 +3,7 @@ fn main() {
     let source = String_from("move:")
     let outer = || {
         let inner = move || {
-            text::concat(source, "!")
+            source.concat("!")
         }
         inner()
     }

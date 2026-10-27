@@ -13,7 +13,7 @@ fn main() {
         Result::Ok(_) => stdio::println("unexpected-ok"),
         Result::Err(err) => match err {
             io::IoError::UnexpectedEof(msg) => stdio::println(msg),
-            io::IoError::Other(msg) => stdio::println(text::concat("other:", msg)),
+            io::IoError::Other(msg) => stdio::println("other:".concat(msg)),
         },
     }
 }

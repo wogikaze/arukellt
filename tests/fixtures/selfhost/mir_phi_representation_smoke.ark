@@ -39,23 +39,23 @@ fn mir_value_type_name(vt: i32) -> String {
 
 fn mir_format_phi(phi: MirPhi) -> String {
     let mut out = String_from("phi %")
-    out = text::concat(out, to_string(phi.dest))
-    out = text::concat(out, String_from(" = ["))
+    out = out.concat(to_string(phi.dest))
+    out = out.concat(String_from(" = ["))
     let arg_count = len(phi.args)
     let mut i = 0
     while i < arg_count {
         let arg = get_unchecked(phi.args, i)
         if i > 0 {
-            out = text::concat(out, String_from(", "))
+            out = out.concat(String_from(", "))
         }
-        out = text::concat(out, String_from("bb"))
-        out = text::concat(out, to_string(arg.pred_block))
-        out = text::concat(out, String_from(" -> %"))
-        out = text::concat(out, to_string(arg.local))
+        out = out.concat(String_from("bb"))
+        out = out.concat(to_string(arg.pred_block))
+        out = out.concat(String_from(" -> %"))
+        out = out.concat(to_string(arg.local))
         i = i + 1
     }
-    out = text::concat(out, String_from("] : "))
-    text::concat(out, mir_value_type_name(phi.val_type))
+    out = out.concat(String_from("] : "))
+    out.concat(mir_value_type_name(phi.val_type))
 }
 
 fn ensure(ok: bool, msg: String) {
@@ -77,7 +77,7 @@ fn run_phi_representation_smoke() {
     stdio::eprintln(String_from("    bb1: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
     stdio::eprintln(String_from("    bb2: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
     stdio::eprintln(String_from("    bb3: phis=1 instructions=1 succs=[-,-] preds=[1,2] idom=0 df=[]"))
-    stdio::eprintln(text::concat(String_from("      "), mir_format_phi(phi)))
+    stdio::eprintln(String_from("      ").concat(mir_format_phi(phi)))
     stdio::eprintln(String_from("      return -> %3"))
     stdio::println(String_from("MIR phi representation self-check OK."))
 }

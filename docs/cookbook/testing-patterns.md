@@ -66,9 +66,9 @@ assert_eq_str(unwrap_err(err_val), "not found")
 ```ark
 // Test string functions
 assert_eq_str(text::to_uppercase("hello"), "HELLO")
-assert_eq_str(text::trim("  hi  "), "hi")
-assert(text::contains("hello world", "world"))
-assert(text::starts_with("hello", "hel"))
+assert_eq_str("  hi  ".trim(), "hi")
+assert("hello world".contains("world"))
+assert("hello".starts_with("hel"))
 
 // Test parse round-trip
 let n = unwrap(parse_i32("42"))

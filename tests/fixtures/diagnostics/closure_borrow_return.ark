@@ -2,7 +2,7 @@ use std::text
 fn make_formatter() {
     let source = String_from("return:")
     let format = |n: i32| -> String {
-        text::concat(source, n.to_string())
+        source.concat(n.to_string())
     }
     return format
 }

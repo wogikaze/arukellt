@@ -2,10 +2,10 @@ use std::test
 use std::text
 
 fn main() {
-    test::assert_true(text::starts_with("hello", "hel"))
-    test::assert_true(text::starts_with("hello", "hello"))
-    test::assert_true(text::starts_with("hello", ""))
-    test::assert_false(text::starts_with("hello", "world"))
-    test::assert_false(text::starts_with("hello", "helloo"))
-    test::assert_true(text::starts_with("abc", "a"))
+    test::assert_true("hello".starts_with("hel"))
+    test::assert_true("hello".starts_with("hello"))
+    test::assert_true("hello".starts_with(""))
+    test::assert_false("hello".starts_with("world"))
+    test::assert_false("hello".starts_with("helloo"))
+    test::assert_true("abc".starts_with("a"))
 }

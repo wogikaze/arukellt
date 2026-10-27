@@ -47,7 +47,7 @@ fn canonicalize_target_input(opts: CliOptions) {
         return
     }
     if !target_contract_generated::target_is_canonical(clone(input)) {
-        args_record::cli_set_error(opts, text::concat("unknown target: ", input))
+        args_record::cli_set_error(opts, "unknown target: ".concat(input))
         return
     }
     if !args_record::cli_has_wasi_version(opts) {
@@ -66,7 +66,7 @@ fn validate_target_configuration(opts: CliOptions) {
     if len(clone(host)) > 0 && !target_contract_generated::target_allows_host_profile(clone(target), clone(host)) {
         args_record::cli_set_error(
             opts,
-            text::concat("target `", text::concat(clone(target), text::concat("` does not support host profile `", text::concat(clone(host), "`"))))
+            "target `".concat(clone(target).concat("` does not support host profile `".concat(clone(host).concat("`"))))
         )
         return
     }
@@ -74,18 +74,8 @@ fn validate_target_configuration(opts: CliOptions) {
     if !target_contract_generated::target_allows_emit_kind(clone(target), clone(emit_mode)) {
         args_record::cli_set_error(
             opts,
-            text::concat(
-                "target `",
-                text::concat(
-                    clone(target),
-                    text::concat(
-                        "` does not support emit `",
-                        text::concat(
-                            clone(emit_mode),
-                            text::concat("`; allowed: ", target_contract_generated::target_allowed_emit_kinds_message(clone(target)))
-                        )
-                    )
-                )
+            "target `".concat(
+                clone(target).concat("` does not support emit `".concat(clone(emit_mode).concat("`; allowed: ".concat(target_contract_generated::target_allowed_emit_kinds_message(clone(target))))))
             )
         )
         return
@@ -95,17 +85,9 @@ fn validate_target_configuration(opts: CliOptions) {
     !target_contract_generated::target_allows_memory_width(clone(target), clone(requested_width)) {
         args_record::cli_set_error(
             opts,
-            text::concat(
-                "target `",
-                text::concat(
-                    clone(target),
-                    text::concat(
-                        "` does not support memory width `",
-                        text::concat(
-                            clone(requested_width),
-                            text::concat("`; allowed: ", target_contract_generated::target_allowed_memory_widths_message(clone(target)))
-                        )
-                    )
+            "target `".concat(
+                clone(target).concat(
+                    "` does not support memory width `".concat(clone(requested_width).concat("`; allowed: ".concat(target_contract_generated::target_allowed_memory_widths_message(clone(target)))))
                 )
             )
         )
@@ -243,7 +225,7 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, opts: CliOptions) {
             i = i + 2
             continue
         }
-        args_record::cli_set_error(opts, text::concat("unknown compose option: ", arg))
+        args_record::cli_set_error(opts, "unknown compose option: ".concat(arg))
         return
     }
 }
@@ -366,6 +348,6 @@ fn parse_input_or_error(opts: CliOptions, arg: String) {
     if args_record::cli_input_file_len(opts) == 0 {
         args_record::cli_set_input_file(opts, clone(arg))
     } else {
-        args_record::cli_set_error(opts, text::concat("unexpected argument: ", clone(arg)))
+        args_record::cli_set_error(opts, "unexpected argument: ".concat(clone(arg)))
     }
 }

@@ -91,10 +91,7 @@ fn concretize_var_owner_call_target(ctx: LowerCtx, resolved: String) -> String {
     if len(concrete) == 0 {
         return resolved
     }
-    let candidate = text::concat(
-        clone(concrete),
-        substring(clone(resolved), sep, len(resolved))
-    )
+    let candidate = clone(concrete).concat(substring(clone(resolved), sep, len(resolved)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(candidate)) {
         return candidate
     }
@@ -125,10 +122,7 @@ fn concretize_vec_ctor_projection(ctx: LowerCtx, resolved: String) -> String {
         return resolved
     }
     mono::mono_safe_name(
-        text::concat(
-            substring(clone(resolved), 0, elem_start),
-            concrete
-        )
+        substring(clone(resolved), 0, elem_start).concat(concrete)
     )
 }
 
@@ -141,10 +135,7 @@ fn mono_vec_element_candidate(callee: String, mono_arg_type: String) -> String {
         return String_new()
     }
     mono::mono_safe_name(
-        text::concat(
-            mir_strip_callee_module_prefix(callee),
-            text::concat("__", element_type)
-        )
+        mir_strip_callee_module_prefix(callee).concat("__".concat(element_type))
     )
 }
 
@@ -183,15 +174,12 @@ fn mir_try_resolve_mono_by_type_key(
     mono_type_key: String,
     mono_arg_type: String
 ) -> String {
-    let mono_candidate = mono::mono_safe_name(text::concat(clone(resolved), text::concat("__", clone(mono_type_key))))
+    let mono_candidate = mono::mono_safe_name(clone(resolved).concat("__".concat(clone(mono_type_key))))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
         return mono_candidate
     }
     let bare_candidate = mono::mono_safe_name(
-        text::concat(
-            mir_strip_callee_module_prefix(clone(resolved)),
-            text::concat("__", clone(mono_type_key))
-        )
+        mir_strip_callee_module_prefix(clone(resolved)).concat("__".concat(clone(mono_type_key)))
     )
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(bare_candidate)) {
         return bare_candidate
@@ -201,12 +189,12 @@ fn mir_try_resolve_mono_by_type_key(
         return vec_element_candidate
     }
     let method_leaf = mir_strip_callee_module_prefix(clone(resolved))
-    let type_method = text::concat(clone(mono_type_key), text::concat("::", clone(method_leaf)))
+    let type_method = clone(mono_type_key).concat("::".concat(clone(method_leaf)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
         return type_method
     }
     if eq(clone(mono_type_key), "string") {
-        let mono_candidate_string = mono::mono_safe_name(text::concat(clone(method_leaf), "__String"))
+        let mono_candidate_string = mono::mono_safe_name(clone(method_leaf).concat("__String"))
         if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
             return mono_candidate_string
         }
@@ -271,7 +259,7 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
             }
         }
         if len(key) > 0 && !starts_with(clone(key), "?") && !eq(clone(key), "enum:open") {
-            let trait_method = text::concat(clone(key), "::fmt_debug")
+            let trait_method = clone(key).concat("::fmt_debug")
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
                 return trait_method
             }
@@ -283,7 +271,7 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
 fn call_mono_nested_vec_type_key(type_name: String) -> String {
     if starts_with(clone(type_name), "vec:") {
         let inner = call_mono_nested_vec_type_key(substring(clone(type_name), 4, len(type_name)))
-        return text::concat("Vec<", text::concat(inner, ">"))
+        return "Vec<".concat(inner.concat(">"))
     }
     // Bare "Vec" from Vec<Vec<...>> annotations that lost the inner key.
     if eq(clone(type_name), "Vec") {

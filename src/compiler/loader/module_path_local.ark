@@ -30,22 +30,22 @@ pub fn module_path_to_file_stem(path: String) -> String {
     let mut seg_start = 0
     while i < n {
         if byte_at(path, i) == 58 && i + 1 < n && byte_at(path, i + 1) == 58 {
-            result = text::concat(clone(result), text::concat(substring(clone(path), seg_start, i), "/"))
+            result = clone(result).concat(substring(clone(path), seg_start, i).concat("/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    text::concat(clone(result), substring(clone(path), seg_start, n))
+    clone(result).concat(substring(clone(path), seg_start, n))
 }
 
 pub fn module_stem_to_mod_path(base_dir: String, stem: String) -> String {
-    text::concat(clone(base_dir), text::concat("/", text::concat(clone(stem), "/mod.ark")))
+    clone(base_dir).concat("/".concat(clone(stem).concat("/mod.ark")))
 }
 
 pub fn module_stem_to_file_path(base_dir: String, stem: String) -> String {
-    text::concat(clone(base_dir), text::concat("/", text::concat(clone(stem), ".ark")))
+    clone(base_dir).concat("/".concat(clone(stem).concat(".ark")))
 }
 test mod "local_path" {
     test "parent" { assert(eq(path_parent_dir("a/b/c.ark"), "a/b")) }

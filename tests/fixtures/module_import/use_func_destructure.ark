@@ -1,10 +1,10 @@
 // Fixture: use_func_destructure.ark
-// Issue #717: `use std::text::string::{split}` imports the function `split`
+// Issue #717: `use std::collections::string::{split}` imports the function `split`
 // directly into scope. Bare call `split(s, sep)` resolves to
 // `string::split(s, sep)` via the use-alias mechanism.
 //
 // Expected output: 2
-use std::text::string::{split}
+use std::collections::string::{split}
 
 fn main() {
     let s: String = "a,b"

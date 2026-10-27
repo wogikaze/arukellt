@@ -30,12 +30,12 @@ use std::text
 let result = fs::read_to_string("data.csv")
 match result {
     Ok(contents) => {
-        let lines = text::split(contents, "\n")
+        let lines = contents.split("\n")
         let n = len(lines)
         let mut i = 0
         while i < n {
             let line = get(lines, i)
-            if text::is_empty(line) == false {
+            if line.is_empty() == false {
                 stdio::println(concat("line ", concat(to_string(i), concat(": ", line))))
             }
             i = i + 1
@@ -57,13 +57,13 @@ use std::text
 let result = fs::read_to_string("input.txt")
 match result {
     Ok(contents) => {
-        let lines = text::split(contents, "\n")
+        let lines = contents.split("\n")
         let mut output = ""
         let n = len(lines)
         let mut i = 0
         while i < n {
             let line = get(lines, i)
-            if text::is_empty(line) == false {
+            if line.is_empty() == false {
                 output = concat(output, concat(line, "\n"))
             }
             i = i + 1
@@ -93,13 +93,13 @@ fn to_upper_line(line: String) -> String {
 let result = fs::read_to_string("names.txt")
 match result {
     Ok(contents) => {
-        let lines = text::split(contents, "\n")
+        let lines = contents.split("\n")
         let mut output = ""
         let n = len(lines)
         let mut i = 0
         while i < n {
             let line = get(lines, i)
-            if text::is_empty(line) == false {
+            if line.is_empty() == false {
                 output = concat(output, concat(to_upper_line(line), "\n"))
             }
             i = i + 1

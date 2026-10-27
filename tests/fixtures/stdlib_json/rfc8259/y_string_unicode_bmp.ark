@@ -13,6 +13,6 @@ fn main() {
             },
             None => panic("expected string"),
         },
-        Result::Err(e) => panic(text::concat("parse bmp unicode failed: ", json::parse_error_message(e))),
+        Result::Err(e) => panic("parse bmp unicode failed: ".concat(json::parse_error_message(e))),
     }
 }

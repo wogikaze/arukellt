@@ -3,7 +3,7 @@ use std::text
 fn main() {
     let s: String = String_from("hello")
     let t: String = String_from(" world")
-    let result: String = text::concat(s, t)
+    let result: String = s.concat(t)
     stdio::println(result)
     stdio::println((len(result)).to_string())
 }

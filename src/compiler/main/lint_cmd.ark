@@ -28,14 +28,14 @@ pub fn cmd_lint(opts: CliOptions) {
         args_record::cli_set_input_file(opts, clone(path))
         let status = compile_core::cmd_compile_single_status(opts)
         if status == 0 {
-            stdio::eprintln(text::concat("ok: ", clone(path)))
+            stdio::eprintln("ok: ".concat(clone(path)))
         } else {
-            stdio::eprintln(text::concat("lint failed: ", clone(path)))
+            stdio::eprintln("lint failed: ".concat(clone(path)))
             failed = failed + 1
         }
         i = i + 1
     }
-    stdio::eprintln(text::concat("lint: checked=", text::concat(count.to_string(), text::concat(" failed=", failed.to_string()))))
+    stdio::eprintln("lint: checked=".concat(count.to_string().concat(" failed=".concat(failed.to_string()))))
     if failed > 0 {
         process::exit(1)
     }

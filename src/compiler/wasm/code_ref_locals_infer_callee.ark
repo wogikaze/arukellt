@@ -213,7 +213,7 @@ fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32>
         if len(elem) == 0 {
             return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         }
-        return resolve_gc_type_from_return_type_name(ctx, text::concat("vec:", elem))
+        return resolve_gc_type_from_return_type_name(ctx, "vec:".concat(elem))
     }
     if eq(clone(callee), "Vec::new") ||
     eq(clone(callee), "Vec::with_capacity") ||
@@ -258,8 +258,8 @@ fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> boo
     let mut vi = 0
     while vi < len(variants) {
         let variant = get_unchecked(variants, vi)
-        if starts_with(clone(variant), text::concat(clone(head), String_from("::"))) ||
-        contains(clone(variant), text::concat(String_from("::"), text::concat(clone(head), String_from("::")))) {
+        if starts_with(clone(variant), clone(head).concat(String_from("::"))) ||
+        contains(clone(variant), String_from("::").concat(clone(head).concat(String_from("::")))) {
             return true
         }
         vi = vi + 1

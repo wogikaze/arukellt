@@ -5,7 +5,7 @@ fn join_state(state: String, x: String) -> Option<String> {
     if len(state) > 2 {
         return None
     }
-    Some(text::concat(state, x))
+    Some(state.concat(x))
 }
 
 fn main() {

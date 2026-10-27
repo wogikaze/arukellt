@@ -16,6 +16,7 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+<<<<<<< HEAD
 ## 2026-10-27 — hash-family adapters removed; HashMap methods are the lowering target (#917)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4 and
@@ -64,6 +65,99 @@
   `HashSet<T>` nominal type (no receiver surface for a method rewrite; the
   `Vec<i32>`/`Vec<String>` facades are not types). Deleting them now would
   remove the only user spelling without a replacement.
+||||||| 8e80b47ad
+=======
+## 2026-10-27 — deprecated std::text frees removed (ADR-087 Wave 2, #917)
+
+- **Basis**: [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2/D3,
+  [ADR-046](../adr/ADR-046-free-function-eradication.md), and the
+  [#917](https://github.com/wogikaze/arukellt/issues/917) execution lane.
+  Wave 1 (`994f5af52`) landed the method/associated replacements and made
+  these entries `deprecated` with W0009 coverage; this wave performs the
+  physical deletion.
+- **Removed (36)**: `len_bytes`, `is_empty`, `index_of`, `trim`,
+  `trim_start`, `trim_end`, `replace`, `lines`, `chars`, `pad_left`,
+  `pad_right`, `format_i32`, `format_i64`, `format_f64`, `format_bool`,
+  `repeat`, `len_chars`, `codepoint_at`, `slice_bytes`, `try_slice_bytes`,
+  `slice_chars`, `try_slice_chars`, `split`, `join`, `concat`,
+  `starts_with`, `ends_with`, `contains`, `to_lower`, `to_upper`,
+  `builder_new`, `builder_append`, `builder_append_char`,
+  `builder_append_line`, `builder_build`, and `builder_len`.
+- **Also removed (7)**: the duplicate `std::collections::string` frees
+  `concat`, `chars`, `len_chars`, `codepoint_at`, `try_slice_bytes`,
+  `slice_chars`, and `try_slice_chars` became unregistered once the
+  `std::text` manifest entries retired. They have the same `String` method
+  replacements, so they were removed with the wave instead of re-registering
+  a duplicate free surface.
+- **Replacement surface**: the String / associated / `Vec<String>::join` /
+  `DebugFormat` surface documented in the Wave 1 entry. Qualified `text::*`
+  and `string::*` calls now fail resolution with an **E0100** hint from
+  `resolver::removed_names`; the E0100 goldens replace the Wave 1 W0009
+  fixtures.
+- **Scorecard**: public surface 1025 → **989** symbols; manifest public
+  entries 661 → **625**; `pub fn` declarations 1162 → **1119**; unregistered
+  declarations 364; `associated-or-method` 919; `must delete` 70;
+  monomorphic helpers 89; `intrinsic-only` 1. The `std::text` rule retired
+  with the family.
+- **Evidence**: final stage-2 rebuild; full fixture parity **1839/1839**
+  compile+validate PASS (105 runtime smoke, 0 FAIL); `selfhost diag-parity`
+  PASS with the both-target E0100 goldens
+  `diagnostics/removed_text_free*.ark`; representative migrated fixtures
+  compile and validate on both `wasm32-gc` and `--target wasm32`; `verify
+  lane` PASS; `docs check` 6/6; the eradication and compat-orphan checks are
+  clean.
+- **Residual**: none in the `std::text` group. The `std::collections::string`
+  compatibility frees still used by the prelude wrappers (`split`, `join`,
+  `trim`, …) remain in the collections lane. `String::new()` is not exposed:
+  adding it to `impl String` makes the `wit_ast_parse` lane emit invalid
+  Wasm, so the empty string literal is the documented builder/rope
+  replacement. The `fstring_basic` fixture uses the associated `String::concat`
+  form for its `to_string(String)` case because the literal-receiver form
+  aliases at base 8e80b47ad as well; that pre-existing lowering gap is
+  recorded in #917.
+
+## 2026-10-27 — std::text free surface converted (ADR-087 Wave 1, #917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4,
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) D2/D3, and the
+  [#917](https://github.com/wogikaze/arukellt/issues/917) execution lane.
+- **Removed (22 counted)**: the 3 `experimental` `std::text` UTF-8 frees
+  (`from_utf8`, `try_from_utf8`, `to_utf8_bytes`), the 8 `experimental`
+  `std::text::rope` frees, and the 11 unregistered `std::text::fmt`
+  container-formatting frees. The experimental lifecycle allows direct
+  removal under ADR-014; the unregistered declarations have no manifest
+  stability contract. The duplicate declarations in `std/text/builder.ark`
+  and `std/text/string.ark` were retired with the same wave.
+- **Deprecated (36)**: every remaining `stable` `std::text` free now carries
+  `stability = "deprecated"`, `deprecated_by`, `deprecated_since = "0.1.0"`,
+  and `remove_in = "1.0.0"`. W0009 fires for qualified `text::*` calls through
+  `lint::deprecated_table::deprecated_text_qualified_message`; the message
+  names the receiver/associated replacement. Physical deletion is Wave 2.
+- **Replacement surface**: `String::len_bytes` / `trim*` / `slice_*` /
+  `split` / `lines` / `chars` / `replace` / `repeat` / `pad_*_with` /
+  `to_utf8_bytes` / `insert_text` / `delete_range` / `line_count`;
+  `String::from_utf8_lossy` / `String::try_from_utf8`; `Vec<String>::join`;
+  the empty string literal for builder/rope creation; `value.fmt_debug()` and
+  `buf.concat(value.fmt_debug())`; and the `DebugFormat` associated
+  renderings (`vec_i32` … `result_string_string`). `i32`/`i64`/`f64`/`bool`
+  formatting uses the existing `to_string()` methods.
+- **E0100**: removed `fmt` / `rope` / `text` members get hints from
+  `resolver::removed_names::removed_fmt_member_hint`,
+  `removed_rope_member_hint`, and `removed_text_member_hint`.
+- **Scorecard**: public surface 1060 → **1025** symbols; manifest public
+  entries 685 → **661**; `pub fn` declarations 1235 → **1162**; unregistered
+  declarations 375 → **364**; `associated-or-method` 977 → **919**;
+  `must delete` 83 → **106**. The new `deprecated std::text frees` rule owns
+  the 36 pending deletions; the `std::text frees` rule retired with the
+  non-deprecated surface.
+- **Evidence**: stage-2 rebuild; 299/299 targeted fixture parity
+  (`stdlib_text`, `stdlib_trait`, `module_import`, `stdlib_test`,
+  `stdlib_collections_compiler`); `selfhost diag-parity` PASS; the new
+  `diagnostics/deprecated_text_qualified*.ark` fixtures assert the W0009
+  message on `wasm32-gc` and `--target wasm32`; `docs check`; the eradication
+  and compat-orphan checks are clean.
+- **Residual**: the 36 deprecated `std::text` frees are deleted in Wave 2.
+>>>>>>> wave/next-text
 
 ## 2026-10-27 — eager iterator constructor/collector frees removed (#917)
 

@@ -142,9 +142,8 @@ fn infer_concrete_call_expr(
         let fname = contract_fn_sig::FnSig_name(sig)
         unify::type_error_bad_arity(
             env,
-            text::concat(
-                String_from("wrong number of arguments for `"),
-                text::concat(clone(fname), text::concat(String_from("`: expected "), text::concat(to_string(param_count), text::concat(String_from(", found "), to_string(arg_count)))))
+            String_from("wrong number of arguments for `").concat(
+                clone(fname).concat(String_from("`: expected ").concat(to_string(param_count).concat(String_from(", found ").concat(to_string(arg_count)))))
             )
         )
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)

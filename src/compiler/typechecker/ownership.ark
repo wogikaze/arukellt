@@ -19,7 +19,7 @@ fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
                 env,
                 codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
                 target,
-                text::concat("cannot assign to borrowed capture `", text::concat(name, "`"))
+                "cannot assign to borrowed capture `".concat(name.concat("`"))
             )
             return
         }
@@ -28,7 +28,7 @@ fn check_assignment_target(env: TypeEnv, scope: LocalScope, target: AstNode) {
                 env,
                 codes::DIAG_TYPE_RETURN_MISMATCH(),
                 target,
-                text::concat("cannot assign to immutable variable ", name)
+                "cannot assign to immutable variable ".concat(name)
             )
             return
         }
@@ -131,7 +131,7 @@ fn consume_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) {
             env,
             codes::DIAG_TYPE_CLOSURE_BORROW_CONFLICT(),
             node,
-            text::concat("cannot move borrowed capture `", text::concat(name, "`"))
+            "cannot move borrowed capture `".concat(name.concat("`"))
         )
         return
     }
@@ -151,13 +151,7 @@ fn consume_identifier(env: TypeEnv, scope: LocalScope, node: AstNode) {
 // code written under implicit sharing now needs an explicit clone or
 // borrow, so the message points at both remedies.
 fn move_after_use_message(name: String) -> String {
-    text::concat(
-        "use of moved value `",
-        text::concat(
-            name,
-            "`; v2 uses move semantics; call `.clone()` before moving or borrow instead"
-        )
-    )
+    "use of moved value `".concat(name.concat("`; v2 uses move semantics; call `.clone()` before moving or borrow instead"))
 }
 
 fn expr_is_copy(env: TypeEnv, scope: LocalScope, node: AstNode, inferred_ty: TypeInfo) -> bool {

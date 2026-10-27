@@ -5,7 +5,7 @@ fn main() -> i32 {
     let pick = if len(left) > 0 { left } else { right }
     let mut i = 0
     while i < 16 {
-        let junk = text::concat(String_from("j"), String_from("k"))
+        let junk = String_from("j").concat(String_from("k"))
         let _n = len(junk)
         i = i + 1
     }

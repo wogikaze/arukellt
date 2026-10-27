@@ -7,39 +7,38 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
     let start = positions::offset_to_position(clone(text), decl_start)
     let end = positions::offset_to_position(clone(text), decl_end)
     let mut out = String_from("{\"uri\":")
-    out = text::builder_append(out, json::quote_string(uri))
-    out = text::builder_append(out, String_from(",\"range\":{\"start\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(start)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(start)))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(end)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(end)))
-    out = text::builder_append(out, String_from("}}}"))
+    out = out.concat(json::quote_string(uri))
+    out = out.concat(String_from(",\"range\":{\"start\":{\"line\":"))
+    out = out.concat(to_string(positions::lsp_position_line(start)))
+    out = out.concat(String_from(",\"character\":"))
+    out = out.concat(to_string(positions::lsp_position_character(start)))
+    out = out.concat(String_from("},\"end\":{\"line\":"))
+    out = out.concat(to_string(positions::lsp_position_line(end)))
+    out = out.concat(String_from(",\"character\":"))
+    out = out.concat(to_string(positions::lsp_position_character(end)))
+    out = out.concat(String_from("}}}"))
     out
 }
 
 fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String) -> String {
     let mut out = String_from("{\"name\":")
-    out = text::builder_append(out, json::quote_string(symbol_index_record::indexed_symbol_name(sym)))
-    out = text::builder_append(out, String_from(",\"kind\":"))
-    out = text::builder_append(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
-    out = text::builder_append(out, String_from(",\"location\":"))
+    out = out.concat(json::quote_string(symbol_index_record::indexed_symbol_name(sym)))
+    out = out.concat(String_from(",\"kind\":"))
+    out = out.concat(to_string(symbol_index_record::indexed_symbol_kind(sym)))
+    out = out.concat(String_from(",\"location\":"))
     if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
-        out = text::builder_append(
-            out,
+        out = out.concat(
             symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
         )
     } else {
-        out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
+        out = out.concat(symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
     }
     let module_path = symbol_index_record::indexed_symbol_module_path(sym)
     if len(module_path) > 0 {
-        out = text::builder_append(out, String_from(",\"containerName\":"))
-        out = text::builder_append(out, json::quote_string(module_path))
+        out = out.concat(String_from(",\"containerName\":"))
+        out = out.concat(json::quote_string(module_path))
     }
-    out = text::builder_append(out, String_from("}"))
+    out = out.concat(String_from("}"))
     out
 }
 
@@ -47,7 +46,7 @@ fn append_symbol_information(items: String, item: String) -> String {
     if len(items) == 0 {
         return item
     }
-    text::concat(text::concat(items, String_from(",")), item)
+    items.concat(String_from(",")).concat(item)
 }
 
 pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record::IndexedSymbol>, source_texts: Vec<String>) -> String {
@@ -65,9 +64,9 @@ pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record
         i = i + 1
     }
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = text::builder_append(body, to_string(id))
-    body = text::builder_append(body, String_from(",\"result\":["))
-    body = text::builder_append(body, items)
-    body = text::builder_append(body, String_from("]}"))
+    body = body.concat(to_string(id))
+    body = body.concat(String_from(",\"result\":["))
+    body = body.concat(items)
+    body = body.concat(String_from("]}"))
     body
 }

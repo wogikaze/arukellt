@@ -14,18 +14,18 @@ use std::prelude::{byte_at, eq, slice}
 
 /// Joins two path segments with a single `/` separator.
 pub fn join(base: String, child: String) -> String {
-    if text::is_empty(base) {
-        text::concat("", child)
+    if base.is_empty() {
+        "".concat(child)
     } else {
-        if text::is_empty(child) {
-            text::concat("", base)
+        if child.is_empty() {
+            "".concat(base)
         } else {
             let base_len = len(base)
             let last_char = slice(base, base_len - 1, base_len)
             if eq(last_char, "/") {
-                text::concat(base, child)
+                base.concat(child)
             } else {
-                text::concat(text::concat(base, "/"), child)
+                base.concat("/").concat(child)
             }
         }
     }
@@ -35,7 +35,7 @@ pub fn join(base: String, child: String) -> String {
 pub fn file_name(p: String) -> String {
     let idx = last_index_of(p, "/")
     if idx < 0 {
-        text::concat("", p)
+        "".concat(p)
     } else {
         slice(p, idx + 1, len(p))
     }
@@ -58,23 +58,23 @@ pub fn with_extension(p: String, ext: String) -> String {
     let slash_idx = last_index_of(p, "/")
     if dot_idx > slash_idx {
         let base = slice(p, 0, dot_idx)
-        if text::is_empty(ext) {
+        if ext.is_empty() {
             base
         } else {
-            text::concat(text::concat(base, "."), ext)
+            base.concat(".").concat(ext)
         }
     } else {
-        if text::is_empty(ext) {
-            text::concat("", p)
+        if ext.is_empty() {
+            "".concat(p)
         } else {
-            text::concat(text::concat(p, "."), ext)
+            p.concat(".").concat(ext)
         }
     }
 }
 
 /// Returns true when the path starts with `/`.
 pub fn is_absolute(p: String) -> bool {
-    if text::is_empty(p) {
+    if p.is_empty() {
         false
     } else {
         eq(slice(p, 0, 1), "/")
@@ -121,7 +121,7 @@ pub fn normalize(p: String) -> String {
     let mut i = 0
     while i < n {
         let part = get_unchecked(parts, i)
-        if eq(part, ".") || text::is_empty(part) {
+        if eq(part, ".") || part.is_empty() {
         } else {
             if eq(part, "..") {
                 if len(out) > 0 {
@@ -135,7 +135,7 @@ pub fn normalize(p: String) -> String {
     }
     let joined = __intrinsic_join(out, "/")
     if is_absolute(p) {
-        text::concat("/", joined)
+        "/".concat(joined)
     } else {
         joined
     }
@@ -154,7 +154,7 @@ pub fn components(p: String) -> Vec<String> {
     let mut i = 0
     while i < n {
         let part = get_unchecked(raw, i)
-        if !text::is_empty(part) {
+        if !part.is_empty() {
             push(out, part)
         }
         i = i + 1

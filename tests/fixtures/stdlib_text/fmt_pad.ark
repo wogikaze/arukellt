@@ -2,13 +2,13 @@ use std::host::stdio
 use std::text
 
 fn main() {
-    stdio::println(text::pad_left("42", 6, "0"))
-    stdio::println(text::pad_right("hi", 6, "."))
-    stdio::println(text::pad_left("toolong", 3, "x"))
-    stdio::println(text::format_i32(42))
-    stdio::println(text::format_bool(true))
-    let a = text::index_of("hello world", "world")
+    stdio::println("42".pad_left_with(6, "0"))
+    stdio::println("hi".pad_right_with(6, "."))
+    stdio::println("toolong".pad_left_with(3, "x"))
+    stdio::println((42).to_string())
+    stdio::println(true.to_string())
+    let a = "hello world".index_of("world")
     stdio::println((a).to_string())
-    let b = text::index_of("hello", "xyz")
+    let b = "hello".index_of("xyz")
     stdio::println((b).to_string())
 }

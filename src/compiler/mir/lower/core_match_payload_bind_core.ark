@@ -339,7 +339,7 @@ fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
                 let derived = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, clone(elem_ty))
                 if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(derived)) < 0 &&
                 !ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(derived)) {
-                    set_type = text::concat("enum:", clone(elem_ty))
+                    set_type = "enum:".concat(clone(elem_ty))
                 } else {
                     set_type = derived
                 }

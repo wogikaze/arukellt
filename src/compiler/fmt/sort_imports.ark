@@ -101,7 +101,7 @@ fn fmt_sorted_import_text(text: String, entries: Vec<FmtImportEntry>) -> String 
             let entry = get_unchecked(entries, i)
             if fmt_import_entry_sort_group(entry) == group {
                 let line = substring(clone(text), fmt_import_entry_line_start(entry), fmt_import_entry_line_end(entry))
-                out = text::builder_append(out, line)
+                out = out.concat(line)
             }
             i = i + 1
         }
@@ -141,10 +141,7 @@ fn fmt_apply_sorted_imports(text: String, entries: Vec<FmtImportEntry>) -> Strin
     }
     let block = fmt_import_block_bounds(entries)
     let sorted = fmt_sorted_import_text(clone(text), entries)
-    text::concat(
-        text::concat(substring(clone(text), 0, import_block::ImportBlockSpan_start(block)), sorted),
-        substring(text, import_block::ImportBlockSpan_end(block), len(text))
-    )
+    substring(clone(text), 0, import_block::ImportBlockSpan_start(block)).concat(sorted).concat(substring(text, import_block::ImportBlockSpan_end(block), len(text)))
 }
 
 fn fmt_sort_imports_text(input: String) -> Option<String> {

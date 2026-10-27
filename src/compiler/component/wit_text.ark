@@ -14,14 +14,14 @@ fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
 fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
     let package_name = if len(clone(world)) > 0 { "arukellt:app" } else { "arukellt:generated" }
     let world_name = world_spec::world_spec_world_name(clone(world))
-    let mut out = text::concat("package ", text::concat(package_name, ";\n\nworld "))
-    out = text::builder_append(out, world_name)
-    out = text::builder_append(out, " {\n")
-    out = text::builder_append(out, world_spec::world_spec_emit_use_block(clone(world)))
-    out = text::builder_append(out, emit_wit_imports(wit_paths, decls))
-    out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
-    out = text::builder_append(out, emit_wit_func_exports_with_world(decls, clone(world)))
-    return text::concat(out, "}\n")
+    let mut out = "package ".concat(package_name.concat(";\n\nworld "))
+    out = out.concat(world_name)
+    out = out.concat(" {\n")
+    out = out.concat(world_spec::world_spec_emit_use_block(clone(world)))
+    out = out.concat(emit_wit_imports(wit_paths, decls))
+    out = out.concat(wit_type_defs::emit_wit_type_defs(decls))
+    out = out.concat(emit_wit_func_exports_with_world(decls, clone(world)))
+    return out.concat("}\n")
 }
 
 fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
@@ -31,9 +31,9 @@ fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
         let binding = get_unchecked(bindings, i)
         let import_id = wit_import_bind::wit_import_binding_wit_import_id(binding)
         if len(import_id) > 0 {
-            let line = text::concat("    import ", text::concat(import_id, ";\n"))
+            let line = "    import ".concat(import_id.concat(";\n"))
             if !contains(clone(out), clone(line)) {
-                out = text::builder_append(out, line)
+                out = out.concat(line)
             }
         }
     }
@@ -42,9 +42,9 @@ fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
 
 fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
     let mut out = "package arukellt:generated;\n\nworld arukellt {\n"
-    out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
-    out = text::builder_append(out, emit_wit_func_exports(decls))
-    text::concat(out, "}\n")
+    out = out.concat(wit_type_defs::emit_wit_type_defs(decls))
+    out = out.concat(emit_wit_func_exports(decls))
+    out.concat("}\n")
 }
 
 fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> String {
@@ -58,16 +58,16 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
             if eq(clone(fname), "main") || eq(clone(fname), "_start") {
                 let export_key = "    export wasi:cli/run@0.2.0;\n"
                 if !contains(clone(out), clone(export_key)) {
-                    out = text::builder_append(out, export_key)
+                    out = out.concat(export_key)
                 }
             } else {
                 if wit_decl::wit_func_is_export(f) {
                     let export_name = wit_names::wit_export_name(fname)
-                    let export_key = text::concat("export ", text::concat(clone(export_name), ":"))
+                    let export_key = "export ".concat(clone(export_name).concat(":"))
                     if !contains(clone(out), clone(export_key)) {
-                        out = text::builder_append(out, "    export ")
-                        out = text::builder_append(out, export_name)
-                        out = text::builder_append(out, ": func();\n")
+                        out = out.concat("    export ")
+                        out = out.concat(export_name)
+                        out = out.concat(": func();\n")
                     }
                 }
             }
@@ -84,40 +84,40 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let fname = wit_decl::wit_func_name(f)
             if wit_decl::wit_func_is_export(f) {
-                out = text::builder_append(out, "  export ")
-                out = text::builder_append(out, wit_names::wit_export_name(fname))
-                out = text::builder_append(out, ": func(")
+                out = out.concat("  export ")
+                out = out.concat(wit_names::wit_export_name(fname))
+                out = out.concat(": func(")
                 for pi in 0..wit_decl::wit_func_param_count(f) {
-                    if pi > 0 { out = text::builder_append(out, ", ") }
+                    if pi > 0 { out = out.concat(", ") }
                     let pname = wit_decl::wit_func_param_name_at(f, pi)
-                    if len(clone(pname)) > 0 { out = text::builder_append(out, pname) } else { out = text::builder_append(out, text::concat("arg", to_string(pi))) }
-                    out = text::builder_append(out, ": ")
+                    if len(clone(pname)) > 0 { out = out.concat(pname) } else { out = out.concat("arg".concat(to_string(pi))) }
+                    out = out.concat(": ")
                     if eq(clone(fname), "flip_read") {
-                        out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
+                        out = out.concat(wit_type_defs::wit_export_flags_type_name())
                     } else {
                         if eq(clone(fname), "pass_handle") {
-                            out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type())
+                            out = out.concat(wit_type_defs::wit_export_own_handle_type())
                         } else {
                             if wit_decl::wit_func_param_has_type_at(f, pi) {
-                                out = text::builder_append(out, wit_types::component_wit_type_to_text(wit_decl::wit_func_param_type_view_at(f, pi)))
+                                out = out.concat(wit_types::component_wit_type_to_text(wit_decl::wit_func_param_type_view_at(f, pi)))
                             } else {
-                                out = text::builder_append(out, "s32")
+                                out = out.concat("s32")
                             }
                         }
                     }
                 }
-                out = text::builder_append(out, ")")
+                out = out.concat(")")
                 let mut ret = String_new()
                 if wit_decl::wit_func_return_has_type(f) { ret = wit_types::component_wit_type_to_text(wit_decl::wit_func_return_type_view(f)) }
                 if len(ret) > 0 {
-                    out = text::builder_append(out, " -> ")
+                    out = out.concat(" -> ")
                     if eq(clone(fname), "flip_read") {
-                        out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
+                        out = out.concat(wit_type_defs::wit_export_flags_type_name())
                     } else {
-                        if eq(clone(fname), "pass_handle") { out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type()) } else { out = text::builder_append(out, ret) }
+                        if eq(clone(fname), "pass_handle") { out = out.concat(wit_type_defs::wit_export_own_handle_type()) } else { out = out.concat(ret) }
                     }
                 }
-                out = text::builder_append(out, ";\n")
+                out = out.concat(";\n")
             }
         }
     }
@@ -148,14 +148,14 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
         let read_result = fs::read_to_string(clone(path))
         match read_result {
             Result::Err(e) => {
-                return text::concat("unable to read WIT file ", text::concat(clone(path), text::concat(": ", e)))
+                return "unable to read WIT file ".concat(clone(path).concat(": ".concat(e)))
             },
             Result::Ok(source) => {
                 if contains(clone(source), "future<") {
-                    return text::concat("E0402 unsupported WIT import type `future<T>` in ", clone(path))
+                    return "E0402 unsupported WIT import type `future<T>` in ".concat(clone(path))
                 }
                 if contains(clone(source), "stream<") {
-                    return text::concat("E0402 unsupported WIT import type `stream<T>` in ", clone(path))
+                    return "E0402 unsupported WIT import type `stream<T>` in ".concat(clone(path))
                 }
             },
         }

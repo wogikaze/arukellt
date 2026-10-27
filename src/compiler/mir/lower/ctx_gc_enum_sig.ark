@@ -16,7 +16,7 @@ fn gc_enum_field_sig_for_vt(ctx: LowerCtx, vt: i32) -> String {
         // Pair ABI (#872): fn payloads hold a {fnptr, env} __fnpair ref.
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat("_f1_gcsref", (pair_slot).to_string())
+            return "_f1_gcsref".concat((pair_slot).to_string())
         }
         return "_f1_fnref"
     }
@@ -29,7 +29,7 @@ fn gc_enum_field_sig_for_vt(ctx: LowerCtx, vt: i32) -> String {
 fn ctx_gc_enum_payload_field_sigs_from_vts(ctx: LowerCtx, payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
-        sig = text::builder_append(sig, gc_enum_field_sig_for_vt(ctx, get_unchecked(payload_vts, i)))
+        sig = sig.concat(gc_enum_field_sig_for_vt(ctx, get_unchecked(payload_vts, i)))
     }
     sig
 }
@@ -39,9 +39,9 @@ fn ctx_gc_enum_payload_field_sigs_typed(ctx: LowerCtx, payload_vts: Vec<i32>, ty
     for i in 0..len(payload_vts) {
         let vt = get_unchecked(payload_vts, i)
         if i == 0 && should_use_typed_payload_field_sig(vt, clone(type_name)) {
-            sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(type_name)))
+            sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, clone(type_name)))
         } else {
-            sig = text::builder_append(sig, gc_enum_field_sig_for_vt(ctx, vt))
+            sig = sig.concat(gc_enum_field_sig_for_vt(ctx, vt))
         }
     }
     sig
@@ -151,7 +151,7 @@ fn gc_enum_unit_variant_sig(slot: i32) -> String {
 }
 
 fn gc_enum_payload_variant_sig(slot: i32, field_sigs: String) -> String {
-    text::concat("SubF+14_S_f0_i32", field_sigs)
+    "SubF+14_S_f0_i32".concat(field_sigs)
 }
 
 fn gc_enum_field_sig_for_type(type_name: String) -> String {
@@ -176,7 +176,7 @@ fn gc_enum_field_sig_for_type_ctx(ctx: LowerCtx, type_name: String) -> String {
     if ctx_gc_struct::gc_struct_field_type_is_fn_value(clone(bare)) {
         let pair_slot = ctx_gc_struct::ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat("_f1_gcsref", (pair_slot).to_string())
+            return "_f1_gcsref".concat((pair_slot).to_string())
         }
     }
     // Bare enum names (Inner, AppError) share the open-enum ABI; do not bind
@@ -216,11 +216,11 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
     starts_with(clone(type_name), "vec:") ||
     starts_with(clone(type_name), "Vec_") ||
     starts_with(clone(type_name), "Vec<") {
-        return text::concat("_f1", ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
+        return "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
     }
     // HashMap types map to specific hashmap struct types.
     if starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "HashMap_") || starts_with(clone(type_name), "HashMap") {
-        return text::concat("_f1", ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
+        return "_f1".concat(ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
     }
     // Result/Option are GC enum-open payloads (#726 json JsonParseStep.value).
     if starts_with(clone(type_name), "result:") ||
@@ -243,7 +243,7 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
         return "_f1_ref14"
     }
     if struct_slot >= 0 {
-        return text::concat("_f1_gcsref", (struct_slot).to_string())
+        return "_f1_gcsref".concat((struct_slot).to_string())
     }
     "_f1_ref14"
 }
@@ -267,7 +267,7 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
                 let resolved_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, clone(ft))
-                sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(resolved_ft)))
+                sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, clone(resolved_ft)))
                 fi = fi + 1
             }
             return sig

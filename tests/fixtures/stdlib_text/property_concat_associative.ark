@@ -6,13 +6,13 @@ fn main() {
     let a = "hello"
     let b = " "
     let c = "world"
-    let left = text::concat(a, text::concat(b, c))
-    let right = text::concat(text::concat(a, b), c)
+    let left = a.concat(b.concat(c))
+    let right = a.concat(b).concat(c)
     test::assert_eq_string(left, right)
     test::assert_eq_string(left, "hello world")
 
     // concat with empty is identity
-    test::assert_eq_string(text::concat("abc", ""), "abc")
-    test::assert_eq_string(text::concat("", "abc"), "abc")
-    test::assert_eq_string(text::concat("", ""), "")
+    test::assert_eq_string("abc".concat(""), "abc")
+    test::assert_eq_string("".concat("abc"), "abc")
+    test::assert_eq_string("".concat(""), "")
 }

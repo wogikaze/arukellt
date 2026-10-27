@@ -4,6 +4,6 @@ use std::text
 fn main() {
     match json::parse("{\"x\":1} garbage") {
         Result::Ok(v) => stdio::println(json::stringify(v)),
-        Result::Err(e) => stdio::println(text::concat("error:", json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
     }
 }

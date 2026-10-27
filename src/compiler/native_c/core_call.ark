@@ -92,11 +92,11 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
 }
 
 fn native_c_core_arg(arguments: Vec<i32>, index: i32) -> String {
-    text::concat("ark_v_", (get_unchecked(arguments, index)).to_string())
+    "ark_v_".concat((get_unchecked(arguments, index)).to_string())
 }
 
 fn native_c_core_ref_arg(arguments: Vec<i32>, index: i32, c_type: String) -> String {
-    text::concat("(", text::concat(c_type, text::concat(" *)", native_c_core_arg(arguments, index))))
+    "(".concat(c_type.concat(" *)".concat(native_c_core_arg(arguments, index))))
 }
 
 fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
@@ -217,12 +217,8 @@ fn native_c_core_destination_type_name(function: MirFunction, instruction: MirIn
 // fallback represents, using the destination Vec type id for GC layout.
 fn native_c_vec_new_call(function: MirFunction, instruction: MirInst) -> NativeCCoreCall {
     native_c_core_call_expression(
-        text::concat(
-            String_from("(ark_object_header *)ark_rt_vec_new_with_capacity(UINT32_C("),
-            text::concat(
-                (native_c_core_destination_type_id(function, instruction)).to_string(),
-                String_from("), INT32_C(0))")
-            )
+        (String_from("(ark_object_header *)ark_rt_vec_new_with_capacity(UINT32_C(")).concat(
+            (native_c_core_destination_type_id(function, instruction)).to_string().concat(String_from("), INT32_C(0))"))
         )
     )
 }
@@ -276,16 +272,7 @@ fn native_c_core_hashmap_value_kind(type_name: String) -> i32 {
 
 fn native_c_core_hashmap_value_expr(function: MirFunction, local_id: i32) -> String {
     let member = native_c_core_value_member(function, local_id)
-    text::concat(
-        String_from("(ark_value){ ."),
-        text::concat(
-            member,
-            text::concat(
-                String_from(" = "),
-                text::concat(String_from("ark_v_"), text::concat((local_id).to_string(), String_from(" }")))
-            )
-        )
-    )
+    (String_from("(ark_value){ .")).concat(member.concat(String_from(" = ").concat(String_from("ark_v_").concat((local_id).to_string().concat(String_from(" }"))))))
 }
 
 fn native_c_core_binary_string_call(function_name: String, arguments: Vec<i32>) -> NativeCCoreCall {
@@ -293,19 +280,7 @@ fn native_c_core_binary_string_call(function_name: String, arguments: Vec<i32>) 
         return native_c_core_call_error("compiler ICE: native-cpp String CoreOp argument mismatch")
     }
     native_c_core_call_expression(
-        text::concat(
-            function_name,
-            text::concat(
-                "(",
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, "ark_string"),
-                    text::concat(
-                        ", ",
-                        text::concat(native_c_core_ref_arg(arguments, 1, "ark_string"), ")")
-                    )
-                )
-            )
-        )
+        function_name.concat("(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_ref_arg(arguments, 1, "ark_string").concat(")")))))
     )
 }
 
@@ -433,22 +408,10 @@ fn native_c_emit_core_call(
     let expected_arguments = native_c_core_expected_argument_count(handler)
     if expected_arguments >= 0 && len(arguments) != expected_arguments {
         return native_c_core_call_error(
-            text::concat(
-                "compiler ICE: native-cpp CoreOp `",
-                text::concat(
-                    core_op_registry_generated::core_op_registry_canonical_id_at(handler),
-                    text::concat(
-                        "` argument count mismatch in function `",
-                        text::concat(
-                            function_identity::MirFunction_name(function),
-                            text::concat(
-                                "`: expected ",
-                                text::concat(
-                                    (expected_arguments).to_string(),
-                                    text::concat(", got ", (len(arguments)).to_string())
-                                )
-                            )
-                        )
+            "compiler ICE: native-cpp CoreOp `".concat(
+                core_op_registry_generated::core_op_registry_canonical_id_at(handler).concat(
+                    "` argument count mismatch in function `".concat(
+                        function_identity::MirFunction_name(function).concat("`: expected ".concat((expected_arguments).to_string().concat(", got ".concat((len(arguments)).to_string()))))
                     )
                 )
             )
@@ -456,105 +419,74 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_parse_parse_f64() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_parse_f64(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")"))
+            "ark_rt_parse_f64(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_parse_parse_i32() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_parse_i32("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+            (String_from("ark_rt_parse_i32(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_parse_parse_i64() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_parse_i64("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+            (String_from("ark_rt_parse_i64(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_assert() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_assert("), text::concat(native_c_core_arg(arguments, 0), String_from(")")))
+            (String_from("ark_rt_assert(")).concat(native_c_core_arg(arguments, 0).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_assert_eq() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_assert_eq_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_assert_eq_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_assert_ne() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_assert_ne_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_assert_ne_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i8_to_i32() {
         return native_c_core_call_expression(
-            text::concat(String_from("(int32_t)(int8_t)(uint8_t)"), native_c_core_arg(arguments, 0))
+            String_from("(int32_t)(int8_t)(uint8_t)").concat(native_c_core_arg(arguments, 0))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i8() {
         return native_c_core_call_expression(
-            text::concat(String_from("(int32_t)(int8_t)(uint8_t)"), native_c_core_arg(arguments, 0))
+            String_from("(int32_t)(int8_t)(uint8_t)").concat(native_c_core_arg(arguments, 0))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_u32() {
         return native_c_core_call_expression(
-            text::concat(String_from("(int32_t)(uint32_t)"), native_c_core_arg(arguments, 0))
+            String_from("(int32_t)(uint32_t)").concat(native_c_core_arg(arguments, 0))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_u32_to_u64() {
         return native_c_core_call_expression(
-            text::concat(String_from("(int64_t)(uint32_t)"), native_c_core_arg(arguments, 0))
+            String_from("(int64_t)(uint32_t)").concat(native_c_core_arg(arguments, 0))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_core_range_new() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_range_new("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("(ark_object_header *)ark_rt_range_new(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_core_range_contains() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_range_contains("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
+            (String_from("ark_rt_range_contains(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")"))))
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_core_range_len() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_range_len("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")), String_from(")"))
-            )
+            (String_from("ark_rt_range_len(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_assert_eq_i64() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_assert_eq_i64("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_assert_eq_i64(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_assert_eq_str() {
@@ -562,77 +494,49 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_is_ok() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_is_ok("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")), String_from(")")))
+            (String_from("ark_rt_is_ok(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_is_err() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_is_err("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")), String_from(")")))
+            (String_from("ark_rt_is_err(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_string_byte_at_unchecked() {
         return native_c_core_call_expression(
-            text::concat(
-                "ark_rt_string_char_at(",
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, "ark_string"),
-                    text::concat(", ", text::concat(native_c_core_arg(arguments, 1), ")"))
-                )
-            )
+            "ark_rt_string_char_at(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_arg(arguments, 1).concat(")"))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_array_len() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_vec_len(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_vec"), ")"))
+            "ark_rt_vec_len(".concat(native_c_core_ref_arg(arguments, 0, "ark_vec").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_array_grow() {
         return native_c_core_call_expression(
-            text::concat(
-                "(ark_object_header *)ark_rt_vec_grow(",
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, "ark_vec"),
-                    text::concat(", ", text::concat(native_c_core_arg(arguments, 1), ")"))
-                )
-            )
+            "(ark_object_header *)ark_rt_vec_grow(".concat(native_c_core_ref_arg(arguments, 0, "ark_vec").concat(", ".concat(native_c_core_arg(arguments, 1).concat(")"))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_array_new() {
         return native_c_core_call_expression(
-            text::concat(
-                "(ark_object_header *)ark_rt_vec_new_with_capacity(UINT32_C(",
-                text::concat(
-                    (native_c_core_destination_type_id(function, instruction)).to_string(),
-                    text::concat(
-                        "), ",
-                        text::concat(native_c_core_arg(arguments, 0), ")")
-                    )
-                )
+            "(ark_object_header *)ark_rt_vec_new_with_capacity(UINT32_C(".concat(
+                (native_c_core_destination_type_id(function, instruction)).to_string().concat("), ".concat(native_c_core_arg(arguments, 0).concat(")")))
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_string_clone() {
         return native_c_core_call_expression(
-            text::concat(
-                "(ark_object_header *)ark_rt_string_clone(",
-                text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")")
-            )
+            "(ark_object_header *)ark_rt_string_clone(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_string_from_bytes() {
         return native_c_core_call_expression(
-            text::concat(
-                "(ark_object_header *)ark_rt_string_from_vec_bytes(",
-                text::concat(native_c_core_ref_arg(arguments, 0, "ark_vec"), ")")
-            )
+            "(ark_object_header *)ark_rt_string_from_vec_bytes(".concat(native_c_core_ref_arg(arguments, 0, "ark_vec").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_string_len_bytes() {
         return native_c_core_call_expression(
-            text::concat(
-                "ark_rt_string_len(",
-                text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")")
-            )
+            "ark_rt_string_len(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_raw_string_new() {
@@ -645,12 +549,12 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_eprintln() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_eprintln(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")"))
+            "ark_rt_eprintln(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() {
         return native_c_core_call_expression(
-            text::concat("(ark_object_header *)ark_rt_fs_read_file(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")"))
+            "(ark_object_header *)ark_rt_fs_read_file(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_f32_to_f64() {
@@ -658,40 +562,37 @@ fn native_c_emit_core_call(
         let dest_member = native_c_core_value_member(function, dest)
         if eq(clone(dest_member), String_from("f32")) {
             return native_c_core_call_expression(
-                text::concat(String_from("(float)"), native_c_core_arg(arguments, 0))
+                String_from("(float)").concat(native_c_core_arg(arguments, 0))
             )
         }
         return native_c_core_call_expression(
-            text::concat(String_from("(double)"), native_c_core_arg(arguments, 0))
+            String_from("(double)").concat(native_c_core_arg(arguments, 0))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i64() {
-        return native_c_core_call_expression(text::concat("(int64_t)(int32_t)", native_c_core_arg(arguments, 0)))
+        return native_c_core_call_expression("(int64_t)(int32_t)".concat(native_c_core_arg(arguments, 0)))
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i64_to_i32() {
-        return native_c_core_call_expression(text::concat("(int32_t)(uint32_t)(uint64_t)", native_c_core_arg(arguments, 0)))
+        return native_c_core_call_expression("(int32_t)(uint32_t)(uint64_t)".concat(native_c_core_arg(arguments, 0)))
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_print() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_print(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")"))
+            "ark_rt_print(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_println() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_println(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")"))
+            "ark_rt_println(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_panic() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_panic("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("ark_rt_panic(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_process_exit() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_process_exit(", text::concat(native_c_core_arg(arguments, 0), ")"))
+            "ark_rt_process_exit(".concat(native_c_core_arg(arguments, 0).concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_read_stdin() {
@@ -700,42 +601,30 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_runtime_write_bytes() {
         if len(arguments) != 2 { return native_c_core_call_error("compiler ICE: native-cpp write_bytes argument mismatch") }
         return native_c_core_call_expression(
-            text::concat(
-                "ark_rt_write_bytes(",
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, "ark_string"),
-                    text::concat(", ", text::concat(native_c_core_ref_arg(arguments, 1, "ark_vec"), ")"))
-                )
-            )
+            "ark_rt_write_bytes(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_ref_arg(arguments, 1, "ark_vec").concat(")"))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_write_string() {
         if len(arguments) != 2 { return native_c_core_call_error("compiler ICE: native-cpp write_string argument mismatch") }
         return native_c_core_call_expression(
-            text::concat(
-                "ark_rt_write_string(",
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, "ark_string"),
-                    text::concat(", ", text::concat(native_c_core_ref_arg(arguments, 1, "ark_string"), ")"))
-                )
-            )
+            "ark_rt_write_string(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_ref_arg(arguments, 1, "ark_string").concat(")"))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_scalar_f64_bits_hi() {
-        return native_c_core_call_expression(text::concat("ark_rt_f64_bits_hi(", text::concat(native_c_core_arg(arguments, 0), ")")))
+        return native_c_core_call_expression("ark_rt_f64_bits_hi(".concat(native_c_core_arg(arguments, 0).concat(")")))
     }
     if handler == core_op_registry_generated::core_op_handler_scalar_f64_bits_lo() {
-        return native_c_core_call_expression(text::concat("ark_rt_f64_bits_lo(", text::concat(native_c_core_arg(arguments, 0), ")")))
+        return native_c_core_call_expression("ark_rt_f64_bits_lo(".concat(native_c_core_arg(arguments, 0).concat(")")))
     }
     if handler == core_op_registry_generated::core_op_handler_string_char_at() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_string_char_at(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), text::concat(", ", text::concat(native_c_core_arg(arguments, 1), ")"))))
+            "ark_rt_string_char_at(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_arg(arguments, 1).concat(")"))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_concat() {
         let call = native_c_core_binary_string_call("ark_rt_string_concat", arguments)
         if len(native_c_core_call_diagnostic(call)) > 0 { return call }
-        return native_c_core_call_expression(text::concat("(ark_object_header *)", native_c_core_call_source(call)))
+        return native_c_core_call_expression("(ark_object_header *)".concat(native_c_core_call_source(call)))
     }
     if handler == core_op_registry_generated::core_op_handler_string_contains() {
         return native_c_core_binary_string_call("ark_rt_string_contains", arguments)
@@ -748,17 +637,13 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_string_len() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_string_len(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_string"), ")"))
+            "ark_rt_string_len(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_slice() {
         return native_c_core_call_expression(
-            text::concat(
-                "(ark_object_header *)ark_rt_string_slice(",
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, "ark_string"),
-                    text::concat(", ", text::concat(native_c_core_arg(arguments, 1), text::concat(", ", text::concat(native_c_core_arg(arguments, 2), ")"))))
-                )
+            "(ark_object_header *)ark_rt_string_slice(".concat(
+                native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_arg(arguments, 1).concat(", ".concat(native_c_core_arg(arguments, 2).concat(")")))))
             )
         )
     }
@@ -767,26 +652,17 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_string_trim() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_trim("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_trim(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_trim_start() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_trim_start("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_trim_start(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_trim_end() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_trim_end("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_trim_end(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_String_new() {
@@ -794,32 +670,32 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_text_char_to_string() {
         return native_c_core_call_expression(
-            text::concat("(ark_object_header *)ark_rt_char_to_string(", text::concat(native_c_core_arg(arguments, 0), ")"))
+            "(ark_object_header *)ark_rt_char_to_string(".concat(native_c_core_arg(arguments, 0).concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_format_f64() {
         return native_c_core_call_expression(
-            text::concat("(ark_object_header *)ark_rt_f64_to_string(", text::concat(native_c_core_arg(arguments, 0), ")"))
+            "(ark_object_header *)ark_rt_f64_to_string(".concat(native_c_core_arg(arguments, 0).concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_format_bool() {
         return native_c_core_call_expression(
-            text::concat(String_from("(ark_object_header *)ark_rt_bool_to_string("), text::concat(native_c_core_arg(arguments, 0), String_from(")")))
+            (String_from("(ark_object_header *)ark_rt_bool_to_string(")).concat(native_c_core_arg(arguments, 0).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_format_i64() {
         return native_c_core_call_expression(
-            text::concat(String_from("(ark_object_header *)ark_rt_i64_to_string("), text::concat(native_c_core_arg(arguments, 0), String_from(")")))
+            (String_from("(ark_object_header *)ark_rt_i64_to_string(")).concat(native_c_core_arg(arguments, 0).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_is_empty() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_string_is_empty("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+            (String_from("ark_rt_string_is_empty(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_len_bytes() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_string_len("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+            (String_from("ark_rt_string_len(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_clone() {
@@ -830,18 +706,18 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_text_to_string() {
         return native_c_core_call_expression(
-            text::concat(String_from("(ark_object_header *)ark_rt_i32_to_string("), text::concat(native_c_core_arg(arguments, 0), String_from(")")))
+            (String_from("(ark_object_header *)ark_rt_i32_to_string(")).concat(native_c_core_arg(arguments, 0).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_len() {
         return native_c_core_call_expression(
-            text::concat("ark_rt_vec_len(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_vec"), ")"))
+            "ark_rt_vec_len(".concat(native_c_core_ref_arg(arguments, 0, "ark_vec").concat(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_pop() {
         let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
         return native_c_core_call_expression(
-            text::concat("ark_rt_vec_pop(", text::concat(native_c_core_ref_arg(arguments, 0, "ark_vec"), text::concat(").", member)))
+            "ark_rt_vec_pop(".concat(native_c_core_ref_arg(arguments, 0, "ark_vec").concat(").".concat(member)))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_push() {
@@ -852,15 +728,8 @@ fn native_c_emit_core_call(
             vec_local,
             native_c_core_value_member(function, value_local)
         )
-        let operation = text::concat(
-            "ark_rt_vec_push(",
-            text::concat(
-                native_c_core_ref_arg(arguments, 0, "ark_vec"),
-                text::concat(
-                    ", (ark_value){ .",
-                    text::concat(member, text::concat(" = ", text::concat(native_c_core_arg(arguments, 1), " })")))
-                )
-            )
+        let operation = "ark_rt_vec_push(".concat(
+            native_c_core_ref_arg(arguments, 0, "ark_vec").concat(", (ark_value){ .".concat(member.concat(" = ".concat(native_c_core_arg(arguments, 1).concat(" })")))))
         )
         return native_c_core_call_expression(operation)
     }
@@ -871,20 +740,9 @@ fn native_c_emit_core_call(
             get_unchecked(arguments, 0),
             native_c_core_value_member(function, value_local)
         )
-        let operation = text::concat(
-            "ark_rt_vec_set(",
-            text::concat(
-                native_c_core_ref_arg(arguments, 0, "ark_vec"),
-                text::concat(
-                    ", ",
-                    text::concat(
-                        native_c_core_arg(arguments, 1),
-                        text::concat(
-                            ", (ark_value){ .",
-                            text::concat(member, text::concat(" = ", text::concat(native_c_core_arg(arguments, 2), " })")))
-                        )
-                    )
-                )
+        let operation = "ark_rt_vec_set(".concat(
+            native_c_core_ref_arg(arguments, 0, "ark_vec").concat(
+                ", ".concat(native_c_core_arg(arguments, 1).concat(", (ark_value){ .".concat(member.concat(" = ".concat(native_c_core_arg(arguments, 2).concat(" })"))))))
             )
         )
         return native_c_core_call_expression(operation)
@@ -896,38 +754,20 @@ fn native_c_emit_core_call(
             get_unchecked(arguments, 0),
             native_c_core_value_member(function, value_local)
         )
-        let operation = text::concat(
-            "ark_rt_vec_set_unchecked(",
-            text::concat(
-                native_c_core_ref_arg(arguments, 0, "ark_vec"),
-                text::concat(
-                    ", ",
-                    text::concat(
-                        native_c_core_arg(arguments, 1),
-                        text::concat(
-                            ", (ark_value){ .",
-                            text::concat(member, text::concat(" = ", text::concat(native_c_core_arg(arguments, 2), " })")))
-                        )
-                    )
-                )
+        let operation = "ark_rt_vec_set_unchecked(".concat(
+            native_c_core_ref_arg(arguments, 0, "ark_vec").concat(
+                ", ".concat(native_c_core_arg(arguments, 1).concat(", (ark_value){ .".concat(member.concat(" = ".concat(native_c_core_arg(arguments, 2).concat(" })"))))))
             )
         )
         return native_c_core_call_expression(operation)
     }
     if handler == core_op_registry_generated::core_op_handler_string_replace() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_replace("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
-                    text::concat(
-                        String_from(", "),
-                        text::concat(
-                            native_c_core_ref_arg(arguments, 1, String_from("ark_string")),
-                            text::concat(
-                                String_from(", "),
-                                text::concat(native_c_core_ref_arg(arguments, 2, String_from("ark_string")), String_from(")"))
-                            )
+            (String_from("(ark_object_header *)ark_rt_string_replace(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(
+                    String_from(", ").concat(
+                        native_c_core_ref_arg(arguments, 1, String_from("ark_string")).concat(
+                            String_from(", ").concat(native_c_core_ref_arg(arguments, 2, String_from("ark_string")).concat(String_from(")")))
                         )
                     )
                 )
@@ -936,66 +776,36 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_string_repeat() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_repeat("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
+            (String_from("(ark_object_header *)ark_rt_string_repeat(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")"))))
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_lines() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_lines("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
-                    text::concat(
-                        String_from(", UINT32_C("),
-                        text::concat(
-                            (native_c_core_destination_type_id(function, instruction)).to_string(),
-                            String_from("))")
-                        )
-                    )
+            (String_from("(ark_object_header *)ark_rt_string_lines(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(
+                    (String_from(", UINT32_C(")).concat((native_c_core_destination_type_id(function, instruction)).to_string().concat(String_from("))")))
                 )
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_chars() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_chars("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
-                    text::concat(
-                        String_from(", UINT32_C("),
-                        text::concat(
-                            (native_c_core_destination_type_id(function, instruction)).to_string(),
-                            String_from("))")
-                        )
-                    )
+            (String_from("(ark_object_header *)ark_rt_string_chars(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(
+                    (String_from(", UINT32_C(")).concat((native_c_core_destination_type_id(function, instruction)).to_string().concat(String_from("))")))
                 )
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_split() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_split("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
-                    text::concat(
-                        String_from(", "),
-                        text::concat(
-                            native_c_core_ref_arg(arguments, 1, String_from("ark_string")),
-                            text::concat(
-                                String_from(", UINT32_C("),
-                                text::concat(
-                                    (native_c_core_destination_type_id(function, instruction)).to_string(),
-                                    String_from("))")
-                                )
-                            )
+            (String_from("(ark_object_header *)ark_rt_string_split(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(
+                    String_from(", ").concat(
+                        native_c_core_ref_arg(arguments, 1, String_from("ark_string")).concat(
+                            (String_from(", UINT32_C(")).concat((native_c_core_destination_type_id(function, instruction)).to_string().concat(String_from("))")))
                         )
                     )
                 )
@@ -1004,75 +814,39 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_string_to_lowercase() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_to_lowercase("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_to_lowercase(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_to_uppercase() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_to_uppercase("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_to_uppercase(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_reverse() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_reverse("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_reverse(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_string_join() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_join("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
-                    text::concat(
-                        String_from(", "),
-                        text::concat(native_c_core_ref_arg(arguments, 1, String_from("ark_string")), String_from(")"))
-                    )
-                )
+            (String_from("(ark_object_header *)ark_rt_string_join(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(", ").concat(native_c_core_ref_arg(arguments, 1, String_from("ark_string")).concat(String_from(")"))))
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_unwrap() {
         let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_result_unwrap("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")),
-                    text::concat(String_from(")."), member)
-                )
-            )
+            (String_from("ark_rt_result_unwrap(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat((String_from(").")).concat(member)))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_unwrap_or() {
         let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
         let fallback_member = native_c_core_value_member(function, get_unchecked(arguments, 1))
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_result_unwrap_or("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")),
-                    text::concat(
-                        String_from(", (ark_value){ ."),
-                        text::concat(
-                            fallback_member,
-                            text::concat(
-                                String_from(" = "),
-                                text::concat(
-                                    native_c_core_arg(arguments, 1),
-                                    text::concat(String_from(" })."), member)
-                                )
-                            )
-                        )
-                    )
+            (String_from("ark_rt_result_unwrap_or(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat(
+                    (String_from(", (ark_value){ .")).concat(fallback_member.concat(String_from(" = ").concat(native_c_core_arg(arguments, 1).concat((String_from(" }).")).concat(member)))))
                 )
             )
         )
@@ -1083,106 +857,59 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_math_abs() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_math_abs_i32("), text::concat(native_c_core_arg(arguments, 0), String_from(")")))
+            (String_from("ark_rt_math_abs_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_math_min() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_math_min_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_math_min_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_math_max() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_math_max_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_math_max_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_math_clamp() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_math_clamp_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(
-                        String_from(", "),
-                        text::concat(
-                            native_c_core_arg(arguments, 1),
-                            text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 2), String_from(")")))
-                        )
-                    )
+            (String_from("ark_rt_math_clamp_i32(")).concat(
+                native_c_core_arg(arguments, 0).concat(
+                    String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(", ").concat(native_c_core_arg(arguments, 2).concat(String_from(")")))))
                 )
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_math_gcd() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_math_gcd_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_math_gcd_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_math_pow_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_math_pow_i32("),
-                text::concat(
-                    native_c_core_arg(arguments, 0),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
-            )
+            (String_from("ark_rt_math_pow_i32(")).concat(native_c_core_arg(arguments, 0).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")")))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_math_sqrt() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_math_sqrt_f64("), text::concat(native_c_core_arg(arguments, 0), String_from(")")))
+            (String_from("ark_rt_math_sqrt_f64(")).concat(native_c_core_arg(arguments, 0).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_is_empty() {
         return native_c_core_call_expression(
-            text::concat(String_from("ark_rt_vec_is_empty("), text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")")))
+            (String_from("ark_rt_vec_is_empty(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_text_string_from_bytes() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_string_from_vec_bytes("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("(ark_object_header *)ark_rt_string_from_vec_bytes(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_get() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("(ark_object_header *)ark_rt_vec_get_option("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
-                    text::concat(
-                        String_from(", "),
-                        text::concat(
-                            native_c_core_arg(arguments, 1),
-                            text::concat(
-                                String_from(", UINT32_C("),
-                                text::concat(
-                                    (native_c_core_destination_type_id(function, instruction)).to_string(),
-                                    String_from("))")
-                                )
-                            )
-                        )
+            (String_from("(ark_object_header *)ark_rt_vec_get_option(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(
+                    String_from(", ").concat(
+                        native_c_core_arg(arguments, 1).concat((String_from(", UINT32_C(")).concat((native_c_core_destination_type_id(function, instruction)).to_string().concat(String_from("))"))))
                     )
                 )
             )
@@ -1198,12 +925,8 @@ fn native_c_emit_core_call(
             native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
         )
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_get_unchecked("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), text::concat(String_from(")."), member)))
-                )
+            (String_from("ark_rt_vec_get_unchecked(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat((String_from(").")).concat(member))))
             )
         )
     }
@@ -1211,14 +934,9 @@ fn native_c_emit_core_call(
     handler == core_op_registry_generated::core_op_handler_vec_push_i64() {
         let value_local = get_unchecked(arguments, 1)
         let member = native_c_core_value_member(function, value_local)
-        let operation = text::concat(
-            String_from("ark_rt_vec_push("),
-            text::concat(
-                native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
-                text::concat(
-                    String_from(", (ark_value){ ."),
-                    text::concat(member, text::concat(String_from(" = "), text::concat(native_c_core_arg(arguments, 1), String_from(" })"))))
-                )
+        let operation = (String_from("ark_rt_vec_push(")).concat(
+            native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(
+                (String_from(", (ark_value){ .")).concat(member.concat(String_from(" = ").concat(native_c_core_arg(arguments, 1).concat(String_from(" })")))))
             )
         )
         return native_c_core_call_expression(operation)
@@ -1228,82 +946,52 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_text_push_char() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_string_push_char("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
+            (String_from("ark_rt_string_push_char(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_string")).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")"))))
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_seq_sort_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_sort_i32("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("ark_rt_vec_sort_i32(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_seq_sort_i64() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_sort_i64("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("ark_rt_vec_sort_i64(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_seq_sort_f64() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_sort_f64("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("ark_rt_vec_sort_f64(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_seq_sum_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_sum_i32("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("ark_rt_vec_sum_i32(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_seq_product_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_product_i32("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("ark_rt_vec_product_i32(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_reverse_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_reverse("),
-                text::concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
-            )
+            (String_from("ark_rt_vec_reverse(")).concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(")")))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_remove_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_remove("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
+            (String_from("ark_rt_vec_remove(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")"))))
             )
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_contains_i32() {
         return native_c_core_call_expression(
-            text::concat(
-                String_from("ark_rt_vec_contains_i32("),
-                text::concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
-                    text::concat(String_from(", "), text::concat(native_c_core_arg(arguments, 1), String_from(")")))
-                )
+            (String_from("ark_rt_vec_contains_i32(")).concat(
+                native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(String_from(", ").concat(native_c_core_arg(arguments, 1).concat(String_from(")"))))
             )
         )
     }
@@ -1314,9 +1002,6 @@ fn native_c_emit_core_call(
         return native_c_core_call_not_handled()
     }
     native_c_core_call_error(
-        text::concat(
-            String_from("compiler ICE: native-cpp missing implementation for supported CoreOp `"),
-            text::concat(core_op_registry_generated::core_op_registry_canonical_id_at(handler), String_from("`"))
-        )
+        String_from("compiler ICE: native-cpp missing implementation for supported CoreOp `").concat(core_op_registry_generated::core_op_registry_canonical_id_at(handler).concat(String_from("`")))
     )
 }

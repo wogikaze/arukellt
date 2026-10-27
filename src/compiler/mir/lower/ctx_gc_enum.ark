@@ -164,7 +164,7 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     }
     // Bare `Table` must resolve to `TomlValue::Table` when unique (#726).
     let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
-    let suffix = text::concat("::", clone(bare))
+    let suffix = "::".concat(clone(bare))
     let count = len(ctx.gc_enum_variant_names)
     let mut i = 0
     let mut hit = 0 - 1

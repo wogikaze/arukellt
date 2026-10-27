@@ -182,19 +182,7 @@ fn report_missing_operator_bound(
     operand_ty: TypeInfo
 ) {
     let type_name = contract_type_access::TypeInfo_name(operand_ty)
-    let message = text::concat(
-        String_from("operator `"),
-        text::concat(
-            clone(symbol),
-            text::concat(
-                "` requires ",
-                text::concat(
-                    clone(trait_name),
-                    text::concat(" bound for ", clone(type_name))
-                )
-            )
-        )
-    )
+    let message = String_from("operator `").concat(clone(symbol).concat("` requires ".concat(clone(trait_name).concat(" bound for ".concat(clone(type_name))))))
     unify_env::type_error_unsupported_operator(env, message)
 }
 
@@ -204,15 +192,6 @@ fn report_missing_operator_impl(
     trait_name: String,
     type_name: String
 ) {
-    let message = text::concat(
-        String_from("operator `"),
-        text::concat(
-            clone(symbol),
-            text::concat(
-                "` requires ",
-                text::concat(clone(trait_name), text::concat(" for ", clone(type_name)))
-            )
-        )
-    )
+    let message = String_from("operator `").concat(clone(symbol).concat("` requires ".concat(clone(trait_name).concat(" for ".concat(clone(type_name))))))
     unify_env::type_error_unsupported_operator(env, message)
 }

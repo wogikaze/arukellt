@@ -18,10 +18,7 @@ fn infer_local_function_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig
     if actual_arg_count != expected_arg_count {
         unify::type_error_bad_arity(
             env,
-            text::concat(
-                String_from("wrong number of arguments for local function value: expected "),
-                text::concat(to_string(expected_arg_count), text::concat(String_from(", found "), to_string(actual_arg_count)))
-            )
+            String_from("wrong number of arguments for local function value: expected ").concat(to_string(expected_arg_count).concat(String_from(", found ").concat(to_string(actual_arg_count))))
         )
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, actual_arg_count)
         return TypeInfo_simple(commands::TY_UNKNOWN())
@@ -59,10 +56,7 @@ fn infer_unknown_ident_call(env: TypeEnv, scope: LocalScope, callee: AstNode) ->
     // diagnostics, and a not-yet-bound var may still unify with a fn.
     let loc_tag = contract_type_access::TypeInfo_tag(loc_ty)
     if loc_tag != commands::TY_UNKNOWN() && loc_tag != commands::TY_TYPE_VAR() {
-        unify::type_error(env, text::concat(
-                clone(callee_name),
-                text::concat(" (",
-                    text::concat(names::type_display_name(loc_ty), ") is not callable"))))
+        unify::type_error(env, clone(callee_name).concat(" (".concat(names::type_display_name(loc_ty).concat(") is not callable"))))
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
 }

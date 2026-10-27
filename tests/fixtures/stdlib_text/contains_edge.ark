@@ -3,11 +3,11 @@ use std::text
 
 fn main() {
     // Empty needle is always found
-    test::assert_true(text::contains("hello", ""))
-    test::assert_true(text::contains("", ""))
+    test::assert_true("hello".contains(""))
+    test::assert_true("".contains(""))
     // Non-empty needle in empty haystack is not found
-    test::assert_false(text::contains("", "a"))
+    test::assert_false("".contains("a"))
     // Single char haystack
-    test::assert_true(text::contains("a", "a"))
-    test::assert_false(text::contains("a", "b"))
+    test::assert_true("a".contains("a"))
+    test::assert_false("a".contains("b"))
 }

@@ -33,7 +33,7 @@ pub fn read_to_string(path: String) -> Result<String, String> {
 /// primitive behind `File::open` (#693 Phase D).
 pub fn read_bytes(path: String) -> Result<Vec<i32>, String> {
     match __runtime_abi_fs_read_file(path) {
-        Result::Ok(contents) => Result::Ok(text::to_utf8_bytes(contents)),
+        Result::Ok(contents) => Result::Ok(contents.to_utf8_bytes()),
         Result::Err(message) => Result::Err(message),
     }
 }

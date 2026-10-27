@@ -24,7 +24,7 @@ fn MirInst_call_ref_with_arg0_vt(
         String_new()
     }
     let hint = if len(callee_type_name) > 0 {
-        text::concat(numeric_hint, text::concat(String_from("|"), callee_type_name))
+        numeric_hint.concat(String_from("|").concat(callee_type_name))
     } else {
         numeric_hint
     }

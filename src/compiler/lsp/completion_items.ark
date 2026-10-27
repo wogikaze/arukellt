@@ -5,12 +5,12 @@ use lsp::import_graph
 use lsp::positions
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
     let mut out = String_from("{\"label\":")
-    out = text::builder_append(out, json::quote_string(label))
-    out = text::builder_append(out, String_from(",\"kind\":"))
-    out = text::builder_append(out, to_string(kind))
-    out = text::builder_append(out, String_from(",\"detail\":"))
-    out = text::builder_append(out, json::quote_string(detail))
-    out = text::builder_append(out, String_from("}"))
+    out = out.concat(json::quote_string(label))
+    out = out.concat(String_from(",\"kind\":"))
+    out = out.concat(to_string(kind))
+    out = out.concat(String_from(",\"detail\":"))
+    out = out.concat(json::quote_string(detail))
+    out = out.concat(String_from("}"))
     out
 }
 
@@ -21,22 +21,22 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
     let mut out = String_from("{\"label\":")
-    out = text::builder_append(out, json::quote_string(label))
-    out = text::builder_append(out, String_from(",\"kind\":"))
-    out = text::builder_append(out, to_string(kind))
-    out = text::builder_append(out, String_from(",\"detail\":"))
-    out = text::builder_append(out, json::quote_string(detail))
-    out = text::builder_append(out, String_from(",\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
-    out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json::quote_string(import_graph::build_use_statement(import_path)))
-    out = text::builder_append(out, String_from("}]}"))
+    out = out.concat(json::quote_string(label))
+    out = out.concat(String_from(",\"kind\":"))
+    out = out.concat(to_string(kind))
+    out = out.concat(String_from(",\"detail\":"))
+    out = out.concat(json::quote_string(detail))
+    out = out.concat(String_from(",\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":"))
+    out = out.concat(to_string(positions::lsp_position_line(pos)))
+    out = out.concat(String_from(",\"character\":"))
+    out = out.concat(to_string(positions::lsp_position_character(pos)))
+    out = out.concat(String_from("},\"end\":{\"line\":"))
+    out = out.concat(to_string(positions::lsp_position_line(pos)))
+    out = out.concat(String_from(",\"character\":"))
+    out = out.concat(to_string(positions::lsp_position_character(pos)))
+    out = out.concat(String_from("}},\"newText\":"))
+    out = out.concat(json::quote_string(import_graph::build_use_statement(import_path)))
+    out = out.concat(String_from("}]}"))
     out
 }
 
@@ -44,5 +44,5 @@ pub fn append_item(items: String, item: String) -> String {
     if len(items) == 0 {
         return item
     }
-    text::concat(text::concat(items, String_from(",")), item)
+    items.concat(String_from(",")).concat(item)
 }

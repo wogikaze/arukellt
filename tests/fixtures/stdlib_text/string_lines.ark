@@ -10,6 +10,6 @@ fn main() {
         stdio::println(get_unchecked(result, i))
         i = i + 1
     }
-    stdio::println((text::is_empty("")).to_string())
-    stdio::println((text::len_bytes("hello")).to_string())
+    stdio::println(("".is_empty()).to_string())
+    stdio::println(("hello".len_bytes()).to_string())
 }

@@ -80,7 +80,7 @@ fn import_is_used(path: String, body: String) -> bool {
         return contains_ident_usage(clone(body), sym)
     }
     let short = resolver::use_module_short_name(clone(path))
-    let needle = text::concat(clone(short), "::")
+    let needle = clone(short).concat("::")
     if index_of(clone(body), needle) >= 0 {
         return true
     }
@@ -138,7 +138,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
             let entry = get_unchecked(entries, i)
             if entry.sort_group == group && import_is_used(clone(entry.path), clone(body)) {
                 let line = substring(clone(text), entry.line_start, entry.line_end)
-                out = text::builder_append(out, line)
+                out = out.concat(line)
             }
             i = i + 1
         }
@@ -168,10 +168,7 @@ fn import_block_bounds(entries: Vec<PruneImportEntry>) -> ImportBlockSpan {
 fn apply_pruned_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
     let block = import_block_bounds(entries)
     let pruned = pruned_import_text(clone(text), entries)
-    text::concat(
-        text::concat(substring(clone(text), 0, import_block::ImportBlockSpan_start(block)), pruned),
-        substring(text, import_block::ImportBlockSpan_end(block), len(text))
-    )
+    substring(clone(text), 0, import_block::ImportBlockSpan_start(block)).concat(pruned).concat(substring(text, import_block::ImportBlockSpan_end(block), len(text)))
 }
 
 fn pruned_import_block(input: String) -> Option<String> {

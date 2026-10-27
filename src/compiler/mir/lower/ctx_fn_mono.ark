@@ -100,7 +100,7 @@ fn ctx_mono_substitute_span_vars(ctx: LowerCtx, target: String) -> String {
         let concrete = get_unchecked(ctx.mono_type_param_types, i)
         out = ctx_mono_replace_var_token(
             clone(out),
-            text::concat(String_from("?"), clone(var_name)),
+            String_from("?").concat(clone(var_name)),
             mono_names::mono_safe_name(clone(concrete))
         )
         i = i + 1
@@ -133,10 +133,10 @@ fn ctx_mono_replace_var_token(target: String, token: String, replacement: String
             }
         }
         if matched {
-            out = text::concat(out, clone(replacement))
+            out = out.concat(clone(replacement))
             i = i + tlen
         } else {
-            out = text::concat(out, substring(clone(target), i, i + 1))
+            out = out.concat(substring(clone(target), i, i + 1))
             i = i + 1
         }
     }
@@ -177,7 +177,7 @@ fn mono_sources_match(candidate: String, requested: String) -> bool {
 
 fn mono_target_matches_source(target: String, source: String) -> bool {
     let bare_source = ctx_mono_rewrites::mono_bare_source(source)
-    let prefix = text::concat(clone(bare_source), "__")
+    let prefix = clone(bare_source).concat("__")
     if starts_with(clone(target), clone(prefix)) {
         // The owner guard exists for Type::method sources (Vec::into_iter
         // must not steal a free into_iter__X target). Module-qualified free
@@ -204,7 +204,7 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
     // not Vec::into_iter. The target owner is the segment before the
     // __method__ infix; a per-instantiation source owner (Take_VecIter)
     // relaxes to its constructor base (Take).
-    let infix = text::concat(String_from("__"), text::concat(clone(bare_source), String_from("__")))
+    let infix = String_from("__").concat(clone(bare_source).concat(String_from("__")))
     let pos = index_of(clone(target), clone(infix))
     if pos < 0 {
         return false

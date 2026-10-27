@@ -85,7 +85,7 @@ fn register_type_use_alias(ctx: ResolveCtx, full_path: String, short_name: Strin
     if !modules::module_registered(loaded_modules, clone(parent_short)) {
         return
     }
-    let target = text::concat(clone(parent_short), text::concat("::", clone(short_name)))
+    let target = clone(parent_short).concat("::".concat(clone(short_name)))
     ctx_record::resolve_ctx_add_use_alias(ctx, clone(short_name), target)
 }
 
@@ -151,6 +151,6 @@ fn register_use_func_alias(ctx: ResolveCtx, child_path: String, child_short: Str
     if len(clone(parent_short)) == 0 {
         return
     }
-    let alias_target = text::concat(clone(parent_short), text::concat("::", clone(child_short)))
+    let alias_target = clone(parent_short).concat("::".concat(clone(child_short)))
     ctx_record::resolve_ctx_add_use_alias(ctx, child_short, alias_target)
 }

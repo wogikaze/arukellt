@@ -21,10 +21,10 @@ fn expand(s: String, ctx: HashMap<String, String>) -> String {
             match ctx.get(var_name) {
                 Option::Some(val) => {
                     let expanded_val: String = expand(val, ctx)
-                    text::concat(text::concat(prefix, expanded_val), expand(suffix, ctx))
+                    prefix.concat(expanded_val).concat(expand(suffix, ctx))
                 },
                 None => {
-                    text::concat(text::concat(prefix, text::concat("{", text::concat(var_name, "}"))), expand(suffix, ctx))
+                    prefix.concat("{".concat(var_name.concat("}"))).concat(expand(suffix, ctx))
                 },
             }
         }

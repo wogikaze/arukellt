@@ -119,9 +119,9 @@ fn wit_join_path(base: String, rel: String) -> String {
         return rel
     }
     if ends_with(clone(base), String_from("/")) {
-        return text::concat(base, rel)
+        return base.concat(rel)
     }
-    text::concat(text::concat(base, String_from("/")), rel)
+    base.concat(String_from("/")).concat(rel)
 }
 
 fn wit_resolve_relative_path(base: String, rel: String) -> String {

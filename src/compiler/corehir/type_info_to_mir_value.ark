@@ -241,7 +241,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(elem_name) == 0 {
             return String_new()
         }
-        return text::concat(String_from("vec:"), elem_name)
+        return String_from("vec:").concat(elem_name)
     }
     if kind == kinds::TYPE_KIND_OPTION() && arg_count == 1 {
         let inner = type_table::type_entry_type_param_at(entry, 0)
@@ -249,7 +249,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(inner_name) == 0 {
             return String_new()
         }
-        return text::concat(String_from("option:"), inner_name)
+        return String_from("option:").concat(inner_name)
     }
     if kind == kinds::TYPE_KIND_RESULT() && arg_count == 2 {
         let ok = type_table::type_entry_type_param_at(entry, 0)
@@ -259,7 +259,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(ok_name) == 0 || len(err_name) == 0 {
             return String_new()
         }
-        return text::concat(text::concat(String_from("result:"), ok_name), text::concat(String_from(":"), err_name))
+        return String_from("result:").concat(ok_name).concat(String_from(":").concat(err_name))
     }
     if kind == kinds::TYPE_KIND_HASHMAP() && arg_count == 2 {
         let k = type_table::type_entry_type_param_at(entry, 0)
@@ -269,7 +269,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(k_name) == 0 || len(v_name) == 0 {
             return String_new()
         }
-        return text::concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
+        return String_from("hashmap:").concat(hashmap_type_name::hashmap_type_alias(k_name, v_name))
     }
     name
 }

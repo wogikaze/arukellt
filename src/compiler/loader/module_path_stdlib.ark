@@ -15,19 +15,19 @@ pub fn stdlib_path_to_file(path: String) -> String {
     let mut seg_start = 0
     while i < n {
         if byte_at(path, i) == 58 && i + 1 < n && byte_at(path, i + 1) == 58 {
-            result = text::concat(clone(result), text::concat(substring(clone(path), seg_start, i), "/"))
+            result = clone(result).concat(substring(clone(path), seg_start, i).concat("/"))
             i = i + 2
             seg_start = i
         } else {
             i = i + 1
         }
     }
-    text::concat(clone(result), text::concat(substring(clone(path), seg_start, n), ".ark"))
+    clone(result).concat(substring(clone(path), seg_start, n).concat(".ark"))
 }
 
 pub fn stdlib_mod_fallback_path(primary: String) -> String {
     let n = len(primary)
-    text::concat(substring(clone(primary), 0, n - 4), "/mod.ark")
+    substring(clone(primary), 0, n - 4).concat("/mod.ark")
 }
 test mod "stdlib_path" {
     test "is_std" { assert(is_stdlib_path("std::core")) }

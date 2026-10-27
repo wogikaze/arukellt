@@ -27,7 +27,7 @@ fn main() -> i32 {
 
 ソースモジュールの正規形は `use` です。
 
-代表的な形は `use std::core as c`、`use std::text::string::{split, join}`、
+代表的な形は `use std::core as c`、`use std::collections::string::{split, join}`、
 `pub use source::answer` です。
 
 - `use path::to::module` は末尾の path segment を既定 alias にします
@@ -145,7 +145,7 @@ for item in values(v) {
 ```ark
 push(v, 42)
 let n = len(v)
-let s2 = text::concat(s1, s2)
+let s2 = s1.concat(s2)
 let text = to_string(n)
 ```
 

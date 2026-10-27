@@ -1,266 +1,164 @@
-//! Primitive-to-string conversion, padding, and the `Debug` formatting ecosystem.
+//! Container `Debug` renderings for `std::text`.
 //!
-//! The `Debug` trait and scalar implementations live in `std::core::convert`.
-//! This module owns the formatting equivalents and monomorphic helpers for
-//! container types that cannot yet receive generic trait implementations.
+//! Scalar and `String` `Debug` implementations live in `std::core::convert`
+//! and are reached through `value.fmt_debug()`. The compiler cannot yet
+//! resolve a generic `impl Debug for Vec<T>`; a `Vec<i32>` receiver also loses
+//! its element type inside an inherent method, so the container renderings
+//! stay associated functions on `DebugFormat` instead of free functions.
 use std::core::convert
-use std::text
 
-/// Formats an `i32` as a decimal string.
-pub fn format_i32(n: i32) -> String {
-    __intrinsic_i32_to_string(n)
+/// Namespace for container `Debug` renderings.
+pub struct DebugFormat {
 }
 
-/// Formats an `i64` as a decimal string.
-pub fn format_i64(n: i64) -> String {
-    __intrinsic_i64_to_string(n)
-}
-
-/// Formats an `f64` using the sealed-raw formatter.
-pub fn format_f64(n: f64) -> String {
-    __intrinsic_f64_to_string(n)
-}
-
-/// Formats a boolean as `true` or `false`.
-pub fn format_bool(b: bool) -> String {
-    __intrinsic_bool_to_string(b)
-}
-
-/// Left-pads the string with `fill` until `width` bytes are reached.
-pub fn pad_left(s: String, width: i32, fill: String) -> String {
-    let slen = len(s)
-    if slen >= width {
-        return s
-    }
-    let mut padding = ""
-    let mut i = 0
-    let need = width - slen
-    while i < need {
-        padding = __intrinsic_concat(padding, fill)
-        i = i + 1
-    }
-    let padded = __intrinsic_concat(padding, s)
-    let plen = len(padded)
-    __intrinsic_string_slice(padded, plen - width, plen)
-}
-
-/// Right-pads the string with `fill` until `width` bytes are reached.
-pub fn pad_right(s: String, width: i32, fill: String) -> String {
-    let slen = len(s)
-    if slen >= width {
-        return s
-    }
-    let mut padding = ""
-    let mut i = 0
-    let need = width - slen
-    while i < need {
-        padding = __intrinsic_concat(padding, fill)
-        i = i + 1
-    }
-    let padded = __intrinsic_concat(s, padding)
-    __intrinsic_string_slice(padded, 0, width)
-}
-
-// ---------------------------------------------------------------------------
-// `Debug` formatting ecosystem (issue #696).
-//
-// `format_debug` is the `format!("{:?}", value)` equivalent: a generic
-// function bounded by `Debug` that dispatches to the type's `fmt_debug` impl
-// via monomorphization-based static dispatch (#688).
-//
-// `write_debug_to` is the `write!(buf, "{:?}", value)` equivalent: it appends
-// the `Debug` rendering of `value` onto a string buffer and returns the
-// updated buffer (Arukellt strings are immutable, so the buffer is threaded
-// through return values rather than mutated in place).
-//
-// Container types (`Vec<T>`, `Option<T>`, `Result<T, E>`) cannot yet receive
-// generic `impl Debug for Vec<T>` blocks, so monomorphic helpers are provided
-// for the most common element types. Each helper renders with Rust `{:?}`
-// parity:
-//
-//   Vec<T>     -> `[1, 2, 3]`        / `["a", "b"]`
-//   Option<T>  -> `Some(42)`         / `None`
-//   Result<T,E>-> `Ok(42)`           / `Err("msg")`
-// ---------------------------------------------------------------------------
-
-/// `format!("{:?}", value)` equivalent — renders any `Debug` value to a
-/// `String` via trait dispatch.
-pub fn format_debug<T: Debug>(value: T) -> String {
-    value.fmt_debug()
-}
-
-/// `write!(buf, "{:?}", value)` equivalent — appends the `Debug` rendering of
-/// `value` to `buf` and returns the updated buffer.
-pub fn write_debug_to<T: Debug>(buf: String, value: T) -> String {
-    text::concat(buf, value.fmt_debug())
-}
-
-// ── Vec<T> Debug helpers ────────────────────────────────────────────────────
-
-/// `Debug` rendering of `Vec<i32>`: `[1, 2, 3]`.
-pub fn debug_format_vec_i32(v: Vec<i32>) -> String {
-    let n = len(v)
-    let mut s = "["
-    let mut i = 0
-    while i < n {
-        match get(v, i) {
-            Option::Some(val) => {
-                s = __intrinsic_concat(s, format_debug(val))
+impl DebugFormat {
+    /// `Debug` rendering of `Vec<i32>`: `[1, 2, 3]`.
+    fn vec_i32(v: Vec<i32>) -> String {
+        let n = len(v)
+        let mut out = "["
+        let mut i = 0
+        while i < n {
+            match get(v, i) {
+                Option::Some(value) => {
+                    out = __intrinsic_concat(out, value.fmt_debug())
+                }
+                Option::None => {}
             }
-            None => {}
-        }
-        if i < n - 1 {
-            s = __intrinsic_concat(s, ", ")
-        }
-        i = i + 1
-    }
-    __intrinsic_concat(s, "]")
-}
-
-/// `Debug` rendering of `Vec<i64>`: `[1, 2, 3]`.
-pub fn debug_format_vec_i64(v: Vec<i64>) -> String {
-    let n = len(v)
-    let mut s = "["
-    let mut i = 0
-    while i < n {
-        match get(v, i) {
-            Option::Some(val) => {
-                s = __intrinsic_concat(s, format_debug(val))
+            if i < n - 1 {
+                out = __intrinsic_concat(out, ", ")
             }
-            None => {}
+            i = i + 1
         }
-        if i < n - 1 {
-            s = __intrinsic_concat(s, ", ")
-        }
-        i = i + 1
+        __intrinsic_concat(out, "]")
     }
-    __intrinsic_concat(s, "]")
-}
 
-/// `Debug` rendering of `Vec<f64>`: `[1.5, 2.5]`.
-pub fn debug_format_vec_f64(v: Vec<f64>) -> String {
-    let n = len(v)
-    let mut s = "["
-    let mut i = 0
-    while i < n {
-        match get(v, i) {
-            Option::Some(val) => {
-                s = __intrinsic_concat(s, format_debug(val))
+    /// `Debug` rendering of `Vec<i64>`: `[1, 2, 3]`.
+    fn vec_i64(v: Vec<i64>) -> String {
+        let n = len(v)
+        let mut out = "["
+        let mut i = 0
+        while i < n {
+            match get(v, i) {
+                Option::Some(value) => {
+                    out = __intrinsic_concat(out, value.fmt_debug())
+                }
+                Option::None => {}
             }
-            None => {}
-        }
-        if i < n - 1 {
-            s = __intrinsic_concat(s, ", ")
-        }
-        i = i + 1
-    }
-    __intrinsic_concat(s, "]")
-}
-
-/// `Debug` rendering of `Vec<bool>`: `[true, false]`.
-pub fn debug_format_vec_bool(v: Vec<bool>) -> String {
-    let n = len(v)
-    let mut s = "["
-    let mut i = 0
-    while i < n {
-        match get(v, i) {
-            Option::Some(val) => {
-                s = __intrinsic_concat(s, format_debug(val))
+            if i < n - 1 {
+                out = __intrinsic_concat(out, ", ")
             }
-            None => {}
+            i = i + 1
         }
-        if i < n - 1 {
-            s = __intrinsic_concat(s, ", ")
-        }
-        i = i + 1
+        __intrinsic_concat(out, "]")
     }
-    __intrinsic_concat(s, "]")
-}
 
-/// `Debug` rendering of `Vec<String>`: `["a", "b"]` (each element quoted).
-pub fn debug_format_vec_string(v: Vec<String>) -> String {
-    let n = len(v)
-    let mut s = "["
-    let mut i = 0
-    while i < n {
-        match get(v, i) {
-            Option::Some(val) => {
-                s = __intrinsic_concat(s, format_debug(val))
+    /// `Debug` rendering of `Vec<f64>`: `[1.5, 2.5]`.
+    fn vec_f64(v: Vec<f64>) -> String {
+        let n = len(v)
+        let mut out = "["
+        let mut i = 0
+        while i < n {
+            match get(v, i) {
+                Option::Some(value) => {
+                    out = __intrinsic_concat(out, value.fmt_debug())
+                }
+                Option::None => {}
             }
-            None => {}
+            if i < n - 1 {
+                out = __intrinsic_concat(out, ", ")
+            }
+            i = i + 1
         }
-        if i < n - 1 {
-            s = __intrinsic_concat(s, ", ")
+        __intrinsic_concat(out, "]")
+    }
+
+    /// `Debug` rendering of `Vec<bool>`: `[true, false]`.
+    fn vec_bool(v: Vec<bool>) -> String {
+        let n = len(v)
+        let mut out = "["
+        let mut i = 0
+        while i < n {
+            match get(v, i) {
+                Option::Some(value) => {
+                    out = __intrinsic_concat(out, value.fmt_debug())
+                }
+                Option::None => {}
+            }
+            if i < n - 1 {
+                out = __intrinsic_concat(out, ", ")
+            }
+            i = i + 1
         }
-        i = i + 1
+        __intrinsic_concat(out, "]")
     }
-    __intrinsic_concat(s, "]")
-}
 
-// ── Option<T> Debug helpers ─────────────────────────────────────────────────
+    /// `Debug` rendering of `Vec<String>`: `["a", "b"]`.
+    fn vec_string(v: Vec<String>) -> String {
+        let n = len(v)
+        let mut out = "["
+        let mut i = 0
+        while i < n {
+            match get(v, i) {
+                Option::Some(value) => {
+                    out = __intrinsic_concat(out, value.fmt_debug())
+                }
+                Option::None => {}
+            }
+            if i < n - 1 {
+                out = __intrinsic_concat(out, ", ")
+            }
+            i = i + 1
+        }
+        __intrinsic_concat(out, "]")
+    }
 
-/// `Debug` rendering of `Option<i32>`: `Some(42)` / `None`.
-pub fn debug_format_option_i32(o: Option<i32>) -> String {
-    match o {
-        Option::Some(v) => __intrinsic_concat("Some(", __intrinsic_concat(format_debug(v), ")")),
-        None => "None",
+    /// `Debug` rendering of `Option<i32>`: `Some(42)` / `None`.
+    fn option_i32(value: Option<i32>) -> String {
+        match value {
+            Option::Some(inner) => __intrinsic_concat(
+                "Some(",
+                __intrinsic_concat(inner.fmt_debug(), ")")
+            ),
+            Option::None => "None",
+        }
     }
-}
 
-/// `Debug` rendering of `Option<String>`: `Some("msg")` / `None`.
-pub fn debug_format_option_string(o: Option<String>) -> String {
-    match o {
-        Option::Some(v) => __intrinsic_concat("Some(", __intrinsic_concat(format_debug(v), ")")),
-        None => "None",
+    /// `Debug` rendering of `Option<String>`: `Some("msg")` / `None`.
+    fn option_string(value: Option<String>) -> String {
+        match value {
+            Option::Some(inner) => __intrinsic_concat(
+                "Some(",
+                __intrinsic_concat(inner.fmt_debug(), ")")
+            ),
+            Option::None => "None",
+        }
     }
-}
 
-// ── Result<T, E> Debug helpers ──────────────────────────────────────────────
+    /// `Debug` rendering of `Result<i32, String>`: `Ok(42)` / `Err("msg")`.
+    fn result_i32_string(value: Result<i32, String>) -> String {
+        match value {
+            Result::Ok(inner) => __intrinsic_concat(
+                "Ok(",
+                __intrinsic_concat(inner.fmt_debug(), ")")
+            ),
+            Result::Err(error) => __intrinsic_concat(
+                "Err(",
+                __intrinsic_concat(error.fmt_debug(), ")")
+            ),
+        }
+    }
 
-/// `Debug` rendering of `Result<i32, String>`: `Ok(42)` / `Err("msg")`.
-pub fn debug_format_result_i32_string(r: Result<i32, String>) -> String {
-    match r {
-        Result::Ok(v) => __intrinsic_concat("Ok(", __intrinsic_concat(format_debug(v), ")")),
-        Result::Err(e) => __intrinsic_concat("Err(", __intrinsic_concat(format_debug(e), ")")),
+    /// `Debug` rendering of `Result<String, String>`: `Ok("ok")` / `Err("msg")`.
+    fn result_string_string(value: Result<String, String>) -> String {
+        match value {
+            Result::Ok(inner) => __intrinsic_concat(
+                "Ok(",
+                __intrinsic_concat(inner.fmt_debug(), ")")
+            ),
+            Result::Err(error) => __intrinsic_concat(
+                "Err(",
+                __intrinsic_concat(error.fmt_debug(), ")")
+            ),
+        }
     }
-}
-
-/// `Debug` rendering of `Result<String, String>`: `Ok("ok")` / `Err("msg")`.
-pub fn debug_format_result_string_string(r: Result<String, String>) -> String {
-    match r {
-        Result::Ok(v) => __intrinsic_concat("Ok(", __intrinsic_concat(format_debug(v), ")")),
-        Result::Err(e) => __intrinsic_concat("Err(", __intrinsic_concat(format_debug(e), ")")),
-    }
-}
-
-test mod "fmt" {
-    test "format_i32_positive" { assert(format_i32(42) == "42") }
-    test "format_i32_negative" { assert(format_i32(0 - 7) == "-7") }
-    test "format_i32_zero" { assert(format_i32(0) == "0") }
-    test "format_i64_large" { assert(format_i64(3000000000i64) == "3000000000") }
-    test "format_bool_true" { assert(format_bool(true) == "true") }
-    test "format_bool_false" { assert(format_bool(false) == "false") }
-    test "debug_vec_bool" {
-        let v = Vec::new<bool>()
-        v.push(true)
-        v.push(false)
-        assert(debug_format_vec_bool(v) == "[true, false]")
-    }
-    test "debug_option_some_string" { assert(debug_format_option_string(Option::Some("hi")) == "Some(\"hi\")") }
-    test "debug_option_none_string" { assert(debug_format_option_string(Option::None) == "None") }
-    test "debug_vec_i32" {
-        let v = Vec::new<i32>()
-        v.push(1)
-        v.push(2)
-        v.push(3)
-        assert(debug_format_vec_i32(v) == "[1, 2, 3]")
-    }
-    test "debug_vec_i32_empty" {
-        let v = Vec::new<i32>()
-        assert(debug_format_vec_i32(v) == "[]")
-    }
-    test "debug_option_some_i32" { assert(debug_format_option_i32(Option::Some(5)) == "Some(5)") }
-    test "debug_option_none_i32" { assert(debug_format_option_i32(Option::None) == "None") }
-    test "debug_result_ok" { assert(debug_format_result_i32_string(Result::Ok(42)) == "Ok(42)") }
-    test "debug_result_err" { assert(debug_format_result_i32_string(Result::Err("bad")) == "Err(\"bad\")") }
 }

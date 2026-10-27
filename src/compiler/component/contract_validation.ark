@@ -34,10 +34,10 @@ fn validate_export_params(f: ComponentExportFunc, fname: String, allows: Compone
     let mut pi = 0
     while pi < contract_helpers::component_export_param_count(f) {
         if !contract_helpers::component_export_param_has_type_at(f, pi) {
-            return text::concat("E0401: component export requires explicit parameter type annotations: ", clone(fname))
+            return "E0401: component export requires explicit parameter type annotations: ".concat(clone(fname))
         }
         if !component_param_type_supported_for_func_at(f, pi, allows) {
-            return text::concat("E0401: component export uses a type not yet supported by canonical ABI: ", clone(fname))
+            return "E0401: component export uses a type not yet supported by canonical ABI: ".concat(clone(fname))
         }
         pi = pi + 1
     }
@@ -46,7 +46,7 @@ fn validate_export_params(f: ComponentExportFunc, fname: String, allows: Compone
 
 fn validate_export_returns(f: ComponentExportFunc, fname: String, allows: ComponentContractAllows) -> String {
     if !component_return_type_supported_for_func(f, allows) {
-        return text::concat("E0401: component export uses a type not yet supported by canonical ABI: ", clone(fname))
+        return "E0401: component export uses a type not yet supported by canonical ABI: ".concat(clone(fname))
     }
     String_new()
 }

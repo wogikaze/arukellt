@@ -15,23 +15,23 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
             // the vec picks the GC-ref element layout; type_ann_name on a
             // tuple node is empty and collapses the elem to i32 (#888).
             if type_ann_node::type_ann_is_tuple(elem) {
-                return text::concat(String_from("vec:"), type_ann_node::type_ann_tuple_local_name(elem))
+                return String_from("vec:").concat(type_ann_node::type_ann_tuple_local_name(elem))
             }
             // Nested Vec<T>: recurse so Vec<Vec<i32>> → vec:vec:i32 and
             // get_unchecked/push recover T. Bare vec:Vec made every nested
             // vec element indistinguishable and pushed consumers onto a
             // vec:String guess (#922).
             if type_ann_node::type_ann_is_generic(elem) && type_ann_node::type_ann_is_name(elem, String_from("Vec")) {
-                return text::concat(String_from("vec:"), type_ann_shape_param_type_name(elem))
+                return String_from("vec:").concat(type_ann_shape_param_type_name(elem))
             }
-            return text::concat(String_from("vec:"), type_ann_node::type_ann_name(elem))
+            return String_from("vec:").concat(type_ann_node::type_ann_name(elem))
         }
         if type_ann_node::type_ann_is_name(ty, String_from("HashMap")) && type_ann_node::type_ann_child_count(ty) >= 3 {
             let key = type_ann_node::type_ann_child_at(ty, 1)
             let val = type_ann_node::type_ann_child_at(ty, 2)
             let k_name = type_ann_node::type_ann_name(key)
             let v_name = type_ann_node::type_ann_name(val)
-            return text::concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
+            return String_from("hashmap:").concat(hashmap_type_name::hashmap_type_alias(k_name, v_name))
         }
         if type_ann_node::type_ann_is_name(ty, String_from("Option")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)
@@ -39,12 +39,12 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
             eq(type_ann_node::type_ann_name(elem), String_from("fnref")) {
                 return String_from("Option:fnref")
             }
-            return text::concat(String_from("Option:"), type_ann_node::type_ann_name(elem))
+            return String_from("Option:").concat(type_ann_node::type_ann_name(elem))
         }
         if type_ann_node::type_ann_is_name(ty, String_from("Result")) && type_ann_node::type_ann_child_count(ty) >= 3 {
             let ok_ty = type_ann_node::type_ann_child_at(ty, 1)
             let err_ty = type_ann_node::type_ann_child_at(ty, 2)
-            return text::concat(String_from("Result:"), text::concat(type_ann_node::type_ann_name(ok_ty), text::concat(String_from(":"), type_ann_node::type_ann_name(err_ty))))
+            return String_from("Result:").concat(type_ann_node::type_ann_name(ok_ty).concat(String_from(":").concat(type_ann_node::type_ann_name(err_ty))))
         }
         // User-defined generic types keep their argument list so MIR
         // lowering can derive the substituted layout (Pair<String>).
@@ -56,7 +56,7 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
     if type_ann_node::type_ann_is_tuple(ty) && type_ann_node::type_ann_child_count(ty) == 2 {
         let a = type_ann_node::type_ann_child_at(ty, 0)
         let b = type_ann_node::type_ann_child_at(ty, 1)
-        return text::concat(String_from("Tuple:"), text::concat(type_ann_node::type_ann_name(a), text::concat(String_from(":"), type_ann_node::type_ann_name(b))))
+        return String_from("Tuple:").concat(type_ann_node::type_ann_name(a).concat(String_from(":").concat(type_ann_node::type_ann_name(b))))
     }
     type_ann_node::type_ann_name(ty)
 }
@@ -67,7 +67,7 @@ fn type_ann_generic_inst_param_name(ty: AstNode) -> String {
     if arg_count < 2 {
         return String_new()
     }
-    let mut out = text::concat(type_ann_node::type_ann_name(ty), String_from("<"))
+    let mut out = type_ann_node::type_ann_name(ty).concat(String_from("<"))
     let mut i = 1
     while i < arg_count {
         let arg_ty = type_ann_node::type_ann_child_at(ty, i)
@@ -76,10 +76,10 @@ fn type_ann_generic_inst_param_name(ty: AstNode) -> String {
             return String_new()
         }
         if i > 1 {
-            out = text::concat(out, String_from(","))
+            out = out.concat(String_from(","))
         }
-        out = text::concat(out, arg_name)
+        out = out.concat(arg_name)
         i = i + 1
     }
-    text::concat(out, String_from(">"))
+    out.concat(String_from(">"))
 }

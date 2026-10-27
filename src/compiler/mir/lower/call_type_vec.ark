@@ -29,12 +29,12 @@ fn resolved_vec_type_from_element(ctx: LowerCtx, elem: String) -> String {
     normalized = decode_mono_vec_element_projection(normalized)
     let resolved_vec_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
         ctx,
-        text::concat(String_from("vec:"), clone(normalized))
+        String_from("vec:").concat(clone(normalized))
     )
     if starts_with(clone(resolved_vec_type), String_from("vec:")) {
         normalized = substring(resolved_vec_type, 4, resolved_vec_type.len())
     }
-    let mut set_ty = text::concat(String_from("vec:"), normalized)
+    let mut set_ty = String_from("vec:").concat(normalized)
     if eq(clone(normalized), String_from("Vec_String")) || eq(clone(normalized), String_from("Vec_string")) {
         set_ty = String_from("vec:Vec_String")
     }
@@ -315,11 +315,11 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
             } else if eq(clone(elem_ty), String_from("Vec")) {
                 set_ty = String_from("vec:String")
             } else if starts_with(clone(elem_ty), String_from("Vec_")) {
-                set_ty = text::concat(String_from("vec:"), substring(elem_ty, 4, elem_ty.len()))
+                set_ty = String_from("vec:").concat(substring(elem_ty, 4, elem_ty.len()))
             } else if elem_is_unshadowed_enum {
                 // Bare TomlValue/JsonValue must become enum:* so locals and
                 // array.get casts use enum-open, not string fallback (#726).
-                set_ty = text::concat(String_from("enum:"), clone(elem_ty))
+                set_ty = String_from("enum:").concat(clone(elem_ty))
             }
             ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
             set_ref_vt_for_elem_type(ctx, dest, set_ty)
@@ -335,7 +335,7 @@ fn mark_vec_option_elem_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32
             let elem_ty = substring(vec_type, elem_start, vec_type.len())
             // dest is Option<T> (the container), not T — always a GC ref.
             // set_ref_vt_for_elem_type would wrongly set VT_I32 for option:i32.
-            let opt_ty = text::concat(String_from("option:"), elem_ty)
+            let opt_ty = String_from("option:").concat(elem_ty)
             ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(opt_ty))
             call_type_fallback::set_ref_vt_for_type_name(ctx, dest, opt_ty)
             // Ensure Option::Some payload variant matches the element type
@@ -524,8 +524,5 @@ fn decode_mono_vec_element_projection(elem: String) -> String {
     if separator < 0 {
         return elem
     }
-    text::concat(
-        substring(clone(elem), 0, separator),
-        text::concat(String_from("::"), substring(elem, separator + 2, elem.len()))
-    )
+    substring(clone(elem), 0, separator).concat(String_from("::").concat(substring(elem, separator + 2, elem.len())))
 }

@@ -288,11 +288,11 @@ fn gc_struct_vec_elem_spelling(type_name: String) -> String {
 }
 
 fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
-    let prefix = text::concat(String_from("_f"), (field_idx).to_string())
+    let prefix = String_from("_f").concat((field_idx).to_string())
     // Empty field types are discriminant/_tag slots on enum layouts — i32, not
     // the unknown→ref14 fallback (which produced GS_f0_ref14 enum boxes).
     if len(type_name) == 0 {
-        return text::concat(prefix, String_from("_i32"))
+        return prefix.concat(String_from("_i32"))
     }
     // fn-valued fields hold a {fnptr, env} pair under the managed closure
     // ABI (#872): one shared __fnpair struct type instead of per-signature
@@ -300,7 +300,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     if gc_struct_field_type_is_fn_value(clone(type_name)) {
         let pair_slot = ctx_ensure_fnpair_struct(ctx)
         if pair_slot >= 0 {
-            return text::concat(prefix, text::concat(String_from("_gcsref"), (pair_slot).to_string()))
+            return prefix.concat(String_from("_gcsref").concat((pair_slot).to_string()))
         }
     }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
@@ -313,7 +313,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     gc_struct_field_type_is_type_param(clone(type_name)) &&
     gc_struct_field_name_is_declared(ctx, clone(type_name))
     if len(scalar) > 0 && !param_fallback_on_declared {
-        return text::concat(prefix, scalar)
+        return prefix.concat(scalar)
     }
     // `Owner::Item` projections (fnsig:VecIter::Item;...,
     // option:SkipIter<VecIter<String>>::Item) resolve through the owner's
@@ -328,7 +328,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     // Enum-typed fields must use the GC enum open type (gcref14), not the
     // all-i32 generic struct slot derived from byte size (#726 TomlValStep).
     if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name)) {
-        return text::concat(prefix, String_from("_ref14"))
+        return prefix.concat(String_from("_ref14"))
     }
     // Container fields: pick the concrete GC vec/map type when the
     // element type is known (Vec<String> ≠ Vec<i32>; #726 TomlKeyStep).
@@ -339,17 +339,17 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
         let elem = gc_struct_vec_elem_spelling(clone(type_name))
         if sections_types_gc_phase7::gc_vec_elem_name_is_type_param(clone(elem)) &&
         gc_struct_field_name_is_declared(ctx, clone(elem)) {
-            return text::concat(prefix, String_from("_ref25"))
+            return prefix.concat(String_from("_ref25"))
         }
-        return text::concat(prefix, gc_struct_container_ref_suffix(clone(type_name)))
+        return prefix.concat(gc_struct_container_ref_suffix(clone(type_name)))
     }
     // Struct-typed field: ensure the nested layout has a named GC slot even
     // when decl order registers the parent first (AstNode before Span).
     let struct_slot = ctx_ensure_gc_struct_registered(ctx, clone(type_name))
     if struct_slot >= 0 {
-        return text::concat(prefix, text::concat(String_from("_gcsref"), (struct_slot).to_string()))
+        return prefix.concat(String_from("_gcsref").concat((struct_slot).to_string()))
     }
-    text::concat(prefix, String_from("_ref14"))
+    prefix.concat(String_from("_ref14"))
 }
 
 // Translate `fnsig:<param>;<return>` into a field suffix carrying func-sig
@@ -373,10 +373,7 @@ fn gc_struct_fnsig_suffix(ctx: LowerCtx, type_name: String) -> String {
     if len(param_tok) == 0 || len(ret_tok) == 0 {
         return String_from("_fnref")
     }
-    text::concat(
-        String_from("_fnsig:"),
-        text::concat(param_tok, text::concat(String_from(";"), ret_tok))
-    )
+    String_from("_fnsig:").concat(param_tok.concat(String_from(";").concat(ret_tok)))
 }
 
 // Map one fnsig segment to its func-sig token by routing it through the
@@ -395,7 +392,7 @@ fn gc_struct_fnsig_segment_token(ctx: LowerCtx, seg: String) -> String {
         return suffix
     }
     if starts_with(clone(suffix), String_from("ref")) {
-        return text::concat(String_from("gc"), suffix)
+        return String_from("gc").concat(suffix)
     }
     suffix
 }
@@ -587,7 +584,7 @@ fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> 
     while fi < field_count {
         let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))
         let field_sig = gc_struct_field_sig_for_type(ctx, ft, fi)
-        sig = text::builder_append(sig, field_sig)
+        sig = sig.concat(field_sig)
         fi = fi + 1
     }
     sig

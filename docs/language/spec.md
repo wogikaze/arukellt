@@ -1455,7 +1455,7 @@ namespace.
 ```ark
 use std::host::stdio
 use std::core as c
-use std::text::string::{split, join}
+use std::collections::string::{split, join}
 ```
 
 The final path segment is the default module alias. `as` replaces that alias

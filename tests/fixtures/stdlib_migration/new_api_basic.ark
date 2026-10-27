@@ -4,11 +4,11 @@ use std::host::stdio
 use std::text
 
 fn main() {
-    let s: String = text::concat("Hello", ", Arukellt!")
+    let s: String = "Hello".concat(", Arukellt!")
     stdio::println(s)
-    let parts: Vec<String> = text::split("one,two,three", ",")
+    let parts: Vec<String> = "one,two,three".split(",")
     stdio::println((len(parts)).to_string())
-    let rejoined: String = text::join(parts, " | ")
+    let rejoined: String = parts.join(" | ")
     stdio::println(rejoined)
 }
 // New API: text::concat instead of prelude concat()

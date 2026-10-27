@@ -54,7 +54,7 @@ fn mir_emit_order_projection(ctx: LowerCtx, source: i32, mir_op: i32) -> i32 {
         return source
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(source))
-    mir_emit_overloaded_unary_call(ctx, text::concat("Ordering::", method))
+    mir_emit_overloaded_unary_call(ctx, "Ordering::".concat(method))
 }
 
 fn mir_order_projection_method(mir_op: i32) -> String {

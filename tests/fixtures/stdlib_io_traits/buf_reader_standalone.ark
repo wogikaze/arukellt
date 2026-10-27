@@ -19,7 +19,7 @@ fn show(value: Result<Option<String>, io::IoError>) {
 
 fn main() {
     let br: BufReader<Reader> = BufReader::new<Reader>(
-        Reader::from_bytes(text::to_utf8_bytes("A\nB")),
+        Reader::from_bytes("A\nB".to_utf8_bytes()),
         3
     )
     show(br.read_line())

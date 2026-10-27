@@ -3,7 +3,7 @@ use std::test
 use std::prelude::{eq, is_err}
 use std::text
 fn try_parse(s: String) -> Result<i32, String> {
-    if eq(s, "42") { Ok(42) } else { Err(text::concat(String_from("parse error: "), s)) }
+    if eq(s, "42") { Ok(42) } else { Err(String_from("parse error: ").concat(s)) }
 }
 fn main() {
     let r = try_parse(String_from("bad"))

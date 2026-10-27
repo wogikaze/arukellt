@@ -13,7 +13,7 @@ struct Token {
 
 impl Display for Token {
     fn to_string(self: Token) -> String {
-        text::concat(text::concat(text::concat(text::concat("Token(", to_string(self.kind)), ", \""), self.value), "\")")
+        ("Token(".concat(to_string(self.kind))).concat(", \"").concat(self.value).concat("\")")
     }
 }
 

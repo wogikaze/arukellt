@@ -247,6 +247,10 @@ fn deprecated_seq_qualified_message(path: String) -> String {
     String_new()
 }
 
+// The stable std::text frees are deprecated under ADR-087 while their
+// receiver / associated replacements are already available. The qualified
+// alias is `text`; aliases of the removed `fmt` / `rope` helpers are no longer
+// live calls and are covered by resolver::removed_names instead.
 fn deprecated_hash_qualified_message(path: String) -> String {
     // std::core::hash only exposes 'combine'; removed names are covered by
     // resolver::removed_names instead of this live-call table.

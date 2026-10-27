@@ -13,7 +13,7 @@
 - f-string は `f"{x}"` までで、debug specifier `f"{x:?}"` が未実装。
 - `std/test/mod.ark` は型付き `assert_eq_i32` 等。ジェネリック `assert_eq<T: Eq + Debug>` がない。
 - 目標:
-  - `f"{x:?}"` 構文をパースし `fmt::format_debug(x)` に脱糖。
+  - `f"{x:?}"` 構文をパースし `x.fmt_debug()` に脱糖。
   - ジェネリック `assert_eq<T: Eq + Debug>` を追加し、失敗時に Debug 表現を表示。
   - `std/prelude.ark` のレガシー `assert_eq` を削除または置換（ADR-046）。
 

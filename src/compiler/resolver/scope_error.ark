@@ -19,21 +19,21 @@ fn resolve_error(ctx: ResolveCtx, msg: String) {
 fn resolve_unknown_name(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
     let hint = removed_names::removed_name_hint(clone(name))
     if len(clone(hint)) > 0 {
-        resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), text::concat(text::concat("undefined name: ", clone(name)), text::concat("; ", hint)), span_start, span_end)
+        resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined name: ".concat(clone(name)).concat("; ".concat(hint)), span_start, span_end)
         return
     }
-    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), text::concat("undefined name: ", name), span_start, span_end)
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined name: ".concat(name), span_start, span_end)
 }
 
 pub fn resolve_unknown_member(ctx: ResolveCtx, module: String, name: String, path: String) {
     let hint = removed_names::removed_module_member_hint(clone(module), clone(name))
     if len(clone(hint)) > 0 {
-        resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), text::concat(text::concat("undefined module member: ", path), text::concat("; ", hint)), 0, 0)
+        resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined module member: ".concat(path).concat("; ".concat(hint)), 0, 0)
         return
     }
-    resolve_error(ctx, text::concat(String_from("undefined module member: "), path))
+    resolve_error(ctx, String_from("undefined module member: ").concat(path))
 }
 
 fn resolve_duplicate_symbol(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
-    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_DUPLICATE_SYMBOL(), text::concat("duplicate definition: ", name), span_start, span_end)
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_DUPLICATE_SYMBOL(), "duplicate definition: ".concat(name), span_start, span_end)
 }

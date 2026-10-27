@@ -74,13 +74,7 @@ fn reject_trait_default_methods(env: TypeEnv, trait_node: AstNode) {
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_DEFAULT_METHOD(),
-                text::concat(
-                    String_from("trait method body is not supported (ADR-062): "),
-                    text::concat(
-                        clone(trait_name),
-                        text::concat("::", ast_access::node_text(child))
-                    )
-                )
+                String_from("trait method body is not supported (ADR-062): ").concat(clone(trait_name).concat("::".concat(ast_access::node_text(child))))
             )
         }
         i = i + 1
@@ -144,10 +138,7 @@ fn register_trait_impl_entry(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_CONFLICT(),
-                text::concat(
-                    String_from("overlapping trait impl: duplicate impl of "),
-                    text::concat(clone(trait_name), text::concat(" for ", shown))
-                )
+                String_from("overlapping trait impl: duplicate impl of ").concat(clone(trait_name).concat(" for ".concat(shown)))
             )
             return
         }
@@ -167,10 +158,7 @@ fn register_trait_impl_entry(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_CONFLICT(),
-                text::concat(
-                    String_from("overlapping trait impl: parametric impl conflicts on "),
-                    text::concat(clone(trait_name), text::concat(" for ", shown))
-                )
+                String_from("overlapping trait impl: parametric impl conflicts on ").concat(clone(trait_name).concat(" for ".concat(shown)))
             )
             return
         }
@@ -219,10 +207,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_BLANKET(),
-                text::concat(
-                    String_from("blanket trait impl is not allowed for user code: "),
-                    clone(trait_name)
-                )
+                String_from("blanket trait impl is not allowed for user code: ").concat(clone(trait_name))
             )
             return
         }
@@ -261,13 +246,7 @@ fn validate_impl_param_constraints(env: TypeEnv, node: AstNode, self_ty: TypeInf
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_TRAIT_BOUND(),
-                text::concat(
-                    String_from("impl type parameter `"),
-                    text::concat(
-                        name,
-                        "` is not constrained by the self type"
-                    )
-                )
+                String_from("impl type parameter `").concat(name.concat("` is not constrained by the self type"))
             )
             return false
         }
@@ -310,19 +289,7 @@ fn validate_trait_supertraits(env: TypeEnv) {
             let super_ty = types::resolve_type_name(clone(super_name))
             if !trait_bounds::type_satisfies_trait_bound(env, self_ty, super_ty) {
                 let displayed_self = names::type_display_name(self_ty)
-                let message = text::concat(
-                    String_from("trait `"),
-                    text::concat(
-                        clone(trait_name),
-                        text::concat(
-                            "` requires supertrait `",
-                            text::concat(
-                                clone(super_name),
-                                text::concat("` for ", displayed_self)
-                            )
-                        )
-                    )
-                )
+                let message = String_from("trait `").concat(clone(trait_name).concat("` requires supertrait `".concat(clone(super_name).concat("` for ".concat(displayed_self)))))
                 report_trait_error(
                     env,
                     codes::DIAG_TYPE_TRAIT_BOUND(),
@@ -372,10 +339,7 @@ fn register_impl_associated_types(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                text::concat(
-                    String_from("associated type `"),
-                    text::concat(clone(assoc_name), "` is not declared by trait")
-                )
+                String_from("associated type `").concat(clone(assoc_name).concat("` is not declared by trait"))
             )
             i = i + 1
             continue
@@ -384,10 +348,7 @@ fn register_impl_associated_types(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                text::concat(
-                    String_from("associated type `"),
-                    text::concat(clone(assoc_name), "` requires an impl definition")
-                )
+                String_from("associated type `").concat(clone(assoc_name).concat("` requires an impl definition"))
             )
             i = i + 1
             continue
@@ -398,10 +359,7 @@ fn register_impl_associated_types(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                text::concat(
-                    String_from("duplicate associated type definition: `"),
-                    text::concat(clone(assoc_name), "`")
-                )
+                String_from("duplicate associated type definition: `").concat(clone(assoc_name).concat("`"))
             )
         } else {
             push(
@@ -433,10 +391,7 @@ fn require_associated_type_definitions(
             report_trait_error(
                 env,
                 codes::DIAG_TYPE_ASSOCIATED_ITEM(),
-                text::concat(
-                    String_from("impl is missing associated type `"),
-                    text::concat(clone(name), "`")
-                )
+                String_from("impl is missing associated type `").concat(clone(name).concat("`"))
             )
         }
         i = i + 1
@@ -494,19 +449,7 @@ fn validate_trait_arity(env: TypeEnv, trait_name: String, actual: i32) -> bool {
     report_trait_error(
         env,
         codes::DIAG_TYPE_TRAIT_ARITY(),
-        text::concat(
-            String_from("trait `"),
-            text::concat(
-                clone(trait_name),
-                text::concat(
-                    "` expects ",
-                    text::concat(
-                        to_string(expected),
-                        text::concat(" type argument(s), found ", to_string(actual))
-                    )
-                )
-            )
-        )
+        String_from("trait `").concat(clone(trait_name).concat("` expects ".concat(to_string(expected).concat(" type argument(s), found ".concat(to_string(actual))))))
     )
     false
 }
@@ -687,7 +630,7 @@ fn reject_dyn_in_sig(env: TypeEnv, sig: FnSig) {
 
 fn reject_dyn_in_type(env: TypeEnv, ty: TypeInfo) {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_STRUCT() &&
-    text::starts_with(contract_type_access::TypeInfo_name(ty), "dyn ") {
+    contract_type_access::TypeInfo_name(ty).starts_with("dyn ") {
         report_trait_error(
             env,
             codes::DIAG_TYPE_DYN_TRAIT(),

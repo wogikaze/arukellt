@@ -19,7 +19,7 @@ fn main() {
     while i < 160 {
         let _n = churn(262144)
         if i % 32 == 0 {
-            push(keep, text::concat(String_from("alive-"), i.to_string()))
+            push(keep, String_from("alive-").concat(i.to_string()))
         }
         i = i + 1
     }

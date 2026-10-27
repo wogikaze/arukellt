@@ -27,7 +27,7 @@ fn registry_audit_log_mismatch(ctx: SelfEmitCtx, callee: String, old_vt: i32, ne
         return
     }
     ctx_record::SelfEmitCtx_registry_audit_dec_mismatch_budget(ctx)
-    let line = text::concat("reg-vt-audit: mismatch callee=", text::concat(callee, text::concat(" old=", text::concat((old_vt).to_string(), text::concat(" new=", (new_vt).to_string())))))
+    let line = "reg-vt-audit: mismatch callee=".concat(callee.concat(" old=".concat((old_vt).to_string().concat(" new=".concat((new_vt).to_string())))))
     stdio::eprintln(line)
 }
 
@@ -36,14 +36,9 @@ fn registry_audit_print_summary(ctx: SelfEmitCtx) {
     if c <= 0 {
         return
     }
-    let line = text::concat(
-        "reg-vt-audit: summary candidates=",
-        text::concat(
-            (c).to_string(),
-            text::concat(
-                " matched=",
-                text::concat((ctx_record::SelfEmitCtx_registry_audit_matched(ctx)).to_string(), text::concat(" mismatched=", (ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx)).to_string()))
-            )
+    let line = "reg-vt-audit: summary candidates=".concat(
+        (c).to_string().concat(
+            " matched=".concat((ctx_record::SelfEmitCtx_registry_audit_matched(ctx)).to_string().concat(" mismatched=".concat((ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx)).to_string())))
         )
     )
     stdio::eprintln(line)

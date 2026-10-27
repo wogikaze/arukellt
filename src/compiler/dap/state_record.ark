@@ -29,7 +29,7 @@ fn dap_state_is_disconnected(state: DapState) -> bool {
 }
 
 fn dap_state_append_output(state: DapState, chunk: String) {
-    state.output = text::concat(clone(state.output), chunk)
+    state.output = clone(state.output).concat(chunk)
 }
 
 fn dap_state_output(state: DapState) -> String {

@@ -2,8 +2,8 @@ use std::prelude::{clone, to_string}
 use std::text
 use lsp::state_record
 fn frame(body: String) -> String {
-    let header = text::concat("Content-Length: ", text::concat(to_string(len(clone(body))), "\r\n\r\n"))
-    text::concat(header, body)
+    let header = "Content-Length: ".concat(to_string(len(clone(body))).concat("\r\n\r\n"))
+    header.concat(body)
 }
 
 fn append_framed(state: LspState, body: String) {

@@ -11,7 +11,7 @@ fn main() {
     let mut data = String_from("")
     let mut i: i32 = 0
     while i < 200 {
-        data = text::concat(data, payload)
+        data = data.concat(payload)
         i = i + 1
     }
 
@@ -19,7 +19,7 @@ fn main() {
     match write_result {
         Result::Ok(_) => {},
         Result::Err(e) => {
-            stdio::println(text::concat("write error: ", e))
+            stdio::println("write error: ".concat(e))
             return
         },
     }
@@ -33,7 +33,7 @@ fn main() {
                 checksum = checksum + len(contents)
             },
             Result::Err(e) => {
-                stdio::println(text::concat("read error: ", e))
+                stdio::println("read error: ".concat(e))
                 return
             },
         }

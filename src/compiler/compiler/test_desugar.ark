@@ -65,7 +65,7 @@ fn test_display_name(prefix: String, name: String) -> String {
     if len(clone(prefix)) == 0 {
         return name
     }
-    text::concat(prefix, text::concat("::", name))
+    prefix.concat("::".concat(name))
 }
 
 // A `test "name" { body }` decl keeps its block as the only child — the
@@ -74,7 +74,7 @@ fn test_display_name(prefix: String, name: String) -> String {
 fn synthesize_test_fn(test_node: AstNode, index: i32) -> AstNode {
     let span = core_ast_span_fields::AstNode_span(test_node)
     let node = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), span)
-    core_ast_text_fields::AstNode_set_text(node, text::concat("__test_", to_string(index)))
+    core_ast_text_fields::AstNode_set_text(node, "__test_".concat(to_string(index)))
     core_ast_span_fields::AstNode_set_name_span(node, span)
     let child_count = ast::ast_node_child_count(test_node)
     let body = ast::ast_node_child_at(test_node, child_count - 1)
@@ -88,19 +88,19 @@ fn synthesize_test_fn(test_node: AstNode, index: i32) -> AstNode {
 fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode> {
     let mut src = String_new()
     if !has_stdio_use(decls) {
-        src = text::concat(src, "use std::host::stdio\n")
+        src = src.concat("use std::host::stdio\n")
     }
-    src = text::concat(src, "fn __test_main() {\n")
+    src = src.concat("fn __test_main() {\n")
     let name_count = len(names)
     let mut i = 0
     while i < name_count {
-        src = text::concat(src, text::concat("    __test_", to_string(i)))
-        src = text::concat(src, "()\n")
-        src = text::concat(src, text::concat("    stdio::println(\"  PASS ", escape_test_name(get_unchecked(names, i))))
-        src = text::concat(src, "\")\n")
+        src = src.concat("    __test_".concat(to_string(i)))
+        src = src.concat("()\n")
+        src = src.concat("    stdio::println(\"  PASS ".concat(escape_test_name(get_unchecked(names, i))))
+        src = src.concat("\")\n")
         i = i + 1
     }
-    src = text::concat(src, "}\n")
+    src = src.concat("}\n")
     session_parse::session_parse_decls(src)
 }
 
@@ -126,11 +126,11 @@ fn escape_test_name(name: String) -> String {
     while i < n {
         let ch = substring(clone(name), i, i + 1)
         if eq(clone(ch), "\\") {
-            out = text::concat(out, "\\\\")
+            out = out.concat("\\\\")
         } else if eq(clone(ch), "\"") {
-            out = text::concat(out, "\\\"")
+            out = out.concat("\\\"")
         } else {
-            out = text::concat(out, ch)
+            out = out.concat(ch)
         }
         i = i + 1
     }
