@@ -16,6 +16,44 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::simd lane namespace surface (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1/D4.
+  The `std::simd` lane modules were `experimental`, so the migrated free
+  functions could be deleted directly; no ADR-087 stable window or W0009
+  entry applies. A qualified old call now fails with an E0100 hint.
+- **Added**: seven namespace types with 132 associated functions:
+  `F32x4`, `F64x2`, `I8x16`, `I16x8`, `I32x4`, `I64x2`, and `V128`
+  (`std::simd::{f32x4,f64x2,i8x16,i16x8,i32x4,i64x2,v128}`). The manifest
+  registers them as `[[types]]` entries with `stability = "experimental"`.
+- **Removed (132)**: the matching `[[functions]]` entries and top-level
+  `pub fn` declarations. The in-tree fixtures
+  (`simd_conformance`, `simd_lowering`, `simd_gc_storage`, `v128_basic`)
+  moved to `F32x4::add(...)` / `I32x4::splat(...)` / `V128::zero()`.
+- **Retained (130, experimental)**: the operations whose emitter lowering is
+  not valid yet. 98 fail `wasm-tools validate` (all `u8x16` / `u16x8` /
+  `u32x4` / `u64x2` ops plus the listed signed/float ops); 32 validate but
+  trap or return a wrong value (for example `f64x2::add` returns the first
+  operand, `i32x4::max_u` traps, `v128::new` yields an all-zero vector).
+  They stay as free functions because an associated replacement that cannot
+  run must not be advertised. The exact list is in
+  [migration-guidance.md](migration-guidance.md#std-simd-lane-namespace-wave-adr-046-2026-10-27)
+  and the wave receipt on issue #917.
+- **Diagnostics**: `resolver::removed_names::removed_module_member_hint`
+  maps the eleven lane-module aliases to their namespace types and is pinned
+  by unit assertions; `diagnostics/removed_simd_free.ark` +
+  `_wasm32.ark` are the dual-target E0100 goldens.
+- **Fixtures**: `stdlib_simd/simd_method_surface.ark` +
+  `_wasm32.ark` compile, validate, and run on `wasm32-gc` (P2 component) and
+  `--target wasm32` (wasi-p1), asserting the migrated values.
+- **Scorecard**: 858 → **788** public symbols; `associated-or-method`
+  743 → **673**; `pub fn` declarations 981 → **849**; manifest public entries
+  625 → **558**; unregistered declarations 233 → **230**. The
+  `std::simd frees` rule now reports 37 manifest + 76 source frees.
+- **Residual**: the 130 lowering-blocked frees above; no nominal `I32x4`
+  value types or `MaskN` types yet (ADR-037 remains proposed). No
+  `std::wasm` `V128` change is part of this wave.
+
 ## 2026-10-27 — concrete `HashSet<i32>` membership surface (#917)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and

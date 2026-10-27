@@ -1,10 +1,11 @@
 use std::host::stdio
 use std::simd::v128
+use std::simd::v128::V128
 
 fn main() {
-    let a = v128::zero()
-    let b = v128::zero()
-    let c = v128::or(a, b)
-    let result = v128::any_true(c)
+    let a = V128::zero()
+    let b = V128::zero()
+    let c = V128::or(a, b)
+    let result = V128::any_true(c)
     stdio::println((result).to_string())
 }

@@ -1,0 +1,5 @@
+use std::simd::f32x4
+
+fn main() {
+    let _value = f32x4::splat(1.0f32)
+}

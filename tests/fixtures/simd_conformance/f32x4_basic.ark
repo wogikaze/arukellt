@@ -1,10 +1,11 @@
 use std::host::stdio
 use std::simd::f32x4
+use std::simd::f32x4::F32x4
 use std::prelude::{f32_to_string}
 fn main() {
-    let a = f32x4::splat(1.0f32)
-    let b = f32x4::splat(2.0f32)
-    let c = f32x4::add(a, b)
-    let lane0 = f32x4::extract_lane(c, 0)
+    let a = F32x4::splat(1.0f32)
+    let b = F32x4::splat(2.0f32)
+    let c = F32x4::add(a, b)
+    let lane0 = F32x4::extract_lane(c, 0)
     stdio::println(f32_to_string(lane0))
 }

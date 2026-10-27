@@ -3,42 +3,89 @@
 //! Each value is a v128 with 2 i64 lanes.
 //! All APIs are experimental (ADR-014).
 
-// --- Construct ---
+// --- Namespace ---
 
-/// Create a v128 with all 2 lanes set to the same i64 value.
-pub fn splat(x: i64) -> v128 {
-    __simd_i64x2_splat(x)
+/// Namespace for the i64x2 lane operations.
+///
+/// The associated functions cover the lane operations whose emitter
+/// lowering is valid on both targets. Operations that still fail
+/// validation, trap, or produce wrong values stay as experimental
+/// free functions below until the SIMD lowering is fixed (#917).
+pub struct I64x2 {}
+
+impl I64x2 {
+    // --- Construct ---
+
+    /// Create a v128 with all 2 lanes set to the same i64 value.
+    fn splat(x: i64) -> v128 {
+        __simd_i64x2_splat(x)
+    }
+
+    /// Create a v128 from 2 i64 lane values.
+    fn new(a: i64, b: i64) -> v128 {
+        let mut v = I64x2::splat(a)
+        v = __simd_i64x2_replace_lane(v, 1, b)
+        v
+    }
+
+    /// Create a v128 with all lanes zeroed.
+    fn zero() -> v128 {
+        I64x2::splat(0)
+    }
+
+    // --- Lane access ---
+
+    /// Extract a single i64 lane (0..1) from a v128.
+    fn extract_lane(v: v128, lane: i32) -> i64 {
+        if lane == 0 { return __simd_i64x2_extract_lane(v, 0) }
+        if lane == 1 { return __simd_i64x2_extract_lane(v, 1) }
+        panic("I64x2::extract_lane: lane out of range")
+        0i64
+    }
+
+    /// Replace a single i64 lane (0..1) in a v128, returning a new v128.
+    fn replace_lane(v: v128, lane: i32, x: i64) -> v128 {
+        if lane == 0 { return __simd_i64x2_replace_lane(v, 0, x) }
+        if lane == 1 { return __simd_i64x2_replace_lane(v, 1, x) }
+        panic("I64x2::replace_lane: lane out of range")
+        v
+    }
+
+    // --- Comparison ---
+
+    /// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
+    fn eq(a: v128, b: v128) -> v128 {
+        __simd_i64x2_eq(a, b)
+    }
+
+    /// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
+    fn ne(a: v128, b: v128) -> v128 {
+        __simd_i64x2_ne(a, b)
+    }
+
+    /// Lane-wise less-than (signed). Each lane is all-1s if a < b, all-0s otherwise.
+    fn lt_s(a: v128, b: v128) -> v128 {
+        __simd_i64x2_lt_s(a, b)
+    }
+
+    /// Lane-wise less-than-or-equal (signed).
+    fn le_s(a: v128, b: v128) -> v128 {
+        __simd_i64x2_le_s(a, b)
+    }
+
+    /// Lane-wise greater-than-or-equal (signed).
+    fn ge_s(a: v128, b: v128) -> v128 {
+        __simd_i64x2_ge_s(a, b)
+    }
 }
 
-/// Create a v128 from 2 i64 lane values.
-pub fn new(a: i64, b: i64) -> v128 {
-    let mut v = splat(a)
-    v = __simd_i64x2_replace_lane(v, 1, b)
-    v
-}
-
-/// Create a v128 with all lanes zeroed.
-pub fn zero() -> v128 {
-    splat(0)
-}
-
-// --- Lane access ---
-
-/// Extract a single i64 lane (0..1) from a v128.
-pub fn extract_lane(v: v128, lane: i32) -> i64 {
-    if lane == 0 { return __simd_i64x2_extract_lane(v, 0) }
-    if lane == 1 { return __simd_i64x2_extract_lane(v, 1) }
-    panic("i64x2::extract_lane: lane out of range")
-    0i64
-}
-
-/// Replace a single i64 lane (0..1) in a v128, returning a new v128.
-pub fn replace_lane(v: v128, lane: i32, x: i64) -> v128 {
-    if lane == 0 { return __simd_i64x2_replace_lane(v, 0, x) }
-    if lane == 1 { return __simd_i64x2_replace_lane(v, 1, x) }
-    panic("i64x2::replace_lane: lane out of range")
-    v
-}
+// --- Lowering-blocked operations ---
+//
+// The emitter cannot yet lower these operations to valid Wasm on both
+// targets, or lowers them to the wrong value / a trap. They stay as
+// experimental free functions until the SIMD lowering is fixed; migrating
+// them to the associated surface would advertise a replacement that does not
+// work. See issue #917 for the per-op evidence.
 
 // --- Arithmetic ---
 
@@ -69,34 +116,9 @@ pub fn abs(a: v128) -> v128 {
 
 // --- Comparison ---
 
-/// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
-pub fn eq(a: v128, b: v128) -> v128 {
-    __simd_i64x2_eq(a, b)
-}
-
-/// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
-pub fn ne(a: v128, b: v128) -> v128 {
-    __simd_i64x2_ne(a, b)
-}
-
-/// Lane-wise less-than (signed). Each lane is all-1s if a < b, all-0s otherwise.
-pub fn lt_s(a: v128, b: v128) -> v128 {
-    __simd_i64x2_lt_s(a, b)
-}
-
-/// Lane-wise less-than-or-equal (signed).
-pub fn le_s(a: v128, b: v128) -> v128 {
-    __simd_i64x2_le_s(a, b)
-}
-
 /// Lane-wise greater-than (signed).
 pub fn gt_s(a: v128, b: v128) -> v128 {
     __simd_i64x2_gt_s(a, b)
-}
-
-/// Lane-wise greater-than-or-equal (signed).
-pub fn ge_s(a: v128, b: v128) -> v128 {
-    __simd_i64x2_ge_s(a, b)
 }
 
 // --- Shift ---

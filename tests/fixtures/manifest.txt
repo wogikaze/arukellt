@@ -252,6 +252,8 @@ diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/deprecated_io_free_function.ark
 diag:diagnostics/removed_io_free_function.ark
+diag:diagnostics/removed_simd_free.ark
+diag:diagnostics/removed_simd_free_wasm32.ark
 diag:diagnostics/removed_iter_constructor.ark
 diag:diagnostics/removed_text_free.ark
 diag:diagnostics/removed_text_free_wasm32.ark
@@ -712,6 +714,8 @@ run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_trait_impl_smoke.ark
 run:selfhost/typescheme_poly_let.ark
 run:selfhost/typescheme_value_restriction.ark
+run:stdlib_simd/simd_method_surface.ark
+run:stdlib_simd/simd_method_surface_wasm32.ark
 run:simd_conformance/f32x4_basic.ark
 run:simd_conformance/i32x4_basic.ark
 run:simd_conformance/v128_bitwise.ark

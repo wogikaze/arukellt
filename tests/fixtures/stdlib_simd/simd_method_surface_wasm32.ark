@@ -1,0 +1,176 @@
+// SIMD lane namespace surface: the associated functions on F32x4 / F64x2 /
+// I8x16 / I16x8 / I32x4 / I64x2 / V128 that lower correctly on both targets.
+// Construction, lane access, arithmetic, comparisons, shifts, masks,
+// narrowing / extension, float conversion, and raw v128 bitwise ops (#917).
+use std::simd::f32x4::F32x4
+use std::simd::f64x2::F64x2
+use std::simd::i8x16::I8x16
+use std::simd::i16x8::I16x8
+use std::simd::i32x4::I32x4
+use std::simd::i64x2::I64x2
+use std::simd::v128::V128
+use std::test
+use std::prelude::{f32_to_f64}
+
+fn f32x4_cases() {
+    let f = F32x4::new(1.5f32, 2.5f32, 3.5f32, 4.5f32)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(f, 2)), 3.5)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::replace_lane(f, 0, 9.0f32), 0)), 9.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::zero(), 3)), 0.0)
+    let sum = F32x4::add(F32x4::splat(1.5f32), F32x4::splat(2.5f32))
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(sum, 1)), 4.0)
+    let product = F32x4::mul(F32x4::splat(3.0f32), F32x4::splat(2.0f32))
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(product, 0)), 6.0)
+    let quotient = F32x4::div(F32x4::splat(8.0f32), F32x4::splat(2.0f32))
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(quotient, 0)), 4.0)
+    let difference = F32x4::sub(F32x4::splat(5.0f32), F32x4::splat(2.0f32))
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(difference, 0)), 3.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::sqrt(F32x4::splat(9.0f32)), 0)), 3.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::abs(F32x4::splat(-3.0f32)), 0)), 3.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::min(F32x4::splat(2.0f32), F32x4::splat(5.0f32)), 0)), 2.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::max(F32x4::splat(2.0f32), F32x4::splat(5.0f32)), 0)), 5.0)
+    let rounded = F32x4::new(1.2f32, 1.8f32, -1.2f32, -1.8f32)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::ceil(rounded), 0)), 2.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::floor(rounded), 1)), 1.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::trunc(rounded), 2)), -1.0)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::nearest(F32x4::splat(2.5f32)), 0)), 2.0)
+    let f_eq = F32x4::eq(F32x4::splat(4.0f32), F32x4::splat(4.0f32))
+    test::assert_eq_i32(I32x4::extract_lane(f_eq, 0), -1)
+    let f_lt = F32x4::lt(F32x4::splat(1.0f32), F32x4::splat(2.0f32))
+    test::assert_eq_i32(I32x4::extract_lane(f_lt, 0), -1)
+    let f_ge = F32x4::ge(F32x4::splat(1.0f32), F32x4::splat(2.0f32))
+    test::assert_eq_i32(I32x4::extract_lane(f_ge, 0), 0)
+    let f_ne = F32x4::ne(F32x4::splat(1.0f32), F32x4::splat(2.0f32))
+    test::assert_eq_i32(I32x4::extract_lane(f_ne, 0), -1)
+}
+
+fn f64x2_cases() {
+    let d = F64x2::new(1.25f64, 2.5f64)
+    test::assert_eq_f64(F64x2::extract_lane(d, 1), 2.5)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::replace_lane(d, 1, 7.5f64), 1), 7.5)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::zero(), 0), 0.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::abs(F64x2::new(-2.0f64, 3.0f64)), 0), 2.0)
+    let d_rounded = F64x2::new(1.9f64, -1.1f64)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::ceil(d_rounded), 0), 2.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::floor(d_rounded), 1), -2.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::trunc(d_rounded), 1), -1.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::nearest(F64x2::new(2.5f64, 3.5f64)), 0), 2.0)
+    let d_eq = F64x2::eq(F64x2::splat(4.0f64), F64x2::splat(4.0f64))
+    test::assert_eq_i32(I64x2::extract_lane(d_eq, 0).to_i32_wrapping(), -1)
+    let d_lt = F64x2::lt(d, F64x2::new(2.0f64, -3.0f64))
+    test::assert_eq_i32(I64x2::extract_lane(d_lt, 0).to_i32_wrapping(), -1)
+    let promoted = F64x2::promote_low_f32x4(F32x4::new(1.5f32, 2.5f32, 3.5f32, 4.5f32))
+    test::assert_eq_f64(F64x2::extract_lane(promoted, 1), 2.5)
+    let converted = F64x2::convert_low_i32x4_s(I32x4::new(5, -6, 0, 0))
+    test::assert_eq_f64(F64x2::extract_lane(converted, 1), -6.0)
+    let unsigned_converted = F64x2::convert_low_i32x4_u(I32x4::new(7, 0, 0, 0))
+    test::assert_eq_f64(F64x2::extract_lane(unsigned_converted, 0), 7.0)
+}
+
+fn i32x4_cases() {
+    let i = I32x4::new(1, 2, 3, 4)
+    test::assert_eq_i32(I32x4::extract_lane(i, 3), 4)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::replace_lane(i, 0, 9), 0), 9)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::add(I32x4::splat(7), I32x4::splat(5)), 0), 12)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::sub(I32x4::splat(7), I32x4::splat(5)), 0), 2)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::mul(I32x4::splat(7), I32x4::splat(5)), 0), 35)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::neg(I32x4::splat(7)), 0), -7)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::abs(I32x4::splat(-7)), 0), 7)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::and(I32x4::splat(12), I32x4::splat(10)), 0), 8)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::or(I32x4::splat(12), I32x4::splat(10)), 0), 14)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::xor(I32x4::splat(12), I32x4::splat(10)), 0), 6)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::not(I32x4::splat(0)), 0), -1)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::shl(I32x4::splat(3), 2), 0), 12)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::shr_s(I32x4::splat(-16), 2), 0), -4)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::shr_u(I32x4::splat(-16), 2), 0), 1073741820)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::min_s(I32x4::splat(-3), I32x4::splat(2)), 0), -3)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::max_s(I32x4::splat(-3), I32x4::splat(2)), 0), 2)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::min_u(I32x4::splat(-3), I32x4::splat(2)), 0), 2)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::eq(I32x4::splat(4), I32x4::splat(4)), 0), -1)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::ne(I32x4::splat(4), I32x4::splat(4)), 0), 0)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::lt(I32x4::splat(1), I32x4::splat(2)), 0), -1)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::le(I32x4::splat(2), I32x4::splat(2)), 0), -1)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::gt(I32x4::splat(3), I32x4::splat(2)), 0), -1)
+    test::assert_eq_i32(I32x4::extract_lane(I32x4::ge(I32x4::splat(1), I32x4::splat(2)), 0), 0)
+}
+
+fn i8x16_cases() {
+    let bytes = I8x16::new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    test::assert_eq_i32(I8x16::extract_lane(bytes, 15), 16)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::splat(-2), 0), -2)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::replace_lane(bytes, 0, -5), 0), -5)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::abs(I8x16::splat(-7)), 0), 7)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::eq(I8x16::splat(4), I8x16::splat(4)), 0), -1)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::ne(I8x16::splat(4), I8x16::splat(4)), 0), 0)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::lt_s(I8x16::splat(-1), I8x16::splat(0)), 0), -1)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::gt_s(I8x16::splat(1), I8x16::splat(0)), 0), -1)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::lt_u(I8x16::splat(-1), I8x16::splat(0)), 0), 0)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::gt_u(I8x16::splat(-1), I8x16::splat(0)), 0), -1)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::min_s(I8x16::splat(-3), I8x16::splat(2)), 0), -3)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::max_u(I8x16::splat(-3), I8x16::splat(2)), 0), -3)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::shl(I8x16::splat(1), 3), 0), 8)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::shr_s(I8x16::splat(-16), 2), 0), -4)
+    test::assert_eq_i32(I8x16::extract_lane(I8x16::shr_u(I8x16::splat(-16), 2), 0), 60)
+    test::assert_eq_i32(I8x16::all_true(I8x16::splat(1)), 1)
+    test::assert_eq_i32(I8x16::all_true(I8x16::splat(0)), 0)
+    test::assert_eq_i32(I8x16::bitmask(I8x16::splat(-1)), 65535)
+    let narrowed = I8x16::narrow_i16x8_s(I16x8::splat(300), I16x8::splat(0))
+    test::assert_eq_i32(I8x16::extract_lane(narrowed, 0), 127)
+    let narrowed_u = I8x16::narrow_i16x8_u(I16x8::splat(-1), I16x8::splat(0))
+    test::assert_eq_i32(I8x16::extract_lane(narrowed_u, 0), 0)
+}
+
+fn i16x8_cases() {
+    let shorts = I16x8::new(10, 20, 30, 40, 50, 60, 70, 80)
+    test::assert_eq_i32(I16x8::extract_lane(shorts, 7), 80)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::replace_lane(shorts, 0, -5), 0), -5)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::add(I16x8::splat(300), I16x8::splat(200)), 0), 500)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::sub(I16x8::splat(300), I16x8::splat(200)), 0), 100)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::shl(I16x8::splat(3), 4), 0), 48)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::shr_s(I16x8::splat(-64), 2), 0), -16)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::ge_u(I16x8::splat(-1), I16x8::splat(0)), 0), -1)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::min_s(I16x8::splat(-3), I16x8::splat(2)), 0), -3)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::max_s(I16x8::splat(-3), I16x8::splat(2)), 0), 2)
+    let bytes = I8x16::new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::extadd_pairwise_i8x16_s(bytes), 0), 3)
+    let negative = I8x16::new(-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::extend_low_i8x16_s(negative), 0), -2)
+    test::assert_eq_i32(I16x8::extract_lane(I16x8::narrow_i32x4_s(I32x4::splat(70000), I32x4::splat(0)), 0), 32767)
+}
+
+fn i64x2_cases() {
+    let longs = I64x2::new(4000000000, -2)
+    test::assert_eq_i32(I64x2::extract_lane(longs, 1).to_i32_wrapping(), -2)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::replace_lane(longs, 0, 42), 0).to_i32_wrapping(), 42)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::zero(), 1).to_i32_wrapping(), 0)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::eq(I64x2::splat(4), I64x2::splat(4)), 0).to_i32_wrapping(), -1)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::ne(I64x2::splat(4), I64x2::splat(4)), 0).to_i32_wrapping(), 0)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::lt_s(I64x2::splat(-1), I64x2::splat(0)), 0).to_i32_wrapping(), -1)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::le_s(longs, I64x2::new(0, -2)), 1).to_i32_wrapping(), -1)
+    test::assert_eq_i32(I64x2::extract_lane(I64x2::ge_s(longs, I64x2::new(0, -2)), 1).to_i32_wrapping(), -1)
+}
+
+fn v128_cases() {
+    let one = I32x4::splat(1)
+    let two = I32x4::splat(2)
+    let three = I32x4::splat(3)
+    test::assert_eq_i32(V128::any_true(one), 1)
+    test::assert_eq_i32(V128::any_true(V128::zero()), 0)
+    test::assert_eq_i32(I32x4::extract_lane(V128::and(three, one), 0), 1)
+    test::assert_eq_i32(I32x4::extract_lane(V128::andnot(three, one), 0), 2)
+    test::assert_eq_i32(I32x4::extract_lane(V128::or(one, two), 0), 3)
+    test::assert_eq_i32(I32x4::extract_lane(V128::xor(three, one), 0), 2)
+    test::assert_eq_i32(I32x4::extract_lane(V128::not(V128::zero()), 0), -1)
+    test::assert_eq_i32(I32x4::extract_lane(V128::bitselect(I32x4::splat(10), I32x4::splat(20), V128::zero()), 0), 20)
+    test::assert_eq_i32(I32x4::extract_lane(V128::bitselect(I32x4::splat(10), I32x4::splat(20), I32x4::splat(-1)), 0), 10)
+}
+
+fn main() {
+    f32x4_cases()
+    f64x2_cases()
+    i32x4_cases()
+    i8x16_cases()
+    i16x8_cases()
+    i64x2_cases()
+    v128_cases()
+}
