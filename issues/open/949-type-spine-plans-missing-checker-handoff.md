@@ -47,3 +47,19 @@ One completed checkbox also claims more than the code shows.
       source-of-types prerequisite.
 - [ ] Docs-only change: no fixture change is needed; `python3 scripts/manager.py
       verify quick` stays green.
+
+## Correction (2026-10-27)
+
+- `MirLocal` no longer carries `type_name: String`. It stores `name_id`,
+  `type_name_id`, `val_type`, `MirValueType`, and pool-backed SSA names
+  (`src/compiler/mir/local_record.ark`). `MirLocal_type_name()` is an accessor
+  that resolves the id, so `rg -c type_name src/compiler/mir` counts accessor
+  and dispatch call sites, not struct fields. Phase 2's checkbox note already
+  scopes itself to storage, so the "reopen the Phase 2 checkbox" item above is
+  withdrawn; the remaining name-based decisions belong to the Phase 3
+  reloc / FuncId design that the note already hands over.
+- The gap that does hold: neither plan has a phase that makes the typechecker
+  export node-keyed expression / local TypeIds and resolved FunctionIds, and
+  neither mentions #933 / #934. `typed-mir-signature-registry.md` Phase 1
+  registers only function signatures.
+
