@@ -1,8 +1,9 @@
 use std::host::stdio
 use std::simd::v128
+use std::simd::v128::V128
 
 fn make_zero() -> v128 {
-    v128::zero()
+    V128::zero()
 }
 
 fn main() {

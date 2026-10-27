@@ -176,6 +176,16 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "iter") {
         return removed_iter_member_hint(name)
     }
+    let simd_type = removed_simd_lane_type(clone(module))
+    if len(clone(simd_type)) > 0 {
+        return "removed free function; call `"
+        .concat(simd_type)
+        .concat("::")
+        .concat(clone(name))
+        .concat("(...)` with the namespace type from `use std::simd::")
+        .concat(clone(module))
+        .concat("` instead")
+    }
     if !eq(clone(module), "io") {
         return String_new()
     }
@@ -545,6 +555,36 @@ fn is_gated_prelude_name(name: String) -> bool {
     }
     false
 }
+// Shared replacement text for the retired typed hash adapters; the four
+// module aliases all pointed at the old `hash_map::hashmap_*` family.
+fn hashmap_method_replacement_hint() -> String {
+    text::concat(
+        String_from("removed HashMap helper; use `HashMap::new<K, V>()` plus receiver methods "),
+        text::concat(
+            String_from("(`m.insert(k, v)`, `m.get(k)`, `m.contains_key(k)`, `m.remove(k)`, `m.len()`, "),
+            String_from("`m.is_empty()`, `m.keys()`, `m.values()`, `m.entries()`)")
+        )
+    )
+}
+
+// The std::simd lane modules became namespace types in #917. Map the module
+// alias used at the call site to the namespace type so the E0100 hint names
+// the associated-function spelling.
+fn removed_simd_lane_type(module: String) -> String {
+    if eq(clone(module), "f32x4") { return String_from("F32x4") }
+    if eq(clone(module), "f64x2") { return String_from("F64x2") }
+    if eq(clone(module), "i8x16") { return String_from("I8x16") }
+    if eq(clone(module), "i16x8") { return String_from("I16x8") }
+    if eq(clone(module), "i32x4") { return String_from("I32x4") }
+    if eq(clone(module), "i64x2") { return String_from("I64x2") }
+    if eq(clone(module), "u8x16") { return String_from("U8x16") }
+    if eq(clone(module), "u16x8") { return String_from("U16x8") }
+    if eq(clone(module), "u32x4") { return String_from("U32x4") }
+    if eq(clone(module), "u64x2") { return String_from("U64x2") }
+    if eq(clone(module), "v128") { return String_from("V128") }
+    String_new()
+}
+
 test mod "removed_names" {
     test "to_string family" {
         assert(len(removed_name_hint("i32_to_string")) > 0)
@@ -690,5 +730,23 @@ test mod "removed_names" {
     }
     test "live wit ast members keep no removal hint" {
         assert(len(removed_module_member_hint(String_from("ast"), String_from("WitNode"))) == 0)
+    }
+    test "removed hashmap adapters have method hints" {
+        assert(len(removed_module_member_hint(String_from("hash_map"), String_from("hashmap_str_i32_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_fn"), String_from("hashmap_i32_i32_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_string"), String_from("hashmap_String_i32_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_str_fn"), String_from("hashmap_str_fn_get"))) > 0)
+    }
+    test "removed simd lane frees have associated-function hints" {
+        assert(len(removed_module_member_hint(String_from("f32x4"), String_from("splat"))) > 0)
+        assert(len(removed_module_member_hint(String_from("i32x4"), String_from("add"))) > 0)
+        assert(len(removed_module_member_hint(String_from("i8x16"), String_from("extract_lane"))) > 0)
+        assert(len(removed_module_member_hint(String_from("f64x2"), String_from("sqrt"))) > 0)
+        assert(len(removed_module_member_hint(String_from("u64x2"), String_from("zero"))) > 0)
+        assert(len(removed_module_member_hint(String_from("v128"), String_from("any_true"))) > 0)
+    }
+    test "non-simd modules keep no simd hint" {
+        assert(len(removed_module_member_hint(String_from("f32x4x"), String_from("splat"))) == 0)
+        assert(len(removed_module_member_hint(String_from("text"), String_from("splat"))) == 0)
     }
 }

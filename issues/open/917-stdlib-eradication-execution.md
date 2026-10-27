@@ -371,75 +371,70 @@ classified there, in dependency-safe waves.
   method lowering. The `hashset_i32_*` / `hashset_str_*` rows above stay in
   the `std::collections frees` family.
 
-### Landed slice (wave/wit-parser-component, 2026-10-27)
+### Landed slice (wave/simd-group, 2026-10-27)
 
-- Retired the last 15 `std::wit/component` frees: the 3
-  `std::wit::parser` entry points (`parse_full`, `parse_full_import_text`,
-  `parse_wit`), the 2 `std::component` version frees, and the 10
-  `std::component::handle` frees (5 untyped `Vec<i32>` table helpers + 5
-  `handle_table_i32_*` helpers). The 7 manifest entries were `experimental`
-  (ADR-014 D4 direct deletion); the other 8 were unregistered source
-  declarations.
-- Replacement (parser): `parse_full` → `WitNode::parse(source)` and
-  `parse_full_import_text` → `WitNode::import_metadata(source)`. The reduced
-  World-shaped `parse_wit` compatibility parser retires; callers parse to
-  `WitNode` and build a `World` with `World::new` / `add_import` /
-  `add_export` / `add_func`. A direct `World::parse` associated form was
-  probed and rejected: returning `Result<World, error::Error>` from a std
-  associated function or method fails wasm32-gc Wasm validation
-  (`type mismatch: expected (ref null $type), found (ref null $type)`), while
-  direct `World` returns and `Result<i32, error::Error>` lower cleanly.
-- Replacement (component): `Component::canonical_abi_version()` and
-  `Component::model_version()` associated functions.
-- Replacement (handle): `HandleTableI32::new()` plus the `insert`, `get`,
-  `remove`, and `len` receiver methods. The legacy untyped `Vec<i32>` table
-  surface is consolidated onto the typed table instead of keeping a second
-  namespace facade.
-- E0100: `resolver::removed_names::removed_module_member_hint` now owns
-  `parser`, `component`, and `handle` module aliases (15 hints). The
-  `std/wit/parser.ark` module is retained only as the parser E0100 anchor
-  until the 1.0.0 era, with no callable declaration.
-- Compiler: `component::wit_parse_import` calls
-  `ast::WitNode::import_metadata` instead of the retired parser free, and the
-  `component_model_version` name-based String-return special case in
-  `mir::lower::core_call_arg_names` is removed. The merge-lost `hash_map`
-  removed-member hint (commit 146f35153) is restored so the two
-  `removed_hashmap_adapter*` E0100 goldens pass again. Stage-2 was rebuilt
-  after the final compiler edits.
-- Manifest: the 7 function entries are removed and `Component` /
-  `HandleTableI32` are registered as `experimental` `[[types]]` with their
-  method/associated surface.
-- Fixtures: added `stdlib_wit/wit_ast_parse_wasm32.ark`,
-  `stdlib_component/component_helpers_wasm32.ark`, and
-  `stdlib_component/handle_basic_wasm32.ark` (identical dual-target bodies
-  with `--target wasm32 --wasi-version wasi-p1 --memory-width memory32`
-  flags), and migrated the original three fixtures to the new surface. Added
-  the dual-target E0100 diag fixtures `removed_wit_parser_free`,
-  `removed_component_free`, and `removed_component_handle_free`. `run:` count
-  1851 → **1854**; `diag:` count 126 → **132**.
-- Scorecard delta: 858 → **843** public symbols
-  (`associated-or-method` 743 → **728**); manifest public entries 625 →
-  **618**; `pub fn` declarations 981 → **966**; unregistered declarations
-  233 → **225**; `must delete` 115, `intrinsic-only` 1, `prelude_wrapper` 65,
-  and the 89 monomorphic helpers are unchanged. The
-  `std::wit/component frees` rule now carries only the 7
-  `std::component::canonical` source declarations.
-- Verification: both targets compile + `wasm-tools validate` +
-  `wasmtime run` with the rebuilt s2 for the three migrated fixtures and
-  their `_wasm32` pairs; `verify fixtures` **1854/1854 PASS / 0 FAIL**
-  (106 runtime smoke, 1 `test:` fixture); `selfhost diag-parity`
-  **132/132 PASS** including the 6 new E0100 fixtures; cross-backend parity
-  **3/3** for `wit_ast_parse`, `component_helpers`, and `handle_basic`;
-  `docs check` 6/6; `check-stdlib-eradication`, `check-compat-orphans`, and
-  the #706 close gate clean; `verify lane` PASS; `selfhost fixpoint` reached
-  (s2 == s3 at `55e1b20c…`, pinned base `04d4446b…`).
-- Residual: the 7 `std::component::canonical` frees stay because their
-  `Result<String, error::Error>` associated/method returns miscompile
-  (empty/NUL string) on both targets; splitting out the string-free list lane
-  would leave a fragmented surface, so the family waits for the compiler's
-  `Result<String, Error>` method-return fix. The remaining **728**
-  `associated-or-method` symbols and the monomorphic/`filter_i32` residuals
-  are unchanged.
+- **Lane namespace types (7, 132 associated functions)**: `F32x4`, `F64x2`,
+  `I8x16`, `I16x8`, `I32x4`, `I64x2`, and `V128` live in their existing lane
+  modules (`std::simd::{f32x4,f64x2,i8x16,i16x8,i32x4,i64x2,v128}`) and are
+  registered as `[[types]]` with `stability = "experimental"`. 132 of the 262
+  lane free functions moved to associated functions (`F32x4::add(a, b)`,
+  `I64x2::eq(a, b)`, `V128::any_true(v)`), so those spellings no longer count
+  as frees. The manifest's simd `[[functions]]` entries drop 104 → **37**;
+  every migrated free is gone from both the manifest and the top-level
+  source declarations. The entries were `experimental`, so ADR-014 D4 allowed
+  direct deletion without a W0009 window.
+- **Lowering-gated (130 frees retained)**: a method replacement is not
+  advertised for an operation that cannot run. **98** operations still fail
+  Wasm validation on both targets: all `u8x16` / `u16x8` / `u32x4` / `u64x2`
+  operations (82), `f64x2::{neg, sqrt}`, `i8x16::{neg, sub_sat_u}`,
+  `i16x8::{neg, abs, add_sat_s, add_sat_u, sub_sat_s, sub_sat_u}`, and
+  `i64x2::{add, neg, abs, shl, shr_s, shr_u}`. The emitter produces a missing
+  operand (`expected v128 but nothing on the stack`), an unknown `0xfd`
+  subopcode, or an i64/i32 lane-width mismatch. Another **32** validate but
+  trap or return a wrong value: `f32x4::neg` (returns the input),
+  `f64x2::{add, sub, mul, div}` (return the first operand),
+  `f64x2::{min, max}` (trap), `i8x16::{add, sub, mul, add_sat_s, add_sat_u,
+  sub_sat_s}` (wrong lane values), `i8x16::{le_s, le_u, ge_s, ge_u}` (trap),
+  `i16x8::mul` (returns the input), `i16x8::{eq, ne, lt_s, le_s, gt_s, ge_s,
+  lt_u, le_u, gt_u}` (trap), `i32x4::max_u` (trap), `i64x2::{sub, mul}`
+  (return the input), `i64x2::gt_s` (trap), and `v128::new` (all-zero
+  vector). Those frees stay experimental in their lane module and remain
+  counted by the `std::simd frees` scorecard rule.
+- **E0100**: `resolver::removed_names::removed_module_member_hint` maps the
+  eleven lane aliases to the namespace types and returns the associated
+  spelling for a qualified old call (`f32x4::splat` → `F32x4::splat(...)`),
+  with unit assertions in the same file. The
+  `diagnostics/removed_simd_free.ark` + `_wasm32.ark` pair pins the message on
+  both targets.
+- **Incidental E0100 repair**: the module-qualified
+  `hash_map` / `hash_string` / `hash_fn` / `hash_str_fn` replacement hint had
+  been lost from the base merge (the committed
+  `diagnostics/removed_hashmap_adapter*.diag` goldens expect it). The branch
+  is restored in the same dispatch and the two selfhost goldens pass again.
+- **Fixtures**: `tests/fixtures/stdlib_simd/simd_method_surface.ark` +
+  `_wasm32.ark` (compile, validate, run on `wasm32-gc` P2 and `--target
+  wasm32` wasi-p1) assert the values of the migrated surface. The nine
+  existing `simd_conformance` / `simd_lowering` / `simd_gc_storage` /
+  `v128_basic` fixtures moved to the associated spelling.
+- **Docs**: `docs/stdlib/migration-guidance.md` records the per-module
+  mapping and the complete blocked lists; `docs/stdlib/changelog.md` records
+  the wave. The generated reference documents the seven types and their
+  method lists.
+- **Scorecard delta**: 858 → **788** public symbols (`associated-or-method`
+  743 → **673**, `must delete` 115 unchanged); `pub fn` declarations 981 →
+  **849**; manifest public entries 625 → **558**; unregistered declarations
+  233 → **230**; the `std::simd frees` rule drops 104/79 → **37/76**.
+- **Verification**: `verify fixtures` **1853/1853** compile+validate PASS,
+  0 FAIL (107 runtime smoke, 1 `test:` fixture); cross-backend parity
+  **8/8** for the new pair and the migrated simd fixtures (`wasm32-gc`
+  component vs `--target wasm32` linear); `selfhost diag-parity` PASS (126
+  fixtures); `docs check` 6/6; `verify lane` PASS;
+  `check-stdlib-eradication` and `check-compat-orphans` clean. Both targets
+  were validated with `wasm-tools validate --features all`. `selfhost
+  fixpoint` reached (s2 == s3 at `860c1576…`, pinned base `04d4446b…`).
+- **Residuals**: the 130 lowering-gated frees above; nominal `I32x4` value
+  types and `MaskN` types remain ADR-037 (PROPOSED) work; `std::wasm` raw
+  `V128` is untouched.
 
 ## Required work
 
@@ -484,10 +479,10 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
-      - Landed 2026-10-27 (`wave/wit-parser-component`): the 3 parser frees,
-        2 `std::component` frees, and 10 `std::component::handle` frees
-        retired after the `WitNode` parser methods, `Component` associated
-        functions, and `HandleTableI32` receiver methods landed.
+      - Landed 2026-10-27 (`wave/simd-group`): 132 of the 262 `std::simd`
+        lane frees moved to the seven lane namespace types; the other 130
+        stay experimental because their emitter lowering fails validation
+        (98) or traps / corrupts the value (32).
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

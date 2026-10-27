@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: f32x4::splat; removed free function; call `F32x4::splat(...)` with the namespace type from `use std::simd::f32x4` instead

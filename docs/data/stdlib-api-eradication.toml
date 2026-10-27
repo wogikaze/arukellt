@@ -292,7 +292,7 @@ label = "std::simd frees"
 module_pfx = "std::simd"
 class = "associated-or-method"
 owner = "917"
-replacement = "SIMD vector methods (add/sub/extract_lane/etc.)"
+replacement = "SIMD lane namespace associated functions (`F32x4::add`, `I64x2::eq`, `V128::any_true`, …) for the 132 ops whose lowering is valid on both targets; the remaining 130 frees stay experimental until the SIMD emitter validates (98) or stops trapping / corrupting the value (32). See issue #917."
 
 [[rules]]
 label = "std::wasm builder frees"

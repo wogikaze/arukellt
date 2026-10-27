@@ -4,6 +4,73 @@
 //! Load/store APIs are NOT here — they belong in `std::wasm` (ADR-037 §11).
 //! All APIs are experimental (ADR-014).
 
+// --- Namespace ---
+
+/// Namespace for the v128 lane operations.
+///
+/// The associated functions cover the lane operations whose emitter
+/// lowering is valid on both targets. Operations that still fail
+/// validation, trap, or produce wrong values stay as experimental
+/// free functions below until the SIMD lowering is fixed (#917).
+pub struct V128 {}
+
+impl V128 {
+    // --- Construct ---
+
+    /// Create a v128 with all bits zeroed.
+    fn zero() -> v128 {
+        __simd_v128_const(0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0)
+    }
+
+    // --- Bitwise ---
+
+    /// Bitwise AND: a & b
+    fn and(a: v128, b: v128) -> v128 {
+        __simd_v128_and(a, b)
+    }
+
+    /// Bitwise ANDNOT: a & ~b
+    fn andnot(a: v128, b: v128) -> v128 {
+        __simd_v128_andnot(a, b)
+    }
+
+    /// Bitwise OR: a | b
+    fn or(a: v128, b: v128) -> v128 {
+        __simd_v128_or(a, b)
+    }
+
+    /// Bitwise XOR: a ^ b
+    fn xor(a: v128, b: v128) -> v128 {
+        __simd_v128_xor(a, b)
+    }
+
+    /// Bitwise NOT: ~a
+    fn not(a: v128) -> v128 {
+        __simd_v128_not(a)
+    }
+
+    /// Bitwise select: for each bit, choose from a if c has 1, from b if c has 0.
+    fn bitselect(a: v128, b: v128, c: v128) -> v128 {
+        __simd_v128_bitselect(a, b, c)
+    }
+
+    // --- Mask ---
+
+    /// Returns 1 if any bit in the v128 is set, 0 otherwise.
+    fn any_true(a: v128) -> i32 {
+        __simd_v128_any_true(a)
+    }
+}
+
+// --- Lowering-blocked operations ---
+//
+// The emitter cannot yet lower these operations to valid Wasm on both
+// targets, or lowers them to the wrong value / a trap. They stay as
+// experimental free functions until the SIMD lowering is fixed; migrating
+// them to the associated surface would advertise a replacement that does not
+// work. See issue #917 for the per-op evidence.
+
 // --- Construct ---
 
 /// Create a v128 from 16 bytes (i32 values 0..255).
@@ -13,49 +80,4 @@ pub fn new(b0: i32, b1: i32, b2: i32, b3: i32,
     b12: i32, b13: i32, b14: i32, b15: i32) -> v128 {
     __simd_v128_const(b0, b1, b2, b3, b4, b5, b6, b7,
         b8, b9, b10, b11, b12, b13, b14, b15)
-}
-
-/// Create a v128 with all bits zeroed.
-pub fn zero() -> v128 {
-    __simd_v128_const(0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0)
-}
-
-// --- Bitwise ---
-
-/// Bitwise AND: a & b
-pub fn and(a: v128, b: v128) -> v128 {
-    __simd_v128_and(a, b)
-}
-
-/// Bitwise ANDNOT: a & ~b
-pub fn andnot(a: v128, b: v128) -> v128 {
-    __simd_v128_andnot(a, b)
-}
-
-/// Bitwise OR: a | b
-pub fn or(a: v128, b: v128) -> v128 {
-    __simd_v128_or(a, b)
-}
-
-/// Bitwise XOR: a ^ b
-pub fn xor(a: v128, b: v128) -> v128 {
-    __simd_v128_xor(a, b)
-}
-
-/// Bitwise NOT: ~a
-pub fn not(a: v128) -> v128 {
-    __simd_v128_not(a)
-}
-
-/// Bitwise select: for each bit, choose from a if c has 1, from b if c has 0.
-pub fn bitselect(a: v128, b: v128, c: v128) -> v128 {
-    __simd_v128_bitselect(a, b, c)
-}
-
-// --- Mask ---
-
-/// Returns 1 if any bit in the v128 is set, 0 otherwise.
-pub fn any_true(a: v128) -> i32 {
-    __simd_v128_any_true(a)
 }
