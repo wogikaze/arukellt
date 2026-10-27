@@ -15,18 +15,18 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 569 `pub fn` declarations under
-`std/**/*.ark`; 423 map to a manifest entry and
-146 are unregistered. Eradication scope = 369 manifest
-public entries + 146 unregistered declarations = **515 symbols**.
+**Real surface denominator:** 548 `pub fn` declarations under
+`std/**/*.ark`; 417 map to a manifest entry and
+131 are unregistered. Eradication scope = 369 manifest
+public entries + 131 unregistered declarations = **500 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 515 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 569 | — |
-| Unregistered std declarations (no manifest entry) | 146 | 0 |
+| Eradication-scope symbols (real std surface) | 500 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 548 | — |
+| Unregistered std declarations (no manifest entry) | 131 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
 | Manifest public entries (registered scope) | 369 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
@@ -38,7 +38,7 @@ public entries + 146 unregistered declarations = **515 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 445 |
+| `associated-or-method` | Replacement must land as method/associated first | 430 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -50,7 +50,6 @@ registered entries and unregistered `pub fn` declarations.
 | Rule | Class | Owner | Manifest | Source | Replacement |
 |------|-------|-------|----------|--------|-------------|
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
-| hash set monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 15 | Concrete `HashSet<i32>` membership methods (`new` / `insert` / `contains` / `remove` / `len` / `is_empty`) landed 2026-10-27 and lower to the flat `hash::hashset_*` store. The 15 `hash_set::hashset_i32_*` adapters remain deprecated for the aggregate i32 and `String` lanes until their GC lowering is fixed. |
 | collections sort free algorithms | `associated-or-method` | [#697](../../issues/open/697-vec-operation-extension.md) | 0 | 4 | Vec::sort_by / sort_by_key / sort_unstable_by / sort_unstable_by_key / partition / is_sorted_by methods (landed #697; the six free duplicates retired in #917); sort/sort_unstable/is_sorted/select_nth await no-argument methods |
 | panic | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 1 | 0 | associated on a core namespace type (e.g. Std::panic) or an explicit ADR exception |
 | vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly. |
@@ -468,21 +467,6 @@ manifest-only scorecard could not see before #703.
 | `bimap_i32_i32_len` | `std/collections/bimap.ark:124` | `std::collections::bimap` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `bimap_i32_i32_is_empty` | `std/collections/bimap.ark:129` | `std::collections::bimap` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashmap_entry_pairs` | `std/collections/hash.ark:347` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_new` | `std/collections/hash_set.ark:64` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_insert` | `std/collections/hash_set.ark:70` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_contains` | `std/collections/hash_set.ark:76` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_remove` | `std/collections/hash_set.ark:82` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_len` | `std/collections/hash_set.ark:88` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_is_empty` | `std/collections/hash_set.ark:94` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_to_vec` | `std/collections/hash_set.ark:100` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_union` | `std/collections/hash_set.ark:106` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_intersection` | `std/collections/hash_set.ark:112` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_difference` | `std/collections/hash_set.ark:118` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_capacity` | `std/collections/hash_set.ark:124` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_reserve` | `std/collections/hash_set.ark:132` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_shrink_to_fit` | `std/collections/hash_set.ark:140` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_clear` | `std/collections/hash_set.ark:146` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashset_i32_extend` | `std/collections/hash_set.ark:154` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `btree_set_find_idx` | `std/collections/ordered.ark:164` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sort` | `std/collections/sort.ark:42` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
 | `sort_unstable` | `std/collections/sort.ark:52` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |

@@ -1,5 +1,5 @@
 use std::collections::hash
-use std::collections::hash_set
+use std::collections::hash_set::HashSet
 use std::test
 
 fn assert_some(v: Option<i32>, expected: i32) {
@@ -45,10 +45,10 @@ fn main() {
     test::assert_eq_i32(len(drained), 2)
     test::assert_true(hash::hashmap_is_empty(m))
 
-    let s: Vec<String> = hash_set::hashset_str_new()
-    test::assert_true(hash_set::hashset_str_insert(s, "alpha"))
-    test::assert_false(hash_set::hashset_str_insert(s, "alpha"))
-    test::assert_true(hash_set::hashset_str_contains(s, "alpha"))
-    test::assert_true(hash_set::hashset_str_remove(s, "alpha"))
-    test::assert_false(hash_set::hashset_str_contains(s, "alpha"))
+    let s: HashSet<String> = HashSet::new<String>()
+    test::assert_true(s.insert("alpha"))
+    test::assert_false(s.insert("alpha"))
+    test::assert_true(s.contains("alpha"))
+    test::assert_true(s.remove("alpha"))
+    test::assert_false(s.contains("alpha"))
 }

@@ -2251,13 +2251,13 @@ returns = "bool"
 name = "std::collections::hash_set"
 stability = "provisional"
 family = "collections"
-doc = "Concrete `HashSet<i32>` membership surface (ADR-086); aggregate and `String` lanes keep the deprecated `hash_set::hashset_i32_*` / `hashset_str_*` adapters."
+doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 membership and aggregate methods lower to the flat hash store, and the String membership methods lower to the `Vec<String>` facade."
 availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "HashSet"
 kind = "struct"
-doc = "Set of unique `i32` values; `new`, `insert`, `contains`, `remove`, `len`, `is_empty` lower to the flat hash store."
+doc = "Set of unique `i32` / `String` values; the i32 surface covers membership and aggregates, and the String surface covers membership."
 module = "std::collections::hash_set"
 stability = "provisional"
 generic_params = ["T"]
@@ -2268,7 +2268,17 @@ methods = [
     "remove",
     "len",
     "is_empty",
+    "to_vec",
+    "union",
+    "intersection",
+    "difference",
+    "capacity",
+    "reserve",
+    "shrink_to_fit",
+    "clear",
+    "extend",
 ]
+trait_impls = ["IntoIterator", "Clone", "Eq", "Debug"]
 
 # === std::collections::ordered ===
 

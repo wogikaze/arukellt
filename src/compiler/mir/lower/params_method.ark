@@ -94,6 +94,18 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
     let param_local = ctx_alloc_local(ctx, clone(p_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
+    if starts_with(clone(p_type_name), String_from("HashSet")) {
+        // Method parameters take this path rather than params_fn; mark a
+        // HashSet operand (the `other` side of union / eq / extend) so its
+        // own `len` / `is_empty` stay on the hash store (#917).
+        let mut family = String_from("i32")
+        if eq(clone(local_type_name), String_from("vec:String")) ||
+        starts_with(clone(p_type_name), String_from("HashSet<String>")) ||
+        starts_with(clone(p_type_name), String_from("HashSet_String")) {
+            family = String_from("String")
+        }
+        ctx_api_local_types::ctx_mark_hashset_local(ctx, param_local, family)
+    }
     mir_apply_param_mvt_override(ctx, param_local)
 }
 
@@ -167,8 +179,20 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
     }
     ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, clone(self_sig_type_name)))
     ctx_set_local_type(ctx, self_local, clone(self_local_type_name))
-    if eq(clone(struct_name), "HashSet") && !eq(clone(self_type_name), String_from("vec:String")) {
-        ctx_api_local_types::ctx_mark_hashset_local(ctx, self_local, String_from("i32"))
+    if starts_with(clone(struct_name), "HashSet") {
+        // The set receiver is a flat Vec alias. The marker is what keeps
+        // `len` / `is_empty` on the hash store instead of the Vec core-op
+        // rewrites; the element family selects the i32 or String store.
+        // Concrete impl owners reach here as HashSet_i32 / HashSet_String,
+        // generic shells as HashSet (#917).
+        let mut family = String_from("i32")
+        if eq(clone(self_type_name), String_from("vec:String")) ||
+        eq(clone(local_type_name), String_from("vec:String")) ||
+        starts_with(clone(self_type_name), String_from("HashSet<String>")) ||
+        starts_with(clone(self_type_name), String_from("HashSet_String")) {
+            family = String_from("String")
+        }
+        ctx_api_local_types::ctx_mark_hashset_local(ctx, self_local, family)
     }
     mir_apply_param_mvt_override(ctx, self_local)
 }

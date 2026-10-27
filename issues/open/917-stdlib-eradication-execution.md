@@ -525,6 +525,75 @@ classified there, in dependency-safe waves.
   pre-fix artifact, so the two-module probe fails under it; the rebuilt s2
   (and its self-built s3 successor) pass.
 
+### Landed slice (wave/hashset-agg, 2026-10-27)
+
+- **Concrete `HashSet<i32>` aggregate surface**: `to_vec`, `union`,
+  `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`,
+  `clear`, and `extend` are receiver methods over the flat
+  `hash::hashset_*` store. Set-returning methods carry the HashSet marker onto
+  the result temporary, so `s.union(t).len()` and chained membership calls
+  lower to the set store rather than the Vec path.
+- **`HashSet<String>` membership**: `HashSet::new<String>()` plus `insert`,
+  `contains`, `remove`, `len`, and `is_empty` lower to the
+  `hash_string::hashset_str_*` facade (bare `hashset_str_*` targets resolve to
+  the loaded implementation module). The `vec:String` receiver/parameter
+  marker selects the String family on both targets.
+- **ADR-086 trait impls (i32)**: `IntoIterator` snapshots `to_vec` into the
+  shared `VecIter<i32>`, and `Clone`, `Eq`, and `Debug` are implemented over
+  the set semantics. `for value in set` now calls `HashSet_i32::into_iter` (not
+  the raw Vec cursor over the hash bucket layout) in both the legacy and
+  CoreHIR for lowering paths.
+- **Retired (21 adapters)**: the 15 `hash_set::hashset_i32_*` adapters and the
+  6 `hash_set::hashset_str_*` functions (including `hashset_str_new`).
+  `resolver::removed_names::hashset_method_replacement_hint` supplies the
+  E0100 replacement text for qualified `hash_set::` calls and bare
+  `hashset_i32_*` / `hashset_str_*` names; unit assertions cover both paths.
+  The `hash::hashset_*` / `hash_string::hashset_str_*` implementation
+  functions stay as internal lowering targets. The scorecard delta is 15 because the six `hashset_str_*` names duplicate manifest-registered implementation functions and were therefore not counted as unregistered declarations.
+- **Compiler changes**: `call_rewrite_hashset` gained the aggregate / trait
+  target table, String constructor and method families, and a
+  set-result marker. `params_method` marks self and `other` for concrete impl
+  owners (`HashSet_i32` / `HashSet_String`), and `params_fn` marks HashSet
+  arguments. `sections_types_gc_override` emits the flat Vec alias for the
+  `Clone` / set-returning impl results. The marker-less fallback is restricted
+  to `insert` / `contains` / `remove` so the String store's own
+  `hashset_str_len` body (`len(s)`) is not rewritten to itself.
+- **Fixtures**: the existing `stdlib_hashset/hashset_methods.ark` +
+  `_wasm32.ark` pair now covers membership, aggregates, chained set results,
+  the String lane, direct `into_iter`, `for` iteration, `Clone`, `Eq`, and
+  `Debug`. Four `stdlib_hashmap` fixtures were migrated off the adapters.
+  Added `diagnostics/removed_hashset_adapter.ark` +
+  `_wasm32.ark` E0100 goldens (registry 3313 -> 3315 entries; the `run:`
+  count stays 1867).
+- **Scorecard delta**: 515 -> **500** public symbols; unregistered
+  declarations 146 -> **131**; `pub fn` declarations 569 -> **548**;
+  `associated-or-method` 445 -> **430**. Manifest public entries 369,
+  `prelude_wrapper` 65, monomorphic manifest helpers 57, `must delete` 70,
+  and `intrinsic-only` 1 are unchanged.
+- **Verification**: both targets compile, `wasm-tools validate`, and run for
+  the extended surface fixture (P2 component on `wasm32-gc`, linear on
+  `--target wasm32`); `verify fixtures` **1867/1867 PASS**, 0 FAIL (108 runtime
+  smoke, 1 `test:` fixture PASS); `selfhost diag-parity` PASS including the two
+  new E0100 goldens; `verify lane` PASS; `docs check` 6/6;
+  `check-stdlib-eradication`, `check-compat-orphans`, and
+  `check-comment-policy` clean; ADR-029 fixpoint PASS: s2 == s3 at sha256
+  `912139c9223b4f710825c90c84f202b2b3a64f37868f9ca2900711fe9d32e5db`
+  (pinned base `04d4446b…`).
+- **Blockers / residuals**: `FromIterator` stays unlanded. The concrete
+  `impl FromIterator<VecIter<i32>> for HashSet<i32>` registers under the
+  per-instantiation / conversion-source owner
+  `HashSet_i32::from_iter__VecIter_i32`, while the source path
+  `HashSet::from_iter(...)` is resolved against the bare `HashSet` owner and
+  fails with ``undefined variant: hash_set::HashSet::from_iter``;
+  `HashSet<i32>::from_iter` is not valid source syntax. A resolver fallback
+  that selects a concrete conversion impl from the source argument is the
+  unblock. `HashSet<String>` aggregates and trait impls wait on a store-level
+  snapshot accessor for the `Vec<String>` facade (the `hash_string` module
+  only exposes membership operations); without a String `IntoIterator`, a
+  `for word in set` over `HashSet<String>` fails typechecking with
+  `non-iterable source ... found HashSet`. The remaining 430
+  `associated-or-method` symbols and the `filter_i32` deferral are untouched.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

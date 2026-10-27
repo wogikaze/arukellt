@@ -78,28 +78,11 @@ owner = "none"
 # entry. Rules are evaluated before the module-family defaults so each
 # family gets an explicit replacement/owner instead of the generic text.
 
-# The 15 `hash_set::hashset_i32_*` adapters and the 5 `hash_set::hashset_str_*`
-# Vec<String> facade adapters were retired by #917 on 2026-10-27. `impl<T>
-# HashSet<T>` methods are the only spelling; their MIR lowering targets are the
-# now implementation-layer `hash::hashset_*` / `hash_string::hashset_str_*`
-# functions, so no source declaration in `hash_set.ark` is public. The
-# `std::collections frees` rule below still owns those store functions.
-
-[[rules]]
-label = "hash set monomorphic adapters"
-source_only = true
-prefix = "hashset_"
-class = "associated-or-method"
-owner = "917"
-replacement = "Concrete `HashSet<i32>` membership methods (`new` / `insert` / `contains` / `remove` / `len` / `is_empty`) landed 2026-10-27 and lower to the flat `hash::hashset_*` store. The 15 `hash_set::hashset_i32_*` adapters remain deprecated for the aggregate i32 and `String` lanes until their GC lowering is fixed."
-
-
 # The 50 hash_map::hashmap_* adapters and the 29 hash_string / 11 hash_fn /
 # 11 hash_str_fn implementation frees were retired by #917 on 2026-10-27.
 # `impl HashMap<K,V>` methods are the only spelling; their MIR lowering
 # targets are the now non-public implementation functions in hash_string /
 # hash_fn / hash_str_fn, so no source declaration in those modules is public.
-# The hash_set rule above remains because no HashSet type surface exists.
 
 [[rules]]
 label = "collections sort free algorithms"

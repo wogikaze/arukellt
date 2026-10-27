@@ -1,27 +1,48 @@
-use std::prelude::{byte_at, clone, eq, index_of, starts_with, substring}
+use std::prelude::{byte_at, clone, ends_with, eq, index_of, starts_with, substring}
 use mir::lower::ctx_api_local_types
 
-// `impl HashSet<i32>` is the concrete type surface over the flat store in
-// std::collections.hash. Calls can arrive as the monomorphized constructor
-// (HashSet__new__i32), as an impl method (HashSet_i32::insert), or as a bare
-// method name. The HashSet local marker distinguishes `len` / `is_empty`
-// from the Vec core-op rewrites that share those names (#917).
-fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
+// `impl HashSet<i32>` / `impl HashSet<String>` are the concrete type surfaces
+// over the flat stores in std::collections.hash and hash_string. Calls can
+// arrive as the monomorphized constructor (HashSet__new__i32), as an impl
+// method (HashSet_i32::insert), or as a bare method name. The HashSet local
+// marker distinguishes `len` / `is_empty` from the Vec core-op rewrites that
+// share those names, and selects the i32 or String store (#917).
+fn hashset_constructor_family(callee_name: String) -> String {
     if eq(clone(callee_name), String_from("HashSet__new__i32")) ||
     eq(clone(callee_name), String_from("HashSet::new__i32")) ||
     eq(clone(callee_name), String_from("hashset_new")) {
+        return String_from("i32")
+    }
+    if eq(clone(callee_name), String_from("HashSet__new__String")) ||
+    eq(clone(callee_name), String_from("HashSet::new__String")) ||
+    eq(clone(callee_name), String_from("hashset_str_new")) {
+        return String_from("String")
+    }
+    String_new()
+}
+
+fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
+    let family = hashset_constructor_family(clone(callee_name))
+    if eq(clone(family), String_from("i32")) {
         return String_from("hashset_new")
+    }
+    if eq(clone(family), String_from("String")) {
+        return String_from("hashset_str_new")
     }
     String_new()
 }
 
 // Constructor target type for the AST edge walk: the store function returns
-// Vec<i32>, but the source expression keeps the set type so receiver-type
-// dispatch still sees a HashSet (#917).
+// Vec<i32> / Vec<String>, but the source expression keeps the set type so
+// receiver-type dispatch still sees a HashSet (#917).
 fn mir_hashset_constructor_type_name(callee_name: String) -> String {
     if eq(clone(callee_name), String_from("HashSet__new__i32")) ||
     eq(clone(callee_name), String_from("HashSet::new__i32")) {
         return String_from("HashSet<i32>")
+    }
+    if eq(clone(callee_name), String_from("HashSet__new__String")) ||
+    eq(clone(callee_name), String_from("HashSet::new__String")) {
+        return String_from("HashSet<String>")
     }
     String_new()
 }
@@ -30,6 +51,11 @@ fn hashset_family_for_type(type_name: String) -> String {
     if eq(clone(type_name), String_from("HashSet<i32>")) ||
     eq(clone(type_name), String_from("HashSet_i32")) {
         return String_from("i32")
+    }
+    if eq(clone(type_name), String_from("HashSet<String>")) ||
+    eq(clone(type_name), String_from("HashSet_String")) ||
+    eq(clone(type_name), String_from("vec:String")) {
+        return String_from("String")
     }
     String_new()
 }
@@ -46,6 +72,9 @@ fn hashset_method_name_from_source(source: String) -> String {
     }
     if starts_with(clone(source), String_from("HashSet_i32::")) {
         return substring(source, 13, len(source))
+    }
+    if starts_with(clone(source), String_from("HashSet_String::")) {
+        return substring(source, 16, len(source))
     }
     if starts_with(clone(source), String_from("HashSet__")) {
         let rest = substring(source, 9, len(source))
@@ -76,6 +105,22 @@ fn hashset_i32_method_target(method: String) -> String {
     if eq(clone(method), String_from("new")) {
         return String_from("hashset_new")
     }
+    // ADR-086 trait methods. The flat store alias would otherwise resolve
+    // `clone` / `into_iter` against Vec (or the element type) because the
+    // source set spelling is gone by method lowering, so route them to the
+    // concrete impl methods directly (#917).
+    if eq(clone(method), String_from("clone")) {
+        return String_from("HashSet_i32::clone")
+    }
+    if eq(clone(method), String_from("into_iter")) {
+        return String_from("HashSet_i32::into_iter")
+    }
+    if eq(clone(method), String_from("eq")) {
+        return String_from("HashSet_i32::eq")
+    }
+    if eq(clone(method), String_from("fmt_debug")) {
+        return String_from("HashSet_i32::fmt_debug")
+    }
     if eq(clone(method), String_from("insert")) {
         return String_from("hashset_insert")
     }
@@ -91,22 +136,109 @@ fn hashset_i32_method_target(method: String) -> String {
     if eq(clone(method), String_from("is_empty")) {
         return String_from("hashset_is_empty")
     }
+    if eq(clone(method), String_from("to_vec")) {
+        return String_from("hashset_to_vec")
+    }
+    if eq(clone(method), String_from("union")) {
+        return String_from("hashset_union")
+    }
+    if eq(clone(method), String_from("intersection")) {
+        return String_from("hashset_intersection")
+    }
+    if eq(clone(method), String_from("difference")) {
+        return String_from("hashset_difference")
+    }
+    if eq(clone(method), String_from("capacity")) {
+        return String_from("hashset_capacity")
+    }
+    if eq(clone(method), String_from("reserve")) {
+        return String_from("hashset_reserve")
+    }
+    if eq(clone(method), String_from("shrink_to_fit")) {
+        return String_from("hashset_shrink_to_fit")
+    }
+    if eq(clone(method), String_from("clear")) {
+        return String_from("hashset_clear")
+    }
+    if eq(clone(method), String_from("extend")) {
+        return String_from("hashset_extend")
+    }
+    String_new()
+}
+
+fn hashset_str_method_target(method: String) -> String {
+    if eq(clone(method), String_from("new")) {
+        return String_from("hashset_str_new")
+    }
+    if eq(clone(method), String_from("insert")) {
+        return String_from("hashset_str_insert")
+    }
+    if eq(clone(method), String_from("contains")) {
+        return String_from("hashset_str_contains")
+    }
+    if eq(clone(method), String_from("remove")) {
+        return String_from("hashset_str_remove")
+    }
+    if eq(clone(method), String_from("len")) {
+        return String_from("hashset_str_len")
+    }
+    if eq(clone(method), String_from("is_empty")) {
+        return String_from("hashset_str_is_empty")
+    }
     String_new()
 }
 
 fn mir_rewrite_hashset_method(callee_name: String) -> String {
+    if starts_with(clone(callee_name), String_from("HashSet_String::")) {
+        return hashset_str_method_target(hashset_method_name_from_source(callee_name))
+    }
     if !starts_with(clone(callee_name), String_from("HashSet_i32::")) &&
     !starts_with(clone(callee_name), String_from("HashSet__")) {
         return String_new()
     }
+    if ends_with(clone(callee_name), String_from("__String")) {
+        return hashset_str_method_target(hashset_method_name_from_source(callee_name))
+    }
     hashset_i32_method_target(hashset_method_name_from_source(callee_name))
 }
 
-// Receiver-family spelling used by edge discovery: the only supported
-// family is the flat i32 store.
+// Receiver-family spelling used by edge discovery: the supported families are
+// the flat i32 store and the Vec<String> string facade.
 fn hashset_method_target_for_family(family: String, method: String) -> String {
     if eq(clone(family), String_from("i32")) {
         return hashset_i32_method_target(method)
+    }
+    if eq(clone(family), String_from("String")) {
+        return hashset_str_method_target(method)
+    }
+    String_new()
+}
+
+// The set-returning operations keep the source set type on the result local so
+// a chained `.len()` / `.contains()` still sees the HashSet marker. The
+// targets are the flat store names, which have no marker of their own.
+fn is_hashset_returning_target(callee_name: String) -> bool {
+    if eq(clone(callee_name), String_from("HashSet_i32::clone")) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("hashset_union")) ||
+    eq(clone(callee_name), String_from("hashset_intersection")) ||
+    eq(clone(callee_name), String_from("hashset_difference")) {
+        return true
+    }
+    eq(clone(callee_name), String_from("hash::hashset_union")) ||
+    eq(clone(callee_name), String_from("hash::hashset_intersection")) ||
+    eq(clone(callee_name), String_from("hash::hashset_difference"))
+}
+
+// The `for` desugar resolves the iterator owner from the flat local type
+// (`vec:i32`), which would pick the Vec cursor over the set's snapshot. The
+// HashSet marker selects the concrete IntoIterator impl for the i32 store.
+// The String facade is itself a dense Vec<String>, so its normal Vec cursor
+// is already the correct iteration and needs no override.
+fn hashset_into_iter_target(family: String) -> String {
+    if eq(clone(family), String_from("i32")) {
+        return String_from("HashSet_i32::into_iter")
     }
     String_new()
 }
@@ -120,9 +252,12 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
     if len(by_name) > 0 {
         return by_name
     }
-    if receiver_idx >= 0 &&
-    eq(clone(ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)), String_from("i32")) {
-        let target = hashset_i32_method_target(hashset_method_name_from_source(clone(callee_name)))
+    let mut family = String_new()
+    if receiver_idx >= 0 {
+        family = ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)
+    }
+    if len(clone(family)) > 0 {
+        let target = hashset_method_target_for_family(clone(family), hashset_method_name_from_source(clone(callee_name)))
         if len(target) > 0 {
             return target
         }
@@ -131,30 +266,41 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
     if len(by_method) > 0 {
         return by_method
     }
-    // Fallback for a call that lost the marker: these names have no Vec<i32>
-    // counterpart, so a vec:i32 receiver is unambiguous evidence of a set.
+    // Fallback for a call that lost the marker: these names have no Vec
+    // counterpart, so a typed receiver is unambiguous evidence of a set.
     if receiver_idx < 0 {
         return String_new()
     }
-    if !eq(clone(ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx)), String_from("vec:i32")) {
-        return String_new()
-    }
+    let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx)
     let method = hashset_method_name_from_source(clone(callee_name))
     if eq(clone(method), String_from("insert")) ||
     eq(clone(method), String_from("contains")) ||
     eq(clone(method), String_from("remove")) {
-        return hashset_i32_method_target(method)
+        // These names have no Vec counterpart; `len` / `is_empty` do, and the
+        // String store's own `hashset_str_len` body calls `len(s)`, so they
+        // stay marker-only to avoid rewriting the implementation to itself.
+        if eq(clone(receiver_type), String_from("vec:String")) {
+            return hashset_str_method_target(method)
+        }
+        if eq(clone(receiver_type), String_from("vec:i32")) {
+            return hashset_i32_method_target(method)
+        }
     }
     String_new()
 }
 
-// Result side of the marker: a constructor call marks its destination so a
-// later `s.len()` is not read as a Vec method.
+// Result side of the marker: a constructor or set-returning operation marks
+// its destination so a later `s.len()` is not read as a Vec method.
 fn mark_hashset_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if dest < 0 {
         return
     }
-    if len(mir_rewrite_hashset_constructor(clone(callee_name))) > 0 {
+    let family = hashset_constructor_family(clone(callee_name))
+    if len(clone(family)) > 0 {
+        ctx_api_local_types::ctx_mark_hashset_local(ctx, dest, family)
+        return
+    }
+    if is_hashset_returning_target(callee_name) {
         ctx_api_local_types::ctx_mark_hashset_local(ctx, dest, String_from("i32"))
     }
 }
@@ -162,16 +308,26 @@ fn mark_hashset_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
 test mod "hashset_rewrite" {
     test "constructor" {
         assert(mir_rewrite_hashset_constructor("HashSet__new__i32") == "hashset_new")
+        assert(mir_rewrite_hashset_constructor("HashSet__new__String") == "hashset_str_new")
         assert(mir_hashset_constructor_type_name("HashSet__new__i32") == "HashSet<i32>")
-        assert(len(mir_rewrite_hashset_constructor("HashSet__new__String")) == 0)
+        assert(mir_hashset_constructor_type_name("HashSet__new__String") == "HashSet<String>")
     }
     test "method_targets" {
         assert(mir_rewrite_hashset_method("HashSet_i32::insert") == "hashset_insert")
         assert(mir_rewrite_hashset_method("HashSet__contains__i32") == "hashset_contains")
-        assert(mir_rewrite_hashset_method("vec_len") == "hashset_len")
+        assert(mir_rewrite_hashset_method("HashSet_i32::union") == "hashset_union")
+        assert(mir_rewrite_hashset_method("HashSet_i32::to_vec") == "hashset_to_vec")
+        assert(mir_rewrite_hashset_method("HashSet_String::insert") == "hashset_str_insert")
+        assert(mir_rewrite_hashset_method("HashSet__contains__String") == "hashset_str_contains")
     }
-    test "unsupported_methods" {
-        assert(len(mir_rewrite_hashset_method("HashSet_i32::union")) == 0)
-        assert(len(mir_rewrite_hashset_method("HashSet_i32::to_vec")) == 0)
+    test "family_targets" {
+        assert(hashset_method_target_for_family("i32", "clear") == "hashset_clear")
+        assert(hashset_method_target_for_family("String", "len") == "hashset_str_len")
+        assert(len(hashset_method_target_for_family("String", "union")) == 0)
+    }
+    test "set_returning_targets" {
+        assert(is_hashset_returning_target("hashset_union"))
+        assert(is_hashset_returning_target("hashset_to_vec") == false)
+        assert(is_hashset_returning_target("hashset_insert") == false)
     }
 }

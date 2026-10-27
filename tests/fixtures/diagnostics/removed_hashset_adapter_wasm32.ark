@@ -1,0 +1,6 @@
+use std::collections::hash_set
+
+fn main() {
+    let s = hash_set::hashset_i32_new()
+    let _ = s
+}
