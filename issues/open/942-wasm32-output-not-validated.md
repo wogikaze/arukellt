@@ -39,9 +39,28 @@ artifact left as if it were valid.
 
 ## Acceptance
 
-- [ ] `compile` / `build` / `run` for `wasm32` validate the emitted module
+- [x] `compile` / `build` / `run` for `wasm32` validate the emitted module
       (the same validator path as `wasm32-gc`) and fail on invalid output.
-- [ ] A regression test feeds a known-invalid emission (e.g. the #940 repro
+- [x] A regression test feeds a known-invalid emission (e.g. the #940 repro
       while it is still broken, or an injected fault) and asserts a non-zero
       exit and no success message.
-- [ ] `docs/current-state.md` W0004 statement is true for every target.
+- [x] `docs/current-state.md` W0004 statement is true for every target.
+
+## Progress (2026-10-27)
+
+- `scripts/run/arukellt-selfhost.sh`: `compile` / `build` with `-o` run the
+  compiler with captured output, validate the emitted core module with the
+  same `$WASM_TOOLS_BIN validate` used by the component path, and on failure
+  drop the artifact, suppress `compilation succeeded`, and exit 1 with
+  `W0004 generated Wasm failed validation`. `run` validates the module it is
+  about to execute on the same path.
+- `scripts/check/check-cli-guarantees.py compile-validates-output` compiles
+  the #940 same-name-type repro and asserts rejection (W0004, no artifact, no
+  success line); once #940 lands and the module is valid, the same check
+  requires the artifact to validate, so it does not pin the test to the bug.
+  It also asserts a valid program still compiles. Wired into
+  `check-cli-guarantees.py all`, which `verify quick` runs.
+- Verified: `compile` of the #940 repro exits 1 with W0004 and leaves no file;
+  `compile`/`run` of a valid program and `--target wasm32-gc` core compile
+  still succeed; `check-cli-guarantees.py all` passes; `verify lane` passes.
+

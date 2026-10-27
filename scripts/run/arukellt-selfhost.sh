@@ -921,6 +921,67 @@ compile_all_artifact() {
   echo "component written to $ALL_COMPONENT_OUTPUT" >&2
 }
 
+core_output_path_from_args() {
+  CORE_OUTPUT=""
+  local i=1
+  local arg next
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "-o" || "$arg" == "--output" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# && "${!next}" != "json" ]]; then
+        CORE_OUTPUT="${!next}"
+      fi
+      i=$((i + 2))
+      continue
+    fi
+    i=$((i + 1))
+  done
+}
+
+# A core module counts as built only after it validates (#942). The compiler
+# has no Wasm validator of its own, so apply the same wasm-tools check the
+# component path uses. Reporting success for an invalid module defers the
+# failure to whoever runs the artifact.
+compile_core_with_validation() {
+  core_output_path_from_args "$@"
+  if [[ -z "$CORE_OUTPUT" ]]; then
+    run_compiler_artifact "$wasm" "$@"
+    exit 0
+  fi
+  core_validate_work_dir="$(mktemp -d)"
+  trap 'rm -rf "$core_validate_work_dir"' EXIT
+  local rc
+  set +e
+  run_compiler "$wasm" "$@" >"$core_validate_work_dir/stdout" 2>"$core_validate_work_dir/stderr"
+  rc=$?
+  set -e
+  cat "$core_validate_work_dir/stdout"
+  if [[ "$rc" -ne 0 ]]; then
+    cat "$core_validate_work_dir/stderr" >&2
+    return "$rc"
+  fi
+  if [[ -f "$CORE_OUTPUT" ]] && [[ "$(wasm_artifact_version "$CORE_OUTPUT")" == "1" ]]; then
+    if [[ -z "$WASM_TOOLS_BIN" ]]; then
+      echo "arukellt-selfhost: error — wasm-tools is required to validate emitted core Wasm" >&2
+      rm -f "$CORE_OUTPUT"
+      return 1
+    fi
+    if ! "$WASM_TOOLS_BIN" validate "$CORE_OUTPUT" >"$core_validate_work_dir/validate.log" 2>&1; then
+      # The compiler prints its success line before the artifact is checked;
+      # drop it so a rejected module never reads as a successful build.
+      grep -v -e '^compilation succeeded' -e '^wrote .* bytes to ' \
+        "$core_validate_work_dir/stderr" >&2 || true
+      echo "arukellt-selfhost: error — W0004 generated Wasm failed validation: $CORE_OUTPUT" >&2
+      sed 's/^/  /' "$core_validate_work_dir/validate.log" >&2
+      rm -f "$CORE_OUTPUT"
+      return 1
+    fi
+  fi
+  cat "$core_validate_work_dir/stderr" >&2
+  return 0
+}
+
 if ! select_selfhost_artifact; then
   exit 1
 fi
@@ -940,6 +1001,13 @@ if [[ "${1:-}" == "compile" ]] && emit_all_requested "$@"; then
   tmpdir="$(make_selfhost_tempdir)"
   trap 'rm -rf "$tmpdir"' EXIT
   compile_all_artifact "$tmpdir" "$@"
+  exit $?
+fi
+
+# Core-module compile/build lands here; component and `--emit all` outputs are
+# packaged above, so this path only has to validate a plain core artifact.
+if [[ "${1:-}" == "compile" || "${1:-}" == "build" ]]; then
+  compile_core_with_validation "$@"
   exit $?
 fi
 
@@ -1009,6 +1077,18 @@ if [[ "${1:-}" == "run" ]]; then
   wasm_ver="$(od -An -tu1 -j4 -N1 "$out_path" 2>/dev/null | tr -d ' ')"
   if [[ "$wasm_ver" == "13" ]]; then
     exec "$WASMTIME_BIN" run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
+  fi
+  # `run` is a build plus an execute: reject the module here so an emitter bug
+  # surfaces as a compile error instead of a Wasmtime trap inside user code.
+  if [[ "$wasm_ver" == "1" ]]; then
+    if [[ -z "$WASM_TOOLS_BIN" ]]; then
+      echo "arukellt-selfhost: error — wasm-tools is required to validate emitted core Wasm" >&2
+      exit 1
+    fi
+    if ! "$WASM_TOOLS_BIN" validate "$out_path" >/dev/null 2>&1; then
+      echo "arukellt-selfhost: error — W0004 generated Wasm failed validation: $out_path" >&2
+      exit 1
+    fi
   fi
   exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
 fi
