@@ -137,6 +137,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "bytes") {
         return removed_bytes_member_hint(name)
     }
+    if eq(clone(module), "hash_map") || eq(clone(module), "hash_string") || eq(clone(module), "hash_fn") || eq(clone(module), "hash_str_fn") {
+        return hashmap_method_replacement_hint()
+    }
     if !eq(clone(module), "io") {
         return String_new()
     }
