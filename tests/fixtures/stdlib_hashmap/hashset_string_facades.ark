@@ -1,5 +1,5 @@
 use std::collections::hash
-use std::collections::hash_set
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
@@ -9,15 +9,15 @@ fn main() {
     test::assert_eq_i32(hash::hashset_str_len(direct), 1)
     test::assert_true(hash::hashset_str_contains(direct, "red"))
 
-    let compat = hash_set::hashset_str_new()
-    test::assert_true(hash_set::hashset_str_insert(compat, "green"))
-    test::assert_true(hash_set::hashset_str_remove(compat, "green"))
-    test::assert_eq_i32(hash_set::hashset_str_len(compat), 0)
-    test::assert_false(hash_set::hashset_str_contains(compat, "green"))
+    let compat: HashSet<String> = HashSet::new<String>()
+    test::assert_true(compat.insert("green"))
+    test::assert_true(compat.remove("green"))
+    test::assert_eq_i32(compat.len(), 0)
+    test::assert_false(compat.contains("green"))
 
-    let second = hash_set::hashset_str_new()
-    test::assert_true(hash_set::hashset_str_insert(second, "blue"))
-    test::assert_false(hash_set::hashset_str_remove(second, "missing"))
-    test::assert_eq_i32(hash_set::hashset_str_len(second), 1)
-    test::assert_true(hash_set::hashset_str_contains(second, "blue"))
+    let second: HashSet<String> = HashSet::new<String>()
+    test::assert_true(second.insert("blue"))
+    test::assert_false(second.remove("missing"))
+    test::assert_eq_i32(second.len(), 1)
+    test::assert_true(second.contains("blue"))
 }

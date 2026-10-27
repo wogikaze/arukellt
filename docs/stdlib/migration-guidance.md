@@ -1472,13 +1472,14 @@ with an E0100 hint that points at the method surface. `insert` keeps the
 `Option<V>` previous-value contract, so `let old = m.insert(k, v)` is the exact
 replacement for the old `*_insert` adapters.
 
-### HashSet<i32> Membership
+### HashSet<i32> / HashSet<String> Methods
 
-`HashSet<i32>` is the canonical surface for the six basic membership
-operations over the flat hash set store (#917). The aggregate
-(`to_vec` / `union` / `intersection` / `difference` / `capacity` / `reserve` /
-`shrink_to_fit` / `clear` / `extend`) and `HashSet<String>` lanes keep the
-deprecated `hash_set::` adapters until their GC lowering lands.
+`HashSet<i32>` is the canonical surface for membership and aggregate
+operations over the flat hash set store, and `HashSet<String>` covers the
+membership lane over the `Vec<String>` store (#917). The 20
+`hash_set::hashset_i32_*` / `hash_set::hashset_str_*` adapters were retired on
+2026-10-27; qualified calls now fail resolution with an E0100 hint that points
+at the method surface.
 
 | Old API | Replacement |
 |---------|-------------|
@@ -1488,12 +1489,34 @@ deprecated `hash_set::` adapters until their GC lowering lands.
 | `hash_set::hashset_i32_remove(s, v)` | `s.remove(v)` |
 | `hash_set::hashset_i32_len(s)` | `s.len()` |
 | `hash_set::hashset_i32_is_empty(s)` | `s.is_empty()` |
+| `hash_set::hashset_i32_to_vec(s)` | `s.to_vec()` |
+| `hash_set::hashset_i32_union(a, b)` | `a.union(b)` |
+| `hash_set::hashset_i32_intersection(a, b)` | `a.intersection(b)` |
+| `hash_set::hashset_i32_difference(a, b)` | `a.difference(b)` |
+| `hash_set::hashset_i32_capacity(s)` | `s.capacity()` |
+| `hash_set::hashset_i32_reserve(s, n)` | `s.reserve(n)` |
+| `hash_set::hashset_i32_shrink_to_fit(s)` | `s.shrink_to_fit()` |
+| `hash_set::hashset_i32_clear(s)` | `s.clear()` |
+| `hash_set::hashset_i32_extend(s, other)` | `s.extend(other)` |
+| `hash_set::hashset_str_new()` | `HashSet::new<String>()` |
+| `hash_set::hashset_str_insert(s, v)` | `s.insert(v)` |
+| `hash_set::hashset_str_contains(s, v)` | `s.contains(v)` |
+| `hash_set::hashset_str_remove(s, v)` | `s.remove(v)` |
+| `hash_set::hashset_str_len(s)` / `is_empty` | `s.len()` / `s.is_empty()` |
 
 Import the type explicitly: `use std::collections::hash_set::HashSet`.
-`hash_set::hashset_i32_union` / `intersection` / `difference` / `to_vec` /
-`capacity` / `reserve` / `shrink_to_fit` / `clear` / `extend` and the
-`hashset_str_*` facade have no method replacement yet and remain the
-compatibility spelling.
+`HashSet<i32>` also implements `IntoIterator` (snapshots `to_vec` into the
+shared `VecIter<i32>`), `Clone`, `Eq`, and `Debug`; `for value in set` iterates
+the set members, not the flat bucket layout. `FromIterator` is not available
+yet: the resolver cannot select `HashSet::from_iter` for the concrete
+`impl FromIterator<VecIter<i32>> for HashSet<i32>` (the impl is registered under
+the per-instantiation owner `HashSet_i32::from_iter__VecIter_i32`, and
+`HashSet<i32>::from_iter` is not valid source syntax), so build a set with
+`HashSet::new<i32>()` plus `insert` / `extend` until that resolver path lands.
+`HashSet<String>` aggregate and trait methods await the same store-level
+snapshot accessors; only the membership methods are public, and `for word in
+set` over a `HashSet<String>` is rejected (`non-iterable source`) until the
+String `IntoIterator` impl lands.
 
 **Before:**
 

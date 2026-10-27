@@ -1,5 +1,5 @@
 use std::collections::hash
-use std::collections::hash_set
+use std::collections::hash_set::HashSet
 use std::test
 
 fn main() {
@@ -43,16 +43,16 @@ fn main() {
     }
     test::assert_true(m3.contains_key("farewell"))
 
-    // --- HashSet<String> facade ---
-    let s = hash_set::hashset_str_new()
-    test::assert_true(hash_set::hashset_str_insert(s, "red"))
-    test::assert_true(hash_set::hashset_str_insert(s, "green"))
-    test::assert_false(hash_set::hashset_str_insert(s, "red"))
-    test::assert_eq_i32(hash_set::hashset_str_len(s), 2)
-    test::assert_true(hash_set::hashset_str_contains(s, "green"))
-    test::assert_false(hash_set::hashset_str_contains(s, "blue"))
-    test::assert_true(hash_set::hashset_str_remove(s, "green"))
-    test::assert_eq_i32(hash_set::hashset_str_len(s), 1)
+    // --- HashSet<String> method surface ---
+    let s: HashSet<String> = HashSet::new<String>()
+    test::assert_true(s.insert("red"))
+    test::assert_true(s.insert("green"))
+    test::assert_false(s.insert("red"))
+    test::assert_eq_i32(s.len(), 2)
+    test::assert_true(s.contains("green"))
+    test::assert_false(s.contains("blue"))
+    test::assert_true(s.remove("green"))
+    test::assert_eq_i32(s.len(), 1)
 
     // --- HashSet<i32> operations via direct hash module ---
     let s2 = hash::hashset_new()

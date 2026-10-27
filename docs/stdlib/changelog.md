@@ -16,6 +16,58 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — HashSet aggregate, String, and ADR-086 trait surface (#917, ADR-046 / ADR-086)
+
+- **Basis**: [ADR-086](../adr/ADR-086-linear-collection-adts.md) fixes the
+  collection receiver surface, and [ADR-046](../adr/ADR-046-free-function-eradication.md)
+  requires the replacement to land before the free/adapter spelling retires.
+  The six-method `HashSet<i32>` membership surface landed earlier the same day.
+- **Landed (i32)**: `to_vec`, `union`, `intersection`, `difference`,
+  `capacity`, `reserve`, `shrink_to_fit`, `clear`, and `extend` as receiver
+  methods over the flat `hash::hashset_*` store. Set-returning methods keep the
+  receiver marker on the temporary, so `s.union(t).len()` and chained
+  membership calls resolve to the set.
+- **Landed (String)**: `HashSet::new<String>()` plus `insert`, `contains`,
+  `remove`, `len`, and `is_empty` over the `Vec<String>` facade.
+- **Landed (traits)**: `IntoIterator` (snapshots `to_vec` into the shared
+  `VecIter<i32>`), `Clone`, `Eq`, and `Debug` for `HashSet<i32>`. `for value in
+  set` now calls the set's `into_iter`, not the raw Vec cursor over the bucket
+  layout.
+- **Retired (21 adapters)**: the 15 `hash_set::hashset_i32_*` adapters and the
+  6 `hash_set::hashset_str_*` facade functions (including `hashset_str_new`).
+  Qualified calls fail resolution with an E0100 hint from
+  `resolver::removed_names::hashset_method_replacement_hint`. The
+  `hash::hashset_*` / `hash_string::hashset_str_*` implementation functions
+  remain internal lowering targets. The scorecard delta is 15 because the six `hashset_str_*` names duplicate manifest-registered implementation functions and were therefore not counted as unregistered declarations.
+- **Compiler fixes**: the HashSet receiver marker now also applies to
+  concrete impl owners (`HashSet_i32` / `HashSet_String`) and to method
+  parameters; the method target table covers the aggregate and ADR-086 trait
+  names; the clone result emits the flat Vec alias; and both the legacy and
+  CoreHIR `for` lowering consult the marker before the Vec cursor. The
+  marker-less fallback stays limited to `insert` / `contains` / `remove`, so
+  the String store's own `hashset_str_len` body is not rewritten to itself.
+- **Fixtures**: the existing `stdlib_hashset/hashset_methods.ark` +
+  `_wasm32.ark` pair now covers membership, aggregates, chained calls, the
+  String lane, `Clone` / `Eq` / `Debug`, direct `into_iter`, and `for`
+  iteration on `wasm32-gc` and `--target wasm32`. Four `stdlib_hashmap`
+  fixtures moved off the adapters. The new
+  `diagnostics/removed_hashset_adapter*.ark` pair pins the E0100 hint on both
+  targets.
+- **Scorecard**: 515 → **500** public symbols; unregistered declarations
+  146 → **131**; `pub fn` declarations 569 → **548**;
+  `associated-or-method` 445 → **430**. Manifest public entries 369,
+  `prelude_wrapper` 65, monomorphic manifest helpers 57, `must delete` 70,
+  and `intrinsic-only` 1 are unchanged.
+- **Blocked / residual**: `FromIterator` stays unlanded because the resolver
+  cannot select `HashSet::from_iter` for a concrete
+  `impl FromIterator<VecIter<i32>> for HashSet<i32>` (the impl is registered
+  under `HashSet_i32::from_iter__VecIter_i32`, and `HashSet<i32>::from_iter`
+  is not valid source syntax), so no source spelling reaches it.
+  `HashSet<String>` aggregates and trait impls await store-level snapshot
+  accessors for the `Vec<String>` facade; only its membership methods are
+  public, and a `for` over a String set is rejected as non-iterable until
+  then.
+
 ## 2026-10-27 — std::json / std::toml / std::csv associated conversions (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

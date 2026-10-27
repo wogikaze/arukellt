@@ -1,9 +1,11 @@
 use std::prelude::{clone, eq}
 use mir::lower::ast_node
+use mir::lower::call_rewrite_hashset
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
 use mir::lower::loop_conditions
 use mir::lower::loop_scope
@@ -47,13 +49,33 @@ fn lower_struct_iterator_for_stmt(ctx: LowerCtx, node: AstNode, range: AstNode, 
     }
     let raw_struct_type = ctx_get_local_type(ctx, source_idx)
     let si_struct_type = method_resolve::mir_normalize_type_name(clone(raw_struct_type))
+    // A marked HashSet local is a flat hash store, not a dense Vec: its Vec
+    // cursor would yield bucket-layout slots. Resolve the set's concrete
+    // IntoIterator impl (which snapshots `to_vec`) before the Vec path (#917).
+    let mut into_iter_callee = String_new()
+    let hashset_family = ctx_api_local_types::ctx_hashset_local_family(ctx, source_idx)
+    if len(clone(hashset_family)) > 0 {
+        into_iter_callee = call_rewrite_hashset::hashset_into_iter_target(hashset_family)
+    }
+    if len(clone(into_iter_callee)) > 0 {
+        let iterator_type = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(into_iter_callee))
+        if len(clone(iterator_type)) > 0 {
+            lower_into_iterator_for_stmt(ctx, node, range, body, source_idx, iterator_type, into_iter_callee)
+            return
+        }
+    }
     let si_into_iter_type = for_iter_resolve::mir_for_into_iterator_type(
         ctx,
         ast_node::node_span_start(node),
         clone(raw_struct_type)
     )
     if len(si_into_iter_type) > 0 {
-        lower_into_iterator_for_stmt(ctx, node, range, body, source_idx, raw_struct_type, si_into_iter_type)
+        let callee = for_iter_resolve::mir_for_into_iterator_callee(
+            ctx,
+            ast_node::node_span_start(node),
+            clone(raw_struct_type)
+        )
+        lower_into_iterator_for_stmt(ctx, node, range, body, source_idx, si_into_iter_type, callee)
         return
     }
     if loop_vec::mir_is_vec_type_name(clone(si_struct_type)) {
@@ -84,17 +106,12 @@ fn lower_into_iterator_for_stmt(
     range: AstNode,
     body: AstNode,
     source_idx: i32,
-    source_type: String,
-    iterator_type: String
+    iterator_type: String,
+    into_iter_callee: String
 ) {
     if !ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
         ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
     }
-    let into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(
-        ctx,
-        ast_node::node_span_start(node),
-        source_type
-    )
     let into_iter_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(into_iter_callee))
     let into_iter_local = ctx_fresh_local(ctx, into_iter_vt)
     ctx_set_local_type(ctx, into_iter_local, clone(iterator_type))

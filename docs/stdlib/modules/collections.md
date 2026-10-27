@@ -15,7 +15,7 @@ The `std::collections` family provides the primary collection data structures fo
 |-----|---------|
 | `HashMap::new` / `.insert` / `.get` | Generic HashMap API with static dispatch. |
 | `.contains_key` / `.remove` / `.len` | Typed lookup, removal, and size operations. |
-| `HashSet::new` / `.insert` / `.contains` | Unordered `i32` / `String` set with membership operations. |
+| `HashSet::new` / `.insert` / `.contains` | Unordered `i32` / `String` set with membership, aggregate, and ADR-086 trait methods. |
 | `hashmap_new` / `hashmap_get` / `hashmap_set` | Raw i32 → i32 compatibility implementation. |
 | `Deque::new` / `.push_back` / `.pop_front` | Generic double-ended queue with both-end operations. |
 | `Queue::new` / `.push` / `.pop` | FIFO queue newtype over `Deque<T>`. |
@@ -262,17 +262,20 @@ Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet
 - Manifest-backed functions: 0
 - Stability: n/a
 
-std::collections::hash_set — `HashSet<i32>` type surface
+std::collections::hash_set — `HashSet<i32>` / `HashSet<String>` type surface
 
-`HashSet::new<i32>()` plus the six membership methods are the canonical
-spelling for the flat `i32` set store in `std::collections::hash`. MIR
-rewrites the shell calls to `hashset_new` / `hashset_insert` /
-`hashset_contains` / `hashset_remove` / `hashset_len` /
-`hashset_is_empty`, so the shell bodies never recurse at runtime.
+`HashSet::new<T>()` plus the receiver methods are the canonical spelling for
+the flat `i32` set store in `std::collections::hash` and the `Vec<String>`
+facade in `std::collections::hash_string`. MIR rewrites the shell calls to
+the store functions, so the shell bodies never recurse at runtime.
 
-The `hashset_i32_*` and `hashset_str_*` functions below are retained as
-deprecated compatibility adapters for the aggregate and `String` lanes
-that the concrete `HashSet<i32>` surface does not cover yet (#917).
+The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
+`capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`) are available on
+`HashSet<i32>`. The `String` surface keeps the membership lane; its store
+has no aggregate operations yet.
+
+The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
+#917; this module's only public symbols are `HashSet` and its methods.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability
 required.
@@ -281,7 +284,7 @@ required.
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty` | - | A set of unique i32 values backed by the flat hash store. |
+| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
 
 _No manifest-backed functions in this module._
 
