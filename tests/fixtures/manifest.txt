@@ -562,6 +562,7 @@ run:generics_v1/trait_method_dispatch.ark
 run:generics_v1/trait_method_resolve.ark
 run:guide/fn_add.ark
 run:guide/string_ops.ark
+run:guide/to_string_method.ark
 run:guide/variables.ark
 run:hello/empty_main.ark
 run:hello/exit_code.ark
@@ -2206,6 +2207,7 @@ run:variables/i64_lit.ark
 run:variables/mut_var.ark
 run:ownership/copy_and_mutability.ark
 run:ownership/adt_probe.ark
+run:ownership/call_borrow_keeps_binding.ark
 run:variables/string_lit.ark
 run:variables/tuple.ark
 t3-compile:arrays/array_literal.ark

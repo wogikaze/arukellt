@@ -1,0 +1,20 @@
+use std::host::stdio
+
+struct Holder {
+    name: String,
+    count: i32
+}
+
+fn describe(p: Holder) -> i32 {
+    p.count + p.name.len()
+}
+
+fn main() {
+    let h = Holder { name: String_from("keep"), count: 7 }
+    let first = describe(h)
+    let second = describe(h)
+    stdio::println(h.name)
+    stdio::println(first.to_string())
+    stdio::println(second.to_string())
+    stdio::println(h.count.to_string())
+}

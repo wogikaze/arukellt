@@ -65,6 +65,8 @@ impl の型パラメータは `impl<T>` の明示 binder によってのみ導�
 （[ADR-089](../adr/ADR-089-language-v2-explicit-impl-type-parameter-binders.md)、
 [spec.md §6.5](spec.md#65-impl-block)）。binder のない impl head で
 単一大文字名を書いても暗黙の型パラメータにはなりません。
+実装状態: binder のない impl head の単一大文字名は、現行実装ではまだ
+暗黙の型パラメータとして扱われます（#946）。
 
 ## Option / Result
 
@@ -104,6 +106,7 @@ call、aggregate、block、`let mut` は value restriction により monomorphic
 関数呼び出しは非 `Copy` 実引数を呼び出しの間だけ借用し、パラメータ経由の
 mutation には `mut` パラメータが必要です
 （[spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、ADR-088）。
+現行コンパイラではまだ強制されていません（#951）。
 
 ## 現在の実装メモ
 

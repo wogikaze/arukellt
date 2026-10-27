@@ -549,13 +549,13 @@ let second = arr[1]   // 2
 
 ### HashMap
 
-Generic hash map (ADR-066). `HashMap` is in the prelude; the concrete
-key/value pairs supported today are listed in
-[spec.md §9.14](spec.md#914-hashmap-generic-public-api):
+Generic hash map (ADR-066). The concrete key/value pairs supported today
+are listed in [spec.md §9.14](spec.md#914-hashmap-generic-public-api).
+The current compiler resolves the `HashMap` name with no import:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let m = HashMap::new<i32, i32>()
+let mut m = HashMap::new<i32, i32>()
 let _ = m.insert(1, 100)
 let val = m.get(1)   // Some(100)
 ```
@@ -568,6 +568,8 @@ Closures capture variables from the surrounding scope:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::core::iter
+
 let threshold = 5
 let above = numbers.iter().filter(|x| x > threshold).collect()
 ```
@@ -690,7 +692,7 @@ should use byte_at or codepoint_at according to its intent.
 It accepts `i32`, `i64`, `f64`, `bool`, and `String` (pass-through).
 The free-function form `to_string(x)` is a compatibility spelling pending #917.
 
-<!-- fixture: stdlib_core/to_string_i32.ark -->
+<!-- fixture: guide/to_string_method.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::host::stdio
