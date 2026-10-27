@@ -1639,7 +1639,10 @@ examples = [{code = "eprintln(\"Error: something went wrong\")", description = "
 [[functions]]
 name = "monotonic_now"
 module = "std::host::clock"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Clock::monotonic_now"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = []
 returns = "i64"
 intrinsic = "__intrinsic_clock_now"
@@ -1650,13 +1653,25 @@ availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capabi
 [[functions]]
 name = "now_ms"
 module = "std::host::clock"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Clock::now_ms"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = []
 returns = "i64"
 intrinsic = "__intrinsic_clock_now_ms"
 doc_category = "host_clock"
 doc = "Return the current wall-clock time in milliseconds since the Unix epoch."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
+
+[[types]]
+name = "Clock"
+module = "std::host::clock"
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the host clock reads: Clock::monotonic_now() returns nanoseconds from the monotonic clock and Clock::now_ms() returns milliseconds since the Unix epoch. The WASI clock intrinsics stay behind this impl; the deprecated free functions delegate to it."
+methods = ["monotonic_now", "now_ms"]
 
 # === std::host::random ===
 
@@ -1710,7 +1725,7 @@ availability = { t1 = true, t3 = true, note = "Requires the --allow-random capab
 name = "std::host::clock"
 stability = "stable"
 family = "host"
-doc = "Host clock helpers. monotonic_now returns nanoseconds; now_ms returns milliseconds since the Unix epoch."
+doc = "Host clock helpers. Clock::monotonic_now returns nanoseconds from the monotonic clock; Clock::now_ms returns milliseconds since the Unix epoch. The deprecated free functions delegate to the Clock namespace."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
 
 # === std::host::random (module entry) ===

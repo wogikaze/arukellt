@@ -1,4 +1,4 @@
-use std::host::clock
+use std::host::clock::Clock
 use std::prelude::{clone}
 use compiler::phases
 use compiler::session_resolve_query
@@ -91,5 +91,5 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
             0i64
         )
     }
-    DriverResolveResult_new(false, result_record::CompileResult_ok(phases::PHASE_RESOLVE()), load_state, resolve_ctx, clock::monotonic_now())
+    DriverResolveResult_new(false, result_record::CompileResult_ok(phases::PHASE_RESOLVE()), load_state, resolve_ctx, Clock::monotonic_now())
 }

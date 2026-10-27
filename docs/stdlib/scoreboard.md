@@ -14,7 +14,7 @@
 | `std::collections::ordered` | 37 | 10 | 0 | 27 | 0 | 36/37 (97%) | no |
 | `std::env` | 6 | 5 | 0 | 0 | 1 | 5/5 (100%) | no |
 | `std::fs` | 4 | 0 | 0 | 0 | 4 | 0/0 (—) | no |
-| `std::host::clock` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
+| `std::host::clock` | 2 | 0 | 0 | 0 | 2 | 0/0 (—) | yes |
 | `std::host::env` | 5 | 5 | 0 | 0 | 0 | 5/5 (100%) | yes |
 | `std::host::fs` | 4 | 0 | 0 | 3 | 1 | **0/3 (0%)** | yes |
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
@@ -26,7 +26,7 @@
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 
-**Total**: 305 APIs, 178 stable, 10 provisional, 45 experimental, 72 deprecated, 224/233 (96%) fixture coverage
+**Total**: 305 APIs, 176 stable, 10 provisional, 45 experimental, 74 deprecated, 222/231 (96%) fixture coverage
 
 ## Legend
 

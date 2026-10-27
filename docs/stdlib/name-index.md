@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 233
-- **Historical/deprecated names:** 72
+- **Canonical names:** 231
+- **Historical/deprecated names:** 74
 - **Total entries:** 305
 
 Related:
@@ -182,9 +182,7 @@ Current public API names, sorted alphabetically.
 | `min` | `prelude` | `stable` | Math |
 | `min_by` | `std::seq` | `provisional` | Seq |
 | `min_by_key` | `std::seq` | `provisional` | Seq |
-| `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
-| `now_ms` | `std::host::clock` | `stable` | Host Clock |
 | `option` | `std::cli` | `stable` | Cli |
 | `pad_left` | `prelude` | `stable` | String |
 | `pad_right` | `prelude` | `stable` | String |
@@ -316,6 +314,8 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`map_i32_i32`~~ | `VecIter::map` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
+| ~~`monotonic_now`~~ | `Clock::monotonic_now` | Host Clock | [migration-guidance.md](migration-guidance.md) |
+| ~~`now_ms`~~ | `Clock::now_ms` | Host Clock | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`read_string`~~ | `Fs::read_to_string` | Fs | [migration-guidance.md](migration-guidance.md) |
@@ -558,9 +558,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `min_by` | ✅ `provisional` | `std::seq` | Seq |
 | `min_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::min_by` · [migration guide](migration-guidance.md) |
-| `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
+| ~~`monotonic_now`~~ | ⚠️ deprecated | `std::host::clock` | → `Clock::monotonic_now` · [migration guide](migration-guidance.md) |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
-| `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
+| ~~`now_ms`~~ | ⚠️ deprecated | `std::host::clock` | → `Clock::now_ms` · [migration guide](migration-guidance.md) |
 | `option` | ✅ `stable` | `std::cli` | Cli |
 | `pad_left` | ✅ `stable` | `prelude` | String |
 | `pad_right` | ✅ `stable` | `prelude` | String |

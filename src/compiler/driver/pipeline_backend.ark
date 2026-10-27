@@ -1,4 +1,4 @@
-use std::host::clock
+use std::host::clock::Clock
 use std::host::stdio
 use std::prelude::{clone, eq}
 use compiler::phases
@@ -101,9 +101,9 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
     let mir_lowered = lower::lower_checked_program(program, config, clone(source))
-    let t_lower = clock::monotonic_now()
+    let t_lower = Clock::monotonic_now()
     let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
-    let t_mir_opt = clock::monotonic_now()
+    let t_mir_opt = Clock::monotonic_now()
     // Lower-phase diagnostics: emit-side code paths that could not pick a
     // sound lowering (e.g. an Option/Result payload bind on a scrutinee
     // with no payload type spelling) record messages on the module so the
@@ -126,7 +126,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if mir_api::verify_mir_pipeline(mir_module) != 0 {
         return errors_phase::mir_verify_failed_result()
     }
-    let t_mir_verify = clock::monotonic_now()
+    let t_mir_verify = Clock::monotonic_now()
     if config_record::config_show_timing(config) {
         module_functions::mir_note_receipt_counts(mir_module, 1)
     }

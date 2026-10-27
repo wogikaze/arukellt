@@ -1,14 +1,14 @@
-use std::host::clock
+use std::host::clock::Clock
 use std::host::stdio
 use std::time::Duration
 
 fn main() {
-    let t1 = clock::monotonic_now()
+    let t1 = Clock::monotonic_now()
     let mut x = 0
     while x < 1000 {
         x = x + 1
     }
-    let t2 = clock::monotonic_now()
+    let t2 = Clock::monotonic_now()
     let elapsed = Duration::between(t1, t2).as_ns()
     assert(elapsed >= 0i64)
     stdio::println("monotonic ok")

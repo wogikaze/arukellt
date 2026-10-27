@@ -337,6 +337,53 @@ def _patch_bootstrap_host_fs_paths(workspace_root: Path) -> None:
             path.write_text(patched, encoding="utf-8")
 
 
+def _patch_bootstrap_host_clock_paths(workspace_root: Path) -> None:
+    """Route the bootstrap compiler's ``Clock::*`` calls through the free builtins.
+
+    The committed pin resolves ``std::host::clock`` free functions as builtins
+    and predates loading the namespace source into the flat overlay. A direct
+    ``Clock::monotonic_now`` in a compiler module falls back to the
+    unresolved-call ``drop; unreachable`` sequence. The overlay rewrites the
+    call spelling back to the free names (and the import to the module) while
+    the checked-in ``src/compiler`` source keeps the ``Clock`` namespace.
+    Delete this patch when the pin is refreshed (ADR-029).
+
+    Driver timing calls must also reproduce the existing stub/keep-clock
+    rewrite: ``_patch_bootstrap_driver_timing`` only sees the free spelling,
+    so a namespace call rewritten afterwards would bypass the stub and leave
+    an i64 clock result in the i32 overlay timing slots.
+    """
+    compiler_root = workspace_root / "src" / "compiler"
+    keep_clock = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK") == "1"
+    members = ("monotonic_now", "now_ms")
+    for path in compiler_root.rglob("*.ark"):
+        # Hint strings in these files spell `Clock::` and must not be
+        # rewritten to the free builtin spelling; they are not call sites.
+        if "removed_names" in path.name or "deprecated_table" in path.name:
+            continue
+        source = path.read_text(encoding="utf-8")
+        patched = source.replace("use std::host::clock::Clock\n", "use std::host::clock\n")
+        rel = path.relative_to(compiler_root).as_posix()
+        # Overlay files are flattened (driver/pipeline_backend.ark ->
+        # driver_pipeline_backend.ark), so match the flat names here.
+        if rel == "mir_lower_entry_timing.ark":
+            clock_value = (
+                "clock::monotonic_now()" if keep_clock else "i32_to_i64(0)"
+            )
+            patched = patched.replace("Clock::monotonic_now()", clock_value)
+        elif rel.startswith("driver_"):
+            clock_value = (
+                "i64_to_i32(clock::monotonic_now() / 1000000i64)"
+                if keep_clock
+                else "0"
+            )
+            patched = patched.replace("Clock::monotonic_now()", clock_value)
+        for member in members:
+            patched = patched.replace(f"Clock::{member}(", f"clock::{member}(")
+        if patched != source:
+            path.write_text(patched, encoding="utf-8")
+
+
 def _patch_bootstrap_wit_type_paths(workspace_root: Path) -> None:
     """Apply the flat-namespace WIT type normalization to an overlay only."""
     wit_root = workspace_root / "std" / "wit"
@@ -4578,6 +4625,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_wit_type_paths(overlay_root)
     _patch_bootstrap_manifest_scanner_paths(overlay_root)
     _patch_bootstrap_host_fs_paths(overlay_root)
+    _patch_bootstrap_host_clock_paths(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
         raise BootstrapOverlayError(

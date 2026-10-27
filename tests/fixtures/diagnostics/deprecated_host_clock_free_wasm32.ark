@@ -1,0 +1,7 @@
+// W0009 on the linear wasm32 target: the legacy clock free stays callable
+// through the ADR-087 window and names the Clock replacement.
+use std::host::clock
+
+fn main() {
+    let _probe = clock::now_ms()
+}

@@ -188,7 +188,7 @@ use std::time
 fn main() {}
 ```
 
-> **Fix:** import `use std::host::clock` and call `clock::monotonic_now()`.
+> **Fix:** import `use std::host::clock::Clock` and call `Clock::monotonic_now()`.
 
 ### E0120 — registry unreachable
 

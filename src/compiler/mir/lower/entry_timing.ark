@@ -1,4 +1,4 @@
-use std::host::clock
+use std::host::clock::Clock
 use std::host::stdio
 use std::prelude::{clone, get_unchecked, i64_to_i32, len, push, set, to_string}
 use std::text
@@ -12,7 +12,7 @@ fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
 }
 
 fn mir_lower_phase_now() -> i64 {
-    clock::monotonic_now()
+    Clock::monotonic_now()
 }
 
 fn mir_lower_phase_ms(t_start: i64, t_end: i64) -> i32 {
@@ -89,7 +89,7 @@ fn mir_lower_wall_record(
     if timing == 0 {
         return
     }
-    push(wall_ms, mir_lower_phase_ms(t_start, clock::monotonic_now()))
+    push(wall_ms, mir_lower_phase_ms(t_start, Clock::monotonic_now()))
     push(wall_name, name)
 }
 

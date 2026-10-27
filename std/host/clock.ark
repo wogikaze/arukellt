@@ -3,14 +3,43 @@
 //! Provides monotonic and wall-clock time reads backed by WASI clock intrinsics.
 //! Clock reads are host-bound. Pure duration math lives in `std::time`.
 //!
+//! The canonical surface is the `Clock` namespace type (ADR-046):
+//! `Clock::monotonic_now()` and `Clock::now_ms()`. The free functions remain
+//! callable through the ADR-087 deprecation window and delegate to it.
+//!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires `--allow-clock` capability.
 
+/// Namespace for the host clock reads.
+///
+/// The associated functions are the canonical spelling; the WASI clock
+/// intrinsics stay behind this impl.
+pub struct Clock {}
+
+impl Clock {
+    /// Returns a monotonic timestamp in nanoseconds.
+    ///
+    /// The value is suitable for measuring elapsed time and is not a
+    /// wall-clock reading.
+    fn monotonic_now() -> i64 {
+        __intrinsic_clock_now()
+    }
+
+    /// Returns the current wall-clock time in milliseconds since the Unix epoch.
+    fn now_ms() -> i64 {
+        __intrinsic_clock_now_ms()
+    }
+}
+
 /// Returns a monotonic timestamp in nanoseconds.
+///
+/// Deprecated: use `Clock::monotonic_now()` from `use std::host::clock::Clock`.
 pub fn monotonic_now() -> i64 {
-    __intrinsic_clock_now()
+    Clock::monotonic_now()
 }
 
 /// Returns the current wall-clock time in milliseconds since the Unix epoch.
+///
+/// Deprecated: use `Clock::now_ms()` from `use std::host::clock::Clock`.
 pub fn now_ms() -> i64 {
-    __intrinsic_clock_now_ms()
+    Clock::now_ms()
 }

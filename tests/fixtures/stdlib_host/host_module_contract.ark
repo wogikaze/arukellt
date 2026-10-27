@@ -3,15 +3,15 @@
 //   - clock: monotonic_now and now_ms return non-negative values
 //   - env: args and var are available
 //   - process: exit/abort are callable (no direct test of side effects)
-use std::host::clock
+use std::host::clock::Clock
 use std::host::env
 use std::host::stdio
 use std::text
 fn main() {
     // ── Host clock contract ──
-    let t_ns = clock::monotonic_now()
+    let t_ns = Clock::monotonic_now()
     assert(t_ns >= 0i64)
-    let t_ms = clock::now_ms()
+    let t_ms = Clock::now_ms()
     assert(t_ms >= 0i64)
     if t_ns > 0i64 {
         stdio::println("clock:non-zero-ns")

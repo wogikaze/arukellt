@@ -377,7 +377,8 @@ compose する。
 | `stdio::print` | ✓ | ✓ |
 | `stdio::println` | ✓ | ✓ |
 | `stdio::eprintln` | ✓ | ✓ |
-| `clock::monotonic_now` | ✓ | ✓ |
+| `Clock::monotonic_now` | ✓ | ✓ |
+| `Clock::now_ms` | ✓ | ✓ |
 | `random::random_i32` | ✓ | ✓ |
 | `random::random_i32_range` | ✓ | ✓ |
 | `random::random_bool` | ✓ | ✓ |

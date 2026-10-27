@@ -1,0 +1,7 @@
+// W0009: `std::host::clock::monotonic_now` stays callable through the
+// ADR-087 window; the warning names the Clock namespace replacement.
+use std::host::clock
+
+fn main() {
+    let _probe = clock::monotonic_now()
+}
