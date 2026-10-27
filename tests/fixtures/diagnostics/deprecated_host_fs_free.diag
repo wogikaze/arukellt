@@ -1,0 +1,1 @@
+use `Fs::is_readable_file(path)` from `use std::host::fs::Fs` instead

@@ -636,15 +636,15 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 fn main() {
-    let w = fs::write_string("test_output.txt", "hello from arukellt")
+    let w = Fs::write_string("test_output.txt", "hello from arukellt")
     match w {
         Result::Ok(_) => stdio::println(String_from("write ok")),
         Result::Err(e) => stdio::println(e),
     }
-    let r = fs::read_to_string("test_output.txt")
+    let r = Fs::read_to_string("test_output.txt")
     match r {
         Result::Ok(content) => stdio::println(content),
         Result::Err(e) => stdio::println(e),
@@ -658,10 +658,10 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 fn main() {
-    let r: Result<String, String> = fs::read_to_string("nonexistent_file.txt")
+    let r: Result<String, String> = Fs::read_to_string("nonexistent_file.txt")
     match r {
         Ok(content) => stdio::println(content),
         Err(e) => stdio::println(e),         // エラーメッセージが出力される

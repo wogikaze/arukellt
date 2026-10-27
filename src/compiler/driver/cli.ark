@@ -1,5 +1,5 @@
 use std::host::env
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
 use std::prelude::{args, clone, eq}
@@ -10,7 +10,8 @@ use driver::cli_args
 use driver::result_record
 fn write_legacy_compile_result(output_path: String, result: CompileResult) {
     if result_record::compile_result_success(result) {
-        match fs::write_bytes(clone(output_path), result_record::compile_result_output_bytes(result)) {
+        let write: Result<(), String> = Fs::write_bytes(clone(output_path), result_record::compile_result_output_bytes(result))
+        match write {
             Result::Ok(_) => {
             },
             Result::Err(e) => {

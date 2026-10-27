@@ -15,7 +15,7 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::string_gc_helpers
 
-// Handler for: fs::read_to_string / __runtime_abi_fs_read_file
+// Handler for: Fs::read_to_string / __runtime_abi_fs_read_file
 fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_path = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {

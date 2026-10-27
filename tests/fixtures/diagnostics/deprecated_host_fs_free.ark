@@ -1,0 +1,7 @@
+// W0009: `std::host::fs::is_readable_file` stays callable through the ADR-087
+// window; the warning names the `Fs` namespace replacement.
+use std::host::fs
+
+fn main() {
+    let _probe = fs::is_readable_file("missing.txt")
+}

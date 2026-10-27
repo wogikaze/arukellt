@@ -1,18 +1,18 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 
 fn main() {
-    if fs::exists("tests/fixtures/stdlib_fs/present.txt") {
+    if Fs::is_readable_file("tests/fixtures/stdlib_fs/present.txt") {
         stdio::println("true")
     } else {
         stdio::println("false")
     }
-    if fs::exists("tests/fixtures/stdlib_fs/missing.txt") {
+    if Fs::is_readable_file("tests/fixtures/stdlib_fs/missing.txt") {
         stdio::println("true")
     } else {
         stdio::println("false")
     }
-    if fs::exists("tests/fixtures/stdlib_fs/broken_link") {
+    if Fs::is_readable_file("tests/fixtures/stdlib_fs/broken_link") {
         stdio::println("true")
     } else {
         stdio::println("false")

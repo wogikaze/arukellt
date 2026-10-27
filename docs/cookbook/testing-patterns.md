@@ -137,8 +137,8 @@ let bad = parse_i32("abc")
 assert(is_err(bad))
 
 // Verify file-not-found
-use std::host::fs
-let result = fs::read_to_string("nonexistent.txt")
+use std::host::fs::Fs
+let result = Fs::read_to_string("nonexistent.txt")
 assert(is_err(result))
 ```
 

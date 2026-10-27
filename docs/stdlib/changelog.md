@@ -16,6 +16,52 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::host::fs `Fs` namespace (#917, ADR-046 / ADR-087 Wave 1)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 for the
+  namespace replacement and the [ADR-014](../adr/ADR-014-stability-labels.md) D4
+  rule for the non-stable entries. The `stable` entries were converted to
+  `deprecated` with `deprecated_since = "0.1.0"`, `remove_in = "1.0.0"` and live
+  **W0009** qualified-call warnings; their physical deletion is the ADR-087
+  Wave 2 change.
+- **Surface**: `std::host::fs::Fs` is the namespace for the one-shot path
+  operations: `Fs::read_to_string`, `Fs::read_bytes`, `Fs::write_string`,
+  `Fs::write_bytes`, `Fs::is_readable_file`, `Fs::is_file`, `Fs::is_dir`, and
+  the honest unsupported `Fs::read_dir` / `Fs::metadata` rejections. `File`
+  keeps the image-handle / `Read` / `Write` / `Seek` surface. `std::fs` is now
+  a deprecated facade that re-exports `Fs`.
+- **Removed (11)**: the provisional / experimental / deprecated frees
+  `std::host::fs::{read_to_string, read_bytes, write_string, write_bytes,
+  is_file, is_dir, exists}` and `std::fs::{is_file, is_dir, read_dir,
+  metadata}`. Qualified old calls fail with **E0100** and the
+  `resolver::removed_names` hint; `read_dir` / `metadata` state that the host
+  capability is unsupported instead of promising a replacement.
+- **Deprecated (5, Wave 1)**: `std::host::fs::is_readable_file`,
+  `std::fs::read_string`, `std::fs::write_string`, `std::fs::exists`, and
+  `std::fs::is_readable_file` stay callable and emit **W0009**. The
+  `std::fs` module-level "moved to `std::host::fs`" warning is unchanged.
+- **Stale manifest entry**: `std::host::stdio::read_to_string` had no source
+  declaration (the implementation is `read_stdin`); the entry now matches the
+  declaration. This removes one unregistered declaration from the scorecard
+  without changing the callable surface.
+- **Fixtures**: dual-target `stdlib_fs/fs_namespace_surface*` (compile,
+  validate, run), `diagnostics/removed_host_fs_free*` (E0100 on wasm32-gc and
+  `--target wasm32`), and `diagnostics/deprecated_host_fs_free*` (W0009 on both
+  targets). The fs / io / native-cpp / benchmark call sites use `Fs`.
+- **Scorecard**: public surface 358 → **346**; the `host/core namespace frees`
+  family drops 55 → **40** (10 retired + 5 stable entries now classified under
+  `deprecated module frees`); `deprecated module frees` 2 → **7**;
+  `associated-or-method` 288 → **272**; `must delete` 70 → **74**; manifest
+  functions 325 → **314**. The experimental `fd_seek` / `fd_tell` /
+  `fd_fdstat_errno` frees stay (`wasm32`-only, no gc parity).
+- **Verification**: `verify fixtures` **1897 PASS / 0 FAIL** (1897
+  compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS); both-target compile + `wasm-tools validate` + run for the new
+  surface pair; W0009 / E0100 goldens; `selfhost diag-parity` PASS;
+  `docs check` 6/6; `verify lane` PASS; ADR-029 fixpoint s2 == s3 at
+  `58861e17cbe0d4d9e05422ddd9c4f961a4911ae2b0e0179e7b00b8f1a1b0aa85`
+  (pinned base `04d4446b…`).
+
 ## 2026-10-27 — std::simd lane namespace completion (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

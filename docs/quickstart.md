@@ -141,11 +141,11 @@ fn main() {
 
 <!-- fixture: quickstart/fs_read.ark -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 
 fn main() {
-    let r = fs::read_to_string("tests/fixtures/quickstart/fs_read_input.txt")
+    let r = Fs::read_to_string("tests/fixtures/quickstart/fs_read_input.txt")
     match r {
         Ok(content) => stdio::print(content),
         Err(e) => stdio::println(e),
@@ -155,8 +155,8 @@ fn main() {
 
 現行の Filesystem API signature（manifest-backed）:
 
-- `fs::read_to_string(path: String) -> Result<String, String>`
-- `fs::write_string(path: String, content: String) -> Result<(), String>`
+- `Fs::read_to_string(path: String) -> Result<String, String>`
+- `Fs::write_string(path: String, content: String) -> Result<(), String>`
 
 エラーは `String` で返ります。現行の `read_to_string` / `write_string` は
 typed error enum ではなく、WASI が返すエラー内容を `String` として返します。

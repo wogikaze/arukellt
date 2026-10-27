@@ -1,6 +1,6 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::test
 
 fn main() {
-    test::assert_false(fs::is_file("nonexistent_file_xyz.ark"))
+    test::assert_false(Fs::is_file("nonexistent_file_xyz.ark"))
 }

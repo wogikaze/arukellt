@@ -1449,12 +1449,17 @@ availability = { t1 = true, t3 = true }
 # === std::path ===
 
 # === std::fs ===
+# `std::fs` is a deprecated facade that re-exports `std::host::fs::Fs`; the
+# remaining stable wrappers are deprecated with live W0009 hints.
 
 [[functions]]
 name = "read_string"
 module = "std::fs"
 doc_category = "fs"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Fs::read_to_string"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["String"]
 returns = "Result<String, String>"
 intrinsic = "__runtime_abi_fs_read_file"
@@ -1466,7 +1471,10 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 name = "write_string"
 module = "std::fs"
 doc_category = "fs"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Fs::write_string"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["String", "String"]
 returns = "Result<(), String>"
 intrinsic = "__runtime_abi_fs_write_file"
@@ -1478,61 +1486,40 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 name = "exists"
 module = "std::fs"
 doc_category = "fs"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Fs::is_readable_file"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["String"]
 returns = "bool"
-doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query. Directories, missing paths, and unreadable paths may return false."
+doc = "Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); not a path-existence query."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
 name = "is_readable_file"
 module = "std::fs"
 doc_category = "fs"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Fs::is_readable_file"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["String"]
 returns = "bool"
 doc = "Preferred read-probe name; semantics identical to exists."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
-name = "is_file"
-module = "std::fs"
-doc_category = "fs"
-stability = "provisional"
+name = "is_readable_file"
+module = "std::host::fs"
+stability = "deprecated"
+deprecated_by = "Fs::is_readable_file"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
 params = ["String"]
 returns = "bool"
-doc = "Read-probe equivalent to is_readable_file on current targets."
+doc_category = "host_fs"
+doc = "Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "is_dir"
-module = "std::fs"
-doc_category = "fs"
-stability = "provisional"
-params = ["String"]
-returns = "bool"
-doc = "Always false on current targets (honest stub until metadata intrinsics land)."
-availability = { t1 = true, t3 = true, note = "Honest stub." }
-
-[[functions]]
-name = "read_dir"
-module = "std::fs"
-doc_category = "fs"
-stability = "provisional"
-params = ["String"]
-returns = "Result<Vec<String>, String>"
-doc = "Always Err on current targets — directory listing not yet supported."
-availability = { t1 = true, t3 = true, note = "Honest rejection." }
-
-[[functions]]
-name = "metadata"
-module = "std::fs"
-doc_category = "fs"
-stability = "provisional"
-params = ["String"]
-returns = "Result<String, String>"
-doc = "Always Err on current targets — path metadata not yet supported."
-availability = { t1 = true, t3 = true, note = "Honest rejection." }
 
 # === std::host::fs ===
 
@@ -1542,98 +1529,8 @@ availability = { t1 = true, t3 = true, note = "Honest rejection." }
 name = "std::host::fs"
 stability = "stable"
 family = "host"
-doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, read_bytes, write_string, write_bytes are whole-file I/O. File is a whole-file image handle: File::open reads an image, File::create starts a write image, and flush/close commit it; it implements std::io Read, Write, and Seek. is_readable_file/exists are read-probes (NOT path-existence). is_dir is an explicit unsupported stub. fd_* helpers are experimental `wasm32`-only."
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. Fs is the namespace for the whole-path operations: Fs::read_to_string, read_bytes, write_string, write_bytes, the is_readable_file/is_file/is_dir probes, and the honest unsupported read_dir/metadata rejections. File is a whole-file image handle: File::open reads an image, File::create starts a write image, and flush/close commit it; it implements std::io Read, Write, and Seek. fd_* helpers are experimental `wasm32`-only."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "read_to_string"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String"]
-returns = "Result<String, String>"
-intrinsic = "__runtime_abi_fs_read_file"
-doc_category = "host_fs"
-doc = "Read the entire contents of a file at the given path and return them as a UTF-8 string."
-errors = "Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-examples = [{code = "let txt = fs::read_to_string(\"data.txt\")\nmatch txt { Ok(s) => println(s), Err(e) => eprintln(e) }", description = "Read a text file and print it"}]
-
-[[functions]]
-name = "read_bytes"
-module = "std::host::fs"
-stability = "experimental"
-params = ["String"]
-returns = "Result<Vec<i32>, String>"
-intrinsic = "__runtime_abi_fs_read_file"
-doc_category = "host_fs"
-doc = "Read the entire file at the given path as raw byte values (0–255), preserving NUL and invalid UTF-8."
-errors = "Returns Err if the file does not exist or permission is denied."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "write_string"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String", "String"]
-returns = "Result<(), String>"
-intrinsic = "__runtime_abi_fs_write_file"
-doc_category = "host_fs"
-doc = "Write a UTF-8 string to the given file path, creating or truncating the file."
-errors = "Returns Err if the path is not writable or the directory does not exist."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "write_bytes"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String", "Vec<i32>"]
-returns = "Result<(), String>"
-intrinsic = "__runtime_abi_fs_write_bytes"
-doc_category = "host_fs"
-doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path."
-errors = "Returns Err if the path is not writable or any byte value is out of range 0–255."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "exists"
-module = "std::host::fs"
-stability = "deprecated"
-deprecated_by = "is_readable_file"
-params = ["String"]
-returns = "bool"
-doc_category = "host_fs"
-doc = "Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "is_readable_file"
-module = "std::host::fs"
-stability = "stable"
-params = ["String"]
-returns = "bool"
-doc_category = "host_fs"
-doc = "Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "is_file"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String"]
-returns = "bool"
-doc_category = "host_fs"
-doc = "Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until metadata intrinsics land."
-availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
-
-[[functions]]
-name = "is_dir"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String"]
-returns = "bool"
-doc_category = "host_fs"
-doc = "Always false on current targets — directory-type detection requires path_filestat_get-style intrinsics not yet exposed."
-availability = { t1 = true, t3 = true, note = "Honest stub: no directory metadata intrinsic yet." }
 
 [[functions]]
 name = "fd_seek"
@@ -1669,6 +1566,15 @@ doc = "Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success)."
 availability = { t1 = true, t3 = false, note = "`wasm32` / WASI P1 only." }
 
 [[types]]
+name = "Fs"
+module = "std::host::fs"
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the one-shot whole-path host filesystem operations: Fs::read_to_string / read_bytes / write_string / write_bytes / is_readable_file / is_file / is_dir / read_dir / metadata. File owns the image handle and the Read / Write / Seek adapters; read_dir and metadata stay honest unsupported rejections until the corresponding WASI intrinsics land."
+methods = ["read_to_string", "read_bytes", "write_string", "write_bytes", "is_readable_file", "is_file", "is_dir", "read_dir", "metadata"]
+
+[[types]]
 name = "File"
 module = "std::host::fs"
 stability = "experimental"
@@ -1681,7 +1587,7 @@ trait_impls = ["Read", "Write", "Seek"]
 # === std::host::stdio ===
 
 [[functions]]
-name = "read_to_string"
+name = "read_stdin"
 module = "std::host::stdio"
 stability = "stable"
 params = []
@@ -1690,7 +1596,7 @@ intrinsic = "__intrinsic_stdin_read_to_string"
 doc_category = "host_stdio"
 doc = "Read all available bytes from standard input into a string."
 availability = { t1 = true, t3 = true }
-examples = [{code = "let input = read_to_string()", description = "Read stdin as a string"}]
+examples = [{code = "let input = stdio::read_stdin()", description = "Read stdin as a string"}]
 
 [[functions]]
 name = "print"

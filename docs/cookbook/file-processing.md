@@ -9,10 +9,10 @@ Read a file, process its lines, and write output using `std::host::fs`, `std::ho
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 
-let result = fs::read_to_string("input.txt")
+let result = Fs::read_to_string("input.txt")
 match result {
     Ok(contents) => stdio::println(contents),
     Err(e) => stdio::eprintln(concat("error: ", e)),
@@ -23,11 +23,11 @@ match result {
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::text
 
-let result = fs::read_to_string("data.csv")
+let result = Fs::read_to_string("data.csv")
 match result {
     Ok(contents) => {
         let lines = contents.split("\n")
@@ -49,12 +49,12 @@ match result {
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::text
 
 // Read input, keep only non-empty lines, write to output
-let result = fs::read_to_string("input.txt")
+let result = Fs::read_to_string("input.txt")
 match result {
     Ok(contents) => {
         let lines = contents.split("\n")
@@ -68,7 +68,7 @@ match result {
             }
             i = i + 1
         }
-        let write_result = fs::write_string("output.txt", output)
+        let write_result = Fs::write_string("output.txt", output)
         match write_result {
             Ok(_) => stdio::println("done"),
             Err(e) => stdio::eprintln(concat("write failed: ", e)),
@@ -82,7 +82,7 @@ match result {
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::text
 
@@ -90,7 +90,7 @@ fn to_upper_line(line: String) -> String {
     text::to_uppercase(line)
 }
 
-let result = fs::read_to_string("names.txt")
+let result = Fs::read_to_string("names.txt")
 match result {
     Ok(contents) => {
         let lines = contents.split("\n")
@@ -104,7 +104,7 @@ match result {
             }
             i = i + 1
         }
-        fs::write_string("upper_names.txt", output)
+        Fs::write_string("upper_names.txt", output)
     },
     Err(e) => stdio::eprintln(concat("error: ", e)),
 }

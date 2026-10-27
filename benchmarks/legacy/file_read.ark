@@ -1,7 +1,7 @@
 // file_read.ark — File I/O heavy benchmark (ADR-002 fixture).
 // Writes a file once, then reads it many times to stress the host fs
 // path and string construction.
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::prelude::{clone}
 use std::text
@@ -15,7 +15,7 @@ fn main() {
         i = i + 1
     }
 
-    let write_result = fs::write_string(path, clone(data))
+    let write_result = Fs::write_string(path, clone(data))
     match write_result {
         Result::Ok(_) => {},
         Result::Err(e) => {
@@ -27,7 +27,7 @@ fn main() {
     let mut checksum: i32 = 0
     let mut iter: i32 = 0
     while iter < 50 {
-        let read_result = fs::read_to_string(path)
+        let read_result = Fs::read_to_string(path)
         match read_result {
             Result::Ok(contents) => {
                 checksum = checksum + len(contents)

@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
 use std::toml
@@ -7,7 +7,7 @@ use std::text
 use main::args_record
 use main::script_list
 pub fn cmd_script(opts: CliOptions) {
-    let manifest_result = fs::read_to_string(String_from("ark.toml"))
+    let manifest_result = Fs::read_to_string(String_from("ark.toml"))
     match manifest_result {
         Result::Ok(content) => {
             let script_name = args_record::cli_input_file(opts)

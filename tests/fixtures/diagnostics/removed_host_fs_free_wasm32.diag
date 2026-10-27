@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: fs::write_bytes; use `Fs::write_bytes(path, bytes)` from `use std::host::fs::Fs` instead

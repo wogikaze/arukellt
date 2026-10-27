@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{clone}
 use loader::module_paths
 struct DriverLoadedSource {
@@ -41,14 +41,14 @@ pub fn DriverLoadedSource_is_ok(loaded: DriverLoadedSource) -> bool {
 pub fn read_local_module_source(module_name: String, base_dir: String) -> DriverLoadedSource {
     let stem = module_paths::module_path_to_file_stem(clone(module_name))
     let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
-    let primary_result = fs::read_to_string(clone(primary_path))
+    let primary_result = Fs::read_to_string(clone(primary_path))
     match primary_result {
         Result::Ok(source) => {
             DriverLoadedSource_ok(primary_path, source)
         },
         Result::Err(_) => {
             let mod_path = module_paths::module_stem_to_mod_path(clone(base_dir), clone(stem))
-            let mod_result = fs::read_to_string(clone(mod_path))
+            let mod_result = Fs::read_to_string(clone(mod_path))
             match mod_result {
                 Result::Ok(source) => {
                     DriverLoadedSource_ok(mod_path, source)

@@ -386,9 +386,9 @@ compose する。
 | `env::arg_at` | ✓ | ✓ |
 | `env::var` | ✗ | ✓ |
 | `env::has_flag` | ✓ | ✓ |
-| `fs::read_to_string` | ✓ | ✓ |
-| `fs::write_string` | ✓ | ✓ |
-| `fs::write_bytes` | ✓ | ✓ |
+| `Fs::read_to_string` | ✓ | ✓ |
+| `Fs::write_string` | ✓ | ✓ |
+| `Fs::write_bytes` | ✓ | ✓ |
 | `process::exit` | ✓ | ✓ |
 | `process::abort` | ✓ | ✓ |
 

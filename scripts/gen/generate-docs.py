@@ -339,39 +339,43 @@ let text = csv::Csv::stringify_row(row)
         "modules": ["std::host::fs", "std::fs"],
         "overview": {
             "summary": (
-                "`std::host::fs` is the primary host filesystem module: whole-file reads, string "
-                "and byte writes, an `exists` read probe / readable-file check (not path existence), "
-                "the `File` whole-file image handle (`File::open` + `Read` / `Seek`, "
-                "`File::create` + `Write` / `flush`), and experimental fd helpers, all backed "
-                "by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module "
-                "over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when "
-                "you want a minimal API, with the understanding that it exposes only a subset of "
-                "the `std::host::fs` operations. Neither module is a complete "
-                "filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). "
-                "Pure path manipulation lives in `std::path`; for the full host family overview, "
-                "see [io.md](io.md)."
+                "`std::host::fs` is the primary host filesystem module. `Fs` is the namespace "
+                "for the one-shot path operations: `Fs::read_to_string` / `Fs::read_bytes`, "
+                "`Fs::write_string` / `Fs::write_bytes`, the `Fs::is_readable_file` / "
+                "`Fs::is_file` / `Fs::is_dir` probes, and the honest unsupported "
+                "`Fs::read_dir` / `Fs::metadata` rejections. `File` is the whole-file image "
+                "handle (`File::open` + `Read` / `Seek`, `File::create` + `Write` / `flush`), "
+                "and the experimental fd helpers remain `wasm32`-only. `std::fs` is a "
+                "deprecated facade that re-exports `Fs` and keeps its stable wrappers under "
+                "the ADR-087 window. Neither module is a complete filesystem facade (no "
+                "directory listing, metadata, or streaming I/O in-tree yet). Pure path "
+                "manipulation lives in `std::path`; for the full host family overview, see "
+                "[io.md](io.md)."
             ),
             "highlights": [
-                ("`read_to_string(path)` / `read_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
-                ("`write_string(path, content)`", "Write or replace a UTF-8 file."),
-                ("`write_bytes(path, buf)`", "Write a byte array to a file."),
+                ("`Fs::read_to_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
+                ("`Fs::read_bytes(path)`", "Read the whole file as raw bytes (0–255)."),
+                ("`Fs::write_string(path, content)`", "Write or replace a UTF-8 file."),
+                ("`Fs::write_bytes(path, buf)`", "Write a byte array to a file."),
+                ("`Fs::is_readable_file(path)`", "Read probe: `true` when a full read succeeds; not a general path-existence check."),
                 ("`File::open(path)` / `File::create(path)`", "Open a read-only image or start a write image implementing `Read` / `Write` / `Seek`; `flush` commits the image."),
                 (
-                    "`exists(path)`",
-                    "Read probe: `true` when a full read succeeds; not a general path-existence check.",
+                    "`Fs::read_dir(path)` / `Fs::metadata(path)`",
+                    "Honest unsupported rejections until the corresponding WASI intrinsics land.",
                 ),
             ],
             "typical_usage": """\
 ```ark
 import std::host::fs
+use std::host::fs::Fs
 
-let content = read_to_string("data.txt")
+let content = Fs::read_to_string("data.txt")
 match content {
     Ok(text) => println(text),
     Err(e)   => eprintln("read error: " + e),
 }
 
-write_string("output.txt", "hello")
+Fs::write_string("output.txt", "hello")
 ```""",
         },
     },

@@ -1,98 +1,36 @@
-//! Small host-backed file helpers — a compact filesystem API.
+//! `std::fs` — deprecated compatibility facade over `std::host::fs`.
 //!
-//! `std::fs` exposes a narrow, stable-shaped subset of the same official WASI
-//! filesystem intrinsics as `std::host::fs` (`read_string` / `write_string`
-//! plus `is_readable_file` and `exists` read probes). Prefer `std::host::fs`
-//! when the whole-file byte API or experimental fd helpers are needed.
-//!
-//! There is no in-tree directory listing, metadata API, or streaming I/O yet; do
-//! not treat this as a complete POSIX-style facade. Broader
-//! `wasi:filesystem/types`-class coverage remains future work.
-//!
-//! Paths are plain `String` values using `/` as the separator (POSIX/WASI
-//! convention). For pure path manipulation helpers see `std::path`.
-//!
-//! **Probe notice**: `exists` / `is_readable_file` are **read probes** / readable-file
-//! checks: they succeed only when the same read operation as `read_string` succeeds.
-//! They are not general path-existence or metadata queries. Directories, missing
-//! paths, and unreadable paths may return `false`.
-//!
-//! **`wasm32` / `wasm32-gc` availability**: The three base operations (`read_string`, `write_string`,
-//! `is_readable_file`) are available on both `wasm32` (WASI P1) and `wasm32-gc` (WASI P2) targets.
-//! Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
-//! supported on any target.
-use std::text
+//! ADR-046 moved the whole-path helpers to `std::host::fs::Fs`. The module
+//! re-exports that type and keeps four stable wrappers through the ADR-087
+//! deprecation window: importing it still emits the "module `std::fs` has
+//! moved to `std::host::fs`" warning. New code should use
+//! `Fs::read_to_string`, `Fs::write_string`, and `Fs::is_readable_file`.
+pub use std::host::fs::Fs
+
 /// Reads the entire contents of a file into a UTF-8 string.
 ///
-/// Returns `Err` if the file does not exist, the path is not readable,
-/// or the content is not valid UTF-8.
+/// Deprecated: use `Fs::read_to_string(path)` from `std::host::fs::Fs`.
 pub fn read_string(path: String) -> Result<String, String> {
-    __runtime_abi_fs_read_file(path)
+    Fs::read_to_string(path)
 }
 
 /// Writes a UTF-8 string to a file, creating or truncating it.
 ///
-/// Returns `Err` if the path is not writable or the parent directory
-/// does not exist.
+/// Deprecated: use `Fs::write_string(path, contents)`.
 pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    __runtime_abi_fs_write_file(path, contents)
+    Fs::write_string(path, contents)
 }
 
-/// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
+/// Read probe / readable-file check; not a path-existence query.
 ///
-/// Uses the same intrinsic as `read_string`. Directories, missing paths, and unreadable paths may
-/// return `false`.
-///
-/// Example — Probe a readable file versus a broken symlink with `std::host::fs`:
-/// ```ark
-/// use std::host::fs
-/// let file_ok = fs::exists("tests/fixtures/stdlib_fs/present.txt")
-/// let link_ok = fs::exists("tests/fixtures/stdlib_fs/broken_link")
-/// ```
+/// Deprecated: use `Fs::is_readable_file(path)`.
 pub fn exists(path: String) -> bool {
-    match __runtime_abi_fs_read_file(path) {
-        Result::Ok(_) => true,
-        Result::Err(_) => false,
-    }
+    Fs::is_readable_file(path)
 }
 
-/// Read probe — the new recommended name for the probe check.
+/// Read probe / readable-file check; not a path-existence query.
 ///
-/// Semantics are identical to `exists`. The name `is_readable_file` makes it
-/// explicit that this is a readability probe, not a general path-existence
-/// query.  New code should prefer this name.
+/// Deprecated: use `Fs::is_readable_file(path)`.
 pub fn is_readable_file(path: String) -> bool {
-    exists(path)
-}
-
-/// Returns `true` when the path is a readable file.
-///
-/// On current targets without metadata intrinsics, this is equivalent to
-/// `is_readable_file` (a read probe). True file-type detection requires a
-/// WASI `path_filestat_get` intrinsic and is future work.
-pub fn is_file(path: String) -> bool {
-    is_readable_file(path)
-}
-
-/// Returns `false` unconditionally on current targets.
-///
-/// The current intrinsic layer does not expose directory-type detection.
-pub fn is_dir(path: String) -> bool {
-    false
-}
-
-/// List the entries in a directory.
-///
-/// **Not yet supported.** Returns an error because the current WASI intrinsic
-/// layer does not expose directory iteration.
-pub fn read_dir(path: String) -> Result<Vec<String>, String> {
-    Result::Err("directory listing not yet supported: ".concat(path))
-}
-
-/// Query file metadata for a given path.
-///
-/// **Not yet supported.** Returns an error because the current WASI intrinsic
-/// layer does not expose `path_filestat_get`.
-pub fn metadata(path: String) -> Result<String, String> {
-    Result::Err("metadata not yet supported: ".concat(path))
+    Fs::is_readable_file(path)
 }

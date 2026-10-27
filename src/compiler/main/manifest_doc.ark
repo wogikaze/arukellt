@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
 use std::prelude::{clone}
@@ -12,7 +12,7 @@ fn doc_load_manifest() -> DocManifestTable {
     // ARUKELLT_MANIFEST env override disabled on wasm32-gc until Option/Result
     // locals from env::var validate; default manifest path only.
     let path = "std/manifest.toml"
-    let read_result = fs::read_to_string(clone(path))
+    let read_result = Fs::read_to_string(clone(path))
     match read_result {
         Result::Ok(content) => {
             manifest_doc_parse::doc_parse_manifest(content)

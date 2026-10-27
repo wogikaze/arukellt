@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::toml
 use std::prelude::{clone, contains, eq}
 use loader::module_file_load_local
@@ -60,7 +60,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
         return String_new()
     }
     let manifest_path = symbol_index_paths::join_path(clone(project_root), String_from("ark.toml"))
-    let read_result = fs::read_to_string(clone(manifest_path))
+    let read_result = Fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
             let dep_rel = symbol_index_paths::find_dependency_path(clone(content), clone(import_name))
@@ -69,7 +69,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
             }
             let dep_root = symbol_index_paths::resolve_relative_path(clone(project_root), dep_rel)
             let dep_manifest = symbol_index_paths::join_path(clone(dep_root), String_from("ark.toml"))
-            let dep_read = fs::read_to_string(dep_manifest)
+            let dep_read = Fs::read_to_string(dep_manifest)
             match dep_read {
                 Result::Ok(dep_content) => {
                     let pkg_name = toml::TomlText::find_value(clone(dep_content), String_from("name"))
@@ -119,13 +119,13 @@ pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir
 
 fn project_entry_path(project_root: String) -> String {
     let manifest_path = symbol_index_paths::join_path(clone(project_root), String_from("ark.toml"))
-    let read_result = fs::read_to_string(clone(manifest_path))
+    let read_result = Fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
             let entry = toml::TomlText::find_value(clone(content), String_from("path"))
             if len(entry) > 0 {
                 let candidate = symbol_index_paths::join_path(clone(project_root), entry)
-                match fs::read_to_string(clone(candidate)) {
+                match Fs::read_to_string(clone(candidate)) {
                     Result::Ok(_) => {
                         return candidate
                     },
@@ -133,7 +133,7 @@ fn project_entry_path(project_root: String) -> String {
                 }
             }
             let lib = symbol_index_paths::join_path(clone(project_root), String_from("src/lib.ark"))
-            match fs::read_to_string(clone(lib)) {
+            match Fs::read_to_string(clone(lib)) {
                 Result::Ok(_) => {
                     return lib
                 },
@@ -153,7 +153,7 @@ fn index_file_at_path(state: LspState, file_path: String) {
     if symbol_index_record::symbol_index_is_indexed(indexed_uris, clone(uri)) {
         return
     }
-    let read_result = fs::read_to_string(clone(file_path))
+    let read_result = Fs::read_to_string(clone(file_path))
     match read_result {
         Result::Ok(text) => {
             symbol_index_update::symbol_index_update_uri(state, uri, text)
@@ -169,7 +169,7 @@ fn index_import_graph_from(state: LspState, start_path: String, project_root: St
     while pos < len(pending) {
         let path = get_unchecked(pending, pos)
         index_file_at_path(state, clone(path))
-        let read_result = fs::read_to_string(clone(path))
+        let read_result = Fs::read_to_string(clone(path))
         match read_result {
             Result::Ok(text) => {
                 let decls = session_parse::session_parse_decls(clone(text))

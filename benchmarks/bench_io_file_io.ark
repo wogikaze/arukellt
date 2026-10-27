@@ -1,7 +1,7 @@
 // I/O-heavy benchmark: repeated host filesystem read/write with string payloads.
 // Exercises std::host::fs write/read host calls, string construction, Result
 // matching, and deterministic checksum accumulation.
-use std::host::fs
+use std::host::fs::Fs
 use std::host::stdio
 use std::prelude::{clone}
 use std::text
@@ -21,7 +21,7 @@ fn main() {
     let mut checksum: i32 = 0
     let mut iter: i32 = 0
     while iter < 20 {
-        let write_result = fs::write_string(path, clone(data))
+        let write_result = Fs::write_string(path, clone(data))
         match write_result {
             Result::Ok(_) => {},
             Result::Err(e) => {
@@ -30,7 +30,7 @@ fn main() {
             },
         }
 
-        let read_result = fs::read_to_string(path)
+        let read_result = Fs::read_to_string(path)
         match read_result {
             Result::Ok(contents) => {
                 checksum = checksum + len(contents)

@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 183 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 54 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
+| `stable` | 178 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
+| `experimental` | 53 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 72 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -30,10 +30,11 @@
 | `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
 | `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
 | `File` | - | no | experimental | Whole-file image handle: File::open loads a read-only image and File::create starts a write image. Implements std::io Read, Write, and Seek over the image; Write::flush (and close) commit the write image to the path. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
+| `Fs` | - | no | provisional | Namespace for the one-shot whole-path host filesystem operations: Fs::read_to_string / read_bytes / write_string / write_bytes / is_readable_file / is_file / is_dir / read_dir / metadata. File owns the image handle and the Read / Write / Seek adapters; read_dir and metadata stay honest unsupported rejections until the corresponding WASI intrinsics land. |
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
-| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership. |
+| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the to_vec snapshot used by its trait impls. Both families implement FromIterator<VecIter<T>>. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
@@ -117,9 +118,10 @@
 | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u`, `add`, `sub`, `mul`, `div`, `neg`, `sqrt`, `min`, `max` | - |
 | `File` | `open`, `create`, `close` | `Read`, `Write`, `Seek` |
 | `FromIterator` | `from_iter` | - |
+| `Fs` | `read_to_string`, `read_bytes`, `write_string`, `write_bytes`, `is_readable_file`, `is_file`, `is_dir`, `read_dir`, `metadata` | - |
 | `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
-| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `IntoIterator`, `Clone`, `Eq`, `Debug` |
+| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
 | `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u`, `mul`, `neg`, `abs`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `eq`, `ne`, `lt_s`, `le_s`, `gt_s`, `ge_s`, `lt_u`, `le_u`, `gt_u` | - |
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
 | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |
@@ -404,14 +406,10 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `exists` | `(String) -> bool` | `std::fs` | `stable` | `functional` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
-| `is_dir` | `(String) -> bool` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets (honest stub until metadata intrinsics land). |
-| `is_file` | `(String) -> bool` | `std::fs` | `provisional` | `functional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. |
-| `is_readable_file` | `(String) -> bool` | `std::fs` | `stable` | `functional` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
-| `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
-| `read_dir` | `(String) -> Result<Vec<String>, String>` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always Err on current targets — directory listing not yet supported. |
-| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
+| ~~`exists`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `std::fs` | `deprecated` | `functional` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
+| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `std::fs` | `deprecated` | `functional` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
+| ~~`read_string`~~ ⚠️ Deprecated → `Fs::read_to_string` | `(String) -> Result<String, String>` | `std::fs` | `deprecated` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
+| ~~`write_string`~~ ⚠️ Deprecated → `Fs::write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `deprecated` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 
 ### `read_string` — `std::fs`
 
@@ -454,40 +452,10 @@ match home { Some(p) => println(p), None => println("not set") }
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `std::host::fs` | `deprecated` | `functional` | `builtin` | no | - | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence quer… |
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-| `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
-| `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
-| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing … |
-| `read_bytes` | `(String) -> Result<Vec<i32>, String>` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire file at the given path as raw byte values (0–255), preserving NUL and invalid UTF-8. |
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
-
-### `read_bytes` — `std::host::fs`
-
-**Errors:** Returns Err if the file does not exist or permission is denied.
-
-### `read_to_string` — `std::host::fs`
-
-**Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
-
-_Example — Read a text file and print it:_
-
-```ark
-let txt = fs::read_to_string("data.txt")
-match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
-```
-
-### `write_bytes` — `std::host::fs`
-
-**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
-
-### `write_string` — `std::host::fs`
-
-**Errors:** Returns Err if the path is not writable or the directory does not exist.
+| ~~`is_readable_file`~~ ⚠️ Deprecated → `Fs::is_readable_file` | `(String) -> bool` | `std::host::fs` | `deprecated` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing … |
 
 ## Host Process
 
@@ -524,7 +492,7 @@ let n = random::random_i32_range(1, 7)
 | `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
-| `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
+| `read_stdin` | `() -> String` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
 
 ### `eprintln` — `std::host::stdio`
 
@@ -553,12 +521,12 @@ println("Hello, world!")
 
 Expected output: `Hello, world!`
 
-### `read_to_string` — `std::host::stdio`
+### `read_stdin` — `std::host::stdio`
 
 _Example — Read stdin as a string:_
 
 ```ark
-let input = read_to_string()
+let input = stdio::read_stdin()
 ```
 
 ## Io
@@ -753,7 +721,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **72 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -775,7 +743,7 @@ let input = read_to_string()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
+| ~~`exists`~~ | `Fs::is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
@@ -793,6 +761,8 @@ let input = read_to_string()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
+| ~~`is_readable_file`~~ | `Fs::is_readable_file` | [migration-guidance.md](migration-guidance.md) |
+| ~~`is_readable_file`~~ | `Fs::is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -810,6 +780,7 @@ let input = read_to_string()
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
+| ~~`read_string`~~ | `Fs::read_to_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
@@ -823,5 +794,6 @@ let input = read_to_string()
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |
+| ~~`write_string`~~ | `Fs::write_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |

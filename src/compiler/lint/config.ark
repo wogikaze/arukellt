@@ -7,7 +7,7 @@
 //   allow = ["W0007", "unused-binding"]
 //   deny = ["W0004"]
 
-use std::host::fs
+use std::host::fs::Fs
 use std::toml
 use std::prelude::{clone}
 use std::text
@@ -33,7 +33,7 @@ fn lint_config_deny(config: LintConfig) -> Vec<String> { config.deny }
 pub fn load_lint_config(project_dir: String) -> LintConfig {
     let config = LintConfig_new()
     let manifest_path = clone(project_dir).concat(String_from("/ark.toml"))
-    let read_result = fs::read_to_string(clone(manifest_path))
+    let read_result = Fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
             let lint_section = toml::TomlText::find_section(content, String_from("lint"))

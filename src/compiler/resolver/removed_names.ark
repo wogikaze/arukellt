@@ -95,7 +95,7 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "print") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
     if eq(clone(name), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
     if eq(clone(name), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
-    if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs` and call `fs::is_readable_file(...)`" }
+    if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs::Fs` and call `Fs::is_readable_file(...)`" }
     if eq(clone(name), "get_var") { return "removed prelude binding; import `use std::host::env` and call `env::var(...)`" }
     if eq(clone(name), "sort_i32") || eq(clone(name), "sort_i64") || eq(clone(name), "sort_f64") || eq(clone(name), "sort_String") {
         return "removed free function; use `v.sort_by(cmp)` via `use std::collections::vec`"
@@ -177,7 +177,45 @@ fn removed_wasm_member_hint(name: String) -> String {
     String_from("removed free function; use the owning type from `use std::wasm` instead")
 }
 
+// The whole-path std::host::fs helpers and the legacy std::fs frees moved to
+// the `Fs` namespace (ADR-046, #917). `read_dir` / `metadata` have no host
+// intrinsic yet, so their hint states the unsupported capability instead of
+// promising a replacement.
+fn removed_host_fs_member_hint(name: String) -> String {
+    if eq(clone(name), "read_to_string") || eq(clone(name), "read_string") {
+        return String_from("use `Fs::read_to_string(path)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "read_bytes") {
+        return String_from("use `Fs::read_bytes(path)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "write_string") {
+        return String_from("use `Fs::write_string(path, contents)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "write_bytes") {
+        return String_from("use `Fs::write_bytes(path, bytes)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "is_readable_file") || eq(clone(name), "exists") {
+        return String_from("use `Fs::is_readable_file(path)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "is_file") {
+        return String_from("use `Fs::is_file(path)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "is_dir") {
+        return String_from("use `Fs::is_dir(path)` from `use std::host::fs::Fs` instead")
+    }
+    if eq(clone(name), "read_dir") {
+        return String_from("directory listing is not supported by the current host intrinsic layer; no replacement")
+    }
+    if eq(clone(name), "metadata") {
+        return String_from("path metadata is not supported by the current host intrinsic layer; no replacement")
+    }
+    String_new()
+}
+
 pub fn removed_module_member_hint(module: String, name: String) -> String {
+    if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
+        return removed_host_fs_member_hint(name)
+    }
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
     }
@@ -1045,6 +1083,17 @@ test mod "removed_names" {
         assert(len(removed_name_hint("raw_f64_to_string")) > 0)
         assert(len(removed_name_hint("raw_f32_promote_f64")) > 0)
         assert(len(removed_module_member_hint(String_from("raw"), String_from("raw_array_new"))) > 0)
+    }
+    test "removed host fs module members have hints" {
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("read_to_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("host::fs"), String_from("read_bytes"))) > 0)
+        assert(len(removed_module_member_hint(String_from("std::fs"), String_from("write_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("std::host::fs"), String_from("write_bytes"))) > 0)
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("is_readable_file"))) > 0)
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("exists"))) > 0)
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("read_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("read_dir"))) > 0)
+        assert(len(removed_module_member_hint(String_from("fs"), String_from("metadata"))) > 0)
     }
     test "removed io module members have hints" {
         assert(len(removed_module_member_hint(String_from("io"), String_from("reader_read"))) > 0)

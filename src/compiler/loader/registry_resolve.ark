@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::prelude::{clone, ends_with, eq, starts_with, substring}
 use std::text
 use loader::registry_config
@@ -42,11 +42,11 @@ fn registry_package_mod_path(registry_root: String, package_name: String) -> Str
 
 fn read_local_registry_source(registry_root: String, package_name: String) -> Result<String, String> {
     let primary = registry_package_primary_path(clone(registry_root), clone(package_name))
-    match fs::read_to_string(clone(primary)) {
+    match Fs::read_to_string(clone(primary)) {
         Result::Ok(source) => Result::Ok(source),
         Result::Err(_) => {
             let mod_path = registry_package_mod_path(clone(registry_root), clone(package_name))
-            match fs::read_to_string(clone(mod_path)) {
+            match Fs::read_to_string(clone(mod_path)) {
                 Result::Ok(source) => Result::Ok(source),
                 Result::Err(_) => Result::Err(registry_error_not_found(clone(package_name))),
             }

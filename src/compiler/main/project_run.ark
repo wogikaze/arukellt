@@ -1,4 +1,4 @@
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::host::stdio
 use std::prelude::{clone, eq, substring, to_string}
@@ -51,7 +51,7 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
 }
 
 fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
-    let write_result = fs::write_bytes(clone(out_path), bytes)
+    let write_result: Result<(), String> = Fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
             stdio::eprintln("compiled ".concat(clone(input_file).concat(" -> ".concat(clone(out_path)))))
@@ -147,7 +147,7 @@ pub fn cmd_test(opts: CliOptions) {
 // Parses the source file and prints discovered `test` declarations.
 // Returns the number of discovered tests.
 fn discover_and_print_tests(input_file: String) -> i32 {
-    let read_result = fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(clone(input_file))
     let mut count = 0
     match read_result {
         Result::Ok(source) => {

@@ -303,6 +303,40 @@ pub fn bootstrap_toml_parse_line(line: String) -> String {
             path.write_text(patched, encoding="utf-8")
 
 
+def _patch_bootstrap_host_fs_paths(workspace_root: Path) -> None:
+    """Route the bootstrap compiler's ``Fs::*`` calls through the free builtins.
+
+    The committed pin resolves the ``std::host::fs`` free functions as builtins
+    and predates loading the namespace source into the flat overlay. A direct
+    ``Fs::read_to_string`` in a compiler module therefore falls back to the
+    unresolved-call ``drop; unreachable`` sequence. The overlay rewrites the
+    call spelling back to the free names (and the import to the module) while
+    the checked-in ``src/compiler`` source keeps the ``Fs`` namespace. Delete
+    this patch when the pin is refreshed (ADR-029).
+    """
+    compiler_root = workspace_root / "src" / "compiler"
+    members = (
+        "read_to_string",
+        "read_bytes",
+        "write_string",
+        "write_bytes",
+        "is_readable_file",
+        "is_file",
+        "is_dir",
+    )
+    for path in compiler_root.rglob("*.ark"):
+        # Hint strings in these files spell `Fs::` and must not be rewritten
+        # to the free builtin spelling; they are not call sites.
+        if "removed_names" in path.name or "deprecated_table" in path.name:
+            continue
+        source = path.read_text(encoding="utf-8")
+        patched = source.replace("use std::host::fs::Fs\n", "use std::host::fs\n")
+        for member in members:
+            patched = patched.replace(f"Fs::{member}(", f"fs::{member}(")
+        if patched != source:
+            path.write_text(patched, encoding="utf-8")
+
+
 def _patch_bootstrap_wit_type_paths(workspace_root: Path) -> None:
     """Apply the flat-namespace WIT type normalization to an overlay only."""
     wit_root = workspace_root / "std" / "wit"
@@ -4543,6 +4577,7 @@ def _prepare_flattened_selfhost_source_locked(
         shutil.copyfile(source_path, wit_dst / name)
     _patch_bootstrap_wit_type_paths(overlay_root)
     _patch_bootstrap_manifest_scanner_paths(overlay_root)
+    _patch_bootstrap_host_fs_paths(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
         raise BootstrapOverlayError(

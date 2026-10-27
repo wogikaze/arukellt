@@ -46,7 +46,7 @@ arukellt doc --html -o <output.html>
 
 ```bash
 arukellt doc println
-arukellt doc --json std::host::fs::read_to_string
+arukellt doc --json std::host::fs::Fs::read_to_string
 arukellt doc --html -o docs/docs/std/index.html
 ```
 

@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::host::fs
+use std::host::fs::Fs
 use std::host::process
 use std::prelude::{byte_at, clone, contains, eq, substring, to_string}
 use std::text
@@ -128,7 +128,7 @@ fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mod
 }
 
 fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool {
-    let write_result = fs::write_bytes(clone(path), bytes)
+    let write_result: Result<(), String> = Fs::write_bytes(clone(path), bytes)
     match write_result {
         Result::Ok(_) => {
             if !json_mode {
@@ -235,7 +235,7 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
     let mut i = 0
     while i < args_record::cli_wit_path_count(opts) {
         let path = args_record::cli_wit_path_at(opts, i)
-        let read_result = fs::read_to_string(clone(path))
+        let read_result = Fs::read_to_string(clone(path))
         match read_result {
             Result::Ok(_) => {
             },
@@ -273,7 +273,7 @@ fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
     if !args_record::cli_deny_clock(opts) && !args_record::cli_deny_random(opts) && !args_record::cli_deny_process(opts) {
         return true
     }
-    let read_result = fs::read_to_string(clone(input_file))
+    let read_result = Fs::read_to_string(clone(input_file))
     match read_result {
         Result::Ok(source) => {
             if args_record::cli_deny_clock(opts) && source_uses_clock_intrinsics(clone(source)) {

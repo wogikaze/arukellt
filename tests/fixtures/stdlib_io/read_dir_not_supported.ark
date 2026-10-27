@@ -1,8 +1,8 @@
-use std::fs
+use std::host::fs::Fs
 use std::test
 use std::prelude::{contains}
 fn main() {
-    match fs::read_dir("some_dir") {
+    match Fs::read_dir("some_dir") {
         Result::Ok(_) => panic("expected error"),
         Result::Err(err) => test::assert_true(contains(err, "not yet supported")),
     }

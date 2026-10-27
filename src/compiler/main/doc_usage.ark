@@ -11,7 +11,7 @@ pub fn print_doc_usage() {
     stdio::eprintln("")
     stdio::eprintln("Examples:")
     stdio::eprintln("  arukellt doc println")
-    stdio::eprintln("  arukellt doc std::host::fs::read_to_string")
+    stdio::eprintln("  arukellt doc std::host::fs::Fs::read_to_string")
     stdio::eprintln("  arukellt doc --json println")
     stdio::eprintln("  arukellt doc --target wasm32 std::host::stdio::println")
 }
