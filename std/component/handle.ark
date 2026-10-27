@@ -1,7 +1,10 @@
 //! Resource handle table for Component Model boundaries (#044, #473).
 //!
 //! `HandleTable<T>` is monomorphized per payload type. The i32 table uses
-//! SlotMap layout from `std::collections::compiler`.
+//! SlotMap layout from `std::collections::compiler` and exposes receiver
+//! methods on `HandleTableI32` (ADR-044/ADR-046). The former untyped
+//! `handle_*` and `handle_table_i32_*` free functions were retired by the
+//! #917 component wave.
 
 use std::collections::compiler
 
@@ -9,47 +12,29 @@ pub struct HandleTableI32 {
     slots: Vec<i32>,
 }
 
-pub fn handle_table_i32_new() -> HandleTableI32 {
-    HandleTableI32 { slots: compiler::slotmap_new() }
-}
+impl HandleTableI32 {
+    /// Create an empty Component Model handle table (SlotMap-backed storage).
+    fn new() -> HandleTableI32 {
+        HandleTableI32 { slots: compiler::slotmap_new() }
+    }
 
-pub fn handle_table_i32_new_handle(table: HandleTableI32, value: i32) -> i32 {
-    compiler::slotmap_insert(table.slots, value)
-}
+    /// Insert `value` and return a stable handle index.
+    fn insert(self: HandleTableI32, value: i32) -> i32 {
+        compiler::slotmap_insert(self.slots, value)
+    }
 
-pub fn handle_table_i32_get(table: HandleTableI32, handle: i32) -> Option<i32> {
-    compiler::slotmap_get(table.slots, handle)
-}
+    /// Look up a live handle without removing it.
+    fn get(self: HandleTableI32, handle: i32) -> Option<i32> {
+        compiler::slotmap_get(self.slots, handle)
+    }
 
-pub fn handle_table_i32_drop(table: HandleTableI32, handle: i32) -> Option<i32> {
-    compiler::slotmap_remove(table.slots, handle)
-}
+    /// Drop a handle and return its value, if still live.
+    fn remove(self: HandleTableI32, handle: i32) -> Option<i32> {
+        compiler::slotmap_remove(self.slots, handle)
+    }
 
-pub fn handle_table_i32_len(table: HandleTableI32) -> i32 {
-    compiler::slotmap_len(table.slots)
-}
-
-/// Create an empty handle table (SlotMap-backed storage) for `i32` payloads.
-pub fn handle_table_new() -> Vec<i32> {
-    compiler::slotmap_new()
-}
-
-/// Insert `value` and return a stable handle index.
-pub fn handle_new(table: Vec<i32>, value: i32) -> i32 {
-    compiler::slotmap_insert(table, value)
-}
-
-/// Look up a live handle without removing it.
-pub fn handle_get(table: Vec<i32>, handle: i32) -> Option<i32> {
-    compiler::slotmap_get(table, handle)
-}
-
-/// Drop a handle and return its value, if still live.
-pub fn handle_drop(table: Vec<i32>, handle: i32) -> Option<i32> {
-    compiler::slotmap_remove(table, handle)
-}
-
-/// Return the number of live handles in the table.
-pub fn handle_len(table: Vec<i32>) -> i32 {
-    compiler::slotmap_len(table)
+    /// Return the number of live handles in the table.
+    fn len(self: HandleTableI32) -> i32 {
+        compiler::slotmap_len(self.slots)
+    }
 }

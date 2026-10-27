@@ -1,12 +1,20 @@
 //! Experimental component-model helpers.
 //!
-//! Version constants live in this module; resource handle tables live in
-//! `std::component::handle` (SlotMap-backed, #473 phase 1). Canonical ABI
-//! lift/lower helpers are tracked by #054.
-pub fn canonical_abi_version() -> i32 {
-    1
-}
+//! Version constants are associated functions on `Component`; resource handle
+//! tables live in `std::component::handle` (SlotMap-backed, #473 phase 1).
+//! Canonical ABI lift/lower helpers are tracked by #054. The former
+//! `canonical_abi_version` / `component_model_version` free functions were
+//! retired by the #917 component wave (ADR-044/ADR-046).
+pub struct Component {}
 
-pub fn component_model_version() -> String {
-    "0.2.0"
+impl Component {
+    /// Return the canonical ABI version number.
+    fn canonical_abi_version() -> i32 {
+        1
+    }
+
+    /// Return the component model version string.
+    fn model_version() -> String {
+        "0.2.0"
+    }
 }

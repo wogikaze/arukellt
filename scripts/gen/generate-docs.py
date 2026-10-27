@@ -225,23 +225,31 @@ let exists = map.contains_key(42) // true
         "path": "modules/component.md",
         "title": "std::component",
         "description": "Source-backed docs for component-model helpers.",
-        "modules": ["std::component"],
+        "modules": ["std::component", "std::component::handle"],
         "overview": {
             "summary": (
-                "The `std::component` module exposes version constants for the WebAssembly "
-                "Component Model. The surface is intentionally minimal while the component "
-                "model integration is still being designed."
+                "The `std::component` module exposes Component Model version constants and a "
+                "SlotMap-backed handle table. `Component` owns the version associated "
+                "functions; `HandleTableI32` owns the insert / get / remove / len receiver "
+                "methods. The former free functions were retired by the #917 component wave "
+                "(ADR-044/ADR-046)."
             ),
             "highlights": [
-                ("`canonical_abi_version()`", "Returns the canonical ABI version number."),
-                ("`component_model_version()`", "Returns the component model version string."),
+                ("`Component::canonical_abi_version()` / `Component::model_version()`", "Return the canonical ABI version and component model version string."),
+                ("`HandleTableI32::new()` / `t.insert(value)` / `t.get(handle)` / `t.remove(handle)` / `t.len()`", "Create a SlotMap-backed handle table and mutate it through receiver methods."),
             ],
             "typical_usage": """\
 ```ark
-import std::component
+use std::component
+use std::component::handle
 
-let abi = canonical_abi_version()       // e.g. 1
-let ver = component_model_version()     // e.g. "0.2"
+let abi = component::Component::canonical_abi_version()  // e.g. 1
+let ver = component::Component::model_version()          // e.g. "0.2.0"
+
+let table = handle::HandleTableI32::new()
+let h = table.insert(42)
+let value = table.get(h)        // Some(42)
+let dropped = table.remove(h)   // Some(42)
 ```""",
         },
     },
@@ -729,32 +737,35 @@ let i32_type = valtype_i32()       // 0x7f
         "path": "modules/wit.md",
         "title": "std::wit",
         "description": "Source-backed docs for WIT helpers.",
-        "modules": ["std::wit", "std::wit::types", "std::wit::scan", "std::wit::names", "std::wit::printer"],
+        "modules": ["std::wit", "std::wit::types", "std::wit::world", "std::wit::ast", "std::wit::scan", "std::wit::names", "std::wit::printer"],
         "overview": {
             "summary": (
                 "The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values "
-                "as a typed enum plus the methods and associated functions needed to build, "
-                "convert, render, and print them. The surface follows ADR-044/ADR-046: the "
-                "former `wit_type_*`, `wit_*`, `kebab_name`, and `print_wit` free functions "
-                "are retired in favor of `WitType` methods, the `WitText` / `WitName` "
-                "namespace types, and `World::to_wit`."
+                "as a typed enum plus the methods and associated functions needed to parse, "
+                "build, convert, render, and print them. The surface follows ADR-044/ADR-046: "
+                "the former `wit_type_*`, `wit_*`, `kebab_name`, `print_wit`, and "
+                "`parse_full` / `parse_full_import_text` / `parse_wit` free functions are "
+                "retired in favor of `WitType` methods, the `WitText` / `WitName` namespace "
+                "types, `WitNode::parse` / `WitNode::import_metadata`, and `World::to_wit`."
             ),
             "highlights": [
                 ("`WitType::Bool` … `WitType::String`, `WitType::list` / `WitType::option`", "Enum variants and associated constructors for WIT primitive and compound types."),
                 ("`ty.id()` / `ty.name()` / `ty.wit_text()`, `WitType::from_id` / `WitType::name_from_ark`", "Receiver methods and associated conversions between `WitType`, its numeric id, and its WIT text form."),
+                ("`WitNode::parse(source)` / `WitNode::import_metadata(source)`", "Parse full WIT 1.0 text into the AST, or seal it as compiler-safe import metadata."),
                 ("`WitText::find_char` … `WitText::line_end`, `WitName::to_kebab` … `WitName::capitalize`", "Namespace types for WIT text scanning and identifier case conversion."),
                 ("`World::to_wit()` / `Interface::to_wit(kind)` / `WitFunc::to_wit()`", "Render a world, its interfaces, and their functions as WIT text."),
             ],
             "typical_usage": """\
 ```ark
+use std::wit::ast
 use std::wit::types
 
-let t = types::WitType::U32
-let id = t.id()        // 4
-let name = t.name()    // "u32"
+let node = ast::WitNode::parse("world demo { }")
+let kind = node.kind()   // "world"
+let name = node.name()   // "demo"
 
-let list = types::WitType::list(types::WitType::String)
-let rendered = list.wit_text()  // "list<string>"
+let t = types::WitType::U32
+let rendered = t.wit_text()  // "u32"
 ```""",
         },
     },

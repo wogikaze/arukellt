@@ -1,0 +1,5 @@
+use std::component
+
+fn main() {
+    let _abi = component::canonical_abi_version()
+}

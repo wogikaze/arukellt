@@ -2072,8 +2072,8 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `section_data() -> i32`,
 `valtype_i32() -> i32`, `valtype_i64() -> i32`,
 `valtype_f32() -> i32`, `valtype_f64() -> i32`,
-`canonical_abi_version() -> i32`,
-`component_model_version() -> String`
+`Component::canonical_abi_version() -> i32`,
+`Component::model_version() -> String`
 
 **WIT Type Helpers**:
 `WitType` (enum: `Bool`, `U8`, `U16`, `U32`, `U64`, `S8`, `S16`, `S32`,

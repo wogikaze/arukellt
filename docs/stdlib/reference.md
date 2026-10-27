@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 206 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 280 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 113 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -22,11 +22,13 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
+| `Component` | - | no | experimental | Namespace for Component Model version constants; canonical_abi_version and model_version are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
 | `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
+| `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
 | `HashSet` | T | no | provisional | Set of unique i32 values; new, insert, contains, remove, len, is_empty lower to the flat hash store. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
@@ -87,12 +89,14 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
+| `Component` | `canonical_abi_version`, `model_version` | - |
 | `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `File` | `open`, `close` | `Read`, `Seek` |
 | `FromIterator` | `from_iter` | - |
+| `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
 | `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
@@ -361,18 +365,6 @@ let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
-
-## Component
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
-| `component_model_version` | `() -> String` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
-| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Drop a handle and return its value, if still live. |
-| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Look up a live handle without removing it. |
-| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Return the number of live handles in the table. |
-| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
-| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 
 ## Control
 

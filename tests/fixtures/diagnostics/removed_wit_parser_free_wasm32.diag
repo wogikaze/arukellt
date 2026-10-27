@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: parser::parse_full; use `WitNode::parse(source)` instead

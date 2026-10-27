@@ -1,7 +1,7 @@
 // WIT import document parser — std::wit AST to compiler metadata (#653, #706).
 
 use std::host::fs
-use std::wit::parser
+use std::wit::ast
 use std::prelude::{byte_at, clone, eq, substring, values}
 use compiler::wit_identity
 use component::wit_names_import
@@ -146,10 +146,10 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
 }
 
 fn parse_wit_import_text(source: String) -> WitParsedInterface {
-    // `std::wit::parser::parse_full` is the canonical parser. The parser's
-    // import-text helper calls it once and seals the recursive AST as String
-    // metadata before this compiler layer decodes it.
-    let serialized = parser::parse_full_import_text(source)
+    // `WitNode::import_metadata` is the canonical parser adapter. It runs the
+    // full WIT 1.0 parser once and seals the recursive AST as String metadata
+    // before this compiler layer decodes it.
+    let serialized = ast::WitNode::import_metadata(source)
     let doc = wit_import_serialized_doc(serialized)
     if !wit_parse_has_surface(doc) {
         return wit_parse_text::WitParsedInterface_empty()

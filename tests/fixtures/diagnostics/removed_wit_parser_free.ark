@@ -1,0 +1,5 @@
+use std::wit::parser
+
+fn main() {
+    let _node = parser::parse_full(String_from("world demo { }"))
+}

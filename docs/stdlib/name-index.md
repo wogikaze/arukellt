@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 512
+- **Canonical names:** 505
 - **Historical/deprecated names:** 113
-- **Total entries:** 625
+- **Total entries:** 618
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -102,7 +102,6 @@ Current public API names, sorted alphabetically.
 | `btree_set_new` | `std::collections::ordered` | `experimental` | Collections |
 | `byte_at` | `prelude` | `stable` | String |
 | `byte_len` | `prelude` | `stable` | String |
-| `canonical_abi_version` | `std::component` | `experimental` | Component |
 | `ceil` | `std::simd::f32x4` | `experimental` | Simd |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `clamp_i32` | `prelude` | `stable` | Math |
@@ -110,7 +109,6 @@ Current public API names, sorted alphabetically.
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `cmp_i32` | `std::core` | `stable` | Core |
 | `combine` | `std::core::hash` | `stable` | Core |
-| `component_model_version` | `std::component` | `experimental` | Component |
 | `components` | `std::path` | `stable` | Path |
 | `contains` | `prelude` | `stable` | String |
 | `cos_approx` | `std::signal` | `stable` | Signal |
@@ -167,11 +165,6 @@ Current public API names, sorted alphabetically.
 | `gcd` | `prelude` | `stable` | Math |
 | `ge` | `std::simd::f32x4` | `experimental` | Simd |
 | `gt` | `std::simd::f32x4` | `experimental` | Simd |
-| `handle_drop` | `std::component::handle` | `experimental` | Component |
-| `handle_get` | `std::component::handle` | `experimental` | Component |
-| `handle_len` | `std::component::handle` | `experimental` | Component |
-| `handle_new` | `std::component::handle` | `experimental` | Component |
-| `handle_table_new` | `std::component::handle` | `experimental` | Component |
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `has_flag` | `std::cli` | `stable` | Cli |
 | `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
@@ -772,7 +765,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`bytes_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::new` · [migration guide](migration-guidance.md) |
 | ~~`bytes_push`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_byte` · [migration guide](migration-guidance.md) |
 | ~~`bytes_slice`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::slice_bytes` · [migration guide](migration-guidance.md) |
-| `canonical_abi_version` | ✅ `experimental` | `std::component` | Component |
 | `ceil` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
@@ -780,7 +772,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
-| `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `components` | ✅ `stable` | `std::path` | Path |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
@@ -862,11 +853,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | ~~`get_var`~~ | ⚠️ deprecated | `std::env` | → `var` · [migration guide](migration-guidance.md) |
 | `gt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `handle_drop` | ✅ `experimental` | `std::component::handle` | Component |
-| `handle_get` | ✅ `experimental` | `std::component::handle` | Component |
-| `handle_len` | ✅ `experimental` | `std::component::handle` | Component |
-| `handle_new` | ✅ `experimental` | `std::component::handle` | Component |
-| `handle_table_new` | ✅ `experimental` | `std::component::handle` | Component |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
 | `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |

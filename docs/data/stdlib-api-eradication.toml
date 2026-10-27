@@ -329,14 +329,28 @@ replacement = "Wit/Component/Handle associated functions and methods"
 #                            WitNode::parse / WitNode::import_metadata
 #                            associated functions, and node.import_serialized()
 #                            [wave/wit-ast-methods]
+#   std::wit::parser (3)  -> WitNode::parse / WitNode::import_metadata; the
+#                            reduced World-shaped parse_wit compatibility parser
+#                            retires (a direct World::parse associated form is
+#                            blocked on wasm32-gc: Result<World, Error> from a
+#                            std associated function fails Wasm validation)
+#                            [wave/wit-parser-component]
+#   std::component (2)    -> Component::canonical_abi_version /
+#                            Component::model_version associated functions
+#                            [wave/wit-parser-component]
+#   std::component::handle (10)
+#                         -> HandleTableI32::new / insert / get / remove / len
+#                            receiver methods  [wave/wit-parser-component]
 # The qualified-removal E0100 hints live in
 # resolver::removed_names::removed_module_member_hint for the `wit`, `types`,
-# `scan`, `names`, `ast`, and `printer` aliases.
-# Residual in this rule: the three `std::wit::parser` frees
-# (parse_full, parse_full_import_text, parse_wit) and the std::component /
-# std::component::handle families remain in this rule. The WitNode accessors
-# landed after the method-receiver enum-open lowering fix; the parser frees
-# are a separate module surface.
+# `scan`, `names`, `ast`, `printer`, `parser`, `component`, and `handle`
+# aliases.
+# Residual in this rule: the 7 `std::component::canonical` frees stay because
+# their associated/method forms return `Result<String, error::Error>`, which
+# miscompiles (empty/NUL string) on both targets; a clean surface needs the
+# compiler's Result<String, Error> method-return fix. The canonical list lane
+# and the other string-free helpers were not split out while the string lane
+# is blocked.
 
 [[rules]]
 label = "host/core namespace frees"

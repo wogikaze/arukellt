@@ -258,6 +258,12 @@ diag:diagnostics/removed_text_free_wasm32.ark
 diag:diagnostics/removed_iter_constructor_wasm32.ark
 diag:diagnostics/removed_wit_ast_free.ark
 diag:diagnostics/removed_wit_ast_free_wasm32.ark
+diag:diagnostics/removed_wit_parser_free.ark
+diag:diagnostics/removed_wit_parser_free_wasm32.ark
+diag:diagnostics/removed_component_free.ark
+diag:diagnostics/removed_component_free_wasm32.ark
+diag:diagnostics/removed_component_handle_free.ark
+diag:diagnostics/removed_component_handle_free_wasm32.ark
 diag:diagnostics/removed_hashmap_adapter.ark
 diag:diagnostics/removed_hashmap_adapter_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
@@ -855,7 +861,9 @@ run:stdlib_compiler/compiler_basic.ark
 run:stdlib_component/canonical_list.ark
 run:stdlib_component/canonical_string.ark
 run:stdlib_component/component_helpers.ark
+run:stdlib_component/component_helpers_wasm32.ark
 run:stdlib_component/handle_basic.ark
+run:stdlib_component/handle_basic_wasm32.ark
 run:stdlib_core/cmp_clamp_above.ark
 run:stdlib_core/cmp_clamp_below.ark
 run:stdlib_core/cmp_clamp_within.ark
@@ -2141,6 +2149,7 @@ run:stdlib_wasm/opcode_basic.ark
 run:stdlib_wasm/valtype_ext.ark
 run:stdlib_wasm/wasm_basic.ark
 run:stdlib_wit/wit_ast_parse.ark
+run:stdlib_wit/wit_ast_parse_wasm32.ark
 run:stdlib_wit/wit_ast_methods.ark
 run:stdlib_wit/wit_basic.ark
 run:stdlib_wit/wit_names.ark

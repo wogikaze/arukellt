@@ -1,0 +1,5 @@
+use std::component::handle
+
+fn main() {
+    let _t = handle::handle_table_new()
+}

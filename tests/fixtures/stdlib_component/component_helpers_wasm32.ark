@@ -1,0 +1,12 @@
+use std::component
+use std::host::stdio
+
+fn main() {
+    let abi = component::Component::canonical_abi_version()
+    stdio::println((abi).to_string())
+    let ver = component::Component::model_version()
+    stdio::println(ver)
+}
+// Tests component model helpers
+// ABI version
+// Component model version string

@@ -371,6 +371,76 @@ classified there, in dependency-safe waves.
   method lowering. The `hashset_i32_*` / `hashset_str_*` rows above stay in
   the `std::collections frees` family.
 
+### Landed slice (wave/wit-parser-component, 2026-10-27)
+
+- Retired the last 15 `std::wit/component` frees: the 3
+  `std::wit::parser` entry points (`parse_full`, `parse_full_import_text`,
+  `parse_wit`), the 2 `std::component` version frees, and the 10
+  `std::component::handle` frees (5 untyped `Vec<i32>` table helpers + 5
+  `handle_table_i32_*` helpers). The 7 manifest entries were `experimental`
+  (ADR-014 D4 direct deletion); the other 8 were unregistered source
+  declarations.
+- Replacement (parser): `parse_full` → `WitNode::parse(source)` and
+  `parse_full_import_text` → `WitNode::import_metadata(source)`. The reduced
+  World-shaped `parse_wit` compatibility parser retires; callers parse to
+  `WitNode` and build a `World` with `World::new` / `add_import` /
+  `add_export` / `add_func`. A direct `World::parse` associated form was
+  probed and rejected: returning `Result<World, error::Error>` from a std
+  associated function or method fails wasm32-gc Wasm validation
+  (`type mismatch: expected (ref null $type), found (ref null $type)`), while
+  direct `World` returns and `Result<i32, error::Error>` lower cleanly.
+- Replacement (component): `Component::canonical_abi_version()` and
+  `Component::model_version()` associated functions.
+- Replacement (handle): `HandleTableI32::new()` plus the `insert`, `get`,
+  `remove`, and `len` receiver methods. The legacy untyped `Vec<i32>` table
+  surface is consolidated onto the typed table instead of keeping a second
+  namespace facade.
+- E0100: `resolver::removed_names::removed_module_member_hint` now owns
+  `parser`, `component`, and `handle` module aliases (15 hints). The
+  `std/wit/parser.ark` module is retained only as the parser E0100 anchor
+  until the 1.0.0 era, with no callable declaration.
+- Compiler: `component::wit_parse_import` calls
+  `ast::WitNode::import_metadata` instead of the retired parser free, and the
+  `component_model_version` name-based String-return special case in
+  `mir::lower::core_call_arg_names` is removed. The merge-lost `hash_map`
+  removed-member hint (commit 146f35153) is restored so the two
+  `removed_hashmap_adapter*` E0100 goldens pass again. Stage-2 was rebuilt
+  after the final compiler edits.
+- Manifest: the 7 function entries are removed and `Component` /
+  `HandleTableI32` are registered as `experimental` `[[types]]` with their
+  method/associated surface.
+- Fixtures: added `stdlib_wit/wit_ast_parse_wasm32.ark`,
+  `stdlib_component/component_helpers_wasm32.ark`, and
+  `stdlib_component/handle_basic_wasm32.ark` (identical dual-target bodies
+  with `--target wasm32 --wasi-version wasi-p1 --memory-width memory32`
+  flags), and migrated the original three fixtures to the new surface. Added
+  the dual-target E0100 diag fixtures `removed_wit_parser_free`,
+  `removed_component_free`, and `removed_component_handle_free`. `run:` count
+  1851 → **1854**; `diag:` count 126 → **132**.
+- Scorecard delta: 858 → **843** public symbols
+  (`associated-or-method` 743 → **728**); manifest public entries 625 →
+  **618**; `pub fn` declarations 981 → **966**; unregistered declarations
+  233 → **225**; `must delete` 115, `intrinsic-only` 1, `prelude_wrapper` 65,
+  and the 89 monomorphic helpers are unchanged. The
+  `std::wit/component frees` rule now carries only the 7
+  `std::component::canonical` source declarations.
+- Verification: both targets compile + `wasm-tools validate` +
+  `wasmtime run` with the rebuilt s2 for the three migrated fixtures and
+  their `_wasm32` pairs; `verify fixtures` **1854/1854 PASS / 0 FAIL**
+  (106 runtime smoke, 1 `test:` fixture); `selfhost diag-parity`
+  **132/132 PASS** including the 6 new E0100 fixtures; cross-backend parity
+  **3/3** for `wit_ast_parse`, `component_helpers`, and `handle_basic`;
+  `docs check` 6/6; `check-stdlib-eradication`, `check-compat-orphans`, and
+  the #706 close gate clean; `verify lane` PASS; `selfhost fixpoint` reached
+  (s2 == s3 at `55e1b20c…`, pinned base `04d4446b…`).
+- Residual: the 7 `std::component::canonical` frees stay because their
+  `Result<String, error::Error>` associated/method returns miscompile
+  (empty/NUL string) on both targets; splitting out the string-free list lane
+  would leave a fragmented surface, so the family waits for the compiler's
+  `Result<String, Error>` method-return fix. The remaining **728**
+  `associated-or-method` symbols and the monomorphic/`filter_i32` residuals
+  are unchanged.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -414,6 +484,10 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
+      - Landed 2026-10-27 (`wave/wit-parser-component`): the 3 parser frees,
+        2 `std::component` frees, and 10 `std::component::handle` frees
+        retired after the `WitNode` parser methods, `Component` associated
+        functions, and `HandleTableI32` receiver methods landed.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

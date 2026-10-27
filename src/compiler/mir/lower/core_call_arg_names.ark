@@ -72,7 +72,6 @@ fn mir_core_call_string_result_name(name: String) -> bool {
     let short = mir_core_call_short_name(clone(name))
     if eq(clone(short), "slice") ||
     eq(clone(short), "greet") ||
-    eq(clone(short), "component_model_version") ||
     eq(clone(short), "string_from_bytes") ||
     eq(clone(short), "hex_encode") ||
     eq(clone(short), "rope_new") {

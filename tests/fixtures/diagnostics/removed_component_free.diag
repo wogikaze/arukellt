@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: component::canonical_abi_version; use `Component::canonical_abi_version()` instead

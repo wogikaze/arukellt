@@ -7,12 +7,15 @@
 //!   `WitType::from_id`, and `WitType::name_from_ark`.
 //! - `std::wit::world` owns `World`, `Interface`, `WitFunc`, and
 //!   `WitParam`; `std::wit::printer` renders them with `World::to_wit`.
+//! - `std::wit::ast` owns `WitNode` and the full WIT 1.0 parser:
+//!   `WitNode::parse` and `WitNode::import_metadata`.
 //! - `std::wit::scan` and `std::wit::names` hold the `WitText` and
 //!   `WitName` namespace types for WIT text scanning and identifier
 //!   case conversion.
 //!
-//! The former `wit_type_*` free functions and `print_wit` were retired by
-//! the #917 WIT wave (ADR-044/ADR-046).
+//! The former `wit_type_*` free functions, `print_wit`, and the
+//! `std::wit::parser` frees were retired by the #917 WIT waves
+//! (ADR-044/ADR-046).
 //!
 //! ## Text scan utilities (#706)
 //!
@@ -20,7 +23,7 @@
 //! (`WitText::find_char`, `WitText::trim`, `WitText::strip_version`,
 //! `WitText::before_colon`, `WitText::split_param`,
 //! `WitText::split_csv_items`, `WitText::line_start`, `WitText::line_end`)
-//! used by both `std::wit::parser` and the compiler's `wit_parse_text_scan`
+//! used by both the WIT parser and the compiler's `wit_parse_text_scan`
 //! module. The scan module is kept separate from `std::wit::types` (which
 //! has recursive enums) so it does not pull that graph into the bootstrap
 //! compiler's module loading chain.

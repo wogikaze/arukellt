@@ -1,172 +1,18 @@
-//! WIT text parsing for `std::wit` (#044, #706).
+//! WIT text parsing migration anchor (`std::wit`, #044, #706, #917).
 //!
-//! `parse_full` is the WIT 1.0 parser entry point. `parse_wit` is retained as
-//! the historical World-shaped compatibility API for existing stdlib callers.
-//! Both delegate to the canonical `WitNode::parse` /
-//! `WitNode::import_metadata` associated functions in `std::wit::ast`.
-
-use std::core::error
-use std::wit::ast
-use std::wit::types
-use std::wit::types::{WitType}
-use std::wit::world
-use std::prelude::{byte_at, eq, slice}
-pub fn parse_full(source: String) -> WitNode {
-    WitNode::parse(source)
-}
-
-/// Parse the canonical WIT document and return compiler-safe metadata text.
-/// Recursive AST values do not cross the std::wit/compiler boundary.
-pub fn parse_full_import_text(source: String) -> String {
-    WitNode::import_metadata(source)
-}
-
-fn parse_skip_ws(s: String, pos: i32) -> i32 {
-    let n = len(s)
-    let mut i = pos
-    while i < n {
-        let c = byte_at(s, i)
-        if c == 32 || c == 9 || c == 10 || c == 13 {
-            i = i + 1
-        } else {
-            return i
-        }
-    }
-    i
-}
-
-fn parse_word(s: String, pos: i32) -> (String, i32) {
-    let n = len(s)
-    let start = pos
-    let mut i = pos
-    while i < n {
-        let c = byte_at(s, i)
-        if c == 32 || c == 9 || c == 10 || c == 13 || c == 58 || c == 40 || c == 41 || c == 44 || c == 59 || c == 123 || c == 125 {
-            break
-        }
-        i = i + 1
-    }
-    (slice(s, start, i), i)
-}
-
-fn parse_type_name(name: String) -> types::WitType {
-    if eq(name, "bool") {
-        WitType::Bool
-    } else {
-        if eq(name, "u32") {
-            WitType::U32
-        } else {
-            if eq(name, "string") {
-                WitType::String
-            } else {
-                WitType::Unknown(0)
-            }
-        }
-    }
-}
-
-fn parse_wit_param(name: String, ty: types::WitType) -> types::WitParam {
-    WitParam::new(name, ty)
-}
-
-fn parse_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
-    let params = Vec::new<WitParam>()
-    let mut i = parse_skip_ws(s, pos)
-    let n = len(s)
-    while i < n {
-        i = parse_skip_ws(s, i)
-        if i < n && byte_at(s, i) == 41 {
-            return (params, i + 1)
-        }
-        let (pname, p1) = parse_word(s, i)
-        i = parse_skip_ws(s, p1)
-        if i >= n || byte_at(s, i) != 58 {
-            return (params, i)
-        }
-        i = parse_skip_ws(s, i + 1)
-        let (tname, p2) = parse_word(s, i)
-        push(params, parse_wit_param(pname, parse_type_name(tname)))
-        i = parse_skip_ws(s, p2)
-        if i < n && byte_at(s, i) == 44 {
-            i = i + 1
-        }
-    }
-    (params, i)
-}
-
-fn parse_func_line(s: String, pos: i32) -> (world::WitFunc, i32) {
-    let (fname, p1) = parse_word(s, pos)
-    let mut i = parse_skip_ws(s, p1)
-    if i < len(s) && byte_at(s, i) == 58 {
-        i = parse_skip_ws(s, i + 1)
-        let (kw, p2) = parse_word(s, i)
-        if eq(kw, "func") {
-            i = parse_skip_ws(s, p2)
-            if i < len(s) && byte_at(s, i) == 40 {
-                let (params, p3) = parse_params(s, i + 1)
-                i = parse_skip_ws(s, p3)
-                let mut result = Option::None
-                if i + 1 < len(s) && byte_at(s, i) == 45 && byte_at(s, i + 1) == 62 {
-                    i = parse_skip_ws(s, i + 2)
-                    let (tname, p4) = parse_word(s, i)
-                    result = Option::Some(parse_type_name(tname))
-                    i = p4
-                }
-                if i < len(s) && byte_at(s, i) == 59 {
-                    i = i + 1
-                }
-                return (world::WitFunc::new(fname, params, result), i)
-            }
-        }
-    }
-    (world::WitFunc::new(String_from(""), Vec::new<WitParam>(), Option::None), pos)
-}
-
-pub fn parse_wit(source: String) -> Result<world::World, error::Error> {
-    let mut i = parse_skip_ws(source, 0)
-    let (kw, p1) = parse_word(source, i)
-    if !eq(kw, "world") {
-        return Err(error::Error::ParseError { kind: String_from("expected world"), input: source })
-    }
-    i = parse_skip_ws(source, p1)
-    let (wname, p2) = parse_word(source, i)
-    i = parse_skip_ws(source, p2)
-    if i >= len(source) || byte_at(source, i) != 123 {
-        return Err(error::Error::ParseError { kind: String_from("expected {"), input: source })
-    }
-    let w = world::World::new(wname)
-    i = parse_skip_ws(source, i + 1)
-    while i < len(source) {
-        i = parse_skip_ws(source, i)
-        if i < len(source) && byte_at(source, i) == 125 {
-            return Ok(w)
-        }
-        let (section, p3) = parse_word(source, i)
-        i = parse_skip_ws(source, p3)
-        let (iname, p4) = parse_word(source, i)
-        i = parse_skip_ws(source, p4)
-        if i >= len(source) || byte_at(source, i) != 123 {
-            return Err(error::Error::ParseError { kind: String_from("expected interface {"), input: source })
-        }
-        let iface = world::Interface::new(iname)
-        i = parse_skip_ws(source, i + 1)
-        while i < len(source) {
-            i = parse_skip_ws(source, i)
-            if i < len(source) && byte_at(source, i) == 125 {
-                i = i + 1
-                break
-            }
-            let (func, p5) = parse_func_line(source, i)
-            if len(func.name) > 0 {
-                iface.add_func(func)
-            }
-            i = p5
-        }
-        if eq(section, "export") {
-            w.add_export(iface)
-        } else {
-            w.add_import(iface)
-        }
-    }
-    Err(error::Error::ParseError { kind: String_from("unterminated world"), input: source })
-}
+//! The former `parse_full` / `parse_full_import_text` / `parse_wit` free
+//! functions were retired by the #917 WIT parser wave (ADR-044/ADR-046).
+//! Callers migrate to the canonical `std::wit::ast` surface:
+//!
+//! - `WitNode::parse(source)` for the full WIT 1.0 AST, including worlds.
+//! - `WitNode::import_metadata(source)` for compiler-safe import metadata.
+//!
+//! The reduced `parse_wit` World-shaped compatibility parser retires with the
+//! wave. A direct `World::parse` associated replacement is blocked on
+//! wasm32-gc: returning `Result<World, error::Error>` from a std associated
+//! function or method fails Wasm validation, so callers parse to `WitNode`
+//! and build a `World` with the public builders instead.
+//!
+//! The module itself stays until the 1.0.0 era so qualified calls resolve to
+//! an E0100 migration hint instead of an undefined-module error; delete it
+//! once the removal window closes.

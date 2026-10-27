@@ -2,25 +2,25 @@ use std::component::handle
 use std::host::stdio
 
 fn main() {
-    let t: Vec<i32> = handle::handle_table_new()
-    stdio::println((handle::handle_len(t)).to_string())
-    let h0: i32 = handle::handle_new(t, 42)
-    let h1: i32 = handle::handle_new(t, 99)
-    stdio::println((handle::handle_len(t)).to_string())
-    match handle::handle_get(t, h0) {
+    let t = handle::HandleTableI32::new()
+    stdio::println((t.len()).to_string())
+    let h0 = t.insert(42)
+    let h1 = t.insert(99)
+    stdio::println((t.len()).to_string())
+    match t.get(h0) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("missing"),
     }
-    match handle::handle_get(t, h1) {
+    match t.get(h1) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("missing"),
     }
-    match handle::handle_drop(t, h0) {
+    match t.remove(h0) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("missing"),
     }
-    stdio::println((handle::handle_len(t)).to_string())
-    match handle::handle_get(t, h0) {
+    stdio::println((t.len()).to_string())
+    match t.get(h0) {
         Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println("dropped"),
     }

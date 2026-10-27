@@ -16,6 +16,41 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — WIT parser / component associated surface (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4、
+  [ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md) の method-first
+  surface。対象は `std::wit::parser` の 3 free、`std::component` の 2 free、
+  `std::component::handle` の 10 free。`std::component` の 7 件は
+  `experimental` manifest entry なので ADR-014 D4 により直接削除し、
+  残りは未登録 source 宣言のため deprecation window は適用しない。
+- **Replacement (parser 3)**: `parse_full` → `WitNode::parse(source)`、
+  `parse_full_import_text` → `WitNode::import_metadata(source)`。
+  `parse_wit` は reduced World-shaped compatibility parser として機能ごと
+  retire し、`WitNode::parse` で AST を得て `World::new` / `add_import` /
+  `add_export` で組み立てる migration にした。直接の `World::parse`
+  associated form は wasm32-gc で `Result<World, error::Error>` を返す std
+  associated function call が Wasm validation に失敗するため採用していない。
+- **Replacement (component 2)**: `Component::canonical_abi_version()` /
+  `Component::model_version()` associated functions。
+- **Replacement (handle 10)**: `HandleTableI32::new()` / `insert(value)` /
+  `get(handle)` / `remove(handle)` / `len()` receiver methods。旧 untyped
+  `Vec<i32>` table 面も同じ typed table に集約した。
+- **E0100**: `parser` / `component` / `handle` の module alias に
+  `resolver::removed_names::removed_module_member_hint` の hint を追加。
+  `std/wit/parser.ark` は 1.0.0 era まで hint anchor として残す。
+- **Fixtures**: `stdlib_wit/wit_ast_parse_wasm32`、
+  `stdlib_component/component_helpers_wasm32`、
+  `stdlib_component/handle_basic_wasm32` を追加し、既存の 3 fixture と
+  合わせて wasm32-gc component と `--target wasm32` の両方で
+  compile + validate + run する。E0100 用に
+  `removed_wit_parser_free` / `removed_component_free` /
+  `removed_component_handle_free` の *2 target を追加。
+- **Residual**: `std::component::canonical` の 7 free は、method/associated
+  form が `Result<String, error::Error>` を返すと両 target で空/NUL 文字列に
+  なるため残す。compiler の Result<String, Error> method-return 修正後に
+  `Canonical` namespace へ移す。
+
 ## 2026-10-27 — concrete `HashSet<i32>` membership surface (#917)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and

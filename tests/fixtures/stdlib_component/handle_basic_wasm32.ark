@@ -1,0 +1,33 @@
+use std::component::handle
+use std::host::stdio
+
+fn main() {
+    let t = handle::HandleTableI32::new()
+    stdio::println((t.len()).to_string())
+    let h0 = t.insert(42)
+    let h1 = t.insert(99)
+    stdio::println((t.len()).to_string())
+    match t.get(h0) {
+        Option::Some(v) => stdio::println((v).to_string()),
+        None => stdio::println("missing"),
+    }
+    match t.get(h1) {
+        Option::Some(v) => stdio::println((v).to_string()),
+        None => stdio::println("missing"),
+    }
+    match t.remove(h0) {
+        Option::Some(v) => stdio::println((v).to_string()),
+        None => stdio::println("missing"),
+    }
+    stdio::println((t.len()).to_string())
+    match t.get(h0) {
+        Option::Some(v) => stdio::println((v).to_string()),
+        None => stdio::println("dropped"),
+    }
+}
+// Tests Component Model handle table (SlotMap-backed)
+// Empty table length
+// Insert two handles
+// Get by handle
+// Drop returns value
+// Dropped handle is gone

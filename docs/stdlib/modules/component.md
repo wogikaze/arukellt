@@ -7,24 +7,30 @@ Source-backed docs for component-model helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::component` module exposes version constants for the WebAssembly Component Model. The surface is intentionally minimal while the component model integration is still being designed.
+The `std::component` module exposes Component Model version constants and a SlotMap-backed handle table. `Component` owns the version associated functions; `HandleTableI32` owns the insert / get / remove / len receiver methods. The former free functions were retired by the #917 component wave (ADR-044/ADR-046).
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `canonical_abi_version()` | Returns the canonical ABI version number. |
-| `component_model_version()` | Returns the component model version string. |
+| `Component::canonical_abi_version()` / `Component::model_version()` | Return the canonical ABI version and component model version string. |
+| `HandleTableI32::new()` / `t.insert(value)` / `t.get(handle)` / `t.remove(handle)` / `t.len()` | Create a SlotMap-backed handle table and mutate it through receiver methods. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
 ```ark
-import std::component
+use std::component
+use std::component::handle
 
-let abi = canonical_abi_version()       // e.g. 1
-let ver = component_model_version()     // e.g. "0.2"
+let abi = component::Component::canonical_abi_version()  // e.g. 1
+let ver = component::Component::model_version()          // e.g. "0.2.0"
+
+let table = handle::HandleTableI32::new()
+let h = table.insert(42)
+let value = table.get(h)        // Some(42)
+let dropped = table.remove(h)   // Some(42)
 ```
 
 ---
@@ -32,18 +38,43 @@ let ver = component_model_version()     // e.g. "0.2"
 ## Module `std::component`
 
 - Source: [`../../../std/component/mod.ark`](../../../std/component/mod.ark)
-- Manifest-backed functions: 2
-- Stability: experimental 2
+- Manifest-backed functions: 0
+- Stability: n/a
 
 Experimental component-model helpers.
 
-Version constants live in this module; resource handle tables live in
-`std::component::handle` (SlotMap-backed, #473 phase 1). Canonical ABI
-lift/lower helpers are tracked by #054.
+Version constants are associated functions on `Component`; resource handle
+tables live in `std::component::handle` (SlotMap-backed, #473 phase 1).
+Canonical ABI lift/lower helpers are tracked by #054. The former
+`canonical_abi_version` / `component_model_version` free functions were
+retired by the #917 component wave (ADR-044/ADR-046).
 
-### `std::component` — Public API
+### `std::component` — Public Types
 
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `canonical_abi_version` | `() -> i32` | `experimental` | ✅ functional | - |
-| `component_model_version` | `() -> String` | `experimental` | ✅ functional | - |
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Component` | `struct` | `canonical_abi_version`, `model_version` | - | - |
+
+_No manifest-backed functions in this module._
+
+## Module `std::component::handle`
+
+- Source: [`../../../std/component/handle.ark`](../../../std/component/handle.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+Resource handle table for Component Model boundaries (#044, #473).
+
+`HandleTable<T>` is monomorphized per payload type. The i32 table uses
+SlotMap layout from `std::collections::compiler` and exposes receiver
+methods on `HandleTableI32` (ADR-044/ADR-046). The former untyped
+`handle_*` and `handle_table_i32_*` free functions were retired by the
+#917 component wave.
+
+### `std::component::handle` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `HandleTableI32` | `struct` | `new`, `insert`, `get`, `remove`, `len` | - | - |
+
+_No manifest-backed functions in this module._

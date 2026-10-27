@@ -1,0 +1,106 @@
+// Issue #706: WIT AST parser — parse world/interface/record/enum/flags.
+// Accessors are `WitNode` methods (#917).
+use std::host::stdio
+use std::wit::ast
+use std::wit::types
+use std::prelude::{contains, eq}
+fn main() {
+    // Parse a simple world declaration
+    let src = String_from("world hello { }")
+    let node = ast::WitNode::parse(src)
+    assert(eq(node.kind(), String_from("world")))
+    assert(eq(node.name(), String_from("hello")))
+    assert(node.child_count() == 0)
+
+    // Parse an interface declaration
+    let src2 = String_from("interface my-iface { }")
+    let node2 = ast::WitNode::parse(src2)
+    assert(eq(node2.kind(), String_from("interface")))
+    assert(eq(node2.name(), String_from("my-iface")))
+
+    // Parse a record declaration
+    let src3 = String_from("record point { x: u32, y: u32 }")
+    let node3 = ast::WitNode::parse(src3)
+    assert(eq(node3.kind(), String_from("record")))
+    assert(eq(node3.name(), String_from("point")))
+    assert(node3.child_count() == 2)
+    assert(eq(node3.field_name_at(0), String_from("x")))
+    assert(eq(node3.field_name_at(1), String_from("y")))
+    assert(eq((node3.field_type_at(0)).wit_text(), String_from("u32")))
+    assert(eq(node3.field_name_at(9), String_new()))
+    assert((node3.field_type_at(9)).id() == 0)
+
+    // Parse an enum declaration
+    let src4 = String_from("enum color { red, green, blue }")
+    let node4 = ast::WitNode::parse(src4)
+    assert(eq(node4.kind(), String_from("enum")))
+    assert(eq(node4.name(), String_from("color")))
+    assert(node4.child_count() == 3)
+    assert(eq(node4.enum_variant_at(1), String_from("green")))
+    assert(eq(node4.enum_variant_at(9), String_new()))
+
+    // Parse flags declaration
+    let src5 = String_from("flags perms { read, write, exec }")
+    let node5 = ast::WitNode::parse(src5)
+    assert(eq(node5.kind(), String_from("flags")))
+    assert(eq(node5.name(), String_from("perms")))
+    assert(node5.child_count() == 3)
+    assert(eq(node5.flags_member_at(2), String_from("exec")))
+
+    // Parse a variant declaration
+    let src6 = String_from("variant shape { circle(u32), empty }")
+    let node6 = ast::WitNode::parse(src6)
+    assert(eq(node6.kind(), String_from("variant")))
+    assert(node6.child_count() == 2)
+    assert(eq(node6.variant_case_name_at(0), String_from("circle")))
+    assert(node6.variant_case_has_payload(0))
+    assert(!node6.variant_case_has_payload(1))
+    assert(eq((node6.variant_case_type_at(0)).wit_text(), String_from("u32")))
+    assert((node6.variant_case_type_at(1)).id() == 0)
+
+    // Parse a func declaration
+    let src7 = String_from("f: func(a: u32, b: string) -> bool;")
+    let node7 = ast::WitNode::parse(src7)
+    assert(eq(node7.kind(), String_from("func")))
+    assert(node7.func_param_count() == 2)
+    assert(eq(node7.func_param_name_at(1), String_from("b")))
+    assert(eq((node7.func_param_type_at(0)).wit_text(), String_from("u32")))
+    assert(node7.func_has_result())
+    assert(eq((node7.func_result()).wit_text(), String_from("bool")))
+
+    // Parse a type alias and a use declaration
+    let node8 = ast::WitNode::parse(String_from("type meters = u32;"))
+    assert(eq(node8.kind(), String_from("type")))
+    assert(eq((node8.type_alias_target()).wit_text(), String_from("u32")))
+    let node9 = ast::WitNode::parse(String_from("use pkg:dep/iface as alias;"))
+    assert(eq(node9.kind(), String_from("use")))
+    assert(eq(node9.use_path(), String_from("pkg:dep/iface")))
+    assert(eq(node9.use_alias(), String_from("alias")))
+
+    // first_interface_name walks package/world containers
+    let pkg_src = String_from("package test:host@0.1.0; interface math { }")
+    let pkg = ast::WitNode::parse(pkg_src)
+    assert(eq(pkg.kind(), String_from("package")))
+    assert(eq(pkg.first_interface_name(), String_from("math")))
+    let world_src = String_from("world demo { interface inner { } }")
+    let world = ast::WitNode::parse(world_src)
+    assert(eq(world.first_interface_name(), String_from("inner")))
+
+    // out-of-range child access reports an Error node instead of trapping
+    assert(eq(world.child_at(5).kind(), String_from("error")))
+    assert(eq(node3.child_at(0).kind(), String_from("error")))
+
+    // wit_text: render WitType as WIT text
+    assert(eq((types::WitType::Bool).wit_text(), String_from("bool")))
+    assert(eq((types::WitType::String).wit_text(), String_from("string")))
+    assert(eq((types::WitType::U32).wit_text(), String_from("u32")))
+
+    // import_metadata seals the recursive AST as scalar metadata before it
+    // crosses the std::wit/compiler boundary.
+    let src_meta = String_from("package test:host@0.1.0; interface math { add: func(a: s32, b: s32) -> s32; }")
+    let metadata = ast::WitNode::import_metadata(src_meta)
+    assert(contains(metadata, "header|test:host|0.1.0|math"))
+    assert(contains(metadata, "func|add|s32~s32|s32"))
+
+    stdio::println(String_from("OK"))
+}

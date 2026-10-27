@@ -433,6 +433,46 @@ exercised on both targets by `tests/fixtures/stdlib_wit/wit_basic.ark`,
 `wit_types.ark`, `wit_type_basic.ark`, `wit_names.ark`, `wit_print.ark`,
 `world_build.ark`, and `wit_methods_wasm32.ark`.
 
+### WIT parser / component helpers (wave/wit-parser-component)
+
+The 3 `std::wit::parser` frees were unregistered source declarations; the 7
+`std::component` manifest functions were `experimental`, so ADR-014 D4 allowed
+direct deletion. The 5 `handle_table_i32_*` frees were unregistered source
+declarations. Every removed call was module-qualified, so the resolver returns
+an E0100 hint for the `parser`, `component`, and `handle` aliases. The
+`std::wit::parser` module is kept as an E0100 anchor until the 1.0.0 era; it
+no longer declares a callable entry point.
+
+| Removed API | Replacement | Notes |
+|-------------|-------------|-------|
+| `parser::parse_full(source)` | `WitNode::parse(source)` | full WIT 1.0 AST |
+| `parser::parse_full_import_text(source)` | `WitNode::import_metadata(source)` | compiler-safe String metadata |
+| `parser::parse_wit(source)` | `WitNode::parse(source)` + `World::new` / `add_import` / `add_export` | the reduced World-shaped compatibility parser retires; no direct `World::parse` associated form is shipped because a `Result<World, error::Error>` return from a std associated function fails wasm32-gc Wasm validation |
+| `component::canonical_abi_version()` | `Component::canonical_abi_version()` | associated function |
+| `component::component_model_version()` | `Component::model_version()` | associated function |
+| `handle::handle_table_new()` | `HandleTableI32::new()` | typed table constructor |
+| `handle::handle_new(t, value)` | `t.insert(value)` | receiver method |
+| `handle::handle_get(t, handle)` | `t.get(handle)` | receiver method |
+| `handle::handle_drop(t, handle)` | `t.remove(handle)` | receiver method |
+| `handle::handle_len(t)` | `t.len()` | receiver method |
+| `handle::handle_table_i32_new()` | `HandleTableI32::new()` | unregistered source free |
+| `handle::handle_table_i32_new_handle(t, value)` | `t.insert(value)` | unregistered source free |
+| `handle::handle_table_i32_get(t, handle)` | `t.get(handle)` | unregistered source free |
+| `handle::handle_table_i32_drop(t, handle)` | `t.remove(handle)` | unregistered source free |
+| `handle::handle_table_i32_len(t)` | `t.len()` | unregistered source free |
+
+Both targets are exercised by `stdlib_wit/wit_ast_parse.ark` +
+`wit_ast_parse_wasm32.ark`, `stdlib_component/component_helpers.ark` +
+`component_helpers_wasm32.ark`, and `stdlib_component/handle_basic.ark` +
+`handle_basic_wasm32.ark`.
+
+`std::component::canonical` is not part of this migration yet: its
+string-free functions return `Result<String, error::Error>`, and the
+associated/method form of that return shape produces empty/NUL output on both
+targets. The 7 frees stay until the compiler's `Result<String, Error>`
+method-return lowering is fixed; see the residual note in
+[`data/stdlib-api-eradication.toml`](../data/stdlib-api-eradication.toml).
+
 ## Removed in the #917 eager-iterator wave (2026-10-27)
 
 The 44 eager `std::core::iter` constructor and collector free functions were

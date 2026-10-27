@@ -2,9 +2,9 @@ use std::component
 use std::host::stdio
 
 fn main() {
-    let abi = component::canonical_abi_version()
+    let abi = component::Component::canonical_abi_version()
     stdio::println((abi).to_string())
-    let ver = component::component_model_version()
+    let ver = component::Component::model_version()
     stdio::println(ver)
 }
 // Tests component model helpers

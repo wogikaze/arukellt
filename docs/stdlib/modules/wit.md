@@ -7,7 +7,7 @@ Source-backed docs for WIT helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values as a typed enum plus the methods and associated functions needed to build, convert, render, and print them. The surface follows ADR-044/ADR-046: the former `wit_type_*`, `wit_*`, `kebab_name`, and `print_wit` free functions are retired in favor of `WitType` methods, the `WitText` / `WitName` namespace types, and `World::to_wit`.
+The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values as a typed enum plus the methods and associated functions needed to parse, build, convert, render, and print them. The surface follows ADR-044/ADR-046: the former `wit_type_*`, `wit_*`, `kebab_name`, `print_wit`, and `parse_full` / `parse_full_import_text` / `parse_wit` free functions are retired in favor of `WitType` methods, the `WitText` / `WitName` namespace types, `WitNode::parse` / `WitNode::import_metadata`, and `World::to_wit`.
 
 **Recommended API highlights:**
 
@@ -15,6 +15,7 @@ The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values as a
 |-----|---------|
 | `WitType::Bool` … `WitType::String`, `WitType::list` / `WitType::option` | Enum variants and associated constructors for WIT primitive and compound types. |
 | `ty.id()` / `ty.name()` / `ty.wit_text()`, `WitType::from_id` / `WitType::name_from_ark` | Receiver methods and associated conversions between `WitType`, its numeric id, and its WIT text form. |
+| `WitNode::parse(source)` / `WitNode::import_metadata(source)` | Parse full WIT 1.0 text into the AST, or seal it as compiler-safe import metadata. |
 | `WitText::find_char` … `WitText::line_end`, `WitName::to_kebab` … `WitName::capitalize` | Namespace types for WIT text scanning and identifier case conversion. |
 | `World::to_wit()` / `Interface::to_wit(kind)` / `WitFunc::to_wit()` | Render a world, its interfaces, and their functions as WIT text. |
 
@@ -23,14 +24,15 @@ The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values as a
 **Typical usage:**
 
 ```ark
+use std::wit::ast
 use std::wit::types
 
-let t = types::WitType::U32
-let id = t.id()        // 4
-let name = t.name()    // "u32"
+let node = ast::WitNode::parse("world demo { }")
+let kind = node.kind()   // "world"
+let name = node.name()   // "demo"
 
-let list = types::WitType::list(types::WitType::String)
-let rendered = list.wit_text()  // "list<string>"
+let t = types::WitType::U32
+let rendered = t.wit_text()  // "u32"
 ```
 
 ---
@@ -50,12 +52,15 @@ WIT helpers (`std::wit`, #044).
 `WitType::from_id`, and `WitType::name_from_ark`.
 - `std::wit::world` owns `World`, `Interface`, `WitFunc`, and
 `WitParam`; `std::wit::printer` renders them with `World::to_wit`.
+- `std::wit::ast` owns `WitNode` and the full WIT 1.0 parser:
+`WitNode::parse` and `WitNode::import_metadata`.
 - `std::wit::scan` and `std::wit::names` hold the `WitText` and
 `WitName` namespace types for WIT text scanning and identifier
 case conversion.
 
-The former `wit_type_*` free functions and `print_wit` were retired by
-the #917 WIT wave (ADR-044/ADR-046).
+The former `wit_type_*` free functions, `print_wit`, and the
+`std::wit::parser` frees were retired by the #917 WIT waves
+(ADR-044/ADR-046).
 
 ### Text scan utilities (#706)
 
@@ -63,7 +68,7 @@ the #917 WIT wave (ADR-044/ADR-046).
 (`WitText::find_char`, `WitText::trim`, `WitText::strip_version`,
 `WitText::before_colon`, `WitText::split_param`,
 `WitText::split_csv_items`, `WitText::line_start`, `WitText::line_end`)
-used by both `std::wit::parser` and the compiler's `wit_parse_text_scan`
+used by both the WIT parser and the compiler's `wit_parse_text_scan`
 module. The scan module is kept separate from `std::wit::types` (which
 has recursive enums) so it does not pull that graph into the bootstrap
 compiler's module loading chain.
@@ -95,6 +100,53 @@ and `from_id` / `name_from_ark` are associated functions. The former
 
 _No manifest-backed functions in this module._
 
+## Module `std::wit::world`
+
+- Source: [`../../../std/wit/world.ark`](../../../std/wit/world.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+WIT world and interface builders (#044).
+
+The builder entry points are associated functions on `World`,
+`Interface`, and `WitFunc`; mutations are receiver methods. The former
+free `world_*` / `interface_*` / `wit_*` builders were retired by the
+#917 wave (ADR-044/ADR-046).
+
+### `std::wit::world` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `WitFunc` | `struct` | - |
+| `Interface` | `struct` | - |
+| `World` | `struct` | - |
+
+_No manifest-backed functions in this module._
+
+## Module `std::wit::ast`
+
+- Source: [`../../../std/wit/ast.ark`](../../../std/wit/ast.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+WIT AST node types and full WIT 1.0 text parser (#706).
+
+This module provides a recursive-descent parser for WIT 1.0 text
+syntax covering: package, world, interface, record, enum, flags,
+variant, resource, own/borrow, type aliases, use, and func
+declarations.
+
+The parser produces a `WitNode` tree that can be inspected with
+`WitNode::kind`, `WitNode::name`, and other accessor methods.
+
+### `std::wit::ast` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `WitNode` | `enum` | A node in the parsed WIT AST. |
+
+_No manifest-backed functions in this module._
+
 ## Module `std::wit::scan`
 
 - Source: [`../../../std/wit/scan.ark`](../../../std/wit/scan.ark)
@@ -103,7 +155,7 @@ _No manifest-backed functions in this module._
 
 WIT text scan utilities (#706).
 
-Low-level WIT text scanning helpers shared between `std::wit::parser`
+Low-level WIT text scanning helpers shared between the WIT parser
 and the compiler's `wit_parse_text_scan` module. `WitText` is an empty
 namespace type: ADR-046 forbids user-reachable free functions and the
 language cannot put associated functions in a module namespace, so the

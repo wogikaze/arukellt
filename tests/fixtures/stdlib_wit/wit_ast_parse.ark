@@ -2,7 +2,6 @@
 // Accessors are `WitNode` methods (#917).
 use std::host::stdio
 use std::wit::ast
-use std::wit::parser
 use std::wit::types
 use std::prelude::{contains, eq}
 fn main() {
@@ -99,11 +98,9 @@ fn main() {
     // import_metadata seals the recursive AST as scalar metadata before it
     // crosses the std::wit/compiler boundary.
     let src_meta = String_from("package test:host@0.1.0; interface math { add: func(a: s32, b: s32) -> s32; }")
-    let metadata = parser::parse_full_import_text(src_meta)
+    let metadata = ast::WitNode::import_metadata(src_meta)
     assert(contains(metadata, "header|test:host|0.1.0|math"))
     assert(contains(metadata, "func|add|s32~s32|s32"))
-    let metadata2 = ast::WitNode::import_metadata(src_meta)
-    assert(eq(metadata, metadata2))
 
     stdio::println(String_from("OK"))
 }

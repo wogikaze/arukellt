@@ -1,6 +1,6 @@
 //! WIT text scan utilities (#706).
 //!
-//! Low-level WIT text scanning helpers shared between `std::wit::parser`
+//! Low-level WIT text scanning helpers shared between the WIT parser
 //! and the compiler's `wit_parse_text_scan` module. `WitText` is an empty
 //! namespace type: ADR-046 forbids user-reachable free functions and the
 //! language cannot put associated functions in a module namespace, so the

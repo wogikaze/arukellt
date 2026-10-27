@@ -141,8 +141,8 @@ while i <= 13 {
 ```ark
 use std::component
 
-let abi = component::canonical_abi_version()
-let ver = component::component_model_version()
+let abi = component::Component::canonical_abi_version()
+let ver = component::Component::model_version()
 println(concat("ABI v", to_string(abi)))  // "ABI v1"
 println(concat("CM ", ver))                     // "CM 0.2.0"
 ```
