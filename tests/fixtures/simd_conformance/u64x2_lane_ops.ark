@@ -1,0 +1,56 @@
+// u64x2 lane surface: construction, arithmetic, and the unsigned comparisons
+// that Wasm SIMD emulates with a sign-bit flip over i64x2 signed compares.
+use std::simd::u64x2::U64x2
+use std::test
+
+fn lane(v: v128, index: i32) -> i64 {
+    U64x2::extract_lane(v, index)
+}
+
+fn construct_cases() {
+    let a = U64x2::splat(3i64)
+    let b = U64x2::replace_lane(a, 1, 5i64)
+    test::assert_eq_i64(lane(b, 1), 5i64)
+    test::assert_eq_i64(lane(U64x2::zero(), 1), 0i64)
+    let n = U64x2::new(7i64, 9i64)
+    test::assert_eq_i64(lane(n, 0), 7i64)
+    test::assert_eq_i64(lane(n, 1), 9i64)
+}
+
+fn arithmetic_cases() {
+    let a = U64x2::splat(3i64)
+    let b = U64x2::replace_lane(a, 1, 5i64)
+    test::assert_eq_i64(lane(U64x2::add(a, b), 1), 8i64)
+    test::assert_eq_i64(lane(U64x2::sub(b, a), 1), 2i64)
+    test::assert_eq_i64(lane(U64x2::mul(a, b), 1), 15i64)
+    test::assert_eq_i64(lane(U64x2::neg(a), 0), -3i64)
+    test::assert_eq_i64(lane(U64x2::abs(U64x2::splat(-3i64)), 0), 3i64)
+}
+
+fn comparison_cases() {
+    let a = U64x2::splat(3i64)
+    test::assert_eq_i64(lane(U64x2::eq(a, a), 0), -1i64)
+    test::assert_eq_i64(lane(U64x2::ne(a, a), 0), 0i64)
+    test::assert_eq_i64(lane(U64x2::lt_u(U64x2::splat(1i64), U64x2::splat(2i64)), 0), -1i64)
+    test::assert_eq_i64(lane(U64x2::le_u(U64x2::splat(2i64), U64x2::splat(2i64)), 0), -1i64)
+    test::assert_eq_i64(lane(U64x2::gt_u(U64x2::splat(3i64), U64x2::splat(2i64)), 0), -1i64)
+    test::assert_eq_i64(lane(U64x2::ge_u(U64x2::splat(1i64), U64x2::splat(2i64)), 0), 0i64)
+    // 0xFFFF_FFFF_FFFF_FFFF is the largest unsigned lane, not -1 < 1.
+    test::assert_eq_i64(lane(U64x2::lt_u(U64x2::splat(-1i64), U64x2::splat(1i64)), 0), 0i64)
+    test::assert_eq_i64(lane(U64x2::gt_u(U64x2::splat(-1i64), U64x2::splat(1i64)), 0), -1i64)
+    test::assert_eq_i64(lane(U64x2::le_u(U64x2::splat(-1i64), U64x2::splat(-1i64)), 0), -1i64)
+    test::assert_eq_i64(lane(U64x2::ge_u(U64x2::splat(-1i64), U64x2::splat(1i64)), 0), -1i64)
+}
+
+fn shift_cases() {
+    test::assert_eq_i64(lane(U64x2::shl(U64x2::splat(1i64), 3), 0), 8i64)
+    test::assert_eq_i64(lane(U64x2::shr_u(U64x2::splat(8i64), 3), 0), 1i64)
+    test::assert_eq_i64(lane(U64x2::shr_u(U64x2::splat(-1i64), 1), 0), 9223372036854775807i64)
+}
+
+fn main() {
+    construct_cases()
+    arithmetic_cases()
+    comparison_cases()
+    shift_cases()
+}

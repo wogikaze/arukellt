@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 183 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 91 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 54 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -33,7 +33,7 @@
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
-| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the to_vec snapshot used by its trait impls. Both families implement FromIterator<VecIter<T>>. |
+| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
@@ -54,6 +54,10 @@
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `String` | - | yes | stable | UTF-8 string value. |
+| `U16x8` | - | no | experimental | 8 × 16-bit unsigned integer lane associated operations over v128. |
+| `U32x4` | - | no | experimental | 4 × 32-bit unsigned integer lane associated operations over v128. |
+| `U64x2` | - | no | experimental | 2 × 64-bit unsigned integer lane associated operations over v128. |
+| `U8x16` | - | no | experimental | 16 × 8-bit unsigned integer lane associated operations over v128. |
 | `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
 | `ValType` | - | no | experimental | Value-type constants matching the Wasm binary encoding, including the reference types. |
 | `Vec` | T | yes | - | Growable contiguous sequence. |
@@ -109,17 +113,17 @@
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
 | `Error` | `message` | - |
-| `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
-| `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
+| `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs`, `neg` | - |
+| `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u`, `add`, `sub`, `mul`, `div`, `neg`, `sqrt`, `min`, `max` | - |
 | `File` | `open`, `create`, `close` | `Read`, `Write`, `Seek` |
 | `FromIterator` | `from_iter` | - |
 | `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
-| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
-| `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u` | - |
-| `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u` | - |
-| `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s` | - |
-| `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u` | - |
+| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `IntoIterator`, `Clone`, `Eq`, `Debug` |
+| `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u`, `mul`, `neg`, `abs`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `eq`, `ne`, `lt_s`, `le_s`, `gt_s`, `ge_s`, `lt_u`, `le_u`, `gt_u` | - |
+| `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
+| `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |
+| `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u`, `add`, `sub`, `mul`, `neg`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `le_s`, `le_u`, `ge_s`, `ge_u` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |
@@ -142,7 +146,11 @@
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
-| `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true` | - |
+| `U16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
+| `U32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
+| `U64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `shl`, `shr_u` | - |
+| `U8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
+| `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true`, `new` | - |
 | `ValType` | `i32`, `i64`, `f32`, `f64`, `v128`, `funcref`, `externref` | - |
 | `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend` | - |
 | `WasmModuleBuilder` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - |
@@ -667,48 +675,6 @@ let input = read_to_string()
 | `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `tau` | `() -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-
-## Simd
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abs` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `div` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `max` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `min` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i64) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sqrt` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 
 ## String
 

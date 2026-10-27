@@ -1,0 +1,27 @@
+// f32x4 neg and the f64x2 arithmetic/min/max surface: the neg opcode and the
+// f64x2 binary opcodes previously aliased abs/min/max and returned the input.
+use std::simd::f32x4::F32x4
+use std::simd::f64x2::F64x2
+use std::test
+use std::prelude::{f32_to_f64}
+
+fn f32_cases() {
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::neg(F32x4::splat(1.5f32)), 0)), -1.5)
+    test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::neg(F32x4::splat(-2.5f32)), 0)), 2.5)
+}
+
+fn f64_cases() {
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::add(F64x2::splat(1.5f64), F64x2::splat(2.5f64)), 0), 4.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::sub(F64x2::splat(5.0f64), F64x2::splat(2.0f64)), 0), 3.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::mul(F64x2::splat(3.0f64), F64x2::splat(2.0f64)), 0), 6.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::div(F64x2::splat(8.0f64), F64x2::splat(2.0f64)), 0), 4.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::neg(F64x2::splat(1.5f64)), 0), -1.5)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::sqrt(F64x2::splat(9.0f64)), 0), 3.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::min(F64x2::splat(2.0f64), F64x2::splat(5.0f64)), 0), 2.0)
+    test::assert_eq_f64(F64x2::extract_lane(F64x2::max(F64x2::splat(2.0f64), F64x2::splat(5.0f64)), 0), 5.0)
+}
+
+fn main() {
+    f32_cases()
+    f64_cases()
+}

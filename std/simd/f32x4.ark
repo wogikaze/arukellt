@@ -7,10 +7,7 @@
 
 /// Namespace for the f32x4 lane operations.
 ///
-/// The associated functions cover the lane operations whose emitter
-/// lowering is valid on both targets. Operations that still fail
-/// validation, trap, or produce wrong values stay as experimental
-/// free functions below until the SIMD lowering is fixed (#917).
+/// The associated functions cover every lane operation in this module.
 pub struct F32x4 {}
 
 impl F32x4 {
@@ -156,19 +153,11 @@ impl F32x4 {
     fn abs(a: v128) -> v128 {
         __simd_f32x4_abs(a)
     }
-}
 
-// --- Lowering-blocked operations ---
-//
-// The emitter cannot yet lower these operations to valid Wasm on both
-// targets, or lowers them to the wrong value / a trap. They stay as
-// experimental free functions until the SIMD lowering is fixed; migrating
-// them to the associated surface would advertise a replacement that does not
-// work. See issue #917 for the per-op evidence.
+    // --- Arithmetic ---
 
-// --- Arithmetic ---
-
-/// Lane-wise negation: -a
-pub fn neg(a: v128) -> v128 {
-    __simd_f32x4_neg(a)
+    /// Lane-wise negation: -a
+    fn neg(a: v128) -> v128 {
+        __simd_f32x4_neg(a)
+    }
 }

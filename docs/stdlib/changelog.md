@@ -16,60 +16,30 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-27 — std::core raw namespace surface (#917, ADR-046)
+## 2026-10-27 — std::simd lane namespace completion (#917, ADR-046)
 
-- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1/D2 for
-  the sealed stdlib-only representation module. `std::core::raw` is not
-  importable from user code (RFC-006), so no manifest stability entry, ADR-014
-  window, or W0009 row applied; the 20 declarations were unregistered
-  `pub fn` bridges.
-- **Surface**: `RawArray` (`new`, `len`, `get_unchecked`, `set_unchecked`,
-  `grow`, `set_len`), `RawString` (`new`, `from_bytes`, `len_bytes`,
-  `byte_at_unchecked`, `clone`, `push_char`, `parse_i32`, `parse_i64`,
-  `parse_f64`), and `RawFloat` (`sqrt`, `bits_lo`, `bits_hi`, `to_string`,
-  `promote_f32`) associated functions. The canonical `raw_*` spellings stay as
-  private CoreOp-bound helpers so `data/core-ops.toml` keeps driving GC/LM
-  lowering; the namespace spellings are registered as migration aliases plus
-  `RawArray__*` prefix patterns, and the module exports no
-  public free spelling.
-- **E0100**: `resolver::removed_names::removed_raw_member_hint` covers the 20
-  bare names (and `raw::` members) with public Vec / String / scalar
-  replacement hints; dual-target goldens are
-  `diagnostics/removed_raw_free*`.
-- **Compiler fixes (measured)**: the text parsers gained exact
-  `result:i32:String` / `result:i64:String` / `result:f64:String` rules (a
-  leaf-name match also claimed `JsonValue::parse_i32`, an i32 reader), and
-  `parse_i32` / `parse_i64` / `parse_f64` were removed from the
-  Option-returning builtin list (they declare `Result`). `RawArray` namespace
-  calls rewrite to the canonical `raw_array_*` CoreOp spellings before mono
-  resolution, so `Vec::new<String>` no longer instantiates the i32 wrapper.
-  The private `raw_string_new` shell uses `String_new()` because an emitted
-  `__intrinsic_string_new` body defaults its temp to i64, and
-  `raw_f32_promote_f64` calls `f32_to_f64` so the emitted f64 return types.
-- **Fixtures**: dual-target `stdlib_core/raw_consumer_surface*` (compile,
-  validate, run; `raw consumers ok`) and the `diagnostics/removed_raw_free*`
-  E0100 pair. The sealed module's `test mod` exercises the direct namespace
-  surface: `--target wasm32` PASS for all three suites; on wasm32-gc the
-  compiled test module validates (the parse bridge now types its Result
-  return), and the only remaining gap is the test wrapper not packaging the
-  P2 core module as a component for execution. The production consumer pair
-  compiles, validates, and runs on both targets.
-- **Verification**: `verify fixtures` **1879/1879 PASS**, 0 FAIL (1879
-  compile+validate, 110 runtime smoke, 2 runtime-unsupported by the P2 gate,
-  1 `test:` fixture PASS); this worktree's base gate was 1875, plus the 4 new
-  fixtures. `selfhost diag-parity` PASS; `docs check` 6/6; `verify lane` PASS;
-  cross-backend parity 2/2 for the new consumer pair; ADR-029 fixpoint PASS:
-  s2 == s3 at sha256
-  `5b0455216247ab3bf2563a67b0c7f6aa23bb77d468d4c5f8449255ab203646af`
-  (pinned base `04d4446b…`).
-- **Scorecard**: 491 → **471** public symbols; `associated-or-method`
-  421 → **401**; `pub fn` declarations 539 → **519**; unregistered
-  declarations 130 → **110**; manifest public entries stay 361. The
-  `host/core namespace frees` family drops from 55/20 to **55/0**.
-- **Residual**: `arukellt test --target wasm32-gc` emits a P2 core module
-  without component packaging, so the direct test module validates but cannot
-  be executed by the test wrapper. Production call sites and the consumer
-  fixture pair are unaffected.
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  ADR-014 D4 exception for `experimental` entries. The first lane wave moved
+  132 operations to `F32x4` … `V128`; this wave fixes the emitter and moves the
+  remaining 130, so no `std::simd` top-level free function remains.
+- **Emitter fixes**: corrected the 0xfd sub-opcode table (i8x16/i16x8/i32x4/
+  i64x2/f32x4/f64x2 arithmetic, neg, and load/store-lane values), registered
+  the missing comparison/min/max operations and dispatch branches, added the
+  unsigned-lane aliases plus `U8x16`/`U16x8`/`U32x4`/`U64x2` namespaces,
+  emulated `i8x16::mul` and the four unsigned `i64x2` compares, kept the i64x2
+  shift amount at wasm `i32`, and rebuilt `v128::new` from `i8x16` lanes.
+- **Removed**: the 130 remaining `pub fn` declarations and the 37 `std::simd`
+  `[[functions]]` manifest entries. `U8x16`, `U16x8`, `U32x4`, and `U64x2`
+  are new `[[types]]` entries; the existing type method lists now cover every
+  lane operation.
+- **Replacement**: the namespace associated functions on `F32x4`, `F64x2`,
+  `I8x16`, `I16x8`, `I32x4`, `I64x2`, `U8x16`, `U16x8`, `U32x4`, `U64x2`, and
+  `V128`. Qualified old calls keep the E0100 hint from
+  `resolver::removed_names`.
+- **Evidence**: `simd_conformance/{u8x16,u16x8,u32x4,u64x2,signed,float,v128_new}`
+  `_lane_ops`/`_new` fixtures plus their `_wasm32` twins execute on
+  `wasm32-gc` components and `--target wasm32`; the full fixture harness,
+  `selfhost fixpoint`, and the ADR-029 gate are recorded in the wave receipt.
 
 ## 2026-10-27 — std::core range/error/hash receiver surface (#917, ADR-087 Wave 2)
 

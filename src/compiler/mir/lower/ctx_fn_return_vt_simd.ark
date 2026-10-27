@@ -39,7 +39,29 @@ fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
     if simd_i16x8_is_v128(clone(bare_name)) {
         return true
     }
+    if ctx_is_v128_returning_unsigned_simd_intrinsic(bare_name) {
+        return true
+    }
     false
+}
+
+fn ctx_is_unsigned_lane_simd_intrinsic(bare_name: String) -> bool {
+    starts_with(clone(bare_name), "__simd_u8x16_") ||
+    starts_with(clone(bare_name), "__simd_u16x8_") ||
+    starts_with(clone(bare_name), "__simd_u32x4_") ||
+    starts_with(clone(bare_name), "__simd_u64x2_")
+}
+
+fn ctx_is_v128_returning_unsigned_simd_intrinsic(bare_name: String) -> bool {
+    if !ctx_is_unsigned_lane_simd_intrinsic(clone(bare_name)) {
+        return false
+    }
+    if ends_with(clone(bare_name), "_extract_lane") { return false }
+    if ends_with(clone(bare_name), "_extract_lane_s") { return false }
+    if ends_with(clone(bare_name), "_extract_lane_u") { return false }
+    if ends_with(clone(bare_name), "_all_true") { return false }
+    if ends_with(clone(bare_name), "_bitmask") { return false }
+    true
 }
 
 fn ctx_is_f32_returning_simd_intrinsic(bare_name: String) -> bool {
@@ -51,7 +73,8 @@ fn ctx_is_f64_returning_simd_intrinsic(bare_name: String) -> bool {
 }
 
 fn ctx_is_i64_returning_simd_intrinsic(bare_name: String) -> bool {
-    eq(clone(bare_name), "__simd_i64x2_extract_lane")
+    eq(clone(bare_name), "__simd_i64x2_extract_lane") ||
+    eq(clone(bare_name), "__simd_u64x2_extract_lane")
 }
 
 fn ctx_is_v128_returning_wasm_intrinsic(bare_name: String) -> bool {

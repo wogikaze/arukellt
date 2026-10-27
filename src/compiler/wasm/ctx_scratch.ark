@@ -1,4 +1,5 @@
 use wasm::ctx_record
+use wasm::emit_target
 
 fn SelfEmitCtx_scratch_base(ctx: SelfEmitCtx) -> i32 {
     ctx.scratch_base
@@ -42,36 +43,41 @@ fn SelfEmitCtx_scratch_gc_v128_array_local(ctx: SelfEmitCtx, offset: i32) -> i32
     ctx.scratch_base + 27 + offset
 }
 
+// Linear frames append the v128 slots after the linear root cursor; GC frames
+// keep the original group position.
 fn SelfEmitCtx_scratch_v128_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return ctx.scratch_base + 17 + offset
+    }
     ctx.scratch_base + 29 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_i64_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 30 + offset
+    ctx.scratch_base + 31 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_f64_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 32 + offset
+    ctx.scratch_base + 33 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_struct_ref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 34 + offset
+    ctx.scratch_base + 35 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 36 + offset
-}
-
-fn SelfEmitCtx_scratch_gc_fnref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
     ctx.scratch_base + 37 + offset
 }
 
+fn SelfEmitCtx_scratch_gc_fnref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + 38 + offset
+}
+
 fn SelfEmitCtx_scratch_gc_fnref_val_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 39 + offset
+    ctx.scratch_base + 40 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_enum_ref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 40 + offset
+    ctx.scratch_base + 41 + offset
 }
 
 fn SelfEmitCtx_set_scratch_base(ctx: SelfEmitCtx, scratch_base: i32) {

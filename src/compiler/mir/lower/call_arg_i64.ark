@@ -149,6 +149,12 @@ fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
     if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
         return false
     }
+    // SIMD intrinsics carry their operand types in the call site: the i64x2
+    // lane name does not make the i32 shift amount an i64. Stretching it
+    // leaves an i64 operand for i64x2.shl on memory32 (#917).
+    if starts_with(clone(callee_name), String_from("__simd_")) {
+        return false
+    }
     // Element-type suffixes (*_i64) do not mean the trailing arg is i64.
     // vec_get_unchecked_i64 keeps an i32 index; extending it breaks validate (#807).
     if contains(clone(callee_name), String_from("get_unchecked")) {

@@ -743,6 +743,62 @@ classified there, in dependency-safe waves.
 - [x] Update user-facing docs/examples in the same PR that retires a
       symbol family (docs-sync gate).
 
+### Landed slice (wave/simd-lowering, 2026-10-27)
+
+- **Emitter root causes fixed** (pre-existing, exposed by the lane wave):
+  wrong draft 0xfd sub-opcodes for `i8x16`/`i16x8`/`i32x4`/`i64x2`/
+  `f32x4`/`f64x2` arithmetic and `neg` (e.g. `i8x16.add` emitted
+  `0x7e`, `f32x4.neg` aliased `abs`, `f64x2.add` aliased `min`); missing
+  core-op registry entries, aliases, and dispatch branches for
+  `i8x16::{le_s,le_u,ge_s,ge_u}`, the `i16x8` comparison set,
+  `i16x8::extend_low_i8x16_u`, `i32x4::max_u`, `i64x2::gt_s`, and
+  `f64x2::{min,max}`; no lowering at all for the four unsigned lane modules
+  (their intrinsic names were unknown, so the ABI degraded to i64 and failed
+  validation); `i8x16.mul` (no Wasm instruction) and the unsigned `i64x2`
+  compares (no Wasm instruction) had no emulation; the MIR argument heuristic
+  promoted the `i64x2` shift amount from `i32` to `i64` because the intrinsic
+  name contains `i64`; and `__simd_v128_const` emitted the all-zero vector
+  regardless of its byte arguments, which made `v128::new` return zero.
+- **Fix shape**: corrected the opcode table; registered the missing operations
+  and aliases (22 new `core_ops`, 92 aliases) and added the dispatch branches;
+  mapped the 74 unsigned lane intrinsics onto the signed machine ops where the
+  bits agree (adding the unsigned compare/min/max forms); emulated
+  `i8x16.mul` with `i16x8` products + low-byte mask + unsigned narrowing and
+  the unsigned `i64x2` compares with a sign-bit flip over the signed compare;
+  added the second v128 scratch slot for both GC and linear frames; kept the
+  i64x2 shift amount at Wasm `i32`; rebuilt `v128::new` from `i8x16` lanes.
+- **Migration**: all 130 remaining free functions moved onto their lane
+  namespace types and the 37 `std::simd` manifest `[[functions]]` entries were
+  deleted (all `experimental`, ADR-014 D4). `U8x16`, `U16x8`, `U32x4`, and
+  `U64x2` are new `[[types]]` entries; the existing type method lists gained
+  the newly unblocked methods. The `std::simd frees` rule was removed from
+  `docs/data/stdlib-api-eradication.toml`.
+- **Fixtures**: `simd_conformance/{u8x16,u16x8,u32x4,u64x2,signed,float,v128_new}`
+  lane fixtures plus `_wasm32` twins (`--target wasm32 --wasi-version wasi-p1
+  --memory-width memory32`). They assert values, not just validity, and cover
+  the unsigned-only compare/min/max lanes, saturating arithmetic, `i8x16.mul`,
+  `v128::new`, `i8x16`/`i16x8` le/ge, `i16x8` extend_u, `i32x4::max_u`,
+  `i64x2::gt_s`, and the `f32x4`/`f64x2` fixes.
+- **Scorecard delta**: 491 → **378** public symbols; manifest functions 362 →
+  **325** (public 361 → **324**); `associated-or-method` 421 → **308**;
+  unregistered declarations 130 → **54**; `must delete` 70 and
+  `intrinsic-only` 1 unchanged. The fixture registry grows 3331 → **3345**.
+- **Verification**: `verify fixtures` **1891/1891 PASS / 0 FAIL** (110 runtime
+  smoke, 1 `test:` fixture PASS); the 18 `simd_conformance` fixtures execute on
+  both targets; `wasm-tools validate` passes the full-surface probe in the
+  memory64 GC core, the memory32 GC component, and the linear wasm32 forms;
+  `docs check` 6/6; `check-stdlib-eradication`,
+  `check-core-op-compiler-validator`, `check-native-cpp-capabilities`,
+  `check-compat-orphans`, and `check-semantic-debt` clean; `verify lane` PASS;
+  ADR-029 fixpoint s2 == s3 at `093412d160d0a040` (pinned base
+  `04d4446b`).
+- **Residuals**: the `std::wasm` v128 memory frees and their `V128Memory`
+  associated form still lack `v128.load`/`store` lowering; the scoreboard
+  generator still counts manifest functions only, so the simd families (now
+  type-associated, no function entries) no longer appear as rows while
+  `reference.md` lists the types and methods; and the 308 remaining
+  `associated-or-method` symbols stay in their own lanes.
+
 ## Acceptance
 
 - [ ] Generated scorecard shows 0 public free functions, 0

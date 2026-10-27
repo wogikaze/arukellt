@@ -7,10 +7,7 @@
 
 /// Namespace for the i64x2 lane operations.
 ///
-/// The associated functions cover the lane operations whose emitter
-/// lowering is valid on both targets. Operations that still fail
-/// validation, trap, or produce wrong values stay as experimental
-/// free functions below until the SIMD lowering is fixed (#917).
+/// The associated functions cover every lane operation in this module.
 pub struct I64x2 {}
 
 impl I64x2 {
@@ -77,63 +74,55 @@ impl I64x2 {
     fn ge_s(a: v128, b: v128) -> v128 {
         __simd_i64x2_ge_s(a, b)
     }
-}
 
-// --- Lowering-blocked operations ---
-//
-// The emitter cannot yet lower these operations to valid Wasm on both
-// targets, or lowers them to the wrong value / a trap. They stay as
-// experimental free functions until the SIMD lowering is fixed; migrating
-// them to the associated surface would advertise a replacement that does not
-// work. See issue #917 for the per-op evidence.
+    // --- Arithmetic ---
 
-// --- Arithmetic ---
+    /// Lane-wise addition: a + b
+    fn add(a: v128, b: v128) -> v128 {
+        __simd_i64x2_add(a, b)
+    }
 
-/// Lane-wise addition: a + b
-pub fn add(a: v128, b: v128) -> v128 {
-    __simd_i64x2_add(a, b)
-}
+    /// Lane-wise subtraction: a - b
+    fn sub(a: v128, b: v128) -> v128 {
+        __simd_i64x2_sub(a, b)
+    }
 
-/// Lane-wise subtraction: a - b
-pub fn sub(a: v128, b: v128) -> v128 {
-    __simd_i64x2_sub(a, b)
-}
+    /// Lane-wise multiplication: a * b
+    fn mul(a: v128, b: v128) -> v128 {
+        __simd_i64x2_mul(a, b)
+    }
 
-/// Lane-wise multiplication: a * b
-pub fn mul(a: v128, b: v128) -> v128 {
-    __simd_i64x2_mul(a, b)
-}
+    /// Lane-wise negation: -a
+    fn neg(a: v128) -> v128 {
+        __simd_i64x2_neg(a)
+    }
 
-/// Lane-wise negation: -a
-pub fn neg(a: v128) -> v128 {
-    __simd_i64x2_neg(a)
-}
+    /// Lane-wise absolute value.
+    fn abs(a: v128) -> v128 {
+        __simd_i64x2_abs(a)
+    }
 
-/// Lane-wise absolute value.
-pub fn abs(a: v128) -> v128 {
-    __simd_i64x2_abs(a)
-}
+    // --- Comparison ---
 
-// --- Comparison ---
+    /// Lane-wise greater-than (signed).
+    fn gt_s(a: v128, b: v128) -> v128 {
+        __simd_i64x2_gt_s(a, b)
+    }
 
-/// Lane-wise greater-than (signed).
-pub fn gt_s(a: v128, b: v128) -> v128 {
-    __simd_i64x2_gt_s(a, b)
-}
+    // --- Shift ---
 
-// --- Shift ---
+    /// Lane-wise left shift by a scalar shift amount.
+    fn shl(a: v128, shift: i32) -> v128 {
+        __simd_i64x2_shl(a, shift)
+    }
 
-/// Lane-wise left shift by a scalar shift amount.
-pub fn shl(a: v128, shift: i32) -> v128 {
-    __simd_i64x2_shl(a, shift)
-}
+    /// Lane-wise right shift (signed / arithmetic).
+    fn shr_s(a: v128, shift: i32) -> v128 {
+        __simd_i64x2_shr_s(a, shift)
+    }
 
-/// Lane-wise right shift (signed / arithmetic).
-pub fn shr_s(a: v128, shift: i32) -> v128 {
-    __simd_i64x2_shr_s(a, shift)
-}
-
-/// Lane-wise right shift (unsigned / logical).
-pub fn shr_u(a: v128, shift: i32) -> v128 {
-    __simd_i64x2_shr_u(a, shift)
+    /// Lane-wise right shift (unsigned / logical).
+    fn shr_u(a: v128, shift: i32) -> v128 {
+        __simd_i64x2_shr_u(a, shift)
+    }
 }

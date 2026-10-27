@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 293
+- **Canonical names:** 256
 - **Historical/deprecated names:** 68
-- **Total entries:** 361
+- **Total entries:** 324
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -24,15 +24,6 @@ Current public API names, sorted alphabetically.
 | `abort` | `std::host::process` | `stable` | Host Process |
 | `abort` | `std::process` | `stable` | Process |
 | `abs` | `prelude` | `stable` | Math |
-| `abs` | `std::simd::i64x2` | `experimental` | Simd |
-| `abs` | `std::simd::i16x8` | `experimental` | Simd |
-| `add` | `std::simd::f64x2` | `experimental` | Simd |
-| `add` | `std::simd::i64x2` | `experimental` | Simd |
-| `add` | `std::simd::i8x16` | `experimental` | Simd |
-| `add` | `std::simd::u8x16` | `experimental` | Simd |
-| `add` | `std::simd::u16x8` | `experimental` | Simd |
-| `add` | `std::simd::u32x4` | `experimental` | Simd |
-| `add` | `std::simd::u64x2` | `experimental` | Simd |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_get` | `std::collections::compiler` | `experimental` | Collections |
@@ -95,7 +86,6 @@ Current public API names, sorted alphabetically.
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `contains` | `prelude` | `stable` | String |
 | `cos_approx` | `std::signal` | `stable` | Signal |
-| `div` | `std::simd::f64x2` | `experimental` | Simd |
 | `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
@@ -194,24 +184,13 @@ Current public API names, sorted alphabetically.
 | `lower_bound` | `std::seq` | `provisional` | Seq |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `max` | `prelude` | `stable` | Math |
-| `max` | `std::simd::f64x2` | `experimental` | Simd |
 | `max_by` | `std::seq` | `provisional` | Seq |
 | `max_by_key` | `std::seq` | `provisional` | Seq |
 | `metadata` | `std::fs` | `provisional` | Fs |
 | `min` | `prelude` | `stable` | Math |
-| `min` | `std::simd::f64x2` | `experimental` | Simd |
 | `min_by` | `std::seq` | `provisional` | Seq |
 | `min_by_key` | `std::seq` | `provisional` | Seq |
 | `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
-| `mul` | `std::simd::f64x2` | `experimental` | Simd |
-| `mul` | `std::simd::i64x2` | `experimental` | Simd |
-| `mul` | `std::simd::i8x16` | `experimental` | Simd |
-| `mul` | `std::simd::i16x8` | `experimental` | Simd |
-| `neg` | `std::simd::f32x4` | `experimental` | Simd |
-| `neg` | `std::simd::f64x2` | `experimental` | Simd |
-| `neg` | `std::simd::i64x2` | `experimental` | Simd |
-| `neg` | `std::simd::i8x16` | `experimental` | Simd |
-| `neg` | `std::simd::i16x8` | `experimental` | Simd |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `now_ms` | `std::host::clock` | `stable` | Host Clock |
 | `option` | `std::cli` | `stable` | Cli |
@@ -261,26 +240,14 @@ Current public API names, sorted alphabetically.
 | `sorted_map_insert` | `std::collections::ordered` | `stable` | Collections |
 | `sorted_map_len` | `std::collections::ordered` | `stable` | Collections |
 | `sorted_map_new` | `std::collections::ordered` | `stable` | Collections |
-| `splat` | `std::simd::u8x16` | `experimental` | Simd |
-| `splat` | `std::simd::u16x8` | `experimental` | Simd |
-| `splat` | `std::simd::u32x4` | `experimental` | Simd |
-| `splat` | `std::simd::u64x2` | `experimental` | Simd |
 | `split` | `prelude` | `stable` | String |
 | `sqrt` | `prelude` | `stable` | Math |
-| `sqrt` | `std::simd::f64x2` | `experimental` | Simd |
 | `starts_with` | `prelude` | `stable` | String |
 | `stderr` | `std::io` | `stable` | Io |
 | `stdin` | `std::io` | `stable` | Io |
 | `stdout` | `std::io` | `stable` | Io |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
-| `sub` | `std::simd::f64x2` | `experimental` | Simd |
-| `sub` | `std::simd::i64x2` | `experimental` | Simd |
-| `sub` | `std::simd::i8x16` | `experimental` | Simd |
-| `sub` | `std::simd::u8x16` | `experimental` | Simd |
-| `sub` | `std::simd::u16x8` | `experimental` | Simd |
-| `sub` | `std::simd::u32x4` | `experimental` | Simd |
-| `sub` | `std::simd::u64x2` | `experimental` | Simd |
 | `substring` | `prelude` | `stable` | String |
 | `tau` | `std::signal` | `stable` | Signal |
 | `to_lower` | `prelude` | `stable` | String |
@@ -309,10 +276,6 @@ Current public API names, sorted alphabetically.
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
 | `write_string` | `std::host::fs` | `provisional` | Host Fs |
-| `zero` | `std::simd::u8x16` | `experimental` | Simd |
-| `zero` | `std::simd::u16x8` | `experimental` | Simd |
-| `zero` | `std::simd::u32x4` | `experimental` | Simd |
-| `zero` | `std::simd::u64x2` | `experimental` | Simd |
 | `zeros` | `std::signal` | `stable` | Signal |
 
 ---
@@ -403,15 +366,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abort` | ✅ `stable` | `std::host::process` | Host Process |
 | `abort` | ✅ `stable` | `std::process` | Process |
 | `abs` | ✅ `stable` | `prelude` | Math |
-| `abs` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `abs` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| `add` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `add` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `add` | ✅ `experimental` | `std::simd::i8x16` | Simd |
-| `add` | ✅ `experimental` | `std::simd::u8x16` | Simd |
-| `add` | ✅ `experimental` | `std::simd::u16x8` | Simd |
-| `add` | ✅ `experimental` | `std::simd::u32x4` | Simd |
-| `add` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -492,7 +446,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`deque_push_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_back` · [migration guide](migration-guidance.md) |
 | ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
-| `div` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
@@ -622,26 +575,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::map` · [migration guide](migration-guidance.md) |
 | `max` | ✅ `stable` | `prelude` | Math |
-| `max` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `max_by` | ✅ `provisional` | `std::seq` | Seq |
 | `max_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::max_by` · [migration guide](migration-guidance.md) |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
 | `min` | ✅ `stable` | `prelude` | Math |
-| `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `min_by` | ✅ `provisional` | `std::seq` | Seq |
 | `min_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::min_by` · [migration guide](migration-guidance.md) |
 | `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
-| `mul` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `mul` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `mul` | ✅ `experimental` | `std::simd::i8x16` | Simd |
-| `mul` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| `neg` | ✅ `experimental` | `std::simd::f32x4` | Simd |
-| `neg` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `neg` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `neg` | ✅ `experimental` | `std::simd::i8x16` | Simd |
-| `neg` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `option` | ✅ `stable` | `std::cli` | Cli |
@@ -699,26 +641,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sorted_map_insert` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `sorted_map_len` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `sorted_map_new` | ✅ `stable` | `std::collections::ordered` | Collections |
-| `splat` | ✅ `experimental` | `std::simd::u8x16` | Simd |
-| `splat` | ✅ `experimental` | `std::simd::u16x8` | Simd |
-| `splat` | ✅ `experimental` | `std::simd::u32x4` | Simd |
-| `splat` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `split` | ✅ `stable` | `prelude` | String |
 | `sqrt` | ✅ `stable` | `prelude` | Math |
-| `sqrt` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `stderr` | ✅ `stable` | `std::io` | Io |
 | `stdin` | ✅ `stable` | `std::io` | Io |
 | `stdout` | ✅ `stable` | `std::io` | Io |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |
-| `sub` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `sub` | ✅ `experimental` | `std::simd::i64x2` | Simd |
-| `sub` | ✅ `experimental` | `std::simd::i8x16` | Simd |
-| `sub` | ✅ `experimental` | `std::simd::u8x16` | Simd |
-| `sub` | ✅ `experimental` | `std::simd::u16x8` | Simd |
-| `sub` | ✅ `experimental` | `std::simd::u32x4` | Simd |
-| `sub` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `substring` | ✅ `stable` | `prelude` | String |
 | ~~`sum_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::sum` · [migration guide](migration-guidance.md) |
 | ~~`take_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::take` · [migration guide](migration-guidance.md) |
@@ -756,8 +686,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | ~~`writer_write`~~ | ⚠️ deprecated | `std::io` | → `Writer::write` · [migration guide](migration-guidance.md) |
 | ~~`writer_write_str`~~ | ⚠️ deprecated | `std::io` | → `Writer::write_string` · [migration guide](migration-guidance.md) |
-| `zero` | ✅ `experimental` | `std::simd::u8x16` | Simd |
-| `zero` | ✅ `experimental` | `std::simd::u16x8` | Simd |
-| `zero` | ✅ `experimental` | `std::simd::u32x4` | Simd |
-| `zero` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |

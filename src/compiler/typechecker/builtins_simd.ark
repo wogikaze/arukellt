@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone, ends_with, eq, starts_with}
 use typechecker::kinds
 use typechecker::builtins_simd_lanes
 use typechecker::contract_type_access
@@ -8,6 +8,8 @@ fn simple_type(tag: i32) -> TypeInfo {
 }
 
 fn simd_builtin_call_return_type(name: String) -> TypeInfo {
+    if simd_return_unsigned_v128(clone(name)) { return simple_type(commands::TY_V128()) }
+    if eq(clone(name), "__simd_u64x2_extract_lane") { return simple_type(commands::TY_I64()) }
     // v128 raw bitwise (except any_true -> i32)
     if simd_return_v128_bitwise(clone(name)) { return simple_type(commands::TY_V128()) }
     // f32x4 (except extract_lane -> f32)
@@ -36,6 +38,24 @@ fn simd_builtin_call_return_type(name: String) -> TypeInfo {
 
     // Unknown
     simple_type(commands::TY_UNKNOWN())
+}
+
+// Unsigned lane families share the signed machine instructions (and add the
+// unsigned compare/min/max variants), so only extract_lane returns a scalar.
+fn simd_return_unsigned_v128(name: String) -> bool {
+    if !starts_with(clone(name), "__simd_u8x16_") &&
+    !starts_with(clone(name), "__simd_u16x8_") &&
+    !starts_with(clone(name), "__simd_u32x4_") &&
+    !starts_with(clone(name), "__simd_u64x2_") {
+        return false
+    }
+    if ends_with(clone(name), "_extract_lane") {
+        return false
+    }
+    if ends_with(clone(name), "_extract_lane_u") {
+        return false
+    }
+    true
 }
 
 // v128 raw bitwise (except any_true -> i32)

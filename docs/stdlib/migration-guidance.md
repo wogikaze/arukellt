@@ -644,9 +644,11 @@ retired; their `string::*` spellings also carry E0100 hints.
 ## std::simd lane namespace wave (ADR-046, 2026-10-27)
 
 The `std::simd` lane modules were `experimental` free-function modules. The
-wave moves the 132 operations whose emitter lowering is valid on both
-`wasm32-gc` and `--target wasm32` to one namespace type per lane module. The
-old qualified call shape maps directly:
+wave first moved the 132 operations whose emitter lowering was already valid
+on both `wasm32-gc` and `--target wasm32` to one namespace type per lane
+module, then the SIMD lowering fix moved the remaining 130. Every lane
+operation is now an associated function; no top-level free function remains.
+The old qualified call shape maps directly:
 
 ```ark
 // before
@@ -658,51 +660,58 @@ use std::simd::f32x4::F32x4
 let v = F32x4::add(F32x4::splat(1.0f32), F32x4::splat(2.0f32))
 ```
 
-The `[[functions]]` entries for the migrated operations are gone and their
-`[[types]]` method lists are the manifest surface. Because the entries were
-`experimental`, ADR-014 D4 allows direct deletion; no W0009 deprecation window
-was opened and no `deprecated_by` entry was added. A qualified old call such as
+The `[[functions]]` entries are gone and their `[[types]]` method lists are
+the manifest surface. Because the entries were `experimental`, ADR-014 D4
+allowed direct deletion; no W0009 deprecation window was opened and no
+`deprecated_by` entry was added. A qualified old call such as
 `f32x4::splat(...)` fails resolution with an **E0100** hint that names
 `F32x4::splat(...)` and the import path.
 
-| Module | Namespace type | Associated functions (migrated) |
-|--------|----------------|----------------------------------|
-| `std::simd::f32x4` | `F32x4` | all except `neg` |
-| `std::simd::f64x2` | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` |
-| `std::simd::i8x16` | `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u` |
-| `std::simd::i16x8` | `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u` |
-| `std::simd::i32x4` | `I32x4` | all except `max_u` |
-| `std::simd::i64x2` | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s` |
-| `std::simd::v128` | `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true` |
-| `std::simd::u8x16` / `u16x8` / `u32x4` / `u64x2` | — | none; every operation still fails Wasm validation |
+| Module | Namespace type | Associated functions |
+|--------|----------------|----------------------|
+| `std::simd::f32x4` | `F32x4` | all lane operations |
+| `std::simd::f64x2` | `F64x2` | all lane operations |
+| `std::simd::i8x16` | `I8x16` | all lane operations |
+| `std::simd::i16x8` | `I16x8` | all lane operations |
+| `std::simd::i32x4` | `I32x4` | all lane operations |
+| `std::simd::i64x2` | `I64x2` | all lane operations |
+| `std::simd::u8x16` | `U8x16` | all lane operations |
+| `std::simd::u16x8` | `U16x8` | all lane operations |
+| `std::simd::u32x4` | `U32x4` | all lane operations |
+| `std::simd::u64x2` | `U64x2` | all lane operations |
+| `std::simd::v128` | `V128` | all lane operations |
 
-### Retained: lowering-blocked frees (130)
+### Lowering fixes that unblocked the final 130
 
-The other 130 operations stay as experimental free functions. A method
-replacement is not advertised for an operation that cannot run:
+The emitter fixes landed after the lane surface so that both canonical targets
+lower every operation:
 
-- **98 fail Wasm validation on both targets** (the complete `u8x16`, `u16x8`,
-  `u32x4`, and `u64x2` modules, plus `f64x2::{neg, sqrt}`,
-  `i8x16::{neg, sub_sat_u}`, `i16x8::{neg, abs, add_sat_s, add_sat_u,
-  sub_sat_s, sub_sat_u}`, and `i64x2::{add, neg, abs, shl, shr_s, shr_u}`).
-  The exact `wasm-tools validate` diagnostics are recorded in issue #917;
-  the emitter either emits a missing operand (`expected v128 but nothing on
-  the stack`), an unknown `0xfd` subopcode, or an i64/i32 lane-width
-  mismatch.
-- **32 validate but trap or return the wrong value**:
-  `f32x4::neg` (returns the input), `f64x2::{add, sub, mul, div}` (return the
-  first operand), `f64x2::{min, max}` (trap in an unresolved call),
-  `i8x16::{add, sub, mul, add_sat_s, add_sat_u, sub_sat_s}` (wrong lane
-  values), `i8x16::{le_s, le_u, ge_s, ge_u}` (trap), `i16x8::mul` (returns
-  the input), `i16x8::{eq, ne, lt_s, le_s, gt_s, ge_s, lt_u, le_u, gt_u}`
-  (trap), `i32x4::max_u` (trap), `i64x2::{sub, mul}` (return the input),
-  `i64x2::gt_s` (trap), and `v128::new` (returns an all-zero vector).
+- The SIMD sub-opcode table had draft values for `i8x16`/`i16x8`/`i64x2`/
+  `f32x4`/`f64x2` arithmetic and for the load/store-lane group. Corrected
+  values make `f32x4::neg`, the `f64x2` arithmetic/min/max set, the saturating
+  `i8x16`/`i16x8` ops, `i16x8::mul`, and the `i64x2` arithmetic/shift ops
+  emit the intended instruction.
+- The `i8x16`, `i16x8`, `i32x4`, and `i64x2` comparisons that were missing
+  from the core-op registry and the 0xfd dispatch now have both (`le_s`/`le_u`/
+  `ge_s`/`ge_u`, the full `i16x8` set, `i32x4::max_u`, `i64x2::gt_s`,
+  `f64x2::min`/`max`).
+- Unsigned lane intrinsics (`__simd_u8x16_*`, `u16x8`, `u32x4`, `u64x2`) are
+  aliases of the corresponding signed machine ops where the bits agree, and
+  have dedicated lowering for the unsigned-only compare/min/max forms.
+- `i8x16::mul` has no Wasm instruction; the emitter multiplies the low and
+  high halves as `i16x8` products, masks the low byte, and narrows.
+- `u64x2::{lt_u, le_u, gt_u, ge_u}` have no Wasm instruction; the emitter
+  flips each lane's sign bit and uses the signed `i64x2` compare.
+- The i64x2 shift amount is an `i32` in Wasm; the MIR argument heuristic no
+  longer promotes it to `i64` just because the intrinsic name contains `i64`.
+- `v128::new` builds its byte lanes with `i8x16` replacement instead of the
+  constant intrinsic, whose emitter only supported the all-zero vector.
 
-The per-op evidence is the wave receipt on issue #917. The existing
-`simd_conformance` / `simd_lowering` / `simd_gc_storage` / `v128_basic`
-fixtures were migrated to the associated spelling; the new
-`stdlib_simd/simd_method_surface.ark` + `_wasm32.ark` pair asserts the values
-of the migrated surface on both targets, and
+The new `simd_conformance/u8x16_lane_ops`, `u16x8_lane_ops`,
+`u32x4_lane_ops`, `u64x2_lane_ops`, `signed_lane_ops`, `float_lane_ops`, and
+`v128_new` fixtures (each with a `_wasm32` twin) execute the full fixed surface
+on both targets. The existing `stdlib_simd/simd_method_surface.ark` +
+`_wasm32.ark` pair covers the original migrated surface, and
 `diagnostics/removed_simd_free.ark` + `_wasm32.ark` pin the E0100 hint.
 
 ## std::bytes method wave (ADR-087, 2026-10-27)
