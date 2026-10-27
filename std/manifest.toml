@@ -2760,9 +2760,9 @@ doc = "Return the element of v whose key(element) is maximal under K: Ord."
 # entries were retired by the #917 component wave. Their replacements are
 # associated functions on `Component` and receiver methods on
 # `HandleTableI32` (ADR-044/ADR-046); experimental entries may be deleted
-# directly under ADR-014 D4, so no deprecation window applies. The
-# `std::component::canonical` frees stay until method/associated forms can
-# return `Result<String, Error>` without miscompiling.
+# directly under ADR-014 D4, so no deprecation window applies. The 7
+# `std::component::canonical` frees were retired the same way onto the
+# `Component` canonical ABI associated functions.
 
 [[types]]
 name = "Component"
@@ -2770,8 +2770,8 @@ module = "std::component"
 stability = "experimental"
 prelude = false
 kind = "struct"
-doc = "Namespace for Component Model version constants; canonical_abi_version and model_version are associated functions."
-methods = ["canonical_abi_version", "model_version"]
+doc = "Namespace for Component Model version constants and canonical ABI scratch lift/lower helpers; all entries are associated functions."
+methods = ["canonical_abi_version", "model_version", "scratch_new", "lower_string", "lift_string", "lift_string_at", "lower_list_i32", "lift_list_i32", "lift_list_i32_at"]
 
 [[types]]
 name = "HandleTableI32"

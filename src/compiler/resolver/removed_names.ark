@@ -115,6 +115,8 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "i64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
     if eq(clone(name), "f64_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
     if eq(clone(name), "bool_to_string") { return "removed prelude free function; use `x.to_string()` (inherent method)" }
+    let canonical_hint = removed_canonical_member_hint(clone(name))
+    if len(clone(canonical_hint)) > 0 { return canonical_hint }
     if eq(clone(name), "Vec_new") { return "removed Vec constructor; use `Vec::new<T>()`" }
     if eq(clone(name), "Vec_new_i32") { return "removed Vec constructor; use `Vec::new<i32>()`" }
     if eq(clone(name), "Vec_new_String") { return "removed Vec constructor; use `Vec::new<String>()`" }
@@ -133,69 +135,9 @@ fn removed_name_specific_hint(name: String) -> String {
 // only knows the removed member name after the module head resolved. Keep the
 // per-module entries here so ADR-085 Phase F removals still produce an E0100
 // migration hint instead of a bare "undefined module member".
-fn removed_bytes_member_hint(name: String) -> String {
-    if eq(clone(name), "bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(name), "bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(name), "bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
-    if eq(clone(name), "bytes_push") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(name), "bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
-    if eq(clone(name), "bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
-    if eq(clone(name), "string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
-    if eq(clone(name), "bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
-    if eq(clone(name), "bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
-    if eq(clone(name), "byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
-    if eq(clone(name), "hex_encode") { return String_from("use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
-    if eq(clone(name), "u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
-    if eq(clone(name), "u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
-    if eq(clone(name), "bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "buf_new") { return String_from("use `Vec::new<i32>()` instead") }
-    if eq(clone(name), "buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
-    if eq(clone(name), "buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
-    if eq(clone(name), "buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
-    if eq(clone(name), "buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
-    if eq(clone(name), "buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
-    if eq(clone(name), "buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
-    if eq(clone(name), "buf_freeze") { return String_from("use `b.freeze()` (identity; both layouts are `Vec<i32>`)") }
-    if eq(clone(name), "buf_len") { return String_from("use `b.len()` on the byte vector instead") }
-    if eq(clone(name), "cursor_new") { return String_from("use `data.byte_cursor()` instead") }
-    if eq(clone(name), "cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
-    if eq(clone(name), "cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
-    if eq(clone(name), "read_u8") { return String_from("use `c.read_u8()` instead") }
-    if eq(clone(name), "read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
-    if eq(clone(name), "read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
-    if eq(clone(name), "read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
-    if eq(clone(name), "read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
-    if eq(clone(name), "read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
-    if eq(clone(name), "base64_encode") { return String_from("use `b.to_base64()` instead") }
-    if eq(clone(name), "base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
-    if eq(clone(name), "leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
-    if eq(clone(name), "leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
-    if eq(clone(name), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
-    if eq(clone(name), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
-    if eq(clone(name), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
-    if eq(clone(name), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
-    if eq(clone(name), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
-    if eq(clone(name), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
-    if eq(clone(name), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
-    String_new()
-}
-
 pub fn removed_module_member_hint(module: String, name: String) -> String {
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
-    }
-    if eq(clone(module), "bytes") {
-        return removed_bytes_member_hint(name)
     }
     if eq(clone(module), "wit") || eq(clone(module), "types") {
         return removed_wit_type_member_hint(name)
@@ -218,6 +160,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "handle") {
         return removed_component_handle_member_hint(name)
     }
+    if eq(clone(module), "canonical") {
+        return removed_canonical_member_hint(name)
+    }
     if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
         return String_from("use `w.to_wit()` on `World` instead")
     }
@@ -236,6 +181,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "iter") {
         return removed_iter_member_hint(name)
     }
+    if eq(clone(module), "bytes") {
+        return removed_bytes_member_hint(name)
+    }
     let simd_type = removed_simd_lane_type(clone(module))
     if len(clone(simd_type)) > 0 {
         return "removed free function; call `"
@@ -245,9 +193,6 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
         .concat("(...)` with the namespace type from `use std::simd::")
         .concat(clone(module))
         .concat("` instead")
-    }
-    if eq(clone(module), "wasm") {
-        return removed_wasm_member_hint(name)
     }
     if !eq(clone(module), "io") {
         return String_new()
@@ -370,6 +315,67 @@ fn removed_text_member_hint(name: String) -> String {
     if eq(clone(name), "builder_append_line") { return String_from("use `s.concat(text).concat(newline)` instead") }
     if eq(clone(name), "builder_build") { return String_from("use the builder string directly instead") }
     if eq(clone(name), "builder_len") { return String_from("use `s.len()` on `String` instead") }
+    String_new()
+}
+
+// The std::bytes free surface was retired in the ADR-087 Wave 2 deletion
+// (#917). Every qualified old call now fails resolution with an E0100 hint
+// naming the `Vec<i32>` / `Bytes` replacement; the eight unregistered helpers
+// that were retired with the method surface carry hints here too.
+fn removed_bytes_member_hint(name: String) -> String {
+    if eq(clone(name), "bytes_new") { return String_from("use `Vec::new<i32>()` instead") }
+    if eq(clone(name), "bytes_len") { return String_from("use `b.len()` on the byte vector instead") }
+    if eq(clone(name), "bytes_get") { return String_from("use `b.get_unchecked(i)` instead") }
+    if eq(clone(name), "bytes_push") { return String_from("use `b.push_byte(x)` instead") }
+    if eq(clone(name), "bytes_eq") { return String_from("use `a.equals_bytes(b)` instead") }
+    if eq(clone(name), "bytes_from_string") { return String_from("use `s.to_utf8_bytes()` on the `String` instead") }
+    if eq(clone(name), "string_from_bytes") { return String_from("use `String::from_utf8_lossy(b)` instead") }
+    if eq(clone(name), "bytes_concat") { return String_from("use `a.concat_bytes(b)` instead") }
+    if eq(clone(name), "bytes_slice") { return String_from("use `b.slice_bytes(start, end)` instead") }
+    if eq(clone(name), "byte_length") { return String_from("use `s.len_bytes()` on the `String` instead") }
+    if eq(clone(name), "hex_encode") { return String_from("use `b.to_hex()` instead") }
+    if eq(clone(name), "hex_decode") { return String_from("use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_encode_u32") { return String_from("use `Bytes::from_leb128_u32(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_encode_i32") { return String_from("use `Bytes::from_leb128_i32(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u16_to_le_bytes") { return String_from("use `Bytes::from_u16_le(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u16_from_le_bytes") { return String_from("use `b.to_u16_le()` instead") }
+    if eq(clone(name), "u32_to_le_bytes") { return String_from("use `Bytes::from_u32_le(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u32_from_le_bytes") { return String_from("use `b.to_u32_le()` instead") }
+    if eq(clone(name), "u32_to_be_bytes") { return String_from("use `Bytes::from_u32_be(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "u32_from_be_bytes") { return String_from("use `b.to_u32_be()` instead") }
+    if eq(clone(name), "bytes_from_array") { return String_from("use `Bytes::from_array(xs)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "buf_new") { return String_from("use `Vec::new<i32>()` instead") }
+    if eq(clone(name), "buf_with_capacity") { return String_from("use `Vec::with_capacity<i32>(cap)` instead") }
+    if eq(clone(name), "buf_push_u8") { return String_from("use `b.push_byte(x)` instead") }
+    if eq(clone(name), "buf_push_u16_le") { return String_from("use `b.push_u16_le(x)` instead") }
+    if eq(clone(name), "buf_push_u32_le") { return String_from("use `b.push_u32_le(x)` instead") }
+    if eq(clone(name), "buf_push_u64_le") { return String_from("use `b.push_u64_le(x)` instead") }
+    if eq(clone(name), "buf_extend") { return String_from("use `b.extend_bytes(other)` instead") }
+    if eq(clone(name), "buf_freeze") { return String_from("use `b.freeze()` (identity; both layouts are `Vec<i32>`)") }
+    if eq(clone(name), "buf_len") { return String_from("use `b.len()` on the byte vector instead") }
+    if eq(clone(name), "cursor_new") { return String_from("use `data.byte_cursor()` instead") }
+    if eq(clone(name), "cursor_pos") { return String_from("use `c.cursor_pos()` instead") }
+    if eq(clone(name), "cursor_remaining") { return String_from("use `c.cursor_remaining()` instead") }
+    if eq(clone(name), "read_u8") { return String_from("use `c.read_u8()` instead") }
+    if eq(clone(name), "read_u16_le") { return String_from("use `c.read_u16_le()` instead") }
+    if eq(clone(name), "read_u32_le") { return String_from("use `c.read_u32_le()` instead") }
+    if eq(clone(name), "read_u64_le") { return String_from("use `c.read_u64_le()` instead") }
+    if eq(clone(name), "read_u32_be") { return String_from("use `c.read_u32_be()` instead") }
+    if eq(clone(name), "read_bytes") { return String_from("use `c.read_bytes(n)` instead") }
+    if eq(clone(name), "base64_encode") { return String_from("use `b.to_base64()` instead") }
+    if eq(clone(name), "base64_decode") { return String_from("use `Bytes::from_base64(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_decode_u32") { return String_from("use `c.read_leb128_u32()` instead") }
+    if eq(clone(name), "leb128_decode_i32") { return String_from("use `c.read_leb128_i32()` instead") }
+    if eq(clone(name), "leb128_encode_u64") { return String_from("use `Bytes::from_leb128_u64(x)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "leb128_decode_u64") { return String_from("use `c.read_leb128_u64()` instead") }
+    if eq(clone(name), "hex_char") { return String_from("removed helper; use `b.to_hex()` instead") }
+    if eq(clone(name), "hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "try_hex_val_char") { return String_from("removed helper; use `Bytes::from_hex(s)` via `use std::bytes::Bytes` instead") }
+    if eq(clone(name), "try_read_u8") { return String_from("removed free function; use `c.try_read_u8()` instead") }
+    if eq(clone(name), "try_read_u16_le") { return String_from("removed free function; use `c.try_read_u16_le()` instead") }
+    if eq(clone(name), "try_read_u32_le") { return String_from("removed free function; use `c.try_read_u32_le()` instead") }
+    if eq(clone(name), "try_read_u32_be") { return String_from("removed free function; use `c.try_read_u32_be()` instead") }
+    if eq(clone(name), "try_read_bytes") { return String_from("removed free function; use `c.try_read_bytes(n)` instead") }
     String_new()
 }
 
@@ -505,6 +511,31 @@ fn removed_wit_parser_member_hint(name: String) -> String {
 fn removed_component_member_hint(name: String) -> String {
     if eq(clone(name), "canonical_abi_version") { return String_from("use `Component::canonical_abi_version()` instead") }
     if eq(clone(name), "component_model_version") { return String_from("use `Component::model_version()` instead") }
+    String_new()
+}
+
+fn removed_canonical_member_hint(name: String) -> String {
+    if eq(clone(name), "canonical_scratch_new") {
+        return String_from("use `Component::scratch_new()` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lower_string") {
+        return String_from("use `Component::lower_string(scratch, s)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_string") {
+        return String_from("use `Component::lift_string(scratch, slice)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_string_at") {
+        return String_from("use `Component::lift_string_at(scratch, ptr, len)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lower_list_i32") {
+        return String_from("use `Component::lower_list_i32(scratch, items)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_list_i32") {
+        return String_from("use `Component::lift_list_i32(scratch, slice)` from `use std::component::Component` instead")
+    }
+    if eq(clone(name), "canonical_lift_list_i32_at") {
+        return String_from("use `Component::lift_list_i32_at(scratch, ptr, count)` from `use std::component::Component` instead")
+    }
     String_new()
 }
 
@@ -648,62 +679,6 @@ fn removed_simd_lane_type(module: String) -> String {
     String_new()
 }
 
-// The std::wasm builder frees became associated functions / methods in #917.
-// A removed qualified call still needs a concrete type name, so map the old
-// free name to its owning namespace type instead of a bare "undefined member".
-// The five v128 load/store frees are still live, so they keep no hint.
-fn removed_wasm_member_hint(name: String) -> String {
-    if is_live_wasm_memory_free(clone(name)) {
-        return String_new()
-    }
-    if clone(name).starts_with(String_from("v128_reinterpret_")) {
-        return String_from("removed no-op helper; v128 is one type, so pass the value directly")
-    }
-    if clone(name).starts_with(String_from("v128_")) {
-        return String_from("removed free function; use the `V128` associated function from `use std::simd::v128` instead")
-    }
-    let owner: String = removed_wasm_owner_type(clone(name))
-    if len(clone(owner)) == 0 {
-        return String_from("removed std::wasm free function; see docs/stdlib/migration-guidance.md for the type surface")
-    }
-    "removed free function; use the `".concat(owner)
-    .concat("` associated function from `use std::wasm` instead")
-}
-
-fn is_live_wasm_memory_free(name: String) -> bool {
-    eq(clone(name), "v128_load") || eq(clone(name), "v128_store") ||
-    eq(clone(name), "v128_load_splat") || eq(clone(name), "v128_load_lane") ||
-    eq(clone(name), "v128_store_lane")
-}
-
-fn removed_wasm_owner_type(name: String) -> String {
-    if clone(name).starts_with(String_from("section_")) {
-        return String_from("Section")
-    }
-    if clone(name).starts_with(String_from("valtype_")) ||
-    clone(name).starts_with(String_from("reftype_")) ||
-    clone(name).starts_with(String_from("numtype_")) {
-        return String_from("ValType")
-    }
-    if clone(name).starts_with(String_from("op_")) {
-        return String_from("Opcode")
-    }
-    if clone(name).starts_with(String_from("functype_")) {
-        return String_from("FuncType")
-    }
-    if clone(name).starts_with(String_from("limits_")) {
-        return String_from("Limits")
-    }
-    if clone(name).starts_with(String_from("leb128_")) {
-        return String_from("Leb128")
-    }
-    if eq(clone(name), "wasm_magic") || eq(clone(name), "wasm_version") ||
-    clone(name).starts_with(String_from("module_")) {
-        return String_from("WasmModuleBuilder")
-    }
-    String_new()
-}
-
 test mod "removed_names" {
     test "to_string family" {
         assert(len(removed_name_hint("i32_to_string")) > 0)
@@ -830,6 +805,19 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("component"), String_from("canonical_abi_version"))) > 0)
         assert(len(removed_module_member_hint(String_from("component"), String_from("component_model_version"))) > 0)
     }
+    test "removed canonical frees have associated-function hints" {
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_scratch_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lower_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_string_at"))) > 0)
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lower_list_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_list_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("canonical_lift_list_i32_at"))) > 0)
+        assert(len(removed_name_hint(String_from("canonical_lift_string"))) > 0)
+    }
+    test "live canonical members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("canonical"), String_from("CanonicalSlice"))) == 0)
+    }
     test "removed component handle frees have method hints" {
         assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_table_new"))) > 0)
         assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_new"))) > 0)
@@ -868,25 +856,71 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("f32x4x"), String_from("splat"))) == 0)
         assert(len(removed_module_member_hint(String_from("text"), String_from("splat"))) == 0)
     }
-    test "removed wasm builder frees have type hints" {
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("module_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("wasm_magic"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("functype_get_param"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("limits_bounded"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("section_type"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("valtype_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("numtype_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("op_i32_add"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("leb128_encode_u32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_and"))) > 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_reinterpret_i8x16"))) > 0)
+    test "removed bytes frees have method hints" {
+        let names = Vec::new<String>()
+        push(names, "bytes_new")
+        push(names, "bytes_len")
+        push(names, "bytes_get")
+        push(names, "bytes_push")
+        push(names, "bytes_eq")
+        push(names, "bytes_from_string")
+        push(names, "string_from_bytes")
+        push(names, "bytes_concat")
+        push(names, "bytes_slice")
+        push(names, "byte_length")
+        push(names, "hex_encode")
+        push(names, "hex_decode")
+        push(names, "leb128_encode_u32")
+        push(names, "leb128_encode_i32")
+        push(names, "u16_to_le_bytes")
+        push(names, "u16_from_le_bytes")
+        push(names, "u32_to_le_bytes")
+        push(names, "u32_from_le_bytes")
+        push(names, "u32_to_be_bytes")
+        push(names, "u32_from_be_bytes")
+        push(names, "bytes_from_array")
+        push(names, "buf_new")
+        push(names, "buf_with_capacity")
+        push(names, "buf_push_u8")
+        push(names, "buf_push_u16_le")
+        push(names, "buf_push_u32_le")
+        push(names, "buf_push_u64_le")
+        push(names, "buf_extend")
+        push(names, "buf_freeze")
+        push(names, "buf_len")
+        push(names, "cursor_new")
+        push(names, "cursor_pos")
+        push(names, "cursor_remaining")
+        push(names, "read_u8")
+        push(names, "read_u16_le")
+        push(names, "read_u32_le")
+        push(names, "read_u64_le")
+        push(names, "read_u32_be")
+        push(names, "read_bytes")
+        push(names, "base64_encode")
+        push(names, "base64_decode")
+        push(names, "leb128_decode_u32")
+        push(names, "leb128_decode_i32")
+        push(names, "leb128_encode_u64")
+        push(names, "leb128_decode_u64")
+        let mut i = 0
+        while i < len(names) {
+            assert(len(removed_module_member_hint(String_from("bytes"), get_unchecked(names, i))) > 0)
+            i = i + 1
+        }
     }
-    test "live wasm v128 memory frees keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_load"))) == 0)
-        assert(len(removed_module_member_hint(String_from("wasm"), String_from("v128_store_lane"))) == 0)
+    test "retired bytes helpers have hints" {
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("hex_char"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("hex_val_char"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_hex_val_char"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u8"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u16_le"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u32_le"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_u32_be"))) > 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("try_read_bytes"))) > 0)
     }
-    test "non-wasm modules keep no wasm hint" {
-        assert(len(removed_module_member_hint(String_from("wasmx"), String_from("module_new"))) == 0)
-        assert(len(removed_module_member_hint(String_from("text"), String_from("module_new"))) == 0)
+    test "live bytes members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("Bytes"))) == 0)
+        assert(len(removed_module_member_hint(String_from("bytes"), String_from("push_byte"))) == 0)
     }
 }

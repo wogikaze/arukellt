@@ -22,7 +22,7 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
-| `Component` | - | no | experimental | Namespace for Component Model version constants; canonical_abi_version and model_version are associated functions. |
+| `Component` | - | no | experimental | Namespace for Component Model version constants and canonical ABI scratch lift/lower helpers; all entries are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
@@ -103,7 +103,7 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
-| `Component` | `canonical_abi_version`, `model_version` | - |
+| `Component` | `canonical_abi_version`, `model_version`, `scratch_new`, `lower_string`, `lift_string`, `lift_string_at`, `lower_list_i32`, `lift_list_i32`, `lift_list_i32_at` | - |
 | `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |

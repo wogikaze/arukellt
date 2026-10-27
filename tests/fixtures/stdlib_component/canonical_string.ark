@@ -1,13 +1,17 @@
-use std::component::canonical
+use std::component::Component
 use std::host::stdio
 use std::core::error
 fn main() {
-    let scratch = canonical::canonical_scratch_new()
-    match canonical::canonical_lower_string(scratch, String_from("hi")) {
+    let scratch = Component::scratch_new()
+    match Component::lower_string(scratch, String_from("hi")) {
         Result::Ok(slice) => {
             stdio::println((slice.ptr).to_string())
             stdio::println((slice.len).to_string())
-            match canonical::canonical_lift_string(scratch, slice) {
+            match Component::lift_string(scratch, slice) {
+                Result::Ok(s) => stdio::println(s),
+                Result::Err(e) => stdio::println(error::error_message(e)),
+            }
+            match Component::lift_string_at(scratch, slice.ptr, slice.len) {
                 Result::Ok(s) => stdio::println(s),
                 Result::Err(e) => stdio::println(error::error_message(e)),
             }
@@ -15,4 +19,4 @@ fn main() {
         Result::Err(e) => stdio::println(error::error_message(e)),
     }
 }
-// canonical string lower/lift round-trip
+// canonical string lower/lift round-trip (Component associated functions)

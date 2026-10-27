@@ -15,18 +15,18 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 683 `pub fn` declarations under
+**Real surface denominator:** 676 `pub fn` declarations under
 `std/**/*.ark`; 495 map to a manifest entry and
-188 are unregistered. Eradication scope = 434 manifest
-public entries + 188 unregistered declarations = **622 symbols**.
+181 are unregistered. Eradication scope = 434 manifest
+public entries + 181 unregistered declarations = **615 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 622 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 683 | — |
-| Unregistered std declarations (no manifest entry) | 188 | 0 |
+| Eradication-scope symbols (real std surface) | 615 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 676 | — |
+| Unregistered std declarations (no manifest entry) | 181 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
 | Manifest public entries (registered scope) | 434 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
@@ -38,7 +38,7 @@ public entries + 188 unregistered declarations = **622 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 552 |
+| `associated-or-method` | Replacement must land as method/associated first | 545 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -70,7 +70,6 @@ registered entries and unregistered `pub fn` declarations.
 | std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 53 | 42 | Json/Toml/Csv value methods and associated parse/stringify |
 | std::simd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 37 | 76 | SIMD lane namespace associated functions (`F32x4::add`, `I64x2::eq`, `V128::any_true`, …) for the 132 ops whose lowering is valid on both targets; the remaining 130 frees stay experimental until the SIMD emitter validates (98) or stops trapping / corrupting the value (32). See issue #917. |
 | std::wasm v128 memory frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 5 | 0 | The `V128Memory::load` / `store` / `load_splat` / `load_lane` / `store_lane` associated form is blocked together with the free form: the `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter lowering, so every call compiles to `unreachable` (valid Wasm, but it traps) on wasm32-gc and wasm32. Neither spelling emits `v128.load` / `v128.store`. The five frees stay experimental until the emitter implements the intrinsic lowering; they then move to `V128Memory`. |
-| std::wit/component frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 7 | Wit/Component/Handle associated functions and methods |
 | host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 78 | 22 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods |
 
 ## Inventory (manifest entries)
@@ -562,13 +561,6 @@ manifest-only scorecard could not see before #703.
 | `trie_remove` | `std/collections/trie.ark:211` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `trie_count_with_prefix` | `std/collections/trie.ark:237` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `new_i32` | `std/collections/vec.ark:24` | `std::collections::vec` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_lower_string` | `std/component/canonical.ark:49` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_lift_string` | `std/component/canonical.ark:66` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_lift_string_at` | `std/component/canonical.ark:70` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_lower_list_i32` | `std/component/canonical.ark:87` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_lift_list_i32` | `std/component/canonical.ark:110` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_lift_list_i32_at` | `std/component/canonical.ark:114` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `canonical_scratch_new` | `std/component/canonical.ark:130` | `std::component::canonical` | `associated-or-method` | std::wit/component frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `identity` | `std/core/mod.ark:118` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_new` | `std/core/raw.ark:14` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `raw_array_len` | `std/core/raw.ark:19` | `std::core::raw` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

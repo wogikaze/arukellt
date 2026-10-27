@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: canonical::canonical_lift_string; use `Component::lift_string(scratch, slice)` from `use std::component::Component` instead

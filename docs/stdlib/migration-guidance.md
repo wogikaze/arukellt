@@ -460,18 +460,29 @@ no longer declares a callable entry point.
 | `handle::handle_table_i32_get(t, handle)` | `t.get(handle)` | unregistered source free |
 | `handle::handle_table_i32_drop(t, handle)` | `t.remove(handle)` | unregistered source free |
 | `handle::handle_table_i32_len(t)` | `t.len()` | unregistered source free |
+| `canonical::canonical_scratch_new()` | `Component::scratch_new()` | unregistered source free; associated function |
+| `canonical::canonical_lower_string(scratch, s)` | `Component::lower_string(scratch, s)` | unregistered source free; associated function |
+| `canonical::canonical_lift_string(scratch, slice)` | `Component::lift_string(scratch, slice)` | unregistered source free; associated function |
+| `canonical::canonical_lift_string_at(scratch, ptr, len)` | `Component::lift_string_at(scratch, ptr, len)` | unregistered source free; associated function |
+| `canonical::canonical_lower_list_i32(scratch, items)` | `Component::lower_list_i32(scratch, items)` | unregistered source free; associated function |
+| `canonical::canonical_lift_list_i32(scratch, slice)` | `Component::lift_list_i32(scratch, slice)` | unregistered source free; associated function |
+| `canonical::canonical_lift_list_i32_at(scratch, ptr, count)` | `Component::lift_list_i32_at(scratch, ptr, count)` | unregistered source free; associated function |
 
 Both targets are exercised by `stdlib_wit/wit_ast_parse.ark` +
 `wit_ast_parse_wasm32.ark`, `stdlib_component/component_helpers.ark` +
-`component_helpers_wasm32.ark`, and `stdlib_component/handle_basic.ark` +
-`handle_basic_wasm32.ark`.
+`component_helpers_wasm32.ark`, `stdlib_component/handle_basic.ark` +
+`handle_basic_wasm32.ark`, and `stdlib_component/canonical_string.ark` /
+`canonical_string_wasm32.ark` plus `canonical_list.ark` /
+`canonical_list_wasm32.ark` with `.expected` goldens.
 
-`std::component::canonical` is not part of this migration yet: its
-string-free functions return `Result<String, error::Error>`, and the
-associated/method form of that return shape produces empty/NUL output on both
-targets. The 7 frees stay until the compiler's `Result<String, Error>`
-method-return lowering is fixed; see the residual note in
-[`data/stdlib-api-eradication.toml`](../data/stdlib-api-eradication.toml).
+`std::component::canonical` is now an E0100 anchor only: the 7 `canonical_*`
+frees moved to `Component` associated functions, and `CanonicalSlice` lives in
+`std::component`. The earlier report that an associated/method form returning
+`Result<String, error::Error>` produced empty/NUL output on both targets was a
+probe-side scratch index error (the probe wrote bytes at scratch offset
+`base + i` while the lift read slot `ptr - 256 + 1 + i`), not a lowering
+defect: the `Component` surface lifts `hi` correctly on wasm32-gc and wasm32
+linear.
 
 ## Removed in the #917 eager-iterator wave (2026-10-27)
 

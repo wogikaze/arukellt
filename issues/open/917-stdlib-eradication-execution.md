@@ -241,10 +241,13 @@ classified there, in dependency-safe waves.
   1054 → **1021**; `must delete` 114 and `intrinsic-only` 1 unchanged);
   777 → **761** manifest functions; 1359 → **1310** `pub fn` declarations;
   392 → **375** unregistered declarations. `prelude_wrapper` stays 96.
-- Residual: `std::wit::ast` (23 declarations, deferred on the recursive
-  `WitNode` receiver shape), the 3 `std::wit::parser` frees, and the
-  `std::component` / `std::component::handle` families remain in the
-  `std::wit/component frees` rule.
+- Residual at that time: `std::wit::ast` (23 declarations, deferred on the
+  recursive `WitNode` receiver shape), the 3 `std::wit::parser` frees, and
+  the `std::component` / `std::component::handle` families remained in the
+  `std::wit/component frees` rule. The parser and component/handle frees
+  retired in `wave/wit-parser-component`; the 7
+  `std::component::canonical` frees retired in `wave/result-string-return`,
+  which removed the now-dead rule.
 
 ### Landed slice (wave/917-iter44, 2026-10-27)
 
@@ -415,57 +418,75 @@ classified there, in dependency-safe waves.
   the `std::io` / `std::host::fs` byte-layout adapters and the 743
   `associated-or-method` symbols remain in their own lanes.
 
-### Landed slice (wave/wasm-group, 2026-10-27)
+### Landed slice (wave/result-string-return, 2026-10-27)
 
-- **std::wasm builder namespace surface**: converted 72 of the 77 manifest
-  entries and all 34 unregistered declarations (106 of the 111-symbol
-  `std::wasm builder frees` group) to seven namespace / value types:
-  `Section` (11), `ValType` (7, collapsing the 9 `valtype_*` / `reftype_*`
-  and 4 `numtype_*` names), `Opcode` (45), `FuncType` (5), `Limits` (5),
-  `WasmModuleBuilder` (12), and `Leb128` (2) — 87 associated functions
-  replacing 93 free symbols. All entries were `experimental`, so ADR-014 D4
-  allowed direct deletion with migration rows and no ADR-087 window or W0009
-  entry. `FuncType` and `Limits` are nominal values with private fields; the
-  former `Vec<i32>` builder state is now `WasmModuleBuilder` with receiver
-  methods (`m.add_type(ft)`, `m.type_count()`, …).
-- **v128 split**: the 7 bitwise frees point at the already-landed
-  `std::simd::v128::V128` associated functions; the 6 identity
-  `v128_reinterpret_*` frees retire with no replacement (v128 is one type).
-- **Residual (5, lowering-blocked)**: `v128_load`, `v128_store`,
-  `v128_load_splat`, `v128_load_lane`, and `v128_store_lane` stay
-  experimental free functions. The `__wasm_v128_load*` /
-  `__wasm_v128_store*` intrinsics have no emitter lowering: the call compiles
-  to `unreachable` (the module validates, but every call traps) in the
-  top-level and `impl` spellings alike, and `wasm-tools print` shows zero
-  `v128.load` / `v128.store` instructions in either (`wasm-tools print` on the
-  free-function fixture: 0 instructions; the body ends in `unreachable`). No
-  `V128Memory` method surface is advertised until the intrinsic lowering
-  lands. The rule is now `std::wasm v128 memory frees` (5 manifest, 0 source).
-  This is a pre-existing intrinsic-lowering gap, not a regression from the
-  wave.
-- **E0100**: `resolver::removed_names::removed_module_member_hint` maps module
-  alias `wasm` to the owning type and is pinned by unit assertions; the 5
-  retained memory frees keep no hint. Dual-target goldens are
-  `diagnostics/removed_wasm_free.ark` + `_wasm32.ark`.
-- **Fixtures**: migrated `stdlib_wasm/{wasm_basic,valtype_ext,opcode_basic,
-  leb128_basic,module_builder}.ark` (the `valtype_ext` golden drops the two
-  duplicate `reftype_*` lines); added
-  `stdlib_wasm/wasm_method_surface.ark` + `_wasm32.ark` asserting the whole
-  associated surface (including builder mutation persistence and the `V128`
-  bitwise replacement). `run:` 1856 → 1858; `diag:` 134 → 136.
-- **Scorecard (regenerated)**: the committed `eradication.md` at the base was
-  stale (it still reported the pre-simd 813 symbols). Regeneration now
-  reflects the tree: 728 → **622** public symbols; `associated-or-method`
-  658 → **552**; manifest public entries 506 → **434**; unregistered
-  declarations 222 → **188**; `pub fn` declarations 789 → **683**;
-  `must delete` 70 and `intrinsic-only` 1 unchanged. The group itself is
-  now 5 manifest + 0 source.
-- **Verification**: both-target compile + `wasm-tools validate` + runtime for
-  the 5 migrated fixtures and the new surface pair; `verify fixtures`
-  1858/1858 PASS / 0 FAIL (runtime smoke included); `selfhost diag-parity`
-  including the 2 new E0100 goldens; `docs check` 6/6; `verify lane` PASS;
-  `check-stdlib-eradication` 622-symbol receipt; `check-compat-orphans`
-  clean; ADR-029 fixpoint result recorded in the wave receipt (s2 == s3).
+- **Retired the last 7 `std::component::canonical` frees**:
+  `canonical_lower_string`, `canonical_lift_string`,
+  `canonical_lift_string_at`, `canonical_lower_list_i32`,
+  `canonical_lift_list_i32`, `canonical_lift_list_i32_at`, and
+  `canonical_scratch_new`. They were unregistered source declarations in an
+  `experimental` module, so ADR-014 D4 allowed direct deletion.
+- **Replacement**: `Component::lower_string` / `lift_string` /
+  `lift_string_at` / `lower_list_i32` / `lift_list_i32` /
+  `lift_list_i32_at` / `scratch_new` associated functions.
+  `CanonicalSlice` moved to `std::component`. The `std::component::canonical`
+  module is kept as an E0100 anchor with no callable declaration.
+- **Placement**: the impl must live in `std/component/mod.ark`, the module
+  that declares `pub struct Component`. `resolver::register_imported` only
+  exports impl members when the declaring module also owns the public type;
+  `impl Component` in `canonical.ark` failed every qualified
+  `Component::<helper>` call with `E0100 undefined variant`.
+- **Root cause of the reported blocker (corrected)**: the earlier
+  "`Result<String, error::Error>` method return prints two NUL bytes on both
+  targets" finding was a probe bug, not a lowering defect. The probe's
+  `lower_string` wrote bytes at scratch index `base + i` (offset 256+)
+  while `lift_string` read slot `ptr - 256 + 1 + i` (index 1+), so the lifted
+  string was two zero bytes by construction. WAT confirms the Ok payload is
+  stored correctly (`struct.new $Result::Ok<String>` → `struct.set` field 1
+  with `(ref null $string_array)`), the caller reads the same field and
+  copies `array.len` bytes; the zero bytes come from the probe's scratch
+  slot, not the payload. The identical body as a free function prints the
+  same two NULs on both targets, so the call form is not involved. A
+  corrected probe and the `Component` surface lift `hi` on wasm32-gc and
+  wasm32 linear. No compiler lowering change was required. (The stale pinned bootstrap still mis-orders unannotated
+  method-return `match`; the rebuilt s2 handles it, and fixtures use the
+  `.expected` golden path.)
+- **E0100**: `resolver::removed_names::removed_canonical_member_hint` owns
+  the `canonical` module alias (7 hints) plus the matching bare names.
+  Added `diagnostics/removed_canonical_free.ark` and
+  `removed_canonical_free_wasm32.ark`; `diag:` 134 → **136**.
+- **Fixtures**: migrated `stdlib_component/canonical_string.ark` and
+  `canonical_list.ark` to the `Component` surface with `.expected` goldens
+  covering `lift_string_at` / `lift_list_i32_at`; added the dual-target
+  `_wasm32` pairs (`--target wasm32 --wasi-version wasi-p1
+  --memory-width memory32`). `run:` 1856 → **1858**.
+- **Scorecard delta**: public surface 728 → **721**;
+  `associated-or-method` 658 → **651**; `pub fn` declarations 789 → **782**;
+  unregistered declarations 222 → **215**; manifest public entries, `must
+  delete` (70), `prelude_wrapper` (65), and mono helpers unchanged. The
+  dead `std::wit/component frees` rule is removed from
+  `docs/data/stdlib-api-eradication.toml`.
+- **Merge repair**: restored the `bytes` removed-member hint table (45
+  retired frees plus the 8 Wave-1 helpers) that `19f3ac7b0` dropped while
+  merging `5755e6ceb`; the two `removed_bytes_free*` diag goldens pass again.
+  Diagnostic-only — no codegen change.
+- **Verification**: both targets compile + `wasm-tools validate` +
+  `wasmtime run` for all four canonical fixtures (GC P2 component and linear
+  P1) against their `.expected` goldens; `verify fixtures`
+  **1858/1858 PASS / 0 FAIL** (107 runtime smoke, 2 runtime-unsupported
+  native-cpp contracts); `selfhost diag-parity`
+  **136/136 PASS / 0 FAIL**; `docs check` 6/6; `verify lane` PASS;
+  `check-stdlib-eradication`, `check-compat-orphans`, and the Ark code
+  quality gate clean; ADR-029 fixpoint s2 == s3 at
+  `5744cb7cf2cd0e4b0ac50428e05e7b6bf3997be3fb1dd4240379ce797e94216a`
+  (pinned base `04d4446b…`).
+- **Residual**: the full `wave/wit-parser-component` receipt section from
+  `9472a9034` is absent on this base (the `19f3ac7b0` merge kept only the
+  bytes slice); the required-work bullet above records the landed surface
+  for a reader of this branch. The `Result<World, error::Error>`
+  associated-return blocker for `World::parse` is unchanged. The remaining
+  **721** `associated-or-method` symbols and the deferred
+  `i8_to_i32` / `filter_i32` entries are unchanged.
 
 ## Required work
 
@@ -494,6 +515,16 @@ classified there, in dependency-safe waves.
         frees were deleted after their Wave 1 W0009 window; the E0100 member
         hints carry the method / `Bytes` replacements and the unregistered
         helper hints are restored.
+      - Landed 2026-10-27 (`wave/wit-parser-component`): the 3
+        `std::wit::parser` frees, the 2 `std::component` version frees, and
+        the 10 `std::component::handle` frees retired onto
+        `WitNode::parse` / `WitNode::import_metadata`,
+        `Component::canonical_abi_version` / `model_version`, and the
+        `HandleTableI32` receiver methods.
+      - Landed 2026-10-27 (`wave/result-string-return`): the 7
+        `std::component::canonical` frees retired onto the `Component`
+        canonical ABI associated functions; the module remains an E0100
+        anchor.
 - [ ] Wave B — `associated-or-method` entries: land the inherent /
       trait / associated replacement first (per-owner issues #693,
       #702, #703, #708, #710, and the future Test / IO / collection
@@ -514,12 +545,6 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
-      - Landed 2026-10-27 (`wave/wasm-group`): 106 of the 111 `std::wasm
-        builder frees` symbols retired after the `Section` / `ValType` /
-        `Opcode` / `FuncType` / `Limits` / `WasmModuleBuilder` / `Leb128`
-        surface landed; the `V128` bitwise frees point at `std::simd`, the
-        reinterprets retire, and the 5 v128 load/store frees stay blocked on
-        the impl-body intrinsic lowering.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

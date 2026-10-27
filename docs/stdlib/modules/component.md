@@ -7,13 +7,15 @@ Source-backed docs for component-model helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::component` module exposes Component Model version constants and a SlotMap-backed handle table. `Component` owns the version associated functions; `HandleTableI32` owns the insert / get / remove / len receiver methods. The former free functions were retired by the #917 component wave (ADR-044/ADR-046).
+The `std::component` module exposes Component Model version constants, canonical ABI scratch lift/lower helpers, and a SlotMap-backed handle table. `Component` owns the version and canonical ABI associated functions; `HandleTableI32` owns the insert / get / remove / len receiver methods. The former free functions were retired by the #917 component waves (ADR-044/ADR-046).
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
 | `Component::canonical_abi_version()` / `Component::model_version()` | Return the canonical ABI version and component model version string. |
+| `Component::scratch_new()` / `Component::lower_string(scratch, s)` / `Component::lift_string(scratch, slice)` | Lower and lift a string through canonical ABI scratch storage. |
+| `Component::lower_list_i32(scratch, items)` / `Component::lift_list_i32(scratch, slice)` | Lower and lift an i32 list through canonical ABI scratch storage. |
 | `HandleTableI32::new()` / `t.insert(value)` / `t.get(handle)` / `t.remove(handle)` / `t.len()` | Create a SlotMap-backed handle table and mutate it through receiver methods. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
@@ -21,11 +23,22 @@ The `std::component` module exposes Component Model version constants and a Slot
 **Typical usage:**
 
 ```ark
-use std::component
+use std::component::Component
 use std::component::handle
 
-let abi = component::Component::canonical_abi_version()  // e.g. 1
-let ver = component::Component::model_version()          // e.g. "0.2.0"
+let abi = Component::canonical_abi_version()  // e.g. 1
+let ver = Component::model_version()          // e.g. "0.2.0"
+
+let scratch = Component::scratch_new()
+match Component::lower_string(scratch, String_from("hi")) {
+    Result::Ok(slice) => {
+        match Component::lift_string(scratch, slice) {
+            Result::Ok(text) => stdio::println(text),  // hi
+            Result::Err(_) => stdio::println("lift failed"),
+        }
+    },
+    Result::Err(_) => stdio::println("lower failed"),
+}
 
 let table = handle::HandleTableI32::new()
 let h = table.insert(42)
@@ -43,17 +56,22 @@ let dropped = table.remove(h)   // Some(42)
 
 Experimental component-model helpers.
 
-Version constants are associated functions on `Component`; resource handle
-tables live in `std::component::handle` (SlotMap-backed, #473 phase 1).
-Canonical ABI lift/lower helpers are tracked by #054. The former
-`canonical_abi_version` / `component_model_version` free functions were
-retired by the #917 component wave (ADR-044/ADR-046).
+Version constants and canonical ABI lift/lower helpers are associated
+functions on `Component`; resource handle tables live in
+`std::component::handle` (SlotMap-backed, #473 phase 1). The former
+`canonical_abi_version` / `component_model_version` and
+`canonical_*` free functions were retired by the #917 component waves
+(ADR-044/ADR-046).
+
+Canonical scratch storage uses linear memory offsets 256–65535
+(65280 bytes per call).
 
 ### `std::component` — Public Types
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `Component` | `struct` | `canonical_abi_version`, `model_version` | - | - |
+| `CanonicalSlice` | `struct` | - | - | Pointer/count pair describing a canonical ABI list in scratch storage. |
+| `Component` | `struct` | `canonical_abi_version`, `model_version`, `scratch_new`, `lower_string`, `lift_string`, `lift_string_at`, `lower_list_i32`, `lift_list_i32`, `lift_list_i32_at` | - | - |
 
 _No manifest-backed functions in this module._
 
