@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-10-25T09:47:23Z",
+  "generated_at": "2026-10-27T03:43:10Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -154,8 +154,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 16
+        "checked": 14,
+        "unchecked": 3
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -176,8 +176,8 @@
         "710"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 15
+        "checked": 8,
+        "unchecked": 7
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -217,8 +217,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 15
+        "checked": 13,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -234,8 +234,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 4,
-        "unchecked": 15
+        "checked": 10,
+        "unchecked": 10
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -251,8 +251,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 10,
-        "unchecked": 4
+        "checked": 13,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "normal",
@@ -411,8 +411,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 8
+        "checked": 4,
+        "unchecked": 5
       },
       "orchestration": {
         "class": "incremental",
@@ -509,6 +509,218 @@
       }
     },
     {
+      "id": "934",
+      "path": "934-typechecker-call-resolution-identity.md",
+      "title": "934 — typechecker resolves calls through a flat, overload-blind name index",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "933",
+        "935",
+        "936",
+        "937",
+        "939"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "938",
+      "path": "938-return-type-arguments-unchecked.md",
+      "title": "938 — return-type checking compares only the outer tag, not type arguments",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "940",
+      "path": "940-cross-module-same-name-type-collision.md",
+      "title": "940 — backend type identity drops module paths; same-named types in different modules collide",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "941",
+      "path": "941-type-name-encoding-not-injective.md",
+      "title": "941 — type-name encodings use `_` as a separator; distinct generic instances collide and miscompile",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "942",
+      "path": "942-wasm32-output-not-validated.md",
+      "title": "942 — `wasm32` compile reports success for invalid core Wasm",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "943",
+      "path": "943-ownership-call-boundary-semantics.md",
+      "title": "943 — ownership and mutability rules do not hold at function-call boundaries",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "944"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design-needed",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "945",
+      "path": "945-copy-impl-field-eligibility.md",
+      "title": "945 — `impl Copy` is accepted for types with non-`Copy` fields; the \"copy\" aliases",
+      "track": "typecheck",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "946",
+      "path": "946-single-uppercase-implicit-impl-param.md",
+      "title": "946 — single-uppercase type names in impl heads are treated as implicit type parameters",
+      "track": "typecheck",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-then-implement",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "947",
+      "path": "947-gc-println-stream-handle-leak.md",
+      "title": "947 — `wasm32-gc` print leaks a WASI output-stream handle per call; programs die after 500,000 lines",
+      "track": "wasi",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "948",
+      "path": "948-gc-print-linear-scratch-leak.md",
+      "title": "948 — `wasm32-gc` print bump-allocates linear memory per call and never reclaims it",
+      "track": "wasi",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "949",
+      "path": "949-type-spine-plans-missing-checker-handoff.md",
+      "title": "949 — type-spine plans omit the typechecker → CoreHIR handoff; a core-rewrite checkbox overstates progress",
+      "track": "docs",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "950",
+      "path": "950-cross-target-differential-and-module-graph-gate.md",
+      "title": "950 — verification never exercises the failure classes found in the P0 audit",
+      "track": "selfhost-verification",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "verification-contract",
+        "upstream_notes": "none"
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -547,12 +759,12 @@
         "711"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 13
+        "checked": 5,
+        "unchecked": 17
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy; ADR-086 (ACCEPTED 2026-10-25) implementation prerequisites"
       }
     },
     {
@@ -572,6 +784,85 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": 851
+      }
+    },
+    {
+      "id": "933",
+      "path": "933-typechecker-results-not-handed-to-lowering.md",
+      "title": "933 — typechecker results are discarded before lowering; MIR re-infers types from strings",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "934"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "936",
+      "path": "936-prelude-placeholder-signatures-name-dispatch.md",
+      "title": "936 — prelude core functions have placeholder signatures; checker and emitter dispatch them by name",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "934"
+      ],
+      "blocks_issue_ids": [
+        "935",
+        "939"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#934"
+      }
+    },
+    {
+      "id": "937",
+      "path": "937-let-annotation-overrides-type-mismatch.md",
+      "title": "937 — `let` type annotations silently replace a mismatching inferred type",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "934"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#934"
+      }
+    },
+    {
+      "id": "944",
+      "path": "944-move-after-use-not-diagnosed.md",
+      "title": "944 — use of a moved binding is not diagnosed when the use is a call argument",
+      "track": "typecheck",
+      "status": "open",
+      "depends_on": [
+        "943"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#943"
       }
     },
     {
@@ -616,6 +907,46 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+      }
+    },
+    {
+      "id": "935",
+      "path": "935-concrete-call-arguments-unchecked.md",
+      "title": "935 — arguments of non-generic calls are never checked against parameter types",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "934",
+        "936"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#934, #936"
+      }
+    },
+    {
+      "id": "939",
+      "path": "939-unknown-type-unifies-silently.md",
+      "title": "939 — `TY_UNKNOWN` unifies with every type and may survive checking",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [
+        "934",
+        "936"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#934, #936"
       }
     },
     {
