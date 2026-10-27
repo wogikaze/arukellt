@@ -747,6 +747,65 @@ classified there, in dependency-safe waves.
   the pin is refreshed. `Vec<String>::concat` remains invalid on wasm32-gc
   independently of this wave.
 
+### Landed slice (wave/host-env, 2026-10-27)
+
+- **Surface**: the two `std::host::clock` reads now have the `Clock` namespace
+  type: `Clock::monotonic_now()` (monotonic nanoseconds) and
+  `Clock::now_ms()` (Unix-epoch milliseconds) from
+  `use std::host::clock::Clock`. The WASI clock intrinsics stay behind the
+  impl; no user-reachable free function was added.
+- **ADR-087 status**: both free entries are `deprecated` with
+  `deprecated_by = "Clock::monotonic_now"` / `"Clock::now_ms"`,
+  `deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. They remain
+  callable through the window; W0009 covers the `clock::`, `host::clock::`,
+  and `std::host::clock::` spellings with unit assertions in
+  `lint::deprecated_table`. No E0100 hint applies yet because the physical
+  deletion is Wave 2.
+- **Lowering probe**: the namespace shape lowers on both targets for scalar
+  clock returns (including a non-main helper-module call) and emits the
+  expected `wasi:clocks/monotonic-clock` / `wall-clock` imports rather than
+  an unresolved `drop; unreachable`. The same shape is blocked for
+  `std::host::env`: a namespace method calling `__intrinsic_args` or
+  `__runtime_abi_env_var` produces `expected i64, found ref` in its own frame
+  on `wasm32-gc` (the env intrinsics only lower at the registered free-call
+  site), so `Env::args()` / `Env::var()` do not execute. `std::host::env`
+  stays free and is reported as a residual instead of shipping a namespace
+  spelling that cannot run.
+- **Compiler**: the driver, wasm, and MIR timing call sites use `Clock::`.
+  The committed pin predates loading the namespace source into the flat
+  overlay and stubs driver timing to i32, so
+  `scripts/selfhost/checks.py::_patch_bootstrap_host_clock_paths` rewrites the
+  overlay call spelling and reproduces the stub / keep-clock form
+  (`0`, `i32_to_i64(0)`, or i32 milliseconds). Checked-in source keeps the
+  namespace; delete the adapter when the pin is refreshed (ADR-029).
+- **Fixtures**: dual-target `stdlib_host/clock_namespace_surface*` compile,
+  validate, and run the namespace on `wasm32-gc` (P2 component) and
+  `--target wasm32` (linear); the W0009 goldens are
+  `diagnostics/deprecated_host_clock_free*`. The migrated `stdlib_host`,
+  `stdlib_time`, `stdlib_io`, `deny_clock`, and `bench_stdlib_time` call
+  sites use `Clock::`; the benchmark also moved its remaining
+  `time::duration_*` calls to `Duration::between(...).as_*()`.
+- **Scorecard**: eradication scope stays **330** symbols (`pub fn`
+  declarations 359, manifest public entries 305, unregistered 25); the
+  `host/core namespace frees` family drops 40 -> **38** because the two frees
+  are reclassified under `deprecated module frees` (6 -> **8**). Stability moves `stable`
+  178 -> **176** and `deprecated` 72 -> **74**; `must delete` 74 -> **76**
+  and `associated-or-method` 256 -> **254**; the fixture registry grows
+  3361 -> **3365**. The `Clock` type is registered as `provisional`.
+- **Verification**: `verify fixtures` **1901/1901 PASS**, 0 FAIL (1901
+  compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS); `selfhost diag-parity` PASS; `docs check` 6/6;
+  `verify lane` PASS; `check-stdlib-eradication`, `check-compat-orphans`,
+  `check-comment-policy`, and `check-ark-code-quality` clean; ADR-029
+  fixpoint PASS: s2 == s3 at sha256
+  `802144555fc4a42ad43eff6ea6c227ac0e128bf9d6e7085a621691c7d48ac506`
+  (pinned base `04d4446b…`).
+- **Residual**: the two stable clock frees await the Wave 2 deletion (and its
+  E0100 hints). `std::host::env` / `std::env` remain free because the env
+  intrinsics do not lower behind a namespace method on `wasm32-gc`;
+  `std::host::random` (`next_f64` is still a `0.0` stub), `std::host::process`,
+  `std::process`, `std::cli`, and `std::signal` are untouched.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

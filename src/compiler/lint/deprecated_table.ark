@@ -8,7 +8,7 @@
 use std::prelude::{clone, eq}
 pub fn deprecated_use_message(path: String) -> String {
     if eq(clone(path), "std::time") {
-        return "import `use std::host::clock` and call `clock::monotonic_now()`"
+        return "import `use std::host::clock::Clock` and call `Clock::monotonic_now()`"
     }
     if eq(clone(path), "std::fs") {
         return "module `std::fs` has moved to `std::host::fs`"
@@ -170,6 +170,10 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg6) > 0 {
         return msg6
     }
+    let msg7 = deprecated_host_clock_qualified_message(path)
+    if len(msg7) > 0 {
+        return msg7
+    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -196,6 +200,27 @@ fn deprecated_host_fs_qualified_message(path: String) -> String {
     if is_host_fs_qualified_member(clone(path), String_from("is_readable_file")) ||
     is_host_fs_qualified_member(clone(path), String_from("exists")) {
         return "use `Fs::is_readable_file(path)` from `use std::host::fs::Fs` instead"
+    }
+    String_new()
+}
+
+// ── Deprecated host clock frees (ADR-087) ─────────────────────────────
+//
+// `Clock` is the canonical namespace. Both stable free names stay callable
+// through the ADR-087 window, so a qualified old call names its `Clock::`
+// replacement; the physical deletion follows in the Wave 2 change.
+fn is_host_clock_qualified_member(path: String, member: String) -> bool {
+    eq(clone(path), "clock::".concat(clone(member))) ||
+    eq(clone(path), "host::clock::".concat(clone(member))) ||
+    eq(clone(path), "std::host::clock::".concat(clone(member)))
+}
+
+fn deprecated_host_clock_qualified_message(path: String) -> String {
+    if is_host_clock_qualified_member(clone(path), String_from("monotonic_now")) {
+        return "use `Clock::monotonic_now()` from `use std::host::clock::Clock` instead"
+    }
+    if is_host_clock_qualified_member(clone(path), String_from("now_ms")) {
+        return "use `Clock::now_ms()` from `use std::host::clock::Clock` instead"
     }
     String_new()
 }
@@ -384,6 +409,14 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("fs::is_file")) == 0)
         assert(len(deprecated_qualified_call_message("fs::is_dir")) == 0)
         assert(len(deprecated_qualified_call_message("Fs::read_to_string")) == 0)
+    }
+    test "host_clock_stable_frees_warn_w0009" {
+        assert(len(deprecated_qualified_call_message("clock::monotonic_now")) > 0)
+        assert(len(deprecated_qualified_call_message("clock::now_ms")) > 0)
+        assert(len(deprecated_qualified_call_message("std::host::clock::monotonic_now")) > 0)
+        assert(len(deprecated_qualified_call_message("host::clock::now_ms")) > 0)
+        assert(len(deprecated_qualified_call_message("Clock::monotonic_now")) == 0)
+        assert(len(deprecated_qualified_call_message("Clock::now_ms")) == 0)
     }
     test "removed_io_frees_have_no_w0009_entry" {
         // These are E0100 removals; a live W0009 entry would be a dead warning.

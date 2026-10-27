@@ -1,5 +1,5 @@
 use std::host::stdio
-use std::host::clock
+use std::host::clock::Clock
 use std::prelude::{byte_at, clone, eq, to_string}
 use std::text
 use compiler::phases
@@ -153,7 +153,7 @@ fn emit_timing_if_enabled(
             t_lower,
             t_mir_opt,
             t_mir_verify,
-            clock::monotonic_now()
+            Clock::monotonic_now()
         )
     }
 }

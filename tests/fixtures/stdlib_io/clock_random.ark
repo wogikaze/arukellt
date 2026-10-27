@@ -1,9 +1,9 @@
-use std::host::clock
-use std::host::random as host_random
+use std::host::clock::Clock
 use std::host::stdio
+use std::host::random as host_random
 
 fn main() {
-    let t = clock::monotonic_now()
+    let t = Clock::monotonic_now()
     let t_str = (t).to_string()
     let not_zero = t_str != String_from("0")
     stdio::println((not_zero).to_string())

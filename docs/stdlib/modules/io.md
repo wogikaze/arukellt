@@ -19,7 +19,7 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 | `std::host::fs` — `write_string(path, content)` | Write or replace a UTF-8 file. |
 | `std::host::env` — `args()` | Retrieve the CLI argument vector. |
 | `std::host::env` — `var(name)` | Look up an environment variable. |
-| `std::host::clock` — `monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
+| `std::host::clock` — `Clock::monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
 | `std::host::random` — `random_i32()` | Host-entropy random integer. |
 
 **Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.

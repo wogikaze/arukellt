@@ -23,11 +23,11 @@ The `std::time` module provides pure duration arithmetic over caller-supplied ti
 
 ```ark
 use std::time::Duration
-import std::host::clock
+use std::host::clock::Clock
 
-let t0 = monotonic_now()
+let t0 = Clock::monotonic_now()
 // ... do work ...
-let t1 = monotonic_now()
+let t1 = Clock::monotonic_now()
 let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
 ```
 

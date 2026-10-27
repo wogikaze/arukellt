@@ -15,30 +15,30 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 375 `pub fn` declarations under
-`std/**/*.ark`; 349 map to a manifest entry and
-26 are unregistered. Eradication scope = 321 manifest
-public entries + 26 unregistered declarations = **347 symbols**.
+**Real surface denominator:** 359 `pub fn` declarations under
+`std/**/*.ark`; 334 map to a manifest entry and
+25 are unregistered. Eradication scope = 305 manifest
+public entries + 25 unregistered declarations = **330 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 347 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 375 | — |
-| Unregistered std declarations (no manifest entry) | 26 | 0 |
+| Eradication-scope symbols (real std surface) | 330 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 359 | — |
+| Unregistered std declarations (no manifest entry) | 25 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 321 | 0 |
+| Manifest public entries (registered scope) | 305 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 56 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 53 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 277 |
+| `must delete` | Replacement already exists or functionality retires | 76 |
+| `associated-or-method` | Replacement must land as method/associated first | 254 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -60,14 +60,13 @@ registered entries and unregistered `pub fn` declarations.
 | legacy linked_list frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8 |
 | deprecated std::io compat frees | `must delete` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 2 | 0 | Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The remaining writer_write / writer_write_str wrappers stay through the #693 window only because stdout() / stderr() are tagged Vec<i32> handles. A typed Stdout Write handle now lowers on both targets, but a byte-faithful Stderr handle is blocked: the only stderr intrinsic is __intrinsic_eprintln, which appends a newline, so Write::write cannot preserve the byte contract. They are deleted when a raw stderr write intrinsic lands and typed Stdout / Stderr handles replace the tagged layout. |
 | deprecated std::seq helpers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 13 | 0 | Iterator adapters / Vec methods (#691) |
-| deprecated module frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 2 | 0 | module-associated equivalents |
+| deprecated module frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 8 | 0 | module-associated equivalents |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 54 | 0 | method / associated equivalent on the receiver or namespace type |
-| std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 2 | Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes. Stdout can be a typed Write handle today; Stderr remains blocked on a raw stderr write intrinsic (only __intrinsic_eprintln exists, which appends a newline). The remaining free functions are the host-backed compatibility surface, not the target API (#693). |
+| std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 1 | Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes. Stdout can be a typed Write handle today; Stderr remains blocked on a raw stderr write intrinsic (only __intrinsic_eprintln exists, which appends a newline). The remaining free functions are the host-backed compatibility surface, not the target API (#693). |
 | std::test assert frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 18 | 0 | std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
-| std::wasm v128 memory frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 5 | 0 | The `V128Memory::load` / `store` / `load_splat` / `load_lane` / `store_lane` associated form is blocked together with the free form: the `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter lowering, so every call compiles to `unreachable` (valid Wasm, but it traps) on wasm32-gc and wasm32. Neither spelling emits `v128.load` / `v128.store`. The five frees stay experimental until the emitter implements the intrinsic lowering; they then move to `V128Memory`. |
-| host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 55 | 0 | Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods; the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only) |
+| host/core namespace frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 38 | 0 | Fs / Env / Process / Clock / Random / Cli / Path / Signal associated functions and methods; the std::host::fs and legacy std::fs path frees are `Fs::read_to_string` / `read_bytes` / `write_string` / `write_bytes` / `is_readable_file` / `is_file` / `is_dir` / `read_dir` / `metadata` from `use std::host::fs::Fs` (the stable wrappers remain under the ADR-087 W0009 window); the std::core range/order/error/hash frees retired behind `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`; the sealed raw bridges are `RawArray` / `RawString` / `RawFloat` associated functions (stdlib-only) |
 
 ## Inventory (manifest entries)
 
@@ -129,7 +128,13 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `linked_list_push_front` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
 | `linked_list_to_vec` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
 | `get_var` | `std::env` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `exists` | `std::host::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `exists` | `std::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `is_readable_file` | `std::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `read_string` | `std::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `write_string` | `std::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `monotonic_now` | `std::host::clock` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `now_ms` | `std::host::clock` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `is_readable_file` | `std::host::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `writer_write` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `writer_write_str` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `binary_search` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
@@ -311,16 +316,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `args` | `std::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `var` | `std::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `var_or_default` | `std::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `exists` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_dir` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_file` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_readable_file` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `metadata` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `read_dir` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `read_string` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `write_string` | `std::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `monotonic_now` | `std::host::clock` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `now_ms` | `std::host::clock` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `arg_at` | `std::host::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `arg_count` | `std::host::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `args` | `std::host::env` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -329,13 +324,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `fd_fdstat_errno` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_seek` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_tell` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_dir` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_file` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_readable_file` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `read_bytes` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `read_to_string` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `write_bytes` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `write_string` | `std::host::fs` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `abort` | `std::host::process` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `exit` | `std::host::process` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `id` | `std::host::process` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -346,7 +334,7 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `eprintln` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `print` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `println` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `read_to_string` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `read_stdin` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `print_bytes` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `read_stdin_line` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `stderr` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
@@ -391,11 +379,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `expect_none_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `expect_ok_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `expect_some_i32` | `std::test` | `associated-or-method` | std::test assert frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_load_splat` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_store` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `v128_store_lane` | `std::wasm` | `associated-or-method` | std::wasm v128 memory frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `__intrinsic_string_is_empty` | `(prelude)` | `intrinsic-only` | private intrinsics | — |
 
 ## Inventory (unregistered std declarations)
@@ -430,5 +413,4 @@ manifest-only scorecard could not see before #703.
 | `trie_remove` | `std/collections/trie.ark:211` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `trie_count_with_prefix` | `std/collections/trie.ark:237` | `std::collections::trie` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `new_i32` | `std/collections/vec.ark:24` | `std::collections::vec` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `read_stdin` | `std/host/stdio.ark:13` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `io_error_message` | `std/io/mod.ark:77` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |

@@ -16,6 +16,50 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::host::clock `Clock` namespace (#917, ADR-046, ADR-087)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x deprecation window.
+  The two `stable` host clock reads become `deprecated` with live **W0009**;
+  they stay callable until the Wave 2 deletion.
+- **Replacement**: the `Clock` namespace type in `std::host::clock`.
+  `Clock::monotonic_now()` returns nanoseconds from the monotonic clock and
+  `Clock::now_ms()` returns milliseconds since the Unix epoch. Import it with
+  `use std::host::clock::Clock`; the WASI clock intrinsics stay behind the impl.
+- **W0009**: `deprecated_host_clock_qualified_message` covers the `clock::`,
+  `host::clock::`, and `std::host::clock::` qualified spellings with unit
+  assertions. The clock frees are not deleted in this wave, so no E0100 hint
+  applies yet.
+- **Compiler**: the in-tree driver, wasm, and MIR timing call sites use
+  `Clock::`. The committed pin predates loading the namespace source into its
+  flat overlay and stubs driver timing, so
+  `scripts/selfhost/checks.py::_patch_bootstrap_host_clock_paths` rewrites the
+  overlay calls (including the i32 stub / keep-clock form). Checked-in source
+  keeps the namespace; delete the adapter when the pin is refreshed (ADR-029).
+- **Fixtures**: dual-target `stdlib_host/clock_namespace_surface*` compile,
+  validate, and run the namespace on `wasm32-gc` and `--target wasm32`; the
+  W0009 goldens are `diagnostics/deprecated_host_clock_free*`. The migrated
+  `stdlib_host`, `stdlib_time`, `stdlib_io`, `deny_clock` and benchmark call
+  sites use `Clock::`.
+- **Scorecard**: eradication scope stays **330** symbols (`pub fn` declarations
+  359, manifest public entries 305, unregistered 25); the `host/core` family
+  drops 40 -> **38** because the two frees are reclassified under
+  `deprecated module frees` (6 -> **8**). Stability moves `stable`
+  178 → **176** and `deprecated` 72 → **74**; `must delete` 74 → **76** and
+  `associated-or-method` 256 → **254**; the fixture registry grows
+  3361 → **3365**.
+- **Lowering probe**: the same namespace-method shape is blocked for
+  `std::host::env` on `wasm32-gc`: `Env::args()` (Vec<String>) and
+  `Env::var()` (Option<String>) fail validation because
+  `__intrinsic_args` / `__runtime_abi_env_var` only lower at the registered
+  free-call site. That family remains free and is reported as a residual.
+- **Verification**: `verify fixtures` **1901/1901 PASS**, 0 FAIL (110 runtime
+  smoke, 2 runtime-unsupported, 1 `test:` fixture PASS); `selfhost diag-parity`
+  PASS; `docs check` 6/6; `verify lane` PASS; ADR-029 fixpoint PASS:
+  s2 == s3 at sha256
+  `802144555fc4a42ad43eff6ea6c227ac0e128bf9d6e7085a621691c7d48ac506`
+  (pinned base `04d4446b…`).
+
 ## 2026-10-27 — std::json / std::toml document entry points and parse-step helpers (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

@@ -1593,6 +1593,56 @@ They are `wasm32` / WASI P1 only (`t3 = false`), so they cannot be exercised on
 surface that does not lower on the primary target. They remain a reported
 residual.
 
+## std::host::clock `Clock` namespace wave (ADR-046, ADR-087, 2026-10-27)
+
+The two `stable` host clock reads moved from module free functions to the
+`Clock` namespace type. `Clock` owns the monotonic and wall-clock reads; the
+WASI clock intrinsics stay behind its impl.
+
+Import the namespace explicitly:
+
+```ark
+use std::host::clock::Clock
+
+let started = Clock::monotonic_now()
+let wall = Clock::now_ms()
+```
+
+### Deprecated now: stable clock frees (2)
+
+ADR-087 requires a W0009 window for `stable` entries. Both stay callable and
+emit **W0009** with the `Clock` replacement; the physical deletion follows in
+the Wave 2 change:
+
+| Deprecated API | Replacement |
+|----------------|-------------|
+| `std::host::clock::monotonic_now()` | `Clock::monotonic_now()` |
+| `std::host::clock::now_ms()` | `Clock::now_ms()` |
+
+The warning covers the `clock::`, `host::clock::`, and
+`std::host::clock::` qualified spellings. The `Clock` namespace itself is
+`provisional`; promoting it to `stable` is separate from the free-function
+removal.
+
+The in-tree compiler call sites use `Clock::` directly. The committed pinned
+bootstrap predates loading the namespace source into its flat overlay, so
+`scripts/selfhost/checks.py` rewrites the compiler's `Clock::` calls to the
+free builtins in the generated overlay only. Checked-in source keeps the
+namespace; delete the adapter when the pin is refreshed (ADR-029).
+
+The `stdlib_host/clock_namespace_surface*` fixture pair compiles, validates,
+and executes the two reads on both `wasm32-gc` and `--target wasm32`; the
+W0009 goldens are `diagnostics/deprecated_host_clock_free*`.
+
+### Related residual: host env getters
+
+`std::host::env` stays on its free functions in this wave. A namespace method
+that calls `__intrinsic_args` or `__runtime_abi_env_var` emits an invalid
+`i64`/ref frame on `wasm32-gc` (the env intrinsics only lower at the registered
+free-call site), so `Env::args()` / `Env::var()` do not lower on the primary
+target without a compiler intrinsic change. The family is reported as blocked
+rather than shipped with a namespace spelling that cannot execute.
+
 ## Planned Deprecations
 
 The following APIs are scheduled for deprecation via the same monomorphic →

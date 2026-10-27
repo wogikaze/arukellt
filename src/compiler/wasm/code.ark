@@ -1,4 +1,4 @@
-use std::host::clock
+use std::host::clock::Clock
 use std::host::process
 use std::host::stdio
 use std::prelude::{clone, eq, i64_to_i32, to_string}
@@ -49,7 +49,7 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
     if enabled == 0 {
         return false
     }
-    let diff = clock::monotonic_now() - t_start
+    let diff = Clock::monotonic_now() - t_start
     let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
     if ms < 200 {
         return false
@@ -505,7 +505,7 @@ fn emit_code_section(
         while ci < fn_count {
             let f = get_unchecked(functions, ci)
             ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
-            let t_fn = clock::monotonic_now()
+            let t_fn = Clock::monotonic_now()
             // #851 Phase 3: declared bodies emit into a per-fn scratch writer so
             // the resulting byte vec is independently addressable by func_idx —
             // the same shape in-loop emit needs once bodies complete out of

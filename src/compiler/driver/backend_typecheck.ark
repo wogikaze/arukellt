@@ -1,4 +1,4 @@
-use std::host::clock
+use std::host::clock::Clock
 use std::prelude::{clone}
 use collections::vec_extend
 use compiler::phases
@@ -131,13 +131,13 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
             merge_warnings(all, denied)
             merge_warnings(all, kept)
             let denied_result = errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec::new<String>())
-            return DriverTypecheckResult_new(true, denied_result, check_result, clock::monotonic_now())
+            return DriverTypecheckResult_new(true, denied_result, check_result, Clock::monotonic_now())
         }
         if len(kept) > 0 {
             let warn_result = errors::type_warnings_result(clone(source), config_record::config_source_file(config), kept)
-            return DriverTypecheckResult_new(true, warn_result, check_result, clock::monotonic_now())
+            return DriverTypecheckResult_new(true, warn_result, check_result, Clock::monotonic_now())
         }
-        return DriverTypecheckResult_new(true, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, clock::monotonic_now())
+        return DriverTypecheckResult_new(true, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, Clock::monotonic_now())
     }
-    DriverTypecheckResult_new(false, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, clock::monotonic_now())
+    DriverTypecheckResult_new(false, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, Clock::monotonic_now())
 }

@@ -420,7 +420,7 @@ Fs::write_string("output.txt", "hello")
                 ("`std::host::fs` — `write_string(path, content)`", "Write or replace a UTF-8 file."),
                 ("`std::host::env` — `args()`", "Retrieve the CLI argument vector."),
                 ("`std::host::env` — `var(name)`", "Look up an environment variable."),
-                ("`std::host::clock` — `monotonic_now()`", "High-resolution monotonic timestamp (nanoseconds)."),
+                ("`std::host::clock` — `Clock::monotonic_now()`", "High-resolution monotonic timestamp (nanoseconds)."),
                 ("`std::host::random` — `random_i32()`", "Host-entropy random integer."),
             ],
             "typical_usage": """\
@@ -693,11 +693,11 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
             "typical_usage": """\
 ```ark
 use std::time::Duration
-import std::host::clock
+use std::host::clock::Clock
 
-let t0 = monotonic_now()
+let t0 = Clock::monotonic_now()
 // ... do work ...
-let t1 = monotonic_now()
+let t1 = Clock::monotonic_now()
 let elapsed = Duration::between(t0, t1).as_ms()  // milliseconds
 ```""",
         },

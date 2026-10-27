@@ -190,7 +190,7 @@ fn main() {
 }
 ```
 
-> `std::host::clock::monotonic_now()` は `i64` を返しますが、現行 selfhost で
+> `Clock::monotonic_now()` from `use std::host::clock::Clock` は `i64` を返しますが、現行 selfhost で
 > `to_string` 経由の出力に制約があるため、この例では `std::random::Rng`（決定論的）のみ使用しています。
 
 ## v1 features

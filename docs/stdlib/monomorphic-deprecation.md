@@ -66,6 +66,8 @@ helpers are included alongside any other deprecated public entry.
 | `is_readable_file` | `std::fs` | `deprecated` | `Fs::is_readable_file` | `0.1.0` | `1.0.0` | Preferred read-probe name; semantics identical to exists. |
 | `read_string` | `std::fs` | `deprecated` | `Fs::read_to_string` | `0.1.0` | `1.0.0` | Read the entire contents of a file into a UTF-8 string. |
 | `write_string` | `std::fs` | `deprecated` | `Fs::write_string` | `0.1.0` | `1.0.0` | Write a UTF-8 string to a file, creating or truncating it. |
+| `monotonic_now` | `std::host::clock` | `deprecated` | `Clock::monotonic_now` | `0.1.0` | `1.0.0` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a wall-clock. |
+| `now_ms` | `std::host::clock` | `deprecated` | `Clock::now_ms` | `0.1.0` | `1.0.0` | Return the current wall-clock time in milliseconds since the Unix epoch. |
 | `is_readable_file` | `std::host::fs` | `deprecated` | `Fs::is_readable_file` | `0.1.0` | `1.0.0` | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query. |
 | `writer_write` | `std::io` | `deprecated` | `Writer::write` | `0.1.0` | `1.0.0` | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9). |
 | `writer_write_str` | `std::io` | `deprecated` | `Writer::write_string` | `0.1.0` | `1.0.0` | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9). |
@@ -83,4 +85,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **72**.
+Total deprecated public entries: **74**.
