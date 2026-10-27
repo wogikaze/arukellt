@@ -4,7 +4,7 @@
 
 決定日: 2026-09-19
 
-関連: [ADR-002](ADR-002-memory-model.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-029](ADR-029-selfhost-native-verification-contract.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#853](../../issues/open/853-ownership-move-copy-mutability.md)
+関連: [ADR-002](ADR-002-memory-model.md)、[ADR-013](ADR-013-primary-target.md)、[ADR-029](ADR-029-selfhost-native-verification-contract.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-058](ADR-058-language-v2-semantics-redesign.md)、[RFC-011](../rfcs/011-language-v2-semantics-redesign.md)、[#853](../../issues/open/853-ownership-move-copy-mutability.md)、[ADR-088](ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md)
 
 ## 文脈
 
@@ -33,6 +33,10 @@ stdlib と移行対象の診断も安定しない。
 7. trait、借用、clone、関数引数・closure capture の各境界は、同じ binding state を参照する後続 issue で
    拡張する。実装上まだ移行していない legacy call boundary は current-state と issue に記録し、
    互換のために言語契約を別物へ分岐させない。
+
+   > 改訂(2026-10-27): §7 で後続判断とした関数引数境界は
+   > [ADR-088](ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md) が決定した。
+   > 非 `Copy` 引数は呼び出し中の暗黙借用であり、書き換えは `mut` 仮引数と可変 place の組でだけ許可する。
 
 ## 帰結
 

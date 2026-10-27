@@ -5,12 +5,12 @@ Updated: 2026-10-27
 ID: 943
 Track: language-design
 Depends on: none
-Orchestration class: design-needed
+Orchestration class: implementation-ready
 Orchestration upstream: none
 Blocks v{N}: none
 Priority: 0
 Source: "P0 design/implementation audit (2026-10-27)"
-Related: "ADR-002, ADR-059, ADR-060, ADR-061, #944, #945"
+Related: "ADR-002, ADR-059, ADR-060, ADR-061, ADR-088, #944, #945, #951"
 ---
 
 # 943 — ownership and mutability rules do not hold at function-call boundaries
@@ -71,29 +71,39 @@ the callee, and passing them twice is accepted.
 - `docs/language/memory-model.md` example: `let v1 = Vec::new<i32>()`
   followed by `push(v1, 10)`.
 
-## Decision required (ADR)
+## Decision (ADR-088, 2026-10-27)
 
-Pick one model and supersede / amend ADR-059 accordingly:
+ADR-088 adopts **implicit call-scoped borrow + explicit `mut` parameters**:
 
-- (a) **Ownership at calls**: non-`Copy` arguments move by default;
-  mutation requires an explicit parameter mode (`mut` / borrow form). This
-  is consistent with ADR-059/060, but requires migrating the whole stdlib
-  and compiler and conflicts with ADR-002's no-borrow-checker goal.
-- (b) **Reference semantics**: non-`Copy` aggregates are shared references;
-  `let` immutability means "no rebinding" only; E0212 / unique-ownership
-  claims for `Box` are withdrawn or narrowed. This matches current code.
-  Optionally, add a cheap rule that a callee must declare a parameter
-  `mut` to mutate through it.
+- Passing a non-`Copy` value does not move the binding; passing a moved
+  binding is E0212.
+- `p: T` / `self: T` are shared borrows (no mutation through them);
+  `mut p: T` / `mut self: T` are mutable borrows.
+- Only mutable places (`let mut` bindings, `mut` parameters / `mut self`,
+  their field / element places, or temporaries) may be passed to `mut`
+  parameters. Passing the same root place to a `mut` parameter and another
+  parameter in one call is rejected.
+- A borrowed parameter may escape (return / store / `move` capture) by
+  sharing the GC reference. `Box<T>` is excluded: a borrowed `Box<T>`
+  cannot be returned, stored, or `unbox`ed.
+- The parameter mode is part of the function type; a shared-parameter
+  function value is assignable to the `mut` form, not vice versa.
+
+Under ADR-088 the `alias.ark` repro must be rejected: `p.x = …` through the
+shared parameter of `bump`, and `push(v, 1)` on the shared parameter of
+`add`. Implementation is tracked in #951; move-after-use in #944.
 
 ## Acceptance
 
-- [ ] An ACCEPTED ADR decides (a), (b), or another model, including the
-      receiver (`self`) rule and the interaction with closures (ADR-061/081)
-      and `Box`/`Slice` (ADR-060).
+- [x] An ACCEPTED ADR decides the model, including the receiver (`self`)
+      rule and the interaction with closures (ADR-061/081) and
+      `Box`/`Slice` (ADR-060): ADR-088 (ADR-059 carries a dated revision
+      note pointing to it).
 - [ ] ADR-059, `docs/language/memory-model.md`, `docs/language/spec.md`
       §2.4 and `docs/current-state.md` state the chosen model; no document
       claims guarantees the checker does not enforce.
 - [ ] The `alias.ark` repro is registered as a fixture with the outcome the
       ADR defines (diagnostic or output), on both targets.
-- [ ] Follow-up implementation is tracked (#944 is re-scoped to the
-      decision).
+- [x] Follow-up implementation is tracked: #951 (parameter modes, mutable
+      place and conflict checks, stdlib / selfhost migration) and #944
+      (re-scoped to ADR-088 §1).

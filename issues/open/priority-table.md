@@ -13,10 +13,10 @@ Scoring criteria (0-5 each, total 25):
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 934 | 934 — typechecker resolves calls through a flat, overload-b... | compiler | 5 | 0 | 1 | 5 | 4 | 15 |
 | 2 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 4 | 3 | 5 | 12 |
-| 3 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 2 | 5 | 3 | 11 |
-| 4 | 930 | 930 — reference-parity execution leg cannot package memory6... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 5 | 931 | 931 — module-graph compile: sibling files access each other's | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 6 | 943 | 943 — ownership and mutability rules do not hold at functio... | language-design | 1 | 0 | 1 | 5 | 4 | 11 |
+| 3 | 943 | 943 — ownership and mutability rules do not hold at functio... | language-design | 0 | 0 | 2 | 5 | 5 | 12 |
+| 4 | 851 | 851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay） | selfhost-infra | 1 | 0 | 2 | 5 | 3 | 11 |
+| 5 | 930 | 930 — reference-parity execution leg cannot package memory6... | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 6 | 931 | 931 — module-graph compile: sibling files access each other's | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
 | 7 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 4 | 3 | 3 | 10 |
 | 8 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 1 | 0 | 3 | 3 | 3 | 10 |
 | 9 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
@@ -42,23 +42,24 @@ Scoring criteria (0-5 each, total 25):
 | 29 | 933 | 933 — typechecker results are discarded before lowering; MI... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
 | 30 | 935 | 935 — arguments of non-generic calls are never checked agai... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
 | 31 | 939 | 939 — `TY_UNKNOWN` unifies with every type and may survive ... | compiler | 0 | 0 | 1 | 5 | 3 | 9 |
-| 32 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 33 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 34 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 0 | 0 | 2 | 3 | 3 | 8 |
-| 35 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
-| 36 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
-| 37 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
-| 38 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
-| 39 | 818 | 818 — CoreOpRegistry production scaffold exit | compiler-internal | 0 | 0 | 1 | 5 | 2 | 8 |
-| 40 | 947 | 947 — `wasm32-gc` print leaks a WASI output-stream handle p... | wasi | 0 | 0 | 1 | 3 | 4 | 8 |
-| 41 | 948 | 948 — `wasm32-gc` print bump-allocates linear memory per ca... | wasi | 0 | 0 | 1 | 3 | 4 | 8 |
-| 42 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 2 | 3 | 2 | 7 |
-| 43 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
-| 44 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
-| 45 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 46 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 47 | 801 | GC 完了までのプラン | gc | 0 | 0 | 1 | 1 | 4 | 6 |
-| 48 | 814 | 814 — Formatter/parser exceptions (23 files) | code-quality | 0 | 0 | 1 | 1 | 4 | 6 |
-| 49 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
-| 50 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
-| 51 | 918 | 918 — `arukellt test` runner UX: filter, no-fail-fast, dire... | tooling | 0 | 0 | 1 | 1 | 3 | 5 |
+| 32 | 951 | 951 — implement ADR-088: `mut` parameter mode, mutable-plac... | typecheck | 0 | 0 | 1 | 5 | 3 | 9 |
+| 33 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 34 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 35 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 0 | 0 | 2 | 3 | 3 | 8 |
+| 36 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
+| 37 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
+| 38 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
+| 39 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
+| 40 | 818 | 818 — CoreOpRegistry production scaffold exit | compiler-internal | 0 | 0 | 1 | 5 | 2 | 8 |
+| 41 | 947 | 947 — `wasm32-gc` print leaks a WASI output-stream handle p... | wasi | 0 | 0 | 1 | 3 | 4 | 8 |
+| 42 | 948 | 948 — `wasm32-gc` print bump-allocates linear memory per ca... | wasi | 0 | 0 | 1 | 3 | 4 | 8 |
+| 43 | 474 | Async component support (v5) | wasm-feature | 0 | 0 | 2 | 3 | 2 | 7 |
+| 44 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
+| 45 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
+| 46 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 47 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 48 | 801 | GC 完了までのプラン | gc | 0 | 0 | 1 | 1 | 4 | 6 |
+| 49 | 814 | 814 — Formatter/parser exceptions (23 files) | code-quality | 0 | 0 | 1 | 1 | 4 | 6 |
+| 50 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
+| 51 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 52 | 918 | 918 — `arukellt test` runner UX: filter, no-fail-fast, dire... | tooling | 0 | 0 | 1 | 1 | 3 | 5 |
