@@ -9,13 +9,13 @@ fn main() {
     test::assert_eq_string(s, "{\"name\":\"alice\",\"age\":30}")
     // Verify the constructed object parses back correctly
     match json::parse(s) {
-        Result::Ok(v) => match json::json_get(v, "name") {
-            Option::Some(nv) => match json::json_as_string(nv) {
+        Result::Ok(v) => match v.get_field("name") {
+            Option::Some(nv) => match nv.as_string() {
                 Option::Some(name) => test::assert_eq_string(name, "alice"),
                 None => panic("expected string"),
             },
             None => panic("expected key name"),
         },
-        Result::Err(e) => panic("re-parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
     }
 }

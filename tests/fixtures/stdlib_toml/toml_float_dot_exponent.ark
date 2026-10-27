@@ -5,8 +5,8 @@ use std::test
 fn main() {
     let t = toml::toml_parse("val = 1.5e2")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "val") {
-            Option::Some(v) => match toml::toml_as_float(v) {
+        Result::Ok(table) => match table.get_field("val") {
+            Option::Some(v) => match v.as_float() {
                 Option::Some(f) => test::assert_eq_f64(f, 150.0),
                 None => assert(false),
             },

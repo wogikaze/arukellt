@@ -4,11 +4,11 @@ use std::text
 fn main() {
     match json::parse("{\"items\":[1,2,3],\"empty\":[]}") {
         Result::Ok(v) => {
-            match json::json_get(v, "items") {
+            match v.get_field("items") {
                 Option::Some(arr) => {
-                    test::assert_true(json::is_array(arr))
-                    match json::json_get_index(arr, 1) {
-                        Option::Some(e) => match json::json_as_i32(e) {
+                    test::assert_true(arr.is_array())
+                    match arr.get_index(1) {
+                        Option::Some(e) => match e.as_i32() {
                             Option::Some(n) => test::assert_eq_i32(n, 2),
                             None => panic("expected number"),
                         },
@@ -17,11 +17,11 @@ fn main() {
                 },
                 None => panic("expected key items"),
             }
-            match json::json_get(v, "empty") {
-                Option::Some(arr) => test::assert_true(json::is_array(arr)),
+            match v.get_field("empty") {
+                Option::Some(arr) => test::assert_true(arr.is_array()),
                 None => panic("expected key empty"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
 }

@@ -5,10 +5,10 @@ use std::test
 fn main() {
     let t = toml::toml_parse("outer = { inner = { val = 9 } }")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "outer") {
-            Option::Some(o) => match toml::toml_get(o, "inner") {
-                Option::Some(i) => match toml::toml_get(i, "val") {
-                    Option::Some(v) => match toml::toml_as_int(v) {
+        Result::Ok(table) => match table.get_field("outer") {
+            Option::Some(o) => match o.get_field("inner") {
+                Option::Some(i) => match i.get_field("val") {
+                    Option::Some(v) => match v.as_int() {
                         Option::Some(n) => test::assert_eq_i32(n, 9),
                         None => assert(false),
                     },

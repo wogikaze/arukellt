@@ -16,6 +16,28 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::json / std::toml value methods (#917, ADR-046)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  [ADR-014](../adr/ADR-014-stability.md) D4 experimental rule. All removed
+  manifest entries were `experimental`; no ADR-087 W0009 window applies.
+- **Removed (18 manifest + 9 unregistered)**: `json_get`, `json_get_index`,
+  `json_as_bool/string/i32/f64/array`, `is_null/bool/number/string/array/object`,
+  `stringify`, `parse_error_message`, `toml_get`, `toml_table_keys`, and
+  `toml_as_bool/int/string/float/array/table`.
+- **Replacement**: `JsonValue` methods (`v.is_*()`, `v.as_*()`,
+  `v.get_field(key)`, `v.get_index(i)`, `v.to_text()`,
+  `e.message()` on `JsonParseError`) and `TomlValue` methods
+  (`v.as_*()`, `v.get_field(key)`, `v.table_keys()`). See the
+  [migration guide](migration-guidance.md#stdjson--stdtoml-value-method-wave-adr-046-2026-10-27).
+- **Retained by lowering blocks**: the primitive helpers, DOM constructors,
+  `JsonText` / `TomlText` scanner, CSV frees, `json::parse`,
+  `toml::toml_parse`, and `toml::toml_stringify`. Associated calls from a
+  non-main module emit an unresolved-call fallback, and associated `parse`
+  loses its `Result` payload type in an unannotated `match`.
+- **Scorecard**: 728 → **701**; `associated-or-method` 658 → **631**;
+  manifest functions 507 → **489**; unregistered declarations 222 → **213**.
+
 ## 2026-10-27 — std::bytes free surface removed (#917, ADR-087 Wave 2)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4, the

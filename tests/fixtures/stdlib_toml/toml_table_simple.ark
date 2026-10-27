@@ -5,17 +5,17 @@ use std::test
 fn main() {
     let t = toml::toml_parse("[server]\nhost = \"localhost\"\nport = 8080")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "server") {
+        Result::Ok(table) => match table.get_field("server") {
             Option::Some(server) => {
-                match toml::toml_get(server, "host") {
-                    Option::Some(v) => match toml::toml_as_string(v) {
+                match server.get_field("host") {
+                    Option::Some(v) => match v.as_string() {
                         Option::Some(s) => test::assert_eq_string(s, "localhost"),
                         None => assert(false),
                     },
                     None => assert(false),
                 }
-                match toml::toml_get(server, "port") {
-                    Option::Some(v) => match toml::toml_as_int(v) {
+                match server.get_field("port") {
+                    Option::Some(v) => match v.as_int() {
                         Option::Some(n) => test::assert_eq_i32(n, 8080),
                         None => assert(false),
                     },

@@ -3,18 +3,18 @@ use std::test
 use std::text
 fn main() {
     match json::parse("  42  ") {
-        Result::Ok(v) => match json::json_as_i32(v) {
+        Result::Ok(v) => match v.as_i32() {
             Option::Some(n) => test::assert_eq_i32(n, 42),
             None => panic("expected number"),
         },
-        Result::Err(e) => panic("parse with spaces failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse with spaces failed: ".concat(e.message())),
     }
     match json::parse("\n\t{\"a\":1}\n") {
-        Result::Ok(v) => test::assert_true(json::is_object(v)),
-        Result::Err(e) => panic("parse with newlines failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_true(v.is_object()),
+        Result::Err(e) => panic("parse with newlines failed: ".concat(e.message())),
     }
     match json::parse("   [1, 2, 3]   ") {
-        Result::Ok(v) => test::assert_true(json::is_array(v)),
-        Result::Err(e) => panic("parse array with spaces failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_true(v.is_array()),
+        Result::Err(e) => panic("parse array with spaces failed: ".concat(e.message())),
     }
 }

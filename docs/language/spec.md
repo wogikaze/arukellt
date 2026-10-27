@@ -2033,19 +2033,30 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `hashmap_contains(m: Vec<i32>, k: i32) -> bool`,
 `hashmap_size(m: Vec<i32>) -> i32`
 
-**JSON (minimal)**:
-`json_null() -> String`,
-`json_parse_i32(s: String) -> i32`,
-`json_parse_bool(s: String) -> bool`,
-`json_stringify_i32(n: i32) -> String`,
-`json_stringify_bool(b: bool) -> String`,
-`json_stringify_string(s: String) -> String`
+**JSON**:
+primitive helpers `json_null()`, `json_parse_i32(s)` / `json_parse_bool(s)`,
+`json_stringify_i32(n)` / `json_stringify_bool(b)` /
+`json_stringify_string(s)`; the DOM scanner free helpers (`skip_ws`,
+`quote_string`, `json_escape`, `json_get_str`, …); and the `JsonValue`
+value methods `v.is_null()` / `v.is_bool()` / `v.is_number()` /
+`v.is_string()` / `v.is_array()` / `v.is_object()`, `v.as_bool()` /
+`v.as_string()` / `v.as_i32()` / `v.as_f64()` / `v.as_array()`,
+`v.get_field(key)` / `v.get_index(i)`, `v.to_text()`, plus
+`e.message()` on `JsonParseError`. `json::parse(doc)` remains the document
+entry point.
 
 **CSV**:
-`csv_split_line(line: String) -> Vec<String>`
+`csv_split_line(line: String) -> Vec<String>` and the row/document helpers
+(`csv_parse_row`, `csv_stringify_row`, `csv_count_rows`, `csv_get_row_raw`,
+`csv_parse_row_at`, `csv_parse`, `csv_stringify`, `csv_parse_with_header`).
 
 **TOML**:
-`toml_parse_line(line: String) -> String`
+`toml_parse_line(line)`, the `find_toml_section` / `find_toml_value` /
+`toml_find_raw_value` / `toml_parse_string_array` scanners, and the
+`TomlValue` methods `v.as_string()` / `v.as_int()` / `v.as_bool()` /
+`v.as_float()` / `v.as_array()` / `v.as_table()`, `v.get_field(key)`,
+`v.table_keys()`. `toml::toml_parse(doc)` and `toml::toml_stringify(v)`
+remain the document entry points.
 
 **Testing (non-prelude)**:
 `assert_true(b: bool)`,

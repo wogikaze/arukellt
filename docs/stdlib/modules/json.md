@@ -7,16 +7,18 @@ Source-backed docs for the current JSON helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::json` module provides experimental JSON stringify and parse helpers for primitive types (`i32`, `bool`, `String`). These are building blocks for constructing or reading JSON fragments; full structured JSON DOM support is planned for a future release.
+The `std::json` module provides the `JsonValue` DOM plus the free streaming scanner / escape utilities. DOM values are inspected with `v.is_*()` / `v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized with `v.to_text()`. Primitive helpers (`json_stringify_i32`, `json_parse_i32`, …) and the scanner (`skip_ws`, `quote_string`, …) remain free functions.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `json_stringify_i32(n)` / `json_stringify_bool(b)` | Serialize a primitive value to a JSON string. |
-| `json_stringify_string(s)` | Serialize a string value with JSON escaping. |
-| `json_parse_i32(s)` / `json_parse_bool(s)` | Parse a JSON primitive back to a typed value. |
-| `json_null()` | Returns the JSON `null` literal. |
+| `json_parse(doc)` | Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input. |
+| `v.is_null()` / `v.as_i32()` / `v.as_string()` | Type predicates and typed accessors on the DOM value. |
+| `v.get_field(key)` / `v.get_index(i)` | Look up an object field or array element. |
+| `v.to_text()` | Serialize a `JsonValue` back to compact JSON text. |
+| `json_stringify_i32(n)` / `json_parse_i32(s)` | Legacy primitive stringify / parse helpers. |
+| `quote_string(s)` / `json_escape(s)` | Quote or escape a string for framed protocols. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
@@ -38,8 +40,8 @@ let parsed = json_parse_i32("42")    // 42
 ## Module `std::json`
 
 - Source: [`../../../std/json.ark`](../../../std/json.ark)
-- Manifest-backed functions: 32
-- Stability: experimental 32
+- Manifest-backed functions: 19
+- Stability: experimental 19
 
 JSON streaming scanner and escape utilities for `std::json`.
 
@@ -69,20 +71,7 @@ The full JSON parser with `pub enum JsonValue` lives in
 | `json_get_str` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the string value of field key from json, searching from |
 | `json_get_int` | `(String, String) -> i32` | `experimental` | ✅ functional | Extract the integer value of field key from json, searching from |
 | `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | ✅ functional | - |
-| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | ✅ functional | - |
-| `stringify` | `(JsonValue) -> String` | `experimental` | ✅ functional | - |
-| `is_array` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
-| `is_bool` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
-| `is_null` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
-| `is_number` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
-| `is_object` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
-| `is_string` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
-| `json_as_bool` | `(JsonValue) -> Option<bool>` | `experimental` | ✅ functional | - |
-| `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | ✅ functional | - |
-| `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | ✅ functional | - |
 | `json_encode_string` | `(String) -> String` | `experimental` | ✅ functional | - |
-| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | ✅ functional | - |
-| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | ✅ functional | - |
 | `json_null` | `() -> String` | `experimental` | ✅ functional | - |
 | `json_parse_bool` | `(String) -> bool` | `experimental` | ✅ functional | - |
 | `json_parse_i32` | `(String) -> i32` | `experimental` | ✅ functional | - |
@@ -135,21 +124,9 @@ Extract an integer field by key from a JSON object text.
 
 Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
 
-#### `std::json::stringify`
-
-Serialize a JsonValue back to its JSON text.
-
 #### `std::json::json_encode_string`
 
 Encode a plain string as a JSON string literal with escape sequences.
-
-#### `std::json::json_get`
-
-Look up a named field in a JSON object value.
-
-#### `std::json::json_get_index`
-
-Return the element at index in a JSON array value.
 
 #### `std::json::stringify_pretty`
 

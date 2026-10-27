@@ -4,10 +4,10 @@ use std::text
 fn main() {
     match json::parse("[]") {
         Result::Ok(v) => test::assert_eq_string(json::stringify_pretty(v, 2), "[]"),
-        Result::Err(e) => panic("parse [] failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse [] failed: ".concat(e.message())),
     }
     match json::parse("{}") {
         Result::Ok(v) => test::assert_eq_string(json::stringify_pretty(v, 2), "{}"),
-        Result::Err(e) => panic("parse {} failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse {} failed: ".concat(e.message())),
     }
 }

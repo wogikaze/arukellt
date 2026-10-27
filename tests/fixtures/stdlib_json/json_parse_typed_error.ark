@@ -3,7 +3,7 @@ use std::json
 use std::text
 fn main() {
     match json::parse("tru") {
-        Result::Ok(v) => stdio::println(json::stringify(v)),
+        Result::Ok(v) => stdio::println(v.to_text()),
         Result::Err(err) => match err {
             json::JsonParseError::EmptyInput => stdio::println("empty-input"),
             json::JsonParseError::InvalidLiteral(kind) => stdio::println("invalid-literal:".concat(kind)),

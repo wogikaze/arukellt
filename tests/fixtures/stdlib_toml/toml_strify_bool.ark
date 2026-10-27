@@ -5,7 +5,7 @@ use std::test
 fn main() {
     let t = toml::toml_parse("b = true")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "b") {
+        Result::Ok(table) => match table.get_field("b") {
             Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "true"),
             None => assert(false),
         },

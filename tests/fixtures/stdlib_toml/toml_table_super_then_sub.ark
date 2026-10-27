@@ -5,18 +5,18 @@ use std::test
 fn main() {
     let t = toml::toml_parse("[parent]\nname = \"p\"\n[parent.child]\nname = \"c\"")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "parent") {
+        Result::Ok(table) => match table.get_field("parent") {
             Option::Some(p) => {
-                match toml::toml_get(p, "name") {
-                    Option::Some(v) => match toml::toml_as_string(v) {
+                match p.get_field("name") {
+                    Option::Some(v) => match v.as_string() {
                         Option::Some(s) => test::assert_eq_string(s, "p"),
                         None => assert(false),
                     },
                     None => assert(false),
                 }
-                match toml::toml_get(p, "child") {
-                    Option::Some(c) => match toml::toml_get(c, "name") {
-                        Option::Some(v) => match toml::toml_as_string(v) {
+                match p.get_field("child") {
+                    Option::Some(c) => match c.get_field("name") {
+                        Option::Some(v) => match v.as_string() {
                             Option::Some(s) => test::assert_eq_string(s, "c"),
                             None => assert(false),
                         },

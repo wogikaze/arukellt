@@ -5,15 +5,19 @@ use std::test
 fn main() {
     let t = toml::toml_parse("names = [\"a\", \"b\"]")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "names") {
-            Option::Some(v) => match toml::toml_as_array(v) {
+        Result::Ok(table) => match table.get_field("names") {
+            Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
                     test::assert_eq_i32(len(arr), 2)
-                    match toml::toml_as_string(get_unchecked(arr, 0)) {
+                    let first: toml::TomlValue = get_unchecked(arr, 0)
+                    let first_text: Option<String> = first.as_string()
+                    match first_text {
                         Option::Some(s) => test::assert_eq_string(s, "a"),
                         None => assert(false),
                     }
-                    match toml::toml_as_string(get_unchecked(arr, 1)) {
+                    let second: toml::TomlValue = get_unchecked(arr, 1)
+                    let second_text: Option<String> = second.as_string()
+                    match second_text {
                         Option::Some(s) => test::assert_eq_string(s, "b"),
                         None => assert(false),
                     }

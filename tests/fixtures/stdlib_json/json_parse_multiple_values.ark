@@ -3,7 +3,7 @@ use std::json
 use std::text
 fn main() {
     match json::parse("[1,2,3] [4]") {
-        Result::Ok(v) => stdio::println(json::stringify(v)),
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Ok(v) => stdio::println(v.to_text()),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
 }

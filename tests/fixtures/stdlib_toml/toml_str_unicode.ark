@@ -5,8 +5,8 @@ use std::test
 fn main() {
     let t = toml::toml_parse("val = \"\\u0041\"")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "val") {
-            Option::Some(v) => match toml::toml_as_string(v) {
+        Result::Ok(table) => match table.get_field("val") {
+            Option::Some(v) => match v.as_string() {
                 Option::Some(s) => test::assert_eq_string(s, "A"),
                 None => assert(false),
             },

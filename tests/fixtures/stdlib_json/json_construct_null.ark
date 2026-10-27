@@ -3,6 +3,6 @@ use std::test
 
 fn main() {
     let v = json::json_null_val()
-    test::assert_true(json::is_null(v))
-    test::assert_eq_string(json::stringify(v), "null")
+    test::assert_true(v.is_null())
+    test::assert_eq_string(v.to_text(), "null")
 }

@@ -9,20 +9,20 @@ fn main() {
     match toml::toml_parse(input) {
         Result::Ok(table) => {
             // toml_get on nested table
-            match toml::toml_get(table, String_from("server")) {
+            match table.get_field(String_from("server")) {
                 Option::Some(server) => {
-                    match toml::toml_get(server, String_from("host")) {
+                    match server.get_field(String_from("host")) {
                         Option::Some(host) => {
-                            match toml::toml_as_string(host) {
+                            match host.as_string() {
                                 Option::Some(s) => assert(eq(s, String_from("localhost"))),
                                 None => assert(false),
                             }
                         },
                         None => assert(false),
                     }
-                    match toml::toml_get(server, String_from("port")) {
+                    match server.get_field(String_from("port")) {
                         Option::Some(port) => {
-                            match toml::toml_as_int(port) {
+                            match port.as_int() {
                                 Option::Some(n) => assert(n == 8080),
                                 None => assert(false),
                             }

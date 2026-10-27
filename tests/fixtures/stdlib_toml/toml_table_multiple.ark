@@ -6,11 +6,11 @@ fn main() {
     let t = toml::toml_parse("[a]\nx = 1\n[b]\ny = 2")
     match t {
         Result::Ok(table) => {
-            let keys = toml::toml_table_keys(table)
+            let keys = table.table_keys()
             test::assert_eq_i32(len(keys), 2)
-            match toml::toml_get(table, "a") {
-                Option::Some(a) => match toml::toml_get(a, "x") {
-                    Option::Some(v) => match toml::toml_as_int(v) {
+            match table.get_field("a") {
+                Option::Some(a) => match a.get_field("x") {
+                    Option::Some(v) => match v.as_int() {
                         Option::Some(n) => test::assert_eq_i32(n, 1),
                         None => assert(false),
                     },
@@ -18,9 +18,9 @@ fn main() {
                 },
                 None => assert(false),
             }
-            match toml::toml_get(table, "b") {
-                Option::Some(b) => match toml::toml_get(b, "y") {
-                    Option::Some(v) => match toml::toml_as_int(v) {
+            match table.get_field("b") {
+                Option::Some(b) => match b.get_field("y") {
+                    Option::Some(v) => match v.as_int() {
                         Option::Some(n) => test::assert_eq_i32(n, 2),
                         None => assert(false),
                     },

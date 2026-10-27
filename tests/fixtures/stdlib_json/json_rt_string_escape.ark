@@ -17,7 +17,7 @@ fn main() {
     // Round-trip: parse escaped JSON string → check decoded length and content
     match json::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
-            match json::json_as_string(v) {
+            match v.as_string() {
                 Option::Some(s) => {
                     // decoded string has 11 chars (hello + \n + world)
                     stdio::println((len(s)).to_string())
@@ -25,7 +25,7 @@ fn main() {
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // Differential golden: encode then verify exact JSON token
     let golden = "\"a\\tb\""

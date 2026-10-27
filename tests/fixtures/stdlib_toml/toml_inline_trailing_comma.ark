@@ -5,9 +5,9 @@ use std::test
 fn main() {
     let t = toml::toml_parse("p = { x = 1, y = 2, }")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "p") {
+        Result::Ok(table) => match table.get_field("p") {
             Option::Some(p) => {
-                let keys = toml::toml_table_keys(p)
+                let keys = p.table_keys()
                 test::assert_eq_i32(len(keys), 2)
             },
             None => assert(false),

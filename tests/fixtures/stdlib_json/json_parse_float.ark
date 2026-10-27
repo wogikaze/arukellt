@@ -4,26 +4,26 @@ use std::text
 fn main() {
     match json::parse("3.14") {
         Result::Ok(v) => {
-            test::assert_true(json::is_number(v))
-            match json::json_as_f64(v) {
+            test::assert_true(v.is_number())
+            match v.as_f64() {
                 Option::Some(n) => test::assert_eq_f64(n, 3.14),
                 None => panic("expected Some(3.14)"),
             }
         },
-        Result::Err(e) => panic("parse 3.14 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 3.14 failed: ".concat(e.message())),
     }
     match json::parse("0.5") {
-        Result::Ok(v) => match json::json_as_f64(v) {
+        Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, 0.5),
             None => panic("expected Some(0.5)"),
         },
-        Result::Err(e) => panic("parse 0.5 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 0.5 failed: ".concat(e.message())),
     }
     match json::parse("-2.5") {
-        Result::Ok(v) => match json::json_as_f64(v) {
+        Result::Ok(v) => match v.as_f64() {
             Option::Some(n) => test::assert_eq_f64(n, -2.5),
             None => panic("expected Some(-2.5)"),
         },
-        Result::Err(e) => panic("parse -2.5 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse -2.5 failed: ".concat(e.message())),
     }
 }

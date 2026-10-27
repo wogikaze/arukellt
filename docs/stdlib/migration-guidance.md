@@ -767,6 +767,53 @@ method/associated surface below is the only spelling.
 The dual-target fixtures are `stdlib_bytes/bytes_method_surface*.ark`; the
 E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
 
+## std::json / std::toml value-method wave (ADR-046, 2026-10-27)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  experimental-entry rule in [ADR-014](../adr/ADR-014-stability.md) D4. Every
+  removed manifest entry was `experimental`; qualified callers get **E0100**
+  hints from `removed_json_member_hint` / `removed_toml_member_hint`.
+- **Scorecard**: 728 → **701** public symbols; `associated-or-method`
+  658 → **631**; manifest functions 507 → **489**; unregistered declarations
+  222 → **213**.
+
+| Before | After |
+|--------|-------|
+| `json::json_get(v, key)` | `v.get_field(key)` |
+| `json::json_get_index(v, i)` | `v.get_index(i)` |
+| `json::json_as_string(v)` | `v.as_string()` |
+| `json::json_as_i32(v)` | `v.as_i32()` |
+| `json::json_as_bool(v)` | `v.as_bool()` |
+| `json::json_as_f64(v)` | `v.as_f64()` |
+| `json::json_as_array(v)` | `v.as_array()` |
+| `json::is_null(v)` / `json::is_bool(v)` / `json::is_number(v)` | `v.is_null()` / `v.is_bool()` / `v.is_number()` |
+| `json::is_string(v)` / `json::is_array(v)` / `json::is_object(v)` | `v.is_string()` / `v.is_array()` / `v.is_object()` |
+| `json::stringify(v)` | `v.to_text()` |
+| `json::parse_error_message(e)` | `e.message()` |
+| `toml::toml_get(v, key)` | `v.get_field(key)` |
+| `toml::toml_table_keys(v)` | `v.table_keys()` |
+| `toml::toml_as_string(v)` / `toml::toml_as_int(v)` / `toml::toml_as_bool(v)` | `v.as_string()` / `v.as_int()` / `v.as_bool()` |
+| `toml::toml_as_float(v)` / `toml::toml_as_array(v)` / `toml::toml_as_table(v)` | `v.as_float()` / `v.as_array()` / `v.as_table()` |
+
+### Retained by lowering blocks (not fakes)
+
+- **Non-main-module associated calls**: an associated function or namespace
+  type that returns a constructed value (`JsonText` / `TomlText` / `Csv`
+  helpers, `JsonValue::*` constructors, `JsonField::new`,
+  `JsonValue::pretty_text`) compiles to an unresolved-call `unreachable` when
+  called from a helper module rather than `main`. A two-module probe fails on
+  both the pinned bootstrap and the rebuilt s2 (`compiler produced invalid
+  core Wasm`) while the same call in `main` validates. The free helpers,
+  constructors, and CSV frees therefore stay public until the compiler
+  registers associated return types for non-main modules.
+- **Associated `parse`**: `JsonValue::parse` / `TomlValue::parse` return a
+  generic `Result`; an unannotated `match` loses the payload type
+  (`unsupported match on an untyped Option/Result scrutinee`). `json::parse`
+  and `toml::toml_parse` stay the document entry points.
+- **`TomlValue::to_text`**: a method returning `String` on a receiver whose
+  enum has an `i64` payload emits an invalid return type on wasm32-gc
+  (expected `ref`, found `i64`); `toml::toml_stringify` stays.
+
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 
 The [ADR-085](../adr/ADR-085-io-trait-unification.md) migration replaced the

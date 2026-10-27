@@ -415,6 +415,42 @@ classified there, in dependency-safe waves.
   the `std::io` / `std::host::fs` byte-layout adapters and the 743
   `associated-or-method` symbols remain in their own lanes.
 
+### Landed slice (wave/host-core-json, 2026-10-27)
+
+- Retired the 18 `std::json` / `std::toml` manifest free entries and 9
+  unregistered source declarations for the **value-method** subset:
+  `JsonValue` `is_null` / `is_bool` / `is_number` / `is_string` / `is_array` /
+  `is_object`, `as_bool` / `as_string` / `as_i32` / `as_f64` / `as_array`,
+  `get_field` / `get_index`, `to_text`, and `JsonParseError::message`;
+  `TomlValue` `as_string` / `as_int` / `as_bool` / `as_float` / `as_array` /
+  `as_table`, `get_field`, and `table_keys`. All removed manifest entries were
+  `experimental` (ADR-014 D4), so no ADR-087 W0009 row applies; E0100 hints
+  come from `resolver::removed_names::removed_{json,toml}_member_hint` with
+  unit assertions in the same file.
+- **Lowering block (measured, not faked)**: an associated function or namespace
+  type (`JsonText`, `TomlText`, `Csv`, `JsonValue::*` constructors,
+  `JsonField::new`, `JsonValue::pretty_text`) that returns a constructed
+  value emits an unresolved-call `unreachable` when called from a **non-main
+  module**. A two-module probe (`helper.ark` → `main.ark`) compiling with both
+  the pinned bootstrap and the rebuilt s2 produced "compiler produced invalid
+  core Wasm"; the same call from `main.ark` validates. The compiler source
+  therefore stays on the free helpers (`JsonText` / `TomlText` / CSV frees were
+  not adopted), and those free functions remain the public surface for
+  multi-module callers. Associated `JsonValue::parse` / `TomlValue::parse`
+  also fail unannotated `match` inference, and `TomlValue::to_text` emits an
+  invalid `i64` return on wasm32-gc.
+- **Fixtures**: the 258 json/toml/csv fixtures now use the value methods for
+  the safe subset; the primitive helpers, DOM constructors, streaming scanner,
+  and CSV calls stay free. Nested `Option` matches whose scrutinee is a
+  method call need an explicit `Option<...>` binding (`toml_aot_*`,
+  `toml_array_*`).
+- **Scorecard delta**: 728 -> **701** public symbols; `associated-or-method`
+  658 -> **631**; unregistered declarations 222 -> **213**; manifest
+  functions 507 -> **489**. `must delete` 70 and `intrinsic-only` 1 unchanged.
+- Verification: both-target fixture compile for the 258 json/toml/csv
+  fixtures; full `verify fixtures`, `docs check`, `verify lane`, and the
+  ADR-029 fixpoint are the wave gates.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

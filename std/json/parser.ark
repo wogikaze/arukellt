@@ -127,6 +127,217 @@ pub enum JsonValue {
     Object(Vec<JsonField>),
 }
 
+impl JsonValue {
+    fn is_null(self: JsonValue) -> bool {
+        match self {
+            JsonValue::Null => true,
+            JsonValue::Bool(_) => false,
+            JsonValue::Number(_) => false,
+            JsonValue::Str(_) => false,
+            JsonValue::Raw(_) => false,
+            JsonValue::Array(_) => false,
+            JsonValue::Object(_) => false,
+        }
+    }
+
+    fn is_bool(self: JsonValue) -> bool {
+        match self {
+            JsonValue::Null => false,
+            JsonValue::Bool(_) => true,
+            JsonValue::Number(_) => false,
+            JsonValue::Str(_) => false,
+            JsonValue::Raw(_) => false,
+            JsonValue::Array(_) => false,
+            JsonValue::Object(_) => false,
+        }
+    }
+
+    fn is_number(self: JsonValue) -> bool {
+        match self {
+            JsonValue::Null => false,
+            JsonValue::Bool(_) => false,
+            JsonValue::Number(_) => true,
+            JsonValue::Str(_) => false,
+            JsonValue::Raw(_) => false,
+            JsonValue::Array(_) => false,
+            JsonValue::Object(_) => false,
+        }
+    }
+
+    fn is_string(self: JsonValue) -> bool {
+        match self {
+            JsonValue::Null => false,
+            JsonValue::Bool(_) => false,
+            JsonValue::Number(_) => false,
+            JsonValue::Str(_) => true,
+            JsonValue::Raw(_) => false,
+            JsonValue::Array(_) => false,
+            JsonValue::Object(_) => false,
+        }
+    }
+
+    fn is_array(self: JsonValue) -> bool {
+        match self {
+            JsonValue::Null => false,
+            JsonValue::Bool(_) => false,
+            JsonValue::Number(_) => false,
+            JsonValue::Str(_) => false,
+            JsonValue::Raw(_) => false,
+            JsonValue::Array(_) => true,
+            JsonValue::Object(_) => false,
+        }
+    }
+
+    fn is_object(self: JsonValue) -> bool {
+        match self {
+            JsonValue::Null => false,
+            JsonValue::Bool(_) => false,
+            JsonValue::Number(_) => false,
+            JsonValue::Str(_) => false,
+            JsonValue::Raw(_) => false,
+            JsonValue::Array(_) => false,
+            JsonValue::Object(_) => true,
+        }
+    }
+
+    fn as_bool(self: JsonValue) -> Option<bool> {
+        match self {
+            JsonValue::Bool(b) => Some(b),
+            JsonValue::Null => None,
+            JsonValue::Number(_) => None,
+            JsonValue::Str(_) => None,
+            JsonValue::Raw(_) => None,
+            JsonValue::Array(_) => None,
+            JsonValue::Object(_) => None,
+        }
+    }
+
+    fn as_string(self: JsonValue) -> Option<String> {
+        match self {
+            JsonValue::Str(s) => Some(s),
+            JsonValue::Null => None,
+            JsonValue::Bool(_) => None,
+            JsonValue::Number(_) => None,
+            JsonValue::Raw(_) => None,
+            JsonValue::Array(_) => None,
+            JsonValue::Object(_) => None,
+        }
+    }
+
+    fn as_i32(self: JsonValue) -> Option<i32> {
+        match self {
+            JsonValue::Number(n) => {
+                match parse_i32(n) {
+                    Result::Ok(i) => Some(i),
+                    Result::Err(_) => None,
+                }
+            },
+            JsonValue::Null => None,
+            JsonValue::Bool(_) => None,
+            JsonValue::Str(_) => None,
+            JsonValue::Raw(_) => None,
+            JsonValue::Array(_) => None,
+            JsonValue::Object(_) => None,
+        }
+    }
+
+    fn as_f64(self: JsonValue) -> Option<f64> {
+        match self {
+            JsonValue::Number(n) => {
+                match parse_f64(n) {
+                    Result::Ok(f) => Some(f),
+                    Result::Err(_) => None,
+                }
+            },
+            JsonValue::Null => None,
+            JsonValue::Bool(_) => None,
+            JsonValue::Str(_) => None,
+            JsonValue::Raw(_) => None,
+            JsonValue::Array(_) => None,
+            JsonValue::Object(_) => None,
+        }
+    }
+
+    /// Rebuild the array element by element; returning the payload Vec
+    /// directly traps on wasm32-gc (#807), so the loop copies via get_index.
+    fn as_array(self: JsonValue) -> Option<Vec<JsonValue>> {
+        if !self.is_array() {
+            return None
+        }
+        let array_items = Vec::new<JsonValue>()
+        let mut index = 0
+        let mut finished = false
+        while !finished {
+            match self.get_index(index) {
+                Option::Some(elem) => {
+                    push(array_items, elem)
+                    index = index + 1
+                },
+                None => {
+                    finished = true
+                },
+            }
+        }
+        Some(array_items)
+    }
+
+    fn get_field(self: JsonValue, key: String) -> Option<JsonValue> {
+        match self {
+            JsonValue::Object(fields) => {
+                let n = len(fields)
+                let mut i = 0
+                while i < n {
+                    let f = get_unchecked(fields, i)
+                    if eq(f.key, key) {
+                        return Some(f.value)
+                    }
+                    i = i + 1
+                }
+                None
+            },
+            JsonValue::Null => None,
+            JsonValue::Bool(_) => None,
+            JsonValue::Number(_) => None,
+            JsonValue::Str(_) => None,
+            JsonValue::Raw(_) => None,
+            JsonValue::Array(_) => None,
+        }
+    }
+
+    fn get_index(self: JsonValue, index: i32) -> Option<JsonValue> {
+        match self {
+            JsonValue::Array(items) => {
+                if index < 0 || index >= len(items) {
+                    return None
+                }
+                Some(get_unchecked(items, index))
+            },
+            JsonValue::Null => None,
+            JsonValue::Bool(_) => None,
+            JsonValue::Number(_) => None,
+            JsonValue::Str(_) => None,
+            JsonValue::Raw(_) => None,
+            JsonValue::Object(_) => None,
+        }
+    }
+
+    /// Serialize this value back to its JSON text.
+    fn to_text(self: JsonValue) -> String {
+        stringify_value(self)
+    }
+}
+
+impl JsonParseError {
+    fn message(self: JsonParseError) -> String {
+        match self {
+            JsonParseError::EmptyInput => "empty input",
+            JsonParseError::InvalidLiteral(kind) => "invalid ".concat(kind),
+            JsonParseError::TrailingCharacters => "trailing characters",
+            JsonParseError::UnexpectedCharacter(_) => "unexpected character",
+        }
+    }
+}
+
 pub struct JsonField {
     key: String,
     value: JsonValue,
@@ -333,15 +544,6 @@ pub fn json_parse_step_next(step: JsonParseStep) -> i32 {
     step.next
 }
 
-pub fn parse_error_message(err: JsonParseError) -> String {
-    match err {
-        JsonParseError::EmptyInput => "empty input",
-        JsonParseError::InvalidLiteral(kind) => "invalid ".concat(kind),
-        JsonParseError::TrailingCharacters => "trailing characters",
-        JsonParseError::UnexpectedCharacter(_) => "unexpected character",
-    }
-}
-
 // ─── Public parse / stringify ────────────────────────────────────────────────
 /// Parse a full JSON document from `s` and reject trailing non-whitespace after
 /// the first top-level value.
@@ -495,7 +697,7 @@ pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
 }
 
 /// Serialize a `JsonValue` back to its JSON text.
-pub fn stringify(v: JsonValue) -> String {
+fn stringify_value(v: JsonValue) -> String {
     match v {
         JsonValue::Null => "null",
         // Bind payload then branch — Bool(true)/Bool(false) arms do not
@@ -523,7 +725,7 @@ fn stringify_array(items: Vec<JsonValue>) -> String {
         if i > 0 {
             out = out.concat(",")
         }
-        out = out.concat(stringify(get_unchecked(items, i)))
+        out = out.concat(stringify_value(get_unchecked(items, i)))
         i = i + 1
     }
     out.concat("]")
@@ -538,7 +740,7 @@ fn stringify_object(fields: Vec<JsonField>) -> String {
             out = out.concat(",")
         }
         let f = get_unchecked(fields, i)
-        out = out.concat(json_encode_string(f.key).concat(":".concat(stringify(f.value))))
+        out = out.concat(json_encode_string(f.key).concat(":".concat(stringify_value(f.value))))
         i = i + 1
     }
     out.concat("}")
@@ -730,140 +932,6 @@ pub fn stringify_pretty(v: JsonValue, indent: i32) -> String {
 }
 
 // ─── Type predicates ─────────────────────────────────────────────────────────
-pub fn is_null(v: JsonValue) -> bool {
-    match v {
-        JsonValue::Null => true,
-        _ => false,
-    }
-}
-
-pub fn is_bool(v: JsonValue) -> bool {
-    match v {
-        JsonValue::Bool(_) => true,
-        _ => false,
-    }
-}
-
-pub fn is_number(v: JsonValue) -> bool {
-    match v {
-        JsonValue::Number(_) => true,
-        _ => false,
-    }
-}
-
-pub fn is_string(v: JsonValue) -> bool {
-    match v {
-        JsonValue::Str(_) => true,
-        _ => false,
-    }
-}
-
-pub fn is_array(v: JsonValue) -> bool {
-    match v {
-        JsonValue::Array(_) => true,
-        _ => false,
-    }
-}
-
-pub fn is_object(v: JsonValue) -> bool {
-    match v {
-        JsonValue::Object(_) => true,
-        _ => false,
-    }
-}
-
-pub fn json_as_bool(v: JsonValue) -> Option<bool> {
-    match v {
-        JsonValue::Bool(b) => Some(b),
-        _ => None,
-    }
-}
-
-pub fn json_as_string(v: JsonValue) -> Option<String> {
-    match v {
-        JsonValue::Str(s) => Some(s),
-        _ => None,
-    }
-}
-
-pub fn json_as_i32(v: JsonValue) -> Option<i32> {
-    match v {
-        JsonValue::Number(n) => {
-            match parse_i32(n) {
-                Result::Ok(i) => Some(i),
-                Result::Err(_) => None,
-            }
-        },
-        _ => None,
-    }
-}
-
-pub fn json_as_f64(v: JsonValue) -> Option<f64> {
-    match v {
-        JsonValue::Number(n) => {
-            match parse_f64(n) {
-                Result::Ok(f) => Some(f),
-                Result::Err(_) => None,
-            }
-        },
-        _ => None,
-    }
-}
-
-pub fn json_as_array(v: JsonValue) -> Option<Vec<JsonValue>> {
-    // Returning the Array payload Vec directly traps on wasm32-gc (#807).
-    // Rebuild via json_get_index, which extracts elements safely.
-    // Avoid short local names like `out`/`i`/`done` — GC lowering has
-    // collided those into i32 slots and broken the Option wrap (#807).
-    if !is_array(v) {
-        return None
-    }
-    let array_items = Vec::new<JsonValue>()
-    let mut index = 0
-    let mut finished = false
-    while !finished {
-        match json_get_index(v, index) {
-            Option::Some(elem) => {
-                push(array_items, elem)
-                index = index + 1
-            },
-            None => {
-                finished = true
-            },
-        }
-    }
-    Some(array_items)
-}
-
-pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
-    match v {
-        JsonValue::Object(fields) => {
-            let n = len(fields)
-            let mut i = 0
-            while i < n {
-                let f = get_unchecked(fields, i)
-                if eq(f.key, key) {
-                    return Some(f.value)
-                }
-                i = i + 1
-            }
-            None
-        },
-        _ => None,
-    }
-}
-
-pub fn json_get_index(v: JsonValue, index: i32) -> Option<JsonValue> {
-    match v {
-        JsonValue::Array(items) => {
-            if index < 0 || index >= len(items) {
-                return None
-            }
-            Some(get_unchecked(items, index))
-        },
-        _ => None,
-    }
-}
 
 // ─── Construction helpers ────────────────────────────────────────────────────
 /// Create a JsonField from a key and value.
@@ -908,12 +976,12 @@ pub fn json_arr_new() -> Vec<JsonValue> {
 
 /// Build a JSON object string from a Vec<JsonField>.
 pub fn json_obj_string(fields: Vec<JsonField>) -> String {
-    stringify(JsonValue::Object(fields))
+    stringify_value(JsonValue::Object(fields))
 }
 
 /// Build a JSON array string from a Vec<JsonValue>.
 pub fn json_arr_string(items: Vec<JsonValue>) -> String {
-    stringify(JsonValue::Array(items))
+    stringify_value(JsonValue::Array(items))
 }
 
 // ─── String encoding ─────────────────────────────────────────────────────────

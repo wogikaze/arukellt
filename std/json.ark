@@ -440,15 +440,3 @@ pub use std::json::parser
 pub fn parse(s: String) -> Result<parser::JsonValue, parser::JsonParseError> {
     parser::parse(s)
 }
-
-pub fn parse_error_message(err: parser::JsonParseError) -> String {
-    parser::parse_error_message(err)
-}
-
-pub fn json_as_string(v: parser::JsonValue) -> Option<String> {
-    parser::json_as_string(v)
-}
-
-pub fn stringify(v: parser::JsonValue) -> String {
-    parser::stringify(v)
-}

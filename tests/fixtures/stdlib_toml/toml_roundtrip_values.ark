@@ -18,19 +18,19 @@ fn main() {
     let doc = "title = \"hello world\"\nport = 8080\nflag = false\nratio = 1.5"
     match toml::toml_parse(doc) {
         Result::Ok(table) => {
-            match toml::toml_get(table, "title") {
+            match table.get_field("title") {
                 Option::Some(v) => stdio::println(toml::toml_stringify(v)),
                 None => stdio::println("missing title"),
             }
-            match toml::toml_get(table, "port") {
+            match table.get_field("port") {
                 Option::Some(v) => stdio::println(toml::toml_stringify(v)),
                 None => stdio::println("missing port"),
             }
-            match toml::toml_get(table, "flag") {
+            match table.get_field("flag") {
                 Option::Some(v) => stdio::println(toml::toml_stringify(v)),
                 None => stdio::println("missing flag"),
             }
-            match toml::toml_get(table, "ratio") {
+            match table.get_field("ratio") {
                 Option::Some(v) => stdio::println(toml::toml_stringify(v)),
                 None => stdio::println("missing ratio"),
             }

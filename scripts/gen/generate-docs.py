@@ -420,16 +420,19 @@ match content {
         "modules": ["std::json"],
         "overview": {
             "summary": (
-                "The `std::json` module provides experimental JSON stringify and parse helpers "
-                "for primitive types (`i32`, `bool`, `String`). These are building blocks for "
-                "constructing or reading JSON fragments; full structured JSON DOM support is "
-                "planned for a future release."
+                "The `std::json` module provides the `JsonValue` DOM plus the free streaming "
+                "scanner / escape utilities. DOM values are inspected with `v.is_*()` / "
+                "`v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized "
+                "with `v.to_text()`. Primitive helpers (`json_stringify_i32`, `json_parse_i32`, "
+                "…) and the scanner (`skip_ws`, `quote_string`, …) remain free functions."
             ),
             "highlights": [
-                ("`json_stringify_i32(n)` / `json_stringify_bool(b)`", "Serialize a primitive value to a JSON string."),
-                ("`json_stringify_string(s)`", "Serialize a string value with JSON escaping."),
-                ("`json_parse_i32(s)` / `json_parse_bool(s)`", "Parse a JSON primitive back to a typed value."),
-                ("`json_null()`", "Returns the JSON `null` literal."),
+                ("`json_parse(doc)`", "Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input."),
+                ("`v.is_null()` / `v.as_i32()` / `v.as_string()`", "Type predicates and typed accessors on the DOM value."),
+                ("`v.get_field(key)` / `v.get_index(i)`", "Look up an object field or array element."),
+                ("`v.to_text()`", "Serialize a `JsonValue` back to compact JSON text."),
+                ("`json_stringify_i32(n)` / `json_parse_i32(s)`", "Legacy primitive stringify / parse helpers."),
+                ("`quote_string(s)` / `json_escape(s)`", "Quote or escape a string for framed protocols."),
             ],
             "typical_usage": """\
 > ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
@@ -679,12 +682,15 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
                 "section/value scanners for compiler manifests. `toml_parse` accepts table "
                 "headers, arrays of tables, inline tables, dotted keys, multiline strings, and "
                 "datetime literals; malformed input returns `Err(String)`. Nested tables are "
-                "traversed with `toml_get` / `toml_table_keys`. `find_toml_section` / "
-                "`find_toml_value` extract sections and quoted string values from raw text."
+                "traversed with `v.get_field(key)` / `v.table_keys()` and decoded with "
+                "`v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / "
+                "`v.as_array()` / `v.as_table()`. `find_toml_section` / `find_toml_value` "
+                "remain free streaming scanners."
             ),
             "highlights": [
                 ("`toml_parse(doc)`", "Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input."),
-                ("`toml_get` / `toml_table_keys`", "Traverse nested tables and list keys."),
+                ("`v.get_field(key)` / `v.table_keys()`", "Traverse nested tables and list keys."),
+                ("`v.as_string()` / `v.as_int()` / `v.as_array()` / `v.as_table()`", "Decode a value without re-parsing its raw text."),
                 ("`find_toml_section` / `find_toml_value`", "Streaming scanners for `[section]` bodies and quoted string values."),
             ],
             "typical_usage": """\

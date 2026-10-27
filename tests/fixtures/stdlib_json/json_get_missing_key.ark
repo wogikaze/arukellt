@@ -4,15 +4,15 @@ use std::text
 fn main() {
     match json::parse("{\"a\":1}") {
         Result::Ok(v) => {
-            match json::json_get(v, "missing") {
+            match v.get_field("missing") {
                 Option::Some(_) => panic("expected None for missing key"),
                 None => {},
             }
-            match json::json_get(v, "a") {
+            match v.get_field("a") {
                 Option::Some(_) => {},
                 None => panic("expected Some for existing key a"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
 }

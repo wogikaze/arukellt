@@ -5,8 +5,8 @@ use std::test
 fn main() {
     let t = toml::toml_parse("s = \"text\"")
     match t {
-        Result::Ok(table) => match toml::toml_get(table, "s") {
-            Option::Some(v) => match toml::toml_as_int(v) {
+        Result::Ok(table) => match table.get_field("s") {
+            Option::Some(v) => match v.as_int() {
                 Option::Some(_) => assert(false),
                 None => {},
             },

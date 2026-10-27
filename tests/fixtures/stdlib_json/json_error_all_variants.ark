@@ -21,6 +21,6 @@ fn main() {
         Result::Err(_) => panic("wrong error variant"),
     }
     // parse_error_message produces non-empty string for each variant
-    test::assert_eq_string(json::parse_error_message(json::JsonParseError::EmptyInput), "empty input")
-    test::assert_eq_string(json::parse_error_message(json::JsonParseError::TrailingCharacters), "trailing characters")
+    test::assert_eq_string((json::JsonParseError::EmptyInput).message(), "empty input")
+    test::assert_eq_string((json::JsonParseError::TrailingCharacters).message(), "trailing characters")
 }

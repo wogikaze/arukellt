@@ -5,13 +5,13 @@ fn main() {
     let raw = "\"hello\\nworld\\ttab\""
     match json::parse(raw) {
         Result::Ok(v) => {
-            let s = json::stringify(v)
+            let s = v.to_text()
             test::assert_eq_string(s, raw)
-            match json::json_as_string(v) {
+            match v.as_string() {
                 Option::Some(decoded) => test::assert_eq_string(decoded, "hello\nworld\ttab"),
                 None => panic("expected string"),
             }
         },
-        Result::Err(e) => panic("parse failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse failed: ".concat(e.message())),
     }
 }

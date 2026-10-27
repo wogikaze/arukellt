@@ -3,10 +3,10 @@ use std::test
 
 fn main() {
     let v = json::json_str("hello")
-    test::assert_true(json::is_string(v))
-    match json::json_as_string(v) {
+    test::assert_true(v.is_string())
+    match v.as_string() {
         Option::Some(s) => test::assert_eq_string(s, "hello"),
         None => panic("expected string"),
     }
-    test::assert_eq_string(json::stringify(v), "\"hello\"")
+    test::assert_eq_string(v.to_text(), "\"hello\"")
 }

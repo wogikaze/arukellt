@@ -279,7 +279,7 @@ label = "std::json/toml/csv frees"
 module_pfx = ["std::json", "std::toml", "std::csv"]
 class = "associated-or-method"
 owner = "917"
-replacement = "Json/Toml/Csv value methods and associated parse/stringify"
+replacement = "JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`). The associated constructors, `JsonText` / `TomlText` namespaces, `Csv` namespace, and parse/stringify entry points stay free because associated calls from non-main modules emit an unresolved-call fallback on both the pinned bootstrap and s2."
 
 [[rules]]
 label = "std::simd frees"

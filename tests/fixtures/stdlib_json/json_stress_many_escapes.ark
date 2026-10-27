@@ -4,15 +4,15 @@ use std::text
 fn main() {
     let raw = "\"\\n\\t\\r\\\\\\\"\\b\\f\""
     match json::parse(raw) {
-        Result::Ok(v) => match json::json_as_string(v) {
+        Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_i32(len(s), 7),
             None => panic("expected string"),
         },
-        Result::Err(e) => panic("parse many escapes failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse many escapes failed: ".concat(e.message())),
     }
     // Round-trip the escaped string
     match json::parse(raw) {
-        Result::Ok(v) => test::assert_eq_string(json::stringify(v), raw),
-        Result::Err(e) => panic("re-parse failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_eq_string(v.to_text(), raw),
+        Result::Err(e) => panic("re-parse failed: ".concat(e.message())),
     }
 }

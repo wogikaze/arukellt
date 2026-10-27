@@ -5,7 +5,7 @@ fn main() {
     // Stress-test json_decode_string via json_as_string with escape sequences
     match json::parse("\"hello\\nworld\\ttabbed\"") {
         Result::Ok(v) => {
-            match json::json_as_string(v) {
+            match v.as_string() {
                 Option::Some(s) => {
                     stdio::println((len(s)).to_string())
                     stdio::println(s)
@@ -13,17 +13,17 @@ fn main() {
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
     // Long string with no escapes (tests plain-text batching)
     let long = "\"abcdefghijklmnopqrstuvwxyz0123456789\""
     match json::parse(long) {
         Result::Ok(v) => {
-            match json::json_as_string(v) {
+            match v.as_string() {
                 Option::Some(s) => stdio::println((len(s)).to_string()),
                 None => stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(json::parse_error_message(e))),
+        Result::Err(e) => stdio::println("error:".concat(e.message())),
     }
 }

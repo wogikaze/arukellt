@@ -176,6 +176,12 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "iter") {
         return removed_iter_member_hint(name)
     }
+    if eq(clone(module), "json") {
+        return removed_json_member_hint(name)
+    }
+    if eq(clone(module), "toml") {
+        return removed_toml_member_hint(name)
+    }
     let simd_type = removed_simd_lane_type(clone(module))
     if len(clone(simd_type)) > 0 {
         return "removed free function; call `"
@@ -220,6 +226,37 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
     if eq(clone(name), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
     if eq(clone(name), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
+    String_new()
+}
+
+fn removed_json_member_hint(name: String) -> String {
+    if eq(clone(name), "json_get") { return "use `v.get_field(key)` on `JsonValue` instead" }
+    if eq(clone(name), "json_get_index") { return "use `v.get_index(index)` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_string") { return "use `v.as_string()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_i32") { return "use `v.as_i32()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_bool") { return "use `v.as_bool()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_f64") { return "use `v.as_f64()` on `JsonValue` instead" }
+    if eq(clone(name), "json_as_array") { return "use `v.as_array()` on `JsonValue` instead" }
+    if eq(clone(name), "is_null") { return "use `v.is_null()` on `JsonValue` instead" }
+    if eq(clone(name), "is_bool") { return "use `v.is_bool()` on `JsonValue` instead" }
+    if eq(clone(name), "is_number") { return "use `v.is_number()` on `JsonValue` instead" }
+    if eq(clone(name), "is_string") { return "use `v.is_string()` on `JsonValue` instead" }
+    if eq(clone(name), "is_array") { return "use `v.is_array()` on `JsonValue` instead" }
+    if eq(clone(name), "is_object") { return "use `v.is_object()` on `JsonValue` instead" }
+    if eq(clone(name), "stringify") { return "use `v.to_text()` on `JsonValue` instead" }
+    if eq(clone(name), "parse_error_message") { return "use `e.message()` on `JsonParseError` instead" }
+    String_new()
+}
+
+fn removed_toml_member_hint(name: String) -> String {
+    if eq(clone(name), "toml_get") { return "use `v.get_field(key)` on `TomlValue` instead" }
+    if eq(clone(name), "toml_table_keys") { return "use `v.table_keys()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_string") { return "use `v.as_string()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_int") { return "use `v.as_int()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_bool") { return "use `v.as_bool()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_float") { return "use `v.as_float()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_array") { return "use `v.as_array()` on `TomlValue` instead" }
+    if eq(clone(name), "toml_as_table") { return "use `v.as_table()` on `TomlValue` instead" }
     String_new()
 }
 
@@ -749,4 +786,13 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("f32x4x"), String_from("splat"))) == 0)
         assert(len(removed_module_member_hint(String_from("text"), String_from("splat"))) == 0)
     }
+    test "removed json/toml value frees have method hints" {
+        assert(len(removed_module_member_hint(String_from("json"), String_from("json_get"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("json_as_i32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("stringify"))) > 0)
+        assert(len(removed_module_member_hint(String_from("json"), String_from("parse_error_message"))) > 0)
+        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_get"))) > 0)
+        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_as_string"))) > 0)
+    }
+
 }

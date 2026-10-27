@@ -15,9 +15,9 @@ pub fn main() {
         match toml::toml_parse(simple_toml) {
             Result::Ok(v) => {
                 // String field: name
-                match toml::toml_get(v, "name") {
+                match v.get_field("name") {
                     Option::Some(nv) => {
-                        match toml::toml_as_string(nv) {
+                        match nv.as_string() {
                             Option::Some(_) => checksum = checksum + 1,
                             None => checksum = checksum + 10,
                         }
@@ -25,9 +25,9 @@ pub fn main() {
                     None => checksum = checksum + 100,
                 }
                 // Integer field: count
-                match toml::toml_get(v, "count") {
+                match v.get_field("count") {
                     Option::Some(cv) => {
-                        match toml::toml_as_int(cv) {
+                        match cv.as_int() {
                             Option::Some(n) => checksum = checksum + n,
                             None => checksum = checksum + 1000,
                         }
@@ -35,9 +35,9 @@ pub fn main() {
                     None => checksum = checksum + 10000,
                 }
                 // Boolean field: active
-                match toml::toml_get(v, "active") {
+                match v.get_field("active") {
                     Option::Some(av) => {
-                        match toml::toml_as_bool(av) {
+                        match av.as_bool() {
                             Option::Some(b) => {
                                 if b { checksum = checksum + 7 } else { checksum = checksum + 70 }
                             },
@@ -55,10 +55,10 @@ pub fn main() {
         // ── Parse TOML with array values ────────────────────────────────
         match toml::toml_parse(array_toml) {
             Result::Ok(v) => {
-                match toml::toml_get(v, "tags") {
+                match v.get_field("tags") {
                     Option::Some(tv) => {
                         // Array values have tag=4; toml_as_string returns None
-                        match toml::toml_as_string(tv) {
+                        match tv.as_string() {
                             Option::Some(_) => checksum = checksum + 3,
                             None => checksum = checksum + 30,
                         }

@@ -187,38 +187,6 @@ pub fn toml_stringify(v: parser::TomlValue) -> String {
     parser::toml_stringify(v)
 }
 
-pub fn toml_as_string(v: parser::TomlValue) -> Option<String> {
-    parser::toml_as_string(v)
-}
-
-pub fn toml_as_int(v: parser::TomlValue) -> Option<i32> {
-    parser::toml_as_int(v)
-}
-
-pub fn toml_as_bool(v: parser::TomlValue) -> Option<bool> {
-    parser::toml_as_bool(v)
-}
-
-pub fn toml_as_float(v: parser::TomlValue) -> Option<f64> {
-    parser::toml_as_float(v)
-}
-
-pub fn toml_as_array(v: parser::TomlValue) -> Option<Vec<parser::TomlValue>> {
-    parser::toml_as_array(v)
-}
-
-pub fn toml_as_table(v: parser::TomlValue) -> Option<Vec<parser::TomlField>> {
-    parser::toml_as_table(v)
-}
-
-pub fn toml_get(v: parser::TomlValue, key: String) -> Option<parser::TomlValue> {
-    parser::toml_get(v, key)
-}
-
-pub fn toml_table_keys(v: parser::TomlValue) -> Vec<String> {
-    parser::toml_table_keys(v)
-}
-
 pub fn toml_test_wrapper() -> String {
     String_from("wrapper_ok")
 }

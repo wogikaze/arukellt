@@ -4,26 +4,26 @@ use std::text
 fn main() {
     match json::parse("\"hello\"") {
         Result::Ok(v) => {
-            test::assert_true(json::is_string(v))
-            match json::json_as_string(v) {
+            test::assert_true(v.is_string())
+            match v.as_string() {
                 Option::Some(s) => test::assert_eq_string(s, "hello"),
                 None => panic("expected Some(\"hello\")"),
             }
         },
-        Result::Err(e) => panic("parse string failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse string failed: ".concat(e.message())),
     }
     match json::parse("\"\"") {
-        Result::Ok(v) => match json::json_as_string(v) {
+        Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, ""),
             None => panic("expected Some(\"\")"),
         },
-        Result::Err(e) => panic("parse empty string failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse empty string failed: ".concat(e.message())),
     }
     match json::parse("\"hello world\"") {
-        Result::Ok(v) => match json::json_as_string(v) {
+        Result::Ok(v) => match v.as_string() {
             Option::Some(s) => test::assert_eq_string(s, "hello world"),
             None => panic("expected Some(\"hello world\")"),
         },
-        Result::Err(e) => panic("parse spaced string failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse spaced string failed: ".concat(e.message())),
     }
 }

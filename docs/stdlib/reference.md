@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 206 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 195 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -22,13 +22,21 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
+| `Component` | - | no | experimental | Namespace for Component Model version constants; canonical_abi_version and model_version are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
+| `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
+| `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
 | `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
+| `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
 | `HashSet` | T | no | provisional | Set of unique i32 values; new, insert, contains, remove, len, is_empty lower to the flat hash store. |
+| `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
+| `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
+| `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
+| `I8x16` | - | no | experimental | 16 × 8-bit signed integer lane associated operations over v128. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `LinkedList` | T | no | provisional | Doubly-linked list with O(1) push/pop at both ends. |
 | `LinkedListIntoIter` | T | no | provisional | Owning front-to-back cursor over a LinkedList<T>. |
@@ -41,6 +49,7 @@
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `String` | - | yes | stable | UTF-8 string value. |
+| `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
 | `Vec` | T | yes | - | Growable contiguous sequence. |
 | `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
 
@@ -87,13 +96,21 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
+| `Component` | `canonical_abi_version`, `model_version` | - |
 | `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
+| `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
 | `File` | `open`, `close` | `Read`, `Seek` |
 | `FromIterator` | `from_iter` | - |
+| `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
 | `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty` | - |
+| `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u` | - |
+| `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u` | - |
+| `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s` | - |
+| `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |
@@ -111,6 +128,7 @@
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
+| `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true` | - |
 | `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend` | - |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
@@ -311,18 +329,6 @@ let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
-
-## Component
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
-| `component_model_version` | `() -> String` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
-| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Drop a handle and return its value, if still live. |
-| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Look up a live handle without removing it. |
-| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Return the number of live handles in the table. |
-| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
-| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 
 ## Control
 
@@ -573,21 +579,9 @@ let input = read_to_string()
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `find_key_pos` | `(String, String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Find the position after the first "key" occurrence at or after from. |
-| `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `is_number` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `is_object` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `is_string` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_as_bool` | `(JsonValue) -> Option<bool>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
-| `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_decode_escape` | `(String, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Decode one JSON string escape at pos (char after backslash). |
 | `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
 | `json_escape` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Escape a plain string for use inside a JSON string (no surrounding quotes). |
-| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Look up a named field in a JSON object value. |
-| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Return the element at index in a JSON array value. |
 | `json_get_int` | `(String, String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract an integer field by key from a JSON object text. |
 | `json_get_str` | `(String, String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract a string field by key from a JSON object text. |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
@@ -602,7 +596,6 @@ let input = read_to_string()
 | `parse_int_at` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a signed decimal integer starting at pos (after optional whitespace). |
 | `quote_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Quote and escape a plain string as a JSON string literal. |
 | `skip_ws` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Skip JSON whitespace starting at pos; return index of next non-whitespace. |
-| `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 
 ## Math
@@ -728,106 +721,39 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abs` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `abs` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `abs` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `all_true` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `and` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `andnot` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `any_true` | `(v128) -> i32` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `bitmask` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `bitselect` | `(v128, v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ceil` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `div` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `div` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `eq` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `eq` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> f32` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> i32` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> f64` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> i64` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ge` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `gt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `le` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `lt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `max` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `max` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `min` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `min` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ne` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `ne` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `nearest` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(f32, f32, f32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(i32, i32, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(f64, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `new` | `(i64, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `not` | `(v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `or` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
-| `shl` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `shr_s` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `shr_u` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i64) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sqrt` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sqrt` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `trunc` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `xor` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
@@ -905,18 +831,13 @@ let input = read_to_string()
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `find_toml_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_section. |
 | `find_toml_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_value. |
-| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
-| `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
-| `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
 | `toml_find_raw_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the raw text after key = (for arrays and unquoted values). |
 | `toml_find_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the body of a [section] from raw TOML text. |
 | `toml_find_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract a double-quoted string value for key = "..." from raw TOML text. |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Look up a key in a TOML table value (nested tables via successive calls). |
 | `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML 1.0 document into a TomlValue tree. |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
 | `toml_parse_string_array` | `(String) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML string-array literal like ["a", "b"] into Vec<String>. |
 | `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
-| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
 
 ## Wasm
 

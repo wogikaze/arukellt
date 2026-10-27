@@ -4,13 +4,13 @@ use std::text
 fn main() {
     match json::parse("[]") {
         Result::Ok(v) => {
-            test::assert_true(json::is_array(v))
-            test::assert_false(json::is_object(v))
-            match json::json_get_index(v, 0) {
+            test::assert_true(v.is_array())
+            test::assert_false(v.is_object())
+            match v.get_index(0) {
                 Option::Some(_) => panic("expected None for empty array"),
                 None => {},
             }
         },
-        Result::Err(e) => panic("parse [] failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse [] failed: ".concat(e.message())),
     }
 }

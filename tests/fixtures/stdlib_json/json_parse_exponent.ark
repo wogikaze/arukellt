@@ -4,16 +4,16 @@ use std::text
 fn main() {
     match json::parse("1e5") {
         Result::Ok(v) => {
-            test::assert_true(json::is_number(v))
+            test::assert_true(v.is_number())
         },
-        Result::Err(e) => panic("parse 1e5 failed: ".concat(json::parse_error_message(e))),
+        Result::Err(e) => panic("parse 1e5 failed: ".concat(e.message())),
     }
     match json::parse("1.5e3") {
-        Result::Ok(v) => test::assert_true(json::is_number(v)),
-        Result::Err(e) => panic("parse 1.5e3 failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_true(v.is_number()),
+        Result::Err(e) => panic("parse 1.5e3 failed: ".concat(e.message())),
     }
     match json::parse("2E10") {
-        Result::Ok(v) => test::assert_true(json::is_number(v)),
-        Result::Err(e) => panic("parse 2E10 failed: ".concat(json::parse_error_message(e))),
+        Result::Ok(v) => test::assert_true(v.is_number()),
+        Result::Err(e) => panic("parse 2E10 failed: ".concat(e.message())),
     }
 }
