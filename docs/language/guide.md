@@ -4,10 +4,11 @@
 > It is not the authoritative specification. For normative behavior, see [spec.md](spec.md)
 > and [../current-state.md](../current-state.md).
 
-> **Deprecated API note**: Some code examples use monomorphic APIs
-> (`Vec_new_i32()`, `concat()`, etc.) that are marked `stability = "deprecated"`
-> in `std/manifest.toml`. These are the current runnable API while the
-> trait-based replacement (`Vec::new<i32>()`, `s.concat(s2)`) is WIP (ADR-036).
+> **Canonical API note**: The canonical surface is methods and associated
+> functions (`Vec::new<i32>()`, `v.push(x)`, `x.to_string()`); see ADR-044 / ADR-046.
+> Some free-function forms (`push(v, x)`, `to_string(x)`, monomorphic
+> constructors like `Vec_new_i32()`) remain available as a compatibility
+> surface while they are retired under #917.
 > See [../stdlib/migration-guidance.md](../stdlib/migration-guidance.md) for migration status.
 
 This guide covers the **stable, implemented** features of the Arukellt programming language,
@@ -93,7 +94,9 @@ let x = 42
 let name = String_from("Alice")
 ```
 
-Use `mut` to allow reassignment:
+Use `mut` to allow reassignment. Any mutation through a binding —
+assignment, field/index writes, or mutating method calls — requires the
+binding to be declared `let mut` (ADR-059):
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -169,6 +172,23 @@ fn add(a: i32, b: i32) -> i32 {
 - The last expression in the body (without `;`) is the implicit return.
 - Use `return expr` for early returns.
 - `pub` makes a function visible to importing modules.
+
+Arguments are borrowed for the duration of the call — a call does not move a
+non-`Copy` argument out of the caller's binding. Mutating the caller's value
+through a parameter requires a `mut` parameter (ADR-088), which is not
+implemented yet:
+
+```text
+fn bump(mut v: Vec<i32>) {
+    v.push(1)        // visible to the caller
+}
+
+let mut xs: Vec<i32> = Vec::new<i32>()
+bump(xs)           // OK: `xs` is a mutable place
+```
+
+See [spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes) for the
+call-boundary contract and tracking issue #951 for implementation status.
 
 Generic functions (see also §12):
 
@@ -490,30 +510,30 @@ for ordinary control flow.
 
 ### Vec
 
-Dynamic arrays. Use typed constructors:
+Dynamic arrays. Mutating a `Vec` requires a `let mut` binding:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let v: Vec<i32> = Vec::new<i32>()
-push(v, 1)
-push(v, 2)
-let n = len(v)              // 2
-let first = get(v, 0)       // Some(1)
+let mut v: Vec<i32> = Vec::new<i32>()
+v.push(1)
+v.push(2)
+let n = v.len()             // 2
+let first = v.get(0)        // Some(1)
 ```
 
-Common operations (all prelude):
+Common operations:
 
-| Function | Description |
-|----------|-------------|
-| `Vec_new_i32() -> Vec<i32>` | Empty `Vec<i32>` |
-| `vec_push(v, x)` | Append element |
-| `vec_len(v) -> i32` | Length |
-| `vec_get(v, i) -> Option<T>` | Get by index |
-| `vec_set(v, i, x)` | Set by index |
-| `vec_pop(v) -> Option<T>` | Remove and return last |
-| `vec_map(v, f) -> Vec<T>` | Transform elements |
-| `vec_filter(v, f) -> Vec<T>` | Select elements |
-| `vec_fold(v, init, f) -> T` | Reduce to single value |
+| Method | Description |
+|--------|-------------|
+| `Vec::new<T>() -> Vec<T>` | Empty `Vec<T>` |
+| `v.push(x)` | Append element |
+| `v.len() -> i32` | Length |
+| `v.get(i) -> Option<T>` | Get by index |
+| `v.set(i, x)` | Set by index |
+| `v.pop() -> Option<T>` | Remove and return last |
+| `v.iter().map(f).collect() -> Vec<U>` | Transform elements |
+| `v.iter().filter(f).collect() -> Vec<T>` | Select elements |
+| `v.iter().fold(init, f) -> T` | Reduce to single value |
 
 ### Array
 
@@ -529,15 +549,15 @@ let second = arr[1]   // 2
 
 ### HashMap
 
-Monomorphic hash map (`i32 → i32` by default):
+Generic hash map (ADR-066). `HashMap` is in the prelude; the concrete
+key/value pairs supported today are listed in
+[spec.md §9.14](spec.md#914-hashmap-generic-public-api):
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-import std::collections::hash
-
-let map = hashmap_new()
-hashmap_set(map, 1, 100)
-let val = hashmap_get(map, 1)   // 100
+let m = HashMap::new<i32, i32>()
+let _ = m.insert(1, 100)
+let val = m.get(1)   // Some(100)
 ```
 
 ---
@@ -549,7 +569,7 @@ Closures capture variables from the surrounding scope:
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let threshold = 5
-let above = vec_filter(numbers, |x| x > threshold)
+let above = numbers.iter().filter(|x| x > threshold).collect()
 ```
 
 With type annotations:
@@ -571,7 +591,7 @@ Functions, structs, and enums can be parameterised by type variables:
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn first<T>(v: Vec<T>) -> Option<T> {
-    get(v, 0)
+    v.get(0)
 }
 
 struct Wrapper<T> {
@@ -597,30 +617,31 @@ specialised code. See [spec.md §2.7](spec.md#27-generics) for the normative def
 
 > 📘 **Canonical reference**: [spec.md §7 Module System](spec.md#7-module-system)
 
-Each `.ark` file is a module. Use `import` to load a sibling file:
+Each `.ark` file is a module. `use` is the canonical import form
+(ADR-009 / ADR-031) — for sibling files and stdlib modules alike:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-import math
-import utils as u
+use math
+use utils as u
+use std::host::stdio
 
 let result = math::add(1, 2)
 let val = u::compute(10)
-```
-
-Standard library modules use `use`:
-
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
-use std::host::stdio
-use std::collections::hash
-
 stdio::println(String_from("from stdio"))
 ```
 
+The legacy `import` spelling is a migration form that resolves the same way
+but emits warning `W0101`; write `use` in new code:
+
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+```ark
+import math        // W0101: prefer `use math`
+import utils as u  // W0101: prefer `use utils as u`
+```
+
 > **Note**: The module system (visibility rules, `use` resolution) carries a
-> **provisional** stability label. The basic `import` form for sibling files
-> works reliably in practice. See [spec.md §7](spec.md#7-module-system) for details.
+> **provisional** stability label. See [spec.md §7](spec.md#7-module-system) for details.
 
 ---
 
@@ -666,21 +687,21 @@ should use byte_at or codepoint_at according to its intent.
 
 ### Conversions
 
-#### Stringification — `to_string(x)`
+#### Stringification — `x.to_string()`
 
-`to_string(x)` is the **canonical surface** for converting any scalar value to a `String`.
+`x.to_string()` is the **canonical surface** for converting any scalar value to a `String`.
 It accepts `i32`, `i64`, `f64`, `bool`, and `String` (pass-through).
+The free-function form `to_string(x)` is a compatibility spelling pending #917.
 
 <!-- fixture: stdlib_core/to_string_i32.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::host::stdio
-use std::prelude::{to_string}
 
 fn main() {
-    stdio::println(to_string(42))    // "42"
-    stdio::println(to_string(0))     // "0"
-    stdio::println(to_string(-7))    // "-7"
+    stdio::println((42).to_string())    // "42"
+    stdio::println((0).to_string())     // "0"
+    stdio::println((-7).to_string())    // "-7"
 }
 ```
 
@@ -688,31 +709,26 @@ Works the same for other scalar types:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-use std::prelude::{to_string}
-
-to_string(3.14)   // f64  → "3.14"
-to_string(true)   // bool → "true"
-to_string(false)  // bool → "false"
-to_string(9001_i64)  // i64 → "9001"
+(3.14).to_string()    // f64  → "3.14"
+true.to_string()      // bool → "true"
+false.to_string()     // bool → "false"
+(9001_i64).to_string()  // i64 → "9001"
 ```
 
 Combine with `concat` to build strings from mixed values:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-use std::prelude::{to_string}
-use std::text
-
-let msg = String_from("count: ").concat(to_string(n))
+let msg = String_from("count: ").concat(n.to_string())
 ```
 
 #### Other numeric conversions
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::prelude::{parse_f64, parse_i32, to_string}
+use std::prelude::{parse_f64, parse_i32}
 
-let s = to_string(42)        // i32 → String
+let s = (42).to_string()     // i32 → String
 let n = parse_i32(s)?        // String → Result<i32, String>
 let f = parse_f64(s)?        // String → Result<f64, String>
 ```

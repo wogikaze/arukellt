@@ -40,6 +40,8 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。`verify component-interop` wasmtime スイートは通過（#810）。Node.js jco E2E は `ARUKELLT_TEST_JCO=1`（`tests/component-interop/jco/`）。library GC Option/Result/List/Record/Tuple adapters は実装済み；browser Chrome HTTP E2E は別 |
 | Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。prelude は RFC-005 / #816 で backend 結合対象に復帰し、#820 の bounded stdlib-only inliner と #821/#822 の Ark body 移行を開始した。sealed raw API は RFC-006 で `core::raw` を採択（#817）。現在は 294 CoreOp（`normal_call` 52、`legacy_emitter` 31、`runtime_call` 45、`target_intrinsic` 164、`mir_op` 2）で、`data/core-ops.toml` は `status = "migration"` のまま。production exit は #818。 |
+| Call boundary | ADR-088: 実引数は呼び出しの間借用、mutation は `mut` パラメータ / `mut self` のみ | `mut` パラメータ構文なし。任意のパラメータ / receiver 経由の mutation を受理し、move 済み binding を実引数に渡しても E0212 を報告しない → #951 / #944 |
+| Impl type parameter binder | ADR-089: 型パラメータは `impl<T>` の明示 binder のみ | binder のない impl head の単一大文字名が暗黙型パラメータになるため、`struct S` に対する `impl Trait for S {}` が E0216 で失敗する → #946 |
 
 ### Proposed migration gaps（normative ではない）
 

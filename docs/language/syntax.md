@@ -67,6 +67,24 @@ fn add(a: i32, b: i32) -> i32 {
 
 > 📘 関数定義・let 束縛の完全な仕様は [spec.md §4.1 Let Binding](spec.md#41-let-binding), [§6.1 Function Definition](spec.md#61-function-definition) を参照。
 
+### 引数と `mut`
+
+パラメータ経由で呼び出し側の値を変更するには `mut` パラメータを使います。
+
+```text
+fn bump(mut v: Vec<i32>) {
+    v.push(1)
+}
+
+let mut xs: Vec<i32> = Vec::new<i32>()
+bump(xs)          // OK: `xs` is a mutable place
+bump(ys)          // error: `ys` is an immutable binding
+```
+
+実装状態: `mut` パラメータ構文はまだ実装されていません
+（[spec.md §3.5.1](spec.md#351-argument-passing-and-parameter-modes)、ADR-088、
+tracking [#951](../../issues/open/951-mut-parameter-mode-and-call-borrow-checks.md)）。
+
 ## 型アノテーション
 
 型の一覧・構造体・enum の正規定義は [type-system.md](type-system.md) にあります。
@@ -127,11 +145,11 @@ loop {
 <!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 for i in 0..10 {
-    println(to_string(i))
+    stdio::println(i.to_string())
 }
 
-for item in values(v) {
-    println(to_string(item))
+for item in v {
+    stdio::println(item.to_string())
 }
 ```
 
@@ -139,18 +157,20 @@ for item in values(v) {
 
 ## 関数呼び出しスタイル
 
-共通で安全なのは関数呼び出し形式です。
+正規形はメソッド呼び出しと associated function 呼び出しです (ADR-044 / ADR-046)。
 
 <!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-push(v, 42)
-let n = len(v)
-let s2 = s1.concat(s2)
-let text = to_string(n)
+v.push(42)
+let n = v.len()
+let s3 = s1.concat(s2)
+let text = n.to_string()
+let v: Vec<i32> = Vec::new<i32>()
 ```
 
-このブランチでは v1 のメソッド構文もありますが、まずは上の形を基準にするのが安全です。
-文字列化も `.to_string()` より `to_string(x)` を基準にするのが安全です。
+`push(v, 42)` や `to_string(n)` のような free function 形式は、
+#917 で退役が進められている compatibility surface です。
+新しいコードではメソッド / associated function 形式を使ってください。
 
 ## match
 
@@ -168,12 +188,12 @@ match value {
 > 📘 パターンの種類 (wildcard, or-pattern, struct pattern, guard 等) は [spec.md §5 Pattern Matching](spec.md#5-pattern-matching) を参照。
 > Option/Result のマッチについては [error-handling.md](error-handling.md) を参照。
 
-## v1 実装済み構文
+## 実装済みの拡張構文
 
 このブランチでは次も入っています。
 
 - `trait`
-- `impl`
+- `impl`（型パラメータは `impl<T>` の明示 binder でのみ導入。ADR-089）
 - メソッド呼び出し
 - 演算子オーバーロード
 - match guard / or-pattern / struct pattern
