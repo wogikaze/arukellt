@@ -219,7 +219,6 @@ The following public entries currently carry `deprecated_by` in
 |----------------|-------------|
 | `char_at` | `byte_at` |
 | `concat` | `a.concat(b)` |
-| `std::env::get_var` | `std::env::var` |
 | `std::seq::map_i32_i32` | `v.iter().map(f).collect()` |
 | `std::seq::filter_i32` | `v.iter().filter(f).collect()` |
 | `std::seq::take_i32` | `v.iter().take(n).collect()` |
@@ -1634,14 +1633,42 @@ The `stdlib_host/clock_namespace_surface*` fixture pair compiles, validates,
 and executes the two reads on both `wasm32-gc` and `--target wasm32`; the E0100
 goldens are `diagnostics/removed_host_clock_free*`.
 
-### Related residual: host env getters
+### Removed in Wave 2: `std::env::get_var` (1)
 
-`std::host::env` stays on its free functions in this wave. A namespace method
-that calls `__intrinsic_args` or `__runtime_abi_env_var` emits an invalid
-`i64`/ref frame on `wasm32-gc` (the env intrinsics only lower at the registered
-free-call site), so `Env::args()` / `Env::var()` do not lower on the primary
-target without a compiler intrinsic change. The family is reported as blocked
-rather than shipped with a namespace spelling that cannot execute.
+`std::env::get_var` was the last `deprecated module frees` entry. Its ADR-087
+window is closed, so the manifest entry and both declarations (`std::env` and
+the duplicate `std::host::env` alias) were deleted on 2026-10-28. A qualified
+old call fails with **E0100** (`undefined module member: env::get_var`).
+
+| Old API | Replacement |
+|---------|-------------|
+| `std::env::get_var(name)` | `Env::var(name)` from `use std::host::env::Env` |
+| `std::host::env::get_var(name)` | `Env::var(name)` from `use std::host::env::Env` |
+
+The `Env` namespace is `provisional`. `Env::var`, `Env::arg_count`,
+`Env::arg_at`, and `Env::var_or_default` compile, validate, and run on both
+`wasm32-gc` and `--target wasm32`; the `stdlib_host/env_namespace_surface*`
+fixture pair pins them. The `std::env`/`std::host::env` free functions other
+than `get_var` are unchanged by this wave.
+
+### Related residual: `Env::args` and the env intrinsic frame
+
+`Env::args` stays blocked on `wasm32-gc`. A direct `__intrinsic_args` call
+inside a namespace method leaves the MIR call result as a scalar i64, so the
+enclosing method frame declares an i64 result while the env emitter pushes a
+`Vec<String>` reference. `wasm-tools validate` rejects the module with
+`type mismatch: expected i64, found (ref null $type)` at the method's
+`local.set` of the intrinsic result. The module-level `args` free function
+remains the working argument-vector spelling.
+
+`Env::var` / `Env::arg_at` use an explicit `Option<String>` binding to pin the
+GC layout of the direct intrinsic call; the same unannotated frame problem
+applies without it. The compiler fix belongs in the MIR call-result typing that
+already types the `Fs::read_to_string` intrinsics (an env entry mapping
+`__intrinsic_args` to `vec:String` and `__runtime_abi_env_var` /
+`__intrinsic_arg_at` to `Option_String`), followed by removing the binding. The
+committed pin cannot compile that change without a pin refresh (ADR-029), so
+`Env::args` is reported as a residual rather than shipped non-executable.
 
 ## Planned Deprecations
 

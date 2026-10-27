@@ -61,7 +61,6 @@ helpers are included alongside any other deprecated public entry.
 | `linked_list_push_back` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_back` | `0.1.0` | `1.0.0` | Push a value to the back of the legacy i32 list. |
 | `linked_list_push_front` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_front` | `0.1.0` | `1.0.0` | Push a value to the front of the legacy i32 list. |
 | `linked_list_to_vec` | `std::collections::linked_list` | `deprecated` | `LinkedList::iter` | `0.1.0` | `1.0.0` | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
-| `get_var` | `std::env` | `deprecated` | `var` | `0.1.0` | `1.0.0` | Alias for env::var. Use var instead. |
 | `writer_write` | `std::io` | `deprecated` | `Writer::write` | `0.1.0` | `1.0.0` | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9). |
 | `writer_write_str` | `std::io` | `deprecated` | `Writer::write_string` | `0.1.0` | `1.0.0` | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handles. Stays until std::host::stdio exposes byte-faithful typed Write handles: a typed Stderr write needs a raw stderr intrinsic, which does not exist yet (ADR-085 D9). |
 | `binary_search` | `std::seq` | `deprecated` | `std::seq::binary_search_by` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use the generic std::seq::binary_search_by(v, target) over T: Ord. |
@@ -78,4 +77,4 @@ helpers are included alongside any other deprecated public entry.
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **67**.
+Total deprecated public entries: **66**.

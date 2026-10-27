@@ -11,7 +11,7 @@
 | `stable` | 176 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 10 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 45 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 67 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 66 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -28,6 +28,7 @@
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
+| `Env` | - | no | provisional | Namespace for the host environment reads: Env::var, Env::arg_count, Env::arg_at, and Env::var_or_default. Env::args stays blocked on wasm32-gc until the intrinsic result lowers inside a namespace method (#917); the module-level args free function remains for the argument vector. |
 | `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
 | `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
 | `File` | - | no | experimental | Whole-file image handle: File::open loads a read-only image and File::create starts a write image. Implements std::io Read, Write, and Seek over the image; Write::flush (and close) commit the write image to the path. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
@@ -118,6 +119,7 @@
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `Env` | `var`, `arg_count`, `arg_at`, `var_or_default` | - |
 | `Error` | `message` | - |
 | `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs`, `neg` | - |
 | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u`, `add`, `sub`, `mul`, `div`, `neg`, `sqrt`, `min`, `max` | - |
@@ -406,7 +408,6 @@ Expected output: `42`
 | `arg_at` | `(i32) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the argument at the given index, or None when out of range. |
 | `arg_count` | `() -> i32` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the number of process arguments (excluding argv[0]). |
 | `args` | `() -> Vec<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the process argument vector (excluding argv[0]). |
-| ~~`get_var`~~ ⚠️ Deprecated → `var` | `(String) -> Option<String>` | `std::env` | `deprecated` | `functional` | `builtin` | no | - | Alias for env::var. Use var instead. |
 | `var` | `(String) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Look up an environment variable by name. |
 | `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 
@@ -681,7 +682,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **67 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **66 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -711,7 +712,6 @@ let input = stdio::read_stdin()
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | [migration-guidance.md](migration-guidance.md) |

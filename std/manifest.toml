@@ -1446,6 +1446,15 @@ doc_category = "host_env"
 doc = "Return true if the given flag (e.g. \"--verbose\") was passed as a command-line argument."
 availability = { t1 = true, t3 = true }
 
+[[types]]
+name = "Env"
+module = "std::host::env"
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the host environment reads: Env::var, Env::arg_count, Env::arg_at, and Env::var_or_default. Env::args stays blocked on wasm32-gc until the intrinsic result lowers inside a namespace method (#917); the module-level args free function remains for the argument vector."
+methods = ["var", "arg_count", "arg_at", "var_or_default"]
+
 # === std::path ===
 
 # === std::fs ===
@@ -3251,16 +3260,6 @@ stability = "stable"
 params = ["String"]
 returns = "Option<String>"
 doc = "Look up an environment variable by name."
-
-[[functions]]
-name = "get_var"
-module = "std::env"
-doc_category = "env"
-stability = "deprecated"
-deprecated_by = "var"
-params = ["String"]
-returns = "Option<String>"
-doc = "Alias for env::var. Use var instead."
 
 [[functions]]
 name = "var_or_default"

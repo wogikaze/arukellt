@@ -96,7 +96,7 @@ fn removed_name_specific_hint(name: String) -> String {
     if eq(clone(name), "eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
     if eq(clone(name), "read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
     if eq(clone(name), "exists") { return "removed prelude binding; import `use std::host::fs::Fs` and call `Fs::is_readable_file(...)`" }
-    if eq(clone(name), "get_var") { return "removed prelude binding; import `use std::host::env` and call `env::var(...)`" }
+    if eq(clone(name), "get_var") { return "removed module function; import `use std::host::env::Env` and call `Env::var(name)`" }
     if eq(clone(name), "sort_i32") || eq(clone(name), "sort_i64") || eq(clone(name), "sort_f64") || eq(clone(name), "sort_String") {
         return "removed free function; use `v.sort_by(cmp)` via `use std::collections::vec`"
     }
@@ -230,12 +230,25 @@ fn removed_host_clock_member_hint(name: String) -> String {
     String_new()
 }
 
+// `std::env::get_var` and its duplicate `std::host::env` alias were deleted in
+// the ADR-087 Wave 2 change. `Env::var` is the canonical replacement; the
+// other env frees stay callable until their own wave.
+fn removed_host_env_member_hint(name: String) -> String {
+    if eq(clone(name), "get_var") {
+        return String_from("use `Env::var(name)` from `use std::host::env::Env` instead")
+    }
+    String_new()
+}
+
 pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "fs") || eq(clone(module), "host::fs") || eq(clone(module), "std::fs") || eq(clone(module), "std::host::fs") {
         return removed_host_fs_member_hint(name)
     }
     if eq(clone(module), "clock") || eq(clone(module), "host::clock") || eq(clone(module), "std::host::clock") {
         return removed_host_clock_member_hint(name)
+    }
+    if eq(clone(module), "env") || eq(clone(module), "host::env") || eq(clone(module), "std::env") || eq(clone(module), "std::host::env") {
+        return removed_host_env_member_hint(name)
     }
     if is_retired_hashmap_module(clone(module)) {
         return hashmap_method_replacement_hint()
@@ -1051,6 +1064,10 @@ test mod "removed_names" {
         assert(len(removed_name_hint("read_to_string")) > 0)
         assert(len(removed_name_hint("exists")) > 0)
         assert(len(removed_name_hint("get_var")) > 0)
+    }
+    test "removed env module member" {
+        assert(len(removed_module_member_hint("std::env", "get_var")) > 0)
+        assert(len(removed_module_member_hint("std::host::env", "get_var")) > 0)
     }
     test "result option helpers" {
         assert(len(removed_name_hint("ok")) > 0)

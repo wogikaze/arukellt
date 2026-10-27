@@ -84,6 +84,19 @@ Host environment helpers.
 
 Arguments and environment lookups use the direct WASI intrinsics.
 
+`Env` is the namespace for the host environment reads (ADR-046):
+`Env::var`, `Env::arg_count`, `Env::arg_at`, and `Env::var_or_default`.
+`Env::args` stays blocked on wasm32-gc because a direct `__intrinsic_args`
+call inside a namespace method leaves the MIR result scalar and emits an
+invalid i64/ref frame (#917); the module-level `args` free function remains
+the argument-vector spelling until that lowering is fixed.
+
+### `std::host::env` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Env` | `struct` | `var`, `arg_count`, `arg_at`, `var_or_default` | - | Namespace for the host environment reads. |
+
 ### `std::host::env` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |

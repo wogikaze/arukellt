@@ -1,0 +1,20 @@
+// Env namespace for the host environment reads (ADR-046, #917).
+//
+// `Env::var` / `Env::arg_at` use an explicit Option<String> binding inside the
+// std impl; the binding pins the GC layout of the direct intrinsic call.
+use std::host::env::Env
+use std::host::stdio
+
+fn main() {
+    match Env::var("ARUKELLT_ENV_PROBE_UNSET_917") {
+        Option::Some(_) => stdio::println("env-var-unexpected"),
+        Option::None => stdio::println("env-var-unset"),
+    }
+    assert(Env::var_or_default("ARUKELLT_ENV_PROBE_UNSET_917", "fallback") == "fallback")
+    assert(Env::arg_count() >= 0)
+    match Env::arg_at(-1) {
+        Option::Some(_) => assert(false),
+        Option::None => {}
+    }
+    stdio::println("env-namespace-ok")
+}

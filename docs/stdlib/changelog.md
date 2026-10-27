@@ -16,6 +16,53 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-28 — `std::env::get_var` retirement and `Env` namespace (#917, ADR-046, ADR-087)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x deprecation window.
+  `std::env::get_var` was the last `deprecated module frees` entry; its
+  `deprecated_by` replacement (`var`) was already stable, and the
+  `std::host::env::Env` associated surface lands in this wave. The manifest
+  entry and both source declarations are deleted.
+- **Surface**: `std::host::env::Env` is registered as `provisional` with
+  `Env::var`, `Env::arg_count`, `Env::arg_at`, and `Env::var_or_default`; the
+  impl keeps the `__runtime_abi_env_var` / `__intrinsic_arg_at` /
+  `__intrinsic_arg_count` calls private. `Env::var` / `Env::arg_at` bind the
+  intrinsic result to `Option<String>` because the MIR direct-call temp is
+  otherwise scalar on wasm32-gc.
+- **Removed (2 declarations, 1 manifest entry)**: `std::env::get_var` and the
+  duplicate `std::host::env::get_var`. Qualified old calls fail with **E0100**;
+  `resolver::removed_names::removed_host_env_member_hint` covers the `env`,
+  `host::env`, `std::env`, and `std::host::env` spellings and names
+  `Env::var`. The bare-name hint now names `Env::var` too.
+- **Fixtures**: dual-target `stdlib_host/env_namespace_surface*` compile,
+  validate, and run; `diagnostics/removed_env_get_var*` are the E0100 goldens
+  on `wasm32-gc` and `--target wasm32`.
+- **Scorecard**: eradication scope 323 -> **322**; `pub fn` declarations
+  352 -> **350**; manifest public entries 298 -> **297**; `must delete`
+  69 -> **68**; `deprecated` entries 67 -> **66**; `associated-or-method`
+  stays 254, `prelude_wrapper` stays 65, the monomorphic-helper count stays
+  51, and unregistered declarations stay 25. The `deprecated module frees`
+  rule is removed from `docs/data/stdlib-api-eradication.toml` (no live
+  match). The fixture registry grows 3365 -> **3369**.
+- **Verification**: `verify fixtures` **1903/1903 PASS**, 0 FAIL
+  (1903 compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS); the two new run fixtures compile, validate, and execute on
+  `wasm32-gc` (P2 component) and `--target wasm32` (linear); `selfhost
+  diag-parity` PASS including the two E0100 goldens; `docs check` 6/6;
+  `verify lane` PASS; `check-stdlib-eradication`, `check-compat-orphans`,
+  `check-comment-policy`, `check-ark-code-quality`, `check-semantic-debt`, and
+  `check-legacy-dispatch-inventory` clean. `selfhost build-compiler` produced
+  the current s2 in 1625.0 s.
+- **Residual**: `Env::args` stays blocked on wasm32-gc. A direct
+  `__intrinsic_args` call inside a namespace method leaves the MIR call result
+  as a scalar i64 while the env emitter pushes a `Vec<String>` reference, so
+  `wasm-tools validate` reports `type mismatch: expected i64, found
+  (ref null $type)` at the method frame. The module-level `args` free function
+  remains the working argument-vector spelling. `Env::var` / `Env::arg_at`
+  keep the typed `Option<String>` binding until the MIR call-result typing
+  covers the env intrinsics.
+
 ## 2026-10-28 — ADR-087 Wave 2: stable host fs / clock frees (#917, ADR-046, ADR-087)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

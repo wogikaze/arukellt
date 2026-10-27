@@ -203,12 +203,10 @@ replacement = "Iterator adapters / Vec methods (#691)"
 # resolver::removed_names. No std::bytes free symbol remains, so this family
 # has no live rule.
 
-[[rules]]
-label = "deprecated module frees"
-deprecated = true
-class = "must delete"
-owner = "917"
-replacement = "module-associated equivalents"
+# The `deprecated module frees` rule (last match: `std::env::get_var`) was
+# removed by the 2026-10-28 env wave after the last entry completed its
+# ADR-087 Wave 2 deletion. A deprecated manifest function must now match its
+# family rule explicitly.
 
 # -- Prelude default --
 
@@ -298,7 +296,12 @@ replacement = "Fs / Env / Process / Clock / Random / Cli / Path / Signal associa
 #   with E0100 hints from resolver::removed_names.
 #   The experimental fd_seek / fd_tell / fd_fdstat_errno frees remain
 #   (wasm32-only; no wasm32-gc parity fixture).
-# The other families (env, cli, process, signal, random) are untouched.
+# Deleted by the 2026-10-28 env wave: std::env::get_var (the last
+#   `deprecated module frees` entry) and the duplicate std::host::env::get_var;
+#   the replacement is `Env::var` from `use std::host::env::Env`. `Env::args`
+#   stays free because the intrinsic result still mislowers inside a namespace
+#   method on wasm32-gc (#917).
+# The other families (cli, process, signal, random) are untouched.
 
 # -- Catch-all for unregistered std declarations --
 #

@@ -1111,3 +1111,54 @@ classified there, in dependency-safe waves.
   `deprecated module frees` entry; `std::host::env` stays on free functions
   because `Env::*` still fails to lower on `wasm32-gc`.
 
+### Landed slice (wave/env-getvar, 2026-10-28)
+
+- **ADR-087 Wave 2 deletion (1 manifest + 2 declarations)**: the last
+  `deprecated module frees` entry `std::env::get_var` and the duplicate
+  `std::host::env::get_var` alias are gone. Qualified old calls fail with
+  **E0100**; `resolver::removed_names::removed_host_env_member_hint` covers
+  the `env`, `host::env`, `std::env`, and `std::host::env` spellings and names
+  `Env::var(name)` from `use std::host::env::Env`. The bare-name hint is
+  retargeted to the same replacement.
+- **Surface**: `std::host::env::Env` (`provisional`) exposes `Env::var`,
+  `Env::arg_count`, `Env::arg_at`, and `Env::var_or_default`. `Env::var` /
+  `Env::arg_at` bind the intrinsic result to `Option<String>` to pin the
+  Option GC layout; without the binding the direct intrinsic call leaves the
+  MIR temp scalar. The four methods compile, validate, and run on `wasm32-gc`
+  (P2 component) and `--target wasm32` (linear), including from a non-main
+  module (`helper.ark` probe).
+- **Blocked, measured — `Env::args`**: a direct `__intrinsic_args` call inside
+  a namespace method still emits an invalid i64/ref frame on `wasm32-gc`.
+  `wasm-tools validate` reports `func 18 failed to validate: type mismatch:
+  expected i64, found (ref null $type) (at offset 0xa98)`; WAT:
+  `(func $Env::args (;18;) (type 60) (result (ref null 19)) (local $_t0 i64) …`
+  and the intrinsic result is stored with `local.set 0` into that i64 local
+  (`local.get 23; ref.cast (ref null 19); local.set 0`). Root cause: the MIR
+  call-result typing has no env intrinsic mapping (`__intrinsic_args` →
+  `vec:String`, `__runtime_abi_env_var` / `__intrinsic_arg_at` →
+  `Option_String`), unlike the existing `Fs::read_to_string` mapping in
+  `mir/lower/call_type_fallback_stdlib.ark`. The pin predates that mapping and
+  cannot compile an unannotated `Env::args` in the overlay, so `args` stays a
+  free function and the direct spelling is deferred to a pin refresh.
+- **Fixtures**: `stdlib_host/env_namespace_surface*` (run, both targets) and
+  `diagnostics/removed_env_get_var*` (E0100, both targets); registry
+  3365 -> **3369**.
+- **Scorecard**: eradication scope 323 -> **322**; `pub fn` declarations
+  352 -> **350**; manifest public entries 298 -> **297**; `must delete`
+  69 -> **68**; `deprecated` entries 67 -> **66**; `associated-or-method`
+  stays 254, `prelude_wrapper` stays 65, monomorphic helpers stay 51, and
+  unregistered declarations stay 25. The `deprecated module frees` rule is
+  removed from `docs/data/stdlib-api-eradication.toml` (no live match).
+- **Verification**: `verify fixtures` **1903/1903 PASS / 0 FAIL** (1903
+  compile+validate, 110 runtime smoke, 2 runtime-unsupported, 1 `test:`
+  fixture PASS); `selfhost diag-parity` PASS with the two new E0100 goldens;
+  `docs check` 6/6; `verify lane` PASS; `check-stdlib-eradication` (298/298
+  manifest functions, 25/25 unregistered), `check-compat-orphans`,
+  `check-comment-policy`, `check-ark-code-quality`, `check-semantic-debt`, and
+  `check-legacy-dispatch-inventory` clean; `selfhost build-compiler` produced
+  the current s2 in 1625.0 s. Both-target `wasm-tools validate` and runtime
+  output (`env-var-unset`, `env-namespace-ok`) recorded for the new pair.
+- **Residuals**: `Env::args` (above); the other env frees (`args`,
+  `arg_count`, `arg_at`, `var`, `var_or_default`, `has_flag`) remain for their
+  own wave, and `std::env` stays a deprecated module path.
+

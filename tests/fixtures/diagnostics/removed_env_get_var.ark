@@ -1,0 +1,7 @@
+// E0100: std::env::get_var was deleted in the ADR-087 Wave 2 change; the
+// migration guide names Env::var from std::host::env.
+use std::env
+
+fn main() {
+    let _probe = env::get_var("HOME")
+}

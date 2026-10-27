@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 231
-- **Historical/deprecated names:** 67
-- **Total entries:** 298
+- **Historical/deprecated names:** 66
+- **Total entries:** 297
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -287,7 +287,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -448,7 +447,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `gcd` | ✅ `stable` | `prelude` | Math |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
-| ~~`get_var`~~ | ⚠️ deprecated | `std::env` | → `var` · [migration guide](migration-guidance.md) |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
 | `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |

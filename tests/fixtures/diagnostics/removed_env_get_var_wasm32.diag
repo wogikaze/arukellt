@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: env::get_var; use `Env::var(name)` from `use std::host::env::Env` instead
