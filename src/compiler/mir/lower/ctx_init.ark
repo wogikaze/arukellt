@@ -74,6 +74,7 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         pcell_mat_fns: Vec::new<String>(), pcell_mat_lis: Vec::new<i32>(),
         pcell_mat_tmps: Vec::new<i32>(),
         local_type_start: 0,
+        hashset_locals: Vec::new<i32>(),
         mono_call_starts: Vec::new<i32>(), mono_call_span_sources: Vec::new<String>(),
         mono_call_span_targets: Vec::new<String>(),
         mono_call_span_used: Vec::new<i32>(),

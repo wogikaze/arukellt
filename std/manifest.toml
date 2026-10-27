@@ -2405,7 +2405,7 @@ availability = { t1 = true, t3 = true }
 name = "std::collections::hash"
 stability = "stable"
 family = "collections"
-doc = "HashMap<i32,i32> and HashSet<i32> monomorphic surface (i32-keyed, i32-valued). `hashmap_get_option` is the primary lookup API because it distinguishes missing keys from stored zero values. `hashmap_set` returns bool so fixed-capacity insertion failure is explicit. The i32 hash policy matches std::core::hash::hash_i32. Raw bucket layout remains documented for compatibility but is not the recommended user path."
+doc = "Implementation layer for `HashMap<i32,i32>` and `HashSet<i32>` (i32-keyed). `HashSet<i32>` membership methods and `HashMap<K,V>` methods are the canonical surface; these functions are the flat `Vec<i32>` store the compiler lowers those methods to. `hashmap_get_option` distinguishes missing keys from stored zero values and `hashmap_set` returns bool so fixed-capacity insertion failure is explicit. The i32 hash policy matches std::core::hash::hash_i32."
 
 [[functions]]
 name = "hashmap_new"
@@ -2754,6 +2754,31 @@ doc_category = "collections"
 stability = "stable"
 params = ["Vec<String>"]
 returns = "bool"
+
+# === std::collections::hash_set ===
+
+[[modules]]
+name = "std::collections::hash_set"
+stability = "provisional"
+family = "collections"
+doc = "Concrete `HashSet<i32>` membership surface (ADR-086); aggregate and `String` lanes keep the deprecated `hash_set::hashset_i32_*` / `hashset_str_*` adapters."
+availability = { t1 = true, t3 = true }
+
+[[types]]
+name = "HashSet"
+kind = "struct"
+doc = "Set of unique `i32` values; `new`, `insert`, `contains`, `remove`, `len`, `is_empty` lower to the flat hash store."
+module = "std::collections::hash_set"
+stability = "provisional"
+generic_params = ["T"]
+methods = [
+    "new",
+    "insert",
+    "contains",
+    "remove",
+    "len",
+    "is_empty",
+]
 
 # === std::collections::ordered ===
 

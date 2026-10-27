@@ -155,6 +155,9 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
     }
     ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, clone(self_sig_type_name)))
     ctx_set_local_type(ctx, self_local, clone(self_type_name))
+    if eq(clone(struct_name), "HashSet") && !eq(clone(self_type_name), String_from("vec:String")) {
+        ctx_api_local_types::ctx_mark_hashset_local(ctx, self_local, String_from("i32"))
+    }
     mir_apply_param_mvt_override(ctx, self_local)
 }
 

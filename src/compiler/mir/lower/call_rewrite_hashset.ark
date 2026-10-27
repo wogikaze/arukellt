@@ -1,0 +1,177 @@
+use std::prelude::{byte_at, clone, eq, index_of, starts_with, substring}
+use mir::lower::ctx_api_local_types
+
+// `impl HashSet<i32>` is the concrete type surface over the flat store in
+// std::collections.hash. Calls can arrive as the monomorphized constructor
+// (HashSet__new__i32), as an impl method (HashSet_i32::insert), or as a bare
+// method name. The HashSet local marker distinguishes `len` / `is_empty`
+// from the Vec core-op rewrites that share those names (#917).
+fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
+    if eq(clone(callee_name), String_from("HashSet__new__i32")) ||
+    eq(clone(callee_name), String_from("HashSet::new__i32")) ||
+    eq(clone(callee_name), String_from("hashset_new")) {
+        return String_from("hashset_new")
+    }
+    String_new()
+}
+
+// Constructor target type for the AST edge walk: the store function returns
+// Vec<i32>, but the source expression keeps the set type so receiver-type
+// dispatch still sees a HashSet (#917).
+fn mir_hashset_constructor_type_name(callee_name: String) -> String {
+    if eq(clone(callee_name), String_from("HashSet__new__i32")) ||
+    eq(clone(callee_name), String_from("HashSet::new__i32")) {
+        return String_from("HashSet<i32>")
+    }
+    String_new()
+}
+
+fn hashset_family_for_type(type_name: String) -> String {
+    if eq(clone(type_name), String_from("HashSet<i32>")) ||
+    eq(clone(type_name), String_from("HashSet_i32")) {
+        return String_from("i32")
+    }
+    String_new()
+}
+
+// Method leaf for every spelling that can reach call lowering: mono names
+// (HashSet_i32::insert, HashSet__insert__i32), bare names (insert), Vec
+// core-op rewrites (vec_len), and the GC raw-array length intrinsic.
+fn hashset_method_name_from_source(source: String) -> String {
+    if starts_with(clone(source), String_from("vec_")) {
+        return hashset_method_name_from_source(substring(source, 4, len(source)))
+    }
+    if eq(clone(source), String_from("raw_array_len")) {
+        return String_from("len")
+    }
+    if starts_with(clone(source), String_from("HashSet_i32::")) {
+        return substring(source, 13, len(source))
+    }
+    if starts_with(clone(source), String_from("HashSet__")) {
+        let rest = substring(source, 9, len(source))
+        let separator = index_of(clone(rest), String_from("__"))
+        if separator >= 0 {
+            return substring(rest, 0, separator)
+        }
+        return rest
+    }
+    let mut last = 0 - 1
+    let mut index = 0
+    let limit = len(source) - 1
+    while index < limit {
+        if byte_at(clone(source), index) == 58 && byte_at(clone(source), index + 1) == 58 {
+            last = index
+            index = index + 2
+        } else {
+            index = index + 1
+        }
+    }
+    if last >= 0 {
+        return substring(source, last + 2, len(source))
+    }
+    source
+}
+
+fn hashset_i32_method_target(method: String) -> String {
+    if eq(clone(method), String_from("new")) {
+        return String_from("hashset_new")
+    }
+    if eq(clone(method), String_from("insert")) {
+        return String_from("hashset_insert")
+    }
+    if eq(clone(method), String_from("contains")) {
+        return String_from("hashset_contains")
+    }
+    if eq(clone(method), String_from("remove")) {
+        return String_from("hashset_remove")
+    }
+    if eq(clone(method), String_from("len")) {
+        return String_from("hashset_len")
+    }
+    if eq(clone(method), String_from("is_empty")) {
+        return String_from("hashset_is_empty")
+    }
+    String_new()
+}
+
+fn mir_rewrite_hashset_method(callee_name: String) -> String {
+    if !starts_with(clone(callee_name), String_from("HashSet_i32::")) &&
+    !starts_with(clone(callee_name), String_from("HashSet__")) {
+        return String_new()
+    }
+    hashset_i32_method_target(hashset_method_name_from_source(callee_name))
+}
+
+// Receiver-family spelling used by edge discovery: the only supported
+// family is the flat i32 store.
+fn hashset_method_target_for_family(family: String, method: String) -> String {
+    if eq(clone(family), String_from("i32")) {
+        return hashset_i32_method_target(method)
+    }
+    String_new()
+}
+
+// Entry point used by call lowering. A marked receiver is the precise signal:
+// the local type is the flat vec:i32 alias, so `len` / `is_empty` would
+// otherwise be claimed by the Vec core-op rewrites.
+fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i32, span_start: i32) -> String {
+    let _ = span_start
+    let by_name = mir_rewrite_hashset_constructor(clone(callee_name))
+    if len(by_name) > 0 {
+        return by_name
+    }
+    if receiver_idx >= 0 &&
+    eq(clone(ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)), String_from("i32")) {
+        let target = hashset_i32_method_target(hashset_method_name_from_source(clone(callee_name)))
+        if len(target) > 0 {
+            return target
+        }
+    }
+    let by_method = mir_rewrite_hashset_method(clone(callee_name))
+    if len(by_method) > 0 {
+        return by_method
+    }
+    // Fallback for a call that lost the marker: these names have no Vec<i32>
+    // counterpart, so a vec:i32 receiver is unambiguous evidence of a set.
+    if receiver_idx < 0 {
+        return String_new()
+    }
+    if !eq(clone(ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx)), String_from("vec:i32")) {
+        return String_new()
+    }
+    let method = hashset_method_name_from_source(clone(callee_name))
+    if eq(clone(method), String_from("insert")) ||
+    eq(clone(method), String_from("contains")) ||
+    eq(clone(method), String_from("remove")) {
+        return hashset_i32_method_target(method)
+    }
+    String_new()
+}
+
+// Result side of the marker: a constructor call marks its destination so a
+// later `s.len()` is not read as a Vec method.
+fn mark_hashset_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    if dest < 0 {
+        return
+    }
+    if len(mir_rewrite_hashset_constructor(clone(callee_name))) > 0 {
+        ctx_api_local_types::ctx_mark_hashset_local(ctx, dest, String_from("i32"))
+    }
+}
+
+test mod "hashset_rewrite" {
+    test "constructor" {
+        assert(mir_rewrite_hashset_constructor("HashSet__new__i32") == "hashset_new")
+        assert(mir_hashset_constructor_type_name("HashSet__new__i32") == "HashSet<i32>")
+        assert(len(mir_rewrite_hashset_constructor("HashSet__new__String")) == 0)
+    }
+    test "method_targets" {
+        assert(mir_rewrite_hashset_method("HashSet_i32::insert") == "hashset_insert")
+        assert(mir_rewrite_hashset_method("HashSet__contains__i32") == "hashset_contains")
+        assert(mir_rewrite_hashset_method("vec_len") == "hashset_len")
+    }
+    test "unsupported_methods" {
+        assert(len(mir_rewrite_hashset_method("HashSet_i32::union")) == 0)
+        assert(len(mir_rewrite_hashset_method("HashSet_i32::to_vec")) == 0)
+    }
+}

@@ -52,6 +52,13 @@ fn emit_let_initializer_store(ctx: LowerCtx, node: AstNode, vt: i32, local_idx: 
         }
     }
     sync_let_local_type_name(ctx, local_idx, actual_val_idx, pre_init_kind, ta_count)
+    let mut set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, actual_val_idx)
+    if len(set_family) == 0 {
+        set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, val_idx)
+    }
+    if len(set_family) > 0 {
+        ctx_api_local_types::ctx_mark_hashset_local(ctx, local_idx, set_family)
+    }
 }
 
 fn sync_let_local_value_type(ctx: LowerCtx, vt: i32, local_idx: i32, val_idx: i32) -> i32 {

@@ -1053,6 +1053,47 @@ with an E0100 hint that points at the method surface. `insert` keeps the
 `Option<V>` previous-value contract, so `let old = m.insert(k, v)` is the exact
 replacement for the old `*_insert` adapters.
 
+### HashSet<i32> Membership
+
+`HashSet<i32>` is the canonical surface for the six basic membership
+operations over the flat hash set store (#917). The aggregate
+(`to_vec` / `union` / `intersection` / `difference` / `capacity` / `reserve` /
+`shrink_to_fit` / `clear` / `extend`) and `HashSet<String>` lanes keep the
+deprecated `hash_set::` adapters until their GC lowering lands.
+
+| Old API | Replacement |
+|---------|-------------|
+| `hash_set::hashset_i32_new()` | `HashSet::new<i32>()` |
+| `hash_set::hashset_i32_insert(s, v)` | `s.insert(v)` |
+| `hash_set::hashset_i32_contains(s, v)` | `s.contains(v)` |
+| `hash_set::hashset_i32_remove(s, v)` | `s.remove(v)` |
+| `hash_set::hashset_i32_len(s)` | `s.len()` |
+| `hash_set::hashset_i32_is_empty(s)` | `s.is_empty()` |
+
+Import the type explicitly: `use std::collections::hash_set::HashSet`.
+`hash_set::hashset_i32_union` / `intersection` / `difference` / `to_vec` /
+`capacity` / `reserve` / `shrink_to_fit` / `clear` / `extend` and the
+`hashset_str_*` facade have no method replacement yet and remain the
+compatibility spelling.
+
+**Before:**
+
+<!-- skip-doc-check reason="historical removed-API example" owner="#917" kind="non-runnable" expires="2026-10-31" -->
+```ark
+let s = hash_set::hashset_i32_new()
+hash_set::hashset_i32_insert(s, 1)
+let n = hash_set::hashset_i32_len(s)
+```
+
+**After:**
+
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#917" kind="non-runnable" expires="2026-10-31" -->
+```ark
+let s: HashSet<i32> = HashSet::new<i32>()
+let _ = s.insert(1)
+let n = s.len()
+```
+
 ### Option/Result Map
 
 The receiver methods landed with the #917 wave in `std::core::container`:

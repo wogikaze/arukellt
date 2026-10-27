@@ -1,89 +1,161 @@
-//! std::collections::hash_set — HashSet API
+//! std::collections::hash_set — `HashSet<i32>` type surface
 //!
-//! Re-exports the HashSet operations from std::collections::hash.
-//! Vec<i32> is backed by the monomorphic hash::hashset_* functions.
+//! `HashSet::new<i32>()` plus the six membership methods are the canonical
+//! spelling for the flat `i32` set store in `std::collections::hash`. MIR
+//! rewrites the shell calls to `hashset_new` / `hashset_insert` /
+//! `hashset_contains` / `hashset_remove` / `hashset_len` /
+//! `hashset_is_empty`, so the shell bodies never recurse at runtime.
+//!
+//! The `hashset_i32_*` and `hashset_str_*` functions below are retained as
+//! deprecated compatibility adapters for the aggregate and `String` lanes
+//! that the concrete `HashSet<i32>` surface does not cover yet (#917).
+//!
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability
+//! required.
 
 use std::collections::hash
 use std::collections::hash_string
 
+/// A set of unique `i32` values backed by the flat hash store.
+///
+/// Construct with `HashSet::new<i32>()` and use the receiver methods; the
+/// storage representation is private.
+pub struct HashSet<T> {
+}
+
+impl<T> HashSet<T> {
+    /// Creates an empty set.
+    fn new() -> HashSet<T> {
+        HashSet::new<T>()
+    }
+}
+
+impl HashSet<i32> {
+    /// Inserts `value` and returns true when it was not already present.
+    fn insert(self: HashSet<i32>, value: i32) -> bool {
+        self.insert(value)
+    }
+
+    /// Returns true when `value` is present in the set.
+    fn contains(self: HashSet<i32>, value: i32) -> bool {
+        self.contains(value)
+    }
+
+    /// Removes `value` and returns true when it was present.
+    fn remove(self: HashSet<i32>, value: i32) -> bool {
+        self.remove(value)
+    }
+
+    /// Returns the number of elements in the set.
+    fn len(self: HashSet<i32>) -> i32 {
+        self.len()
+    }
+
+    /// Returns true when the set has no elements.
+    fn is_empty(self: HashSet<i32>) -> bool {
+        self.is_empty()
+    }
+}
+
+// --- Deprecated compatibility adapters (aggregate / String lanes) ---
+
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Create a new Vec<i32>.
 pub fn hashset_i32_new() -> Vec<i32> {
     hash::hashset_new()
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Insert a value into a Vec<i32>. Returns true if the value was newly inserted.
 pub fn hashset_i32_insert(s: Vec<i32>, value: i32) -> bool {
     hash::hashset_insert(s, value)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Returns true if the Vec<i32> contains the value.
 pub fn hashset_i32_contains(s: Vec<i32>, value: i32) -> bool {
     hash::hashset_contains(s, value)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Remove a value from the Vec<i32>. Returns true if the value was present.
 pub fn hashset_i32_remove(s: Vec<i32>, value: i32) -> bool {
     hash::hashset_remove(s, value)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Return the number of elements in the Vec<i32>.
 pub fn hashset_i32_len(s: Vec<i32>) -> i32 {
     hash::hashset_len(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Returns true if the Vec<i32> is empty.
 pub fn hashset_i32_is_empty(s: Vec<i32>) -> bool {
     hash::hashset_is_empty(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Convert the Vec<i32> to a Vec<i32>.
 pub fn hashset_i32_to_vec(s: Vec<i32>) -> Vec<i32> {
     hash::hashset_to_vec(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Return the union of two Vec<i32>s.
 pub fn hashset_i32_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     hash::hashset_union(a, b)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Return the intersection of two Vec<i32>s.
 pub fn hashset_i32_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     hash::hashset_intersection(a, b)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Return the difference of two Vec<i32>s (elements in a but not b).
 pub fn hashset_i32_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     hash::hashset_difference(a, b)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Return the current bucket capacity of the Vec<i32>.
 pub fn hashset_i32_capacity(s: Vec<i32>) -> i32 {
     hash::hashset_capacity(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Ensure the Vec<i32> can hold at least `additional` more elements
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// without exceeding the load-factor threshold.
 pub fn hashset_i32_reserve(s: Vec<i32>, additional: i32) {
     hash::hashset_reserve(s, additional)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Shrink the Vec<i32> to the minimum capacity preserving the load-factor
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// invariant.
 pub fn hashset_i32_shrink_to_fit(s: Vec<i32>) {
     hash::hashset_shrink_to_fit(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Remove all elements from the Vec<i32>, resetting size to 0.
 pub fn hashset_i32_clear(s: Vec<i32>) {
     hash::hashset_clear(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Extend a Vec<i32> with all elements from another set (`other`).
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Mirrors Rust's `HashSet::extend`.
 pub fn hashset_i32_extend(s: Vec<i32>, other: Vec<i32>) {
     hash::hashset_extend(s, other)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Create a new HashSet<String>.
 pub fn hashset_str_new() -> Vec<String> {
     hash_string::hashset_str_new()
@@ -186,26 +258,31 @@ test mod "hashset_i32" {
     }
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Insert a value into a HashSet<String>. Returns true if the value was newly inserted.
 pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
     hash_string::hashset_str_insert(s, value)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Returns true if the HashSet<String> contains the value.
 pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
     hash_string::hashset_str_contains(s, value)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Remove a value from the HashSet<String>. Returns true if the value was present.
 pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
     hash_string::hashset_str_remove(s, value)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Return the number of elements in the HashSet<String>.
 pub fn hashset_str_len(s: Vec<String>) -> i32 {
     hash_string::hashset_str_len(s)
 }
 
+/// Deprecated: prefer the `HashSet<i32>` methods for the basic membership lane.
 /// Returns true if the HashSet<String> is empty.
 pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
     hash_string::hashset_str_is_empty(s)

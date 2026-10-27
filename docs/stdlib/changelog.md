@@ -16,6 +16,30 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — concrete `HashSet<i32>` membership surface (#917)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and
+  [ADR-086](../adr/ADR-086-linear-collection-adts.md) §2/§4: public collection
+  types use associated constructors and receiver methods. This is an
+  incremental slice of the [#917](https://github.com/wogikaze/arukellt/issues/917)
+  execution lane; the aggregate and `String` lanes are not part of it.
+- **Added**: `HashSet<i32>` (`std::collections::hash_set::HashSet`) with
+  `HashSet::new<i32>()` and the receiver methods `insert`, `contains`,
+  `remove`, `len`, `is_empty`. They lower through the compiler method rewrite
+  to the flat `hash::hashset_*` store.
+- **Retained, deprecated (20)**: the 15 `hash_set::hashset_i32_*` adapters and
+  the 5 `hash_set::hashset_str_*` `Vec<String>` facade adapters. They stay for
+  the aggregate i32 and `String` lanes, whose GC lowering is not fixed yet;
+  no manifest lifecycle or E0100 removal applies.
+- **Fixtures**: `stdlib_hashset/hashset_methods.ark` and
+  `stdlib_hashset/hashset_methods_wasm32.ark` (both targets, compile + run).
+  No aggregate, `String`, or `union`/`reserve`/`extend` fixture is registered.
+- **Residual**: `HashSet<T>` has no aggregate methods (`to_vec`, `union`,
+  `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`,
+  `clear`, `extend`) or `HashSet<String>` methods until the GC method
+  lowering is fixed; those users keep the deprecated adapters. No
+  `IntoIterator` / `FromIterator` / `Clone` / `Eq` / `Debug` impls yet.
+
 ## 2026-10-27 — iterator collect lane fixes (#917, #691)
 
 - **Basis**: the iterator-collect residuals reported by the

@@ -15,6 +15,7 @@ struct LowerCtxLocalFrame {
     local_type_start: i32,
     match_result_indices: Vec<i32>,
     match_result_states: Vec<i32>,
+    hashset_locals: Vec<i32>,
 }
 
 fn LowerCtxLocalFrame_capture(ctx: LowerCtx) -> LowerCtxLocalFrame {
@@ -28,6 +29,7 @@ fn LowerCtxLocalFrame_capture(ctx: LowerCtx) -> LowerCtxLocalFrame {
         local_type_start: ctx_local_type_storage::ctx_local_type_start(ctx),
         match_result_indices: ctx.match_result_indices,
         match_result_states: ctx.match_result_states,
+        hashset_locals: ctx.hashset_locals,
     }
 }
 
@@ -39,6 +41,7 @@ fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
     ctx_local_type_storage::ctx_local_type_restore(ctx, frame.local_types, frame.local_type_indices, frame.local_type_start)
     ctx.match_result_indices = frame.match_result_indices
     ctx.match_result_states = frame.match_result_states
+    ctx.hashset_locals = frame.hashset_locals
 }
 
 fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 {
@@ -47,6 +50,7 @@ fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 {
     ctx_local_index_storage::ctx_local_index_reset_for_function(ctx)
     ctx_local_type_storage::ctx_local_type_reset_for_function(ctx)
     ctx_match_result_state::ctx_match_result_state_reset(ctx)
+    ctx.hashset_locals = Vec::new<i32>()
     let entry = ctx_locals_emit::ctx_alloc_block(ctx)
     ctx_current_storage::ctx_set_current_block_value(ctx, entry)
     entry

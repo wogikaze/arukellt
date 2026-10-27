@@ -342,6 +342,35 @@ classified there, in dependency-safe waves.
   pre-existing linear lowering bug), and the generic-`for` site pinning
   remains for adapter bodies other than the two collect hooks fixed here.
 
+### Landed slice (wave/hashset-typesurface, 2026-10-27)
+
+- **Concrete `HashSet<i32>` surface**: `std::collections::hash_set::HashSet`
+  now exposes `HashSet::new<i32>()` plus `insert`, `contains`, `remove`,
+  `len`, and `is_empty`. The manifest `[[types]]` entry registers the six
+  methods; MIR rewrites the shell calls to the flat `hash::hashset_*` store
+  (`call_rewrite_hashset`), with a HashSet local marker so `len` / `is_empty`
+  are not claimed by the Vec core-op rewrites.
+- **Retained (20, deprecated)**: the 15 `hash_set::hashset_i32_*` adapters and
+  the 5 `hash_set::hashset_str_*` `Vec<String>` facade adapters stay for the
+  aggregate i32 and `String` lanes. Their GC lowering is not fixed yet, so
+  no adapter was deleted and no E0100 removal or manifest lifecycle applies.
+- **Fixtures**: `stdlib_hashset/hashset_methods.ark` +
+  `hashset_methods_wasm32.ark` (compile + run on `wasm32-gc` and
+  `--target wasm32`). Aggregate, `union`/`reserve`/`extend`, and
+  `HashSet<String>` fixtures are intentionally not registered.
+- **Docs**: module page, type registry, migration table, and changelog cover
+  the six-method surface; `docs check` is part of the wave gate.
+- **Verification**: `verify fixtures` **1845/1845 PASS** (0 FAIL, 106 runtime
+  smoke, 1 `test:` fixture), `docs check` 6/6, `verify lane` PASS, and
+  `selfhost fixpoint` reached (s2 == s3 at `2c623cbf…`, pinned base
+  `04d4446b…`). The new pair compiles, validates, and runs on `wasm32-gc`
+  (P2 component) and `--target wasm32` (linear).
+- **Residual**: aggregate methods (`to_vec`, `union`, `intersection`,
+  `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`),
+  `HashSet<String>` methods, and the ADR-086 trait impls wait on the GC
+  method lowering. The `hashset_i32_*` / `hashset_str_*` rows above stay in
+  the `std::collections frees` family.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

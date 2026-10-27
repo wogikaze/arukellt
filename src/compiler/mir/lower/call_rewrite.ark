@@ -4,6 +4,7 @@ use mir::lower::call_mono
 use mir::lower::call_mono_by_type
 use mir::lower::call_rewrite_method
 use mir::lower::call_rewrite_hashmap
+use mir::lower::call_rewrite_hashset
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
 use mir::lower::ctx_api_emit
@@ -35,6 +36,14 @@ fn MirCallRewrite_push_i64_needs_extend(rewrite: MirCallRewrite) -> bool {
 fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool, span_start: i32) -> MirCallRewrite {
     let mut rewritten = clone(callee_name)
     let mut return_local = 0 - 1
+    // Set methods lower to the flat store before the generic Vec/String
+    // rewrites below: `is_empty` / `len` have Vec counterparts that would
+    // otherwise consume the call first (String::is_empty returns early and
+    // vec is_empty rewrites to a local load).
+    let hashset_early = call_rewrite_hashset::mir_rewrite_hashset_call(ctx, clone(callee_name), first_arg_idx, span_start)
+    if hashset_early.len() > 0 {
+        rewritten = hashset_early
+    }
     let mut push_i64_needs_extend = false
     // String identity for x.to_string() must run before impl resolution
     // rewrites plain "to_string" into "Type::to_string".
@@ -61,7 +70,7 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     if first_arg_idx >= 0 && contains(clone(rewritten), String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_associated_function(ctx, clone(rewritten), first_arg_idx)
     }
-    if eq(clone(callee_name), String_from("is_empty")) {
+    if eq(clone(callee_name), String_from("is_empty")) && hashset_early.len() == 0 {
         // Prefer String::is_empty before vec rewrite — String_from locals can
         // look like byte arrays and must not take the Vec struct.get path (#807).
         if first_arg_idx >= 0 {
@@ -100,6 +109,10 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let hashmap_method = call_rewrite_hashmap::mir_rewrite_hashmap_method(ctx, clone(rewritten), first_arg_idx)
     if hashmap_method.len() > 0 {
         rewritten = hashmap_method
+    }
+    let hashset_call = call_rewrite_hashset::mir_rewrite_hashset_call(ctx, clone(rewritten), first_arg_idx, span_start)
+    if hashset_call.len() > 0 {
+        rewritten = hashset_call
     }
     if eq(clone(rewritten), "to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, rewritten, first_arg_idx)
@@ -145,6 +158,15 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) &&
     !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
+    }
+    // HashSet method sites reach this point as the source method name
+    // ("insert", "new") until mono lookup resolves them; the concrete
+    // instance spelling (HashSet__insert__i32) is what the store rewrite
+    // matches. Apply the rewrite again after the lookup so the shell body
+    // and the call site converge on the same flat-store target (#917).
+    let hashset_after_mono = call_rewrite_hashset::mir_rewrite_hashset_call(ctx, clone(rewritten), first_arg_idx, span_start)
+    if hashset_after_mono.len() > 0 {
+        rewritten = hashset_after_mono
     }
     // Mono lookup may return the legacy `Vec_new_T` spelling even when the
     // source used `Vec::new<T>()`. Normalize after lookup too, so constructor

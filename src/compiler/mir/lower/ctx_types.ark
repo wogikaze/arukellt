@@ -154,6 +154,11 @@ pub struct LowerCtx {
     pcell_mat_lis: Vec<i32>,
     pcell_mat_tmps: Vec<i32>,
     local_type_start: i32,
+    // Locals holding a HashSet<T> value. The storage type is the flat
+    // vec:i32 / vec:String alias, so the marker is the only way to tell
+    // `s.len()` / `s.is_empty()` apart from Vec methods during call
+    // rewriting (#917).
+    hashset_locals: Vec<i32>,
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,
     mono_call_span_targets: Vec<String>,

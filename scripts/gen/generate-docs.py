@@ -183,6 +183,7 @@ let s = string_from_bytes(back)  // "hello"
         "modules": [
             "std::collections::compiler",
             "std::collections::hash",
+            "std::collections::hash_set",
             "std::collections::deque",
             "std::collections::linked_list",
             "std::collections::linear",
@@ -199,6 +200,7 @@ let s = string_from_bytes(back)  // "hello"
             "highlights": [
                 ("`HashMap::new` / `.insert` / `.get`", "Generic HashMap API with static dispatch."),
                 ("`.contains_key` / `.remove` / `.len`", "Typed lookup, removal, and size operations."),
+                ("`HashSet::new` / `.insert` / `.contains`", "Unordered `i32` / `String` set with membership operations."),
                 ("`hashmap_new` / `hashmap_get` / `hashmap_set`", "Raw i32 → i32 compatibility implementation."),
                 ("`Deque::new` / `.push_back` / `.pop_front`", "Generic double-ended queue with both-end operations."),
                 ("`Queue::new` / `.push` / `.pop`", "FIFO queue newtype over `Deque<T>`."),
