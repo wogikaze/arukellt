@@ -1,9 +1,9 @@
 // Generated from data/core-ops.toml by scripts/gen/generate-core-ops-registry.py.
 // Compact table + index. Do not edit by hand.
 
-use corehir::table_blob
 use std::prelude::{byte_at, clone, eq, substring}
 use std::text
+use corehir::table_blob
 
 fn core_op_registry_entry_count() -> i32 {
     295

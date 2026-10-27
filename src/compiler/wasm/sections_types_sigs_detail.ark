@@ -186,7 +186,6 @@ fn build_function_type_sig(uf: MirFunction, target: String, wasi_version: String
     text::builder_build(sig)
 }
 
-
 fn p2_is_string_type_name(type_name: String) -> bool {
     eq(clone(type_name), String_from("string")) ||
     eq(clone(type_name), String_from("String"))

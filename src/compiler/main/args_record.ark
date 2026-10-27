@@ -31,6 +31,7 @@ struct CliOptions {
     compose_validate_only: bool,
     lint_list: bool,
     lint_local: bool,
+    lint_inputs: Vec<String>,
     lint_allow: Vec<String>,
     lint_deny: Vec<String>,
     cache_dir: String,
@@ -71,6 +72,7 @@ fn CliOptions_default() -> CliOptions {
         compose_validate_only: false,
         lint_list: false,
         lint_local: false,
+        lint_inputs: Vec::new<String>(),
         lint_allow: Vec::new<String>(),
         lint_deny: Vec::new<String>(),
         cache_dir: String_new(),
@@ -150,6 +152,9 @@ fn cli_set_compose_validate_only(opts: CliOptions, compose_validate_only: bool) 
 fn cli_lint_list(opts: CliOptions) -> bool { opts.lint_list }
 fn cli_set_lint_list(opts: CliOptions, lint_list: bool) { opts.lint_list = lint_list }
 fn cli_lint_local(opts: CliOptions) -> bool { opts.lint_local }
+fn cli_lint_input_count(opts: CliOptions) -> i32 { opts.lint_inputs.len() }
+fn cli_lint_input_at(opts: CliOptions, index: i32) -> String { clone(opts.lint_inputs.get_unchecked(index)) }
+fn cli_add_lint_input(opts: CliOptions, path: String) { opts.lint_inputs.push(clone(path)) }
 fn cli_set_lint_local(opts: CliOptions, lint_local: bool) { opts.lint_local = lint_local }
 fn cli_lint_allow(opts: CliOptions) -> Vec<String> { opts.lint_allow }
 fn cli_lint_allow_count(opts: CliOptions) -> i32 { opts.lint_allow.len() }
