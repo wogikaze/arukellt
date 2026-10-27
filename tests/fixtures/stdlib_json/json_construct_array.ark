@@ -2,11 +2,11 @@ use std::json
 use std::test
 use std::text
 fn main() {
-    let items = json::json_arr_new()
-    push(items, json::json_i32(1))
-    push(items, json::json_i32(2))
-    push(items, json::json_i32(3))
-    let s = json::json_arr_string(items)
+    let items = Vec::new<json::JsonValue>()
+    push(items, json::JsonValue::int(1))
+    push(items, json::JsonValue::int(2))
+    push(items, json::JsonValue::int(3))
+    let s = json::JsonValue::array(items).to_text()
     test::assert_eq_string(s, "[1,2,3]")
     // Verify the constructed array parses back correctly
     match json::parse(s) {

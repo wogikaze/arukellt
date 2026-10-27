@@ -1,11 +1,65 @@
 //! CSV parser/serializer for std::csv.
 //!
-//! Supports RFC 4180 quoted fields and basic multi-row documents.
+//! Supports RFC 4180 quoted fields and basic multi-row documents. The public
+//! surface is the `Csv` namespace (`split_line`, `parse_row`, `stringify_row`,
+//! `count_rows`, `get_row_raw`, `parse_row_at`, `parse`, `stringify`,
+//! `parse_with_header`); the former `csv_*` frees are private implementation
+//! details (#917, ADR-046).
 // ─── Legacy helper ───────────────────────────────────────────────────────────
 use std::prelude::{byte_at, contains, lines, replace, slice, split}
 use std::text
+
+/// Namespace for RFC 4180 CSV row and document helpers.
+pub struct Csv {}
+
+impl Csv {
+    /// Split a line on commas without quote handling.
+    fn split_line(line: String) -> Vec<String> {
+        csv_impl_split_line(line)
+    }
+
+    /// Parse a single CSV line into fields, honoring quoted fields.
+    fn parse_row(line: String) -> Vec<String> {
+        csv_impl_parse_row(line)
+    }
+
+    /// Serialize one row of fields to a CSV line.
+    fn stringify_row(fields: Vec<String>) -> String {
+        csv_impl_stringify_row(fields)
+    }
+
+    /// Count non-empty lines in a CSV document.
+    fn count_rows(s: String) -> i32 {
+        csv_impl_count_rows(s)
+    }
+
+    /// Return the raw text of the row at `row_index`.
+    fn get_row_raw(s: String, row_index: i32) -> String {
+        csv_impl_get_row_raw(s, row_index)
+    }
+
+    /// Parse the row at `row_index` from a multi-row CSV string.
+    fn parse_row_at(s: String, row_index: i32) -> Vec<String> {
+        csv_impl_parse_row_at(s, row_index)
+    }
+
+    /// Parse a CSV document into rows.
+    fn parse(s: String) -> Result<Vec<Vec<String>>, String> {
+        csv_impl_parse(s)
+    }
+
+    /// Serialize rows to a CSV document.
+    fn stringify(rows: Vec<Vec<String>>) -> String {
+        csv_impl_stringify(rows)
+    }
+
+    /// Parse a CSV document and return its header row.
+    fn parse_with_header(s: String) -> Result<Vec<String>, String> {
+        csv_impl_parse_with_header(s)
+    }
+}
 /// Split a single CSV line on commas (no quote handling).
-pub fn csv_split_line(line: String) -> Vec<String> {
+fn csv_impl_split_line(line: String) -> Vec<String> {
     split(line, String_from(","))
 }
 
@@ -14,7 +68,7 @@ pub fn csv_split_line(line: String) -> Vec<String> {
 ///
 /// Quoted fields may contain embedded commas, double-quotes (escaped as `""`),
 /// and newlines.
-pub fn csv_parse_row(line: String) -> Vec<String> {
+fn csv_impl_parse_row(line: String) -> Vec<String> {
     let result = Vec::new<String>()
     let n = len(line)
     let mut i = 0
@@ -64,7 +118,7 @@ pub fn csv_parse_row(line: String) -> Vec<String> {
 /// Serialize a row of fields back to a CSV line.
 ///
 /// Fields that contain commas, double-quotes, or newlines are quoted.
-pub fn csv_stringify_row(fields: Vec<String>) -> String {
+fn csv_impl_stringify_row(fields: Vec<String>) -> String {
     let n = len(fields)
     let mut result = ""
     let mut i = 0
@@ -87,7 +141,7 @@ pub fn csv_stringify_row(fields: Vec<String>) -> String {
 
 // ─── Multi-row accessors ─────────────────────────────────────────────────────
 /// Count the number of non-empty lines in a CSV string.
-pub fn csv_count_rows(s: String) -> i32 {
+fn csv_impl_count_rows(s: String) -> i32 {
     let lines = split(s, "\n")
     let n = len(lines)
     let mut count = 0
@@ -103,7 +157,7 @@ pub fn csv_count_rows(s: String) -> i32 {
 }
 
 /// Return the raw text of row `row_index` (0-based, skipping empty lines).
-pub fn csv_get_row_raw(s: String, row_index: i32) -> String {
+fn csv_impl_get_row_raw(s: String, row_index: i32) -> String {
     let lines = split(s, "\n")
     let n = len(lines)
     let mut current = 0
@@ -122,12 +176,12 @@ pub fn csv_get_row_raw(s: String, row_index: i32) -> String {
 }
 
 /// Parse row `row_index` from a multi-row CSV string.
-pub fn csv_parse_row_at(s: String, row_index: i32) -> Vec<String> {
-    csv_parse_row(csv_get_row_raw(s, row_index))
+fn csv_impl_parse_row_at(s: String, row_index: i32) -> Vec<String> {
+    csv_impl_parse_row(csv_impl_get_row_raw(s, row_index))
 }
 
 /// Parse a full CSV document into rows.
-pub fn csv_parse(s: String) -> Result<Vec<Vec<String>>, String> {
+fn csv_impl_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     let lines = split(s, "\n")
     let n = len(lines)
     if n == 0 {
@@ -138,7 +192,7 @@ pub fn csv_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     while i < n {
         let line = get_unchecked(lines, i)
         if len(line) > 0 {
-            push(rows, csv_parse_row(line))
+            push(rows, csv_impl_parse_row(line))
         }
         i = i + 1
     }
@@ -146,7 +200,7 @@ pub fn csv_parse(s: String) -> Result<Vec<Vec<String>>, String> {
 }
 
 /// Serialize rows to a CSV document.
-pub fn csv_stringify(rows: Vec<Vec<String>>) -> String {
+fn csv_impl_stringify(rows: Vec<Vec<String>>) -> String {
     let n = len(rows)
     let mut out = ""
     let mut i = 0
@@ -154,7 +208,7 @@ pub fn csv_stringify(rows: Vec<Vec<String>>) -> String {
         if i > 0 {
             out = out.concat("\n")
         }
-        out = out.concat(csv_stringify_row(get_unchecked(rows, i)))
+        out = out.concat(csv_impl_stringify_row(get_unchecked(rows, i)))
         i = i + 1
     }
     out
@@ -168,7 +222,7 @@ pub fn csv_stringify(rows: Vec<Vec<String>>) -> String {
 ///
 /// NOTE: the simple flat encoding means row `i` starts at
 /// `header.len() * i` in the body vector.
-pub fn csv_parse_with_header(s: String) -> Result<Vec<String>, String> {
+fn csv_impl_parse_with_header(s: String) -> Result<Vec<String>, String> {
     let lines = split(s, "\n")
     let n = len(lines)
     if n == 0 {
@@ -178,7 +232,7 @@ pub fn csv_parse_with_header(s: String) -> Result<Vec<String>, String> {
     if len(first_line) == 0 {
         return Err("empty header")
     }
-    Ok(csv_parse_row(first_line))
+    Ok(csv_impl_parse_row(first_line))
 }
 // Parse one field
 // Quoted field

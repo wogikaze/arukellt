@@ -148,10 +148,10 @@ fn build_manifest_path(opts: CliOptions) -> String {
 
 fn parse_project_manifest(content: String) -> ProjectBuildManifest {
     ProjectBuildManifest_new(
-        toml::find_toml_value(clone(content), String_from("name")),
-        toml::find_toml_value(clone(content), String_from("version")),
-        toml::find_toml_value(clone(content), String_from("path")),
-        toml::find_toml_value(clone(content), String_from("entry"))
+        toml::TomlText::find_value(clone(content), String_from("name")),
+        toml::TomlText::find_value(clone(content), String_from("version")),
+        toml::TomlText::find_value(clone(content), String_from("path")),
+        toml::TomlText::find_value(clone(content), String_from("entry"))
     )
 }
 

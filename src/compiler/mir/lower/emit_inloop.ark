@@ -18,6 +18,7 @@
 
 use std::prelude::eq
 use std::prelude::{byte_at, clone, substring}
+use corehir::callee_spelling
 use collections::name_index
 use mir::block_inst_access
 use mir::emit_artifacts
@@ -202,6 +203,18 @@ fn emit_inloop_prepare(ctx: LowerCtx) {
 fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
     if name_index::name_index_get(disc, clone(name)) >= 0 {
         return true
+    }
+    // A loaded-module call keeps `module::Type::method`; the pushed body is
+    // registered as `Type::method`. Without these variants the oracle misses
+    // and the call is emitted as a permanent drop+unreachable instead of
+    // being deferred to the drain.
+    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let mut vi = 0
+    while vi < len(variants) {
+        if name_index::name_index_get(disc, clone(get_unchecked(variants, vi))) >= 0 {
+            return true
+        }
+        vi = vi + 1
     }
     let alias = hash_aliases::hashmap_builtin_alias(clone(name))
     if !eq(clone(alias), clone(name)) {

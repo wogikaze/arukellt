@@ -1,0 +1,29 @@
+// A helper module (not the entry module) calls the associated JSON/TOML/CSV
+// surface. The resolver only canonicalizes the entry module, so this pins the
+// lowering/emit spelling fix for `module::Type::method` calls.
+use std::csv
+use std::json
+use std::toml
+
+pub fn json_text(s: String) -> String {
+    json::JsonText::quote(s)
+}
+
+pub fn json_object(s: String) -> String {
+    let fields = Vec::new<json::JsonField>()
+    push(fields, json::JsonField::new("k", json::JsonValue::string(s)))
+    json::JsonValue::object(fields).to_text()
+}
+
+pub fn json_pretty() -> String {
+    json::JsonValue::pretty_text(json::JsonValue::int(1), 2)
+}
+
+pub fn toml_value(s: String) -> String {
+    toml::TomlText::find_value(s, String_from("a"))
+}
+
+pub fn csv_row(s: String) -> String {
+    let row = csv::Csv::parse_row(s)
+    csv::Csv::stringify_row(row)
+}

@@ -248,6 +248,8 @@ diag:diagnostics/deprecated_assertion_free.ark
 diag:diagnostics/deprecated_assertion_free_wasm32.ark
 diag:diagnostics/removed_bytes_free.ark
 diag:diagnostics/removed_bytes_free_wasm32.ark
+diag:diagnostics/removed_json_toml_csv_free.ark
+diag:diagnostics/removed_json_toml_csv_free_wasm32.ark
 diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/deprecated_io_free_function.ark
@@ -421,6 +423,7 @@ module-run:stdlib_test/expect_option.ark
 module-run:stdlib_test/expect_result.ark
 module-run:stdlib_time/duration.ark
 module-run:stdlib_time/monotonic.ark
+module-run:modules/non_main_associated_call/main.ark
 parse-only:module_import/pub_use_basic.ark
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
@@ -734,6 +737,7 @@ run:simd_gc_storage/v128_array_element.ark
 run:simd_gc_storage/v128_struct_field.ark
 run:simd_lowering/t1_scalar_expansion.ark
 run:simd_lowering/v128_type_check.ark
+run:modules/non_main_associated_call/main.ark
 # Issue #877 — normative doc examples connected to executable fixtures
 run:spec_examples/array_comprehension.ark
 run:spec_examples/memory_model_move.ark
@@ -2241,6 +2245,12 @@ run:ownership/adt_probe.ark
 run:ownership/call_borrow_keeps_binding.ark
 run:variables/string_lit.ark
 run:variables/tuple.ark
+run:stdlib_json/json_associated_surface.ark
+run:stdlib_json/json_associated_surface_wasm32.ark
+run:stdlib_toml/toml_text_surface.ark
+run:stdlib_toml/toml_text_surface_wasm32.ark
+run:stdlib_csv/csv_namespace_surface.ark
+run:stdlib_csv/csv_namespace_surface_wasm32.ark
 t3-compile:arrays/array_literal.ark
 t3-compile:arrays/array_repeat.ark
 t3-compile:async/async_fn_basic.ark

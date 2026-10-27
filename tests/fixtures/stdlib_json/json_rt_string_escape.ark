@@ -4,11 +4,11 @@ use std::prelude::{eq}
 use std::text
 fn main() {
     // String with escape sequences: encode and verify output matches golden value
-    let tab    = json::json_encode_string("a\tb")
-    let nl     = json::json_encode_string("line1\nline2")
-    let cr     = json::json_encode_string("x\ry")
-    let bs     = json::json_encode_string("a\\b")
-    let quotes = json::json_encode_string("say \"hi\"")
+    let tab    = json::JsonValue::encode_string("a\tb")
+    let nl     = json::JsonValue::encode_string("line1\nline2")
+    let cr     = json::JsonValue::encode_string("x\ry")
+    let bs     = json::JsonValue::encode_string("a\\b")
+    let quotes = json::JsonValue::encode_string("say \"hi\"")
     stdio::println(tab)
     stdio::println(nl)
     stdio::println(cr)

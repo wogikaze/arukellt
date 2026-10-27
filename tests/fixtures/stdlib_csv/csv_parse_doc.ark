@@ -2,14 +2,14 @@ use std::csv
 use std::host::stdio
 
 fn main() {
-    match csv::csv_parse("a,b\n1,2") {
+    match csv::Csv::parse("a,b\n1,2") {
         Result::Ok(rows) => stdio::println((len(rows)).to_string()),
         Result::Err(e) => stdio::println(e),
     }
     let rows = Vec::new<Vec<String>>()
-    push(rows, csv::csv_parse_row("x,y"))
-    push(rows, csv::csv_parse_row("1,2"))
-    stdio::println(csv::csv_stringify(rows))
+    push(rows, csv::Csv::parse_row("x,y"))
+    push(rows, csv::Csv::parse_row("1,2"))
+    stdio::println(csv::Csv::stringify(rows))
 }
 // csv_parse row count
 // csv_stringify round-trip shape

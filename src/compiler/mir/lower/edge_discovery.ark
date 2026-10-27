@@ -2,6 +2,7 @@ use std::prelude::{byte_at, clone, contains, ends_with, eq, index_of, starts_wit
 use std::text
 use collections::name_index
 use wasm::hash_aliases
+use corehir::callee_spelling
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_ast_span
@@ -1660,6 +1661,15 @@ fn edge_resolve_candidate(ctx: LowerCtx, table: AstEdgeTable, cand: String, seen
         return
     }
     edge_resolve_spelling(ctx, table, clone(cand), seen, out)
+    // Loaded-module calls keep `module::Type::method`; the emitted body is
+    // registered as `Type::method`. Resolve those canonical spellings so the
+    // callee body survives the reachability worklist.
+    let variants = callee_spelling::callee_spelling_variants(clone(cand))
+    let mut vi = 0
+    while vi < len(variants) {
+        edge_resolve_spelling(ctx, table, clone(get_unchecked(variants, vi)), seen, out)
+        vi = vi + 1
+    }
     if contains(clone(cand), String_from("::")) {
         edge_resolve_spelling(ctx, table, edge_after_last(cand, 58, 58), seen, out)
     }

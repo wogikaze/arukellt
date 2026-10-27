@@ -16,6 +16,64 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::json / std::toml / std::csv associated conversions (#917, ADR-046)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  [ADR-014](../adr/ADR-014-stability.md) D4 experimental rule. Every removed
+  manifest entry was `experimental`; unregistered declarations were never in
+  the stable 64, so no ADR-087 W0009 window applies. E0100 hints come from
+  `removed_json_member_hint` / `removed_toml_member_hint` /
+  `removed_csv_member_hint` and the bare-name fallback.
+- **Compiler unblock**: a `module::Type::method` call in a loaded module kept
+  the module prefix (the resolver only canonicalizes the entry module), while
+  the signature spine registers `Type::method`. Lowering left `fid=-1`; the
+  fused in-loop emitter emitted `drop; unreachable` instead of deferring, and
+  the reachability worklist could drop the impl body. `callee_spelling_variants`
+  now canonicalizes the spelling in lowering, the typechecker, edge discovery,
+  the in-loop oracle, and the drain-time name fallback.
+- **Removed (32 manifest + 25 unregistered)**: the JSON text helpers
+  (`quote_string`, `json_escape`, `skip_ws`, `parse_int_at`,
+  `parse_content_length`, `find_key_pos`, `json_hex_byte`, `json_hex_value`,
+  `json_parse_string_at`, `json_decode_escape[_at]`,
+  `json_decode_unicode_ascii`, `json_get_str[_after]`, `json_get_int`), the
+  JSON primitive constructors/serializers (`json_stringify_*`, `json_null`,
+  `json_parse_*`, `stringify_pretty`, `json_field`, `json_str`, `json_i32`,
+  `json_bool`, `json_null_val`, `json_raw`, `json_obj_new`, `json_arr_new`,
+  `json_obj_string`, `json_arr_string`, `json_encode_string`), the TOML text
+  scanners (`toml_parse_line`, `toml_find_*`, `find_toml_*`,
+  `toml_parse_string_array`), and the CSV frees (`csv_split_line`,
+  `csv_parse_row`, `csv_stringify_row`, `csv_count_rows`, `csv_get_row_raw`,
+  `csv_parse_row_at`, `csv_parse`, `csv_stringify`, `csv_parse_with_header`).
+- **Replacement**: `JsonText` (`quote`, `escape`, `skip_ws`, `parse_int_at`,
+  `content_length`, `find_key_pos`, `hex_byte`, `hex_value`,
+  `parse_string_at`, `decode_escape_at`, `decode_unicode_ascii`, `get_str`,
+  `get_int`), `JsonValue` constructors (`null`, `bool`, `int`, `string`,
+  `raw`, `array`, `object`), `JsonField::new`, `JsonValue::pretty_text`,
+  the `JsonValue` primitive helpers (`stringify_*`, `parse_*`,
+  `encode_string`, `null_text`), `JsonStrResult` / `JsonEscapeResult`
+  accessors, `TomlText` (`parse_line`, `find_section`, `find_value`,
+  `find_raw_value`, `parse_string_array`), and `Csv` (`split_line`,
+  `parse_row`, `stringify_row`, `count_rows`, `get_row_raw`, `parse_row_at`,
+  `parse`, `stringify`, `parse_with_header`). The full before/after table is
+  in the [migration guide](migration-guidance.md#associated-conversion-wave-2026-10-27-917--wavenon-main-module).
+- **Fixtures**: `stdlib_json/json_associated_surface*.ark`,
+  `stdlib_toml/toml_text_surface*.ark`,
+  `stdlib_csv/csv_namespace_surface*.ark`, and the two-module regression
+  `modules/non_main_associated_call/`. The pairs compile and run on
+  `wasm32-gc` (P2 component) and `--target wasm32` (linear).
+- **Scorecard**: 588 → **531** public symbols; `associated-or-method`
+  518 → **461**; manifest functions 417 → **385**; unregistered declarations
+  172 → **147**. `must delete` 70 and `intrinsic-only` 1 unchanged.
+- **Residuals**: `json::parse` / `toml::toml_parse` / `toml::toml_stringify`
+  stay free (unannotated associated `parse` loses the Result payload type;
+  `TomlValue::to_text` still emits an i64 return on wasm32-gc);
+  `Vec<String>::concat` remains invalid on wasm32-gc independently of this
+  wave (join with an explicit loop / use `len` / `get_unchecked`). The
+  committed pin predates the fix, so the generated flat overlay routes the
+  compiler's own manifest scans through free `bootstrap_toml_*` shims
+  (`scripts/selfhost/checks.py::_patch_bootstrap_manifest_scanner_paths`);
+  delete the adapter when the pin is refreshed.
+
 ## 2026-10-27 — std::json / std::toml value methods (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 348
+- **Canonical names:** 316
 - **Historical/deprecated names:** 68
-- **Total entries:** 416
+- **Total entries:** 384
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -98,13 +98,6 @@ Current public API names, sorted alphabetically.
 | `components` | `std::path` | `stable` | Path |
 | `contains` | `prelude` | `stable` | String |
 | `cos_approx` | `std::signal` | `stable` | Signal |
-| `csv_count_rows` | `std::csv` | `experimental` | Csv |
-| `csv_get_row_raw` | `std::csv` | `experimental` | Csv |
-| `csv_parse_row` | `std::csv` | `experimental` | Csv |
-| `csv_parse_row_at` | `std::csv` | `experimental` | Csv |
-| `csv_parse_with_header` | `std::csv` | `experimental` | Csv |
-| `csv_split_line` | `std::csv` | `experimental` | Csv |
-| `csv_stringify_row` | `std::csv` | `experimental` | Csv |
 | `div` | `std::simd::f64x2` | `experimental` | Simd |
 | `duration_ms` | `std::time` | `stable` | Time |
 | `duration_ns` | `std::time` | `stable` | Time |
@@ -129,9 +122,6 @@ Current public API names, sorted alphabetically.
 | `fft` | `std::signal` | `stable` | Signal |
 | `file_name` | `std::path` | `stable` | Path |
 | `filter_i32` | `prelude` | `provisional` | Collections |
-| `find_key_pos` | `std::json` | `experimental` | Json |
-| `find_toml_section` | `std::toml` | `experimental` | Toml |
-| `find_toml_value` | `std::toml` | `experimental` | Toml |
 | `flag` | `std::cli` | `stable` | Cli |
 | `format_bool` | `prelude` | `stable` | String |
 | `format_i32` | `prelude` | `stable` | String |
@@ -211,18 +201,6 @@ Current public API names, sorted alphabetically.
 | `is_some` | `prelude` | `stable` | Option Result |
 | `join` | `prelude` | `stable` | String |
 | `join` | `std::path` | `stable` | Path |
-| `json_decode_escape` | `std::json` | `experimental` | Json |
-| `json_encode_string` | `std::json` | `experimental` | Json |
-| `json_escape` | `std::json` | `experimental` | Json |
-| `json_get_int` | `std::json` | `experimental` | Json |
-| `json_get_str` | `std::json` | `experimental` | Json |
-| `json_null` | `std::json` | `experimental` | Json |
-| `json_parse_bool` | `std::json` | `experimental` | Json |
-| `json_parse_i32` | `std::json` | `experimental` | Json |
-| `json_parse_string_at` | `std::json` | `experimental` | Json |
-| `json_stringify_bool` | `std::json` | `experimental` | Json |
-| `json_stringify_i32` | `std::json` | `experimental` | Json |
-| `json_stringify_string` | `std::json` | `experimental` | Json |
 | `lines` | `prelude` | `stable` | String |
 | `lower_bound` | `std::seq` | `provisional` | Seq |
 | `magnitude` | `std::signal` | `stable` | Signal |
@@ -255,11 +233,9 @@ Current public API names, sorted alphabetically.
 | `parent` | `std::path` | `stable` | Path |
 | `parse` | `std::json` | `experimental` | Json |
 | `parse_args` | `std::cli` | `stable` | Cli |
-| `parse_content_length` | `std::json` | `experimental` | Json |
 | `parse_f64` | `prelude` | `stable` | Conversion |
 | `parse_i32` | `prelude` | `stable` | Conversion |
 | `parse_i64` | `prelude` | `stable` | Conversion |
-| `parse_int_at` | `std::json` | `experimental` | Json |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
@@ -272,7 +248,6 @@ Current public API names, sorted alphabetically.
 | `print_bytes` | `std::io` | `stable` | Io |
 | `println` | `std::host::stdio` | `stable` | Host Stdio |
 | `push_char` | `prelude` | `stable` | String |
-| `quote_string` | `std::json` | `experimental` | Json |
 | `random_bool` | `std::host::random` | `stable` | Host Random |
 | `random_i32` | `std::host::random` | `stable` | Host Random |
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
@@ -293,7 +268,6 @@ Current public API names, sorted alphabetically.
 | `seeded_range` | `std::random` | `stable` | Random |
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
-| `skip_ws` | `std::json` | `experimental` | Json |
 | `slice` | `prelude` | `stable` | String |
 | `slotmap_contains` | `std::collections::compiler` | `experimental` | Collections |
 | `slotmap_get` | `std::collections::compiler` | `experimental` | Collections |
@@ -322,7 +296,6 @@ Current public API names, sorted alphabetically.
 | `stem` | `std::path` | `stable` | Path |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
-| `stringify_pretty` | `std::json` | `experimental` | Json |
 | `sub` | `std::simd::f64x2` | `experimental` | Simd |
 | `sub` | `std::simd::i64x2` | `experimental` | Simd |
 | `sub` | `std::simd::i8x16` | `experimental` | Simd |
@@ -337,12 +310,7 @@ Current public API names, sorted alphabetically.
 | `to_string` | `prelude` | `stable` | Conversion |
 | `to_upper` | `prelude` | `stable` | String |
 | `to_uppercase` | `prelude` | `stable` | String |
-| `toml_find_raw_value` | `std::toml` | `experimental` | Toml |
-| `toml_find_section` | `std::toml` | `experimental` | Toml |
-| `toml_find_value` | `std::toml` | `experimental` | Toml |
 | `toml_parse` | `std::toml` | `experimental` | Toml |
-| `toml_parse_line` | `std::toml` | `experimental` | Toml |
-| `toml_parse_string_array` | `std::toml` | `experimental` | Toml |
 | `toml_stringify` | `std::toml` | `experimental` | Toml |
 | `trim` | `prelude` | `stable` | String |
 | `trim_end` | `prelude` | `stable` | String |
@@ -539,13 +507,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `contains` | ✅ `stable` | `prelude` | String |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
-| `csv_count_rows` | ✅ `experimental` | `std::csv` | Csv |
-| `csv_get_row_raw` | ✅ `experimental` | `std::csv` | Csv |
-| `csv_parse_row` | ✅ `experimental` | `std::csv` | Csv |
-| `csv_parse_row_at` | ✅ `experimental` | `std::csv` | Csv |
-| `csv_parse_with_header` | ✅ `experimental` | `std::csv` | Csv |
-| `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
-| `csv_stringify_row` | ✅ `experimental` | `std::csv` | Csv |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
 | ~~`deque_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::front` · [migration guide](migration-guidance.md) |
@@ -587,9 +548,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `file_name` | ✅ `stable` | `std::path` | Path |
 | `filter_i32` | ✅ `provisional` | `prelude` | Collections |
 | ~~`filter_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::filter` · [migration guide](migration-guidance.md) |
-| `find_key_pos` | ✅ `experimental` | `std::json` | Json |
-| `find_toml_section` | ✅ `experimental` | `std::toml` | Toml |
-| `find_toml_value` | ✅ `experimental` | `std::toml` | Toml |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::fold` · [migration guide](migration-guidance.md) |
 | `format_bool` | ✅ `stable` | `prelude` | String |
@@ -681,18 +639,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
 | `join` | ✅ `stable` | `prelude` | String |
 | `join` | ✅ `stable` | `std::path` | Path |
-| `json_decode_escape` | ✅ `experimental` | `std::json` | Json |
-| `json_encode_string` | ✅ `experimental` | `std::json` | Json |
-| `json_escape` | ✅ `experimental` | `std::json` | Json |
-| `json_get_int` | ✅ `experimental` | `std::json` | Json |
-| `json_get_str` | ✅ `experimental` | `std::json` | Json |
-| `json_null` | ✅ `experimental` | `std::json` | Json |
-| `json_parse_bool` | ✅ `experimental` | `std::json` | Json |
-| `json_parse_i32` | ✅ `experimental` | `std::json` | Json |
-| `json_parse_string_at` | ✅ `experimental` | `std::json` | Json |
-| `json_stringify_bool` | ✅ `experimental` | `std::json` | Json |
-| `json_stringify_i32` | ✅ `experimental` | `std::json` | Json |
-| `json_stringify_string` | ✅ `experimental` | `std::json` | Json |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | `lines` | ✅ `stable` | `prelude` | String |
 | ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
@@ -740,11 +686,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parent` | ✅ `stable` | `std::path` | Path |
 | `parse` | ✅ `experimental` | `std::json` | Json |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
-| `parse_content_length` | ✅ `experimental` | `std::json` | Json |
 | `parse_f64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
-| `parse_int_at` | ✅ `experimental` | `std::json` | Json |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -759,7 +703,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
 | `push_char` | ✅ `stable` | `prelude` | String |
-| `quote_string` | ✅ `experimental` | `std::json` | Json |
 | `random_bool` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
@@ -784,7 +727,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`skip_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::skip` · [migration guide](migration-guidance.md) |
-| `skip_ws` | ✅ `experimental` | `std::json` | Json |
 | `slice` | ✅ `stable` | `prelude` | String |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
@@ -815,7 +757,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stem` | ✅ `stable` | `std::path` | Path |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |
-| `stringify_pretty` | ✅ `experimental` | `std::json` | Json |
 | `sub` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::i8x16` | Simd |
@@ -832,12 +773,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `to_string` | ✅ `stable` | `prelude` | Conversion |
 | `to_upper` | ✅ `stable` | `prelude` | String |
 | `to_uppercase` | ✅ `stable` | `prelude` | String |
-| `toml_find_raw_value` | ✅ `experimental` | `std::toml` | Toml |
-| `toml_find_section` | ✅ `experimental` | `std::toml` | Toml |
-| `toml_find_value` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_parse` | ✅ `experimental` | `std::toml` | Toml |
-| `toml_parse_line` | ✅ `experimental` | `std::toml` | Toml |
-| `toml_parse_string_array` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_stringify` | ✅ `experimental` | `std::toml` | Toml |
 | `trim` | ✅ `stable` | `prelude` | String |
 | `trim_end` | ✅ `stable` | `prelude` | String |

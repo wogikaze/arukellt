@@ -309,19 +309,25 @@ let len = range_len(r)  // 10
         "modules": ["std::csv"],
         "overview": {
             "summary": (
-                "The `std::csv` module provides minimal experimental CSV helpers. The current "
-                "implementation exposes only line-level splitting and does not yet handle full "
-                "RFC 4180 quoting rules."
+                "The `std::csv` module exposes RFC 4180 row and document helpers on the `Csv` "
+                "namespace: `Csv::parse_row` / `Csv::stringify_row` for one row, "
+                "`Csv::split_line` for a simple comma split, and `Csv::parse` / "
+                "`Csv::stringify` / `Csv::parse_with_header` for whole documents. Quoted fields, "
+                "escaped double quotes, and embedded commas are supported; the module is still "
+                "experimental."
             ),
             "highlights": [
-                ("`csv_split_line(line)`", "Split a comma-separated line into a `Vec<String>` of fields."),
+                ("`csv::Csv::parse_row(line)`", "Parse one CSV line into a `Vec<String>` with quoted-field handling."),
+                ("`csv::Csv::stringify_row(fields)`", "Serialize one row with RFC 4180 quoting."),
+                ("`csv::Csv::parse(doc)` / `csv::Csv::parse_with_header(doc)`", "Parse a whole document (and return its header row)."),
             ],
             "typical_usage": """\
 ```ark
 import std::csv
 
-let fields = csv_split_line("name,age,city")
-// fields == ["name", "age", "city"]
+let row = csv::Csv::parse_row("\"Smith, John\",30")
+// row == ["Smith, John", "30"]
+let text = csv::Csv::stringify_row(row)
 ```""",
         },
     },
@@ -434,30 +440,31 @@ match content {
         "modules": ["std::json"],
         "overview": {
             "summary": (
-                "The `std::json` module provides the `JsonValue` DOM plus the free streaming "
-                "scanner / escape utilities. DOM values are inspected with `v.is_*()` / "
+                "The `std::json` module provides the `JsonValue` DOM plus the `JsonText` "
+                "scanner/escape namespace. DOM values are inspected with `v.is_*()` / "
                 "`v.as_*()`, traversed with `v.get_field(key)` / `v.get_index(i)`, and serialized "
-                "with `v.to_text()`. Primitive helpers (`json_stringify_i32`, `json_parse_i32`, "
-                "…) and the scanner (`skip_ws`, `quote_string`, …) remain free functions."
+                "with `v.to_text()`. Construction uses `JsonValue::null/bool/int/string/raw/"
+                "array/object`, `JsonField::new`, and `JsonValue::pretty_text`; text scanning "
+                "uses `JsonText::quote`, `JsonText::escape`, `JsonText::get_str`, and the other "
+                "`JsonText` helpers. Only `json::parse` remains a free document entry point."
             ),
             "highlights": [
-                ("`json_parse(doc)`", "Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input."),
+                ("`json::parse(doc)`", "Parse a full JSON document into a `JsonValue`; `Err(JsonParseError)` on malformed input."),
                 ("`v.is_null()` / `v.as_i32()` / `v.as_string()`", "Type predicates and typed accessors on the DOM value."),
                 ("`v.get_field(key)` / `v.get_index(i)`", "Look up an object field or array element."),
                 ("`v.to_text()`", "Serialize a `JsonValue` back to compact JSON text."),
-                ("`json_stringify_i32(n)` / `json_parse_i32(s)`", "Legacy primitive stringify / parse helpers."),
-                ("`quote_string(s)` / `json_escape(s)`", "Quote or escape a string for framed protocols."),
+                ("`json::JsonValue::int(n)` / `json::JsonValue::string(s)` / `json::JsonField::new(k, v)`", "Construct DOM values and object fields."),
+                ("`json::JsonValue::pretty_text(v, indent)`", "Serialize with newlines and per-level indentation."),
+                ("`json::JsonText::quote(s)` / `json::JsonText::escape(s)` / `json::JsonText::get_str(j, k)`", "Quote, escape, and scan JSON text without building a DOM."),
             ],
             "typical_usage": """\
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
 ```ark
 import std::json
 
-let n = json_stringify_i32(42)       // "42"
-let b = json_stringify_bool(true)    // "true"
-let s = json_stringify_string("hi")  // "\"hi\""
-let parsed = json_parse_i32("42")    // 42
+let n = json::JsonValue::int(42)
+let text = n.to_text()                       // "42"
+let quoted = json::JsonText::quote("a\"b")  // "\"a\\\"b\""
+let parsed = json::parse("{\"a\":1}")
 ```""",
         },
     },
@@ -692,20 +699,20 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
         "modules": ["std::toml"],
         "overview": {
             "summary": (
-                "The `std::toml` module provides a TOML 1.0 parser/serializer plus streaming "
-                "section/value scanners for compiler manifests. `toml_parse` accepts table "
-                "headers, arrays of tables, inline tables, dotted keys, multiline strings, and "
-                "datetime literals; malformed input returns `Err(String)`. Nested tables are "
+                "The `std::toml` module provides a TOML 1.0 parser/serializer plus the "
+                "`TomlText` streaming namespace for compiler manifests. `toml_parse` accepts "
+                "table headers, arrays of tables, inline tables, dotted keys, multiline strings, "
+                "and datetime literals; malformed input returns `Err(String)`. Nested tables are "
                 "traversed with `v.get_field(key)` / `v.table_keys()` and decoded with "
                 "`v.as_string()` / `v.as_int()` / `v.as_bool()` / `v.as_float()` / "
-                "`v.as_array()` / `v.as_table()`. `find_toml_section` / `find_toml_value` "
-                "remain free streaming scanners."
+                "`v.as_array()` / `v.as_table()`. `TomlText::find_section` / "
+                "`TomlText::find_value` / `TomlText::find_raw_value` scan raw text."
             ),
             "highlights": [
                 ("`toml_parse(doc)`", "Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input."),
                 ("`v.get_field(key)` / `v.table_keys()`", "Traverse nested tables and list keys."),
                 ("`v.as_string()` / `v.as_int()` / `v.as_array()` / `v.as_table()`", "Decode a value without re-parsing its raw text."),
-                ("`find_toml_section` / `find_toml_value`", "Streaming scanners for `[section]` bodies and quoted string values."),
+                ("`toml::TomlText::find_section` / `find_value` / `find_raw_value`", "Streaming scanners for `[section]` bodies, quoted values, and raw values."),
             ],
             "typical_usage": """\
 ```ark
@@ -3026,9 +3033,9 @@ def render_stdlib_readme(
         "|---|--------|-------------|",
         "| 1 | [std::text](modules/text.md) | String inspection, trimming, searching, and formatting. |",
         "| 2 | [std::bytes](modules/bytes.md) | Binary data buffers, hex encoding, LEB128, endian conversion. |",
-        "| 3 | [std::json](modules/json.md) | JSON stringify and parse helpers (experimental). |",
+        "| 3 | [std::json](modules/json.md) | JSON DOM, constructors, and text helpers (experimental). |",
         "| 4 | [std::csv](modules/csv.md) | CSV line splitting (experimental). |",
-        "| 5 | [std::toml](modules/toml.md) | TOML key=value parsing (experimental). |",
+        "| 5 | [std::toml](modules/toml.md) | TOML parser and text helpers (experimental). |",
         "",
         "### 3 · I/O & Host Capabilities",
         "",

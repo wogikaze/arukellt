@@ -30,7 +30,7 @@ fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }
     let header_block = substring(clone(input), p, p + header_end_rel)
-    let clen = json::parse_content_length(clone(header_block))
+    let clen = json::JsonText::content_length(clone(header_block))
     if clen < 0 {
         return DapFrameResult { body: String_new(), next: n, ok: false }
     }

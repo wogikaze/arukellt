@@ -1,0 +1,10 @@
+error[E0100|resolve]: undefined module member: json::quote_string; use `json::JsonText::quote(s)` via `use std::json` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free_wasm32.ark
+error[E0100|resolve]: undefined module member: json::skip_ws; use `json::JsonText::skip_ws(s, pos)` via `use std::json` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free_wasm32.ark
+error[E0100|resolve]: undefined module member: json::json_i32; use `json::JsonValue::int(n)` via `use std::json` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free_wasm32.ark
+error[E0100|resolve]: undefined module member: toml::toml_find_value; use `toml::TomlText::find_value(content, key)` via `use std::toml` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free_wasm32.ark
+error[E0100|resolve]: undefined module member: csv::csv_parse_row; use `csv::Csv::parse_row(...)` via `use std::csv` instead
+  --> tests/fixtures/diagnostics/removed_json_toml_csv_free_wasm32.ark

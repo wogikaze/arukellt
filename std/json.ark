@@ -1,6 +1,10 @@
 //! JSON streaming scanner and escape utilities for `std::json`.
 //!
-//! Low-level functions used by the compiler's LSP/DAP/diagnostics.
+//! The public surface is the `JsonText` namespace (`quote`, `escape`,
+//! `json_text_skip_ws`, `json_text_parse_int_at`, `content_length`, `json_text_find_key_pos`,
+//! `parse_string_at`, `decode_escape_at`, `get_str`, `get_int`, ...) plus the
+//! `JsonStrResult` / `JsonEscapeResult` accessors. The former free helpers are
+//! private implementation details behind those functions (#917, ADR-046).
 //! The full JSON parser with `pub enum JsonValue` lives in
 //! `std/json/parser.ark` (loaded as `std::json::parser`).
 
@@ -13,6 +17,24 @@ pub struct JsonStrResult {
     ok: bool,
 }
 
+impl JsonStrResult {
+    fn new(value: String, next: i32, ok: bool) -> JsonStrResult {
+        json_str_result_new(value, next, ok)
+    }
+
+    fn is_ok(self: JsonStrResult) -> bool {
+        json_str_result_is_ok(self)
+    }
+
+    fn value(self: JsonStrResult) -> String {
+        json_str_result_value_impl(self)
+    }
+
+    fn next(self: JsonStrResult) -> i32 {
+        json_str_result_next_impl(self)
+    }
+}
+
 /// Result of decoding one JSON string escape sequence.
 pub struct JsonEscapeResult {
     value: String,
@@ -20,11 +42,29 @@ pub struct JsonEscapeResult {
     ok: bool,
 }
 
+impl JsonEscapeResult {
+    fn new(value: String, advance: i32, ok: bool) -> JsonEscapeResult {
+        json_escape_result_new(value, advance, ok)
+    }
+
+    fn is_ok(self: JsonEscapeResult) -> bool {
+        self.ok
+    }
+
+    fn value(self: JsonEscapeResult) -> String {
+        self.value
+    }
+
+    fn advance(self: JsonEscapeResult) -> i32 {
+        self.advance
+    }
+}
+
 // ─── Internal parsing helpers ────────────────────────────────────────────────
 /// Skip whitespace (space, tab, LF, CR) starting at `pos`, returning the
 /// index of the first non-whitespace character (or `len(s)` if all remaining
 /// bytes are whitespace). Public so streaming callers (DAP/LSP) can share.
-pub fn skip_ws(s: String, pos: i32) -> i32 {
+fn json_text_skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
@@ -41,10 +81,10 @@ pub fn skip_ws(s: String, pos: i32) -> i32 {
 /// Encode a plain string as a JSON string body (without surrounding quotes),
 /// escaping `"`, `\`, `\n`, `\r`, `\t`, `\b`, `\f`, and all control
 /// characters below U+0020 via `\u00XX`.  This is the unquoted counterpart
-/// to `json_encode_string` and replaces the per-module `json_escape` /
+/// to `json_encode_string` and replaces the per-module `json_text_escape` /
 /// `diag_json_escape` helpers that LSP, DAP, and diagnostics each
 /// duplicated.
-pub fn json_escape(s: String) -> String {
+fn json_text_escape(s: String) -> String {
     let n = len(s)
     let mut out = ""
     let mut i = 0
@@ -73,7 +113,7 @@ pub fn json_escape(s: String) -> String {
                                 } else {
                                     if c < 32 {
                                         out = out.concat("\\u00")
-                                        out = out.concat(json_hex_byte(c))
+                                        out = out.concat(json_text_hex_byte(c))
                                     } else {
                                         out = out.concat(slice(s, i, i + 1))
                                     }
@@ -90,13 +130,82 @@ pub fn json_escape(s: String) -> String {
 }
 
 /// Quote and escape `s` as a JSON string literal (including surrounding quotes).
-/// Replaces the former LSP `json_escape::quote_string` helper.
-pub fn quote_string(s: String) -> String {
-    "\"".concat(json_escape(s).concat("\""))
+fn json_text_quote(s: String) -> String {
+    "\"".concat(json_text_escape(s).concat("\""))
+}
+
+/// Namespace for JSON text scanning and quoting helpers.
+pub struct JsonText {}
+
+impl JsonText {
+    /// Quote and escape `s` as a JSON string literal (with quotes).
+    fn quote(s: String) -> String {
+        json_text_quote(s)
+    }
+
+    /// Escape a plain string for a JSON string body (without quotes).
+    fn escape(s: String) -> String {
+        json_text_escape(s)
+    }
+
+    /// Two-character lowercase hex for one byte.
+    fn hex_byte(b: i32) -> String {
+        json_text_hex_byte(b)
+    }
+
+    /// Numeric value of one hex digit character, or 0 when invalid.
+    fn hex_value(c: i32) -> i32 {
+        json_text_hex_value(c)
+    }
+
+    /// Skip JSON whitespace from `pos`; return the next non-whitespace index.
+    fn skip_ws(s: String, pos: i32) -> i32 {
+        json_text_skip_ws(s, pos)
+    }
+
+    /// Parse a signed decimal integer at `pos` (after optional whitespace).
+    fn parse_int_at(s: String, pos: i32) -> i32 {
+        json_text_parse_int_at(s, pos)
+    }
+
+    /// Extract `Content-Length` from an LSP/DAP header block, or -1.
+    fn content_length(header_block: String) -> i32 {
+        json_text_content_length(header_block)
+    }
+
+    /// Find the position after `"key"` at or after `from`, or -1.
+    fn find_key_pos(json: String, key: String, from: i32) -> i32 {
+        json_text_find_key_pos(json, key, from)
+    }
+
+    /// Parse one JSON string literal at `pos`.
+    fn parse_string_at(s: String, pos: i32) -> JsonStrResult {
+        json_text_parse_string_at(s, pos)
+    }
+
+    /// Decode one JSON string escape at `pos`.
+    fn decode_escape_at(s: String, pos: i32) -> JsonEscapeResult {
+        json_text_decode_escape_at(s, pos)
+    }
+
+    /// Decode a `\uXXXX` escape as ASCII at `pos`.
+    fn decode_unicode_ascii(s: String, pos: i32) -> String {
+        json_text_decode_unicode_ascii(s, pos)
+    }
+
+    /// Extract a string field by key from a JSON object text.
+    fn get_str(json: String, key: String) -> String {
+        json_text_get_str(json, key)
+    }
+
+    /// Extract an integer field by key from a JSON object text.
+    fn get_int(json: String, key: String) -> i32 {
+        json_text_get_int(json, key)
+    }
 }
 
 /// Return the lowercase hex nibble for `n` (0–15).
-pub fn json_hex_nibble(n: i32) -> String {
+fn json_text_hex_nibble(n: i32) -> String {
     if n < 10 {
         char_to_string(48 + n)
     } else {
@@ -105,17 +214,17 @@ pub fn json_hex_nibble(n: i32) -> String {
 }
 
 /// Return the two-character lowercase hex representation of byte `b`.
-pub fn json_hex_byte(b: i32) -> String {
+fn json_text_hex_byte(b: i32) -> String {
     let hi = (b / 16) & 15
     let lo = b & 15
-    json_hex_nibble(hi).concat(json_hex_nibble(lo))
+    json_text_hex_nibble(hi).concat(json_text_hex_nibble(lo))
 }
 
 /// Parse a decimal integer (optionally signed) starting at `pos`, skipping
 /// leading whitespace.  Returns 0 if no digits are found.
-pub fn parse_int_at(s: String, pos: i32) -> i32 {
+fn json_text_parse_int_at(s: String, pos: i32) -> i32 {
     let n = len(s)
-    let mut p = skip_ws(s, pos)
+    let mut p = json_text_skip_ws(s, pos)
     if p >= n {
         return 0
     }
@@ -147,7 +256,7 @@ pub fn parse_int_at(s: String, pos: i32) -> i32 {
 
 /// Extract the `Content-Length` value from an LSP/DAP header block.
 /// Returns -1 if the header is absent, otherwise the parsed length.
-pub fn parse_content_length(header_block: String) -> i32 {
+fn json_text_content_length(header_block: String) -> i32 {
     let cl_idx = index_of(header_block, "Content-Length:")
     if cl_idx < 0 {
         return 0 - 1
@@ -177,7 +286,7 @@ pub fn parse_content_length(header_block: String) -> i32 {
 /// `json` at or after offset `from`.  Returns -1 if not found.  This is a
 /// simple substring search and does not validate JSON structure — callers
 /// must subsequently skip whitespace and expect `:` before the value.
-pub fn find_key_pos(json: String, key: String, from: i32) -> i32 {
+fn json_text_find_key_pos(json: String, key: String, from: i32) -> i32 {
     let needle = "\"".concat(key.concat("\""))
     let n = len(json)
     let nlen = len(needle)
@@ -194,7 +303,7 @@ pub fn find_key_pos(json: String, key: String, from: i32) -> i32 {
 
 /// Return the numeric value of a single hex digit character, or 0 if the
 /// character is not a valid hex digit.
-pub fn json_hex_value(c: i32) -> i32 {
+fn json_text_hex_value(c: i32) -> i32 {
     if c >= 48 && c <= 57 {
         return c - 48
     }
@@ -208,7 +317,7 @@ pub fn json_hex_value(c: i32) -> i32 {
 }
 
 /// Construct a `JsonEscapeResult`.
-pub fn JsonEscapeResult_new(value: String, advance: i32, ok: bool) -> JsonEscapeResult {
+fn json_escape_result_new(value: String, advance: i32, ok: bool) -> JsonEscapeResult {
     JsonEscapeResult { value: value, advance: advance, ok: ok }
 }
 
@@ -230,7 +339,7 @@ fn json_read_hex4(s: String, pos: i32) -> i32 {
         }
         i = i + 1
     }
-    json_hex_value(byte_at(s, pos)) * 4096 + json_hex_value(byte_at(s, pos + 1)) * 256 + json_hex_value(byte_at(s, pos + 2)) * 16 + json_hex_value(byte_at(s, pos + 3))
+    json_text_hex_value(byte_at(s, pos)) * 4096 + json_text_hex_value(byte_at(s, pos + 1)) * 256 + json_text_hex_value(byte_at(s, pos + 2)) * 16 + json_text_hex_value(byte_at(s, pos + 3))
 }
 
 /// Encode a Unicode code point as UTF-8 bytes in a `String`.
@@ -240,10 +349,10 @@ fn json_codepoint_to_utf8(cp: i32) -> String {
 
 /// Decode a `\uXXXX` escape (and an optional trailing low-surrogate pair).
 /// `pos` points at the `u` character. `advance` counts characters from `pos`.
-pub fn json_decode_unicode_at(s: String, pos: i32) -> JsonEscapeResult {
+fn json_text_decode_unicode_at(s: String, pos: i32) -> JsonEscapeResult {
     let cv = json_read_hex4(s, pos + 1)
     if cv < 0 {
-        return JsonEscapeResult_new("", 0, false)
+        return json_escape_result_new("", 0, false)
     }
     // High surrogate U+D800..U+DBFF — look for a following \u low surrogate.
     if cv >= 55296 && cv <= 56319 {
@@ -253,18 +362,18 @@ pub fn json_decode_unicode_at(s: String, pos: i32) -> JsonEscapeResult {
             let low = json_read_hex4(s, after + 2)
             if low >= 56320 && low <= 57343 {
                 let cp = 65536 + (cv - 55296) * 1024 + (low - 56320)
-                return JsonEscapeResult_new(json_codepoint_to_utf8(cp), 11, true)
+                return json_escape_result_new(json_codepoint_to_utf8(cp), 11, true)
             }
         }
-        return JsonEscapeResult_new(json_codepoint_to_utf8(cv), 5, true)
+        return json_escape_result_new(json_codepoint_to_utf8(cv), 5, true)
     }
-    JsonEscapeResult_new(json_codepoint_to_utf8(cv), 5, true)
+    json_escape_result_new(json_codepoint_to_utf8(cv), 5, true)
 }
 
 /// Decode a `\uXXXX` escape sequence.  `pos` points at the `u` character.
 /// Supports surrogate pairs and non-ASCII BMP code points (UTF-8).
-pub fn json_decode_unicode_ascii(s: String, pos: i32) -> String {
-    let r = json_decode_unicode_at(s, pos)
+fn json_text_decode_unicode_ascii(s: String, pos: i32) -> String {
+    let r = json_text_decode_unicode_at(s, pos)
     if r.ok {
         r.value
     } else {
@@ -275,44 +384,44 @@ pub fn json_decode_unicode_ascii(s: String, pos: i32) -> String {
 /// Decode a single JSON string escape character with advance count.
 /// `pos` points at the character immediately after the backslash.
 /// Unknown escapes set `ok` to false (RFC 8259 §7).
-pub fn json_decode_escape_at(s: String, pos: i32) -> JsonEscapeResult {
+fn json_text_decode_escape_at(s: String, pos: i32) -> JsonEscapeResult {
     let esc = byte_at(s, pos)
     if esc == 34 {
-        return JsonEscapeResult_new("\"", 1, true)
+        return json_escape_result_new("\"", 1, true)
     }
     if esc == 92 {
-        return JsonEscapeResult_new("\\", 1, true)
+        return json_escape_result_new("\\", 1, true)
     }
     if esc == 47 {
-        return JsonEscapeResult_new("/", 1, true)
+        return json_escape_result_new("/", 1, true)
     }
     if esc == 110 {
-        return JsonEscapeResult_new("\n", 1, true)
+        return json_escape_result_new("\n", 1, true)
     }
     if esc == 114 {
-        return JsonEscapeResult_new("\r", 1, true)
+        return json_escape_result_new("\r", 1, true)
     }
     if esc == 116 {
-        return JsonEscapeResult_new("\t", 1, true)
+        return json_escape_result_new("\t", 1, true)
     }
     if esc == 98 {
-        return JsonEscapeResult_new(char_to_string(8), 1, true)
+        return json_escape_result_new(char_to_string(8), 1, true)
     }
     if esc == 102 {
-        return JsonEscapeResult_new(char_to_string(12), 1, true)
+        return json_escape_result_new(char_to_string(12), 1, true)
     }
     if esc == 117 {
-        return json_decode_unicode_at(s, pos)
+        return json_text_decode_unicode_at(s, pos)
     }
-    JsonEscapeResult_new("", 0, false)
+    json_escape_result_new("", 0, false)
 }
 
 /// Decode a single JSON string escape character.  `pos` points at the
 /// character immediately after the backslash.  Handles `"`, `\`, `/`, `n`,
-/// `r`, `t`, `b`, `f`, and `u` (via `json_decode_unicode_at`).  Returns an
+/// `r`, `t`, `b`, `f`, and `u` (via `json_text_decode_unicode_at`).  Returns an
 /// empty string for unknown or incomplete escapes.
-pub fn json_decode_escape(s: String, pos: i32) -> String {
-    let r = json_decode_escape_at(s, pos)
+fn json_text_decode_escape(s: String, pos: i32) -> String {
+    let r = json_text_decode_escape_at(s, pos)
     if r.ok {
         r.value
     } else {
@@ -321,22 +430,22 @@ pub fn json_decode_escape(s: String, pos: i32) -> String {
 }
 
 /// Construct a `JsonStrResult`.
-pub fn JsonStrResult_new(value: String, next: i32, ok: bool) -> JsonStrResult {
+fn json_str_result_new(value: String, next: i32, ok: bool) -> JsonStrResult {
     JsonStrResult { value: value, next: next, ok: ok }
 }
 
 /// Return `true` if the parse succeeded.
-pub fn json_str_result_ok(result: JsonStrResult) -> bool {
+fn json_str_result_is_ok(result: JsonStrResult) -> bool {
     result.ok
 }
 
 /// Return the decoded string value.
-pub fn json_str_result_value(result: JsonStrResult) -> String {
+fn json_str_result_value_impl(result: JsonStrResult) -> String {
     result.value
 }
 
 /// Return the position immediately after the closing quote.
-pub fn json_str_result_next(result: JsonStrResult) -> i32 {
+fn json_str_result_next_impl(result: JsonStrResult) -> i32 {
     result.next
 }
 
@@ -344,10 +453,10 @@ pub fn json_str_result_next(result: JsonStrResult) -> i32 {
 /// Returns a `JsonStrResult` with the decoded value, the position after the
 /// closing quote, and an `ok` flag.  Handles all standard escape sequences
 /// including `\uXXXX` surrogate pairs; unknown escapes fail the parse.
-pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
+fn json_text_parse_string_at(s: String, pos: i32) -> JsonStrResult {
     let n = len(s)
     if pos >= n || byte_at(s, pos) != 34 {
-        return JsonStrResult_new("", pos, false)
+        return json_str_result_new("", pos, false)
     }
     let mut p = pos + 1
     let mut out = ""
@@ -358,7 +467,7 @@ pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
             if span_start < p {
                 out = out.concat(substring(s, span_start, p))
             }
-            return JsonStrResult_new(out, p + 1, true)
+            return json_str_result_new(out, p + 1, true)
         }
         if c == 92 {
             if span_start < p {
@@ -366,11 +475,11 @@ pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
             }
             p = p + 1
             if p >= n {
-                return JsonStrResult_new(out, p, false)
+                return json_str_result_new(out, p, false)
             }
-            let decoded = json_decode_escape_at(s, p)
+            let decoded = json_text_decode_escape_at(s, p)
             if !decoded.ok {
-                return JsonStrResult_new(out, p, false)
+                return json_str_result_new(out, p, false)
             }
             out = out.concat(decoded.value)
             p = p + decoded.advance
@@ -378,56 +487,56 @@ pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
         } else {
             // Unescaped control characters are illegal in JSON strings.
             if c < 32 {
-                return JsonStrResult_new(out, p, false)
+                return json_str_result_new(out, p, false)
             }
             p = p + 1
         }
     }
-    JsonStrResult_new(out, p, false)
+    json_str_result_new(out, p, false)
 }
 
 /// Extract the string value of field `key` from `json`, searching from
 /// offset 0.  Returns an empty string if the key is not found or the value
 /// is not a string.
-pub fn json_get_str(json: String, key: String) -> String {
-    json_get_str_after(json, key, 0)
+fn json_text_get_str(json: String, key: String) -> String {
+    json_text_get_str_after(json, key, 0)
 }
 
 /// Extract the string value of field `key` from `json`, searching from
 /// offset `from`.  Returns an empty string if the key is not found or the
 /// value is not a string.
-pub fn json_get_str_after(json: String, key: String, from: i32) -> String {
-    let p = find_key_pos(json, key, from)
+fn json_text_get_str_after(json: String, key: String, from: i32) -> String {
+    let p = json_text_find_key_pos(json, key, from)
     if p < 0 {
         return ""
     }
-    let q = skip_ws(json, p)
+    let q = json_text_skip_ws(json, p)
     let n = len(json)
     if q >= n || byte_at(json, q) != 58 {
         return ""
     }
-    let r = skip_ws(json, q + 1)
-    let parsed = json_parse_string_at(json, r)
-    if !json_str_result_ok(parsed) {
+    let r = json_text_skip_ws(json, q + 1)
+    let parsed = json_text_parse_string_at(json, r)
+    if !json_str_result_is_ok(parsed) {
         return ""
     }
-    json_str_result_value(parsed)
+    json_str_result_value_impl(parsed)
 }
 
 /// Extract the integer value of field `key` from `json`, searching from
 /// offset 0.  Returns 0 if the key is not found or the value is not an
 /// integer.
-pub fn json_get_int(json: String, key: String) -> i32 {
-    let p = find_key_pos(json, key, 0)
+fn json_text_get_int(json: String, key: String) -> i32 {
+    let p = json_text_find_key_pos(json, key, 0)
     if p < 0 {
         return 0
     }
-    let q = skip_ws(json, p)
+    let q = json_text_skip_ws(json, p)
     let n = len(json)
     if q >= n || byte_at(json, q) != 58 {
         return 0
     }
-    parse_int_at(json, q + 1)
+    json_text_parse_int_at(json, q + 1)
 }
 
 // ─── Re-exports from std/json/parser.ark ────────────────────────────────────

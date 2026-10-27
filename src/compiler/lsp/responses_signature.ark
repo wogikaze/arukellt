@@ -10,7 +10,7 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
             out = out.concat(String_from(","))
         }
         out = out.concat(String_from("{\"label\":"))
-        out = out.concat(json::quote_string(get_unchecked(params, i)))
+        out = out.concat(json::JsonText::quote(get_unchecked(params, i)))
         out = out.concat(String_from("}"))
         i = i + 1
     }
@@ -19,10 +19,10 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
 
 fn signature_info_json(label: String, doc: String, params: Vec<String>) -> String {
     let mut out = String_from("{\"label\":")
-    out = out.concat(json::quote_string(label))
+    out = out.concat(json::JsonText::quote(label))
     if len(doc) > 0 {
         out = out.concat(String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
-        out = out.concat(json::quote_string(doc))
+        out = out.concat(json::JsonText::quote(doc))
         out = out.concat(String_from("}"))
     }
     out = out.concat(String_from(",\"parameters\":["))

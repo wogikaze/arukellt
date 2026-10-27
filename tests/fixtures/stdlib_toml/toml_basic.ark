@@ -2,11 +2,11 @@ use std::host::stdio
 use std::toml
 
 fn main() {
-    stdio::println(toml::toml_parse_line("name = \"arukellt\""))
-    stdio::println(toml::toml_parse_line("version = \"0.1.0\""))
-    stdio::println(toml::toml_parse_line("# this is a comment"))
-    stdio::println(toml::toml_parse_line(""))
-    stdio::println(toml::toml_parse_line("enabled = true"))
+    stdio::println(toml::TomlText::parse_line("name = \"arukellt\""))
+    stdio::println(toml::TomlText::parse_line("version = \"0.1.0\""))
+    stdio::println(toml::TomlText::parse_line("# this is a comment"))
+    stdio::println(toml::TomlText::parse_line(""))
+    stdio::println(toml::TomlText::parse_line("enabled = true"))
 }
 // Basic key-value lines pass through
 // Comment lines return empty

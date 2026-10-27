@@ -36,15 +36,15 @@ pub fn load_lint_config(project_dir: String) -> LintConfig {
     let read_result = fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
-            let lint_section = toml::toml_find_section(content, String_from("lint"))
+            let lint_section = toml::TomlText::find_section(content, String_from("lint"))
             if len(clone(lint_section)) > 0 {
-                let allow_raw = toml::toml_find_raw_value(clone(lint_section), String_from("allow"))
+                let allow_raw = toml::TomlText::find_raw_value(clone(lint_section), String_from("allow"))
                 if len(clone(allow_raw)) > 0 {
-                    config.allow = toml::toml_parse_string_array(allow_raw)
+                    config.allow = toml::TomlText::parse_string_array(allow_raw)
                 }
-                let deny_raw = toml::toml_find_raw_value(clone(lint_section), String_from("deny"))
+                let deny_raw = toml::TomlText::find_raw_value(clone(lint_section), String_from("deny"))
                 if len(clone(deny_raw)) > 0 {
-                    config.deny = toml::toml_parse_string_array(deny_raw)
+                    config.deny = toml::TomlText::parse_string_array(deny_raw)
                 }
             }
         },

@@ -1,4 +1,5 @@
 use std::prelude::{byte_at, clone, ends_with, eq, starts_with, substring}
+use corehir::callee_spelling
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt_simd
@@ -60,6 +61,22 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
             return value_types::VT_GC_REF()
         }
         return qualified_vt
+    }
+    // Loaded-module calls keep `module::Type::method`; resolve the registered
+    // `Type::method` spelling before the last-segment fallback.
+    let variants = callee_spelling::callee_spelling_variants(clone(name))
+    let mut vi = 0
+    while vi < len(variants) {
+        let variant = clone(get_unchecked(variants, vi))
+        let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(variant))
+        if variant_found >= 0 {
+            let variant_vt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, variant_found)
+            if variant_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+                return value_types::VT_GC_REF()
+            }
+            return variant_vt
+        }
+        vi = vi + 1
     }
     let nlen = len(name)
     let mut colon_pos = 0 - 1

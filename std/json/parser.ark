@@ -5,16 +5,17 @@
 //!
 //! ## Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 //!
-//! - The `JsonValue` DOM surface (`parse`, `stringify`, `stringify_pretty`,
-//!   type predicates, accessors) is stable for well-formed JSON.
-//! - Streaming scanner utilities (`skip_ws`, `parse_int_at`,
-//!   `parse_content_length`, `find_key_pos`, `json_parse_string_at`,
-//!   `json_decode_escape`, `json_decode_unicode_ascii`, `json_get_str`,
-//!   `json_get_int`) provide low-level field extraction without building a
-//!   DOM.  `\uXXXX` surrogate pairs and invalid string escapes are checked.
-//! - Legacy primitive stringify/parse helpers (`json_stringify_i32`,
-//!   `json_parse_i32`, etc.) are preserved for backward compatibility
-//!   with existing fixtures and are not a complete typed serializer.
+//! - The `JsonValue` DOM surface (`parse`, `to_text`, type predicates,
+//!   accessors) is stable for well-formed JSON. Constructors and primitive
+//!   helpers are associated functions: `JsonValue::null/bool/int/string/raw/
+//!   array/object`, `JsonValue::stringify_i32`, `JsonValue::parse_i32`,
+//!   `JsonValue::encode_string`, and `JsonValue::pretty_text`. `JsonField::new`
+//!   builds object fields (#917, ADR-046).
+//! - Streaming scanner utilities live on the `JsonText` namespace in
+//!   `std/json.ark`; they provide low-level field extraction without building
+//!   a DOM.  `\uXXXX` surrogate pairs and invalid string escapes are checked.
+//! - The primitive stringify/parse helpers are not a complete typed
+//!   serializer; they are compatibility shims for the JSON text grammar.
 //! - The DOM parser enforces the RFC 8259 string and number grammar used by
 //!   the supported fixtures.  Full external JSONTestSuite coverage is tracked
 //!   under #704.
@@ -25,12 +26,12 @@ use std::text
 
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
-pub fn json_stringify_i32(val: i32) -> String {
+fn json_value_stringify_i32(val: i32) -> String {
     (val).to_string()
 }
 
 /// Stringify a bool as a JSON boolean literal.
-pub fn json_stringify_bool(val: bool) -> String {
+fn json_value_stringify_bool(val: bool) -> String {
     if val {
         "true"
     } else {
@@ -39,18 +40,18 @@ pub fn json_stringify_bool(val: bool) -> String {
 }
 
 /// Stringify a string by wrapping it in double quotes.
-/// NOTE: does not escape special characters — use `json_encode_string` instead.
-pub fn json_stringify_string(val: String) -> String {
+/// NOTE: does not escape special characters — use `JsonValue::encode_string` instead.
+fn json_value_stringify_string(val: String) -> String {
     "\"".concat(val.concat("\""))
 }
 
 /// Return the JSON null literal.
-pub fn json_null() -> String {
+fn json_value_null_text() -> String {
     "null"
 }
 
 /// Parse a decimal integer from a JSON number string.
-pub fn json_parse_i32(s: String) -> i32 {
+fn json_value_parse_i32(s: String) -> i32 {
     let n: i32 = len(s)
     let mut result: i32 = 0
     let mut i: i32 = 0
@@ -112,7 +113,7 @@ pub fn json_parse_i32(s: String) -> i32 {
 }
 
 /// Parse "true"/"false" into a bool.
-pub fn json_parse_bool(s: String) -> bool {
+fn json_value_parse_bool(s: String) -> bool {
     eq(s, "true")
 }
 
@@ -325,6 +326,81 @@ impl JsonValue {
     fn to_text(self: JsonValue) -> String {
         stringify_value(self)
     }
+
+    /// Construct the JSON `null` value.
+    fn null() -> JsonValue {
+        json_value_null()
+    }
+
+    /// Construct a JSON boolean value.
+    fn bool(value: bool) -> JsonValue {
+        json_value_bool(value)
+    }
+
+    /// Construct a JSON number from an integer.
+    fn int(value: i32) -> JsonValue {
+        json_value_int(value)
+    }
+
+    /// Construct a JSON string value.
+    fn string(value: String) -> JsonValue {
+        json_value_string(value)
+    }
+
+    /// Construct a raw JSON value from already-serialized text.
+    fn raw(value: String) -> JsonValue {
+        json_value_raw(value)
+    }
+
+    /// Construct a JSON array from its elements.
+    fn array(items: Vec<JsonValue>) -> JsonValue {
+        JsonValue::Array(items)
+    }
+
+    /// Construct a JSON object from its fields.
+    fn object(fields: Vec<JsonField>) -> JsonValue {
+        JsonValue::Object(fields)
+    }
+
+    /// Serialize an integer as JSON number text.
+    fn stringify_i32(value: i32) -> String {
+        json_value_stringify_i32(value)
+    }
+
+    /// Serialize a boolean as JSON literal text.
+    fn stringify_bool(value: bool) -> String {
+        json_value_stringify_bool(value)
+    }
+
+    /// Serialize a string as a quoted JSON string literal.
+    fn stringify_string(value: String) -> String {
+        json_value_stringify_string(value)
+    }
+
+    /// Text of the JSON `null` literal.
+    fn null_text() -> String {
+        json_value_null_text()
+    }
+
+    /// Parse an integer from JSON text.
+    fn parse_i32(s: String) -> i32 {
+        json_value_parse_i32(s)
+    }
+
+    /// Parse a JSON boolean literal.
+    fn parse_bool(s: String) -> bool {
+        json_value_parse_bool(s)
+    }
+
+    /// Encode a plain string as a quoted JSON string literal.
+    fn encode_string(s: String) -> String {
+        json_value_encode_string(s)
+    }
+
+    /// Serialize with newlines and per-level indentation.
+    fn pretty_text(v: JsonValue, indent: i32) -> String {
+        json_value_pretty_text(v, indent)
+    }
 }
 
 impl JsonParseError {
@@ -341,6 +417,12 @@ impl JsonParseError {
 pub struct JsonField {
     key: String,
     value: JsonValue,
+}
+
+impl JsonField {
+    fn new(key: String, value: JsonValue) -> JsonField {
+        json_value_field(key, value)
+    }
 }
 
 fn find_closing(s: String, pos: i32, open_ch: i32, close_ch: i32) -> i32 {
@@ -551,7 +633,7 @@ pub fn json_parse_step_next(step: JsonParseStep) -> i32 {
 /// Leading and trailing whitespace is ignored, but any non-whitespace
 /// characters after the first top-level value cause an error.
 fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
-    let pos = skip_ws(s, pos)
+    let pos = json::JsonText::skip_ws(s, pos)
     let n = len(s)
     if pos >= n {
         return JsonParseStep_err(JsonParseError::EmptyInput, pos)
@@ -576,22 +658,22 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("false")), pos)
     }
     if c == 34 {
-        let parsed = json::json_parse_string_at(s, pos)
-        if !json::json_str_result_ok(parsed) {
+        let parsed = json::JsonText::parse_string_at(s, pos)
+        if !parsed.is_ok() {
             return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("string")), pos)
         }
         return JsonParseStep_ok(
-            JsonValue::Str(json::json_str_result_value(parsed)),
-            json::json_str_result_next(parsed)
+            JsonValue::Str(parsed.value()),
+            parsed.next()
         )
     }
     if c == 91 {
         let arr = Vec::new<JsonValue>()
-        let mut i = skip_ws(s, pos + 1)
+        let mut i = json::JsonText::skip_ws(s, pos + 1)
         let mut has_value = false
         let mut expect_value = true
         while i < n {
-            i = skip_ws(s, i)
+            i = json::JsonText::skip_ws(s, i)
             if i < n && byte_at(s, i) == 93 {
                 if !has_value || !expect_value {
                     return JsonParseStep_ok(JsonValue::Array(arr), i + 1)
@@ -602,7 +684,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 if i >= n || byte_at(s, i) != 44 {
                     return JsonParseStep_err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
                 }
-                i = skip_ws(s, i + 1)
+                i = json::JsonText::skip_ws(s, i + 1)
                 if i >= n || byte_at(s, i) == 93 {
                     return JsonParseStep_err(JsonParseError::UnexpectedCharacter(93), i)
                 }
@@ -613,7 +695,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 Result::Ok(v) => push(arr, v),
                 Result::Err(e) => return JsonParseStep_err(e, i),
             }
-            i = skip_ws(s, step.next)
+            i = json::JsonText::skip_ws(s, step.next)
             has_value = true
             expect_value = false
         }
@@ -621,11 +703,11 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     }
     if c == 123 {
         let fields = Vec::new<JsonField>()
-        let mut i = skip_ws(s, pos + 1)
+        let mut i = json::JsonText::skip_ws(s, pos + 1)
         let mut has_field = false
         let mut expect_field = true
         while i < n {
-            i = skip_ws(s, i)
+            i = json::JsonText::skip_ws(s, i)
             if i < n && byte_at(s, i) == 125 {
                 if !has_field || !expect_field {
                     return JsonParseStep_ok(JsonValue::Object(fields), i + 1)
@@ -636,7 +718,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 if i >= n || byte_at(s, i) != 44 {
                     return JsonParseStep_err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
                 }
-                i = skip_ws(s, i + 1)
+                i = json::JsonText::skip_ws(s, i + 1)
                 if i >= n || byte_at(s, i) == 125 {
                     return JsonParseStep_err(JsonParseError::UnexpectedCharacter(125), i)
                 }
@@ -645,21 +727,21 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             if byte_at(s, i) != 34 {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(byte_at(s, i)), i)
             }
-            let parsed_key = json::json_parse_string_at(s, i)
-            if !json::json_str_result_ok(parsed_key) {
+            let parsed_key = json::JsonText::parse_string_at(s, i)
+            if !parsed_key.is_ok() {
                 return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("string")), i)
             }
-            let key = json::json_str_result_value(parsed_key)
-            i = skip_ws(s, json::json_str_result_next(parsed_key))
+            let key = parsed_key.value()
+            i = json::JsonText::skip_ws(s, parsed_key.next())
             if i >= n || byte_at(s, i) != 58 {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(58), i)
             }
-            let step = parse_value_at(s, skip_ws(s, i + 1))
+            let step = parse_value_at(s, json::JsonText::skip_ws(s, i + 1))
             match step.value {
                 Result::Ok(v) => push(fields, JsonField { key: key, value: v }),
                 Result::Err(e) => return JsonParseStep_err(e, i),
             }
-            i = skip_ws(s, step.next)
+            i = json::JsonText::skip_ws(s, step.next)
             has_field = true
             expect_field = false
         }
@@ -677,7 +759,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
 }
 
 pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
-    let pos = skip_ws(s, 0)
+    let pos = json::JsonText::skip_ws(s, 0)
     let n = len(s)
     if pos >= n {
         return Err(JsonParseError::EmptyInput)
@@ -685,7 +767,7 @@ pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
     let step = parse_value_at(s, pos)
     match step.value {
         Result::Ok(v) => {
-            let after = skip_ws(s, step.next)
+            let after = json::JsonText::skip_ws(s, step.next)
             if after == n {
                 Ok(v)
             } else {
@@ -710,7 +792,7 @@ fn stringify_value(v: JsonValue) -> String {
             }
         },
         JsonValue::Number(n) => n,
-        JsonValue::Str(s) => json_encode_string(s),
+        JsonValue::Str(s) => json_value_encode_string(s),
         JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array(items),
         JsonValue::Object(fields) => stringify_object(fields),
@@ -740,7 +822,7 @@ fn stringify_object(fields: Vec<JsonField>) -> String {
             out = out.concat(",")
         }
         let f = get_unchecked(fields, i)
-        out = out.concat(json_encode_string(f.key).concat(":".concat(stringify_value(f.value))))
+        out = out.concat(json_value_encode_string(f.key).concat(":".concat(stringify_value(f.value))))
         i = i + 1
     }
     out.concat("}")
@@ -771,7 +853,7 @@ fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
             }
         },
         JsonValue::Number(n) => n,
-        JsonValue::Str(s) => json_encode_string(s),
+        JsonValue::Str(s) => json_value_encode_string(s),
         JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array_pretty(items, indent, depth),
         JsonValue::Object(fields) => stringify_object_pretty(fields, indent, depth),
@@ -813,7 +895,7 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
         }
         let f = get_unchecked(fields, i)
         result = result.concat(child_pad)
-        result = result.concat(json_encode_string(f.key))
+        result = result.concat(json_value_encode_string(f.key))
         result = result.concat(": ")
         result = result.concat(stringify_pretty_at(f.value, indent, depth + 1))
         i = i + 1
@@ -823,17 +905,17 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
 
 fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
     let n = len(raw)
-    let i0 = skip_ws(raw, 1)
+    let i0 = json::JsonText::skip_ws(raw, 1)
     if i0 < n && byte_at(raw, i0) == 93 {
         return "[]"
     }
     let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "[\n"
-    let mut i = skip_ws(raw, 1)
+    let mut i = json::JsonText::skip_ws(raw, 1)
     let mut first = true
     while i < n - 1 {
-        i = skip_ws(raw, i)
+        i = json::JsonText::skip_ws(raw, i)
         if i >= n {
             break
         }
@@ -849,7 +931,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
                 first = false
                 result = result.concat(child_pad)
                 result = result.concat(stringify_pretty_at(elem, indent, depth + 1))
-                i = skip_ws(raw, elem_end)
+                i = json::JsonText::skip_ws(raw, elem_end)
                 if i < n && byte_at(raw, i) == 44 {
                     i = i + 1
                 }
@@ -864,17 +946,17 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
 
 fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
     let n = len(raw)
-    let i0 = skip_ws(raw, 1)
+    let i0 = json::JsonText::skip_ws(raw, 1)
     if i0 < n && byte_at(raw, i0) == 125 {
         return "{}"
     }
     let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "{\n"
-    let mut i = skip_ws(raw, 1)
+    let mut i = json::JsonText::skip_ws(raw, 1)
     let mut first = true
     while i < n - 1 {
-        i = skip_ws(raw, i)
+        i = json::JsonText::skip_ws(raw, i)
         if i >= n {
             break
         }
@@ -889,11 +971,11 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
             return raw
         }
         let key_raw = slice(raw, i, key_end)
-        i = skip_ws(raw, key_end)
+        i = json::JsonText::skip_ws(raw, key_end)
         if i >= n || byte_at(raw, i) != 58 {
             return raw
         }
-        i = skip_ws(raw, i + 1)
+        i = json::JsonText::skip_ws(raw, i + 1)
         let val_start = i
         let val_end = find_value_end(raw, val_start)
         match parse(slice(raw, val_start, val_end)) {
@@ -906,7 +988,7 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
                 result = result.concat(key_raw)
                 result = result.concat(": ")
                 result = result.concat(stringify_pretty_at(v, indent, depth + 1))
-                i = skip_ws(raw, val_end)
+                i = json::JsonText::skip_ws(raw, val_end)
                 if i < n && byte_at(raw, i) == 44 {
                     i = i + 1
                 }
@@ -922,7 +1004,7 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
 /// Serialize a `JsonValue` with newlines and indentation for arrays and objects.
 /// Scalar values use the stored raw text unchanged. `indent` is spaces per
 /// nesting level; negative values are treated as 0.
-pub fn stringify_pretty(v: JsonValue, indent: i32) -> String {
+fn json_value_pretty_text(v: JsonValue, indent: i32) -> String {
     let ind = if indent < 0 {
         0
     } else {
@@ -935,52 +1017,52 @@ pub fn stringify_pretty(v: JsonValue, indent: i32) -> String {
 
 // ─── Construction helpers ────────────────────────────────────────────────────
 /// Create a JsonField from a key and value.
-pub fn json_field(key: String, value: JsonValue) -> JsonField {
+fn json_value_field(key: String, value: JsonValue) -> JsonField {
     JsonField { key: key, value: value }
 }
 
 /// Create a JSON string value.
-pub fn json_str(s: String) -> JsonValue {
+fn json_value_string(s: String) -> JsonValue {
     JsonValue::Str(s)
 }
 
 /// Create a JSON integer value (emitted as-is, no `.0` suffix).
-pub fn json_i32(n: i32) -> JsonValue {
+fn json_value_int(n: i32) -> JsonValue {
     JsonValue::Raw((n).to_string())
 }
 
 /// Create a JSON boolean value.
-pub fn json_bool(b: bool) -> JsonValue {
+fn json_value_bool(b: bool) -> JsonValue {
     JsonValue::Bool(b)
 }
 
 /// Create a JSON null value.
-pub fn json_null_val() -> JsonValue {
+fn json_value_null() -> JsonValue {
     JsonValue::Null
 }
 
 /// Create a JSON raw literal value (emitted as-is).
-pub fn json_raw(s: String) -> JsonValue {
+fn json_value_raw(s: String) -> JsonValue {
     JsonValue::Raw(s)
 }
 
 /// Create an empty JsonField vector.
-pub fn json_obj_new() -> Vec<JsonField> {
+fn json_value_obj_new() -> Vec<JsonField> {
     Vec::new<JsonField>()
 }
 
 /// Create an empty JsonValue array vector.
-pub fn json_arr_new() -> Vec<JsonValue> {
+fn json_value_arr_new() -> Vec<JsonValue> {
     Vec::new<JsonValue>()
 }
 
 /// Build a JSON object string from a Vec<JsonField>.
-pub fn json_obj_string(fields: Vec<JsonField>) -> String {
+fn json_value_obj_string(fields: Vec<JsonField>) -> String {
     stringify_value(JsonValue::Object(fields))
 }
 
 /// Build a JSON array string from a Vec<JsonValue>.
-pub fn json_arr_string(items: Vec<JsonValue>) -> String {
+fn json_value_arr_string(items: Vec<JsonValue>) -> String {
     stringify_value(JsonValue::Array(items))
 }
 
@@ -1026,7 +1108,7 @@ fn json_decode_string(s: String) -> String {
                                             i = i + 2
                                         } else {
                                             if nxt == 117 && i + 5 < n {
-                                                result = result.concat(json_decode_unicode_ascii(s, i + 1))
+                                                result = result.concat(json::JsonText::decode_unicode_ascii(s, i + 1))
                                                 i = i + 6
                                             } else {
                                                 result = result.concat(slice(s, i + 1, i + 2))
@@ -1054,7 +1136,7 @@ fn json_decode_string(s: String) -> String {
 /// `\u00XX`.  This matches RFC 8259 §7 "All Unicode characters may be
 /// placed within the quotation marks except for the characters that must
 /// be escaped".
-pub fn json_encode_string(s: String) -> String {
+fn json_value_encode_string(s: String) -> String {
     let n = len(s)
     let mut result = "\""
     let mut i = 0
@@ -1083,7 +1165,7 @@ pub fn json_encode_string(s: String) -> String {
                                 } else {
                                     if c < 32 {
                                         result = result.concat("\\u00")
-                                        result = result.concat(json_hex_byte(c))
+                                        result = result.concat(json::JsonText::hex_byte(c))
                                     } else {
                                         result = result.concat(slice(s, i, i + 1))
                                     }

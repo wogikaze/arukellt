@@ -11,7 +11,7 @@ fn extract_section_line(body: String, section: String) -> i32 {
         return 0
     }
     let after = substring(body, pos, len(body))
-    json::json_get_int(after, String_from("line"))
+    json::JsonText::get_int(after, String_from("line"))
 }
 
 fn build_full_document_edit(text: String, formatted: String) -> String {
@@ -21,7 +21,7 @@ fn build_full_document_edit(text: String, formatted: String) -> String {
     out = out.concat(String_from(",\"character\":"))
     out = out.concat(to_string(positions::lsp_position_character(end_pos)))
     out = out.concat(String_from("}},\"newText\":"))
-    out = out.concat(json::quote_string(formatted))
+    out = out.concat(json::JsonText::quote(formatted))
     out = out.concat(String_from("}]"))
     out
 }
@@ -41,7 +41,7 @@ fn build_formatting_result(text: String) -> String {
 }
 
 pub fn build_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let uri = json::json_get_str(clone(body), String_from("uri"))
+    let uri = json::JsonText::get_str(clone(body), String_from("uri"))
     let text = source_text::text_for_uri(state, clone(uri))
     let edits = build_formatting_result(text)
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
@@ -53,7 +53,7 @@ pub fn build_formatting_response_for_request(state: LspState, body: String, id: 
 }
 
 pub fn build_range_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let uri = json::json_get_str(clone(body), String_from("uri"))
+    let uri = json::JsonText::get_str(clone(body), String_from("uri"))
     let text = source_text::text_for_uri(state, clone(uri))
     let start_line = extract_section_line(clone(body), String_from("\"start\":{"))
     let end_line = extract_section_line(clone(body), String_from("\"end\":{"))

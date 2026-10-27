@@ -18,11 +18,11 @@ fn build_semantic_fix_edit(
     )
     let end_pos = positions::offset_to_position(text, import_block::ImportBlockSpan_end(span))
     let mut out = String_from("{\"title\":")
-    out = out.concat(json::quote_string(title))
+    out = out.concat(json::JsonText::quote(title))
     out = out.concat(String_from(",\"kind\":"))
-    out = out.concat(json::quote_string(kind))
+    out = out.concat(json::JsonText::quote(kind))
     out = out.concat(String_from(",\"edit\":{\"changes\":{"))
-    out = out.concat(json::quote_string(uri))
+    out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(":[{\"range\":{\"start\":{\"line\":"))
     out = out.concat(to_string(positions::lsp_position_line(start_pos)))
     out = out.concat(String_from(",\"character\":"))
@@ -32,7 +32,7 @@ fn build_semantic_fix_edit(
     out = out.concat(String_from(",\"character\":"))
     out = out.concat(to_string(positions::lsp_position_character(end_pos)))
     out = out.concat(String_from("}},\"newText\":"))
-    out = out.concat(json::quote_string(fixed_block))
+    out = out.concat(json::JsonText::quote(fixed_block))
     out = out.concat(String_from("}]}}}"))
     out
 }

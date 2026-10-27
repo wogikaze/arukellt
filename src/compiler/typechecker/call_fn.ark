@@ -1,5 +1,6 @@
 use std::prelude::{byte_at, clone, eq, substring, to_string}
 use std::text
+use corehir::callee_spelling
 use resolver::expr_path
 use resolver::paths
 use typechecker::kinds
@@ -81,6 +82,25 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     }
     let mut mono_fn_name = clone(callee_name)
     let mut sig = sigs::lookup_fn_sig(env, fn_sigs, clone(callee_name))
+    if !contract_fn_sig::FnSig_has_name(sig) {
+        // Loaded-module bodies are not resolver-processed, so a
+        // `module::Type::method` call keeps the module prefix. The signature
+        // index registers the impl as `Type::method`; retry the canonical
+        // spellings before falling back to the last segment.
+        let variants = callee_spelling::callee_spelling_variants(clone(callee_name))
+        let mut vi = 0
+        while vi < len(variants) {
+            let variant = clone(get_unchecked(variants, vi))
+            let variant_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(variant))
+            if contract_fn_sig::FnSig_has_name(variant_sig) {
+                sig = variant_sig
+                mono_fn_name = variant
+                vi = len(variants)
+            } else {
+                vi = vi + 1
+            }
+        }
+    }
     if !contract_fn_sig::FnSig_has_name(sig) {
         let stripped = tc_strip_module_prefix(clone(callee_name))
         if !eq(clone(stripped), clone(callee_name)) &&

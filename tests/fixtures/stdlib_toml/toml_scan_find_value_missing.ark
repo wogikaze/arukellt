@@ -4,7 +4,7 @@ use std::test
 
 fn main() {
     let content = "name = \"x\""
-    let val = toml::find_toml_value(content, "missing")
+    let val = toml::TomlText::find_value(content, "missing")
     test::assert_eq_string(val, "")
     stdio::println("OK")
 }

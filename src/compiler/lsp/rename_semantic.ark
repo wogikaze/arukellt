@@ -64,7 +64,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     body = body.concat(String_from(",\"character\":"))
     body = body.concat(to_string(positions::lsp_position_character(end_pos)))
     body = body.concat(String_from("}},\"placeholder\":"))
-    body = body.concat(json::quote_string(name))
+    body = body.concat(json::JsonText::quote(name))
     body = body.concat(String_from("}}"))
     body
 }
@@ -96,7 +96,7 @@ pub fn build_rename_response_for_request(state: LspState, body: String, id: i32)
     if !is_renamable_at_offset(clone(req_text), offset) {
         return null_result(id)
     }
-    let new_name = json::json_get_str(clone(body), String_from("newName"))
+    let new_name = json::JsonText::get_str(clone(body), String_from("newName"))
     if len(new_name) == 0 || is_keyword_name(clone(new_name)) {
         return null_result(id)
     }

@@ -451,6 +451,80 @@ classified there, in dependency-safe waves.
   fixtures; full `verify fixtures`, `docs check`, `verify lane`, and the
   ADR-029 fixpoint are the wave gates.
 
+### Landed slice (wave/non-main-module, 2026-10-27)
+
+- **Compiler bug (measured)**: a `module::Type::method` associated call in a
+  **non-main** module kept the module prefix because the resolver only
+  canonicalizes the entry module. The signature spine registers the impl
+  method as `Type::method`, so `call_func_id` left `fid=-1`. The fused
+  in-loop emitter's fid<0 oracle (`emit_inloop_disc_hit`) stripped only the
+  last `::` segment (`quote`) instead of the registered `Type::method`, so it
+  treated the call as an intrinsic and emitted `drop; unreachable` instead of
+  deferring; the reachability worklist also resolved only the last segment and
+  could drop the impl body. The impl and its mono instance were present in the
+  fn table/registry — this was a spelling/identity bug, not a missing
+  registration.
+- **WAT evidence**: before the fix, `helper.ark`'s `JsonText::quote` call
+  emitted `local.get $s; drop; unreachable; local.get $_t1; return` while
+  `$JsonText::quote` existed later in the module; the same call in `main.ark`
+  emitted `call $JsonText::quote` and validated. After the fix the helper call
+  emits `call $JsonText::quote` and the module validates.
+- **Fix**: `corehir::callee_spelling::callee_spelling_variants` produces the
+  canonical `Type::method` / after-first-segment spellings for 3+ segment
+  names. It is applied in `call_rewrite` (dest typing/callee identity),
+  `call_func_id` (fid + canonical call name), the typechecker sig lookup,
+  edge discovery (impl/mono keep), `emit_inloop_disc_hit` (defer instead of
+  intrinsic fallback), and the drain-time `resolve_fn_index` fallback.
+- **Unblocked conversions (32 manifest + 25 unregistered declarations)**:
+  `JsonText` (`quote`, `escape`, `skip_ws`, `parse_int_at`, `content_length`,
+  `find_key_pos`, `hex_byte`, `hex_value`, `parse_string_at`,
+  `decode_escape_at`, `decode_unicode_ascii`, `get_str`, `get_int`),
+  `JsonValue` constructors (`null`, `bool`, `int`, `string`, `raw`, `array`,
+  `object`), `JsonField::new`, `JsonValue::pretty_text`, the `JsonValue`
+  primitive helpers (`stringify_*`, `parse_*`, `encode_string`, `null_text`),
+  the `JsonStrResult` / `JsonEscapeResult` accessors, `TomlText`
+  (`parse_line`, `find_section`, `find_value`, `find_raw_value`,
+  `parse_string_array`), and `Csv` (`split_line`, `parse_row`,
+  `stringify_row`, `count_rows`, `get_row_raw`, `parse_row_at`, `parse`,
+  `stringify`, `parse_with_header`). The compiler call sites, including
+  `loader/wit_manifest.ark::collect_wit_paths_from_manifest`, now use the
+  associated surface.
+- **Fixtures**: `stdlib_json/json_associated_surface*.ark`,
+  `stdlib_toml/toml_text_surface*.ark`,
+  `stdlib_csv/csv_namespace_surface*.ark`, and the two-module regression
+  `modules/non_main_associated_call/` (helper.ark -> main.ark). Each pair
+  compiles, validates, and runs on `wasm32-gc` (P2 component) and `--target
+  wasm32` (linear). E0100 goldens:
+  `diagnostics/removed_json_toml_csv_free*.ark`.
+- **Scorecard delta**: 588 -> **531** public symbols; `associated-or-method`
+  518 -> **461**; manifest functions 417 -> **385**; unregistered declarations
+  172 -> **147**. `must delete` 70 and `intrinsic-only` 1 unchanged.
+- **Verification**: the two-module regression compiles, validates, and runs
+  on `wasm32-gc` (P2 component) and `--target wasm32` (linear) with the
+  rebuilt s2; the same probe still fails under the committed pre-fix pin
+  (expected). `verify fixtures` **1867/1867 PASS**, 0 FAIL (1867
+  compile+validate, 108 runtime smoke, 1 `test:` fixture PASS);
+  cross-backend parity **4/4** for the new surface + module fixtures;
+  `selfhost diag-parity` 138 PASS / 2 pre-existing `removed_wasm_free*`
+  golden failures (unrelated E0100 table residual); `docs check` 6/6;
+  `verify lane` PASS; ADR-029 fixpoint PASS: s2 == s3 at sha256
+  `28746bb30071549d1cc881407c8319ba0547452d860e8140c31321831267da3b`
+  (pinned base `04d4446b…`).
+- **Bootstrap adapter**: the committed pin cannot lower the compiler's own
+  `collect_wit_paths_from_manifest` associated call. The generated flat
+  overlay therefore routes the compiler's TOML manifest scans through free
+  `bootstrap_toml_*` shims
+  (`scripts/selfhost/checks.py::_patch_bootstrap_manifest_scanner_paths`);
+  checked-in `std`/`src/compiler` source keeps the associated surface. Delete
+  the adapter when the pin is refreshed (ADR-029).
+- **Residuals**: `json::parse` / `toml::toml_parse` / `toml::toml_stringify`
+  remain the document entry points (associated `parse` loses the Result
+  payload type in an unannotated `match`; `TomlValue::to_text` still emits an
+  i64 return on wasm32-gc). `Vec<String>::concat` remains invalid on
+  wasm32-gc independently of this wave. The committed pinned bootstrap is the
+  pre-fix artifact, so the two-module probe fails under it; the rebuilt s2
+  (and its self-built s3 successor) pass.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate

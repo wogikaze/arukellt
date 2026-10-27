@@ -7,7 +7,7 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
     let start = positions::offset_to_position(clone(text), decl_start)
     let end = positions::offset_to_position(clone(text), decl_end)
     let mut out = String_from("{\"uri\":")
-    out = out.concat(json::quote_string(uri))
+    out = out.concat(json::JsonText::quote(uri))
     out = out.concat(String_from(",\"range\":{\"start\":{\"line\":"))
     out = out.concat(to_string(positions::lsp_position_line(start)))
     out = out.concat(String_from(",\"character\":"))
@@ -22,7 +22,7 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
 
 fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String) -> String {
     let mut out = String_from("{\"name\":")
-    out = out.concat(json::quote_string(symbol_index_record::indexed_symbol_name(sym)))
+    out = out.concat(json::JsonText::quote(symbol_index_record::indexed_symbol_name(sym)))
     out = out.concat(String_from(",\"kind\":"))
     out = out.concat(to_string(symbol_index_record::indexed_symbol_kind(sym)))
     out = out.concat(String_from(",\"location\":"))
@@ -36,7 +36,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
     let module_path = symbol_index_record::indexed_symbol_module_path(sym)
     if len(module_path) > 0 {
         out = out.concat(String_from(",\"containerName\":"))
-        out = out.concat(json::quote_string(module_path))
+        out = out.concat(json::JsonText::quote(module_path))
     }
     out = out.concat(String_from("}"))
     out
