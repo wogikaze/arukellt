@@ -71,6 +71,18 @@ fn removed_name_specific_hint(name: String) -> String {
 // per-module entries here so ADR-085 Phase F removals still produce an E0100
 // migration hint instead of a bare "undefined module member".
 pub fn removed_module_member_hint(module: String, name: String) -> String {
+    if eq(clone(module), "wit") || eq(clone(module), "types") {
+        return removed_wit_type_member_hint(name)
+    }
+    if eq(clone(module), "scan") {
+        return removed_wit_scan_member_hint(name)
+    }
+    if eq(clone(module), "names") {
+        return removed_wit_name_member_hint(name)
+    }
+    if eq(clone(module), "printer") && eq(clone(name), "print_wit") {
+        return String_from("use `w.to_wit()` on `World` instead")
+    }
     if !eq(clone(module), "io") {
         return String_new()
     }
@@ -92,6 +104,50 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "file_from_fd") { return "the experimental fd lane was retired; use `std::host::fs::File::open(path)` instead" }
     if eq(clone(name), "file_read") { return "the experimental fd lane was retired; use `Read::read` on `std::host::fs::File` instead" }
     if eq(clone(name), "file_write") { return "the experimental fd lane was retired; use `std::host::fs::File::create` and `Write::write` instead (write side open under #693)" }
+    String_new()
+}
+
+fn removed_wit_type_member_hint(name: String) -> String {
+    if eq(clone(name), "wit_type_bool") { return String_from("use the `WitType::Bool` variant instead") }
+    if eq(clone(name), "wit_type_u8") { return String_from("use the `WitType::U8` variant instead") }
+    if eq(clone(name), "wit_type_u16") { return String_from("use the `WitType::U16` variant instead") }
+    if eq(clone(name), "wit_type_u32") { return String_from("use the `WitType::U32` variant instead") }
+    if eq(clone(name), "wit_type_u64") { return String_from("use the `WitType::U64` variant instead") }
+    if eq(clone(name), "wit_type_s8") { return String_from("use the `WitType::S8` variant instead") }
+    if eq(clone(name), "wit_type_s16") { return String_from("use the `WitType::S16` variant instead") }
+    if eq(clone(name), "wit_type_s32") { return String_from("use the `WitType::S32` variant instead") }
+    if eq(clone(name), "wit_type_s64") { return String_from("use the `WitType::S64` variant instead") }
+    if eq(clone(name), "wit_type_f32") { return String_from("use the `WitType::F32` variant instead") }
+    if eq(clone(name), "wit_type_f64") { return String_from("use the `WitType::F64` variant instead") }
+    if eq(clone(name), "wit_type_char") { return String_from("use the `WitType::Char` variant instead") }
+    if eq(clone(name), "wit_type_string") { return String_from("use the `WitType::String` variant instead") }
+    if eq(clone(name), "wit_type_list") { return String_from("use `WitType::list(inner)` instead") }
+    if eq(clone(name), "wit_type_option") { return String_from("use `WitType::option(inner)` instead") }
+    if eq(clone(name), "wit_type_id") { return String_from("use `ty.id()` on `WitType` instead") }
+    if eq(clone(name), "wit_type_from_id") { return String_from("use `WitType::from_id(id)` instead") }
+    if eq(clone(name), "wit_type_name") { return String_from("use `ty.name()` on `WitType` instead") }
+    if eq(clone(name), "wit_type_from_ast") { return String_from("use `ty.wit_text()` on `WitType` instead") }
+    if eq(clone(name), "wit_type_name_from_ark") { return String_from("use `WitType::name_from_ark(name)` instead") }
+    String_new()
+}
+
+fn removed_wit_scan_member_hint(name: String) -> String {
+    if eq(clone(name), "wit_find_char") { return String_from("use `WitText::find_char(s, ch, from)` instead") }
+    if eq(clone(name), "wit_trim") { return String_from("use `WitText::trim(s)` instead") }
+    if eq(clone(name), "wit_strip_version") { return String_from("use `WitText::strip_version(pkg)` instead") }
+    if eq(clone(name), "wit_before_colon") { return String_from("use `WitText::before_colon(s)` instead") }
+    if eq(clone(name), "wit_split_param") { return String_from("use `WitText::split_param(param)` instead") }
+    if eq(clone(name), "wit_split_csv_items") { return String_from("use `WitText::split_csv_items(inner)` instead") }
+    if eq(clone(name), "wit_line_start") { return String_from("use `WitText::line_start(text, pos)` instead") }
+    if eq(clone(name), "wit_line_end") { return String_from("use `WitText::line_end(text, pos)` instead") }
+    String_new()
+}
+
+fn removed_wit_name_member_hint(name: String) -> String {
+    if eq(clone(name), "kebab_name") { return String_from("use `WitName::to_kebab(name)` instead") }
+    if eq(clone(name), "kebab_to_snake") { return String_from("use `WitName::to_snake(name)` instead") }
+    if eq(clone(name), "pascal_case") { return String_from("use `WitName::to_pascal(name)` instead") }
+    if eq(clone(name), "capitalize_first") { return String_from("use `WitName::capitalize(name)` instead") }
     String_new()
 }
 
@@ -268,5 +324,17 @@ test mod "removed_names" {
     }
     test "other modules do not get io hints" {
         assert(len(removed_module_member_hint(String_from("fs"), String_from("reader_read"))) == 0)
+    }
+    test "removed wit module members have hints" {
+        assert(len(removed_module_member_hint(String_from("wit"), String_from("wit_type_u32"))) > 0)
+        assert(len(removed_module_member_hint(String_from("types"), String_from("wit_type_from_ast"))) > 0)
+        assert(len(removed_module_member_hint(String_from("types"), String_from("wit_type_name_from_ark"))) > 0)
+        assert(len(removed_module_member_hint(String_from("scan"), String_from("wit_trim"))) > 0)
+        assert(len(removed_module_member_hint(String_from("names"), String_from("kebab_name"))) > 0)
+        assert(len(removed_module_member_hint(String_from("printer"), String_from("print_wit"))) > 0)
+    }
+    test "live wit members keep no removal hint" {
+        assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_full"))) == 0)
+        assert(len(removed_module_member_hint(String_from("types"), String_from("WitParam"))) == 0)
     }
 }

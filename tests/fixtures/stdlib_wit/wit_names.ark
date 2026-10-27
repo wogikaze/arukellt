@@ -1,22 +1,27 @@
-// Issue #706: WIT naming helpers — kebab_name, kebab_to_snake, pascal_case.
+// Issue #706: WIT naming helpers through the WitName namespace type.
 use std::host::stdio
-use std::wit::names
 use std::prelude::{eq}
+use std::wit::names
+
 fn main() {
-    // kebab_name: snake_case → kebab-case
-    assert(eq(names::kebab_name(String_from("my_func")), String_from("my-func")))
-    // kebab_name: PascalCase → kebab-case
-    assert(eq(names::kebab_name(String_from("MyFunc")), String_from("my-func")))
-    // kebab_name: already kebab → unchanged
-    assert(eq(names::kebab_name(String_from("my-func")), String_from("my-func")))
+    // to_kebab: snake_case -> kebab-case
+    assert(eq(names::WitName::to_kebab(String_from("my_func")), String_from("my-func")))
+    // to_kebab: PascalCase -> kebab-case
+    assert(eq(names::WitName::to_kebab(String_from("MyFunc")), String_from("my-func")))
+    // to_kebab: already kebab -> unchanged
+    assert(eq(names::WitName::to_kebab(String_from("my-func")), String_from("my-func")))
 
-    // kebab_to_snake: kebab-case → snake_case
-    assert(eq(names::kebab_to_snake(String_from("my-func")), String_from("my_func")))
-    assert(eq(names::kebab_to_snake(String_from("parse-markdown")), String_from("parse_markdown")))
+    // to_snake: kebab-case -> snake_case
+    assert(eq(names::WitName::to_snake(String_from("my-func")), String_from("my_func")))
+    assert(eq(names::WitName::to_snake(String_from("parse-markdown")), String_from("parse_markdown")))
 
-    // pascal_case: kebab-case → PascalCase
-    assert(eq(names::pascal_case(String_from("my-func")), String_from("MyFunc")))
-    assert(eq(names::pascal_case(String_from("hello-world")), String_from("HelloWorld")))
+    // to_pascal: kebab-case -> PascalCase
+    assert(eq(names::WitName::to_pascal(String_from("my-func")), String_from("MyFunc")))
+    assert(eq(names::WitName::to_pascal(String_from("hello-world")), String_from("HelloWorld")))
+
+    // capitalize: only the first character changes
+    assert(eq(names::WitName::capitalize(String_from("document")), String_from("Document")))
+    assert(eq(names::WitName::capitalize(String_from("Document")), String_from("Document")))
 
     stdio::println(String_from("OK"))
 }

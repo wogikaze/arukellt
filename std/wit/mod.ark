@@ -1,80 +1,26 @@
-//! Experimental WIT helpers.
+//! WIT helpers (`std::wit`, #044).
 //!
-//! Primitive helpers remain in this module for backward compatibility.
-//! Compound types, world builders, and parse/print live in submodules.
+//! ## Surface
+//!
+//! - `std::wit::types` owns `WitType` and its method / associated surface:
+//!   `WitType::list`, `WitType::option`, `id`, `name`, `wit_text`,
+//!   `WitType::from_id`, and `WitType::name_from_ark`.
+//! - `std::wit::world` owns `World`, `Interface`, `WitFunc`, and
+//!   `WitParam`; `std::wit::printer` renders them with `World::to_wit`.
+//! - `std::wit::scan` and `std::wit::names` hold the `WitText` and
+//!   `WitName` namespace types for WIT text scanning and identifier
+//!   case conversion.
+//!
+//! The former `wit_type_*` free functions and `print_wit` were retired by
+//! the #917 WIT wave (ADR-044/ADR-046).
 //!
 //! ## Text scan utilities (#706)
 //!
-//! `std::wit::scan` provides low-level text scanning helpers (`wit_find_char`,
-//! `wit_trim`, `wit_strip_version`, `wit_before_colon`, `wit_split_param`,
-//! `wit_split_csv_items`, `wit_line_start`, `wit_line_end`) used by both
-//! `std::wit::parser` and the compiler's `wit_parse_text_scan` module.
-//! The scan module is kept separate from `mod.ark` to avoid pulling
-//! `std::wit::types` (which has recursive enums) into the bootstrap
+//! `std::wit::scan` provides low-level text scanning helpers
+//! (`WitText::find_char`, `WitText::trim`, `WitText::strip_version`,
+//! `WitText::before_colon`, `WitText::split_param`,
+//! `WitText::split_csv_items`, `WitText::line_start`, `WitText::line_end`)
+//! used by both `std::wit::parser` and the compiler's `wit_parse_text_scan`
+//! module. The scan module is kept separate from `std::wit::types` (which
+//! has recursive enums) so it does not pull that graph into the bootstrap
 //! compiler's module loading chain.
-
-use std::wit::types
-
-pub fn wit_type_bool() -> types::WitType {
-    types::wit_type_bool()
-}
-
-pub fn wit_type_u8() -> types::WitType {
-    types::wit_type_u8()
-}
-
-pub fn wit_type_u16() -> types::WitType {
-    types::wit_type_u16()
-}
-
-pub fn wit_type_u32() -> types::WitType {
-    types::wit_type_u32()
-}
-
-pub fn wit_type_u64() -> types::WitType {
-    types::wit_type_u64()
-}
-
-pub fn wit_type_s8() -> types::WitType {
-    types::wit_type_s8()
-}
-
-pub fn wit_type_s16() -> types::WitType {
-    types::wit_type_s16()
-}
-
-pub fn wit_type_s32() -> types::WitType {
-    types::wit_type_s32()
-}
-
-pub fn wit_type_s64() -> types::WitType {
-    types::wit_type_s64()
-}
-
-pub fn wit_type_f32() -> types::WitType {
-    types::wit_type_f32()
-}
-
-pub fn wit_type_f64() -> types::WitType {
-    types::wit_type_f64()
-}
-
-pub fn wit_type_char() -> types::WitType {
-    types::wit_type_char()
-}
-
-pub fn wit_type_string() -> types::WitType {
-    types::wit_type_string()
-}
-
-pub fn wit_type_id(ty: types::WitType) -> i32 {
-    types::wit_type_id(ty)
-}
-
-pub fn wit_type_from_id(id: i32) -> types::WitType {
-    types::wit_type_from_id(id)
-}
-
-pub fn wit_type_name(ty: types::WitType) -> String {
-    types::wit_type_name(ty)
-}

@@ -2,10 +2,10 @@ use std::host::stdio
 use std::wit::types
 
 fn main() {
-    let list_ty = types::wit_type_list(types::wit_type_string())
-    stdio::println(types::wit_type_name(list_ty))
-    stdio::println((types::wit_type_id(list_ty)).to_string())
-    let opt_ty = types::wit_type_option(types::wit_type_u32())
-    stdio::println(types::wit_type_name(opt_ty))
+    let list_ty = types::WitType::list(types::WitType::String)
+    stdio::println(list_ty.name())
+    stdio::println((list_ty.id()).to_string())
+    let opt_ty = types::WitType::option(types::WitType::U32)
+    stdio::println(opt_ty.name())
 }
-// compound WitType list/option
+// compound WitType list/option through the associated constructors

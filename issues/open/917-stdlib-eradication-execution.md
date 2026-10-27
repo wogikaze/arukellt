@@ -173,6 +173,42 @@ classified there, in dependency-safe waves.
   `3617a54e…`; the pin-built stage-2 was one generation behind, so the
   self-built stage-3 was adopted as stage-2 for the final check).
 
+### Landed slice (wave/917-nextgroup, 2026-10-27)
+
+- Retired the 33 non-AST `std::wit` symbols: the 16 `experimental`
+  `wit_type_*` manifest entries plus their `std::wit` forwarding wrappers,
+  and the 17 unregistered `types` / `scan` / `names` / `printer`
+  declarations. ADR-014 D4 allowed direct deletion for the experimental
+  entries; no ADR-087 deprecation window or W0009 entry applies.
+- Replacement surface: `WitType::Bool` … `WitType::String` variants,
+  `WitType::list` / `WitType::option`, `ty.id()` / `ty.name()` /
+  `ty.wit_text()`, `WitType::from_id` / `WitType::name_from_ark`;
+  `WitText` namespace `find_char` / `trim` / `strip_version` /
+  `before_colon` / `split_param` / `split_csv_items` / `line_start` /
+  `line_end`; `WitName` namespace `to_kebab` / `to_snake` / `to_pascal` /
+  `capitalize`; `World::to_wit()` (with `Interface::to_wit` /
+  `WitFunc::to_wit` absorbing the private printer helpers).
+- E0100: the qualified removals carry hints in
+  `resolver::removed_names::removed_module_member_hint` for the `wit`,
+  `types`, `scan`, `names`, and `printer` aliases, with unit assertions in
+  the same file. The 16 manifest entries were experimental, so W0009 does
+  not apply.
+- Compiler-shape probe: `WitType`'s recursive `List` / `Option` payload
+  binds compile and validate on wasm32-gc (method receiver and associated
+  constructors), unlike the deferred `WitNode` accessors.
+- Fixtures: migrated `wit_basic`, `wit_types`, `wit_type_basic`,
+  `wit_names`, `wit_ast_parse`, `wit_print`, `world_build`; renamed
+  `world_methods_wasm32` to `wit_methods_wasm32` and extended it over the
+  types / scan / names / printer surface. `run:` count stays 1836.
+- Scorecard: 1168 → **1135** public symbols (`associated-or-method`
+  1054 → **1021**; `must delete` 114 and `intrinsic-only` 1 unchanged);
+  777 → **761** manifest functions; 1359 → **1310** `pub fn` declarations;
+  392 → **375** unregistered declarations. `prelude_wrapper` stays 96.
+- Residual: `std::wit::ast` (23 declarations, deferred on the recursive
+  `WitNode` receiver shape), the 3 `std::wit::parser` frees, and the
+  `std::component` / `std::component::handle` families remain in the
+  `std::wit/component frees` rule.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -204,6 +240,11 @@ classified there, in dependency-safe waves.
       - Landed 2026-10-26 (`wave/917-stable64`): 31 seq/combinator frees
         deprecated (Wave 1) with W0009 + iterator/Vec method replacements;
         deletion is Wave 2.
+      - Landed 2026-10-27 (`wave/917-nextgroup`): the 33 non-AST
+        `std::wit` symbols retired after `WitType` methods, the `WitText` /
+        `WitName` namespace types, and `World::to_wit` landed. `std::wit::ast`
+        and the parser frees stay deferred with the recursive `WitNode`
+        receiver shape.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

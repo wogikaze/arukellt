@@ -1,80 +1,71 @@
 //! WIT text printer (#044 subset).
+//!
+//! The printer surface follows ADR-044/ADR-046: `World::to_wit`,
+//! `Interface::to_wit`, and `WitFunc::to_wit` are receiver methods.
+//! `WitType::wit_text` owns the type rendering, so the printer no longer
+//! duplicates that match (#917).
 
 use std::wit::types
-use std::wit::world
-use std::prelude::{unbox}
+use std::wit::world::{Interface, WitFunc, World}
 use std::text
-fn wit_type_print(ty: types::WitType) -> String {
-    match ty {
-        types::WitType::Bool => "bool",
-        types::WitType::U8 => "u8",
-        types::WitType::U16 => "u16",
-        types::WitType::U32 => "u32",
-        types::WitType::U64 => "u64",
-        types::WitType::S8 => "s8",
-        types::WitType::S16 => "s16",
-        types::WitType::S32 => "s32",
-        types::WitType::S64 => "s64",
-        types::WitType::F32 => "f32",
-        types::WitType::F64 => "f64",
-        types::WitType::Char => "char",
-        types::WitType::String => "string",
-        types::WitType::List(inner) => text::concat("list<", text::concat(wit_type_print(unbox(inner)), ">")),
-        types::WitType::Option(inner) => text::concat("option<", text::concat(wit_type_print(unbox(inner)), ">")),
-        types::WitType::Tuple(_) => "tuple",
-        types::WitType::Record(_) => "record",
-        types::WitType::Variant(_) => "variant",
-        types::WitType::Enum(_) => "enum",
-        types::WitType::Flags(_) => "flags",
-        types::WitType::Resource(name) => name,
-        types::WitType::Unknown(_) => "unknown",
-    }
-}
 
-fn wit_func_print(func: world::WitFunc) -> String {
-    let mut line = text::concat("  ", text::concat(func.name, ": func("))
-    let n = len(func.params)
-    let mut i = 0
-    while i < n {
-        let p = get_unchecked(func.params, i)
-        if i > 0 {
-            line = text::concat(line, ", ")
+impl WitFunc {
+    /// Render one function member line of an interface body.
+    fn to_wit(self: WitFunc) -> String {
+        let mut line = text::concat("  ", text::concat(self.name, ": func("))
+        let n = len(self.params)
+        let mut i = 0
+        while i < n {
+            let param = get_unchecked(self.params, i)
+            if i > 0 {
+                line = text::concat(line, ", ")
+            }
+            let param_ty = param.ty
+            line = text::concat(line, text::concat(param.name, text::concat(": ", param_ty.wit_text())))
+            i = i + 1
         }
-        line = text::concat(line, text::concat(p.name, text::concat(": ", wit_type_print(p.ty))))
-        i = i + 1
-    }
-    line = text::concat(line, ")")
-    let r: Option<types::WitType> = func.result
-    match r {
-        Option::Some(ret) => text::concat(line, text::concat(" -> ", wit_type_print(ret))),
-        None => line,
+        line = text::concat(line, ")")
+        let result: Option<types::WitType> = self.result
+        match result {
+            Option::Some(ret) => text::concat(line, text::concat(" -> ", ret.wit_text())),
+            None => line,
+        }
     }
 }
 
-fn wit_iface_print(iface: world::Interface, kind: String) -> String {
-    let mut out = text::concat(kind, text::concat(" ", text::concat(iface.name, " {\n")))
-    let n = len(iface.functions)
-    let mut i = 0
-    while i < n {
-        out = text::concat(out, text::concat(wit_func_print(get_unchecked(iface.functions, i)), "\n"))
-        i = i + 1
+impl Interface {
+    /// Render an interface block with the given `import` / `export` keyword.
+    fn to_wit(self: Interface, kind: String) -> String {
+        let mut out = text::concat(kind, text::concat(" ", text::concat(self.name, " {\n")))
+        let n = len(self.functions)
+        let mut i = 0
+        while i < n {
+            let func = get_unchecked(self.functions, i)
+            out = text::concat(out, text::concat(func.to_wit(), "\n"))
+            i = i + 1
+        }
+        text::concat(out, "}\n")
     }
-    text::concat(out, "}\n")
 }
 
-pub fn print_wit(w: world::World) -> String {
-    let mut out = text::concat("world ", text::concat(w.name, " {\n"))
-    let ni = len(w.imports)
-    let mut i = 0
-    while i < ni {
-        out = text::concat(out, wit_iface_print(get_unchecked(w.imports, i), String_from("import")))
-        i = i + 1
+impl World {
+    /// Render the world and its imported / exported interfaces.
+    fn to_wit(self: World) -> String {
+        let mut out = text::concat("world ", text::concat(self.name, " {\n"))
+        let import_count = len(self.imports)
+        let mut i = 0
+        while i < import_count {
+            let iface = get_unchecked(self.imports, i)
+            out = text::concat(out, iface.to_wit(String_from("import")))
+            i = i + 1
+        }
+        let export_count = len(self.exports)
+        i = 0
+        while i < export_count {
+            let iface = get_unchecked(self.exports, i)
+            out = text::concat(out, iface.to_wit(String_from("export")))
+            i = i + 1
+        }
+        text::concat(out, "}\n")
     }
-    let ne = len(w.exports)
-    i = 0
-    while i < ne {
-        out = text::concat(out, wit_iface_print(get_unchecked(w.exports, i), String_from("export")))
-        i = i + 1
-    }
-    text::concat(out, "}\n")
 }

@@ -6,6 +6,7 @@
 use std::core::error
 use std::wit::ast
 use std::wit::types
+use std::wit::types::{WitType}
 use std::wit::world
 use std::prelude::{byte_at, eq, slice}
 pub fn parse_full(source: String) -> WitNode {
@@ -48,15 +49,15 @@ fn parse_word(s: String, pos: i32) -> (String, i32) {
 
 fn parse_type_name(name: String) -> types::WitType {
     if eq(name, "bool") {
-        types::wit_type_bool()
+        WitType::Bool
     } else {
         if eq(name, "u32") {
-            types::wit_type_u32()
+            WitType::U32
         } else {
             if eq(name, "string") {
-                types::wit_type_string()
+                WitType::String
             } else {
-                types::wit_type_from_id(0)
+                WitType::Unknown(0)
             }
         }
     }

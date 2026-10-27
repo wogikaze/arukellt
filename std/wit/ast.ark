@@ -9,6 +9,7 @@
 //! `ast_kind`, `ast_name`, and other accessor helpers.
 
 use std::wit::types
+use std::wit::types::{WitType}
 use std::prelude::{byte_at, clone, eq, index_of, slice, substring, values}
 use std::text
 
@@ -182,19 +183,19 @@ pub fn ast_field_type_at(node: WitNode, index: i32) -> types::WitType {
     match node {
         WitNode::Record(_, fields) => {
             if index < 0 || index >= len(fields) {
-                types::wit_type_from_id(0)
+                WitType::Unknown(0)
             } else {
                 get_unchecked(fields, index).ty
             }
         },
         WitNode::Resource(_, fields) => {
             if index < 0 || index >= len(fields) {
-                types::wit_type_from_id(0)
+                WitType::Unknown(0)
             } else {
                 get_unchecked(fields, index).ty
             }
         },
-        _ => types::wit_type_from_id(0),
+        _ => WitType::Unknown(0),
     }
 }
 
@@ -262,15 +263,15 @@ pub fn ast_variant_case_type_at(node: WitNode, index: i32) -> types::WitType {
     match node {
         WitNode::Variant(_, cases) => {
             if index < 0 || index >= len(cases) {
-                return types::wit_type_from_id(0)
+                return WitType::Unknown(0)
             }
             let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
             match case_ty {
                 Option::Some(ty) => ty,
-                Option::None => types::wit_type_from_id(0),
+                Option::None => WitType::Unknown(0),
             }
         },
-        _ => types::wit_type_from_id(0),
+        _ => WitType::Unknown(0),
     }
 }
 
@@ -301,12 +302,12 @@ pub fn ast_func_param_type_at(node: WitNode, index: i32) -> types::WitType {
     match node {
         WitNode::Func(_, params, _) => {
             if index < 0 || index >= len(params) {
-                types::wit_type_from_id(0)
+                WitType::Unknown(0)
             } else {
                 get_unchecked(params, index).ty
             }
         },
-        _ => types::wit_type_from_id(0),
+        _ => WitType::Unknown(0),
     }
 }
 
@@ -331,10 +332,10 @@ pub fn ast_func_result(node: WitNode) -> types::WitType {
             let r: Option<types::WitType> = result
             match r {
                 Option::Some(ty) => ty,
-                Option::None => types::wit_type_from_id(0),
+                Option::None => WitType::Unknown(0),
             }
         },
-        _ => types::wit_type_from_id(0),
+        _ => WitType::Unknown(0),
     }
 }
 
@@ -342,7 +343,7 @@ pub fn ast_func_result(node: WitNode) -> types::WitType {
 pub fn ast_type_alias_target(node: WitNode) -> types::WitType {
     match node {
         WitNode::TypeAlias(_, ty) => ty,
-        _ => types::wit_type_from_id(0),
+        _ => WitType::Unknown(0),
     }
 }
 
@@ -397,7 +398,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
         if i > 0 {
             out = text::concat(out, String_from("~"))
         }
-        out = text::concat(out, types::wit_type_from_ast(get_unchecked(params, i).ty))
+        out = text::concat(out, get_unchecked(params, i).ty.wit_text())
     }
     out
 }
@@ -416,7 +417,7 @@ fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
         if i > 0 {
             out = text::concat(out, String_from("~"))
         }
-        out = text::concat(out, types::wit_type_from_ast(get_unchecked(fields, i).ty))
+        out = text::concat(out, get_unchecked(fields, i).ty.wit_text())
     }
     out
 }
@@ -441,7 +442,7 @@ fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> 
         }
         let case_ty: Option<types::WitType> = get_unchecked(cases, i).ty
         let payload = match case_ty {
-            Option::Some(ty) => types::wit_type_from_ast(ty),
+            Option::Some(ty) => ty.wit_text(),
             Option::None => String_new(),
         }
         out = text::concat(out, payload)
@@ -479,7 +480,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
             WitNode::Func(func_name, params, result) => {
                 let r: Option<types::WitType> = result
                 let result_text = match r {
-                    Option::Some(ty) => types::wit_type_from_ast(ty),
+                    Option::Some(ty) => ty.wit_text(),
                     Option::None => String_new(),
                 }
                 out = text::concat(out, wit_import_serialized_entry(
@@ -667,43 +668,43 @@ fn p_find_matching_brace(s: String, pos: i32) -> i32 {
 /// Parse a WIT type from a type-name string.
 fn p_type_name(name: String) -> types::WitType {
     if eq(name, "bool") {
-        return types::wit_type_bool()
+        return WitType::Bool
     }
     if eq(name, "u8") {
-        return types::wit_type_u8()
+        return WitType::U8
     }
     if eq(name, "u16") {
-        return types::wit_type_u16()
+        return WitType::U16
     }
     if eq(name, "u32") {
-        return types::wit_type_u32()
+        return WitType::U32
     }
     if eq(name, "u64") {
-        return types::wit_type_u64()
+        return WitType::U64
     }
     if eq(name, "s8") {
-        return types::wit_type_s8()
+        return WitType::S8
     }
     if eq(name, "s16") {
-        return types::wit_type_s16()
+        return WitType::S16
     }
     if eq(name, "s32") {
-        return types::wit_type_s32()
+        return WitType::S32
     }
     if eq(name, "s64") {
-        return types::wit_type_s64()
+        return WitType::S64
     }
     if eq(name, "f32") {
-        return types::wit_type_f32()
+        return WitType::F32
     }
     if eq(name, "f64") {
-        return types::wit_type_f64()
+        return WitType::F64
     }
     if eq(name, "char") {
-        return types::wit_type_char()
+        return WitType::Char
     }
     if eq(name, "string") {
-        return types::wit_type_string()
+        return WitType::String
     }
     // Preserve named references for the compiler metadata adapter. The
     // compiler resolves the name after this syntax-level parse.
@@ -725,9 +726,9 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::wit_type_list(inner), i)
+            return (WitType::list(inner), i)
         }
-        return (types::wit_type_list(types::wit_type_from_id(0)), i)
+        return (WitType::list(WitType::Unknown(0)), i)
     }
     if eq(word, "option") {
         i = p_skip_ws_comments(s, i)
@@ -737,9 +738,9 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::wit_type_option(inner), i)
+            return (WitType::option(inner), i)
         }
-        return (types::wit_type_option(types::wit_type_from_id(0)), i)
+        return (WitType::option(WitType::Unknown(0)), i)
     }
     if eq(word, "tuple") {
         i = p_skip_ws_comments(s, i)
@@ -771,7 +772,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(text::concat("own<", text::concat(types::wit_type_from_ast(inner), ">"))), i)
+            return (types::WitType::Resource(text::concat("own<", text::concat(inner.wit_text(), ">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
@@ -783,7 +784,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
             if i < n && byte_at(s, i) == 62 {
                 i = i + 1
             }
-            return (types::WitType::Resource(text::concat("borrow<", text::concat(types::wit_type_from_ast(inner), ">"))), i)
+            return (types::WitType::Resource(text::concat("borrow<", text::concat(inner.wit_text(), ">"))), i)
         }
         return (types::WitType::Resource(String_new()), i)
     }
@@ -796,10 +797,10 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         let (first, p7) = p_type(s, i + 1)
         i = p_skip_ws_comments(s, p7)
         let mut rendered = text::concat(constructor, "<")
-        rendered = text::concat(rendered, types::wit_type_from_ast(first))
+        rendered = text::concat(rendered, first.wit_text())
         if i < n && byte_at(s, i) == 44 {
             let (second, p8) = p_type(s, i + 1)
-            rendered = text::concat(rendered, text::concat(", ", types::wit_type_from_ast(second)))
+            rendered = text::concat(rendered, text::concat(", ", second.wit_text()))
             i = p_skip_ws_comments(s, p8)
         }
         if i < n && byte_at(s, i) == 62 {

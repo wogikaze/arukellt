@@ -1990,17 +1990,13 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `component_model_version() -> String`
 
 **WIT Type Helpers**:
-`WitType`,
-`wit_type_u8() -> WitType`, `wit_type_u16() -> WitType`,
-`wit_type_u32() -> WitType`, `wit_type_u64() -> WitType`,
-`wit_type_s8() -> WitType`, `wit_type_s16() -> WitType`,
-`wit_type_s32() -> WitType`, `wit_type_s64() -> WitType`,
-`wit_type_f32() -> WitType`, `wit_type_f64() -> WitType`,
-`wit_type_char() -> WitType`, `wit_type_bool() -> WitType`,
-`wit_type_string() -> WitType`,
-`wit_type_id(ty: WitType) -> i32`,
-`wit_type_from_id(id: i32) -> WitType`,
-`wit_type_name(ty: WitType) -> String`
+`WitType` (enum: `Bool`, `U8`, `U16`, `U32`, `U64`, `S8`, `S16`, `S32`,
+`S64`, `F32`, `F64`, `Char`, `String`, `List`, `Option`, …),
+`WitType::list(inner: WitType) -> WitType`,
+`WitType::option(inner: WitType) -> WitType`,
+`(ty).id() -> i32`, `WitType::from_id(id: i32) -> WitType`,
+`(ty).name() -> String`, `(ty).wit_text() -> String`,
+`WitType::name_from_ark(name: String) -> String`
 
 ---
 

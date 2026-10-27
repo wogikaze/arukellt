@@ -363,6 +363,83 @@ The `std::core::math` module itself remains: it still hosts the checked /
 saturating arithmetic trait impls (`checked_add`, `saturating_mul`, …) used by
 existing callers. Only its numeric free helpers were retired.
 
+## Removed in the #917 WIT waves (2026-10-27)
+
+The #693 Phase E/F merge dropped the migration rows for the first WIT wave;
+they are restored here together with the second wave.
+
+### WIT world builders (wave/917-1106)
+
+The builder free functions were unregistered source declarations (no
+`std/manifest.toml` entry), so no ADR-014 / ADR-087 deprecation window applied
+and there is no W0009 surface to add. The replacements are associated
+functions on the builder types plus receiver methods for mutation.
+
+| Removed API | Replacement | Notes |
+|-------------|-------------|-------|
+| `world::world_new(name)` | `World::new(name)` | associated function |
+| `world::world_import(w, iface)` | `w.add_import(iface)` | `import` is a keyword, so the method is `add_import` |
+| `world::world_export(w, iface)` | `w.add_export(iface)` | `export` is a keyword, so the method is `add_export` |
+| `world::world_name(w)` | `w.name()` | |
+| `world::world_exports_len(w)` | `w.exports_len()` | |
+| `world::interface_new(name)` | `Interface::new(name)` | associated function |
+| `world::interface_add_func(iface, func)` | `iface.add_func(func)` | |
+| `world::wit_func_new(name, params, result)` | `WitFunc::new(name, params, result)` | associated function |
+| `world::wit_param_new(name, ty)` | `WitParam::new(name, ty)` | defined in `std::wit::types` |
+| `types::wit_param(name, ty)` | `WitParam::new(name, ty)` | retired with the builder wave |
+
+### WIT type / text / printer helpers (wave/917-nextgroup)
+
+The 16 `wit_type_*` manifest entries were `experimental`, so ADR-014 D4
+allowed direct deletion without a deprecation window; W0009 therefore does not
+apply. The other 17 symbols were unregistered source declarations. Every
+removed call was module-qualified, so the resolver returns an E0100 hint for
+the `wit`, `types`, `scan`, `names`, and `printer` aliases (see
+`resolver::removed_names::removed_module_member_hint`).
+
+| Removed API | Replacement | Notes |
+|-------------|-------------|-------|
+| `wit::wit_type_bool()` / `types::wit_type_bool()` | `WitType::Bool` | enum variant |
+| `wit::wit_type_u8()` / `types::wit_type_u8()` | `WitType::U8` | enum variant |
+| `wit::wit_type_u16()` / `types::wit_type_u16()` | `WitType::U16` | enum variant |
+| `wit::wit_type_u32()` / `types::wit_type_u32()` | `WitType::U32` | enum variant |
+| `wit::wit_type_u64()` / `types::wit_type_u64()` | `WitType::U64` | enum variant |
+| `wit::wit_type_s8()` / `types::wit_type_s8()` | `WitType::S8` | enum variant |
+| `wit::wit_type_s16()` / `types::wit_type_s16()` | `WitType::S16` | enum variant |
+| `wit::wit_type_s32()` / `types::wit_type_s32()` | `WitType::S32` | enum variant |
+| `wit::wit_type_s64()` / `types::wit_type_s64()` | `WitType::S64` | enum variant |
+| `wit::wit_type_f32()` / `types::wit_type_f32()` | `WitType::F32` | enum variant |
+| `wit::wit_type_f64()` / `types::wit_type_f64()` | `WitType::F64` | enum variant |
+| `wit::wit_type_char()` / `types::wit_type_char()` | `WitType::Char` | enum variant |
+| `wit::wit_type_string()` / `types::wit_type_string()` | `WitType::String` | enum variant |
+| `wit::wit_type_list(inner)` / `types::wit_type_list(inner)` | `WitType::list(inner)` | associated function |
+| `wit::wit_type_option(inner)` / `types::wit_type_option(inner)` | `WitType::option(inner)` | associated function |
+| `wit::wit_type_id(ty)` / `types::wit_type_id(ty)` | `ty.id()` | receiver method |
+| `wit::wit_type_from_id(id)` / `types::wit_type_from_id(id)` | `WitType::from_id(id)` | associated function |
+| `wit::wit_type_name(ty)` / `types::wit_type_name(ty)` | `ty.name()` | receiver method |
+| `types::wit_type_from_ast(ty)` | `ty.wit_text()` | receiver method; also replaces the private printer duplicate |
+| `types::wit_type_name_from_ark(name)` | `WitType::name_from_ark(name)` | associated function |
+| `scan::wit_find_char(s, ch, from)` | `scan::WitText::find_char(s, ch, from)` | namespace associated function |
+| `scan::wit_trim(s)` | `scan::WitText::trim(s)` | ASCII whitespace only |
+| `scan::wit_strip_version(pkg)` | `scan::WitText::strip_version(pkg)` | |
+| `scan::wit_before_colon(s)` | `scan::WitText::before_colon(s)` | |
+| `scan::wit_split_param(param)` | `scan::WitText::split_param(param)` | |
+| `scan::wit_split_csv_items(inner)` | `scan::WitText::split_csv_items(inner)` | tracks `<`/`>` nesting |
+| `scan::wit_line_start(text, pos)` | `scan::WitText::line_start(text, pos)` | |
+| `scan::wit_line_end(text, pos)` | `scan::WitText::line_end(text, pos)` | |
+| `names::kebab_name(name)` | `names::WitName::to_kebab(name)` | renamed for the namespace surface |
+| `names::kebab_to_snake(name)` | `names::WitName::to_snake(name)` | renamed for the namespace surface |
+| `names::pascal_case(name)` | `names::WitName::to_pascal(name)` | renamed for the namespace surface |
+| `names::capitalize_first(name)` | `names::WitName::capitalize(name)` | renamed for the namespace surface |
+| `printer::print_wit(w)` | `w.to_wit()` | receiver method |
+
+`std::wit` itself remains as a module root and now only documents the
+submodules; import `std::wit::types`, `std::wit::scan`, `std::wit::names`,
+`std::wit::printer`, or `std::wit::world` directly. The method surface is
+exercised on both targets by `tests/fixtures/stdlib_wit/wit_basic.ark`,
+`wit_types.ark`, `wit_type_basic.ark`, `wit_names.ark`, `wit_print.ark`,
+`world_build.ark`, and `wit_methods_wasm32.ark`.
+
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 
 The [ADR-085](../adr/ADR-085-io-trait-unification.md) migration replaced the

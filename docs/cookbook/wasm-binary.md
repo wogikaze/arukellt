@@ -121,24 +121,16 @@ Use `std::wit` to map WIT primitive types.
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::wit
+use std::host::stdio
+use std::text
+use std::wit::types
 
-// List all WIT primitive types
-let types = Vec_new_i32()
+// List all WIT primitive type ids and names
 let mut i = 1
 while i <= 13 {
-    push(types, i)
+    let wit_ty = types::WitType::from_id(i)
+    stdio::println(text::concat((wit_ty.id()).to_string(), text::concat(": ", wit_ty.name())))
     i = i + 1
-}
-
-let n = len(types)
-let mut j = 0
-while j < n {
-    let ty = get(types, j)
-    let wit_ty = wit::wit_type_from_id(ty)
-    let name = wit::wit_type_name(wit_ty)
-    println(concat(to_string(wit::wit_type_id(wit_ty)), concat(": ", name)))
-    j = j + 1
 }
 // 1: bool, 2: u8, ..., 13: string
 ```

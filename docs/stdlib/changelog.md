@@ -181,3 +181,64 @@
   `pub fn` 宣言 1397 → **1387**、unregistered 413 → **403**。
   `prelude_wrapper` 96 は不変。`HashMap` methods の `keys` / `values` / `entries` は
   引き続き typechecker が直接型付けする。
+
+## 2026-10-27 — WIT builder wave（#917、wave/917-1106 の記録復元）
+
+- **Note**: この節は wave/917-1106 で追加された changelog 行を、
+  #693 Phase E/F のマージで失われた後に復元したものである。コード側の
+  `std::wit::world` と `WitParam::new` は既に method / associated 形で
+  land している。
+- **対象**: `std::wit::world` の builder free 9 件 (`world_new`,
+  `world_import`, `world_export`, `world_name`, `world_exports_len`,
+  `interface_new`, `interface_add_func`, `wit_func_new`, `wit_param_new`)
+  と、その forwarder だった `std::wit::types::wit_param`。
+- **変更**: `World::new` / `Interface::new` / `WitFunc::new` /
+  `WitParam::new`、`w.add_import(iface)` / `w.add_export(iface)` /
+  `w.name()` / `w.exports_len()` / `iface.add_func(func)`。
+- **Evidence**: `stdlib_wit/world_build.ark` と
+  `stdlib_wit/wit_print.ark` を method surface へ移行し、
+  `stdlib_wit/wit_methods_wasm32.ark` が linear target の runtime を担う。
+
+## 2026-10-27 — WIT type / text / printer method wave（#917）
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) の
+  free-function 根絶と [ADR-044](../adr/ADR-044-trait-method-syntax-adopted.md)
+  の method-first surface。対象は `std::wit` の非 AST 面 **33 記号**。
+  16 件は `experimental` の manifest entry なので ADR-014 D4 により
+  deprecation window なしで直接削除した。残り 17 件は未登録 source 宣言で
+  W0009 の対象外。全 call が module-qualified だったため、E0100 は
+  `resolver::removed_names::removed_module_member_hint` の `wit` /
+  `types` / `scan` / `names` / `printer` alias にだけ追加した。
+- **Replacement (types 20)**: `WitType::Bool` … `WitType::String` の enum
+  variant、`WitType::list(inner)` / `WitType::option(inner)` の associated
+  constructor、`ty.id()` / `ty.name()` / `ty.wit_text()` の receiver
+  method、`WitType::from_id(id)` / `WitType::name_from_ark(name)` の
+  associated function。`std::wit` の 16 個の forwarding wrapper も同じ
+  wave で削除し、`std::wit` は module doc だけを持つルートになった。
+- **Replacement (scan 8)**: `WitText` namespace type の
+  `find_char` / `trim` / `strip_version` / `before_colon` / `split_param` /
+  `split_csv_items` / `line_start` / `line_end`。`std::wit::scan` は
+  `std::wit::types` に依存しないまま（bootstrap の module loading 制約）。
+- **Replacement (names 4)**: `WitName` namespace type の
+  `to_kebab` / `to_snake` / `to_pascal` / `capitalize`。
+- **Replacement (printer 1)**: `print_wit(w)` → `w.to_wit()`。private の
+  `wit_type_print` は `WitType::wit_text` と重複していたため削除し、
+  `wit_func_print` / `wit_iface_print` は `WitFunc::to_wit` /
+  `Interface::to_wit` へ移した。
+- **Proof**: `WitType` の recursive `List` / `Option` payload bind を含む
+  method を wasm32-gc で compile し、`wasm-tools validate
+  --features gc,function-references,memory64` と公式 WASI P2 WIT での
+  component packaging 後の実行で linear と同一 stdout を確認した。
+  `std::wit::ast` の deferral は `WitNode` 固有で、`WitType` には及ばない。
+- **Scorecard**: eradication scope 1168 → **1135**（`associated-or-method`
+  1054 → **1021**、`must delete` 114 と `intrinsic-only` 1 は不変）。
+  manifest 公開 entry 776 → **760**、`pub fn` 宣言 1359 → **1310**、
+  unregistered 392 → **375**。`prelude_wrapper` 96 は不変。
+- **Evidence**: `stdlib_wit/wit_basic.expected` と `wit_types.expected` は
+  wasm32-gc component と `--target wasm32` の両方で一致。
+  `world_methods_wasm32` は `wit_methods_wasm32` に改名し、types / scan /
+  names / printer の method surface を linear target で実行する。
+  全 8 個の `stdlib_wit` fixture は wasm32-gc で compile + validate 済み。
+- **Residual**: `std::wit::ast` の 23 宣言、`parser` の 3 free
+  (`parse_full` / `parse_full_import_text` / `parse_wit`)、
+  `std::component` と `std::component::handle` の family は #917 に残る。

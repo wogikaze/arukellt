@@ -7,28 +7,30 @@ Source-backed docs for WIT helpers.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::wit` module exposes WebAssembly Interface Types (WIT) primitive types as a typed enum plus explicit integer conversions for interop and introspection. These are building blocks for component-model tooling and WIT-aware utilities.
+The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values as a typed enum plus the methods and associated functions needed to build, convert, render, and print them. The surface follows ADR-044/ADR-046: the former `wit_type_*`, `wit_*`, `kebab_name`, and `print_wit` free functions are retired in favor of `WitType` methods, the `WitText` / `WitName` namespace types, and `World::to_wit`.
 
 **Recommended API highlights:**
 
 | API | Purpose |
 |-----|---------|
-| `WitType` + `wit_type_bool()` … `wit_type_string()` | Typed constructors for each WIT primitive type. |
-| `wit_type_id(ty)` / `wit_type_from_id(id)` | Explicit conversions between `WitType` and raw numeric IDs. |
-| `wit_type_name(ty)` | Map a `WitType` value back to its human-readable name. |
+| `WitType::Bool` … `WitType::String`, `WitType::list` / `WitType::option` | Enum variants and associated constructors for WIT primitive and compound types. |
+| `ty.id()` / `ty.name()` / `ty.wit_text()`, `WitType::from_id` / `WitType::name_from_ark` | Receiver methods and associated conversions between `WitType`, its numeric id, and its WIT text form. |
+| `WitText::find_char` … `WitText::line_end`, `WitName::to_kebab` … `WitName::capitalize` | Namespace types for WIT text scanning and identifier case conversion. |
+| `World::to_wit()` / `Interface::to_wit(kind)` / `WitFunc::to_wit()` | Render a world, its interfaces, and their functions as WIT text. |
 
 **Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
 ```ark
-import std::wit
+use std::wit::types
 
-let t = wit_type_u32()
-let id = wit_type_id(t)       // 4
-let name = wit_type_name(t)   // "u32"
+let t = types::WitType::U32
+let id = t.id()        // 4
+let name = t.name()    // "u32"
+
+let list = types::WitType::list(types::WitType::String)
+let rendered = list.wit_text()  // "list<string>"
 ```
 
 ---
@@ -36,41 +38,130 @@ let name = wit_type_name(t)   // "u32"
 ## Module `std::wit`
 
 - Source: [`../../../std/wit/mod.ark`](../../../std/wit/mod.ark)
-- Manifest-backed functions: 16
-- Stability: experimental 16
+- Manifest-backed functions: 0
+- Stability: n/a
 
-Experimental WIT helpers.
+WIT helpers (`std::wit`, #044).
 
-Primitive helpers remain in this module for backward compatibility.
-Compound types, world builders, and parse/print live in submodules.
+### Surface
+
+- `std::wit::types` owns `WitType` and its method / associated surface:
+`WitType::list`, `WitType::option`, `id`, `name`, `wit_text`,
+`WitType::from_id`, and `WitType::name_from_ark`.
+- `std::wit::world` owns `World`, `Interface`, `WitFunc`, and
+`WitParam`; `std::wit::printer` renders them with `World::to_wit`.
+- `std::wit::scan` and `std::wit::names` hold the `WitText` and
+`WitName` namespace types for WIT text scanning and identifier
+case conversion.
+
+The former `wit_type_*` free functions and `print_wit` were retired by
+the #917 WIT wave (ADR-044/ADR-046).
 
 ### Text scan utilities (#706)
 
-`std::wit::scan` provides low-level text scanning helpers (`wit_find_char`,
-`wit_trim`, `wit_strip_version`, `wit_before_colon`, `wit_split_param`,
-`wit_split_csv_items`, `wit_line_start`, `wit_line_end`) used by both
-`std::wit::parser` and the compiler's `wit_parse_text_scan` module.
-The scan module is kept separate from `mod.ark` to avoid pulling
-`std::wit::types` (which has recursive enums) into the bootstrap
+`std::wit::scan` provides low-level text scanning helpers
+(`WitText::find_char`, `WitText::trim`, `WitText::strip_version`,
+`WitText::before_colon`, `WitText::split_param`,
+`WitText::split_csv_items`, `WitText::line_start`, `WitText::line_end`)
+used by both `std::wit::parser` and the compiler's `wit_parse_text_scan`
+module. The scan module is kept separate from `std::wit::types` (which
+has recursive enums) so it does not pull that graph into the bootstrap
 compiler's module loading chain.
 
-### `std::wit` — Public API
+_No manifest-backed functions in this module._
 
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| `wit_type_bool` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_u8` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_u16` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_u32` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_u64` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_s8` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_s16` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_s32` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_s64` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_f32` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_f64` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_char` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_string` | `() -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_id` | `(WitType) -> i32` | `experimental` | ✅ functional | - |
-| `wit_type_from_id` | `(i32) -> WitType` | `experimental` | ✅ functional | - |
-| `wit_type_name` | `(WitType) -> String` | `experimental` | ✅ functional | - |
+## Module `std::wit::types`
+
+- Source: [`../../../std/wit/types.ark`](../../../std/wit/types.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+WIT type definitions for `std::wit` (#044).
+
+Compound `WitType` variants use `Box` for recursive shapes. The type
+surface follows ADR-044/ADR-046: `WitType::list` / `WitType::option`
+build compound types, `id` / `name` / `wit_text` are receiver methods,
+and `from_id` / `name_from_ark` are associated functions. The former
+`wit_type_*` free functions were retired by the #917 WIT wave.
+
+### `std::wit::types` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `WitType` | `enum` | A WIT value type (primitive, compound, or named reference). |
+| `WitParam` | `struct` | A named function parameter with its WIT type. |
+| `WitField` | `struct` | A record field with its WIT type. |
+| `WitVariantCase` | `struct` | A variant case with an optional payload type. |
+
+_No manifest-backed functions in this module._
+
+## Module `std::wit::scan`
+
+- Source: [`../../../std/wit/scan.ark`](../../../std/wit/scan.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+WIT text scan utilities (#706).
+
+Low-level WIT text scanning helpers shared between `std::wit::parser`
+and the compiler's `wit_parse_text_scan` module. `WitText` is an empty
+namespace type: ADR-046 forbids user-reachable free functions and the
+language cannot put associated functions in a module namespace, so the
+helpers are called as `WitText::trim(s)` (#917).
+
+This module is intentionally kept free of `std::wit::types` dependencies
+so it can be loaded by the bootstrap compiler without overflowing the
+call stack.
+
+### `std::wit::scan` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `WitText` | `struct` | Namespace for WIT text scanning helpers. |
+
+_No manifest-backed functions in this module._
+
+## Module `std::wit::names`
+
+- Source: [`../../../std/wit/names.ark`](../../../std/wit/names.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+WIT naming helpers (#706).
+
+Shared naming helpers used by both `std::wit` and the compiler's
+component-model layer.  These convert between the kebab-case names
+used in WIT source text and the snake_case / PascalCase identifiers
+used in Arukellt surface syntax.
+
+`WitName` is an empty namespace type: ADR-046 forbids user-reachable
+free functions and the language cannot put associated functions in a
+module namespace, so the helpers are called as `WitName::to_kebab(name)`
+(#917).
+
+- `WitName::to_kebab` — snake_case / PascalCase → kebab-case
+- `WitName::to_snake` — kebab-case → snake_case
+- `WitName::to_pascal` — kebab-case / snake_case → PascalCase
+
+### `std::wit::names` — Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `WitName` | `struct` | Namespace for WIT identifier case conversion. |
+
+_No manifest-backed functions in this module._
+
+## Module `std::wit::printer`
+
+- Source: [`../../../std/wit/printer.ark`](../../../std/wit/printer.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+WIT text printer (#044 subset).
+
+The printer surface follows ADR-044/ADR-046: `World::to_wit`,
+`Interface::to_wit`, and `WitFunc::to_wit` are receiver methods.
+`WitType::wit_text` owns the type rendering, so the printer no longer
+duplicates that match (#917).
+
+_No manifest-backed functions in this module._

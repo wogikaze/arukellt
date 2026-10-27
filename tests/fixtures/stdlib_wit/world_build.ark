@@ -5,9 +5,9 @@ use std::wit::world
 fn main() {
     let iface = world::Interface::new(String_from("math"))
     let params = Vec::new<WitParam>()
-    push(params, types::WitParam::new(String_from("a"), types::wit_type_u32()))
-    push(params, types::WitParam::new(String_from("b"), types::wit_type_u32()))
-    let func = world::WitFunc::new(String_from("add"), params, Some(types::wit_type_u32()))
+    push(params, types::WitParam::new(String_from("a"), types::WitType::U32))
+    push(params, types::WitParam::new(String_from("b"), types::WitType::U32))
+    let func = world::WitFunc::new(String_from("add"), params, Some(types::WitType::U32))
     iface.add_func(func)
     let w = world::World::new(String_from("example"))
     w.add_export(iface)

@@ -1,0 +1,15 @@
+demo
+1
+14
+list<string>
+u32
+s64
+scan
+my-func
+world demo {
+import math {
+  add: func(a: u32) -> u32
+}
+export api {
+}
+}

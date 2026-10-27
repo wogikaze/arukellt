@@ -726,27 +726,32 @@ let i32_type = valtype_i32()       // 0x7f
         "path": "modules/wit.md",
         "title": "std::wit",
         "description": "Source-backed docs for WIT helpers.",
-        "modules": ["std::wit"],
+        "modules": ["std::wit", "std::wit::types", "std::wit::scan", "std::wit::names", "std::wit::printer"],
         "overview": {
             "summary": (
-                "The `std::wit` module exposes WebAssembly Interface Types (WIT) primitive types "
-                "as a typed enum plus explicit integer conversions for interop and introspection. "
-                "These are building blocks for component-model tooling and WIT-aware utilities."
+                "The `std::wit` module tree exposes WebAssembly Interface Types (WIT) values "
+                "as a typed enum plus the methods and associated functions needed to build, "
+                "convert, render, and print them. The surface follows ADR-044/ADR-046: the "
+                "former `wit_type_*`, `wit_*`, `kebab_name`, and `print_wit` free functions "
+                "are retired in favor of `WitType` methods, the `WitText` / `WitName` "
+                "namespace types, and `World::to_wit`."
             ),
             "highlights": [
-                ("`WitType` + `wit_type_bool()` … `wit_type_string()`", "Typed constructors for each WIT primitive type."),
-                ("`wit_type_id(ty)` / `wit_type_from_id(id)`", "Explicit conversions between `WitType` and raw numeric IDs."),
-                ("`wit_type_name(ty)`", "Map a `WitType` value back to its human-readable name."),
+                ("`WitType::Bool` … `WitType::String`, `WitType::list` / `WitType::option`", "Enum variants and associated constructors for WIT primitive and compound types."),
+                ("`ty.id()` / `ty.name()` / `ty.wit_text()`, `WitType::from_id` / `WitType::name_from_ark`", "Receiver methods and associated conversions between `WitType`, its numeric id, and its WIT text form."),
+                ("`WitText::find_char` … `WitText::line_end`, `WitName::to_kebab` … `WitName::capitalize`", "Namespace types for WIT text scanning and identifier case conversion."),
+                ("`World::to_wit()` / `Interface::to_wit(kind)` / `WitFunc::to_wit()`", "Render a world, its interfaces, and their functions as WIT text."),
             ],
             "typical_usage": """\
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
 ```ark
-import std::wit
+use std::wit::types
 
-let t = wit_type_u32()
-let id = wit_type_id(t)       // 4
-let name = wit_type_name(t)   // "u32"
+let t = types::WitType::U32
+let id = t.id()        // 4
+let name = t.name()    // "u32"
+
+let list = types::WitType::list(types::WitType::String)
+let rendered = list.wit_text()  // "list<string>"
 ```""",
         },
     },

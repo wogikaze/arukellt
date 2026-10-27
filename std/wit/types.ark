@@ -1,9 +1,14 @@
 //! WIT type definitions for `std::wit` (#044).
 //!
-//! Compound `WitType` variants use `Box` for recursive shapes.
+//! Compound `WitType` variants use `Box` for recursive shapes. The type
+//! surface follows ADR-044/ADR-046: `WitType::list` / `WitType::option`
+//! build compound types, `id` / `name` / `wit_text` are receiver methods,
+//! and `from_id` / `name_from_ark` are associated functions. The former
+//! `wit_type_*` free functions were retired by the #917 WIT wave.
 
 use std::prelude::{Box, Box_new, clone, eq, unbox}
 use std::text
+/// A WIT value type (primitive, compound, or named reference).
 pub enum WitType {
     Bool,
     U8,
@@ -29,19 +34,197 @@ pub enum WitType {
     Unknown(i32),
 }
 
+/// A named function parameter with its WIT type.
 pub struct WitParam {
     name: String,
     ty: WitType,
 }
 
+/// A record field with its WIT type.
 pub struct WitField {
     name: String,
     ty: WitType,
 }
 
+/// A variant case with an optional payload type.
 pub struct WitVariantCase {
     name: String,
     ty: Option<WitType>,
+}
+
+impl WitType {
+    /// Create a `list<T>` type from its element type.
+    fn list(inner: WitType) -> WitType {
+        WitType::List(Box_new(inner))
+    }
+
+    /// Create an `option<T>` type from its payload type.
+    fn option(inner: WitType) -> WitType {
+        WitType::Option(Box_new(inner))
+    }
+
+    /// Return the numeric id used by the component-model type table.
+    fn id(self: WitType) -> i32 {
+        match self {
+            WitType::Bool => 1,
+            WitType::U8 => 2,
+            WitType::U16 => 3,
+            WitType::U32 => 4,
+            WitType::U64 => 5,
+            WitType::S8 => 6,
+            WitType::S16 => 7,
+            WitType::S32 => 8,
+            WitType::S64 => 9,
+            WitType::F32 => 10,
+            WitType::F64 => 11,
+            WitType::Char => 12,
+            WitType::String => 13,
+            WitType::List(_) => 14,
+            WitType::Option(_) => 15,
+            WitType::Tuple(_) => 16,
+            WitType::Record(_) => 17,
+            WitType::Variant(_) => 18,
+            WitType::Enum(_) => 19,
+            WitType::Flags(_) => 20,
+            WitType::Resource(_) => 21,
+            WitType::Unknown(id) => id,
+        }
+    }
+
+    /// Map a numeric id back to a `WitType`.
+    ///
+    /// Ids outside the primitive range become `Unknown(id)`, so callers keep
+    /// the original id instead of losing it to a fabricated primitive type.
+    fn from_id(id: i32) -> WitType {
+        match id {
+            1 => WitType::Bool,
+            2 => WitType::U8,
+            3 => WitType::U16,
+            4 => WitType::U32,
+            5 => WitType::U64,
+            6 => WitType::S8,
+            7 => WitType::S16,
+            8 => WitType::S32,
+            9 => WitType::S64,
+            10 => WitType::F32,
+            11 => WitType::F64,
+            12 => WitType::Char,
+            13 => WitType::String,
+            _ => WitType::Unknown(id),
+        }
+    }
+
+    /// Return the WIT keyword that names this type.
+    fn name(self: WitType) -> String {
+        match self {
+            WitType::Bool => "bool",
+            WitType::U8 => "u8",
+            WitType::U16 => "u16",
+            WitType::U32 => "u32",
+            WitType::U64 => "u64",
+            WitType::S8 => "s8",
+            WitType::S16 => "s16",
+            WitType::S32 => "s32",
+            WitType::S64 => "s64",
+            WitType::F32 => "f32",
+            WitType::F64 => "f64",
+            WitType::Char => "char",
+            WitType::String => "string",
+            WitType::List(_) => "list",
+            WitType::Option(_) => "option",
+            WitType::Tuple(_) => "tuple",
+            WitType::Record(_) => "record",
+            WitType::Variant(_) => "variant",
+            WitType::Enum(_) => "enum",
+            WitType::Flags(_) => "flags",
+            WitType::Resource(name) => name,
+            WitType::Unknown(_) => "unknown",
+        }
+    }
+
+    /// Render this type as WIT text (e.g. `list<string>`, `option<u32>`).
+    ///
+    /// Named type references are preserved as their recorded WIT name rather
+    /// than being flattened to a primitive.
+    fn wit_text(self: WitType) -> String {
+        match self {
+            WitType::Bool => "bool",
+            WitType::U8 => "u8",
+            WitType::U16 => "u16",
+            WitType::U32 => "u32",
+            WitType::U64 => "u64",
+            WitType::S8 => "s8",
+            WitType::S16 => "s16",
+            WitType::S32 => "s32",
+            WitType::S64 => "s64",
+            WitType::F32 => "f32",
+            WitType::F64 => "f64",
+            WitType::Char => "char",
+            WitType::String => "string",
+            WitType::List(inner) => {
+                let inner_ty = unbox(inner)
+                text::concat("list<", text::concat(inner_ty.wit_text(), ">"))
+            },
+            WitType::Option(inner) => {
+                let inner_ty = unbox(inner)
+                text::concat("option<", text::concat(inner_ty.wit_text(), ">"))
+            },
+            WitType::Tuple(_) => "tuple",
+            WitType::Record(_) => "record",
+            WitType::Variant(_) => "variant",
+            WitType::Enum(_) => "enum",
+            WitType::Flags(_) => "flags",
+            WitType::Resource(name) => name,
+            WitType::Unknown(_) => "unknown",
+        }
+    }
+
+    /// Convert an Arukellt type name to its WIT type name.
+    ///
+    /// Handles the built-in mappings (`i32`→`s32`, `String`→`string`, …) and
+    /// passes other names through unchanged for the resolver to qualify.
+    fn name_from_ark(name: String) -> String {
+        if eq(name, "i32") {
+            return String_from("s32")
+        }
+        if eq(name, "i64") {
+            return String_from("s64")
+        }
+        if eq(name, "f32") {
+            return String_from("f32")
+        }
+        if eq(name, "f64") {
+            return String_from("f64")
+        }
+        if eq(name, "bool") {
+            return String_from("bool")
+        }
+        if eq(name, "char") {
+            return String_from("char")
+        }
+        if eq(name, "u8") {
+            return String_from("u8")
+        }
+        if eq(name, "u16") {
+            return String_from("u16")
+        }
+        if eq(name, "u32") {
+            return String_from("u32")
+        }
+        if eq(name, "u64") {
+            return String_from("u64")
+        }
+        if eq(name, "i8") {
+            return String_from("s8")
+        }
+        if eq(name, "i16") {
+            return String_from("s16")
+        }
+        if eq(name, "String") || eq(name, "string") {
+            return String_from("string")
+        }
+        clone(name)
+    }
 }
 
 impl WitParam {
@@ -56,212 +239,4 @@ impl WitParam {
             ty: ty,
         }
     }
-}
-
-pub fn wit_type_bool() -> WitType {
-    WitType::Bool
-}
-
-pub fn wit_type_u8() -> WitType {
-    WitType::U8
-}
-
-pub fn wit_type_u16() -> WitType {
-    WitType::U16
-}
-
-pub fn wit_type_u32() -> WitType {
-    WitType::U32
-}
-
-pub fn wit_type_u64() -> WitType {
-    WitType::U64
-}
-
-pub fn wit_type_s8() -> WitType {
-    WitType::S8
-}
-
-pub fn wit_type_s16() -> WitType {
-    WitType::S16
-}
-
-pub fn wit_type_s32() -> WitType {
-    WitType::S32
-}
-
-pub fn wit_type_s64() -> WitType {
-    WitType::S64
-}
-
-pub fn wit_type_f32() -> WitType {
-    WitType::F32
-}
-
-pub fn wit_type_f64() -> WitType {
-    WitType::F64
-}
-
-pub fn wit_type_char() -> WitType {
-    WitType::Char
-}
-
-pub fn wit_type_string() -> WitType {
-    WitType::String
-}
-
-pub fn wit_type_list(inner: WitType) -> WitType {
-    WitType::List(Box_new(inner))
-}
-
-pub fn wit_type_option(inner: WitType) -> WitType {
-    WitType::Option(Box_new(inner))
-}
-
-pub fn wit_type_id(ty: WitType) -> i32 {
-    match ty {
-        WitType::Bool => 1,
-        WitType::U8 => 2,
-        WitType::U16 => 3,
-        WitType::U32 => 4,
-        WitType::U64 => 5,
-        WitType::S8 => 6,
-        WitType::S16 => 7,
-        WitType::S32 => 8,
-        WitType::S64 => 9,
-        WitType::F32 => 10,
-        WitType::F64 => 11,
-        WitType::Char => 12,
-        WitType::String => 13,
-        WitType::List(_) => 14,
-        WitType::Option(_) => 15,
-        WitType::Tuple(_) => 16,
-        WitType::Record(_) => 17,
-        WitType::Variant(_) => 18,
-        WitType::Enum(_) => 19,
-        WitType::Flags(_) => 20,
-        WitType::Resource(_) => 21,
-        WitType::Unknown(id) => id,
-    }
-}
-
-pub fn wit_type_from_id(id: i32) -> WitType {
-    match id {
-        1 => WitType::Bool,
-        2 => WitType::U8,
-        3 => WitType::U16,
-        4 => WitType::U32,
-        5 => WitType::U64,
-        6 => WitType::S8,
-        7 => WitType::S16,
-        8 => WitType::S32,
-        9 => WitType::S64,
-        10 => WitType::F32,
-        11 => WitType::F64,
-        12 => WitType::Char,
-        13 => WitType::String,
-        _ => WitType::Unknown(id),
-    }
-}
-
-pub fn wit_type_name(ty: WitType) -> String {
-    match ty {
-        WitType::Bool => "bool",
-        WitType::U8 => "u8",
-        WitType::U16 => "u16",
-        WitType::U32 => "u32",
-        WitType::U64 => "u64",
-        WitType::S8 => "s8",
-        WitType::S16 => "s16",
-        WitType::S32 => "s32",
-        WitType::S64 => "s64",
-        WitType::F32 => "f32",
-        WitType::F64 => "f64",
-        WitType::Char => "char",
-        WitType::String => "string",
-        WitType::List(_) => "list",
-        WitType::Option(_) => "option",
-        WitType::Tuple(_) => "tuple",
-        WitType::Record(_) => "record",
-        WitType::Variant(_) => "variant",
-        WitType::Enum(_) => "enum",
-        WitType::Flags(_) => "flags",
-        WitType::Resource(name) => name,
-        WitType::Unknown(_) => "unknown",
-    }
-}
-
-/// Render a `WitType` as WIT text (e.g. `list<string>`, `option<u32>`).
-/// This is the AST→WIT type lowering function (#706).
-pub fn wit_type_from_ast(ty: WitType) -> String {
-    match ty {
-        WitType::Bool => "bool",
-        WitType::U8 => "u8",
-        WitType::U16 => "u16",
-        WitType::U32 => "u32",
-        WitType::U64 => "u64",
-        WitType::S8 => "s8",
-        WitType::S16 => "s16",
-        WitType::S32 => "s32",
-        WitType::S64 => "s64",
-        WitType::F32 => "f32",
-        WitType::F64 => "f64",
-        WitType::Char => "char",
-        WitType::String => "string",
-        WitType::List(inner) => text::concat("list<", text::concat(wit_type_from_ast(unbox(inner)), ">")),
-        WitType::Option(inner) => text::concat("option<", text::concat(wit_type_from_ast(unbox(inner)), ">")),
-        WitType::Tuple(_) => "tuple",
-        WitType::Record(_) => "record",
-        WitType::Variant(_) => "variant",
-        WitType::Enum(_) => "enum",
-        WitType::Flags(_) => "flags",
-        WitType::Resource(name) => name,
-        WitType::Unknown(_) => "unknown",
-    }
-}
-
-/// Convert an Arukellt type name string to its WIT type name string.
-/// This handles the mapping from Arukellt built-in types (`i32`→`s32`,
-/// `String`→`string`, etc.) to WIT primitive types.
-pub fn wit_type_name_from_ark(name: String) -> String {
-    if eq(name, "i32") {
-        return String_from("s32")
-    }
-    if eq(name, "i64") {
-        return String_from("s64")
-    }
-    if eq(name, "f32") {
-        return String_from("f32")
-    }
-    if eq(name, "f64") {
-        return String_from("f64")
-    }
-    if eq(name, "bool") {
-        return String_from("bool")
-    }
-    if eq(name, "char") {
-        return String_from("char")
-    }
-    if eq(name, "u8") {
-        return String_from("u8")
-    }
-    if eq(name, "u16") {
-        return String_from("u16")
-    }
-    if eq(name, "u32") {
-        return String_from("u32")
-    }
-    if eq(name, "u64") {
-        return String_from("u64")
-    }
-    if eq(name, "i8") {
-        return String_from("s8")
-    }
-    if eq(name, "i16") {
-        return String_from("s16")
-    }
-    if eq(name, "String") || eq(name, "string") {
-        return String_from("string")
-    }
-    clone(name)
 }
