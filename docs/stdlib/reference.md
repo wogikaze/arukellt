@@ -8,10 +8,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 191 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 183 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 91 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 76 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -108,6 +108,7 @@
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
+| `Error` | `message` | - |
 | `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
 | `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
 | `File` | `open`, `close` | `Read`, `Seek` |
@@ -134,7 +135,8 @@
 | `Opcode` | `unreachable`, `nop`, `block`, `loop_`, `if_`, `else_`, `end`, `br`, `br_if`, `return_`, `call`, `drop`, `select`, `local_get`, `local_set`, `local_tee`, `global_get`, `global_set`, `i32_load`, `i32_store`, `memory_size`, `memory_grow`, `i32_const`, `i64_const`, `f32_const`, `f64_const`, `i32_eqz`, `i32_eq`, `i32_ne`, `i32_lt_s`, `i32_gt_s`, `i32_le_s`, `i32_ge_s`, `i32_add`, `i32_sub`, `i32_mul`, `i32_div_s`, `i32_and`, `i32_or`, `i32_xor`, `i32_shl`, `i32_shr_s`, `i64_add`, `i64_sub`, `i64_mul` | - |
 | `Ordering` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - |
 | `Queue` | `new`, `with_capacity`, `push`, `pop`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
-| `Range` | `contains`, `len` | - |
+| `Range` | `new`, `contains`, `len` | - |
+| `RangeInclusive` | `new`, `contains` | - |
 | `Read` | `read` | - |
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Section` | `type_id`, `import_id`, `function_id`, `table_id`, `memory_id`, `global_id`, `export_id`, `start_id`, `element_id`, `code_id`, `data_id` | - |
@@ -383,14 +385,14 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `functional` | `builtin` | no | - | - |
-| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
-| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
+| ~~`cmp_i32`~~ ⚠️ Deprecated → `i32::cmp` | `(i32, i32) -> Ordering` | `std::core` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`combine`~~ ⚠️ Deprecated → `i32::combine_hash` | `(i32, i32) -> i32` | `std::core::hash` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`error_message`~~ ⚠️ Deprecated → `Error::message` | `(Error) -> String` | `std::core::error` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`range_contains`~~ ⚠️ Deprecated → `Range::contains` | `(Range, i32) -> bool` | `std::core` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`range_inclusive_contains`~~ ⚠️ Deprecated → `RangeInclusive::contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`range_inclusive_new`~~ ⚠️ Deprecated → `RangeInclusive::new` | `(i32, i32) -> RangeInclusive` | `std::core` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`range_len`~~ ⚠️ Deprecated → `Range::len` | `(Range) -> i32` | `std::core` | `deprecated` | `functional` | `builtin` | no | - | - |
+| ~~`range_new`~~ ⚠️ Deprecated → `Range::new` | `(i32, i32) -> Range` | `std::core` | `deprecated` | `functional` | `builtin` | no | - | - |
 
 ## Env
 
@@ -798,7 +800,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **76 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -808,6 +810,8 @@ let input = read_to_string()
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
+| ~~`cmp_i32`~~ | `i32::cmp` | [migration-guidance.md](migration-guidance.md) |
+| ~~`combine`~~ | `i32::combine_hash` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -820,6 +824,7 @@ let input = read_to_string()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
+| ~~`error_message`~~ | `Error::message` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
@@ -855,6 +860,11 @@ let input = read_to_string()
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
+| ~~`range_contains`~~ | `Range::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`range_inclusive_contains`~~ | `RangeInclusive::contains` | [migration-guidance.md](migration-guidance.md) |
+| ~~`range_inclusive_new`~~ | `RangeInclusive::new` | [migration-guidance.md](migration-guidance.md) |
+| ~~`range_len`~~ | `Range::len` | [migration-guidance.md](migration-guidance.md) |
+| ~~`range_new`~~ | `Range::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |

@@ -13,10 +13,10 @@ The `std::core` family provides the fundamental building blocks shared across th
 
 | API | Purpose |
 |-----|---------|
-| `range_new(start, end)` | Create a half-open range `[start, end)`. |
-| `range_contains(r, value)` | Test membership in a range. |
-| `range_len(r)` | Length of a half-open range. |
-| `error_message(e)` | Convert a stdlib `Error` variant to a human-readable string. |
+| `Range::new(start, end)` | Create a half-open range `[start, end)`. |
+| `r.contains(value)` | Test membership in a range. |
+| `r.len()` | Length of a half-open range. |
+| `e.message()` | Convert a stdlib `Error` variant to a human-readable string. |
 | `Error::source()` | Expose a rendered immediate cause through static dispatch. |
 | `value.hash()` | Hash a value through its registered `Hash` trait impl. |
 
@@ -25,13 +25,14 @@ The `std::core` family provides the fundamental building blocks shared across th
 **Typical usage:**
 
 ```ark
-import std::core
+use std::core::{Range}
+use std::host::stdio
 
-let r = range_new(0, 10)
-if range_contains(r, 5) {
-    println("5 is in range")
+let r = Range::new(0, 10)
+if r.contains(5) {
+    stdio::println("5 is in range")
 }
-let len = range_len(r)  // 10
+let len = r.len()  // 10
 ```
 
 ---
@@ -40,7 +41,7 @@ let len = range_len(r)  // 10
 
 - Source: [`../../../std/core/mod.ark`](../../../std/core/mod.ark)
 - Manifest-backed functions: 6
-- Stability: stable 6
+- Stability: deprecated 6
 
 Fundamental types and helpers shared across the standard library.
 
@@ -52,25 +53,27 @@ that other stdlib modules build upon.
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
 | `Ordering` | `enum` | `is_less`, `is_less_or_equal`, `is_greater`, `is_greater_or_equal` | - | Ordering relationship between two values. |
-| `Range` | `struct` | `contains`, `len` | - | Half-open integer range [start, end). |
-| `RangeInclusive` | `struct` | - | - | Closed integer range [start, end]. |
+| `Range` | `struct` | `new`, `contains`, `len` | - | Half-open integer range [start, end). |
+| `RangeInclusive` | `struct` | `new`, `contains` | - | Closed integer range [start, end]. |
 
 ### `std::core` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `range_new` | `(i32, i32) -> Range` | `stable` | ✅ functional | - |
-| `range_contains` | `(Range, i32) -> bool` | `stable` | ✅ functional | - |
-| `range_len` | `(Range) -> i32` | `stable` | ✅ functional | - |
-| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `stable` | ✅ functional | - |
-| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `stable` | ✅ functional | - |
-| `cmp_i32` | `(i32, i32) -> Ordering` | `stable` | ✅ functional | Compares two integers and returns their ordering relationship. |
+| ~~`range_new`~~ ⚠️ Deprecated → `Range::new` | `(i32, i32) -> Range` | `deprecated` | ✅ functional | - |
+| ~~`range_contains`~~ ⚠️ Deprecated → `Range::contains` | `(Range, i32) -> bool` | `deprecated` | ✅ functional | - |
+| ~~`range_len`~~ ⚠️ Deprecated → `Range::len` | `(Range) -> i32` | `deprecated` | ✅ functional | - |
+| ~~`range_inclusive_new`~~ ⚠️ Deprecated → `RangeInclusive::new` | `(i32, i32) -> RangeInclusive` | `deprecated` | ✅ functional | - |
+| ~~`range_inclusive_contains`~~ ⚠️ Deprecated → `RangeInclusive::contains` | `(RangeInclusive, i32) -> bool` | `deprecated` | ✅ functional | - |
+| ~~`cmp_i32`~~ ⚠️ Deprecated → `i32::cmp` | `(i32, i32) -> Ordering` | `deprecated` | ✅ functional | Compares two integers and returns their ordering relationship. |
+
+> ⚠️ **6 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::core::error`
 
 - Source: [`../../../std/core/error.ark`](../../../std/core/error.ark)
 - Manifest-backed functions: 1
-- Stability: stable 1
+- Stability: deprecated 1
 
 Shared error types for manifest-backed stdlib modules.
 
@@ -95,21 +98,23 @@ variant and document the legacy form as deprecated.
 
 ### `std::core::error` — Public Types
 
-| Name | Kind | Summary |
-|------|------|---------|
-| `Error` | `enum` | - |
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Error` | `enum` | `message` | - | - |
 
 ### `std::core::error` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `error_message` | `(Error) -> String` | `stable` | ✅ functional | Converts an Error value into a human-readable message. |
+| ~~`error_message`~~ ⚠️ Deprecated → `Error::message` | `(Error) -> String` | `deprecated` | ✅ functional | Converts an Error value into a human-readable message. |
+
+> ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::core::hash`
 
 - Source: [`../../../std/core/hash.ark`](../../../std/core/hash.ark)
 - Manifest-backed functions: 1
-- Stability: stable 1
+- Stability: deprecated 1
 
 Small hashing helpers used by the current collection implementations.
 
@@ -128,7 +133,9 @@ and provides reasonable distribution for hash table operations.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `combine` | `(i32, i32) -> i32` | `stable` | ✅ functional | - |
+| ~~`combine`~~ ⚠️ Deprecated → `i32::combine_hash` | `(i32, i32) -> i32` | `deprecated` | ✅ functional | - |
+
+> ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::error`
 

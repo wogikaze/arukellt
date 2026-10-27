@@ -320,7 +320,7 @@ label = "host/core namespace frees"
 module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
 class = "associated-or-method"
 owner = "917"
-replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods"
+replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions and methods; the std::core range/order/error/hash frees are converting to `Range::new` / `r.contains(value)` / `r.len()` / `RangeInclusive::new` / `r.contains(value)` / `a.cmp(b)` / `e.message()` / `h1.combine_hash(h2)`"
 # Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
 # so no manifest deprecation window was involved:
 #   std::core::either (12 counted)   -> Either enum constructors + methods
@@ -329,9 +329,15 @@ replacement = "Fs/Env/Process/Clock/Random/Cli/Path/Signal associated functions 
 #     prelude wrapper and uncounted)
 #   std::core::convert parse_* (3)   -> TryFrom<String> associated functions
 #     (uncounted: the prelude parse_* entries already own those names)
-# Residual in this rule: std::core::mod identity and the 20 std::core::raw
-# representation bridges, which need a RawArray/RawString namespace surface
-# before they can retire. The other families (host, fs, path, …) are untouched.
+# The #917 std::core receiver wave (2026-10-27, ADR-087) is landing the
+#   replacement-first surface and deprecating the 8 manifest frees
+#   (range_new / range_contains / range_len / range_inclusive_new /
+#   range_inclusive_contains / cmp_i32 / error_message / combine) plus the
+#   unregistered std::core::identity. The Wave 2 deletion removes them after
+#   the W0009 window.
+# Residual in this rule: the 20 std::core::raw representation bridges, which
+# need a RawArray/RawString namespace surface before they can retire. The
+# other families (host, fs, cli, process, signal, …) are untouched.
 
 # -- Catch-all for unregistered std declarations --
 #

@@ -1,6 +1,7 @@
 use std::prelude::{clone}
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
@@ -64,6 +65,10 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     // If this is an enum variant, set the _tag field to the variant's tag value.
     let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(inst_name))
     if tag >= 0 {
+        let enum_type = struct_lit::mir_enum_variant_local_type_name(ctx, clone(inst_name))
+        if len(clone(enum_type)) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, enum_type)
+        }
         let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
         struct_lit::mir_emit_struct_field_set(ctx, clone(inst_name), dest, "_tag", tag_local)

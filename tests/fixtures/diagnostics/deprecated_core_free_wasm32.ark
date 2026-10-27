@@ -1,0 +1,6 @@
+// W0009 on the linear wasm32 target: the std::core::error free is deprecated.
+use std::core::error
+
+fn main() {
+    let _ = error::error_message(Error::Timeout)
+}

@@ -159,16 +159,23 @@ impl Hash for f64 {
 }
 
 // Deprecated free functions (hash_i32, hash_string, hash_combine) have been
-// removed per ADR-036. Use Hash trait method `value.hash()` and `combine()`
-// instead.
+// removed per ADR-036. Use Hash trait method `value.hash()` and the
+// `combine_hash` receiver method instead.
+
+impl i32 {
+    /// Combines this hash with `other`, returning a non-negative hash.
+    fn combine_hash(self: i32, other: i32) -> i32 {
+        let mut h = self
+        h = h * 16777619 ^ other
+        if h < 0 {
+            h = 0 - h
+        }
+        h
+    }
+}
 
 pub fn combine(h1: i32, h2: i32) -> i32 {
-    let mut h = h1
-    h = h * 16777619 ^ h2
-    if h < 0 {
-        h = 0 - h
-    }
-    h
+    h1.combine_hash(h2)
 }
 
 // Simple multiplicative hash (Knuth variant)
@@ -177,6 +184,6 @@ test mod "hash" {
     test "i32_neg" { assert((-1).hash() >= 0) }
     test "str_empty" { assert("".hash() >= 0) }
     test "str_abc" { assert("abc".hash() >= 0) }
-    test "combine" { assert(combine(1, 2) >= 0) }
-    test "combine_comm" { assert(combine(3, 5) == combine(5, 3)) }
+    test "combine" { assert(1.combine_hash(2) >= 0) }
+    test "combine_comm" { assert(3.combine_hash(5) == 5.combine_hash(3)) }
 }

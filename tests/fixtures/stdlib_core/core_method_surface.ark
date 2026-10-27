@@ -1,0 +1,36 @@
+// Range / RangeInclusive / Error / Ord / Hash receiver surface (ADR-046);
+// wasm32-gc lane.
+use std::core::{Range, RangeInclusive}
+use std::core::cmp
+use std::core::error
+use std::core::hash
+use std::host::stdio
+use std::test
+
+fn main() {
+    let r = Range::new(0, 10)
+    test::assert_true(r.contains(0))
+    test::assert_true(r.contains(9))
+    test::assert_false(r.contains(10))
+    test::assert_eq_i32(r.len(), 10)
+    test::assert_eq_i32(Range::new(5, 5).len(), 0)
+
+    let closed = RangeInclusive::new(0, 10)
+    test::assert_true(closed.contains(0))
+    test::assert_true(closed.contains(10))
+    test::assert_false(closed.contains(11))
+
+    test::assert_eq_string(Error::InvalidArgument("bad").message(), "InvalidArgument: bad")
+    test::assert_eq_string(Error::Timeout.message(), "Timeout")
+
+    test::assert_true(1.cmp(2).is_less())
+    test::assert_true(2.cmp(2).is_less_or_equal())
+    test::assert_true(3.cmp(2).is_greater())
+    test::assert_true(2.cmp(2).is_greater_or_equal())
+
+    let combined = 1.combine_hash(2)
+    test::assert_true(combined >= 0)
+    test::assert_eq_i32(combined, 1.combine_hash(2))
+
+    stdio::println("core methods ok")
+}

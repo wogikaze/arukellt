@@ -1161,6 +1161,10 @@ alias = "core::range_new"
 core_op_id = "core.range_new"
 
 [[legacy_bindings]]
+alias = "Range::new"
+core_op_id = "core.range_new"
+
+[[legacy_bindings]]
 alias = "ends_with"
 core_op_id = "string.ends_with"
 

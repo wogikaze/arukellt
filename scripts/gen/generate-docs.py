@@ -283,22 +283,23 @@ let dropped = table.remove(h)   // Some(42)
                 "`std::core::error`; application error payloads use `std::error`."
             ),
             "highlights": [
-                ("`range_new(start, end)`", "Create a half-open range `[start, end)`."),
-                ("`range_contains(r, value)`", "Test membership in a range."),
-                ("`range_len(r)`", "Length of a half-open range."),
-                ("`error_message(e)`", "Convert a stdlib `Error` variant to a human-readable string."),
+                ("`Range::new(start, end)`", "Create a half-open range `[start, end)`."),
+                ("`r.contains(value)`", "Test membership in a range."),
+                ("`r.len()`", "Length of a half-open range."),
+                ("`e.message()`", "Convert a stdlib `Error` variant to a human-readable string."),
                 ("`Error::source()`", "Expose a rendered immediate cause through static dispatch."),
                 ("`value.hash()`", "Hash a value through its registered `Hash` trait impl."),
             ],
             "typical_usage": """\
 ```ark
-import std::core
+use std::core::{Range}
+use std::host::stdio
 
-let r = range_new(0, 10)
-if range_contains(r, 5) {
-    println("5 is in range")
+let r = Range::new(0, 10)
+if r.contains(5) {
+    stdio::println("5 is in range")
 }
-let len = range_len(r)  // 10
+let len = r.len()  // 10
 ```""",
         },
     },

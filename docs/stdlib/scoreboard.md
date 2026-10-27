@@ -12,9 +12,9 @@
 | `std::collections::linear` | 18 | 7 | 0 | 0 | 11 | 7/7 (100%) | no |
 | `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::collections::ordered` | 37 | 10 | 0 | 27 | 0 | 36/37 (97%) | no |
-| `std::core` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
-| `std::core::error` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
-| `std::core::hash` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
+| `std::core` | 6 | 0 | 0 | 0 | 6 | 0/0 (—) | no |
+| `std::core::error` | 1 | 0 | 0 | 0 | 1 | 0/0 (—) | no |
+| `std::core::hash` | 1 | 0 | 0 | 0 | 1 | 0/0 (—) | no |
 | `std::env` | 6 | 5 | 0 | 0 | 1 | 5/5 (100%) | no |
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
 | `std::host::clock` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
@@ -41,7 +41,7 @@
 | `std::toml` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 369 APIs, 191 stable, 19 provisional, 91 experimental, 68 deprecated, 285/301 (95%) fixture coverage
+**Total**: 369 APIs, 183 stable, 19 provisional, 91 experimental, 76 deprecated, 277/293 (95%) fixture coverage
 
 ## Legend
 
