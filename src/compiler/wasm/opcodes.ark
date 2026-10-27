@@ -243,6 +243,15 @@ fn SIMD_V128_STORE() -> i32 { 0x0b }
 fn SIMD_V128_LOAD32_ZERO() -> i32 { 0x5c }
 fn SIMD_V128_LOAD64_ZERO() -> i32 { 0x5d }
 
+// Natural alignment (log2 of the access width in bytes) for the 0xfd
+// linear-memory instructions. The lowering adds the runtime offset to the
+// address, so every memarg offset immediate is zero.
+fn SIMD_ALIGN_I8() -> i32 { 0 }
+fn SIMD_ALIGN_I16() -> i32 { 1 }
+fn SIMD_ALIGN_I32() -> i32 { 2 }
+fn SIMD_ALIGN_I64() -> i32 { 3 }
+fn SIMD_ALIGN_V128() -> i32 { 4 }
+
 // Basic v128 operations
 fn SIMD_V128_CONST() -> i32 { 0x0c }
 fn SIMD_I8X16_SHUFFLE() -> i32 { 0x0d }

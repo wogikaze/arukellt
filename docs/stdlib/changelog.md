@@ -16,6 +16,42 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — std::wasm v128 memory access moves onto V128Memory (#917, ADR-046)
+
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the
+  ADR-014 D4 exception for `experimental` entries. The std::wasm builder wave
+  left the five v128 load/store frees unreachable because the
+  `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics had no emitter
+  lowering; this wave adds the 0xfd linear-memory lowering and retires them.
+- **Emitter**: registered the v128 memory core operations (`wasm.v128.load`,
+  `load8x8_s` / `load8x8_u` / `load16x4_s` / `load16x4_u` / `load32x2_s` /
+  `load32x2_u`, `load_splat`, `store`, `load_lane`, `store_lane`), aliased the
+  `__wasm_v128_*` intrinsics to them, and added the dispatch that emits the
+  0xfd instruction plus a natural-alignment memarg. The runtime `offset`
+  argument is added to the address operand, so the memarg offset stays zero
+  under memory32 and memory64.
+- **Removed**: the five `v128_load` / `v128_store` / `v128_load_splat` /
+  `v128_load_lane` / `v128_store_lane` `pub fn` declarations and their
+  `std::wasm` `[[functions]]` manifest entries. `V128Memory` is the
+  replacement `[[types]]` entry.
+- **Replacement**: `V128Memory::load(address, offset)` /
+  `store(address, offset, value)` / `load_splat(address, offset)` /
+  `load_lane(address, offset, value, lane)` /
+  `store_lane(address, offset, value, lane)`, plus the six widening loads.
+  `load_splat` loads one byte and splats it across all 16 lanes; the lane
+  functions move one 32-bit lane (`lane` = 0..3). Qualified old calls keep the
+  **E0100** hint from `resolver::removed_names`.
+- **Fixtures**: `stdlib_wasm/v128_memory_surface` (wasm32-gc P2 component)
+  and `_wasm32` (linear) store and reload vectors, assert lane values, and
+  cover `load_splat`, `load_lane`, `store_lane`, and the widening loads;
+  `diagnostics/removed_wasm_v128_memory_free` + `_wasm32` pin the E0100
+  hints.
+- **Scorecard**: 358 → **353** public symbols; `associated-or-method`
+  288 → **283**; manifest public entries 324 → **319**; `must delete` 70,
+  `intrinsic-only` 1, and `prelude_wrapper` 65 unchanged. The
+  `std::wasm v128 memory frees` rule is removed from
+  `docs/data/stdlib-api-eradication.toml`.
+
 ## 2026-10-27 — std::simd lane namespace completion (#917, ADR-046)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

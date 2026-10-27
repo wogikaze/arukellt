@@ -80,7 +80,13 @@ fn ctx_is_i64_returning_simd_intrinsic(bare_name: String) -> bool {
 fn ctx_is_v128_returning_wasm_intrinsic(bare_name: String) -> bool {
     eq(clone(bare_name), "__wasm_v128_load") ||
     eq(clone(bare_name), "__wasm_v128_load_splat") ||
-    eq(clone(bare_name), "__wasm_v128_load_lane")
+    eq(clone(bare_name), "__wasm_v128_load_lane") ||
+    eq(clone(bare_name), "__wasm_v128_load8x8_s") ||
+    eq(clone(bare_name), "__wasm_v128_load8x8_u") ||
+    eq(clone(bare_name), "__wasm_v128_load16x4_s") ||
+    eq(clone(bare_name), "__wasm_v128_load16x4_u") ||
+    eq(clone(bare_name), "__wasm_v128_load32x2_s") ||
+    eq(clone(bare_name), "__wasm_v128_load32x2_u")
 }
 
 fn simd_i32x4_is_v128(bare_name: String) -> bool {

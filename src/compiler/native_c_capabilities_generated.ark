@@ -485,12 +485,13 @@ fn native_c_core_capability_status_row_off_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "372600006c260000a1260000d62600000b2700004027000075270000aa270000df27000014280000492800007e280000b3280000e8280000f1280000fa280000032900000c290000" }
     if chunk == 15 { return "152900001e290000272900003029000039290000422900004b290000542900005d290000662900006f29000078290000812900008a290000932900009c290000a5290000ae290000" }
     if chunk == 16 { return "b7290000c0290000c9290000d2290000db290000ea290000f3290000fc290000052a00000e2a0000172a0000202a0000292a0000322a00003b2a0000442a00004d2a0000562a0000" }
-    if chunk == 17 { return "5f2a0000682a0000712a00007a2a0000832a00008c2a0000952a00009e2a0000a72a0000b02a0000b92a0000ee2a0000" }
+    if chunk == 17 { return "5f2a0000682a0000712a00007a2a0000832a00008c2a0000952a00009e2a0000a72a0000b02a0000b92a0000ee2a0000232b0000582b00008d2b0000c22b0000f72b00002c2c0000" }
+    if chunk == 18 { return "612c0000962c0000cb2c0000002d0000" }
     return String_new()
 }
 
 fn native_c_core_capability_status_row_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 318 {
+    if index < 0 || index >= 328 {
         return 0
     }
     let chunk = index / 18
@@ -575,12 +576,15 @@ fn native_c_core_capability_status_row_data_chunk(chunk: i32) -> String {
     if chunk == 73 { return "ortedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupp" }
     if chunk == 74 { return "ortedsupportedsupportedsupportedsupportedsupportedsupportedplanned phase 2supportedsupportedsupportedsupportedsupportedsupportedsupportedsupport" }
     if chunk == 75 { return "edsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedunsuppo" }
-    if chunk == 76 { return "rted: SIMD is outside the native-cpp MVP scope" }
+    if chunk == 76 { return "rted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp M" }
+    if chunk == 77 { return "VP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside t" }
+    if chunk == 78 { return "he native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SI" }
+    if chunk == 79 { return "MD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scope" }
     return String_new()
 }
 
 fn native_c_core_capability_status_row_at(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_new()
     }
     let start = native_c_core_capability_status_row_off_at(index)
@@ -632,12 +636,13 @@ fn native_c_core_capability_supported_flag_hex_chunk(chunk: i32) -> String {
     if chunk == 14 { return "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000001000000010000000100000001000000" }
     if chunk == 15 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
     if chunk == 16 { return "010000000100000001000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
-    if chunk == 17 { return "0100000001000000010000000100000001000000010000000100000001000000010000000100000000000000" }
+    if chunk == 17 { return "010000000100000001000000010000000100000001000000010000000100000001000000010000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 18 { return "000000000000000000000000" }
     return String_new()
 }
 
 fn native_c_core_capability_supported_flag_at(index: i32) -> i32 {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return 0
     }
     let chunk = index / 18
@@ -646,7 +651,7 @@ fn native_c_core_capability_supported_flag_at(index: i32) -> i32 {
 }
 
 fn native_c_core_capability_status_detail(index: i32) -> String {
-    if index < 0 || index >= 317 {
+    if index < 0 || index >= 327 {
         return String_from("unknown capability")
     }
     return native_c_core_capability_status_row_at(index)

@@ -1055,26 +1055,36 @@ qualified old call such as `wasm::module_new()` fails resolution with an
 | LEB128 | `leb128_encode_u32`, `leb128_size_u32` | `Leb128::encode_u32(x)`, `Leb128::size_u32(x)` |
 | v128 bitwise | `v128_and`, `v128_or`, `v128_xor`, `v128_not`, `v128_andnot`, `v128_bitselect`, `v128_any_true` | `V128::and`, `or`, `xor`, `not`, `andnot`, `bitselect`, `any_true` from `use std::simd::v128::V128` |
 | v128 reinterpret (removed) | `v128_reinterpret_i8x16`, `_i16x8`, `_i32x4`, `_i64x2`, `_f32x4`, `_f64x2` | no replacement: v128 is one type in Ark, so the old identity helper is unnecessary; pass the value directly |
+| v128 memory | `v128_load`, `v128_store`, `v128_load_splat`, `v128_load_lane`, `v128_store_lane` | `V128Memory::load(address, offset)`, `store(address, offset, value)`, `load_splat(address, offset)`, `load_lane(address, offset, value, lane)`, `store_lane(address, offset, value, lane)`, plus the widening loads `load8x8_s` / `load8x8_u` / `load16x4_s` / `load16x4_u` / `load32x2_s` / `load32x2_u` |
 
 `Section::import_id` / `export_id` and `Opcode::loop_` / `if_` / `else_` /
 `return_` carry the suffix because `import`, `export`, `loop`, `if`, `else`,
 and `return` are hard keywords.
 
-### Retained: v128 memory frees (5)
+### v128 memory: `V128Memory` associated functions (5)
 
-The five load/store frees stay as experimental free functions because the
-underlying intrinsics have no emitter lowering in either spelling:
+The 0xfd linear-memory instructions now lower, so the five experimental
+`std::wasm` load/store frees moved onto the `V128Memory` namespace type:
 
-- `v128_load`, `v128_store`, `v128_load_splat`, `v128_load_lane`, and
-  `v128_store_lane` validate on both targets, but the
-  `__wasm_v128_load*` / `__wasm_v128_store*` call compiles to `unreachable`,
-  so every call traps. `wasm-tools print` shows zero `v128.load` /
-  `v128.store` instructions in the compiled free function (the same is true
-  for an `impl`-body spelling; the marshal prologue is unrelated to the
-  instruction). This is a pre-existing intrinsic-lowering gap.
-- No `V128Memory` associated surface is advertised while the replacement
-  cannot run. The method surface lands when the emitter implements the five
-  intrinsics (then the frees migrate to `V128Memory`).
+| Before | After |
+|--------|-------|
+| `v128_load(ptr, offset)` | `V128Memory::load(address, offset)` |
+| `v128_store(ptr, offset, value)` | `V128Memory::store(address, offset, value)` |
+| `v128_load_splat(ptr, offset)` | `V128Memory::load_splat(address, offset)` |
+| `v128_load_lane(ptr, offset, value, lane)` | `V128Memory::load_lane(address, offset, value, lane)` |
+| `v128_store_lane(ptr, offset, value, lane)` | `V128Memory::store_lane(address, offset, value, lane)` |
+
+`V128Memory` also exposes the six widening loads: `load8x8_s/u`,
+`load16x4_s/u`, and `load32x2_s/u`. Every function takes a byte address and a
+byte offset; the emitter adds the two at runtime and leaves the instruction's
+memarg offset at zero. `load_splat` loads one byte and splats it across all 16
+lanes (`v128.load8_splat`); `load_lane` / `store_lane` move one 32-bit lane, so
+`lane` is `0..3`.
+
+Because every removed entry was `experimental`, ADR-014 D4 allows direct
+deletion; no W0009 window was opened. A qualified old call such as
+`wasm::v128_load(ptr, offset)` fails resolution with an **E0100** hint that
+names the `V128Memory` function.
 
 ### Evidence
 
@@ -1086,6 +1096,12 @@ underlying intrinsics have no emitter lowering in either spelling:
   the whole builder surface and the `V128` bitwise replacement on both targets.
 - `tests/fixtures/diagnostics/removed_wasm_free.ark` + `_wasm32.ark` pin the
   E0100 hint.
+- `tests/fixtures/stdlib_wasm/v128_memory_surface.ark` + `_wasm32.ark` store and
+  reload vectors through `V128Memory`, assert the lane values, and cover
+  `load_splat`, `load_lane`, `store_lane`, and the widening loads on both
+  targets.
+- `tests/fixtures/diagnostics/removed_wasm_v128_memory_free.ark` +
+  `_wasm32.ark` pin the E0100 hints for the five retired frees.
 
 ## Iterator v2 status
 

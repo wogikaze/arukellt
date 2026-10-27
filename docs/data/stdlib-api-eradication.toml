@@ -275,13 +275,6 @@ owner = "917"
 replacement = "JsonValue / TomlValue value methods (`v.is_null()`, `v.as_i32()`, `v.get_field(key)`, `v.to_text()`, `v.as_string()`, `v.table_keys()`, `e.message()`); the `JsonText` / `TomlText` text namespaces (`JsonText::quote`, `JsonText::get_str`, `TomlText::find_value`, ...); `JsonValue` constructors (`JsonValue::int`, `JsonValue::string`, `JsonValue::array`, `JsonValue::object`, ...); `JsonField::new`; and `JsonValue::pretty_text`. `json::parse`, `toml::toml_parse`, and `toml::toml_stringify` remain the document entry points."
 
 [[rules]]
-label = "std::wasm v128 memory frees"
-module = "std::wasm"
-class = "associated-or-method"
-owner = "917"
-replacement = "The `V128Memory::load` / `store` / `load_splat` / `load_lane` / `store_lane` associated form is blocked together with the free form: the `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter lowering, so every call compiles to `unreachable` (valid Wasm, but it traps) on wasm32-gc and wasm32. Neither spelling emits `v128.load` / `v128.store`. The five frees stay experimental until the emitter implements the intrinsic lowering; they then move to `V128Memory`."
-
-[[rules]]
 label = "host/core namespace frees"
 module_pfx = ["std::host", "std::fs", "std::env", "std::process", "std::random", "std::time", "std::signal", "std::cli", "std::core", "std::path"]
 class = "associated-or-method"

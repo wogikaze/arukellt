@@ -27,9 +27,8 @@
 | `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::toml` | 2 | 0 | 0 | 2 | 0 | 2/2 (100%) | no |
-| `std::wasm` | 5 | 0 | 0 | 5 | 0 | **0/5 (0%)** | no |
 
-**Total**: 324 APIs, 183 stable, 19 provisional, 54 experimental, 68 deprecated, 241/256 (94%) fixture coverage
+**Total**: 319 APIs, 183 stable, 19 provisional, 49 experimental, 68 deprecated, 241/251 (96%) fixture coverage
 
 ## Legend
 
@@ -40,9 +39,3 @@
 - **Deprecated**: Functions with `deprecated_by` set or `stability = "deprecated"`
 - **Fixture Coverage**: How many non-deprecated functions appear in at least one test fixture
 - **Host Dep**: Whether the family contains host-imported functions (`kind = "host_stub"` or module under `std::host::`)
-
-## Low Coverage Families
-
-Families below 50% fixture coverage (denominator excludes deprecated APIs):
-
-`std::wasm` (0%).

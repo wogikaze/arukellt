@@ -677,6 +677,76 @@ status = "unsupported"
 reason = "SIMD is outside the native-cpp MVP scope"
 
 [[core_ops]]
+id = "wasm.v128.load8x8.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load8x8.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load16x4.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load16x4.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load32x2.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load32x2.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load_splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.store"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load_lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.store_lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
 id = "core.range_contains"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"

@@ -174,6 +174,11 @@ fn removed_wasm_member_hint(name: String) -> String {
     if eq(clone(name), "module_new") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
     if eq(clone(name), "wasm_magic") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
     if eq(clone(name), "wasm_version") { return String_from("removed free function; use the `WasmModuleBuilder` associated function from `use std::wasm` instead") }
+    if eq(clone(name), "v128_load") { return String_from("removed free function; use `V128Memory::load(address, offset)` from `use std::wasm` instead") }
+    if eq(clone(name), "v128_store") { return String_from("removed free function; use `V128Memory::store(address, offset, value)` from `use std::wasm` instead") }
+    if eq(clone(name), "v128_load_splat") { return String_from("removed free function; use `V128Memory::load_splat(address, offset)` from `use std::wasm` instead") }
+    if eq(clone(name), "v128_load_lane") { return String_from("removed free function; use `V128Memory::load_lane(address, offset, value, lane)` from `use std::wasm` instead") }
+    if eq(clone(name), "v128_store_lane") { return String_from("removed free function; use `V128Memory::store_lane(address, offset, value, lane)` from `use std::wasm` instead") }
     String_from("removed free function; use the owning type from `use std::wasm` instead")
 }
 

@@ -2,10 +2,8 @@
 //!
 //! Exposes the Wasm module header, section IDs, value-type constants, opcode
 //! constants, FuncType / Limits values, a minimal Wasm module builder, LEB128
-//! encoding, and the five experimental v128 load/store helpers. The builder
-//! and constant helpers are associated functions or methods on their owning
-//! types; the v128 load/store helpers stay top-level free functions because
-//! their method form does not lower yet (ADR-046). The raw v128 bitwise
+//! encoding, and raw v128 linear-memory access. Every entry is an associated
+//! function or method on its owning type (ADR-046); the raw v128 bitwise
 //! operations live on `std::simd::v128::V128`.
 //!
 //! All APIs are Experimental and may change in v4+.
@@ -578,41 +576,96 @@ impl Leb128 {
     }
 }
 
-// --- v128 memory access (ADR-037 §11) ---
+// --- v128 linear memory (ADR-037 §11, ADR-042 D7) ---
 //
 // The raw v128 bitwise operations are owned by `std::simd::v128::V128`. The
 // six retired `v128_reinterpret_*` helpers were identity functions: v128 is
 // one type, so no conversion is needed.
 //
-// The five load/store helpers stay top-level free functions. The
-// `__wasm_v128_load*` / `__wasm_v128_store*` intrinsics have no emitter
-// lowering: the call compiles to `unreachable`, so the module validates but
-// every call traps. This holds for a top-level body and an `impl` body alike,
-// and `wasm-tools print` shows no `v128.load` / `v128.store` instruction.
-// No `V128Memory` associated surface is advertised until the emitter
-// implements the intrinsic (#917).
+// Linear-memory access is Wasm-specific, so it stays in `std::wasm`. Every
+// function takes a byte address and a byte offset; the address operand of the
+// emitted `v128.load*` / `v128.store*` instruction is the sum.
 
-/// Load a v128 from linear memory at ptr + offset.
-pub fn v128_load(ptr: i32, offset: i32) -> v128 {
-    __wasm_v128_load(ptr, offset)
-}
+/// Raw v128 linear-memory access.
+///
+/// `load_lane` / `store_lane` move one 32-bit lane, so `lane` is `0..3`.
+/// `load_splat` loads one byte and splats it across all 16 lanes.
+pub struct V128Memory {}
 
-/// Store a v128 to linear memory at ptr + offset.
-pub fn v128_store(ptr: i32, offset: i32, val: v128) {
-    __wasm_v128_store(ptr, offset, val)
-}
+impl V128Memory {
+    /// Load 16 bytes as a v128.
+    fn load(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load(address, offset)
+    }
 
-/// Load a single byte and splat to all 16 lanes.
-pub fn v128_load_splat(ptr: i32, offset: i32) -> v128 {
-    __wasm_v128_load_splat(ptr, offset)
-}
+    /// Store a v128 as 16 bytes.
+    fn store(address: i32, offset: i32, value: v128) {
+        __wasm_v128_store(address, offset, value)
+    }
 
-/// Load a single lane from linear memory.
-pub fn v128_load_lane(ptr: i32, offset: i32, v: v128, lane: i32) -> v128 {
-    __wasm_v128_load_lane(ptr, offset, v, lane)
-}
+    /// Load one byte and splat it across all 16 lanes.
+    fn load_splat(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load_splat(address, offset)
+    }
 
-/// Store a single lane to linear memory.
-pub fn v128_store_lane(ptr: i32, offset: i32, v: v128, lane: i32) {
-    __wasm_v128_store_lane(ptr, offset, v, lane)
+    /// Load the 32-bit lane at `address + offset` into lane `lane` (`0..3`).
+    fn load_lane(address: i32, offset: i32, value: v128, lane: i32) -> v128 {
+        if lane == 0 { return __wasm_v128_load_lane(address, offset, value, 0) }
+        if lane == 1 { return __wasm_v128_load_lane(address, offset, value, 1) }
+        if lane == 2 { return __wasm_v128_load_lane(address, offset, value, 2) }
+        if lane == 3 { return __wasm_v128_load_lane(address, offset, value, 3) }
+        panic("V128Memory::load_lane: lane out of range")
+        value
+    }
+
+    /// Store lane `lane` (`0..3`) as 4 bytes at `address + offset`.
+    fn store_lane(address: i32, offset: i32, value: v128, lane: i32) {
+        if lane == 0 {
+            __wasm_v128_store_lane(address, offset, value, 0)
+            return
+        }
+        if lane == 1 {
+            __wasm_v128_store_lane(address, offset, value, 1)
+            return
+        }
+        if lane == 2 {
+            __wasm_v128_store_lane(address, offset, value, 2)
+            return
+        }
+        if lane == 3 {
+            __wasm_v128_store_lane(address, offset, value, 3)
+            return
+        }
+        panic("V128Memory::store_lane: lane out of range")
+    }
+
+    /// Load 8 bytes and sign-extend each i8 to an i16 lane.
+    fn load8x8_s(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load8x8_s(address, offset)
+    }
+
+    /// Load 8 bytes and zero-extend each i8 to an i16 lane.
+    fn load8x8_u(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load8x8_u(address, offset)
+    }
+
+    /// Load 8 bytes and sign-extend each i16 pair to an i32 lane.
+    fn load16x4_s(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load16x4_s(address, offset)
+    }
+
+    /// Load 8 bytes and zero-extend each i16 pair to an i32 lane.
+    fn load16x4_u(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load16x4_u(address, offset)
+    }
+
+    /// Load 8 bytes and sign-extend each i32 pair to an i64 lane.
+    fn load32x2_s(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load32x2_s(address, offset)
+    }
+
+    /// Load 8 bytes and zero-extend each i32 pair to an i64 lane.
+    fn load32x2_u(address: i32, offset: i32) -> v128 {
+        __wasm_v128_load32x2_u(address, offset)
+    }
 }

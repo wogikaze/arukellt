@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 183 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 54 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 49 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
@@ -33,7 +33,7 @@
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
-| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership. |
+| `HashSet` | T | no | provisional | Set of unique i32 / String values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the to_vec snapshot used by its trait impls. Both families implement FromIterator<VecIter<T>>. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
@@ -59,6 +59,7 @@
 | `U64x2` | - | no | experimental | 2 × 64-bit unsigned integer lane associated operations over v128. |
 | `U8x16` | - | no | experimental | 16 × 8-bit unsigned integer lane associated operations over v128. |
 | `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
+| `V128Memory` | - | no | experimental | Raw v128 linear-memory load and store associated operations. |
 | `ValType` | - | no | experimental | Value-type constants matching the Wasm binary encoding, including the reference types. |
 | `Vec` | T | yes | - | Growable contiguous sequence. |
 | `WasmModuleBuilder` | - | no | experimental | Minimal Wasm module builder that counts signatures, functions, memories, and exports and encodes the module header. |
@@ -119,7 +120,7 @@
 | `FromIterator` | `from_iter` | - |
 | `FuncType` | `new`, `param_count`, `result_count`, `get_param`, `get_result` | - |
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
-| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `IntoIterator`, `Clone`, `Eq`, `Debug` |
+| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
 | `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u`, `mul`, `neg`, `abs`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `eq`, `ne`, `lt_s`, `le_s`, `gt_s`, `ge_s`, `lt_u`, `le_u`, `gt_u` | - |
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
 | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |
@@ -151,6 +152,7 @@
 | `U64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `shl`, `shr_u` | - |
 | `U8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `add_sat_u`, `sub_sat_u`, `eq`, `ne`, `lt_u`, `le_u`, `gt_u`, `ge_u`, `min_u`, `max_u`, `shl`, `shr_u` | - |
 | `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true`, `new` | - |
+| `V128Memory` | `load`, `store`, `load_splat`, `load_lane`, `store_lane`, `load8x8_s`, `load8x8_u`, `load16x4_s`, `load16x4_u`, `load32x2_s`, `load32x2_u` | - |
 | `ValType` | `i32`, `i64`, `f32`, `f64`, `v128`, `funcref`, `externref` | - |
 | `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend` | - |
 | `WasmModuleBuilder` | `new`, `add_type`, `add_func`, `add_memory`, `add_export_func`, `type_count`, `func_count`, `mem_count`, `export_count`, `magic`, `version`, `encode_header` | - |
@@ -740,16 +742,6 @@ let input = read_to_string()
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML 1.0 document into a TomlValue tree. |
 | `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
-
-## Wasm
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `v128_load` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a v128 from linear memory at ptr + offset. |
-| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a single lane from linear memory into a v128 vector. |
-| `v128_load_splat` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a single byte from linear memory and splat it to all 16 lanes. |
-| `v128_store` | `(i32, i32, v128) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Store a v128 to linear memory at ptr + offset. |
-| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Store a single lane from a v128 vector to linear memory. |
 
 ## Deprecated APIs
 
