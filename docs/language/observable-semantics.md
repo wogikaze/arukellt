@@ -21,16 +21,17 @@ that prove it on the fixture harness (cross-backend parity: issue #875).
 |--------|-------|
 | verified | 35 |
 | provisional | 0 |
-| unimplemented | 0 |
+| unimplemented | 1 |
 
 ## `alias` — Aliasing & ownership observation
 
 | Rule | Observable contract | Proof | ADR | Status |
 |------|---------------------|-------|-----|--------|
-| `alias_move_after_use_value` | Moving a value into a let/call ends the source binding; using it afterwards is a compile-time error. | [`ownership/copy_and_mutability.ark`](../../tests/fixtures/ownership/copy_and_mutability.ark), [`diagnostics/ownership_move_after_use.ark`](../../tests/fixtures/diagnostics/ownership_move_after_use.ark) (diag) | [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md) | verified |
+| `alias_move_after_use_value` | Moving a value into a let binding ends the source binding; using it afterwards is a compile-time error. | [`ownership/copy_and_mutability.ark`](../../tests/fixtures/ownership/copy_and_mutability.ark), [`diagnostics/ownership_move_after_use.ark`](../../tests/fixtures/diagnostics/ownership_move_after_use.ark) (diag) | [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md) | verified |
 | `alias_move_after_use_adt` | Enum/struct values follow the same move rule; using an ADT after move is a diagnostic, not a silent alias. | [`ownership/adt_probe.ark`](../../tests/fixtures/ownership/adt_probe.ark), [`diagnostics/adt_move_after_use.ark`](../../tests/fixtures/diagnostics/adt_move_after_use.ark) (diag) | [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md), [ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md) | verified |
 | `alias_shared_graph_traversal` | Shared DAG edges (multiple references to one node) traverse identically on every backend, including back edges reported by user code. | [`integration/cyclic_graph_walk.ark`](../../tests/fixtures/integration/cyclic_graph_walk.ark), [`integration/linked_list.ark`](../../tests/fixtures/integration/linked_list.ark) | [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md), [ADR-075](../adr/ADR-075-language-v2-linear-memory-tracing-runtime.md) | verified |
 | `alias_struct_vec_elements` | Struct elements inside a Vec keep observable field values across pushes, rebuilds, and aliased element access. | [`structs/vec_in_struct_alias_live.ark`](../../tests/fixtures/structs/vec_in_struct_alias_live.ark), [`structs/vec_in_struct_rebuild3.ark`](../../tests/fixtures/structs/vec_in_struct_rebuild3.ark), [`structs/vec_elem_field_get.ark`](../../tests/fixtures/structs/vec_elem_field_get.ark) | [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md) | verified |
+| `call_boundary_borrow_mut_param` | Passing a non-Copy argument borrows it for the call rather than ending the source binding; mutating the caller's value through a parameter requires a mut parameter receiving a mutable place. | [`structs/struct_clone_pass_to_fn.ark`](../../tests/fixtures/structs/struct_clone_pass_to_fn.ark) | [ADR-088](../adr/ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md) | **unimplemented** (#951) |
 
 ## `closure` — Closure capture & environment
 
