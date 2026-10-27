@@ -371,6 +371,61 @@ classified there, in dependency-safe waves.
   method lowering. The `hashset_i32_*` / `hashset_str_*` rows above stay in
   the `std::collections frees` family.
 
+### Landed slice (wave/hashset-from-iter, 2026-10-27)
+
+- **FromIterator (i32 + String)**: `impl FromIterator<VecIter<i32>> for
+  HashSet<i32>` and `impl FromIterator<VecIter<String>> for
+  HashSet<String>` are back in `std/collections/hash_set.ark`. The source
+  spelling is `HashSet::from_iter(values.iter())`; the impl body drains the
+  cursor with `next` because `collect` forwards to a generic helper whose
+  mono instance is not specialized inside a concrete loaded-module body
+  (the emitted stub trapped at runtime on both targets).
+- **Resolver fallback**: concrete conversion impls register only under
+  `HashSet_i32::from_iter__VecIter_i32` /
+  `HashSet_String::from_iter__VecIter_i32`, which is not source syntax.
+  `register_headers` and `register_imported_impl_exports` now export a
+  `HashSet::from_iter` member on the declared base type for a concrete
+  `FromIterator` impl, so `hash_set::HashSet::from_iter` resolves instead of
+  failing E0100. The typechecker
+  (`hashset_from_iter_candidate`) and MIR
+  (`mir_try_resolve_associated_function`) select the concrete impl from the
+  cursor's mangled element type (`VecIter_i32` / `VecIter_String`).
+- **HashSet<String> traits**: `to_vec` plus `IntoIterator`, `Clone`, `Eq`,
+  and `Debug`. The snapshot is the non-public
+  `hash_string::hashset_str_to_vec` lowering target (clones the
+  `Vec<String>` store; not a new public free function). `for word in set`
+  now typechecks and lowers through `HashSet_String::into_iter`.
+- **Result typing**: `return_index_type_name_for_impl` maps concrete
+  `HashSet<i32>` / `HashSet<String>` returns to `vec:i32` / `vec:String`,
+  and `mark_hashset_result_type` / `call_type_fallback` keep call
+  destinations on the flat store alias. Without this the call result was
+  typed as a String-like ref and failed Wasm validation.
+- **Fixtures**: new `stdlib_hashset/hashset_from_iter.ark` +
+  `hashset_from_iter_wasm32.ark` (`run:` registry 1877 -> 1879) cover i32
+  and String `from_iter`, deduplication, a direct `for` over a
+  `FromIterator` call, String `to_vec` / `Clone` / `Eq` / `Debug`, and
+  String iteration.
+- **Verification**: both targets compile with `wasm-tools validate` and run
+  (P2 component on `wasm32-gc`, linear on `--target wasm32`); `verify
+  fixtures` **1879 PASS / 0 FAIL** (1879 compile+validate, 110 runtime
+  smoke, 1 `test:` fixture PASS); `selfhost diag-parity` PASS;
+  `docs regenerate` / `docs check` 6/6;
+  `verify lane` PASS (quality changed + 13-file lint ratchet);
+  `check-stdlib-eradication` 362/362 + 130/130 classified, public surface
+  491; `check-compat-orphans` and `check-comment-policy` clean; ADR-029
+  fixpoint s2 == s3 at sha256
+  `c0a9f92f0061e84b382525474c54e638eb536c1d24f08229bce9ae52c8c04e2a`
+  (pinned base `bootstrap/arukellt-selfhost.wasm`, sha256
+  `04d4446bbad63f33e7543c5b94d1126932f2852262a77bcbf9d48cecba9d1f14`).
+- **Scorecard**: unchanged — no manifest function entry and no top-level
+  `pub fn` was added (the snapshot accessor is a private lowering target).
+- **Residual**: `HashSet<String>` set algebra (`union` / `intersection` /
+  `difference`) remains i32-only. Standalone `arukellt test
+  std/collections/hash_set.ark` still reports `E0100 undefined struct:
+  VecIter`; the pre-change base reproduces it, so it is a test-mode module
+  loading gap rather than this wave, and the dual-target fixture is the
+  executable regression.
+
 ### Landed slice (wave/bytes-deletion, 2026-10-27)
 
 - **ADR-087 Wave 2 physical deletion**: the 45 `stable` `std::bytes` free

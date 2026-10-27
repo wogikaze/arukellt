@@ -120,6 +120,20 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
         set_vt_for_resolved_type_name(ctx, dest, clone(cleaned))
         return
     }
+    // A HashSet<T> value is its flat store alias (Vec<i32> / Vec<String>),
+    // not a nominal struct layout. Resolving `HashSet<i32>` through the
+    // struct registry would type the call result as a String-like ref and
+    // break the store functions it feeds (#917).
+    if starts_with(clone(cleaned), "HashSet") {
+        let store_type = if contains(clone(cleaned), String_from("String")) {
+            String_from("vec:String")
+        } else {
+            String_from("vec:i32")
+        }
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(store_type))
+        set_vt_for_resolved_type_name(ctx, dest, store_type)
+        return
+    }
     // Result/Option/Vec/HashMap encodings must not go through layout
     // basename resolve: `vec:Diagnostic` would become `Diagnostic`.
     if is_option_or_result_type_name(clone(cleaned)) ||

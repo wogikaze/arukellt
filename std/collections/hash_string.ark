@@ -727,3 +727,17 @@ pub fn hashset_str_len(s: Vec<String>) -> i32 {
 pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
     len(s) == 0
 }
+
+/// Snapshot the `Vec<String>` set store for `HashSet<String>::to_vec` and the
+/// `IntoIterator` / `Clone` / `Debug` impls. Elements are cloned so a caller
+/// cannot observe later set mutation through the returned Vec. The order is
+/// the store's insertion order, not a hash bucket layout.
+fn hashset_str_to_vec(s: Vec<String>) -> Vec<String> {
+    let result: Vec<String> = Vec::new<String>()
+    let mut i: i32 = 0
+    while i < len(s) {
+        push(result, clone(get_unchecked(s, i)))
+        i = i + 1
+    }
+    result
+}

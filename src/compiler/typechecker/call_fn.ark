@@ -1,4 +1,4 @@
-use std::prelude::{byte_at, clone, eq, substring, to_string}
+use std::prelude::{byte_at, clone, ends_with, eq, substring, to_string}
 use std::text
 use corehir::callee_spelling
 use resolver::expr_path
@@ -9,6 +9,7 @@ use typechecker::ast_access
 use typechecker::call_args
 use typechecker::closure_capture
 use typechecker::call_generic
+use typechecker::call_method
 use typechecker::hashmap_methods
 use typechecker::call_unknown
 use typechecker::call_vec_ctor
@@ -118,6 +119,32 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         }
     }
     if !contract_fn_sig::FnSig_has_name(sig) {
+        // Concrete FromIterator impls are keyed by their source type
+        // (`HashSet_i32::from_iter__VecIter_i32`), but the source spelling is
+        // the trait's `HashSet::from_iter`. Select the impl from the inferred
+        // first argument before the unresolved-call fallback (#917).
+        let conversion_name = hashset_from_iter_candidate(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            clone(callee_name)
+        )
+        if len(clone(conversion_name)) > 0 {
+            let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, conversion_name)
+            if contract_fn_sig::FnSig_has_name(conversion_sig) {
+                return infer_concrete_call_expr(
+                    env,
+                    scope,
+                    fn_sigs,
+                    enum_defs,
+                    node,
+                    conversion_sig,
+                    child_count - 1
+                )
+            }
+        }
         // Vec::new<T>() / with_capacity without inherent-impl sig still need
         // mono sites so bare (unannotated) lets get vec:T (#845).
         if call_vec_ctor::is_vec_associated_ctor_name(clone(callee_name)) {
@@ -146,6 +173,46 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return infer_concrete_call_expr(env, scope, fn_sigs, enum_defs, node, sig, child_count - 1)
     }
     call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, mono_fn_name)
+}
+
+// Concrete FromIterator impls carry their source type in the symbol
+// (`HashSet_i32::from_iter__VecIter_i32`) so the same `from_iter` method can
+// serve i32 and String sets. The source spelling has no concrete owner, so
+// probe both families with the mangled source type; only the matching one
+// exists.
+fn hashset_from_iter_candidate(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    callee_name: String
+) -> String {
+    let is_from_iter = eq(clone(callee_name), String_from("HashSet::from_iter")) ||
+    ends_with(clone(callee_name), String_from("::HashSet::from_iter"))
+    if !is_from_iter || ast_access::node_child_count(node) < 2 {
+        return String_new()
+    }
+    let source_ty = infer_expr(
+        env,
+        scope,
+        fn_sigs,
+        enum_defs,
+        ast_access::node_child_at(node, 1)
+    )
+    let source_name = call_method::type_name_for_mangling(source_ty)
+    if len(clone(source_name)) == 0 {
+        return String_new()
+    }
+    let i32_name = String_from("HashSet_i32::from_iter__").concat(clone(source_name))
+    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, clone(i32_name))) {
+        return i32_name
+    }
+    let string_name = String_from("HashSet_String::from_iter__").concat(source_name)
+    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, clone(string_name))) {
+        return string_name
+    }
+    String_new()
 }
 
 fn infer_concrete_call_expr(

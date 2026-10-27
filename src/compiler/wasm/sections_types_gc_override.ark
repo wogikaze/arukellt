@@ -147,12 +147,18 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
     }
     // ADR-086 HashSet trait impls return the source set type, whose storage
     // is the flat Vec alias; emit the alias ref so the body's vec value
-    // matches the declared return (#917).
+    // matches the declared return (#917). The String family returns the
+    // Vec<String> alias, which is a different GC ref type.
     if eq(clone(fn_name), "HashSet_i32::clone") ||
     eq(clone(fn_name), "HashSet_i32::union") ||
     eq(clone(fn_name), "HashSet_i32::intersection") ||
-    eq(clone(fn_name), "HashSet_i32::difference") {
+    eq(clone(fn_name), "HashSet_i32::difference") ||
+    starts_with(clone(fn_name), "HashSet_i32::from_iter__") {
         return sections_types_gc::gc_vec_type_sig()
+    }
+    if eq(clone(fn_name), "HashSet_String::clone") ||
+    starts_with(clone(fn_name), "HashSet_String::from_iter__") {
+        return sections_types_gc::gc_vec_string_type_sig()
     }
     if eq(clone(fn_name), "hashmap_new") ||
     starts_with(clone(fn_name), "hashmap_new__") ||

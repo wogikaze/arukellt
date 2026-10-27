@@ -55,22 +55,37 @@ fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
 
 fn register_impl_method_headers(ctx: ResolveCtx, d: AstNode) {
     let struct_name = impl_target::impl_self_type_name(d)
+    let base_name = impl_target::impl_self_base_type_name(d)
     let trait_name = ast_access::node_text(d)
     let has_trait = impl_target::impl_head_count(d) >= 2
+    // A concrete FromIterator impl is keyed by its source type, so the
+    // mangled header is not a source-level spelling. Bind `Type::from_iter`
+    // on the declared base type as well; the concrete impl is selected later
+    // from the call's source argument (#917).
+    let register_base_alias = has_trait &&
+    eq(clone(trait_name), String_from("FromIterator")) &&
+    !eq(clone(base_name), clone(struct_name))
     let mcount = ast_access::node_child_count(d)
     let mut mi = 0
     while mi < mcount {
         let method = ast_access::node_child_at(d, mi)
-        let mangled = decl_impl_target::impl_method_mangled_name(d, ast_access::node_text(method))
+        let method_name = ast_access::node_text(method)
+        let mangled = decl_impl_target::impl_method_mangled_name(d, clone(method_name))
         let existing_mangled = scope_lookup::lookup(ctx, clone(mangled))
         if existing_mangled < 0 || !has_trait {
             scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), true)
         }
         if has_trait && !eq(clone(trait_name), clone(struct_name)) {
-            let bare_name = ast_access::node_text(method)
-            let existing = scope_lookup::lookup(ctx, clone(bare_name))
+            let existing = scope_lookup::lookup(ctx, clone(method_name))
             if existing < 0 {
-                scope_define::define_with_vis(ctx, bare_name, commands::SYM_FN(), true)
+                scope_define::define_with_vis(ctx, method_name, commands::SYM_FN(), true)
+            }
+        }
+        if register_base_alias {
+            let alias_name = clone(base_name).concat(String_from("::".concat(clone(method_name))))
+            let existing_alias = scope_lookup::lookup(ctx, clone(alias_name))
+            if existing_alias < 0 {
+                scope_define::define_with_vis(ctx, alias_name, commands::SYM_FN(), true)
             }
         }
         mi = mi + 1

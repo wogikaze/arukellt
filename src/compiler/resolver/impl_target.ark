@@ -33,6 +33,23 @@ fn impl_self_type_name(decl: AstNode) -> String {
     impl_target_type_name(target, declared_impl_param_names(decl))
 }
 
+// Source-level owner shared by every concrete instantiation of a generic
+// target: `impl ... for HashSet<i32>` and `impl ... for HashSet<String>` both
+// answer "HashSet". The resolver exports conversion impls under this owner so
+// `HashSet::from_iter(...)` has a module member to resolve, while the
+// typechecker and lowering select the concrete `HashSet_<arg>` impl from the
+// call's source argument.
+fn impl_self_base_type_name(decl: AstNode) -> String {
+    let heads = impl_head_count(decl)
+    if heads >= 2 {
+        return ast_access::node_text(ast_access::node_type_ann_at(decl, 1))
+    }
+    if heads >= 1 {
+        return ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+    }
+    ast_access::node_text(decl)
+}
+
 fn declared_impl_param_names(decl: AstNode) -> Vec<String> {
     let names = Vec::new<String>()
     let count = ast_access::node_type_ann_count(decl)

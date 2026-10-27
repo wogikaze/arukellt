@@ -1552,18 +1552,18 @@ at the method surface.
 | `hash_set::hashset_str_len(s)` / `is_empty` | `s.len()` / `s.is_empty()` |
 
 Import the type explicitly: `use std::collections::hash_set::HashSet`.
-`HashSet<i32>` also implements `IntoIterator` (snapshots `to_vec` into the
-shared `VecIter<i32>`), `Clone`, `Eq`, and `Debug`; `for value in set` iterates
-the set members, not the flat bucket layout. `FromIterator` is not available
-yet: the resolver cannot select `HashSet::from_iter` for the concrete
-`impl FromIterator<VecIter<i32>> for HashSet<i32>` (the impl is registered under
-the per-instantiation owner `HashSet_i32::from_iter__VecIter_i32`, and
-`HashSet<i32>::from_iter` is not valid source syntax), so build a set with
-`HashSet::new<i32>()` plus `insert` / `extend` until that resolver path lands.
-`HashSet<String>` aggregate and trait methods await the same store-level
-snapshot accessors; only the membership methods are public, and `for word in
-set` over a `HashSet<String>` is rejected (`non-iterable source`) until the
-String `IntoIterator` impl lands.
+Both element families implement `FromIterator<VecIter<T>>`, `IntoIterator`,
+`Clone`, `Eq`, and `Debug`, and `HashSet<String>` exposes the `to_vec`
+snapshot the traits share. `HashSet::from_iter(values.iter())` is the source
+spelling: the resolver exposes the trait function on the base type, and the
+concrete `HashSet_i32::from_iter__VecIter_i32` /
+`HashSet_String::from_iter__VecIter_i32` impl is selected from the cursor's
+element type. `HashSet<i32>::from_iter` and `HashSet<i32>::clone` remain
+invalid source syntax; write `HashSet::from_iter` / `HashSet::new<i32>()` and
+let the method resolver pick the store. Iteration snapshots through `to_vec`
+for both families, so `for value in set` yields the set members, not the flat
+bucket layout. `HashSet<String>` aggregate set algebra (`union` /
+`intersection` / `difference`) remains i32 only.
 
 **Before:**
 

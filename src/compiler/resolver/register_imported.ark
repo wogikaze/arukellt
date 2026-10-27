@@ -112,28 +112,52 @@ fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
 // module member for a cross-module associated call to resolve.
 fn register_imported_impl_exports(ctx: ResolveCtx, m: ModuleDecls, module_name: String, impl_decl: AstNode) {
     let type_name = impl_target::impl_self_type_name(impl_decl)
-    if len(clone(type_name)) == 0 {
+    let base_name = impl_target::impl_self_base_type_name(impl_decl)
+    if len(clone(type_name)) == 0 || len(clone(base_name)) == 0 {
         return
     }
-    if !module_declares_pub_type(m, clone(type_name)) {
+    let declares_type = module_declares_pub_type(m, clone(type_name))
+    let declares_base = module_declares_pub_type(m, clone(base_name))
+    if !declares_type && !declares_base {
         return
     }
+    let has_trait = impl_target::impl_head_count(impl_decl) >= 2
+    // A concrete FromIterator impl registers under the per-source owner
+    // (`HashSet_i32::from_iter__VecIter_i32`), which is not a source-level
+    // spelling. Export an additional `Type::from_iter` member on the declared
+    // base type so `HashSet::from_iter(...)` resolves; the concrete impl is
+    // selected later from the call's source argument. The first concrete
+    // family claims the alias; the selection stays argument-directed.
+    let is_from_iterator = has_trait &&
+    eq(ast_access::node_text(impl_decl), String_from("FromIterator"))
+    let register_base_alias = is_from_iterator && !eq(clone(base_name), clone(type_name))
     let child_count = ast_access::node_child_count(impl_decl)
     let mut ci = 0
     while ci < child_count {
         let method = ast_access::node_child_at(impl_decl, ci)
         if ast_decl_predicates::node_is_fn_decl(method) {
-            let mangled = decl_impl_target::impl_method_mangled_name(
-                impl_decl,
-                ast_access::node_text(method)
-            )
-            register_exports::register_module_export(
-                ctx,
-                clone(module_name),
-                mangled,
-                commands::SYM_FN(),
-                true
-            )
+            if declares_type {
+                let mangled = decl_impl_target::impl_method_mangled_name(
+                    impl_decl,
+                    ast_access::node_text(method)
+                )
+                register_exports::register_module_export(
+                    ctx,
+                    clone(module_name),
+                    mangled,
+                    commands::SYM_FN(),
+                    true
+                )
+            }
+            if register_base_alias {
+                register_exports::register_module_export(
+                    ctx,
+                    clone(module_name),
+                    clone(base_name).concat(String_from("::".concat(ast_access::node_text(method)))),
+                    commands::SYM_FN(),
+                    true
+                )
+            }
         }
         ci = ci + 1
     }

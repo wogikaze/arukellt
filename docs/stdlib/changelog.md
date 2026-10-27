@@ -16,6 +16,37 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-27 — HashSet FromIterator and HashSet<String> traits (#917, ADR-086)
+
+- **Basis**: [ADR-086](../adr/ADR-086-linear-collection-adts.md) §6 fixes the
+  collection trait set (`FromIterator` / `IntoIterator` / `Clone` / `Eq` /
+  `Debug`); [ADR-046](../adr/ADR-046-free-function-eradication.md) requires
+  the replacement to land as a method or associated function before a free
+  symbol can retire. The #917 hashset-agg wave had landed the i32 aggregates
+  but left `FromIterator` and the String traits unlanded.
+- **Added**: `impl FromIterator<VecIter<i32>> for HashSet<i32>` and
+  `impl FromIterator<VecIter<String>> for HashSet<String>`. The source
+  spelling is `HashSet::from_iter(values.iter())`; the resolver exposes that
+  member on the base type and the typechecker / MIR select the concrete
+  `HashSet_i32::from_iter__VecIter_i32` or
+  `HashSet_String::from_iter__VecIter_i32` impl from the cursor's element
+  type. `HashSet<i32>::from_iter` is not valid source syntax. The impl body
+  drains the cursor with `next` because `collect` forwards to a generic
+  helper whose mono instance is not specialized inside a concrete
+  loaded-module body.
+- **Added**: `HashSet<String>::to_vec` plus `IntoIterator`, `Clone`, `Eq`, and
+  `Debug`. The snapshot is backed by the non-public
+  `hash_string::hashset_str_to_vec` lowering target (not a new public free
+  function), so `for word in set` works and `Clone` / `Debug` / `Eq` see the
+  same member snapshot as the i32 family.
+- **Fixtures**: `stdlib_hashset/hashset_from_iter.ark` and
+  `stdlib_hashset/hashset_from_iter_wasm32.ark`, registered as run fixtures on
+  `wasm32-gc` and `--target wasm32`. They cover i32 and String `from_iter`,
+  deduplication, a direct `for` over a `FromIterator` call, and the String
+  snapshot / clone / eq / debug / iteration surface.
+- **Scorecard**: unchanged — no manifest free-function entry was added or
+  removed, and the only new declaration is the non-public lowering target.
+
 ## 2026-10-27 — std::core range/error/hash receiver surface (#917, ADR-087 Wave 2)
 
 - **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2 and the

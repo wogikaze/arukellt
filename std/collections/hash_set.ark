@@ -7,8 +7,10 @@
 //!
 //! The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
 //! `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`) are available on
-//! `HashSet<i32>`. The `String` surface keeps the membership lane; its store
-//! has no aggregate operations yet.
+//! `HashSet<i32>`. `HashSet<String>` exposes the membership surface and the
+//! `to_vec` snapshot that backs its trait impls. Both element families
+//! implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
+//! `Debug`.
 //!
 //! The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 //! #917; this module's only public symbols are `HashSet` and its methods.
@@ -25,10 +27,11 @@ use std::core::iter
 
 /// A set of unique `i32` or `String` values.
 ///
-/// Construct with `HashSet::new<i32>()` / `HashSet::new<String>()` and use the
-/// receiver methods; the `i32` aggregate and membership operations lower to the
-/// flat hash store, and the `String` membership operations lower to the
-/// `Vec<String>` facade. The storage representation is private.
+/// Construct with `HashSet::new<i32>()` / `HashSet::new<String>()`, or collect
+/// a `VecIter` with `HashSet::from_iter`, and use the receiver methods; the
+/// `i32` aggregate and membership operations lower to the flat hash store, and
+/// the `String` operations lower to the `Vec<String>` facade. The storage
+/// representation is private.
 pub struct HashSet<T> {
 }
 
@@ -136,6 +139,11 @@ impl HashSet<String> {
     fn is_empty(self: HashSet<String>) -> bool {
         self.is_empty()
     }
+
+    /// Returns all elements as a `Vec<String>` snapshot in insertion order.
+    fn to_vec(self: HashSet<String>) -> Vec<String> {
+        self.to_vec()
+    }
 }
 
 // The set shell owns no fields, so `into_iter` snapshots the elements through
@@ -188,6 +196,97 @@ impl Eq for HashSet<i32> {
 impl Debug for HashSet<i32> {
     fn fmt_debug(self: HashSet<i32>) -> String {
         let values: Vec<i32> = self.to_vec()
+        let mut out: String = String_from("HashSet [")
+        let mut index: i32 = 0
+        while index < len(values) {
+            if index > 0 {
+                out = out.concat(String_from(", "))
+            }
+            out = out.concat(get_unchecked(values, index).fmt_debug())
+            index = index + 1
+        }
+        out.concat(String_from("]"))
+    }
+}
+
+// FromIterator is selected from its source type, so the concrete element
+// family has to own the impl. A single `impl<T> FromIterator<VecIter<T>>`
+// would be the one parametric impl ADR-078 allows, but its body cannot insert
+// into the monomorphic store. The cursor is drained with `next` rather than
+// `collect`: `collect` forwards to a generic helper whose mono instance is not
+// specialized when the call sits in a concrete loaded-module body, leaving an
+// unreachable stub at runtime (#917).
+impl FromIterator<VecIter<i32>> for HashSet<i32> {
+    fn from_iter(it: VecIter<i32>) -> HashSet<i32> {
+        let result: HashSet<i32> = HashSet::new<i32>()
+        while true {
+            match it.next() {
+                Option::Some(value) => { let _ = result.insert(value) },
+                Option::None => { break },
+            }
+        }
+        result
+    }
+}
+
+impl FromIterator<VecIter<String>> for HashSet<String> {
+    fn from_iter(it: VecIter<String>) -> HashSet<String> {
+        let result: HashSet<String> = HashSet::new<String>()
+        while true {
+            match it.next() {
+                Option::Some(value) => { let _ = result.insert(value) },
+                Option::None => { break },
+            }
+        }
+        result
+    }
+}
+
+impl IntoIterator for HashSet<String> {
+    type Item = String
+    type IntoIter = VecIter<String>
+
+    fn into_iter(self: HashSet<String>) -> VecIter<String> {
+        let values: Vec<String> = self.to_vec()
+        VecIter { vec: values, index: 0, length: len(values) }
+    }
+}
+
+impl Clone for HashSet<String> {
+    fn clone(self: HashSet<String>) -> HashSet<String> {
+        let values: Vec<String> = self.to_vec()
+        let result: HashSet<String> = HashSet::new<String>()
+        let mut index: i32 = 0
+        while index < len(values) {
+            let _ = result.insert(get_unchecked(values, index))
+            index = index + 1
+        }
+        result
+    }
+}
+
+/// Equality compares the member sets, not the insertion order or capacity.
+impl Eq for HashSet<String> {
+    fn eq(self: HashSet<String>, other: HashSet<String>) -> bool {
+        if self.len() != other.len() {
+            return false
+        }
+        let values: Vec<String> = self.to_vec()
+        let mut index: i32 = 0
+        while index < len(values) {
+            if !other.contains(get_unchecked(values, index)) {
+                return false
+            }
+            index = index + 1
+        }
+        true
+    }
+}
+
+// Elements render in the store's insertion order.
+impl Debug for HashSet<String> {
+    fn fmt_debug(self: HashSet<String>) -> String {
+        let values: Vec<String> = self.to_vec()
         let mut out: String = String_from("HashSet [")
         let mut index: i32 = 0
         while index < len(values) {
@@ -305,5 +404,32 @@ test mod "hashset" {
         assert(s.remove("red"))
         assert(s.len() == 1)
         assert(s.contains("green"))
+    }
+    test "from_iter_dedups_i32" {
+        let values: Vec<i32> = Vec::new<i32>()
+        push(values, 4)
+        push(values, 5)
+        push(values, 4)
+        let s: HashSet<i32> = HashSet::from_iter(values.iter())
+        assert(s.len() == 2)
+        assert(s.contains(4))
+        assert(s.contains(5))
+    }
+    test "string_traits" {
+        let s: HashSet<String> = HashSet::new<String>()
+        assert(s.insert("red"))
+        assert(s.insert("blue"))
+        assert(s.insert("red"))
+        assert(s.len() == 2)
+        assert(s.contains("blue"))
+        let copy: HashSet<String> = s.clone()
+        assert(copy.eq(s))
+        let values: Vec<String> = s.to_vec()
+        assert(len(values) == 2)
+        let mut total: i32 = 0
+        for word in s {
+            total = total + len(word)
+        }
+        assert(total == 7)
     }
 }

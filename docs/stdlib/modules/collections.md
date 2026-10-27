@@ -271,8 +271,10 @@ the store functions, so the shell bodies never recurse at runtime.
 
 The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
 `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`) are available on
-`HashSet<i32>`. The `String` surface keeps the membership lane; its store
-has no aggregate operations yet.
+`HashSet<i32>`. `HashSet<String>` exposes the membership surface and the
+`to_vec` snapshot that backs its trait impls. Both element families
+implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
+`Debug`.
 
 The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 #917; this module's only public symbols are `HashSet` and its methods.
@@ -284,7 +286,7 @@ required.
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
+| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
 
 _No manifest-backed functions in this module._
 

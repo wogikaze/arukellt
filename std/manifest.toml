@@ -2189,13 +2189,13 @@ returns = "bool"
 name = "std::collections::hash_set"
 stability = "provisional"
 family = "collections"
-doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 membership and aggregate methods lower to the flat hash store, and the String membership methods lower to the `Vec<String>` facade."
+doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 membership and aggregate methods lower to the flat hash store, and the String methods lower to the `Vec<String>` facade. Both families implement `FromIterator<VecIter<T>>`."
 availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "HashSet"
 kind = "struct"
-doc = "Set of unique `i32` / `String` values; the i32 surface covers membership and aggregates, and the String surface covers membership."
+doc = "Set of unique `i32` / `String` values; the i32 surface covers membership and aggregates, and the String surface covers membership plus the `to_vec` snapshot used by its trait impls. Both families implement `FromIterator<VecIter<T>>`."
 module = "std::collections::hash_set"
 stability = "provisional"
 generic_params = ["T"]
@@ -2216,7 +2216,7 @@ methods = [
     "clear",
     "extend",
 ]
-trait_impls = ["IntoIterator", "Clone", "Eq", "Debug"]
+trait_impls = ["FromIterator", "IntoIterator", "Clone", "Eq", "Debug"]
 
 # === std::collections::ordered ===
 

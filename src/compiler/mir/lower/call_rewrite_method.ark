@@ -168,6 +168,21 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(candidate)) {
         return candidate
     }
+    // HashSet's concrete FromIterator impls live under the element-family
+    // owner (HashSet_i32::from_iter__VecIter_i32), while the source spelling
+    // only names the bare `HashSet` owner. The source suffix in each probed
+    // candidate makes exactly one family match.
+    if eq(clone(owner_name), String_from("HashSet")) &&
+    eq(clone(method_name), String_from("from_iter")) {
+        let i32_candidate = String_from("HashSet_i32::from_iter__").concat(clone(source_name))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(i32_candidate)) {
+            return i32_candidate
+        }
+        let string_candidate = String_from("HashSet_String::from_iter__").concat(source_name)
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(string_candidate)) {
+            return string_candidate
+        }
+    }
     associated_name
 }
 
