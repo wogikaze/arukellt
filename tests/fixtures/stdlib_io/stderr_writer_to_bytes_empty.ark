@@ -1,10 +1,13 @@
-use std::bytes
+// The tagged stderr handle has no readable image; `writer_to_bytes` is
+// retired, so the empty write count is the remaining observable contract.
 use std::io
 use std::test
 
 fn main() {
     let w: Vec<i32> = io::stderr()
-    let _: Result<i32, io::IoError> = io::writer_write_str(w, "")
-    let b: Vec<i32> = io::writer_to_bytes(w)
-    test::assert_eq_i32(bytes::bytes_len(b), 0)
+    let res: Result<i32, io::IoError> = io::writer_write_str(w, "")
+    match res {
+        Result::Ok(n) => test::assert_eq_i32(n, 0),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
 }

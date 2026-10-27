@@ -3,15 +3,15 @@ use std::io
 use std::test
 
 fn main() {
-    let w: Vec<i32> = io::writer_new()
+    let w: io::Writer = io::Writer::new()
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 88)
     bytes::bytes_push(data, 89)
-    let res: Result<(), io::IoError> = io::write_all(w, data)
+    let res: Result<(), io::IoError> = io::Io::write_all(w, data)
     match res {
         Result::Ok(_) => (),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
-    let b: Vec<i32> = io::writer_to_bytes(w)
+    let b: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(bytes::bytes_len(b), 2)
 }

@@ -3,7 +3,7 @@ use std::io
 use std::test
 
 fn main() {
-    let w: Vec<i32> = io::writer_new()
-    let b: Vec<i32> = io::writer_to_bytes(w)
+    let w: io::Writer = io::Writer::new()
+    let b: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(bytes::bytes_len(b), 0)
 }

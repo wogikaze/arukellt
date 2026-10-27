@@ -1,6 +1,7 @@
 use std::bytes
 use std::host::stdio
 use std::io
+use std::io::{BufReader, BufWriter, Reader, Writer}
 
 fn main() {
     let data: Vec<i32> = bytes::bytes_new()
@@ -21,40 +22,40 @@ fn main() {
     bytes::bytes_push(data, 110)
     bytes::bytes_push(data, 101)
     bytes::bytes_push(data, 51)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let br: Vec<i32> = io::buf_reader_new(r, 64)
-    let l1: Result<String, io::IoError> = io::buf_reader_read_line(br)
+    let br: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(data), 64)
+    let l1: Result<Option<String>, io::IoError> = br.read_line()
     match l1 {
-        Result::Ok(s) => stdio::println(s),
+        Result::Ok(found) => match found {
+            Option::Some(line) => stdio::println(line),
+            Option::None => stdio::println("<eof>"),
+        },
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let l2: Result<String, io::IoError> = io::buf_reader_read_line(br)
+    let l2: Result<Option<String>, io::IoError> = br.read_line()
     match l2 {
-        Result::Ok(s) => stdio::println(s),
+        Result::Ok(found) => match found {
+            Option::Some(line) => stdio::println(line),
+            Option::None => stdio::println("<eof>"),
+        },
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let l3: Result<String, io::IoError> = io::buf_reader_read_line(br)
+    let l3: Result<Option<String>, io::IoError> = br.read_line()
     match l3 {
-        Result::Ok(s) => stdio::println(s),
+        Result::Ok(found) => match found {
+            Option::Some(line) => stdio::println(line),
+            Option::None => stdio::println("<eof>"),
+        },
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let out: Vec<i32> = io::stdout()
-    let bw: Vec<i32> = io::buf_writer_new(out, 8)
-    let _: Result<i32, io::IoError> = io::buf_writer_write_str(bw, "buffered")
-    let _: Result<(), io::IoError> = io::buf_writer_flush(bw)
-    stdio::println("")
+    // The tagged stdout handle cannot be a generic Write sink yet, so the
+    // adapter writes into a memory Writer and the fixture prints the flushed
+    // image itself. Output stays identical to the legacy tagged path.
+    let bw: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 8)
+    let _: Result<i32, io::IoError> = bw.write_string("buffered")
+    let _: Result<(), io::IoError> = bw.flush()
+    match bw.into_inner() {
+        Result::Ok(inner) => stdio::println(bytes::string_from_bytes(inner.into_bytes())),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
+    }
     stdio::println("done")
 }
-// Build data "Line1\nLine2\nLine3"
-// "Line1\n"
-// L
-// i
-// n
-// e
-// 1
-// \n
-// "Line2\n"
-// 2
-// "Line3" (no trailing newline)
-// 3
-// BufWriter with small cap — auto-flushes at 8 bytes

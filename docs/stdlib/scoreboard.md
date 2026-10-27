@@ -28,7 +28,7 @@
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
-| `std::io` | 20 | 5 | 0 | 0 | 15 | 4/5 (80%) | no |
+| `std::io` | 7 | 5 | 0 | 0 | 2 | 4/5 (80%) | no |
 | `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
@@ -53,7 +53,7 @@
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
 
-**Total**: 729 APIs, 287 stable, 63 provisional, 298 experimental, 81 deprecated, 552/648 (85%) fixture coverage
+**Total**: 716 APIs, 287 stable, 63 provisional, 298 experimental, 68 deprecated, 552/648 (85%) fixture coverage
 
 ## Legend
 

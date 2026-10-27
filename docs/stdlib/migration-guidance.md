@@ -256,29 +256,18 @@ The following public entries currently carry `deprecated_by` in
 | `std::collections::linked_list::linked_list_is_empty` | `l.is_empty()` |
 | `std::collections::linked_list::linked_list_clear` | `l.clear()` |
 | `std::collections::linked_list::linked_list_to_vec` | `l.iter().collect()` |
-| `std::io::reader_from_bytes` | `Reader::from_bytes(data)` |
-| `std::io::buf_reader_new` | `BufReader::new(r, cap)` |
-| `std::io::buffered_reader` | `BufReader::new(r, cap)` |
-| `std::io::buf_reader_read_line` | `br.read_line()` (`Option<String>`, `None` at EOF) |
-| `std::io::buf_writer_new` | `BufWriter::new(w, cap)` |
-| `std::io::buffered_writer` | `BufWriter::new(w, cap)` |
-| `std::io::buf_writer_write_str` | `bw.write_string(s)` |
-| `std::io::buf_writer_flush` | `bw.flush()` |
-| `std::io::writer_new` | `Writer::new()` |
-| `std::io::writer_write` | `w.write(data)` |
-| `std::io::writer_write_str` | `w.write_string(s)` |
-| `std::io::write_all` | `Io::write_all(w, data)` |
-| `std::io::write_string` | `w.write_string(s)` |
-| `std::io::writer_flush` | `w.flush()` |
-| `std::io::writer_to_bytes` | `w.into_bytes()` |
+| `std::io::writer_write` | `w.write(data)` on a memory `Writer`; no replacement for the tagged `stdout()` / `stderr()` handles yet |
+| `std::io::writer_write_str` | `w.write_string(s)` on a memory `Writer`; no replacement for the tagged `stdout()` / `stderr()` handles yet |
 
-The `std::io` rows are the ADR-085 Phase E compatibility window
-([#693](https://github.com/wogikaze/arukellt/issues/693)). They keep W0009
-coverage; `reader_from_bytes` and `buf_*` retain the legacy `Vec<i32>` layout
-until the generic-adapter dispatch residual is fixed, and `writer_*` keeps the
-tagged `stdout()` / `stderr()` handles writable until `std::host::stdio`
-exposes typed `Write` handles. Every other legacy `std::io` free function was
-removed in the same wave; see
+The two remaining `std::io` rows are the last ADR-085 Phase F compatibility
+residual ([#693](https://github.com/wogikaze/arukellt/issues/693)). They keep
+W0009 coverage because `stdout()` / `stderr()` still return tagged `Vec<i32>`
+handles with no `Write` implementation, so there is no method receiver to
+migrate to; deletion condition: `std::host::stdio` exposes typed `Write`
+handles (ADR-085 D9). Every other legacy `std::io` free function, including
+`reader_from_bytes`, the seven `buf_*` entry points, `writer_new`, `write_all`,
+`write_string`, `writer_flush`, and `writer_to_bytes`, was removed with an
+E0100 replacement hint; see
 [std::io trait migration](#stdio-trait-migration-adr-085-phase-ef-2026-10-27).
 
 The deprecated `std::seq` rows remain callable compatibility entries that
@@ -474,6 +463,23 @@ remains):
 | `io::fill_buffer(buf)` | `r.fill_buf()` |
 | `io::file_from_fd` / `io::file_read` / `io::file_write` | `std::host::fs::File` (read side; the whole-file write side is still open under #693) |
 
+The Phase F completion wave removed the remaining fully-replaced wrappers
+(2026-10-27, [#693](https://github.com/wogikaze/arukellt/issues/693)):
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `io::reader_from_bytes(data)` | `Reader::from_bytes(data)` |
+| `io::buf_reader_new(r, cap)` / `io::buffered_reader(r, cap)` | `BufReader::new(r, cap)` |
+| `io::buf_reader_read_line(br)` | `br.read_line()` (`Option<String>`, `None` at EOF) |
+| `io::buf_writer_new(w, cap)` / `io::buffered_writer(w, cap)` | `BufWriter::new(w, cap)` |
+| `io::buf_writer_write_str(bw, s)` | `bw.write_string(s)` |
+| `io::buf_writer_flush(bw)` | `bw.flush()` |
+| `io::writer_new()` | `Writer::new()` |
+| `io::write_all(w, data)` | `Io::write_all(w, data)` |
+| `io::write_string(w, s)` | `w.write_string(s)` on a memory `Writer` |
+| `io::writer_flush(w)` | `w.flush()` on a memory `Writer` |
+| `io::writer_to_bytes(w)` | `w.into_bytes()` on a memory `Writer` |
+
 Behavior differences to account for while migrating:
 
 - `Read::read` returns an empty `Vec` at EOF and rejects a negative
@@ -487,6 +493,13 @@ Behavior differences to account for while migrating:
 - `Io::read_exact` reports `UnexpectedEof` with a `need N have M` message;
   the legacy `reader_read_exact` prefixed it with `UnexpectedEof:`.
 - `Io::copy` returns `i64` and stops on the first read or write error.
+- `BufReader` reads ahead into its own buffer; `Read::read` on the adapter
+  returns buffered bytes before touching the inner handle, so seek the inner
+  handle only through `BufReader::seek`.
+- The tagged `stdout()` / `stderr()` handles still have no typed `Write`
+  implementation, so `io::writer_write` / `io::writer_write_str` remain the only
+  way to write to them; their W0009 hint says so and does not promise a method
+  call that those handles cannot satisfy.
 
 **Before:**
 
@@ -516,6 +529,8 @@ Evidence for the wave:
   the retained compatibility family).
 - `tests/fixtures/diagnostics/removed_io_free_function.ark` (E0100 replacement
   hint for a removed member).
+- `tests/fixtures/diagnostics/removed_io_compat_free_function.ark` (E0100 hint
+  for a wrapper retired in the Phase F completion wave).
 - The migrated `tests/fixtures/stdlib_io*`, `tests/fixtures/stdlib_trait/`, and
   `tests/fixtures/question_mark/error_ecosystem.ark` fixtures compile and run
   on both `wasm32-gc` and `wasm32`.

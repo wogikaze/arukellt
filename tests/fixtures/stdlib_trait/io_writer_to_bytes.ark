@@ -2,18 +2,18 @@ use std::io
 use std::test
 
 fn main() {
-    let w = io::writer_new()
+    let w: io::Writer = io::Writer::new()
     let data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
     push(data, 66)
     push(data, 67)
 
-    match io::writer_write(w, data) {
+    match w.write(data) {
         Result::Ok(n) => test::assert_eq_i32(n, 3),
         Result::Err(_e) => panic("expected Ok"),
     }
 
-    let out = io::writer_to_bytes(w)
+    let out: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(len(out), 3)
     test::assert_eq_i32(get_unchecked(out, 0), 65)
     test::assert_eq_i32(get_unchecked(out, 1), 66)

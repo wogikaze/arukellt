@@ -3,12 +3,12 @@ use std::io
 use std::test
 
 fn main() {
-    let w: Vec<i32> = io::writer_new()
+    let w: io::Writer = io::Writer::new()
     let mut i: i32 = 0
     while i < 50 {
-        let _: Result<i32, io::IoError> = io::writer_write_str(w, "ab")
+        let _: Result<i32, io::IoError> = w.write_string("ab")
         i = i + 1
     }
-    let b: Vec<i32> = io::writer_to_bytes(w)
+    let b: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(bytes::bytes_len(b), 100)
 }

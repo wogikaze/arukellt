@@ -1,22 +1,35 @@
+// `buf_reader_new` / `buffered_reader` were the two legacy constructor
+// spellings; both are retired, so both capacity variants now go through
+// `BufReader::new`.
 use std::bytes
 use std::io
+use std::io::{BufReader, Reader}
 use std::test
 
-fn main() {
+fn line_data() -> Vec<i32> {
     let data: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(data, 65)
     bytes::bytes_push(data, 10)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let br1: Vec<i32> = io::buf_reader_new(r, 64)
-    let br2: Vec<i32> = io::buffered_reader(r, 64)
-    let l1: Result<String, io::IoError> = io::buf_reader_read_line(br1)
-    let l2: Result<String, io::IoError> = io::buf_reader_read_line(br2)
+    data
+}
+
+fn main() {
+    let br1: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(line_data()), 64)
+    let br2: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(line_data()), 1)
+    let l1: Result<Option<String>, io::IoError> = br1.read_line()
+    let l2: Result<Option<String>, io::IoError> = br2.read_line()
     match l1 {
-        Result::Ok(s) => test::assert_eq_string(s, "A"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "A"),
+            Option::None => panic("expected line A from capacity 64"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
     match l2 {
-        Result::Ok(s) => test::assert_eq_string(s, "A"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "A"),
+            Option::None => panic("expected line A from capacity 1"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

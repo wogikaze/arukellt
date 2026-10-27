@@ -1,5 +1,9 @@
 use std::io
 
 fn main() {
-    let _: Vec<i32> = io::reader_from_bytes(Vec::new<i32>())
+    let out: Vec<i32> = io::stdout()
+    let data: Vec<i32> = Vec::new<i32>()
+    push(data, 65)
+    let _: Result<i32, io::IoError> = io::writer_write(out, data)
+    let _: Result<i32, io::IoError> = io::writer_write_str(out, "A")
 }

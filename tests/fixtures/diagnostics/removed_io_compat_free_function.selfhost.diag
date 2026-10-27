@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: io::buf_reader_new; use `BufReader::new(r, cap)` from `use std::io::BufReader` instead

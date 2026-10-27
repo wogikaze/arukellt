@@ -1,5 +1,6 @@
 use std::bytes
 use std::io
+use std::io::{BufReader, Reader}
 use std::test
 
 fn main() {
@@ -7,11 +8,13 @@ fn main() {
     bytes::bytes_push(data, 88)
     bytes::bytes_push(data, 89)
     bytes::bytes_push(data, 90)
-    let r: Vec<i32> = io::reader_from_bytes(data)
-    let br: Vec<i32> = io::buf_reader_new(r, 16)
-    let res: Result<String, io::IoError> = io::buf_reader_read_line(br)
+    let br: BufReader<Reader> = BufReader::new<Reader>(Reader::from_bytes(data), 16)
+    let res: Result<Option<String>, io::IoError> = br.read_line()
     match res {
-        Result::Ok(line) => test::assert_eq_string(line, "XYZ"),
+        Result::Ok(found) => match found {
+            Option::Some(line) => test::assert_eq_string(line, "XYZ"),
+            Option::None => panic("expected line XYZ"),
+        },
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

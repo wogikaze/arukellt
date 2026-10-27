@@ -2,14 +2,14 @@ use std::io
 use std::test
 
 fn main() {
-    let w = io::writer_new()
+    let w: io::Writer = io::Writer::new()
 
-    match io::writer_write_str(w, "hello") {
+    match w.write_string("hello") {
         Result::Ok(n) => test::assert_eq_i32(n, 5),
         Result::Err(_e) => panic("expected Ok"),
     }
 
-    let out = io::writer_to_bytes(w)
+    let out: Vec<i32> = w.into_bytes()
     test::assert_eq_i32(len(out), 5)
     test::assert_eq_i32(get_unchecked(out, 0), 104)
     test::assert_eq_i32(get_unchecked(out, 4), 111)

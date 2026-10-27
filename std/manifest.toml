@@ -4598,15 +4598,16 @@ returns = "bool"
 
 # === std::io ===
 #
-# ADR-085 Phase A: target-independent Read / Write / BufRead / Seek traits,
-# SeekFrom, and the memory Reader / Writer newtypes. The legacy free functions
-# below remain the compatibility surface until #693 Phase E.
+# ADR-085 Phases A-F: target-independent Read / Write / BufRead / Seek traits,
+# SeekFrom, the memory Reader / Writer newtypes, the Io algorithms, and the
+# generic adapters. Only the tagged output write pair stays callable, because
+# stdout() / stderr() are not typed Write handles yet (ADR-085 D9).
 
 [[modules]]
 name = "std::io"
 stability = "stable"
 family = "core"
-doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The reader_* / buf_* Vec-layout entry points and the tagged writer_* family remain deprecated compatibility wrappers under the #693 removal window; the other legacy free functions were retired in ADR-085 Phase F."
+doc = "Target-independent I/O abstraction (ADR-085): public Read / Write / BufRead / Seek traits, SeekFrom, memory Reader / Writer newtypes, the Io generic algorithms, and the generic BufReader<R> / BufWriter<W> adapters. The legacy free functions are retired (E0100) except writer_write / writer_write_str, which stay deprecated until std::host::stdio exposes typed Write handles for stdout() / stderr()."
 availability = { t1 = true, t3 = true }
 
 [[types]]
@@ -4716,18 +4717,6 @@ methods = ["new", "write_string", "into_inner"]
 trait_impls = ["Write"]
 
 [[functions]]
-name = "reader_from_bytes"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Reader::from_bytes"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated legacy constructor for the `[cursor, ...]` layout; use `Reader::from_bytes`. Retained while the `buf_*` adapters still consume that layout."
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-
-[[functions]]
 name = "stdin"
 module = "std::io"
 doc_category = "io"
@@ -4768,18 +4757,6 @@ params = ["Vec<i32>"]
 returns = "()"
 
 [[functions]]
-name = "writer_new"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Writer::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated legacy tagged-layout constructor; use `Writer::new`."
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
 name = "writer_write"
 module = "std::io"
 doc_category = "io"
@@ -4787,7 +4764,7 @@ stability = "deprecated"
 deprecated_by = "Writer::write"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
-doc = "Deprecated legacy tagged write (memory or stdout/stderr tags); use `Writer::write` for memory handles."
+doc = "Deprecated tagged write for stdout() / stderr(); use `Writer::write` for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9)."
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Result<i32, IoError>"
 
@@ -4799,140 +4776,9 @@ stability = "deprecated"
 deprecated_by = "Writer::write_string"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
-doc = "Deprecated legacy tagged string write; use `Writer::write_string` for memory handles."
+doc = "Deprecated tagged string write for stdout() / stderr(); use `Writer::write_string` for memory handles. Stays until std::host::stdio exposes typed Write handles (ADR-085 D9)."
 params = ["Vec<i32>", "String"]
 returns = "Result<i32, IoError>"
-
-[[functions]]
-name = "write_all"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Io::write_all"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated convenience wrapper; use `Io::write_all`."
-params = ["Vec<i32>", "Vec<i32>"]
-returns = "Result<(), IoError>"
-
-[[functions]]
-name = "write_string"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Writer::write_string"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated convenience wrapper; use `Writer::write_string`."
-params = ["Vec<i32>", "String"]
-returns = "Result<(), IoError>"
-
-[[functions]]
-name = "writer_flush"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Writer::flush"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated no-op flush over the legacy tagged layout; use `Writer::flush`."
-params = ["Vec<i32>"]
-returns = "Result<(), IoError>"
-
-[[functions]]
-name = "writer_to_bytes"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "Writer::into_bytes"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated legacy image accessor; use `Writer::into_bytes`."
-params = ["Vec<i32>"]
-returns = "Vec<i32>"
-
-[[functions]]
-name = "buf_reader_new"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufReader::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated compatibility adapter over the legacy `[cursor, ...]` layout; use `BufReader::new`."
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-
-[[functions]]
-name = "buffered_reader"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufReader::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated alias for `buf_reader_new`; use `BufReader::new`."
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-
-[[functions]]
-name = "buf_reader_read_line"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufReader::read_line"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated compatibility line reader over the legacy layout; use `BufRead::read_line` (`Option<String>`)."
-params = ["Vec<i32>"]
-returns = "Result<String, IoError>"
-
-[[functions]]
-name = "buf_writer_new"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufWriter::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated compatibility adapter over the legacy `[fd_tag, ...]` layout; use `BufWriter::new`."
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-
-[[functions]]
-name = "buffered_writer"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufWriter::new"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated alias for `buf_writer_new`; use `BufWriter::new`."
-params = ["Vec<i32>", "i32"]
-returns = "Vec<i32>"
-
-[[functions]]
-name = "buf_writer_write_str"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufWriter::write_string"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc = "Deprecated compatibility string writer over the legacy layout; use `BufWriter::write_string`."
-params = ["Vec<i32>", "String"]
-returns = "Result<i32, IoError>"
-
-[[functions]]
-name = "buf_writer_flush"
-module = "std::io"
-doc_category = "io"
-stability = "deprecated"
-deprecated_by = "BufWriter::flush"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-params = ["Vec<i32>"]
-returns = "Result<(), IoError>"
 
 [[modules]]
 name = "std::collections::deque"

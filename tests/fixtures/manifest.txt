@@ -250,6 +250,7 @@ diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/deprecated_io_free_function.ark
 diag:diagnostics/removed_io_free_function.ark
+diag:diagnostics/removed_io_compat_free_function.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/deprecated_import_syntax.ark
 diag:diagnostics/duplicate_def.ark

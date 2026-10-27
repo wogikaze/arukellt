@@ -142,6 +142,19 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(name), "file_from_fd") { return "the experimental fd lane was retired; use `std::host::fs::File::open(path)` instead" }
     if eq(clone(name), "file_read") { return "the experimental fd lane was retired; use `Read::read` on `std::host::fs::File` instead" }
     if eq(clone(name), "file_write") { return "the experimental fd lane was retired; use `std::host::fs::File::create` and `Write::write` instead (write side open under #693)" }
+    if eq(clone(name), "reader_from_bytes") { return "use `Reader::from_bytes(data)` from `use std::io::Reader` instead" }
+    if eq(clone(name), "buf_reader_new") { return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead" }
+    if eq(clone(name), "buffered_reader") { return "use `BufReader::new(r, cap)` from `use std::io::BufReader` instead" }
+    if eq(clone(name), "buf_reader_read_line") { return "use `br.read_line()` from `use std::io::BufRead` instead (`Option<String>`, `None` at EOF)" }
+    if eq(clone(name), "buf_writer_new") { return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead" }
+    if eq(clone(name), "buffered_writer") { return "use `BufWriter::new(w, cap)` from `use std::io::BufWriter` instead" }
+    if eq(clone(name), "buf_writer_write_str") { return "use `bw.write_string(s)` on `BufWriter` instead" }
+    if eq(clone(name), "buf_writer_flush") { return "use `bw.flush()` on `BufWriter` instead" }
+    if eq(clone(name), "writer_new") { return "use `Writer::new()` from `use std::io::Writer` instead" }
+    if eq(clone(name), "write_all") { return "use `Io::write_all(w, data)` from `use std::io::Io` instead" }
+    if eq(clone(name), "write_string") { return "use `w.write_string(s)` on `Writer` instead" }
+    if eq(clone(name), "writer_flush") { return "use `w.flush()` on `Writer` instead" }
+    if eq(clone(name), "writer_to_bytes") { return "use `w.into_bytes()` on `Writer` instead" }
     String_new()
 }
 
@@ -344,12 +357,26 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint(String_from("io"), String_from("fill_buffer"))) > 0)
         assert(len(removed_module_member_hint(String_from("io"), String_from("file_read"))) > 0)
     }
-    test "live io compat members have no removal hint" {
-        // reader_from_bytes and the buf_* / writer_* families stay callable
-        // as deprecated compatibility wrappers under the #693 window.
-        assert(len(removed_module_member_hint(String_from("io"), String_from("reader_from_bytes"))) == 0)
+    test "retired io compat wrappers have removal hints" {
+        // ADR-085 Phase F retired the Vec-layout reader / buffered adapters and
+        // the memory-writer wrappers; the tagged output pair stays callable.
+        assert(len(removed_module_member_hint(String_from("io"), String_from("reader_from_bytes"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_reader_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_reader_read_line"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_writer_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_writer_write_str"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_writer_flush"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buffered_reader"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("buffered_writer"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("write_all"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("write_string"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_flush"))) > 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_to_bytes"))) > 0)
+    }
+    test "live io tagged writers have no removal hint" {
         assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write"))) == 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_reader_new"))) == 0)
+        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write_str"))) == 0)
     }
     test "other modules do not get io hints" {
         assert(len(removed_module_member_hint(String_from("fs"), String_from("reader_read"))) == 0)

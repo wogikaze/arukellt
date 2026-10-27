@@ -69,6 +69,61 @@
   before per-file fallback (pre-existing tooling residual, not a source
   failure). The ADR-029 fixpoint result is recorded in the wave receipt.
 
+## 2026-10-27 — std::io Phase F completion (ADR-085 Phase F, #693)
+
+- **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D2/D3/D5/D8/D9,
+  [ADR-046](../adr/ADR-046-free-function-eradication.md) D3/D4, and the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x removal exception.
+  The BufReader dispatch residual that blocked the buffered wrapper migration
+  was fixed by `ebfb2f8be` (calls inside `if` conditions now record their mono
+  demand edge).
+- **Conditions**: (1) all 13 removed entries carried
+  `deprecated_since = "0.1.0"` / `remove_in = "1.0.0"` from the
+  2026-10-27 Phase E entry, with live W0009 coverage and the
+  `deprecated_io_free_function` diagnostic fixture; (2) the before/after rows in
+  [migration-guidance.md](migration-guidance.md) name the replacement and the
+  deleted `buf_*` layout behavior; (3) this entry. The removed names now fail
+  resolution with **E0100** and a `resolver::removed_names` hint, replacing the
+  W0009 warning.
+- **Removed (13)**: `reader_from_bytes`, `buf_reader_new`, `buffered_reader`,
+  `buf_reader_read_line`, `buf_writer_new`, `buffered_writer`,
+  `buf_writer_write_str`, `buf_writer_flush`, `writer_new`, `write_all`,
+  `write_string`, `writer_flush`, and `writer_to_bytes` (manifest entries and
+  `std/io/mod.ark` declarations).
+- **Reason**: the generic `BufReader<R: Read>` / `BufWriter<W: Write>`
+  adapters and the `Reader` / `Writer` / `Io` methods fully replace these
+  wrappers. Keeping the legacy `[cursor, ...]` / `[fd_tag, ...]` layouts would
+  keep a second public representation of the same handles alive after its
+  consumers migrated.
+- **Replacement**: `Reader::from_bytes`, `BufReader::new` / `br.read_line()`,
+  `BufWriter::new` / `bw.write_string(s)` / `bw.flush()`, `Writer::new` /
+  `w.write(data)` / `w.write_string(s)` / `w.flush()` / `w.into_bytes()`, and
+  `Io::write_all`.
+- **Retained (2)**: `writer_write` and `writer_write_str` stay `deprecated`
+  under the same window. Exact blocker: `stdout()` and `stderr()` return tagged
+  `Vec<i32>` handles, not `Writer` values, and `std::host::stdio` does not yet
+  expose typed handles with `Write` implementations, so there is no receiver to
+  migrate these two calls to (ADR-085 D9). Deletion condition: those typed
+  handles land.
+- **Scorecard**: deprecated std::io compat frees 15 → **2**; `pub fn`
+  declarations under `std/**/*.ark` 1279 → **1266**; manifest public entries
+  729 → **716**; eradication scope 1104 → **1091**; `must delete` 83 → **70**
+  (all 13 removed entries were already in that class). `std/manifest.toml` and
+  the generated docs are the current source of truth.
+- **Evidence**: stage-2 rebuild from `ebfb2f8be`; the 25 migrated `stdlib_io`
+  / `stdlib_io_rw` / `stdlib_trait` run fixtures compile, validate, and run on
+  both `wasm32-gc` (memory32, WASI P2 component) and `--target wasm32` (core),
+  with identical stdout and matching `.expected` goldens (25/25). Full
+  `verify fixtures`: **1837/1837** compile+validate PASS, 0 failed, 105 runtime
+  smoke, 1 `test:` fixture PASS. `selfhost diag-parity` PASS with the updated
+  W0009 golden and the new E0100 golden
+  (`tests/fixtures/diagnostics/removed_io_compat_free_function.ark`).
+  `check-compat-orphans` clean, `check-stdlib-eradication`
+  717/717 manifest functions + 375/375 unregistered declarations classified,
+  `docs check` **6/6**, `verify lane` PASS, and the ADR-029 fixpoint reached
+  (`sha256(arukellt-s2.wasm) == sha256(arukellt-s3.wasm)` =
+  `27fe9ef5c9e55ea1edfed3b2422159353ea3f7c112c26b51e3a95ced36521474`).
+
 ## 2026-10-27 — std::io trait cutover (ADR-085 Phase E/F, #693)
 
 - **Basis**: [ADR-085](../adr/ADR-085-io-trait-unification.md) D1–D10,

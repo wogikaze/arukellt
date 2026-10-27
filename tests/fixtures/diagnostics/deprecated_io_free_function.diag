@@ -1,1 +1,1 @@
-use `Reader::from_bytes(data)` from `use std::io::Reader` instead
+stdout() / stderr() have no typed `Write` handle yet; use `w.write(data)` on `Writer` for memory handles (#693)

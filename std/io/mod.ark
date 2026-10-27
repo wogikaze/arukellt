@@ -1,4 +1,4 @@
-//! std::io — target-independent I/O abstraction (ADR-085 Phases A–D).
+//! std::io — target-independent I/O abstraction (ADR-085 Phases A–F).
 //!
 //! Defines the public `Read` / `Write` / `BufRead` / `Seek` traits, the
 //! `SeekFrom` origin, the in-memory `Reader` / `Writer` newtypes, the
@@ -28,22 +28,23 @@
 //! # Compatibility surface
 //!
 //! ADR-085 Phase E/F moved the canonical surface to the traits and deleted the
-//! legacy free functions that the newtypes and `Io` fully replace. Two
-//! deprecated `Vec<i32>`-layout families stay callable under the ADR-014
-//! window because their migration is not proven yet:
+//! legacy free functions that the newtypes and `Io` fully replace. Only the
+//! tagged output write path stays callable, and it is deprecated under the
+//! ADR-014 window:
 //!
-//! - `reader_from_bytes` plus the `buf_*` adapters keep the legacy
-//!   `[cursor, ...]` source layout until the generic-adapter dispatch residual
-//!   (#693) no longer traps for migrated fixtures.
-//! - `writer_new` / `writer_write*` / `writer_flush` / `writer_to_bytes` keep
-//!   the tagged `[fd_tag, ...]` layout because `stdout()` / `stderr()` are not
-//!   typed `Write` handles yet; `std::host::stdio` owns that migration.
+//! - `writer_write` / `writer_write_str` keep the tagged `[fd_tag, ...]`
+//!   layout because `stdout()` / `stderr()` are tagged `Vec<i32>` handles and
+//!   `std::host::stdio` does not expose typed `Write` handles yet. Deletion
+//!   condition: those typed handles land, so a `Write` value can be passed
+//!   where a tagged handle is passed today.
 //!
-//! Both families carry `deprecated_by` / `remove_in` and W0009 coverage. The
+//! Both entries carry `deprecated_by` / `remove_in` and W0009 coverage. The
 //! removed `reader_*` read methods, `copy*`, `new_memory_buffer` / `write_bytes`
 //! / `read_bytes` / `seek_to` / `buffer_position` / `buffer_len` /
-//! `fill_buffer`, and the experimental `file_*` fd lane surface as E0100 with
-//! a replacement hint from `resolver::removed_names`.
+//! `fill_buffer`, the `reader_from_bytes` / `buf_*` / `writer_new` /
+//! `write_all` / `write_string` / `writer_flush` / `writer_to_bytes` wrappers,
+//! and the experimental `file_*` fd lane surface as E0100 with a replacement
+//! hint from `resolver::removed_names`.
 //!
 //! `stdin` / `stdout` / `stderr` / `read_stdin_line` / `print_bytes` remain
 //! host-backed compatibility functions; their trait handles belong to the
@@ -760,26 +761,6 @@ impl<W: Write> Write for BufWriter<W> {
     }
 }
 
-// ─── Reader ──────────────────────────────────────────────────────────────────
-/// Creates a Reader over the given byte buffer.
-///
-/// Deprecated legacy constructor for the `[cursor=0, b0, b1, …, bn]` layout;
-/// use `Reader::from_bytes`. It stays callable while the `buf_*` compatibility
-/// adapters still consume that layout (ADR-085 Phase E, W0009). Deletion
-/// condition: the generic adapter dispatch residual (#693) is fixed and the
-/// `buf_*` fixtures move to `BufReader` / `BufWriter`.
-pub fn reader_from_bytes(data: Vec<i32>) -> Vec<i32> {
-    let r: Vec<i32> = Vec::new<i32>()
-    push(r, 0)
-    let n: i32 = len(data)
-    let mut i: i32 = 0
-    while i < n {
-        push(r, get_unchecked(data, i))
-        i = i + 1
-    }
-    r
-}
-
 // ─── Standard I/O (stdin / stdout / stderr) ──────────────────────────────────
 /// Returns a Reader representing stdin.
 ///
@@ -826,23 +807,18 @@ pub fn print_bytes(data: Vec<i32>) {
     __intrinsic_print(s)
 }
 
-// ─── Writer ──────────────────────────────────────────────────────────────────
-/// Creates an in-memory Writer.
-///
-/// Deprecated legacy tagged-layout constructor; use `Writer::new`. Retained for
-/// the `stdout()` / `stderr()` compatibility path and old callers (ADR-085
-/// Phase E, W0009).
-pub fn writer_new() -> Vec<i32> {
-    let w: Vec<i32> = Vec::new<i32>()
-    push(w, 0)
-    w
-}
+// ─── Tagged output writers (host stdio compatibility) ───────────────────────
+//
+// ADR-085 D9 keeps this pair callable while `stdout()` / `stderr()` are tagged
+// `Vec<i32>` handles. Deletion condition: `std::host::stdio` exposes typed
+// `Write` handles, so the tagged layout no longer has to carry output sinks.
 
-/// Writes `data` bytes to the Writer. Returns the number of bytes written.
+/// Writes `data` bytes to a tagged Writer handle. Returns the number of bytes
+/// written.
 ///
-/// Deprecated in favour of `Writer::write` for memory handles. The
-/// `stdout()` / `stderr()` tags still need this free function because those
-/// handles are not `Writer` values (ADR-085 Phase E, W0009).
+/// Deprecated in favour of `Writer::write` for memory handles. This function
+/// stays because `stdout()` / `stderr()` return tagged `Vec<i32>` handles with
+/// no `Write` implementation yet (ADR-085 D9, #693).
 ///
 /// - Memory writers buffer the bytes.
 /// - stdout/stderr writers emit synchronously via print intrinsics.
@@ -872,11 +848,12 @@ pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, IoError> {
     }
 }
 
-/// Writes a string to the Writer. Returns the number of bytes written.
+/// Writes a string to a tagged Writer handle. Returns the number of bytes
+/// written.
 ///
-/// Deprecated in favour of `Writer::write_string` for memory handles; the
-/// tagged stdout/stderr path has no typed `Write` handle yet (ADR-085 Phase E,
-/// W0009).
+/// Deprecated in favour of `Writer::write_string` for memory handles. This
+/// function stays because `stdout()` / `stderr()` return tagged `Vec<i32>`
+/// handles with no `Write` implementation yet (ADR-085 D9, #693).
 pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
     let tag: i32 = get_unchecked(w, 0)
     let n: i32 = len(s)
@@ -896,194 +873,4 @@ pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, IoError> {
             Ok(n)
         }
     }
-}
-
-/// Writes all bytes in `data`; returns `()` on success.
-///
-/// Deprecated in favour of `Io::write_all` (ADR-085 Phase E, W0009).
-pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), IoError> {
-    match writer_write(w, data) {
-        Result::Ok(_) => Ok(()),
-        Result::Err(e) => Err(e),
-    }
-}
-
-/// Writes a string; returns `()` on success.
-///
-/// Deprecated in favour of `Writer::write_string` (ADR-085 Phase E, W0009).
-pub fn write_string(w: Vec<i32>, s: String) -> Result<(), IoError> {
-    match writer_write_str(w, s) {
-        Result::Ok(_) => Ok(()),
-        Result::Err(e) => Err(e),
-    }
-}
-
-/// Flushes the Writer.
-///
-/// Deprecated in favour of `Writer::flush` (ADR-085 Phase E, W0009).
-///
-/// stdout/stderr Writers already emit synchronously, so this is always a no-op.
-/// Memory Writers buffer locally; no underlying fd to flush.
-pub fn writer_flush(w: Vec<i32>) -> Result<(), IoError> {
-    Ok(())
-}
-
-/// Returns the buffered bytes of a memory Writer.
-///
-/// Deprecated in favour of `Writer::into_bytes` (ADR-085 Phase E, W0009).
-///
-/// For stdout/stderr Writers, returns an empty Vec (bytes were already emitted).
-pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
-    let out: Vec<i32> = Vec::new<i32>()
-    let tag: i32 = get_unchecked(w, 0)
-    if tag == 0 {
-        let total: i32 = len(w)
-        let mut i: i32 = 1
-        while i < total {
-            push(out, get_unchecked(w, i))
-            i = i + 1
-        }
-    }
-    out
-}
-
-// ─── Legacy buffered layout compatibility ───────────────────────────────────
-//
-// The `buf_*` entry points below are deprecated compatibility adapters over the
-// legacy `Vec<i32>` layouts (ADR-085 Phase E, W0009). The canonical adapters are
-// the generic `BufReader<R>` / `BufWriter<W>` above. This family stays during
-// the ADR-014 window because migrating its fixtures to the generic adapters
-// currently exposes the generic-adapter dispatch residual tracked by #693.
-
-/// Creates a BufReader wrapping a Reader, with a read-ahead hint of `cap` bytes.
-///
-/// Deprecated in favour of `BufReader::new` (ADR-085 Phase E, W0009).
-///
-/// BufReader layout: `[cursor=0, buf_cap, b0, b1, …, bn]`
-/// (The cap hint is stored but does not change in-memory behavior.)
-pub fn buf_reader_new(r: Vec<i32>, cap: i32) -> Vec<i32> {
-    let br: Vec<i32> = Vec::new<i32>()
-    push(br, 0)
-    push(br, cap)
-    let r_total: i32 = len(r) - 1
-    let mut i: i32 = 0
-    while i < r_total {
-        push(br, get_unchecked(r, 1 + i))
-        i = i + 1
-    }
-    br
-}
-
-/// Alias for `buf_reader_new` (issue API name).
-///
-/// Deprecated in favour of `BufReader::new` (ADR-085 Phase E, W0009).
-pub fn buffered_reader(r: Vec<i32>, buf_size: i32) -> Vec<i32> {
-    buf_reader_new(r, buf_size)
-}
-
-/// Reads a line from a BufReader.
-///
-/// Deprecated in favour of `BufRead::read_line` (ADR-085 Phase E, W0009).
-///
-/// BufReader bytes start at index 2. Newline is consumed but not included;
-/// EOF returns an empty string here, unlike the `Option::None` of the method.
-pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
-    let cursor: i32 = get_unchecked(br, 0)
-    let total: i32 = len(br) - 2
-    let mut line: String = ""
-    let mut pos: i32 = cursor
-    let mut stop: bool = false
-    // Stop after newline; do not jump to EOF (that skipped later lines).
-    while pos < total && !stop {
-        let b: i32 = get_unchecked(br, 2 + pos)
-        pos = pos + 1
-        if b == 10 {
-            stop = true
-        } else {
-            line = __intrinsic_concat(line, char_to_string(b))
-        }
-    }
-    set(br, 0, pos)
-    Ok(line)
-}
-
-/// Creates a BufWriter wrapping a Writer, with a flush threshold of `cap` bytes.
-///
-/// Deprecated in favour of `BufWriter::new` (ADR-085 Phase E, W0009).
-///
-/// BufWriter layout: `[fd_tag, buf_cap, b0, b1, …, bn]`
-/// Auto-flushes when the buffer reaches `cap`.
-pub fn buf_writer_new(w: Vec<i32>, cap: i32) -> Vec<i32> {
-    let bw: Vec<i32> = Vec::new<i32>()
-    let tag: i32 = get_unchecked(w, 0)
-    push(bw, tag)
-    push(bw, cap)
-    bw
-}
-
-/// Alias for `buf_writer_new` (issue API name).
-///
-/// Deprecated in favour of `BufWriter::new` (ADR-085 Phase E, W0009).
-pub fn buffered_writer(w: Vec<i32>, buf_size: i32) -> Vec<i32> {
-    buf_writer_new(w, buf_size)
-}
-
-/// Writes a string to a BufWriter.
-///
-/// Deprecated in favour of `BufWriter::write_string` (ADR-085 Phase E, W0009).
-///
-/// Auto-flushes to the underlying output when the buffer reaches buf_cap.
-pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
-    let cap: i32 = get_unchecked(bw, 1)
-    let n: i32 = len(s)
-    let mut i: i32 = 0
-    while i < n {
-        push(bw, byte_at(s, i) & 255)
-        i = i + 1
-    }
-    let buf_size: i32 = len(bw) - 2
-    if buf_size >= cap {
-        let _: Result<(), IoError> = buf_writer_flush(bw)
-    }
-    Ok(n)
-}
-
-/// Flushes the BufWriter: emits all buffered bytes to the underlying output.
-///
-/// Deprecated in favour of `BufWriter::flush` (ADR-085 Phase E, W0009).
-///
-/// - stdout/stderr: prints buffered content, then clears the buffer.
-/// - memory: clears the buffer (bytes are considered consumed by the caller).
-pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
-    let tag: i32 = get_unchecked(bw, 0)
-    let cap: i32 = get_unchecked(bw, 1)
-    let buf_size: i32 = len(bw) - 2
-    if buf_size > 0 {
-        if tag == 1 {
-            let mut s: String = ""
-            let mut i: i32 = 0
-            while i < buf_size {
-                s = __intrinsic_concat(s, char_to_string(get_unchecked(bw, 2 + i) & 255))
-                i = i + 1
-            }
-            __intrinsic_print(s)
-        } else {
-            if tag == 2 {
-                let mut s: String = ""
-                let mut i: i32 = 0
-                while i < buf_size {
-                    s = __intrinsic_concat(s, char_to_string(get_unchecked(bw, 2 + i) & 255))
-                    i = i + 1
-                }
-                __intrinsic_eprintln(s)
-            }
-        }
-        // `clear` has no emitter; pop payload then restore tag/cap (#807).
-        while len(bw) > 0 {
-            let _: Option<i32> = pop(bw)
-        }
-        push(bw, tag)
-        push(bw, cap)
-    }
-    Ok(())
 }

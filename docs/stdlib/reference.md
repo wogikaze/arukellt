@@ -11,7 +11,7 @@
 | `stable` | 287 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 63 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 298 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 81 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -608,26 +608,13 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`buf_reader_new`~~ ⚠️ Deprecated → `BufReader::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility adapter over the legacy [cursor, ...] layout; use BufReader::new. |
-| ~~`buf_reader_read_line`~~ ⚠️ Deprecated → `BufReader::read_line` | `(Vec<i32>) -> Result<String, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility line reader over the legacy layout; use BufRead::read_line (`Option<Strin… |
-| ~~`buf_writer_flush`~~ ⚠️ Deprecated → `BufWriter::flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`buf_writer_new`~~ ⚠️ Deprecated → `BufWriter::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility adapter over the legacy [fd_tag, ...] layout; use BufWriter::new. |
-| ~~`buf_writer_write_str`~~ ⚠️ Deprecated → `BufWriter::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated compatibility string writer over the legacy layout; use BufWriter::write_string. |
-| ~~`buffered_reader`~~ ⚠️ Deprecated → `BufReader::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated alias for buf_reader_new; use BufReader::new. |
-| ~~`buffered_writer`~~ ⚠️ Deprecated → `BufWriter::new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated alias for buf_writer_new; use BufWriter::new. |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `read_stdin_line` | `() -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| ~~`reader_from_bytes`~~ ⚠️ Deprecated → `Reader::from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy constructor for the [cursor, ...] layout; use Reader::from_bytes. Retained whi… |
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| ~~`write_all`~~ ⚠️ Deprecated → `Io::write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated convenience wrapper; use Io::write_all. |
-| ~~`write_string`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated convenience wrapper; use Writer::write_string. |
-| ~~`writer_flush`~~ ⚠️ Deprecated → `Writer::flush` | `(Vec<i32>) -> Result<(), IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated no-op flush over the legacy tagged layout; use Writer::flush. |
-| ~~`writer_new`~~ ⚠️ Deprecated → `Writer::new` | `() -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged-layout constructor; use Writer::new. |
-| ~~`writer_to_bytes`~~ ⚠️ Deprecated → `Writer::into_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy image accessor; use Writer::into_bytes. |
-| ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged write (memory or stdout/stderr tags); use Writer::write for memory handle… |
-| ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated legacy tagged string write; use Writer::write_string for memory handles. |
+| ~~`writer_write`~~ ⚠️ Deprecated → `Writer::write` | `(Vec<i32>, Vec<i32>) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged write for stdout() / stderr(); use Writer::write for memory handles. Stays until… |
+| ~~`writer_write_str`~~ ⚠️ Deprecated → `Writer::write_string` | `(Vec<i32>, String) -> Result<i32, IoError>` | `std::io` | `deprecated` | `functional` | `builtin` | no | - | Deprecated tagged string write for stdout() / stderr(); use Writer::write_string for memory handle… |
 
 ## Iter
 
@@ -1164,7 +1151,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **81 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1174,13 +1161,6 @@ let input = read_to_string()
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_reader_new`~~ | `BufReader::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_reader_read_line`~~ | `BufReader::read_line` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_flush`~~ | `BufWriter::flush` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_new`~~ | `BufWriter::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_writer_write_str`~~ | `BufWriter::write_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buffered_reader`~~ | `BufReader::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buffered_writer`~~ | `BufWriter::new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `std::core::iter::iter_count_eq_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1228,7 +1208,6 @@ let input = read_to_string()
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`reader_from_bytes`~~ | `Reader::from_bytes` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `std::core::iter::iter_contains_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `std::core::iter::iter_reverse_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
@@ -1242,10 +1221,5 @@ let input = read_to_string()
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`unique`~~ | `std::core::iter::iter_unique_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_all`~~ | `Io::write_all` | [migration-guidance.md](migration-guidance.md) |
-| ~~`write_string`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_flush`~~ | `Writer::flush` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_new`~~ | `Writer::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`writer_to_bytes`~~ | `Writer::into_bytes` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write`~~ | `Writer::write` | [migration-guidance.md](migration-guidance.md) |
 | ~~`writer_write_str`~~ | `Writer::write_string` | [migration-guidance.md](migration-guidance.md) |

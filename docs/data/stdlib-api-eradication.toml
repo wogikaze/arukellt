@@ -207,7 +207,7 @@ module = "std::io"
 deprecated = true
 class = "must delete"
 owner = "693"
-replacement = "Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The Vec-layout wrappers stay through the #693 window: reader_from_bytes / buf_* until the generic-adapter dispatch residual is fixed and their fixtures migrate; writer_write* / writer_flush / writer_to_bytes until std::host::stdio exposes typed Read / Write handles for stdout() / stderr()."
+replacement = "Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The remaining writer_write / writer_write_str wrappers stay through the #693 window only because stdout() / stderr() are tagged Vec<i32> handles; they are deleted when std::host::stdio exposes typed Write handles."
 
 [[rules]]
 label = "deprecated std::seq helpers"

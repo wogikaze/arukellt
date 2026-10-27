@@ -1890,9 +1890,10 @@ core_op_id = "vec.push_i64"
 alias = "vec_set"
 core_op_id = "vec.set"
 
-# Bare `write_bytes` / `write_string` must not bind to filesystem CoreOps:
-# `io::write_bytes` / `io::write_string` share those short names and must keep
-# their Ark Writer bodies. Use `fs::write_*` / `fs_write_*` / intrinsic aliases.
+# Bare `write_bytes` / `write_string` must not bind to filesystem CoreOps.
+# Use the explicit `fs::write_*` / `fs_write_*` spellings or the intrinsic
+# aliases; the former `io::write_*` compatibility names were retired in
+# ADR-085 Phase F.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types

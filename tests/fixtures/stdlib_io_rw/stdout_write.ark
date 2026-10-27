@@ -3,25 +3,20 @@ use std::host::stdio
 use std::io
 
 fn main() {
+    // stdout() is still a tagged Vec<i32> handle, so writing to it stays on the
+    // deprecated writer_write_str until std::host::stdio exposes typed Write
+    // handles (ADR-085 D9).
     let w: Vec<i32> = io::stdout()
     let r: Result<i32, io::IoError> = io::writer_write_str(w, "stdout line\n")
     match r {
         Result::Ok(_) => (),
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let b: Vec<i32> = io::writer_to_bytes(w)
-    stdio::println((bytes::bytes_len(b)).to_string())
-    let w2: Vec<i32> = io::writer_new()
-    // Prefer writer_write_str: write_string's Result<()> Ok(()) mis-lowers on
-    // wasm32-gc (#807).
-    let r2: Result<i32, io::IoError> = io::writer_write_str(w2, "buffered")
+    let w2: io::Writer = io::Writer::new()
+    let r2: Result<i32, io::IoError> = w2.write_string("buffered")
     match r2 {
         Result::Ok(_) => stdio::println("write ok"),
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
-    let b2: Vec<i32> = io::writer_to_bytes(w2)
-    stdio::println(bytes::string_from_bytes(b2))
+    stdio::println(bytes::string_from_bytes(w2.into_bytes()))
 }
-// stdout writer: write_str should print immediately
-// writer_to_bytes on stdout writer returns empty
-// memory writer_write_str buffers bytes
