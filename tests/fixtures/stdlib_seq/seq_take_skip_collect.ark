@@ -1,0 +1,35 @@
+// std::seq::take_i32 / skip_i32 instantiate the lazy TakeIter / SkipIter
+// collectors from inside a std module; this pins that collect lane and its
+// boundary conditions on wasm32-gc.
+use std::seq
+use std::test
+
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    push(values, 1)
+    push(values, 2)
+    push(values, 3)
+    push(values, 4)
+    push(values, 5)
+
+    let first_two = seq::take_i32(values, 2)
+    test::assert_eq_i32(len(first_two), 2)
+    test::assert_eq_i32(get_unchecked(first_two, 0), 1)
+    test::assert_eq_i32(get_unchecked(first_two, 1), 2)
+
+    let none = seq::take_i32(values, 0)
+    test::assert_eq_i32(len(none), 0)
+    let all = seq::take_i32(values, 99)
+    test::assert_eq_i32(len(all), 5)
+    test::assert_eq_i32(get_unchecked(all, 4), 5)
+
+    let after_two = seq::skip_i32(values, 2)
+    test::assert_eq_i32(len(after_two), 3)
+    test::assert_eq_i32(get_unchecked(after_two, 0), 3)
+    test::assert_eq_i32(get_unchecked(after_two, 2), 5)
+
+    let unchanged = seq::skip_i32(values, 0)
+    test::assert_eq_i32(len(unchanged), 5)
+    let skipped_all = seq::skip_i32(values, 99)
+    test::assert_eq_i32(len(skipped_all), 0)
+}

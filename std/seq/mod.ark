@@ -22,47 +22,13 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 }
 
 /// Return the first `n` elements of `v`.
-///
-/// The eager bound keeps this deprecated shim independent of the lazy
-/// `TakeIter` collector, whose item type mis-resolves when instantiated from
-/// a std module (#691). Replace with `v.iter().take(n).collect()` once that
-/// collector lane compiles here.
 pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    let out: Vec<i32> = Vec::new<i32>()
-    let limit: i32 = if n < 0 {
-        0
-    } else if n > len(v) {
-        len(v)
-    } else {
-        n
-    }
-    let mut i: i32 = 0
-    while i < limit {
-        push(out, get_unchecked(v, i))
-        i = i + 1
-    }
-    out
+    v.iter().take(n).collect()
 }
 
 /// Return all elements of `v` after skipping the first `n`.
-///
-/// Same eager-copy reason as `take_i32`: the lazy `SkipIter` collector
-/// mis-resolves its item type in std context (#691); switch back when fixed.
 pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    let out: Vec<i32> = Vec::new<i32>()
-    let start: i32 = if n < 0 {
-        0
-    } else if n > len(v) {
-        len(v)
-    } else {
-        n
-    }
-    let mut i: i32 = start
-    while i < len(v) {
-        push(out, get_unchecked(v, i))
-        i = i + 1
-    }
-    out
+    v.iter().skip(n).collect()
 }
 
 /// Reduce `v` to a single value using `f`, starting from `init`.

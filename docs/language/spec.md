@@ -1128,14 +1128,12 @@ fixture verifies direct collection, source-qualified construction, generic
 Wasm. This is concrete numeric evidence, not arbitrary item-generic adapter
 support.
 The compatibility helpers in `std::seq` (`map_i32_i32`, `filter_i32`,
-`take_i32`, `skip_i32`, and `fold_i32_i32`) keep their eager signatures.
-`map` / `filter` / `fold` delegate to the canonical iterator methods;
-`take` / `skip` currently copy the bounded range eagerly because the
-`TakeIter` / `SkipIter` collector mis-resolves its item type when instantiated
-from a std module, while the same method chain compiles from user code (#691).
-The `seq_map_filter.ark` and `seq_take_skip_fold.ark` fixtures compile,
-validate, and produce identical output on `wasm32-gc` and linear-memory
-`wasm32`.
+`take_i32`, `skip_i32`, and `fold_i32_i32`) keep their eager signatures while
+delegating to the canonical lazy iterator methods, including
+`take` / `skip` and their `TakeIter` / `SkipIter` collectors (#691). The
+`seq_map_filter.ark`, `seq_take_skip_fold.ark`, and
+`seq_take_skip_collect.ark` fixtures compile, validate, and produce identical
+output on `wasm32-gc` and linear-memory `wasm32`.
 
 ### 4.6 Semicolons
 

@@ -305,74 +305,42 @@ classified there, in dependency-safe waves.
   wit/component, host/core, io, test, collections, json/toml/csv) and the
   `filter_i32` deferral are untouched.
 
-### Landed slice (wave/hash-lowering, 2026-10-27)
+### Landed slice (wave/iter-collect-fix, 2026-10-27)
 
-- **Lowering first, then retirement.** `HashMap<K,V>` methods are now the
-  canonical lowering target. `call_rewrite_hashmap::hashmap_family_method_target`
-  rewrites every supported pair directly to the non-public implementation
-  functions (`hash_string::hashmap_str_get`,
-  `hash_string::hashmap_i32_str_insert`, `hash_fn::hashmap_i32_fn_insert`,
-  `hash_str_fn::hashmap_str_fn_get`, …) instead of the deleted
-  `hash_map::hashmap_*` adapters. `insert` keeps the previous-value
-  `Option<V>` contract (get-before-set), so the targets are semantic
-  implementations, not pure forwarders. The three String-keyed pairs gained
-  non-public `insert` / `is_empty` helpers; `hashmap_i32_str_len` /
-  `hashmap_str_str_len` now call their `__hm_*` size primitive directly
-  because the same-named adapters that forced the #807 workaround are gone.
-- **Retired (101 symbols, all unregistered source declarations):** the 50
-  `std::collections::hash_map` `hashmap_*` adapters, the 29
-  `std::collections::hash_string` implementation frees, and the 11 + 11
-  `hash_fn` / `hash_str_fn` implementation frees. Their bodies remain as
-  module-private `fn` lowering targets; only the public spelling is gone.
-  `hashmap_str_val_set` / `hashmap_str_val_get` (pure forwarders) were
-  deleted. The six duplicate `hash_map::hashset_str_*` frees were deleted
-  too; the fixtures use the `hash_set::hashset_str_*` facade.
-- **Loader:** `HashMap::` sources now load `hash_string`, `hash_fn`, and
-  `hash_str_fn` explicitly (`loader::load`), because `hash_map.ark` no
-  longer imports the implementation modules it used to forward to.
-- **E0100:** bare and module-qualified adapter spellings
-  (`hashmap_str_i32_*`, `hash_map::*`, `hash_string::*`, `hash_fn::*`,
-  `hash_str_fn::*`) get the method-surface hint from
-  `resolver::removed_names::hashmap_method_replacement_hint`; unit
-  assertions cover both hint surfaces and the live-method negative case.
-  New dual-target goldens: `diagnostics/removed_hashmap_adapter*.ark`.
-- **Fixtures:** 11 fixtures migrated to `HashMap::new<K,V>()` + receiver
-  methods (`typed_str_i32_basic`, `typed_i32_str_basic`,
-  `typed_str_str_basic`, `hashmap_generic_demo`, `hashmap_parity_edges`,
-  `option_fn_return_boundary`, `collections/hashmap_{string,i32}_fn_*`).
-  The old `set`-only fn-map fixtures use `insert` (same previous-value
-  semantics). `hashset_string_facades` uses `hash_set::hashset_str_*`.
-- **Scorecard delta (base-consistent):** 1047 → **946** symbols;
-  `associated-or-method` 977 → **876**; unregistered declarations 375 →
-  **274**; `pub fn` declarations 1222 → **1115**. Manifest public entries
-  stay **672**, `must delete` 70, `intrinsic-only` 1, `prelude_wrapper` 65.
-  The committed generated scorecard said 1060 because it predated the last
-  manifest change; this wave regenerated it (see Residuals).
-- **Verification:** stage-2 rebuild; the 11 migrated fixtures compile and
-  run on both `wasm32-gc` (component) and linear `wasm32` with identical
-  stdout (cross-backend parity 11/11); `verify fixtures` **1839/1839**
-  run-fixture compile+validate PASS / 0 FAIL; `selfhost diag-parity`
-  **119/119** PASS including the two new E0100 goldens; the eradication
-  checker is clean; `docs regenerate` / `docs check` clean after syncing
-  `project-state.toml`'s fixture registry count (3260 → 3262).
-- **Residual / blocker (HashSet):** the 15 `std::collections::hash_set`
-  `hashset_i32_*` adapters cannot retire by lowering yet. There is no
-  `HashSet<T>` type surface: they are free functions over a `Vec<i32>`
-  receiver that forward to the registered `hash::hashset_*` functions, so
-  there is no receiver type for a method rewrite and no associated type to
-  hang `new` off. (The `HashSet<String>` facade is a separate
-  `Vec<String>` API and is equally typeless.) Unblocking needs a
-  `HashSet<T>` nominal type plus `impl HashSet<i32>` lowering targets and
-  an MIR pair-family rewrite, i.e. the collection type-surface work owned
-  by #710-style lanes — deleting the 15 now would remove the only user
-  spelling without a replacement. They remain under the `hash set
-  monomorphic adapters` rule with the blocker recorded there.
-- **Residual (docs drift, fixed in this wave):** the committed
-  `docs/stdlib/eradication.md` / `docs/stdlib/README.md` /
-  `docs/current-state.md` snapshots still claimed 1060 symbols / 685
-  manifest APIs; the real base was 1047 / 672. Regenerating here also
-  picked up the #693 `std::io` manifest shrink (20 → 7 APIs) that had not
-  been regenerated, so the docs diff is larger than this wave's symbols.
+- Fixed the three iterator-collect residuals from the `next1054` lane.
+- `UniqueIter` / `RevIter` `.collect()`: the AST edge type memo keyed only on
+  `(span_start, span_end)`, but every method-call node in one postfix chain
+  shares that span; `a.iter().unique().collect()` cached `VecIter<i32>` for the
+  `unique` receiver, kept `VecIter::collect`, and dropped
+  `UniqueIter::collect`, so emit used the unresolved `drop; unreachable`
+  fallback. The memo key now includes the method name, and a duplicated
+  `(span, name)` key is treated as ambiguous instead of returning another
+  node's type.
+- `TakeIter` / `SkipIter` `.collect()`: a generic method body's `for`
+  desugar records `TakeIter::into_iter` at one span per source site; the
+  first concrete instantiation (`MapIter<String,String>`) pinned the site and
+  every other instance emitted that wrong callee (invalid Wasm signature).
+  Both adapters now drain through an explicit `self.next()` loop in their
+  collect hook, so `I::Item` resolves per instance without the `for` desugar.
+  `std::seq::take_i32` / `skip_i32` are lazy again. The generic-`for` site selection itself remains
+  a residual for other adapter bodies (it needs per-enclosing-instance
+  call-site records).
+- Import-less `std::core::iter` methods: the typechecker silently returned
+  `TY_UNKNOWN` when the module was not loaded, and lowering emitted the
+  unresolved fallback. An unresolved iterator method on a `Vec` / iterator
+  receiver now reports ``method `<name>` requires `use std::core::iter` ``
+  (E0200). Auto-loading the module was rejected because iter's
+  `Pair<A, B>` / `Range` declarations collide with same-named user types in
+  the shared type registry.
+- Fixtures: `stdlib_trait/iterator_unique_rev_collect*.ark`,
+  `stdlib_trait/iterator_methods_no_import*.ark`,
+  `stdlib_seq/seq_take_skip_collect*.ark`, and the updated
+  `iterator_method_surface*.ark` pair, verified on `wasm32-gc` (memory32/P2)
+  and `--target wasm32`.
+- Residuals: negative `n` to the `std::seq` take shim still traps on linear
+  `wasm32` (the eager implementation traps the same way, so it is a separate
+  pre-existing linear lowering bug), and the generic-`for` site pinning
+  remains for adapter bodies other than the two collect hooks fixed here.
 
 ## Required work
 
@@ -417,12 +385,6 @@ classified there, in dependency-safe waves.
         `std::core::iter` constructor / collector frees retired after the
         `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
         landed with the wave) replaced them.
-      - Landed 2026-10-27 (`wave/hash-lowering`): the 50 `hash_map`
-        adapters and the 29 + 11 + 11 `hash_string` / `hash_fn` /
-        `hash_str_fn` implementation frees retired after the
-        `HashMap<K,V>` methods became the direct MIR lowering target. The
-        15 `hash_set` adapters stay blocked on a missing `HashSet<T>` type
-        surface (see the slice residual).
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a
@@ -430,10 +392,6 @@ classified there, in dependency-safe waves.
 
 ## Acceptance
 
-> HashSet blocker (2026-10-27): the `hash set monomorphic adapters` rule
-> still counts 15 `hashset_i32_*` frees because no `HashSet<T>` type surface
-> exists yet; every other hash-family rule is retired. See the
-> `wave/hash-lowering` slice residual for the unblock conditions.
 - [ ] Generated scorecard shows 0 public free functions, 0
       `prelude_wrapper` entries, 0 monomorphic helpers.
 - [ ] `python3 scripts/check/check-stdlib-eradication.py` passes.

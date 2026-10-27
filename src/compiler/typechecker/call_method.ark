@@ -1,4 +1,4 @@
-use std::prelude::{clone, eq}
+use std::prelude::{clone, contains, eq}
 use std::text
 use typechecker::kinds
 use typechecker::ast_access
@@ -22,6 +22,7 @@ use typechecker::trait_bounds
 use typechecker::trait_method_registry
 use typechecker::trait_method_record
 use typechecker::type_names
+use typechecker::unify
 use typechecker::vec_core_mono
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
@@ -149,6 +150,31 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         // `Receiver::method` at rebind (#912).
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_TYPE_VAR() {
             mono_instances::record_var_method_site(env, clone(method_name), clone(recv_ty))
+        }
+        // Without this diagnostic an unloaded std::core::iter resolves the
+        // method to TY_UNKNOWN and MIR emits the unresolved drop+unreachable
+        // fallback, so a runtime trap replaces a missing-import error.
+        if is_iterator_api_method(clone(method_name)) && receiver_exposes_iterator_api(recv_ty) {
+            let message = text::concat(
+                String_from("method `"),
+                text::concat(
+                    clone(method_name),
+                    String_from("` requires `use std::core::iter`")
+                )
+            )
+            // Speculative inference visits the same node more than once;
+            // report the missing import once per environment.
+            let mut seen = false
+            let mut ei = 0
+            while ei < len(env.errors) {
+                if eq(clone(get_unchecked(env.errors, ei)), clone(message)) {
+                    seen = true
+                }
+                ei = ei + 1
+            }
+            if !seen {
+                unify::type_error(env, message)
+            }
         }
         return simple_type(commands::TY_UNKNOWN())
     }
@@ -618,4 +644,22 @@ fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
         }
     }
     ret_ty
+}
+
+fn is_iterator_api_method(method_name: String) -> bool {
+    let names = String_from("|iter|into_iter|collect|count|map|filter|take|skip|flat_map|peekable|step_by|scan|chain|enumerate|zip|rev|unique|any|all|sum|fold|contains|count_eq|find|")
+    contains(names, text::concat("|", text::concat(method_name, String_from("|"))))
+}
+
+fn receiver_exposes_iterator_api(recv_ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(recv_ty)
+    if tag == commands::TY_VEC() {
+        return true
+    }
+    let name = contract_type_access::TypeInfo_name(recv_ty)
+    let n = len(name)
+    if n >= 4 && contains(name, String_from("Iter")) {
+        return true
+    }
+    eq(clone(name), String_from("Range")) || eq(clone(name), String_from("RangeInclusive"))
 }

@@ -753,8 +753,11 @@ impl Iterator for TakeIter<I> {
 
     fn collect(self: TakeIter<I>) -> Vec<I::Item> {
         let out: Vec<I::Item> = Vec::new<I::Item>()
-        for item in self {
-            push(out, item)
+        while true {
+            match self.next() {
+                Some(value) => push(out, value),
+                None => { break },
+            }
         }
         out
     }
@@ -822,8 +825,11 @@ impl Iterator for SkipIter<I> {
 
     fn collect(self: SkipIter<I>) -> Vec<I::Item> {
         let out: Vec<I::Item> = Vec::new<I::Item>()
-        for item in self {
-            push(out, item)
+        while true {
+            match self.next() {
+                Some(value) => push(out, value),
+                None => { break },
+            }
         }
         out
     }

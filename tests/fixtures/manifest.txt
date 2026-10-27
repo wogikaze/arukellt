@@ -344,6 +344,7 @@ diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
 diag:diagnostics/hashmap_entries_unsupported_pair.ark
 diag:diagnostics/hashmap_unsupported_pair.ark
+diag:diagnostics/iterator_methods_no_import.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 diag:selfhost/typescheme_deny_no_generalize.ark
 diag:selfhost/typescheme_environment_monomorphic.ark
@@ -1474,6 +1475,8 @@ run:stdlib_seq/seq_basic.ark
 run:stdlib_seq/seq_edge_cases.ark
 run:stdlib_seq/seq_map_filter.ark
 run:stdlib_seq/seq_take_skip_fold.ark
+run:stdlib_seq/seq_take_skip_collect.ark
+run:stdlib_seq/seq_take_skip_collect_wasm32.ark
 run:stdlib_seq/seq_generic_string_instantiation.ark
 run:stdlib_signal/fft.ark
 run:stdlib_sort/sort_f64.ark
@@ -1927,6 +1930,8 @@ run:stdlib_trait/iterator_sum_basic.ark
 run:stdlib_trait/iterator_take_basic.ark
 run:stdlib_trait/iterator_take_more_than_len.ark
 run:stdlib_trait/iterator_take_zero.ark
+run:stdlib_trait/iterator_unique_rev_collect.ark
+run:stdlib_trait/iterator_unique_rev_collect_wasm32.ark
 run:stdlib_trait/iterator_vec_iter_empty.ark
 run:stdlib_trait/iterator_vec_iter_for_loop.ark
 run:stdlib_trait/iterator_vec_iter_next.ark

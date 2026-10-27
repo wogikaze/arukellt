@@ -81,18 +81,31 @@ struct AstEdgeTable {
 struct EdgeTypeMemo {
     starts: Vec<i32>,
     ends: Vec<i32>,
+    names: Vec<String>,
     types: Vec<String>,
 }
 
-fn edge_type_memo_find(memo: EdgeTypeMemo, span_start: i32, span_end: i32) -> i32 {
+// Nested method calls in one postfix chain share the whole expression's
+// span (a.iter().unique().collect() gives every node the same
+// start/end), so the span pair alone cannot identify a node. Include the
+// method name: sibling calls usually differ (iter/unique/collect). If
+// two entries still collide, treat the key as ambiguous and recompute
+// instead of returning another node's type.
+fn edge_type_memo_find(memo: EdgeTypeMemo, span_start: i32, span_end: i32, name: String) -> i32 {
+    let mut found = 0 - 1
     let mut i = 0
     while i < len(memo.starts) {
-        if get_unchecked(memo.starts, i) == span_start && get_unchecked(memo.ends, i) == span_end {
-            return i
+        if get_unchecked(memo.starts, i) == span_start &&
+        get_unchecked(memo.ends, i) == span_end &&
+        eq(clone(get_unchecked(memo.names, i)), clone(name)) {
+            if found >= 0 {
+                return 0 - 1
+            }
+            found = i
         }
         i = i + 1
     }
-    0 - 1
+    found
 }
 
 // Reuse the per-decl walk allocations: popping to empty keeps each
@@ -119,6 +132,9 @@ fn edge_walk_state_clear(
     }
     while len(memo.ends) > 0 {
         pop(memo.ends)
+    }
+    while len(memo.names) > 0 {
+        pop(memo.names)
     }
     while len(memo.types) > 0 {
         pop(memo.types)
@@ -667,13 +683,19 @@ fn edge_infer_expr_type(
     frontend_ast_children::corehir_node_child_count(node) > 0 {
         let node_span_start = frontend_ast_span::corehir_node_span_start(node)
         let node_span_end = frontend_ast_span::corehir_node_span_end(node)
-        let memo_idx = edge_type_memo_find(memo, node_span_start, node_span_end)
+        let memo_idx = edge_type_memo_find(
+            memo,
+            node_span_start,
+            node_span_end,
+            frontend_ast_identity::corehir_node_text(node)
+        )
         if memo_idx >= 0 {
             return clone(get_unchecked(memo.types, memo_idx))
         }
         let inferred = edge_infer_method_type(ctx, node, env_names, env_types, memo)
         push(memo.starts, node_span_start)
         push(memo.ends, node_span_end)
+        push(memo.names, frontend_ast_identity::corehir_node_text(node))
         push(memo.types, clone(inferred))
         return inferred
     }
@@ -1390,6 +1412,7 @@ fn mir_ast_edge_table_build(ctx: LowerCtx, body_source: MirLowerEntryBodySource,
     let memo = EdgeTypeMemo {
         starts: Vec::new<i32>(),
         ends: Vec::new<i32>(),
+        names: Vec::new<String>(),
         types: Vec::new<String>()
     }
     let mut di = 0

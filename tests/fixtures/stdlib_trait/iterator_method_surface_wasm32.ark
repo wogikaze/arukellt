@@ -79,21 +79,18 @@ fn main() {
     test::assert_eq_i32(len(stepped), 2)
     let scanned = a.iter().scan(0, running_sum).collect()
     test::assert_eq_i32(get_unchecked(scanned, 3), 10)
-    // The eager `collect` lane on UniqueIter / RevIter traps in the shared
-    // generic collector (pre-existing iterator residual, independent of the
-    // free-function retirement), so pin the working next / count paths.
+    // Unique / rev collectors share collect_iterator<T>; collect pins the
+    // first-occurrence and reverse-order results, not only next / count.
+    let unique = a.iter().unique().collect()
+    test::assert_eq_i32(len(unique), 4)
+    test::assert_eq_i32(get_unchecked(unique, 0), 1)
+    test::assert_eq_i32(get_unchecked(unique, 3), 4)
     test::assert_eq_i32(a.iter().unique().count(), 4)
-    let mut unique_iter = a.iter().unique()
-    match unique_iter.next() {
-        Some(value) => test::assert_eq_i32(value, 1),
-        None => panic("expected Some"),
-    }
+    let reversed = a.iter().rev().collect()
+    test::assert_eq_i32(len(reversed), 4)
+    test::assert_eq_i32(get_unchecked(reversed, 0), 4)
+    test::assert_eq_i32(get_unchecked(reversed, 3), 1)
     test::assert_eq_i32(a.iter().rev().count(), 4)
-    let mut reversed_iter = a.iter().rev()
-    match reversed_iter.next() {
-        Some(value) => test::assert_eq_i32(value, 4),
-        None => panic("expected Some"),
-    }
 
     let ranged = core::range_new(0, 3).into_iter().collect()
     test::assert_eq_i32(len(ranged), 3)
