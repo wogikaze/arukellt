@@ -184,16 +184,55 @@ while IFS=: read -r kind fixture_path || [ -n "$kind" ]; do
     fi
 done < "$MANIFEST"
 
+# ── compiler-side WAT emission (--emit wat) ─────────────────────────────────
+# The pinned bootstrap stubs --emit wat to an empty string, so an empty output is
+# treated as SKIP (the check activates once the pin is refreshed). A non-empty
+# output must parse and validate.
+
+WAT_EMIT_PASS=0
+WAT_EMIT_FAIL=0
+WAT_EMIT_SKIP=0
+
+for fixture in tests/fixtures/quickstart/hello.ark tests/fixtures/guide/fn_add.ark; do
+    if [ ! -f "$fixture" ]; then
+        continue
+    fi
+    label="$(echo "$fixture" | tr '/' '_')"
+    direct_wat="$WORK_DIR/${label}.direct.wat"
+    direct_wasm="$WORK_DIR/${label}.direct.wasm"
+    if ! "$ARUKELLT" compile --target wasm32 --emit wat "$fixture" -o "$direct_wat" 2>/dev/null; then
+        WAT_EMIT_FAIL=$((WAT_EMIT_FAIL + 1))
+        ERRORS="${ERRORS}\n  FAIL: $fixture (--emit wat failed)"
+        continue
+    fi
+    if [ ! -s "$direct_wat" ]; then
+        WAT_EMIT_SKIP=$((WAT_EMIT_SKIP + 1))
+        continue
+    fi
+    if ! do_wat2wasm "$direct_wat" "$direct_wasm" 2>/dev/null; then
+        WAT_EMIT_FAIL=$((WAT_EMIT_FAIL + 1))
+        ERRORS="${ERRORS}\n  FAIL: $fixture (--emit wat output is not valid WAT text)"
+        continue
+    fi
+    if [ "$TOOL_MODE" = "wasm-tools" ] && ! wasm-tools validate "$direct_wasm" 2>/dev/null; then
+        WAT_EMIT_FAIL=$((WAT_EMIT_FAIL + 1))
+        ERRORS="${ERRORS}\n  FAIL: $fixture (--emit wat output does not validate)"
+        continue
+    fi
+    WAT_EMIT_PASS=$((WAT_EMIT_PASS + 1))
+done
+
 # ── summary ──────────────────────────────────────────────────────────────────
 
 printf '\nWAT roundtrip summary: PASS=%s FAIL=%s SKIP=%s\n' "$PASS" "$FAIL" "$SKIP"
+printf 'WAT emit summary: PASS=%s FAIL=%s SKIP=%s\n' "$WAT_EMIT_PASS" "$WAT_EMIT_FAIL" "$WAT_EMIT_SKIP"
 
 if [ -n "$ERRORS" ]; then
     printf '%b' "$ERRORS\n"
 fi
 
-if [ "$FAIL" -gt 0 ]; then
-    echo -e "${RED}✗ WAT roundtrip: $FAIL fixture(s) failed${NC}"
+if [ "$FAIL" -gt 0 ] || [ "$WAT_EMIT_FAIL" -gt 0 ]; then
+    echo -e "${RED}✗ WAT roundtrip: $FAIL fixture(s) failed, $WAT_EMIT_FAIL emit check(s) failed${NC}"
     exit 1
 elif [ "$PASS" -eq 0 ]; then
     echo -e "${YELLOW}⊙ WAT roundtrip: no fixtures tested (all skipped)${NC}"

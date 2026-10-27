@@ -519,12 +519,7 @@ FIXPOINT_CACHE_VERSION = 1
 
 BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "component/",
-    "wasm/wat.ark",
-    "wasm/wat_functions.ark",
-    "wasm/wat_function_body.ark",
-    "wasm/wat_types.ark",
     "lexer/chars.ark",
-    "emit_wat.ark",
     "emitter.ark",
     "parser.ark",
 )
@@ -729,7 +724,7 @@ WORKTREE_LEGACY_FACADE_FILES: dict[str, tuple[str, ...]] = {
     # `mir_lower` module; the legacy facade forwards back to the stripped
     # `mir` namespace facade and would self-loop under first-match binding.
     "mir": ("mir_dump.ark",),
-    "wasm": ("emitter.ark", "emit_wat.ark"),
+    "wasm": ("emitter.ark",),
 }
 MONOLITHIC_OVERLAY_EXTRA_FILES = ()
 
@@ -2407,26 +2402,6 @@ def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = Fal
     )
 
 
-def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
-    """Bootstrap overlay drops WAT modules; keep a stub for driver linkage."""
-    lines = text.splitlines()
-    out: list[str] = []
-    for line in lines:
-        if line.strip() == "use wasm::wat":
-            continue
-        out.append(line)
-    text = "\n".join(out)
-    if text and not text.endswith("\n"):
-        text = text + "\n"
-    old_emit = """pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
-    wat::emit_wat_module(mir, target, opt_level)
-}"""
-    new_emit = """pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
-    String_from("")
-}"""
-    return _replace_required(text, old_emit, new_emit, "stub emit_wat to empty string for bootstrap")
-
-
 def _git_compiler_file(root: Path, rev: str, rel_name: str) -> str | None:
     result = subprocess.run(
         ["git", "show", f"{rev}:src/compiler/{rel_name}"],
@@ -2494,8 +2469,6 @@ def _write_worktree_namespace_overlay(
             text = frozen
         else:
             text = source_path.read_text(encoding="utf-8")
-        if rel_name == "wasm/mod.ark":
-            text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
         # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
         # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real i32-ms clocks (all timing
         # groups by default) — compile that overlay with s2-runtime (#823).

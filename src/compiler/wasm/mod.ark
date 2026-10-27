@@ -1,5 +1,4 @@
 use wasm::wasm
-use wasm::wat
 
 pub fn emit_wasm(
     mir: MirModule,
@@ -15,8 +14,4 @@ pub fn emit_wasm(
     wasm::emit_wasm_module(
         mir, target, wasi_version, memory_width, opt_level, strip_debug, bindings, source_file, report_timing
     )
-}
-
-pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
-    wat::emit_wat_module(mir, target, opt_level)
 }

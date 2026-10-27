@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::host::clock::Clock
-use std::prelude::{byte_at, clone, eq, to_string}
+use std::prelude::{clone, eq, to_string}
 use std::text
 use compiler::phases
 use driver::config_record
@@ -11,6 +11,7 @@ use driver::native
 use driver::target
 use native_c
 use wasm
+use wat_disasm
 use driver::checked_program
 use driver::debug
 use resolver::wit_import_bind
@@ -54,7 +55,7 @@ fn emit_output(
         )
     }
     if eq(clone(emit_mode), "wat") {
-        return emit_wat_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
+        return emit_wat_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
     if eq(clone(emit_mode), "wasm") {
         return emit_wasm_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
@@ -192,6 +193,25 @@ fn emit_native_output(
     result
 }
 
+fn build_wasm_bytes(mir_module: MirModule, program: CheckedProgram, config: DriverConfig) -> Vec<i32> {
+    let bindings = wit_import_bind::wit_collect_bindings(
+        config_record::config_wit_paths(config),
+        checked_program::checked_program_wit_decls(program)
+    )
+    let report_timing = if config_record::config_show_timing(config) { 1 } else { 0 }
+    wasm::emit_wasm(
+        mir_module,
+        config_record::config_target(config),
+        config_record::config_wasi_version(config),
+        config_record::config_memory_width(config),
+        config_record::config_opt_level(config),
+        config_record::config_strip_debug(config),
+        bindings,
+        config_record::config_source_file(config),
+        report_timing
+    )
+}
+
 fn emit_wasm_output(
     mir_module: MirModule,
     program: CheckedProgram,
@@ -205,19 +225,7 @@ fn emit_wasm_output(
     t_mir_opt: i64,
     t_mir_verify: i64
 ) -> CompileResult {
-    let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
-    let report_timing = if config_record::config_show_timing(config) { 1 } else { 0 }
-    let wasm_bytes = wasm::emit_wasm(
-        mir_module,
-        config_record::config_target(config),
-        config_record::config_wasi_version(config),
-        config_record::config_memory_width(config),
-        config_record::config_opt_level(config),
-        config_record::config_strip_debug(config),
-        bindings,
-        config_record::config_source_file(config),
-        report_timing
-    )
+    let wasm_bytes = build_wasm_bytes(mir_module, program, config)
     // dump_wasm eprintln left a GC string on the stack at block end and failed
     // validate (#730 emit_wasm_output). Timing/result path is enough for fixpoint.
     let _dump_wasm = config_record::config_dump_wasm(config)
@@ -229,6 +237,7 @@ fn emit_wasm_output(
 
 fn emit_wat_output(
     mir_module: MirModule,
+    program: CheckedProgram,
     config: DriverConfig,
     t0: i64,
     t_lex: i64,
@@ -239,16 +248,12 @@ fn emit_wat_output(
     t_mir_opt: i64,
     t_mir_verify: i64
 ) -> CompileResult {
-    let wat_text = wasm::emit_wat(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
+    // WAT は --emit wasm と同一条件で Wasm を作ってから逆アセンブルする。
+    // 別経路で組み立てると wasm と WAT が食い違うため、必ず同じバイト列を通す。
+    let wasm_bytes = build_wasm_bytes(mir_module, program, config)
+    let wat_text = wat_disasm::wasm_to_wat(wasm_bytes)
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
-    let wat_len = len(wat_text)
-    let mut wat_bytes: Vec<i32> = Vec::new<i32>()
-    let mut wi = 0
-    while wi < wat_len {
-        push(wat_bytes, byte_at(wat_text, wi))
-        wi = wi + 1
-    }
-    result_record::compile_result_set_output_bytes(result, wat_bytes)
+    result_record::compile_result_set_output_bytes(result, component::string_to_bytes(wat_text))
     emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }

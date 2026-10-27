@@ -1,0 +1,2128 @@
+// 生成済み Wasm バイナリ → WAT テキスト逆アセンブラ。
+//
+// `wasm_to_wat` は純粋関数（Vec<i32> の生バイト → String）で、`--emit wat` の
+// 出力生成に使う。未対応の opcode / セクションは trap させず `;; GAP:` コメントを
+// 残す（壊れた WAT を黙って出さない）。
+//
+// 定数は他のモジュールの同名関数（value_types::DISASM_VT_I32 など）と衝突しないよう
+// DISASM_ 接頭辞を付ける。flat overlay では定数が名前空間化されないため。
+// wasm2wat.ark — WebAssembly バイナリ → WAT テキスト逆アセンブラ。
+//
+// 中核の `wasm_to_wat` は純粋関数（Vec<i32> の生バイト → String）で、
+// arukellt の `--emit wat` からそのまま呼べる形にしてある。ファイル入出力は main のみ。
+//
+// 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
+
+use std::prelude::{
+    to_string, push, join, len, get_unchecked, slice, String_from,
+    i32_to_i64, i64_to_i32,
+}
+
+// ---------------------------------------------------------------------------
+// 定数
+// ---------------------------------------------------------------------------
+
+const DISASM_SEC_CUSTOM: i32 = 0
+const DISASM_SEC_TYPE: i32 = 1
+const DISASM_SEC_IMPORT: i32 = 2
+const DISASM_SEC_FUNCTION: i32 = 3
+const DISASM_SEC_TABLE: i32 = 4
+const DISASM_SEC_MEMORY: i32 = 5
+const DISASM_SEC_GLOBAL: i32 = 6
+const DISASM_SEC_EXPORT: i32 = 7
+const DISASM_SEC_START: i32 = 8
+const DISASM_SEC_ELEMENT: i32 = 9
+const DISASM_SEC_CODE: i32 = 10
+const DISASM_SEC_DATA: i32 = 11
+const DISASM_SEC_DATA_COUNT: i32 = 12
+const DISASM_SEC_TAG: i32 = 13
+
+const DISASM_VT_I32: i32 = 0x7f
+const DISASM_VT_I64: i32 = 0x7e
+const DISASM_VT_F32: i32 = 0x7d
+const DISASM_VT_F64: i32 = 0x7c
+const DISASM_VT_V128: i32 = 0x7b
+const DISASM_VT_I8: i32 = 0x78
+const DISASM_VT_I16: i32 = 0x77
+const DISASM_VT_REF_NULL: i32 = 0x63
+const DISASM_VT_REF: i32 = 0x64
+const DISASM_BT_EMPTY: i32 = 0x40
+const DISASM_REC_GROUP: i32 = 0x4e
+const DISASM_SUB_FINAL: i32 = 0x4f
+const DISASM_SUB: i32 = 0x50
+const DISASM_COMP_FUNC: i32 = 0x60
+const DISASM_COMP_STRUCT: i32 = 0x5f
+const DISASM_COMP_ARRAY: i32 = 0x5e
+
+const DISASM_HEAP_NOEXN: i32 = -0x18
+const DISASM_HEAP_EXN: i32 = -0x17
+const DISASM_HEAP_ARRAY: i32 = -0x16
+const DISASM_HEAP_STRUCT: i32 = -0x15
+const DISASM_HEAP_I31: i32 = -0x14
+const DISASM_HEAP_EQ: i32 = -0x13
+const DISASM_HEAP_ANY: i32 = -0x12
+const DISASM_HEAP_EXTERN: i32 = -0x11
+const DISASM_HEAP_FUNC: i32 = -0x10
+const DISASM_HEAP_NONE: i32 = -0x0f
+const DISASM_HEAP_NOEXTERN: i32 = -0x0e
+const DISASM_HEAP_NOFUNC: i32 = -0x0d
+
+const DISASM_PREFIX_GC: i32 = 0xfb
+const DISASM_PREFIX_MISC: i32 = 0xfc
+const DISASM_PREFIX_SIMD: i32 = 0xfd
+const DISASM_PREFIX_ATOMIC: i32 = 0xfe
+
+// ---------------------------------------------------------------------------
+// 出力バッファと小物
+// ---------------------------------------------------------------------------
+
+struct Out {
+    lines: Vec<String>,
+}
+
+fn put(o: Out, depth: i32, text: String) {
+    push(o.lines, indent_of(depth).concat(text))
+}
+
+fn put_gap(o: Out, depth: i32, message: String) {
+    put(o, depth, ";; GAP: ".concat(message))
+}
+
+fn indent_of(depth: i32) -> String {
+    let mut s: String = String_from("")
+    let mut i: i32 = 0
+    while i < depth {
+        s = s.concat("  ")
+        i = i + 1
+    }
+    s
+}
+
+fn ascii_table() -> String {
+    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+}
+
+fn hex_digit(n: i32) -> String {
+    slice("0123456789abcdef", n, n + 1)
+}
+
+fn hex_byte(v: i32) -> String {
+    return hex_digit((v >> 4) & 15).concat(hex_digit(v & 15))
+}
+
+fn opcode_text(op: i32) -> String {
+    return "0x".concat(hex_byte(op))
+}
+
+// 符号なし 32bit として表示する（インデックス・件数・オフセット用）。
+fn text_u32(v: i32) -> String {
+    if v < 0 {
+        return to_string(i32_to_i64(v) & 4294967295i64)
+    }
+    return to_string(v)
+}
+
+// ---------------------------------------------------------------------------
+// リーダ
+// ---------------------------------------------------------------------------
+
+struct Rd {
+    b: Vec<i32>,
+    n: i32,
+    p: i32,
+}
+
+fn read_byte(r: Rd) -> i32 {
+    if r.p >= r.n {
+        return 0
+    }
+    let v: i32 = get_unchecked(r.b, r.p)
+    r.p = r.p + 1
+    return v
+}
+
+fn peek_byte(r: Rd) -> i32 {
+    if r.p >= r.n {
+        return -1
+    }
+    return get_unchecked(r.b, r.p)
+}
+
+fn skip_bytes(r: Rd, count: i32) {
+    r.p = r.p + count
+    if r.p > r.n {
+        r.p = r.n
+    }
+}
+
+fn read_u32(r: Rd) -> i32 {
+    let mut result: i32 = 0
+    let mut shift: i32 = 0
+    let mut i: i32 = 0
+    while i < 5 {
+        let b: i32 = read_byte(r)
+        result = result | ((b & 0x7f) << shift)
+        shift = shift + 7
+        if (b & 0x80) == 0 {
+            break
+        }
+        i = i + 1
+    }
+    return result
+}
+
+fn read_u64(r: Rd) -> i64 {
+    let mut result: i64 = 0i64
+    let mut shift: i64 = 0i64
+    let mut i: i32 = 0
+    while i < 10 {
+        let b: i32 = read_byte(r)
+        result = result | (i32_to_i64(b & 0x7f) << shift)
+        shift = shift + 7i64
+        if (b & 0x80) == 0 {
+            break
+        }
+        i = i + 1
+    }
+    return result
+}
+
+fn read_s32(r: Rd) -> i32 {
+    let mut result: i32 = 0
+    let mut shift: i32 = 0
+    let mut last: i32 = 0
+    let mut more: bool = true
+    let mut i: i32 = 0
+    while i < 5 && more {
+        let b: i32 = read_byte(r)
+        last = b
+        result = result | ((b & 0x7f) << shift)
+        shift = shift + 7
+        more = (b & 0x80) != 0
+        i = i + 1
+    }
+    if shift < 32 && (last & 0x40) != 0 {
+        result = result | (0 - (1 << shift))
+    }
+    return result
+}
+
+fn read_s64(r: Rd) -> i64 {
+    let mut result: i64 = 0i64
+    let mut shift: i64 = 0i64
+    let mut last: i32 = 0
+    let mut more: bool = true
+    let mut i: i32 = 0
+    while i < 10 && more {
+        let b: i32 = read_byte(r)
+        last = b
+        result = result | (i32_to_i64(b & 0x7f) << shift)
+        shift = shift + 7i64
+        more = (b & 0x80) != 0
+        i = i + 1
+    }
+    if shift < 64i64 && (last & 0x40) != 0 {
+        result = result | (0i64 - (1i64 << shift))
+    }
+    return result
+}
+
+fn read_u32_le(r: Rd) -> i32 {
+    let b0: i32 = read_byte(r)
+    let b1: i32 = read_byte(r)
+    let b2: i32 = read_byte(r)
+    let b3: i32 = read_byte(r)
+    return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
+}
+
+fn read_u64_le(r: Rd) -> i64 {
+    let b0: i32 = read_byte(r)
+    let b1: i32 = read_byte(r)
+    let b2: i32 = read_byte(r)
+    let b3: i32 = read_byte(r)
+    let b4: i32 = read_byte(r)
+    let b5: i32 = read_byte(r)
+    let b6: i32 = read_byte(r)
+    let b7: i32 = read_byte(r)
+    let lo: i64 = i32_to_i64(b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) & 4294967295i64
+    let hi: i64 = i32_to_i64(b4 | (b5 << 8) | (b6 << 16) | (b7 << 24)) & 4294967295i64
+    return lo | (hi << 32i64)
+}
+
+// ---------------------------------------------------------------------------
+// 文字列・数値の整形
+// ---------------------------------------------------------------------------
+
+// WAT の文字列本体（引用符を除く）へ 1 バイトをエスケープする。
+fn escape_byte(b: i32) -> String {
+    if b < 0 || b > 255 {
+        return String_from("")
+    }
+    if b == 34 {
+        return String_from("\\\"")
+    }
+    if b == 92 {
+        return String_from("\\\\")
+    }
+    if b >= 32 && b <= 126 {
+        return slice(ascii_table(), b - 32, b - 31)
+    }
+    return String_from("\\").concat(hex_byte(b))
+}
+
+fn quoted_bytes(r: Rd, count: i32) -> String {
+    let parts: Vec<String> = Vec::new<String>()
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        push(parts, escape_byte(read_byte(r)))
+        i = i + 1
+    }
+    return "\"".concat(join(parts, String_from("")).concat("\""))
+}
+
+fn read_name(r: Rd) -> String {
+    let n: i32 = read_u32(r)
+    return quoted_bytes(r, n)
+}
+
+fn signed_text(v: i32) -> String {
+    if v < 0 {
+        return "-".concat(to_string(0 - v))
+    }
+    return "+".concat(to_string(v))
+}
+
+// f64 のビット列を WAT の 16 進浮動小数（例 0x1.8p+3）へ。
+fn f64_text(bits: i64) -> String {
+    let mut sign: String = String_from("")
+    if bits < 0i64 {
+        sign = String_from("-")
+    }
+    let e: i32 = i64_to_i32((bits >> 52i64) & 2047i64)
+    let frac: i64 = bits & 4503599627370495i64
+    if e == 0x7ff {
+        if frac == 0i64 {
+            return sign.concat("inf")
+        }
+        return sign.concat("nan:0x").concat(u64_hex(frac))
+    }
+    if e == 0 {
+        if frac == 0i64 {
+            return sign.concat("0x0p+0")
+        }
+        let mut m: i64 = frac
+        let mut ex: i32 = 0 - 1074
+        while (m & 4503599627370496i64) == 0i64 {
+            m = m << 1i64
+            ex = ex - 1
+        }
+        let f: i64 = m - 4503599627370496i64
+        return sign.concat("0x1.").concat(u64_hex_pad(f, 13)).concat("p").concat(signed_text(ex + 52))
+    }
+    return sign.concat("0x1.").concat(u64_hex_pad(frac, 13)).concat("p").concat(signed_text(e - 1023))
+}
+
+// f32 のビット列を WAT の 16 進浮動小数へ。6 桁 = 24bit 仮数で厳密に表せる。
+fn f32_text(raw: i32) -> String {
+    let bits: i64 = i32_to_i64(raw) & 4294967295i64
+    let mut sign: String = String_from("")
+    if ((bits >> 31i64) & 1i64) != 0i64 {
+        sign = String_from("-")
+    }
+    let e: i32 = i64_to_i32((bits >> 23i64) & 255i64)
+    let frac: i64 = bits & 8388607i64
+    if e == 0xff {
+        if frac == 0i64 {
+            return sign.concat("inf")
+        }
+        return sign.concat("nan:0x").concat(u64_hex(frac))
+    }
+    if e == 0 {
+        if frac == 0i64 {
+            return sign.concat("0x0p+0")
+        }
+        let mut m: i64 = frac
+        let mut ex: i32 = 0 - 149
+        while (m & 8388608i64) == 0i64 {
+            m = m << 1i64
+            ex = ex - 1
+        }
+        let mantissa: i64 = (m - 8388608i64) << 1i64
+        return sign.concat("0x1.").concat(u64_hex_pad(mantissa, 6)).concat("p").concat(signed_text(23 + ex))
+    }
+    return sign.concat("0x1.").concat(u64_hex_pad(frac << 1i64, 6)).concat("p").concat(signed_text(e - 127))
+}
+
+fn u64_hex(v: i64) -> String {
+    if v == 0i64 {
+        return String_from("0")
+    }
+    let digits: Vec<String> = Vec::new<String>()
+    let mut x: i64 = v
+    while x > 0i64 {
+        push(digits, hex_digit(i64_to_i32(x & 15i64)))
+        x = x >> 4i64
+    }
+    let reversed: Vec<String> = Vec::new<String>()
+    let mut i: i32 = len(digits) - 1
+    while i >= 0 {
+        push(reversed, get_unchecked(digits, i))
+        i = i - 1
+    }
+    return join(reversed, String_from(""))
+}
+
+fn u64_hex_pad(v: i64, digits: i32) -> String {
+    let out: Vec<String> = Vec::new<String>()
+    let mut i: i32 = digits - 1
+    while i >= 0 {
+        push(out, hex_digit(i64_to_i32((v >> i32_to_i64(i * 4)) & 15i64)))
+        i = i - 1
+    }
+    return join(out, String_from(""))
+}
+
+// ---------------------------------------------------------------------------
+// 型
+// ---------------------------------------------------------------------------
+
+fn is_abstract_heap_byte(b: i32) -> bool {
+    return b >= 0x68 && b <= 0x73
+}
+
+fn is_valtype_start(b: i32) -> bool {
+    if b < 0 {
+        return false
+    }
+    if b == DISASM_VT_I32 || b == DISASM_VT_I64 || b == DISASM_VT_F32 || b == DISASM_VT_F64 || b == DISASM_VT_V128 {
+        return true
+    }
+    if b == DISASM_VT_REF_NULL || b == DISASM_VT_REF {
+        return true
+    }
+    return is_abstract_heap_byte(b)
+}
+
+fn shorthand_ref_name(b: i32) -> String {
+    if b == 0x70 {
+        return "funcref"
+    }
+    if b == 0x6f {
+        return "externref"
+    }
+    if b == 0x6e {
+        return "anyref"
+    }
+    if b == 0x6d {
+        return "eqref"
+    }
+    if b == 0x6c {
+        return "i31ref"
+    }
+    if b == 0x6b {
+        return "structref"
+    }
+    if b == 0x6a {
+        return "arrayref"
+    }
+    if b == 0x69 {
+        return "exnref"
+    }
+    if b == 0x71 {
+        return "nullref"
+    }
+    if b == 0x72 {
+        return "nullexternref"
+    }
+    if b == 0x73 {
+        return "nullfuncref"
+    }
+    if b == 0x68 {
+        return "nullexnref"
+    }
+    return String_from("")
+}
+
+fn abstract_heap_name(h: i32) -> String {
+    if h == DISASM_HEAP_FUNC {
+        return "func"
+    }
+    if h == DISASM_HEAP_EXTERN {
+        return "extern"
+    }
+    if h == DISASM_HEAP_ANY {
+        return "any"
+    }
+    if h == DISASM_HEAP_EQ {
+        return "eq"
+    }
+    if h == DISASM_HEAP_I31 {
+        return "i31"
+    }
+    if h == DISASM_HEAP_STRUCT {
+        return "struct"
+    }
+    if h == DISASM_HEAP_ARRAY {
+        return "array"
+    }
+    if h == DISASM_HEAP_EXN {
+        return "exn"
+    }
+    if h == DISASM_HEAP_NONE {
+        return "none"
+    }
+    if h == DISASM_HEAP_NOEXTERN {
+        return "noextern"
+    }
+    if h == DISASM_HEAP_NOFUNC {
+        return "nofunc"
+    }
+    if h == DISASM_HEAP_NOEXN {
+        return "noexn"
+    }
+    return String_from("")
+}
+
+fn read_heaptype_text(r: Rd) -> String {
+    let h: i32 = read_s32(r)
+    if h >= 0 {
+        return to_string(h)
+    }
+    let name: String = abstract_heap_name(h)
+    if name == "" {
+        return "func"
+    }
+    return name
+}
+
+fn read_valtype_text(r: Rd) -> String {
+    let b: i32 = read_byte(r)
+    if b == DISASM_VT_I32 {
+        return "i32"
+    }
+    if b == DISASM_VT_I64 {
+        return "i64"
+    }
+    if b == DISASM_VT_F32 {
+        return "f32"
+    }
+    if b == DISASM_VT_F64 {
+        return "f64"
+    }
+    if b == DISASM_VT_V128 {
+        return "v128"
+    }
+    if b == DISASM_VT_REF_NULL {
+        return "(ref null ".concat(read_heaptype_text(r)).concat(")")
+    }
+    if b == DISASM_VT_REF {
+        return "(ref ".concat(read_heaptype_text(r)).concat(")")
+    }
+    return shorthand_ref_name(b)
+}
+
+fn read_storagetype_text(r: Rd) -> String {
+    let b: i32 = peek_byte(r)
+    if b == DISASM_VT_I8 {
+        skip_bytes(r, 1)
+        return "i8"
+    }
+    if b == DISASM_VT_I16 {
+        skip_bytes(r, 1)
+        return "i16"
+    }
+    return read_valtype_text(r)
+}
+
+fn read_fieldtype_text(r: Rd) -> String {
+    let t: String = read_storagetype_text(r)
+    let mutability: i32 = read_byte(r)
+    if mutability != 0 {
+        return "(mut ".concat(t).concat(")")
+    }
+    return t
+}
+
+fn read_limits_text(r: Rd) -> String {
+    let flags: i32 = read_byte(r)
+    let has_max: bool = (flags & 1) != 0
+    let is_shared: bool = (flags & 2) != 0
+    let is_64: bool = (flags & 4) != 0
+    let has_pagesize: bool = (flags & 8) != 0
+    let mut s: String = String_from("")
+    if is_64 {
+        s = s.concat("i64 ")
+        s = s.concat(to_string(read_u64(r)))
+    } else {
+        s = s.concat(text_u32(read_u32(r)))
+    }
+    if has_max {
+        if is_64 {
+            s = s.concat(" ").concat(to_string(read_u64(r)))
+        } else {
+            s = s.concat(" ").concat(text_u32(read_u32(r)))
+        }
+    }
+    if is_shared {
+        s = s.concat(" shared")
+    }
+    if has_pagesize {
+        // custom-page-sizes: limits の後ろに log2(page_size) が続く。
+        let log2: i32 = read_u32(r)
+        s = s.concat(" (pagesize 0x").concat(u64_hex(1i64 << i32_to_i64(log2))).concat(")")
+    }
+    return s
+}
+
+fn read_globaltype_text(r: Rd) -> String {
+    let t: String = read_valtype_text(r)
+    let mutability: i32 = read_byte(r)
+    if mutability != 0 {
+        return "(mut ".concat(t).concat(")")
+    }
+    return t
+}
+
+fn read_param_result_lists(r: Rd, prefix: String) -> String {
+    let mut s: String = prefix
+    let np: i32 = read_u32(r)
+    if np > 0 {
+        s = s.concat(" (param")
+        let mut i: i32 = 0
+        while i < np && r.p < r.n {
+            s = s.concat(" ").concat(read_valtype_text(r))
+            i = i + 1
+        }
+        s = s.concat(")")
+    }
+    let nr: i32 = read_u32(r)
+    if nr > 0 {
+        s = s.concat(" (result")
+        let mut i: i32 = 0
+        while i < nr && r.p < r.n {
+            s = s.concat(" ").concat(read_valtype_text(r))
+            i = i + 1
+        }
+        s = s.concat(")")
+    }
+    return s
+}
+
+fn comptype_text(r: Rd) -> String {
+    let b: i32 = read_byte(r)
+    if b == DISASM_COMP_FUNC {
+        return read_param_result_lists(r, String_from("(func")).concat(")")
+    }
+    if b == DISASM_COMP_STRUCT {
+        let n: i32 = read_u32(r)
+        let mut s: String = String_from("(struct")
+        let mut i: i32 = 0
+        while i < n && r.p < r.n {
+            s = s.concat(" (field ").concat(read_fieldtype_text(r)).concat(")")
+            i = i + 1
+        }
+        return s.concat(")")
+    }
+    if b == DISASM_COMP_ARRAY {
+        return "(array ".concat(read_fieldtype_text(r)).concat(")")
+    }
+    return "(func)"
+}
+
+fn subtype_text(r: Rd) -> String {
+    let b: i32 = peek_byte(r)
+    if b != DISASM_SUB && b != DISASM_SUB_FINAL {
+        return comptype_text(r)
+    }
+    skip_bytes(r, 1)
+    let nsuper: i32 = read_u32(r)
+    let mut s: String = String_from("(sub ")
+    if b == DISASM_SUB_FINAL {
+        s = s.concat("final ")
+    }
+    let mut i: i32 = 0
+    while i < nsuper && r.p < r.n {
+        s = s.concat(text_u32(read_u32(r))).concat(" ")
+        i = i + 1
+    }
+    return s.concat(comptype_text(r)).concat(")")
+}
+
+fn emit_type_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut index: i32 = 0
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        if peek_byte(r) == DISASM_REC_GROUP {
+            skip_bytes(r, 1)
+            let n: i32 = read_u32(r)
+            put(o, 1, "(rec")
+            let mut j: i32 = 0
+            while j < n && r.p < r.n {
+                put(o, 2, type_entry_text(r, index))
+                index = index + 1
+                j = j + 1
+            }
+            put(o, 1, ")")
+        } else {
+            put(o, 1, type_entry_text(r, index))
+            index = index + 1
+        }
+        i = i + 1
+    }
+}
+
+fn type_entry_text(r: Rd, index: i32) -> String {
+    return "(type (;".concat(to_string(index)).concat(";) ").concat(subtype_text(r)).concat(")")
+}
+
+// ---------------------------------------------------------------------------
+// 初期化式（global / elem / data の offset など）
+// ---------------------------------------------------------------------------
+
+fn const_expr_parts(r: Rd) -> Vec<String> {
+    let parts: Vec<String> = Vec::new<String>()
+    let mut done: bool = false
+    while !done && r.p < r.n {
+        if peek_byte(r) == 0x0b {
+            skip_bytes(r, 1)
+            done = true
+        } else {
+            let text: String = instr_text(r)
+            if text == "" {
+                done = true
+            } else {
+                push(parts, text)
+            }
+        }
+    }
+    return parts
+}
+
+// 単一命令なら `(i32.const 0)`、複数なら平坦な並びで返す。
+fn const_expr_text(r: Rd) -> String {
+    let parts: Vec<String> = const_expr_parts(r)
+    if len(parts) == 0 {
+        return "(i32.const 0)"
+    }
+    if len(parts) == 1 {
+        return "(".concat(get_unchecked(parts, 0)).concat(")")
+    }
+    return join(parts, String_from(" "))
+}
+
+// ---------------------------------------------------------------------------
+// 命令
+// ---------------------------------------------------------------------------
+
+fn natural_align(op: i32) -> i32 {
+    if op == 0x28 || op == 0x2a || op == 0x34 || op == 0x35 {
+        return 2
+    }
+    if op == 0x29 || op == 0x2b || op == 0x36 || op == 0x37 || op == 0x38 || op == 0x39 || op == 0x3e {
+        return 3
+    }
+    if op == 0x2c || op == 0x2d || op == 0x30 || op == 0x31 || op == 0x3a || op == 0x3c {
+        return 0
+    }
+    if op == 0x2e || op == 0x2f || op == 0x32 || op == 0x33 || op == 0x3b || op == 0x3d {
+        return 1
+    }
+    return 2
+}
+
+fn memory_instr_name(op: i32) -> String {
+    if op == 0x28 {
+        return "i32.load"
+    }
+    if op == 0x29 {
+        return "i64.load"
+    }
+    if op == 0x2a {
+        return "f32.load"
+    }
+    if op == 0x2b {
+        return "f64.load"
+    }
+    if op == 0x2c {
+        return "i32.load8_s"
+    }
+    if op == 0x2d {
+        return "i32.load8_u"
+    }
+    if op == 0x2e {
+        return "i32.load16_s"
+    }
+    if op == 0x2f {
+        return "i32.load16_u"
+    }
+    if op == 0x30 {
+        return "i64.load8_s"
+    }
+    if op == 0x31 {
+        return "i64.load8_u"
+    }
+    if op == 0x32 {
+        return "i64.load16_s"
+    }
+    if op == 0x33 {
+        return "i64.load16_u"
+    }
+    if op == 0x34 {
+        return "i64.load32_s"
+    }
+    if op == 0x35 {
+        return "i64.load32_u"
+    }
+    if op == 0x36 {
+        return "i32.store"
+    }
+    if op == 0x37 {
+        return "i64.store"
+    }
+    if op == 0x38 {
+        return "f32.store"
+    }
+    if op == 0x39 {
+        return "f64.store"
+    }
+    if op == 0x3a {
+        return "i32.store8"
+    }
+    if op == 0x3b {
+        return "i32.store16"
+    }
+    if op == 0x3c {
+        return "i64.store8"
+    }
+    if op == 0x3d {
+        return "i64.store16"
+    }
+    if op == 0x3e {
+        return "i64.store32"
+    }
+    return String_from("")
+}
+
+fn memarg_text(r: Rd, op: i32, name: String) -> String {
+    let raw_align: i32 = read_u32(r)
+    let mut memidx: i32 = 0
+    let mut align_exp: i32 = raw_align
+    if (raw_align & 0x40) != 0 {
+        memidx = read_u32(r)
+        align_exp = raw_align & 0x3f
+    }
+    let offset: i64 = read_u64(r)
+    let mut s: String = name
+    if memidx != 0 {
+        s = s.concat(" ").concat(text_u32(memidx))
+    }
+    if offset != 0i64 {
+        s = s.concat(" offset=").concat(to_string(offset))
+    }
+    if align_exp != natural_align(op) {
+        s = s.concat(" align=").concat(to_string(1 << align_exp))
+    }
+    return s
+}
+
+fn numeric_noimm_name(op: i32) -> String {
+    if op >= 0x45 && op <= 0x4f {
+        return i32_cmp_name(op - 0x45)
+    }
+    if op >= 0x50 && op <= 0x5a {
+        return i64_cmp_name(op - 0x50)
+    }
+    if op >= 0x5b && op <= 0x60 {
+        return f32_cmp_name(op - 0x5b)
+    }
+    if op >= 0x61 && op <= 0x66 {
+        return f64_cmp_name(op - 0x61)
+    }
+    if op >= 0x67 && op <= 0x78 {
+        return i32_arith_name(op - 0x67)
+    }
+    if op >= 0x79 && op <= 0x8a {
+        return i64_arith_name(op - 0x79)
+    }
+    if op >= 0x8b && op <= 0x98 {
+        return f32_arith_name(op - 0x8b)
+    }
+    if op >= 0x99 && op <= 0xa6 {
+        return f64_arith_name(op - 0x99)
+    }
+    if op >= 0xa7 && op <= 0xc4 {
+        return convert_name(op - 0xa7)
+    }
+    return String_from("")
+}
+
+fn i32_cmp_name(k: i32) -> String {
+    if k == 0 {
+        return "i32.eqz"
+    }
+    if k == 1 {
+        return "i32.eq"
+    }
+    if k == 2 {
+        return "i32.ne"
+    }
+    if k == 3 {
+        return "i32.lt_s"
+    }
+    if k == 4 {
+        return "i32.lt_u"
+    }
+    if k == 5 {
+        return "i32.gt_s"
+    }
+    if k == 6 {
+        return "i32.gt_u"
+    }
+    if k == 7 {
+        return "i32.le_s"
+    }
+    if k == 8 {
+        return "i32.le_u"
+    }
+    if k == 9 {
+        return "i32.ge_s"
+    }
+    return "i32.ge_u"
+}
+
+fn i64_cmp_name(k: i32) -> String {
+    if k == 0 {
+        return "i64.eqz"
+    }
+    if k == 1 {
+        return "i64.eq"
+    }
+    if k == 2 {
+        return "i64.ne"
+    }
+    if k == 3 {
+        return "i64.lt_s"
+    }
+    if k == 4 {
+        return "i64.lt_u"
+    }
+    if k == 5 {
+        return "i64.gt_s"
+    }
+    if k == 6 {
+        return "i64.gt_u"
+    }
+    if k == 7 {
+        return "i64.le_s"
+    }
+    if k == 8 {
+        return "i64.le_u"
+    }
+    if k == 9 {
+        return "i64.ge_s"
+    }
+    return "i64.ge_u"
+}
+
+fn f32_cmp_name(k: i32) -> String {
+    if k == 0 {
+        return "f32.eq"
+    }
+    if k == 1 {
+        return "f32.ne"
+    }
+    if k == 2 {
+        return "f32.lt"
+    }
+    if k == 3 {
+        return "f32.gt"
+    }
+    if k == 4 {
+        return "f32.le"
+    }
+    return "f32.ge"
+}
+
+fn f64_cmp_name(k: i32) -> String {
+    if k == 0 {
+        return "f64.eq"
+    }
+    if k == 1 {
+        return "f64.ne"
+    }
+    if k == 2 {
+        return "f64.lt"
+    }
+    if k == 3 {
+        return "f64.gt"
+    }
+    if k == 4 {
+        return "f64.le"
+    }
+    return "f64.ge"
+}
+
+fn i32_arith_name(k: i32) -> String {
+    if k == 0 {
+        return "i32.clz"
+    }
+    if k == 1 {
+        return "i32.ctz"
+    }
+    if k == 2 {
+        return "i32.popcnt"
+    }
+    if k == 3 {
+        return "i32.add"
+    }
+    if k == 4 {
+        return "i32.sub"
+    }
+    if k == 5 {
+        return "i32.mul"
+    }
+    if k == 6 {
+        return "i32.div_s"
+    }
+    if k == 7 {
+        return "i32.div_u"
+    }
+    if k == 8 {
+        return "i32.rem_s"
+    }
+    if k == 9 {
+        return "i32.rem_u"
+    }
+    if k == 10 {
+        return "i32.and"
+    }
+    if k == 11 {
+        return "i32.or"
+    }
+    if k == 12 {
+        return "i32.xor"
+    }
+    if k == 13 {
+        return "i32.shl"
+    }
+    if k == 14 {
+        return "i32.shr_s"
+    }
+    if k == 15 {
+        return "i32.shr_u"
+    }
+    if k == 16 {
+        return "i32.rotl"
+    }
+    return "i32.rotr"
+}
+
+fn i64_arith_name(k: i32) -> String {
+    if k == 0 {
+        return "i64.clz"
+    }
+    if k == 1 {
+        return "i64.ctz"
+    }
+    if k == 2 {
+        return "i64.popcnt"
+    }
+    if k == 3 {
+        return "i64.add"
+    }
+    if k == 4 {
+        return "i64.sub"
+    }
+    if k == 5 {
+        return "i64.mul"
+    }
+    if k == 6 {
+        return "i64.div_s"
+    }
+    if k == 7 {
+        return "i64.div_u"
+    }
+    if k == 8 {
+        return "i64.rem_s"
+    }
+    if k == 9 {
+        return "i64.rem_u"
+    }
+    if k == 10 {
+        return "i64.and"
+    }
+    if k == 11 {
+        return "i64.or"
+    }
+    if k == 12 {
+        return "i64.xor"
+    }
+    if k == 13 {
+        return "i64.shl"
+    }
+    if k == 14 {
+        return "i64.shr_s"
+    }
+    if k == 15 {
+        return "i64.shr_u"
+    }
+    if k == 16 {
+        return "i64.rotl"
+    }
+    return "i64.rotr"
+}
+
+fn f32_arith_name(k: i32) -> String {
+    if k == 0 {
+        return "f32.abs"
+    }
+    if k == 1 {
+        return "f32.neg"
+    }
+    if k == 2 {
+        return "f32.ceil"
+    }
+    if k == 3 {
+        return "f32.floor"
+    }
+    if k == 4 {
+        return "f32.trunc"
+    }
+    if k == 5 {
+        return "f32.nearest"
+    }
+    if k == 6 {
+        return "f32.sqrt"
+    }
+    if k == 7 {
+        return "f32.add"
+    }
+    if k == 8 {
+        return "f32.sub"
+    }
+    if k == 9 {
+        return "f32.mul"
+    }
+    if k == 10 {
+        return "f32.div"
+    }
+    if k == 11 {
+        return "f32.min"
+    }
+    if k == 12 {
+        return "f32.max"
+    }
+    return "f32.copysign"
+}
+
+fn f64_arith_name(k: i32) -> String {
+    if k == 0 {
+        return "f64.abs"
+    }
+    if k == 1 {
+        return "f64.neg"
+    }
+    if k == 2 {
+        return "f64.ceil"
+    }
+    if k == 3 {
+        return "f64.floor"
+    }
+    if k == 4 {
+        return "f64.trunc"
+    }
+    if k == 5 {
+        return "f64.nearest"
+    }
+    if k == 6 {
+        return "f64.sqrt"
+    }
+    if k == 7 {
+        return "f64.add"
+    }
+    if k == 8 {
+        return "f64.sub"
+    }
+    if k == 9 {
+        return "f64.mul"
+    }
+    if k == 10 {
+        return "f64.div"
+    }
+    if k == 11 {
+        return "f64.min"
+    }
+    if k == 12 {
+        return "f64.max"
+    }
+    return "f64.copysign"
+}
+
+fn convert_name(k: i32) -> String {
+    if k == 0 {
+        return "i32.wrap_i64"
+    }
+    if k == 1 {
+        return "i32.trunc_f32_s"
+    }
+    if k == 2 {
+        return "i32.trunc_f32_u"
+    }
+    if k == 3 {
+        return "i32.trunc_f64_s"
+    }
+    if k == 4 {
+        return "i32.trunc_f64_u"
+    }
+    if k == 5 {
+        return "i64.extend_i32_s"
+    }
+    if k == 6 {
+        return "i64.extend_i32_u"
+    }
+    if k == 7 {
+        return "i64.trunc_f32_s"
+    }
+    if k == 8 {
+        return "i64.trunc_f32_u"
+    }
+    if k == 9 {
+        return "i64.trunc_f64_s"
+    }
+    if k == 10 {
+        return "i64.trunc_f64_u"
+    }
+    if k == 11 {
+        return "f32.convert_i32_s"
+    }
+    if k == 12 {
+        return "f32.convert_i32_u"
+    }
+    if k == 13 {
+        return "f32.convert_i64_s"
+    }
+    if k == 14 {
+        return "f32.convert_i64_u"
+    }
+    if k == 15 {
+        return "f32.demote_f64"
+    }
+    if k == 16 {
+        return "f64.convert_i32_s"
+    }
+    if k == 17 {
+        return "f64.convert_i32_u"
+    }
+    if k == 18 {
+        return "f64.convert_i64_s"
+    }
+    if k == 19 {
+        return "f64.convert_i64_u"
+    }
+    if k == 20 {
+        return "f64.promote_f32"
+    }
+    if k == 21 {
+        return "i32.reinterpret_f32"
+    }
+    if k == 22 {
+        return "i64.reinterpret_f64"
+    }
+    if k == 23 {
+        return "f32.reinterpret_i32"
+    }
+    if k == 24 {
+        return "f64.reinterpret_i64"
+    }
+    if k == 25 {
+        return "i32.extend8_s"
+    }
+    if k == 26 {
+        return "i32.extend16_s"
+    }
+    if k == 27 {
+        return "i64.extend8_s"
+    }
+    if k == 28 {
+        return "i64.extend16_s"
+    }
+    return "i64.extend32_s"
+}
+
+fn misc_noimm_name(sub: i32) -> String {
+    if sub == 0 {
+        return "i32.trunc_sat_f32_s"
+    }
+    if sub == 1 {
+        return "i32.trunc_sat_f32_u"
+    }
+    if sub == 2 {
+        return "i32.trunc_sat_f64_s"
+    }
+    if sub == 3 {
+        return "i32.trunc_sat_f64_u"
+    }
+    if sub == 4 {
+        return "i64.trunc_sat_f32_s"
+    }
+    if sub == 5 {
+        return "i64.trunc_sat_f32_u"
+    }
+    if sub == 6 {
+        return "i64.trunc_sat_f64_s"
+    }
+    if sub == 7 {
+        return "i64.trunc_sat_f64_u"
+    }
+    return String_from("")
+}
+
+fn gc_noimm_name(sub: i32) -> String {
+    if sub == 15 {
+        return "array.len"
+    }
+    if sub == 26 {
+        return "any.convert_extern"
+    }
+    if sub == 27 {
+        return "extern.convert_any"
+    }
+    if sub == 28 {
+        return "ref.i31"
+    }
+    if sub == 29 {
+        return "i31.get_s"
+    }
+    if sub == 30 {
+        return "i31.get_u"
+    }
+    return String_from("")
+}
+
+fn blocktype_text(r: Rd) -> String {
+    let b: i32 = peek_byte(r)
+    if b == DISASM_BT_EMPTY {
+        skip_bytes(r, 1)
+        return String_from("")
+    }
+    if is_valtype_start(b) {
+        return " (result ".concat(read_valtype_text(r)).concat(")")
+    }
+    let index: i32 = read_s32(r)
+    if index < 0 {
+        return String_from("")
+    }
+    return " (type ".concat(text_u32(index)).concat(")")
+}
+
+fn br_table_text(r: Rd) -> String {
+    let count: i32 = read_u32(r)
+    let mut s: String = String_from("br_table")
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        s = s.concat(" ").concat(text_u32(read_u32(r)))
+        i = i + 1
+    }
+    s = s.concat(" ").concat(text_u32(read_u32(r)))
+    return s
+}
+
+fn select_text(r: Rd) -> String {
+    let n: i32 = read_u32(r)
+    if n == 0 {
+        return "select"
+    }
+    let mut s: String = String_from("select (result")
+    let mut i: i32 = 0
+    while i < n && r.p < r.n {
+        s = s.concat(" ").concat(read_valtype_text(r))
+        i = i + 1
+    }
+    return s.concat(")")
+}
+
+fn reftype_of(heaptype: String, nullable: bool) -> String {
+    if nullable {
+        return "(ref null ".concat(heaptype).concat(")")
+    }
+    return "(ref ".concat(heaptype).concat(")")
+}
+
+fn gc_instr_text(r: Rd) -> String {
+    let sub: i32 = read_u32(r)
+    if sub == 0 {
+        return "struct.new ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 1 {
+        return "struct.new_default ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 2 {
+        let t: String = text_u32(read_u32(r))
+        return "struct.get ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 3 {
+        let t: String = text_u32(read_u32(r))
+        return "struct.get_s ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 4 {
+        let t: String = text_u32(read_u32(r))
+        return "struct.get_u ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 5 {
+        let t: String = text_u32(read_u32(r))
+        return "struct.set ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 6 {
+        return "array.new ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 7 {
+        return "array.new_default ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 8 {
+        let t: String = text_u32(read_u32(r))
+        return "array.new_fixed ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 9 {
+        let t: String = text_u32(read_u32(r))
+        return "array.new_data ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 10 {
+        let t: String = text_u32(read_u32(r))
+        return "array.new_elem ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 11 {
+        return "array.get ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 12 {
+        return "array.get_s ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 13 {
+        return "array.get_u ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 14 {
+        return "array.set ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 16 {
+        return "array.fill ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 17 {
+        let dst: String = text_u32(read_u32(r))
+        return "array.copy ".concat(dst).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 18 {
+        let t: String = text_u32(read_u32(r))
+        return "array.init_data ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 19 {
+        let t: String = text_u32(read_u32(r))
+        return "array.init_elem ".concat(t).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 20 {
+        return "ref.test ".concat(reftype_of(read_heaptype_text(r), false))
+    }
+    if sub == 21 {
+        return "ref.test ".concat(reftype_of(read_heaptype_text(r), true))
+    }
+    if sub == 22 {
+        return "ref.cast ".concat(reftype_of(read_heaptype_text(r), false))
+    }
+    if sub == 23 {
+        return "ref.cast ".concat(reftype_of(read_heaptype_text(r), true))
+    }
+    if sub == 24 {
+        return br_on_cast_text(r, "br_on_cast")
+    }
+    if sub == 25 {
+        return br_on_cast_text(r, "br_on_cast_fail")
+    }
+    let name: String = gc_noimm_name(sub)
+    if name != "" {
+        return name
+    }
+    return String_from("")
+}
+
+fn br_on_cast_text(r: Rd, name: String) -> String {
+    let flags: i32 = read_byte(r)
+    let label: String = text_u32(read_u32(r))
+    let ht1: String = read_heaptype_text(r)
+    let ht2: String = read_heaptype_text(r)
+    let rt1: String = reftype_of(ht1, (flags & 1) != 0)
+    let rt2: String = reftype_of(ht2, (flags & 2) != 0)
+    return name.concat(" ").concat(label).concat(" ").concat(rt1).concat(" ").concat(rt2)
+}
+
+fn misc_instr_text(r: Rd) -> String {
+    let sub: i32 = read_u32(r)
+    let simple: String = misc_noimm_name(sub)
+    if simple != "" {
+        return simple
+    }
+    if sub == 8 {
+        let data: String = text_u32(read_u32(r))
+        let mem: i32 = read_u32(r)
+        if mem == 0 {
+            return "memory.init ".concat(data)
+        }
+        return "memory.init ".concat(text_u32(mem)).concat(" ").concat(data)
+    }
+    if sub == 9 {
+        return "data.drop ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 10 {
+        let dst: i32 = read_u32(r)
+        let src: i32 = read_u32(r)
+        if dst == 0 && src == 0 {
+            return "memory.copy"
+        }
+        return "memory.copy ".concat(text_u32(dst)).concat(" ").concat(text_u32(src))
+    }
+    if sub == 11 {
+        let mem: i32 = read_u32(r)
+        if mem == 0 {
+            return "memory.fill"
+        }
+        return "memory.fill ".concat(text_u32(mem))
+    }
+    if sub == 12 {
+        let elem: String = text_u32(read_u32(r))
+        let table: String = text_u32(read_u32(r))
+        return "table.init ".concat(table).concat(" ").concat(elem)
+    }
+    if sub == 13 {
+        return "elem.drop ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 14 {
+        let dst: String = text_u32(read_u32(r))
+        return "table.copy ".concat(dst).concat(" ").concat(text_u32(read_u32(r)))
+    }
+    if sub == 15 {
+        return "table.grow ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 16 {
+        return "table.size ".concat(text_u32(read_u32(r)))
+    }
+    if sub == 17 {
+        return "table.fill ".concat(text_u32(read_u32(r)))
+    }
+    return String_from("")
+}
+
+fn call_indirect_text(r: Rd, name: String) -> String {
+    let typeidx: String = text_u32(read_u32(r))
+    let tableidx: i32 = read_u32(r)
+    if tableidx == 0 {
+        return name.concat(" (type ").concat(typeidx).concat(")")
+    }
+    return name.concat(" ").concat(text_u32(tableidx)).concat(" (type ").concat(typeidx).concat(")")
+}
+
+fn instr_text(r: Rd) -> String {
+    let start: i32 = r.p
+    let op: i32 = read_byte(r)
+    // 制御（即値あり）
+    if op == 0x0c {
+        return "br ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x0d {
+        return "br_if ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x0e {
+        return br_table_text(r)
+    }
+    if op == 0x10 {
+        return "call ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x11 {
+        return call_indirect_text(r, String_from("call_indirect"))
+    }
+    if op == 0x12 {
+        return "return_call ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x13 {
+        return call_indirect_text(r, String_from("return_call_indirect"))
+    }
+    if op == 0x14 {
+        return "call_ref ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x15 {
+        return "return_call_ref ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x1c {
+        return select_text(r)
+    }
+    // 変数
+    if op == 0x20 {
+        return "local.get ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x21 {
+        return "local.set ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x22 {
+        return "local.tee ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x23 {
+        return "global.get ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x24 {
+        return "global.set ".concat(text_u32(read_u32(r)))
+    }
+    // テーブル
+    if op == 0x25 {
+        return "table.get ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0x26 {
+        return "table.set ".concat(text_u32(read_u32(r)))
+    }
+    // メモリ（memarg）
+    if op >= 0x28 && op <= 0x3e {
+        return memarg_text(r, op, memory_instr_name(op))
+    }
+    if op == 0x3f {
+        let mem: i32 = read_u32(r)
+        if mem == 0 {
+            return String_from("memory.size")
+        }
+        return "memory.size ".concat(text_u32(mem))
+    }
+    if op == 0x40 {
+        let mem: i32 = read_u32(r)
+        if mem == 0 {
+            return String_from("memory.grow")
+        }
+        return "memory.grow ".concat(text_u32(mem))
+    }
+    // 定数
+    if op == 0x41 {
+        return "i32.const ".concat(to_string(read_s32(r)))
+    }
+    if op == 0x42 {
+        return "i64.const ".concat(to_string(read_s64(r)))
+    }
+    if op == 0x43 {
+        return "f32.const ".concat(f32_text(read_u32_le(r)))
+    }
+    if op == 0x44 {
+        return "f64.const ".concat(f64_text(read_u64_le(r)))
+    }
+    // 参照
+    if op == 0xd0 {
+        return "ref.null ".concat(read_heaptype_text(r))
+    }
+    if op == 0xd1 {
+        return String_from("ref.is_null")
+    }
+    if op == 0xd2 {
+        return "ref.func ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0xd3 {
+        return String_from("ref.eq")
+    }
+    if op == 0xd4 {
+        return String_from("ref.as_non_null")
+    }
+    if op == 0xd5 {
+        return "br_on_null ".concat(text_u32(read_u32(r)))
+    }
+    if op == 0xd6 {
+        return "br_on_non_null ".concat(text_u32(read_u32(r)))
+    }
+    // 接頭辞つき
+    if op == DISASM_PREFIX_GC {
+        return gc_instr_text(r)
+    }
+    if op == DISASM_PREFIX_MISC {
+        return misc_instr_text(r)
+    }
+    // 即値なし
+    if op == 0x00 {
+        return String_from("unreachable")
+    }
+    if op == 0x01 {
+        return String_from("nop")
+    }
+    if op == 0x0f {
+        return String_from("return")
+    }
+    if op == 0x1a {
+        return String_from("drop")
+    }
+    if op == 0x1b {
+        return String_from("select")
+    }
+    let name: String = numeric_noimm_name(op)
+    if name != "" {
+        return name
+    }
+    r.p = start
+    return String_from("")
+}
+
+// 未対応 opcode の説明文（プレフィックス付きならサブオペコードも出す）。
+fn opcode_label(b: Vec<i32>, start: i32) -> String {
+    let op: i32 = get_unchecked(b, start)
+    if op == DISASM_PREFIX_GC || op == DISASM_PREFIX_MISC || op == DISASM_PREFIX_SIMD || op == DISASM_PREFIX_ATOMIC {
+        return opcode_text(op).concat("/").concat(text_u32(u32_at(b, start + 1)))
+    }
+    return opcode_text(op)
+}
+
+fn u32_at(b: Vec<i32>, start: i32) -> i32 {
+    let mut result: i32 = 0
+    let mut shift: i32 = 0
+    let mut p: i32 = start
+    let mut i: i32 = 0
+    while i < 5 && p < len(b) {
+        let v: i32 = get_unchecked(b, p)
+        p = p + 1
+        result = result | ((v & 0x7f) << shift)
+        shift = shift + 7
+        if (v & 0x80) == 0 {
+            break
+        }
+        i = i + 1
+    }
+    return result
+}
+
+fn emit_body(r: Rd, o: Out, body_end: i32) {
+    let mut depth: i32 = 2
+    let mut done: bool = false
+    while !done && r.p < body_end && r.p < r.n {
+        let start: i32 = r.p
+        let op: i32 = peek_byte(r)
+        if op == 0x0b {
+            skip_bytes(r, 1)
+            if depth <= 2 {
+                done = true
+            } else {
+                depth = depth - 1
+                put(o, depth, String_from("end"))
+            }
+            continue
+        }
+        if op == 0x05 {
+            skip_bytes(r, 1)
+            depth = depth - 1
+            put(o, depth, String_from("else"))
+            depth = depth + 1
+            continue
+        }
+        if op == 0x02 || op == 0x03 || op == 0x04 {
+            skip_bytes(r, 1)
+            let mut head: String = String_from("block")
+            if op == 0x03 {
+                head = String_from("loop")
+            }
+            if op == 0x04 {
+                head = String_from("if")
+            }
+            put(o, depth, head.concat(blocktype_text(r)))
+            depth = depth + 1
+            continue
+        }
+        let text: String = instr_text(r)
+        if text == "" {
+            r.p = start
+            put_gap(o, depth, "unsupported opcode ".concat(opcode_label(r.b, start)).concat(" (body skipped)"))
+            r.p = body_end
+            done = true
+        } else {
+            put(o, depth, text)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// セクション
+// ---------------------------------------------------------------------------
+
+fn import_desc_text(r: Rd, kind: i32) -> String {
+    if kind == 0 {
+        return "(func (type ".concat(text_u32(read_u32(r))).concat("))")
+    }
+    if kind == 1 {
+        let rt: String = read_valtype_text(r)
+        return "(table ".concat(read_limits_text(r)).concat(" ").concat(rt).concat(")")
+    }
+    if kind == 2 {
+        return "(memory ".concat(read_limits_text(r)).concat(")")
+    }
+    if kind == 3 {
+        return "(global ".concat(read_globaltype_text(r)).concat(")")
+    }
+    return "(func)"
+}
+
+fn emit_import_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let module_name: String = read_name(r)
+        let field_name: String = read_name(r)
+        let kind: i32 = read_byte(r)
+        let desc: String = import_desc_text(r, kind)
+        put(o, 1, "(import ".concat(module_name).concat(" ").concat(field_name).concat(" ").concat(desc).concat(")"))
+        i = i + 1
+    }
+}
+
+fn read_function_section(r: Rd) -> Vec<i32> {
+    let count: i32 = read_u32(r)
+    let types: Vec<i32> = Vec::new<i32>()
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        push(types, read_u32(r))
+        i = i + 1
+    }
+    return types
+}
+
+fn emit_table_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let mut text: String = "(table (;".concat(to_string(i)).concat(";) ")
+        if peek_byte(r) == 0x40 {
+            // 明示初期化式つきテーブル: 0x40 0x00 reftype limits expr
+            skip_bytes(r, 1)
+            skip_bytes(r, 1)
+            let rt: String = read_valtype_text(r)
+            text = text.concat(read_limits_text(r)).concat(" ").concat(rt)
+            text = text.concat(" ").concat(const_expr_text(r)).concat(")")
+        } else {
+            let rt: String = read_valtype_text(r)
+            text = text.concat(read_limits_text(r)).concat(" ").concat(rt).concat(")")
+        }
+        put(o, 1, text)
+        i = i + 1
+    }
+}
+
+fn emit_memory_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        put(o, 1, "(memory (;".concat(to_string(i)).concat(";) ").concat(read_limits_text(r)).concat(")"))
+        i = i + 1
+    }
+}
+
+fn emit_global_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let gt: String = read_globaltype_text(r)
+        let init: String = const_expr_text(r)
+        put(o, 1, "(global (;".concat(to_string(i)).concat(";) ").concat(gt).concat(" ").concat(init).concat(")"))
+        i = i + 1
+    }
+}
+
+fn export_kind_name(kind: i32) -> String {
+    if kind == 0 {
+        return "func"
+    }
+    if kind == 1 {
+        return "table"
+    }
+    if kind == 2 {
+        return "memory"
+    }
+    if kind == 3 {
+        return "global"
+    }
+    if kind == 4 {
+        return "tag"
+    }
+    return "func"
+}
+
+fn emit_export_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let name: String = read_name(r)
+        let kind: i32 = read_byte(r)
+        let index: String = text_u32(read_u32(r))
+        let mut text: String = "(export ".concat(name).concat(" (")
+        text = text.concat(export_kind_name(kind)).concat(" ").concat(index).concat("))")
+        put(o, 1, text)
+        i = i + 1
+    }
+}
+
+fn emit_start_section(r: Rd, o: Out) {
+    put(o, 1, "(start ".concat(text_u32(read_u32(r))).concat(")"))
+}
+
+fn func_index_list(r: Rd, count: i32) -> String {
+    let mut s: String = String_from("")
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        s = s.concat(" ").concat(text_u32(read_u32(r)))
+        i = i + 1
+    }
+    return s
+}
+
+fn expr_list(r: Rd, count: i32) -> String {
+    let mut s: String = String_from("")
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        s = s.concat(" ").concat(const_expr_text(r))
+        i = i + 1
+    }
+    return s
+}
+
+fn emit_elem_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let flags: i32 = read_u32(r)
+        put(o, 1, elem_text(r, flags))
+        i = i + 1
+    }
+}
+
+fn elem_text(r: Rd, flags: i32) -> String {
+    if flags == 0 {
+        let off: String = const_expr_text(r)
+        let n: i32 = read_u32(r)
+        return "(elem ".concat(off).concat(" func").concat(func_index_list(r, n)).concat(")")
+    }
+    if flags == 1 {
+        skip_bytes(r, 1)
+        let n: i32 = read_u32(r)
+        return "(elem func".concat(func_index_list(r, n)).concat(")")
+    }
+    if flags == 2 {
+        let table: String = text_u32(read_u32(r))
+        let off: String = const_expr_text(r)
+        skip_bytes(r, 1)
+        let n: i32 = read_u32(r)
+        let head: String = "(elem (table ".concat(table).concat(") (offset ").concat(off).concat(") func")
+        return head.concat(func_index_list(r, n)).concat(")")
+    }
+    if flags == 3 {
+        skip_bytes(r, 1)
+        let n: i32 = read_u32(r)
+        return "(elem declare func".concat(func_index_list(r, n)).concat(")")
+    }
+    if flags == 4 {
+        let off: String = const_expr_text(r)
+        let n: i32 = read_u32(r)
+        return "(elem ".concat(off).concat(" funcref").concat(expr_list(r, n)).concat(")")
+    }
+    if flags == 5 {
+        let rt: String = read_valtype_text(r)
+        let n: i32 = read_u32(r)
+        return "(elem ".concat(rt).concat(expr_list(r, n)).concat(")")
+    }
+    if flags == 6 {
+        let table: String = text_u32(read_u32(r))
+        let off: String = const_expr_text(r)
+        let rt: String = read_valtype_text(r)
+        let n: i32 = read_u32(r)
+        let head: String = "(elem (table ".concat(table).concat(") (offset ").concat(off).concat(") ").concat(rt)
+        return head.concat(expr_list(r, n)).concat(")")
+    }
+    let rt: String = read_valtype_text(r)
+    let n: i32 = read_u32(r)
+    return "(elem declare ".concat(rt).concat(expr_list(r, n)).concat(")")
+}
+
+fn data_string(r: Rd) -> String {
+    let n: i32 = read_u32(r)
+    return quoted_bytes(r, n)
+}
+
+fn emit_data_section(r: Rd, o: Out) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let flags: i32 = read_u32(r)
+        if flags == 0 {
+            let off: String = const_expr_text(r)
+            put(o, 1, "(data ".concat(off).concat(" ").concat(data_string(r)).concat(")"))
+        } else if flags == 1 {
+            put(o, 1, "(data ".concat(data_string(r)).concat(")"))
+        } else {
+            let mem: String = text_u32(read_u32(r))
+            let off: String = const_expr_text(r)
+            let body: String = data_string(r)
+            let head: String = "(data (memory ".concat(mem).concat(") (offset ").concat(off).concat(") ")
+            put(o, 1, head.concat(body).concat(")"))
+        }
+        i = i + 1
+    }
+}
+
+fn emit_code_section(r: Rd, o: Out, func_types: Vec<i32>) {
+    let count: i32 = read_u32(r)
+    let mut i: i32 = 0
+    while i < count && r.p < r.n {
+        let size: i32 = read_u32(r)
+        let mut body_end: i32 = r.p + size
+        if body_end > r.n {
+            body_end = r.n
+        }
+        let mut typeidx: i32 = 0
+        if i < len(func_types) {
+            typeidx = get_unchecked(func_types, i)
+        }
+        put(o, 1, "(func (type ".concat(text_u32(typeidx)).concat(")").concat(locals_text(r)))
+        emit_body(r, o, body_end)
+        put(o, 1, ")")
+        if r.p != body_end {
+            put_gap(o, 1, "code body size mismatch at byte ".concat(to_string(r.p)))
+            r.p = body_end
+        }
+        i = i + 1
+    }
+}
+
+fn locals_text(r: Rd) -> String {
+    let groups: i32 = read_u32(r)
+    if groups == 0 {
+        return String_from("")
+    }
+    let parts: Vec<String> = Vec::new<String>()
+    let mut i: i32 = 0
+    while i < groups && r.p < r.n {
+        let count: i32 = read_u32(r)
+        let vt: String = read_valtype_text(r)
+        let mut j: i32 = 0
+        while j < count && r.p < r.n {
+            push(parts, vt)
+            j = j + 1
+        }
+        i = i + 1
+    }
+    return " (local ".concat(join(parts, String_from(" "))).concat(")")
+}
+
+// ---------------------------------------------------------------------------
+// モジュール全体
+// ---------------------------------------------------------------------------
+
+fn header_is_valid(b: Vec<i32>, n: i32) -> bool {
+    if n < 8 {
+        return false
+    }
+    if get_unchecked(b, 0) != 0x00 || get_unchecked(b, 1) != 0x61 {
+        return false
+    }
+    if get_unchecked(b, 2) != 0x73 || get_unchecked(b, 3) != 0x6d {
+        return false
+    }
+    if get_unchecked(b, 4) != 0x01 || get_unchecked(b, 5) != 0x00 {
+        return false
+    }
+    if get_unchecked(b, 6) != 0x00 || get_unchecked(b, 7) != 0x00 {
+        return false
+    }
+    return true
+}
+
+fn section_name(id: i32) -> String {
+    if id == DISASM_SEC_TYPE {
+        return "type"
+    }
+    if id == DISASM_SEC_IMPORT {
+        return "import"
+    }
+    if id == DISASM_SEC_FUNCTION {
+        return "function"
+    }
+    if id == DISASM_SEC_TABLE {
+        return "table"
+    }
+    if id == DISASM_SEC_MEMORY {
+        return "memory"
+    }
+    if id == DISASM_SEC_GLOBAL {
+        return "global"
+    }
+    if id == DISASM_SEC_EXPORT {
+        return "export"
+    }
+    if id == DISASM_SEC_START {
+        return "start"
+    }
+    if id == DISASM_SEC_ELEMENT {
+        return "element"
+    }
+    if id == DISASM_SEC_CODE {
+        return "code"
+    }
+    if id == DISASM_SEC_DATA {
+        return "data"
+    }
+    if id == DISASM_SEC_DATA_COUNT {
+        return "data count"
+    }
+    if id == DISASM_SEC_TAG {
+        return "tag"
+    }
+    return "section ".concat(to_string(id))
+}
+
+pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
+    let o: Out = Out { lines: Vec::new<String>() }
+    let n: i32 = len(bytes)
+    if !header_is_valid(bytes, n) {
+        put(o, 0, ";; GAP: not a wasm core module (bad magic or version)")
+        put(o, 0, "(module)")
+        return join(o.lines, String_from("\n")).concat("\n")
+    }
+    let r: Rd = Rd { b: bytes, n: n, p: 8 }
+    let mut func_types: Vec<i32> = Vec::new<i32>()
+    put(o, 0, "(module")
+    while r.p < r.n {
+        let id: i32 = read_byte(r)
+        let size: i32 = read_u32(r)
+        let mut end: i32 = r.p + size
+        if end > r.n {
+            end = r.n
+        }
+        if id == DISASM_SEC_TYPE {
+            emit_type_section(r, o)
+        } else if id == DISASM_SEC_IMPORT {
+            emit_import_section(r, o)
+        } else if id == DISASM_SEC_FUNCTION {
+            func_types = read_function_section(r)
+        } else if id == DISASM_SEC_TABLE {
+            emit_table_section(r, o)
+        } else if id == DISASM_SEC_MEMORY {
+            emit_memory_section(r, o)
+        } else if id == DISASM_SEC_GLOBAL {
+            emit_global_section(r, o)
+        } else if id == DISASM_SEC_EXPORT {
+            emit_export_section(r, o)
+        } else if id == DISASM_SEC_START {
+            emit_start_section(r, o)
+        } else if id == DISASM_SEC_ELEMENT {
+            emit_elem_section(r, o)
+        } else if id == DISASM_SEC_CODE {
+            emit_code_section(r, o, func_types)
+        } else if id == DISASM_SEC_DATA {
+            emit_data_section(r, o)
+        } else if id == DISASM_SEC_DATA_COUNT {
+            // data count は WAT に対応する構文がない（データ数から再計算される）ので読み飛ばす。
+            skip_bytes(r, end - r.p)
+        } else if id == DISASM_SEC_CUSTOM {
+            skip_bytes(r, end - r.p)
+        } else {
+            let message: String = "unsupported ".concat(section_name(id)).concat(" (").concat(to_string(size))
+            put_gap(o, 1, message.concat(" bytes) skipped"))
+        }
+        if r.p != end {
+            r.p = end
+        }
+    }
+    put(o, 0, ")")
+    return join(o.lines, String_from("\n")).concat("\n")
+}
