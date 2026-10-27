@@ -1,1 +1,1 @@
-use `v.iter().map(f).collect()` or `std::core::iter::collect_map_i32(v, f)` instead
+use `v.iter().map(f).collect()` instead

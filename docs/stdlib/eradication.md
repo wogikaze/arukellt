@@ -15,30 +15,30 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1266 `pub fn` declarations under
-`std/**/*.ark`; 891 map to a manifest entry and
-375 are unregistered. Eradication scope = 716 manifest
-public entries + 375 unregistered declarations = **1091 symbols**.
+**Real surface denominator:** 1235 `pub fn` declarations under
+`std/**/*.ark`; 860 map to a manifest entry and
+375 are unregistered. Eradication scope = 685 manifest
+public entries + 375 unregistered declarations = **1060 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1091 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1266 | — |
+| Eradication-scope symbols (real std surface) | 1060 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1235 | — |
 | Unregistered std declarations (no manifest entry) | 375 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 716 | 0 |
+| Manifest public entries (registered scope) | 685 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 112 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 97 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 1021 |
+| `must delete` | Replacement already exists or functionality retires | 83 |
+| `associated-or-method` | Replacement must land as method/associated first | 977 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -63,14 +63,13 @@ registered entries and unregistered `pub fn` declarations.
 | monomorphic numeric conversions | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 17 | 0 | canonical scalar conversion methods (ADR-067): u8/u16/i16::to_i32 (`i8_to_i32` deferred: its method frame still traps under wasm32-gc), u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi |
 | legacy linear deque frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window |
 | legacy linked_list frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8 |
-| deprecated std::io compat frees | `must delete` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 2 | 0 | Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The remaining writer_write / writer_write_str wrappers stay through the #693 window only because stdout() / stderr() are tagged Vec<i32> handles; they are deleted when std::host::stdio exposes typed Write handles. |
+| deprecated std::io compat frees | `must delete` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 15 | 0 | Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The Vec-layout wrappers stay through the #693 window: reader_from_bytes / buf_* until the generic-adapter dispatch residual is fixed and their fixtures migrate; writer_write* / writer_flush / writer_to_bytes until std::host::stdio exposes typed Read / Write handles for stdout() / stderr(). |
 | deprecated std::seq helpers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 13 | 0 | Iterator adapters / Vec methods (#691) |
 | deprecated module frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 2 | 0 | module-associated equivalents |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 54 | 0 | method / associated equivalent on the receiver or namespace type |
 | std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 2 | Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes (the typed-handle replacement is still open under #693; the remaining free functions are the host-backed compatibility surface, not the target API) |
 | std::test assert frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 18 | 0 | std::test module functions; the Test associated API referenced by #719 was never implemented, so the harness-surface replacement is still open |
 | std::seq remaining | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Slice/Vec methods (sort_by, binary_search family) |
-| std::core::iter frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 44 | 0 | Iterator trait methods / adapter associated fns |
 | std::collections frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 100 | 20 | collection type methods (HashMap/HashSet/Deque/BTree/SortedMap/etc.) |
 | std::text frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 47 | 11 | String/str methods, Builder methods, Rope methods |
 | std::json/toml/csv frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 53 | 42 | Json/Toml/Csv value methods and associated parse/stringify |
@@ -141,6 +140,19 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `linked_list_to_vec` | `std::collections::linked_list` | `must delete` | legacy linked_list frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
 | `get_var` | `std::env` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `exists` | `std::host::fs` | `must delete` | deprecated module frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
+| `buf_reader_new` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `buf_reader_read_line` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `buf_writer_flush` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `buf_writer_new` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `buf_writer_write_str` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `buffered_reader` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `buffered_writer` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `reader_from_bytes` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `write_all` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `write_string` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `writer_flush` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `writer_new` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `writer_to_bytes` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `writer_write` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `writer_write_str` | `std::io` | `must delete` | deprecated std::io compat frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `binary_search` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
@@ -377,50 +389,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `range_new` | `std::core` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `error_message` | `std::core::error` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `combine` | `std::core::hash` | `associated-or-method` | host/core namespace frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `chain_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_chain_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_chain_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_filter_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_filter_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_flat_map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_filter_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_filter_take_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_peek_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_range_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_range_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_scan_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_skip_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_skip_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_step_by_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_take_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_take_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `collect_vec_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `enumerate_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `filter_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `flat_map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_all_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_any_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_contains_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_count_eq_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_count_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_fold_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_reverse_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_sum_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `iter_unique_i32` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `map_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `peek_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `range_inclusive_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `range_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `rev_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `scan_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `skip_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `step_by_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `take_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `unique_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `vec_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `zip_iter` | `std::core::iter` | `associated-or-method` | std::core::iter frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_count_rows` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_get_row_raw` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_parse_row` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -996,7 +964,7 @@ manifest-only scorecard could not see before #703.
 | `csv_parse` | `std/csv/mod.ark:130` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `csv_stringify` | `std/csv/mod.ark:149` | `std::csv` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `read_stdin` | `std/host/stdio.ark:13` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `io_error_message` | `std/io/mod.ark:75` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
+| `io_error_message` | `std/io/mod.ark:74` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `json_hex_nibble` | `std/json.ark:99` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `json_hex_byte` | `std/json.ark:108` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `json_hex_value` | `std/json.ark:197` | `std::json` | `associated-or-method` | std::json/toml/csv frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

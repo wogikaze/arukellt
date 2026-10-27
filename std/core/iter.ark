@@ -218,11 +218,6 @@ pub struct VecIter<T> {
     length: i32,
 }
 
-/// Construct a `VecIter<i32>` over `v`. The iterator borrows `v` by handle.
-pub fn vec_iter(v: Vec<i32>) -> VecIter<i32> {
-    v.iter()
-}
-
 /// Return the canonical lazy iterator for a `Vec<i32>`.
 impl Vec<i32> {
     fn iter(self: Vec<i32>) -> VecIter<i32> {
@@ -256,6 +251,24 @@ impl VecIter<T> {
     /// Lazily skip `n` values from the remaining elements.
     fn skip(self: VecIter<T>, n: i32) -> SkipIter<VecIter<T>> {
         SkipIter { iter: self, to_skip: n }
+    }
+
+    /// Lazily yield the remaining elements of `self`, then those of `other`.
+    /// Both sources must share the concrete `VecIter<T>` state type because
+    /// `ChainIter<I>` stores one source type for each half.
+    fn chain(self: VecIter<T>, other: VecIter<T>) -> ChainIter<VecIter<T>> {
+        ChainIter { first: self, second: other, on_first: true }
+    }
+
+    /// Pair each remaining element with its zero-based position.
+    fn enumerate(self: VecIter<T>) -> EnumerateIter<VecIter<T>> {
+        EnumerateIter { iter: self, index: 0 }
+    }
+
+    /// Lazily pair `self` with `other`, stopping when either side is
+    /// exhausted. The item type parameter keeps the two lanes independent.
+    fn zip<U>(self: VecIter<T>, other: VecIter<U>) -> ZipIter<VecIter<T>, VecIter<U>> {
+        ZipIter { first: self, second: other }
     }
 
     /// Lazily expand each remaining element through `f` into a `Vec<T>`
@@ -307,6 +320,19 @@ impl VecIter<T> {
             index = index + 1
         }
         false
+    }
+
+    /// Returns true when `f` accepts every remaining element. An empty
+    /// range is vacuously true, matching the `Iterator::all` contract.
+    fn all(self: VecIter<T>, f: fn(T) -> bool) -> bool {
+        let mut index = self.index
+        while index < self.length {
+            if f(get_unchecked(self.vec, index)) == false {
+                return false
+            }
+            index = index + 1
+        }
+        true
     }
 
     /// Returns the first remaining element accepted by `f`.
@@ -375,7 +401,7 @@ impl IntoIterator for Vec<i32> {
     type IntoIter = VecIter<i32>
 
     fn into_iter(self: Vec<i32>) -> VecIter<i32> {
-        vec_iter(self)
+        self.iter()
     }
 }
 
@@ -409,11 +435,6 @@ pub struct RangeIter {
     end: i32,
 }
 
-/// Construct a `RangeIter` from a `Range`.
-pub fn range_iter(r: Range) -> RangeIter {
-    RangeIter { current: r.start, end: r.end }
-}
-
 impl Iterator for RangeIter {
     type Item = i32
 
@@ -442,7 +463,7 @@ impl IntoIterator for Range {
     type IntoIter = RangeIter
 
     fn into_iter(self: Range) -> RangeIter {
-        range_iter(self)
+        RangeIter { current: self.start, end: self.end }
     }
 }
 
@@ -454,11 +475,6 @@ impl IntoIterator for Range {
 pub struct RangeInclusiveIter {
     current: i32,
     end: i32,
-}
-
-/// Construct a `RangeInclusiveIter` from a `RangeInclusive`.
-pub fn range_inclusive_iter(r: RangeInclusive) -> RangeInclusiveIter {
-    RangeInclusiveIter { current: r.start, end: r.end }
 }
 
 impl Iterator for RangeInclusiveIter {
@@ -489,7 +505,7 @@ impl IntoIterator for RangeInclusive {
     type IntoIter = RangeInclusiveIter
 
     fn into_iter(self: RangeInclusive) -> RangeInclusiveIter {
-        range_inclusive_iter(self)
+        RangeInclusiveIter { current: self.start, end: self.end }
     }
 }
 
@@ -505,11 +521,6 @@ pub struct MapIter<T, U> {
     index: i32,
     length: i32,
     f: fn(T) -> U,
-}
-
-/// Construct a `MapIter` over `v` with transform `f`.
-pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter<i32, i32> {
-    vec_iter(v).map(f)
 }
 
 impl MapIter<T, U> {
@@ -615,11 +626,6 @@ pub struct FilterIter<T> {
     index: i32,
     length: i32,
     f: fn(T) -> bool,
-}
-
-/// Construct a `FilterIter` over `v` with predicate `f`.
-pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter<i32> {
-    vec_iter(v).filter(f)
 }
 
 impl FilterIter<T> {
@@ -728,11 +734,6 @@ pub struct TakeIter<I> {
     remaining: i32,
 }
 
-/// Construct a `TakeIter` over `v` limited to `n` elements.
-pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter<VecIter<i32>> {
-    vec_iter(v).take(n)
-}
-
 impl Iterator for TakeIter<I> {
     type Item = I::Item
 
@@ -778,11 +779,6 @@ impl Iterator for TakeIter<I> {
 pub struct SkipIter<I> {
     iter: I,
     to_skip: i32,
-}
-
-/// Construct a `SkipIter` over `v` that drops the first `n` elements.
-pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter<VecIter<i32>> {
-    vec_iter(v).skip(n)
 }
 
 impl SkipIter<I> {
@@ -954,15 +950,6 @@ pub struct ChainIter<I> {
     on_first: bool,
 }
 
-/// Construct a `ChainIter` over two vectors.
-pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter<VecIter<i32>> {
-    ChainIter {
-        first: vec_iter(first),
-        second: vec_iter(second),
-        on_first: true,
-    }
-}
-
 impl Iterator for ChainIter<I> {
     type Item = I::Item
 
@@ -1010,11 +997,6 @@ pub struct EnumerateIter<I> {
     index: i32,
 }
 
-/// Construct an `EnumerateIter` over `v`.
-pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter<VecIter<i32>> {
-    EnumerateIter { iter: vec_iter(v), index: 0 }
-}
-
 impl Iterator for EnumerateIter<I> {
     type Item = Pair<i32, I::Item>
 
@@ -1058,11 +1040,6 @@ impl Iterator for EnumerateIter<I> {
 pub struct ZipIter<A, B> {
     first: A,
     second: B,
-}
-
-/// Construct a `ZipIter` over two vectors. Iteration stops at the shorter length.
-pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter<VecIter<i32>, VecIter<i32>> {
-    ZipIter { first: vec_iter(first), second: vec_iter(second) }
 }
 
 impl Iterator for ZipIter<A, B> {
@@ -1118,11 +1095,6 @@ pub struct FlatMapIter<T> {
     inner: Vec<T>,
     inner_index: i32,
     f: fn(T) -> Vec<T>,
-}
-
-/// Construct a `FlatMapIter` over `v` with expander `f`.
-pub fn flat_map_iter(v: Vec<i32>, f: fn(i32) -> Vec<i32>) -> FlatMapIter<i32> {
-    vec_iter(v).flat_map(f)
 }
 
 impl FlatMapIter<T> {
@@ -1192,11 +1164,6 @@ pub struct PeekIter<T> {
     index: i32,
     length: i32,
     peeked: Vec<T>,
-}
-
-/// Construct a `PeekIter` over `v`.
-pub fn peek_iter(v: Vec<i32>) -> PeekIter<i32> {
-    vec_iter(v).peekable()
 }
 
 impl PeekIter<T> {
@@ -1270,11 +1237,6 @@ pub struct StepByIter<T> {
     step: i32,
 }
 
-/// Construct a `StepByIter` over `v` yielding every `n`-th element.
-pub fn step_by_iter(v: Vec<i32>, n: i32) -> StepByIter<i32> {
-    vec_iter(v).step_by(n)
-}
-
 impl StepByIter<T> {
     /// Lazily limit the stepped stream to `n` items.
     fn take(self: StepByIter<T>, n: i32) -> TakeIter<StepByIter<T>> {
@@ -1327,11 +1289,6 @@ pub struct ScanIter<T> {
     length: i32,
     state: T,
     f: fn(T, T) -> Option<T>,
-}
-
-/// Construct a `ScanIter` over `v` with initial state `init`.
-pub fn scan_iter(v: Vec<i32>, init: i32, f: fn(i32, i32) -> Option<i32>) -> ScanIter<i32> {
-    vec_iter(v).scan(init, f)
 }
 
 impl ScanIter<T> {
@@ -1396,11 +1353,6 @@ pub struct UniqueIter {
     seen: Vec<i32>,
 }
 
-/// Construct a UniqueIter over v.
-pub fn unique_iter(v: Vec<i32>) -> UniqueIter {
-    vec_iter(v).unique()
-}
-
 fn unique_seen_contains(seen: Vec<i32>, value: i32) -> bool {
     let n: i32 = len(seen)
     let mut i: i32 = 0
@@ -1450,11 +1402,6 @@ pub struct RevIter {
     vec: Vec<i32>,
     index: i32,
     length: i32,
-}
-
-/// Construct a RevIter over v.
-pub fn rev_iter(v: Vec<i32>) -> RevIter {
-    vec_iter(v).rev()
 }
 
 impl Iterator for RevIter {
@@ -2041,65 +1988,6 @@ impl IntoIterator for RevIter {
 }
 
 // ---------------------------------------------------------------------------
-// collect — drain an iterator into a Vec<i32>
-// ---------------------------------------------------------------------------
-
-/// Drain a `VecIter<i32>` into a new `Vec<i32>`.
-pub fn collect_vec_iter(it: VecIter<i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `MapIter` into a new `Vec<i32>`.
-pub fn collect_map_iter(it: MapIter<i32, i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `FilterIter` into a new `Vec<i32>`.
-pub fn collect_filter_iter(it: FilterIter<i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `TakeIter` into a new `Vec<i32>`.
-pub fn collect_take_iter(it: TakeIter<VecIter<i32>>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `SkipIter` into a new `Vec<i32>`.
-pub fn collect_skip_iter(it: SkipIter<VecIter<i32>>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `ChainIter` into a new `Vec<i32>`.
-pub fn collect_chain_iter(it: ChainIter<VecIter<i32>>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `FlatMapIter` into a new `Vec<i32>`.
-pub fn collect_flat_map_iter(it: FlatMapIter<i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `PeekIter` into a new `Vec<i32>`.
-pub fn collect_peek_iter(it: PeekIter<i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `StepByIter` into a new `Vec<i32>`.
-pub fn collect_step_by_iter(it: StepByIter<i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `ScanIter` into a new `Vec<i32>`.
-pub fn collect_scan_iter(it: ScanIter<i32>) -> Vec<i32> {
-    it.collect()
-}
-
-/// Drain a `RangeIter` into a new `Vec<i32>`.
-pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
-    it.collect()
-}
-
-// ---------------------------------------------------------------------------
 // FromIterator impl for Vec<i32>
 // ---------------------------------------------------------------------------
 
@@ -2227,127 +2115,4 @@ impl FromIterator<RevIter> for Vec<i32> {
     fn from_iter(it: RevIter) -> Vec<i32> {
         it.collect()
     }
-}
-
-// ---------------------------------------------------------------------------
-// Convenience pipeline functions (single-pass, no intermediate allocation)
-// ---------------------------------------------------------------------------
-
-/// Map `f` over `v` and collect into a new `Vec<i32>`.
-///
-/// This is the lazy-pipeline replacement for `std::seq::map_i32_i32`.
-pub fn collect_map_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
-    v.iter().map(f).collect()
-}
-
-/// Filter `v` with `f` and collect into a new `Vec<i32>`.
-///
-/// This is the lazy-pipeline replacement for `std::seq::filter_i32`.
-pub fn collect_filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
-    v.iter().filter(f).collect()
-}
-
-/// Take the first `n` elements of `v` and collect into a new `Vec<i32>`.
-///
-/// This is the lazy-pipeline replacement for `std::seq::take_i32`.
-pub fn collect_take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    v.iter().take(n).collect()
-}
-
-/// Skip the first `n` elements of `v` and collect the rest into a new `Vec<i32>`.
-///
-/// This is the lazy-pipeline replacement for `std::seq::skip_i32`.
-pub fn collect_skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    v.iter().skip(n).collect()
-}
-
-/// Chain two vectors and collect into a new `Vec<i32>`.
-pub fn collect_chain_i32(first: Vec<i32>, second: Vec<i32>) -> Vec<i32> {
-    collect_chain_iter(chain_iter(first, second))
-}
-
-/// Collect a `Range` into a `Vec<i32>`.
-pub fn collect_range_i32(r: Range) -> Vec<i32> {
-    collect_range_iter(range_iter(r))
-}
-
-/// Map then filter in a single pass — no intermediate `Vec` allocation.
-///
-/// This replaces the eager `std::seq::map_i32_i32` + `std::seq::filter_i32`
-/// chain with a single lazy traversal.
-pub fn collect_map_filter_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool) -> Vec<i32> {
-    v.iter().map(map_f).filter(filter_f).collect()
-}
-
-/// Map, filter, then take in a single pass — no intermediate `Vec` allocation.
-///
-/// This is the canonical lazy pipeline fixture:
-/// `v.iter().map(f).filter(g).take(n).collect()`.
-pub fn collect_map_filter_take_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool, n: i32) -> Vec<i32> {
-    v.iter().map(map_f).filter(filter_f).take(n).collect()
-}
-
-/// Reduce `v` to a single value using `f`, starting from `init`.
-///
-/// This is the lazy-pipeline replacement for `std::seq::fold_i32_i32`.
-pub fn iter_fold_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-    vec_iter(v).fold(init, f)
-}
-
-/// Count the number of elements yielded by the iterator.
-pub fn iter_count_i32(v: Vec<i32>) -> i32 {
-    len(v)
-}
-
-fn add_i32_i32(a: i32, b: i32) -> i32 {
-    a + b
-}
-
-/// Sum all elements of `v`.
-pub fn iter_sum_i32(v: Vec<i32>) -> i32 {
-    // Named callback: anonymous `fn(...)` closures currently emit an empty-stack
-    // stub on GC targets (nop/drop/unreachable), which fails wasm validation.
-    iter_fold_i32(v, 0, add_i32_i32)
-}
-
-/// Returns true if any element of `v` satisfies `f`.
-///
-/// Lazy traversal via vec_iter(v) — short-circuits on the first hit.
-pub fn iter_any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    any_iterator_i32(vec_iter(v), f)
-}
-
-/// Returns true if all elements of `v` satisfy `f`.
-///
-/// Lazy traversal via vec_iter(v) — short-circuits on the first miss.
-pub fn iter_all_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    all_iterator_i32(vec_iter(v), f)
-}
-
-/// Returns true if any element of `v` equals `target`.
-///
-/// This is the lazy-traversal replacement for `std::seq::seq_contains`.
-pub fn iter_contains_i32(v: Vec<i32>, target: i32) -> bool {
-    vec_iter(v).contains(target)
-}
-
-/// Count how many elements of `v` equal `target`.
-///
-/// This is the lazy-traversal replacement for `std::seq::count_eq`.
-pub fn iter_count_eq_i32(v: Vec<i32>, target: i32) -> i32 {
-    vec_iter(v).count_eq(target)
-}
-
-/// Yield each element of `v` only the first time it appears.
-///
-/// This is the lazy-pipeline replacement for `std::seq::unique`.
-pub fn iter_unique_i32(v: Vec<i32>) -> Vec<i32> {
-    v.iter().unique().collect()
-}
-
-/// Yield the elements of `v` in reverse order.
-///
-/// This is the lazy-pipeline replacement for `std::seq::seq_reverse`.
-pub fn iter_reverse_i32(v: Vec<i32>) -> Vec<i32> {
-    v.iter().rev().collect()
 }

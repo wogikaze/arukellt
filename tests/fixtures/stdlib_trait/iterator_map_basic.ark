@@ -9,7 +9,7 @@ fn main() {
     push(v, 2)
     push(v, 3)
 
-    let doubled = iter::collect_map_i32(v, double)
+    let doubled = v.iter().map(double).collect()
     test::assert_eq_i32(len(doubled), 3)
     test::assert_eq_i32(get_unchecked(doubled, 0), 2)
     test::assert_eq_i32(get_unchecked(doubled, 1), 4)

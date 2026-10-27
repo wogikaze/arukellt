@@ -18,7 +18,7 @@ fn main() {
     push(v, 2)
     push(v, 3)
 
-    let it = iter::flat_map_iter(v, dup)
+    let it = v.iter().flat_map(dup)
     match it.next() {
         Some(x) => test::assert_eq_i32(x, 1),
         None => panic("expected Some"),
@@ -33,7 +33,7 @@ fn main() {
     }
 
     // Empty inner vectors are skipped without ending the stream.
-    let it2 = iter::flat_map_iter(v, empty)
+    let it2 = v.iter().flat_map(empty)
     match it2.next() {
         Some(_) => panic("expected None"),
         None => {}
@@ -42,7 +42,7 @@ fn main() {
     let ev: Vec<i32> = Vec::new<i32>()
     push(ev, 0)
     push(ev, 2)
-    let it3 = iter::flat_map_iter(ev, dup)
+    let it3 = ev.iter().flat_map(dup)
     match it3.next() {
         Some(x) => test::assert_eq_i32(x, 0),
         None => panic("expected Some"),
@@ -67,7 +67,7 @@ fn main() {
     // Drained collect preserves expansion order.
     let w: Vec<i32> = Vec::new<i32>()
     push(w, 3)
-    let drained = iter::collect_flat_map_iter(iter::flat_map_iter(w, dup))
+    let drained = w.iter().flat_map(dup).collect()
     test::assert_eq_i32(len(drained), 2)
     test::assert_eq_i32(get_unchecked(drained, 0), 3)
     test::assert_eq_i32(get_unchecked(drained, 1), 30)

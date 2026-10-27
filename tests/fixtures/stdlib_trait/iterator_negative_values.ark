@@ -11,9 +11,9 @@ fn main() {
     push(v, -40)
     push(v, -50)
 
-    let sum = iter::iter_sum_i32(v)
+    let sum = v.iter().sum()
     test::assert_eq_i32(sum, -150)
 
-    let folded = iter::iter_fold_i32(v, 0, add)
+    let folded = v.iter().fold(0, add)
     test::assert_eq_i32(folded, -150)
 }

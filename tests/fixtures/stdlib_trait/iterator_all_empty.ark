@@ -5,5 +5,5 @@ fn is_positive(x: i32) -> bool { x > 0 }
 
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    test::assert_true(iter::iter_all_i32(v, is_positive))
+    test::assert_true(v.iter().all(is_positive))
 }

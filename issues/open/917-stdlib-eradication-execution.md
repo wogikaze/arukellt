@@ -246,6 +246,65 @@ classified there, in dependency-safe waves.
   `std::component` / `std::component::handle` families remain in the
   `std::wit/component frees` rule.
 
+### Landed slice (wave/917-iter44, 2026-10-27)
+
+- Retired the 44 `provisional` eager iterator constructor / collector frees in
+  `std::core::iter`: the 16 adapter constructors (`vec_iter` … `rev_iter`) and
+  the 28 collectors / consumers (`collect_*`, `iter_fold_i32`,
+  `iter_count_i32`, `iter_sum_i32`, `iter_any_i32`, `iter_all_i32`,
+  `iter_contains_i32`, `iter_count_eq_i32`, `iter_unique_i32`,
+  `iter_reverse_i32`). Manifest entries and top-level `pub fn` declarations are
+  gone. Provisional entries need a changelog notice and a migration row, not an
+  ADR-087 window or W0009, so none were added; the replacement surface is the
+  lazy method chain.
+- Replacement surface: the `VecIter<T>` adapter methods
+  (`map`/`filter`/`take`/`skip`/`flat_map`/`peekable`/`step_by`/`scan` plus the
+  new `chain`, `enumerate`, `zip`, and `all`), `Iterator::collect` / `count`,
+  and the `IteratorSum` / `IteratorFold` / `IteratorContains` /
+  `IteratorCountEq` capabilities. `unique` / `rev` keep the concrete
+  `VecIter<i32>` methods. The qualified old calls fail with an E0100 hint from
+  `resolver::removed_names::removed_iter_member_hint` (44 entries plus unit
+  assertions).
+- Migrated the in-tree call sites: `std/seq/mod.ark` (the 10 deprecated
+  helpers keep their signatures; map/filter/fold use the methods while
+  take/skip keep an eager bounded copy because the `TakeIter`/`SkipIter`
+  collector mis-resolves its item type when instantiated from a std module —
+  #691; the same chain compiles from user code), 56 fixtures under
+  `stdlib_core/` and `stdlib_trait/`, the two `deprecated_seq_*` diagnostic
+  goldens, and the W0009 `deprecated_seq_qualified_message` hint strings that
+  offered the removed collectors as alternatives.
+- Added the dual-target `stdlib_trait/iterator_method_surface.ark` +
+  `_wasm32.ark` pair and the dual-target
+  `diagnostics/removed_iter_constructor*.ark` E0100 pair.
+- `docs/language/spec.md` no longer describes the removed compatibility
+  collectors; `docs/stdlib/migration-guidance.md` gains the full 44-row
+  before/after table.
+- Scorecard delta: 1104 → **1060** public symbols; manifest public entries 729
+  → **685**; `pub fn` declarations 1279 → **1235**; `associated-or-method`
+  1021 → **977**; monomorphic `*_i32` manifest helpers 114 → **97**;
+  `must delete` 83, `intrinsic-only` 1, `prelude_wrapper` 65, and the 375
+  unregistered declarations unchanged. The `std::core::iter frees` rule was
+  removed from the eradication TOML (no remaining entry matches it).
+- Both-target evidence: the 56 migrated fixtures and the new pair compile and
+  validate on `wasm32-gc` and `--target wasm32` with the rebuilt s2;
+  `verify fixtures` **1839/1839** compile+validate PASS (105 runtime smoke);
+  `selfhost diag-parity` **117/117** PASS including the new E0100 goldens;
+  cross-backend parity **2/2** for the new pair; `verify lane` PASS;
+  `docs check` 6/6; `check-stdlib-eradication` and `check-compat-orphans`
+  clean.
+- Residuals: the `.unique().collect()` / `.rev().collect()` runtime lane traps
+  in the shared generic `collect_iterator` on both targets (pre-existing;
+  `.next()` / `.count()` and the retired frees' replacement rows are equally
+  affected, and the fixtures pin the reachable paths); the `TakeIter` /
+  `SkipIter` `collect` instantiation from a std module emits an invalid Wasm
+  signature, so the deprecated `std::seq::take_i32` / `skip_i32` shims use an
+  eager bounded copy; `std::core::iter` methods resolve without the module
+  import but miscompile, so migrated call sites retain `use std::core::iter`;
+  the remaining 977
+  `associated-or-method` symbols (hash adapters, text, bytes, simd, wasm,
+  wit/component, host/core, io, test, collections, json/toml/csv) and the
+  `filter_i32` deferral are untouched.
+
 ## Required work
 
 - [x] Phase 0 — measure top-level `pub fn` under `std/**/*.ark`, make the gate
@@ -285,6 +344,10 @@ classified there, in dependency-safe waves.
         `WitName` namespace types, and `World::to_wit` landed. `std::wit::ast`
         and the parser frees stay deferred with the recursive `WitNode`
         receiver shape.
+      - Landed 2026-10-27 (`wave/917-iter44`): the 44 eager
+        `std::core::iter` constructor / collector frees retired after the
+        `VecIter` adapter method surface (`chain`/`enumerate`/`zip`/`all`
+        landed with the wave) replaced them.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

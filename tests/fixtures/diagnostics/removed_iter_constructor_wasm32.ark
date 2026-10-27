@@ -1,0 +1,7 @@
+use std::core::iter
+
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    push(values, 1)
+    let _ = iter::vec_iter(values)
+}

@@ -7,7 +7,7 @@ fn main() {
     push(v, 200)
     push(v, 300)
 
-    let it = iter::enumerate_iter(v)
+    let it = v.iter().enumerate()
     match it.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 0)
@@ -15,7 +15,7 @@ fn main() {
         },
         None => panic("expected Some"),
     }
-    let it2 = iter::enumerate_iter(v)
+    let it2 = v.iter().enumerate()
     match it2.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 0)

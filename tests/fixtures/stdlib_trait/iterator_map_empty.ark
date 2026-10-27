@@ -5,6 +5,6 @@ fn double(x: i32) -> i32 { x * 2 }
 
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
-    let doubled = iter::collect_map_i32(v, double)
+    let doubled = v.iter().map(double).collect()
     test::assert_eq_i32(len(doubled), 0)
 }

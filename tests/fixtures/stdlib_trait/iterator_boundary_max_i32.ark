@@ -11,6 +11,6 @@ fn main() {
     test::assert_eq_i32(get_unchecked(v, 1), 0)
     test::assert_eq_i32(get_unchecked(v, 2), -2147483647)
 
-    let collected = iter::collect_take_i32(v, 1)
+    let collected = v.iter().take(1).collect()
     test::assert_eq_i32(get_unchecked(collected, 0), 2147483647)
 }

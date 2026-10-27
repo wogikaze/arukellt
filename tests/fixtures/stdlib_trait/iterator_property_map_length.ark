@@ -9,6 +9,6 @@ fn main() {
     for i in 0..50 {
         push(v, i)
     }
-    let mapped = iter::collect_map_i32(v, double)
+    let mapped = v.iter().map(double).collect()
     test::assert_eq_i32(len(mapped), len(v))
 }

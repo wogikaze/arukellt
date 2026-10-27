@@ -206,19 +206,19 @@ fn deprecated_convert_qualified_message(path: String) -> String {
 // `sum_i32`), which must not warn before Wave 1 deprecates them.
 fn deprecated_seq_qualified_message(path: String) -> String {
     if eq(clone(path), "seq::map_i32_i32") {
-        return "use `v.iter().map(f).collect()` or `std::core::iter::collect_map_i32(v, f)` instead"
+        return "use `v.iter().map(f).collect()` instead"
     }
     if eq(clone(path), "seq::filter_i32") {
-        return "use `v.iter().filter(f).collect()` or `std::core::iter::collect_filter_i32(v, f)` instead"
+        return "use `v.iter().filter(f).collect()` instead"
     }
     if eq(clone(path), "seq::take_i32") {
-        return "use `v.iter().take(n).collect()` or `std::core::iter::collect_take_i32(v, n)` instead"
+        return "use `v.iter().take(n).collect()` instead"
     }
     if eq(clone(path), "seq::skip_i32") {
-        return "use `v.iter().skip(n).collect()` or `std::core::iter::collect_skip_i32(v, n)` instead"
+        return "use `v.iter().skip(n).collect()` instead"
     }
     if eq(clone(path), "seq::fold_i32_i32") {
-        return "use `v.iter().fold(init, f)` or `std::core::iter::iter_fold_i32(v, init, f)` instead"
+        return "use `v.iter().fold(init, f)` instead"
     }
     if eq(clone(path), "seq::binary_search") {
         return "use `std::seq::binary_search_by(v, target)` instead"
@@ -230,19 +230,19 @@ fn deprecated_seq_qualified_message(path: String) -> String {
         return "use `std::seq::max_by(v)` instead"
     }
     if eq(clone(path), "seq::sum_i32") {
-        return "use `v.iter().sum()` or `std::core::iter::iter_sum_i32(v)` instead"
+        return "use `v.iter().sum()` instead"
     }
     if eq(clone(path), "seq::seq_reverse") {
-        return "use `v.iter().rev().collect()` or `std::core::iter::iter_reverse_i32(v)` instead"
+        return "use `v.iter().rev().collect()` instead"
     }
     if eq(clone(path), "seq::seq_contains") {
-        return "use `v.iter().contains(target)` or `std::core::iter::iter_contains_i32(v, target)` instead"
+        return "use `v.iter().contains(target)` instead"
     }
     if eq(clone(path), "seq::unique") {
-        return "use `v.iter().unique().collect()` or `std::core::iter::iter_unique_i32(v)` instead"
+        return "use `v.iter().unique().collect()` instead"
     }
     if eq(clone(path), "seq::count_eq") {
-        return "use `v.iter().count_eq(target)` or `std::core::iter::iter_count_eq_i32(v, target)` instead"
+        return "use `v.iter().count_eq(target)` instead"
     }
     String_new()
 }

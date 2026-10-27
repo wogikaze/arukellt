@@ -7,7 +7,7 @@ fn main() {
     push(v, 2)
     push(v, 3)
 
-    let it = iter::peek_iter(v)
+    let it = v.iter().peekable()
 
     // Repeated peeks return the same cached item without consuming it.
     match it.peek() {
@@ -51,7 +51,7 @@ fn main() {
     let w: Vec<i32> = Vec::new<i32>()
     push(w, 7)
     push(w, 8)
-    let drained = iter::collect_peek_iter(iter::peek_iter(w))
+    let drained = w.iter().peekable().collect()
     test::assert_eq_i32(len(drained), 2)
     test::assert_eq_i32(get_unchecked(drained, 0), 7)
     test::assert_eq_i32(get_unchecked(drained, 1), 8)

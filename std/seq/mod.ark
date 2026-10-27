@@ -3,8 +3,8 @@
 //! `map`/`filter`/`take`/`skip`/`fold`/`sum` and the query helpers
 //! (`binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
 //! `seq_contains`, `unique`, `count_eq`) are deprecated compatibility
-//! entries. They delegate to the lazy `std::core::iter` pipeline or the
-//! generic `Ord`-based algorithms below (ADR-076).
+//! entries. They delegate to the lazy iterator methods or the generic
+//! `Ord`-based algorithms below (ADR-076).
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
@@ -13,27 +13,61 @@ use std::core::iter
 // ─── Transformation operations ──────────────────────────────────────────────
 /// Apply `f` to every element of `v` and collect the results.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
-    iter::collect_map_i32(v, f)
+    v.iter().map(f).collect()
 }
 
 /// Keep only elements of `v` for which `f` returns `true`.
 pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
-    iter::collect_filter_i32(v, f)
+    v.iter().filter(f).collect()
 }
 
 /// Return the first `n` elements of `v`.
+///
+/// The eager bound keeps this deprecated shim independent of the lazy
+/// `TakeIter` collector, whose item type mis-resolves when instantiated from
+/// a std module (#691). Replace with `v.iter().take(n).collect()` once that
+/// collector lane compiles here.
 pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    iter::collect_take_i32(v, n)
+    let out: Vec<i32> = Vec::new<i32>()
+    let limit: i32 = if n < 0 {
+        0
+    } else if n > len(v) {
+        len(v)
+    } else {
+        n
+    }
+    let mut i: i32 = 0
+    while i < limit {
+        push(out, get_unchecked(v, i))
+        i = i + 1
+    }
+    out
 }
 
 /// Return all elements of `v` after skipping the first `n`.
+///
+/// Same eager-copy reason as `take_i32`: the lazy `SkipIter` collector
+/// mis-resolves its item type in std context (#691); switch back when fixed.
 pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
-    iter::collect_skip_i32(v, n)
+    let out: Vec<i32> = Vec::new<i32>()
+    let start: i32 = if n < 0 {
+        0
+    } else if n > len(v) {
+        len(v)
+    } else {
+        n
+    }
+    let mut i: i32 = start
+    while i < len(v) {
+        push(out, get_unchecked(v, i))
+        i = i + 1
+    }
+    out
 }
 
 /// Reduce `v` to a single value using `f`, starting from `init`.
 pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
-    iter::iter_fold_i32(v, init, f)
+    v.iter().fold(init, f)
 }
 
 // ─── Query operations ────────────────────────────────────────────────────────
@@ -50,23 +84,23 @@ pub fn max_i32(v: Vec<i32>) -> i32 {
 }
 
 pub fn sum_i32(v: Vec<i32>) -> i32 {
-    iter::iter_sum_i32(v)
+    v.iter().sum()
 }
 
 pub fn seq_reverse(v: Vec<i32>) -> Vec<i32> {
-    iter::iter_reverse_i32(v)
+    v.iter().rev().collect()
 }
 
 pub fn seq_contains(v: Vec<i32>, target: i32) -> bool {
-    iter::iter_contains_i32(v, target)
+    v.iter().contains(target)
 }
 
 pub fn unique(v: Vec<i32>) -> Vec<i32> {
-    iter::iter_unique_i32(v)
+    v.iter().unique().collect()
 }
 
 pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
-    iter::iter_count_eq_i32(v, target)
+    v.iter().count_eq(target)
 }
 
 // ── binary search variants (generic) ────────────────────────────────────────

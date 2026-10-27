@@ -9,6 +9,6 @@ fn main() {
     push(v, 20)
     push(v, 30)
 
-    let filtered = iter::collect_filter_i32(v, always_false)
+    let filtered = v.iter().filter(always_false).collect()
     test::assert_eq_i32(len(filtered), 0)
 }

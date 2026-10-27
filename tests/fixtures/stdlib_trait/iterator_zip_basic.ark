@@ -11,7 +11,7 @@ fn main() {
     push(b, 20)
     push(b, 30)
 
-    let it = iter::zip_iter(a, b)
+    let it = a.iter().zip(b.iter())
     match it.next() {
         Some(p) => {
             test::assert_eq_i32(p.first, 1)

@@ -18,7 +18,6 @@
 | `std::core` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::core::error` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
 | `std::core::hash` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
-| `std::core::iter` | 44 | 0 | 44 | 0 | 0 | 23/44 (52%) | no |
 | `std::csv` | 7 | 0 | 0 | 7 | 0 | 5/7 (71%) | no |
 | `std::env` | 6 | 5 | 0 | 0 | 1 | 5/5 (100%) | no |
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
@@ -28,7 +27,7 @@
 | `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
-| `std::io` | 7 | 5 | 0 | 0 | 2 | 4/5 (80%) | no |
+| `std::io` | 20 | 5 | 0 | 0 | 15 | 4/5 (80%) | no |
 | `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
@@ -53,7 +52,7 @@
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
 
-**Total**: 716 APIs, 287 stable, 63 provisional, 298 experimental, 68 deprecated, 552/648 (85%) fixture coverage
+**Total**: 685 APIs, 287 stable, 19 provisional, 298 experimental, 81 deprecated, 529/604 (88%) fixture coverage
 
 ## Legend
 

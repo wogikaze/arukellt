@@ -11,6 +11,6 @@ fn main() {
     push(v, 4)
     push(v, 5)
 
-    let sum = iter::iter_fold_i32(v, 0, add)
+    let sum = v.iter().fold(0, add)
     test::assert_eq_i32(sum, 15)
 }

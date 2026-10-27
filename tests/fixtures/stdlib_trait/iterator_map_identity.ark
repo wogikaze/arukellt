@@ -9,7 +9,7 @@ fn main() {
     push(v, 20)
     push(v, 30)
 
-    let mapped = iter::collect_map_i32(v, identity)
+    let mapped = v.iter().map(identity).collect()
     test::assert_eq_i32(len(mapped), 3)
     test::assert_eq_i32(get_unchecked(mapped, 0), 10)
     test::assert_eq_i32(get_unchecked(mapped, 1), 20)

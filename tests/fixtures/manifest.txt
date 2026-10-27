@@ -250,7 +250,8 @@ diag:diagnostics/deprecated_seq_monomorphic.ark
 diag:diagnostics/deprecated_seq_monomorphic_wasm32.ark
 diag:diagnostics/deprecated_io_free_function.ark
 diag:diagnostics/removed_io_free_function.ark
-diag:diagnostics/removed_io_compat_free_function.ark
+diag:diagnostics/removed_iter_constructor.ark
+diag:diagnostics/removed_iter_constructor_wasm32.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/deprecated_import_syntax.ark
 diag:diagnostics/duplicate_def.ark
@@ -1899,6 +1900,8 @@ run:stdlib_trait/iterator_map_filter_take_pipeline.ark
 run:stdlib_trait/iterator_map_identity.ark
 run:stdlib_trait/iterator_map_negative.ark
 run:stdlib_trait/iterator_map_type_change.ark
+run:stdlib_trait/iterator_method_surface.ark
+run:stdlib_trait/iterator_method_surface_wasm32.ark
 run:stdlib_trait/iterator_negative_values.ark
 run:stdlib_trait/iterator_nested_generic_adapter.ark
 run:stdlib_trait/iterator_peek_basic.ark
