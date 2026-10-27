@@ -10,8 +10,8 @@
 |------|-------|-------------|
 | `stable` | 206 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 213 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 113 | Superseded — see migration guidance. |
+| `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
+| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -22,21 +22,13 @@
 | `Box` | T | yes | provisional | Heap-allocated owned value. |
 | `BufReader` | R | no | experimental | Buffered byte source over a Read handle; implements Read and BufRead, and Seek when the inner handle is Seek. |
 | `BufWriter` | W | no | experimental | Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner. |
-| `Component` | - | no | experimental | Namespace for Component Model version constants; canonical_abi_version and model_version are associated functions. |
 | `Deque` | T | no | provisional | Double-ended queue with amortized O(1) push/pop at both ends. |
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
-| `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
-| `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
 | `File` | - | no | experimental | Read-only whole-file image handle opened by File::open; implements std::io Read and Seek over the loaded byte image. The host surface has no descriptor open/read/write/close yet, so the image is the visibility boundary (ADR-085 D6). |
-| `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
 | `HashMap` | K, V | yes | provisional | Hash-based key/value map. |
 | `HashSet` | T | no | provisional | Set of unique i32 values; new, insert, contains, remove, len, is_empty lower to the flat hash store. |
-| `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
-| `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
-| `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
-| `I8x16` | - | no | experimental | 16 × 8-bit signed integer lane associated operations over v128. |
 | `Io` | - | no | experimental | Namespace type for receiver-less generic algorithms over the I/O traits: copy, read_exact, read_to_end, read_to_string, and write_all. |
 | `LinkedList` | T | no | provisional | Doubly-linked list with O(1) push/pop at both ends. |
 | `LinkedListIntoIter` | T | no | provisional | Owning front-to-back cursor over a LinkedList<T>. |
@@ -49,7 +41,6 @@
 | `Slice` | T | yes | provisional | Read-only contiguous view. |
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `String` | - | yes | stable | UTF-8 string value. |
-| `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
 | `Vec` | T | yes | - | Growable contiguous sequence. |
 | `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
 
@@ -96,21 +87,13 @@
 | `BufRead` | `fill_buf`, `consume`, `read_line` | `Read` |
 | `BufReader` | `new` | `Read`, `BufRead`, `Seek` |
 | `BufWriter` | `new`, `write_string`, `into_inner` | `Write` |
-| `Component` | `canonical_abi_version`, `model_version` | - |
 | `Deque` | `new`, `with_capacity`, `push_back`, `push_front`, `pop_back`, `pop_front`, `front`, `back`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter`, `iter_mut` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
-| `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs` | - |
-| `F64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `ceil`, `floor`, `trunc`, `nearest`, `promote_low_f32x4`, `convert_low_i32x4_s`, `convert_low_i32x4_u` | - |
 | `File` | `open`, `close` | `Read`, `Seek` |
 | `FromIterator` | `from_iter` | - |
-| `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
 | `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty` | - |
-| `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u` | - |
-| `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u` | - |
-| `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s` | - |
-| `I8x16` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `abs`, `eq`, `ne`, `lt_s`, `gt_s`, `lt_u`, `gt_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `all_true`, `bitmask`, `narrow_i16x8_s`, `narrow_i16x8_u` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
 | `IoError` | - | `Display`, `Error` |
@@ -128,7 +111,6 @@
 | `Reader` | `from_bytes`, `new`, `len`, `is_eof`, `into_bytes` | `Read`, `BufRead`, `Seek` |
 | `Seek` | `seek`, `position` | - |
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
-| `V128` | `zero`, `and`, `andnot`, `or`, `xor`, `not`, `bitselect`, `any_true` | - |
 | `Vec` | `new`, `with_capacity`, `push`, `pop`, `get`, `set`, `len`, `is_empty`, `get_unchecked`, `windows`, `chunks`, `chunks_exact`, `retain`, `truncate`, `append`, `drain`, `splice`, `sort_by`, `sort_by_key`, `sort_unstable_by`, `sort_unstable_by_key`, `dedup_by`, `partition`, `is_sorted_by`, `binary_search_by_key`, `resize`, `extend` | - |
 | `Write` | `write`, `flush` | - |
 | `Writer` | `new`, `into_bytes`, `into_reader`, `write_string` | `Write` |
@@ -158,56 +140,6 @@
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
-
-## Bytes
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`base64_decode`~~ ⚠️ Deprecated → `Bytes::from_base64` | `(String) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
-| ~~`base64_encode`~~ ⚠️ Deprecated → `Vec::to_base64` | `(Vec<i32>) -> String` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
-| ~~`buf_extend`~~ ⚠️ Deprecated → `Vec::extend_bytes` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
-| ~~`buf_freeze`~~ ⚠️ Deprecated → `Vec::freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
-| ~~`buf_len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
-| ~~`buf_new`~~ ⚠️ Deprecated → `Vec::new` | `() -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
-| ~~`buf_push_u16_le`~~ ⚠️ Deprecated → `Vec::push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
-| ~~`buf_push_u32_le`~~ ⚠️ Deprecated → `Vec::push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
-| ~~`buf_push_u64_le`~~ ⚠️ Deprecated → `Vec::push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
-| ~~`buf_push_u8`~~ ⚠️ Deprecated → `Vec::push_byte` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
-| ~~`buf_with_capacity`~~ ⚠️ Deprecated → `Vec::with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
-| ~~`byte_length`~~ ⚠️ Deprecated → `String::len_bytes` | `(String) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_concat`~~ ⚠️ Deprecated → `Vec::concat_bytes` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_eq`~~ ⚠️ Deprecated → `Vec::equals_bytes` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_from_array`~~ ⚠️ Deprecated → `Bytes::from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
-| ~~`bytes_from_string`~~ ⚠️ Deprecated → `String::to_utf8_bytes` | `(String) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_get`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_new`~~ ⚠️ Deprecated → `Vec::new` | `() -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_push`~~ ⚠️ Deprecated → `Vec::push_byte` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`bytes_slice`~~ ⚠️ Deprecated → `Vec::slice_bytes` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`cursor_new`~~ ⚠️ Deprecated → `Vec::byte_cursor` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
-| ~~`cursor_pos`~~ ⚠️ Deprecated → `Vec::cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
-| ~~`cursor_remaining`~~ ⚠️ Deprecated → `Vec::cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
-| ~~`hex_decode`~~ ⚠️ Deprecated → `Bytes::from_hex` | `(String) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`hex_encode`~~ ⚠️ Deprecated → `Vec::to_hex` | `(Vec<i32>) -> String` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`leb128_decode_i32`~~ ⚠️ Deprecated → `Vec::read_leb128_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
-| ~~`leb128_decode_u32`~~ ⚠️ Deprecated → `Vec::read_leb128_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
-| ~~`leb128_decode_u64`~~ ⚠️ Deprecated → `Vec::read_leb128_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
-| ~~`leb128_encode_i32`~~ ⚠️ Deprecated → `Bytes::from_leb128_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`leb128_encode_u32`~~ ⚠️ Deprecated → `Bytes::from_leb128_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`leb128_encode_u64`~~ ⚠️ Deprecated → `Bytes::from_leb128_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
-| ~~`read_bytes`~~ ⚠️ Deprecated → `Vec::read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
-| ~~`read_u16_le`~~ ⚠️ Deprecated → `Vec::read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
-| ~~`read_u32_be`~~ ⚠️ Deprecated → `Vec::read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
-| ~~`read_u32_le`~~ ⚠️ Deprecated → `Vec::read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
-| ~~`read_u64_le`~~ ⚠️ Deprecated → `Vec::read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
-| ~~`read_u8`~~ ⚠️ Deprecated → `Vec::read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
-| ~~`string_from_bytes`~~ ⚠️ Deprecated → `String::from_utf8_lossy` | `(Vec<i32>) -> String` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`u16_from_le_bytes`~~ ⚠️ Deprecated → `Vec::to_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`u16_to_le_bytes`~~ ⚠️ Deprecated → `Bytes::from_u16_le` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`u32_from_be_bytes`~~ ⚠️ Deprecated → `Vec::to_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`u32_from_le_bytes`~~ ⚠️ Deprecated → `Vec::to_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`u32_to_be_bytes`~~ ⚠️ Deprecated → `Bytes::from_u32_be` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`u32_to_le_bytes`~~ ⚠️ Deprecated → `Bytes::from_u32_le` | `(i32) -> Vec<i32>` | `std::bytes` | `deprecated` | `functional` | `builtin` | no | - | - |
 
 ## Cli
 
@@ -379,6 +311,18 @@ let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
+
+## Component
+
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
+| `component_model_version` | `() -> String` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
+| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Drop a handle and return its value, if still live. |
+| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Look up a live handle without removing it. |
+| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Return the number of live handles in the table. |
+| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
+| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 
 ## Control
 
@@ -784,39 +728,106 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `abs` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `abs` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `abs` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `add` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `all_true` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `and` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `andnot` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `any_true` | `(v128) -> i32` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `bitmask` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `bitselect` | `(v128, v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ceil` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `div` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `div` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `eq` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `eq` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> f32` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> i32` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> f64` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> i64` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ge` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `gt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `le` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `lt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `max` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `max` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `min` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `min` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `mul` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ne` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ne` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `nearest` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `neg` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(f32, f32, f32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(i32, i32, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(f64, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(i64, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `not` | `(v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `or` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `shl` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `shr_s` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `shr_u` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i32) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `splat` | `(i64) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sqrt` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sqrt` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
 | `sub` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `trunc` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `xor` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
 | `zero` | `() -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
@@ -991,7 +1002,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **113 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1000,32 +1011,8 @@ let input = read_to_string()
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`base64_decode`~~ | `Bytes::from_base64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`base64_encode`~~ | `Vec::to_base64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_extend`~~ | `Vec::extend_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_freeze`~~ | `Vec::freeze` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_new`~~ | `Vec::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u16_le`~~ | `Vec::push_u16_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u32_le`~~ | `Vec::push_u32_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u64_le`~~ | `Vec::push_u64_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u8`~~ | `Vec::push_byte` | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_with_capacity`~~ | `Vec::with_capacity` | [migration-guidance.md](migration-guidance.md) |
-| ~~`byte_length`~~ | `String::len_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_concat`~~ | `Vec::concat_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_eq`~~ | `Vec::equals_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_from_array`~~ | `Bytes::from_array` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_from_string`~~ | `String::to_utf8_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_get`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_new`~~ | `Vec::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_push`~~ | `Vec::push_byte` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_slice`~~ | `Vec::slice_bytes` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
-| ~~`cursor_new`~~ | `Vec::byte_cursor` | [migration-guidance.md](migration-guidance.md) |
-| ~~`cursor_pos`~~ | `Vec::cursor_pos` | [migration-guidance.md](migration-guidance.md) |
-| ~~`cursor_remaining`~~ | `Vec::cursor_remaining` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |
@@ -1047,8 +1034,6 @@ let input = read_to_string()
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hex_decode`~~ | `Bytes::from_hex` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hex_encode`~~ | `Vec::to_hex` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | [migration-guidance.md](migration-guidance.md) |
@@ -1057,12 +1042,6 @@ let input = read_to_string()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_decode_i32`~~ | `Vec::read_leb128_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_decode_u32`~~ | `Vec::read_leb128_u32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_decode_u64`~~ | `Vec::read_leb128_u64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_encode_i32`~~ | `Bytes::from_leb128_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_encode_u32`~~ | `Bytes::from_leb128_u32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_encode_u64`~~ | `Bytes::from_leb128_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1080,28 +1059,15 @@ let input = read_to_string()
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_bytes`~~ | `Vec::read_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u16_le`~~ | `Vec::read_u16_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u32_be`~~ | `Vec::read_u32_be` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u32_le`~~ | `Vec::read_u32_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u64_le`~~ | `Vec::read_u64_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u8`~~ | `Vec::read_u8` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`string_from_bytes`~~ | `String::from_utf8_lossy` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u16_from_le_bytes`~~ | `Vec::to_u16_le` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u16_to_le_bytes`~~ | `Bytes::from_u16_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_from_be_bytes`~~ | `Vec::to_u32_be` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_from_le_bytes`~~ | `Vec::to_u32_le` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_to_be_bytes`~~ | `Bytes::from_u32_be` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_to_le_bytes`~~ | `Bytes::from_u32_le` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |

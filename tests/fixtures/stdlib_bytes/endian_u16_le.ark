@@ -1,9 +1,10 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
-    let le: Vec<i32> = bytes::u16_to_le_bytes(513)
-    test::assert_eq_i32(bytes::bytes_len(le), 2)
-    test::assert_eq_i32(bytes::bytes_get(le, 0), 1)
-    test::assert_eq_i32(bytes::bytes_get(le, 1), 2)
+    let le: Vec<i32> = Bytes::from_u16_le(513)
+    test::assert_eq_i32(le.len(), 2)
+    test::assert_eq_i32(le.get_unchecked(0), 1)
+    test::assert_eq_i32(le.get_unchecked(1), 2)
 }

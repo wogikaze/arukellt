@@ -2,5 +2,5 @@ use std::bytes
 use std::test
 
 fn main() {
-    test::assert_eq_string(bytes::base64_encode(bytes::bytes_new()), "")
+    test::assert_eq_string(Vec::new<i32>().to_base64(), "")
 }

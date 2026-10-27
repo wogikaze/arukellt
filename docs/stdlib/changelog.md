@@ -16,43 +16,61 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-27 — std::simd lane namespace surface (#917)
+## 2026-10-27 — std::bytes free surface removed (#917, ADR-087 Wave 2)
 
-- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D1/D4.
-  The `std::simd` lane modules were `experimental`, so the migrated free
-  functions could be deleted directly; no ADR-087 stable window or W0009
-  entry applies. A qualified old call now fails with an E0100 hint.
-- **Added**: seven namespace types with 132 associated functions:
-  `F32x4`, `F64x2`, `I8x16`, `I16x8`, `I32x4`, `I64x2`, and `V128`
-  (`std::simd::{f32x4,f64x2,i8x16,i16x8,i32x4,i64x2,v128}`). The manifest
-  registers them as `[[types]]` entries with `stability = "experimental"`.
-- **Removed (132)**: the matching `[[functions]]` entries and top-level
-  `pub fn` declarations. The in-tree fixtures
-  (`simd_conformance`, `simd_lowering`, `simd_gc_storage`, `v128_basic`)
-  moved to `F32x4::add(...)` / `I32x4::splat(...)` / `V128::zero()`.
-- **Retained (130, experimental)**: the operations whose emitter lowering is
-  not valid yet. 98 fail `wasm-tools validate` (all `u8x16` / `u16x8` /
-  `u32x4` / `u64x2` ops plus the listed signed/float ops); 32 validate but
-  trap or return a wrong value (for example `f64x2::add` returns the first
-  operand, `i32x4::max_u` traps, `v128::new` yields an all-zero vector).
-  They stay as free functions because an associated replacement that cannot
-  run must not be advertised. The exact list is in
-  [migration-guidance.md](migration-guidance.md#std-simd-lane-namespace-wave-adr-046-2026-10-27)
-  and the wave receipt on issue #917.
-- **Diagnostics**: `resolver::removed_names::removed_module_member_hint`
-  maps the eleven lane-module aliases to their namespace types and is pinned
-  by unit assertions; `diagnostics/removed_simd_free.ark` +
-  `_wasm32.ark` are the dual-target E0100 goldens.
-- **Fixtures**: `stdlib_simd/simd_method_surface.ark` +
-  `_wasm32.ark` compile, validate, and run on `wasm32-gc` (P2 component) and
-  `--target wasm32` (wasi-p1), asserting the migrated values.
-- **Scorecard**: 858 → **788** public symbols; `associated-or-method`
-  743 → **673**; `pub fn` declarations 981 → **849**; manifest public entries
-  625 → **558**; unregistered declarations 233 → **230**. The
-  `std::simd frees` rule now reports 37 manifest + 76 source frees.
-- **Residual**: the 130 lowering-blocked frees above; no nominal `I32x4`
-  value types or `MaskN` types yet (ADR-037 remains proposed). No
-  `std::wasm` `V128` change is part of this wave.
+- **Basis**: [ADR-046](../adr/ADR-046-free-function-eradication.md) D2/D4, the
+  [ADR-087](../adr/ADR-087-0x-deprecation-exception.md) 0.x exception, and the
+  [#917](https://github.com/wogikaze/arukellt/issues/917) execution lane. The
+  45 entries were `stable` and completed their Wave 1 window in the
+  2026-10-27 bytes surface wave (`deprecated` + W0009,
+  `deprecated_since = "0.1.0"`, `remove_in = "1.0.0"`).
+- **Removed (45)**: `bytes_new`, `bytes_len`, `bytes_get`, `bytes_push`,
+  `bytes_eq`, `bytes_from_string`, `string_from_bytes`, `bytes_concat`,
+  `bytes_slice`, `byte_length`, `hex_encode`, `hex_decode`,
+  `leb128_encode_u32`, `leb128_encode_i32`, `u16_to_le_bytes`,
+  `u16_from_le_bytes`, `u32_to_le_bytes`, `u32_from_le_bytes`,
+  `u32_to_be_bytes`, `u32_from_be_bytes`, `bytes_from_array`, `buf_new`,
+  `buf_with_capacity`, `buf_push_u8`, `buf_push_u16_le`, `buf_push_u32_le`,
+  `buf_push_u64_le`, `buf_extend`, `buf_freeze`, `buf_len`, `cursor_new`,
+  `cursor_pos`, `cursor_remaining`, `read_u8`, `read_u16_le`, `read_u32_le`,
+  `read_u64_le`, `read_u32_be`, `read_bytes`, `base64_encode`,
+  `base64_decode`, `leb128_decode_u32`, `leb128_decode_i32`,
+  `leb128_encode_u64`, `leb128_decode_u64`. The manifest entries and the
+  `pub fn` declarations are gone.
+- **Replacement**: `Vec<i32>` byte-vector methods (`b.push_byte`, `b.len`,
+  `b.get_unchecked`, `a.equals_bytes`, `a.concat_bytes`, `b.slice_bytes`,
+  `b.to_hex`, `b.to_base64`, the endian `to_*` / `push_*` pairs,
+  `b.extend_bytes`, `b.freeze`, `data.byte_cursor()` with the `c.read_*` /
+  `c.try_read_*` / `c.read_leb128_*` readers) plus the `Bytes` namespace for
+  receiver-less constructors/decoders (`Bytes::from_hex`,
+  `Bytes::from_base64`, `Bytes::from_array`, `Bytes::from_u16_le`,
+  `Bytes::from_u32_le`, `Bytes::from_u32_be`, `Bytes::from_leb128_*`).
+  Import `use std::bytes` for the methods and `use std::bytes::Bytes` for the
+  associated functions.
+- **Diagnostics**: the 45 W0009 rows became **E0100** hints from
+  `resolver::removed_names::removed_bytes_member_hint`; the eight
+  unregistered helpers retired in Wave 1 (`hex_char`, `hex_val_char`,
+  `try_hex_val_char`, and the five `try_read_*` readers) keep their hints in
+  the same table (the earlier merge dropped the table, so this wave restores
+  it with the 45 additions). The W0009 goldens were replaced by
+  `diagnostics/removed_bytes_free*.ark` on both targets.
+- **Call sites**: 150 fixture files (869 `bytes::*` calls) and the
+  `modules/use_qualified_call` qualifier fixture moved to the method /
+  associated surface; the cookbook `wasm-binary` code blocks and the language
+  spec section were updated.
+- **Scorecard**: 858 → **813** public symbols; `must delete` 115 → **70**;
+  manifest functions 626 → **581**; `pub fn` declarations 981 → **936**;
+  `associated-or-method` 743 and `intrinsic-only` 1 unchanged. The
+  `deprecated std::bytes frees` rule is removed from the eradication TOML (no
+  remaining symbol matches it).
+- **Verification**: `verify fixtures` **1845/1845 PASS**, `selfhost
+  diag-parity` 124 PASS / 0 FAIL, both targets (wasm32-gc P2 and linear
+  wasm32 P1) compile+validate for every changed fixture, `docs check`,
+  `check-stdlib-eradication`, and `check-compat-orphans` clean.
+- **Residual**: `Bytes::from_base64` still skips invalid quartets
+  (compatibility behavior), `try_read_u64_le` stays deferred (constructing
+  `Some(i64)` emits invalid Wasm), and the `std::io` /
+  `std::host::fs` byte-layout adapters remain under their own lanes.
 
 ## 2026-10-27 — concrete `HashSet<i32>` membership surface (#917)
 

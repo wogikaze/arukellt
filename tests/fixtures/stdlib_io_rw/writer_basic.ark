@@ -15,7 +15,7 @@ fn main() {
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let b: Vec<i32> = w.into_bytes()
-    stdio::println(bytes::string_from_bytes(b))
+    stdio::println(String::from_utf8_lossy(b))
     let rf: Result<(), io::IoError> = w.flush()
     match rf {
         Result::Ok(_) => stdio::println("flush ok"),

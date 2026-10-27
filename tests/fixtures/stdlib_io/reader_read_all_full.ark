@@ -3,14 +3,14 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(data, 10)
-    bytes::bytes_push(data, 20)
-    bytes::bytes_push(data, 30)
+    let data: Vec<i32> = Vec::new<i32>()
+    data.push_byte(10)
+    data.push_byte(20)
+    data.push_byte(30)
     let r: io::Reader = io::Reader::from_bytes(data)
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_to_end(r)
     match res {
-        Result::Ok(chunk) => test::assert_eq_i32(bytes::bytes_len(chunk), 3),
+        Result::Ok(chunk) => test::assert_eq_i32(chunk.len(), 3),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
     test::assert_true(r.is_eof())

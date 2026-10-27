@@ -693,20 +693,25 @@ of the migrated surface on both targets, and
 ## std::bytes method wave (ADR-087, 2026-10-27)
 
 The [#917](https://github.com/wogikaze/arukellt/issues/917) bytes wave landed
-the receiver / associated surface for the shared `Vec<i32>` byte layout and
-made the 45 registered `stable` free functions `deprecated` with W0009,
-`deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. They stay callable
-through the 0.x window; the method surface is the replacement. The eight
-unregistered helpers (`hex_char`, `hex_val_char`, `try_hex_val_char`, and the
-five `try_read_*` readers) were retired immediately with E0100 hints because
-they had no manifest lifecycle entry.
+the receiver / associated surface for the shared `Vec<i32>` byte layout. The
+eight unregistered helpers (`hex_char`, `hex_val_char`, `try_hex_val_char`, and
+the five `try_read_*` readers) were retired immediately with E0100 hints
+because they had no manifest lifecycle entry.
 
 `Bytes`, `ByteBuf`, and `ByteCursor` are still `Vec<i32>` at runtime. Import
 `use std::bytes` for the methods and `use std::bytes::Bytes` for the
 receiver-less constructors/decoders.
 
-| Deprecated free | Replacement |
-|-----------------|-------------|
+### Removed in Wave 2 (stable)
+
+Wave 1 made the 45 registered `stable` free functions `deprecated` with W0009,
+`deprecated_since = "0.1.0"`, and `remove_in = "1.0.0"`. The Wave 2 deletion
+removed the manifest entries and declarations, so qualified calls now fail
+resolution with an **E0100** hint from `resolver::removed_names`. The
+method/associated surface below is the only spelling.
+
+| Removed | Replacement |
+|---------|-------------|
 | `bytes::bytes_new` | `Vec::new<i32>()` |
 | `bytes::bytes_from_string` | `s.to_utf8_bytes()` |
 | `bytes::string_from_bytes` | `String::from_utf8_lossy(b)` |
@@ -750,18 +755,17 @@ receiver-less constructors/decoders.
 | `bytes::leb128_decode_u32` | `c.read_leb128_u32()` |
 | `bytes::leb128_decode_i32` | `c.read_leb128_i32()` |
 | `bytes::leb128_decode_u64` | `c.read_leb128_u64()` |
-| `bytes::hex_char` (removed) | `b.to_hex()` |
-| `bytes::hex_val_char` (removed) | `Bytes::from_hex(s)` |
-| `bytes::try_hex_val_char` (removed) | `Bytes::from_hex(s)` |
-| `bytes::try_read_u8` (removed) | `c.try_read_u8()` |
-| `bytes::try_read_u16_le` (removed) | `c.try_read_u16_le()` |
-| `bytes::try_read_u32_le` (removed) | `c.try_read_u32_le()` |
-| `bytes::try_read_u32_be` (removed) | `c.try_read_u32_be()` |
-| `bytes::try_read_bytes` (removed) | `c.try_read_bytes(n)` |
+| `bytes::hex_char` (removed in Wave 1) | `b.to_hex()` |
+| `bytes::hex_val_char` (removed in Wave 1) | `Bytes::from_hex(s)` |
+| `bytes::try_hex_val_char` (removed in Wave 1) | `Bytes::from_hex(s)` |
+| `bytes::try_read_u8` (removed in Wave 1) | `c.try_read_u8()` |
+| `bytes::try_read_u16_le` (removed in Wave 1) | `c.try_read_u16_le()` |
+| `bytes::try_read_u32_le` (removed in Wave 1) | `c.try_read_u32_le()` |
+| `bytes::try_read_u32_be` (removed in Wave 1) | `c.try_read_u32_be()` |
+| `bytes::try_read_bytes` (removed in Wave 1) | `c.try_read_bytes(n)` |
 
 The dual-target fixtures are `stdlib_bytes/bytes_method_surface*.ark`; the
-W0009 goldens are `diagnostics/deprecated_bytes_free*.ark`. The 45 deprecated
-manifest entries remain until the ADR-087 deletion wave.
+E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
 
 ## std::io trait migration (ADR-085 Phase E/F, 2026-10-27)
 

@@ -7,5 +7,5 @@ fn main() {
     let _: Result<i32, io::IoError> = w.write_string("hello")
     let _: Result<i32, io::IoError> = w.write_string(" world")
     let b: Vec<i32> = w.into_bytes()
-    test::assert_eq_string(bytes::string_from_bytes(b), "hello world")
+    test::assert_eq_string(String::from_utf8_lossy(b), "hello world")
 }

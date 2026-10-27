@@ -3,23 +3,23 @@ use std::host::stdio
 use std::io
 
 fn main() {
-    let data: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(data, 72)
-    bytes::bytes_push(data, 101)
-    bytes::bytes_push(data, 108)
-    bytes::bytes_push(data, 108)
-    bytes::bytes_push(data, 111)
-    bytes::bytes_push(data, 10)
-    bytes::bytes_push(data, 87)
-    bytes::bytes_push(data, 111)
-    bytes::bytes_push(data, 114)
-    bytes::bytes_push(data, 108)
-    bytes::bytes_push(data, 100)
+    let data: Vec<i32> = Vec::new<i32>()
+    data.push_byte(72)
+    data.push_byte(101)
+    data.push_byte(108)
+    data.push_byte(108)
+    data.push_byte(111)
+    data.push_byte(10)
+    data.push_byte(87)
+    data.push_byte(111)
+    data.push_byte(114)
+    data.push_byte(108)
+    data.push_byte(100)
     let r: io::Reader = io::Reader::from_bytes(data)
     stdio::println((r.is_eof()).to_string())
     let res: Result<Vec<i32>, io::IoError> = r.read(5)
     match res {
-        Result::Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
+        Result::Ok(chunk) => stdio::println(String::from_utf8_lossy(chunk)),
         Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     // After reading "Hello", cursor sits on the newline. The first read_line

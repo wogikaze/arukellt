@@ -2,22 +2,22 @@ use std::bytes
 use std::host::stdio
 
 fn main() {
-    let b: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(b, 10)
-    bytes::bytes_push(b, 20)
-    bytes::bytes_push(b, 30)
-    bytes::bytes_push(b, 40)
-    bytes::bytes_push(b, 50)
-    let sub: Vec<i32> = bytes::bytes_slice(b, 1, 4)
-    stdio::println((bytes::bytes_len(sub)).to_string())
-    stdio::println((bytes::bytes_get(sub, 0)).to_string())
-    stdio::println((bytes::bytes_get(sub, 1)).to_string())
-    stdio::println((bytes::bytes_get(sub, 2)).to_string())
-    let empty: Vec<i32> = bytes::bytes_slice(b, 2, 2)
-    stdio::println((bytes::bytes_len(empty)).to_string())
-    let full: Vec<i32> = bytes::bytes_slice(b, 0, 5)
-    stdio::println((bytes::bytes_len(full)).to_string())
-    stdio::println((bytes::bytes_eq(b, full)).to_string())
+    let b: Vec<i32> = Vec::new<i32>()
+    b.push_byte(10)
+    b.push_byte(20)
+    b.push_byte(30)
+    b.push_byte(40)
+    b.push_byte(50)
+    let sub: Vec<i32> = b.slice_bytes(1, 4)
+    stdio::println((sub.len()).to_string())
+    stdio::println((sub.get_unchecked(0)).to_string())
+    stdio::println((sub.get_unchecked(1)).to_string())
+    stdio::println((sub.get_unchecked(2)).to_string())
+    let empty: Vec<i32> = b.slice_bytes(2, 2)
+    stdio::println((empty.len()).to_string())
+    let full: Vec<i32> = b.slice_bytes(0, 5)
+    stdio::println((full.len()).to_string())
+    stdio::println((b.equals_bytes(full)).to_string())
 }
 // bytes_slice: extract sub-range
 // Empty slice

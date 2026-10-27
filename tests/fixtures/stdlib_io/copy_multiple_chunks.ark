@@ -6,10 +6,10 @@ fn main() {
     // 300 bytes span more than one COPY_CHUNK_BYTES (256) read, so the copy
     // loop must continue past the first chunk instead of reporting a partial
     // transfer as success.
-    let data: Vec<i32> = bytes::bytes_new()
+    let data: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < 300 {
-        bytes::bytes_push(data, i % 251)
+        data.push_byte(i % 251)
         i = i + 1
     }
     let src: io::Reader = io::Reader::from_bytes(data)
@@ -20,8 +20,8 @@ fn main() {
         Result::Err(e) => panic(io::io_error_message(e)),
     }
     let b: Vec<i32> = dst.into_bytes()
-    test::assert_eq_i32(bytes::bytes_len(b), 300)
-    test::assert_eq_i32(bytes::bytes_get(b, 0), 0)
-    test::assert_eq_i32(bytes::bytes_get(b, 256), 5)
-    test::assert_eq_i32(bytes::bytes_get(b, 299), 48)
+    test::assert_eq_i32(b.len(), 300)
+    test::assert_eq_i32(b.get_unchecked(0), 0)
+    test::assert_eq_i32(b.get_unchecked(256), 5)
+    test::assert_eq_i32(b.get_unchecked(299), 48)
 }

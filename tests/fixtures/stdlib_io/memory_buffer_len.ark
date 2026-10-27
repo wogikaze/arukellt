@@ -6,10 +6,10 @@ fn main() {
     let w: io::Writer = io::Writer::new()
     let r: io::Reader = w.into_reader()
     test::assert_eq_i32(r.len(), 0)
-    let data: Vec<i32> = bytes::bytes_new()
-    bytes::bytes_push(data, 1)
-    bytes::bytes_push(data, 2)
-    bytes::bytes_push(data, 3)
+    let data: Vec<i32> = Vec::new<i32>()
+    data.push_byte(1)
+    data.push_byte(2)
+    data.push_byte(3)
     let w2: io::Writer = io::Writer::new()
     match w2.write(data) {
         Result::Ok(count) => test::assert_eq_i32(count, 3),

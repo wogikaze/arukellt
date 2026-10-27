@@ -3,7 +3,7 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = bytes::bytes_new()
+    let data: Vec<i32> = Vec::new<i32>()
     let src: io::Reader = io::Reader::from_bytes(data)
     let dst: io::Writer = io::Writer::new()
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)

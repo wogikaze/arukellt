@@ -31,12 +31,12 @@ fn main() {
     }
     let first_inner: Result<Writer, io::IoError> = bw1.into_inner()
     match first_inner {
-        Result::Ok(inner) => test::assert_eq_string(bytes::string_from_bytes(inner.into_bytes()), "x"),
+        Result::Ok(inner) => test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
     let second_inner: Result<Writer, io::IoError> = bw2.into_inner()
     match second_inner {
-        Result::Ok(inner) => test::assert_eq_string(bytes::string_from_bytes(inner.into_bytes()), "x"),
+        Result::Ok(inner) => test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
         Result::Err(e) => panic(io::io_error_message(e)),
     }
 }

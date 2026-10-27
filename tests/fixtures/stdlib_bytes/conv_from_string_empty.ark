@@ -2,6 +2,6 @@ use std::bytes
 use std::test
 
 fn main() {
-    let b: Vec<i32> = bytes::bytes_from_string("")
-    test::assert_eq_i32(bytes::bytes_len(b), 0)
+    let b: Vec<i32> = "".to_utf8_bytes()
+    test::assert_eq_i32(b.len(), 0)
 }

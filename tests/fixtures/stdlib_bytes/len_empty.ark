@@ -2,5 +2,5 @@ use std::bytes
 use std::test
 
 fn main() {
-    test::assert_eq_i32(bytes::bytes_len(bytes::bytes_new()), 0)
+    test::assert_eq_i32(Vec::new<i32>().len(), 0)
 }

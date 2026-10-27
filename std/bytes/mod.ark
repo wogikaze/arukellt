@@ -13,9 +13,9 @@
 //! - `data.byte_cursor()` plus `c.cursor_pos()`, `c.cursor_remaining()`,
 //!   `c.read_u8()`, `c.try_read_u8()`, and the wider readers.
 //!
-//! The public free functions below are deprecated under ADR-087 and remain
-//! callable only through the 0.x deprecation window; W0009 names the
-//! replacement and `remove_in` is the upper bound.
+//! The former free functions (`bytes_new`, `hex_encode`, `cursor_new`, …)
+//! were removed under ADR-087 Wave 2; qualified old calls fail resolution
+//! with an E0100 hint that names the method / associated replacement.
 //!
 //! `try_read_u64_le` stays deferred: constructing `Some(i64)` still emits
 //! invalid Wasm, so use `c.read_u64_le()` and its `-1` sentinel.
@@ -626,66 +626,7 @@ impl Vec<i32> {
     }
 }
 
-// ── Deprecated free-function surface (ADR-087 Wave 1) ───────────────────────
-// The method / associated surface above is canonical. These wrappers stay
-// resolvable through the 0.x deprecation window; the manifest carries the
-// W0009 replacement and remove_in metadata, and the changelog records the
-// wave. Remove them when the ADR-087 window closes.
-/// Deprecated: use `Vec::new` instead.
-pub fn bytes_new() -> Vec<i32> {
-    Vec::new<i32>()
-}
-
-/// Create a byte buffer from the raw bytes of a UTF-8 string.
-/// Deprecated: use `String::to_utf8_bytes` instead.
-pub fn bytes_from_string(s: String) -> Vec<i32> {
-    s.to_utf8_bytes()
-}
-
-/// Decode the buffer as UTF-8, replacing each invalid sequence with U+FFFD.
-/// Deprecated: use `String::from_utf8_lossy` instead.
-pub fn string_from_bytes(b: Vec<i32>) -> String {
-    String::from_utf8_lossy(b)
-}
-
-/// Deprecated: use `Vec::len` instead.
-pub fn bytes_len(b: Vec<i32>) -> i32 {
-    b.len()
-}
-
-/// Deprecated: use `Vec::get_unchecked` instead.
-pub fn bytes_get(b: Vec<i32>, index: i32) -> i32 {
-    b.get_unchecked(index)
-}
-
-/// Deprecated: use `Vec::push_byte` instead.
-pub fn bytes_push(b: Vec<i32>, byte: i32) {
-    b.push_byte(byte)
-}
-
-/// Deprecated: use `Vec::equals_bytes` instead.
-pub fn bytes_eq(a: Vec<i32>, b: Vec<i32>) -> bool {
-    a.equals_bytes(b)
-}
-
-/// Concatenate two byte buffers into a new one.
-/// Deprecated: use `Vec::concat_bytes` instead.
-pub fn bytes_concat(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
-    a.concat_bytes(b)
-}
-
-/// Extract a sub-range of bytes as a new buffer.
-/// Deprecated: use `Vec::slice_bytes` instead.
-pub fn bytes_slice(b: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
-    b.slice_bytes(start, end)
-}
-
-/// Deprecated: use `String::len_bytes` instead.
-pub fn byte_length(s: String) -> i32 {
-    s.len_bytes()
-}
-
-// --- Hex encoding ---
+// --- Hex helpers ---
 fn hex_char(nibble: i32) -> String {
     if nibble < 10 {
         (nibble).to_string()
@@ -712,11 +653,6 @@ fn hex_char(nibble: i32) -> String {
             }
         }
     }
-}
-
-/// Deprecated: use `Vec::to_hex` instead.
-pub fn hex_encode(b: Vec<i32>) -> String {
-    b.to_hex()
 }
 
 fn hex_val_char(ch: String) -> i32 {
@@ -811,178 +747,7 @@ fn hex_val_char(ch: String) -> i32 {
     }
 }
 
-/// Deprecated: use `Bytes::from_hex` instead.
-pub fn hex_decode(s: String) -> Vec<i32> {
-    Bytes::from_hex(s)
-}
-
-// --- LEB128 encoding ---
-/// Deprecated: use `Bytes::from_leb128_u32` instead.
-pub fn leb128_encode_u32(x: i32) -> Vec<i32> {
-    Bytes::from_leb128_u32(x)
-}
-
-/// Deprecated: use `Bytes::from_leb128_i32` instead.
-pub fn leb128_encode_i32(x: i32) -> Vec<i32> {
-    Bytes::from_leb128_i32(x)
-}
-
-// --- Endian utilities ---
-/// Deprecated: use `Bytes::from_u16_le` instead.
-pub fn u16_to_le_bytes(x: i32) -> Vec<i32> {
-    Bytes::from_u16_le(x)
-}
-
-/// Deprecated: use `Vec::to_u16_le` instead.
-pub fn u16_from_le_bytes(b: Vec<i32>) -> i32 {
-    b.to_u16_le()
-}
-
-/// Deprecated: use `Bytes::from_u32_le` instead.
-pub fn u32_to_le_bytes(x: i32) -> Vec<i32> {
-    Bytes::from_u32_le(x)
-}
-
-/// Deprecated: use `Vec::to_u32_le` instead.
-pub fn u32_from_le_bytes(b: Vec<i32>) -> i32 {
-    b.to_u32_le()
-}
-
-/// Deprecated: use `Bytes::from_u32_be` instead.
-pub fn u32_to_be_bytes(x: i32) -> Vec<i32> {
-    Bytes::from_u32_be(x)
-}
-
-/// Deprecated: use `Vec::to_u32_be` instead.
-pub fn u32_from_be_bytes(b: Vec<i32>) -> i32 {
-    b.to_u32_be()
-}
-
-// ─── bytes_from_array ───────────────────────────────────────────────────────
-// NOTE: Vec<u8> is not a distinct type in the current runtime; xs is Vec<i32>
-// with byte values in 0..=255.
-/// Deprecated: use `Bytes::from_array` instead.
-pub fn bytes_from_array(xs: Vec<i32>) -> Vec<i32> {
-    Bytes::from_array(xs)
-}
-
-// ─── ByteBuf ─────────────────────────────────────────────────────────────────
-// ByteBuf is represented as Vec<i32> (mutable accumulator for byte output).
-/// Deprecated: use `Vec::new` instead.
-pub fn buf_new() -> Vec<i32> {
-    Vec::new<i32>()
-}
-
-/// Allocate a ByteBuf with a preallocated capacity hint.
-/// Deprecated: use `Vec::with_capacity` instead.
-pub fn buf_with_capacity(cap: i32) -> Vec<i32> {
-    Vec::with_capacity<i32>(cap)
-}
-
-/// Deprecated: use `Vec::push_byte` instead.
-pub fn buf_push_u8(buf: Vec<i32>, x: i32) {
-    buf.push_byte(x)
-}
-
-/// Deprecated: use `Vec::push_u16_le` instead.
-pub fn buf_push_u16_le(buf: Vec<i32>, x: i32) {
-    buf.push_u16_le(x)
-}
-
-/// Deprecated: use `Vec::push_u32_le` instead.
-pub fn buf_push_u32_le(buf: Vec<i32>, x: i32) {
-    buf.push_u32_le(x)
-}
-
-/// Push a 64-bit little-endian value.
-/// x is passed as i64; bytes are extracted with 8-bit masks.
-/// Deprecated: use `Vec::push_u64_le` instead.
-pub fn buf_push_u64_le(buf: Vec<i32>, x: i64) {
-    buf.push_u64_le(x)
-}
-
-/// Deprecated: use `Vec::extend_bytes` instead.
-pub fn buf_extend(buf: Vec<i32>, bytes: Vec<i32>) {
-    buf.extend_bytes(bytes)
-}
-
-/// Freeze a ByteBuf into an immutable Bytes value.
-/// In the current runtime both types are Vec<i32>, so this is identity.
-/// Deprecated: use `Vec::freeze` instead.
-pub fn buf_freeze(buf: Vec<i32>) -> Vec<i32> {
-    buf.freeze()
-}
-
-/// Deprecated: use `Vec::len` instead.
-pub fn buf_len(buf: Vec<i32>) -> i32 {
-    buf.len()
-}
-
-// ─── ByteCursor ──────────────────────────────────────────────────────────────
-// Layout: c[0] = current position (i32), c[1..] = data bytes (i32 each).
-// Cursor reads advance the position stored at index 0 via `set`.
-/// Deprecated: use `Vec::byte_cursor` instead.
-pub fn cursor_new(data: Vec<i32>) -> Vec<i32> {
-    data.byte_cursor()
-}
-
-/// Deprecated: use `Vec::cursor_pos` instead.
-pub fn cursor_pos(c: Vec<i32>) -> i32 {
-    c.cursor_pos()
-}
-
-/// Deprecated: use `Vec::cursor_remaining` instead.
-pub fn cursor_remaining(c: Vec<i32>) -> i32 {
-    c.cursor_remaining()
-}
-
-/// Read one byte from the cursor and advance its position.
-/// Returns -1 if no bytes remain (error sentinel).
-/// Deprecated: use `Vec::read_u8` instead.
-pub fn read_u8(c: Vec<i32>) -> i32 {
-    c.read_u8()
-}
-
-/// Read two bytes little-endian from the cursor.
-/// Returns -1 if fewer than 2 bytes remain.
-/// Deprecated: use `Vec::read_u16_le` instead.
-pub fn read_u16_le(c: Vec<i32>) -> i32 {
-    c.read_u16_le()
-}
-
-/// Read four bytes little-endian from the cursor.
-/// Returns -1 if fewer than 4 bytes remain.
-/// Deprecated: use `Vec::read_u32_le` instead.
-pub fn read_u32_le(c: Vec<i32>) -> i32 {
-    c.read_u32_le()
-}
-
-/// Read eight bytes little-endian from the cursor as i64.
-/// Returns -1 (as i64) if fewer than 8 bytes remain.
-/// Deprecated: use `Vec::read_u64_le` instead.
-pub fn read_u64_le(c: Vec<i32>) -> i64 {
-    c.read_u64_le()
-}
-
-/// Read four bytes big-endian from the cursor.
-/// Returns -1 if fewer than 4 bytes remain.
-/// Deprecated: use `Vec::read_u32_be` instead.
-pub fn read_u32_be(c: Vec<i32>) -> i32 {
-    c.read_u32_be()
-}
-
-/// Read n bytes from the cursor into a new byte buffer.
-/// Returns an empty buffer if fewer than n bytes remain.
-/// Deprecated: use `Vec::read_bytes` instead.
-pub fn read_bytes(c: Vec<i32>, n: i32) -> Vec<i32> {
-    c.read_bytes(n)
-}
-
-// The `try_*` readers on `Vec<i32>` are the no-sentinel surface: they return
-// `Option` instead of the legacy `-1` / empty-buffer failure convention. The
-// deprecated `read_*` frees above stay during the ADR-087 window.
-
-// ─── Base64 encoding ─────────────────────────────────────────────────────────
+// ─── Base64 helpers ──────────────────────────────────────────────────────────
 fn base64_alphabet() -> String {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 }
@@ -1253,45 +1018,6 @@ fn base64_val(ch: String) -> i32 {
     }
 }
 
-/// Deprecated: use `Vec::to_base64` instead.
-pub fn base64_encode(b: Vec<i32>) -> String {
-    b.to_base64()
-}
-
-/// Deprecated: use `Bytes::from_base64` instead.
-pub fn base64_decode(s: String) -> Vec<i32> {
-    Bytes::from_base64(s)
-}
-
-// ─── LEB128 decode ───────────────────────────────────────────────────────────
-/// Decode an unsigned LEB128 u32 from a ByteCursor.
-/// Returns 0 if the cursor is empty or the encoding is malformed/overlong.
-/// Advances the cursor position by the number of bytes consumed.
-/// Deprecated: use `Vec::read_leb128_u32` instead.
-pub fn leb128_decode_u32(c: Vec<i32>) -> i32 {
-    c.read_leb128_u32()
-}
-
-/// Decode a signed LEB128 i32 from a ByteCursor.
-/// Advances the cursor position.
-/// Deprecated: use `Vec::read_leb128_i32` instead.
-pub fn leb128_decode_i32(c: Vec<i32>) -> i32 {
-    c.read_leb128_i32()
-}
-
-// ─── LEB128 u64 ──────────────────────────────────────────────────────────────
-// NOTE: u64 is not a distinct type; i64 is used throughout.
-/// Deprecated: use `Bytes::from_leb128_u64` instead.
-pub fn leb128_encode_u64(x: i64) -> Vec<i32> {
-    Bytes::from_leb128_u64(x)
-}
-
-/// Decode an unsigned LEB128 u64 from a ByteCursor.
-/// Returns the decoded value as i64.
-/// Deprecated: use `Vec::read_leb128_u64` instead.
-pub fn leb128_decode_u64(c: Vec<i32>) -> i64 {
-    c.read_leb128_u64()
-}
 test mod "bytes" {
     test "new_empty" {
         let b: Vec<i32> = Vec::new<i32>()

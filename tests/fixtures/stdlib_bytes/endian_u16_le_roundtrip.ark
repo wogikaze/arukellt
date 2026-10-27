@@ -1,7 +1,8 @@
 use std::bytes
+use std::bytes::Bytes
 use std::test
 
 fn main() {
-    let le: Vec<i32> = bytes::u16_to_le_bytes(513)
-    test::assert_eq_i32(bytes::u16_from_le_bytes(le), 513)
+    let le: Vec<i32> = Bytes::from_u16_le(513)
+    test::assert_eq_i32(le.to_u16_le(), 513)
 }

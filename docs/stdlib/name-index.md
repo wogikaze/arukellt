@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 438
-- **Historical/deprecated names:** 113
-- **Total entries:** 551
+- **Canonical names:** 512
+- **Historical/deprecated names:** 68
+- **Total entries:** 580
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -24,15 +24,26 @@ Current public API names, sorted alphabetically.
 | `abort` | `std::host::process` | `stable` | Host Process |
 | `abort` | `std::process` | `stable` | Process |
 | `abs` | `prelude` | `stable` | Math |
+| `abs` | `std::simd::f32x4` | `experimental` | Simd |
+| `abs` | `std::simd::i32x4` | `experimental` | Simd |
+| `abs` | `std::simd::f64x2` | `experimental` | Simd |
 | `abs` | `std::simd::i64x2` | `experimental` | Simd |
+| `abs` | `std::simd::i8x16` | `experimental` | Simd |
 | `abs` | `std::simd::i16x8` | `experimental` | Simd |
+| `add` | `std::simd::f32x4` | `experimental` | Simd |
+| `add` | `std::simd::i32x4` | `experimental` | Simd |
 | `add` | `std::simd::f64x2` | `experimental` | Simd |
 | `add` | `std::simd::i64x2` | `experimental` | Simd |
 | `add` | `std::simd::i8x16` | `experimental` | Simd |
+| `add` | `std::simd::i16x8` | `experimental` | Simd |
 | `add` | `std::simd::u8x16` | `experimental` | Simd |
 | `add` | `std::simd::u16x8` | `experimental` | Simd |
 | `add` | `std::simd::u32x4` | `experimental` | Simd |
 | `add` | `std::simd::u64x2` | `experimental` | Simd |
+| `all_true` | `std::simd::i8x16` | `experimental` | Simd |
+| `and` | `std::simd::v128` | `experimental` | Simd |
+| `andnot` | `std::simd::v128` | `experimental` | Simd |
+| `any_true` | `std::simd::v128` | `experimental` | Simd |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_get` | `std::collections::compiler` | `experimental` | Collections |
@@ -64,6 +75,8 @@ Current public API names, sorted alphabetically.
 | `bench` | `std::test` | `experimental` | Test |
 | `binary_search_by` | `std::seq` | `provisional` | Seq |
 | `binary_search_by_key` | `std::seq` | `provisional` | Seq |
+| `bitmask` | `std::simd::i8x16` | `experimental` | Simd |
+| `bitselect` | `std::simd::v128` | `experimental` | Simd |
 | `bitset_clear` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_count` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_intersection` | `std::collections::ordered` | `experimental` | Collections |
@@ -89,12 +102,15 @@ Current public API names, sorted alphabetically.
 | `btree_set_new` | `std::collections::ordered` | `experimental` | Collections |
 | `byte_at` | `prelude` | `stable` | String |
 | `byte_len` | `prelude` | `stable` | String |
+| `canonical_abi_version` | `std::component` | `experimental` | Component |
+| `ceil` | `std::simd::f32x4` | `experimental` | Simd |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `clamp_i32` | `prelude` | `stable` | Math |
 | `clone` | `prelude` | `stable` | String |
 | `clone_f64` | `std::signal` | `stable` | Signal |
 | `cmp_i32` | `std::core` | `stable` | Core |
 | `combine` | `std::core::hash` | `stable` | Core |
+| `component_model_version` | `std::component` | `experimental` | Component |
 | `components` | `std::path` | `stable` | Path |
 | `contains` | `prelude` | `stable` | String |
 | `cos_approx` | `std::signal` | `stable` | Signal |
@@ -105,6 +121,7 @@ Current public API names, sorted alphabetically.
 | `csv_parse_with_header` | `std::csv` | `experimental` | Csv |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
 | `csv_stringify_row` | `std::csv` | `experimental` | Csv |
+| `div` | `std::simd::f32x4` | `experimental` | Simd |
 | `div` | `std::simd::f64x2` | `experimental` | Simd |
 | `duration_ms` | `std::time` | `stable` | Time |
 | `duration_ns` | `std::time` | `stable` | Time |
@@ -112,6 +129,8 @@ Current public API names, sorted alphabetically.
 | `ends_with` | `prelude` | `stable` | String |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
+| `eq` | `std::simd::f32x4` | `experimental` | Simd |
+| `eq` | `std::simd::i32x4` | `experimental` | Simd |
 | `error_message` | `std::core::error` | `stable` | Core |
 | `exists` | `std::fs` | `stable` | Fs |
 | `exit` | `prelude` | `stable` | Host Process |
@@ -122,6 +141,10 @@ Current public API names, sorted alphabetically.
 | `expect_ok_i32` | `std::test` | `stable` | Test |
 | `expect_some_i32` | `std::test` | `stable` | Test |
 | `extension` | `std::path` | `stable` | Path |
+| `extract_lane` | `std::simd::f32x4` | `experimental` | Simd |
+| `extract_lane` | `std::simd::i32x4` | `experimental` | Simd |
+| `extract_lane` | `std::simd::f64x2` | `experimental` | Simd |
+| `extract_lane` | `std::simd::i64x2` | `experimental` | Simd |
 | `f32_to_string` | `prelude` | `stable` | Convert |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
@@ -133,6 +156,7 @@ Current public API names, sorted alphabetically.
 | `find_toml_section` | `std::toml` | `experimental` | Toml |
 | `find_toml_value` | `std::toml` | `experimental` | Toml |
 | `flag` | `std::cli` | `stable` | Cli |
+| `floor` | `std::simd::f32x4` | `experimental` | Simd |
 | `format_bool` | `prelude` | `stable` | String |
 | `format_i32` | `prelude` | `stable` | String |
 | `functype_get_param` | `std::wasm` | `experimental` | Wasm |
@@ -141,6 +165,13 @@ Current public API names, sorted alphabetically.
 | `functype_param_count` | `std::wasm` | `experimental` | Wasm |
 | `functype_result_count` | `std::wasm` | `experimental` | Wasm |
 | `gcd` | `prelude` | `stable` | Math |
+| `ge` | `std::simd::f32x4` | `experimental` | Simd |
+| `gt` | `std::simd::f32x4` | `experimental` | Simd |
+| `handle_drop` | `std::component::handle` | `experimental` | Component |
+| `handle_get` | `std::component::handle` | `experimental` | Component |
+| `handle_len` | `std::component::handle` | `experimental` | Component |
+| `handle_new` | `std::component::handle` | `experimental` | Component |
+| `handle_table_new` | `std::component::handle` | `experimental` | Component |
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `has_flag` | `std::cli` | `stable` | Cli |
 | `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
@@ -240,6 +271,7 @@ Current public API names, sorted alphabetically.
 | `json_stringify_bool` | `std::json` | `experimental` | Json |
 | `json_stringify_i32` | `std::json` | `experimental` | Json |
 | `json_stringify_string` | `std::json` | `experimental` | Json |
+| `le` | `std::simd::f32x4` | `experimental` | Simd |
 | `leb128_encode_u32` | `std::wasm` | `experimental` | Wasm |
 | `leb128_size_u32` | `std::wasm` | `experimental` | Wasm |
 | `limits_bounded` | `std::wasm` | `experimental` | Wasm |
@@ -249,13 +281,16 @@ Current public API names, sorted alphabetically.
 | `limits_unbounded` | `std::wasm` | `experimental` | Wasm |
 | `lines` | `prelude` | `stable` | String |
 | `lower_bound` | `std::seq` | `provisional` | Seq |
+| `lt` | `std::simd::f32x4` | `experimental` | Simd |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `max` | `prelude` | `stable` | Math |
+| `max` | `std::simd::f32x4` | `experimental` | Simd |
 | `max` | `std::simd::f64x2` | `experimental` | Simd |
 | `max_by` | `std::seq` | `provisional` | Seq |
 | `max_by_key` | `std::seq` | `provisional` | Seq |
 | `metadata` | `std::fs` | `provisional` | Fs |
 | `min` | `prelude` | `stable` | Math |
+| `min` | `std::simd::f32x4` | `experimental` | Simd |
 | `min` | `std::simd::f64x2` | `experimental` | Simd |
 | `min_by` | `std::seq` | `provisional` | Seq |
 | `min_by_key` | `std::seq` | `provisional` | Seq |
@@ -270,17 +305,28 @@ Current public API names, sorted alphabetically.
 | `module_new` | `std::wasm` | `experimental` | Wasm |
 | `module_type_count` | `std::wasm` | `experimental` | Wasm |
 | `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
+| `mul` | `std::simd::f32x4` | `experimental` | Simd |
+| `mul` | `std::simd::i32x4` | `experimental` | Simd |
 | `mul` | `std::simd::f64x2` | `experimental` | Simd |
 | `mul` | `std::simd::i64x2` | `experimental` | Simd |
 | `mul` | `std::simd::i8x16` | `experimental` | Simd |
 | `mul` | `std::simd::i16x8` | `experimental` | Simd |
+| `ne` | `std::simd::f32x4` | `experimental` | Simd |
+| `ne` | `std::simd::i32x4` | `experimental` | Simd |
+| `nearest` | `std::simd::f32x4` | `experimental` | Simd |
 | `neg` | `std::simd::f32x4` | `experimental` | Simd |
+| `neg` | `std::simd::i32x4` | `experimental` | Simd |
 | `neg` | `std::simd::f64x2` | `experimental` | Simd |
 | `neg` | `std::simd::i64x2` | `experimental` | Simd |
 | `neg` | `std::simd::i8x16` | `experimental` | Simd |
 | `neg` | `std::simd::i16x8` | `experimental` | Simd |
+| `new` | `std::simd::f32x4` | `experimental` | Simd |
+| `new` | `std::simd::i32x4` | `experimental` | Simd |
+| `new` | `std::simd::f64x2` | `experimental` | Simd |
+| `new` | `std::simd::i64x2` | `experimental` | Simd |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `normalize` | `std::path` | `stable` | Path |
+| `not` | `std::simd::v128` | `experimental` | Simd |
 | `now_ms` | `std::host::clock` | `stable` | Host Clock |
 | `op_call` | `std::wasm` | `experimental` | Wasm |
 | `op_end` | `std::wasm` | `experimental` | Wasm |
@@ -298,6 +344,7 @@ Current public API names, sorted alphabetically.
 | `op_return` | `std::wasm` | `experimental` | Wasm |
 | `op_unreachable` | `std::wasm` | `experimental` | Wasm |
 | `option` | `std::cli` | `stable` | Cli |
+| `or` | `std::simd::v128` | `experimental` | Simd |
 | `pad_left` | `prelude` | `stable` | String |
 | `pad_right` | `prelude` | `stable` | String |
 | `panic` | `prelude` | `stable` | Control |
@@ -340,6 +387,12 @@ Current public API names, sorted alphabetically.
 | `reftype_funcref` | `std::wasm` | `experimental` | Wasm |
 | `repeat` | `prelude` | `stable` | String |
 | `replace` | `prelude` | `stable` | String |
+| `replace_lane` | `std::simd::f32x4` | `experimental` | Simd |
+| `replace_lane` | `std::simd::i32x4` | `experimental` | Simd |
+| `replace_lane` | `std::simd::f64x2` | `experimental` | Simd |
+| `replace_lane` | `std::simd::i64x2` | `experimental` | Simd |
+| `replace_lane` | `std::simd::i8x16` | `experimental` | Simd |
+| `replace_lane` | `std::simd::i16x8` | `experimental` | Simd |
 | `section_code` | `std::wasm` | `experimental` | Wasm |
 | `section_data` | `std::wasm` | `experimental` | Wasm |
 | `section_element` | `std::wasm` | `experimental` | Wasm |
@@ -353,6 +406,9 @@ Current public API names, sorted alphabetically.
 | `section_type` | `std::wasm` | `experimental` | Wasm |
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
+| `shl` | `std::simd::i32x4` | `experimental` | Simd |
+| `shr_s` | `std::simd::i32x4` | `experimental` | Simd |
+| `shr_u` | `std::simd::i32x4` | `experimental` | Simd |
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `skip_ws` | `std::json` | `experimental` | Json |
@@ -370,12 +426,19 @@ Current public API names, sorted alphabetically.
 | `sorted_map_insert` | `std::collections::ordered` | `stable` | Collections |
 | `sorted_map_len` | `std::collections::ordered` | `stable` | Collections |
 | `sorted_map_new` | `std::collections::ordered` | `stable` | Collections |
+| `splat` | `std::simd::f32x4` | `experimental` | Simd |
+| `splat` | `std::simd::i32x4` | `experimental` | Simd |
+| `splat` | `std::simd::f64x2` | `experimental` | Simd |
+| `splat` | `std::simd::i64x2` | `experimental` | Simd |
+| `splat` | `std::simd::i8x16` | `experimental` | Simd |
+| `splat` | `std::simd::i16x8` | `experimental` | Simd |
 | `splat` | `std::simd::u8x16` | `experimental` | Simd |
 | `splat` | `std::simd::u16x8` | `experimental` | Simd |
 | `splat` | `std::simd::u32x4` | `experimental` | Simd |
 | `splat` | `std::simd::u64x2` | `experimental` | Simd |
 | `split` | `prelude` | `stable` | String |
 | `sqrt` | `prelude` | `stable` | Math |
+| `sqrt` | `std::simd::f32x4` | `experimental` | Simd |
 | `sqrt` | `std::simd::f64x2` | `experimental` | Simd |
 | `starts_with` | `prelude` | `stable` | String |
 | `stderr` | `std::io` | `stable` | Io |
@@ -386,9 +449,12 @@ Current public API names, sorted alphabetically.
 | `String_new` | `prelude` | `stable` | String |
 | `stringify` | `std::json` | `experimental` | Json |
 | `stringify_pretty` | `std::json` | `experimental` | Json |
+| `sub` | `std::simd::f32x4` | `experimental` | Simd |
+| `sub` | `std::simd::i32x4` | `experimental` | Simd |
 | `sub` | `std::simd::f64x2` | `experimental` | Simd |
 | `sub` | `std::simd::i64x2` | `experimental` | Simd |
 | `sub` | `std::simd::i8x16` | `experimental` | Simd |
+| `sub` | `std::simd::i16x8` | `experimental` | Simd |
 | `sub` | `std::simd::u8x16` | `experimental` | Simd |
 | `sub` | `std::simd::u16x8` | `experimental` | Simd |
 | `sub` | `std::simd::u32x4` | `experimental` | Simd |
@@ -415,6 +481,7 @@ Current public API names, sorted alphabetically.
 | `trim` | `prelude` | `stable` | String |
 | `trim_end` | `prelude` | `stable` | String |
 | `trim_start` | `prelude` | `stable` | String |
+| `trunc` | `std::simd::f32x4` | `experimental` | Simd |
 | `unbox` | `prelude` | `stable` | Box |
 | `unwrap` | `prelude` | `stable` | Option Result |
 | `unwrap_or` | `prelude` | `stable` | Option Result |
@@ -454,6 +521,13 @@ Current public API names, sorted alphabetically.
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
 | `write_string` | `std::host::fs` | `provisional` | Host Fs |
+| `xor` | `std::simd::v128` | `experimental` | Simd |
+| `zero` | `std::simd::f32x4` | `experimental` | Simd |
+| `zero` | `std::simd::i32x4` | `experimental` | Simd |
+| `zero` | `std::simd::f64x2` | `experimental` | Simd |
+| `zero` | `std::simd::i64x2` | `experimental` | Simd |
+| `zero` | `std::simd::i8x16` | `experimental` | Simd |
+| `zero` | `std::simd::i16x8` | `experimental` | Simd |
 | `zero` | `std::simd::u8x16` | `experimental` | Simd |
 | `zero` | `std::simd::u16x8` | `experimental` | Simd |
 | `zero` | `std::simd::u32x4` | `experimental` | Simd |
@@ -473,32 +547,8 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_i64`~~ | `std::test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`base64_decode`~~ | `Bytes::from_base64` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`base64_encode`~~ | `Vec::to_base64` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_extend`~~ | `Vec::extend_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_freeze`~~ | `Vec::freeze` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_len`~~ | `Vec::len` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_new`~~ | `Vec::new` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u16_le`~~ | `Vec::push_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u32_le`~~ | `Vec::push_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u64_le`~~ | `Vec::push_u64_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_push_u8`~~ | `Vec::push_byte` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`buf_with_capacity`~~ | `Vec::with_capacity` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`byte_length`~~ | `String::len_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_concat`~~ | `Vec::concat_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_eq`~~ | `Vec::equals_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_from_array`~~ | `Bytes::from_array` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_from_string`~~ | `String::to_utf8_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_get`~~ | `Vec::get_unchecked` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_len`~~ | `Vec::len` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_new`~~ | `Vec::new` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_push`~~ | `Vec::push_byte` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`bytes_slice`~~ | `Vec::slice_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`cursor_new`~~ | `Vec::byte_cursor` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`cursor_pos`~~ | `Vec::cursor_pos` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`cursor_remaining`~~ | `Vec::cursor_remaining` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -520,8 +570,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
-| ~~`hex_decode`~~ | `Bytes::from_hex` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`hex_encode`~~ | `Vec::to_hex` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | `i32::into` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -530,12 +578,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | Convert | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_decode_i32`~~ | `Vec::read_leb128_i32` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_decode_u32`~~ | `Vec::read_leb128_u32` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_decode_u64`~~ | `Vec::read_leb128_u64` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_encode_i32`~~ | `Bytes::from_leb128_i32` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_encode_u32`~~ | `Bytes::from_leb128_u32` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`leb128_encode_u64`~~ | `Bytes::from_leb128_u64` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -553,28 +595,15 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`min_i32`~~ | `std::seq::min_by` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_bytes`~~ | `Vec::read_bytes` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u16_le`~~ | `Vec::read_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u32_be`~~ | `Vec::read_u32_be` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u32_le`~~ | `Vec::read_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u64_le`~~ | `Vec::read_u64_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`read_u8`~~ | `Vec::read_u8` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`string_from_bytes`~~ | `String::from_utf8_lossy` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`u16_from_le_bytes`~~ | `Vec::to_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`u16_to_le_bytes`~~ | `Bytes::from_u16_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_from_be_bytes`~~ | `Vec::to_u32_be` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_from_le_bytes`~~ | `Vec::to_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_to_be_bytes`~~ | `Bytes::from_u32_be` | Bytes | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_to_le_bytes`~~ | `Bytes::from_u32_le` | Bytes | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -593,15 +622,26 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abort` | ✅ `stable` | `std::host::process` | Host Process |
 | `abort` | ✅ `stable` | `std::process` | Process |
 | `abs` | ✅ `stable` | `prelude` | Math |
+| `abs` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `abs` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `abs` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i64x2` | Simd |
+| `abs` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i16x8` | Simd |
+| `add` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `add` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `add` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `add` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `add` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `add` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `add` | ✅ `experimental` | `std::simd::u8x16` | Simd |
 | `add` | ✅ `experimental` | `std::simd::u16x8` | Simd |
 | `add` | ✅ `experimental` | `std::simd::u32x4` | Simd |
 | `add` | ✅ `experimental` | `std::simd::u64x2` | Simd |
+| `all_true` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `and` | ✅ `experimental` | `std::simd::v128` | Simd |
+| `andnot` | ✅ `experimental` | `std::simd::v128` | Simd |
+| `any_true` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -635,12 +675,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_ne_i32` | ✅ `stable` | `std::test` | Test |
 | `assert_ne_string` | ✅ `stable` | `std::test` | Test |
 | `assert_true` | ✅ `stable` | `std::test` | Test |
-| ~~`base64_decode`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_base64` · [migration guide](migration-guidance.md) |
-| ~~`base64_encode`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_base64` · [migration guide](migration-guidance.md) |
 | `bench` | ✅ `experimental` | `std::test` | Test |
 | ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::binary_search_by` · [migration guide](migration-guidance.md) |
 | `binary_search_by` | ✅ `provisional` | `std::seq` | Seq |
 | `binary_search_by_key` | ✅ `provisional` | `std::seq` | Seq |
+| `bitmask` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `bitselect` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `bitset_clear` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_count` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_intersection` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -664,33 +704,17 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `btree_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `btree_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `btree_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| ~~`buf_extend`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::extend_bytes` · [migration guide](migration-guidance.md) |
-| ~~`buf_freeze`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::freeze` · [migration guide](migration-guidance.md) |
-| ~~`buf_len`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::len` · [migration guide](migration-guidance.md) |
-| ~~`buf_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::new` · [migration guide](migration-guidance.md) |
-| ~~`buf_push_u16_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_u16_le` · [migration guide](migration-guidance.md) |
-| ~~`buf_push_u32_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_u32_le` · [migration guide](migration-guidance.md) |
-| ~~`buf_push_u64_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_u64_le` · [migration guide](migration-guidance.md) |
-| ~~`buf_push_u8`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_byte` · [migration guide](migration-guidance.md) |
-| ~~`buf_with_capacity`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::with_capacity` · [migration guide](migration-guidance.md) |
 | `byte_at` | ✅ `stable` | `prelude` | String |
 | `byte_len` | ✅ `stable` | `prelude` | String |
-| ~~`byte_length`~~ | ⚠️ deprecated | `std::bytes` | → `String::len_bytes` · [migration guide](migration-guidance.md) |
-| ~~`bytes_concat`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::concat_bytes` · [migration guide](migration-guidance.md) |
-| ~~`bytes_eq`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::equals_bytes` · [migration guide](migration-guidance.md) |
-| ~~`bytes_from_array`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_array` · [migration guide](migration-guidance.md) |
-| ~~`bytes_from_string`~~ | ⚠️ deprecated | `std::bytes` | → `String::to_utf8_bytes` · [migration guide](migration-guidance.md) |
-| ~~`bytes_get`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
-| ~~`bytes_len`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::len` · [migration guide](migration-guidance.md) |
-| ~~`bytes_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::new` · [migration guide](migration-guidance.md) |
-| ~~`bytes_push`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::push_byte` · [migration guide](migration-guidance.md) |
-| ~~`bytes_slice`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::slice_bytes` · [migration guide](migration-guidance.md) |
+| `canonical_abi_version` | ✅ `experimental` | `std::component` | Component |
+| `ceil` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
+| `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `components` | ✅ `stable` | `std::path` | Path |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
@@ -702,9 +726,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `csv_parse_with_header` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_stringify_row` | ✅ `experimental` | `std::csv` | Csv |
-| ~~`cursor_new`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::byte_cursor` · [migration guide](migration-guidance.md) |
-| ~~`cursor_pos`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::cursor_pos` · [migration guide](migration-guidance.md) |
-| ~~`cursor_remaining`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::cursor_remaining` · [migration guide](migration-guidance.md) |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
 | ~~`deque_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::front` · [migration guide](migration-guidance.md) |
@@ -716,6 +737,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`deque_push_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_back` · [migration guide](migration-guidance.md) |
 | ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
+| `div` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `div` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `duration_ms` | ✅ `stable` | `std::time` | Time |
 | `duration_ns` | ✅ `stable` | `std::time` | Time |
@@ -723,6 +745,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `ends_with` | ✅ `stable` | `prelude` | String |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
+| `eq` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `eq` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `error_message` | ✅ `stable` | `std::core::error` | Core |
 | `exists` | ✅ `stable` | `std::fs` | Fs |
 | ~~`exists`~~ | ⚠️ deprecated | `std::host::fs` | → `is_readable_file` · [migration guide](migration-guidance.md) |
@@ -734,6 +758,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `expect_ok_i32` | ✅ `stable` | `std::test` | Test |
 | `expect_some_i32` | ✅ `stable` | `std::test` | Test |
 | `extension` | ✅ `stable` | `std::path` | Path |
+| `extract_lane` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `extract_lane` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `extract_lane` | ✅ `experimental` | `std::simd::f64x2` | Simd |
+| `extract_lane` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | ~~`f32_to_f64`~~ | ⚠️ deprecated | `prelude` | → `f32::to_f64` · [migration guide](migration-guidance.md) |
 | `f32_to_string` | ✅ `stable` | `prelude` | Convert |
 | ~~`f64_bits_hi`~~ | ⚠️ deprecated | `prelude` | → `f64::to_bits_hi` · [migration guide](migration-guidance.md) |
@@ -750,6 +778,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `find_toml_section` | ✅ `experimental` | `std::toml` | Toml |
 | `find_toml_value` | ✅ `experimental` | `std::toml` | Toml |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
+| `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::fold` · [migration guide](migration-guidance.md) |
 | `format_bool` | ✅ `stable` | `prelude` | String |
 | `format_i32` | ✅ `stable` | `prelude` | String |
@@ -759,9 +788,16 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `functype_param_count` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_result_count` | ✅ `experimental` | `std::wasm` | Wasm |
 | `gcd` | ✅ `stable` | `prelude` | Math |
+| `ge` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | ~~`get_var`~~ | ⚠️ deprecated | `std::env` | → `var` · [migration guide](migration-guidance.md) |
+| `gt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `handle_drop` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_get` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_len` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_new` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_table_new` | ✅ `experimental` | `std::component::handle` | Component |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
 | `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -806,8 +842,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashset_str_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_to_vec` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_union` | ✅ `stable` | `std::collections::hash` | Collections |
-| ~~`hex_decode`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_hex` · [migration guide](migration-guidance.md) |
-| ~~`hex_encode`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_hex` · [migration guide](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i16`~~ | ⚠️ deprecated | `prelude` | → `i32::to_i16_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`i32_to_i64`~~ | ⚠️ deprecated | `prelude` | → `i32::into` · [migration guide](migration-guidance.md) |
@@ -871,13 +905,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `json_stringify_bool` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_i32` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_string` | ✅ `experimental` | `std::json` | Json |
-| ~~`leb128_decode_i32`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_leb128_i32` · [migration guide](migration-guidance.md) |
-| ~~`leb128_decode_u32`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_leb128_u32` · [migration guide](migration-guidance.md) |
-| ~~`leb128_decode_u64`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_leb128_u64` · [migration guide](migration-guidance.md) |
-| ~~`leb128_encode_i32`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_leb128_i32` · [migration guide](migration-guidance.md) |
+| `le` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `leb128_encode_u32` | ✅ `experimental` | `std::wasm` | Wasm |
-| ~~`leb128_encode_u32`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_leb128_u32` · [migration guide](migration-guidance.md) |
-| ~~`leb128_encode_u64`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_leb128_u64` · [migration guide](migration-guidance.md) |
 | `leb128_size_u32` | ✅ `experimental` | `std::wasm` | Wasm |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | `limits_bounded` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -898,15 +927,18 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`linked_list_push_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_front` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::iter` · [migration guide](migration-guidance.md) |
 | `lower_bound` | ✅ `provisional` | `std::seq` | Seq |
+| `lt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::map` · [migration guide](migration-guidance.md) |
 | `max` | ✅ `stable` | `prelude` | Math |
+| `max` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `max` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `max_by` | ✅ `provisional` | `std::seq` | Seq |
 | `max_by_key` | ✅ `provisional` | `std::seq` | Seq |
 | ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `std::seq::max_by` · [migration guide](migration-guidance.md) |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
 | `min` | ✅ `stable` | `prelude` | Math |
+| `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `min_by` | ✅ `provisional` | `std::seq` | Seq |
 | `min_by_key` | ✅ `provisional` | `std::seq` | Seq |
@@ -922,17 +954,28 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `module_new` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_type_count` | ✅ `experimental` | `std::wasm` | Wasm |
 | `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
+| `mul` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `mul` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `mul` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `mul` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `mul` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `mul` | ✅ `experimental` | `std::simd::i16x8` | Simd |
+| `ne` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `ne` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `nearest` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `neg` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `neg` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `neg` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `neg` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `neg` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `neg` | ✅ `experimental` | `std::simd::i16x8` | Simd |
+| `new` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `new` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `new` | ✅ `experimental` | `std::simd::f64x2` | Simd |
+| `new` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `normalize` | ✅ `stable` | `std::path` | Path |
+| `not` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `op_call` | ✅ `experimental` | `std::wasm` | Wasm |
 | `op_end` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -950,6 +993,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `op_return` | ✅ `experimental` | `std::wasm` | Wasm |
 | `op_unreachable` | ✅ `experimental` | `std::wasm` | Wasm |
 | `option` | ✅ `stable` | `std::cli` | Cli |
+| `or` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `pad_left` | ✅ `stable` | `prelude` | String |
 | `pad_right` | ✅ `stable` | `prelude` | String |
 | `panic` | ✅ `stable` | `prelude` | Control |
@@ -985,21 +1029,21 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `experimental` | `std::host::fs` | Host Fs |
-| ~~`read_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_bytes` · [migration guide](migration-guidance.md) |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_to_string` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| ~~`read_u16_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u16_le` · [migration guide](migration-guidance.md) |
-| ~~`read_u32_be`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u32_be` · [migration guide](migration-guidance.md) |
-| ~~`read_u32_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u32_le` · [migration guide](migration-guidance.md) |
-| ~~`read_u64_le`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u64_le` · [migration guide](migration-guidance.md) |
-| ~~`read_u8`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::read_u8` · [migration guide](migration-guidance.md) |
 | `reftype_externref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `reftype_funcref` | ✅ `experimental` | `std::wasm` | Wasm |
 | `repeat` | ✅ `stable` | `prelude` | String |
 | `replace` | ✅ `stable` | `prelude` | String |
+| `replace_lane` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `replace_lane` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `replace_lane` | ✅ `experimental` | `std::simd::f64x2` | Simd |
+| `replace_lane` | ✅ `experimental` | `std::simd::i64x2` | Simd |
+| `replace_lane` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `replace_lane` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `section_code` | ✅ `experimental` | `std::wasm` | Wasm |
 | `section_data` | ✅ `experimental` | `std::wasm` | Wasm |
 | `section_element` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1016,6 +1060,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
 | ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::rev` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
+| `shl` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `shr_s` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `shr_u` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
 | ~~`skip_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::skip` · [migration guide](migration-guidance.md) |
@@ -1036,12 +1083,19 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sorted_map_insert` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `sorted_map_len` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `sorted_map_new` | ✅ `stable` | `std::collections::ordered` | Collections |
+| `splat` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `splat` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `splat` | ✅ `experimental` | `std::simd::f64x2` | Simd |
+| `splat` | ✅ `experimental` | `std::simd::i64x2` | Simd |
+| `splat` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `splat` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `splat` | ✅ `experimental` | `std::simd::u8x16` | Simd |
 | `splat` | ✅ `experimental` | `std::simd::u16x8` | Simd |
 | `splat` | ✅ `experimental` | `std::simd::u32x4` | Simd |
 | `splat` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `split` | ✅ `stable` | `prelude` | String |
 | `sqrt` | ✅ `stable` | `prelude` | Math |
+| `sqrt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `sqrt` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `stderr` | ✅ `stable` | `std::io` | Io |
@@ -1049,13 +1103,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stdout` | ✅ `stable` | `std::io` | Io |
 | `stem` | ✅ `stable` | `std::path` | Path |
 | `String_from` | ✅ `stable` | `prelude` | String |
-| ~~`string_from_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `String::from_utf8_lossy` · [migration guide](migration-guidance.md) |
 | `String_new` | ✅ `stable` | `prelude` | String |
 | `stringify` | ✅ `experimental` | `std::json` | Json |
 | `stringify_pretty` | ✅ `experimental` | `std::json` | Json |
+| `sub` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `sub` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `sub` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::u8x16` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::u16x8` | Simd |
 | `sub` | ✅ `experimental` | `std::simd::u32x4` | Simd |
@@ -1084,13 +1140,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `trim` | ✅ `stable` | `prelude` | String |
 | `trim_end` | ✅ `stable` | `prelude` | String |
 | `trim_start` | ✅ `stable` | `prelude` | String |
-| ~~`u16_from_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_u16_le` · [migration guide](migration-guidance.md) |
+| `trunc` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | ~~`u16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u16::to_i32` · [migration guide](migration-guidance.md) |
-| ~~`u16_to_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_u16_le` · [migration guide](migration-guidance.md) |
-| ~~`u32_from_be_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_u32_be` · [migration guide](migration-guidance.md) |
-| ~~`u32_from_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Vec::to_u32_le` · [migration guide](migration-guidance.md) |
-| ~~`u32_to_be_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_u32_be` · [migration guide](migration-guidance.md) |
-| ~~`u32_to_le_bytes`~~ | ⚠️ deprecated | `std::bytes` | → `Bytes::from_u32_le` · [migration guide](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | ⚠️ deprecated | `prelude` | → `u32::to_u64` · [migration guide](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | ⚠️ deprecated | `prelude` | → `u64::to_u32_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u8::to_i32` · [migration guide](migration-guidance.md) |
@@ -1136,6 +1187,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | ~~`writer_write`~~ | ⚠️ deprecated | `std::io` | → `Writer::write` · [migration guide](migration-guidance.md) |
 | ~~`writer_write_str`~~ | ⚠️ deprecated | `std::io` | → `Writer::write_string` · [migration guide](migration-guidance.md) |
+| `xor` | ✅ `experimental` | `std::simd::v128` | Simd |
+| `zero` | ✅ `experimental` | `std::simd::f32x4` | Simd |
+| `zero` | ✅ `experimental` | `std::simd::i32x4` | Simd |
+| `zero` | ✅ `experimental` | `std::simd::f64x2` | Simd |
+| `zero` | ✅ `experimental` | `std::simd::i64x2` | Simd |
+| `zero` | ✅ `experimental` | `std::simd::i8x16` | Simd |
+| `zero` | ✅ `experimental` | `std::simd::i16x8` | Simd |
 | `zero` | ✅ `experimental` | `std::simd::u8x16` | Simd |
 | `zero` | ✅ `experimental` | `std::simd::u16x8` | Simd |
 | `zero` | ✅ `experimental` | `std::simd::u32x4` | Simd |

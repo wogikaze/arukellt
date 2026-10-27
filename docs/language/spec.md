@@ -1966,8 +1966,9 @@ associated `Bytes::from_array(xs)`, `Bytes::from_hex(s)`,
 `Bytes::from_leb128_i32(x)`, `Bytes::from_leb128_u64(x)`.
 Import `use std::bytes` for the methods and `use std::bytes::Bytes` for the
 associated functions. The 45 registered free functions (`bytes_new`,
-`bytes_push`, `hex_encode`, `cursor_new`, …) are deprecated under ADR-087 and
-emit W0009 while they remain callable.
+`bytes_push`, `hex_encode`, `cursor_new`, …) were removed in the ADR-087
+Wave 2 deletion; qualified old calls fail resolution with an E0100 hint that
+names the replacement.
 
 **Endian Conversion**:
 `Bytes::from_u16_le(x)` / `b.to_u16_le()`,

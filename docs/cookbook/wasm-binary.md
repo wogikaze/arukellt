@@ -15,17 +15,17 @@ Every Wasm module starts with an 8-byte header: magic number + version.
 ```ark
 use std::bytes
 
-let buf = buf_new()
+let buf: Vec<i32> = Vec::new<i32>()
 // Magic: \0asm
-buf_push_u8(buf, 0x00)
-buf_push_u8(buf, 0x61)  // 'a'
-buf_push_u8(buf, 0x73)  // 's'
-buf_push_u8(buf, 0x6D)  // 'm'
+buf.push_byte(0x00)
+buf.push_byte(0x61)  // 'a'
+buf.push_byte(0x73)  // 's'
+buf.push_byte(0x6D)  // 'm'
 // Version: 1
-buf_push_u32_le(buf, 1)
+buf.push_u32_le(1)
 
-let header = buf_freeze(buf)
-assert_eq(bytes_len(header), 8)
+let header = buf.freeze()
+assert_eq(header.len(), 8)
 ```
 
 ## LEB128 Encoding for Section Sizes
@@ -36,13 +36,13 @@ Wasm uses LEB128 variable-length encoding for integers in binary format.
 ```ark
 use std::bytes
 
-let buf = buf_new()
+let buf: Vec<i32> = Vec::new<i32>()
 write_var_u32(buf, 42)     // small value: 1 byte [0x2a]
 write_var_u32(buf, 300)    // larger value: 2 bytes [0xac, 0x02]
 write_var_u32(buf, 128)    // boundary: 2 bytes [0x80, 0x01]
 
-let encoded = buf_freeze(buf)
-assert_eq(bytes_len(encoded), 5)
+let encoded = buf.freeze()
+assert_eq(encoded.len(), 5)
 
 // Size estimation
 let size1 = leb128_u32_size(42)    // 1
@@ -58,34 +58,34 @@ The type section (id=1) declares function signatures.
 ```ark
 use std::bytes
 
-fn encode_type_section() -> Bytes {
+fn encode_type_section() -> Vec<i32> {
     // Build section content first to compute size
-    let content = buf_new()
+    let content: Vec<i32> = Vec::new<i32>()
 
     // Number of types: 1
     write_var_u32(content, 1)
 
     // Function type tag
-    buf_push_u8(content, 0x60)
+    content.push_byte(0x60)
 
     // Params: (i32, i32)
     write_var_u32(content, 2)   // param count
-    buf_push_u8(content, 0x7F)  // i32
-    buf_push_u8(content, 0x7F)  // i32
+    content.push_byte(0x7F)  // i32
+    content.push_byte(0x7F)  // i32
 
     // Results: (i32)
     write_var_u32(content, 1)   // result count
-    buf_push_u8(content, 0x7F)  // i32
+    content.push_byte(0x7F)  // i32
 
-    let content_bytes = buf_freeze(content)
+    let content_bytes = content.freeze()
 
     // Build section with header
-    let section = buf_new()
-    buf_push_u8(section, 0x01)  // section id = Type
-    write_var_u32(section, bytes_len(content_bytes))
-    buf_extend(section, content_bytes)
+    let section: Vec<i32> = Vec::new<i32>()
+    section.push_byte(0x01)  // section id = Type
+    write_var_u32(section, content_bytes.len())
+    section.extend_bytes(content_bytes)
 
-    buf_freeze(section)
+    section.freeze()
 }
 ```
 
@@ -95,14 +95,14 @@ fn encode_type_section() -> Bytes {
 ```ark
 use std::bytes
 
-fn validate_wasm_header(data: Bytes) -> bool {
-    let c = cursor_new(data)
+fn validate_wasm_header(data: Vec<i32>) -> bool {
+    let c: Vec<i32> = data.byte_cursor()
 
-    // Read magic number
-    let b0 = unwrap(read_u8(c))
-    let b1 = unwrap(read_u8(c))
-    let b2 = unwrap(read_u8(c))
-    let b3 = unwrap(read_u8(c))
+    // Read magic number; the read_* sentinel is -1 at EOF.
+    let b0 = c.read_u8()
+    let b1 = c.read_u8()
+    let b2 = c.read_u8()
+    let b3 = c.read_u8()
 
     if b0 != 0x00 { return false }
     if b1 != 0x61 { return false }
@@ -110,7 +110,7 @@ fn validate_wasm_header(data: Bytes) -> bool {
     if b3 != 0x6D { return false }
 
     // Read version
-    let version = unwrap(read_u32_le(c))
+    let version = c.read_u32_le()
     version == 1
 }
 ```

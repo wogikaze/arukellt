@@ -1,23 +1,24 @@
 use std::bytes
+use std::bytes::Bytes
 use std::host::stdio
 
 fn main() {
-    let le16: Vec<i32> = bytes::u16_to_le_bytes(513)
-    stdio::println((bytes::bytes_get(le16, 0)).to_string())
-    stdio::println((bytes::bytes_get(le16, 1)).to_string())
-    let rt16: i32 = bytes::u16_from_le_bytes(le16)
+    let le16: Vec<i32> = Bytes::from_u16_le(513)
+    stdio::println((le16.get_unchecked(0)).to_string())
+    stdio::println((le16.get_unchecked(1)).to_string())
+    let rt16: i32 = le16.to_u16_le()
     stdio::println((rt16).to_string())
-    let le32: Vec<i32> = bytes::u32_to_le_bytes(305419896)
-    stdio::println((bytes::bytes_len(le32)).to_string())
-    stdio::println((bytes::bytes_get(le32, 0)).to_string())
-    let rt32: i32 = bytes::u32_from_le_bytes(le32)
+    let le32: Vec<i32> = Bytes::from_u32_le(305419896)
+    stdio::println((le32.len()).to_string())
+    stdio::println((le32.get_unchecked(0)).to_string())
+    let rt32: i32 = le32.to_u32_le()
     stdio::println((rt32).to_string())
-    let be32: Vec<i32> = bytes::u32_to_be_bytes(16909060)
-    stdio::println((bytes::bytes_get(be32, 0)).to_string())
-    stdio::println((bytes::bytes_get(be32, 1)).to_string())
-    stdio::println((bytes::bytes_get(be32, 2)).to_string())
-    stdio::println((bytes::bytes_get(be32, 3)).to_string())
-    let rt32be: i32 = bytes::u32_from_be_bytes(be32)
+    let be32: Vec<i32> = Bytes::from_u32_be(16909060)
+    stdio::println((be32.get_unchecked(0)).to_string())
+    stdio::println((be32.get_unchecked(1)).to_string())
+    stdio::println((be32.get_unchecked(2)).to_string())
+    stdio::println((be32.get_unchecked(3)).to_string())
+    let rt32be: i32 = be32.to_u32_be()
     stdio::println((rt32be).to_string())
 }
 // u16 little-endian roundtrip
