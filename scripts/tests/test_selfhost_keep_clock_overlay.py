@@ -220,3 +220,90 @@ def test_stub_overlay_widens_emit_phase_timestamps() -> None:
     result = _patch_bootstrap_driver_timing_emit(source, keep_clock=False)
     assert '"driver.emit.enter", t_mir_verify, i32_to_i64(t_emit_enter)' in result
     assert '"driver.emit.wit_bind", i32_to_i64(t_emit_enter), i32_to_i64(t_bind)' in result
+
+
+# The #917 clock namespace moved the compiler's call sites to
+# ``Clock::monotonic_now()``. The driver timing slots stay i32, so the stub
+# must match the namespace spelling too: a read that escapes it leaves an i64
+# value in an i32 slot and the emit call sites widen with
+# ``i32_to_i64(<i64>)``, which is invalid core Wasm (expected i32, found i64).
+
+
+def test_stub_stubs_namespace_clock_read() -> None:
+    source = """fn run_backend() {
+    let t_lower = Clock::monotonic_now()
+    let t_mir_opt = Clock::monotonic_now()
+}
+"""
+    result = _patch_bootstrap_driver_timing(source, keep_clock=False)
+    assert "let t_lower = 0" in result
+    assert "let t_mir_opt = 0" in result
+    assert "Clock::monotonic_now()" not in result
+
+
+def test_keep_clock_rewrites_namespace_clock_read_to_i32_ms() -> None:
+    source = """fn run_backend() {
+    let t_lower = Clock::monotonic_now()
+}
+"""
+    result = _patch_bootstrap_driver_timing(source, keep_clock=True)
+    assert "let t_lower = i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
+    assert "Clock::monotonic_now()" not in result
+
+
+def test_stub_stubs_namespace_clock_in_mir_lower_phase() -> None:
+    source = """fn mir_lower_phase_now() -> i64 {
+    Clock::monotonic_now()
+}
+"""
+    result = _patch_bootstrap_mir_lower_phase_timing(source, keep_clock=False)
+    assert "i32_to_i64(0)" in result
+    assert "Clock::monotonic_now()" not in result
+
+
+def test_overlay_clock_guard_rejects_unstubbed_driver_read(tmp_path: Path) -> None:
+    from selfhost.checks import (
+        BootstrapOverlayError,
+        _assert_bootstrap_overlay_clock_reads_stubbed,
+    )
+
+    driver = tmp_path / "src" / "compiler" / "driver_pipeline_backend.ark"
+    driver.parent.mkdir(parents=True)
+    driver.write_text("fn run() -> i64 { clock::monotonic_now() }\n", encoding="utf-8")
+    with pytest.raises(BootstrapOverlayError, match="i32 driver timing slot"):
+        _assert_bootstrap_overlay_clock_reads_stubbed(tmp_path)
+
+
+def test_overlay_clock_guard_rejects_surviving_namespace_spelling(
+    tmp_path: Path,
+) -> None:
+    from selfhost.checks import (
+        BootstrapOverlayError,
+        _assert_bootstrap_overlay_clock_reads_stubbed,
+    )
+
+    module = tmp_path / "src" / "compiler" / "wasm_code.ark"
+    module.parent.mkdir(parents=True)
+    module.write_text("fn now() -> i64 { Clock::monotonic_now() }\n", encoding="utf-8")
+    with pytest.raises(BootstrapOverlayError, match="std/host/clock.ark"):
+        _assert_bootstrap_overlay_clock_reads_stubbed(tmp_path)
+
+
+def test_overlay_clock_guard_accepts_stub_and_keep_clock_forms(tmp_path: Path) -> None:
+    from selfhost.checks import _assert_bootstrap_overlay_clock_reads_stubbed
+
+    compiler_dir = tmp_path / "src" / "compiler"
+    compiler_dir.mkdir(parents=True)
+    (compiler_dir / "driver_pipeline_backend.ark").write_text(
+        "fn run() -> i32 { i64_to_i32(clock::monotonic_now() / 1000000i64) }\n",
+        encoding="utf-8",
+    )
+    (compiler_dir / "driver_emit.ark").write_text(
+        "fn run() -> i32 { 0 }\n", encoding="utf-8"
+    )
+    # Hint tables keep the checked-in `Clock::` spelling inside strings.
+    (compiler_dir / "lint_deprecated_table.ark").write_text(
+        'fn hint() -> String { String_from("Clock::monotonic_now()") }\n',
+        encoding="utf-8",
+    )
+    _assert_bootstrap_overlay_clock_reads_stubbed(tmp_path)
