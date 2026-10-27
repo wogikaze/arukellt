@@ -3,7 +3,7 @@ use std::text
 
 fn main() {
     // Empty builder
-    let sb = String::new()
+    let sb = ""
     test::assert_eq_i32(sb.len(), 0)
     test::assert_eq_string(sb, "")
     test::assert_true(sb.is_empty())

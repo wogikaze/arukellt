@@ -217,22 +217,17 @@ class = "must delete"
 owner = "703"
 replacement = "Iterator adapters / Vec methods (#691)"
 
-[[rules]]
-label = "deprecated std::text frees"
-module_pfx = "std::text"
-deprecated = true
-class = "must delete"
-owner = "917"
-replacement = "String methods (len_bytes/trim*/slice_*/split/lines/chars/...), String::new / from_utf8_lossy / try_from_utf8, Vec<String>::join, and DebugFormat associated renderings. The 36 entries are the ADR-087 Wave-1 deprecation set; physical deletion is Wave 2."
-
-# The non-deprecated `std::text` surface was retired on 2026-10-27:
-#   std::text 3 experimental utf8 frees -> String::from_utf8_lossy /
-#     String::try_from_utf8 / String::to_utf8_bytes
-#   std::text::rope 8 experimental frees -> String::new / clone / len /
-#     insert_text / delete_range / slice / line_count
-#   std::text::fmt 11 unregistered frees -> value.fmt_debug(),
-#     buf.concat(value.fmt_debug()), and DebugFormat associated renderings
-# The remaining text frees are stable and deprecated above.
+# The std::text free surface was fully retired by #917 on 2026-10-27.
+#   String methods: len_bytes, trim/trim_start/trim_end, replace, lines,
+#     chars, pad_left_with/pad_right_with, repeat, len_chars, codepoint_at,
+#     slice_bytes/try_slice_bytes, slice_chars/try_slice_chars, split,
+#     concat, starts_with, ends_with, contains, to_lower, to_upper,
+#     to_utf8_bytes, insert_text, delete_range, line_count
+#   Associated: String::from_utf8_lossy, String::try_from_utf8
+#   Vec<String>::join
+#   DebugFormat::vec_i32 ... result_string_string
+# The qualified removals carry E0100 hints from resolver::removed_names.
+# No std::text free symbol remains, so this family has no live rule.
 
 [[rules]]
 label = "deprecated module frees"

@@ -1,7 +1,7 @@
 use std::host::stdio
 
 fn main() {
-    let r = String::new()
+    let r = ""
     stdio::println((r.len()).to_string())
     let r2 = "hello".clone()
     stdio::println((r2.len()).to_string())

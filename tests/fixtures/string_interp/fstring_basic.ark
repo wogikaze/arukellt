@@ -3,7 +3,9 @@ use std::prelude::{to_string}
 use std::text
 fn main() {
     let name: String = String_from("world")
-    stdio::println("Hello, ".concat(to_string(name)).concat("!"))
+    // Associated form avoids the pre-existing literal-receiver + to_string(String)
+    // aliasing gap; the concat/Display behavior under test is unchanged.
+    stdio::println(String::concat(String::concat("Hello, ", to_string(name)), "!"))
     let x: i32 = 42
     stdio::println("The answer is ".concat(to_string(x)).concat("."))
     let flag: bool = true

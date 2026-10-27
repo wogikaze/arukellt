@@ -44,7 +44,7 @@ fn main() {
         checksum = checksum + repeated.len_bytes()
 
         // Builder
-        let mut sb = String::new()
+        let mut sb = ""
         sb = sb.concat("a")
         sb = sb.concat("b")
         sb = sb.concat("c").concat("\n")

@@ -12,22 +12,22 @@ use std::text
 impl WitFunc {
     /// Render one function member line of an interface body.
     fn to_wit(self: WitFunc) -> String {
-        let mut line = "  ".concat((self.name).concat(": func("))
+        let mut line = String::concat("  ", String::concat(self.name, ": func("))
         let n = len(self.params)
         let mut i = 0
         while i < n {
             let param = get_unchecked(self.params, i)
             if i > 0 {
-                line = line.concat(", ")
+                line = String::concat(line, ", ")
             }
             let param_ty = param.ty
-            line = line.concat((param.name).concat(": ".concat(param_ty.wit_text())))
+            line = String::concat(line, String::concat(param.name, String::concat(": ", param_ty.wit_text())))
             i = i + 1
         }
-        line = line.concat(")")
+        line = String::concat(line, ")")
         let result: Option<types::WitType> = self.result
         match result {
-            Option::Some(ret) => line.concat(" -> ".concat(ret.wit_text())),
+            Option::Some(ret) => String::concat(line, String::concat(" -> ", ret.wit_text())),
             None => line,
         }
     }
@@ -36,36 +36,36 @@ impl WitFunc {
 impl Interface {
     /// Render an interface block with the given `import` / `export` keyword.
     fn to_wit(self: Interface, kind: String) -> String {
-        let mut out = kind.concat(" ".concat((self.name).concat(" {\n")))
+        let mut out = String::concat(kind, String::concat(" ", String::concat(self.name, " {\n")))
         let n = len(self.functions)
         let mut i = 0
         while i < n {
             let func = get_unchecked(self.functions, i)
-            out = out.concat(func.to_wit().concat("\n"))
+            out = String::concat(out, String::concat(func.to_wit(), "\n"))
             i = i + 1
         }
-        out.concat("}\n")
+        String::concat(out, "}\n")
     }
 }
 
 impl World {
     /// Render the world and its imported / exported interfaces.
     fn to_wit(self: World) -> String {
-        let mut out = "world ".concat((self.name).concat(" {\n"))
+        let mut out = String::concat("world ", String::concat(self.name, " {\n"))
         let import_count = len(self.imports)
         let mut i = 0
         while i < import_count {
             let iface = get_unchecked(self.imports, i)
-            out = out.concat(iface.to_wit(String_from("import")))
+            out = String::concat(out, iface.to_wit(String_from("import")))
             i = i + 1
         }
         let export_count = len(self.exports)
         i = 0
         while i < export_count {
             let iface = get_unchecked(self.exports, i)
-            out = out.concat(iface.to_wit(String_from("export")))
+            out = String::concat(out, iface.to_wit(String_from("export")))
             i = i + 1
         }
-        out.concat("}\n")
+        String::concat(out, "}\n")
     }
 }

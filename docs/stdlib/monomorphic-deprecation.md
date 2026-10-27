@@ -78,41 +78,5 @@ helpers are included alongside any other deprecated public entry.
 | `sum_i32` | `std::seq` | `deprecated` | `VecIter::sum` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
 | `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
 | `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
-| `builder_append` | `std::text` | `deprecated` | `String::concat` | `0.1.0` | `1.0.0` | Superseded API |
-| `builder_append_char` | `std::text` | `deprecated` | `String::concat` | `0.1.0` | `1.0.0` | Superseded API |
-| `builder_append_line` | `std::text` | `deprecated` | `String::concat` | `0.1.0` | `1.0.0` | Superseded API |
-| `builder_build` | `std::text` | `deprecated` | `String::clone` | `0.1.0` | `1.0.0` | Superseded API |
-| `builder_len` | `std::text` | `deprecated` | `String::len` | `0.1.0` | `1.0.0` | Superseded API |
-| `builder_new` | `std::text` | `deprecated` | `String::new` | `0.1.0` | `1.0.0` | Superseded API |
-| `chars` | `std::text` | `deprecated` | `String::chars` | `0.1.0` | `1.0.0` | Split into one valid UTF-8 String per Unicode scalar value. |
-| `codepoint_at` | `std::text` | `deprecated` | `String::codepoint_at` | `0.1.0` | `1.0.0` | Return the Unicode scalar at a scalar index, or None when out of range. |
-| `concat` | `std::text` | `deprecated` | `String::concat` | `0.1.0` | `1.0.0` | Superseded API |
-| `contains` | `std::text` | `deprecated` | `String::contains` | `0.1.0` | `1.0.0` | Superseded API |
-| `ends_with` | `std::text` | `deprecated` | `String::ends_with` | `0.1.0` | `1.0.0` | Superseded API |
-| `format_bool` | `std::text` | `deprecated` | `bool::to_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `format_f64` | `std::text` | `deprecated` | `f64::to_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `format_i32` | `std::text` | `deprecated` | `i32::to_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `format_i64` | `std::text` | `deprecated` | `i64::to_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `index_of` | `std::text` | `deprecated` | `String::index_of` | `0.1.0` | `1.0.0` | Superseded API |
-| `is_empty` | `std::text` | `deprecated` | `String::is_empty` | `0.1.0` | `1.0.0` | Superseded API |
-| `join` | `std::text` | `deprecated` | `Vec::join` | `0.1.0` | `1.0.0` | Superseded API |
-| `len_bytes` | `std::text` | `deprecated` | `String::len_bytes` | `0.1.0` | `1.0.0` | Superseded API |
-| `len_chars` | `std::text` | `deprecated` | `String::len_chars` | `0.1.0` | `1.0.0` | Return the number of Unicode scalar values. |
-| `lines` | `std::text` | `deprecated` | `String::lines` | `0.1.0` | `1.0.0` | Superseded API |
-| `pad_left` | `std::text` | `deprecated` | `String::pad_left_with` | `0.1.0` | `1.0.0` | Superseded API |
-| `pad_right` | `std::text` | `deprecated` | `String::pad_right_with` | `0.1.0` | `1.0.0` | Superseded API |
-| `repeat` | `std::text` | `deprecated` | `String::repeat` | `0.1.0` | `1.0.0` | Superseded API |
-| `replace` | `std::text` | `deprecated` | `String::replace` | `0.1.0` | `1.0.0` | Superseded API |
-| `slice_bytes` | `std::text` | `deprecated` | `String::slice_bytes` | `0.1.0` | `1.0.0` | Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string. |
-| `slice_chars` | `std::text` | `deprecated` | `String::slice_chars` | `0.1.0` | `1.0.0` | Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string. |
-| `split` | `std::text` | `deprecated` | `String::split` | `0.1.0` | `1.0.0` | Superseded API |
-| `starts_with` | `std::text` | `deprecated` | `String::starts_with` | `0.1.0` | `1.0.0` | Superseded API |
-| `to_lower` | `std::text` | `deprecated` | `String::to_lower` | `0.1.0` | `1.0.0` | Superseded API |
-| `to_upper` | `std::text` | `deprecated` | `String::to_upper` | `0.1.0` | `1.0.0` | Superseded API |
-| `trim` | `std::text` | `deprecated` | `String::trim` | `0.1.0` | `1.0.0` | Superseded API |
-| `trim_end` | `std::text` | `deprecated` | `String::trim_end` | `0.1.0` | `1.0.0` | Superseded API |
-| `trim_start` | `std::text` | `deprecated` | `String::trim_start` | `0.1.0` | `1.0.0` | Superseded API |
-| `try_slice_bytes` | `std::text` | `deprecated` | `String::try_slice_bytes` | `0.1.0` | `1.0.0` | Return a byte slice when both bounds are UTF-8 boundaries, or None. |
-| `try_slice_chars` | `std::text` | `deprecated` | `String::try_slice_chars` | `0.1.0` | `1.0.0` | Return the scalar-indexed slice, or None for an invalid range. |
 
-Total deprecated public entries: **104**.
+Total deprecated public entries: **68**.

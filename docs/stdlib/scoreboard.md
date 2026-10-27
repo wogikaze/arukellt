@@ -46,12 +46,11 @@
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::v128` | 7 | 0 | 0 | 7 | 0 | 4/7 (57%) | no |
 | `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
-| `std::text` | 36 | 0 | 0 | 0 | 36 | 0/0 (—) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 77 | 0 | 0 | 77 | 0 | **35/77 (45%)** | no |
 
-**Total**: 661 APIs, 251 stable, 19 provisional, 287 experimental, 104 deprecated, 482/557 (87%) fixture coverage
+**Total**: 625 APIs, 251 stable, 19 provisional, 287 experimental, 68 deprecated, 482/557 (87%) fixture coverage
 
 ## Legend
 

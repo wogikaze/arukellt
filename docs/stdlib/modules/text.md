@@ -41,98 +41,26 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 ## Module `std::text`
 
 - Source: [`../../../std/text/mod.ark`](../../../std/text/mod.ark)
-- Manifest-backed functions: 36
-- Stability: deprecated 36
+- Manifest-backed functions: 0
+- Stability: n/a
 
-Extended string operations beyond the prelude.
+String helpers for the text APIs.
 
-This module provides string inspection, trimming, replacement, line
-splitting, padding, formatting, string building, and relocated
-prelude string functions.
+The free `std::text` functions were retired by #917 in favor of receiver
+methods on `String` (`s.trim()`, `s.split(sep)`, `s.len_chars()`, …) and
+the associated `String::from_utf8_lossy` / `String::try_from_utf8`
+constructors. `Vec<String>::join` replaces `std::text::join`, the empty
+string literal replaces the old builder constructors, and
+`std::text::fmt::DebugFormat` owns the container `Debug` renderings that
+cannot yet dispatch through a generic `impl Debug for Vec<T>`.
 
-### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
+Importing `std::text` registers the `impl String` and `impl Vec<String>`
+blocks from `std::collections::string`; the module itself exposes no free
+functions (ADR-046).
 
-- Byte-oriented and Unicode-scalar operations are separate APIs.
-byte_at, byte_len, and slice_bytes use byte indices; len_chars,
-codepoint_at, chars, and slice_chars use scalar indices.
-- This module does not define grapheme-cluster segmentation or
-normalization. Invalid byte input is handled by the UTF-8
-construction API according to its strict or lossy contract.
-- String building helpers (`StringBuilder`, rope) are utility
-surfaces, not a guaranteed-stable text-processing facade.
+Byte-oriented and Unicode-scalar operations use separate index domains:
+`byte_at`, `len_bytes`, and `slice_bytes` use byte indices, while
+`len_chars`, `codepoint_at`, `chars`, and `slice_chars` use scalar indices.
+The module does not define grapheme-cluster segmentation or normalization.
 
-### `std::text` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`len_bytes`~~ ⚠️ Deprecated → `String::len_bytes` | `(String) -> i32` | `deprecated` | ✅ functional | Returns the length of the string in bytes. |
-| ~~`len_chars`~~ ⚠️ Deprecated → `String::len_chars` | `(String) -> i32` | `deprecated` | ✅ functional | Returns the number of Unicode scalar values. |
-| ~~`is_empty`~~ ⚠️ Deprecated → `String::is_empty` | `(String) -> bool` | `deprecated` | ✅ functional | Returns true when the string has zero bytes. |
-| ~~`repeat`~~ ⚠️ Deprecated → `String::repeat` | `(String, i32) -> String` | `deprecated` | ✅ functional | - |
-| ~~`split`~~ ⚠️ Deprecated → `String::split` | `(String, String) -> Vec<String>` | `deprecated` | ✅ functional | Splits s on sep and returns the resulting parts. |
-| ~~`join`~~ ⚠️ Deprecated → `Vec::join` | `(Vec<String>, String) -> String` | `deprecated` | ✅ functional | Joins a vector of strings with sep between each element. |
-| ~~`concat`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `deprecated` | ✅ functional | Concatenates two strings. |
-| ~~`starts_with`~~ ⚠️ Deprecated → `String::starts_with` | `(String, String) -> bool` | `deprecated` | ✅ functional | Returns true when s starts with prefix. |
-| ~~`ends_with`~~ ⚠️ Deprecated → `String::ends_with` | `(String, String) -> bool` | `deprecated` | ✅ functional | Returns true when s ends with suffix. |
-| ~~`to_lower`~~ ⚠️ Deprecated → `String::to_lower` | `(String) -> String` | `deprecated` | ✅ functional | Converts all ASCII uppercase letters to lowercase. |
-| ~~`to_upper`~~ ⚠️ Deprecated → `String::to_upper` | `(String) -> String` | `deprecated` | ✅ functional | Converts all ASCII lowercase letters to uppercase. |
-| ~~`slice_bytes`~~ ⚠️ Deprecated → `String::slice_bytes` | `(String, i32, i32) -> String` | `deprecated` | ✅ functional | Extracts a byte-range substring. Returns empty string if boundaries are invalid. |
-| ~~`try_slice_bytes`~~ ⚠️ Deprecated → `String::try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `deprecated` | ✅ functional | - |
-| ~~`codepoint_at`~~ ⚠️ Deprecated → `String::codepoint_at` | `(String, i32) -> Option<char>` | `deprecated` | ✅ functional | - |
-| ~~`slice_chars`~~ ⚠️ Deprecated → `String::slice_chars` | `(String, i32, i32) -> String` | `deprecated` | ✅ functional | - |
-| ~~`try_slice_chars`~~ ⚠️ Deprecated → `String::try_slice_chars` | `(String, i32, i32) -> Option<String>` | `deprecated` | ✅ functional | - |
-| ~~`contains`~~ ⚠️ Deprecated → `String::contains` | `(String, String) -> bool` | `deprecated` | ✅ functional | Returns true when the substring appears at least once. |
-| ~~`index_of`~~ ⚠️ Deprecated → `String::index_of` | `(String, String) -> i32` | `deprecated` | ✅ functional | Returns the byte index of the first matching substring, or -1. |
-| ~~`trim`~~ ⚠️ Deprecated → `String::trim` | `(String) -> String` | `deprecated` | ✅ functional | Removes ASCII whitespace from both ends of the string. |
-| ~~`trim_start`~~ ⚠️ Deprecated → `String::trim_start` | `(String) -> String` | `deprecated` | ✅ functional | Removes ASCII whitespace from the start of the string. |
-| ~~`trim_end`~~ ⚠️ Deprecated → `String::trim_end` | `(String) -> String` | `deprecated` | ✅ functional | Removes ASCII whitespace from the end of the string. |
-| ~~`replace`~~ ⚠️ Deprecated → `String::replace` | `(String, String, String) -> String` | `deprecated` | ✅ functional | Replaces each non-overlapping match of from with to. |
-| ~~`lines`~~ ⚠️ Deprecated → `String::lines` | `(String) -> Vec<String>` | `deprecated` | ✅ functional | Splits the string on newlines and returns the resulting lines. |
-| ~~`chars`~~ ⚠️ Deprecated → `String::chars` | `(String) -> Vec<String>` | `deprecated` | ✅ functional | Returns one valid UTF-8 String per Unicode scalar value. |
-
-#### `std::text::len_chars`
-
-Return the number of Unicode scalar values.
-
-#### `std::text::slice_bytes`
-
-Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string.
-
-#### `std::text::try_slice_bytes`
-
-Return a byte slice when both bounds are UTF-8 boundaries, or None.
-
-#### `std::text::codepoint_at`
-
-Return the Unicode scalar at a scalar index, or None when out of range.
-
-#### `std::text::slice_chars`
-
-Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string.
-
-#### `std::text::try_slice_chars`
-
-Return the scalar-indexed slice, or None for an invalid range.
-
-#### `std::text::chars`
-
-Split into one valid UTF-8 String per Unicode scalar value.
-
-### `std::text` — Pad
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`pad_left`~~ ⚠️ Deprecated → `String::pad_left_with` | `(String, i32, String) -> String` | `deprecated` | ✅ functional | Left-pads the string with fill until width bytes are reached. |
-| ~~`pad_right`~~ ⚠️ Deprecated → `String::pad_right_with` | `(String, i32, String) -> String` | `deprecated` | ✅ functional | Right-pads the string with fill until width bytes are reached. |
-| ~~`format_i32`~~ ⚠️ Deprecated → `i32::to_string` | `(i32) -> String` | `deprecated` | ✅ functional | Formats an i32 as a decimal string. |
-| ~~`format_i64`~~ ⚠️ Deprecated → `i64::to_string` | `(i64) -> String` | `deprecated` | ✅ functional | Formats an i64 as a decimal string. |
-| ~~`format_f64`~~ ⚠️ Deprecated → `f64::to_string` | `(f64) -> String` | `deprecated` | ✅ functional | Formats an f64 using the sealed-raw formatter. |
-| ~~`format_bool`~~ ⚠️ Deprecated → `bool::to_string` | `(bool) -> String` | `deprecated` | ✅ functional | Formats a boolean as true or false. |
-| ~~`builder_new`~~ ⚠️ Deprecated → `String::new` | `() -> String` | `deprecated` | ✅ functional | Creates a new empty StringBuilder (represented internally as a String). |
-| ~~`builder_append`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `deprecated` | ✅ functional | Appends a string to the builder and returns the updated builder. |
-| ~~`builder_append_char`~~ ⚠️ Deprecated → `String::concat` | `(String, char) -> String` | `deprecated` | ✅ functional | Appends a single character to the builder and returns the updated builder. |
-| ~~`builder_append_line`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `deprecated` | ✅ functional | Appends a string followed by a newline to the builder. |
-| ~~`builder_build`~~ ⚠️ Deprecated → `String::clone` | `(String) -> String` | `deprecated` | ✅ functional | Produces the final string from the builder. |
-| ~~`builder_len`~~ ⚠️ Deprecated → `String::len` | `(String) -> i32` | `deprecated` | ✅ functional | Returns the current byte length of the builder's content. |
-
-> ⚠️ **36 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._

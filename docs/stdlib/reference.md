@@ -11,7 +11,7 @@
 | `stable` | 251 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 19 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 287 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 104 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 68 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -939,47 +939,6 @@ let input = read_to_string()
 | `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 
-## Text
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`builder_append`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`builder_append_char`~~ ⚠️ Deprecated → `String::concat` | `(String, char) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`builder_append_line`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`builder_build`~~ ⚠️ Deprecated → `String::clone` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`builder_len`~~ ⚠️ Deprecated → `String::len` | `(String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`builder_new`~~ ⚠️ Deprecated → `String::new` | `() -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`chars`~~ ⚠️ Deprecated → `String::chars` | `(String) -> Vec<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Split into one valid UTF-8 String per Unicode scalar value. |
-| ~~`codepoint_at`~~ ⚠️ Deprecated → `String::codepoint_at` | `(String, i32) -> Option<char>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the Unicode scalar at a scalar index, or None when out of range. |
-| ~~`concat`~~ ⚠️ Deprecated → `String::concat` | `(String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_concat` | - |
-| ~~`contains`~~ ⚠️ Deprecated → `String::contains` | `(String, String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_contains` | - |
-| ~~`ends_with`~~ ⚠️ Deprecated → `String::ends_with` | `(String, String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_ends_with` | - |
-| ~~`format_bool`~~ ⚠️ Deprecated → `bool::to_string` | `(bool) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`format_f64`~~ ⚠️ Deprecated → `f64::to_string` | `(f64) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`format_i32`~~ ⚠️ Deprecated → `i32::to_string` | `(i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`format_i64`~~ ⚠️ Deprecated → `i64::to_string` | `(i64) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`index_of`~~ ⚠️ Deprecated → `String::index_of` | `(String, String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_index_of` | - |
-| ~~`is_empty`~~ ⚠️ Deprecated → `String::is_empty` | `(String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`join`~~ ⚠️ Deprecated → `Vec::join` | `(Vec<String>, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_join` | - |
-| ~~`len_bytes`~~ ⚠️ Deprecated → `String::len_bytes` | `(String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`len_chars`~~ ⚠️ Deprecated → `String::len_chars` | `(String) -> i32` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the number of Unicode scalar values. |
-| ~~`lines`~~ ⚠️ Deprecated → `String::lines` | `(String) -> Vec<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`pad_left`~~ ⚠️ Deprecated → `String::pad_left_with` | `(String, i32, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`pad_right`~~ ⚠️ Deprecated → `String::pad_right_with` | `(String, i32, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`repeat`~~ ⚠️ Deprecated → `String::repeat` | `(String, i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`replace`~~ ⚠️ Deprecated → `String::replace` | `(String, String, String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`slice_bytes`~~ ⚠️ Deprecated → `String::slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return a byte slice only when both bounds are UTF-8 boundaries; otherwise return an empty string. |
-| ~~`slice_chars`~~ ⚠️ Deprecated → `String::slice_chars` | `(String, i32, i32) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the scalar-indexed slice in the half-open range; invalid ranges return an empty string. |
-| ~~`split`~~ ⚠️ Deprecated → `String::split` | `(String, String) -> Vec<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_split` | - |
-| ~~`starts_with`~~ ⚠️ Deprecated → `String::starts_with` | `(String, String) -> bool` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_starts_with` | - |
-| ~~`to_lower`~~ ⚠️ Deprecated → `String::to_lower` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_to_lower` | - |
-| ~~`to_upper`~~ ⚠️ Deprecated → `String::to_upper` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | `__intrinsic_to_upper` | - |
-| ~~`trim`~~ ⚠️ Deprecated → `String::trim` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`trim_end`~~ ⚠️ Deprecated → `String::trim_end` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`trim_start`~~ ⚠️ Deprecated → `String::trim_start` | `(String) -> String` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | - |
-| ~~`try_slice_bytes`~~ ⚠️ Deprecated → `String::try_slice_bytes` | `(String, i32, i32) -> Option<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return a byte slice when both bounds are UTF-8 boundaries, or None. |
-| ~~`try_slice_chars`~~ ⚠️ Deprecated → `String::try_slice_chars` | `(String, i32, i32) -> Option<String>` | `std::text` | `deprecated` | `functional` | `builtin` | no | - | Return the scalar-indexed slice, or None for an invalid range. |
-
 ## Time
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -1091,7 +1050,7 @@ let input = read_to_string()
 
 ## Deprecated APIs
 
-> ⚠️ **104 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **68 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1101,16 +1060,6 @@ let input = read_to_string()
 | ~~`assert_eq_str`~~ | `std::test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `std::test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`binary_search`~~ | `std::seq::binary_search_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`builder_append`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
-| ~~`builder_append_char`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
-| ~~`builder_append_line`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
-| ~~`builder_build`~~ | `String::clone` | [migration-guidance.md](migration-guidance.md) |
-| ~~`builder_len`~~ | `String::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`builder_new`~~ | `String::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`chars`~~ | `String::chars` | [migration-guidance.md](migration-guidance.md) |
-| ~~`codepoint_at`~~ | `String::codepoint_at` | [migration-guidance.md](migration-guidance.md) |
-| ~~`concat`~~ | `String::concat` | [migration-guidance.md](migration-guidance.md) |
-| ~~`contains`~~ | `String::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
@@ -1123,7 +1072,6 @@ let input = read_to_string()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`ends_with`~~ | `String::ends_with` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
@@ -1131,10 +1079,6 @@ let input = read_to_string()
 | ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
-| ~~`format_bool`~~ | `bool::to_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`format_f64`~~ | `f64::to_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`format_i32`~~ | `i32::to_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`format_i64`~~ | `i64::to_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
@@ -1146,13 +1090,7 @@ let input = read_to_string()
 | ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`index_of`~~ | `String::index_of` | [migration-guidance.md](migration-guidance.md) |
-| ~~`is_empty`~~ | `String::is_empty` | [migration-guidance.md](migration-guidance.md) |
-| ~~`join`~~ | `Vec::join` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`len_bytes`~~ | `String::len_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`len_chars`~~ | `String::len_chars` | [migration-guidance.md](migration-guidance.md) |
-| ~~`lines`~~ | `String::lines` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_front`~~ | `LinkedList::front` | [migration-guidance.md](migration-guidance.md) |
@@ -1167,31 +1105,16 @@ let input = read_to_string()
 | ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
 | ~~`max_i32`~~ | `std::seq::max_by` | [migration-guidance.md](migration-guidance.md) |
 | ~~`min_i32`~~ | `std::seq::min_by` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pad_left`~~ | `String::pad_left_with` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pad_right`~~ | `String::pad_right_with` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`repeat`~~ | `String::repeat` | [migration-guidance.md](migration-guidance.md) |
-| ~~`replace`~~ | `String::replace` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
 | ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
 | ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
-| ~~`slice_bytes`~~ | `String::slice_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`slice_chars`~~ | `String::slice_chars` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`split`~~ | `String::split` | [migration-guidance.md](migration-guidance.md) |
-| ~~`starts_with`~~ | `String::starts_with` | [migration-guidance.md](migration-guidance.md) |
 | ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
 | ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
-| ~~`to_lower`~~ | `String::to_lower` | [migration-guidance.md](migration-guidance.md) |
-| ~~`to_upper`~~ | `String::to_upper` | [migration-guidance.md](migration-guidance.md) |
-| ~~`trim`~~ | `String::trim` | [migration-guidance.md](migration-guidance.md) |
-| ~~`trim_end`~~ | `String::trim_end` | [migration-guidance.md](migration-guidance.md) |
-| ~~`trim_start`~~ | `String::trim_start` | [migration-guidance.md](migration-guidance.md) |
-| ~~`try_slice_bytes`~~ | `String::try_slice_bytes` | [migration-guidance.md](migration-guidance.md) |
-| ~~`try_slice_chars`~~ | `String::try_slice_chars` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |

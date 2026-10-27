@@ -317,7 +317,8 @@ classified there, in dependency-safe waves.
 - Replacement surface: `String` methods (`len_bytes`, `trim*`, `slice_*`,
   `split`, `lines`, `chars`, `replace`, `repeat`, `pad_*_with`,
   `to_utf8_bytes`, `insert_text`, `delete_range`, `line_count`), associated
-  `String::new` / `from_utf8_lossy` / `try_from_utf8`, `Vec<String>::join`,
+  `from_utf8_lossy` / `try_from_utf8`, `Vec<String>::join`, the empty string
+  literal for the old builder/rope constructors,
   `value.fmt_debug()`, `buf.concat(value.fmt_debug())`, and the `DebugFormat`
   associated renderings. `String` receivers were probed on `wasm32-gc` and
   linear `wasm32`; the `Vec<T>` inherent `fmt_debug` receiver is a known
@@ -334,6 +335,46 @@ classified there, in dependency-safe waves.
   `stdlib_collections_compiler`); `selfhost diag-parity` PASS; docs generated
   and checked; `check-stdlib-eradication` and `check-compat-orphans` clean.
 - Residual: the 36 deprecated `std::text` frees are deleted in Wave 2.
+
+### Landed slice (wave/next-text Wave 2, 2026-10-27)
+
+- Deleted the 36 `stable` `std::text` frees that Wave 1 deprecated with
+  W0009. The manifest entries and `pub fn` declarations are gone; qualified
+  `text::*` calls fail with E0100 hints from
+  `resolver::removed_names::removed_text_member_hint`. The Wave 1 W0009 table
+  and its two diagnostic fixtures were replaced by the E0100 goldens
+  `diagnostics/removed_text_free*.ark`.
+- Removed the seven duplicate `std::collections::string` frees exposed by the
+  `std::text` retirement (`concat`, `chars`, `len_chars`, `codepoint_at`,
+  `try_slice_bytes`, `slice_chars`, `try_slice_chars`); their `string::*`
+  spellings also carry E0100 hints.
+- `std/text/mod.ark` is now a documentation/import boundary with no public
+  free functions. `std::text::fmt::DebugFormat` remains the associated home
+  for container `Debug` renderings.
+- Scorecard: 1025 -> **989** public symbols; manifest public entries 661 ->
+  **625**; `pub fn` declarations 1162 -> **1119**; unregistered 364;
+  `associated-or-method` 919; `must delete` 70; monomorphic helpers 89. The
+  `std::text` classification rule retired.
+- Evidence: final stage-2 rebuild; full fixture parity **1839/1839**
+  compile+validate PASS with 105 runtime smoke fixtures (0 FAIL);
+  `selfhost diag-parity` PASS including the two E0100 goldens; representative
+  migrated fixtures (`stdlib_text/unicode_scalar_semantics`,
+  `stdlib_trait/debug_trait`, `stdlib_collections_compiler/rope_edit`, and
+  `module_import/use_destructure_multi`) compile and validate on both
+  `wasm32-gc` and `--target wasm32`; `verify lane` PASS; `docs check` 6/6;
+  `check-stdlib-eradication` and `check-compat-orphans` clean.
+- Residuals: the remaining `std::collections::string` compatibility frees
+  used by the prelude wrappers stay in the collections lane; the wider
+  `std::bytes` / `std::simd` / `std::wasm` / host-core groups are untouched.
+  `String::new()` was not kept as an associated constructor: adding it to
+  `impl String` makes `stdlib_wit/wit_ast_parse` emit invalid Wasm (the same
+  receiver/monomorphization family as the deferred `WitNode` accessors), so
+  the empty string literal is the documented replacement. The
+  `string_interp/fstring_basic` fixture now uses the associated
+  `String::concat` form for its `to_string(String)` case because a literal
+  receiver plus a `to_string(String)` argument aliases to `worldworld!` at
+  base 8e80b47ad as well; that pre-existing lowering gap is recorded here
+  rather than hidden by changing the expected output.
 
 ## Required work
 
@@ -382,6 +423,9 @@ classified there, in dependency-safe waves.
         `std::text` frees were removed and the 36 stable frees deprecated
         with W0009 after the String / Vec<String> / DebugFormat replacement
         surface landed. Wave 2 deletes the deprecated set.
+      - Landed 2026-10-27 (`wave/next-text` Wave 2): the 36 deprecated
+        `std::text` frees and the 7 duplicate `std::collections::string`
+        frees were deleted; the text group now has no public free symbols.
 - [x] Keep the scorecard at zero-unclassified while waves land: update
       the TOML rules as symbols retire so the checker stays green.
 - [x] Update user-facing docs/examples in the same PR that retires a

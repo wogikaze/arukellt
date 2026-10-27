@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let r = String::new()
+    let r = ""
     test::assert_eq_i32(r.len(), 0)
     test::assert_eq_string(r.clone(), "")
 

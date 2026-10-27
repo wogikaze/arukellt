@@ -128,6 +128,9 @@ pub fn removed_module_member_hint(module: String, name: String) -> String {
     if eq(clone(module), "text") {
         return removed_text_member_hint(name)
     }
+    if eq(clone(module), "string") {
+        return removed_string_member_hint(name)
+    }
     if eq(clone(module), "iter") {
         return removed_iter_member_hint(name)
     }
@@ -190,7 +193,7 @@ fn removed_fmt_member_hint(name: String) -> String {
 }
 
 fn removed_rope_member_hint(name: String) -> String {
-    if eq(clone(name), "rope_new") { return String_from("use `String::new()` instead") }
+    if eq(clone(name), "rope_new") { return String_from("use an empty string literal instead") }
     if eq(clone(name), "rope_from_string") { return String_from("use `s.clone()` on the source `String` instead") }
     if eq(clone(name), "rope_len") { return String_from("use `s.len()` on `String` instead") }
     if eq(clone(name), "rope_to_string") { return String_from("use `s.clone()` on `String` instead") }
@@ -201,10 +204,57 @@ fn removed_rope_member_hint(name: String) -> String {
     String_new()
 }
 
+fn removed_string_member_hint(name: String) -> String {
+    if eq(clone(name), "concat") { return String_from("use `a.concat(b)` on `String` instead") }
+    if eq(clone(name), "chars") { return String_from("use `s.chars()` on `String` instead") }
+    if eq(clone(name), "len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
+    if eq(clone(name), "codepoint_at") { return String_from("use `s.codepoint_at(i)` on `String` instead") }
+    if eq(clone(name), "try_slice_bytes") { return String_from("use `s.try_slice_bytes(start, end)` on `String` instead") }
+    if eq(clone(name), "slice_chars") { return String_from("use `s.slice_chars(start, end)` on `String` instead") }
+    if eq(clone(name), "try_slice_chars") { return String_from("use `s.try_slice_chars(start, end)` on `String` instead") }
+    String_new()
+}
+
 fn removed_text_member_hint(name: String) -> String {
     if eq(clone(name), "from_utf8") { return String_from("use `String::from_utf8_lossy(bytes)` instead") }
     if eq(clone(name), "try_from_utf8") { return String_from("use `String::try_from_utf8(bytes)` instead") }
     if eq(clone(name), "to_utf8_bytes") { return String_from("use `s.to_utf8_bytes()` on `String` instead") }
+    if eq(clone(name), "len_bytes") { return String_from("use `s.len_bytes()` on `String` instead") }
+    if eq(clone(name), "is_empty") { return String_from("use `s.is_empty()` on `String` instead") }
+    if eq(clone(name), "index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
+    if eq(clone(name), "trim") { return String_from("use `s.trim()` on `String` instead") }
+    if eq(clone(name), "trim_start") { return String_from("use `s.trim_start()` on `String` instead") }
+    if eq(clone(name), "trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
+    if eq(clone(name), "replace") { return String_from("use `s.replace(from, to)` on `String` instead") }
+    if eq(clone(name), "lines") { return String_from("use `s.lines()` on `String` instead") }
+    if eq(clone(name), "chars") { return String_from("use `s.chars()` on `String` instead") }
+    if eq(clone(name), "pad_left") { return String_from("use `s.pad_left_with(width, fill)` on `String` instead") }
+    if eq(clone(name), "pad_right") { return String_from("use `s.pad_right_with(width, fill)` on `String` instead") }
+    if eq(clone(name), "format_i32") { return String_from("use `(n).to_string()` on `i32` instead") }
+    if eq(clone(name), "format_i64") { return String_from("use `(n).to_string()` on `i64` instead") }
+    if eq(clone(name), "format_f64") { return String_from("use `(n).to_string()` on `f64` instead") }
+    if eq(clone(name), "format_bool") { return String_from("use `(b).to_string()` on `bool` instead") }
+    if eq(clone(name), "repeat") { return String_from("use `s.repeat(n)` on `String` instead") }
+    if eq(clone(name), "len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
+    if eq(clone(name), "codepoint_at") { return String_from("use `s.codepoint_at(i)` on `String` instead") }
+    if eq(clone(name), "slice_bytes") { return String_from("use `s.slice_bytes(start, end)` on `String` instead") }
+    if eq(clone(name), "try_slice_bytes") { return String_from("use `s.try_slice_bytes(start, end)` on `String` instead") }
+    if eq(clone(name), "slice_chars") { return String_from("use `s.slice_chars(start, end)` on `String` instead") }
+    if eq(clone(name), "try_slice_chars") { return String_from("use `s.try_slice_chars(start, end)` on `String` instead") }
+    if eq(clone(name), "split") { return String_from("use `s.split(sep)` on `String` instead") }
+    if eq(clone(name), "join") { return String_from("use `parts.join(sep)` on `Vec<String>` instead") }
+    if eq(clone(name), "concat") { return String_from("use `a.concat(b)` on `String` instead") }
+    if eq(clone(name), "starts_with") { return String_from("use `s.starts_with(prefix)` on `String` instead") }
+    if eq(clone(name), "ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
+    if eq(clone(name), "contains") { return String_from("use `s.contains(sub)` on `String` instead") }
+    if eq(clone(name), "to_lower") { return String_from("use `s.to_lower()` on `String` instead") }
+    if eq(clone(name), "to_upper") { return String_from("use `s.to_upper()` on `String` instead") }
+    if eq(clone(name), "builder_new") { return String_from("use an empty string literal instead") }
+    if eq(clone(name), "builder_append") { return String_from("use `s.concat(text)` instead") }
+    if eq(clone(name), "builder_append_char") { return String_from("use `s.concat(c.to_string())` instead") }
+    if eq(clone(name), "builder_append_line") { return String_from("use `s.concat(text).concat(newline)` instead") }
+    if eq(clone(name), "builder_build") { return String_from("use the builder string directly instead") }
+    if eq(clone(name), "builder_len") { return String_from("use `s.len()` on `String` instead") }
     String_new()
 }
 

@@ -17,7 +17,7 @@ fn main() {
     let s = r4.slice(0, 6)
     stdio::println(s)
     // Empty rope
-    let empty = String::new()
+    let empty = ""
     stdio::println((empty.len()).to_string())
     // Insert into empty rope
     let e2 = empty.insert_text(0, "hello")

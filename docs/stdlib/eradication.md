@@ -15,29 +15,29 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1162 `pub fn` declarations under
-`std/**/*.ark`; 798 map to a manifest entry and
-364 are unregistered. Eradication scope = 661 manifest
-public entries + 364 unregistered declarations = **1025 symbols**.
+**Real surface denominator:** 1119 `pub fn` declarations under
+`std/**/*.ark`; 755 map to a manifest entry and
+364 are unregistered. Eradication scope = 625 manifest
+public entries + 364 unregistered declarations = **989 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1025 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1162 | — |
+| Eradication-scope symbols (real std surface) | 989 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1119 | — |
 | Unregistered std declarations (no manifest entry) | 364 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 661 | 0 |
+| Manifest public entries (registered scope) | 625 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 93 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 89 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
 
 ## Classification
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 106 |
+| `must delete` | Replacement already exists or functionality retires | 70 |
 | `associated-or-method` | Replacement must land as method/associated first | 919 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
@@ -65,7 +65,6 @@ registered entries and unregistered `pub fn` declarations.
 | legacy linked_list frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8 |
 | deprecated std::io compat frees | `must delete` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 2 | 0 | Reader::from_bytes, Writer methods, Io algorithms, and the generic BufReader / BufWriter adapters. The remaining writer_write / writer_write_str wrappers stay through the #693 window only because stdout() / stderr() are tagged Vec<i32> handles; they are deleted when std::host::stdio exposes typed Write handles. |
 | deprecated std::seq helpers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 13 | 0 | Iterator adapters / Vec methods (#691) |
-| deprecated std::text frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 36 | 0 | String methods (len_bytes/trim*/slice_*/split/lines/chars/...), String::new / from_utf8_lossy / try_from_utf8, Vec<String>::join, and DebugFormat associated renderings. The 36 entries are the ADR-087 Wave-1 deprecation set; physical deletion is Wave 2. |
 | deprecated module frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 2 | 0 | module-associated equivalents |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 54 | 0 | method / associated equivalent on the receiver or namespace type |
 | std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 2 | Read / Write / BufRead / Seek trait methods and a host stdio namespace for stdin / stdout / stderr / print_bytes (the typed-handle replacement is still open under #693; the remaining free functions are the host-backed compatibility surface, not the target API) |
@@ -155,42 +154,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `sum_i32` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `take_i32` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `unique` | `std::seq` | `must delete` | deprecated std::seq helpers | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `builder_append` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `builder_append_char` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `builder_append_line` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `builder_build` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `builder_len` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `builder_new` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `chars` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `codepoint_at` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `concat` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `contains` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `ends_with` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `format_bool` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `format_f64` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `format_i32` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `format_i64` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `index_of` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `is_empty` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `join` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `len_bytes` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `len_chars` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `lines` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pad_left` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pad_right` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `repeat` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `replace` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `slice_bytes` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `slice_chars` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `split` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `starts_with` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `to_lower` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `to_upper` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `trim` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `trim_end` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `trim_start` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `try_slice_bytes` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `try_slice_chars` | `std::text` | `must delete` | deprecated std::text frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `Box_new` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_from` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_new` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

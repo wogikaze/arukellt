@@ -2,7 +2,7 @@ use std::test
 use std::text
 
 fn main() {
-    let sb = String::new()
+    let sb = ""
     let sb = sb.concat("Hello")
     let sb = sb.concat(", ")
     let sb = sb.concat("world")
@@ -11,7 +11,7 @@ fn main() {
     test::assert_eq_i32(sb.len(), 13)
 
     // Append char
-    let sb2 = String::new()
+    let sb2 = ""
     let sb2 = sb2.concat("Hi")
     let sb2 = sb2.concat(('!').to_string())
     test::assert_eq_string(sb2, "Hi!")
