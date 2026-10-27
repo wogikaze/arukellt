@@ -13,28 +13,22 @@ fn callee_eq(callee_name: String, expected: String) -> bool {
     eq(clone(callee_name), expected)
 }
 
-fn is_hashmap_adapter_option_i32(callee_name: String) -> bool {
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_get") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_insert") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_remove")
+fn is_hashmap_method_option_i32(callee_name: String) -> bool {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_get") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_insert") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_remove")
 }
 
-fn is_hashmap_adapter_option_string(callee_name: String) -> bool {
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_get") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_insert") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_remove") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_get") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_insert") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_remove")
+fn is_hashmap_method_option_string(callee_name: String) -> bool {
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_get") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_insert") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_remove") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_get") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_insert") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_remove")
 }
 
-fn is_hashmap_adapter_option_fn(callee_name: String) -> bool {
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_get") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_insert") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_remove") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_get") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_insert") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_remove") ||
+fn is_hashmap_method_option_fn(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_get") ||
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_insert") ||
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_remove") ||
@@ -43,31 +37,27 @@ fn is_hashmap_adapter_option_fn(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_remove")
 }
 
-fn is_hashmap_adapter_len(callee_name: String) -> bool {
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_len") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_len") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_len") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_len") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_len") ||
+fn is_hashmap_method_len(callee_name: String) -> bool {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_len") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_len") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_len") ||
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_len") ||
     callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_len")
 }
 
-fn is_hashmap_adapter_bool(callee_name: String) -> bool {
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_contains") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_contains") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_contains") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_contains") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_contains") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_is_empty") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_is_empty") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_is_empty") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_is_empty") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_is_empty") ||
+fn is_hashmap_method_bool(callee_name: String) -> bool {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_contains") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_contains") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_contains") ||
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_contains") ||
     callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_contains") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_is_empty") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_is_empty") ||
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_is_empty") ||
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_is_empty") ||
-    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_is_empty")
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_is_empty") ||
+    callee_eq(clone(callee_name), "hashmap_str_contains") ||
+    callee_eq(clone(callee_name), "hashmap_str_str_contains")
 }
 
 fn is_hashmap_si32_new(callee_name: String) -> bool {
@@ -75,8 +65,7 @@ fn is_hashmap_si32_new(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "__hm_si_new_with_cap") {
         return true
     }
-    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_new") ||
-    callee_eq(callee_name, "hash_map::hashmap_str_i32_new")
+    callee_eq(callee_name, "hash_string::hashmap_str_i32_new")
 }
 
 fn is_hashmap_i32str_new(callee_name: String) -> bool {
@@ -84,8 +73,7 @@ fn is_hashmap_i32str_new(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "__hm_is_new_with_cap") {
         return true
     }
-    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_new") ||
-    callee_eq(callee_name, "hash_map::hashmap_i32_str_new")
+    callee_eq(callee_name, "hash_string::hashmap_i32_str_new")
 }
 
 fn is_hashmap_i32fn_new(callee_name: String) -> bool {
@@ -93,8 +81,7 @@ fn is_hashmap_i32fn_new(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "__hm_if_new_with_cap") {
         return true
     }
-    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_new") ||
-    callee_eq(callee_name, "hash_map::hashmap_i32_fn_new")
+    callee_eq(callee_name, "hash_fn::hashmap_i32_fn_new")
 }
 
 fn is_hashmap_strfn_new(callee_name: String) -> bool {
@@ -102,8 +89,7 @@ fn is_hashmap_strfn_new(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "__hm_sf_new_with_cap") {
         return true
     }
-    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_new") ||
-    callee_eq(callee_name, "hash_map::hashmap_str_fn_new")
+    callee_eq(callee_name, "hash_str_fn::hashmap_str_fn_new")
 }
 
 fn is_hashmap_strstr_new(callee_name: String) -> bool {
@@ -111,8 +97,7 @@ fn is_hashmap_strstr_new(callee_name: String) -> bool {
     callee_eq(clone(callee_name), "__hm_ss_new_with_cap") {
         return true
     }
-    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_new") ||
-    callee_eq(callee_name, "hash_map::hashmap_str_str_new")
+    callee_eq(callee_name, "hash_string::hashmap_str_str_new")
 }
 
 fn is_hashmap_i32i32_new(callee_name: String) -> bool {
@@ -148,16 +133,10 @@ fn is_hash_vec_i32_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_keys") {
         return true
     }
-    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_keys") {
-        return true
-    }
     if callee_eq(clone(callee_name), "hashmap_i32_fn_keys") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_keys") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_keys") {
         return true
     }
     if callee_eq(clone(callee_name), "hashmap_values") {
@@ -227,16 +206,10 @@ fn is_hash_vec_string_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_keys") {
         return true
     }
-    if callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_keys") {
-        return true
-    }
     if callee_eq(clone(callee_name), "hashmap_str_str_keys") {
         return true
     }
     if callee_eq(clone(callee_name), "hash_string::hashmap_str_str_keys") {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hash_map::hashmap_str_str_keys") {
         return true
     }
     if callee_eq(clone(callee_name), "hashmap_str_fn_keys") {
@@ -245,33 +218,27 @@ fn is_hash_vec_string_result(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_keys") {
         return true
     }
-    callee_eq(callee_name, "hash_map::hashmap_str_fn_keys")
+    false
 }
 
-// values()/entries() snapshot adapters: the callee name fixes the Vec
-// element spelling (value type for values, tuple:<K>,<V> for entries).
-// Covers the hash_map::/hash_*:: adapter wrappers and the bare raw-table
-// names (#888).
+// values()/entries() snapshot results: the callee name fixes the Vec element
+// spelling (value type for values, tuple:<K>,<V> for entries). Covers the
+// non-public implementation targets and the bare raw-table names (#888).
 fn hash_snapshot_vec_type_name(callee_name: String) -> String {
     if callee_eq(clone(callee_name), "hashmap_str_i32_values") ||
-    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_values") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_values") {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_values") {
         return "vec:i32"
     }
     if callee_eq(clone(callee_name), "hashmap_i32_str_values") ||
     callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_values") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_values") ||
     callee_eq(clone(callee_name), "hashmap_str_str_values") ||
-    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_values") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_values") {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_values") {
         return "vec:String"
     }
     if callee_eq(clone(callee_name), "hashmap_i32_fn_values") ||
     callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_values") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_values") ||
     callee_eq(clone(callee_name), "hashmap_str_fn_values") ||
-    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_values") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_values") {
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_values") {
         return "vec:fnref"
     }
     if callee_eq(clone(callee_name), "hashmap_entry_pairs") ||
@@ -279,41 +246,30 @@ fn hash_snapshot_vec_type_name(callee_name: String) -> String {
         return "vec:tuple:i32,i32"
     }
     if callee_eq(clone(callee_name), "hashmap_str_i32_entries") ||
-    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_entries") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_i32_entries") {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_entries") {
         return "vec:tuple:String,i32"
     }
     if callee_eq(clone(callee_name), "hashmap_i32_str_entries") ||
-    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_entries") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_str_entries") {
+    callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_entries") {
         return "vec:tuple:i32,String"
     }
     if callee_eq(clone(callee_name), "hashmap_str_str_entries") ||
-    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_entries") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_str_entries") {
+    callee_eq(clone(callee_name), "hash_string::hashmap_str_str_entries") {
         return "vec:tuple:String,String"
     }
     if callee_eq(clone(callee_name), "hashmap_i32_fn_entries") ||
-    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_entries") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_entries") {
+    callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_entries") {
         return "vec:tuple:i32,fnref"
     }
     if callee_eq(clone(callee_name), "hashmap_str_fn_entries") ||
-    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_entries") ||
-    callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_entries") {
+    callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_entries") {
         return "vec:tuple:String,fnref"
-    }
-    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_fn_keys") {
-        return "vec:i32"
-    }
-    if callee_eq(clone(callee_name), "hash_map::hashmap_str_fn_keys") {
-        return "vec:String"
     }
     String_new()
 }
 
 fn is_option_i32_hash_query(callee_name: String) -> bool {
-    if is_hashmap_adapter_option_i32(clone(callee_name)) {
+    if is_hashmap_method_option_i32(clone(callee_name)) {
         return true
     }
     // HashMap<i32,i32>::insert lowers directly to the flat-store
@@ -342,10 +298,9 @@ fn is_option_i32_hash_query(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), "hash::hashmap_str_get") {
         return true
     }
-    // hash_string:: is the wasm-side builtin alias family
-    // (hashmap_string_i32_builtin_alias); the stdlib typed adapters call
-    // these names internally, so their Option<i32> results must resolve
-    // here as well (#906).
+    // hash_string::hashmap_str_get is the non-public implementation target
+    // the HashMap<String, i32> methods rewrite to, so its Option<i32> result
+    // must resolve here as well (#906).
     if callee_eq(clone(callee_name), "hash_string::hashmap_str_get") {
         return true
     }
@@ -359,10 +314,7 @@ fn is_option_i32_hash_query(callee_name: String) -> bool {
 }
 
 fn is_option_string_hash_query(callee_name: String) -> bool {
-    if is_hashmap_adapter_option_string(clone(callee_name)) {
-        return true
-    }
-    if callee_eq(clone(callee_name), "hashmap_str_val_get") {
+    if is_hashmap_method_option_string(clone(callee_name)) {
         return true
     }
     if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_get") {
@@ -384,7 +336,7 @@ fn is_option_string_hash_query(callee_name: String) -> bool {
 }
 
 fn is_option_fn_hash_query(callee_name: String) -> bool {
-    if is_hashmap_adapter_option_fn(clone(callee_name)) {
+    if is_hashmap_method_option_fn(clone(callee_name)) {
         return true
     }
     if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_get") {
@@ -400,7 +352,7 @@ fn is_option_fn_hash_query(callee_name: String) -> bool {
 }
 
 fn is_hash_size_query(callee_name: String) -> bool {
-    if is_hashmap_adapter_len(clone(callee_name)) {
+    if is_hashmap_method_len(clone(callee_name)) {
         return true
     }
     if callee_eq(clone(callee_name), "hashmap_size") {
@@ -419,7 +371,7 @@ fn is_hash_size_query(callee_name: String) -> bool {
 }
 
 fn is_hash_bool_query(callee_name: String) -> bool {
-    if is_hashmap_adapter_bool(clone(callee_name)) {
+    if is_hashmap_method_bool(clone(callee_name)) {
         return true
     }
     if callee_eq(clone(callee_name), "hashmap_contains") {
@@ -498,7 +450,7 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if len(snapshot_ty) > 0 {
         mark_hash_type_ref(ctx, dest, snapshot_ty)
     }
-    if callee_eq(clone(callee_name), "hashset_str_new") || callee_eq(clone(callee_name), "hash_map::hashset_str_new") {
+    if callee_eq(clone(callee_name), "hashset_str_new") {
         mark_hash_type_ref(ctx, dest, "vec:String")
     }
     mark_hash_query_result_type(ctx, callee_name, dest)

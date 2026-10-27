@@ -15,18 +15,18 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 1222 `pub fn` declarations under
-`std/**/*.ark`; 847 map to a manifest entry and
-375 are unregistered. Eradication scope = 672 manifest
-public entries + 375 unregistered declarations = **1047 symbols**.
+**Real surface denominator:** 1115 `pub fn` declarations under
+`std/**/*.ark`; 841 map to a manifest entry and
+274 are unregistered. Eradication scope = 672 manifest
+public entries + 274 unregistered declarations = **946 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 1047 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 1222 | — |
-| Unregistered std declarations (no manifest entry) | 375 | 0 |
+| Eradication-scope symbols (real std surface) | 946 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 1115 | — |
+| Unregistered std declarations (no manifest entry) | 274 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
 | Manifest public entries (registered scope) | 672 | 0 |
 | `prelude_wrapper` entries | 65 | 0 |
@@ -38,7 +38,7 @@ public entries + 375 unregistered declarations = **1047 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 70 |
-| `associated-or-method` | Replacement must land as method/associated first | 977 |
+| `associated-or-method` | Replacement must land as method/associated first | 876 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -50,11 +50,7 @@ registered entries and unregistered `pub fn` declarations.
 | Rule | Class | Owner | Manifest | Source | Replacement |
 |------|-------|-------|----------|--------|-------------|
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
-| hash set monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 15 | HashSet methods once the HashSet type surface lands; see std::collections::hash |
-| hash_map monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 50 | HashMap methods (new/insert/get/contains_key/remove/len/is_empty/keys/values/entries) |
-| hash_string monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 29 | HashMap methods (same adapter family as std::collections::hash_map) |
-| hash_fn monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 11 | HashMap methods for fn-valued maps (same adapter family) |
-| hash_str_fn monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 11 | HashMap methods for fn-valued maps (same adapter family) |
+| hash set monomorphic adapters | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 0 | 15 | Blocked on a HashSet<T> type surface: the 15 hashset_i32_* adapters forward to the registered hash::hashset_* Vec<i32> frees, so no receiver type exists to carry methods yet. HashMap pairs are already retired (2026-10-27) and lower through `impl HashMap<K,V>` methods. |
 | collections sort free algorithms | `associated-or-method` | [#697](../../issues/open/697-vec-operation-extension.md) | 0 | 4 | Vec::sort_by / sort_by_key / sort_unstable_by / sort_unstable_by_key / partition / is_sorted_by methods (landed #697; the six free duplicates retired in #917); sort/sort_unstable/is_sorted/select_nth await no-argument methods |
 | panic | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 1 | 0 | associated on a core namespace type (e.g. Std::panic) or an explicit ADR exception |
 | vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly. |
@@ -786,67 +782,6 @@ manifest-only scorecard could not see before #703.
 | `bimap_i32_i32_len` | `std/collections/bimap.ark:124` | `std::collections::bimap` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `bimap_i32_i32_is_empty` | `std/collections/bimap.ark:129` | `std::collections::bimap` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashmap_entry_pairs` | `std/collections/hash.ark:347` | `std::collections::hash` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_new` | `std/collections/hash_fn.ark:8` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_set` | `std/collections/hash_fn.ark:36` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_get` | `std/collections/hash_fn.ark:71` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_contains` | `std/collections/hash_fn.ark:98` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_remove` | `std/collections/hash_fn.ark:125` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_len` | `std/collections/hash_fn.ark:154` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_keys` | `std/collections/hash_fn.ark:159` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_values` | `std/collections/hash_fn.ark:174` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_entries` | `std/collections/hash_fn.ark:189` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_insert` | `std/collections/hash_fn.ark:206` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_is_empty` | `std/collections/hash_fn.ark:216` | `std::collections::hash_fn` | `associated-or-method` | hash_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_new` | `std/collections/hash_map.ark:20` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_insert` | `std/collections/hash_map.ark:25` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_get` | `std/collections/hash_map.ark:32` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_contains` | `std/collections/hash_map.ark:37` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_remove` | `std/collections/hash_map.ark:42` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_len` | `std/collections/hash_map.ark:47` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_is_empty` | `std/collections/hash_map.ark:52` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_keys` | `std/collections/hash_map.ark:58` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_values` | `std/collections/hash_map.ark:64` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_entries` | `std/collections/hash_map.ark:70` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_new` | `std/collections/hash_map.ark:75` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_insert` | `std/collections/hash_map.ark:80` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_get` | `std/collections/hash_map.ark:87` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_contains` | `std/collections/hash_map.ark:92` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_remove` | `std/collections/hash_map.ark:97` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_len` | `std/collections/hash_map.ark:102` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_is_empty` | `std/collections/hash_map.ark:109` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_keys` | `std/collections/hash_map.ark:115` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_values` | `std/collections/hash_map.ark:121` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_entries` | `std/collections/hash_map.ark:127` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_new` | `std/collections/hash_map.ark:132` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_insert` | `std/collections/hash_map.ark:137` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_get` | `std/collections/hash_map.ark:144` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_contains` | `std/collections/hash_map.ark:149` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_remove` | `std/collections/hash_map.ark:154` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_len` | `std/collections/hash_map.ark:159` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_is_empty` | `std/collections/hash_map.ark:165` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_keys` | `std/collections/hash_map.ark:171` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_values` | `std/collections/hash_map.ark:177` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_entries` | `std/collections/hash_map.ark:183` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_keys` | `std/collections/hash_map.ark:188` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_values` | `std/collections/hash_map.ark:194` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_entries` | `std/collections/hash_map.ark:200` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_keys` | `std/collections/hash_map.ark:205` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_values` | `std/collections/hash_map.ark:211` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_entries` | `std/collections/hash_map.ark:217` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_new` | `std/collections/hash_map.ark:222` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_insert` | `std/collections/hash_map.ark:227` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_get` | `std/collections/hash_map.ark:237` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_contains` | `std/collections/hash_map.ark:241` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_remove` | `std/collections/hash_map.ark:245` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_len` | `std/collections/hash_map.ark:249` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_fn_is_empty` | `std/collections/hash_map.ark:253` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_new` | `std/collections/hash_map.ark:258` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_insert` | `std/collections/hash_map.ark:262` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_get` | `std/collections/hash_map.ark:272` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_contains` | `std/collections/hash_map.ark:279` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_remove` | `std/collections/hash_map.ark:283` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_len` | `std/collections/hash_map.ark:290` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_is_empty` | `std/collections/hash_map.ark:294` | `std::collections::hash_map` | `associated-or-method` | hash_map monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_i32_new` | `std/collections/hash_set.ark:10` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_i32_insert` | `std/collections/hash_set.ark:15` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_i32_contains` | `std/collections/hash_set.ark:20` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
@@ -862,46 +797,6 @@ manifest-only scorecard could not see before #703.
 | `hashset_i32_shrink_to_fit` | `std/collections/hash_set.ark:72` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_i32_clear` | `std/collections/hash_set.ark:77` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `hashset_i32_extend` | `std/collections/hash_set.ark:83` | `std::collections::hash_set` | `associated-or-method` | hash set monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_new` | `std/collections/hash_str_fn.ark:8` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_set` | `std/collections/hash_str_fn.ark:36` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_get` | `std/collections/hash_str_fn.ark:76` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_contains` | `std/collections/hash_str_fn.ark:106` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_remove` | `std/collections/hash_str_fn.ark:133` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_len` | `std/collections/hash_str_fn.ark:165` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_keys` | `std/collections/hash_str_fn.ark:170` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_values` | `std/collections/hash_str_fn.ark:185` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_entries` | `std/collections/hash_str_fn.ark:200` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_insert` | `std/collections/hash_str_fn.ark:216` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_fn_is_empty` | `std/collections/hash_str_fn.ark:226` | `std::collections::hash_str_fn` | `associated-or-method` | hash_str_fn monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_new` | `std/collections/hash_string.ark:19` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_set` | `std/collections/hash_string.ark:52` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_get` | `std/collections/hash_string.ark:88` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_contains` | `std/collections/hash_string.ark:118` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_remove` | `std/collections/hash_string.ark:148` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_len` | `std/collections/hash_string.ark:180` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_keys` | `std/collections/hash_string.ark:186` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_values` | `std/collections/hash_string.ark:201` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_i32_entries` | `std/collections/hash_string.ark:216` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_new` | `std/collections/hash_string.ark:231` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_set` | `std/collections/hash_string.ark:259` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_get` | `std/collections/hash_string.ark:294` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_contains` | `std/collections/hash_string.ark:323` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_remove` | `std/collections/hash_string.ark:352` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_len` | `std/collections/hash_string.ark:383` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_keys` | `std/collections/hash_string.ark:389` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_values` | `std/collections/hash_string.ark:404` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_i32_str_entries` | `std/collections/hash_string.ark:419` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_new` | `std/collections/hash_string.ark:434` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_set` | `std/collections/hash_string.ark:462` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_get` | `std/collections/hash_string.ark:497` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_contains` | `std/collections/hash_string.ark:526` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_remove` | `std/collections/hash_string.ark:555` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_len` | `std/collections/hash_string.ark:586` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_keys` | `std/collections/hash_string.ark:592` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_values` | `std/collections/hash_string.ark:607` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_str_entries` | `std/collections/hash_string.ark:622` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_val_set` | `std/collections/hash_string.ark:637` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `hashmap_str_val_get` | `std/collections/hash_string.ark:641` | `std::collections::hash_string` | `associated-or-method` | hash_string monomorphic adapters | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `btree_set_find_idx` | `std/collections/ordered.ark:164` | `std::collections::ordered` | `associated-or-method` | std::collections frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `sort` | `std/collections/sort.ark:42` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |
 | `sort_unstable` | `std/collections/sort.ark:52` | `std::collections::sort` | `associated-or-method` | collections sort free algorithms | [#697](../../issues/open/697-vec-operation-extension.md) |

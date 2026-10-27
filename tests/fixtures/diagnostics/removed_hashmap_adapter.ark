@@ -1,0 +1,6 @@
+use std::collections::hash_map
+
+fn main() {
+    let m = hash_map::hashmap_str_i32_new()
+    let _ = m
+}

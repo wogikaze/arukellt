@@ -84,39 +84,14 @@ source_only = true
 prefix = "hashset_"
 class = "associated-or-method"
 owner = "917"
-replacement = "HashSet methods once the HashSet type surface lands; see std::collections::hash"
+replacement = "Blocked on a HashSet<T> type surface: the 15 hashset_i32_* adapters forward to the registered hash::hashset_* Vec<i32> frees, so no receiver type exists to carry methods yet. HashMap pairs are already retired (2026-10-27) and lower through `impl HashMap<K,V>` methods."
 
-[[rules]]
-label = "hash_map monomorphic adapters"
-source_only = true
-module = "std::collections::hash_map"
-class = "associated-or-method"
-owner = "917"
-replacement = "HashMap methods (new/insert/get/contains_key/remove/len/is_empty/keys/values/entries)"
-
-[[rules]]
-label = "hash_string monomorphic adapters"
-source_only = true
-module = "std::collections::hash_string"
-class = "associated-or-method"
-owner = "917"
-replacement = "HashMap methods (same adapter family as std::collections::hash_map)"
-
-[[rules]]
-label = "hash_fn monomorphic adapters"
-source_only = true
-module = "std::collections::hash_fn"
-class = "associated-or-method"
-owner = "917"
-replacement = "HashMap methods for fn-valued maps (same adapter family)"
-
-[[rules]]
-label = "hash_str_fn monomorphic adapters"
-source_only = true
-module = "std::collections::hash_str_fn"
-class = "associated-or-method"
-owner = "917"
-replacement = "HashMap methods for fn-valued maps (same adapter family)"
+# The 50 hash_map::hashmap_* adapters and the 29 hash_string / 11 hash_fn /
+# 11 hash_str_fn implementation frees were retired by #917 on 2026-10-27.
+# `impl HashMap<K,V>` methods are the only spelling; their MIR lowering
+# targets are the now non-public implementation functions in hash_string /
+# hash_fn / hash_str_fn, so no source declaration in those modules is public.
+# The hash_set rule above remains because no HashSet type surface exists.
 
 [[rules]]
 label = "collections sort free algorithms"

@@ -379,15 +379,15 @@ fn edge_add_callee_candidates(ctx: LowerCtx, out: Vec<String>, raw: String, span
 
 // Receiver-type environment: emit resolves recv.m() through the
 // receiver's local type — hashmap:<pair> receivers rewrite to a
-// hash_map::hashmap_<pair>_m adapter or, for i32->i32, directly to the
-// bare hashmap_* store functions
+// hash_string::/hash_fn::/hash_str_fn:: implementation target or, for
+// i32->i32, directly to the bare hashmap_* store functions
 // (call_rewrite_hashmap::mir_rewrite_hashmap_method) and impl methods
 // register under Owner::m / InstOwner::m
 // (call_rewrite_method::mir_try_resolve_impl_method) — so the bare
 // spelling "m" reaches neither when no mono instance spells the pair.
-// The rewritten HashMap target (hashmap_values or a per-pair adapter) is
-// invisible to the AST walk, so the worklist dropped it and
-// the emitted call stubbed to unreachable (2026-10-13
+// The rewritten HashMap target (hashmap_values or a per-pair
+// implementation) is invisible to the AST walk, so the worklist dropped it
+// and the emitted call stubbed to unreachable (2026-10-13
 // hashmap_entries_values regression). let/param bindings give the AST
 // walk the same receiver types the MIR side reads via ctx_get_local_type.
 fn edge_env_get(names: Vec<String>, types: Vec<String>, name: String) -> String {
@@ -497,7 +497,7 @@ fn edge_ctor_spelling(callee: AstNode) -> String {
 // Typed candidates for recv.m() — mirrors the emit-time receiver-type
 // dispatch in call_rewrite::mir_rewrite_call_target /
 // call_rewrite_method::mir_try_resolve_impl_method:
-//   hashmap:<pair> receiver -> hash_map::hashmap_<pair>_m adapter +
+//   hashmap:<pair> receiver -> per-pair implementation target +
 //     HashMap_<pair>::m trait-impl owner (contains_key -> _contains)
 //   vec:/struct:/generic receivers -> Vec::m / Struct::m / Inst::m
 // Every pushed name resolves later through edge_resolve_candidate, so
@@ -581,8 +581,8 @@ fn edge_resolve_method_site(
     if contains(clone(owner_ty), String_from("<")) {
         owner_ty = method_resolve::mir_inst_owner_name(clone(owner_ty))
     }
-    // HashMap pair receivers lower to a per-pair adapter body
-    // (hash_map::hashmap_str_i32_values) or, for the flat i32->i32 store,
+    // HashMap pair receivers lower to a per-pair implementation body
+    // (hash_string::hashmap_str_i32_values) or, for the flat i32->i32 store,
     // directly to std::collections::hash (hashmap_values), plus the
     // pair-owner impl spell — the shapes the emit hashmap rewrite produces.
     let family = call_rewrite_hashmap::hashmap_family_for_type(clone(owner_ty))

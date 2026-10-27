@@ -1,58 +1,58 @@
 use std::collections::hash
-use std::collections::hash_map
+use std::collections::hash_set
 use std::test
 
 fn main() {
-    // --- HashMap<String, i32> via wrapper API ---
-    let m = hash_map::hashmap_str_i32_new()
-    let _ = hash_map::hashmap_str_i32_insert(m, "alpha", 1)
-    let _ = hash_map::hashmap_str_i32_insert(m, "beta", 2)
-    let _ = hash_map::hashmap_str_i32_insert(m, "alpha", 10)
-    test::assert_eq_i32(hash_map::hashmap_str_i32_len(m), 2)
-    match hash_map::hashmap_str_i32_get(m, "alpha") {
+    // --- HashMap<String, i32> via the method surface ---
+    let m = HashMap::new<String, i32>()
+    let _ = m.insert("alpha", 1)
+    let _ = m.insert("beta", 2)
+    let _ = m.insert("alpha", 10)
+    test::assert_eq_i32(m.len(), 2)
+    match m.get("alpha") {
         Option::Some(v) => test::assert_eq_i32(v, 10),
         None => panic("expected Some(10)"),
     }
-    match hash_map::hashmap_str_i32_get(m, "gamma") {
-        Option::Some(v) => panic("expected None for gamma"),
+    match m.get("gamma") {
+        Option::Some(_) => panic("expected None for gamma"),
         None => {
         },
     }
-    test::assert_true(hash_map::hashmap_str_i32_contains(m, "beta"))
-    test::assert_false(hash_map::hashmap_str_i32_contains(m, "unknown"))
+    test::assert_true(m.contains_key("beta"))
+    test::assert_false(m.contains_key("unknown"))
 
-    // --- HashMap<i32, String> via wrapper API ---
-    let m2 = hash_map::hashmap_i32_str_new()
-    let _ = hash_map::hashmap_i32_str_insert(m2, 1, "one")
-    let _ = hash_map::hashmap_i32_str_insert(m2, 2, "two")
-    let _ = hash_map::hashmap_i32_str_insert(m2, 1, "ONE")
-    test::assert_eq_i32(hash_map::hashmap_i32_str_len(m2), 2)
-    match hash_map::hashmap_i32_str_get(m2, 1) {
+    // --- HashMap<i32, String> via the method surface ---
+    let m2 = HashMap::new<i32, String>()
+    let _ = m2.insert(1, "one")
+    let _ = m2.insert(2, "two")
+    let _ = m2.insert(1, "ONE")
+    test::assert_eq_i32(m2.len(), 2)
+    match m2.get(1) {
         Option::Some(v) => test::assert_eq_string(v, "ONE"),
         None => panic("expected Some(\"ONE\")"),
     }
 
-    // --- HashMap<String, String> via wrapper API ---
-    let m3 = hash_map::hashmap_str_str_new()
-    let _ = hash_map::hashmap_str_str_insert(m3, "greeting", "hello")
-    let _ = hash_map::hashmap_str_str_insert(m3, "farewell", "goodbye")
-    test::assert_eq_i32(hash_map::hashmap_str_str_len(m3), 2)
-    match hash_map::hashmap_str_str_get(m3, "greeting") {
+    // --- HashMap<String, String> via the method surface ---
+    let m3 = HashMap::new<String, String>()
+    let _ = m3.insert("greeting", "hello")
+    let _ = m3.insert("farewell", "goodbye")
+    test::assert_eq_i32(m3.len(), 2)
+    match m3.get("greeting") {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
         None => panic("expected Some(\"hello\")"),
     }
-    test::assert_true(hash_map::hashmap_str_str_contains(m3, "farewell"))
+    test::assert_true(m3.contains_key("farewell"))
 
-    // --- HashSet<String> via wrapper API ---
-    let s = hash_map::hashset_str_new()
-    test::assert_true(hash_map::hashset_str_insert(s, "red"))
-    test::assert_true(hash_map::hashset_str_insert(s, "green"))
-    test::assert_false(hash_map::hashset_str_insert(s, "red"))
-    test::assert_eq_i32(hash_map::hashset_str_len(s), 2)
-    test::assert_true(hash_map::hashset_str_contains(s, "green"))
-    test::assert_false(hash_map::hashset_str_contains(s, "blue"))
-    test::assert_true(hash_map::hashset_str_remove(s, "green"))
-    test::assert_eq_i32(hash_map::hashset_str_len(s), 1)
+    // --- HashSet<String> facade ---
+    let s = hash_set::hashset_str_new()
+    test::assert_true(hash_set::hashset_str_insert(s, "red"))
+    test::assert_true(hash_set::hashset_str_insert(s, "green"))
+    test::assert_false(hash_set::hashset_str_insert(s, "red"))
+    test::assert_eq_i32(hash_set::hashset_str_len(s), 2)
+    test::assert_true(hash_set::hashset_str_contains(s, "green"))
+    test::assert_false(hash_set::hashset_str_contains(s, "blue"))
+    test::assert_true(hash_set::hashset_str_remove(s, "green"))
+    test::assert_eq_i32(hash_set::hashset_str_len(s), 1)
 
     // --- HashSet<i32> operations via direct hash module ---
     let s2 = hash::hashset_new()

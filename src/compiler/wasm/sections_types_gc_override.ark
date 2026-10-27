@@ -83,9 +83,6 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     starts_with(clone(fn_name), "hashmap_str_fn_") {
         return sections_types_gc::gc_hashmap_str_fn_type_sig()
     }
-    if starts_with(clone(fn_name), "hashmap_str_val_") {
-        return sections_types_gc::gc_hashmap_i32_str_type_sig()
-    }
     if starts_with(clone(fn_name), "hashmap_str_") || eq(clone(fn_name), "hashmap_str_i32_new") || starts_with(clone(fn_name), "hash_string::hashmap_str_") {
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
@@ -219,7 +216,15 @@ fn gc_fn_returns_option(fn_name: String) -> bool {
     eq(clone(fn_name), "hash::hashmap_str_remove") {
         return true
     }
-    if eq(clone(fn_name), "hashmap_str_val_get") || eq(clone(fn_name), "hash_string::hashmap_i32_str_get") {
+    if eq(clone(fn_name), "hash_string::hashmap_i32_str_get") ||
+    eq(clone(fn_name), "hash_string::hashmap_str_str_get") {
+        return true
+    }
+    if eq(clone(fn_name), "hash_string::hashmap_str_insert") ||
+    eq(clone(fn_name), "hash_string::hashmap_i32_str_insert") ||
+    eq(clone(fn_name), "hash_string::hashmap_str_str_insert") ||
+    eq(clone(fn_name), "hash_fn::hashmap_i32_fn_insert") ||
+    eq(clone(fn_name), "hash_str_fn::hashmap_str_fn_insert") {
         return true
     }
     if eq(clone(fn_name), "hash_fn::hashmap_i32_fn_get") {

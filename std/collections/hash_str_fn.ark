@@ -1,11 +1,14 @@
-//! HashMap<String, fn> helpers for GC funcref value ABI (#838).
+//! HashMap<String, fn> implementation for GC funcref value ABI (#838).
 //!
 //! Kept separate from `hash_string.ark` / `hash_fn.ark` so stage-2 rebuilds that
 //! still load those modules do not require the previous compiler to know `__hm_sf_*`.
+//! The functions here are non-public MIR lowering targets for the
+//! `impl HashMap<K, V>` methods; the user spelling is `HashMap::new<K, V>()`
+//! plus receiver methods.
 
 use std::core::hash
 use std::prelude::{clone, eq}
-pub fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
+fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
     __hm_sf_new()
 }
 
@@ -33,7 +36,7 @@ fn hm_sf_ensure_insert_capacity(m: HashMap<String, fn(i32) -> i32>, key: String)
 }
 
 /// String→fn set: grows before the load factor exceeds 0.75 (#895).
-pub fn hashmap_str_fn_set(
+fn hashmap_str_fn_set(
     m: HashMap<String, fn(i32) -> i32>,
     key: String,
     value: fn(i32) -> i32
@@ -73,7 +76,7 @@ fn hashmap_str_fn_set_probe(
     done
 }
 
-pub fn hashmap_str_fn_get(
+fn hashmap_str_fn_get(
     m: HashMap<String, fn(i32) -> i32>,
     key: String
 ) -> Option<fn(i32) -> i32> {
@@ -103,7 +106,7 @@ pub fn hashmap_str_fn_get(
     result
 }
 
-pub fn hashmap_str_fn_contains(m: HashMap<String, fn(i32) -> i32>, key: String) -> bool {
+fn hashmap_str_fn_contains(m: HashMap<String, fn(i32) -> i32>, key: String) -> bool {
     let cap: i32 = __hm_sf_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -130,7 +133,7 @@ pub fn hashmap_str_fn_contains(m: HashMap<String, fn(i32) -> i32>, key: String) 
     found
 }
 
-pub fn hashmap_str_fn_remove(
+fn hashmap_str_fn_remove(
     m: HashMap<String, fn(i32) -> i32>,
     key: String
 ) -> Option<fn(i32) -> i32> {
@@ -162,12 +165,12 @@ pub fn hashmap_str_fn_remove(
     result
 }
 
-pub fn hashmap_str_fn_len(m: HashMap<String, fn(i32) -> i32>) -> i32 {
+fn hashmap_str_fn_len(m: HashMap<String, fn(i32) -> i32>) -> i32 {
     __hm_sf_size(m)
 }
 
 /// Return a Vec<String> of all keys currently in a HashMap<String, fn>.
-pub fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
+fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
     let cap: i32 = __hm_sf_cap(m)
     let result: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
@@ -182,7 +185,7 @@ pub fn hashmap_str_fn_keys(m: HashMap<String, fn(i32) -> i32>) -> Vec<String> {
 
 /// Return a Vec<fn(i32) -> i32> of all values currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_fn_values(m: HashMap<String, fn(i32) -> i32>) -> Vec<fn(i32) -> i32> {
+fn hashmap_str_fn_values(m: HashMap<String, fn(i32) -> i32>) -> Vec<fn(i32) -> i32> {
     let cap: i32 = __hm_sf_cap(m)
     let result: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
     let mut i: i32 = 0
@@ -197,7 +200,7 @@ pub fn hashmap_str_fn_values(m: HashMap<String, fn(i32) -> i32>) -> Vec<fn(i32) 
 
 /// Return a Vec<(String, fn(i32) -> i32)> snapshot of all entries.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_str_fn_entries(m: HashMap<String, fn(i32) -> i32>) -> Vec<(String, fn(i32) -> i32)> {
+fn hashmap_str_fn_entries(m: HashMap<String, fn(i32) -> i32>) -> Vec<(String, fn(i32) -> i32)> {
     let cap: i32 = __hm_sf_cap(m)
     let result: Vec<(String, fn(i32) -> i32)> = Vec::new<(String, fn(i32) -> i32)>()
     let mut i: i32 = 0
@@ -211,9 +214,8 @@ pub fn hashmap_str_fn_entries(m: HashMap<String, fn(i32) -> i32>) -> Vec<(String
 }
 
 /// Insert a function value and return the previous value if present.
-/// Same module-residence contract as `hash_fn::hashmap_i32_fn_insert`:
-/// `HashMap::insert` rewrites for this family resolve here (#874).
-pub fn hashmap_str_fn_insert(
+/// `HashMap::insert` lowering target for the String/fn family (#874).
+fn hashmap_str_fn_insert(
     m: HashMap<String, fn(i32) -> i32>,
     key: String,
     value: fn(i32) -> i32
@@ -223,6 +225,6 @@ pub fn hashmap_str_fn_insert(
     old
 }
 
-pub fn hashmap_str_fn_is_empty(m: HashMap<String, fn(i32) -> i32>) -> bool {
+fn hashmap_str_fn_is_empty(m: HashMap<String, fn(i32) -> i32>) -> bool {
     hashmap_str_fn_len(m) == 0
 }

@@ -239,7 +239,9 @@ fn is_void_returning_builtin(bare_name: String) -> bool {
     eq(clone(bare_name), "memory_fill") ||
     eq(clone(bare_name), "hashmap_set") ||
     eq(clone(bare_name), "hashmap_str_set") ||
-    eq(clone(bare_name), "hashmap_str_val_set") ||
+    eq(clone(bare_name), "hashmap_i32_str_set") ||
+    eq(clone(bare_name), "hashmap_i32_fn_set") ||
+    eq(clone(bare_name), "hashmap_str_fn_set") ||
     eq(clone(bare_name), "hashmap_str_str_set") ||
     eq(clone(bare_name), "hashmap_clear") ||
     eq(clone(bare_name), "hashset_insert") ||

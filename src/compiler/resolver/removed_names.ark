@@ -16,13 +16,28 @@ pub fn removed_name_hint(name: String) -> String {
     return removed_gated_prelude_hint(name)
 }
 
-fn removed_name_specific_hint(name: String) -> String {
-    if text::starts_with(clone(name), String_from("HashMap_")) {
-        return text::concat(
-            String_from("removed HashMap builtin; use `HashMap::new<K, V>()` plus receiver methods "),
+fn hashmap_method_replacement_hint() -> String {
+    text::concat(
+        String_from("removed HashMap helper; use `HashMap::new<K, V>()` plus receiver methods "),
+        text::concat(
             String_from("(`m.insert(k, v)`, `m.get(k)`, `m.contains_key(k)`, `m.remove(k)`, `m.len()`, "),
             String_from("`m.is_empty()`, `m.keys()`, `m.values()`, `m.entries()`)")
         )
+    )
+}
+
+fn removed_name_specific_hint(name: String) -> String {
+    if text::starts_with(clone(name), String_from("HashMap_")) {
+        return hashmap_method_replacement_hint()
+    }
+    // The typed hash_map::/hash_string::/hash_fn::/hash_str_fn:: adapters were
+    // retired by #917; their names now only exist as non-public MIR lowering
+    // targets, so a source call is an E0100 removal.
+    if text::starts_with(clone(name), String_from("hashmap_str_")) ||
+    text::starts_with(clone(name), String_from("hashmap_i32_str_")) ||
+    text::starts_with(clone(name), String_from("hashmap_i32_fn_")) ||
+    text::starts_with(clone(name), String_from("hashmap_str_fn_")) {
+        return hashmap_method_replacement_hint()
     }
     if eq(clone(name), "concat") { return "removed prelude wrapper; call `text::concat(a, b)` via `use std::text`, or `a.text::concat(b)`" }
     if eq(clone(name), "clear") { return "removed free function; use the Vec method `v.clear()`" }
@@ -109,6 +124,12 @@ fn removed_name_specific_hint(name: String) -> String {
 // per-module entries here so ADR-085 Phase F removals still produce an E0100
 // migration hint instead of a bare "undefined module member".
 pub fn removed_module_member_hint(module: String, name: String) -> String {
+    if eq(clone(module), "hash_map") ||
+    eq(clone(module), "hash_string") ||
+    eq(clone(module), "hash_fn") ||
+    eq(clone(module), "hash_str_fn") {
+        return hashmap_method_replacement_hint()
+    }
     if eq(clone(module), "wit") || eq(clone(module), "types") {
         return removed_wit_type_member_hint(name)
     }
@@ -357,6 +378,22 @@ test mod "removed_names" {
         assert(len(removed_name_hint("HashMap_i32_i32_new")) > 0)
         assert(len(removed_name_hint("HashMap_new_String_i32")) > 0)
         assert(len(removed_name_hint("HashMap_String_fn_get")) > 0)
+    }
+    test "removed hash adapters have method hints" {
+        assert(len(removed_name_hint("hashmap_str_i32_new")) > 0)
+        assert(len(removed_name_hint("hashmap_i32_str_get")) > 0)
+        assert(len(removed_name_hint("hashmap_str_str_keys")) > 0)
+        assert(len(removed_name_hint("hashmap_i32_fn_insert")) > 0)
+        assert(len(removed_name_hint("hashmap_str_fn_is_empty")) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_map"), String_from("hashmap_str_i32_new"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_string"), String_from("hashmap_str_get"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_fn"), String_from("hashmap_i32_fn_get"))) > 0)
+        assert(len(removed_module_member_hint(String_from("hash_str_fn"), String_from("hashmap_str_fn_get"))) > 0)
+    }
+    test "live hashmap methods keep no removal hint" {
+        assert(len(removed_name_hint("insert")) == 0)
+        assert(len(removed_name_hint("contains_key")) == 0)
+        assert(len(removed_module_member_hint(String_from("hash"), String_from("hashmap_new"))) == 0)
     }
     test "io env fs" {
         assert(len(removed_name_hint("read_to_string")) > 0)

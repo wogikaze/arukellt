@@ -1,21 +1,20 @@
-// Typed map: i32->String basic operations
-use std::collections::hash_map
+// HashMap<i32, String> method surface: insert/get/contains_key/len.
 use std::test
 
 fn main() {
-    let m = hash_map::hashmap_i32_str_new()
-    hash_map::hashmap_i32_str_insert(m, 1, "one")
-    hash_map::hashmap_i32_str_insert(m, 2, "two")
+    let m = HashMap::new<i32, String>()
+    let _ = m.insert(1, "one")
+    let _ = m.insert(2, "two")
 
-    test::assert_eq_i32(hash_map::hashmap_i32_str_len(m), 2)
-    test::assert_true(hash_map::hashmap_i32_str_contains(m, 1))
-    test::assert_false(hash_map::hashmap_i32_str_contains(m, 99))
+    test::assert_eq_i32(m.len(), 2)
+    test::assert_true(m.contains_key(1))
+    test::assert_false(m.contains_key(99))
 
-    match hash_map::hashmap_i32_str_get(m, 1) {
+    match m.get(1) {
         Option::Some(v) => test::assert_eq_string(v, "one"),
         None => panic("expected Some(one)"),
     }
-    match hash_map::hashmap_i32_str_get(m, 2) {
+    match m.get(2) {
         Option::Some(v) => test::assert_eq_string(v, "two"),
         None => panic("expected Some(two)"),
     }

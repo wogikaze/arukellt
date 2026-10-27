@@ -1,11 +1,14 @@
-//! HashMap<i32, fn> helpers for GC funcref value ABI (#833).
+//! HashMap<i32, fn> implementation for GC funcref value ABI (#833).
 //!
 //! Kept separate from `hash_string.ark` so stage-2 rebuilds that still load
 //! String-keyed maps do not require the previous compiler to know `__hm_if_*`.
+//! The functions here are non-public MIR lowering targets for the
+//! `impl HashMap<K, V>` methods; the user spelling is `HashMap::new<K, V>()`
+//! plus receiver methods.
 
 use std::core::hash
 
-pub fn hashmap_i32_fn_new() -> HashMap<i32, fn(i32) -> i32> {
+fn hashmap_i32_fn_new() -> HashMap<i32, fn(i32) -> i32> {
     __hm_if_new()
 }
 
@@ -33,7 +36,7 @@ fn hm_if_ensure_insert_capacity(m: HashMap<i32, fn(i32) -> i32>, key: i32) {
 }
 
 /// i32→fn set: grows before the load factor exceeds 0.75 (#895).
-pub fn hashmap_i32_fn_set(m: HashMap<i32, fn(i32) -> i32>, key: i32, value: fn(i32) -> i32) -> bool {
+fn hashmap_i32_fn_set(m: HashMap<i32, fn(i32) -> i32>, key: i32, value: fn(i32) -> i32) -> bool {
     hm_if_ensure_insert_capacity(m, key)
     hashmap_i32_fn_set_probe(m, key, value)
 }
@@ -68,7 +71,7 @@ fn hashmap_i32_fn_set_probe(m: HashMap<i32, fn(i32) -> i32>, key: i32, value: fn
     done
 }
 
-pub fn hashmap_i32_fn_get(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<fn(i32) -> i32> {
+fn hashmap_i32_fn_get(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<fn(i32) -> i32> {
     let cap: i32 = __hm_if_cap(m)
     let hashed: i32 = key.hash()
     let mut idx: i32 = hashed % cap
@@ -95,7 +98,7 @@ pub fn hashmap_i32_fn_get(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<f
     result
 }
 
-pub fn hashmap_i32_fn_contains(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> bool {
+fn hashmap_i32_fn_contains(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> bool {
     let cap: i32 = __hm_if_cap(m)
     let h: i32 = key.hash()
     let mut idx: i32 = h % cap
@@ -122,7 +125,7 @@ pub fn hashmap_i32_fn_contains(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> boo
     found
 }
 
-pub fn hashmap_i32_fn_remove(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<fn(i32) -> i32> {
+fn hashmap_i32_fn_remove(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Option<fn(i32) -> i32> {
     let cap: i32 = __hm_if_cap(m)
     let hashed: i32 = key.hash()
     let mut idx: i32 = hashed % cap
@@ -151,12 +154,12 @@ pub fn hashmap_i32_fn_remove(m: HashMap<i32, fn(i32) -> i32>, key: i32) -> Optio
     result
 }
 
-pub fn hashmap_i32_fn_len(m: HashMap<i32, fn(i32) -> i32>) -> i32 {
+fn hashmap_i32_fn_len(m: HashMap<i32, fn(i32) -> i32>) -> i32 {
     __hm_if_size(m)
 }
 
 /// Return a Vec<i32> of all keys currently in a HashMap<i32, fn>.
-pub fn hashmap_i32_fn_keys(m: HashMap<i32, fn(i32) -> i32>) -> Vec<i32> {
+fn hashmap_i32_fn_keys(m: HashMap<i32, fn(i32) -> i32>) -> Vec<i32> {
     let cap: i32 = __hm_if_cap(m)
     let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
@@ -171,7 +174,7 @@ pub fn hashmap_i32_fn_keys(m: HashMap<i32, fn(i32) -> i32>) -> Vec<i32> {
 
 /// Return a Vec<fn(i32) -> i32> of all values currently in the map.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_fn_values(m: HashMap<i32, fn(i32) -> i32>) -> Vec<fn(i32) -> i32> {
+fn hashmap_i32_fn_values(m: HashMap<i32, fn(i32) -> i32>) -> Vec<fn(i32) -> i32> {
     let cap: i32 = __hm_if_cap(m)
     let result: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
     let mut i: i32 = 0
@@ -186,7 +189,7 @@ pub fn hashmap_i32_fn_values(m: HashMap<i32, fn(i32) -> i32>) -> Vec<fn(i32) -> 
 
 /// Return a Vec<(i32, fn(i32) -> i32)> snapshot of all entries.
 /// Bucket order is implementation-defined; callers must not rely on it.
-pub fn hashmap_i32_fn_entries(m: HashMap<i32, fn(i32) -> i32>) -> Vec<(i32, fn(i32) -> i32)> {
+fn hashmap_i32_fn_entries(m: HashMap<i32, fn(i32) -> i32>) -> Vec<(i32, fn(i32) -> i32)> {
     let cap: i32 = __hm_if_cap(m)
     let result: Vec<(i32, fn(i32) -> i32)> = Vec::new<(i32, fn(i32) -> i32)>()
     let mut i: i32 = 0
@@ -200,10 +203,8 @@ pub fn hashmap_i32_fn_entries(m: HashMap<i32, fn(i32) -> i32>) -> Vec<(i32, fn(i
 }
 
 /// Insert a function value and return the previous value if present.
-/// Canonical `HashMap::insert` adapter target for the i32/fn family:
-/// kept in `hash_fn` (not `hash_map`) so method rewrites resolve inside
-/// the module callers must already import to construct the map (#874).
-pub fn hashmap_i32_fn_insert(
+/// `HashMap::insert` lowering target for the i32/fn family (#874).
+fn hashmap_i32_fn_insert(
     m: HashMap<i32, fn(i32) -> i32>,
     key: i32,
     value: fn(i32) -> i32
@@ -213,6 +214,6 @@ pub fn hashmap_i32_fn_insert(
     old
 }
 
-pub fn hashmap_i32_fn_is_empty(m: HashMap<i32, fn(i32) -> i32>) -> bool {
+fn hashmap_i32_fn_is_empty(m: HashMap<i32, fn(i32) -> i32>) -> bool {
     hashmap_i32_fn_len(m) == 0
 }

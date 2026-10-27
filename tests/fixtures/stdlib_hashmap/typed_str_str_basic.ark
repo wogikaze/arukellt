@@ -1,21 +1,20 @@
-// Typed map: String->String basic operations
-use std::collections::hash_map
+// HashMap<String, String> method surface: insert/get/contains_key/len.
 use std::test
 
 fn main() {
-    let m = hash_map::hashmap_str_str_new()
-    hash_map::hashmap_str_str_insert(m, "en", "hello")
-    hash_map::hashmap_str_str_insert(m, "fr", "bonjour")
+    let m = HashMap::new<String, String>()
+    let _ = m.insert("en", "hello")
+    let _ = m.insert("fr", "bonjour")
 
-    test::assert_eq_i32(hash_map::hashmap_str_str_len(m), 2)
-    test::assert_true(hash_map::hashmap_str_str_contains(m, "en"))
-    test::assert_false(hash_map::hashmap_str_str_contains(m, "de"))
+    test::assert_eq_i32(m.len(), 2)
+    test::assert_true(m.contains_key("en"))
+    test::assert_false(m.contains_key("de"))
 
-    match hash_map::hashmap_str_str_get(m, "en") {
+    match m.get("en") {
         Option::Some(v) => test::assert_eq_string(v, "hello"),
         None => panic("expected Some(hello)"),
     }
-    match hash_map::hashmap_str_str_get(m, "fr") {
+    match m.get("fr") {
         Option::Some(v) => test::assert_eq_string(v, "bonjour"),
         None => panic("expected Some(bonjour)"),
     }

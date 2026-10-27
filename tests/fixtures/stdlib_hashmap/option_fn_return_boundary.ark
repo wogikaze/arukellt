@@ -3,7 +3,6 @@
 // allocates `Some` with the {fnptr, env} pair payload; a bare `option:`
 // scrutinee type made match cast to the generic enum-base variant and
 // trap at runtime on both backends.
-use std::collections::hash_fn
 use std::host::stdio
 
 fn double(x: i32) -> i32 {
@@ -26,7 +25,7 @@ fn apply_or_zero(f: Option<fn(i32) -> i32>, x: i32) -> i32 {
 }
 
 fn main() {
-    let m = hash_fn::hashmap_i32_fn_new()
+    let m = HashMap::new<i32, fn(i32) -> i32>()
     let _ = m.insert(1, double)
 
     // Option<fn> produced inside one function, matched in the caller.

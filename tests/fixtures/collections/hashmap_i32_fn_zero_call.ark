@@ -1,4 +1,3 @@
-use std::collections::hash_fn
 use std::host::stdio
 
 struct FnHolder {
@@ -14,9 +13,9 @@ fn apply0(f: fn() -> i32) -> i32 {
 }
 
 fn main() {
-    let m = hash_fn::hashmap_i32_fn_new()
-    let _ = hash_fn::hashmap_i32_fn_set(m, 1, answer)
-    match hash_fn::hashmap_i32_fn_get(m, 1) {
+    let m = HashMap::new<i32, fn(i32) -> i32>()
+    let _ = m.insert(1, answer)
+    match m.get(1) {
         Some(f) => stdio::println((f()).to_string()),
         None => stdio::println("missing"),
     }

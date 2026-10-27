@@ -14,12 +14,14 @@ fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverCo
     module_state::LoadState_set_cache_dir(load_state, config_record::config_cache_dir(config))
     module_graph::load_stdlib_module("std::prelude", load_state)
     module_graph::load_imported_modules(decls, config_record::config_source_dir(config), load_state)
-    // Canonical v2 HashMap syntax lowers into the dedicated adapter module.
-    // The module imports the hash implementations it dispatches to, so a
-    // source that only writes `HashMap::` and receiver methods loads the
-    // whole family transitively.
+    // Canonical v2 HashMap syntax lowers into the dedicated method-shell
+    // module. The per-pair MIR lowering targets live in the implementation
+    // modules, so load them explicitly: hash_map no longer imports them.
     if contains(clone(source), "HashMap::") {
         module_graph::load_stdlib_module("std::collections::hash_map", load_state)
+        module_graph::load_stdlib_module("std::collections::hash_string", load_state)
+        module_graph::load_stdlib_module("std::collections::hash_fn", load_state)
+        module_graph::load_stdlib_module("std::collections::hash_str_fn", load_state)
     }
     if contains(clone(source), "HashSet_") {
         module_graph::load_stdlib_module("std::collections::hash", load_state)
